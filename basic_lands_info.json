@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Plains",
+    "type_line": "Basic Land \u2014 Plains",
+    "oracle_text": "({T}: Add {W}.)",
+    "image_url": "https://cards.scryfall.io/normal/front/1/1/1164f7ec-7b2f-4cc9-90bb-7eaaa331b4cd.jpg?1753472168"
+  },
+  {
+    "name": "Island",
+    "type_line": "Basic Land \u2014 Island",
+    "oracle_text": "({T}: Add {U}.)",
+    "image_url": "https://cards.scryfall.io/normal/front/1/4/14fcdc57-12e2-429b-8916-4df752e462d4.jpg?1753310114"
+  },
+  {
+    "name": "Swamp",
+    "type_line": "Basic Land \u2014 Swamp",
+    "oracle_text": "({T}: Add {B}.)",
+    "image_url": "https://cards.scryfall.io/normal/front/5/c/5cb03b18-d74c-4c89-9539-3549d2e8ff5f.jpg?1753472286"
+  },
+  {
+    "name": "Mountain",
+    "type_line": "Basic Land \u2014 Mountain",
+    "oracle_text": "({T}: Add {R}.)",
+    "image_url": "https://cards.scryfall.io/normal/front/b/0/b044630d-50e7-431b-8e91-bd53e967f594.jpg?1753472303"
+  },
+  {
+    "name": "Forest",
+    "type_line": "Basic Land \u2014 Forest",
+    "oracle_text": "({T}: Add {G}.)",
+    "image_url": "https://cards.scryfall.io/normal/front/7/b/7b6c2532-be5a-4f1f-893c-36bcda2a699d.jpg?1753472334"
+  }
+]

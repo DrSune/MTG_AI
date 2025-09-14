@@ -1,0 +1,5 @@
+yt_scraping/data/videos/*
+wandb/*
+basic_land_images/*
+mtg_datasets/*
+PP_env/*

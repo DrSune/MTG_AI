@@ -1,0 +1,30 @@
+Optical Flow analysis
+Gradient analysis 
+Black/white modifications
+Bounding boxess
+Overlay cards on random backgrounds
+Hard negative mining: Actively seek out and include examples where cards are confused, or where the model fails.
+
+Vector database:
+For most use cases, a few (5–20) diverse, real examples per card is plenty.
+If you have hundreds per card, consider clustering (e.g., k-means) and using cluster centroids for speed, but keep the raw examples for best accuracy if storage and speed allow.
+
+NO BACKGROUND in vector database - MUST BE PURE CARD == nothing else
+INCLUDE background in training samples
+
+"Which card could this be based on its mana cost?"
+
+
+======= DATA APPROACH ========
+Bounding box algorithm to extract cards from backgrounds (use pretrained?)
+Use OCR to extract text from card name, typing and ability text field (possibly others)
+Match names with scryfall database (if printing important, only use cards with 1 printing total)
+Find more data by scrapin YT or Tik tok videos, or forums where people post pictures of their cards in general
+
+Use playing videos, and CARD OPENINGS (MORE RANDOM THAN DECKS)
+
+======= DATA APPROACH END =======
+
+ I also want you to create a save-able database (probably excel) for the tracked/found cards, to track the number of examples I have of each card (per-name or per-unique card/set?)
+ Also give me your thoughts on how to name images of cards (both single-card images and multi-card images) in a meaningful manner than is maximally useful for further processing or other use
+ 

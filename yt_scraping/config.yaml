@@ -1,0 +1,18 @@
+search_keywords:
+  - "mtg paper gameplay"
+  - "mtg commander real life match"
+  - "mtg modern tournament"
+  - "magic gathering pack opening"
+
+video_download:
+  max_results_per_query: 10
+  resolution: 1080   # Max height in pixels
+  video_format: "mp4"
+  download_folder: "data/videos"
+
+frame_extraction:
+  interval_seconds: 2
+  output_folder: "data/frames"
+  scale_width: 1280  # Set to null to keep original
+
+ffmpeg_path: "ffmpeg"  # Path to FFmpeg binary
