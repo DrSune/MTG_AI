@@ -1,0 +1,89 @@
+# MTG Bot - Core Concepts & Architecture
+
+## 1. Hybrid Architecture
+- **Deterministic Rule Engine (The "Judge"):** The source of truth for all game rules. It is not "intelligent." Its purpose is to manage the game state, enforce rules (stack, priority, phases), and generate a list of all possible legal moves at any given moment. This must be a hard-coded, logical system.
+- **Strategic Brain (The "Player"):** A machine learning system that evaluates the game state and chooses the best move from the list of legal moves provided by the Judge. This is where all the "intelligence" resides.
+
+## 2. The Strategic Brain - Key Components
+
+### a. State Representation
+- The input to the brain is a comprehensive "state vector" created by combining vector embeddings of cards from all known zones (hand, board, graveyard, exile) for both players.
+- Game context like life totals and turn number are also included.
+
+### b. Multi-Headed Evaluation Function
+- Instead of a single score, the model outputs multiple heuristics to guide its decision-making. This is the core of the bot's intelligence.
+- **Synergy Score:** Measures how well cards work together. Crucial for deckbuilding and evaluating the potential of a hand or board.
+- **Impact Score:** Measures the contextual, tactical value of a card or play. Acknowledges that a card's relevance changes dramatically based on the game state (e.g., a burn spell is high impact when the opponent's life is low).
+- **Threat Score:** Evaluates the opponent's board to identify pressing dangers.
+- **Potential/Future Score:** Assesses the likelihood of drawing synergistic or high-impact cards from the remaining deck.
+
+### c. Opponent Modeling
+- **Archetype Detection:** Classify the opponent's deck based on the cards they play.
+- **Probabilistic Inference:** Based on the detected archetype, estimate the probabilities of cards in the opponent's hand to play around potential threats.
+
+### d. Decision Making & Search
+- The evaluation scores are used as a powerful heuristic to prune a search tree (e.g., using Monte Carlo Tree Search - MCTS).
+- By filtering out low-synergy or low-impact moves early, the bot can focus its computational power on exploring the most promising lines of play.
+
+### e. State-Aware Strategy ("Hail Mary" Logic)
+- The bot must be able to identify its own state (winning, even, losing, desperate).
+- In desperate states, the strategy should shift from maximizing average value to maximizing the probability of drawing a specific "out," even if it's a low-probability, high-risk play.
+
+## 3. Development Plan
+- **Goal:** Prepare the architecture for eventual Reinforcement Learning (RL).
+- **Phase 0:** Build the foundational Rule Engine with a tiny subset of cards ("Vanilla Magic").
+- **Phase 1:** Implement the card embedding and the multi-headed evaluation function.
+- **Phase 2:** Integrate the evaluation function with a search algorithm (MCTS) to create the full Strategic Brain.
+- **Phase 3:** Train and refine the evaluation function using RL.
+
+---
+
+## 4. Advanced RL Architecture
+
+Based on further discussion, the goal is to move away from hand-crafting separate "Synergy" and "Impact" scores as model inputs. Instead, we will build a single, end-to-end model that learns these concepts implicitly.
+
+- **Core Principle:** Don't feed the model the answers (pre-computed scores); feed it the raw data and let it learn the concepts of synergy, impact, and urgency on its own by trying to predict the final outcome (winning or losing).
+
+- **Unified Model Architecture:** `GameState -> [Transformer-based Feature Extractor] -> [Actor Head + Critic Head]`
+
+- **Implicit Synergy Learning:** The **Transformer-based Feature Extractor** is the core of the model. It takes the entire game state (represented as a sequence of card embeddings and game variables) and uses self-attention to learn the complex, non-linear relationships between all game pieces. This is how it will implicitly learn synergy and solve the "missing link" problem.
+
+- **Implicit Impact & Urgency Learning:** The **Critic Head** learns the value function `V(state)`, which is the estimated probability of winning from the current state. This value *is* the learned representation of impact and urgency. A game state where a `Lightning Bolt` wins the game is inherently a high-value state, and the Critic will learn this.
+
+- **Implicit Effect Search:** The **Actor Head** learns the policy `π(action|state)`. It takes the rich, contextualized output of the feature extractor and scores each legal move provided by the Rule Engine. It will learn to assign higher scores to moves that solve the problems identified in the game state (e.g., scoring a "destroy" effect higher when facing a major threat). This is a learned, goal-oriented effect search.
+
+- **Training Method:** This end-to-end model will be trained via **Self-Play** using an **Actor-Critic** algorithm (e.g., PPO).
+
+### 4a. Solving the State Serialization Problem
+
+- **The "Entity-Component" Model:** We will not use a fixed-size vector for each card. Instead, every object in the game becomes a distinct **Entity**.
+    - **Examples:** `Player_1`, `Grizzly_Bears_on_battlefield`, `+1/+1_counter_on_GB`, `Flying_aura_on_GB`, `Lightning_Bolt_in_hand` are all separate entities.
+    - **Benefit:** This is infinitely scalable. New keywords or counter types are just new entities; the model architecture does not change.
+- **Input Sequence:** The input to the Transformer is a sequence of the embeddings of all current entities in the game, padded to a max length.
+- **Encoding Relationships:** The game state is a graph (a counter is *on* a creature; an aura is *attached to* a creature). We will encode these relationships by adding a **Relational Bias** to the Transformer's attention mechanism. This forces the model to learn the structure of the game rules by biasing its attention towards linked entities.
+
+## 5. Model Terminology & Data Flow
+
+- **Vectorization:** The overall process of converting the non-numeric `GameGraph` into numbers the model can process.
+- **Step 1: Tokenization:** We traverse the `GameGraph` and "flatten" it into a sequence of integer IDs (tokens) from our vocabulary. `GameGraph -> [1001, 6001, 1002, ...]`.
+- **Step 2: Embedding:** A learnable layer (`nn.Embedding`) acts as a lookup table. It takes the sequence of integer IDs and converts each one into a dense vector. `[1001, 6001, ...] -> [[0.1, -0.4, ...], [0.8, 0.2, ...], ...]`. This is the input for the Transformer.
+- **Step 3: Encoding:** The Transformer network processes the sequence of simple vectors. Its output is a sequence of **contextualized vectors** (encodings). Each vector now contains information about its own identity plus its relationship to everything else in the sequence.
+
+## 6. Hybrid Card Representation
+
+To get the best of both worlds (unique identity and generalization), we use a hybrid representation for cards.
+
+- **Atomic + Component:** A card is represented by a sequence of tokens: its unique (atomic) ID, followed by its component IDs.
+- **Example:** `Tarmogoyf` could be tokenized as `[id_Tarmogoyf, id_Creature, id_Lhurgoyf, id_Cost_1G, id_Power_Star, id_Toughness_Star]`.
+- **Benefit:** The model has a unique token (`id_Tarmogoyf`) to which it can attach the card's very specific rules text (e.g., "count card types in graveyards"). It also sees the components (`id_Creature`, `id_Cost_1G`), allowing it to generalize `Tarmogoyf`'s behavior based on other creatures it has seen.
+- **Why Pure Components Fail:** A card like `Maro` also has `*/*` power. A pure component model would see `id_Power_Star` for both `Tarmogoyf` and `Maro` and would be unable to learn that one `*` depends on graveyards and the other on hand size. The unique atomic ID is required to anchor these unique, complex abilities.
+
+## 7. Compositional Representation (Advanced)
+
+This is an enhancement to the component model that dramatically improves scalability and generalization.
+
+- **Principle (Compositionality):** Instead of a unique token for every effect (e.g., `id_power_is_hand_size`), we create primitive tokens that can be combined.
+- **Example:** An ability like "Power is equal to the number of cards in your hand" is decomposed into `[id_sets_power, id_source_my_hand, id_count_cards]`.
+- **Benefit 1 (Vocabulary Control):** This prevents the vocabulary from exploding. We only need tokens for primitives (`sets_power`, `source_my_hand`), not every possible combination.
+- **Benefit 2 (Generalization):** The model can learn the meaning of `id_source_my_hand` independently and apply that knowledge to a brand new, unseen card that uses the same component.
+- **New Challenge (The "Binding Problem"):** This approach creates ambiguity in the flattened sequence. The model needs to know which ability components belong to which card. This is solved by the **Relational Graph** structure, where `is_ability_of` edges explicitly link components to their parent card. The Relational Transformer uses this graph to resolve the ambiguity.

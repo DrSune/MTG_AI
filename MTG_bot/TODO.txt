@@ -1,0 +1,71 @@
+# MTG Bot Implementation Plan
+
+This is a step-by-step guide to building the project, starting with the simplest possible foundation and building up in complexity.
+
+---
+
+### PHASE 0: The "Vanilla" Foundation
+**Goal:** Get the simplest action ("Play a Land") working. This validates that the core data structures (`GameGraph`) and the main engine loop (`get_legal_moves`) are functioning correctly.
+
+**[ ] 1. Define Core Vocabulary**
+    - **File:** `rule_engine/vocabulary.py` (new file)
+    - **Keywords:** Integer constants, IDs.
+    - **Hint:** Define the absolute minimum IDs needed: `ID_CARD_FOREST`, `ID_ZONE_HAND`, `ID_ZONE_BATTLEFIELD`, `ID_REL_IS_IN_ZONE`, `ID_REL_CONTROLS`. This is the language the rest of the system will speak.
+
+**[ ] 2. Implement Basic GameGraph Setup**
+    - **File:** `rule_engine/game_graph.py`
+    - **Keywords:** `Entity`, `Relationship`, initialize game, decklist.
+    - **Hint:** Focus on the logic to start a game: create player entities, create card entities from a decklist, and build the relationships to place cards in the library and draw an opening hand.
+
+**[ ] 3. Implement "Play Land" Action**
+    - **File:** `rule_engine/engine.py`
+    - **Keywords:** `get_legal_moves`, "one land per turn" rule, state change.
+    - **Hint:** This is the first end-to-end test. The engine must query the graph to find a land in hand and check the "one land per turn" rule. Executing the move must correctly update the card's zone in the graph.
+
+---
+
+### PHASE 1: Creatures & Combat
+**Goal:** Get creatures on the board and have them interact in a simple combat sequence.
+
+**[ ] 4. Expand Vocabulary for Combat**
+    - **File:** `rule_engine/vocabulary.py`
+    - **Keywords:** `ID_CARD_GRIZZLY_BEARS`, `ID_ABILITY_HASTE`, `ID_REL_HAS_ABILITY`.
+    - **Hint:** Add IDs for a simple creature and the abilities needed to test core combat rules like summoning sickness.
+
+**[ ] 5. Implement Creature Casting**
+    - **Files:** `rule_engine/engine.py`, `rule_engine/handlers/mana_handlers.py`
+    - **Keywords:** Mana cost, payment, `can_pay_cost`.
+    - **Hint:** This is the first action that requires a cost. It will force you to start implementing the mana system. The goal is to move a creature from hand to battlefield by paying its cost.
+
+**[ ] 6. Implement Core Combat Logic**
+    - **File:** `rule_engine/handlers/combat_handlers.py`
+    - **Keywords:** `get_legal_attackers`, summoning sickness, `turn_entered` property.
+    - **Hint:** Focus on `get_legal_attackers`. The logic must query the graph to check if a creature has the `Haste` ability relationship or if its `turn_entered` property is less than the current turn.
+
+---
+
+### PHASE 2: Continuous Effects & The Layer System
+**Goal:** Handle static effects that continuously modify the game state.
+
+**[ ] 7. Implement the Layer System**
+    - **Files:** `rule_engine/layer_system.py`, `rule_engine/handlers/continuous_effect_handlers.py`
+    - **Keywords:** `Giant Strength`, continuous effects, Layer 7.
+    - **Hint:** Begin this **only when** you add your first continuous effect (e.g., an aura like `Giant Strength`). Use that card as the concrete test case. The goal is to see a creature's power correctly modified by the aura after the Layer System runs.
+
+---
+
+### PHASE 3: The Strategic Brain (Parallel Track)
+**Goal:** Build the data pipeline and ML model architecture that will eventually play the game.
+
+**[ ] 8. Implement Card Data Parser**
+    - **Keywords:** MTGJSON, script, compositional components, vocabulary generation.
+    - **Hint:** This is the one-time "compiler" task. Write a script that reads the MTGJSON file and automatically generates your `vocabulary.py` file and a mapping of card names to their component ID lists based on their rules text.
+
+**[ ] 9. Build the Relational Transformer Model**
+    - **Directory:** `strategic_brain/`
+    - **Keywords:** PyTorch/TensorFlow, `nn.Embedding`, custom attention, relational bias, Actor-Critic.
+    - **Hint:** This is a major ML engineering task. Focus on creating the model class itself. It should take a sequence of entity IDs as input and have the custom relational attention mechanism we designed. The output will be the action scores (policy) and state value.
+
+---
+
+This is an iterative process. After completing a phase, you will repeat the cycle for the next piece of Magic's rules (e.g., the stack, instants, triggered abilities).
