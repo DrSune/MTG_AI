@@ -7,7 +7,7 @@ This is a step-by-step guide to building the project, starting with the simplest
 ### PHASE 0: The "Vanilla" Foundation
 **Goal:** Get the simplest action ("Play a Land") working. This validates that the core data structures (`GameGraph`) and the main engine loop (`get_legal_moves`) are functioning correctly.
 
-**[ ] 1. Define Core Vocabulary**
+**[x] 1. Define Core Vocabulary**
     - **File:** `rule_engine/vocabulary.py` (new file)
     - **Keywords:** Integer constants, IDs.
     - **Hint:** Define the absolute minimum IDs needed: `ID_CARD_FOREST`, `ID_ZONE_HAND`, `ID_ZONE_BATTLEFIELD`, `ID_REL_IS_IN_ZONE`, `ID_REL_CONTROLS`. This is the language the rest of the system will speak.
