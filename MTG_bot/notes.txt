@@ -87,3 +87,23 @@ This is an enhancement to the component model that dramatically improves scalabi
 - **Benefit 1 (Vocabulary Control):** This prevents the vocabulary from exploding. We only need tokens for primitives (`sets_power`, `source_my_hand`), not every possible combination.
 - **Benefit 2 (Generalization):** The model can learn the meaning of `id_source_my_hand` independently and apply that knowledge to a brand new, unseen card that uses the same component.
 - **New Challenge (The "Binding Problem"):** This approach creates ambiguity in the flattened sequence. The model needs to know which ability components belong to which card. This is solved by the **Relational Graph** structure, where `is_ability_of` edges explicitly link components to their parent card. The Relational Transformer uses this graph to resolve the ambiguity.
+
+## 8. Advanced RL Agent - Parameterized Action Space
+
+This section details the architecture for handling complex actions with choices (e.g., paying variable 'X' costs, choosing targets, or selecting mana types).
+
+- **Core Principle:** Instead of a single, massive flat action space, the agent uses a "Parameterized Action Space." This decouples the decision of *what* action to take from the decision of *how* to take it (i.e., which parameters to use).
+
+- **The Process:**
+    1.  **Engine Describes Choices:** When an action requires a choice, the `get_legal_actions` method returns a special `ChoiceRequiredAction` object. This object contains metadata describing the choice, such as the type (`range`, `mana_type`) and valid options (`min`/`max`, list of colors).
+    2.  **Multi-Headed Policy Network:** The RL agent's network has multiple "heads" for making decisions:
+        -   **Base Action Head:** This head receives the encoded game state (`S`) and selects a *base action* to perform (e.g., "I want to activate the `PayXLife` ability").
+        -   **Parameter Heads:** For each *category* of choice (e.g., choosing 'X', choosing a target, choosing mana), there is a specialized head. These heads are **conditioned on the base action**, meaning they receive both the state vector `S` and an identifier for the action they are parameterizing.
+    3.  **Contextual Parameter Selection:** The agent's logic iterates through the top-k most likely base actions. For each one, it invokes the appropriate parameter head to get a context-specific parameter choice.
+        -   *Example:* The 'X' Value Head might choose `X=3` for a "draw cards" ability but `X=5` for a "create tokens" ability in the exact same game state, because it is conditioned on the specific ability being considered.
+    4.  **Final Evaluation (Q-Function):** The agent constructs a few of the most likely *complete* candidate actions (base action + its chosen parameters). It then uses a final Action-Value (Q-value) head to score these complete candidates (`Q(state, complete_action)`). The candidate with the highest Q-value is the final decision.
+
+- **Benefits for RL:**
+    -   **Efficiency:** Dramatically reduces the size of the action space, making learning more sample-efficient.
+    -   **Generalization:** The agent learns general skills for each category of choice (e.g., "how to choose a good target"), which it can apply to new, unseen cards.
+    -   **Power:** This approach allows the agent to solve the "joint optimization" problem, where the value of an action is highly dependent on the parameter chosen.

@@ -1,45 +1,51 @@
 """
-This file contains the logic for Magic's complex Layer System.
-It's responsible for applying all continuous effects in the correct order
-to determine the final characteristics of game objects.
+This file defines the Layer System, which is responsible for applying continuous effects
+in the correct order according to Magic: The Gathering rules.
 """
 
+from typing import Dict, Any
 from .game_graph import GameGraph
 from .rulebook import Rulebook
+from . import vocabulary as vocab
+from .card_database import CREATURE_STATS, CARD_ABILITIES, ABILITY_EFFECT_PARAMS
 
 class LayerSystem:
-    """Manages the resolution of continuous effects."""
+    """Applies continuous effects in the correct order (layers)."""
     def __init__(self, rulebook: Rulebook):
         self.rulebook = rulebook
 
     def apply_all_layers(self, graph: GameGraph):
-        """
-        The main function to resolve the state of the board.
-        It iterates through the layers in their official order.
-        """
-        # This is a simplified representation. A full implementation is extremely complex.
-        print("Applying layer system...")
+        """Applies all continuous effects to the game state in layer order."""
+        # For now, we only implement Layer 7 (Power/Toughness changing effects)
+        self._apply_layer_7(graph)
 
-        # Layer 1: Copy effects
-        self._apply_layer(graph, layer=1)
+    def _apply_layer_7(self, graph: GameGraph):
+        """Applies power/toughness changing effects (Layer 7)."""
+        # print("Applying layer system...")
+        all_creatures = [c for c in graph.entities.values() if c.type_id in CREATURE_STATS.keys()]
 
-        # Layer 2: Control-changing effects
-        self._apply_layer(graph, layer=2)
+        for creature in all_creatures:
+            # Reset effective P/T to base stats
+            base_stats = CREATURE_STATS.get(creature.type_id, {'power': 0, 'toughness': 0})
+            creature.properties['effective_power'] = base_stats['power']
+            creature.properties['effective_toughness'] = base_stats['toughness']
+            creature.properties['damage_taken'] = 0 # Reset damage for new P/T calculation
 
-        # Layer 3: Text-changing effects
-        self._apply_layer(graph, layer=3)
+            # Find Auras enchanting this creature
+            enchanting_auras = [graph.entities[r.source] for r in graph.get_relationships(target=creature, rel_type=vocab.ID_REL_ENCHANTED_BY)]
 
-        # Layer 4: Type-changing effects
-        self._apply_layer(graph, layer=4)
+            for aura in enchanting_auras:
+                # Check if the aura grants P/T bonuses
+                aura_abilities = CARD_ABILITIES.get(aura.type_id, [])
+                if vocab.ID_ABILITY_GRANT_P_T in aura_abilities:
+                    effect_params = ABILITY_EFFECT_PARAMS.get(vocab.ID_ABILITY_GRANT_P_T, {})
+                    power_bonus = effect_params.get('power_bonus', 0)
+                    toughness_bonus = effect_params.get('toughness_bonus', 0)
 
-        # Layer 5: Color-changing effects
-        self._apply_layer(graph, layer=5)
+                    creature.properties['effective_power'] += power_bonus
+                    creature.properties['effective_toughness'] += toughness_bonus
 
-        # Layer 6: Ability-adding and -removing effects
-        self._apply_layer(graph, layer=6)
-
-        # Layer 7: Power- and/or toughness-changing effects
-        self._apply_power_toughness_layer(graph)
+        # print("Layer system applied.")
 
     def _apply_layer(self, graph: GameGraph, layer: int):
         """A generic function to apply effects for a given layer."""
