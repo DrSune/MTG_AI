@@ -78,6 +78,67 @@ To get the best of both worlds (unique identity and generalization), we use a hy
 - **Benefit:** The model has a unique token (`id_Tarmogoyf`) to which it can attach the card's very specific rules text (e.g., "count card types in graveyards"). It also sees the components (`id_Creature`, `id_Cost_1G`), allowing it to generalize `Tarmogoyf`'s behavior based on other creatures it has seen.
 - **Why Pure Components Fail:** A card like `Maro` also has `*/*` power. A pure component model would see `id_Power_Star` for both `Tarmogoyf` and `Maro` and would be unable to learn that one `*` depends on graveyards and the other on hand size. The unique atomic ID is required to anchor these unique, complex abilities.
 
+### 6a. Representing Dynamic Conditions and Target Filters
+
+To handle complex card interactions like "all Dogs..." or "if you control a Goblin King," we extend the hybrid representation to include structured objects for dynamic conditions and target filters. This allows the rule engine to evaluate these conditions against the game state at runtime.
+
+**A. For Type/Property-Based Interactions (e.g., "all Dogs you control get +1/+1"):**
+
+Instead of simple keywords, we define a `target_filter` object that specifies criteria.
+
+```json
+# Example: "All Dogs you control get +1/+1"
+{
+    "ability_type": "continuous_effect",
+    "effect": {
+        "type": "stat_modifier",
+        "power": 1,
+        "toughness": 1
+    },
+    "target_filter": {
+        "scope": "battlefield",
+        "conditions": [
+            {"property": "type", "value": "creature"},
+            {"property": "subtype", "value": "Dog"},
+            {"property": "controller", "value": "self"} # 'self' refers to the controller of the card with this ability
+        ]
+    }
+}
+```
+
+**B. For Card-Specific References (e.g., "if you control a 'Goblin King'"):**
+
+We define a `condition` object that checks for the presence or properties of a named card.
+
+```json
+# Example: "If you control a Goblin King, ~ gets +2/+2."
+{
+    "ability_type": "continuous_effect",
+    "effect": {
+        "type": "stat_modifier",
+        "power": 2,
+        "toughness": 2
+    },
+    "condition": {
+        "type": "card_presence",
+        "card_name": "Goblin King",
+        "zone": "battlefield",
+        "controller": "self"
+    },
+    "applies_to": "self" # The card itself gets the bonus
+}
+```
+
+**Parsing Strategy:**
+
+The `card_data_parser.py` will be responsible for:
+1.  **Identifying Keywords/Phrases:** Using regex and string matching to find patterns like "all X," "each Y," "if you control a Z," "card named A."
+2.  **Extracting Parameters:** From these phrases, extracting `type`, `subtype`, `controller`, `keyword`, `card_name`, `zone`, etc.
+3.  **Constructing Objects:** Building the structured `target_filter` or `condition` objects based on the extracted parameters.
+4.  **Handling Self-Reference (`~`):** Replacing `~` with a placeholder like `"self_card_name"` during parsing, which the rule engine will resolve.
+
+This structured approach allows the rule engine to dynamically query the game state based on these conditions, providing a flexible and scalable way to handle complex card interactions.
+
 ## 7. Compositional Representation (Advanced)
 
 This is an enhancement to the component model that dramatically improves scalability and generalization.
@@ -107,3 +168,28 @@ This section details the architecture for handling complex actions with choices 
     -   **Efficiency:** Dramatically reduces the size of the action space, making learning more sample-efficient.
     -   **Generalization:** The agent learns general skills for each category of choice (e.g., "how to choose a good target"), which it can apply to new, unseen cards.
     -   **Power:** This approach allows the agent to solve the "joint optimization" problem, where the value of an action is highly dependent on the parameter chosen.
+
+## 9. Card Data Parsing Strategy (Scalable Approach)
+
+To effectively parse the vast and complex rules text of Magic: The Gathering cards, a layered and iterative approach is necessary to ensure scalability and maintainability.
+
+### Layer 1: Structured Data Ingestion & Initial Keyword Extraction
+- **Leverage Existing Data:** Utilize structured JSON data from sources like Scryfall or MTGJSON (e.g., `data/M21.json`). This provides pre-parsed information such as card name, mana cost, type line, power/toughness, and often explicit keywords.
+- **Initial Pass on Rules Text:** Perform a first pass on the raw rules text to extract common, simple patterns:
+    - **Triggered Abilities:** Identify phrases like "When," "Whenever," "At" at the start of sentences.
+    - **Activated Abilities:** Recognize patterns like `[Cost]: [Effect]`.
+    - **Static Abilities:** Extract simple, single-word keywords not already provided by the structured data.
+
+### Layer 2: Rule-Based Semantic Extraction for Complexities
+- This layer focuses on extracting structured components for dynamic interactions (e.g., "all Dogs...", "if you control X").
+- **Pattern Library:** Develop a library of regular expressions and string patterns specifically designed to capture the structure of common complex abilities.
+    - **Target Filters:** Patterns for "all [type/subtype] [controller]..."
+    - **Card Name References:** Patterns for "card named [Card Name]" or "if you control a [Card Name]".
+    - **X-Cost Abilities:** Patterns to identify variable `X` in costs and effects.
+- **Vocabulary Integration:** Utilize `vocabulary.py` to validate and categorize extracted terms (e.g., confirming valid types, subtypes, keywords, zones).
+- **Iterative Refinement:** Implement extraction for the most common complex patterns first, then expand. The output of this layer should be the structured JSON objects for `target_filter` and `condition` as defined in Section 6a.
+
+### Layer 3: Handling Ambiguity and Edge Cases (Semi-Automated)
+- **Unparsed Text Queue:** Any rules text that does not match patterns from Layer 1 or 2 should be placed in an "unparsed" queue.
+- **Manual Review & Pattern Creation:** Regularly review the unparsed queue. For recurring patterns, create new rules for Layer 2. For truly unique or ambiguous abilities, manual tagging or very specific, narrow rules may be necessary.
+- **Robust Testing:** Implement a comprehensive test suite to verify that parsed abilities match expected structured outputs for a wide range of cards. This enables confident refactoring and expansion of the parser.
