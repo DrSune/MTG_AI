@@ -193,3 +193,54 @@ To effectively parse the vast and complex rules text of Magic: The Gathering car
 - **Unparsed Text Queue:** Any rules text that does not match patterns from Layer 1 or 2 should be placed in an "unparsed" queue.
 - **Manual Review & Pattern Creation:** Regularly review the unparsed queue. For recurring patterns, create new rules for Layer 2. For truly unique or ambiguous abilities, manual tagging or very specific, narrow rules may be necessary.
 - **Robust Testing:** Implement a comprehensive test suite to verify that parsed abilities match expected structured outputs for a wide range of cards. This enables confident refactoring and expansion of the parser.
+
+## 10. Unified Action Representation
+
+To create a simple and scalable architecture, all game actions (casting spells, activating abilities, and triggered abilities) should be represented by a single, unified data structure. This allows the rule engine to process actions in a generic way.
+
+### a. Proposed Structure
+
+The proposed structure for the `effects_json` column in the `cards` table is a list of action objects, where each object has a `source_type` to distinguish between different kinds of actions.
+
+**Spell:**
+```json
+{
+    "source_type": "spell",
+    "cost": "{1}{U}{U}",
+    "timing": "instant",
+    "effect": { /* ... effect structure ... */ }
+}
+```
+
+**Triggered Ability:**
+```json
+{
+    "source_type": "triggered_ability",
+    "trigger": { /* ... structured trigger condition ... */ },
+    "effect": { /* ... effect structure ... */ }
+}
+```
+
+**Activated Ability:**
+```json
+{
+    "source_type": "activated_ability",
+    "cost": "{T}",
+    "effect": { /* ... effect structure ... */ }
+}
+```
+
+### b. Handling Order of Operations
+
+A simple numerical ordering of effects is not sufficient to handle the complexities of Magic's timing rules, especially with instants and multiple triggered abilities.
+
+- **The Stack is Key:** The order of operations is determined by the stack. Spells and abilities are placed on the stack, and they resolve one by one. Players can respond to items on the stack by casting instants or activating abilities.
+- **AP-NAP Order:** When multiple abilities trigger at the same time, they are placed on the stack in Active Player, Non-Active Player (AP-NAP) order. The active player puts their triggers on the stack in any order they choose, followed by the non-active player.
+
+### c. Parser vs. Rule Engine Responsibilities
+
+- **Parser:** The parser is responsible for extracting the *structure* of the abilities, not for determining their order. It should parse trigger conditions into a structured format that the rule engine can understand.
+    - *Example:* "Whenever a creature attacks" becomes `{"event": "creature_attacks"}`.
+- **Rule Engine:** The rule engine is responsible for applying the game rules to the structured data from the parser. It manages the stack, priority, and the AP-NAP order of triggered abilities.
+
+This separation of concerns creates a more robust and maintainable system.
