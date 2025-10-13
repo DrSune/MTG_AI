@@ -45,3 +45,107 @@ Belief Update: This real action discards all previous determinizations that made
 MCTS Reset: The MCTS search tree is largely discarded. When the game moves to the new state, the AI starts a new MCTS search from that new root node, incorporating the new, real information (the Ace of Spades is now public) into the next set of determinizations.
 
 This continuous process of observing a real action, updating the belief, and re-searching based on that new information is how AI agents deal with imperfect information in a dynamic environment.
+
+
+
+
+When starting MCTS, use NN to predict opponent hand-deck-strategy, and keep this opponent prediction fixed for the remainder of the simulation. This will avoid risking to have to re-run the opponent prediction NN when/if an opponent played a card you predicted they didnt have. 
+Backpropagate reward based on how early in the game you are (discount mistakes early and non-important times in the game). 
+
+After each MCTS has been completed, backpropagate/evaluate/give reward or punishment to the prediction head (and maybe a little to encoder?) to teach it what it did wrong in that specific situation. Maybe scale based on severity of wrongfully predictions, based on the value-function (or Q?) analysis of how severe the wrongness of the prediction was. If you predicted something that put the value and action policy on the wrong track (do they even use prediction?) then it should be punished, if it predicted what the opponent actually has, and gets the model on the right track, that should be severely rewarded
+
+
+
+
+ The Opponent Prediction (Auxiliary Loss)
+Goal: The opponent prediction head (H_Opp) is an Auxiliary Task. Its goal is to force the shared layers of the neural network (the Encoding Head) to learn a state representation that is rich in information, specifically about the opponent's hidden state (e.g., their cards).
+
+Training Head: This head is trained using a separate Loss Function based on the objective truth, NOT the game's reward.
+
+
+But then lets say the H_opp starts to perform well, but it is not predicting the things that result in the highest win-rate, but rather the most probable scenarios. It should be more important to predict a lower-probability high-impact scenario, than the opposite. So how do we teach it this if we dont impact that head with the result of the games?
+
+
+
+
+Google Search
+That is a profound observation and a critical challenge in training models for complex, multi-agent games, especially those with imperfect information (like Poker). You are pointing out the class imbalance problem applied to impact: the vast majority of hands/scenarios are low-impact, but the few high-impact hands/scenarios dictate the final win-rate.
+
+The solution is not to directly tie the auxiliary loss to the reward, but to influence the auxiliary loss itself to be cost-sensitive to high-impact scenarios. This is achieved through a combination of techniques:
+
+1. Cost-Sensitive Auxiliary Loss (Weighting by Game Impact)
+The most direct way to address this is by modifying the Cross-Entropy Loss (L 
+Auxiliary
+​
+ ) with a weight that reflects the impact or salience of that particular state or prediction.
+
+L 
+Weighted
+​
+ =W(s)⋅L 
+Auxiliary
+​
+ 
+Where W(s) is a weighting factor based on the state s. A common choice for W(s) is one that reflects the potential magnitude of the decision's outcome.
+
+Weighting by Pot Size/Variance: In a game like Poker, W(s) can be set proportional to the size of the pot, or an estimate of the maximum possible loss/gain from that state. A prediction error when the pot is huge is far more "costly" than an error in a small pot, so the model learns to prioritize accuracy in high-stakes situations.
+
+Weighting by Value/Exploitability: The weight could be proportional to the absolute value difference ∣V(s)−0∣ for zero-sum games, or a measure of the strategy's exploitability discovered during MCTS. A state that leads to a huge swing (a V(s) close to +1 or −1) is more salient than a neutral state.
+
+By using this weighted loss, the auxiliary head is trained to be more accurate on the situations that matter most for the final game outcome, even if those situations are rare.
+
+2. Information Usage within Monte Carlo Tree Search (MCTS)
+The other, and arguably more powerful, way the system learns to prioritize high-impact predictions is through its use of the opponent model within the MCTS phase.
+
+Prediction 
+
+= Simulation: The network outputs a distribution over the opponent's hidden state P(Opp Hand∣s). A pure maximum likelihood approach would only use the single most probable hand.
+
+Weighted Simulation/Rollouts: A superior approach uses the full probability distribution P(Opp Hand∣s) to weight the MCTS simulations. Instead of only simulating the most probable scenario, MCTS will:
+
+Sample an opponent's hand H 
+i
+​
+  based on P(Opp Hand∣s).
+
+Simulate a rollout from the perspective of H 
+i
+​
+ .
+
+Weight the MCTS node's value based on the frequency (or probability) of that sampled hand.
+
+If a low-probability hand H 
+rare
+​
+  (e.g., opponent has the nuts) is also a high-impact hand (causes us to lose a lot of money), MCTS's exploration (the U term in the UCB formula) will drive the search to simulate it enough times to accurately estimate our best-response against it. The MCTS is guided by the main objective (maximizing Z), so it will naturally stress-test our policy against the most dangerous (and exploitable) opponent hands, regardless of their probability.
+
+3. Training on Exploitation (Best-Response)
+Ultimately, an agent's true goal is not to be a perfect predictor but to find the Best Response (BR) to the opponent's strategy, which often means finding and exploiting their mistakes.
+
+In advanced multi-agent DRL, the agent is often explicitly trained for exploitation:
+
+Opponent Policy Head (π 
+Opp
+​
+ ): Some models add an auxiliary head to predict the opponent's action π 
+Opp
+​
+ (A 
+Opp
+​
+ ∣s). The loss is standard Cross-Entropy, but this prediction π 
+Opp
+​
+  is then used as the opponent's "blueprint policy" during the MCTS.
+
+BR Training: By explicitly modeling π 
+Opp
+​
+ , the agent's main policy π is forced to train as the best response to this opponent model. The Policy Loss is still focused on π 
+MCTS
+ , but π 
+MCTS
+  is a best-response policy derived from simulations that explicitly use the current best estimate of the opponent's predictable actions.
+
+In this way, the main policy and value heads are where the high-impact lesson is learned, and the auxiliary head simply provides the necessary information for the MCTS to execute a smarter, exploitation-aware search.
