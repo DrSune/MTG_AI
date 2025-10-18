@@ -5,6 +5,8 @@ ability IDs from the vocabulary to their corresponding logic functions.
 
 from typing import Dict, Callable, Any, Optional
 
+from .vocabulary import *
+
 # We import all the handler modules
 from .handlers import (
     keyword_handlers,
@@ -16,13 +18,6 @@ from .handlers import (
     activated_ability_handlers,
     card_specific_handlers
 )
-
-# These vocabulary IDs would be defined in a central, shared file
-# so they can be used by the parsers, the engine, and the ML model.
-ID_ABILITY_FLYING = 5001
-ID_ABILITY_FLASHBACK = 6001
-ID_TRIGGER_ETB = 7001 # ETB = Enters The Battlefield
-ID_CARD_TARMOGOYF = 1337
 
 class Rulebook:
     """A dispatch table mapping rule IDs to their implementation."""
@@ -38,6 +33,8 @@ class Rulebook:
         """
         # Keyword Handlers
         self.dispatch_table[ID_ABILITY_FLYING] = keyword_handlers.can_be_blocked_by
+        self.dispatch_table[ID_ABILITY_VIGILANCE] = keyword_handlers.handle_vigilance
+        self.dispatch_table[ID_ABILITY_LIFELINK] = keyword_handlers.handle_lifelink
 
         # Graveyard Handlers
         self.dispatch_table[ID_ABILITY_FLASHBACK] = graveyard_handlers.get_flashback_moves

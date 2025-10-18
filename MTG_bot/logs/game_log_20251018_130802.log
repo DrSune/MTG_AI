@@ -1,0 +1,842 @@
+2025-10-18 13:08:02,896 - rule_engine.game_graph - INFO - GameGraph initialized.
+2025-10-18 13:08:02,896 - rule_engine.game_graph - INFO - Initializing game...
+2025-10-18 13:08:02,896 - rule_engine.game_graph - DEBUG - Created Entity: 988fcb81-bb1e-4cb8-8ee9-6c9d9740f290 (Type: 0)
+2025-10-18 13:08:02,896 - rule_engine.game_graph - DEBUG - Added entity 988fcb81-bb1e-4cb8-8ee9-6c9d9740f290 (Type: 0) to graph.
+2025-10-18 13:08:02,896 - rule_engine.game_graph - DEBUG - Created Entity: 6f506714-09b8-4526-b662-2cf39163dc9e (Type: 0)
+2025-10-18 13:08:02,896 - rule_engine.game_graph - DEBUG - Added entity 6f506714-09b8-4526-b662-2cf39163dc9e (Type: 0) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - INFO - Active player set to Player 1.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 2 cards.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Entity: 4c334d43-e7aa-4d1e-aab5-31d32f54188a (Type: 102)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added entity 4c334d43-e7aa-4d1e-aab5-31d32f54188a (Type: 102) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Entity: dedccd8b-80b6-48b2-9017-e046630b5f85 (Type: 100)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added entity dedccd8b-80b6-48b2-9017-e046630b5f85 (Type: 100) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Entity: ae4a0ee4-c5f9-4cb3-b306-1ffea06f2b6c (Type: 103)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added entity ae4a0ee4-c5f9-4cb3-b306-1ffea06f2b6c (Type: 103) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Entity: bd888afd-b62d-4497-a708-87c9a46c3710 (Type: 101)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added entity bd888afd-b62d-4497-a708-87c9a46c3710 (Type: 101) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Relationship: 988fcb81-bb1e-4cb8-8ee9-6c9d9740f290 -> 4c334d43-e7aa-4d1e-aab5-31d32f54188a (Type: 200)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added relationship 988fcb81-bb1e-4cb8-8ee9-6c9d9740f290 -> 4c334d43-e7aa-4d1e-aab5-31d32f54188a (Type: 200) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Relationship: 988fcb81-bb1e-4cb8-8ee9-6c9d9740f290 -> dedccd8b-80b6-48b2-9017-e046630b5f85 (Type: 200)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added relationship 988fcb81-bb1e-4cb8-8ee9-6c9d9740f290 -> dedccd8b-80b6-48b2-9017-e046630b5f85 (Type: 200) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Relationship: 988fcb81-bb1e-4cb8-8ee9-6c9d9740f290 -> ae4a0ee4-c5f9-4cb3-b306-1ffea06f2b6c (Type: 200)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added relationship 988fcb81-bb1e-4cb8-8ee9-6c9d9740f290 -> ae4a0ee4-c5f9-4cb3-b306-1ffea06f2b6c (Type: 200) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Relationship: 988fcb81-bb1e-4cb8-8ee9-6c9d9740f290 -> bd888afd-b62d-4497-a708-87c9a46c3710 (Type: 200)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added relationship 988fcb81-bb1e-4cb8-8ee9-6c9d9740f290 -> bd888afd-b62d-4497-a708-87c9a46c3710 (Type: 200) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Entity: 0830c961-785a-4300-8cfb-6e290ad80c36 (Type: 1000)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added entity 0830c961-785a-4300-8cfb-6e290ad80c36 (Type: 1000) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Relationship: 988fcb81-bb1e-4cb8-8ee9-6c9d9740f290 -> 0830c961-785a-4300-8cfb-6e290ad80c36 (Type: 200)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added relationship 988fcb81-bb1e-4cb8-8ee9-6c9d9740f290 -> 0830c961-785a-4300-8cfb-6e290ad80c36 (Type: 200) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Relationship: 0830c961-785a-4300-8cfb-6e290ad80c36 -> 4c334d43-e7aa-4d1e-aab5-31d32f54188a (Type: 201)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added relationship 0830c961-785a-4300-8cfb-6e290ad80c36 -> 4c334d43-e7aa-4d1e-aab5-31d32f54188a (Type: 201) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Entity: 475eb802-c343-46b6-b758-e6d2050dc300 (Type: 2000)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added entity 475eb802-c343-46b6-b758-e6d2050dc300 (Type: 2000) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Relationship: 988fcb81-bb1e-4cb8-8ee9-6c9d9740f290 -> 475eb802-c343-46b6-b758-e6d2050dc300 (Type: 200)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added relationship 988fcb81-bb1e-4cb8-8ee9-6c9d9740f290 -> 475eb802-c343-46b6-b758-e6d2050dc300 (Type: 200) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Relationship: 475eb802-c343-46b6-b758-e6d2050dc300 -> 4c334d43-e7aa-4d1e-aab5-31d32f54188a (Type: 201)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added relationship 475eb802-c343-46b6-b758-e6d2050dc300 -> 4c334d43-e7aa-4d1e-aab5-31d32f54188a (Type: 201) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 0 cards.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Entity: 247bebba-793d-4f85-8401-2c6f67eefc4f (Type: 102)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added entity 247bebba-793d-4f85-8401-2c6f67eefc4f (Type: 102) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Entity: 42050505-7c44-4ce2-80e4-8d69a5eb9bb7 (Type: 100)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added entity 42050505-7c44-4ce2-80e4-8d69a5eb9bb7 (Type: 100) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Entity: 1d441186-a25e-49f9-9bba-63497b46c838 (Type: 103)
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Added entity 1d441186-a25e-49f9-9bba-63497b46c838 (Type: 103) to graph.
+2025-10-18 13:08:02,897 - rule_engine.game_graph - DEBUG - Created Entity: 6f683df1-b363-4fdb-b0ec-f6646f7312cb (Type: 101)
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Added entity 6f683df1-b363-4fdb-b0ec-f6646f7312cb (Type: 101) to graph.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Created Relationship: 6f506714-09b8-4526-b662-2cf39163dc9e -> 247bebba-793d-4f85-8401-2c6f67eefc4f (Type: 200)
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Added relationship 6f506714-09b8-4526-b662-2cf39163dc9e -> 247bebba-793d-4f85-8401-2c6f67eefc4f (Type: 200) to graph.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Created Relationship: 6f506714-09b8-4526-b662-2cf39163dc9e -> 42050505-7c44-4ce2-80e4-8d69a5eb9bb7 (Type: 200)
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Added relationship 6f506714-09b8-4526-b662-2cf39163dc9e -> 42050505-7c44-4ce2-80e4-8d69a5eb9bb7 (Type: 200) to graph.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Created Relationship: 6f506714-09b8-4526-b662-2cf39163dc9e -> 1d441186-a25e-49f9-9bba-63497b46c838 (Type: 200)
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Added relationship 6f506714-09b8-4526-b662-2cf39163dc9e -> 1d441186-a25e-49f9-9bba-63497b46c838 (Type: 200) to graph.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Created Relationship: 6f506714-09b8-4526-b662-2cf39163dc9e -> 6f683df1-b363-4fdb-b0ec-f6646f7312cb (Type: 200)
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Added relationship 6f506714-09b8-4526-b662-2cf39163dc9e -> 6f683df1-b363-4fdb-b0ec-f6646f7312cb (Type: 200) to graph.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Decks shuffled.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Querying relationships: source=988fcb81-bb1e-4cb8-8ee9-6c9d9740f290, target=None, rel_type=200
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Querying relationships: source=6f506714-09b8-4526-b662-2cf39163dc9e, target=None, rel_type=200
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Found 4 relationships.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Querying relationships: source=0830c961-785a-4300-8cfb-6e290ad80c36, target=None, rel_type=201
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Player 1 drew 1000.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Querying relationships: source=475eb802-c343-46b6-b758-e6d2050dc300, target=None, rel_type=201
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Player 1 drew 2000.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - INFO - Game initialized successfully.
+2025-10-18 13:08:02,898 - rule_engine.engine - INFO - Engine initialized.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - INFO - Initializing game...
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Created Entity: 9ab1575e-85f5-4768-83d7-afcaf8696dbf (Type: 0)
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Added entity 9ab1575e-85f5-4768-83d7-afcaf8696dbf (Type: 0) to graph.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Created Entity: 310ce6ac-0949-40ab-9c8b-cab143ff8c78 (Type: 0)
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Added entity 310ce6ac-0949-40ab-9c8b-cab143ff8c78 (Type: 0) to graph.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - INFO - Active player set to Player 1.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 3 cards.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Created Entity: 6905edf9-42d2-4ed5-9cad-0e7deac776ad (Type: 102)
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Added entity 6905edf9-42d2-4ed5-9cad-0e7deac776ad (Type: 102) to graph.
+2025-10-18 13:08:02,898 - rule_engine.game_graph - DEBUG - Created Entity: 73b5ed81-d3c7-448c-abb4-930ae732916a (Type: 100)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added entity 73b5ed81-d3c7-448c-abb4-930ae732916a (Type: 100) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Entity: 84f1b94d-0f37-4f3c-b344-d181cdb8e6a4 (Type: 103)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added entity 84f1b94d-0f37-4f3c-b344-d181cdb8e6a4 (Type: 103) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Entity: 4e67439d-f9c9-4188-8e7b-31db92065adc (Type: 101)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added entity 4e67439d-f9c9-4188-8e7b-31db92065adc (Type: 101) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Relationship: 9ab1575e-85f5-4768-83d7-afcaf8696dbf -> 6905edf9-42d2-4ed5-9cad-0e7deac776ad (Type: 200)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added relationship 9ab1575e-85f5-4768-83d7-afcaf8696dbf -> 6905edf9-42d2-4ed5-9cad-0e7deac776ad (Type: 200) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Relationship: 9ab1575e-85f5-4768-83d7-afcaf8696dbf -> 73b5ed81-d3c7-448c-abb4-930ae732916a (Type: 200)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added relationship 9ab1575e-85f5-4768-83d7-afcaf8696dbf -> 73b5ed81-d3c7-448c-abb4-930ae732916a (Type: 200) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Relationship: 9ab1575e-85f5-4768-83d7-afcaf8696dbf -> 84f1b94d-0f37-4f3c-b344-d181cdb8e6a4 (Type: 200)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added relationship 9ab1575e-85f5-4768-83d7-afcaf8696dbf -> 84f1b94d-0f37-4f3c-b344-d181cdb8e6a4 (Type: 200) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Relationship: 9ab1575e-85f5-4768-83d7-afcaf8696dbf -> 4e67439d-f9c9-4188-8e7b-31db92065adc (Type: 200)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added relationship 9ab1575e-85f5-4768-83d7-afcaf8696dbf -> 4e67439d-f9c9-4188-8e7b-31db92065adc (Type: 200) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Entity: ac3efdf2-666f-4c65-82b4-58ac0abac74f (Type: 1000)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added entity ac3efdf2-666f-4c65-82b4-58ac0abac74f (Type: 1000) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Relationship: 9ab1575e-85f5-4768-83d7-afcaf8696dbf -> ac3efdf2-666f-4c65-82b4-58ac0abac74f (Type: 200)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added relationship 9ab1575e-85f5-4768-83d7-afcaf8696dbf -> ac3efdf2-666f-4c65-82b4-58ac0abac74f (Type: 200) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Relationship: ac3efdf2-666f-4c65-82b4-58ac0abac74f -> 6905edf9-42d2-4ed5-9cad-0e7deac776ad (Type: 201)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added relationship ac3efdf2-666f-4c65-82b4-58ac0abac74f -> 6905edf9-42d2-4ed5-9cad-0e7deac776ad (Type: 201) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Entity: 6fa09829-9e01-48e9-a752-4eae89a5d9df (Type: 1000)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added entity 6fa09829-9e01-48e9-a752-4eae89a5d9df (Type: 1000) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Relationship: 9ab1575e-85f5-4768-83d7-afcaf8696dbf -> 6fa09829-9e01-48e9-a752-4eae89a5d9df (Type: 200)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added relationship 9ab1575e-85f5-4768-83d7-afcaf8696dbf -> 6fa09829-9e01-48e9-a752-4eae89a5d9df (Type: 200) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Relationship: 6fa09829-9e01-48e9-a752-4eae89a5d9df -> 6905edf9-42d2-4ed5-9cad-0e7deac776ad (Type: 201)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added relationship 6fa09829-9e01-48e9-a752-4eae89a5d9df -> 6905edf9-42d2-4ed5-9cad-0e7deac776ad (Type: 201) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Entity: 0e8c0eda-8d15-46db-ae03-13c5bd774dff (Type: 2000)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added entity 0e8c0eda-8d15-46db-ae03-13c5bd774dff (Type: 2000) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Relationship: 9ab1575e-85f5-4768-83d7-afcaf8696dbf -> 0e8c0eda-8d15-46db-ae03-13c5bd774dff (Type: 200)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added relationship 9ab1575e-85f5-4768-83d7-afcaf8696dbf -> 0e8c0eda-8d15-46db-ae03-13c5bd774dff (Type: 200) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Relationship: 0e8c0eda-8d15-46db-ae03-13c5bd774dff -> 6905edf9-42d2-4ed5-9cad-0e7deac776ad (Type: 201)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added relationship 0e8c0eda-8d15-46db-ae03-13c5bd774dff -> 6905edf9-42d2-4ed5-9cad-0e7deac776ad (Type: 201) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 0 cards.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Entity: 8c1e9361-8823-426d-bc7c-b1ddadea7515 (Type: 102)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added entity 8c1e9361-8823-426d-bc7c-b1ddadea7515 (Type: 102) to graph.
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Created Entity: c491b475-d68f-41d0-995d-6a841bcc759e (Type: 100)
+2025-10-18 13:08:02,899 - rule_engine.game_graph - DEBUG - Added entity c491b475-d68f-41d0-995d-6a841bcc759e (Type: 100) to graph.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Created Entity: 19529810-da4d-4143-9b64-3fab6eb81e08 (Type: 103)
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Added entity 19529810-da4d-4143-9b64-3fab6eb81e08 (Type: 103) to graph.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Created Entity: 8ec3deba-dced-4863-b2ab-cc136fc1f219 (Type: 101)
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Added entity 8ec3deba-dced-4863-b2ab-cc136fc1f219 (Type: 101) to graph.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Created Relationship: 310ce6ac-0949-40ab-9c8b-cab143ff8c78 -> 8c1e9361-8823-426d-bc7c-b1ddadea7515 (Type: 200)
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Added relationship 310ce6ac-0949-40ab-9c8b-cab143ff8c78 -> 8c1e9361-8823-426d-bc7c-b1ddadea7515 (Type: 200) to graph.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Created Relationship: 310ce6ac-0949-40ab-9c8b-cab143ff8c78 -> c491b475-d68f-41d0-995d-6a841bcc759e (Type: 200)
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Added relationship 310ce6ac-0949-40ab-9c8b-cab143ff8c78 -> c491b475-d68f-41d0-995d-6a841bcc759e (Type: 200) to graph.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Created Relationship: 310ce6ac-0949-40ab-9c8b-cab143ff8c78 -> 19529810-da4d-4143-9b64-3fab6eb81e08 (Type: 200)
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Added relationship 310ce6ac-0949-40ab-9c8b-cab143ff8c78 -> 19529810-da4d-4143-9b64-3fab6eb81e08 (Type: 200) to graph.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Created Relationship: 310ce6ac-0949-40ab-9c8b-cab143ff8c78 -> 8ec3deba-dced-4863-b2ab-cc136fc1f219 (Type: 200)
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Added relationship 310ce6ac-0949-40ab-9c8b-cab143ff8c78 -> 8ec3deba-dced-4863-b2ab-cc136fc1f219 (Type: 200) to graph.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Decks shuffled.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Querying relationships: source=9ab1575e-85f5-4768-83d7-afcaf8696dbf, target=None, rel_type=200
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Found 7 relationships.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Querying relationships: source=310ce6ac-0949-40ab-9c8b-cab143ff8c78, target=None, rel_type=200
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Found 4 relationships.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Querying relationships: source=ac3efdf2-666f-4c65-82b4-58ac0abac74f, target=None, rel_type=201
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Player 1 drew 1000.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Querying relationships: source=0e8c0eda-8d15-46db-ae03-13c5bd774dff, target=None, rel_type=201
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Player 1 drew 2000.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Querying relationships: source=6fa09829-9e01-48e9-a752-4eae89a5d9df, target=None, rel_type=201
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Player 1 drew 1000.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - INFO - Game initialized successfully.
+2025-10-18 13:08:02,900 - rule_engine.engine - INFO - Engine initialized.
+2025-10-18 13:08:02,900 - rule_engine.engine - DEBUG - Calculating legal moves for Player Play (Turn 1, Phase 11, Step 0)
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Querying relationships: source=9ab1575e-85f5-4768-83d7-afcaf8696dbf, target=None, rel_type=200
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Found 7 relationships.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=73b5ed81-d3c7-448c-abb4-930ae732916a, rel_type=201
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Found 3 relationships.
+2025-10-18 13:08:02,900 - rule_engine.engine - DEBUG - Found PlayLandAction for 1000 (1000)
+2025-10-18 13:08:02,900 - rule_engine.engine - DEBUG - Found PlayLandAction for 1000 (1000)
+2025-10-18 13:08:02,900 - rule_engine.handlers.mana_handlers - DEBUG - Getting tap for mana moves for Player Play.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Querying relationships: source=9ab1575e-85f5-4768-83d7-afcaf8696dbf, target=None, rel_type=200
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Found 7 relationships.
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=4e67439d-f9c9-4188-8e7b-31db92065adc, rel_type=201
+2025-10-18 13:08:02,900 - rule_engine.game_graph - DEBUG - Found 0 relationships.
+2025-10-18 13:08:02,900 - rule_engine.handlers.mana_handlers - DEBUG - Found 0 tap for mana moves.
+2025-10-18 13:08:02,901 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=73b5ed81-d3c7-448c-abb4-930ae732916a, rel_type=201
+2025-10-18 13:08:02,901 - rule_engine.game_graph - DEBUG - Found 3 relationships.
+2025-10-18 13:08:02,901 - rule_engine.engine - DEBUG - Total legal moves found: 2
+2025-10-18 13:08:02,901 - rule_engine.engine - INFO - Executing move: PlayLand(Player: 9ab1, Card: ac3e)
+2025-10-18 13:08:02,901 - rule_engine.game_graph - DEBUG - Querying relationships: source=9ab1575e-85f5-4768-83d7-afcaf8696dbf, target=None, rel_type=200
+2025-10-18 13:08:02,901 - rule_engine.game_graph - DEBUG - Found 7 relationships.
+2025-10-18 13:08:02,901 - rule_engine.game_graph - DEBUG - Querying relationships: source=ac3efdf2-666f-4c65-82b4-58ac0abac74f, target=None, rel_type=201
+2025-10-18 13:08:02,901 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,901 - rule_engine.engine - INFO - Player 1 played None to battlefield.
+2025-10-18 13:08:02,901 - rule_engine.engine - DEBUG - Calculating legal moves for Player Play (Turn 1, Phase 11, Step 0)
+2025-10-18 13:08:02,901 - rule_engine.game_graph - DEBUG - Querying relationships: source=9ab1575e-85f5-4768-83d7-afcaf8696dbf, target=None, rel_type=200
+2025-10-18 13:08:02,901 - rule_engine.game_graph - DEBUG - Found 7 relationships.
+2025-10-18 13:08:02,901 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=73b5ed81-d3c7-448c-abb4-930ae732916a, rel_type=201
+2025-10-18 13:08:02,901 - rule_engine.game_graph - DEBUG - Found 2 relationships.
+2025-10-18 13:08:02,901 - rule_engine.engine - DEBUG - Found PlayLandAction for 1000 (1000)
+2025-10-18 13:08:02,901 - rule_engine.handlers.mana_handlers - DEBUG - Getting tap for mana moves for Player Play.
+2025-10-18 13:08:02,901 - rule_engine.game_graph - DEBUG - Querying relationships: source=9ab1575e-85f5-4768-83d7-afcaf8696dbf, target=None, rel_type=200
+2025-10-18 13:08:02,901 - rule_engine.game_graph - DEBUG - Found 7 relationships.
+2025-10-18 13:08:02,901 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=4e67439d-f9c9-4188-8e7b-31db92065adc, rel_type=201
+2025-10-18 13:08:02,901 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,901 - rule_engine.handlers.mana_handlers - ERROR - Error getting tap for mana moves for Player Play: ActivateManaAbilityAction.__init__() missing 1 required positional argument: 'ability_id'
+Traceback (most recent call last):
+  File "/home/sune/Documents/Projekt Projector/MTG_bot/rule_engine/handlers/mana_handlers.py", line 59, in get_tap_for_mana_moves
+    legal_moves.append(ActivateManaAbilityAction(player_id=player.instance_id, card_id=land.instance_id)) # Using a dummy ability_id for now
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ActivateManaAbilityAction.__init__() missing 1 required positional argument: 'ability_id'
+2025-10-18 13:08:02,902 - rule_engine.engine - ERROR - Error calculating legal moves: ActivateManaAbilityAction.__init__() missing 1 required positional argument: 'ability_id'
+Traceback (most recent call last):
+  File "/home/sune/Documents/Projekt Projector/MTG_bot/rule_engine/engine.py", line 63, in get_legal_moves
+    mana_moves = mana_handlers.get_tap_for_mana_moves(self.graph, active_player)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sune/Documents/Projekt Projector/MTG_bot/rule_engine/handlers/mana_handlers.py", line 59, in get_tap_for_mana_moves
+    legal_moves.append(ActivateManaAbilityAction(player_id=player.instance_id, card_id=land.instance_id)) # Using a dummy ability_id for now
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ActivateManaAbilityAction.__init__() missing 1 required positional argument: 'ability_id'
+2025-10-18 13:08:02,902 - rule_engine.engine - DEBUG - Total legal moves found: 1
+2025-10-18 13:08:02,902 - rule_engine.engine - INFO - Executing move: PlayLand(Player: 9ab1, Card: 6fa0)
+2025-10-18 13:08:02,902 - rule_engine.game_graph - DEBUG - Querying relationships: source=9ab1575e-85f5-4768-83d7-afcaf8696dbf, target=None, rel_type=200
+2025-10-18 13:08:02,902 - rule_engine.game_graph - DEBUG - Found 7 relationships.
+2025-10-18 13:08:02,902 - rule_engine.game_graph - DEBUG - Querying relationships: source=6fa09829-9e01-48e9-a752-4eae89a5d9df, target=None, rel_type=201
+2025-10-18 13:08:02,902 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,902 - rule_engine.engine - INFO - Player 1 played None to battlefield.
+2025-10-18 13:08:02,902 - rule_engine.engine - DEBUG - Calculating legal moves for Player Play (Turn 1, Phase 11, Step 0)
+2025-10-18 13:08:02,902 - rule_engine.game_graph - DEBUG - Querying relationships: source=9ab1575e-85f5-4768-83d7-afcaf8696dbf, target=None, rel_type=200
+2025-10-18 13:08:02,902 - rule_engine.game_graph - DEBUG - Found 7 relationships.
+2025-10-18 13:08:02,903 - rule_engine.handlers.mana_handlers - DEBUG - Getting tap for mana moves for Player Play.
+2025-10-18 13:08:02,903 - rule_engine.game_graph - DEBUG - Querying relationships: source=9ab1575e-85f5-4768-83d7-afcaf8696dbf, target=None, rel_type=200
+2025-10-18 13:08:02,903 - rule_engine.game_graph - DEBUG - Found 7 relationships.
+2025-10-18 13:08:02,903 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=4e67439d-f9c9-4188-8e7b-31db92065adc, rel_type=201
+2025-10-18 13:08:02,903 - rule_engine.game_graph - DEBUG - Found 2 relationships.
+2025-10-18 13:08:02,903 - rule_engine.handlers.mana_handlers - ERROR - Error getting tap for mana moves for Player Play: ActivateManaAbilityAction.__init__() missing 1 required positional argument: 'ability_id'
+Traceback (most recent call last):
+  File "/home/sune/Documents/Projekt Projector/MTG_bot/rule_engine/handlers/mana_handlers.py", line 59, in get_tap_for_mana_moves
+    legal_moves.append(ActivateManaAbilityAction(player_id=player.instance_id, card_id=land.instance_id)) # Using a dummy ability_id for now
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ActivateManaAbilityAction.__init__() missing 1 required positional argument: 'ability_id'
+2025-10-18 13:08:02,903 - rule_engine.engine - ERROR - Error calculating legal moves: ActivateManaAbilityAction.__init__() missing 1 required positional argument: 'ability_id'
+Traceback (most recent call last):
+  File "/home/sune/Documents/Projekt Projector/MTG_bot/rule_engine/engine.py", line 63, in get_legal_moves
+    mana_moves = mana_handlers.get_tap_for_mana_moves(self.graph, active_player)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sune/Documents/Projekt Projector/MTG_bot/rule_engine/handlers/mana_handlers.py", line 59, in get_tap_for_mana_moves
+    legal_moves.append(ActivateManaAbilityAction(player_id=player.instance_id, card_id=land.instance_id)) # Using a dummy ability_id for now
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ActivateManaAbilityAction.__init__() missing 1 required positional argument: 'ability_id'
+2025-10-18 13:08:02,903 - rule_engine.engine - DEBUG - Total legal moves found: 0
+2025-10-18 13:08:02,904 - rule_engine.game_graph - INFO - GameGraph initialized.
+2025-10-18 13:08:02,904 - rule_engine.game_graph - INFO - Initializing game...
+2025-10-18 13:08:02,904 - rule_engine.game_graph - DEBUG - Created Entity: 7adce1e2-d91d-4c8e-8e3b-db214503a04d (Type: 0)
+2025-10-18 13:08:02,904 - rule_engine.game_graph - DEBUG - Added entity 7adce1e2-d91d-4c8e-8e3b-db214503a04d (Type: 0) to graph.
+2025-10-18 13:08:02,904 - rule_engine.game_graph - DEBUG - Created Entity: b0b74ecb-bab4-4ec4-a269-64b768fc533e (Type: 0)
+2025-10-18 13:08:02,904 - rule_engine.game_graph - DEBUG - Added entity b0b74ecb-bab4-4ec4-a269-64b768fc533e (Type: 0) to graph.
+2025-10-18 13:08:02,904 - rule_engine.game_graph - INFO - Active player set to Player 1.
+2025-10-18 13:08:02,904 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 2 cards.
+2025-10-18 13:08:02,904 - rule_engine.game_graph - DEBUG - Created Entity: 25fbf04e-1ebe-4e6d-a221-4ee517823b6a (Type: 102)
+2025-10-18 13:08:02,904 - rule_engine.game_graph - DEBUG - Added entity 25fbf04e-1ebe-4e6d-a221-4ee517823b6a (Type: 102) to graph.
+2025-10-18 13:08:02,904 - rule_engine.game_graph - DEBUG - Created Entity: bf9d8bc4-740f-444b-9808-6eb457413cc6 (Type: 100)
+2025-10-18 13:08:02,904 - rule_engine.game_graph - DEBUG - Added entity bf9d8bc4-740f-444b-9808-6eb457413cc6 (Type: 100) to graph.
+2025-10-18 13:08:02,904 - rule_engine.game_graph - DEBUG - Created Entity: 94510d84-5f5f-40e9-ab53-7e9494cfcc2d (Type: 103)
+2025-10-18 13:08:02,904 - rule_engine.game_graph - DEBUG - Added entity 94510d84-5f5f-40e9-ab53-7e9494cfcc2d (Type: 103) to graph.
+2025-10-18 13:08:02,904 - rule_engine.game_graph - DEBUG - Created Entity: 13de5aba-7297-4bfc-96a3-ef8aa84af8ec (Type: 101)
+2025-10-18 13:08:02,904 - rule_engine.game_graph - DEBUG - Added entity 13de5aba-7297-4bfc-96a3-ef8aa84af8ec (Type: 101) to graph.
+2025-10-18 13:08:02,904 - rule_engine.game_graph - DEBUG - Created Relationship: 7adce1e2-d91d-4c8e-8e3b-db214503a04d -> 25fbf04e-1ebe-4e6d-a221-4ee517823b6a (Type: 200)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added relationship 7adce1e2-d91d-4c8e-8e3b-db214503a04d -> 25fbf04e-1ebe-4e6d-a221-4ee517823b6a (Type: 200) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Relationship: 7adce1e2-d91d-4c8e-8e3b-db214503a04d -> bf9d8bc4-740f-444b-9808-6eb457413cc6 (Type: 200)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added relationship 7adce1e2-d91d-4c8e-8e3b-db214503a04d -> bf9d8bc4-740f-444b-9808-6eb457413cc6 (Type: 200) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Relationship: 7adce1e2-d91d-4c8e-8e3b-db214503a04d -> 94510d84-5f5f-40e9-ab53-7e9494cfcc2d (Type: 200)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added relationship 7adce1e2-d91d-4c8e-8e3b-db214503a04d -> 94510d84-5f5f-40e9-ab53-7e9494cfcc2d (Type: 200) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Relationship: 7adce1e2-d91d-4c8e-8e3b-db214503a04d -> 13de5aba-7297-4bfc-96a3-ef8aa84af8ec (Type: 200)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added relationship 7adce1e2-d91d-4c8e-8e3b-db214503a04d -> 13de5aba-7297-4bfc-96a3-ef8aa84af8ec (Type: 200) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Entity: 273e8b48-c2be-431b-aa8e-472e557ff654 (Type: 1000)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added entity 273e8b48-c2be-431b-aa8e-472e557ff654 (Type: 1000) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Relationship: 7adce1e2-d91d-4c8e-8e3b-db214503a04d -> 273e8b48-c2be-431b-aa8e-472e557ff654 (Type: 200)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added relationship 7adce1e2-d91d-4c8e-8e3b-db214503a04d -> 273e8b48-c2be-431b-aa8e-472e557ff654 (Type: 200) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Relationship: 273e8b48-c2be-431b-aa8e-472e557ff654 -> 25fbf04e-1ebe-4e6d-a221-4ee517823b6a (Type: 201)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added relationship 273e8b48-c2be-431b-aa8e-472e557ff654 -> 25fbf04e-1ebe-4e6d-a221-4ee517823b6a (Type: 201) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Entity: a4ceb384-58c9-46fc-8358-3e3b23c08881 (Type: 2000)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added entity a4ceb384-58c9-46fc-8358-3e3b23c08881 (Type: 2000) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Relationship: 7adce1e2-d91d-4c8e-8e3b-db214503a04d -> a4ceb384-58c9-46fc-8358-3e3b23c08881 (Type: 200)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added relationship 7adce1e2-d91d-4c8e-8e3b-db214503a04d -> a4ceb384-58c9-46fc-8358-3e3b23c08881 (Type: 200) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Relationship: a4ceb384-58c9-46fc-8358-3e3b23c08881 -> 25fbf04e-1ebe-4e6d-a221-4ee517823b6a (Type: 201)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added relationship a4ceb384-58c9-46fc-8358-3e3b23c08881 -> 25fbf04e-1ebe-4e6d-a221-4ee517823b6a (Type: 201) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 0 cards.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Entity: cb5c3174-e74a-4100-a80f-1729332cc825 (Type: 102)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added entity cb5c3174-e74a-4100-a80f-1729332cc825 (Type: 102) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Entity: 9b734e3e-25d6-445f-8fb1-41611c3d8a3e (Type: 100)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added entity 9b734e3e-25d6-445f-8fb1-41611c3d8a3e (Type: 100) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Entity: fa548add-df28-4b6e-bed0-0d03f6a25d91 (Type: 103)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added entity fa548add-df28-4b6e-bed0-0d03f6a25d91 (Type: 103) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Entity: 65a76e81-67c6-4eca-b7b0-9daed408c3f7 (Type: 101)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added entity 65a76e81-67c6-4eca-b7b0-9daed408c3f7 (Type: 101) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Relationship: b0b74ecb-bab4-4ec4-a269-64b768fc533e -> cb5c3174-e74a-4100-a80f-1729332cc825 (Type: 200)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added relationship b0b74ecb-bab4-4ec4-a269-64b768fc533e -> cb5c3174-e74a-4100-a80f-1729332cc825 (Type: 200) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Relationship: b0b74ecb-bab4-4ec4-a269-64b768fc533e -> 9b734e3e-25d6-445f-8fb1-41611c3d8a3e (Type: 200)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added relationship b0b74ecb-bab4-4ec4-a269-64b768fc533e -> 9b734e3e-25d6-445f-8fb1-41611c3d8a3e (Type: 200) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Relationship: b0b74ecb-bab4-4ec4-a269-64b768fc533e -> fa548add-df28-4b6e-bed0-0d03f6a25d91 (Type: 200)
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Added relationship b0b74ecb-bab4-4ec4-a269-64b768fc533e -> fa548add-df28-4b6e-bed0-0d03f6a25d91 (Type: 200) to graph.
+2025-10-18 13:08:02,905 - rule_engine.game_graph - DEBUG - Created Relationship: b0b74ecb-bab4-4ec4-a269-64b768fc533e -> 65a76e81-67c6-4eca-b7b0-9daed408c3f7 (Type: 200)
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Added relationship b0b74ecb-bab4-4ec4-a269-64b768fc533e -> 65a76e81-67c6-4eca-b7b0-9daed408c3f7 (Type: 200) to graph.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Decks shuffled.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Querying relationships: source=7adce1e2-d91d-4c8e-8e3b-db214503a04d, target=None, rel_type=200
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Querying relationships: source=b0b74ecb-bab4-4ec4-a269-64b768fc533e, target=None, rel_type=200
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Found 4 relationships.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Querying relationships: source=273e8b48-c2be-431b-aa8e-472e557ff654, target=None, rel_type=201
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Player 1 drew 1000.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Querying relationships: source=a4ceb384-58c9-46fc-8358-3e3b23c08881, target=None, rel_type=201
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Player 1 drew 2000.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - INFO - Game initialized successfully.
+2025-10-18 13:08:02,906 - rule_engine.engine - INFO - Engine initialized.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - INFO - Initializing game...
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Created Entity: 79ce55ff-31e2-4415-aa20-544844fd3188 (Type: 0)
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Added entity 79ce55ff-31e2-4415-aa20-544844fd3188 (Type: 0) to graph.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Created Entity: 339cb39b-f4c6-4d40-9716-fab83035149a (Type: 0)
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Added entity 339cb39b-f4c6-4d40-9716-fab83035149a (Type: 0) to graph.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - INFO - Active player set to Player 1.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 1 cards.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Created Entity: bccad8cc-145e-4667-a3ac-846a628de0be (Type: 102)
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Added entity bccad8cc-145e-4667-a3ac-846a628de0be (Type: 102) to graph.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Created Entity: 3dfdaf50-3a93-4680-b099-a9db2ba97729 (Type: 100)
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Added entity 3dfdaf50-3a93-4680-b099-a9db2ba97729 (Type: 100) to graph.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Created Entity: 3891a00d-3c84-488f-9145-13419903188c (Type: 103)
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Added entity 3891a00d-3c84-488f-9145-13419903188c (Type: 103) to graph.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Created Entity: 4560453c-6bb5-4113-846f-caa4519c56bf (Type: 101)
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Added entity 4560453c-6bb5-4113-846f-caa4519c56bf (Type: 101) to graph.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Created Relationship: 79ce55ff-31e2-4415-aa20-544844fd3188 -> bccad8cc-145e-4667-a3ac-846a628de0be (Type: 200)
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Added relationship 79ce55ff-31e2-4415-aa20-544844fd3188 -> bccad8cc-145e-4667-a3ac-846a628de0be (Type: 200) to graph.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Created Relationship: 79ce55ff-31e2-4415-aa20-544844fd3188 -> 3dfdaf50-3a93-4680-b099-a9db2ba97729 (Type: 200)
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Added relationship 79ce55ff-31e2-4415-aa20-544844fd3188 -> 3dfdaf50-3a93-4680-b099-a9db2ba97729 (Type: 200) to graph.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Created Relationship: 79ce55ff-31e2-4415-aa20-544844fd3188 -> 3891a00d-3c84-488f-9145-13419903188c (Type: 200)
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Added relationship 79ce55ff-31e2-4415-aa20-544844fd3188 -> 3891a00d-3c84-488f-9145-13419903188c (Type: 200) to graph.
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Created Relationship: 79ce55ff-31e2-4415-aa20-544844fd3188 -> 4560453c-6bb5-4113-846f-caa4519c56bf (Type: 200)
+2025-10-18 13:08:02,906 - rule_engine.game_graph - DEBUG - Added relationship 79ce55ff-31e2-4415-aa20-544844fd3188 -> 4560453c-6bb5-4113-846f-caa4519c56bf (Type: 200) to graph.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Created Entity: 175793ed-2e00-45a7-9df7-d80250fe5625 (Type: 2000)
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Added entity 175793ed-2e00-45a7-9df7-d80250fe5625 (Type: 2000) to graph.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Created Relationship: 79ce55ff-31e2-4415-aa20-544844fd3188 -> 175793ed-2e00-45a7-9df7-d80250fe5625 (Type: 200)
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Added relationship 79ce55ff-31e2-4415-aa20-544844fd3188 -> 175793ed-2e00-45a7-9df7-d80250fe5625 (Type: 200) to graph.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Created Relationship: 175793ed-2e00-45a7-9df7-d80250fe5625 -> bccad8cc-145e-4667-a3ac-846a628de0be (Type: 201)
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Added relationship 175793ed-2e00-45a7-9df7-d80250fe5625 -> bccad8cc-145e-4667-a3ac-846a628de0be (Type: 201) to graph.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 0 cards.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Created Entity: 0f00d336-ddff-4718-b800-025b6dc88d42 (Type: 102)
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Added entity 0f00d336-ddff-4718-b800-025b6dc88d42 (Type: 102) to graph.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Created Entity: 413a7273-097d-47b0-987c-520e5d31644d (Type: 100)
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Added entity 413a7273-097d-47b0-987c-520e5d31644d (Type: 100) to graph.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Created Entity: 1bc00e12-eaf1-4780-a99d-1c0626c64954 (Type: 103)
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Added entity 1bc00e12-eaf1-4780-a99d-1c0626c64954 (Type: 103) to graph.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Created Entity: c3338456-ba24-43e3-a77a-11217ab19b45 (Type: 101)
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Added entity c3338456-ba24-43e3-a77a-11217ab19b45 (Type: 101) to graph.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Created Relationship: 339cb39b-f4c6-4d40-9716-fab83035149a -> 0f00d336-ddff-4718-b800-025b6dc88d42 (Type: 200)
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Added relationship 339cb39b-f4c6-4d40-9716-fab83035149a -> 0f00d336-ddff-4718-b800-025b6dc88d42 (Type: 200) to graph.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Created Relationship: 339cb39b-f4c6-4d40-9716-fab83035149a -> 413a7273-097d-47b0-987c-520e5d31644d (Type: 200)
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Added relationship 339cb39b-f4c6-4d40-9716-fab83035149a -> 413a7273-097d-47b0-987c-520e5d31644d (Type: 200) to graph.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Created Relationship: 339cb39b-f4c6-4d40-9716-fab83035149a -> 1bc00e12-eaf1-4780-a99d-1c0626c64954 (Type: 200)
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Added relationship 339cb39b-f4c6-4d40-9716-fab83035149a -> 1bc00e12-eaf1-4780-a99d-1c0626c64954 (Type: 200) to graph.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Created Relationship: 339cb39b-f4c6-4d40-9716-fab83035149a -> c3338456-ba24-43e3-a77a-11217ab19b45 (Type: 200)
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Added relationship 339cb39b-f4c6-4d40-9716-fab83035149a -> c3338456-ba24-43e3-a77a-11217ab19b45 (Type: 200) to graph.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Decks shuffled.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Querying relationships: source=79ce55ff-31e2-4415-aa20-544844fd3188, target=None, rel_type=200
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Found 5 relationships.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Querying relationships: source=339cb39b-f4c6-4d40-9716-fab83035149a, target=None, rel_type=200
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Found 4 relationships.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Querying relationships: source=175793ed-2e00-45a7-9df7-d80250fe5625, target=None, rel_type=201
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - DEBUG - Player 1 drew 2000.
+2025-10-18 13:08:02,907 - rule_engine.game_graph - INFO - Game initialized successfully.
+2025-10-18 13:08:02,907 - rule_engine.engine - INFO - Engine initialized.
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Querying relationships: source=79ce55ff-31e2-4415-aa20-544844fd3188, target=None, rel_type=200
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Found 5 relationships.
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Querying relationships: source=a4ceb384-58c9-46fc-8358-3e3b23c08881, target=None, rel_type=201
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,908 - rule_engine.engine - DEBUG - Calculating legal moves for Player Play (Turn 1, Phase 11, Step 21)
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Querying relationships: source=79ce55ff-31e2-4415-aa20-544844fd3188, target=None, rel_type=200
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Found 5 relationships.
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=3dfdaf50-3a93-4680-b099-a9db2ba97729, rel_type=201
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,908 - rule_engine.handlers.mana_handlers - DEBUG - Getting tap for mana moves for Player Play.
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Querying relationships: source=79ce55ff-31e2-4415-aa20-544844fd3188, target=None, rel_type=200
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Found 5 relationships.
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=4560453c-6bb5-4113-846f-caa4519c56bf, rel_type=201
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,908 - rule_engine.handlers.mana_handlers - DEBUG - Found 0 tap for mana moves.
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=3dfdaf50-3a93-4680-b099-a9db2ba97729, rel_type=201
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,908 - rule_engine.handlers.combat_handlers - DEBUG - Getting legal attackers for Player Play.
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Querying relationships: source=79ce55ff-31e2-4415-aa20-544844fd3188, target=None, rel_type=200
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Found 5 relationships.
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=4560453c-6bb5-4113-846f-caa4519c56bf, rel_type=201
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,908 - rule_engine.handlers.combat_handlers - DEBUG - Creature 2000 (2000) cannot attack (tapped: False, summoning sick: True).
+2025-10-18 13:08:02,908 - rule_engine.handlers.combat_handlers - DEBUG - Total legal attackers found: 0
+2025-10-18 13:08:02,908 - rule_engine.engine - DEBUG - Total legal moves found: 0
+2025-10-18 13:08:02,908 - rule_engine.engine - DEBUG - Calculating legal moves for Player Play (Turn 2, Phase 11, Step 21)
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Querying relationships: source=79ce55ff-31e2-4415-aa20-544844fd3188, target=None, rel_type=200
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Found 5 relationships.
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=3dfdaf50-3a93-4680-b099-a9db2ba97729, rel_type=201
+2025-10-18 13:08:02,908 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,909 - rule_engine.handlers.mana_handlers - DEBUG - Getting tap for mana moves for Player Play.
+2025-10-18 13:08:02,909 - rule_engine.game_graph - DEBUG - Querying relationships: source=79ce55ff-31e2-4415-aa20-544844fd3188, target=None, rel_type=200
+2025-10-18 13:08:02,909 - rule_engine.game_graph - DEBUG - Found 5 relationships.
+2025-10-18 13:08:02,909 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=4560453c-6bb5-4113-846f-caa4519c56bf, rel_type=201
+2025-10-18 13:08:02,909 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,909 - rule_engine.handlers.mana_handlers - DEBUG - Found 0 tap for mana moves.
+2025-10-18 13:08:02,909 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=3dfdaf50-3a93-4680-b099-a9db2ba97729, rel_type=201
+2025-10-18 13:08:02,909 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,909 - rule_engine.handlers.combat_handlers - DEBUG - Getting legal attackers for Player Play.
+2025-10-18 13:08:02,909 - rule_engine.game_graph - DEBUG - Querying relationships: source=79ce55ff-31e2-4415-aa20-544844fd3188, target=None, rel_type=200
+2025-10-18 13:08:02,909 - rule_engine.game_graph - DEBUG - Found 5 relationships.
+2025-10-18 13:08:02,909 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=4560453c-6bb5-4113-846f-caa4519c56bf, rel_type=201
+2025-10-18 13:08:02,909 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,909 - rule_engine.handlers.combat_handlers - DEBUG - Found legal attacker: 2000 (2000)
+2025-10-18 13:08:02,909 - rule_engine.handlers.combat_handlers - DEBUG - Total legal attackers found: 1
+2025-10-18 13:08:02,909 - rule_engine.engine - DEBUG - Found DeclareAttackerAction for 2000 (2000)
+2025-10-18 13:08:02,909 - rule_engine.engine - DEBUG - Total legal moves found: 1
+2025-10-18 13:08:02,909 - rule_engine.engine - INFO - Executing move: DeclareAttacker(Player: 79ce, Card: a4ce)
+2025-10-18 13:08:02,909 - rule_engine.handlers.combat_handlers - INFO - Declaring attacker: 2000 (2000)
+2025-10-18 13:08:02,909 - rule_engine.handlers.combat_handlers - DEBUG - None tapped due to attacking (no vigilance).
+2025-10-18 13:08:02,909 - rule_engine.engine - INFO - Player 1 declared None as an attacker.
+2025-10-18 13:08:02,909 - rule_engine.game_graph - INFO - GameGraph initialized.
+2025-10-18 13:08:02,909 - rule_engine.game_graph - INFO - Initializing game...
+2025-10-18 13:08:02,909 - rule_engine.game_graph - DEBUG - Created Entity: 004d0c4d-88ef-4016-98da-51e2a306a240 (Type: 0)
+2025-10-18 13:08:02,909 - rule_engine.game_graph - DEBUG - Added entity 004d0c4d-88ef-4016-98da-51e2a306a240 (Type: 0) to graph.
+2025-10-18 13:08:02,909 - rule_engine.game_graph - DEBUG - Created Entity: e0cbd11c-fe78-464f-b986-1bf4dabc13ba (Type: 0)
+2025-10-18 13:08:02,909 - rule_engine.game_graph - DEBUG - Added entity e0cbd11c-fe78-464f-b986-1bf4dabc13ba (Type: 0) to graph.
+2025-10-18 13:08:02,910 - rule_engine.game_graph - INFO - Active player set to Player 1.
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 2 cards.
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Created Entity: 3700f6af-ac57-48fe-8669-5f1c00c6c992 (Type: 102)
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Added entity 3700f6af-ac57-48fe-8669-5f1c00c6c992 (Type: 102) to graph.
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Created Entity: 2cd78b3f-af18-4000-be75-0fc7a434e004 (Type: 100)
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Added entity 2cd78b3f-af18-4000-be75-0fc7a434e004 (Type: 100) to graph.
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Created Entity: c7a7b971-51e5-41d6-9c3f-ec3f8e3150a5 (Type: 103)
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Added entity c7a7b971-51e5-41d6-9c3f-ec3f8e3150a5 (Type: 103) to graph.
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Created Entity: 23bdb99b-c0e7-4a33-835d-3419dbeaf175 (Type: 101)
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Added entity 23bdb99b-c0e7-4a33-835d-3419dbeaf175 (Type: 101) to graph.
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Created Relationship: 004d0c4d-88ef-4016-98da-51e2a306a240 -> 3700f6af-ac57-48fe-8669-5f1c00c6c992 (Type: 200)
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Added relationship 004d0c4d-88ef-4016-98da-51e2a306a240 -> 3700f6af-ac57-48fe-8669-5f1c00c6c992 (Type: 200) to graph.
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Created Relationship: 004d0c4d-88ef-4016-98da-51e2a306a240 -> 2cd78b3f-af18-4000-be75-0fc7a434e004 (Type: 200)
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Added relationship 004d0c4d-88ef-4016-98da-51e2a306a240 -> 2cd78b3f-af18-4000-be75-0fc7a434e004 (Type: 200) to graph.
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Created Relationship: 004d0c4d-88ef-4016-98da-51e2a306a240 -> c7a7b971-51e5-41d6-9c3f-ec3f8e3150a5 (Type: 200)
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Added relationship 004d0c4d-88ef-4016-98da-51e2a306a240 -> c7a7b971-51e5-41d6-9c3f-ec3f8e3150a5 (Type: 200) to graph.
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Created Relationship: 004d0c4d-88ef-4016-98da-51e2a306a240 -> 23bdb99b-c0e7-4a33-835d-3419dbeaf175 (Type: 200)
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Added relationship 004d0c4d-88ef-4016-98da-51e2a306a240 -> 23bdb99b-c0e7-4a33-835d-3419dbeaf175 (Type: 200) to graph.
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Created Entity: 85ee85f6-d89e-4ad5-8de3-7b50f58cc740 (Type: 1000)
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Added entity 85ee85f6-d89e-4ad5-8de3-7b50f58cc740 (Type: 1000) to graph.
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Created Relationship: 004d0c4d-88ef-4016-98da-51e2a306a240 -> 85ee85f6-d89e-4ad5-8de3-7b50f58cc740 (Type: 200)
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Added relationship 004d0c4d-88ef-4016-98da-51e2a306a240 -> 85ee85f6-d89e-4ad5-8de3-7b50f58cc740 (Type: 200) to graph.
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Created Relationship: 85ee85f6-d89e-4ad5-8de3-7b50f58cc740 -> 3700f6af-ac57-48fe-8669-5f1c00c6c992 (Type: 201)
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Added relationship 85ee85f6-d89e-4ad5-8de3-7b50f58cc740 -> 3700f6af-ac57-48fe-8669-5f1c00c6c992 (Type: 201) to graph.
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Created Entity: 5591c78b-1025-44db-adbc-edeb14768e3e (Type: 2000)
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Added entity 5591c78b-1025-44db-adbc-edeb14768e3e (Type: 2000) to graph.
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Created Relationship: 004d0c4d-88ef-4016-98da-51e2a306a240 -> 5591c78b-1025-44db-adbc-edeb14768e3e (Type: 200)
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Added relationship 004d0c4d-88ef-4016-98da-51e2a306a240 -> 5591c78b-1025-44db-adbc-edeb14768e3e (Type: 200) to graph.
+2025-10-18 13:08:02,910 - rule_engine.game_graph - DEBUG - Created Relationship: 5591c78b-1025-44db-adbc-edeb14768e3e -> 3700f6af-ac57-48fe-8669-5f1c00c6c992 (Type: 201)
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Added relationship 5591c78b-1025-44db-adbc-edeb14768e3e -> 3700f6af-ac57-48fe-8669-5f1c00c6c992 (Type: 201) to graph.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 0 cards.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Created Entity: a1c60d44-6e6d-4fc7-97a8-99d4256be335 (Type: 102)
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Added entity a1c60d44-6e6d-4fc7-97a8-99d4256be335 (Type: 102) to graph.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Created Entity: 40d1453f-ed63-4ff0-ab65-de99681905c5 (Type: 100)
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Added entity 40d1453f-ed63-4ff0-ab65-de99681905c5 (Type: 100) to graph.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Created Entity: dcc242ae-d63b-428b-ae33-b07a349c2ee3 (Type: 103)
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Added entity dcc242ae-d63b-428b-ae33-b07a349c2ee3 (Type: 103) to graph.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Created Entity: fe01d400-af70-4bc4-bdb9-bab78d0b0a4b (Type: 101)
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Added entity fe01d400-af70-4bc4-bdb9-bab78d0b0a4b (Type: 101) to graph.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Created Relationship: e0cbd11c-fe78-464f-b986-1bf4dabc13ba -> a1c60d44-6e6d-4fc7-97a8-99d4256be335 (Type: 200)
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Added relationship e0cbd11c-fe78-464f-b986-1bf4dabc13ba -> a1c60d44-6e6d-4fc7-97a8-99d4256be335 (Type: 200) to graph.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Created Relationship: e0cbd11c-fe78-464f-b986-1bf4dabc13ba -> 40d1453f-ed63-4ff0-ab65-de99681905c5 (Type: 200)
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Added relationship e0cbd11c-fe78-464f-b986-1bf4dabc13ba -> 40d1453f-ed63-4ff0-ab65-de99681905c5 (Type: 200) to graph.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Created Relationship: e0cbd11c-fe78-464f-b986-1bf4dabc13ba -> dcc242ae-d63b-428b-ae33-b07a349c2ee3 (Type: 200)
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Added relationship e0cbd11c-fe78-464f-b986-1bf4dabc13ba -> dcc242ae-d63b-428b-ae33-b07a349c2ee3 (Type: 200) to graph.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Created Relationship: e0cbd11c-fe78-464f-b986-1bf4dabc13ba -> fe01d400-af70-4bc4-bdb9-bab78d0b0a4b (Type: 200)
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Added relationship e0cbd11c-fe78-464f-b986-1bf4dabc13ba -> fe01d400-af70-4bc4-bdb9-bab78d0b0a4b (Type: 200) to graph.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Decks shuffled.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Querying relationships: source=004d0c4d-88ef-4016-98da-51e2a306a240, target=None, rel_type=200
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Querying relationships: source=e0cbd11c-fe78-464f-b986-1bf4dabc13ba, target=None, rel_type=200
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Found 4 relationships.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Querying relationships: source=85ee85f6-d89e-4ad5-8de3-7b50f58cc740, target=None, rel_type=201
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Player 1 drew 1000.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Querying relationships: source=5591c78b-1025-44db-adbc-edeb14768e3e, target=None, rel_type=201
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Player 1 drew 2000.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - INFO - Game initialized successfully.
+2025-10-18 13:08:02,911 - rule_engine.engine - INFO - Engine initialized.
+2025-10-18 13:08:02,911 - rule_engine.game_graph - INFO - Initializing game...
+2025-10-18 13:08:02,911 - rule_engine.game_graph - DEBUG - Created Entity: dc6ab8f6-0cd6-4b84-acb0-4a78981972b4 (Type: 0)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added entity dc6ab8f6-0cd6-4b84-acb0-4a78981972b4 (Type: 0) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Entity: 8f10a7cb-fa85-4491-910e-acfce0e258a8 (Type: 0)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added entity 8f10a7cb-fa85-4491-910e-acfce0e258a8 (Type: 0) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - INFO - Active player set to Player 1.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 1 cards.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Entity: 53e018dc-5701-40e6-b72c-d504afc01973 (Type: 102)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added entity 53e018dc-5701-40e6-b72c-d504afc01973 (Type: 102) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Entity: c7e59d4d-9e8a-4553-90ec-88ae3e92cbea (Type: 100)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added entity c7e59d4d-9e8a-4553-90ec-88ae3e92cbea (Type: 100) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Entity: e9e92b7a-b043-42dc-a6e0-ac28cae2bb12 (Type: 103)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added entity e9e92b7a-b043-42dc-a6e0-ac28cae2bb12 (Type: 103) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Entity: 81ec86af-d2d0-462e-a26f-514b55ad8251 (Type: 101)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added entity 81ec86af-d2d0-462e-a26f-514b55ad8251 (Type: 101) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Relationship: dc6ab8f6-0cd6-4b84-acb0-4a78981972b4 -> 53e018dc-5701-40e6-b72c-d504afc01973 (Type: 200)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added relationship dc6ab8f6-0cd6-4b84-acb0-4a78981972b4 -> 53e018dc-5701-40e6-b72c-d504afc01973 (Type: 200) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Relationship: dc6ab8f6-0cd6-4b84-acb0-4a78981972b4 -> c7e59d4d-9e8a-4553-90ec-88ae3e92cbea (Type: 200)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added relationship dc6ab8f6-0cd6-4b84-acb0-4a78981972b4 -> c7e59d4d-9e8a-4553-90ec-88ae3e92cbea (Type: 200) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Relationship: dc6ab8f6-0cd6-4b84-acb0-4a78981972b4 -> e9e92b7a-b043-42dc-a6e0-ac28cae2bb12 (Type: 200)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added relationship dc6ab8f6-0cd6-4b84-acb0-4a78981972b4 -> e9e92b7a-b043-42dc-a6e0-ac28cae2bb12 (Type: 200) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Relationship: dc6ab8f6-0cd6-4b84-acb0-4a78981972b4 -> 81ec86af-d2d0-462e-a26f-514b55ad8251 (Type: 200)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added relationship dc6ab8f6-0cd6-4b84-acb0-4a78981972b4 -> 81ec86af-d2d0-462e-a26f-514b55ad8251 (Type: 200) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Entity: 840a06ce-8d7b-4847-88c7-5134d763ca16 (Type: 2000)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added entity 840a06ce-8d7b-4847-88c7-5134d763ca16 (Type: 2000) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Relationship: dc6ab8f6-0cd6-4b84-acb0-4a78981972b4 -> 840a06ce-8d7b-4847-88c7-5134d763ca16 (Type: 200)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added relationship dc6ab8f6-0cd6-4b84-acb0-4a78981972b4 -> 840a06ce-8d7b-4847-88c7-5134d763ca16 (Type: 200) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Relationship: 840a06ce-8d7b-4847-88c7-5134d763ca16 -> 53e018dc-5701-40e6-b72c-d504afc01973 (Type: 201)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added relationship 840a06ce-8d7b-4847-88c7-5134d763ca16 -> 53e018dc-5701-40e6-b72c-d504afc01973 (Type: 201) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 1 cards.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Entity: d61c2686-c3ea-4424-a7a0-ac156037c99c (Type: 102)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added entity d61c2686-c3ea-4424-a7a0-ac156037c99c (Type: 102) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Entity: d8975762-88b0-4c96-98c6-eeed5ad49455 (Type: 100)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added entity d8975762-88b0-4c96-98c6-eeed5ad49455 (Type: 100) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Entity: d09be723-f1dc-474d-8f0e-cec12d458600 (Type: 103)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added entity d09be723-f1dc-474d-8f0e-cec12d458600 (Type: 103) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Entity: ce992b95-31d8-4c71-8f30-b85e035e59ad (Type: 101)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added entity ce992b95-31d8-4c71-8f30-b85e035e59ad (Type: 101) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Relationship: 8f10a7cb-fa85-4491-910e-acfce0e258a8 -> d61c2686-c3ea-4424-a7a0-ac156037c99c (Type: 200)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added relationship 8f10a7cb-fa85-4491-910e-acfce0e258a8 -> d61c2686-c3ea-4424-a7a0-ac156037c99c (Type: 200) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Relationship: 8f10a7cb-fa85-4491-910e-acfce0e258a8 -> d8975762-88b0-4c96-98c6-eeed5ad49455 (Type: 200)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added relationship 8f10a7cb-fa85-4491-910e-acfce0e258a8 -> d8975762-88b0-4c96-98c6-eeed5ad49455 (Type: 200) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Relationship: 8f10a7cb-fa85-4491-910e-acfce0e258a8 -> d09be723-f1dc-474d-8f0e-cec12d458600 (Type: 200)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added relationship 8f10a7cb-fa85-4491-910e-acfce0e258a8 -> d09be723-f1dc-474d-8f0e-cec12d458600 (Type: 200) to graph.
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Created Relationship: 8f10a7cb-fa85-4491-910e-acfce0e258a8 -> ce992b95-31d8-4c71-8f30-b85e035e59ad (Type: 200)
+2025-10-18 13:08:02,912 - rule_engine.game_graph - DEBUG - Added relationship 8f10a7cb-fa85-4491-910e-acfce0e258a8 -> ce992b95-31d8-4c71-8f30-b85e035e59ad (Type: 200) to graph.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Created Entity: 75b5c2ca-9f01-4241-9a5c-fb6a25cda69f (Type: 2000)
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Added entity 75b5c2ca-9f01-4241-9a5c-fb6a25cda69f (Type: 2000) to graph.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Created Relationship: 8f10a7cb-fa85-4491-910e-acfce0e258a8 -> 75b5c2ca-9f01-4241-9a5c-fb6a25cda69f (Type: 200)
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Added relationship 8f10a7cb-fa85-4491-910e-acfce0e258a8 -> 75b5c2ca-9f01-4241-9a5c-fb6a25cda69f (Type: 200) to graph.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Created Relationship: 75b5c2ca-9f01-4241-9a5c-fb6a25cda69f -> d61c2686-c3ea-4424-a7a0-ac156037c99c (Type: 201)
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Added relationship 75b5c2ca-9f01-4241-9a5c-fb6a25cda69f -> d61c2686-c3ea-4424-a7a0-ac156037c99c (Type: 201) to graph.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Decks shuffled.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Querying relationships: source=dc6ab8f6-0cd6-4b84-acb0-4a78981972b4, target=None, rel_type=200
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Found 5 relationships.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Querying relationships: source=8f10a7cb-fa85-4491-910e-acfce0e258a8, target=None, rel_type=200
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Found 5 relationships.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Querying relationships: source=840a06ce-8d7b-4847-88c7-5134d763ca16, target=None, rel_type=201
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Player 1 drew 2000.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Querying relationships: source=75b5c2ca-9f01-4241-9a5c-fb6a25cda69f, target=None, rel_type=201
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Player 2 drew 2000.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - INFO - Game initialized successfully.
+2025-10-18 13:08:02,913 - rule_engine.engine - INFO - Engine initialized.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Querying relationships: source=dc6ab8f6-0cd6-4b84-acb0-4a78981972b4, target=5591c78b-1025-44db-adbc-edeb14768e3e, rel_type=200
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Found 0 relationships.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Querying relationships: source=dc6ab8f6-0cd6-4b84-acb0-4a78981972b4, target=840a06ce-8d7b-4847-88c7-5134d763ca16, rel_type=200
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Querying relationships: source=004d0c4d-88ef-4016-98da-51e2a306a240, target=5591c78b-1025-44db-adbc-edeb14768e3e, rel_type=200
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Querying relationships: source=dc6ab8f6-0cd6-4b84-acb0-4a78981972b4, target=None, rel_type=200
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Found 5 relationships.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Querying relationships: source=004d0c4d-88ef-4016-98da-51e2a306a240, target=None, rel_type=200
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Querying relationships: source=840a06ce-8d7b-4847-88c7-5134d763ca16, target=None, rel_type=201
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,913 - rule_engine.game_graph - DEBUG - Querying relationships: source=5591c78b-1025-44db-adbc-edeb14768e3e, target=None, rel_type=201
+2025-10-18 13:08:02,914 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,914 - rule_engine.engine - DEBUG - Calculating legal moves for Player Play (Turn 2, Phase 11, Step 21)
+2025-10-18 13:08:02,914 - rule_engine.game_graph - DEBUG - Querying relationships: source=dc6ab8f6-0cd6-4b84-acb0-4a78981972b4, target=None, rel_type=200
+2025-10-18 13:08:02,914 - rule_engine.game_graph - DEBUG - Found 5 relationships.
+2025-10-18 13:08:02,914 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=c7e59d4d-9e8a-4553-90ec-88ae3e92cbea, rel_type=201
+2025-10-18 13:08:02,914 - rule_engine.game_graph - DEBUG - Found 0 relationships.
+2025-10-18 13:08:02,914 - rule_engine.handlers.mana_handlers - DEBUG - Getting tap for mana moves for Player Play.
+2025-10-18 13:08:02,914 - rule_engine.game_graph - DEBUG - Querying relationships: source=dc6ab8f6-0cd6-4b84-acb0-4a78981972b4, target=None, rel_type=200
+2025-10-18 13:08:02,914 - rule_engine.game_graph - DEBUG - Found 5 relationships.
+2025-10-18 13:08:02,914 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=81ec86af-d2d0-462e-a26f-514b55ad8251, rel_type=201
+2025-10-18 13:08:02,914 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,914 - rule_engine.handlers.mana_handlers - DEBUG - Found 0 tap for mana moves.
+2025-10-18 13:08:02,914 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=c7e59d4d-9e8a-4553-90ec-88ae3e92cbea, rel_type=201
+2025-10-18 13:08:02,914 - rule_engine.game_graph - DEBUG - Found 0 relationships.
+2025-10-18 13:08:02,914 - rule_engine.handlers.combat_handlers - DEBUG - Getting legal attackers for Player Play.
+2025-10-18 13:08:02,914 - rule_engine.game_graph - DEBUG - Querying relationships: source=dc6ab8f6-0cd6-4b84-acb0-4a78981972b4, target=None, rel_type=200
+2025-10-18 13:08:02,914 - rule_engine.game_graph - DEBUG - Found 5 relationships.
+2025-10-18 13:08:02,914 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=81ec86af-d2d0-462e-a26f-514b55ad8251, rel_type=201
+2025-10-18 13:08:02,914 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,914 - rule_engine.handlers.combat_handlers - DEBUG - Found legal attacker: 2000 (2000)
+2025-10-18 13:08:02,914 - rule_engine.handlers.combat_handlers - DEBUG - Total legal attackers found: 1
+2025-10-18 13:08:02,914 - rule_engine.engine - DEBUG - Found DeclareAttackerAction for 2000 (2000)
+2025-10-18 13:08:02,914 - rule_engine.engine - DEBUG - Total legal moves found: 1
+2025-10-18 13:08:02,914 - rule_engine.engine - INFO - Executing move: DeclareAttacker(Player: dc6a, Card: 840a)
+2025-10-18 13:08:02,914 - rule_engine.handlers.combat_handlers - INFO - Declaring attacker: 2000 (2000)
+2025-10-18 13:08:02,914 - rule_engine.handlers.combat_handlers - DEBUG - None tapped due to attacking (no vigilance).
+2025-10-18 13:08:02,914 - rule_engine.engine - INFO - Player 1 declared None as an attacker.
+2025-10-18 13:08:02,915 - rule_engine.engine - DEBUG - Calculating legal moves for Player Play (Turn 2, Phase 11, Step 22)
+2025-10-18 13:08:02,915 - rule_engine.game_graph - DEBUG - Querying relationships: source=dc6ab8f6-0cd6-4b84-acb0-4a78981972b4, target=None, rel_type=200
+2025-10-18 13:08:02,915 - rule_engine.game_graph - DEBUG - Found 5 relationships.
+2025-10-18 13:08:02,915 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=c7e59d4d-9e8a-4553-90ec-88ae3e92cbea, rel_type=201
+2025-10-18 13:08:02,915 - rule_engine.game_graph - DEBUG - Found 0 relationships.
+2025-10-18 13:08:02,915 - rule_engine.handlers.mana_handlers - DEBUG - Getting tap for mana moves for Player Play.
+2025-10-18 13:08:02,915 - rule_engine.game_graph - DEBUG - Querying relationships: source=dc6ab8f6-0cd6-4b84-acb0-4a78981972b4, target=None, rel_type=200
+2025-10-18 13:08:02,915 - rule_engine.game_graph - DEBUG - Found 5 relationships.
+2025-10-18 13:08:02,915 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=81ec86af-d2d0-462e-a26f-514b55ad8251, rel_type=201
+2025-10-18 13:08:02,915 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,915 - rule_engine.handlers.mana_handlers - DEBUG - Found 0 tap for mana moves.
+2025-10-18 13:08:02,915 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=c7e59d4d-9e8a-4553-90ec-88ae3e92cbea, rel_type=201
+2025-10-18 13:08:02,915 - rule_engine.game_graph - DEBUG - Found 0 relationships.
+2025-10-18 13:08:02,915 - rule_engine.handlers.combat_handlers - DEBUG - Getting legal blockers for Player Play.
+2025-10-18 13:08:02,915 - rule_engine.game_graph - DEBUG - Querying relationships: source=004d0c4d-88ef-4016-98da-51e2a306a240, target=None, rel_type=200
+2025-10-18 13:08:02,915 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,915 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=23bdb99b-c0e7-4a33-835d-3419dbeaf175, rel_type=201
+2025-10-18 13:08:02,915 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,915 - rule_engine.handlers.combat_handlers - DEBUG - Found legal blocker: 2000 (2000)
+2025-10-18 13:08:02,915 - rule_engine.handlers.combat_handlers - DEBUG - Total legal blockers found: 1
+2025-10-18 13:08:02,915 - rule_engine.handlers.keyword_handlers - DEBUG - Checking if 2000 (2000) can block 2000 (2000).
+2025-10-18 13:08:02,915 - rule_engine.handlers.keyword_handlers - DEBUG - Block is legal based on keyword abilities.
+2025-10-18 13:08:02,915 - rule_engine.engine - DEBUG - Found DeclareBlockerAction: 2000 (2000) blocking 2000 (2000)
+2025-10-18 13:08:02,915 - rule_engine.engine - DEBUG - Total legal moves found: 1
+2025-10-18 13:08:02,915 - rule_engine.engine - INFO - Executing move: DeclareBlocker(Player: 004d, Blocker: 5591, Attacker: 840a)
+2025-10-18 13:08:02,916 - rule_engine.game_graph - DEBUG - Created Relationship: 5591c78b-1025-44db-adbc-edeb14768e3e -> 840a06ce-8d7b-4847-88c7-5134d763ca16 (Type: 204)
+2025-10-18 13:08:02,916 - rule_engine.game_graph - DEBUG - Added relationship 5591c78b-1025-44db-adbc-edeb14768e3e -> 840a06ce-8d7b-4847-88c7-5134d763ca16 (Type: 204) to graph.
+2025-10-18 13:08:02,916 - rule_engine.engine - INFO - Player 1 declared None blocking None.
+2025-10-18 13:08:02,916 - rule_engine.engine - INFO - Progressing step from 22
+2025-10-18 13:08:02,916 - rule_engine.handlers.combat_handlers - INFO - Assigning combat damage...
+2025-10-18 13:08:02,916 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=840a06ce-8d7b-4847-88c7-5134d763ca16, rel_type=204
+2025-10-18 13:08:02,916 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,916 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=840a06ce-8d7b-4847-88c7-5134d763ca16, rel_type=200
+2025-10-18 13:08:02,916 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,916 - rule_engine.handlers.combat_handlers - INFO - 2000 (2000) deals 2 damage to 2000 (2000).
+2025-10-18 13:08:02,916 - rule_engine.handlers.combat_handlers - INFO - 2000 (2000) deals 2 damage to 2000 (2000).
+2025-10-18 13:08:02,916 - rule_engine.engine - INFO - Combat damage assigned. Current step: 24
+2025-10-18 13:08:02,916 - rule_engine.game_graph - INFO - GameGraph initialized.
+2025-10-18 13:08:02,916 - rule_engine.game_graph - INFO - Initializing game...
+2025-10-18 13:08:02,916 - rule_engine.game_graph - DEBUG - Created Entity: 45754e8c-ee75-4f56-8452-1fa505149876 (Type: 0)
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Added entity 45754e8c-ee75-4f56-8452-1fa505149876 (Type: 0) to graph.
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Created Entity: cf1edba7-0149-4580-a200-7f08be6392fb (Type: 0)
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Added entity cf1edba7-0149-4580-a200-7f08be6392fb (Type: 0) to graph.
+2025-10-18 13:08:02,917 - rule_engine.game_graph - INFO - Active player set to Player 1.
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 2 cards.
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Created Entity: 2754464f-e004-49af-bc60-6cac31c2fafb (Type: 102)
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Added entity 2754464f-e004-49af-bc60-6cac31c2fafb (Type: 102) to graph.
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Created Entity: d195f597-9c77-4168-81d1-5705175746ac (Type: 100)
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Added entity d195f597-9c77-4168-81d1-5705175746ac (Type: 100) to graph.
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Created Entity: 50df30f4-fa9b-4cf6-b73e-972bd09a4d76 (Type: 103)
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Added entity 50df30f4-fa9b-4cf6-b73e-972bd09a4d76 (Type: 103) to graph.
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Created Entity: ce96b0f5-5c15-4bc4-8dd2-bcaa98b897b3 (Type: 101)
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Added entity ce96b0f5-5c15-4bc4-8dd2-bcaa98b897b3 (Type: 101) to graph.
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Created Relationship: 45754e8c-ee75-4f56-8452-1fa505149876 -> 2754464f-e004-49af-bc60-6cac31c2fafb (Type: 200)
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Added relationship 45754e8c-ee75-4f56-8452-1fa505149876 -> 2754464f-e004-49af-bc60-6cac31c2fafb (Type: 200) to graph.
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Created Relationship: 45754e8c-ee75-4f56-8452-1fa505149876 -> d195f597-9c77-4168-81d1-5705175746ac (Type: 200)
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Added relationship 45754e8c-ee75-4f56-8452-1fa505149876 -> d195f597-9c77-4168-81d1-5705175746ac (Type: 200) to graph.
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Created Relationship: 45754e8c-ee75-4f56-8452-1fa505149876 -> 50df30f4-fa9b-4cf6-b73e-972bd09a4d76 (Type: 200)
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Added relationship 45754e8c-ee75-4f56-8452-1fa505149876 -> 50df30f4-fa9b-4cf6-b73e-972bd09a4d76 (Type: 200) to graph.
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Created Relationship: 45754e8c-ee75-4f56-8452-1fa505149876 -> ce96b0f5-5c15-4bc4-8dd2-bcaa98b897b3 (Type: 200)
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Added relationship 45754e8c-ee75-4f56-8452-1fa505149876 -> ce96b0f5-5c15-4bc4-8dd2-bcaa98b897b3 (Type: 200) to graph.
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Created Entity: 9ed65884-d766-43cc-8873-98f36d829c1f (Type: 1000)
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Added entity 9ed65884-d766-43cc-8873-98f36d829c1f (Type: 1000) to graph.
+2025-10-18 13:08:02,917 - rule_engine.game_graph - DEBUG - Created Relationship: 45754e8c-ee75-4f56-8452-1fa505149876 -> 9ed65884-d766-43cc-8873-98f36d829c1f (Type: 200)
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Added relationship 45754e8c-ee75-4f56-8452-1fa505149876 -> 9ed65884-d766-43cc-8873-98f36d829c1f (Type: 200) to graph.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Created Relationship: 9ed65884-d766-43cc-8873-98f36d829c1f -> 2754464f-e004-49af-bc60-6cac31c2fafb (Type: 201)
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Added relationship 9ed65884-d766-43cc-8873-98f36d829c1f -> 2754464f-e004-49af-bc60-6cac31c2fafb (Type: 201) to graph.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Created Entity: 13e793e2-c8bf-4a96-bd20-464ace9709da (Type: 2000)
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Added entity 13e793e2-c8bf-4a96-bd20-464ace9709da (Type: 2000) to graph.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Created Relationship: 45754e8c-ee75-4f56-8452-1fa505149876 -> 13e793e2-c8bf-4a96-bd20-464ace9709da (Type: 200)
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Added relationship 45754e8c-ee75-4f56-8452-1fa505149876 -> 13e793e2-c8bf-4a96-bd20-464ace9709da (Type: 200) to graph.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Created Relationship: 13e793e2-c8bf-4a96-bd20-464ace9709da -> 2754464f-e004-49af-bc60-6cac31c2fafb (Type: 201)
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Added relationship 13e793e2-c8bf-4a96-bd20-464ace9709da -> 2754464f-e004-49af-bc60-6cac31c2fafb (Type: 201) to graph.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 0 cards.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Created Entity: 26618e8a-e789-4509-bb3a-f5e1865eb8ba (Type: 102)
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Added entity 26618e8a-e789-4509-bb3a-f5e1865eb8ba (Type: 102) to graph.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Created Entity: 307629ae-fbe6-4df2-bd1b-224ca242e831 (Type: 100)
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Added entity 307629ae-fbe6-4df2-bd1b-224ca242e831 (Type: 100) to graph.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Created Entity: f7ae4893-af5e-417b-bfa5-5cca9e26f5bc (Type: 103)
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Added entity f7ae4893-af5e-417b-bfa5-5cca9e26f5bc (Type: 103) to graph.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Created Entity: 439a245e-2686-40f9-8294-30436e2fa024 (Type: 101)
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Added entity 439a245e-2686-40f9-8294-30436e2fa024 (Type: 101) to graph.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Created Relationship: cf1edba7-0149-4580-a200-7f08be6392fb -> 26618e8a-e789-4509-bb3a-f5e1865eb8ba (Type: 200)
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Added relationship cf1edba7-0149-4580-a200-7f08be6392fb -> 26618e8a-e789-4509-bb3a-f5e1865eb8ba (Type: 200) to graph.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Created Relationship: cf1edba7-0149-4580-a200-7f08be6392fb -> 307629ae-fbe6-4df2-bd1b-224ca242e831 (Type: 200)
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Added relationship cf1edba7-0149-4580-a200-7f08be6392fb -> 307629ae-fbe6-4df2-bd1b-224ca242e831 (Type: 200) to graph.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Created Relationship: cf1edba7-0149-4580-a200-7f08be6392fb -> f7ae4893-af5e-417b-bfa5-5cca9e26f5bc (Type: 200)
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Added relationship cf1edba7-0149-4580-a200-7f08be6392fb -> f7ae4893-af5e-417b-bfa5-5cca9e26f5bc (Type: 200) to graph.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Created Relationship: cf1edba7-0149-4580-a200-7f08be6392fb -> 439a245e-2686-40f9-8294-30436e2fa024 (Type: 200)
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Added relationship cf1edba7-0149-4580-a200-7f08be6392fb -> 439a245e-2686-40f9-8294-30436e2fa024 (Type: 200) to graph.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Decks shuffled.
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Querying relationships: source=45754e8c-ee75-4f56-8452-1fa505149876, target=None, rel_type=200
+2025-10-18 13:08:02,918 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Querying relationships: source=cf1edba7-0149-4580-a200-7f08be6392fb, target=None, rel_type=200
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Found 4 relationships.
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Querying relationships: source=9ed65884-d766-43cc-8873-98f36d829c1f, target=None, rel_type=201
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Player 1 drew 1000.
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Querying relationships: source=13e793e2-c8bf-4a96-bd20-464ace9709da, target=None, rel_type=201
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Player 1 drew 2000.
+2025-10-18 13:08:02,919 - rule_engine.game_graph - INFO - Game initialized successfully.
+2025-10-18 13:08:02,919 - rule_engine.engine - INFO - Engine initialized.
+2025-10-18 13:08:02,919 - rule_engine.engine - DEBUG - Calculating legal moves for Player Play (Turn 1, Phase 11, Step 0)
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Querying relationships: source=45754e8c-ee75-4f56-8452-1fa505149876, target=None, rel_type=200
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=d195f597-9c77-4168-81d1-5705175746ac, rel_type=201
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Found 2 relationships.
+2025-10-18 13:08:02,919 - rule_engine.engine - DEBUG - Found PlayLandAction for 1000 (1000)
+2025-10-18 13:08:02,919 - rule_engine.handlers.mana_handlers - DEBUG - Getting tap for mana moves for Player Play.
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Querying relationships: source=45754e8c-ee75-4f56-8452-1fa505149876, target=None, rel_type=200
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=ce96b0f5-5c15-4bc4-8dd2-bcaa98b897b3, rel_type=201
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Found 0 relationships.
+2025-10-18 13:08:02,919 - rule_engine.handlers.mana_handlers - DEBUG - Found 0 tap for mana moves.
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=d195f597-9c77-4168-81d1-5705175746ac, rel_type=201
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Found 2 relationships.
+2025-10-18 13:08:02,919 - rule_engine.engine - DEBUG - Total legal moves found: 1
+2025-10-18 13:08:02,919 - rule_engine.engine - INFO - Executing move: PlayLand(Player: 4575, Card: 9ed6)
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Querying relationships: source=45754e8c-ee75-4f56-8452-1fa505149876, target=None, rel_type=200
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,919 - rule_engine.game_graph - DEBUG - Querying relationships: source=9ed65884-d766-43cc-8873-98f36d829c1f, target=None, rel_type=201
+2025-10-18 13:08:02,920 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,920 - rule_engine.engine - INFO - Player 1 played None to battlefield.
+2025-10-18 13:08:02,920 - rule_engine.game_graph - DEBUG - Querying relationships: source=45754e8c-ee75-4f56-8452-1fa505149876, target=None, rel_type=200
+2025-10-18 13:08:02,920 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,920 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=ce96b0f5-5c15-4bc4-8dd2-bcaa98b897b3, rel_type=201
+2025-10-18 13:08:02,920 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,920 - rule_engine.engine - DEBUG - Calculating legal moves for Player Play (Turn 1, Phase 11, Step 0)
+2025-10-18 13:08:02,920 - rule_engine.game_graph - DEBUG - Querying relationships: source=45754e8c-ee75-4f56-8452-1fa505149876, target=None, rel_type=200
+2025-10-18 13:08:02,920 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,920 - rule_engine.handlers.mana_handlers - DEBUG - Getting tap for mana moves for Player Play.
+2025-10-18 13:08:02,920 - rule_engine.game_graph - DEBUG - Querying relationships: source=45754e8c-ee75-4f56-8452-1fa505149876, target=None, rel_type=200
+2025-10-18 13:08:02,920 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,920 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=ce96b0f5-5c15-4bc4-8dd2-bcaa98b897b3, rel_type=201
+2025-10-18 13:08:02,920 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,920 - rule_engine.handlers.mana_handlers - ERROR - Error getting tap for mana moves for Player Play: ActivateManaAbilityAction.__init__() missing 1 required positional argument: 'ability_id'
+Traceback (most recent call last):
+  File "/home/sune/Documents/Projekt Projector/MTG_bot/rule_engine/handlers/mana_handlers.py", line 59, in get_tap_for_mana_moves
+    legal_moves.append(ActivateManaAbilityAction(player_id=player.instance_id, card_id=land.instance_id)) # Using a dummy ability_id for now
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ActivateManaAbilityAction.__init__() missing 1 required positional argument: 'ability_id'
+2025-10-18 13:08:02,920 - rule_engine.engine - ERROR - Error calculating legal moves: ActivateManaAbilityAction.__init__() missing 1 required positional argument: 'ability_id'
+Traceback (most recent call last):
+  File "/home/sune/Documents/Projekt Projector/MTG_bot/rule_engine/engine.py", line 63, in get_legal_moves
+    mana_moves = mana_handlers.get_tap_for_mana_moves(self.graph, active_player)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sune/Documents/Projekt Projector/MTG_bot/rule_engine/handlers/mana_handlers.py", line 59, in get_tap_for_mana_moves
+    legal_moves.append(ActivateManaAbilityAction(player_id=player.instance_id, card_id=land.instance_id)) # Using a dummy ability_id for now
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ActivateManaAbilityAction.__init__() missing 1 required positional argument: 'ability_id'
+2025-10-18 13:08:02,921 - rule_engine.engine - DEBUG - Total legal moves found: 0
+2025-10-18 13:08:02,921 - rule_engine.game_graph - INFO - GameGraph initialized.
+2025-10-18 13:08:02,921 - rule_engine.game_graph - INFO - Initializing game...
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Created Entity: d747a98c-0bf2-473c-9a49-3fecfa15edca (Type: 0)
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Added entity d747a98c-0bf2-473c-9a49-3fecfa15edca (Type: 0) to graph.
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Created Entity: 310aa21b-9fb6-485e-9341-d2a6fd9e193e (Type: 0)
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Added entity 310aa21b-9fb6-485e-9341-d2a6fd9e193e (Type: 0) to graph.
+2025-10-18 13:08:02,921 - rule_engine.game_graph - INFO - Active player set to Player 1.
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 2 cards.
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Created Entity: 4d57a806-fdcf-4260-92fd-32cc7768c89c (Type: 102)
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Added entity 4d57a806-fdcf-4260-92fd-32cc7768c89c (Type: 102) to graph.
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Created Entity: affaf02c-d9d8-485b-a9f0-1a80a8cf58ff (Type: 100)
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Added entity affaf02c-d9d8-485b-a9f0-1a80a8cf58ff (Type: 100) to graph.
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Created Entity: dc9a549e-0cb2-4c85-a675-06ff6204a82a (Type: 103)
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Added entity dc9a549e-0cb2-4c85-a675-06ff6204a82a (Type: 103) to graph.
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Created Entity: 420b1745-03e2-4d45-bc5f-e1da9596868a (Type: 101)
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Added entity 420b1745-03e2-4d45-bc5f-e1da9596868a (Type: 101) to graph.
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Created Relationship: d747a98c-0bf2-473c-9a49-3fecfa15edca -> 4d57a806-fdcf-4260-92fd-32cc7768c89c (Type: 200)
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Added relationship d747a98c-0bf2-473c-9a49-3fecfa15edca -> 4d57a806-fdcf-4260-92fd-32cc7768c89c (Type: 200) to graph.
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Created Relationship: d747a98c-0bf2-473c-9a49-3fecfa15edca -> affaf02c-d9d8-485b-a9f0-1a80a8cf58ff (Type: 200)
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Added relationship d747a98c-0bf2-473c-9a49-3fecfa15edca -> affaf02c-d9d8-485b-a9f0-1a80a8cf58ff (Type: 200) to graph.
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Created Relationship: d747a98c-0bf2-473c-9a49-3fecfa15edca -> dc9a549e-0cb2-4c85-a675-06ff6204a82a (Type: 200)
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Added relationship d747a98c-0bf2-473c-9a49-3fecfa15edca -> dc9a549e-0cb2-4c85-a675-06ff6204a82a (Type: 200) to graph.
+2025-10-18 13:08:02,921 - rule_engine.game_graph - DEBUG - Created Relationship: d747a98c-0bf2-473c-9a49-3fecfa15edca -> 420b1745-03e2-4d45-bc5f-e1da9596868a (Type: 200)
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Added relationship d747a98c-0bf2-473c-9a49-3fecfa15edca -> 420b1745-03e2-4d45-bc5f-e1da9596868a (Type: 200) to graph.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Created Entity: ff9839ee-201a-484f-b4bb-0d9555e6dc25 (Type: 1000)
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Added entity ff9839ee-201a-484f-b4bb-0d9555e6dc25 (Type: 1000) to graph.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Created Relationship: d747a98c-0bf2-473c-9a49-3fecfa15edca -> ff9839ee-201a-484f-b4bb-0d9555e6dc25 (Type: 200)
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Added relationship d747a98c-0bf2-473c-9a49-3fecfa15edca -> ff9839ee-201a-484f-b4bb-0d9555e6dc25 (Type: 200) to graph.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Created Relationship: ff9839ee-201a-484f-b4bb-0d9555e6dc25 -> 4d57a806-fdcf-4260-92fd-32cc7768c89c (Type: 201)
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Added relationship ff9839ee-201a-484f-b4bb-0d9555e6dc25 -> 4d57a806-fdcf-4260-92fd-32cc7768c89c (Type: 201) to graph.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Created Entity: 020c1942-9238-49de-ab3c-00f83b358c90 (Type: 2000)
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Added entity 020c1942-9238-49de-ab3c-00f83b358c90 (Type: 2000) to graph.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Created Relationship: d747a98c-0bf2-473c-9a49-3fecfa15edca -> 020c1942-9238-49de-ab3c-00f83b358c90 (Type: 200)
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Added relationship d747a98c-0bf2-473c-9a49-3fecfa15edca -> 020c1942-9238-49de-ab3c-00f83b358c90 (Type: 200) to graph.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Created Relationship: 020c1942-9238-49de-ab3c-00f83b358c90 -> 4d57a806-fdcf-4260-92fd-32cc7768c89c (Type: 201)
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Added relationship 020c1942-9238-49de-ab3c-00f83b358c90 -> 4d57a806-fdcf-4260-92fd-32cc7768c89c (Type: 201) to graph.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 0 cards.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Created Entity: 8123a22c-e67b-4d36-a913-827797091e05 (Type: 102)
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Added entity 8123a22c-e67b-4d36-a913-827797091e05 (Type: 102) to graph.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Created Entity: 8dc96e2f-4b07-4bcb-9ead-fe2fe04ce211 (Type: 100)
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Added entity 8dc96e2f-4b07-4bcb-9ead-fe2fe04ce211 (Type: 100) to graph.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Created Entity: 03ac7122-cb9c-4f2a-96d5-521467e4d249 (Type: 103)
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Added entity 03ac7122-cb9c-4f2a-96d5-521467e4d249 (Type: 103) to graph.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Created Entity: 8479f215-98b1-44dc-a39e-ba5da0e6e1a2 (Type: 101)
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Added entity 8479f215-98b1-44dc-a39e-ba5da0e6e1a2 (Type: 101) to graph.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Created Relationship: 310aa21b-9fb6-485e-9341-d2a6fd9e193e -> 8123a22c-e67b-4d36-a913-827797091e05 (Type: 200)
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Added relationship 310aa21b-9fb6-485e-9341-d2a6fd9e193e -> 8123a22c-e67b-4d36-a913-827797091e05 (Type: 200) to graph.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Created Relationship: 310aa21b-9fb6-485e-9341-d2a6fd9e193e -> 8dc96e2f-4b07-4bcb-9ead-fe2fe04ce211 (Type: 200)
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Added relationship 310aa21b-9fb6-485e-9341-d2a6fd9e193e -> 8dc96e2f-4b07-4bcb-9ead-fe2fe04ce211 (Type: 200) to graph.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Created Relationship: 310aa21b-9fb6-485e-9341-d2a6fd9e193e -> 03ac7122-cb9c-4f2a-96d5-521467e4d249 (Type: 200)
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Added relationship 310aa21b-9fb6-485e-9341-d2a6fd9e193e -> 03ac7122-cb9c-4f2a-96d5-521467e4d249 (Type: 200) to graph.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Created Relationship: 310aa21b-9fb6-485e-9341-d2a6fd9e193e -> 8479f215-98b1-44dc-a39e-ba5da0e6e1a2 (Type: 200)
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Added relationship 310aa21b-9fb6-485e-9341-d2a6fd9e193e -> 8479f215-98b1-44dc-a39e-ba5da0e6e1a2 (Type: 200) to graph.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Decks shuffled.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Querying relationships: source=d747a98c-0bf2-473c-9a49-3fecfa15edca, target=None, rel_type=200
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Querying relationships: source=310aa21b-9fb6-485e-9341-d2a6fd9e193e, target=None, rel_type=200
+2025-10-18 13:08:02,922 - rule_engine.game_graph - DEBUG - Found 4 relationships.
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Querying relationships: source=020c1942-9238-49de-ab3c-00f83b358c90, target=None, rel_type=201
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Player 1 drew 2000.
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Querying relationships: source=ff9839ee-201a-484f-b4bb-0d9555e6dc25, target=None, rel_type=201
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Player 1 drew 1000.
+2025-10-18 13:08:02,923 - rule_engine.game_graph - INFO - Game initialized successfully.
+2025-10-18 13:08:02,923 - rule_engine.engine - INFO - Engine initialized.
+2025-10-18 13:08:02,923 - rule_engine.engine - DEBUG - Calculating legal moves for Player Play (Turn 1, Phase 11, Step 0)
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Querying relationships: source=d747a98c-0bf2-473c-9a49-3fecfa15edca, target=None, rel_type=200
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=affaf02c-d9d8-485b-a9f0-1a80a8cf58ff, rel_type=201
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Found 2 relationships.
+2025-10-18 13:08:02,923 - rule_engine.engine - DEBUG - Found PlayLandAction for 1000 (1000)
+2025-10-18 13:08:02,923 - rule_engine.handlers.mana_handlers - DEBUG - Getting tap for mana moves for Player Play.
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Querying relationships: source=d747a98c-0bf2-473c-9a49-3fecfa15edca, target=None, rel_type=200
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=420b1745-03e2-4d45-bc5f-e1da9596868a, rel_type=201
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Found 0 relationships.
+2025-10-18 13:08:02,923 - rule_engine.handlers.mana_handlers - DEBUG - Found 0 tap for mana moves.
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=affaf02c-d9d8-485b-a9f0-1a80a8cf58ff, rel_type=201
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Found 2 relationships.
+2025-10-18 13:08:02,923 - rule_engine.engine - DEBUG - Total legal moves found: 1
+2025-10-18 13:08:02,923 - rule_engine.engine - INFO - Executing move: PlayLand(Player: d747, Card: ff98)
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Querying relationships: source=d747a98c-0bf2-473c-9a49-3fecfa15edca, target=None, rel_type=200
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Querying relationships: source=ff9839ee-201a-484f-b4bb-0d9555e6dc25, target=None, rel_type=201
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,923 - rule_engine.engine - INFO - Player 1 played None to battlefield.
+2025-10-18 13:08:02,923 - rule_engine.engine - DEBUG - Calculating legal moves for Player Play (Turn 1, Phase 11, Step 0)
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Querying relationships: source=d747a98c-0bf2-473c-9a49-3fecfa15edca, target=None, rel_type=200
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,923 - rule_engine.handlers.mana_handlers - DEBUG - Getting tap for mana moves for Player Play.
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Querying relationships: source=d747a98c-0bf2-473c-9a49-3fecfa15edca, target=None, rel_type=200
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=420b1745-03e2-4d45-bc5f-e1da9596868a, rel_type=201
+2025-10-18 13:08:02,923 - rule_engine.game_graph - DEBUG - Found 1 relationships.
+2025-10-18 13:08:02,923 - rule_engine.handlers.mana_handlers - ERROR - Error getting tap for mana moves for Player Play: ActivateManaAbilityAction.__init__() missing 1 required positional argument: 'ability_id'
+Traceback (most recent call last):
+  File "/home/sune/Documents/Projekt Projector/MTG_bot/rule_engine/handlers/mana_handlers.py", line 59, in get_tap_for_mana_moves
+    legal_moves.append(ActivateManaAbilityAction(player_id=player.instance_id, card_id=land.instance_id)) # Using a dummy ability_id for now
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ActivateManaAbilityAction.__init__() missing 1 required positional argument: 'ability_id'
+2025-10-18 13:08:02,924 - rule_engine.engine - ERROR - Error calculating legal moves: ActivateManaAbilityAction.__init__() missing 1 required positional argument: 'ability_id'
+Traceback (most recent call last):
+  File "/home/sune/Documents/Projekt Projector/MTG_bot/rule_engine/engine.py", line 63, in get_legal_moves
+    mana_moves = mana_handlers.get_tap_for_mana_moves(self.graph, active_player)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sune/Documents/Projekt Projector/MTG_bot/rule_engine/handlers/mana_handlers.py", line 59, in get_tap_for_mana_moves
+    legal_moves.append(ActivateManaAbilityAction(player_id=player.instance_id, card_id=land.instance_id)) # Using a dummy ability_id for now
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ActivateManaAbilityAction.__init__() missing 1 required positional argument: 'ability_id'
+2025-10-18 13:08:02,924 - rule_engine.engine - DEBUG - Total legal moves found: 0

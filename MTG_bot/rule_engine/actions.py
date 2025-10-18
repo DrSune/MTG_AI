@@ -4,6 +4,7 @@ This file defines the data structures for representing game actions (moves).
 
 from dataclasses import dataclass
 import uuid
+from typing import Optional
 
 @dataclass
 class PlayLandAction:

@@ -1,13 +1,24 @@
+ID_PLAYER = 0
+ID_CREATURE = 1
+ID_ACTION_PLAY_LAND = 2
+ID_ACTION_TAP_FOR_MANA = 3
+ID_ACTION_CAST_SPELL = 4
+ID_ACTION_PASS_TURN = 5
 ID_PHASE_BEGINNING = 10
-ID_PHASE_PRE_COMBAT_MAIN = 11
+ID_PHASE_MAIN1 = 11
 ID_PHASE_COMBAT = 12
-ID_PHASE_POST_COMBAT_MAIN = 13
+ID_PHASE_MAIN2 = 13
 ID_PHASE_ENDING = 14
-ID_STEP_BEGINNING_OF_COMBAT = 20
-ID_STEP_DECLARE_ATTACKERS = 21
-ID_STEP_DECLARE_BLOCKERS = 22
-ID_STEP_COMBAT_DAMAGE = 23
-ID_STEP_END_OF_COMBAT = 24
+ID_STEP_UNTAP = 20
+ID_STEP_DRAW = 21
+ID_STEP_PRE_COMBAT_MAIN = 22
+ID_STEP_BEGINNING_OF_COMBAT = 23
+ID_STEP_DECLARE_ATTACKERS = 24
+ID_STEP_DECLARE_BLOCKERS = 25
+ID_STEP_COMBAT_DAMAGE = 26
+ID_STEP_END_OF_COMBAT = 27
+ID_STEP_POST_COMBAT_MAIN = 28
+ID_STEP_END_OF_TURN = 29
 ID_ZONE_HAND = 100
 ID_ZONE_BATTLEFIELD = 101
 ID_ZONE_LIBRARY = 102
@@ -25,11 +36,13 @@ ID_MANA_BLACK = 302
 ID_MANA_RED = 303
 ID_MANA_WHITE = 304
 ID_MANA_COLORLESS = 305
+ID_MANA_GENERIC = 306 # Represents generic mana cost
 ID_CARD_FOREST = 1000
 ID_CARD_ISLAND = 1001
 ID_CARD_MOUNTAIN = 1002
 ID_CARD_SWAMP = 1003
 ID_CARD_PLAINS = 1004
+ID_CARD_CUSTOM_START = 6000 # Starting ID for dynamically loaded cards
 ID_CARD_GRIZZLY_BEARS = 2000
 ID_CARD_GIANT_STRENGTH = 2001
 ID_ABILITY_HASTE = 5000
@@ -334,3 +347,240 @@ ID_CARD_TEFERI_MASTER_OF_TIME = 5402
 ID_CARD_TEFERI_TIMELESS_VOYAGER = 5403
 ID_CARD_UGIN_THE_SPIRIT_DRAGON = 5404
 ID_CARD_VITO_THORN_OF_THE_DUSK_ROSE = 5405
+
+ID_TO_NAME = {
+    ID_PLAYER: "Player",
+    ID_CREATURE: "Creature",
+    ID_ACTION_PLAY_LAND: "Play Land Action",
+    ID_ACTION_TAP_FOR_MANA: "Tap for Mana Action",
+    ID_ACTION_CAST_SPELL: "Cast Spell Action",
+    ID_ACTION_PASS_TURN: "Pass Turn Action",
+
+    ID_PHASE_BEGINNING: "Beginning Phase",
+    ID_PHASE_MAIN1: "Pre-Combat Main Phase",
+    ID_PHASE_COMBAT: "Combat Phase",
+    ID_PHASE_MAIN2: "Post-Combat Main Phase",
+    ID_PHASE_ENDING: "Ending Phase",
+
+    ID_STEP_UNTAP: "Untap Step",
+    ID_STEP_UPKEEP: "Upkeep Step",
+    ID_STEP_DRAW: "Draw Step",
+    ID_STEP_PRE_COMBAT_MAIN: "Pre-Combat Main Step",
+    ID_STEP_BEGINNING_OF_COMBAT: "Beginning of Combat Step",
+    ID_STEP_DECLARE_ATTACKERS: "Declare Attackers Step",
+    ID_STEP_DECLARE_BLOCKERS: "Declare Blockers Step",
+    ID_STEP_COMBAT_DAMAGE: "Combat Damage Step",
+    ID_STEP_END_OF_COMBAT: "End of Combat Step",
+    ID_STEP_POST_COMBAT_MAIN: "Post-Combat Main Step",
+    ID_STEP_END: "End Step",
+    ID_STEP_CLEANUP: "Cleanup Step",
+
+    ID_ZONE_HAND: "Hand",
+    ID_ZONE_BATTLEFIELD: "Battlefield",
+    ID_ZONE_LIBRARY: "Library",
+    ID_ZONE_GRAVEYARD: "Graveyard",
+    ID_ZONE_STACK: "Stack",
+    ID_ZONE_EXILE: "Exile",
+
+    ID_REL_CONTROLS: "Controls",
+    ID_REL_IS_IN_ZONE: "Is In Zone",
+    ID_REL_HAS_ABILITY: "Has Ability",
+    ID_REL_TAPPED: "Tapped",
+    ID_REL_IS_BLOCKING: "Is Blocking",
+
+    ID_MANA_GREEN: "Green Mana",
+    ID_MANA_BLUE: "Blue Mana",
+    ID_MANA_BLACK: "Black Mana",
+    ID_MANA_RED: "Red Mana",
+    ID_MANA_WHITE: "White Mana",
+    ID_MANA_COLORLESS: "Colorless Mana",
+    ID_MANA_GENERIC: "Generic Mana",
+
+    ID_CARD_FOREST: "Forest",
+    ID_CARD_ISLAND: "Island",
+    ID_CARD_MOUNTAIN: "Mountain",
+    ID_CARD_SWAMP: "Swamp",
+    ID_CARD_PLAINS: "Plains",
+    ID_CARD_GRIZZLY_BEARS: "Grizzly Bears",
+    ID_CARD_GIANT_STRENGTH: "Giant Strength",
+
+    ID_ABILITY_HASTE: "Haste",
+    ID_ABILITY_TRAMPLE: "Trample",
+    ID_ABILITY_FLYING: "Flying",
+    ID_ABILITY_FIRST_STRIKE: "First Strike",
+    ID_ABILITY_DEATHTOUCH: "Deathtouch",
+    ID_ABILITY_LIFELINK: "Lifelink",
+    ID_ABILITY_PROTECTION: "Protection",
+    ID_ABILITY_DOUBLE_STRIKE: "Double Strike",
+    ID_ABILITY_VIGILANCE: "Vigilance",
+    ID_ABILITY_INDESTRUCTIBLE: "Indestructible",
+    ID_ABILITY_FLASH: "Flash",
+    ID_ABILITY_HEXPROOF: "Hexproof",
+    ID_ABILITY_PROWESS: "Prowess",
+    ID_ABILITY_MENACE: "Menace",
+    ID_ABILITY_DEFENDER: "Defender",
+    ID_ABILITY_REACH: "Reach",
+    ID_ABILITY_TAP_ADD_GREEN: "Tap: Add Green Mana",
+    ID_ABILITY_TAP_ADD_BLUE: "Tap: Add Blue Mana",
+    ID_ABILITY_TAP_ADD_BLACK: "Tap: Add Black Mana",
+    ID_ABILITY_TAP_ADD_RED: "Tap: Add Red Mana",
+    ID_ABILITY_TAP_ADD_WHITE: "Tap: Add White Mana",
+}
+
+ID_TO_NAME = {
+    ID_PLAYER: "Player",
+    ID_CREATURE: "Creature",
+    ID_ACTION_PLAY_LAND: "Play Land Action",
+    ID_ACTION_TAP_FOR_MANA: "Tap for Mana Action",
+    ID_ACTION_CAST_SPELL: "Cast Spell Action",
+    ID_ACTION_PASS_TURN: "Pass Turn Action",
+
+    ID_PHASE_BEGINNING: "Beginning Phase",
+    ID_PHASE_MAIN1: "Pre-Combat Main Phase",
+    ID_PHASE_COMBAT: "Combat Phase",
+    ID_PHASE_MAIN2: "Post-Combat Main Phase",
+    ID_PHASE_ENDING: "Ending Phase",
+
+    ID_STEP_UNTAP: "Untap Step",
+    ID_STEP_UPKEEP: "Upkeep Step",
+    ID_STEP_DRAW: "Draw Step",
+    ID_STEP_PRE_COMBAT_MAIN: "Pre-Combat Main Step",
+    ID_STEP_BEGINNING_OF_COMBAT: "Beginning of Combat Step",
+    ID_STEP_DECLARE_ATTACKERS: "Declare Attackers Step",
+    ID_STEP_DECLARE_BLOCKERS: "Declare Blockers Step",
+    ID_STEP_COMBAT_DAMAGE: "Combat Damage Step",
+    ID_STEP_END_OF_COMBAT: "End of Combat Step",
+    ID_STEP_POST_COMBAT_MAIN: "Post-Combat Main Step",
+    ID_STEP_END: "End Step",
+    ID_STEP_CLEANUP: "Cleanup Step",
+
+    ID_ZONE_HAND: "Hand",
+    ID_ZONE_BATTLEFIELD: "Battlefield",
+    ID_ZONE_LIBRARY: "Library",
+    ID_ZONE_GRAVEYARD: "Graveyard",
+    ID_ZONE_STACK: "Stack",
+    ID_ZONE_EXILE: "Exile",
+
+    ID_REL_CONTROLS: "Controls",
+    ID_REL_IS_IN_ZONE: "Is In Zone",
+    ID_REL_HAS_ABILITY: "Has Ability",
+    ID_REL_TAPPED: "Tapped",
+    ID_REL_IS_BLOCKING: "Is Blocking",
+
+    ID_MANA_GREEN: "Green Mana",
+    ID_MANA_BLUE: "Blue Mana",
+    ID_MANA_BLACK: "Black Mana",
+    ID_MANA_RED: "Red Mana",
+    ID_MANA_WHITE: "White Mana",
+    ID_MANA_COLORLESS: "Colorless Mana",
+    ID_MANA_GENERIC: "Generic Mana",
+
+    ID_CARD_FOREST: "Forest",
+    ID_CARD_ISLAND: "Island",
+    ID_CARD_MOUNTAIN: "Mountain",
+    ID_CARD_SWAMP: "Swamp",
+    ID_CARD_PLAINS: "Plains",
+    ID_CARD_GRIZZLY_BEARS: "Grizzly Bears",
+    ID_CARD_GIANT_STRENGTH: "Giant Strength",
+
+    ID_ABILITY_HASTE: "Haste",
+    ID_ABILITY_TRAMPLE: "Trample",
+    ID_ABILITY_FLYING: "Flying",
+    ID_ABILITY_FIRST_STRIKE: "First Strike",
+    ID_ABILITY_DEATHTOUCH: "Deathtouch",
+    ID_ABILITY_LIFELINK: "Lifelink",
+    ID_ABILITY_PROTECTION: "Protection",
+    ID_ABILITY_DOUBLE_STRIKE: "Double Strike",
+    ID_ABILITY_VIGILANCE: "Vigilance",
+    ID_ABILITY_INDESTRUCTIBLE: "Indestructible",
+    ID_ABILITY_FLASH: "Flash",
+    ID_ABILITY_HEXPROOF: "Hexproof",
+    ID_ABILITY_PROWESS: "Prowess",
+    ID_ABILITY_MENACE: "Menace",
+    ID_ABILITY_DEFENDER: "Defender",
+    ID_ABILITY_REACH: "Reach",
+    ID_ABILITY_TAP_ADD_GREEN: "Tap: Add Green Mana",
+    ID_ABILITY_TAP_ADD_BLUE: "Tap: Add Blue Mana",
+    ID_ABILITY_TAP_ADD_BLACK: "Tap: Add Black Mana",
+    ID_ABILITY_TAP_ADD_RED: "Tap: Add Red Mana",
+    ID_ABILITY_TAP_ADD_WHITE: "Tap: Add White Mana",
+}
+
+ID_TO_NAME = {
+    ID_PLAYER: "Player",
+    ID_CREATURE: "Creature",
+    ID_ACTION_PLAY_LAND: "Play Land Action",
+    ID_ACTION_TAP_FOR_MANA: "Tap for Mana Action",
+    ID_ACTION_CAST_SPELL: "Cast Spell Action",
+    ID_ACTION_PASS_TURN: "Pass Turn Action",
+
+    ID_PHASE_BEGINNING: "Beginning Phase",
+    ID_PHASE_MAIN1: "Pre-Combat Main Phase",
+    ID_PHASE_COMBAT: "Combat Phase",
+    ID_PHASE_MAIN2: "Post-Combat Main Phase",
+    ID_PHASE_ENDING: "Ending Phase",
+
+    ID_STEP_UNTAP: "Untap Step",
+    ID_STEP_UPKEEP: "Upkeep Step",
+    ID_STEP_DRAW: "Draw Step",
+    ID_STEP_PRE_COMBAT_MAIN: "Pre-Combat Main Step",
+    ID_STEP_BEGINNING_OF_COMBAT: "Beginning of Combat Step",
+    ID_STEP_DECLARE_ATTACKERS: "Declare Attackers Step",
+    ID_STEP_DECLARE_BLOCKERS: "Declare Blockers Step",
+    ID_STEP_COMBAT_DAMAGE: "Combat Damage Step",
+    ID_STEP_END_OF_COMBAT: "End of Combat Step",
+    ID_STEP_POST_COMBAT_MAIN: "Post-Combat Main Step",
+    ID_STEP_END: "End Step",
+    ID_STEP_CLEANUP: "Cleanup Step",
+
+    ID_ZONE_HAND: "Hand",
+    ID_ZONE_BATTLEFIELD: "Battlefield",
+    ID_ZONE_LIBRARY: "Library",
+    ID_ZONE_GRAVEYARD: "Graveyard",
+    ID_ZONE_STACK: "Stack",
+    ID_ZONE_EXILE: "Exile",
+
+    ID_REL_CONTROLS: "Controls",
+    ID_REL_IS_IN_ZONE: "Is In Zone",
+    ID_REL_HAS_ABILITY: "Has Ability",
+    ID_REL_TAPPED: "Tapped",
+    ID_REL_IS_BLOCKING: "Is Blocking",
+
+    ID_MANA_GREEN: "Green Mana",
+    ID_MANA_BLUE: "Blue Mana",
+    ID_MANA_BLACK: "Black Mana",
+    ID_MANA_RED: "Red Mana",
+    ID_MANA_WHITE: "White Mana",
+    ID_MANA_COLORLESS: "Colorless Mana",
+    ID_MANA_GENERIC: "Generic Mana",
+
+    ID_CARD_FOREST: "Forest",
+    ID_CARD_ISLAND: "Island",
+    ID_CARD_MOUNTAIN: "Mountain",
+    ID_CARD_SWAMP: "Swamp",
+    ID_CARD_PLAINS: "Plains",
+    ID_CARD_GRIZZLY_BEARS: "Grizzly Bears",
+    ID_CARD_GIANT_STRENGTH: "Giant Strength",
+
+    ID_ABILITY_HASTE: "Haste",
+    ID_ABILITY_TRAMPLE: "Trample",
+    ID_ABILITY_FLYING: "Flying",
+    ID_ABILITY_FIRST_STRIKE: "First Strike",
+    ID_ABILITY_DEATHTOUCH: "Deathtouch",
+    ID_ABILITY_LIFELINK: "Lifelink",
+    ID_ABILITY_PROTECTION: "Protection",
+    ID_ABILITY_DOUBLE_STRIKE: "Double Strike",
+    ID_ABILITY_VIGILANCE: "Vigilance",
+    ID_ABILITY_INDESTRUCTIBLE: "Indestructible",
+    ID_ABILITY_FLASH: "Flash",
+    ID_ABILITY_HEXPROOF: "Hexproof",
+    ID_ABILITY_PROWESS: "Prowess",
+    ID_ABILITY_MENACE: "Menace",
+    ID_ABILITY_DEFENDER: "Defender",
+    ID_ABILITY_REACH: "Reach",
+    ID_ABILITY_TAP_ADD_GREEN: "Tap: Add Green Mana",
+    ID_ABILITY_TAP_ADD_BLUE: "Tap: Add Blue Mana",
+    ID_ABILITY_TAP_ADD_BLACK: "Tap: Add Black Mana",
+    ID_ABILITY_TAP_ADD_RED: "Tap: Add Red Mana",
+    ID_ABILITY_TAP_ADD_WHITE: "Tap: Add White Mana",
+}

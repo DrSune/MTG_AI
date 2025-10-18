@@ -1,53 +1,92 @@
-"""
-This file will contain handlers related to mana abilities and mana costs.
-"""
+"""This file contains handlers related to mana abilities and the mana pool."""
 
-from ..game_graph import GameGraph
+from typing import List
+
+
+
+from ..game_graph import GameGraph, Entity
+
+from ..actions import ActivateManaAbilityAction
+
 from .. import vocabulary as vocab
 
-def can_pay_cost(graph: GameGraph, player_id: str, cost: dict) -> bool:
-    """Checks if a player can pay a given mana cost."""
-    player = graph.entities[player_id]
-    pool = player.properties.get('mana_pool', {}).copy()
+from ..card_database import LAND_MANA_MAP
 
-    # Pay colored costs first
-    for mana_type, required in cost.items():
-        if mana_type == 'generic':
-            continue
-        if pool.get(mana_type, 0) < required:
-            return False
-        pool[mana_type] -= required
+from MTG_bot.utils.logger import setup_logger
 
-    # Check if remaining pool can cover generic costs
-    generic_cost = cost.get('generic', 0)
-    if sum(pool.values()) < generic_cost:
-        return False
 
-    return True
 
-def pay_cost(graph: GameGraph, player_id: str, cost: dict):
-    """Deducts a mana cost from a player's available mana."""
-    player = graph.entities[player_id]
-    mana_pool = player.properties['mana_pool']
-    
-    print(f"Player {str(player_id)[:4]} attempting to pay cost {cost} with pool {mana_pool}")
+logger = setup_logger(__name__)
 
-    # Pay colored costs first
-    for mana_type, required in cost.items():
-        if mana_type != 'generic':
-            mana_pool[mana_type] -= required
 
-    # Pay generic costs with remaining mana
-    generic_cost = cost.get('generic', 0)
-    if generic_cost > 0:
-        # Iterate through all mana types to spend them
-        for mana_type in [vocab.ID_MANA_GREEN, vocab.ID_MANA_BLUE, vocab.ID_MANA_BLACK, vocab.ID_MANA_RED, vocab.ID_MANA_WHITE, vocab.ID_MANA_COLORLESS]:
-            if generic_cost == 0:
-                break
+
+def get_tap_for_mana_moves(graph: GameGraph, player: Entity) -> List[ActivateManaAbilityAction]:
+    """Finds all legal 'Tap for Mana' moves for a given player."""
+    legal_moves = []
+    logger.debug(f"Getting tap for mana moves for Player {player.properties.get('name', player.instance_id)[:4]}.")
+    try:
+        # Find player's battlefield
+        control_rels = graph.get_relationships(source=player, rel_type=vocab.ID_REL_CONTROLS)
+        battlefield_zone = next((graph.entities[r.target] for r in control_rels if graph.entities[r.target].type_id == vocab.ID_ZONE_BATTLEFIELD), None)
+        
+        if battlefield_zone:
+            card_on_battlefield_rels = graph.get_relationships(target=battlefield_zone, rel_type=vocab.ID_REL_IS_IN_ZONE)
+            cards_on_battlefield = [graph.entities[r.source] for r in card_on_battlefield_rels]
             
-            available = mana_pool.get(mana_type, 0)
-            payable = min(generic_cost, available)
-            mana_pool[mana_type] -= payable
-            generic_cost -= payable
+            tappable_lands = [card for card in cards_on_battlefield if card.type_id in LAND_MANA_MAP and not card.properties.get('tapped')]
 
-    print(f"Player {str(player_id)[:4]} new mana pool: {mana_pool}")
+            for land in tappable_lands:
+                mana_type = LAND_MANA_MAP[land.type_id]
+                # For basic lands, the ability ID can be inferred from the mana type it produces
+                if mana_type == vocab.ID_MANA_GREEN:
+                    ability_id = vocab.ID_ABILITY_TAP_ADD_GREEN
+                elif mana_type == vocab.ID_MANA_BLUE:
+                    ability_id = vocab.ID_ABILITY_TAP_ADD_BLUE
+                elif mana_type == vocab.ID_MANA_BLACK:
+                    ability_id = vocab.ID_ABILITY_TAP_ADD_BLACK
+                elif mana_type == vocab.ID_MANA_RED:
+                    ability_id = vocab.ID_ABILITY_TAP_ADD_RED
+                elif mana_type == vocab.ID_MANA_WHITE:
+                    ability_id = vocab.ID_ABILITY_TAP_ADD_WHITE
+                else:
+                    ability_id = 0 # Fallback for unknown mana types
+
+                legal_moves.append(ActivateManaAbilityAction(player_id=player.instance_id, card_id=land.instance_id, ability_id=ability_id))
+                logger.debug(f"Found tappable land: {land.properties.get('name', land.type_id)} ({land.type_id})")
+        logger.debug(f"Found {len(legal_moves)} tap for mana moves.")
+        return legal_moves
+    except Exception as e:
+        logger.error(f"Error getting tap for mana moves for Player {player.properties.get('name', player.instance_id)[:4]}: {e}", exc_info=True)
+        raise
+
+
+
+def execute_tap_for_mana(graph: GameGraph, player: Entity, land_card: Entity):
+
+    """Executes the tap for mana action."""
+
+    logger.info(f"Player {player.properties.get('name')} tapping {land_card.properties.get('name')}.")
+
+    try:
+
+        # Mark the land as tapped
+
+        land_card.properties['tapped'] = True
+
+
+
+        # Add mana to player's mana pool
+
+        mana_type = LAND_MANA_MAP[land_card.type_id]
+
+        player.properties['mana_pool'][mana_type] += 1
+
+        logger.info(f"Player {player.properties.get('name')} added {mana_type} mana. Mana pool: {player.properties['mana_pool']}")
+
+    except Exception as e:
+
+        logger.error(f"Error executing tap for mana for Player {player.properties.get('name', player.instance_id)[:4]} and land {land_card.properties.get('name', land_card.type_id)}: {e}", exc_info=True)
+
+        raise
+
+
