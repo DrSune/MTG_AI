@@ -1,0 +1,39 @@
+import time
+from functools import wraps
+
+DEBUG = True  # set False in training hot loops
+
+def timed(name=None):
+    def deco(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            if not DEBUG:
+                return fn(*args, **kwargs)
+            t0 = time.perf_counter()
+            res = fn(*args, **kwargs)
+            dt = (time.perf_counter() - t0) * 1e3
+            print(f"[TIMER] {name or fn.__name__}: {dt:.3f} ms")
+            return res
+        return wrapper
+    return deco
+
+def with_human_names(id_to_name):
+    def deco(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            res = fn(*args, **kwargs)
+            # only for debugging: map ids -> names in returned structure for printing
+            if not DEBUG:
+                return res
+            # example: if res contains 'entity_ids', attach 'entity_names'
+            if isinstance(res, dict) and 'entity_ids' in res:
+                ids = res['entity_ids']
+                # map vectorized
+                if hasattr(ids, 'tolist'):
+                    id_list = ids.tolist()
+                else:
+                    id_list = ids
+                res['entity_names'] = [[id_to_name.get(i, 'UNK') if i>=0 else None for i in row] for row in id_list]
+            return res
+        return wrapper
+    return deco
