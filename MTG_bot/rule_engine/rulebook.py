@@ -37,15 +37,15 @@ class Rulebook:
         self.dispatch_table[ID_ABILITY_LIFELINK] = keyword_handlers.handle_lifelink
 
         # Graveyard Handlers
-        self.dispatch_table[ID_ABILITY_FLASHBACK] = graveyard_handlers.get_flashback_moves
+        #self.dispatch_table[ID_ABILITY_FLASHBACK] = graveyard_handlers.get_flashback_moves
 
         # Triggered Ability Handlers
         # Note: The mapping can be more complex. Here, an event type might map to a handler.
-        self.dispatch_table[ID_TRIGGER_ETB] = triggered_ability_handlers.check_and_create_triggers
+        #self.dispatch_table[ID_TRIGGER_ETB] = triggered_ability_handlers.check_and_create_triggers
 
         # Card Specific Handlers
         # Some cards are so unique they get their own entry.
-        self.dispatch_table[ID_CARD_TARMOGOYF] = card_specific_handlers.handle_tarmogoyf_update
+        #self.dispatch_table[ID_CARD_TARMOGOYF] = card_specific_handlers.handle_tarmogoyf_update
 
     def get_handler(self, rule_id: int) -> Optional[Callable]:
         """Retrieves the handler function for a given rule ID."""

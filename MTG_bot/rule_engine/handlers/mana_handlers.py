@@ -62,31 +62,20 @@ def get_tap_for_mana_moves(graph: GameGraph, player: Entity) -> List[ActivateMan
 
 
 def execute_tap_for_mana(graph: GameGraph, player: Entity, land_card: Entity):
-
     """Executes the tap for mana action."""
 
     logger.info(f"Player {player.properties.get('name')} tapping {land_card.properties.get('name')}.")
-
     try:
-
         # Mark the land as tapped
-
         land_card.properties['tapped'] = True
 
-
-
         # Add mana to player's mana pool
-
         mana_type = LAND_MANA_MAP[land_card.type_id]
-
         player.properties['mana_pool'][mana_type] += 1
-
         logger.info(f"Player {player.properties.get('name')} added {mana_type} mana. Mana pool: {player.properties['mana_pool']}")
 
     except Exception as e:
-
         logger.error(f"Error executing tap for mana for Player {player.properties.get('name', player.instance_id)[:4]} and land {land_card.properties.get('name', land_card.type_id)}: {e}", exc_info=True)
-
         raise
 
 
