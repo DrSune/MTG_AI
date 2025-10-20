@@ -69,3 +69,20 @@ class DecisionMaker:
             best_move = legal_moves[0]
 
         return best_move
+
+def action_chooser_policy(game_state_encoding, legal_actions):
+    # We should consider running this policy network multiple times for different candidates of opponent cards
+    # and for different actions that are valued at some minimum long-term expected reward.
+    pass
+
+def value_function(game_state_encoding):
+    # This function evaluates the current game state and returns a value indicating how well we are doing.
+    pass
+
+def mcts_search(game_state, n_simulations):
+    # We believe that a larger transformer (that encodes more entities individually) can have a higher ceiling than a small one.
+    # A small one benefits from quick learning but risks reaching learning saturation more quickly.
+    # It can do deeper searches (higher N for the same time) but with less sophisticated analysis.
+    # Very long-term, the increased complexity of a bigger transformer can reach higher levels, and might generalize better,
+    # but needs significantly more time to reach this, since exploration will take longer, as N per time will be lower as a result of the quadratic computational cost.
+    pass

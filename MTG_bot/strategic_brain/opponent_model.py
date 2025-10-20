@@ -35,3 +35,15 @@ class OpponentModel:
             return {"Lightning Bolt": 0.75, "Rift Bolt": 0.6, "Goblin Guide": 0.2}
         
         return {}
+
+def opponent_predictor(game_state_encoding):
+    # This takes the output of the game-state encoder after the latest move has been made by an opponent.
+    # Our beliefs about the opponent's hand don't change after our own turns.
+    
+    # We predict M cards in the opponent's hand, and we can create P different versions of this prediction
+    # to allow for the fact that simulating against a combined set of likely cards (e.g., cards 2 and 3)
+    # is better than only simulating against the single most likely card.
+    
+    # We predict cards by using the predicted entity encoding and finding candidate cards
+    # with some variant of K-Nearest Neighbors (KNN) or an optimized, approximate KNN.
+    pass

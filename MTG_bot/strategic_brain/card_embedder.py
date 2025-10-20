@@ -43,3 +43,9 @@ def create_card_embeddings(cards: Dict) -> Dict[str, list]:
     #     embeddings[card_name] = embedding
     print("Card embeddings generated conceptually.")
     return embeddings
+
+def entity_encoder(card_database):
+    # TODO: How big should the entity vectors be? This will be a trade-off between expressiveness and computational cost.
+    # This function should learn the archetypes of cards, not the specific cards themselves.
+    # For example, it should learn that "Llanowar Elves" is a "mana dork" and that "mana dorks" are good early game.
+    pass

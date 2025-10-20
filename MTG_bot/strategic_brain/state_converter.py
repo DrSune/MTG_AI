@@ -81,3 +81,15 @@ class StateConverter:
         observation[18:23] = phase_one_hot
         
         return observation
+
+def game_state_encoder(game_state):
+    # The game-state encoder must produce a fixed-size vector.
+    # TODO: How big should the game-state vectors be? This will be a trade-off between expressiveness and computational cost.
+    # This function should learn to represent the game state in a way that captures the archetypes of cards in play,
+    # not just the specific cards themselves.
+    # We believe that a larger transformer (that encodes more entities individually) can have a higher ceiling than a small one.
+    # A small one benefits from quick learning but risks reaching learning saturation more quickly.
+    # It can do deeper searches (higher N for the same time) but with less sophisticated analysis.
+    # Very long-term, the increased complexity of a bigger transformer can reach higher levels, and might generalize better,
+    # but needs significantly more time to reach this, since exploration will take longer, as N per time will be lower as a result of the quadratic computational cost.
+    pass
