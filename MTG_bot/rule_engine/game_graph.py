@@ -92,6 +92,19 @@ class GameGraph:
             logger.error(f"Error getting relationships: {e}", exc_info=True)
             raise
 
+    def _move_card_to_zone(self, card: Entity, target_zone: Entity):
+        """Moves a card entity to a new zone by updating its ID_REL_IS_IN_ZONE relationship."""
+        logger.debug(f"Moving card {card.properties.get('name', card.type_id)} to zone {target_zone.type_id}.")
+        try:
+            # Remove existing ID_REL_IS_IN_ZONE relationships for the card
+            self.relationships = [r for r in self.relationships if not (r.source == card.instance_id and r.type_id == vocab.ID_REL_IS_IN_ZONE)]
+            # Add new ID_REL_IS_IN_ZONE relationship
+            self.add_relationship(card, target_zone, vocab.ID_REL_IS_IN_ZONE)
+            card.properties['entered_zone_turn'] = self.turn_number
+        except Exception as e:
+            logger.error(f"Error moving card {card.instance_id} to zone {target_zone.instance_id}: {e}", exc_info=True)
+            raise
+
     def _create_deck(self, player: Entity, decklist: List[int]) -> List[Entity]:
         """Creates card entities from a decklist and links them to the player."""
         logger.debug(f"Creating deck for player {player.properties.get('name', player.instance_id)[:4]} with {len(decklist)} cards.")
@@ -169,15 +182,13 @@ class GameGraph:
                 # Player 1 draws
                 if deck1:
                     card_to_draw_p1 = deck1.pop(0)
-                    rel_to_update_p1 = self.get_relationships(source=card_to_draw_p1, rel_type=vocab.ID_REL_IS_IN_ZONE)[0]
-                    rel_to_update_p1.target = p1_hand_zone_entity.instance_id
+                    self._move_card_to_zone(card_to_draw_p1, p1_hand_zone_entity)
                     logger.debug(f"{player1.properties.get('name')} drew {card_to_draw_p1.properties.get('name', card_to_draw_p1.type_id)}.")
 
                 # Player 2 draws
                 if deck2:
                     card_to_draw_p2 = deck2.pop(0)
-                    rel_to_update_p2 = self.get_relationships(source=card_to_draw_p2, rel_type=vocab.ID_REL_IS_IN_ZONE)[0]
-                    rel_to_update_p2.target = p2_hand_zone_entity.instance_id
+                    self._move_card_to_zone(card_to_draw_p2, p2_hand_zone_entity)
                     logger.debug(f"{player2.properties.get('name')} drew {card_to_draw_p2.properties.get('name', card_to_draw_p2.type_id)}.")
             logger.info("Game initialized successfully.")
         except Exception as e:
@@ -208,9 +219,8 @@ class GameGraph:
             # Take the top card (last in the list if deck was shuffled and popped from end)
             card_to_draw = cards_in_library[-1] # Assuming last card is top of library
             
-            # Update its zone relationship
-            card_zone_rel = next(r for r in cards_in_library_rels if r.source == card_to_draw.instance_id)
-            card_zone_rel.target = hand_zone.instance_id
+            # Update its zone relationship using the helper method
+            self._move_card_to_zone(card_to_draw, hand_zone)
 
             logger.info(f"Player {player.properties.get('name')} drew {card_to_draw.properties.get('name', card_to_draw.type_id)}.")
             return card_to_draw

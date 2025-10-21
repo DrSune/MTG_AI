@@ -117,8 +117,7 @@ class Engine:
                     # Find the battlefield zone and move the card
                     control_rels = self.graph.get_relationships(source=player, rel_type=vocab.ID_REL_CONTROLS)
                     battlefield_zone = next((self.graph.entities[r.target] for r in control_rels if self.graph.entities[r.target].type_id == vocab.ID_ZONE_BATTLEFIELD), None)
-                    card_zone_rel = self.graph.get_relationships(source=card, rel_type=vocab.ID_REL_IS_IN_ZONE)[0]
-                    card_zone_rel.target = battlefield_zone.instance_id
+                    self.graph._move_card_to_zone(card, battlefield_zone)
                     player.properties['lands_played_this_turn'] = player.properties.get('lands_played_this_turn', 0) + 1
                     logger.info(f"{player.properties.get('name')} played {card.properties.get('name')} to battlefield.")
                 
@@ -148,17 +147,17 @@ class Engine:
                     # Move card to battlefield
                     control_rels = self.graph.get_relationships(source=player, rel_type=vocab.ID_REL_CONTROLS)
                     battlefield_zone = next((self.graph.entities[r.target] for r in control_rels if self.graph.entities[r.target].type_id == vocab.ID_ZONE_BATTLEFIELD), None)
-                    card_zone_rel = self.graph.get_relationships(source=card, rel_type=vocab.ID_REL_IS_IN_ZONE)[0]
-                    card_zone_rel.target = battlefield_zone.instance_id
+                    self.graph._move_card_to_zone(card, battlefield_zone)
                     card.properties['turn_entered'] = self.graph.turn_number
                     # Creatures entering the battlefield have summoning sickness
                     if card.properties.get('is_creature'):
                         card.properties['has_summoning_sickness'] = True
                     logger.info(f"{card.properties.get('name')} moved to battlefield.")
 
-            combat_handlers.declare_attacker(self.graph, card)
+                elif isinstance(move, DeclareAttackerAction):
+                    combat_handlers.declare_attacker(self.graph, card)
 
-            elif isinstance(move, DeclareBlockerAction):
+            if isinstance(move, DeclareBlockerAction):
                 blocker = self.graph.entities[move.blocker_id]
                 attacker = self.graph.entities[move.attacker_id]
                 self.graph.add_relationship(blocker, attacker, vocab.ID_REL_IS_BLOCKING)
@@ -171,7 +170,9 @@ class Engine:
             logger.error(f"Error executing move {move}: {e}", exc_info=True)
         
         # After any move, attempt to progress the game state (e.g., pass priority, advance step)
-        self.progress_phase_and_step()
+        # unless the move itself already handled progression (like PassTurnAction)
+        if not isinstance(move, PassTurnAction):
+            self.progress_phase_and_step()
 
     def _handle_step_effects(self):
         """Processes automatic state changes at the end of a step."""
@@ -257,9 +258,10 @@ class Engine:
                 # Switch active player
                 all_players = [p for p in self.graph.entities.values() if p.type_id == vocab.ID_PLAYER]
                 current_active_player = self.graph.entities[self.graph.active_player_id]
+                logger.debug(f"Current active player: {current_active_player.properties.get('name')} (ID: {current_active_player.instance_id})")
                 next_player = next(p for p in all_players if p.instance_id != current_active_player.instance_id)
                 self.graph.active_player_id = next_player.instance_id
-                logger.info(f"Active player switched to {next_player.properties.get('name')}.")
+                logger.info(f"Active player switched to {next_player.properties.get('name')} (ID: {next_player.instance_id}).")
 
             # Set the step to the first step of the new phase
             new_phase_steps = vocab.PHASE_STEPS.get(self.graph.phase, [])

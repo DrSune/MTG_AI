@@ -2,7 +2,7 @@ import json
 import os
 from typing import Dict, Any, List
 
-from .. import config
+from MTG_bot import config
 from . import vocabulary as vocab
 
 class CardDataLoader:
@@ -24,8 +24,9 @@ class CardDataLoader:
         with open(self.mtgjson_path, 'r', encoding='utf-8') as f:
             raw_data = json.load(f)
         
-        # Directly load cards from the M21.json structure
-        cards_in_m21 = raw_data.get("cards", [])
+        # Correctly access cards from the M21.json structure
+        cards_in_m21 = raw_data.get("data", {}).get("cards", [])
+        print(f"Cards in M21.json (first 5): {cards_in_m21[:5]}")
 
         current_card_id = vocab.ID_CARD_CUSTOM_START # Start custom IDs after predefined ones
 
@@ -56,8 +57,8 @@ class CardDataLoader:
             "cmc": raw_card_data.get("convertedManaCost", 0),
             "type_line": raw_card_data.get("type"),
             "text": raw_card_data.get("text", ""),
-            "power": int(raw_card_data.get("power")) if raw_card_data.get("power") else None,
-            "toughness": int(raw_card_data.get("toughness")) if raw_card_data.get("toughness") else None,
+            "power": int(raw_card_data.get("power")) if raw_card_data.get("power") and str(raw_card_data.get("power")).isdigit() else raw_card_data.get("power"),
+            "toughness": int(raw_card_data.get("toughness")) if raw_card_data.get("toughness") and str(raw_card_data.get("toughness")).isdigit() else raw_card_data.get("toughness"),
             "loyalty": int(raw_card_data.get("loyalty")) if raw_card_data.get("loyalty") else None,
             "abilities": self._parse_abilities(raw_card_data.get("text", ""), raw_card_data.get("keywords", [])),
             "is_land": "Land" in raw_card_data.get("type", ""),

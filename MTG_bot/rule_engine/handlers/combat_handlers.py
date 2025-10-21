@@ -4,7 +4,7 @@ This file will contain handlers related to the combat phase.
 
 from ..game_graph import GameGraph
 from .. import vocabulary as vocab
-from ..card_database import CREATURE_STATS
+from ..card_database import get_creature_stats
 from MTG_bot.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -24,7 +24,7 @@ def get_legal_attackers(graph: GameGraph, player_id: str) -> list:
 
         battlefield_cards = [graph.entities[r.source] for r in graph.get_relationships(target=battlefield_zone_entity, rel_type=vocab.ID_REL_IS_IN_ZONE)]
         
-        creatures = [card for card in battlefield_cards if card.type_id in CREATURE_STATS.keys()]
+        creatures = [card for card in battlefield_cards if get_creature_stats(card.type_id)]
 
         for creature in creatures:
             # Check for summoning sickness
@@ -56,8 +56,7 @@ def get_legal_blockers(graph: GameGraph, player_id: str) -> list:
             logger.debug("No battlefield found for player, no legal blockers.")
             return []
 
-        battlefield_cards = [graph.entities[r.source] for r in graph.get_relationships(target=battlefield_zone_entity, rel_type=vocab.ID_REL_IS_IN_ZONE)]
-        creatures = [card for card in battlefield_cards if card.type_id in CREATURE_STATS.keys()]
+        creatures = [card for card in battlefield_cards if get_creature_stats(card.type_id)]
 
         for creature in creatures:
             if not creature.properties.get('tapped', False):
@@ -90,13 +89,13 @@ def assign_combat_damage(graph: GameGraph):
     """Assigns all combat damage from attackers to blockers and players."""
     logger.info("Assigning combat damage...")
     try:
-        all_creatures = [c for c in graph.entities.values() if c.type_id in CREATURE_STATS.keys()]
+        all_creatures = [c for c in graph.entities.values() if get_creature_stats(c.type_id)]
         attacking_creatures = [c for c in all_creatures if c.properties.get('is_attacking', False)]
         defending_player = next((p for p in graph.entities.values() if p.type_id == vocab.ID_PLAYER and p.instance_id != graph.active_player_id), None)
 
         for attacker in attacking_creatures:
             blockers = [graph.entities[r.source] for r in graph.get_relationships(target=attacker, rel_type=vocab.ID_REL_IS_BLOCKING)]
-            attacker_power = attacker.properties.get('effective_power', CREATURE_STATS[attacker.type_id]['power'])
+            attacker_power = attacker.properties.get('effective_power', get_creature_stats(attacker.type_id).get('power', 0))
             attacker_abilities = attacker.properties.get('abilities', [])
             attacker_controller = next((graph.entities[r.source] for r in graph.get_relationships(target=attacker, rel_type=vocab.ID_REL_CONTROLS)), None)
 
@@ -112,7 +111,7 @@ def assign_combat_damage(graph: GameGraph):
                 # Blocked: Deal damage to blocker(s)
                 # (Simplification: assumes one blocker)
                 blocker = blockers[0]
-                blocker_power = blocker.properties.get('effective_power', CREATURE_STATS[blocker.type_id]['power'])
+                blocker_power = blocker.properties.get('effective_power', get_creature_stats(blocker.type_id).get('power', 0))
 
                 # Attacker deals damage to blocker
                 blocker.properties['damage_taken'] = blocker.properties.get('damage_taken', 0) + attacker_power

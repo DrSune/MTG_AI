@@ -54,3 +54,11 @@ class DeclareBlockerAction:
 
     def __repr__(self) -> str:
         return f"DeclareBlocker(Player: {str(self.player_id)[:4]}, Blocker: {str(self.blocker_id)[:4]}, Attacker: {str(self.attacker_id)[:4]})"
+
+@dataclass
+class PassTurnAction:
+    """Represents the action of passing the turn."""
+    player_id: uuid.UUID
+
+    def __repr__(self) -> str:
+        return f"PassTurn(Player: {str(self.player_id)[:4]})"
