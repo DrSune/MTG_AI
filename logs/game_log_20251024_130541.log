@@ -1,0 +1,124 @@
+2025-10-24 13:05:41,474 - __main__ - INFO - Initializing MTG Game Engine for Manual Play...
+2025-10-24 13:05:41,474 - MTG_bot.rule_engine.game_graph - INFO - GameGraph initialized.
+2025-10-24 13:05:41,474 - MTG_bot.rule_engine.engine - INFO - Engine initialized.
+2025-10-24 13:05:41,474 - MTG_bot.rule_engine.game_graph - INFO - Initializing game...
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Entity: b0a89898-2207-4350-9048-134f53d363c0 (Type: 0)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added entity b0a89898-2207-4350-9048-134f53d363c0 (Type: 0) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Entity: 014a64e2-366e-421f-bf19-05d75c7341ee (Type: 0)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added entity 014a64e2-366e-421f-bf19-05d75c7341ee (Type: 0) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - INFO - Active player set to Player 1.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Creating deck for player Play with 2 cards.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Entity: 0dfd0d99-8a3b-41c6-ae29-cd5f4773f5e7 (Type: 102)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added entity 0dfd0d99-8a3b-41c6-ae29-cd5f4773f5e7 (Type: 102) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Entity: 1be43de4-cfa8-4745-9829-28f9ec1ca313 (Type: 100)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added entity 1be43de4-cfa8-4745-9829-28f9ec1ca313 (Type: 100) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Entity: 4a453a6d-dde8-4f2b-a959-c65fd051b60b (Type: 103)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added entity 4a453a6d-dde8-4f2b-a959-c65fd051b60b (Type: 103) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Entity: 8e22fbfc-3eff-47dc-9bfe-fcc359c181b3 (Type: 101)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added entity 8e22fbfc-3eff-47dc-9bfe-fcc359c181b3 (Type: 101) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: b0a89898-2207-4350-9048-134f53d363c0 -> 0dfd0d99-8a3b-41c6-ae29-cd5f4773f5e7 (Type: 200)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship b0a89898-2207-4350-9048-134f53d363c0 -> 0dfd0d99-8a3b-41c6-ae29-cd5f4773f5e7 (Type: 200) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: b0a89898-2207-4350-9048-134f53d363c0 -> 1be43de4-cfa8-4745-9829-28f9ec1ca313 (Type: 200)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship b0a89898-2207-4350-9048-134f53d363c0 -> 1be43de4-cfa8-4745-9829-28f9ec1ca313 (Type: 200) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: b0a89898-2207-4350-9048-134f53d363c0 -> 4a453a6d-dde8-4f2b-a959-c65fd051b60b (Type: 200)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship b0a89898-2207-4350-9048-134f53d363c0 -> 4a453a6d-dde8-4f2b-a959-c65fd051b60b (Type: 200) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: b0a89898-2207-4350-9048-134f53d363c0 -> 8e22fbfc-3eff-47dc-9bfe-fcc359c181b3 (Type: 200)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship b0a89898-2207-4350-9048-134f53d363c0 -> 8e22fbfc-3eff-47dc-9bfe-fcc359c181b3 (Type: 200) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Entity: e444d45b-a1c8-41e9-8726-1fc58be8a0f0 (Type: 1000)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added entity e444d45b-a1c8-41e9-8726-1fc58be8a0f0 (Type: 1000) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: b0a89898-2207-4350-9048-134f53d363c0 -> e444d45b-a1c8-41e9-8726-1fc58be8a0f0 (Type: 200)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship b0a89898-2207-4350-9048-134f53d363c0 -> e444d45b-a1c8-41e9-8726-1fc58be8a0f0 (Type: 200) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: e444d45b-a1c8-41e9-8726-1fc58be8a0f0 -> 0dfd0d99-8a3b-41c6-ae29-cd5f4773f5e7 (Type: 201)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship e444d45b-a1c8-41e9-8726-1fc58be8a0f0 -> 0dfd0d99-8a3b-41c6-ae29-cd5f4773f5e7 (Type: 201) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Entity: bc52dccd-af58-4cb1-87d6-22a1a8c64c58 (Type: 1000)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added entity bc52dccd-af58-4cb1-87d6-22a1a8c64c58 (Type: 1000) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: b0a89898-2207-4350-9048-134f53d363c0 -> bc52dccd-af58-4cb1-87d6-22a1a8c64c58 (Type: 200)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship b0a89898-2207-4350-9048-134f53d363c0 -> bc52dccd-af58-4cb1-87d6-22a1a8c64c58 (Type: 200) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: bc52dccd-af58-4cb1-87d6-22a1a8c64c58 -> 0dfd0d99-8a3b-41c6-ae29-cd5f4773f5e7 (Type: 201)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship bc52dccd-af58-4cb1-87d6-22a1a8c64c58 -> 0dfd0d99-8a3b-41c6-ae29-cd5f4773f5e7 (Type: 201) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Creating deck for player Play with 2 cards.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Entity: fdcc51d7-4bcb-4913-9099-df0579e70a57 (Type: 102)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added entity fdcc51d7-4bcb-4913-9099-df0579e70a57 (Type: 102) to graph.
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Created Entity: 73ccce07-f4fd-45e2-a654-e4661b7400f4 (Type: 100)
+2025-10-24 13:05:41,475 - MTG_bot.rule_engine.game_graph - DEBUG - Added entity 73ccce07-f4fd-45e2-a654-e4661b7400f4 (Type: 100) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Created Entity: b5cdb158-92e1-4045-822e-b8c72a8a1993 (Type: 103)
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Added entity b5cdb158-92e1-4045-822e-b8c72a8a1993 (Type: 103) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Created Entity: 4cb6ac03-7a7b-420f-9857-15f8a4f1d66b (Type: 101)
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Added entity 4cb6ac03-7a7b-420f-9857-15f8a4f1d66b (Type: 101) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: 014a64e2-366e-421f-bf19-05d75c7341ee -> fdcc51d7-4bcb-4913-9099-df0579e70a57 (Type: 200)
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship 014a64e2-366e-421f-bf19-05d75c7341ee -> fdcc51d7-4bcb-4913-9099-df0579e70a57 (Type: 200) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: 014a64e2-366e-421f-bf19-05d75c7341ee -> 73ccce07-f4fd-45e2-a654-e4661b7400f4 (Type: 200)
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship 014a64e2-366e-421f-bf19-05d75c7341ee -> 73ccce07-f4fd-45e2-a654-e4661b7400f4 (Type: 200) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: 014a64e2-366e-421f-bf19-05d75c7341ee -> b5cdb158-92e1-4045-822e-b8c72a8a1993 (Type: 200)
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship 014a64e2-366e-421f-bf19-05d75c7341ee -> b5cdb158-92e1-4045-822e-b8c72a8a1993 (Type: 200) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: 014a64e2-366e-421f-bf19-05d75c7341ee -> 4cb6ac03-7a7b-420f-9857-15f8a4f1d66b (Type: 200)
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship 014a64e2-366e-421f-bf19-05d75c7341ee -> 4cb6ac03-7a7b-420f-9857-15f8a4f1d66b (Type: 200) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Created Entity: 60e96ecd-3c4c-4155-b9c2-ea6b054314d8 (Type: 1000)
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Added entity 60e96ecd-3c4c-4155-b9c2-ea6b054314d8 (Type: 1000) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: 014a64e2-366e-421f-bf19-05d75c7341ee -> 60e96ecd-3c4c-4155-b9c2-ea6b054314d8 (Type: 200)
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship 014a64e2-366e-421f-bf19-05d75c7341ee -> 60e96ecd-3c4c-4155-b9c2-ea6b054314d8 (Type: 200) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: 60e96ecd-3c4c-4155-b9c2-ea6b054314d8 -> fdcc51d7-4bcb-4913-9099-df0579e70a57 (Type: 201)
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship 60e96ecd-3c4c-4155-b9c2-ea6b054314d8 -> fdcc51d7-4bcb-4913-9099-df0579e70a57 (Type: 201) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Created Entity: 9e0e3d87-f0b7-4acc-9de2-aa63793abdc0 (Type: 1000)
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Added entity 9e0e3d87-f0b7-4acc-9de2-aa63793abdc0 (Type: 1000) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: 014a64e2-366e-421f-bf19-05d75c7341ee -> 9e0e3d87-f0b7-4acc-9de2-aa63793abdc0 (Type: 200)
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship 014a64e2-366e-421f-bf19-05d75c7341ee -> 9e0e3d87-f0b7-4acc-9de2-aa63793abdc0 (Type: 200) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: 9e0e3d87-f0b7-4acc-9de2-aa63793abdc0 -> fdcc51d7-4bcb-4913-9099-df0579e70a57 (Type: 201)
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship 9e0e3d87-f0b7-4acc-9de2-aa63793abdc0 -> fdcc51d7-4bcb-4913-9099-df0579e70a57 (Type: 201) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Decks shuffled.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Querying relationships: source=b0a89898-2207-4350-9048-134f53d363c0, target=None, rel_type=200
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Querying relationships: source=014a64e2-366e-421f-bf19-05d75c7341ee, target=None, rel_type=200
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Moving card Forest to zone 100.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: e444d45b-a1c8-41e9-8726-1fc58be8a0f0 -> 1be43de4-cfa8-4745-9829-28f9ec1ca313 (Type: 201)
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship e444d45b-a1c8-41e9-8726-1fc58be8a0f0 -> 1be43de4-cfa8-4745-9829-28f9ec1ca313 (Type: 201) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Player 1 drew Forest.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Moving card Forest to zone 100.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: 60e96ecd-3c4c-4155-b9c2-ea6b054314d8 -> 73ccce07-f4fd-45e2-a654-e4661b7400f4 (Type: 201)
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship 60e96ecd-3c4c-4155-b9c2-ea6b054314d8 -> 73ccce07-f4fd-45e2-a654-e4661b7400f4 (Type: 201) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Player 2 drew Forest.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Moving card Forest to zone 100.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: bc52dccd-af58-4cb1-87d6-22a1a8c64c58 -> 1be43de4-cfa8-4745-9829-28f9ec1ca313 (Type: 201)
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship bc52dccd-af58-4cb1-87d6-22a1a8c64c58 -> 1be43de4-cfa8-4745-9829-28f9ec1ca313 (Type: 201) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Player 1 drew Forest.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Moving card Forest to zone 100.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Created Relationship: 9e0e3d87-f0b7-4acc-9de2-aa63793abdc0 -> 73ccce07-f4fd-45e2-a654-e4661b7400f4 (Type: 201)
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Added relationship 9e0e3d87-f0b7-4acc-9de2-aa63793abdc0 -> 73ccce07-f4fd-45e2-a654-e4661b7400f4 (Type: 201) to graph.
+2025-10-24 13:05:41,476 - MTG_bot.rule_engine.game_graph - DEBUG - Player 2 drew Forest.
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - INFO - Game initialized successfully.
+2025-10-24 13:05:41,477 - __main__ - INFO - Starting game loop...
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Querying relationships: source=b0a89898-2207-4350-9048-134f53d363c0, target=None, rel_type=200
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=1be43de4-cfa8-4745-9829-28f9ec1ca313, rel_type=201
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Found 2 relationships.
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Querying relationships: source=b0a89898-2207-4350-9048-134f53d363c0, target=None, rel_type=200
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=8e22fbfc-3eff-47dc-9bfe-fcc359c181b3, rel_type=201
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Found 0 relationships.
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Querying relationships: source=014a64e2-366e-421f-bf19-05d75c7341ee, target=None, rel_type=200
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=73ccce07-f4fd-45e2-a654-e4661b7400f4, rel_type=201
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Found 2 relationships.
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Querying relationships: source=014a64e2-366e-421f-bf19-05d75c7341ee, target=None, rel_type=200
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=4cb6ac03-7a7b-420f-9857-15f8a4f1d66b, rel_type=201
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Found 0 relationships.
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.engine - DEBUG - Calculating legal moves for Player Play (Turn 1, Phase 10, Step 20)
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Querying relationships: source=b0a89898-2207-4350-9048-134f53d363c0, target=None, rel_type=200
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=1be43de4-cfa8-4745-9829-28f9ec1ca313, rel_type=201
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Found 2 relationships.
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.engine - DEBUG - Found PlayLandAction for Forest (1000)
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.engine - DEBUG - Found PlayLandAction for Forest (1000)
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.handlers.mana_handlers - DEBUG - Getting tap for mana moves for Player Play.
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Querying relationships: source=b0a89898-2207-4350-9048-134f53d363c0, target=None, rel_type=200
+2025-10-24 13:05:41,477 - MTG_bot.rule_engine.game_graph - DEBUG - Found 6 relationships.
+2025-10-24 13:05:41,478 - MTG_bot.rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=8e22fbfc-3eff-47dc-9bfe-fcc359c181b3, rel_type=201
+2025-10-24 13:05:41,478 - MTG_bot.rule_engine.game_graph - DEBUG - Found 0 relationships.
+2025-10-24 13:05:41,478 - MTG_bot.rule_engine.handlers.mana_handlers - DEBUG - Found 0 tap for mana moves.
+2025-10-24 13:05:41,478 - MTG_bot.rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=1be43de4-cfa8-4745-9829-28f9ec1ca313, rel_type=201
+2025-10-24 13:05:41,478 - MTG_bot.rule_engine.game_graph - DEBUG - Found 2 relationships.
+2025-10-24 13:05:41,478 - MTG_bot.rule_engine.engine - DEBUG - Total legal moves found: 2

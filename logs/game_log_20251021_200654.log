@@ -1,0 +1,619 @@
+2025-10-21 20:06:54,424 - rule_engine.game_graph - INFO - GameGraph initialized.
+2025-10-21 20:06:54,424 - rule_engine.game_graph - INFO - Initializing game...
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Created Entity: 311725ef-220f-49f5-ba1d-06d092e494be (Type: 0)
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Added entity 311725ef-220f-49f5-ba1d-06d092e494be (Type: 0) to graph.
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Created Entity: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 (Type: 0)
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Added entity 6dd6ea50-fe52-4602-b6dc-89073b5d2497 (Type: 0) to graph.
+2025-10-21 20:06:54,424 - rule_engine.game_graph - INFO - Active player set to Player 1.
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 40 cards.
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Created Entity: e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 102)
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Added entity e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 102) to graph.
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Created Entity: 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 100)
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Added entity 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 100) to graph.
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Created Entity: 681b8899-98a9-422a-b2d4-0109645ed94c (Type: 103)
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Added entity 681b8899-98a9-422a-b2d4-0109645ed94c (Type: 103) to graph.
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Created Entity: 465a7535-2687-4528-aa65-c451e91f9681 (Type: 101)
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Added entity 465a7535-2687-4528-aa65-c451e91f9681 (Type: 101) to graph.
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 200)
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 200) to graph.
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 200)
+2025-10-21 20:06:54,424 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 200) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 681b8899-98a9-422a-b2d4-0109645ed94c (Type: 200)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 681b8899-98a9-422a-b2d4-0109645ed94c (Type: 200) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 465a7535-2687-4528-aa65-c451e91f9681 (Type: 200)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 465a7535-2687-4528-aa65-c451e91f9681 (Type: 200) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Entity: b16d7c93-efd9-4be6-9906-24bc4be930b8 (Type: 1000)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added entity b16d7c93-efd9-4be6-9906-24bc4be930b8 (Type: 1000) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> b16d7c93-efd9-4be6-9906-24bc4be930b8 (Type: 200)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> b16d7c93-efd9-4be6-9906-24bc4be930b8 (Type: 200) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Relationship: b16d7c93-efd9-4be6-9906-24bc4be930b8 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added relationship b16d7c93-efd9-4be6-9906-24bc4be930b8 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Entity: 9d3c0b4f-04f9-4d7d-b1b7-ffb502ce559d (Type: 1000)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added entity 9d3c0b4f-04f9-4d7d-b1b7-ffb502ce559d (Type: 1000) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 9d3c0b4f-04f9-4d7d-b1b7-ffb502ce559d (Type: 200)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 9d3c0b4f-04f9-4d7d-b1b7-ffb502ce559d (Type: 200) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Relationship: 9d3c0b4f-04f9-4d7d-b1b7-ffb502ce559d -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added relationship 9d3c0b4f-04f9-4d7d-b1b7-ffb502ce559d -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Entity: a798817a-573c-48a8-94ce-3c641897a3ed (Type: 1000)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added entity a798817a-573c-48a8-94ce-3c641897a3ed (Type: 1000) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> a798817a-573c-48a8-94ce-3c641897a3ed (Type: 200)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> a798817a-573c-48a8-94ce-3c641897a3ed (Type: 200) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Relationship: a798817a-573c-48a8-94ce-3c641897a3ed -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added relationship a798817a-573c-48a8-94ce-3c641897a3ed -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Entity: 2d1c079a-ac81-4130-8e7a-9abc55860caa (Type: 1000)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added entity 2d1c079a-ac81-4130-8e7a-9abc55860caa (Type: 1000) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 2d1c079a-ac81-4130-8e7a-9abc55860caa (Type: 200)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 2d1c079a-ac81-4130-8e7a-9abc55860caa (Type: 200) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Relationship: 2d1c079a-ac81-4130-8e7a-9abc55860caa -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added relationship 2d1c079a-ac81-4130-8e7a-9abc55860caa -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Entity: 976338a8-00db-48d8-b492-31732d61be56 (Type: 1000)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added entity 976338a8-00db-48d8-b492-31732d61be56 (Type: 1000) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 976338a8-00db-48d8-b492-31732d61be56 (Type: 200)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 976338a8-00db-48d8-b492-31732d61be56 (Type: 200) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Relationship: 976338a8-00db-48d8-b492-31732d61be56 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added relationship 976338a8-00db-48d8-b492-31732d61be56 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Entity: 0e1f1cf1-05c3-44a1-bbbb-d7f9f32a18fd (Type: 1000)
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Added entity 0e1f1cf1-05c3-44a1-bbbb-d7f9f32a18fd (Type: 1000) to graph.
+2025-10-21 20:06:54,425 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 0e1f1cf1-05c3-44a1-bbbb-d7f9f32a18fd (Type: 200)
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 0e1f1cf1-05c3-44a1-bbbb-d7f9f32a18fd (Type: 200) to graph.
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Created Relationship: 0e1f1cf1-05c3-44a1-bbbb-d7f9f32a18fd -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Added relationship 0e1f1cf1-05c3-44a1-bbbb-d7f9f32a18fd -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Created Entity: 03b11177-d91f-4dae-b6ac-609943ce7563 (Type: 1000)
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Added entity 03b11177-d91f-4dae-b6ac-609943ce7563 (Type: 1000) to graph.
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 03b11177-d91f-4dae-b6ac-609943ce7563 (Type: 200)
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 03b11177-d91f-4dae-b6ac-609943ce7563 (Type: 200) to graph.
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Created Relationship: 03b11177-d91f-4dae-b6ac-609943ce7563 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Added relationship 03b11177-d91f-4dae-b6ac-609943ce7563 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Created Entity: 52e06303-86d2-47f5-9088-349cd0e6d3ec (Type: 1000)
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Added entity 52e06303-86d2-47f5-9088-349cd0e6d3ec (Type: 1000) to graph.
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 52e06303-86d2-47f5-9088-349cd0e6d3ec (Type: 200)
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 52e06303-86d2-47f5-9088-349cd0e6d3ec (Type: 200) to graph.
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Created Relationship: 52e06303-86d2-47f5-9088-349cd0e6d3ec -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Added relationship 52e06303-86d2-47f5-9088-349cd0e6d3ec -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Created Entity: 9bd00cdd-2121-4283-bb5d-7b0450d43258 (Type: 1000)
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Added entity 9bd00cdd-2121-4283-bb5d-7b0450d43258 (Type: 1000) to graph.
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 9bd00cdd-2121-4283-bb5d-7b0450d43258 (Type: 200)
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 9bd00cdd-2121-4283-bb5d-7b0450d43258 (Type: 200) to graph.
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Created Relationship: 9bd00cdd-2121-4283-bb5d-7b0450d43258 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Added relationship 9bd00cdd-2121-4283-bb5d-7b0450d43258 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Created Entity: db71bfdc-2555-41f5-9463-5f8425c9c5da (Type: 1000)
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Added entity db71bfdc-2555-41f5-9463-5f8425c9c5da (Type: 1000) to graph.
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> db71bfdc-2555-41f5-9463-5f8425c9c5da (Type: 200)
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> db71bfdc-2555-41f5-9463-5f8425c9c5da (Type: 200) to graph.
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Created Relationship: db71bfdc-2555-41f5-9463-5f8425c9c5da -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Added relationship db71bfdc-2555-41f5-9463-5f8425c9c5da -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Created Entity: f951537e-afca-45c7-a0f4-d6908c490bfd (Type: 1000)
+2025-10-21 20:06:54,426 - rule_engine.game_graph - DEBUG - Added entity f951537e-afca-45c7-a0f4-d6908c490bfd (Type: 1000) to graph.
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> f951537e-afca-45c7-a0f4-d6908c490bfd (Type: 200)
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> f951537e-afca-45c7-a0f4-d6908c490bfd (Type: 200) to graph.
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Created Relationship: f951537e-afca-45c7-a0f4-d6908c490bfd -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Added relationship f951537e-afca-45c7-a0f4-d6908c490bfd -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Created Entity: bed0d081-533c-4457-b5f2-348c4ebd0c0f (Type: 1000)
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Added entity bed0d081-533c-4457-b5f2-348c4ebd0c0f (Type: 1000) to graph.
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> bed0d081-533c-4457-b5f2-348c4ebd0c0f (Type: 200)
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> bed0d081-533c-4457-b5f2-348c4ebd0c0f (Type: 200) to graph.
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Created Relationship: bed0d081-533c-4457-b5f2-348c4ebd0c0f -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Added relationship bed0d081-533c-4457-b5f2-348c4ebd0c0f -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Created Entity: f9b455ca-32a1-4662-90b7-5c01badbb9b1 (Type: 1000)
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Added entity f9b455ca-32a1-4662-90b7-5c01badbb9b1 (Type: 1000) to graph.
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> f9b455ca-32a1-4662-90b7-5c01badbb9b1 (Type: 200)
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> f9b455ca-32a1-4662-90b7-5c01badbb9b1 (Type: 200) to graph.
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Created Relationship: f9b455ca-32a1-4662-90b7-5c01badbb9b1 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Added relationship f9b455ca-32a1-4662-90b7-5c01badbb9b1 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Created Entity: 79f8f31d-9262-4d8f-8eb5-2a4d69a7c6c5 (Type: 1000)
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Added entity 79f8f31d-9262-4d8f-8eb5-2a4d69a7c6c5 (Type: 1000) to graph.
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 79f8f31d-9262-4d8f-8eb5-2a4d69a7c6c5 (Type: 200)
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 79f8f31d-9262-4d8f-8eb5-2a4d69a7c6c5 (Type: 200) to graph.
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Created Relationship: 79f8f31d-9262-4d8f-8eb5-2a4d69a7c6c5 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Added relationship 79f8f31d-9262-4d8f-8eb5-2a4d69a7c6c5 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Created Entity: 36b3c605-7b7c-41d8-b8aa-8ae452c76793 (Type: 1000)
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Added entity 36b3c605-7b7c-41d8-b8aa-8ae452c76793 (Type: 1000) to graph.
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 36b3c605-7b7c-41d8-b8aa-8ae452c76793 (Type: 200)
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 36b3c605-7b7c-41d8-b8aa-8ae452c76793 (Type: 200) to graph.
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Created Relationship: 36b3c605-7b7c-41d8-b8aa-8ae452c76793 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Added relationship 36b3c605-7b7c-41d8-b8aa-8ae452c76793 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,427 - rule_engine.game_graph - DEBUG - Created Entity: c25c1b54-c727-49e8-834e-6208ca059614 (Type: 1000)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added entity c25c1b54-c727-49e8-834e-6208ca059614 (Type: 1000) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> c25c1b54-c727-49e8-834e-6208ca059614 (Type: 200)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> c25c1b54-c727-49e8-834e-6208ca059614 (Type: 200) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Relationship: c25c1b54-c727-49e8-834e-6208ca059614 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added relationship c25c1b54-c727-49e8-834e-6208ca059614 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Entity: a0699f14-7f19-4fe5-ac6f-e8bb244bef9b (Type: 1000)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added entity a0699f14-7f19-4fe5-ac6f-e8bb244bef9b (Type: 1000) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> a0699f14-7f19-4fe5-ac6f-e8bb244bef9b (Type: 200)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> a0699f14-7f19-4fe5-ac6f-e8bb244bef9b (Type: 200) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Relationship: a0699f14-7f19-4fe5-ac6f-e8bb244bef9b -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added relationship a0699f14-7f19-4fe5-ac6f-e8bb244bef9b -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Entity: 86d70685-fe1f-4944-8363-9ae65f74d92f (Type: 1000)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added entity 86d70685-fe1f-4944-8363-9ae65f74d92f (Type: 1000) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 86d70685-fe1f-4944-8363-9ae65f74d92f (Type: 200)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 86d70685-fe1f-4944-8363-9ae65f74d92f (Type: 200) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Relationship: 86d70685-fe1f-4944-8363-9ae65f74d92f -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added relationship 86d70685-fe1f-4944-8363-9ae65f74d92f -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Entity: 1331a34f-f631-4e12-9ee1-f7e8283fa64e (Type: 1000)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added entity 1331a34f-f631-4e12-9ee1-f7e8283fa64e (Type: 1000) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 1331a34f-f631-4e12-9ee1-f7e8283fa64e (Type: 200)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 1331a34f-f631-4e12-9ee1-f7e8283fa64e (Type: 200) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Relationship: 1331a34f-f631-4e12-9ee1-f7e8283fa64e -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added relationship 1331a34f-f631-4e12-9ee1-f7e8283fa64e -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Entity: 8fc5fb61-99f6-4247-81cf-9ca7a2f3240a (Type: 1000)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added entity 8fc5fb61-99f6-4247-81cf-9ca7a2f3240a (Type: 1000) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 8fc5fb61-99f6-4247-81cf-9ca7a2f3240a (Type: 200)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 8fc5fb61-99f6-4247-81cf-9ca7a2f3240a (Type: 200) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Relationship: 8fc5fb61-99f6-4247-81cf-9ca7a2f3240a -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added relationship 8fc5fb61-99f6-4247-81cf-9ca7a2f3240a -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Entity: 3abe2aa4-9abb-49b0-adab-cd6ae4ef3506 (Type: 1001)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added entity 3abe2aa4-9abb-49b0-adab-cd6ae4ef3506 (Type: 1001) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 3abe2aa4-9abb-49b0-adab-cd6ae4ef3506 (Type: 200)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 3abe2aa4-9abb-49b0-adab-cd6ae4ef3506 (Type: 200) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Relationship: 3abe2aa4-9abb-49b0-adab-cd6ae4ef3506 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added relationship 3abe2aa4-9abb-49b0-adab-cd6ae4ef3506 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Entity: b2a37a3f-97b7-4ef8-827c-411e9cde63e7 (Type: 1001)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added entity b2a37a3f-97b7-4ef8-827c-411e9cde63e7 (Type: 1001) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> b2a37a3f-97b7-4ef8-827c-411e9cde63e7 (Type: 200)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> b2a37a3f-97b7-4ef8-827c-411e9cde63e7 (Type: 200) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Relationship: b2a37a3f-97b7-4ef8-827c-411e9cde63e7 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Added relationship b2a37a3f-97b7-4ef8-827c-411e9cde63e7 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,428 - rule_engine.game_graph - DEBUG - Created Entity: 60eef3ec-f1e5-4680-9072-c6341bf63a3d (Type: 1001)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added entity 60eef3ec-f1e5-4680-9072-c6341bf63a3d (Type: 1001) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 60eef3ec-f1e5-4680-9072-c6341bf63a3d (Type: 200)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 60eef3ec-f1e5-4680-9072-c6341bf63a3d (Type: 200) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Relationship: 60eef3ec-f1e5-4680-9072-c6341bf63a3d -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added relationship 60eef3ec-f1e5-4680-9072-c6341bf63a3d -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Entity: c219f060-1df0-43b1-bb10-e5c605f35d92 (Type: 1001)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added entity c219f060-1df0-43b1-bb10-e5c605f35d92 (Type: 1001) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> c219f060-1df0-43b1-bb10-e5c605f35d92 (Type: 200)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> c219f060-1df0-43b1-bb10-e5c605f35d92 (Type: 200) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Relationship: c219f060-1df0-43b1-bb10-e5c605f35d92 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added relationship c219f060-1df0-43b1-bb10-e5c605f35d92 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Entity: 940e959e-d0b1-4ec4-950b-e1ae75a74dff (Type: 1001)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added entity 940e959e-d0b1-4ec4-950b-e1ae75a74dff (Type: 1001) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 940e959e-d0b1-4ec4-950b-e1ae75a74dff (Type: 200)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 940e959e-d0b1-4ec4-950b-e1ae75a74dff (Type: 200) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Relationship: 940e959e-d0b1-4ec4-950b-e1ae75a74dff -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added relationship 940e959e-d0b1-4ec4-950b-e1ae75a74dff -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Entity: ec36a94e-1f4b-407e-98ca-513f601c4eb6 (Type: 1001)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added entity ec36a94e-1f4b-407e-98ca-513f601c4eb6 (Type: 1001) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> ec36a94e-1f4b-407e-98ca-513f601c4eb6 (Type: 200)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> ec36a94e-1f4b-407e-98ca-513f601c4eb6 (Type: 200) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Relationship: ec36a94e-1f4b-407e-98ca-513f601c4eb6 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added relationship ec36a94e-1f4b-407e-98ca-513f601c4eb6 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Entity: add7a8fa-ef8e-483b-8201-92fab2171555 (Type: 1001)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added entity add7a8fa-ef8e-483b-8201-92fab2171555 (Type: 1001) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> add7a8fa-ef8e-483b-8201-92fab2171555 (Type: 200)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> add7a8fa-ef8e-483b-8201-92fab2171555 (Type: 200) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Relationship: add7a8fa-ef8e-483b-8201-92fab2171555 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added relationship add7a8fa-ef8e-483b-8201-92fab2171555 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Entity: 5ebdcbe2-4d8b-4f89-9ec0-2d3123fa8972 (Type: 1001)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added entity 5ebdcbe2-4d8b-4f89-9ec0-2d3123fa8972 (Type: 1001) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 5ebdcbe2-4d8b-4f89-9ec0-2d3123fa8972 (Type: 200)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 5ebdcbe2-4d8b-4f89-9ec0-2d3123fa8972 (Type: 200) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Relationship: 5ebdcbe2-4d8b-4f89-9ec0-2d3123fa8972 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added relationship 5ebdcbe2-4d8b-4f89-9ec0-2d3123fa8972 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Entity: a4d246fd-50d0-4aa8-88de-e0a8b2bed683 (Type: 1001)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added entity a4d246fd-50d0-4aa8-88de-e0a8b2bed683 (Type: 1001) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> a4d246fd-50d0-4aa8-88de-e0a8b2bed683 (Type: 200)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> a4d246fd-50d0-4aa8-88de-e0a8b2bed683 (Type: 200) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Relationship: a4d246fd-50d0-4aa8-88de-e0a8b2bed683 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added relationship a4d246fd-50d0-4aa8-88de-e0a8b2bed683 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Entity: 36418cd8-bd22-40e9-8744-9afa1663d8a0 (Type: 1001)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added entity 36418cd8-bd22-40e9-8744-9afa1663d8a0 (Type: 1001) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 36418cd8-bd22-40e9-8744-9afa1663d8a0 (Type: 200)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 36418cd8-bd22-40e9-8744-9afa1663d8a0 (Type: 200) to graph.
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Created Relationship: 36418cd8-bd22-40e9-8744-9afa1663d8a0 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,429 - rule_engine.game_graph - DEBUG - Added relationship 36418cd8-bd22-40e9-8744-9afa1663d8a0 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Entity: 1e20e851-17c0-4e1c-93c5-78e34fc280e5 (Type: 1001)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added entity 1e20e851-17c0-4e1c-93c5-78e34fc280e5 (Type: 1001) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 1e20e851-17c0-4e1c-93c5-78e34fc280e5 (Type: 200)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 1e20e851-17c0-4e1c-93c5-78e34fc280e5 (Type: 200) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Relationship: 1e20e851-17c0-4e1c-93c5-78e34fc280e5 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added relationship 1e20e851-17c0-4e1c-93c5-78e34fc280e5 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Entity: 09cd2f2e-a4f9-4849-9278-b160ce097652 (Type: 1001)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added entity 09cd2f2e-a4f9-4849-9278-b160ce097652 (Type: 1001) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 09cd2f2e-a4f9-4849-9278-b160ce097652 (Type: 200)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 09cd2f2e-a4f9-4849-9278-b160ce097652 (Type: 200) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Relationship: 09cd2f2e-a4f9-4849-9278-b160ce097652 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added relationship 09cd2f2e-a4f9-4849-9278-b160ce097652 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Entity: b6f1277d-30c2-464d-9e4e-81e80b7bb7ab (Type: 1001)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added entity b6f1277d-30c2-464d-9e4e-81e80b7bb7ab (Type: 1001) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> b6f1277d-30c2-464d-9e4e-81e80b7bb7ab (Type: 200)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> b6f1277d-30c2-464d-9e4e-81e80b7bb7ab (Type: 200) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Relationship: b6f1277d-30c2-464d-9e4e-81e80b7bb7ab -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added relationship b6f1277d-30c2-464d-9e4e-81e80b7bb7ab -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Entity: 6bd6b3ef-08a2-46f1-8247-baf487a034cf (Type: 1001)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added entity 6bd6b3ef-08a2-46f1-8247-baf487a034cf (Type: 1001) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 6bd6b3ef-08a2-46f1-8247-baf487a034cf (Type: 200)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 6bd6b3ef-08a2-46f1-8247-baf487a034cf (Type: 200) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Relationship: 6bd6b3ef-08a2-46f1-8247-baf487a034cf -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added relationship 6bd6b3ef-08a2-46f1-8247-baf487a034cf -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Entity: afc59245-5a44-4473-99dd-b44d1001c7dd (Type: 1001)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added entity afc59245-5a44-4473-99dd-b44d1001c7dd (Type: 1001) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> afc59245-5a44-4473-99dd-b44d1001c7dd (Type: 200)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> afc59245-5a44-4473-99dd-b44d1001c7dd (Type: 200) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Relationship: afc59245-5a44-4473-99dd-b44d1001c7dd -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added relationship afc59245-5a44-4473-99dd-b44d1001c7dd -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Entity: ff1fe675-bad1-4e66-b293-153ad9cbdd06 (Type: 1001)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added entity ff1fe675-bad1-4e66-b293-153ad9cbdd06 (Type: 1001) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> ff1fe675-bad1-4e66-b293-153ad9cbdd06 (Type: 200)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> ff1fe675-bad1-4e66-b293-153ad9cbdd06 (Type: 200) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Relationship: ff1fe675-bad1-4e66-b293-153ad9cbdd06 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added relationship ff1fe675-bad1-4e66-b293-153ad9cbdd06 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Entity: db1d3d5a-07b1-4b65-9dde-d896cde620d0 (Type: 1001)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added entity db1d3d5a-07b1-4b65-9dde-d896cde620d0 (Type: 1001) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> db1d3d5a-07b1-4b65-9dde-d896cde620d0 (Type: 200)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> db1d3d5a-07b1-4b65-9dde-d896cde620d0 (Type: 200) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Relationship: db1d3d5a-07b1-4b65-9dde-d896cde620d0 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added relationship db1d3d5a-07b1-4b65-9dde-d896cde620d0 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Entity: daa82382-fe20-4f51-bf2b-7104a32412c9 (Type: 1001)
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Added entity daa82382-fe20-4f51-bf2b-7104a32412c9 (Type: 1001) to graph.
+2025-10-21 20:06:54,430 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> daa82382-fe20-4f51-bf2b-7104a32412c9 (Type: 200)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> daa82382-fe20-4f51-bf2b-7104a32412c9 (Type: 200) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Relationship: daa82382-fe20-4f51-bf2b-7104a32412c9 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added relationship daa82382-fe20-4f51-bf2b-7104a32412c9 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Entity: 80a4fe86-5b9b-45f2-959d-4667eae0cc39 (Type: 1001)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added entity 80a4fe86-5b9b-45f2-959d-4667eae0cc39 (Type: 1001) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> 80a4fe86-5b9b-45f2-959d-4667eae0cc39 (Type: 200)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> 80a4fe86-5b9b-45f2-959d-4667eae0cc39 (Type: 200) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Relationship: 80a4fe86-5b9b-45f2-959d-4667eae0cc39 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added relationship 80a4fe86-5b9b-45f2-959d-4667eae0cc39 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Entity: d55ca801-69b8-4e3a-9e49-a9d7ccaaea96 (Type: 1001)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added entity d55ca801-69b8-4e3a-9e49-a9d7ccaaea96 (Type: 1001) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Relationship: 311725ef-220f-49f5-ba1d-06d092e494be -> d55ca801-69b8-4e3a-9e49-a9d7ccaaea96 (Type: 200)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added relationship 311725ef-220f-49f5-ba1d-06d092e494be -> d55ca801-69b8-4e3a-9e49-a9d7ccaaea96 (Type: 200) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Relationship: d55ca801-69b8-4e3a-9e49-a9d7ccaaea96 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added relationship d55ca801-69b8-4e3a-9e49-a9d7ccaaea96 -> e352e503-441a-4b0d-999f-dcbe46e34c64 (Type: 201) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Creating deck for player Play with 40 cards.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Entity: 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 102)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added entity 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 102) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Entity: ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 100)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added entity ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 100) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Entity: 2b6aa654-a81b-4042-8989-9b35f311f72c (Type: 103)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added entity 2b6aa654-a81b-4042-8989-9b35f311f72c (Type: 103) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Entity: 797cca32-c6aa-40e6-b528-6f8b2f66d1d1 (Type: 101)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added entity 797cca32-c6aa-40e6-b528-6f8b2f66d1d1 (Type: 101) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 200)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 200) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 200)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 200) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 2b6aa654-a81b-4042-8989-9b35f311f72c (Type: 200)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 2b6aa654-a81b-4042-8989-9b35f311f72c (Type: 200) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 797cca32-c6aa-40e6-b528-6f8b2f66d1d1 (Type: 200)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 797cca32-c6aa-40e6-b528-6f8b2f66d1d1 (Type: 200) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Entity: cdb0b86a-610e-4382-931d-8b40d4b04864 (Type: 1002)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added entity cdb0b86a-610e-4382-931d-8b40d4b04864 (Type: 1002) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> cdb0b86a-610e-4382-931d-8b40d4b04864 (Type: 200)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> cdb0b86a-610e-4382-931d-8b40d4b04864 (Type: 200) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Relationship: cdb0b86a-610e-4382-931d-8b40d4b04864 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added relationship cdb0b86a-610e-4382-931d-8b40d4b04864 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Entity: 4e3cf9cc-5a09-40e0-be6a-f6b709f96077 (Type: 1002)
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Added entity 4e3cf9cc-5a09-40e0-be6a-f6b709f96077 (Type: 1002) to graph.
+2025-10-21 20:06:54,431 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 4e3cf9cc-5a09-40e0-be6a-f6b709f96077 (Type: 200)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 4e3cf9cc-5a09-40e0-be6a-f6b709f96077 (Type: 200) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Relationship: 4e3cf9cc-5a09-40e0-be6a-f6b709f96077 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added relationship 4e3cf9cc-5a09-40e0-be6a-f6b709f96077 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Entity: 6c350e71-1bfa-4431-899c-e438a44b1d98 (Type: 1002)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added entity 6c350e71-1bfa-4431-899c-e438a44b1d98 (Type: 1002) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 6c350e71-1bfa-4431-899c-e438a44b1d98 (Type: 200)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 6c350e71-1bfa-4431-899c-e438a44b1d98 (Type: 200) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Relationship: 6c350e71-1bfa-4431-899c-e438a44b1d98 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added relationship 6c350e71-1bfa-4431-899c-e438a44b1d98 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Entity: 95e72de0-7d93-4b5f-95a0-1283c9d3c072 (Type: 1002)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added entity 95e72de0-7d93-4b5f-95a0-1283c9d3c072 (Type: 1002) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 95e72de0-7d93-4b5f-95a0-1283c9d3c072 (Type: 200)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 95e72de0-7d93-4b5f-95a0-1283c9d3c072 (Type: 200) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Relationship: 95e72de0-7d93-4b5f-95a0-1283c9d3c072 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added relationship 95e72de0-7d93-4b5f-95a0-1283c9d3c072 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Entity: 359027ab-1173-426e-932a-4b58bf2b75fc (Type: 1002)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added entity 359027ab-1173-426e-932a-4b58bf2b75fc (Type: 1002) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 359027ab-1173-426e-932a-4b58bf2b75fc (Type: 200)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 359027ab-1173-426e-932a-4b58bf2b75fc (Type: 200) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Relationship: 359027ab-1173-426e-932a-4b58bf2b75fc -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added relationship 359027ab-1173-426e-932a-4b58bf2b75fc -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Entity: 682c6708-0df0-4eb9-a3a1-4047782d6b7b (Type: 1002)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added entity 682c6708-0df0-4eb9-a3a1-4047782d6b7b (Type: 1002) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 682c6708-0df0-4eb9-a3a1-4047782d6b7b (Type: 200)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 682c6708-0df0-4eb9-a3a1-4047782d6b7b (Type: 200) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Relationship: 682c6708-0df0-4eb9-a3a1-4047782d6b7b -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added relationship 682c6708-0df0-4eb9-a3a1-4047782d6b7b -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Entity: 5453935b-74fa-4a6f-9c14-c5a38cc66639 (Type: 1002)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added entity 5453935b-74fa-4a6f-9c14-c5a38cc66639 (Type: 1002) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 5453935b-74fa-4a6f-9c14-c5a38cc66639 (Type: 200)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 5453935b-74fa-4a6f-9c14-c5a38cc66639 (Type: 200) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Relationship: 5453935b-74fa-4a6f-9c14-c5a38cc66639 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added relationship 5453935b-74fa-4a6f-9c14-c5a38cc66639 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Entity: 5a836add-de04-4a66-861b-569e34929f56 (Type: 1002)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added entity 5a836add-de04-4a66-861b-569e34929f56 (Type: 1002) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 5a836add-de04-4a66-861b-569e34929f56 (Type: 200)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 5a836add-de04-4a66-861b-569e34929f56 (Type: 200) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Relationship: 5a836add-de04-4a66-861b-569e34929f56 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added relationship 5a836add-de04-4a66-861b-569e34929f56 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Entity: bffedc55-01ba-46a9-807a-baf9ce1b4366 (Type: 1002)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added entity bffedc55-01ba-46a9-807a-baf9ce1b4366 (Type: 1002) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> bffedc55-01ba-46a9-807a-baf9ce1b4366 (Type: 200)
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> bffedc55-01ba-46a9-807a-baf9ce1b4366 (Type: 200) to graph.
+2025-10-21 20:06:54,432 - rule_engine.game_graph - DEBUG - Created Relationship: bffedc55-01ba-46a9-807a-baf9ce1b4366 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added relationship bffedc55-01ba-46a9-807a-baf9ce1b4366 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Entity: 16a20e86-25e0-4241-a6dc-3adabc00f42b (Type: 1002)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added entity 16a20e86-25e0-4241-a6dc-3adabc00f42b (Type: 1002) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 16a20e86-25e0-4241-a6dc-3adabc00f42b (Type: 200)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 16a20e86-25e0-4241-a6dc-3adabc00f42b (Type: 200) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Relationship: 16a20e86-25e0-4241-a6dc-3adabc00f42b -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added relationship 16a20e86-25e0-4241-a6dc-3adabc00f42b -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Entity: 61a091cb-3bc1-41b1-a266-4a81de2cbced (Type: 1002)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added entity 61a091cb-3bc1-41b1-a266-4a81de2cbced (Type: 1002) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 61a091cb-3bc1-41b1-a266-4a81de2cbced (Type: 200)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 61a091cb-3bc1-41b1-a266-4a81de2cbced (Type: 200) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Relationship: 61a091cb-3bc1-41b1-a266-4a81de2cbced -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added relationship 61a091cb-3bc1-41b1-a266-4a81de2cbced -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Entity: 1535b92b-b924-413a-a614-10b14758874f (Type: 1002)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added entity 1535b92b-b924-413a-a614-10b14758874f (Type: 1002) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 1535b92b-b924-413a-a614-10b14758874f (Type: 200)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 1535b92b-b924-413a-a614-10b14758874f (Type: 200) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Relationship: 1535b92b-b924-413a-a614-10b14758874f -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added relationship 1535b92b-b924-413a-a614-10b14758874f -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Entity: 15c6e204-4a1b-495e-b5e8-5760b9479e36 (Type: 1002)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added entity 15c6e204-4a1b-495e-b5e8-5760b9479e36 (Type: 1002) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 15c6e204-4a1b-495e-b5e8-5760b9479e36 (Type: 200)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 15c6e204-4a1b-495e-b5e8-5760b9479e36 (Type: 200) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Relationship: 15c6e204-4a1b-495e-b5e8-5760b9479e36 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added relationship 15c6e204-4a1b-495e-b5e8-5760b9479e36 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Entity: b49f9114-f513-4877-989d-1710f6e39efb (Type: 1002)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added entity b49f9114-f513-4877-989d-1710f6e39efb (Type: 1002) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> b49f9114-f513-4877-989d-1710f6e39efb (Type: 200)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> b49f9114-f513-4877-989d-1710f6e39efb (Type: 200) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Relationship: b49f9114-f513-4877-989d-1710f6e39efb -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added relationship b49f9114-f513-4877-989d-1710f6e39efb -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Entity: 5098782f-1e3f-491f-bf4b-60bd0fd00df9 (Type: 1002)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added entity 5098782f-1e3f-491f-bf4b-60bd0fd00df9 (Type: 1002) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 5098782f-1e3f-491f-bf4b-60bd0fd00df9 (Type: 200)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 5098782f-1e3f-491f-bf4b-60bd0fd00df9 (Type: 200) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Relationship: 5098782f-1e3f-491f-bf4b-60bd0fd00df9 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added relationship 5098782f-1e3f-491f-bf4b-60bd0fd00df9 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Entity: a3faa940-d477-4739-8766-b7384b26c50c (Type: 1002)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added entity a3faa940-d477-4739-8766-b7384b26c50c (Type: 1002) to graph.
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> a3faa940-d477-4739-8766-b7384b26c50c (Type: 200)
+2025-10-21 20:06:54,433 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> a3faa940-d477-4739-8766-b7384b26c50c (Type: 200) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Relationship: a3faa940-d477-4739-8766-b7384b26c50c -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added relationship a3faa940-d477-4739-8766-b7384b26c50c -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Entity: 82ecabf8-bf49-4c6f-ba53-90c0a152d3b1 (Type: 1002)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added entity 82ecabf8-bf49-4c6f-ba53-90c0a152d3b1 (Type: 1002) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 82ecabf8-bf49-4c6f-ba53-90c0a152d3b1 (Type: 200)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 82ecabf8-bf49-4c6f-ba53-90c0a152d3b1 (Type: 200) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Relationship: 82ecabf8-bf49-4c6f-ba53-90c0a152d3b1 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added relationship 82ecabf8-bf49-4c6f-ba53-90c0a152d3b1 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Entity: 7d02c56f-73ab-4636-a9d6-b476fefd0c3e (Type: 1002)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added entity 7d02c56f-73ab-4636-a9d6-b476fefd0c3e (Type: 1002) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 7d02c56f-73ab-4636-a9d6-b476fefd0c3e (Type: 200)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 7d02c56f-73ab-4636-a9d6-b476fefd0c3e (Type: 200) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Relationship: 7d02c56f-73ab-4636-a9d6-b476fefd0c3e -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added relationship 7d02c56f-73ab-4636-a9d6-b476fefd0c3e -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Entity: dd7a3186-5d52-4a56-80ca-0c1bf3dee889 (Type: 1002)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added entity dd7a3186-5d52-4a56-80ca-0c1bf3dee889 (Type: 1002) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> dd7a3186-5d52-4a56-80ca-0c1bf3dee889 (Type: 200)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> dd7a3186-5d52-4a56-80ca-0c1bf3dee889 (Type: 200) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Relationship: dd7a3186-5d52-4a56-80ca-0c1bf3dee889 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added relationship dd7a3186-5d52-4a56-80ca-0c1bf3dee889 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Entity: 2b6cfe61-9e3d-425f-8a77-a6913d0d1e6d (Type: 1002)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added entity 2b6cfe61-9e3d-425f-8a77-a6913d0d1e6d (Type: 1002) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 2b6cfe61-9e3d-425f-8a77-a6913d0d1e6d (Type: 200)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 2b6cfe61-9e3d-425f-8a77-a6913d0d1e6d (Type: 200) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Relationship: 2b6cfe61-9e3d-425f-8a77-a6913d0d1e6d -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added relationship 2b6cfe61-9e3d-425f-8a77-a6913d0d1e6d -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Entity: 5118975f-7d6d-463d-be9d-193d3e30735b (Type: 1003)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added entity 5118975f-7d6d-463d-be9d-193d3e30735b (Type: 1003) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 5118975f-7d6d-463d-be9d-193d3e30735b (Type: 200)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 5118975f-7d6d-463d-be9d-193d3e30735b (Type: 200) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Relationship: 5118975f-7d6d-463d-be9d-193d3e30735b -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added relationship 5118975f-7d6d-463d-be9d-193d3e30735b -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Entity: 9f419ef6-2d72-4d2c-9f11-8da2cef0cb2c (Type: 1003)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added entity 9f419ef6-2d72-4d2c-9f11-8da2cef0cb2c (Type: 1003) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 9f419ef6-2d72-4d2c-9f11-8da2cef0cb2c (Type: 200)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 9f419ef6-2d72-4d2c-9f11-8da2cef0cb2c (Type: 200) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Relationship: 9f419ef6-2d72-4d2c-9f11-8da2cef0cb2c -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added relationship 9f419ef6-2d72-4d2c-9f11-8da2cef0cb2c -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Entity: 833a2fc9-d886-4b8b-9d74-e87048fd2bad (Type: 1003)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added entity 833a2fc9-d886-4b8b-9d74-e87048fd2bad (Type: 1003) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 833a2fc9-d886-4b8b-9d74-e87048fd2bad (Type: 200)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 833a2fc9-d886-4b8b-9d74-e87048fd2bad (Type: 200) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Relationship: 833a2fc9-d886-4b8b-9d74-e87048fd2bad -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added relationship 833a2fc9-d886-4b8b-9d74-e87048fd2bad -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Created Entity: 22a9673c-6da6-45a5-84f0-b07111184d2c (Type: 1003)
+2025-10-21 20:06:54,434 - rule_engine.game_graph - DEBUG - Added entity 22a9673c-6da6-45a5-84f0-b07111184d2c (Type: 1003) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 22a9673c-6da6-45a5-84f0-b07111184d2c (Type: 200)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 22a9673c-6da6-45a5-84f0-b07111184d2c (Type: 200) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Relationship: 22a9673c-6da6-45a5-84f0-b07111184d2c -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added relationship 22a9673c-6da6-45a5-84f0-b07111184d2c -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Entity: 779f01df-bc40-412e-960f-b78a6901694d (Type: 1003)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added entity 779f01df-bc40-412e-960f-b78a6901694d (Type: 1003) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 779f01df-bc40-412e-960f-b78a6901694d (Type: 200)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 779f01df-bc40-412e-960f-b78a6901694d (Type: 200) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Relationship: 779f01df-bc40-412e-960f-b78a6901694d -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added relationship 779f01df-bc40-412e-960f-b78a6901694d -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Entity: 1ca44232-84bf-41d9-8512-1d29a6e5bad4 (Type: 1003)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added entity 1ca44232-84bf-41d9-8512-1d29a6e5bad4 (Type: 1003) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 1ca44232-84bf-41d9-8512-1d29a6e5bad4 (Type: 200)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 1ca44232-84bf-41d9-8512-1d29a6e5bad4 (Type: 200) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Relationship: 1ca44232-84bf-41d9-8512-1d29a6e5bad4 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added relationship 1ca44232-84bf-41d9-8512-1d29a6e5bad4 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Entity: 148744dd-5b37-4308-95fd-fc3dde0a1944 (Type: 1003)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added entity 148744dd-5b37-4308-95fd-fc3dde0a1944 (Type: 1003) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 148744dd-5b37-4308-95fd-fc3dde0a1944 (Type: 200)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 148744dd-5b37-4308-95fd-fc3dde0a1944 (Type: 200) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Relationship: 148744dd-5b37-4308-95fd-fc3dde0a1944 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added relationship 148744dd-5b37-4308-95fd-fc3dde0a1944 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Entity: de44ec5e-9101-4e8e-a367-6b4a91cba95b (Type: 1003)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added entity de44ec5e-9101-4e8e-a367-6b4a91cba95b (Type: 1003) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> de44ec5e-9101-4e8e-a367-6b4a91cba95b (Type: 200)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> de44ec5e-9101-4e8e-a367-6b4a91cba95b (Type: 200) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Relationship: de44ec5e-9101-4e8e-a367-6b4a91cba95b -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added relationship de44ec5e-9101-4e8e-a367-6b4a91cba95b -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Entity: d1c61401-b86c-4ed0-bc5b-b6d3eb0b682e (Type: 1003)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added entity d1c61401-b86c-4ed0-bc5b-b6d3eb0b682e (Type: 1003) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> d1c61401-b86c-4ed0-bc5b-b6d3eb0b682e (Type: 200)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> d1c61401-b86c-4ed0-bc5b-b6d3eb0b682e (Type: 200) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Relationship: d1c61401-b86c-4ed0-bc5b-b6d3eb0b682e -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added relationship d1c61401-b86c-4ed0-bc5b-b6d3eb0b682e -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Entity: a16e8a37-14e8-486e-b3b8-5807df48581f (Type: 1003)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added entity a16e8a37-14e8-486e-b3b8-5807df48581f (Type: 1003) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> a16e8a37-14e8-486e-b3b8-5807df48581f (Type: 200)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> a16e8a37-14e8-486e-b3b8-5807df48581f (Type: 200) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Relationship: a16e8a37-14e8-486e-b3b8-5807df48581f -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added relationship a16e8a37-14e8-486e-b3b8-5807df48581f -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Entity: 18953e06-8da2-4efc-8a9c-63b63397005d (Type: 1003)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added entity 18953e06-8da2-4efc-8a9c-63b63397005d (Type: 1003) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 18953e06-8da2-4efc-8a9c-63b63397005d (Type: 200)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 18953e06-8da2-4efc-8a9c-63b63397005d (Type: 200) to graph.
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Created Relationship: 18953e06-8da2-4efc-8a9c-63b63397005d -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,435 - rule_engine.game_graph - DEBUG - Added relationship 18953e06-8da2-4efc-8a9c-63b63397005d -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Entity: 8c7865fb-29a5-4cb4-ae88-86515fd2ccb1 (Type: 1003)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added entity 8c7865fb-29a5-4cb4-ae88-86515fd2ccb1 (Type: 1003) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 8c7865fb-29a5-4cb4-ae88-86515fd2ccb1 (Type: 200)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 8c7865fb-29a5-4cb4-ae88-86515fd2ccb1 (Type: 200) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Relationship: 8c7865fb-29a5-4cb4-ae88-86515fd2ccb1 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added relationship 8c7865fb-29a5-4cb4-ae88-86515fd2ccb1 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Entity: 26e67b76-3dca-4d38-a872-799cf3c29b31 (Type: 1003)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added entity 26e67b76-3dca-4d38-a872-799cf3c29b31 (Type: 1003) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 26e67b76-3dca-4d38-a872-799cf3c29b31 (Type: 200)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 26e67b76-3dca-4d38-a872-799cf3c29b31 (Type: 200) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Relationship: 26e67b76-3dca-4d38-a872-799cf3c29b31 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added relationship 26e67b76-3dca-4d38-a872-799cf3c29b31 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Entity: e2d4834c-51f3-4498-b9af-c7328edfab04 (Type: 1003)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added entity e2d4834c-51f3-4498-b9af-c7328edfab04 (Type: 1003) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> e2d4834c-51f3-4498-b9af-c7328edfab04 (Type: 200)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> e2d4834c-51f3-4498-b9af-c7328edfab04 (Type: 200) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Relationship: e2d4834c-51f3-4498-b9af-c7328edfab04 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added relationship e2d4834c-51f3-4498-b9af-c7328edfab04 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Entity: 0c2a222c-a617-49af-9eca-232b9f1a6674 (Type: 1003)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added entity 0c2a222c-a617-49af-9eca-232b9f1a6674 (Type: 1003) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 0c2a222c-a617-49af-9eca-232b9f1a6674 (Type: 200)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 0c2a222c-a617-49af-9eca-232b9f1a6674 (Type: 200) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Relationship: 0c2a222c-a617-49af-9eca-232b9f1a6674 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added relationship 0c2a222c-a617-49af-9eca-232b9f1a6674 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Entity: ba9a16e2-c5f4-4135-b5dc-6efd44fd8805 (Type: 1003)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added entity ba9a16e2-c5f4-4135-b5dc-6efd44fd8805 (Type: 1003) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> ba9a16e2-c5f4-4135-b5dc-6efd44fd8805 (Type: 200)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> ba9a16e2-c5f4-4135-b5dc-6efd44fd8805 (Type: 200) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Relationship: ba9a16e2-c5f4-4135-b5dc-6efd44fd8805 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added relationship ba9a16e2-c5f4-4135-b5dc-6efd44fd8805 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Entity: a24c20e5-f415-4565-96d9-8afde442b51c (Type: 1003)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added entity a24c20e5-f415-4565-96d9-8afde442b51c (Type: 1003) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> a24c20e5-f415-4565-96d9-8afde442b51c (Type: 200)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> a24c20e5-f415-4565-96d9-8afde442b51c (Type: 200) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Relationship: a24c20e5-f415-4565-96d9-8afde442b51c -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added relationship a24c20e5-f415-4565-96d9-8afde442b51c -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Entity: 161f40cf-0caa-4f6f-839e-af8302808cd8 (Type: 1003)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added entity 161f40cf-0caa-4f6f-839e-af8302808cd8 (Type: 1003) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 161f40cf-0caa-4f6f-839e-af8302808cd8 (Type: 200)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 161f40cf-0caa-4f6f-839e-af8302808cd8 (Type: 200) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Relationship: 161f40cf-0caa-4f6f-839e-af8302808cd8 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added relationship 161f40cf-0caa-4f6f-839e-af8302808cd8 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Entity: 5969cf10-eafb-4030-8df9-69f69d32f796 (Type: 1003)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added entity 5969cf10-eafb-4030-8df9-69f69d32f796 (Type: 1003) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 5969cf10-eafb-4030-8df9-69f69d32f796 (Type: 200)
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> 5969cf10-eafb-4030-8df9-69f69d32f796 (Type: 200) to graph.
+2025-10-21 20:06:54,436 - rule_engine.game_graph - DEBUG - Created Relationship: 5969cf10-eafb-4030-8df9-69f69d32f796 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Added relationship 5969cf10-eafb-4030-8df9-69f69d32f796 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Created Entity: f2fbb73e-2eed-4f37-89af-6f99062585a1 (Type: 1003)
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Added entity f2fbb73e-2eed-4f37-89af-6f99062585a1 (Type: 1003) to graph.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Created Relationship: 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> f2fbb73e-2eed-4f37-89af-6f99062585a1 (Type: 200)
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Added relationship 6dd6ea50-fe52-4602-b6dc-89073b5d2497 -> f2fbb73e-2eed-4f37-89af-6f99062585a1 (Type: 200) to graph.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Created Relationship: f2fbb73e-2eed-4f37-89af-6f99062585a1 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201)
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Added relationship f2fbb73e-2eed-4f37-89af-6f99062585a1 -> 5d8e1a16-7637-45d9-b11e-33d56de9366e (Type: 201) to graph.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Deck created for player Play.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Decks shuffled.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Querying relationships: source=311725ef-220f-49f5-ba1d-06d092e494be, target=None, rel_type=200
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Found 44 relationships.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Querying relationships: source=6dd6ea50-fe52-4602-b6dc-89073b5d2497, target=None, rel_type=200
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Found 44 relationships.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Moving card Island to zone 100.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Created Relationship: b6f1277d-30c2-464d-9e4e-81e80b7bb7ab -> 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 201)
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Added relationship b6f1277d-30c2-464d-9e4e-81e80b7bb7ab -> 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 201) to graph.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Player 1 drew Island.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Moving card Mountain to zone 100.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Created Relationship: 359027ab-1173-426e-932a-4b58bf2b75fc -> ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 201)
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Added relationship 359027ab-1173-426e-932a-4b58bf2b75fc -> ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 201) to graph.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Player 2 drew Mountain.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Moving card Island to zone 100.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Created Relationship: db1d3d5a-07b1-4b65-9dde-d896cde620d0 -> 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 201)
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Added relationship db1d3d5a-07b1-4b65-9dde-d896cde620d0 -> 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 201) to graph.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Player 1 drew Island.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Moving card Swamp to zone 100.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Created Relationship: 779f01df-bc40-412e-960f-b78a6901694d -> ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 201)
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Added relationship 779f01df-bc40-412e-960f-b78a6901694d -> ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 201) to graph.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Player 2 drew Swamp.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Moving card Island to zone 100.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Created Relationship: 6bd6b3ef-08a2-46f1-8247-baf487a034cf -> 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 201)
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Added relationship 6bd6b3ef-08a2-46f1-8247-baf487a034cf -> 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 201) to graph.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Player 1 drew Island.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Moving card Swamp to zone 100.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Created Relationship: 1ca44232-84bf-41d9-8512-1d29a6e5bad4 -> ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 201)
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Added relationship 1ca44232-84bf-41d9-8512-1d29a6e5bad4 -> ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 201) to graph.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Player 2 drew Swamp.
+2025-10-21 20:06:54,437 - rule_engine.game_graph - DEBUG - Moving card Island to zone 100.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Created Relationship: ec36a94e-1f4b-407e-98ca-513f601c4eb6 -> 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 201)
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Added relationship ec36a94e-1f4b-407e-98ca-513f601c4eb6 -> 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 201) to graph.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Player 1 drew Island.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Moving card Swamp to zone 100.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Created Relationship: a16e8a37-14e8-486e-b3b8-5807df48581f -> ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 201)
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Added relationship a16e8a37-14e8-486e-b3b8-5807df48581f -> ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 201) to graph.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Player 2 drew Swamp.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Moving card Forest to zone 100.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Created Relationship: a0699f14-7f19-4fe5-ac6f-e8bb244bef9b -> 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 201)
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Added relationship a0699f14-7f19-4fe5-ac6f-e8bb244bef9b -> 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 201) to graph.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Player 1 drew Forest.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Moving card Mountain to zone 100.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Created Relationship: 6c350e71-1bfa-4431-899c-e438a44b1d98 -> ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 201)
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Added relationship 6c350e71-1bfa-4431-899c-e438a44b1d98 -> ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 201) to graph.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Player 2 drew Mountain.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Moving card Forest to zone 100.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Created Relationship: b16d7c93-efd9-4be6-9906-24bc4be930b8 -> 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 201)
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Added relationship b16d7c93-efd9-4be6-9906-24bc4be930b8 -> 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 201) to graph.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Player 1 drew Forest.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Moving card Swamp to zone 100.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Created Relationship: 22a9673c-6da6-45a5-84f0-b07111184d2c -> ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 201)
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Added relationship 22a9673c-6da6-45a5-84f0-b07111184d2c -> ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 201) to graph.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Player 2 drew Swamp.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Moving card Island to zone 100.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Created Relationship: 5ebdcbe2-4d8b-4f89-9ec0-2d3123fa8972 -> 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 201)
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Added relationship 5ebdcbe2-4d8b-4f89-9ec0-2d3123fa8972 -> 78648055-8a52-4b35-8deb-234f4464ad7c (Type: 201) to graph.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Player 1 drew Island.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Moving card Mountain to zone 100.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Created Relationship: 82ecabf8-bf49-4c6f-ba53-90c0a152d3b1 -> ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 201)
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Added relationship 82ecabf8-bf49-4c6f-ba53-90c0a152d3b1 -> ae67832e-ac5d-4ea5-933a-57b9afa285f1 (Type: 201) to graph.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Player 2 drew Mountain.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - INFO - Game initialized successfully.
+2025-10-21 20:06:54,438 - rule_engine.engine - INFO - Engine initialized.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Querying relationships: source=311725ef-220f-49f5-ba1d-06d092e494be, target=None, rel_type=200
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Found 44 relationships.
+2025-10-21 20:06:54,438 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=78648055-8a52-4b35-8deb-234f4464ad7c, rel_type=201
+2025-10-21 20:06:54,439 - rule_engine.game_graph - DEBUG - Found 7 relationships.
+2025-10-21 20:06:54,439 - rule_engine.game_graph - DEBUG - Querying relationships: source=311725ef-220f-49f5-ba1d-06d092e494be, target=None, rel_type=200
+2025-10-21 20:06:54,439 - rule_engine.game_graph - DEBUG - Found 44 relationships.
+2025-10-21 20:06:54,439 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=465a7535-2687-4528-aa65-c451e91f9681, rel_type=201
+2025-10-21 20:06:54,439 - rule_engine.game_graph - DEBUG - Found 0 relationships.
+2025-10-21 20:06:54,439 - rule_engine.game_graph - DEBUG - Querying relationships: source=6dd6ea50-fe52-4602-b6dc-89073b5d2497, target=None, rel_type=200
+2025-10-21 20:06:54,439 - rule_engine.game_graph - DEBUG - Found 44 relationships.
+2025-10-21 20:06:54,439 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=797cca32-c6aa-40e6-b528-6f8b2f66d1d1, rel_type=201
+2025-10-21 20:06:54,439 - rule_engine.game_graph - DEBUG - Found 0 relationships.
+2025-10-21 20:06:54,439 - rule_engine.engine - DEBUG - Calculating legal moves for Player Play (Turn 1, Phase 10, Step 20)
+2025-10-21 20:06:54,439 - rule_engine.game_graph - DEBUG - Querying relationships: source=311725ef-220f-49f5-ba1d-06d092e494be, target=None, rel_type=200
+2025-10-21 20:06:54,439 - rule_engine.game_graph - DEBUG - Found 44 relationships.
+2025-10-21 20:06:54,439 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=78648055-8a52-4b35-8deb-234f4464ad7c, rel_type=201
+2025-10-21 20:06:54,439 - rule_engine.game_graph - DEBUG - Found 7 relationships.
+2025-10-21 20:06:54,439 - rule_engine.engine - DEBUG - Found PlayLandAction for Island (1001)
+2025-10-21 20:06:54,439 - rule_engine.engine - DEBUG - Found PlayLandAction for Island (1001)
+2025-10-21 20:06:54,439 - rule_engine.engine - DEBUG - Found PlayLandAction for Island (1001)
+2025-10-21 20:06:54,439 - rule_engine.engine - DEBUG - Found PlayLandAction for Island (1001)
+2025-10-21 20:06:54,439 - rule_engine.engine - DEBUG - Found PlayLandAction for Forest (1000)
+2025-10-21 20:06:54,439 - rule_engine.engine - DEBUG - Found PlayLandAction for Forest (1000)
+2025-10-21 20:06:54,439 - rule_engine.engine - DEBUG - Found PlayLandAction for Island (1001)
+2025-10-21 20:06:54,439 - rule_engine.handlers.mana_handlers - DEBUG - Getting tap for mana moves for Player Play.
+2025-10-21 20:06:54,439 - rule_engine.game_graph - DEBUG - Querying relationships: source=311725ef-220f-49f5-ba1d-06d092e494be, target=None, rel_type=200
+2025-10-21 20:06:54,440 - rule_engine.game_graph - DEBUG - Found 44 relationships.
+2025-10-21 20:06:54,440 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=465a7535-2687-4528-aa65-c451e91f9681, rel_type=201
+2025-10-21 20:06:54,440 - rule_engine.game_graph - DEBUG - Found 0 relationships.
+2025-10-21 20:06:54,440 - rule_engine.handlers.mana_handlers - DEBUG - Found 0 tap for mana moves.
+2025-10-21 20:06:54,440 - rule_engine.game_graph - DEBUG - Querying relationships: source=None, target=78648055-8a52-4b35-8deb-234f4464ad7c, rel_type=201
+2025-10-21 20:06:54,440 - rule_engine.game_graph - DEBUG - Found 7 relationships.
+2025-10-21 20:06:54,440 - rule_engine.engine - DEBUG - Total legal moves found: 7

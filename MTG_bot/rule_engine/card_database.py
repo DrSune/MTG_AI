@@ -1,4 +1,3 @@
-print("--- Executing card_database.py ---")
 from typing import Dict, Any, List, Optional
 from . import vocabulary as vocab
 from .card_data_loader import CardDataLoader

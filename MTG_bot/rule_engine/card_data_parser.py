@@ -3,8 +3,10 @@ import json
 import argparse
 import os
 import sqlite3
-import vocabulary
 import re
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+from MTG_bot.utils.decorators import with_human_names
 
 def download_set_data(set_code, output_dir="."):
     """
@@ -35,28 +37,64 @@ def setup_database(db_path):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
+    cursor.execute('''DROP TABLE IF EXISTS deck_cards''')
+    cursor.execute('''DROP TABLE IF EXISTS decks''')
+    cursor.execute('''DROP TABLE IF EXISTS users''')
+    cursor.execute('''DROP TABLE IF EXISTS cards''')
+    
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+        user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        email TEXT NOT NULL UNIQUE,
+        password_hash TEXT NOT NULL,
+        elo INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS cards (
-        name TEXT PRIMARY KEY,
+        card_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        set_code TEXT NOT NULL,
+        card_number TEXT NOT NULL,
+        name TEXT,
         mana_cost TEXT,
         type TEXT,
         text TEXT,
         power TEXT,
         toughness TEXT,
         supertypes TEXT,
-        effects_json TEXT
+        effects_json TEXT,
+        UNIQUE (set_code, card_number)
     )
     ''')
 
     cursor.execute('''
-    CREATE TABLE IF NOT EXISTS card_components (
-        card_name TEXT,
-        component_id INTEGER,
-        FOREIGN KEY (card_name) REFERENCES cards(name),
-        PRIMARY KEY (card_name, component_id)
+    CREATE TABLE IF NOT EXISTS decks (
+        deck_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        deck_name TEXT NOT NULL,
+        owner_id INTEGER NOT NULL,
+        format TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (owner_id) REFERENCES users(user_id)
     )
     ''')
-    cursor.execute('''CREATE INDEX IF NOT EXISTS idx_card_name ON card_components (card_name)''')
+
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS deck_cards (
+        deck_card_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        deck_id INTEGER NOT NULL,
+        card_id INTEGER NOT NULL,
+        quantity INTEGER NOT NULL,
+        FOREIGN KEY (deck_id) REFERENCES decks(deck_id),
+        FOREIGN KEY (card_id) REFERENCES cards(card_id),
+        UNIQUE (deck_id, card_id)
+    )
+    ''')
+
+    cursor.execute('''DROP TABLE IF EXISTS card_components''')
     
     conn.commit()
     conn.close()
@@ -66,16 +104,19 @@ def insert_cards_to_db(db_path, parsed_cards):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    for name, data in parsed_cards.items():
+    for card_key, data in parsed_cards.items():
+        set_code, card_number = card_key
         effects = parse_effect_structures(data['text'])
         for keyword in data.get('keywords', []):
             effects.append({'ability_type': 'keyword', 'keyword': keyword.lower()})
 
         cursor.execute('''
-        INSERT OR REPLACE INTO cards (name, mana_cost, type, text, power, toughness, supertypes, effects_json)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT OR REPLACE INTO cards (set_code, card_number, name, mana_cost, type, text, power, toughness, supertypes, effects_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
-            name,
+            set_code,
+            card_number,
+            data['name'],
             data['mana_cost'],
             data['type'],
             data['text'],
@@ -88,71 +129,27 @@ def insert_cards_to_db(db_path, parsed_cards):
     conn.close()
     print(f"Successfully inserted or replaced {len(parsed_cards)} cards in the database.")
 
-def map_and_insert_components(db_path, parsed_cards):
-    """
-    Maps card text to component IDs and inserts them into the database.
-    """
-    keyword_map = {
-        "trample": vocabulary.ID_ABILITY_TRAMPLE,
-        "flying": vocabulary.ID_ABILITY_FLYING,
-        "first strike": vocabulary.ID_ABILITY_FIRST_STRIKE,
-        "deathtouch": vocabulary.ID_ABILITY_DEATHTOUCH,
-        "lifelink": vocabulary.ID_ABILITY_LIFELINK,
-        "haste": vocabulary.ID_ABILITY_HASTE,
-        "protection": vocabulary.ID_ABILITY_PROTECTION,
-        "double strike": vocabulary.ID_ABILITY_DOUBLE_STRIKE,
-        "vigilance": vocabulary.ID_ABILITY_VIGILANCE,
-        "indestructible": vocabulary.ID_ABILITY_INDESTRUCTIBLE,
-        "flash": vocabulary.ID_ABILITY_FLASH,
-        "hexproof": vocabulary.ID_ABILITY_HEXPROOF,
-        "prowess": vocabulary.ID_ABILITY_PROWESS,
-        "menace": vocabulary.ID_ABILITY_MENACE,
-        "defender": vocabulary.ID_ABILITY_DEFENDER,
-        "reach": vocabulary.ID_ABILITY_REACH
-    }
-
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    
-    # Clear old components for this set of cards before re-inserting
-    card_names = list(parsed_cards.keys())
-    if card_names:
-        cursor.execute(f'DELETE FROM card_components WHERE card_name IN ({("?,"*len(card_names))[:-1]})', card_names)
-
-    component_mappings = []
-    for name, data in parsed_cards.items():
-        card_keywords = data.get('keywords', [])
-        if card_keywords:
-            for keyword in card_keywords:
-                if keyword.lower() in keyword_map:
-                    component_mappings.append((name, keyword_map[keyword.lower()]))
-        else:
-            text = data.get('text', '').lower()
-            for keyword, component_id in keyword_map.items():
-                if re.search(r'\b' + keyword + r'\b', text):
-                    component_mappings.append((name, component_id))
-
-    if component_mappings:
-        cursor.executemany('INSERT INTO card_components (card_name, component_id) VALUES (?, ?)', component_mappings)
-    
-    conn.commit()
-    conn.close()
-    print(f"Successfully inserted {len(component_mappings)} component mappings into the database.")
-
 def parse_mtgjson(mtgjson_data):
     """
     Parses all cards from the MTGJSON data.
     """
     parsed_cards = {}
     all_cards = mtgjson_data.get('data', {}).get('cards', [])
+    set_code = mtgjson_data.get('data', {}).get('code')
 
     for card in all_cards:
-        parsed_cards[card['name']] = {
+        # Use (set_code, card_number) as the key for parsed_cards
+        card_key = (set_code, card.get('number'))
+        card_type = card.get('type', '')
+        is_planeswalker = 'Planeswalker' in card_type
+
+        parsed_cards[card_key] = {
+            'name': card.get('name'),
             'mana_cost': card.get('manaCost', ''),
-            'type': card.get('type', ''),
+            'type': card_type,
             'text': card.get('text', ''),
-            'power': card.get('power', None),
-            'toughness': card.get('toughness', None),
+            'power': '0' if is_planeswalker else card.get('power', None),
+            'toughness': card.get('loyalty', None) if is_planeswalker else card.get('toughness', None),
             'supertypes': card.get('supertypes', []),
             'keywords': card.get('keywords', [])
         }
@@ -303,36 +300,110 @@ def get_simple_patterns():
         }
     }
 
+def setup_game_vocabulary_table(db_path):
+    """
+    Creates the game_vocabulary table if it doesn't exist.
+    """
+    print("Setting up game_vocabulary table...")
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    cursor.execute('''DROP TABLE IF EXISTS game_settings''')
+    cursor.execute('''DROP TABLE IF EXISTS game_vocabulary''')
+
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS game_vocabulary (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        value TEXT,
+        mode TEXT NOT NULL DEFAULT 'General'
+    )
+    ''')
+    conn.commit()
+    conn.close()
+    print("game_vocabulary table setup complete.")
+
+def populate_default_game_vocabulary(db_path):
+    """
+    Populates the game_vocabulary table with default values from vocabulary.py.
+    """
+    print("Populating default game_vocabulary...")
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    # Import vocabulary.py temporarily to get the ID_TO_NAME mapping
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("vocabulary", os.path.join(os.path.dirname(__file__), "vocabulary.py"))
+    vocabulary = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(vocabulary)
+
+    # Extract non-card vocabulary items
+    vocabulary_items = []
+    for vocab_id, name in vocabulary.ID_TO_NAME.items():
+        item_type = "unknown"
+        item_mode = "General"
+        if vocab_id < vocabulary.ID_CARD_FOREST: # Assuming card IDs start from ID_CARD_FOREST
+            if vocab_id >= vocabulary.ID_ZONE_HAND and vocab_id <= vocabulary.ID_ZONE_EXILE:
+                item_type = "zone"
+            elif vocab_id >= vocabulary.ID_PHASE_BEGINNING and vocab_id <= vocabulary.ID_STEP_CLEANUP:
+                item_type = "phase_step"
+            elif vocab_id >= vocabulary.ID_MANA_GREEN and vocab_id <= vocabulary.ID_MANA_GENERIC:
+                item_type = "mana"
+            elif vocab_id >= vocabulary.ID_ABILITY_HASTE and vocab_id <= vocabulary.ID_ABILITY_TAP_ADD_WHITE:
+                item_type = "ability"
+            elif vocab_id >= vocabulary.ID_PLAYER and vocab_id <= vocabulary.ID_ACTION_PASS_TURN:
+                item_type = "game_entity_action"
+            elif vocab_id >= vocabulary.ID_STATUS_CONTROLLED_BY and vocab_id <= vocabulary.ID_STATUS_ATTACKING:
+                item_type = "card_status"
+                if vocab_id == vocabulary.ID_STATUS_CONTROLLED_BY:
+                    name = "Controlled By"
+
+            vocabulary_items.append((vocab_id, name, item_type, None, item_mode))
+
+    default_settings = [
+        # Standard Mode Settings
+        (None, "player_start_health", "game_setting", "20", "Standard"),
+        (None, "player_hand_size", "game_setting", "7", "Standard"),
+        (None, "deck_size", "game_setting", "60", "Standard"),
+        # Commander Mode Settings
+        (None, "player_start_health", "game_setting", "40", "Commander"),
+        (None, "player_hand_size", "game_setting", "7", "Commander"),
+        (None, "deck_size", "game_setting", "100", "Commander"),
+        # General Static Entity Names (applicable to all modes)
+        (None, "player_name_prefix", "game_setting", "Player ", "General"),
+        (None, "player_graveyard_name", "game_setting", "Graveyard", "General"),
+        (None, "player_exile_name", "game_setting", "Exile", "General"),
+        (None, "player_library_name", "game_setting", "Library", "General"),
+        (None, "player_hand_name", "game_setting", "Hand", "General"),
+        (None, "player_battlefield_name", "game_setting", "Battlefield", "General"),
+        (None, "shared_stack_name", "game_setting", "Stack", "General"),
+    ]
+
+    for item_id, item_name, item_type, item_value, item_mode in vocabulary_items + default_settings:
+        cursor.execute('''
+            INSERT OR REPLACE INTO game_vocabulary (id, name, type, value, mode)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (item_id, item_name, item_type, item_value, item_mode))
+    
+    conn.commit()
+    conn.close()
+    print("Default game_vocabulary populated.")
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Download MTGJSON set data and store it in an SQLite database.")
-    parser.add_argument("set_code", help="The MTGJSON set code (e.g., M21).")
-    args = parser.parse_args()
-
     db_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'mtg_cards.db')
+    set_code = "M21"
 
-    json_file_path = download_set_data(args.set_code)
+    # Setup database and tables
+    setup_database(db_path)
+    setup_game_vocabulary_table(db_path)
+    populate_default_game_vocabulary(db_path)
 
-    if json_file_path:
-        with open(json_file_path, 'r', encoding='utf-8') as f:
+    # Download and parse card data
+    json_path = download_set_data(set_code)
+    if json_path:
+        with open(json_path, 'r', encoding='utf-8') as f:
             mtgjson_data = json.load(f)
-        setup_database(db_path)
+        
         parsed_cards = parse_mtgjson(mtgjson_data)
         insert_cards_to_db(db_path, parsed_cards)
-        map_and_insert_components(db_path, parsed_cards)
-
-        # Verification
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-
-        test_cards = ["Pestilent Haze", "Destructive Tampering", "Elder Gargaroth", "Heartfire Immolator", "Swift Response", "Cancel", "Radiant Fountain"]
-        for card_name in test_cards:
-            print(f"\n--- Verifying {card_name} ---")
-            cursor.execute("SELECT effects_json FROM cards WHERE name = ?", (card_name,))
-            row = cursor.fetchone()
-            if row:
-                effects = json.loads(row[0])
-                print(f"Found effects for {card_name}: {effects}")
-            else:
-                print(f"Did not find {card_name}.")
-
-        conn.close()
