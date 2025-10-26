@@ -3,12 +3,13 @@ This file will contain handlers related to the combat phase.
 """
 
 from ..game_graph import GameGraph
-from .. import vocabulary as vocab
 from ..card_database import get_creature_stats
 from MTG_bot.utils.logger import setup_logger
+from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
+from MTG_bot import config
 
 logger = setup_logger(__name__)
-
+id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
 def get_legal_attackers(graph: GameGraph, player_id: str) -> list:
     """Determines which creatures a player can legally declare as attackers."""
     player = graph.entities[player_id]
@@ -16,13 +17,13 @@ def get_legal_attackers(graph: GameGraph, player_id: str) -> list:
     logger.debug(f"Getting legal attackers for Player {player.properties.get('name', player.instance_id)[:4]}.")
     try:
         # Find player's creatures on the battlefield
-        p_control_rels = graph.get_relationships(source=player, rel_type=vocab.ID_REL_CONTROLS)
-        battlefield_zone_entity = next((graph.entities[r.target] for r in p_control_rels if graph.entities[r.target].type_id == vocab.ID_ZONE_BATTLEFIELD), None)
+        p_control_rels = graph.get_relationships(source=player, rel_type=id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
+        battlefield_zone_entity = next((graph.entities[r.target] for r in p_control_rels if graph.entities[r.target].type_id == id_mapper.get_id_by_name("Battlefield", "game_vocabulary")), None)
         if not battlefield_zone_entity:
             logger.debug("No battlefield found for player, no legal attackers.")
             return []
 
-        battlefield_cards = [graph.entities[r.source] for r in graph.get_relationships(target=battlefield_zone_entity, rel_type=vocab.ID_REL_IS_IN_ZONE)]
+        battlefield_cards = [graph.entities[r.source] for r in graph.get_relationships(target=battlefield_zone_entity, rel_type=id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))]
         
         creatures = [card for card in battlefield_cards if get_creature_stats(card.type_id)]
 
@@ -50,8 +51,8 @@ def get_legal_blockers(graph: GameGraph, player_id: str) -> list:
     logger.debug(f"Getting legal blockers for Player {player.properties.get('name', player.instance_id)[:4]}.")
     try:
         # Find player's creatures on the battlefield
-        p_control_rels = graph.get_relationships(source=player, rel_type=vocab.ID_REL_CONTROLS)
-        battlefield_zone_entity = next((graph.entities[r.target] for r in p_control_rels if graph.entities[r.target].type_id == vocab.ID_ZONE_BATTLEFIELD), None)
+        p_control_rels = graph.get_relationships(source=player, rel_type=id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
+        battlefield_zone_entity = next((graph.entities[r.target] for r in p_control_rels if graph.entities[r.target].type_id == id_mapper.get_id_by_name("Battlefield", "game_vocabulary")), None)
         if not battlefield_zone_entity:
             logger.debug("No battlefield found for player, no legal blockers.")
             return []
@@ -76,7 +77,7 @@ def declare_attacker(graph: GameGraph, attacker):
     logger.info(f"Declaring attacker: {attacker.properties.get('name', attacker.type_id)} ({attacker.type_id})")
     try:
         attacker_abilities = attacker.properties.get('abilities', [])
-        if vocab.ID_ABILITY_VIGILANCE not in attacker_abilities:
+        if id_mapper.get_id_by_name("Vigilance", "game_vocabulary") not in attacker_abilities:
             attacker.properties['tapped'] = True
             logger.debug(f"{attacker.properties.get('name')} tapped due to attacking (no vigilance).")
         else:
@@ -91,20 +92,20 @@ def assign_combat_damage(graph: GameGraph):
     try:
         all_creatures = [c for c in graph.entities.values() if get_creature_stats(c.type_id)]
         attacking_creatures = [c for c in all_creatures if c.properties.get('is_attacking', False)]
-        defending_player = next((p for p in graph.entities.values() if p.type_id == vocab.ID_PLAYER and p.instance_id != graph.active_player_id), None)
+        defending_player = next((p for p in graph.entities.values() if p.type_id == id_mapper.get_id_by_name("Player", "game_vocabulary") and p.instance_id != graph.active_player_id), None)
 
         for attacker in attacking_creatures:
-            blockers = [graph.entities[r.source] for r in graph.get_relationships(target=attacker, rel_type=vocab.ID_REL_IS_BLOCKING)]
+            blockers = [graph.entities[r.source] for r in graph.get_relationships(target=attacker, rel_type=id_mapper.get_id_by_name("Blocking", "game_vocabulary"))]
             attacker_power = attacker.properties.get('effective_power', get_creature_stats(attacker.type_id).get('power', 0))
             attacker_abilities = attacker.properties.get('abilities', [])
-            attacker_controller = next((graph.entities[r.source] for r in graph.get_relationships(target=attacker, rel_type=vocab.ID_REL_CONTROLS)), None)
+            attacker_controller = next((graph.entities[r.source] for r in graph.get_relationships(target=attacker, rel_type=id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))), None)
 
             if not blockers:
                 # Unblocked: Deal damage to defending player
                 if defending_player:
                     defending_player.properties['life_total'] -= attacker_power
                     logger.info(f"{attacker.properties.get('name', attacker.type_id)} ({attacker.type_id}) deals {attacker_power} damage to {defending_player.properties.get('name', defending_player.type_id)} ({defending_player.type_id}).")
-                    if vocab.ID_ABILITY_LIFELINK in attacker_abilities and attacker_controller:
+                    if id_mapper.get_id_by_name("Lifelink", "game_vocabulary") in attacker_abilities and attacker_controller:
                         attacker_controller.properties['life_total'] += attacker_power
                         logger.info(f"{attacker.properties.get('name')} has Lifelink. {attacker_controller.properties.get('name')} gains {attacker_power} life. New life total: {attacker_controller.properties['life_total']}")
             else:
@@ -116,7 +117,7 @@ def assign_combat_damage(graph: GameGraph):
                 # Attacker deals damage to blocker
                 blocker.properties['damage_taken'] = blocker.properties.get('damage_taken', 0) + attacker_power
                 logger.info(f"{attacker.properties.get('name', attacker.type_id)} ({attacker.type_id}) deals {attacker_power} damage to {blocker.properties.get('name', blocker.type_id)} ({blocker.type_id}).")
-                if vocab.ID_ABILITY_LIFELINK in attacker_abilities and attacker_controller:
+                if id_mapper.get_id_by_name("Lifelink", "game_vocabulary") in attacker_abilities and attacker_controller:
                     attacker_controller.properties['life_total'] += attacker_power
                     logger.info(f"{attacker.properties.get('name')} has Lifelink. {attacker_controller.properties.get('name')} gains {attacker_power} life. New life total: {attacker_controller.properties['life_total']}")
 

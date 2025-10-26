@@ -3,48 +3,50 @@ import unittest
 
 # Import real game components
 from .game_graph import GameGraph, Entity
-from . import vocabulary as vocab
 from .card_database import CREATURE_STATS
 
 # Import the handlers we want to test
 from .handlers import combat_handlers, keyword_handlers
+from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
+from MTG_bot import config
 
 class TestKeywordHandlers(unittest.TestCase):
 
     def setUp(self):
         """Set up a fresh game state for each test using the real GameGraph."""
         self.graph = GameGraph()
+        self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
         
         # Create Players
-        self.player1 = self.graph.add_entity(vocab.ID_PLAYER)
+        self.player1 = self.graph.add_entity(self.id_mapper.get_id_by_name("Player", "game_vocabulary"))
         self.player1.properties['name'] = "Player 1"
         self.player1.properties['life_total'] = 20
 
-        self.player2 = self.graph.add_entity(vocab.ID_PLAYER)
+        self.player2 = self.graph.add_entity(self.id_mapper.get_id_by_name("Player", "game_vocabulary"))
         self.player2.properties['name'] = "Player 2"
         self.player2.properties['life_total'] = 20
 
     def test_vigilance(self):
         """Test that a creature with vigilance does not tap when attacking."""
         # Alpine Watchdog has vigilance
-        vigilance_creature = self.graph.add_entity(vocab.ID_CARD_ALPINE_WATCHDOG)
+        vigilance_creature = self.graph.add_entity(self.id_mapper.get_id_by_name("Alpine Watchdog", "cards"))
         combat_handlers.declare_attacker(self.graph, vigilance_creature)
         self.assertNotIn('tapped', vigilance_creature.properties)
 
         # A generic creature without vigilance
-        non_vigilance_creature = self.graph.add_entity(vocab.ID_CREATURE)
+        non_vigilance_creature = self.graph.add_entity(self.id_mapper.get_id_by_name("Creature", "game_vocabulary"))
         combat_handlers.declare_attacker(self.graph, non_vigilance_creature)
         self.assertTrue(non_vigilance_creature.properties.get('tapped'))
 
     def test_lifelink(self):
         """Test that a creature with lifelink causes its controller to gain life."""
         # Anointed Chorister has lifelink
-        lifelink_creature = self.graph.add_entity(vocab.ID_CARD_ANOINTED_CHORISTER)
-        self.graph.add_relationship(self.player1, lifelink_creature, vocab.ID_REL_CONTROLS)
+        lifelink_creature = self.graph.add_entity(self.id_mapper.get_id_by_name("Anointed Chorister", "cards"))
+        self.graph.add_relationship(self.player1, lifelink_creature, self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
 
         # Mock combat setup
         lifelink_creature.properties['is_attacking'] = True
-        lifelink_creature.properties['effective_power'] = CREATURE_STATS[vocab.ID_CARD_ANOINTED_CHORISTER]['power']
+        lifelink_creature.properties['effective_power'] = CREATURE_STATS[self.id_mapper.get_id_by_name("Anointed Chorister", "cards")]['power']
         self.graph.active_player_id = self.player1.instance_id
         
         # Run the handler
@@ -57,16 +59,16 @@ class TestKeywordHandlers(unittest.TestCase):
     def test_flying(self):
         """Test the blocking rules for flying."""
         # Aven Gagglemaster has flying
-        attacker = self.graph.add_entity(vocab.ID_CARD_AVEN_GAGGLEMASTER)
+        attacker = self.graph.add_entity(self.id_mapper.get_id_by_name("Aven Gagglemaster", "cards"))
 
         # Generic creature without flying
-        blocker_no_fly = self.graph.add_entity(vocab.ID_CREATURE)
+        blocker_no_fly = self.graph.add_entity(self.id_mapper.get_id_by_name("Creature", "game_vocabulary"))
 
         # Another flying creature
-        blocker_with_fly = self.graph.add_entity(vocab.ID_CARD_AVEN_GAGGLEMASTER)
+        blocker_with_fly = self.graph.add_entity(self.id_mapper.get_id_by_name("Aven Gagglemaster", "cards"))
 
         # A creature with reach (Snarepinner)
-        blocker_with_reach = self.graph.add_entity(vocab.ID_CARD_SNARESPINNER)
+        blocker_with_reach = self.graph.add_entity(self.id_mapper.get_id_by_name("Snarepinner", "cards"))
 
         # A flying creature CANNOT be blocked by a non-flyer/non-reacher
         self.assertFalse(keyword_handlers.can_be_blocked_by(self.graph, attacker, blocker_no_fly))
@@ -78,7 +80,7 @@ class TestKeywordHandlers(unittest.TestCase):
         self.assertTrue(keyword_handlers.can_be_blocked_by(self.graph, attacker, blocker_with_reach))
         
         # A non-flying creature CAN be blocked by a non-flyer
-        non_flyer_attacker = self.graph.add_entity(vocab.ID_CREATURE)
+        non_flyer_attacker = self.graph.add_entity(self.id_mapper.get_id_by_name("Creature", "game_vocabulary"))
         self.assertTrue(keyword_handlers.can_be_blocked_by(self.graph, non_flyer_attacker, blocker_no_fly))
 
 

@@ -3,11 +3,12 @@ import uuid
 from typing import List, Union, Optional
 
 from .game_graph import GameGraph, Entity
-from . import vocabulary as vocab
 from . import card_database
 from .handlers import mana_handlers, combat_handlers, keyword_handlers
 from .actions import PlayLandAction, CastSpellAction, ActivateManaAbilityAction, DeclareAttackerAction, DeclareBlockerAction, PassTurnAction
 from MTG_bot.utils.logger import setup_logger
+from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
+from MTG_bot import config
 
 # A type alias for any possible game action
 AnyAction = Union[PlayLandAction, CastSpellAction, ActivateManaAbilityAction, DeclareAttackerAction, DeclareBlockerAction, PassTurnAction]
@@ -23,6 +24,7 @@ class Engine:
     """
     def __init__(self, graph: GameGraph):
         self.graph = graph
+        self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
         logger.info("Engine initialized.")
 
     def _can_pay_cost(self, mana_pool: dict, cost: dict) -> bool:
@@ -30,13 +32,13 @@ class Engine:
         temp_pool = mana_pool.copy()
         
         for mana_type, amount in cost.items():
-            if mana_type == vocab.ID_MANA_GENERIC:
+            if mana_type == self.id_mapper.get_id_by_name("Generic Mana", "game_vocabulary"):
                 continue
             if temp_pool.get(mana_type, 0) < amount:
                 return False
             temp_pool[mana_type] -= amount
 
-        generic_cost = cost.get(vocab.ID_MANA_GENERIC, 0)
+        generic_cost = cost.get(self.id_mapper.get_id_by_name("Generic Mana", "game_vocabulary"), 0)
         total_remaining_mana = sum(temp_pool.values())
         return total_remaining_mana >= generic_cost
 
@@ -49,8 +51,8 @@ class Engine:
 
         try:
             # Find player's hand
-            control_rels = self.graph.get_relationships(source=active_player, rel_type=vocab.ID_REL_CONTROLS)
-            hand_zone = next((self.graph.entities[r.target] for r in control_rels if self.graph.entities[r.target].type_id == vocab.ID_ZONE_HAND), None)
+            control_rels = self.graph.get_relationships(source=active_player, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
+            hand_zone = next((self.graph.entities[r.target] for r in control_rels if self.graph.entities[r.target].type_id == self.id_mapper.get_id_by_name("Hand", "game_vocabulary")), None)
 
             # 1. Check for playing a land
             if active_player.properties.get('lands_played_this_turn', 0) < 1 and hand_zone:
@@ -69,7 +71,7 @@ class Engine:
 
             # 3. Check for casting spells
             if hand_zone:
-                card_in_hand_rels = self.graph.get_relationships(target=hand_zone, rel_type=vocab.ID_REL_IS_IN_ZONE)
+                card_in_hand_rels = self.graph.get_relationships(target=hand_zone, rel_type=self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))
                 cards_in_hand = [self.graph.entities[r.source] for r in card_in_hand_rels]
                 for card in cards_in_hand:
                     cost = card_database.get_card_cost(card.type_id)
@@ -78,7 +80,7 @@ class Engine:
                         logger.debug(f"Found CastSpellAction for {card.properties.get('name', card.type_id)} ({card.type_id}) with cost {cost}")
 
             # 4. Check for declaring attackers
-            if self.graph.step == vocab.ID_STEP_DECLARE_ATTACKERS:
+            if self.graph.step == self.id_mapper.get_id_by_name("Declare Attackers Step", "game_vocabulary"):
                 attackers = combat_handlers.get_legal_attackers(self.graph, active_player.instance_id)
                 for attacker in attackers:
                     # Only creatures without summoning sickness can attack
@@ -87,9 +89,9 @@ class Engine:
                         logger.debug(f"Found DeclareAttackerAction for {attacker.properties.get('name', attacker.type_id)} ({attacker.type_id})")
 
             # 5. Check for declaring blockers
-            if self.graph.step == vocab.ID_STEP_DECLARE_BLOCKERS:
+            if self.graph.step == self.id_mapper.get_id_by_name("Declare Blockers Step", "game_vocabulary"):
                 # The non-active player is the one declaring blockers
-                non_active_player = next(p for p in self.graph.entities.values() if p.type_id == vocab.ID_PLAYER and p.instance_id != self.graph.active_player_id)
+                non_active_player = next(p for p in self.graph.entities.values() if p.type_id == self.id_mapper.get_id_by_name("Player", "game_vocabulary") and p.instance_id != self.graph.active_player_id)
                 if non_active_player:
                     potential_blockers = combat_handlers.get_legal_blockers(self.graph, non_active_player.instance_id)
                     attacking_creatures = [c for c in self.graph.entities.values() if c.properties.get('is_attacking')]
@@ -115,8 +117,8 @@ class Engine:
 
                 if isinstance(move, PlayLandAction):
                     # Find the battlefield zone and move the card
-                    control_rels = self.graph.get_relationships(source=player, rel_type=vocab.ID_REL_CONTROLS)
-                    battlefield_zone = next((self.graph.entities[r.target] for r in control_rels if self.graph.entities[r.target].type_id == vocab.ID_ZONE_BATTLEFIELD), None)
+                    control_rels = self.graph.get_relationships(source=player, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
+                    battlefield_zone = next((self.graph.entities[r.target] for r in control_rels if self.graph.entities[r.target].type_id == self.id_mapper.get_id_by_name("Battlefield", "game_vocabulary")), None)
                     self.graph._move_card_to_zone(card, battlefield_zone)
                     player.properties['lands_played_this_turn'] = player.properties.get('lands_played_this_turn', 0) + 1
                     logger.info(f"{player.properties.get('name')} played {card.properties.get('name')} to battlefield.")
@@ -131,11 +133,11 @@ class Engine:
 
                     # Deduct colored mana first
                     for mana_type, amount in cost.items():
-                        if mana_type != vocab.ID_MANA_GENERIC:
+                        if mana_type != self.id_mapper.get_id_by_name("Generic Mana", "game_vocabulary"):
                             mana_pool[mana_type] -= amount
                     
                     # Deduct generic mana from remaining pool
-                    generic_cost = cost.get(vocab.ID_MANA_GENERIC, 0)
+                    generic_cost = cost.get(self.id_mapper.get_id_by_name("Generic Mana", "game_vocabulary"), 0)
                     for mana_type in mana_pool:
                         spend = min(generic_cost, mana_pool[mana_type])
                         mana_pool[mana_type] -= spend
@@ -145,8 +147,8 @@ class Engine:
                     logger.info(f"{player.properties.get('name')} cast {card.properties.get('name')} for {cost}. Remaining mana: {mana_pool}")
 
                     # Move card to battlefield
-                    control_rels = self.graph.get_relationships(source=player, rel_type=vocab.ID_REL_CONTROLS)
-                    battlefield_zone = next((self.graph.entities[r.target] for r in control_rels if self.graph.entities[r.target].type_id == vocab.ID_ZONE_BATTLEFIELD), None)
+                    control_rels = self.graph.get_relationships(source=player, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
+                    battlefield_zone = next((self.graph.entities[r.target] for r in control_rels if self.graph.entities[r.target].type_id == self.id_mapper.get_id_by_name("Battlefield", "game_vocabulary")), None)
                     self.graph._move_card_to_zone(card, battlefield_zone)
                     card.properties['turn_entered'] = self.graph.turn_number
                     # Creatures entering the battlefield have summoning sickness
@@ -160,7 +162,7 @@ class Engine:
             if isinstance(move, DeclareBlockerAction):
                 blocker = self.graph.entities[move.blocker_id]
                 attacker = self.graph.entities[move.attacker_id]
-                self.graph.add_relationship(blocker, attacker, vocab.ID_REL_IS_BLOCKING)
+                self.graph.add_relationship(blocker, attacker, self.id_mapper.get_id_by_name("Blocking", "game_vocabulary"))
                 logger.info(f"{self.graph.entities[move.player_id].properties.get('name')} declared {blocker.properties.get('name')} blocking {attacker.properties.get('name')}.")
 
             elif isinstance(move, PassTurnAction):
@@ -180,12 +182,12 @@ class Engine:
         try:
             active_player = self.graph.entities[self.graph.active_player_id]
             
-            if self.graph.step == vocab.ID_STEP_UNTAP:
+            if self.graph.step == self.id_mapper.get_id_by_name("Untap Step", "game_vocabulary"):
                 # Untap permanents and remove summoning sickness
-                control_rels = self.graph.get_relationships(source=active_player, rel_type=vocab.ID_REL_CONTROLS)
-                battlefield_zone = next((self.graph.entities[r.target] for r in control_rels if self.graph.entities[r.target].type_id == vocab.ID_ZONE_BATTLEFIELD), None)
+                control_rels = self.graph.get_relationships(source=active_player, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
+                battlefield_zone = next((self.graph.entities[r.target] for r in control_rels if self.graph.entities[r.target].type_id == self.id_mapper.get_id_by_name("Battlefield", "game_vocabulary")), None)
                 if battlefield_zone:
-                    cards_on_battlefield = [self.graph.entities[r.source] for r in self.graph.get_relationships(target=battlefield_zone, rel_type=vocab.ID_REL_IS_IN_ZONE)]
+                    cards_on_battlefield = [self.graph.entities[r.source] for r in self.graph.get_relationships(target=battlefield_zone, rel_type=self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))]
                     for card in cards_on_battlefield:
                         if card.properties.get('tapped', False):
                             card.properties['tapped'] = False
@@ -196,20 +198,20 @@ class Engine:
                             logger.debug(f"Removed summoning sickness from {card.properties.get('name', card.type_id)}.")
                 logger.info(f"Untap Step: Permanents untapped and summoning sickness removed for {active_player.properties.get('name')}.")
 
-            elif self.graph.step == vocab.ID_STEP_DRAW:
+            elif self.graph.step == self.id_mapper.get_id_by_name("Draw Step", "game_vocabulary"):
                 # Active player draws a card
                 self.graph.draw_card(active_player)
                 logger.info(f"Draw Step: {active_player.properties.get('name')} drew a card.")
 
-            elif self.graph.step == vocab.ID_STEP_DECLARE_BLOCKERS:
+            elif self.graph.step == self.id_mapper.get_id_by_name("Declare Blockers Step", "game_vocabulary"):
                 combat_handlers.assign_combat_damage(self.graph)
                 logger.info(f"Combat Damage Step: Combat damage assigned.")
             
-            elif self.graph.step == vocab.ID_STEP_CLEANUP:
+            elif self.graph.step == self.id_mapper.get_id_by_name("Cleanup Step", "game_vocabulary"):
                 # Discard down to hand size, remove damage, end "until end of turn" effects
                 # For MVP, just clear mana pool and reset lands played
                 active_player.properties['lands_played_this_turn'] = 0
-                active_player.properties['mana_pool'] = {m: 0 for m in [vocab.ID_MANA_GREEN, vocab.ID_MANA_BLUE, vocab.ID_MANA_BLACK, vocab.ID_MANA_RED, vocab.ID_MANA_WHITE, vocab.ID_MANA_COLORLESS, vocab.ID_MANA_GENERIC]}
+                active_player.properties['mana_pool'] = {m: 0 for m in [self.id_mapper.get_id_by_name("Green Mana", "game_vocabulary"), self.id_mapper.get_id_by_name("Blue Mana", "game_vocabulary"), self.id_mapper.get_id_by_name("Black Mana", "game_vocabulary"), self.id_mapper.get_id_by_name("Red Mana", "game_vocabulary"), self.id_mapper.get_id_by_name("White Mana", "game_vocabulary"), self.id_mapper.get_id_by_name("Colorless Mana", "game_vocabulary"), self.id_mapper.get_id_by_name("Generic Mana", "game_vocabulary")]}
                 logger.info(f"Cleanup Step: {active_player.properties.get('name')}'s mana pool cleared and lands played reset.")
 
         except Exception as e:
@@ -223,8 +225,31 @@ class Engine:
         """
         logger.info(f"Attempting to progress phase/step. Current: Phase {self.graph.phase}, Step {self.graph.step}")
         
-        current_phase_index = vocab.PHASE_ORDER.index(self.graph.phase)
-        current_step_list = vocab.PHASE_STEPS.get(self.graph.phase, [])
+        current_phase_index = [self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Pre-Combat Main Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Combat Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Post-Combat Main Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Ending Phase", "game_vocabulary")].index(self.graph.phase)
+        current_step_list = {
+            self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary"): [
+                self.id_mapper.get_id_by_name("Untap Step", "game_vocabulary"),
+                self.id_mapper.get_id_by_name("Upkeep Step", "game_vocabulary"),
+                self.id_mapper.get_id_by_name("Draw Step", "game_vocabulary"),
+            ],
+            self.id_mapper.get_id_by_name("Pre-Combat Main Phase", "game_vocabulary"): [
+                self.id_mapper.get_id_by_name("Pre-Combat Main Step", "game_vocabulary"),
+            ],
+            self.id_mapper.get_id_by_name("Combat Phase", "game_vocabulary"): [
+                self.id_mapper.get_id_by_name("Beginning of Combat Step", "game_vocabulary"),
+                self.id_mapper.get_id_by_name("Declare Attackers Step", "game_vocabulary"),
+                self.id_mapper.get_id_by_name("Declare Blockers Step", "game_vocabulary"),
+                self.id_mapper.get_id_by_name("Combat Damage Step", "game_vocabulary"),
+                self.id_mapper.get_id_by_name("End of Combat Step", "game_vocabulary"),
+            ],
+            self.id_mapper.get_id_by_name("Post-Combat Main Phase", "game_vocabulary"): [
+                self.id_mapper.get_id_by_name("Post-Combat Main Step", "game_vocabulary"),
+            ],
+            self.id_mapper.get_id_by_name("Ending Phase", "game_vocabulary"): [
+                self.id_mapper.get_id_by_name("End of Turn Step", "game_vocabulary"),
+                self.id_mapper.get_id_by_name("Cleanup Step", "game_vocabulary"),
+            ],
+        }.get(self.graph.phase, [])
         
         # Find current step index
         try:
@@ -246,17 +271,18 @@ class Engine:
             logger.info(f"Advanced to next step: {self.graph.step}")
         else:
             # Move to the next phase
-            next_phase_index = (current_phase_index + 1) % len(vocab.PHASE_ORDER)
-            self.graph.phase = vocab.PHASE_ORDER[next_phase_index]
+            next_phase_order = [self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Pre-Combat Main Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Combat Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Post-Combat Main Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Ending Phase", "game_vocabulary")]
+            next_phase_index = (current_phase_index + 1) % len(next_phase_order)
+            self.graph.phase = next_phase_order[next_phase_index]
             logger.info(f"Advanced to next phase: {self.graph.phase}")
 
             # If we wrapped around to the beginning phase, it's a new turn
-            if self.graph.phase == vocab.ID_PHASE_BEGINNING:
+            if self.graph.phase == self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary"):
                 self.graph.turn_number += 1
                 logger.info(f"New turn started. Turn number: {self.graph.turn_number}")
                 
                 # Switch active player
-                all_players = [p for p in self.graph.entities.values() if p.type_id == vocab.ID_PLAYER]
+                all_players = [p for p in self.graph.entities.values() if p.type_id == self.id_mapper.get_id_by_name("Player", "game_vocabulary")]
                 current_active_player = self.graph.entities[self.graph.active_player_id]
                 logger.debug(f"Current active player: {current_active_player.properties.get('name')} (ID: {current_active_player.instance_id})")
                 next_player = next(p for p in all_players if p.instance_id != current_active_player.instance_id)
@@ -264,7 +290,30 @@ class Engine:
                 logger.info(f"Active player switched to {next_player.properties.get('name')} (ID: {next_player.instance_id}).")
 
             # Set the step to the first step of the new phase
-            new_phase_steps = vocab.PHASE_STEPS.get(self.graph.phase, [])
+            new_phase_steps = {
+                self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary"): [
+                    self.id_mapper.get_id_by_name("Untap Step", "game_vocabulary"),
+                    self.id_mapper.get_id_by_name("Upkeep Step", "game_vocabulary"),
+                    self.id_mapper.get_id_by_name("Draw Step", "game_vocabulary"),
+                ],
+                self.id_mapper.get_id_by_name("Pre-Combat Main Phase", "game_vocabulary"): [
+                    self.id_mapper.get_id_by_name("Pre-Combat Main Step", "game_vocabulary"),
+                ],
+                self.id_mapper.get_id_by_name("Combat Phase", "game_vocabulary"): [
+                    self.id_mapper.get_id_by_name("Beginning of Combat Step", "game_vocabulary"),
+                    self.id_mapper.get_id_by_name("Declare Attackers Step", "game_vocabulary"),
+                    self.id_mapper.get_id_by_name("Declare Blockers Step", "game_vocabulary"),
+                    self.id_mapper.get_id_by_name("Combat Damage Step", "game_vocabulary"),
+                    self.id_mapper.get_id_by_name("End of Combat Step", "game_vocabulary"),
+                ],
+                self.id_mapper.get_id_by_name("Post-Combat Main Phase", "game_vocabulary"): [
+                    self.id_mapper.get_id_by_name("Post-Combat Main Step", "game_vocabulary"),
+                ],
+                self.id_mapper.get_id_by_name("Ending Phase", "game_vocabulary"): [
+                    self.id_mapper.get_id_by_name("End of Turn Step", "game_vocabulary"),
+                    self.id_mapper.get_id_by_name("Cleanup Step", "game_vocabulary"),
+                ],
+            }.get(self.graph.phase, [])
             if new_phase_steps:
                 self.graph.step = new_phase_steps[0]
                 logger.info(f"Set step to first step of new phase: {self.graph.step}")
@@ -282,11 +331,11 @@ class Engine:
     def _check_win_loss_conditions(self) -> (bool, Optional[uuid.UUID]):
         """Checks if any player has won or lost the game."""
         for player_id, player_entity in self.graph.entities.items():
-            if player_entity.type_id == vocab.ID_PLAYER:
+            if player_entity.type_id == self.id_mapper.get_id_by_name("Player", "game_vocabulary"):
                 if player_entity.properties['life_total'] <= 0:
                     logger.info(f"GAME OVER! Player {player_entity.properties.get('name')} has lost.")
                     # The other player wins
-                    winner_id = next(p for p in self.graph.entities.values() if p.type_id == vocab.ID_PLAYER and p.instance_id != player_id).instance_id
+                    winner_id = next(p for p in self.graph.entities.values() if p.type_id == self.id_mapper.get_id_by_name("Player", "game_vocabulary") and p.instance_id != player_id).instance_id
                     return True, winner_id
         return False, None
 

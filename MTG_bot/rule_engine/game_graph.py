@@ -8,9 +8,10 @@ import uuid
 import random
 from typing import Dict, Any, List, Optional
 
-from . import vocabulary as vocab
 from . import card_database # Import the entire module to access card_data_loader
 from MTG_bot.utils.logger import setup_logger
+from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
+from MTG_bot import config
 
 logger = setup_logger(__name__)
 
@@ -41,15 +42,16 @@ class GameGraph:
         self.relationships: List[Relationship] = []
         self.turn_number: int = 1
         self.active_player_id: Optional[uuid.UUID] = None
-        self.phase: int = vocab.ID_PHASE_BEGINNING # Start of the game
-        self.step: int = vocab.ID_STEP_UNTAP # Start of the game
+        self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
+        self.phase: int = self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary") # Start of the game
+        self.step: int = self.id_mapper.get_id_by_name("Untap Step", "game_vocabulary") # Start of the game
         logger.info("GameGraph initialized.")
 
     def add_entity(self, entity_type_id: int) -> Entity:
         try:
             entity = Entity(entity_type_id)
             # If the entity is a card, load its properties from the CardDataLoader
-            if entity_type_id >= vocab.ID_CARD_FOREST: # Assuming all card IDs are >= ID_CARD_FOREST
+            if entity_type_id >= self.id_mapper.get_id_by_name("Forest", "cards"): # Assuming all card IDs are >= ID_CARD_FOREST
                 card_data = card_database.card_data_loader.get_card_data_by_id(entity_type_id)
                 if card_data:
                     entity.properties.update(card_data)
@@ -97,9 +99,9 @@ class GameGraph:
         logger.debug(f"Moving card {card.properties.get('name', card.type_id)} to zone {target_zone.type_id}.")
         try:
             # Remove existing ID_REL_IS_IN_ZONE relationships for the card
-            self.relationships = [r for r in self.relationships if not (r.source == card.instance_id and r.type_id == vocab.ID_REL_IS_IN_ZONE)]
+            self.relationships = [r for r in self.relationships if not (r.source == card.instance_id and r.type_id == self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))]
             # Add new ID_REL_IS_IN_ZONE relationship
-            self.add_relationship(card, target_zone, vocab.ID_REL_IS_IN_ZONE)
+            self.add_relationship(card, target_zone, self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))
             card.properties['entered_zone_turn'] = self.turn_number
         except Exception as e:
             logger.error(f"Error moving card {card.instance_id} to zone {target_zone.instance_id}: {e}", exc_info=True)
@@ -111,20 +113,20 @@ class GameGraph:
         deck = []
         try:
             # Create zone entities for the player
-            library = self.add_entity(vocab.ID_ZONE_LIBRARY)
-            hand = self.add_entity(vocab.ID_ZONE_HAND)
-            graveyard = self.add_entity(vocab.ID_ZONE_GRAVEYARD)
-            battlefield = self.add_entity(vocab.ID_ZONE_BATTLEFIELD)
+            library = self.add_entity(self.id_mapper.get_id_by_name("Library", "game_vocabulary"))
+            hand = self.add_entity(self.id_mapper.get_id_by_name("Hand", "game_vocabulary"))
+            graveyard = self.add_entity(self.id_mapper.get_id_by_name("Graveyard", "game_vocabulary"))
+            battlefield = self.add_entity(self.id_mapper.get_id_by_name("Battlefield", "game_vocabulary"))
 
-            self.add_relationship(player, library, vocab.ID_REL_CONTROLS)
-            self.add_relationship(player, hand, vocab.ID_REL_CONTROLS)
-            self.add_relationship(player, graveyard, vocab.ID_REL_CONTROLS)
-            self.add_relationship(player, battlefield, vocab.ID_REL_CONTROLS)
+            self.add_relationship(player, library, self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
+            self.add_relationship(player, hand, self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
+            self.add_relationship(player, graveyard, self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
+            self.add_relationship(player, battlefield, self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
 
             for card_type_id in decklist:
                 card = self.add_entity(card_type_id)
-                self.add_relationship(player, card, vocab.ID_REL_CONTROLS)
-                self.add_relationship(card, library, vocab.ID_REL_IS_IN_ZONE)
+                self.add_relationship(player, card, self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
+                self.add_relationship(card, library, self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))
                 deck.append(card)
             logger.debug(f"Deck created for player {player.properties.get('name', player.instance_id)[:4]}.")
             return deck
@@ -132,83 +134,22 @@ class GameGraph:
             logger.error(f"Error creating deck for player {player.properties.get('name', player.instance_id)[:4]}: {e}", exc_info=True)
             raise
 
-    def initialize_game(self, decklist1: List[int], decklist2: List[int], shuffle: bool = True):
-        """Sets up the initial game state with two players, their decks, and opening hands."""
-        logger.info("Initializing game...")
-        try:
-            self.turn_number = 1
-            # Create Players
-            player1 = self.add_entity(vocab.ID_PLAYER)
-            player1.properties['life_total'] = 20
-            player1.properties['mana_pool'] = {m: 0 for m in [vocab.ID_MANA_GREEN, vocab.ID_MANA_BLUE, vocab.ID_MANA_BLACK, vocab.ID_MANA_RED, vocab.ID_MANA_WHITE, vocab.ID_MANA_COLORLESS]}
-            player1.properties['name'] = "Player 1"
-            player2 = self.add_entity(vocab.ID_PLAYER)
-            player2.properties['life_total'] = 20
-            player2.properties['mana_pool'] = {m: 0 for m in [vocab.ID_MANA_GREEN, vocab.ID_MANA_BLUE, vocab.ID_MANA_BLACK, vocab.ID_MANA_RED, vocab.ID_MANA_WHITE, vocab.ID_MANA_COLORLESS]}
-            player2.properties['name'] = "Player 2"
-
-            # Set active player
-            self.active_player_id = player1.instance_id
-            logger.info(f"Active player set to {player1.properties.get('name')}.")
-
-            # Create and shuffle decks
-            deck1 = self._create_deck(player1, decklist1)
-            deck2 = self._create_deck(player2, decklist2)
-            if shuffle:
-                random.shuffle(deck1)
-                random.shuffle(deck2)
-                logger.debug("Decks shuffled.")
-
-            # Draw opening hands
-            # Find the hand zone for Player 1
-            p1_control_rels = self.get_relationships(source=player1, rel_type=vocab.ID_REL_CONTROLS)
-            p1_hand_zone_entity = None
-            for rel in p1_control_rels:
-                entity = self.entities[rel.target]
-                if entity.type_id == vocab.ID_ZONE_HAND:
-                    p1_hand_zone_entity = entity
-                    break
-
-            # Find the hand zone for Player 2
-            p2_control_rels = self.get_relationships(source=player2, rel_type=vocab.ID_REL_CONTROLS)
-            p2_hand_zone_entity = None
-            for rel in p2_control_rels:
-                entity = self.entities[rel.target]
-                if entity.type_id == vocab.ID_ZONE_HAND:
-                    p2_hand_zone_entity = entity
-                    break
-
-            for i in range(7):
-                # Player 1 draws
-                if deck1:
-                    card_to_draw_p1 = deck1.pop(0)
-                    self._move_card_to_zone(card_to_draw_p1, p1_hand_zone_entity)
-                    logger.debug(f"{player1.properties.get('name')} drew {card_to_draw_p1.properties.get('name', card_to_draw_p1.type_id)}.")
-
-                # Player 2 draws
-                if deck2:
-                    card_to_draw_p2 = deck2.pop(0)
-                    self._move_card_to_zone(card_to_draw_p2, p2_hand_zone_entity)
-                    logger.debug(f"{player2.properties.get('name')} drew {card_to_draw_p2.properties.get('name', card_to_draw_p2.type_id)}.")
-            logger.info("Game initialized successfully.")
-        except Exception as e:
-            logger.error(f"Error initializing game: {e}", exc_info=True)
 
     def draw_card(self, player: Entity) -> Optional[Entity]:
         """Moves the top card of a player's library to their hand."""
         logger.info(f"Player {player.properties.get('name')} attempts to draw a card.")
         try:
             # Find player's library and hand zones
-            control_rels = self.get_relationships(source=player, rel_type=vocab.ID_REL_CONTROLS)
-            library_zone = next((self.entities[r.target] for r in control_rels if self.entities[r.target].type_id == vocab.ID_ZONE_LIBRARY), None)
-            hand_zone = next((self.entities[r.target] for r in control_rels if self.entities[r.target].type_id == vocab.ID_ZONE_HAND), None)
+            control_rels = self.get_relationships(source=player, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
+            library_zone = next((self.entities[r.target] for r in control_rels if self.entities[r.target].type_id == self.id_mapper.get_id_by_name("Library", "game_vocabulary")), None)
+            hand_zone = next((self.entities[r.target] for r in control_rels if self.entities[r.target].type_id == self.id_mapper.get_id_by_name("Hand", "game_vocabulary")), None)
 
             if not library_zone or not hand_zone:
                 logger.warning(f"Player {player.properties.get('name')} is missing a library or hand zone. Cannot draw.")
                 return None
 
             # Find cards in library
-            cards_in_library_rels = self.get_relationships(target=library_zone, rel_type=vocab.ID_REL_IS_IN_ZONE)
+            cards_in_library_rels = self.get_relationships(target=library_zone, rel_type=self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))
             cards_in_library = [self.entities[r.source] for r in cards_in_library_rels]
 
             if not cards_in_library:

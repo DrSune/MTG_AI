@@ -96,6 +96,16 @@ def setup_database(db_path):
 
     cursor.execute('''DROP TABLE IF EXISTS card_components''')
     
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS game_vocabulary (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        value TEXT,
+        mode TEXT NOT NULL DEFAULT 'General'
+    )
+    ''')
+
     conn.commit()
     conn.close()
     print(f"Database setup complete at {db_path}")
@@ -300,95 +310,7 @@ def get_simple_patterns():
         }
     }
 
-def setup_game_vocabulary_table(db_path):
-    """
-    Creates the game_vocabulary table if it doesn't exist.
-    """
-    print("Setting up game_vocabulary table...")
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
 
-    cursor.execute('''DROP TABLE IF EXISTS game_settings''')
-    cursor.execute('''DROP TABLE IF EXISTS game_vocabulary''')
-
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS game_vocabulary (
-        id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL,
-        value TEXT,
-        mode TEXT NOT NULL DEFAULT 'General'
-    )
-    ''')
-    conn.commit()
-    conn.close()
-    print("game_vocabulary table setup complete.")
-
-def populate_default_game_vocabulary(db_path):
-    """
-    Populates the game_vocabulary table with default values from vocabulary.py.
-    """
-    print("Populating default game_vocabulary...")
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-
-    # Import vocabulary.py temporarily to get the ID_TO_NAME mapping
-    import importlib.util
-    spec = importlib.util.spec_from_file_location("vocabulary", os.path.join(os.path.dirname(__file__), "vocabulary.py"))
-    vocabulary = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(vocabulary)
-
-    # Extract non-card vocabulary items
-    vocabulary_items = []
-    for vocab_id, name in vocabulary.ID_TO_NAME.items():
-        item_type = "unknown"
-        item_mode = "General"
-        if vocab_id < vocabulary.ID_CARD_FOREST: # Assuming card IDs start from ID_CARD_FOREST
-            if vocab_id >= vocabulary.ID_ZONE_HAND and vocab_id <= vocabulary.ID_ZONE_EXILE:
-                item_type = "zone"
-            elif vocab_id >= vocabulary.ID_PHASE_BEGINNING and vocab_id <= vocabulary.ID_STEP_CLEANUP:
-                item_type = "phase_step"
-            elif vocab_id >= vocabulary.ID_MANA_GREEN and vocab_id <= vocabulary.ID_MANA_GENERIC:
-                item_type = "mana"
-            elif vocab_id >= vocabulary.ID_ABILITY_HASTE and vocab_id <= vocabulary.ID_ABILITY_TAP_ADD_WHITE:
-                item_type = "ability"
-            elif vocab_id >= vocabulary.ID_PLAYER and vocab_id <= vocabulary.ID_ACTION_PASS_TURN:
-                item_type = "game_entity_action"
-            elif vocab_id >= vocabulary.ID_STATUS_CONTROLLED_BY and vocab_id <= vocabulary.ID_STATUS_ATTACKING:
-                item_type = "card_status"
-                if vocab_id == vocabulary.ID_STATUS_CONTROLLED_BY:
-                    name = "Controlled By"
-
-            vocabulary_items.append((vocab_id, name, item_type, None, item_mode))
-
-    default_settings = [
-        # Standard Mode Settings
-        (None, "player_start_health", "game_setting", "20", "Standard"),
-        (None, "player_hand_size", "game_setting", "7", "Standard"),
-        (None, "deck_size", "game_setting", "60", "Standard"),
-        # Commander Mode Settings
-        (None, "player_start_health", "game_setting", "40", "Commander"),
-        (None, "player_hand_size", "game_setting", "7", "Commander"),
-        (None, "deck_size", "game_setting", "100", "Commander"),
-        # General Static Entity Names (applicable to all modes)
-        (None, "player_name_prefix", "game_setting", "Player ", "General"),
-        (None, "player_graveyard_name", "game_setting", "Graveyard", "General"),
-        (None, "player_exile_name", "game_setting", "Exile", "General"),
-        (None, "player_library_name", "game_setting", "Library", "General"),
-        (None, "player_hand_name", "game_setting", "Hand", "General"),
-        (None, "player_battlefield_name", "game_setting", "Battlefield", "General"),
-        (None, "shared_stack_name", "game_setting", "Stack", "General"),
-    ]
-
-    for item_id, item_name, item_type, item_value, item_mode in vocabulary_items + default_settings:
-        cursor.execute('''
-            INSERT OR REPLACE INTO game_vocabulary (id, name, type, value, mode)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (item_id, item_name, item_type, item_value, item_mode))
-    
-    conn.commit()
-    conn.close()
-    print("Default game_vocabulary populated.")
 
 if __name__ == "__main__":
     db_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'mtg_cards.db')
@@ -396,8 +318,6 @@ if __name__ == "__main__":
 
     # Setup database and tables
     setup_database(db_path)
-    setup_game_vocabulary_table(db_path)
-    populate_default_game_vocabulary(db_path)
 
     # Download and parse card data
     json_path = download_set_data(set_code)

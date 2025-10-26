@@ -6,13 +6,15 @@ in the correct order according to Magic: The Gathering rules.
 from typing import Dict, Any
 from .game_graph import GameGraph
 from .rulebook import Rulebook
-from . import vocabulary as vocab
 from .card_database import CREATURE_STATS, CARD_ABILITIES, ABILITY_EFFECT_PARAMS
+from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
+from MTG_bot import config
 
 class LayerSystem:
     """Applies continuous effects in the correct order (layers)."""
     def __init__(self, rulebook: Rulebook):
         self.rulebook = rulebook
+        self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
 
     def apply_all_layers(self, graph: GameGraph):
         """Applies all continuous effects to the game state in layer order."""
@@ -32,13 +34,13 @@ class LayerSystem:
             creature.properties['damage_taken'] = 0 # Reset damage for new P/T calculation
 
             # Find Auras enchanting this creature
-            enchanting_auras = [graph.entities[r.source] for r in graph.get_relationships(target=creature, rel_type=vocab.ID_REL_ENCHANTED_BY)]
+            enchanting_auras = [graph.entities[r.source] for r in graph.get_relationships(target=creature, rel_type=self.id_mapper.get_id_by_name("Enchanted By", "game_vocabulary"))]
 
             for aura in enchanting_auras:
                 # Check if the aura grants P/T bonuses
                 aura_abilities = CARD_ABILITIES.get(aura.type_id, [])
-                if vocab.ID_ABILITY_GRANT_P_T in aura_abilities:
-                    effect_params = ABILITY_EFFECT_PARAMS.get(vocab.ID_ABILITY_GRANT_P_T, {})
+                if self.id_mapper.get_id_by_name("Grant P T", "game_vocabulary") in aura_abilities:
+                    effect_params = ABILITY_EFFECT_PARAMS.get(self.id_mapper.get_id_by_name("Grant P T", "game_vocabulary"), {})
                     power_bonus = effect_params.get('power_bonus', 0)
                     toughness_bonus = effect_params.get('toughness_bonus', 0)
 

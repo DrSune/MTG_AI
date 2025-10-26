@@ -1,9 +1,11 @@
 from typing import Dict, Any, List, Optional
-from . import vocabulary as vocab
+from MTG_bot import config
+from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
 from .card_data_loader import CardDataLoader
 
 # Initialize the CardDataLoader globally
 card_data_loader = CardDataLoader()
+id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
 
 def get_card_cost(card_id: int) -> Dict[int, int]:
     """Returns the mana cost for a given card ID."""
@@ -29,28 +31,23 @@ def get_land_mana_type(card_id: int) -> Optional[int]:
     card_data = card_data_loader.get_card_data_by_id(card_id)
     # This is a simplified mapping. A real implementation would check for specific mana abilities.
     if card_data.get("is_land"):
-        if vocab.ID_ABILITY_TAP_ADD_GREEN in card_data.get("abilities", []):
-            return vocab.ID_MANA_GREEN
-        if vocab.ID_ABILITY_TAP_ADD_BLUE in card_data.get("abilities", []):
-            return vocab.ID_MANA_BLUE
-        if vocab.ID_ABILITY_TAP_ADD_BLACK in card_data.get("abilities", []):
-            return vocab.ID_MANA_BLACK
-        if vocab.ID_ABILITY_TAP_ADD_RED in card_data.get("abilities", []):
-            return vocab.ID_MANA_RED
-        if vocab.ID_ABILITY_TAP_ADD_WHITE in card_data.get("abilities", []):
-            return vocab.ID_MANA_WHITE
+        if id_mapper.get_id_by_name("Tap: Add Green Mana", "game_vocabulary") in card_data.get("abilities", []):
+            return id_mapper.get_id_by_name("Green Mana", "game_vocabulary")
+        if id_mapper.get_id_by_name("Tap: Add Blue Mana", "game_vocabulary") in card_data.get("abilities", []):
+            return id_mapper.get_id_by_name("Blue Mana", "game_vocabulary")
+        if id_mapper.get_id_by_name("Tap: Add Black Mana", "game_vocabulary") in card_data.get("abilities", []):
+            return id_mapper.get_id_by_name("Black Mana", "game_vocabulary")
+        if id_mapper.get_id_by_name("Tap: Add Red Mana", "game_vocabulary") in card_data.get("abilities", []):
+            return id_mapper.get_id_by_name("Red Mana", "game_vocabulary")
+        if id_mapper.get_id_by_name("Tap: Add White Mana", "game_vocabulary") in card_data.get("abilities", []):
+            return id_mapper.get_id_by_name("White Mana", "game_vocabulary")
     return None
 
 # This map remains as it's a direct mapping of ability IDs to mana types
 MANA_ABILITY_MAP = {
-    vocab.ID_ABILITY_TAP_ADD_GREEN: vocab.ID_MANA_GREEN,
-    vocab.ID_ABILITY_TAP_ADD_BLUE: vocab.ID_MANA_BLUE,
-    vocab.ID_ABILITY_TAP_ADD_BLACK: vocab.ID_MANA_BLACK,
-    vocab.ID_ABILITY_TAP_ADD_RED: vocab.ID_MANA_RED,
-    vocab.ID_ABILITY_TAP_ADD_WHITE: vocab.ID_MANA_WHITE,
+    id_mapper.get_id_by_name("Tap: Add Green Mana", "game_vocabulary"): id_mapper.get_id_by_name("Green Mana", "game_vocabulary"),
+    id_mapper.get_id_by_name("Tap: Add Blue Mana", "game_vocabulary"): id_mapper.get_id_by_name("Blue Mana", "game_vocabulary"),
+    id_mapper.get_id_by_name("Tap: Add Black Mana", "game_vocabulary"): id_mapper.get_id_by_name("Black Mana", "game_vocabulary"),
+    id_mapper.get_id_by_name("Tap: Add Red Mana", "game_vocabulary"): id_mapper.get_id_by_name("Red Mana", "game_vocabulary"),
+    id_mapper.get_id_by_name("Tap: Add White Mana", "game_vocabulary"): id_mapper.get_id_by_name("White Mana", "game_vocabulary"),
 }
-
-# Expose the card data loader for direct access if needed (e.g., for card names)
-get_card_name = card_data_loader.get_card_data_by_id
-get_card_id_by_name = card_data_loader.get_card_id_by_name
-get_all_card_ids = card_data_loader.get_all_card_ids
