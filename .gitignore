@@ -4,3 +4,4 @@ basic_land_images/*
 mtg_datasets/*
 PP_env/*
 scraped_frames/*
+logs/
