@@ -17,14 +17,14 @@ class TestGameState(unittest.TestCase):
 
         # Define simple decks for testing
         self.decklist1 = [
-            self.id_mapper.get_id_by_name("Forest", "cards"), self.id_mapper.get_id_by_name("Forest", "cards"), self.id_mapper.get_id_by_name("Forest", "cards"), self.id_mapper.get_id_by_name("Forest", "cards"),
-            self.id_mapper.get_id_by_name("Island", "cards"), self.id_mapper.get_id_by_name("Island", "cards"), self.id_mapper.get_id_by_name("Island", "cards"), self.id_mapper.get_id_by_name("Island", "cards"),
-            self.id_mapper.get_id_by_name("Grizzly Bears", "cards"), self.id_mapper.get_id_by_name("Grizzly Bears", "cards")
+            card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Forest"),
+            card_data_loader.get_card_id_by_name("Island"), card_data_loader.get_card_id_by_name("Island"), card_data_loader.get_card_id_by_name("Island"), card_data_loader.get_card_id_by_name("Island"),
+            card_data_loader.get_card_id_by_name("Grizzly Bears"), card_data_loader.get_card_id_by_name("Grizzly Bears")
         ] * 2 # 40 cards total
         self.decklist2 = [
-            self.id_mapper.get_id_by_name("Mountain", "cards"), self.id_mapper.get_id_by_name("Mountain", "cards"), self.id_mapper.get_id_by_name("Mountain", "cards"), self.id_mapper.get_id_by_name("Mountain", "cards"),
-            self.id_mapper.get_id_by_name("Swamp", "cards"), self.id_mapper.get_id_by_name("Swamp", "cards"), self.id_mapper.get_id_by_name("Swamp", "cards"), self.id_mapper.get_id_by_name("Swamp", "cards"),
-            self.id_mapper.get_id_by_name("Walking Corpse", "cards"), self.id_mapper.get_id_by_name("Walking Corpse", "cards")
+            card_data_loader.get_card_id_by_name("Mountain"), card_data_loader.get_card_id_by_name("Mountain"), card_data_loader.get_card_id_by_name("Mountain"), card_data_loader.get_card_id_by_name("Mountain"),
+            card_data_loader.get_card_id_by_name("Swamp"), card_data_loader.get_card_id_by_name("Swamp"), card_data_loader.get_card_id_by_name("Swamp"), card_data_loader.get_card_id_by_name("Swamp"),
+            card_data_loader.get_card_id_by_name("Walking Corpse"), card_data_loader.get_card_id_by_name("Walking Corpse")
         ] * 2 # 40 cards total
 
         self.game_graph.initialize_game(self.decklist1, self.decklist2, shuffle=False) # Don't shuffle for predictable tests

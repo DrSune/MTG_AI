@@ -40,6 +40,21 @@ def _get_game_settings(game_mode: str) -> Dict[str, Any]:
 
     return settings
 
+def get_available_decks() -> Dict[int, str]:
+    """
+    Retrieves a list of available decks from the database.
+    """
+    decks = {}
+    conn = sqlite3.connect(config.MTG_BOT_DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT deck_id, deck_name FROM decks")
+    for deck_id, name in cursor.fetchall():
+        decks[deck_id] = name
+
+    conn.close()
+    return decks
+
 def _load_decklist_from_db(deck_id: int) -> List[int]:
     """
     Loads a decklist (list of card IDs) from the mtg_bot.db for a given deck_id.
@@ -78,6 +93,7 @@ def initialize_game_state(decklist1: List[int], decklist2: List[int], game_mode:
     # Create Players
     player1 = graph.add_entity(id_mapper.get_id_by_name("Player", "game_vocabulary"))
     player1.properties['life_total'] = start_life
+    player1.properties['hand_size'] = hand_size
     player1.properties['mana_pool'] = {m: 0 for m in [
         id_mapper.get_id_by_name("Green Mana", "game_vocabulary"),
         id_mapper.get_id_by_name("Blue Mana", "game_vocabulary"),
@@ -88,9 +104,11 @@ def initialize_game_state(decklist1: List[int], decklist2: List[int], game_mode:
         id_mapper.get_id_by_name("Generic Mana", "game_vocabulary"),
     ]}
     player1.properties['name'] = "Player 1"
+    graph.players.append(player1.instance_id)
 
     player2 = graph.add_entity(id_mapper.get_id_by_name("Player", "game_vocabulary"))
     player2.properties['life_total'] = start_life
+    player2.properties['hand_size'] = hand_size
     player2.properties['mana_pool'] = {m: 0 for m in [
         id_mapper.get_id_by_name("Green Mana", "game_vocabulary"),
         id_mapper.get_id_by_name("Blue Mana", "game_vocabulary"),
@@ -101,6 +119,7 @@ def initialize_game_state(decklist1: List[int], decklist2: List[int], game_mode:
         id_mapper.get_id_by_name("Generic Mana", "game_vocabulary"),
     ]}
     player2.properties['name'] = "Player 2"
+    graph.players.append(player2.instance_id)
 
     # Set active player
     graph.active_player_id = player1.instance_id

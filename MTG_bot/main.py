@@ -5,8 +5,7 @@ from typing import List, Dict, Any
 from .rule_engine.engine import Engine
 from .rule_engine.game_graph import GameGraph, Entity
 from .rule_engine.actions import PlayLandAction, CastSpellAction, ActivateManaAbilityAction, DeclareAttackerAction, DeclareBlockerAction, PassTurnAction
-from .rule_engine import card_database
-from .rule_engine.game_initializer import initialize_game_state
+from .rule_engine import card_database, game_initializer
 from MTG_bot.utils.logger import setup_logger
 from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
 from MTG_bot import config
@@ -51,7 +50,18 @@ def display_game_state(graph: GameGraph):
                 detailed_card_data = card_database.card_data_loader.get_card_data_by_id(card.type_id)
                 card_name = detailed_card_data.get("name", "Unknown Card")
                 mana_cost = detailed_card_data.get("mana_cost", "N/A")
-                abilities = [id_mapper.get_name(ability_id, "game_vocabulary") for ability_id in detailed_card_data.get("abilities", []) if id_mapper.get_name(ability_id, "game_vocabulary")]
+                
+                # Display abilities using the new structured format
+                abilities_display_list = []
+                abilities_data = detailed_card_data.get("abilities", {"keywords": [], "mana_abilities": []})
+                
+                for keyword_id in abilities_data.get("keywords", []):
+                    abilities_display_list.append(id_mapper.get_name(keyword_id, "game_vocabulary"))
+                
+                for mana_ability in abilities_data.get("mana_abilities", []):
+                    produces_str = ", ".join([f"{id_mapper.get_name(m_id, "game_vocabulary")}: {amount}" for m_id, amount in mana_ability["produces"].items()])
+                    abilities_display_list.append(f"Tap for {produces_str}")
+
                 original_power = detailed_card_data.get("power", "?")
                 original_toughness = detailed_card_data.get("toughness", "?")
 
@@ -67,7 +77,7 @@ def display_game_state(graph: GameGraph):
                     current_toughness = card.properties.get('effective_toughness', original_toughness)
                     pt_display = f" ({current_power}/{current_toughness} - Original: {original_power}/{original_toughness})"
                 
-                abilities_display = f" Abilities: {', '.join(abilities)}" if abilities else ""
+                abilities_display = f" Abilities: {', '.join(abilities_display_list)}" if abilities_display_list else ""
 
                 print(f"  - {card_name}{pt_display} Mana: {mana_cost}{abilities_display} Owner: {owner_name} {tapped_status} {summoning_sickness}")
         else:
@@ -104,29 +114,38 @@ def _run_main_logic():
     logger.info("Initializing MTG Game Engine for Manual Play...")
 
     # 1. Initialize the game graph and engine
-    GAME_MODE = "Standard" # Can be "Manual", "Training", "Inference"
+    GAME_MODE = "Manual" # Can be "Manual", "Training", "Inference"
 
-    # Load default decks from mtg_bot.db
-    # Assuming deck_id 1 and 2 exist for demonstration
-    deck1_id = 1
-    deck2_id = 2
+    # Deck Selection
+    available_decks = game_initializer.get_available_decks()
+    if not available_decks:
+        logger.error("No decks found in the database. Exiting.")
+        return
+
+    print("Available Decks:")
+    for deck_id, deck_name in available_decks.items():
+        print(f"  {deck_id}. {deck_name}")
+
+    deck1_id = get_player_choice("Choose a deck for Player 1: ", list(available_decks.values())) + 1
+    deck2_id = get_player_choice("Choose a deck for Player 2: ", list(available_decks.values())) + 1
+
     decklist1_ids = game_initializer._load_decklist_from_db(deck1_id)
     decklist2_ids = game_initializer._load_decklist_from_db(deck2_id)
 
-    # Sample chosen starting hands (for demonstration)
-    player1_chosen_hand = [
-        id_mapper.get_id_by_name("Forest", "cards"),
-        id_mapper.get_id_by_name("Island", "cards"),
-        id_mapper.get_id_by_name("Grizzly Bears", "cards"),
-    ]
-    player2_chosen_hand = [
-        id_mapper.get_id_by_name("Forest", "cards"),
-        id_mapper.get_id_by_name("Island", "cards"),
-        id_mapper.get_id_by_name("Cancel", "cards"),
-    ]
-
-    graph = initialize_game_state(decklist1=decklist1_ids, decklist2=decklist2_ids, game_mode=GAME_MODE, player1_starting_hand_ids=player1_chosen_hand, player2_starting_hand_ids=player2_chosen_hand)
+    graph = game_initializer.initialize_game_state(decklist1=decklist1_ids, decklist2=decklist2_ids, game_mode=GAME_MODE)
     engine = Engine(graph)
+
+    # Mulligan Phase
+    for player_id in [engine.graph.players[0], engine.graph.players[1]]:
+        player = engine.graph.entities[player_id]
+        while True:
+            display_game_state(graph)
+            print(f"{player.properties.get('name')}, would you like to mulligan? (y/n)")
+            choice = input().lower()
+            if choice == 'y':
+                engine.mulligan(player_id)
+            else:
+                break
 
     logger.info("Starting game loop...")
     game_over = False
@@ -156,8 +175,15 @@ def _run_main_logic():
                 move_description = f"Cast Spell: {card_name}"
             elif isinstance(move, ActivateManaAbilityAction):
                 card_name = id_mapper.get_name(move.card_id, "cards")
-                mana_type = id_mapper.get_name(card_database.MANA_ABILITY_MAP.get(move.ability_id), "game_vocabulary")
-                move_description = f"Activate Mana Ability: Tap {card_name} for {mana_type}"
+                # Get the mana ability details from the card's properties
+                card_data = card_database.card_data_loader.get_card_data_by_id(move.card_id)
+                mana_abilities = card_data.get("abilities", {}).get("mana_abilities", [])
+                if move.ability_id < len(mana_abilities):
+                    mana_ability = mana_abilities[move.ability_id]
+                    produces_str = ", ".join([f"{id_mapper.get_name(m_id, "game_vocabulary")}: {amount}" for m_id, amount in mana_ability["produces"].items()])
+                    move_description = f"Activate Mana Ability: Tap {card_name} for {produces_str}"
+                else:
+                    move_description = f"Activate Mana Ability: Tap {card_name} (Unknown Ability)"
             elif isinstance(move, DeclareAttackerAction):
                 card_name = id_mapper.get_name(move.card_id, "cards")
                 move_description = f"Declare Attacker: {card_name}"

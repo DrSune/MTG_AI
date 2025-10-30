@@ -45,6 +45,7 @@ class GameGraph:
         self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
         self.phase: int = self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary") # Start of the game
         self.step: int = self.id_mapper.get_id_by_name("Untap Step", "game_vocabulary") # Start of the game
+        self.players: List[uuid.UUID] = []
         logger.info("GameGraph initialized.")
 
     def add_entity(self, entity_type_id: int) -> Entity:
@@ -134,6 +135,11 @@ class GameGraph:
             logger.error(f"Error creating deck for player {player.properties.get('name', player.instance_id)[:4]}: {e}", exc_info=True)
             raise
 
+    def draw_hand(self, player_id: uuid.UUID, hand_size: int):
+        """Draws a number of cards for a player."""
+        player = self.entities[player_id]
+        for _ in range(hand_size):
+            self.draw_card(player)
 
     def draw_card(self, player: Entity) -> Optional[Entity]:
         """Moves the top card of a player's library to their hand."""

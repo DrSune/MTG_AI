@@ -11,6 +11,7 @@ from .engine import Engine
 from .actions import PlayLandAction, ActivateManaAbilityAction, CastSpellAction, DeclareAttackerAction, DeclareBlockerAction
 from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
 from MTG_bot import config
+from .card_database import card_data_loader
 
 class TestEngine(unittest.TestCase):
 
@@ -20,7 +21,7 @@ class TestEngine(unittest.TestCase):
         self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
         # The GameGraph's initialize_game function is a great way to set up a clean state
         self.graph.initialize_game(
-            decklist1=[self.id_mapper.get_id_by_name("Forest", "cards"), self.id_mapper.get_id_by_name("Grizzly Bears", "cards")],
+            decklist1=[card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Grizzly Bears")],
             decklist2=[]
         )
         self.engine = Engine(self.graph)
@@ -77,7 +78,7 @@ class TestEngine(unittest.TestCase):
         """Test that a player can use mana to cast a creature spell."""
         # We need to adjust the decklist for this test
         self.graph.initialize_game(
-            decklist1=[self.id_mapper.get_id_by_name("Forest", "cards"), self.id_mapper.get_id_by_name("Forest", "cards"), self.id_mapper.get_id_by_name("Grizzly Bears", "cards")],
+            decklist1=[card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Grizzly Bears")],
             decklist2=[]
         )
         self.player1 = self.graph.entities[self.graph.active_player_id]
@@ -117,10 +118,10 @@ class TestEngine(unittest.TestCase):
     def test_declare_attacker(self):
         """Test that a creature can be declared as an attacker."""
         # Cast a creature and move it to the battlefield
-        self.graph.initialize_game(decklist1=[self.id_mapper.get_id_by_name("Grizzly Bears", "cards")], decklist2=[])
+        self.graph.initialize_game(decklist1=[card_data_loader.get_card_id_by_name("Grizzly Bears")], decklist2=[])
         self.player1 = self.graph.entities[self.graph.active_player_id]
         self.engine = Engine(self.graph)
-        creature_card = next(c for c in self.graph.entities.values() if c.type_id == self.id_mapper.get_id_by_name("Grizzly Bears", "cards"))
+        creature_card = next(c for c in self.graph.entities.values() if c.type_id == card_data_loader.get_card_id_by_name("Grizzly Bears"))
         
         # Manually move creature to battlefield and set its turn_entered property for the test
         battlefield_zone = next(self.graph.entities[r.target] for r in self.graph.get_relationships(source=self.player1, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary")) if self.graph.entities[r.target].type_id == self.id_mapper.get_id_by_name("Battlefield", "game_vocabulary"))
@@ -153,15 +154,15 @@ class TestEngine(unittest.TestCase):
         """Test a full combat sequence: attack, block, and damage."""
         # Setup: Player 1 has a Grizzly Bears, Player 2 has a Grizzly Bears.
         self.graph.initialize_game(
-            decklist1=[self.id_mapper.get_id_by_name("Grizzly Bears", "cards")],
-            decklist2=[self.id_mapper.get_id_by_name("Grizzly Bears", "cards")]
+            decklist1=[card_data_loader.get_card_id_by_name("Grizzly Bears")],
+            decklist2=[card_data_loader.get_card_id_by_name("Grizzly Bears")]
         )
         self.player1 = self.graph.entities[self.graph.active_player_id]
         self.player2 = next(p for p in self.graph.entities.values() if p.type_id == self.id_mapper.get_id_by_name("Player", "game_vocabulary") and p.instance_id != self.player1.instance_id)
         self.engine = Engine(self.graph)
 
-        p1_creature = next(c for c in self.graph.entities.values() if c.type_id == self.id_mapper.get_id_by_name("Grizzly Bears", "cards") and self.graph.get_relationships(source=self.player1, target=c, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary")))
-        p2_creature = next(c for c in self.graph.entities.values() if c.type_id == self.id_mapper.get_id_by_name("Grizzly Bears", "cards") and self.graph.get_relationships(source=self.player2, target=c, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary")))
+        p1_creature = next(c for c in self.graph.entities.values() if c.type_id == card_data_loader.get_card_id_by_name("Grizzly Bears") and self.graph.get_relationships(source=self.player1, target=c, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary")))
+        p2_creature = next(c for c in self.graph.entities.values() if c.type_id == card_data_loader.get_card_id_by_name("Grizzly Bears") and self.graph.get_relationships(source=self.player2, target=c, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary")))
 
         # Manually move creatures to battlefield for the test
         battlefield1 = next(self.graph.entities[r.target] for r in self.graph.get_relationships(source=self.player1, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary")) if self.graph.entities[r.target].type_id == self.id_mapper.get_id_by_name("Battlefield", "game_vocabulary"))

@@ -1,5 +1,6 @@
 print("--- Executing engine.py ---")
 import uuid
+import random
 from typing import List, Union, Optional
 
 from .game_graph import GameGraph, Entity
@@ -56,7 +57,7 @@ class Engine:
 
             # 1. Check for playing a land
             if active_player.properties.get('lands_played_this_turn', 0) < 1 and hand_zone:
-                card_in_hand_rels = self.graph.get_relationships(target=hand_zone, rel_type=vocab.ID_REL_IS_IN_ZONE)
+                card_in_hand_rels = self.graph.get_relationships(target=hand_zone, rel_type=self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))
                 cards_in_hand = [self.graph.entities[r.source] for r in card_in_hand_rels]
                 land_cards = [card for card in cards_in_hand if card.properties.get('is_land')]
                 for land in land_cards:
@@ -124,7 +125,7 @@ class Engine:
                     logger.info(f"{player.properties.get('name')} played {card.properties.get('name')} to battlefield.")
                 
                 elif isinstance(move, ActivateManaAbilityAction):
-                    mana_handlers.execute_tap_for_mana(self.graph, player, card)
+                    mana_handlers.execute_tap_for_mana(self.graph, player, card, move.ability_id)
                     logger.info(f"{player.properties.get('name')} tapped {card.properties.get('name')} for mana. Mana pool: {player.properties['mana_pool']}")
 
                 elif isinstance(move, CastSpellAction):
@@ -175,6 +176,33 @@ class Engine:
         # unless the move itself already handled progression (like PassTurnAction)
         if not isinstance(move, PassTurnAction):
             self.progress_phase_and_step()
+
+    def mulligan(self, player_id: uuid.UUID):
+        """Performs a mulligan for a player."""
+        player = self.graph.entities[player_id]
+        logger.info(f"{player.properties.get('name')} is taking a mulligan.")
+
+        # Find hand and library
+        control_rels = self.graph.get_relationships(source=player, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
+        hand_zone = next((self.graph.entities[r.target] for r in control_rels if self.graph.entities[r.target].type_id == self.id_mapper.get_id_by_name("Hand", "game_vocabulary")), None)
+        library_zone = next((self.graph.entities[r.target] for r in control_rels if self.graph.entities[r.target].type_id == self.id_mapper.get_id_by_name("Library", "game_vocabulary")), None)
+
+        if not hand_zone or not library_zone:
+            logger.error(f"Could not find hand or library for {player.properties.get('name')}. Cannot mulligan.")
+            return
+
+        # Move cards from hand to library
+        cards_in_hand = [self.graph.entities[r.source] for r in self.graph.get_relationships(target=hand_zone, rel_type=self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))]
+        for card in cards_in_hand:
+            self.graph._move_card_to_zone(card, library_zone)
+
+        # Shuffle library
+        library_cards = [self.graph.entities[r.source] for r in self.graph.get_relationships(target=library_zone, rel_type=self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))]
+        random.shuffle(library_cards)
+
+        # Decrement hand size and draw new hand
+        player.properties['hand_size'] -= 1
+        self.graph.draw_hand(player_id, player.properties['hand_size'])
 
     def _handle_step_effects(self):
         """Processes automatic state changes at the end of a step."""

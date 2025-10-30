@@ -2,22 +2,26 @@
 Contains handlers for simple, atomic keywords (mostly combat-related).
 """
 
+from typing import List
+
 from ..game_graph import GameGraph, Entity
-from ..vocabulary import *
 from MTG_bot.utils.logger import setup_logger
+from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
+from MTG_bot import config
 
 logger = setup_logger(__name__)
+id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
 
 def can_be_blocked_by(graph: GameGraph, attacker: Entity, blocker: Entity) -> bool:
     """Determines if a proposed block is legal based on keyword abilities."""
     logger.debug(f"Checking if {blocker.properties.get('name', blocker.type_id)} ({blocker.type_id}) can block {attacker.properties.get('name', attacker.type_id)} ({attacker.type_id}).")
     try:
-        attacker_abilities = attacker.properties.get('abilities', [])
-        blocker_abilities = blocker.properties.get('abilities', [])
+        attacker_abilities = attacker.properties.get('abilities', {}).get("keywords", [])
+        blocker_abilities = blocker.properties.get('abilities', {}).get("keywords", [])
 
         # Flying Rule
-        if ID_ABILITY_FLYING in attacker_abilities:
-            if ID_ABILITY_FLYING not in blocker_abilities and ID_ABILITY_REACH not in blocker_abilities:
+        if id_mapper.get_id_by_name("Flying", "game_vocabulary") in attacker_abilities:
+            if id_mapper.get_id_by_name("Flying", "game_vocabulary") not in blocker_abilities and id_mapper.get_id_by_name("Reach", "game_vocabulary") not in blocker_abilities:
                 logger.debug(f"{attacker.properties.get('name')} has Flying, but {blocker.properties.get('name')} has neither Flying nor Reach. Block is illegal.")
                 return False # Flying creature can't be blocked by non-flyer/non-reacher
             else:
@@ -35,8 +39,8 @@ def modifies_damage_step(graph: GameGraph, creature: Entity) -> bool:
     """Checks if a creature deals damage in the first combat damage step."""
     logger.debug(f"Checking if {creature.properties.get('name', creature.type_id)} ({creature.type_id}) modifies damage step.")
     try:
-        creature_abilities = creature.properties.get('abilities', [])
-        if ID_ABILITY_FIRST_STRIKE in creature_abilities:
+        creature_abilities = creature.properties.get('abilities', {}).get("keywords", [])
+        if id_mapper.get_id_by_name("First Strike", "game_vocabulary") in creature_abilities:
             logger.debug(f"{creature.properties.get('name')} has First Strike.")
             return True
         # ... logic for Double Strike

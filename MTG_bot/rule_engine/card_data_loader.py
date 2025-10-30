@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import sqlite3
 from typing import Dict, Any, List, Optional
 
@@ -19,7 +20,8 @@ class CardDataLoader:
         self._load_data()
 
     def _get_id_from_game_vocabulary(self, name: str) -> Optional[int]:
-        conn = sqlite3.connect(config.MTG_BOT_DB_PATH)
+        # This method is used internally by CardDataLoader for vocabulary terms
+        conn = sqlite3.connect(self.id_mapper.db_path)
         cursor = conn.cursor()
         cursor.execute("SELECT id FROM game_vocabulary WHERE name = ?", (name,))
         result = cursor.fetchone()
@@ -42,33 +44,22 @@ class CardDataLoader:
         with open(self.mtgjson_path, 'r', encoding='utf-8') as f:
             raw_data = json.load(f)
         
-        # Correctly access cards from the M21.json structure
         cards_in_m21 = raw_data.get("data", {}).get("cards", [])
         print(f"Cards in M21.json (first 5): {cards_in_m21[:5]}")
 
-        current_card_id = self._get_max_card_id_from_db() + 1 # Start custom IDs after existing ones
+        current_card_id_counter = self._get_max_card_id_from_db() + 1 # Start custom IDs after existing ones
 
         for card_data in cards_in_m21:
             card_name = card_data.get("name")
             if card_name and card_name not in self.card_name_to_id:
-                # Assign a new ID if not already in vocabulary
-                # Check if the card name exists as a predefined ID in vocab
-                # This is a simplified check and might need more robust handling for variations
-                # vocab_id_name = f"ID_CARD_{card_name.replace(' ', '_').replace('-', '_').replace('\'', '').upper()}"
-                # if hasattr(vocab, vocab_id_name):
-                #     card_id = getattr(vocab, vocab_id_name)
-                # else:
-                card_id = current_card_id
-                current_card_id += 1
+                card_id = current_card_id_counter
+                current_card_id_counter += 1
                 
                 self.card_name_to_id[card_name] = card_id
                 self.card_id_to_data[card_id] = self._process_card_data(card_data)
                 self.all_cards_data[card_name] = self.card_id_to_data[card_id]
 
     def _process_card_data(self, raw_card_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Extracts and formats relevant data from a raw MTGJSON card entry.
-        """
         processed_data = {
             "name": raw_card_data.get("name"),
             "mana_cost": self._parse_mana_cost(raw_card_data.get("manaCost", "")),
@@ -87,87 +78,55 @@ class CardDataLoader:
         return processed_data
 
     def _parse_mana_cost(self, mana_cost_str: str) -> Dict[int, int]:
-        """
-        Parses a mana cost string (e.g., "{2}{R}{G}") into a dictionary of vocab IDs.
-        """
-        MANA_GENERIC = self._get_id_from_game_vocabulary("Generic Mana")
-        MANA_WHITE = self._get_id_from_game_vocabulary("White Mana")
-        MANA_BLUE = self._get_id_from_game_vocabulary("Blue Mana")
-        MANA_BLACK = self._get_id_from_game_vocabulary("Black Mana")
-        MANA_RED = self._get_id_from_game_vocabulary("Red Mana")
-        MANA_GREEN = self._get_id_from_game_vocabulary("Green Mana")
+        cost = {}
+        if not mana_cost_str: return cost
 
-        cost = {MANA_GENERIC: 0, MANA_WHITE: 0, MANA_BLUE: 0, 
-                MANA_BLACK: 0, MANA_RED: 0, MANA_GREEN: 0}
-        
-        temp_cost_str = mana_cost_str.replace('{', '').replace('}', '')
-        
-        i = 0
-        while i < len(temp_cost_str):
-            char = temp_cost_str[i]
-            if char.isdigit():
-                j = i
-                while j < len(temp_cost_str) and temp_cost_str[j].isdigit():
-                    j += 1
-                cost[vocab.ID_MANA_GENERIC] += int(temp_cost_str[i:j])
-                i = j
-            elif char == 'W': cost[MANA_WHITE] += 1; i += 1
-            elif char == 'U': cost[MANA_BLUE] += 1; i += 1
-            elif char == 'B': cost[MANA_BLACK] += 1; i += 1
-            elif char == 'R': cost[MANA_RED] += 1; i += 1
-            elif char == 'G': cost[MANA_GREEN] += 1; i += 1
-            # Add more complex mana symbols if needed (e.g., hybrid, colorless, X)
-            else: i += 1 # Skip unknown characters
-        
+        generic_match = re.search(r'\{(\d+)\}', mana_cost_str)
+        if generic_match:
+            cost[self._get_id_from_game_vocabulary("Generic Mana")] = int(generic_match.group(1))
+
+        for symbol, mana_name in [('W', "White Mana"), ('U', "Blue Mana"), ('B', "Black Mana"), ('R', "Red Mana"), ('G', "Green Mana"), ('C', "Colorless Mana")]:
+            count = mana_cost_str.count(f'{{{symbol}}}')
+            if count > 0:
+                cost[self._get_id_from_game_vocabulary(mana_name)] = count
         return {k: v for k, v in cost.items() if v > 0}
 
-    def _parse_abilities(self, card_text: str, keywords: List[str]) -> List[int]:
-        """
-        Parses card text and keywords to identify abilities and map them to vocab IDs.
-        This is a very basic implementation and will need significant expansion.
-        """
-        ABILITY_FLYING = self._get_id_from_game_vocabulary("Flying")
-        ABILITY_HASTE = self._get_id_from_game_vocabulary("Haste")
-        ABILITY_VIGILANCE = self._get_id_from_game_vocabulary("Vigilance")
-        ABILITY_LIFELINK = self._get_id_from_game_vocabulary("Lifelink")
-        ABILITY_TRAMPLE = self._get_id_from_game_vocabulary("Trample")
-        ABILITY_TAP_ADD_GREEN = self._get_id_from_game_vocabulary("Tap: Add Green Mana")
-        ABILITY_TAP_ADD_BLUE = self._get_id_from_game_vocabulary("Tap: Add Blue Mana")
-        ABILITY_TAP_ADD_BLACK = self._get_id_from_game_vocabulary("Tap: Add Black Mana")
-        ABILITY_TAP_ADD_RED = self._get_id_from_game_vocabulary("Tap: Add Red Mana")
-        ABILITY_TAP_ADD_WHITE = self._get_id_from_game_vocabulary("Tap: Add White Mana")
+    def _parse_abilities(self, card_text: str, keywords: List[str]) -> Dict[str, Any]:
+        abilities = {"keywords": [], "mana_abilities": []}
 
-        # Basic keyword mapping
-        if "Flying" in keywords: abilities.append(ABILITY_FLYING)
-        if "Haste" in keywords: abilities.append(ABILITY_HASTE)
-        if "Vigilance" in keywords: abilities.append(ABILITY_VIGILANCE)
-        if "Lifelink" in keywords: abilities.append(ABILITY_LIFELINK)
-        if "Trample" in keywords: abilities.append(ABILITY_TRAMPLE)
-        # Add more keyword abilities as needed
+        # Keyword abilities
+        for keyword in keywords:
+            keyword_id = self._get_id_from_game_vocabulary(keyword)
+            if keyword_id:
+                abilities["keywords"].append(keyword_id)
 
-        # Basic text-based ability parsing (very rudimentary)
-        if "{T}: Add {G}" in card_text: abilities.append(ABILITY_TAP_ADD_GREEN)
-        if "{T}: Add {U}" in card_text: abilities.append(ABILITY_TAP_ADD_BLUE)
-        if "{T}: Add {B}" in card_text: abilities.append(ABILITY_TAP_ADD_BLACK)
-        if "{T}: Add {R}" in card_text: abilities.append(ABILITY_TAP_ADD_RED)
-        if "{T}: Add {W}" in card_text: abilities.append(ABILITY_TAP_ADD_WHITE)
+        # Mana abilities from text
+        mana_ability_pattern = re.compile(r"\{T\}: Add (.*?).")
+        matches = mana_ability_pattern.findall(card_text)
+        for match in matches:
+            produces = {}
+            mana_symbols = re.findall(r'\{([WUBRGC])\}', match)
+            for symbol in mana_symbols:
+                mana_name = {'W': "White Mana", 'U': "Blue Mana", 'B': "Black Mana", 'R': "Red Mana", 'G': "Green Mana", 'C': "Colorless Mana"}.get(symbol)
+                if mana_name:
+                    mana_id = self._get_id_from_game_vocabulary(mana_name)
+                    if mana_id:
+                        produces[mana_id] = produces.get(mana_id, 0) + 1
+            
+            if produces:
+                abilities["mana_abilities"].append({
+                    "type": "mana",
+                    "cost": {"tap": True},
+                    "produces": produces
+                })
 
-        return list(set(abilities)) # Return unique abilities
+        return abilities
 
     def get_card_data_by_id(self, card_id: int) -> Dict[str, Any]:
-        """
-        Returns processed card data for a given card ID.
-        """
         return self.card_id_to_data.get(card_id, {})
 
     def get_card_id_by_name(self, card_name: str) -> int:
-        """
-        Returns the internal ID for a given card name.
-        """
         return self.card_name_to_id.get(card_name)
 
     def get_all_card_ids(self) -> List[int]:
-        """
-        Returns a list of all loaded card IDs.
-        """
         return list(self.card_id_to_data.keys())
