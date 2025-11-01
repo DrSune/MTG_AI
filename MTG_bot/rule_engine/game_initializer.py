@@ -17,30 +17,33 @@ def _get_game_settings(game_mode: str) -> Dict[str, Any]:
     Retrieves game settings from the game_vocabulary table in mtg_bot.db.
     Prioritizes mode-specific settings over 'General' settings.
     """
-    settings = {}
+    raw_settings = {}
     conn = sqlite3.connect(config.MTG_BOT_DB_PATH)
     cursor = conn.cursor()
 
     # Get general settings first
     cursor.execute("SELECT name, value FROM game_vocabulary WHERE type = 'game_setting' AND mode = 'General'")
     for name, value in cursor.fetchall():
-        settings[name] = value
+        raw_settings[name] = value
 
     # Override with mode-specific settings
     cursor.execute("SELECT name, value FROM game_vocabulary WHERE type = 'game_setting' AND mode = ?", (game_mode,))
     for name, value in cursor.fetchall():
-        settings[name] = value
+        raw_settings[name] = value
 
     conn.close()
 
-    # Convert values to appropriate types
-    for key, value in settings.items():
+    settings = {}
+    for key, value in raw_settings.items():
+        normalized_key = key.strip().lower().replace(" ", "_")
         if value and value.isdigit():
-            settings[key] = int(value)
+            settings[normalized_key] = int(value)
+        else:
+            settings[normalized_key] = value
 
     return settings
 
-def get_available_decks() -> Dict[int, str]:
+def get_available_decks(game_mode: Optional[str] = None) -> Dict[int, str]:
     """
     Retrieves a list of available decks from the database.
     """
@@ -48,12 +51,31 @@ def get_available_decks() -> Dict[int, str]:
     conn = sqlite3.connect(config.MTG_BOT_DB_PATH)
     cursor = conn.cursor()
 
-    cursor.execute("SELECT deck_id, deck_name FROM decks")
+    if game_mode:
+        cursor.execute("SELECT deck_id, deck_name FROM decks WHERE format = ?", (game_mode,))
+    else:
+        cursor.execute("SELECT deck_id, deck_name FROM decks")
     for deck_id, name in cursor.fetchall():
         decks[deck_id] = name
 
     conn.close()
     return decks
+
+def get_available_game_modes() -> List[str]:
+    """
+    Returns the list of supported game modes based on settings stored in the database.
+    Excludes the 'General' mode which holds shared defaults.
+    """
+    conn = sqlite3.connect(config.MTG_BOT_DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT DISTINCT mode FROM game_vocabulary WHERE type = 'game_setting' AND mode != 'General'"
+    )
+    modes = sorted(mode for (mode,) in cursor.fetchall())
+
+    conn.close()
+    return modes
 
 def _load_decklist_from_db(deck_id: int) -> List[int]:
     """
@@ -104,6 +126,7 @@ def initialize_game_state(decklist1: List[int], decklist2: List[int], game_mode:
         id_mapper.get_id_by_name("Generic Mana", "game_vocabulary"),
     ]}
     player1.properties['name'] = "Player 1"
+    player1.properties['mulligans_taken'] = 0
     graph.players.append(player1.instance_id)
 
     player2 = graph.add_entity(id_mapper.get_id_by_name("Player", "game_vocabulary"))
@@ -119,19 +142,16 @@ def initialize_game_state(decklist1: List[int], decklist2: List[int], game_mode:
         id_mapper.get_id_by_name("Generic Mana", "game_vocabulary"),
     ]}
     player2.properties['name'] = "Player 2"
+    player2.properties['mulligans_taken'] = 0
     graph.players.append(player2.instance_id)
 
     # Set active player
     graph.active_player_id = player1.instance_id
     logger.info(f"Active player set to {player1.properties.get('name')}.")
 
-    # Create and shuffle decks
-    deck1_entities = _create_deck_entities(graph, player1, decklist1)
-    deck2_entities = _create_deck_entities(graph, player2, decklist2)
-    if shuffle:
-        random.shuffle(deck1_entities)
-        random.shuffle(deck2_entities)
-        logger.debug("Decks shuffled.")
+    # Create and optionally shuffle decks
+    deck1_entities = _create_deck_entities(graph, player1, decklist1, shuffle=shuffle)
+    deck2_entities = _create_deck_entities(graph, player2, decklist2, shuffle=shuffle)
 
     # Draw opening hands
     _draw_opening_hands(graph, player1, deck1_entities, hand_size, player1_starting_hand_ids)
@@ -140,7 +160,7 @@ def initialize_game_state(decklist1: List[int], decklist2: List[int], game_mode:
     logger.info("Game initialized successfully.")
     return graph
 
-def _create_deck_entities(graph: GameGraph, player: Entity, decklist: List[int]) -> List[Entity]:
+def _create_deck_entities(graph: GameGraph, player: Entity, decklist: List[int], shuffle: bool = True) -> List[Entity]:
     """
     Creates card entities from a decklist and links them to the player's library.
     Also creates player's zones.
@@ -159,7 +179,11 @@ def _create_deck_entities(graph: GameGraph, player: Entity, decklist: List[int])
     graph.add_relationship(player, graveyard, id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
     graph.add_relationship(player, battlefield, id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
 
-    for card_type_id in decklist:
+    working_deck = list(decklist)
+    if shuffle:
+        random.shuffle(working_deck)
+
+    for card_type_id in working_deck:
         card = graph.add_entity(card_type_id)
         graph.add_relationship(player, card, id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
         graph.add_relationship(card, library, id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))

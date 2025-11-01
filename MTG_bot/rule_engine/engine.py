@@ -6,13 +6,29 @@ from typing import List, Union, Optional
 from .game_graph import GameGraph, Entity
 from . import card_database
 from .handlers import mana_handlers, combat_handlers, keyword_handlers
-from .actions import PlayLandAction, CastSpellAction, ActivateManaAbilityAction, DeclareAttackerAction, DeclareBlockerAction, PassTurnAction
+from .actions import (
+    PlayLandAction,
+    CastSpellAction,
+    ActivateManaAbilityAction,
+    DeclareAttackerAction,
+    DeclareBlockerAction,
+    PassPriorityAction,
+    PassTurnAction,
+)
 from MTG_bot.utils.logger import setup_logger
 from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
 from MTG_bot import config
 
 # A type alias for any possible game action
-AnyAction = Union[PlayLandAction, CastSpellAction, ActivateManaAbilityAction, DeclareAttackerAction, DeclareBlockerAction, PassTurnAction]
+AnyAction = Union[
+    PlayLandAction,
+    CastSpellAction,
+    ActivateManaAbilityAction,
+    DeclareAttackerAction,
+    DeclareBlockerAction,
+    PassPriorityAction,
+    PassTurnAction,
+]
 
 logger = setup_logger(__name__)
 
@@ -23,15 +39,52 @@ class Engine:
     - Determining all legal moves for the current player.
     - Executing a chosen move and updating the game state.
     """
-    def __init__(self, graph: GameGraph):
+    def __init__(self, graph: GameGraph, manual_mode: bool = False):
         self.graph = graph
         self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
+        self.manual_mode = manual_mode
         logger.info("Engine initialized.")
+
+    def _get_card_display_name(self, card: Entity) -> str:
+        """Returns a readable name for a card entity."""
+        if not card:
+            return "Unknown Card"
+        name = card.properties.get("name")
+        if name:
+            return name
+        card_data = card_database.card_data_loader.get_card_data_by_id(card.type_id)
+        if card_data and card_data.get("name"):
+            return card_data["name"]
+        mapped_name = self.id_mapper.get_name(card.type_id, "cards")
+        if mapped_name:
+            return mapped_name
+        return str(card.type_id)
+
+    def _prompt_cards_to_bottom(self, cards: List[Entity], count: int) -> List[Entity]:
+        """Interactive selection for manual mode mulligans."""
+        while True:
+            print(f"\nChoose {count} card{'s' if count != 1 else ''} to place on the bottom of your library:")
+            for idx, card in enumerate(cards, start=1):
+                print(f"  {idx}. {self._get_card_display_name(card)}")
+            prompt = f"Enter {count} card number{'s' if count != 1 else ''} to bottom (space-separated): "
+            choice = input(prompt).strip()
+            try:
+                indices = sorted({int(token) for token in choice.split()})
+            except ValueError:
+                print("Invalid input. Please enter numeric choices.")
+                continue
+            if len(indices) != count:
+                print(f"Please select exactly {count} unique card{'s' if count != 1 else ''}.")
+                continue
+            if any(idx < 1 or idx > len(cards) for idx in indices):
+                print("Selection out of range. Try again.")
+                continue
+            return [cards[idx - 1] for idx in indices]
 
     def _can_pay_cost(self, mana_pool: dict, cost: dict) -> bool:
         """Checks if a player's mana pool can pay a given cost."""
         temp_pool = mana_pool.copy()
-        
+
         for mana_type, amount in cost.items():
             if mana_type == self.id_mapper.get_id_by_name("Generic Mana", "game_vocabulary"):
                 continue
@@ -105,6 +158,10 @@ class Engine:
         except Exception as e:
             logger.error(f"Error calculating legal moves: {e}", exc_info=True)
 
+        if self.manual_mode:
+            legal_moves.append(PassPriorityAction(player_id=active_player.instance_id))
+            legal_moves.append(PassTurnAction(player_id=active_player.instance_id))
+
         logger.debug(f"Total legal moves found: {len(legal_moves)}")
         return legal_moves
 
@@ -166,19 +223,22 @@ class Engine:
                 self.graph.add_relationship(blocker, attacker, self.id_mapper.get_id_by_name("Blocking", "game_vocabulary"))
                 logger.info(f"{self.graph.entities[move.player_id].properties.get('name')} declared {blocker.properties.get('name')} blocking {attacker.properties.get('name')}.")
 
+            elif isinstance(move, PassPriorityAction):
+                logger.info(f"{self.graph.entities[move.player_id].properties.get('name')} passed priority.")
+                self.progress_phase_and_step()
+
             elif isinstance(move, PassTurnAction):
-                self.progress_phase_and_step(force_next_phase=True) # Force progression to next phase/turn
+                self.end_turn(move.player_id)
 
         except Exception as e:
             logger.error(f"Error executing move {move}: {e}", exc_info=True)
         
-        # After any move, attempt to progress the game state (e.g., pass priority, advance step)
-        # unless the move itself already handled progression (like PassTurnAction)
-        if not isinstance(move, PassTurnAction):
+        # Automatically progress the state only in non-manual modes.
+        if not self.manual_mode and not isinstance(move, (PassPriorityAction, PassTurnAction)):
             self.progress_phase_and_step()
 
     def mulligan(self, player_id: uuid.UUID):
-        """Performs a mulligan for a player."""
+        """Performs a London mulligan for a player."""
         player = self.graph.entities[player_id]
         logger.info(f"{player.properties.get('name')} is taking a mulligan.")
 
@@ -196,13 +256,31 @@ class Engine:
         for card in cards_in_hand:
             self.graph._move_card_to_zone(card, library_zone)
 
-        # Shuffle library
+        # Shuffle library and rebuild order
         library_cards = [self.graph.entities[r.source] for r in self.graph.get_relationships(target=library_zone, rel_type=self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))]
         random.shuffle(library_cards)
+        self.graph._set_zone_order(library_zone, library_cards)
 
-        # Decrement hand size and draw new hand
-        player.properties['hand_size'] -= 1
-        self.graph.draw_hand(player_id, player.properties['hand_size'])
+        # Track mulligans taken
+        mulligans_taken = player.properties.get('mulligans_taken', 0) + 1
+        player.properties['mulligans_taken'] = mulligans_taken
+
+        # Draw up to the default hand size (London mulligan)
+        default_hand_size = player.properties.get('hand_size', 7)
+        self.graph.draw_hand(player_id, default_hand_size)
+
+        # Put cards on the bottom equal to mulligans taken
+        cards_in_new_hand = [self.graph.entities[r.source] for r in self.graph.get_relationships(target=hand_zone, rel_type=self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))]
+        bottom_count = min(mulligans_taken, len(cards_in_new_hand))
+        if bottom_count > 0:
+            if self.manual_mode:
+                selected_cards = self._prompt_cards_to_bottom(cards_in_new_hand, bottom_count)
+            else:
+                selected_cards = random.sample(cards_in_new_hand, bottom_count)
+
+            for card in selected_cards:
+                self.graph._move_card_to_zone(card, library_zone, place_on_top=False)
+                logger.info(f"{player.properties.get('name')} bottomed {self._get_card_display_name(card)} due to mulligan.")
 
     def _handle_step_effects(self):
         """Processes automatic state changes at the end of a step."""
@@ -352,9 +430,18 @@ class Engine:
     def end_turn(self, player_id: uuid.UUID):
         """Ends the current player's turn and prepares for the next."""
         logger.info(f"Player {self.graph.entities[player_id].properties.get('name')} ending turn {self.graph.turn_number}.")
-        # Force progression to the next phase, which will eventually lead to the next player's turn
-        self.progress_phase_and_step(force_next_phase=True)
-        logger.info(f"Turn ended. Game state progressed to next turn's beginning phase.")
+        starting_player = self.graph.active_player_id
+
+        # Continue advancing phases until the active player changes, signaling the next turn.
+        safety_counter = 0
+        while self.graph.active_player_id == starting_player and safety_counter < 20:
+            self.progress_phase_and_step(force_next_phase=True)
+            safety_counter += 1
+
+        if safety_counter >= 20:
+            logger.warning("End turn loop exceeded expected iterations; check phase progression logic.")
+        else:
+            logger.info("Turn ended. Game state progressed to the next player's turn.")
 
     def _check_win_loss_conditions(self) -> (bool, Optional[uuid.UUID]):
         """Checks if any player has won or lost the game."""
@@ -376,4 +463,3 @@ class Engine:
             else:
                 return -1.0 # Loss
         return 0.0 # Game not over
-

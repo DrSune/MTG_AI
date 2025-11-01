@@ -6,6 +6,7 @@ from typing import Dict, Any, List, Optional
 
 from MTG_bot import config
 from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
+from MTG_bot.utils.logger import setup_logger
 
 class CardDataLoader:
     """
@@ -17,6 +18,7 @@ class CardDataLoader:
         self.card_name_to_id: Dict[str, int] = {}
         self.card_id_to_data: Dict[int, Dict[str, Any]] = {}
         self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
+        self.logger = setup_logger(__name__)
         self._load_data()
 
     def _get_id_from_game_vocabulary(self, name: str) -> Optional[int]:
@@ -37,7 +39,7 @@ class CardDataLoader:
         return max_id if max_id else 0
 
     def _load_data(self):
-        print(f"--- CardDataLoader: Loading data from {self.mtgjson_path} ---")
+        self.logger.info(f"Loading card data from {self.mtgjson_path}")
         if not os.path.exists(self.mtgjson_path):
             raise FileNotFoundError(f"MTGJSON file not found at: {self.mtgjson_path}")
 
@@ -45,7 +47,7 @@ class CardDataLoader:
             raw_data = json.load(f)
         
         cards_in_m21 = raw_data.get("data", {}).get("cards", [])
-        print(f"Cards in M21.json (first 5): {cards_in_m21[:5]}")
+        self.logger.debug(f"Loaded {len(cards_in_m21)} cards from MTGJSON source.")
 
         current_card_id_counter = self._get_max_card_id_from_db() + 1 # Start custom IDs after existing ones
 

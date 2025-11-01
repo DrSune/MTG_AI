@@ -24,7 +24,7 @@ def setup_logger(name: str) -> logging.Logger:
 
         # Console handler (optional, for immediate feedback)
         console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO) # Only WARNING and above to console
+        console_handler.setLevel(logging.WARNING)  # Suppress info/debug chatter in the terminal
         console_formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
         console_handler.setFormatter(console_formatter)
         logger.addHandler(console_handler)

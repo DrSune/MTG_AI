@@ -48,19 +48,50 @@ class GameGraph:
         self.players: List[uuid.UUID] = []
         logger.info("GameGraph initialized.")
 
+    def _get_entity_display_name(self, entity: Entity) -> str:
+        """Returns a readable name for an entity, preferring card or player names."""
+        if not entity:
+            return "Unknown"
+        name = entity.properties.get('name')
+        if name:
+            return name
+        card_data = card_database.card_data_loader.get_card_data_by_id(entity.type_id)
+        card_name = card_data.get('name') if card_data else None
+        if card_name:
+            return card_name
+        vocab_name = self.id_mapper.get_name(entity.type_id, "game_vocabulary")
+        if vocab_name:
+            return vocab_name
+        db_card_name = self.id_mapper.get_name(entity.type_id, "cards")
+        if db_card_name:
+            return db_card_name
+        return str(entity.type_id)
+
+    def _set_zone_order(self, zone_entity: Entity, cards_in_order: List[Entity]):
+        """Rebuilds the zone's ordering to match the provided sequence."""
+        zone_rel_type = self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary")
+        # Remove existing zone membership relationships for this zone
+        self.relationships = [
+            r for r in self.relationships
+            if not (r.target == zone_entity.instance_id and r.type_id == zone_rel_type)
+        ]
+        # Re-add relationships following the desired order (earlier entries = bottom of library)
+        for card_entity in cards_in_order:
+            rel = Relationship(card_entity.instance_id, zone_entity.instance_id, zone_rel_type)
+            self.relationships.append(rel)
+
     def add_entity(self, entity_type_id: int) -> Entity:
         try:
             entity = Entity(entity_type_id)
-            # If the entity is a card, load its properties from the CardDataLoader
-            if entity_type_id >= self.id_mapper.get_id_by_name("Forest", "cards"): # Assuming all card IDs are >= ID_CARD_FOREST
-                card_data = card_database.card_data_loader.get_card_data_by_id(entity_type_id)
-                if card_data:
-                    entity.properties.update(card_data)
-                    # Initialize dynamic properties for cards on battlefield
-                    entity.properties['tapped'] = False
-                    entity.properties['damage_taken'] = 0
-                    entity.properties['is_attacking'] = False
-                    entity.properties['has_summoning_sickness'] = True # Set to True initially
+            # If the entity corresponds to a card, hydrate its static data.
+            card_data = card_database.card_data_loader.get_card_data_by_id(entity_type_id)
+            if card_data:
+                entity.properties.update(card_data)
+                # Initialize dynamic battlefield state flags for permanents.
+                entity.properties.setdefault('tapped', False)
+                entity.properties.setdefault('damage_taken', 0)
+                entity.properties.setdefault('is_attacking', False)
+                entity.properties.setdefault('has_summoning_sickness', True)
 
             self.entities[entity.instance_id] = entity
             logger.debug(f"Added entity {entity.instance_id} (Type: {entity_type_id}) to graph.")
@@ -95,14 +126,22 @@ class GameGraph:
             logger.error(f"Error getting relationships: {e}", exc_info=True)
             raise
 
-    def _move_card_to_zone(self, card: Entity, target_zone: Entity):
+    def _move_card_to_zone(self, card: Entity, target_zone: Entity, place_on_top: bool = True):
         """Moves a card entity to a new zone by updating its ID_REL_IS_IN_ZONE relationship."""
-        logger.debug(f"Moving card {card.properties.get('name', card.type_id)} to zone {target_zone.type_id}.")
+        logger.debug(f"Moving card {self._get_entity_display_name(card)} to zone {self._get_entity_display_name(target_zone)}.")
         try:
             # Remove existing ID_REL_IS_IN_ZONE relationships for the card
-            self.relationships = [r for r in self.relationships if not (r.source == card.instance_id and r.type_id == self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))]
-            # Add new ID_REL_IS_IN_ZONE relationship
-            self.add_relationship(card, target_zone, self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))
+            zone_rel_type = self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary")
+            self.relationships = [
+                r for r in self.relationships
+                if not (r.source == card.instance_id and r.type_id == zone_rel_type)
+            ]
+            # Add new ID_REL_IS_IN_ZONE relationship in the requested position
+            rel = Relationship(card.instance_id, target_zone.instance_id, zone_rel_type)
+            if place_on_top:
+                self.relationships.append(rel)
+            else:
+                self.relationships.insert(0, rel)
             card.properties['entered_zone_turn'] = self.turn_number
         except Exception as e:
             logger.error(f"Error moving card {card.instance_id} to zone {target_zone.instance_id}: {e}", exc_info=True)
@@ -143,7 +182,8 @@ class GameGraph:
 
     def draw_card(self, player: Entity) -> Optional[Entity]:
         """Moves the top card of a player's library to their hand."""
-        logger.info(f"Player {player.properties.get('name')} attempts to draw a card.")
+        player_name = self._get_entity_display_name(player)
+        logger.info(f"{player_name} attempts to draw a card.")
         try:
             # Find player's library and hand zones
             control_rels = self.get_relationships(source=player, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))
@@ -151,7 +191,7 @@ class GameGraph:
             hand_zone = next((self.entities[r.target] for r in control_rels if self.entities[r.target].type_id == self.id_mapper.get_id_by_name("Hand", "game_vocabulary")), None)
 
             if not library_zone or not hand_zone:
-                logger.warning(f"Player {player.properties.get('name')} is missing a library or hand zone. Cannot draw.")
+                logger.warning(f"{player_name} is missing a library or hand zone. Cannot draw.")
                 return None
 
             # Find cards in library
@@ -159,7 +199,7 @@ class GameGraph:
             cards_in_library = [self.entities[r.source] for r in cards_in_library_rels]
 
             if not cards_in_library:
-                logger.info(f"Player {player.properties.get('name')} has no cards left in library. Cannot draw.")
+                logger.info(f"{player_name} has no cards left in library. Cannot draw.")
                 # In a real game, this would trigger a loss condition
                 return None
 
@@ -169,7 +209,8 @@ class GameGraph:
             # Update its zone relationship using the helper method
             self._move_card_to_zone(card_to_draw, hand_zone)
 
-            logger.info(f"Player {player.properties.get('name')} drew {card_to_draw.properties.get('name', card_to_draw.type_id)}.")
+            card_name = self._get_entity_display_name(card_to_draw)
+            logger.info(f"{player_name} drew {card_name}.")
             return card_to_draw
         except Exception as e:
             logger.error(f"Error drawing card for Player {player.properties.get('name', player.instance_id)[:4]}: {e}", exc_info=True)
