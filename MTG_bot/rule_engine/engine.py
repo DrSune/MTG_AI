@@ -331,8 +331,13 @@ class Engine:
         """
         logger.info(f"Attempting to progress phase/step. Current: Phase {self.graph.phase}, Step {self.graph.step}")
         
-        current_phase_index = [self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Pre-Combat Main Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Combat Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Post-Combat Main Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Ending Phase", "game_vocabulary")].index(self.graph.phase)
+        mulligan_phase_id = self.id_mapper.get_id_by_name("Mulligan Phase", "game_vocabulary")
+        phase_order = [pid for pid in [mulligan_phase_id, self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Pre-Combat Main Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Combat Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Post-Combat Main Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Ending Phase", "game_vocabulary")] if pid is not None]
+        current_phase_index = phase_order.index(self.graph.phase)
         current_step_list = {
+            mulligan_phase_id: [
+                self.id_mapper.get_id_by_name("Mulligan Step", "game_vocabulary"),
+            ] if mulligan_phase_id else [],
             self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary"): [
                 self.id_mapper.get_id_by_name("Untap Step", "game_vocabulary"),
                 self.id_mapper.get_id_by_name("Upkeep Step", "game_vocabulary"),
@@ -377,7 +382,7 @@ class Engine:
             logger.info(f"Advanced to next step: {self.graph.step}")
         else:
             # Move to the next phase
-            next_phase_order = [self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Pre-Combat Main Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Combat Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Post-Combat Main Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Ending Phase", "game_vocabulary")]
+            next_phase_order = phase_order
             next_phase_index = (current_phase_index + 1) % len(next_phase_order)
             self.graph.phase = next_phase_order[next_phase_index]
             logger.info(f"Advanced to next phase: {self.graph.phase}")
@@ -397,6 +402,9 @@ class Engine:
 
             # Set the step to the first step of the new phase
             new_phase_steps = {
+                mulligan_phase_id: [
+                    self.id_mapper.get_id_by_name("Mulligan Step", "game_vocabulary"),
+                ] if mulligan_phase_id else [],
                 self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary"): [
                     self.id_mapper.get_id_by_name("Untap Step", "game_vocabulary"),
                     self.id_mapper.get_id_by_name("Upkeep Step", "game_vocabulary"),

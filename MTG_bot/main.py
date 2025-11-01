@@ -264,6 +264,9 @@ def _run_main_logic():
                 break
     print("\n=== Mulligans Complete ===\n")
 
+    graph.phase = id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary") or graph.phase
+    graph.step = id_mapper.get_id_by_name("Untap Step", "game_vocabulary") or graph.step
+
     logger.info("Starting game loop...")
     game_over = False
     while not game_over:

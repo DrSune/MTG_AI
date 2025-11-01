@@ -43,8 +43,10 @@ class GameGraph:
         self.turn_number: int = 1
         self.active_player_id: Optional[uuid.UUID] = None
         self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
-        self.phase: int = self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary") # Start of the game
-        self.step: int = self.id_mapper.get_id_by_name("Untap Step", "game_vocabulary") # Start of the game
+        mulligan_phase_id = self.id_mapper.get_id_by_name("Mulligan Phase", "game_vocabulary")
+        mulligan_step_id = self.id_mapper.get_id_by_name("Mulligan Step", "game_vocabulary")
+        self.phase: int = mulligan_phase_id or self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary")
+        self.step: int = mulligan_step_id or self.id_mapper.get_id_by_name("Untap Step", "game_vocabulary")
         self.players: List[uuid.UUID] = []
         logger.info("GameGraph initialized.")
 
