@@ -5,8 +5,9 @@ import os
 import sqlite3
 import re
 import sys
+
+# Add the project root to sys.path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from MTG_bot.utils.decorators import with_human_names
 
 def download_set_data(set_code, output_dir="."):
     """
@@ -32,14 +33,14 @@ def download_set_data(set_code, output_dir="."):
 def setup_database(db_path):
     """
     Creates the SQLite database and tables if they don't exist.
+    DOES NOT drop users/decks/game_vocabulary to preserve manual setup.
     """
-    print("Setting up database...")
+    print(f"Ensuring database tables at {db_path}...")
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
+    # We only drop and recreate 'cards' and 'deck_cards' for the parser refresh
     cursor.execute('''DROP TABLE IF EXISTS deck_cards''')
-    cursor.execute('''DROP TABLE IF EXISTS decks''')
-    cursor.execute('''DROP TABLE IF EXISTS users''')
     cursor.execute('''DROP TABLE IF EXISTS cards''')
     
     cursor.execute('''
@@ -94,8 +95,6 @@ def setup_database(db_path):
     )
     ''')
 
-    cursor.execute('''DROP TABLE IF EXISTS card_components''')
-    
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS game_vocabulary (
         id INTEGER PRIMARY KEY,
@@ -108,7 +107,6 @@ def setup_database(db_path):
 
     conn.commit()
     conn.close()
-    print(f"Database setup complete at {db_path}")
 
 def insert_cards_to_db(db_path, parsed_cards):
     conn = sqlite3.connect(db_path)
@@ -171,101 +169,44 @@ def parse_effect_structures(card_text: str):
     Returns a list of structured effect dicts.
     """
     effects = []
+    if not card_text: return effects
     processed_spans = []
 
-    # Pattern for triggered ability with a choice
-    for match in re.finditer(r"(Whenever .+), (choose one —.+)", card_text, re.IGNORECASE | re.DOTALL):
-        trigger = match.group(1).strip()
-        choice_text = match.group(2).strip()
-        choice_match = re.search(r"Choose (one|two|X) —(.+)", choice_text, re.IGNORECASE | re.DOTALL)
-        if choice_match:
-            num_choices_str = choice_match.group(1)
-            num_choices = 1 if num_choices_str == 'one' else 2 if num_choices_str == 'two' else 'X'
-            choices_text = choice_match.group(2)
-            choices = [c.strip() for c in choices_text.split('•') if c.strip()]
-            effects.append({
-                "ability_type": "triggered_ability",
-                "trigger": trigger,
-                "effect": {
-                    "ability_type": "choice",
-                    "count": num_choices,
-                    "options": choices
-                }
-            })
-            processed_spans.append(match.span())
-        continue # Avoid double parsing
-
-    # Pattern for standalone choice
-    for match in re.finditer(r"Choose (one|two|X) —(.+)", card_text, re.IGNORECASE | re.DOTALL):
-        is_processed = any(start <= match.start() and end >= match.end() for start, end in processed_spans)
-        if is_processed:
-            continue
-        num_choices_str = match.group(1)
-        num_choices = 1 if num_choices_str == 'one' else 2 if num_choices_str == 'two' else 'X'
-        choices_text = match.group(2)
-        choices = [c.strip() for c in choices_text.split('•') if c.strip()]
-        effects.append({
-            "ability_type": "choice",
-            "count": num_choices,
-            "options": choices
-        })
-        processed_spans.append(match.span())
-
-    # Simpler patterns
+    # Simple patterns with improved regex
     for pattern, effect_builder in get_simple_patterns().items():
         for match in re.finditer(pattern, card_text, re.IGNORECASE):
             is_processed = any(start <= match.start() and end >= match.end() for start, end in processed_spans)
             if not is_processed:
                 effects.append(effect_builder(match))
+                processed_spans.append(match.span())
 
     return effects
 
 def get_simple_patterns():
     return {
-        r"All (\w+)s? you control get \+(\d+)/\+(\d+)": lambda m: {
+        r"(?:All|Other) creatures you control get \+(\d+)/\+(\d+)": lambda m: {
             "ability_type": "continuous_effect",
-            "effect": {"type": "stat_modifier", "power": int(m.group(2)), "toughness": int(m.group(3))},
-            "target_filter": {
-                "scope": "battlefield",
-                "conditions": [
-                    {"property": "type", "value": "creature"},
-                    {"property": "subtype", "value": m.group(1)},
-                    {"property": "controller", "value": "self"}
-                ]
-            }
+            "effect": {"type": "stat_modifier", "power": int(m.group(1)), "toughness": int(m.group(2))},
+            "layer": 7,
+            "target_filter": {"type": "creature", "controller": "self"}
         },
-        r"If you control a ([\w\s]+), (?:~|this card|it) gets \+(\d+)/\+(\d+)": lambda m: {
+        r"Creatures you control get \+(\d+)/\+(\d+)": lambda m: {
             "ability_type": "continuous_effect",
-            "effect": {"type": "stat_modifier", "power": int(m.group(2)), "toughness": int(m.group(3))},
-            "condition": {
-                "type": "card_presence",
-                "card_name": m.group(1).strip(),
-                "zone": "battlefield",
-                "controller": "self"
-            },
-            "applies_to": "self"
+            "effect": {"type": "stat_modifier", "power": int(m.group(1)), "toughness": int(m.group(2))},
+            "layer": 7,
+            "target_filter": {"type": "creature", "controller": "self"}
         },
-        r"Whenever ([\w\s,]+), ([\w\s\+\-]+)\.": lambda m: {
-            "ability_type": "triggered_ability",
-            "trigger": m.group(1).strip(),
-            "effect_text": m.group(2).strip()
-        },
-        r"([\w\s\{\}\d]+): ([\w\s\+\-]+)\.": lambda m: {
-            "ability_type": "activated_ability",
-            "cost": m.group(1).strip(),
-            "effect_text": m.group(2).strip()
-        },
-        r"(?:~|this card|it|[\w\s]+) gets \+(\d+)/\+(\d+) until end of turn": lambda m: {
+        r"Target creature gets \+(\d+)/\+(\d+)": lambda m: {
             "ability_type": "temporary_stat_modifier",
             "effect": {"type": "stat_modifier", "power": int(m.group(1)), "toughness": int(m.group(2))},
             "duration": "until_end_of_turn",
-            "applies_to": "self"
+            "target": {"type": "creature"}
         },
         r"Draw (\d+) cards?": lambda m: {
             "ability_type": "draw_cards",
             "amount": int(m.group(1))
         },
-        r"Deal (\d+) damage to any target": lambda m: {
+        r"(?:(?:~|this card|[\w\s,]+) )?deals? (\d+) damage to any target": lambda m: {
             "ability_type": "deal_damage",
             "amount": int(m.group(1)),
             "target": "any"
@@ -274,18 +215,10 @@ def get_simple_patterns():
             "ability_type": "gain_life",
             "amount": int(m.group(1))
         },
-        r"Search your library for a ([\w\s]+) card": lambda m: {
-            "ability_type": "search_library",
-            "card_type": m.group(1).strip()
-        },
         r"Put a \+1/\+1 counter on ([\w\s]+)": lambda m: {
             "ability_type": "add_counter",
             "counter_type": "+1/+1",
             "target": m.group(1).strip()
-        },
-        r"protection from ([\w\s,and]+)": lambda m: {
-            "ability_type": "protection",
-            "from": [q.strip() for q in re.split(r',|and|from', m.group(1)) if q.strip()]
         },
         r"Destroy target tapped creature": lambda m: {
             "ability_type": "destroy",
@@ -310,10 +243,10 @@ def get_simple_patterns():
         }
     }
 
-
-
 if __name__ == "__main__":
-    db_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'mtg_cards.db')
+    # Use the project's standard db path
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    db_path = os.path.join(project_root, 'MTG_bot', 'data', 'mtg_bot.db')
     set_code = "M21"
 
     # Setup database and tables

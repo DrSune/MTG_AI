@@ -1,0 +1,11 @@
+{
+    "name": "Lethal Combat: Pack Leader",
+    "description": "Opponent at 1 life. Attack with Pack Leader for the win.",
+    "setup": {
+        "p1_battlefield_creatures": [
+            345
+        ],
+        "p2_life": 1
+    },
+    "goal": "p2_life <= 0"
+}

@@ -1,0 +1,11 @@
+{
+    "name": "Lethal Combat: Staunch Shieldmate",
+    "description": "Opponent at 1 life. Attack with Staunch Shieldmate for the win.",
+    "setup": {
+        "p1_battlefield_creatures": [
+            39
+        ],
+        "p2_life": 1
+    },
+    "goal": "p2_life <= 0"
+}

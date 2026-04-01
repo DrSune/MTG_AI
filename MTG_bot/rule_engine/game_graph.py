@@ -6,7 +6,7 @@ The game state is represented as a graph of generic entities and their relations
 
 import uuid
 import random
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union
 
 from . import card_database # Import the entire module to access card_data_loader
 from MTG_bot.utils.logger import setup_logger
@@ -43,12 +43,26 @@ class GameGraph:
         self.turn_number: int = 1
         self.active_player_id: Optional[uuid.UUID] = None
         self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
-        mulligan_phase_id = self.id_mapper.get_id_by_name("Mulligan Phase", "game_vocabulary")
-        mulligan_step_id = self.id_mapper.get_id_by_name("Mulligan Step", "game_vocabulary")
-        self.phase: int = mulligan_phase_id or self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary")
-        self.step: int = mulligan_step_id or self.id_mapper.get_id_by_name("Untap Step", "game_vocabulary")
+        beginning_phase_id = self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary")
+        untap_step_id = self.id_mapper.get_id_by_name("Untap Step", "game_vocabulary")
+        self.phase: int = beginning_phase_id
+        self.step: int = untap_step_id
         self.players: List[uuid.UUID] = []
         logger.info("GameGraph initialized.")
+
+    def initialize_game(self, decklist1: List[int], decklist2: List[int], game_mode: str = "Standard", shuffle: bool = True, player1_starting_hand_ids: Optional[List[int]] = None, player2_starting_hand_ids: Optional[List[int]] = None):
+        """Delegates game initialization to the game_initializer module."""
+        from .game_initializer import initialize_game_state
+        new_graph = initialize_game_state(decklist1, decklist2, game_mode, shuffle, player1_starting_hand_ids, player2_starting_hand_ids)
+        # Update self with the new graph's state
+        self.entities = new_graph.entities
+        self.relationships = new_graph.relationships
+        self.turn_number = new_graph.turn_number
+        self.active_player_id = new_graph.active_player_id
+        self.phase = new_graph.phase
+        self.step = new_graph.step
+        self.players = new_graph.players
+        return self
 
     def _get_entity_display_name(self, entity: Entity) -> str:
         """Returns a readable name for an entity, preferring card or player names."""
@@ -111,15 +125,18 @@ class GameGraph:
             logger.error(f"Error adding relationship {source.instance_id} -> {target.instance_id} (Type: {rel_type_id}): {e}", exc_info=True)
             raise
 
-    def get_relationships(self, source: Optional[Entity] = None, target: Optional[Entity] = None, rel_type: Optional[int] = None) -> List[Relationship]:
+    def get_relationships(self, source: Optional[Union[Entity, uuid.UUID]] = None, target: Optional[Union[Entity, uuid.UUID]] = None, rel_type: Optional[int] = None) -> List[Relationship]:
         """Finds relationships in the graph based on source, target, or type."""
-        logger.debug(f"Querying relationships: source={source.instance_id if source else 'None'}, target={target.instance_id if target else 'None'}, rel_type={rel_type}")
+        source_id = source.instance_id if isinstance(source, Entity) else source
+        target_id = target.instance_id if isinstance(target, Entity) else target
+        
+        logger.debug(f"Querying relationships: source={source_id if source_id else 'None'}, target={target_id if target_id else 'None'}, rel_type={rel_type}")
         try:
             results = self.relationships
-            if source:
-                results = [r for r in results if r.source == source.instance_id]
-            if target:
-                results = [r for r in results if r.target == target.instance_id]
+            if source_id:
+                results = [r for r in results if r.source == source_id]
+            if target_id:
+                results = [r for r in results if r.target == target_id]
             if rel_type:
                 results = [r for r in results if r.type_id == rel_type]
             logger.debug(f"Found {len(results)} relationships.")
@@ -217,3 +234,33 @@ class GameGraph:
         except Exception as e:
             logger.error(f"Error drawing card for Player {player.properties.get('name', player.instance_id)[:4]}: {e}", exc_info=True)
             return None
+
+    def get_controller_id(self, entity: Entity) -> Optional[uuid.UUID]:
+        """Finds the instance_id of the player who controls the given entity."""
+        rel_type = self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary")
+        # Direct control: card -> player
+        rels = self.get_relationships(source=entity, rel_type=rel_type)
+        for r in rels:
+            target = self.entities.get(r.target)
+            if target and target.type_id == self.id_mapper.get_id_by_name("Player", "game_vocabulary"):
+                return target.instance_id
+        
+        # Indirect control: card -> zone -> player
+        zone_rel_type = self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary")
+        zone_rels = self.get_relationships(source=entity, rel_type=zone_rel_type)
+        for zr in zone_rels:
+            zone = self.entities.get(zr.target)
+            if zone:
+                # Find who controls this zone
+                p_rels = self.get_relationships(target=zone, rel_type=rel_type)
+                for pr in p_rels:
+                    player = self.entities.get(pr.source)
+                    if player and player.type_id == self.id_mapper.get_id_by_name("Player", "game_vocabulary"):
+                        return player.instance_id
+        return None
+
+    def get_controller(self, entity: Entity) -> Optional[Entity]:
+        """Returns the player entity who controls the given entity."""
+        controller_id = self.get_controller_id(entity)
+        return self.entities.get(controller_id) if controller_id else None
+

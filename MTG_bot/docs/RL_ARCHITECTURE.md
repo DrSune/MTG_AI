@@ -87,6 +87,34 @@
 - Global summary tokens
 - Belief vector `b_t` (distilled opponent state)
 - Optional: short history tokens for high-impact recent actions
+- `rethink_counter`: An integer token tracking the depth of current reasoning.
+
+### The "System 2" Recursive Reasoning Mechanism
+The model uses **Recursive Transformer Reasoning** to simulate deeper thought without the exponential cost of game-tree search.
+
+#### 1. Frozen Board Cross-Attention
+*   **Initial Pass:** The transformer encoder processes the raw board state (entities, zones, hand) into a fixed tensor: `Z_board`. This embedding is **frozen** for the rest of the phase.
+*   **Reasoning Passes:** In each iteration ($i$), the model generates a "Reasoning Latent" `Z_reason_i`. 
+*   **Connection:** During every reasoning pass, the model uses **Cross-Attention** to "look back" at the frozen `Z_board`. This ensures every "thought" is grounded in the factual state without re-encoding the raw data.
+
+#### 2. Iterative Memory & Self-Analysis (The Feedback Loop)
+*   **Latent Memory:** The output hidden state of reasoning pass $i$ is fed back into pass $i+1$ as a set of "Memory Tokens."
+*   **Action Memory:** The **proposed action sequence** from pass $i$ is embedded and fed back as input to pass $i+1$.
+*   **Grounding & Critique:** This allows the model to "critique" its own previous strategy. Pass 2 effectively sees: *"The board state is X (from Frozen Cross-Attention), and my previous plan was Y (from Action Memory). Upon further reflection, Y is risky because of Z."*
+
+#### 3. Autonomous Rethink Gating
+*   **The Rethink Token:** The action space includes a `<rethink>` token.
+*   **Learning Duration:** During RL training, each rethink pass incurs a small "compute penalty" (negative reward). The model will naturally learn the **Optimal Stopping Point**—rethinking only when the expected value gain ($ \Delta V $) from deeper thought outweighs the compute cost.
+
+#### 4. Final Output Handling
+*   **Policy & Value Heads:** Only the **latest iteration's** hidden state is passed to the final Policy and Value heads. This represents the most "refined" version of the model's intent.
+*   **Opponent Model:** The Opponent Predictor receives the final distilled belief vector ($b_t$) generated after all reasoning steps are complete.
+
+### Dynamic Action Sequences (Global Phase Optimization)
+MTG allows multiple actions per phase. To avoid local optima:
+*   The model predicts a sequence of actions.
+*   **The Value Function** only provides a reward signal at the *end* of the phase sequence (when `PassPriority` is chosen).
+*   This forces the model to evaluate the "Global State Change" of an entire turn's worth of sequencing rather than individual taps or casts.
 
 **Processing:**
 - Can use Transformer / attention-based encoder over entity tokens + global tokens
@@ -99,7 +127,34 @@
 
 ---
 
-## 5. Handling Multiple Opponent Scenarios
+## 5. Teacher RL (Co-Evolutionary Curriculum)
+
+**Objective:** Automatically generate a diverse set of deck matchups and scenarios to maximize the Student's learning rate and force generalization.
+
+### 1. The Teacher's Role
+The Teacher is a separate RL agent whose "game" is to construct matchups. It does not play the matches; it designs them.
+*   **Action Space (Intelligent Sequential Selection):** The Teacher builds decks card-by-card using a **Transformer-based Matchup Analyzer**.
+    *   For each slot, the model generates a **Query Vector** based on the current deck's synergy and the opponent's strategy.
+    *   It performs a **Vector Search** against the card embedding pool to find the optimal card to add.
+*   **Input:** The Student's performance on the previous matchup (e.g., win rate, "confidence" gap, or reasoning depth used).
+*   **Reward:** The Teacher receives a reward based on the **Student's Learning Progress**. 
+    *   **High Reward:** Matches where the Student was initially wrong but "learned" (improved value accuracy) or matches that were closely contested (High Entropy).
+    *   **Low Reward:** Matches that were "stomps" (Student wins/loses 100% easily) or impossible counter-matchups.
+
+### 2. Strategy: Breaking the Meta-Cycle
+To prevent the Student and Teacher from getting stuck in A > B > C > A "rock-paper-scissors" loops:
+*   **Matchup History:** The Teacher maintains a batch-wise history of recent deck matchups and results.
+*   **Diversity Bonus:** The Teacher is incentivized to explore "niche" decks or unusual card combinations that the Student hasn't seen recently.
+*   **Generalization Pressure:** By strategically rotating decks, the Teacher forces the Student's `BoardEncoder` to learn universal MTG principles (e.g., "mana advantage," "card parity") rather than just memorizing specific card interactions.
+
+### 3. Validation & Legal States
+To ensure the Teacher doesn't create "impossible" scenarios:
+*   **Engine Verification:** Every matchup or board state proposed by the Teacher is passed through the `Rule Engine`'s validation logic (e.g., deck size, mana constraints, legal card combinations).
+*   **Playability Filter:** Only "legal" states are used for training. If the Teacher proposes an illegal state, it receives a penalty.
+
+---
+
+## 6. Handling Multiple Opponent Scenarios
 
 **Objective:** Take into account that multiple plausible opponent states may exist.
 
@@ -117,7 +172,7 @@
 
 ---
 
-## 6. Role of History vs. Belief Vector
+## 7. Role of History vs. Belief Vector
 
 | Item | Purpose | Used by | Integration |
 |------|--------|---------|------------|
@@ -129,7 +184,7 @@
 
 ---
 
-## 7. Optional Efficiency / Sparsity Measures
+## 8. Optional Efficiency / Sparsity Measures
 
 - **Zone-local dense attention**: dense attention within battlefield, hand, or graveyard zones; inter-zone via summary tokens.
 - **Top-K attention / learned focus**: attend only to most relevant entities or scenarios.
@@ -139,7 +194,7 @@
 
 ---
 
-## 8. Data Flow Summary
+## 9. Data Flow Summary
 
 1. **DB → Component embeddings**
    - Each card parsed into component-wise vector
@@ -180,4 +235,3 @@ This structure ensures:
 - Multiple opponent scenarios can be considered strategically.
 - Efficient computation without embedding raw history into every entity token.
 - Strong integration of opponent modeling with policy/value decision-making.
-

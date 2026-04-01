@@ -10,61 +10,82 @@ from ..rule_engine.game_state import GameState # Keep for now if evaluation stil
 from .evaluation import MultiHeadedEvaluator
 from .opponent_model import OpponentModel
 from .state_converter import StateConverter
+from .model import System2Transformer
+from .action_mapper import ActionSpaceMapper
 
 class DecisionMaker:
-    """The "Player" agent that chooses the best action."""
+    """The 'Player' agent that chooses the best action using System 2 reasoning."""
     def __init__(self, player_id: int):
         self.player_id = player_id
-        self.evaluator = MultiHeadedEvaluator(embeddings={}) # Load embeddings here
-        self.opponent_model = OpponentModel()
         self.state_converter = StateConverter()
+        self.action_mapper = ActionSpaceMapper()
+        
+        # Initialize the System 2 Model
+        # These parameters should ideally come from a config file
+        self.model = System2Transformer(
+            vocab_size=10000, 
+            embedding_dim=128, 
+            component_dim=10, 
+            nhead=8, 
+            num_layers=6, 
+            belief_dim=64, 
+            max_actions=10
+        )
 
     def choose_best_move(self, game_graph: GameGraph, legal_moves: List) -> any:
         """
-        Orchestrates the decision-making process.
-
-        1. Converts the current GameGraph into an observation.
-        2. Evaluates the current state.
-        3. Prunes the list of legal moves based on heuristics.
-        4. Runs a search algorithm (like MCTS) on the pruned list.
-        5. Returns the best move found by the search.
+        Orchestrates the decision-making process using recursive reasoning.
         """
         if not legal_moves:
             return None
 
-        # 1. Convert GameGraph to observation
-        observation = self.state_converter.convert_graph_to_observation(game_graph)
-        # logger.debug(f"Current observation: {observation}") # Uncomment for debugging
+        # 1. Convert GameGraph to tokens for the Transformer
+        tokens = self.state_converter.convert_graph_to_tokens(game_graph)
+        
+        # 2. Recursive Reasoning Loop (Rethink)
+        # We start with a base number of passes, but the model can trigger more
+        max_rethink_attempts = 3
+        current_pass = 0
+        
+        state_memory = None
+        prev_actions = None
+        
+        while current_pass < max_rethink_attempts:
+            # Forward pass through the model
+            output = self.model(
+                tokens["atomic_ids"], 
+                tokens["component_features"],
+                num_passes=2, # Each rethink adds 2 reasoning passes
+                prev_memory=state_memory,
+                prev_actions=prev_actions
+            )
+            
+            rethink_prob = output["rethink_prob"].item()
+            state_memory = output["state_memory"]
+            prev_actions = output["action_tokens"]
+            
+            print(f"DecisionMaker: Pass {current_pass}, Rethink Probability: {rethink_prob:.4f}")
+            
+            # For now, we simulate the rethink decision
+            if rethink_prob < 0.5 or current_pass == max_rethink_attempts - 1:
+                # Sequence mapped:
+                # mapped_action = self.action_mapper.tokens_to_action(prev_actions[0].tolist(), game_graph)
+                break
+                
+            current_pass += 1
 
-        # 2. Assess the current situation (evaluator needs to be updated to use GameGraph)
-        assessment = self.evaluator.assess_game_potential(game_graph) # Pass GameGraph
-
-        # 3. Check for special strategic conditions
-        if assessment["hail_mary_needed"] == 1.0:
-            # In a desperate state, change the goal:
-            # Find the move that maximizes the chance of drawing a specific out.
-            print("DecisionMaker: Hail Mary mode activated!")
-            # This would involve a different kind of search.
-            pass
-
-        # 4. Prune moves and run search (e.g., MCTS)
-        # For now, we'll just use a simple evaluation of each move.
+        # 3. For the skeleton, we still use the heuristic evaluation to pick from legal_moves
+        # until the Action Decoder is fully trained to output valid sequences mapped by ActionSpaceMapper.
         best_move = None
         best_score = -float('inf')
-
+        
+        evaluator = MultiHeadedEvaluator(embeddings={})
         for move in legal_moves:
-            # For each move, we would conceptually:
-            # a. Create a hypothetical future_state by applying the move.
-            # b. Score that future_state using the evaluator.
-            # c. The score would be a combination of synergy, impact, etc.
-            move_score = self.evaluator.impact_scorer.score_play(move, game_graph) # Pass GameGraph
-
+            move_score = evaluator.impact_scorer.score_play(move, game_graph)
             if move_score > best_score:
                 best_score = move_score
                 best_move = move
         
-        # A real implementation would use a much more robust search algorithm here.
-        # If no move seems good, it might default to the first legal move.
         if best_move is None:
             best_move = legal_moves[0]
 

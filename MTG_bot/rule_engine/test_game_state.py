@@ -19,7 +19,7 @@ class TestGameState(unittest.TestCase):
         self.decklist1 = [
             card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Forest"),
             card_data_loader.get_card_id_by_name("Island"), card_data_loader.get_card_id_by_name("Island"), card_data_loader.get_card_id_by_name("Island"), card_data_loader.get_card_id_by_name("Island"),
-            card_data_loader.get_card_id_by_name("Grizzly Bears"), card_data_loader.get_card_id_by_name("Grizzly Bears")
+            card_data_loader.get_card_id_by_name("Snarespinner"), card_data_loader.get_card_id_by_name("Snarespinner")
         ] * 2 # 40 cards total
         self.decklist2 = [
             card_data_loader.get_card_id_by_name("Mountain"), card_data_loader.get_card_id_by_name("Mountain"), card_data_loader.get_card_id_by_name("Mountain"), card_data_loader.get_card_id_by_name("Mountain"),

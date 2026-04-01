@@ -10,6 +10,7 @@ from MTG_bot import config
 
 logger = setup_logger(__name__)
 id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
+
 def get_legal_attackers(graph: GameGraph, player_id: str) -> list:
     """Determines which creatures a player can legally declare as attackers."""
     player = graph.entities[player_id]
@@ -29,8 +30,12 @@ def get_legal_attackers(graph: GameGraph, player_id: str) -> list:
 
         for creature in creatures:
             # Check for summoning sickness
+            # The rule is: a creature can't attack unless it has been under its controller's control since the beginning of their most recent turn.
+            # Simplified for now: if it entered on an earlier turn OR was explicitly marked as not having summoning sickness.
+            is_summoning_sick = creature.properties.get('has_summoning_sickness', True)
             turn_entered = creature.properties.get('turn_entered', graph.turn_number)
-            is_summoning_sick = turn_entered >= graph.turn_number
+            if turn_entered < graph.turn_number:
+                is_summoning_sick = False
 
             if not creature.properties.get('tapped', False) and not is_summoning_sick:
                 legal_attackers.append(creature)
@@ -57,6 +62,7 @@ def get_legal_blockers(graph: GameGraph, player_id: str) -> list:
             logger.debug("No battlefield found for player, no legal blockers.")
             return []
 
+        battlefield_cards = [graph.entities[r.source] for r in graph.get_relationships(target=battlefield_zone_entity, rel_type=id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))]
         creatures = [card for card in battlefield_cards if get_creature_stats(card.type_id)]
 
         for creature in creatures:
@@ -76,8 +82,11 @@ def declare_attacker(graph: GameGraph, attacker):
     """Declares a creature as an attacker, tapping it if it doesn't have vigilance."""
     logger.info(f"Declaring attacker: {attacker.properties.get('name', attacker.type_id)} ({attacker.type_id})")
     try:
-        attacker_abilities = attacker.properties.get('abilities', [])
-        if id_mapper.get_id_by_name("Vigilance", "game_vocabulary") not in attacker_abilities:
+        attacker.properties['is_attacking'] = True
+        abilities_dict = attacker.properties.get('abilities', {})
+        attacker_abilities = abilities_dict.get("keywords", [])
+        vigilance_id = id_mapper.get_id_by_name("Vigilance", "game_vocabulary")
+        if vigilance_id not in attacker_abilities:
             attacker.properties['tapped'] = True
             logger.debug(f"{attacker.properties.get('name')} tapped due to attacking (no vigilance).")
         else:
@@ -97,10 +106,12 @@ def assign_combat_damage(graph: GameGraph):
         for attacker in attacking_creatures:
             blockers = [graph.entities[r.source] for r in graph.get_relationships(target=attacker, rel_type=id_mapper.get_id_by_name("Blocking", "game_vocabulary"))]
             attacker_power = attacker.properties.get('effective_power', get_creature_stats(attacker.type_id).get('power', 0))
-            attacker_abilities = attacker.properties.get('abilities', [])
-            attacker_controller = next((graph.entities[r.source] for r in graph.get_relationships(target=attacker, rel_type=id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))), None)
+            abilities_dict = attacker.properties.get('abilities', {})
+            attacker_abilities = abilities_dict.get("keywords", [])
+            attacker_controller = next((graph.entities[r.target] for r in graph.get_relationships(source=attacker, rel_type=id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))), None)
 
             if not blockers:
+
                 # Unblocked: Deal damage to defending player
                 if defending_player:
                     defending_player.properties['life_total'] -= attacker_power

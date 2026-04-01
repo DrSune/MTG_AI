@@ -3,62 +3,122 @@ This file defines the Layer System, which is responsible for applying continuous
 in the correct order according to Magic: The Gathering rules.
 """
 
-from typing import Dict, Any
-from .game_graph import GameGraph
-from .rulebook import Rulebook
-from .card_database import CREATURE_STATS, CARD_ABILITIES, ABILITY_EFFECT_PARAMS
+from typing import Dict, Any, List
+from .game_graph import GameGraph, Entity
+from .effect_manager import EffectManager, ContinuousEffect
+from .target_filtering import TargetFilter
 from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
 from MTG_bot import config
 
 class LayerSystem:
     """Applies continuous effects in the correct order (layers)."""
-    def __init__(self, rulebook: Rulebook):
-        self.rulebook = rulebook
+    def __init__(self, effect_manager: EffectManager):
+        self.effect_manager = effect_manager
         self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
 
     def apply_all_layers(self, graph: GameGraph):
         """Applies all continuous effects to the game state in layer order."""
-        # For now, we only implement Layer 7 (Power/Toughness changing effects)
-        self._apply_layer_7(graph)
+        # 0. Hydrate static effects from permanents on battlefield
+        self._hydrate_static_effects(graph)
 
-    def _apply_layer_7(self, graph: GameGraph):
-        """Applies power/toughness changing effects (Layer 7)."""
-        # print("Applying layer system...")
-        all_creatures = [c for c in graph.entities.values() if c.type_id in CREATURE_STATS.keys()]
+        # Reset stats first
+        self._reset_to_base_characteristics(graph)
+        
+        # Layer 1: Copy effects
+        self._apply_layer(graph, 1)
+        # Layer 2: Control-changing effects
+        self._apply_layer(graph, 2)
+        # Layer 3: Text-changing effects
+        self._apply_layer(graph, 3)
+        # Layer 4: Type-changing effects
+        self._apply_layer(graph, 4)
+        # Layer 5: Color-changing effects
+        self._apply_layer(graph, 5)
+        # Layer 6: Ability-granting/removing effects
+        self._apply_layer(graph, 6)
+        # Layer 7: Power/Toughness changing effects
+        self._apply_layer(graph, 7)
 
-        for creature in all_creatures:
-            # Reset effective P/T to base stats
-            base_stats = CREATURE_STATS.get(creature.type_id, {'power': 0, 'toughness': 0})
-            creature.properties['effective_power'] = base_stats['power']
-            creature.properties['effective_toughness'] = base_stats['toughness']
-            creature.properties['damage_taken'] = 0 # Reset damage for new P/T calculation
+    def _hydrate_static_effects(self, graph: GameGraph):
+        """
+        Scans the battlefield for permanents with static abilities 
+        and adds them to the effect manager if they aren't already there.
+        For now, we remove all 'as_long_as_on_battlefield' and re-add them.
+        """
+        self.effect_manager.expire_effects("as_long_as_on_battlefield")
+        
+        battlefield_zone_id = self.id_mapper.get_id_by_name("Battlefield", "game_vocabulary")
+        is_in_zone_rel_id = self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary")
+        
+        # Find all permanents on battlefield
+        for entity in graph.entities.values():
+            # Check if entity is in a battlefield zone
+            zone_rels = graph.get_relationships(source=entity, rel_type=is_in_zone_rel_id)
+            on_battlefield = False
+            for r in zone_rels:
+                zone = graph.entities.get(r.target)
+                if zone and zone.type_id == battlefield_zone_id:
+                    on_battlefield = True
+                    break
+            
+            if on_battlefield:
+                # Check for static effects in properties
+                effects = entity.properties.get("effects", [])
+                for eff_data in effects:
+                    if eff_data.get("ability_type") == "continuous_effect":
+                        new_effect = ContinuousEffect(
+                            source_id=entity.instance_id,
+                            effect_data=eff_data.get("effect"),
+                            duration="as_long_as_on_battlefield",
+                            layer=eff_data.get("layer", 7),
+                            target_filter=eff_data.get("target_filter")
+                        )
+                        self.effect_manager.add_effect(new_effect)
 
-            # Find Auras enchanting this creature
-            enchanting_auras = [graph.entities[r.source] for r in graph.get_relationships(target=creature, rel_type=self.id_mapper.get_id_by_name("Enchanted By", "game_vocabulary"))]
-
-            for aura in enchanting_auras:
-                # Check if the aura grants P/T bonuses
-                aura_abilities = CARD_ABILITIES.get(aura.type_id, [])
-                if self.id_mapper.get_id_by_name("Grant P T", "game_vocabulary") in aura_abilities:
-                    effect_params = ABILITY_EFFECT_PARAMS.get(self.id_mapper.get_id_by_name("Grant P T", "game_vocabulary"), {})
-                    power_bonus = effect_params.get('power_bonus', 0)
-                    toughness_bonus = effect_params.get('toughness_bonus', 0)
-
-                    creature.properties['effective_power'] += power_bonus
-                    creature.properties['effective_toughness'] += toughness_bonus
-
-        # print("Layer system applied.")
+    def _reset_to_base_characteristics(self, graph: GameGraph):
+        """Resets all permanents to their base stats before applying layers."""
+        for entity in graph.entities.values():
+            if entity.properties.get("is_creature"):
+                entity.properties['effective_power'] = int(entity.properties.get('power', 0))
+                entity.properties['effective_toughness'] = int(entity.properties.get('toughness', 0))
 
     def _apply_layer(self, graph: GameGraph, layer: int):
-        """A generic function to apply effects for a given layer."""
-        # In a real implementation, you would find all entities that generate
-        # continuous effects for this layer and ask the rulebook to execute them.
-        pass
+        """Applies effects for a specific layer."""
+        effects = self.effect_manager.get_effects_for_layer(layer)
+        for eff in effects:
+            source_player = graph.get_controller(graph.entities.get(eff.source_id))
+            if not source_player: continue
 
-    def _apply_power_toughness_layer(self, graph: GameGraph):
-        """Layer 7 is special as it has its own sub-layers."""
-        # 7a: P/T setting from characteristic-defining abilities
-        # 7b: P/T setting effects
-        # 7c: Effects that modify P/T (e.g., +1/+1 counters)
-        # 7d: P/T switching effects
-        pass
+            # Determine targets
+            targets = []
+            if eff.target_id:
+                target_entity = graph.entities.get(eff.target_id)
+                if target_entity: targets.append(target_entity)
+            elif eff.target_filter:
+                filter_obj = TargetFilter(eff.target_filter)
+                for entity in graph.entities.values():
+                    # Only apply to battlefield permanents
+                    if self._is_on_battlefield(graph, entity):
+                        if filter_obj.matches(graph, source_player, entity):
+                            targets.append(entity)
+            
+            # Apply effect data to targets
+            for target in targets:
+                self._apply_effect_to_target(eff.effect_data, target, layer)
+
+    def _is_on_battlefield(self, graph: GameGraph, entity: Entity) -> bool:
+        battlefield_zone_id = self.id_mapper.get_id_by_name("Battlefield", "game_vocabulary")
+        is_in_zone_rel_id = self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary")
+        zone_rels = graph.get_relationships(source=entity, rel_type=is_in_zone_rel_id)
+        for r in zone_rels:
+            zone = graph.entities.get(r.target)
+            if zone and zone.type_id == battlefield_zone_id:
+                return True
+        return False
+
+    def _apply_effect_to_target(self, data: Dict[str, Any], target: Entity, layer: int):
+        if layer == 7:
+            if data.get('type') == 'stat_modifier':
+                target.properties['effective_power'] += data.get('power', 0)
+                target.properties['effective_toughness'] += data.get('toughness', 0)
+        # Add other layers here as implemented

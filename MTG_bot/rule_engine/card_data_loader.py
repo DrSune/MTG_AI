@@ -10,74 +10,108 @@ from MTG_bot.utils.logger import setup_logger
 
 class CardDataLoader:
     """
-    Loads and processes card data from MTGJSON.
+    Loads and processes card data from the SQLite database.
     """
-    def __init__(self, mtgjson_path: str = config.MTGJSON_PATH):
-        self.mtgjson_path = mtgjson_path
+    def __init__(self, db_path: str = config.MTG_BOT_DB_PATH):
+        self.db_path = db_path
         self.all_cards_data: Dict[str, Any] = {}
         self.card_name_to_id: Dict[str, int] = {}
         self.card_id_to_data: Dict[int, Dict[str, Any]] = {}
-        self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
+        self.id_mapper = IDToNameMapper(db_path)
         self.logger = setup_logger(__name__)
-        self._load_data()
+        self._load_data_from_db()
 
     def _get_id_from_game_vocabulary(self, name: str) -> Optional[int]:
-        # This method is used internally by CardDataLoader for vocabulary terms
-        conn = sqlite3.connect(self.id_mapper.db_path)
+        conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute("SELECT id FROM game_vocabulary WHERE name = ?", (name,))
         result = cursor.fetchone()
         conn.close()
         return result[0] if result else None
 
-    def _get_max_card_id_from_db(self) -> int:
-        conn = sqlite3.connect(config.MTG_BOT_DB_PATH)
+    def _load_data_from_db(self):
+        self.logger.info(f"Loading card data from database: {self.db_path}")
+        if not os.path.exists(self.db_path):
+            raise FileNotFoundError(f"Database file not found at: {self.db_path}")
+
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute("SELECT MAX(card_id) FROM cards")
-        max_id = cursor.fetchone()[0]
-        conn.close()
-        return max_id if max_id else 0
-
-    def _load_data(self):
-        self.logger.info(f"Loading card data from {self.mtgjson_path}")
-        if not os.path.exists(self.mtgjson_path):
-            raise FileNotFoundError(f"MTGJSON file not found at: {self.mtgjson_path}")
-
-        with open(self.mtgjson_path, 'r', encoding='utf-8') as f:
-            raw_data = json.load(f)
         
-        cards_in_m21 = raw_data.get("data", {}).get("cards", [])
-        self.logger.debug(f"Loaded {len(cards_in_m21)} cards from MTGJSON source.")
+        cursor.execute("SELECT * FROM cards")
+        rows = cursor.fetchall()
+        
+        for row in rows:
+            card_id = row['card_id']
+            card_name = row['name']
+            
+            processed_data = self._process_db_row(row)
+            
+            self.card_name_to_id[card_name] = card_id
+            self.card_id_to_data[card_id] = processed_data
+            self.all_cards_data[card_name] = processed_data
 
-        current_card_id_counter = self._get_max_card_id_from_db() + 1 # Start custom IDs after existing ones
+        conn.close()
+        self.logger.debug(f"Loaded {len(self.card_id_to_data)} cards from database.")
 
-        for card_data in cards_in_m21:
-            card_name = card_data.get("name")
-            if card_name and card_name not in self.card_name_to_id:
-                card_id = current_card_id_counter
-                current_card_id_counter += 1
-                
-                self.card_name_to_id[card_name] = card_id
-                self.card_id_to_data[card_id] = self._process_card_data(card_data)
-                self.all_cards_data[card_name] = self.card_id_to_data[card_id]
+    def _process_db_row(self, row: sqlite3.Row) -> Dict[str, Any]:
+        mana_cost_str = row['mana_cost'] or ""
+        type_line = row['type'] or ""
+        text = row['text'] or ""
+        
+        # Parse effects_json
+        try:
+            effects = json.loads(row['effects_json'] or "[]")
+        except json.JSONDecodeError:
+            effects = []
 
-    def _process_card_data(self, raw_card_data: Dict[str, Any]) -> Dict[str, Any]:
         processed_data = {
-            "name": raw_card_data.get("name"),
-            "mana_cost": self._parse_mana_cost(raw_card_data.get("manaCost", "")),
-            "cmc": raw_card_data.get("convertedManaCost", 0),
-            "type_line": raw_card_data.get("type"),
-            "text": raw_card_data.get("text", ""),
-            "power": int(raw_card_data.get("power")) if raw_card_data.get("power") and str(raw_card_data.get("power")).isdigit() else raw_card_data.get("power"),
-            "toughness": int(raw_card_data.get("toughness")) if raw_card_data.get("toughness") and str(raw_card_data.get("toughness")).isdigit() else raw_card_data.get("toughness"),
-            "loyalty": int(raw_card_data.get("loyalty")) if raw_card_data.get("loyalty") else None,
-            "abilities": self._parse_abilities(raw_card_data.get("text", ""), raw_card_data.get("keywords", [])),
-            "is_land": "Land" in raw_card_data.get("type", ""),
-            "is_creature": "Creature" in raw_card_data.get("type", ""),
-            "colors": raw_card_data.get("colors", []),
-            "color_identity": raw_card_data.get("colorIdentity", []),
+            "name": row['name'],
+            "mana_cost": self._parse_mana_cost(mana_cost_str),
+            "type_line": type_line,
+            "text": text,
+            "power": int(row['power']) if row['power'] and row['power'].isdigit() else (int(row['power']) if isinstance(row['power'], int) else row['power']),
+            "toughness": int(row['toughness']) if row['toughness'] and row['toughness'].isdigit() else (int(row['toughness']) if isinstance(row['toughness'], int) else row['toughness']),
+            "effects": effects,
+            "is_land": "Land" in type_line,
+            "is_creature": "Creature" in type_line,
+            "is_instant": "Instant" in type_line,
+            "is_sorcery": "Sorcery" in type_line,
+            "supertypes": json.loads(row['supertypes'] or "[]"),
         }
+
+        # Extract keywords and mana abilities for backwards compatibility/internal use
+        processed_data["abilities"] = self._extract_abilities_from_effects(effects, text)
+        
         return processed_data
+
+    def _extract_abilities_from_effects(self, effects: List[Dict[str, Any]], text: str) -> Dict[str, Any]:
+        abilities = {"keywords": [], "mana_abilities": []}
+        
+        for effect in effects:
+            if effect.get("ability_type") == "keyword":
+                keyword_name = effect.get("keyword", "").capitalize()
+                keyword_id = self._get_id_from_game_vocabulary(keyword_name)
+                if keyword_id:
+                    abilities["keywords"].append(keyword_id)
+            
+            elif effect.get("ability_type") == "activated_ability":
+                # Check if it's a mana ability
+                # Simplified: if it adds mana
+                eff = effect.get("effect", {})
+                if eff.get("ability_type") == "add_mana":
+                    mana_type = eff.get("mana_type")
+                    mana_name = {'W': "White Mana", 'U': "Blue Mana", 'B': "Black Mana", 'R': "Red Mana", 'G': "Green Mana", 'C': "Colorless Mana"}.get(mana_type)
+                    if mana_name:
+                        mana_id = self._get_id_from_game_vocabulary(mana_name)
+                        if mana_id:
+                            abilities["mana_abilities"].append({
+                                "type": "mana",
+                                "cost": {"tap": "{T}" in effect.get("cost", "")},
+                                "produces": {int(mana_id): 1}
+                            })
+
+        return abilities
 
     def _parse_mana_cost(self, mana_cost_str: str) -> Dict[int, int]:
         cost = {}
@@ -85,44 +119,17 @@ class CardDataLoader:
 
         generic_match = re.search(r'\{(\d+)\}', mana_cost_str)
         if generic_match:
-            cost[self._get_id_from_game_vocabulary("Generic Mana")] = int(generic_match.group(1))
+            generic_id = self._get_id_from_game_vocabulary("Generic Mana")
+            if generic_id:
+                cost[int(generic_id)] = int(generic_match.group(1))
 
         for symbol, mana_name in [('W', "White Mana"), ('U', "Blue Mana"), ('B', "Black Mana"), ('R', "Red Mana"), ('G', "Green Mana"), ('C', "Colorless Mana")]:
             count = mana_cost_str.count(f'{{{symbol}}}')
             if count > 0:
-                cost[self._get_id_from_game_vocabulary(mana_name)] = count
+                mana_id = self._get_id_from_game_vocabulary(mana_name)
+                if mana_id:
+                    cost[int(mana_id)] = count
         return {k: v for k, v in cost.items() if v > 0}
-
-    def _parse_abilities(self, card_text: str, keywords: List[str]) -> Dict[str, Any]:
-        abilities = {"keywords": [], "mana_abilities": []}
-
-        # Keyword abilities
-        for keyword in keywords:
-            keyword_id = self._get_id_from_game_vocabulary(keyword)
-            if keyword_id:
-                abilities["keywords"].append(keyword_id)
-
-        # Mana abilities from text
-        mana_ability_pattern = re.compile(r"\{T\}: Add (.*?).")
-        matches = mana_ability_pattern.findall(card_text)
-        for match in matches:
-            produces = {}
-            mana_symbols = re.findall(r'\{([WUBRGC])\}', match)
-            for symbol in mana_symbols:
-                mana_name = {'W': "White Mana", 'U': "Blue Mana", 'B': "Black Mana", 'R': "Red Mana", 'G': "Green Mana", 'C': "Colorless Mana"}.get(symbol)
-                if mana_name:
-                    mana_id = self._get_id_from_game_vocabulary(mana_name)
-                    if mana_id:
-                        produces[mana_id] = produces.get(mana_id, 0) + 1
-            
-            if produces:
-                abilities["mana_abilities"].append({
-                    "type": "mana",
-                    "cost": {"tap": True},
-                    "produces": produces
-                })
-
-        return abilities
 
     def get_card_data_by_id(self, card_id: int) -> Dict[str, Any]:
         return self.card_id_to_data.get(card_id, {})

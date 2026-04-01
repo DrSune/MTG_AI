@@ -1,0 +1,12 @@
+{
+    "name": "Lethal Burn: Shock",
+    "description": "Opponent at 1 life. Cast Shock for the win.",
+    "setup": {
+        "p1_hand": [
+            159
+        ],
+        "p1_battlefield_lands": [],
+        "p2_life": 1
+    },
+    "goal": "p2_life <= 0"
+}

@@ -1,17 +1,49 @@
 from typing import List, Dict
 import numpy as np
+import torch
 
 from ..rule_engine.game_graph import GameGraph, Entity
 from ..rule_engine import vocabulary as vocab
 
 class StateConverter:
     """
-    Converts the GameGraph into a numerical observation vector for an RL agent.
+    Converts the GameGraph into numerical observations and token sequences for the RL agent.
     """
     def __init__(self):
-        # Define the fixed size of the observation vector
-        # 2 (player life) + 2 (cards in hand) + 2 (creatures on battlefield) + 2*6 (mana pools) + 5 (phase one-hot)
-        self.observation_size = 2 + 2 + 2 + 12 + 5 # Example size, will adjust as we add features
+        self.observation_size = 2 + 2 + 2 + 12 + 5
+        self.component_dim = 10 # Example: power, toughness, CMC, type_bits...
+
+    def convert_graph_to_tokens(self, graph: GameGraph) -> Dict[str, torch.Tensor]:
+        """
+        Converts the GameGraph into tensors for the System 2 model.
+        Returns:
+            atomic_ids: (1, num_entities) tensor of unique card IDs.
+            component_features: (1, num_entities, component_dim) tensor of stats.
+        """
+        entities = list(graph.entities.values())
+        num_entities = len(entities)
+        
+        atomic_ids = torch.zeros(1, num_entities, dtype=torch.long)
+        component_features = torch.zeros(1, num_entities, self.component_dim)
+        
+        for i, entity in enumerate(entities):
+            atomic_ids[0, i] = entity.type_id
+            
+            # Extract component features
+            # 0: power, 1: toughness, 2: cmc, 3: is_creature, 4: is_land...
+            feats = torch.zeros(self.component_dim)
+            feats[0] = entity.properties.get('effective_power', 0)
+            feats[1] = entity.properties.get('effective_toughness', 0)
+            feats[2] = entity.properties.get('cmc', 0)
+            feats[3] = 1.0 if entity.properties.get('is_creature') else 0.0
+            feats[4] = 1.0 if entity.properties.get('is_land') else 0.0
+            
+            component_features[0, i] = feats
+            
+        return {
+            "atomic_ids": atomic_ids,
+            "component_features": component_features
+        }
 
     def convert_graph_to_observation(self, graph: GameGraph) -> np.ndarray:
         """

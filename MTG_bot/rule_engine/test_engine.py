@@ -6,12 +6,12 @@ import os
 # Add the project root to sys.path to resolve absolute imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from .game_graph import GameGraph
-from .engine import Engine
-from .actions import PlayLandAction, ActivateManaAbilityAction, CastSpellAction, DeclareAttackerAction, DeclareBlockerAction
+from MTG_bot.rule_engine.game_graph import GameGraph
+from MTG_bot.rule_engine.engine import Engine
+from MTG_bot.rule_engine.actions import PlayLandAction, ActivateManaAbilityAction, CastSpellAction, DeclareAttackerAction, DeclareBlockerAction
 from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
 from MTG_bot import config
-from .card_database import card_data_loader
+from MTG_bot.rule_engine.card_database import card_data_loader
 
 class TestEngine(unittest.TestCase):
 
@@ -21,7 +21,7 @@ class TestEngine(unittest.TestCase):
         self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
         # The GameGraph's initialize_game function is a great way to set up a clean state
         self.graph.initialize_game(
-            decklist1=[card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Grizzly Bears")],
+            decklist1=[card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Snarespinner")],
             decklist2=[]
         )
         self.engine = Engine(self.graph)
@@ -29,6 +29,10 @@ class TestEngine(unittest.TestCase):
 
     def test_play_land(self):
         """Test that a player can play a land from their hand."""
+        # Progress to Main Phase
+        while self.graph.phase != self.id_mapper.get_id_by_name("Pre-Combat Main Phase", "game_vocabulary"):
+            self.engine.progress_phase_and_step()
+
         # Find the Forest in the player's hand
         legal_moves = self.engine.get_legal_moves()
         play_land_move = next((move for move in legal_moves if isinstance(move, PlayLandAction)), None)
@@ -50,6 +54,10 @@ class TestEngine(unittest.TestCase):
 
     def test_tap_for_mana(self):
         """Test that a land on the battlefield can be tapped for mana."""
+        # Progress to Main Phase
+        while self.graph.phase != self.id_mapper.get_id_by_name("Pre-Combat Main Phase", "game_vocabulary"):
+            self.engine.progress_phase_and_step()
+
         # First, play a land
         play_land_move = next(move for move in self.engine.get_legal_moves() if isinstance(move, PlayLandAction))
         self.engine.execute_move(play_land_move)
@@ -78,16 +86,20 @@ class TestEngine(unittest.TestCase):
         """Test that a player can use mana to cast a creature spell."""
         # We need to adjust the decklist for this test
         self.graph.initialize_game(
-            decklist1=[card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Grizzly Bears")],
+            decklist1=[card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Snarespinner")],
             decklist2=[]
         )
         self.player1 = self.graph.entities[self.graph.active_player_id]
         self.engine = Engine(self.graph) # Re-initialize engine with new graph
 
-        # Play two forests over two turns
+        # Progress to Main Phase
+        while self.graph.phase != self.id_mapper.get_id_by_name("Pre-Combat Main Phase", "game_vocabulary"):
+            self.engine.progress_phase_and_step()
+
+        # Play two forests over two turns (simulated)
         play_land_move_1 = next(move for move in self.engine.get_legal_moves() if isinstance(move, PlayLandAction))
         self.engine.execute_move(play_land_move_1)
-        self.player1.properties['lands_played_this_turn'] = 0 # Reset for next turn
+        self.player1.properties['lands_played_this_turn'] = 0 # Reset for next turn simulation
 
         play_land_move_2 = next(move for move in self.engine.get_legal_moves() if isinstance(move, PlayLandAction))
         self.engine.execute_move(play_land_move_2)
@@ -98,11 +110,11 @@ class TestEngine(unittest.TestCase):
         self.engine.execute_move(tap_mana_moves[0])
         self.engine.execute_move(tap_mana_moves[1])
 
-        # Now, check if casting Grizzly Bears is a legal move
+        # Now, check if casting Snarespinner is a legal move
         legal_moves = self.engine.get_legal_moves()
         cast_creature_move = next((move for move in legal_moves if isinstance(move, CastSpellAction)), None)
         self.assertIsNotNone(cast_creature_move, "Could not find a legal 'Cast Spell' move.")
-        grizzly_bears_card = self.graph.entities[cast_creature_move.card_id]
+        snarespinner_card = self.graph.entities[cast_creature_move.card_id]
 
         # Execute the move
         self.engine.execute_move(cast_creature_move)
@@ -110,7 +122,7 @@ class TestEngine(unittest.TestCase):
         # Verify the creature is on the battlefield
         battlefield_zone = next(self.graph.entities[r.target] for r in self.graph.get_relationships(source=self.player1, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary")) if self.graph.entities[r.target].type_id == self.id_mapper.get_id_by_name("Battlefield", "game_vocabulary"))
         cards_on_battlefield = [self.graph.entities[r.source] for r in self.graph.get_relationships(target=battlefield_zone, rel_type=self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))]
-        self.assertIn(grizzly_bears_card, cards_on_battlefield, "Creature was not moved to the battlefield.")
+        self.assertIn(snarespinner_card, cards_on_battlefield, "Creature was not moved to the battlefield.")
 
         # Verify mana was spent
         self.assertEqual(self.player1.properties['mana_pool'][self.id_mapper.get_id_by_name("Green Mana", "game_vocabulary")], 0, "Mana was not spent correctly.")
@@ -118,16 +130,18 @@ class TestEngine(unittest.TestCase):
     def test_declare_attacker(self):
         """Test that a creature can be declared as an attacker."""
         # Cast a creature and move it to the battlefield
-        self.graph.initialize_game(decklist1=[card_data_loader.get_card_id_by_name("Grizzly Bears")], decklist2=[])
+        self.graph.initialize_game(decklist1=[card_data_loader.get_card_id_by_name("Snarespinner")], decklist2=[])
         self.player1 = self.graph.entities[self.graph.active_player_id]
         self.engine = Engine(self.graph)
-        creature_card = next(c for c in self.graph.entities.values() if c.type_id == card_data_loader.get_card_id_by_name("Grizzly Bears"))
+        creature_card = next(c for c in self.graph.entities.values() if c.type_id == card_data_loader.get_card_id_by_name("Snarespinner"))
         
         # Manually move creature to battlefield and set its turn_entered property for the test
         battlefield_zone = next(self.graph.entities[r.target] for r in self.graph.get_relationships(source=self.player1, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary")) if self.graph.entities[r.target].type_id == self.id_mapper.get_id_by_name("Battlefield", "game_vocabulary"))
-        card_zone_rel = self.graph.get_relationships(source=creature_card, rel_type=self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))[0]
-        card_zone_rel.target = battlefield_zone.instance_id
+        
+        # Correctly move the card to the zone
+        self.graph._move_card_to_zone(creature_card, battlefield_zone)
         creature_card.properties['turn_entered'] = self.graph.turn_number
+        creature_card.properties['has_summoning_sickness'] = True
 
         # Set the game to the Declare Attackers step
         self.graph.step = self.id_mapper.get_id_by_name("Declare Attackers Step", "game_vocabulary")
@@ -139,6 +153,7 @@ class TestEngine(unittest.TestCase):
 
         # 2. Advance to the next turn
         self.graph.turn_number += 1
+        creature_card.properties['has_summoning_sickness'] = False # Simulate untap step cleanup
 
         # 3. Verify creature can now attack
         legal_moves = self.engine.get_legal_moves()
@@ -152,28 +167,32 @@ class TestEngine(unittest.TestCase):
 
     def test_full_combat(self):
         """Test a full combat sequence: attack, block, and damage."""
-        # Setup: Player 1 has a Grizzly Bears, Player 2 has a Grizzly Bears.
+        # Setup: Player 1 has a Snarespinner, Player 2 has a Snarespinner.
         self.graph.initialize_game(
-            decklist1=[card_data_loader.get_card_id_by_name("Grizzly Bears")],
-            decklist2=[card_data_loader.get_card_id_by_name("Grizzly Bears")]
+            decklist1=[card_data_loader.get_card_id_by_name("Snarespinner")],
+            decklist2=[card_data_loader.get_card_id_by_name("Snarespinner")]
         )
         self.player1 = self.graph.entities[self.graph.active_player_id]
         self.player2 = next(p for p in self.graph.entities.values() if p.type_id == self.id_mapper.get_id_by_name("Player", "game_vocabulary") and p.instance_id != self.player1.instance_id)
         self.engine = Engine(self.graph)
 
-        p1_creature = next(c for c in self.graph.entities.values() if c.type_id == card_data_loader.get_card_id_by_name("Grizzly Bears") and self.graph.get_relationships(source=self.player1, target=c, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary")))
-        p2_creature = next(c for c in self.graph.entities.values() if c.type_id == card_data_loader.get_card_id_by_name("Grizzly Bears") and self.graph.get_relationships(source=self.player2, target=c, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary")))
+        p1_creature = next(c for c in self.graph.entities.values() if c.type_id == card_data_loader.get_card_id_by_name("Snarespinner") and self.graph.get_relationships(source=self.player1, target=c, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary")))
+        p2_creature = next(c for c in self.graph.entities.values() if c.type_id == card_data_loader.get_card_id_by_name("Snarespinner") and self.graph.get_relationships(source=self.player2, target=c, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary")))
 
         # Manually move creatures to battlefield for the test
         battlefield1 = next(self.graph.entities[r.target] for r in self.graph.get_relationships(source=self.player1, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary")) if self.graph.entities[r.target].type_id == self.id_mapper.get_id_by_name("Battlefield", "game_vocabulary"))
         battlefield2 = next(self.graph.entities[r.target] for r in self.graph.get_relationships(source=self.player2, rel_type=self.id_mapper.get_id_by_name("Controlled By", "game_vocabulary")) if self.graph.entities[r.target].type_id == self.id_mapper.get_id_by_name("Battlefield", "game_vocabulary"))
-        self.graph.get_relationships(source=p1_creature, rel_type=self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))[0].target = battlefield1.instance_id
-        self.graph.get_relationships(source=p2_creature, rel_type=self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary"))[0].target = battlefield2.instance_id
+        
+        self.graph._move_card_to_zone(p1_creature, battlefield1)
+        self.graph._move_card_to_zone(p2_creature, battlefield2)
+        
         p1_creature.properties['turn_entered'] = 1
+        p1_creature.properties['has_summoning_sickness'] = False
         p2_creature.properties['turn_entered'] = 1
+        p2_creature.properties['has_summoning_sickness'] = False
 
         # Declare Attackers Step
-        self.graph.turn_number = 2 # To avoid summoning sickness
+        self.graph.turn_number = 2 
         self.graph.step = self.id_mapper.get_id_by_name("Declare Attackers Step", "game_vocabulary")
         attack_move = next(move for move in self.engine.get_legal_moves() if isinstance(move, DeclareAttackerAction))
         self.engine.execute_move(attack_move)
@@ -183,12 +202,14 @@ class TestEngine(unittest.TestCase):
         block_move = next(move for move in self.engine.get_legal_moves() if isinstance(move, DeclareBlockerAction))
         self.engine.execute_move(block_move)
 
-        # End of Step -> Progress to Damage
-        self.engine.progress_step()
+        # End of Step -> Progress to Damage (which is in Declare Blockers Step cleanup in current engine)
+        self.engine.progress_phase_and_step()
 
-        # Assertions
-        self.assertEqual(p1_creature.properties.get('damage_taken'), 2)
-        self.assertEqual(p2_creature.properties.get('damage_taken'), 2)
+        # Snarespinner is 1/3. 
+        # P1 Snarespinner deals 1 damage to P2 Snarespinner.
+        # P2 Snarespinner deals 1 damage to P1 Snarespinner.
+        self.assertEqual(p1_creature.properties.get('damage_taken'), 1)
+        self.assertEqual(p2_creature.properties.get('damage_taken'), 1)
 
     def test_phase_and_step_progression(self):
         """Test that the game correctly progresses through phases and steps."""
@@ -199,6 +220,7 @@ class TestEngine(unittest.TestCase):
         initial_turn_number = self.graph.turn_number
 
         # Progress through a full turn cycle
+        # Note: Engine.progress_phase_and_step now correctly skips Mulligan Phase when wrapping.
         for _ in range(len([self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Pre-Combat Main Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Combat Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Post-Combat Main Phase", "game_vocabulary"), self.id_mapper.get_id_by_name("Ending Phase", "game_vocabulary")]) * 3): # Iterate enough times to cover multiple turns
             current_phase = self.graph.phase
             current_step = self.graph.step
@@ -230,7 +252,7 @@ class TestEngine(unittest.TestCase):
             try:
                 current_step_index = current_phase_steps.index(current_step)
             except ValueError:
-                current_step_index = -1 # Should not happen if initial state is correct
+                current_step_index = -1 
 
             self.engine.progress_phase_and_step()
 
@@ -276,7 +298,7 @@ class TestEngine(unittest.TestCase):
             if self.graph.phase == self.id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary") and self.graph.step == self.id_mapper.get_id_by_name("Untap Step", "game_vocabulary") and self.graph.turn_number > initial_turn_number:
                 self.assertNotEqual(self.graph.active_player_id, initial_active_player_id)
                 self.assertEqual(self.graph.turn_number, initial_turn_number + 1)
-                initial_active_player_id = self.graph.active_player_id # Update for next turn check
+                initial_active_player_id = self.graph.active_player_id 
                 initial_turn_number = self.graph.turn_number
 
 

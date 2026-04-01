@@ -9,6 +9,10 @@ The primary goal of this project is to develop a sophisticated AI that can play 
 *   **Game Engine:** A robust rule engine that can accurately simulate the game of Magic: The Gathering.
 *   **Card Recognition:** The ability to recognize Magic: The Gathering cards from images.
 *   **Strategic Brain:** A deep learning model that can make strategic decisions and play the game at a high level.
+*   **Intelligent Deck Generation & Analysis:** A dual-purpose system that:
+    *   **Teacher RL:** Generates challenging, legal deck matchups to train the Student AI on its specific weaknesses.
+    *   **Player Utility:** Provides real-world MTG players with a tool to analyze deck synergy, suggest optimizations, and generate decks based on specific themes or meta-game constraints.
+
 
 ## Key Ideas and Approaches
 

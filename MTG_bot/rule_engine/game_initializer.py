@@ -127,6 +127,7 @@ def initialize_game_state(decklist1: List[int], decklist2: List[int], game_mode:
     ]}
     player1.properties['name'] = "Player 1"
     player1.properties['mulligans_taken'] = 0
+    player1.properties['lands_played_this_turn'] = 0
     graph.players.append(player1.instance_id)
 
     player2 = graph.add_entity(id_mapper.get_id_by_name("Player", "game_vocabulary"))
@@ -143,6 +144,7 @@ def initialize_game_state(decklist1: List[int], decklist2: List[int], game_mode:
     ]}
     player2.properties['name'] = "Player 2"
     player2.properties['mulligans_taken'] = 0
+    player2.properties['lands_played_this_turn'] = 0
     graph.players.append(player2.instance_id)
 
     # Set active player

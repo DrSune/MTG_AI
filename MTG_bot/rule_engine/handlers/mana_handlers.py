@@ -48,7 +48,9 @@ def execute_tap_for_mana(graph: GameGraph, player: Entity, card: Entity, ability
         if ability_id < len(mana_abilities):
             ability = mana_abilities[ability_id]
             for mana_type, amount in ability.get("produces", {}).items():
-                player.properties['mana_pool'][mana_type] += amount
+                m_type = int(mana_type)
+                m_amount = int(amount)
+                player.properties['mana_pool'][m_type] += m_amount
             logger.info(f"Player {player.properties.get('name')} added {ability.get('produces')} mana. Mana pool: {player.properties['mana_pool']}")
 
     except Exception as e:

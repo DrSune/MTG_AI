@@ -1,0 +1,11 @@
+{
+    "name": "Lethal Combat: Daybreak Charger",
+    "description": "Opponent at 2 life. Attack with Daybreak Charger for the win.",
+    "setup": {
+        "p1_battlefield_creatures": [
+            14
+        ],
+        "p2_life": 2
+    },
+    "goal": "p2_life <= 0"
+}
