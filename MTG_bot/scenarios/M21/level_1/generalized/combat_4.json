@@ -1,0 +1,16 @@
+{
+    "name": "L1_Lethal_Combat_4",
+    "supported_formats": [
+        "Limited",
+        "Commander",
+        "Standard"
+    ],
+    "setup": {
+        "p1_battlefield_creatures": [
+            153
+        ],
+        "p2_life": 1,
+        "p1_mana": 0
+    },
+    "goal": "p2_life <= 0"
+}

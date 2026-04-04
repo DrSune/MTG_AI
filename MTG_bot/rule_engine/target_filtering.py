@@ -15,7 +15,7 @@ class TargetFilter:
     def __init__(self, criteria: Any):
         self.criteria = criteria
 
-    def matches(self, graph: GameGraph, source_player: Entity, target: Entity) -> bool:
+    def matches(self, graph: GameGraph, source_player: Entity, target: Entity, source_card: Optional[Entity] = None) -> bool:
         if self.criteria == "any":
             return target.type_id == vocab.ID_PLAYER or target.properties.get("is_creature", False)
         
@@ -26,27 +26,26 @@ class TargetFilter:
             return target.properties.get("is_creature", False)
 
         if isinstance(self.criteria, dict):
-            # Type matching
-            req_type = self.criteria.get("type")
-            if req_type == "creature" and not target.properties.get("is_creature", False):
-                return False
-            if req_type == "player" and target.type_id != vocab.ID_PLAYER:
-                return False
-            if req_type == "permanent":
-                # Simplification: Lands and Creatures are permanents
-                is_perm = target.properties.get("is_creature") or target.properties.get("is_land")
-                if not is_perm: return False
-                
-            # Status matching
-            if self.criteria.get("is_tapped") is True and not target.properties.get("tapped", False):
-                return False
-            if self.criteria.get("is_tapped") is False and target.properties.get("tapped", False):
-                return False
-                
+            # ...
             # Controller matching
             req_controller = self.criteria.get("controller")
+            target_controller_id = graph.get_controller_id(target)
+            
+            # --- HEXPROOF ENFORCEMENT ---
+            if target.properties.get("hexproof") and target_controller_id != source_player.instance_id:
+                return False
+
+            # --- PROTECTION ENFORCEMENT ---
+            protections = target.properties.get("protections_from_names", [])
+            if "protection_from_name" in target.properties:
+                protections.append(target.properties["protection_from_name"])
+            
+            if protections and source_card:
+                source_name = source_card.properties.get("name")
+                if source_name in protections:
+                    return False
+
             if req_controller:
-                target_controller_id = graph.get_controller_id(target)
                 if req_controller == "opponent":
                     if target_controller_id == source_player.instance_id:
                         return False
@@ -65,7 +64,7 @@ class TargetFilter:
 
         return False
 
-def get_valid_targets(graph: GameGraph, source_player: Entity, criteria: Any) -> List[Entity]:
+def get_valid_targets(graph: GameGraph, source_player: Entity, criteria: Any, source_card: Optional[Entity] = None) -> List[Entity]:
     """
     Returns all entities in the graph that match the given criteria.
     """
@@ -74,21 +73,9 @@ def get_valid_targets(graph: GameGraph, source_player: Entity, criteria: Any) ->
     
     # Check all entities
     for entity in graph.entities.values():
-        # Only check things that CAN be targets (Players and Battlefield permanents for now)
-        is_player = entity.type_id == vocab.ID_PLAYER
-        
-        is_on_battlefield = False
-        if not is_player:
-            # Check if it's in a battlefield zone
-            zone_rels = graph.get_relationships(source=entity, rel_type=vocab.ID_REL_IS_IN_ZONE)
-            for rel in zone_rels:
-                zone = graph.entities.get(rel.target)
-                if zone and zone.type_id == vocab.ID_ZONE_BATTLEFIELD:
-                    is_on_battlefield = True
-                    break
-        
+        # ...
         if is_player or is_on_battlefield:
-            if filter_obj.matches(graph, source_player, entity):
+            if filter_obj.matches(graph, source_player, entity, source_card):
                 valid_targets.append(entity)
                 
     return valid_targets

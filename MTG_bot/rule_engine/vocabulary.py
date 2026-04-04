@@ -22,6 +22,9 @@ ID_ZONE_HAND = get_id("Hand")
 ID_ZONE_BATTLEFIELD = get_id("Battlefield")
 ID_ZONE_LIBRARY = get_id("Library")
 ID_ZONE_GRAVEYARD = get_id("Graveyard")
+ID_ZONE_EXILE = get_id("Exile")
+ID_ZONE_COMMAND = get_id("Command Zone")
+ID_ZONE_STACK = get_id("Stack")
 
 # --- Common Relationships ---
 ID_REL_CONTROLLED_BY = get_id("Controlled By")

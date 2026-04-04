@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MTG AI Board Visualizer</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #2c3e50; color: #ecf0f1; margin: 0; padding: 20px; }
+        #controls { background: #34495e; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 20px; align-items: center; }
+        .game-area { display: grid; grid-template-rows: auto auto auto; gap: 10px; }
+        .zone { background: #22313f; border: 1px solid #34495e; border-radius: 8px; padding: 15px; min-height: 100px; }
+        .zone-title { font-size: 0.8em; color: #95a5a6; text-transform: uppercase; margin-bottom: 10px; border-bottom: 1px solid #34495e; padding-bottom: 5px; }
+        .card-list { display: flex; flex-wrap: wrap; gap: 10px; }
+        .card { 
+            width: 120px; height: 170px; background: #1a1a1a; border: 2px solid #7f8c8d; border-radius: 6px; 
+            padding: 8px; font-size: 0.7em; position: relative; display: flex; flex-direction: column;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+        }
+        .card.tapped { transform: rotate(10deg); border-color: #f39c12; }
+        .card.is-creature { border-color: #27ae60; }
+        .card-name { font-weight: bold; margin-bottom: 5px; height: 2.4em; overflow: hidden; }
+        .card-stats { position: absolute; bottom: 5px; right: 5px; background: #c0392b; color: white; padding: 2px 5px; border-radius: 3px; font-weight: bold; }
+        .player-info { background: #34495e; padding: 10px; border-radius: 5px; min-width: 150px; }
+        .active-player { border: 2px solid #3498db; }
+        .stack-item { background: #e67e22; margin-bottom: 5px; padding: 5px; border-radius: 3px; font-size: 0.8em; }
+        #status-bar { margin-top: 20px; font-size: 0.9em; color: #bdc3c7; }
+        kbd { background: #eee; color: #333; padding: 2px 4px; border-radius: 3px; border: 1px solid #999; }
+    </style>
+</head>
+<body>
+
+<div id="controls">
+    <div>
+        <strong>Mode:</strong> 
+        <select id="view-mode" onchange="toggleMode()">
+            <option value="live">Live (latest.json)</option>
+            <option value="history">History Replay</option>
+        </select>
+    </div>
+    <div id="history-controls" style="display:none;">
+        <strong>Step:</strong> <input type="number" id="step-index" value="0" min="0" onchange="loadSpecificStep()">
+        <span>Use <kbd>←</kbd> and <kbd>→</kbd> to navigate</span>
+    </div>
+    <div id="game-status">
+        <span id="turn-info">Turn 1</span> | <span id="phase-info">Main</span>
+    </div>
+</div>
+
+<div class="game-area">
+    <!-- Opponent Area -->
+    <div id="opponent-area" class="player-info">
+        <h3>Opponent <span id="opp-life">20</span> HP</h3>
+        <div id="opp-hand" class="zone">
+            <div class="zone-title">Hand (<span id="opp-hand-count">0</span>)</div>
+            <div class="card-list" id="opp-hand-list"></div>
+        </div>
+        <div id="opp-battlefield" class="zone">
+            <div class="zone-title">Battlefield</div>
+            <div class="card-list" id="opp-bf-list"></div>
+        </div>
+    </div>
+
+    <!-- The Stack -->
+    <div id="stack-area" class="zone">
+        <div class="zone-title">The Stack</div>
+        <div id="stack-list"></div>
+    </div>
+
+    <!-- Player Area -->
+    <div id="player-area" class="player-info">
+        <h3>You <span id="player-life">20</span> HP</h3>
+        <div id="player-battlefield" class="zone">
+            <div class="zone-title">Battlefield</div>
+            <div class="card-list" id="player-bf-list"></div>
+        </div>
+        <div id="player-hand" class="zone">
+            <div class="zone-title">Hand (<span id="player-hand-count">0</span>)</div>
+            <div class="card-list" id="player-hand-list"></div>
+        </div>
+    </div>
+</div>
+
+<div id="status-bar">
+    Last Action: <span id="last-action">-</span>
+</div>
+
+<script>
+    let currentData = null;
+    let mode = 'live';
+    let step = 0;
+    let sessionPath = ""; // To be filled if we implement session picking
+
+    function toggleMode() {
+        mode = document.getElementById('view-mode').value;
+        document.getElementById('history-controls').style.display = (mode === 'history') ? 'block' : 'none';
+        if (mode === 'live') startLivePolling();
+        else stopLivePolling();
+    }
+
+    let pollInterval = null;
+    function startLivePolling() {
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(loadLatest, 1000);
+        loadLatest();
+    }
+    function stopLivePolling() {
+        if (pollInterval) clearInterval(pollInterval);
+    }
+
+    async function loadLatest() {
+        try {
+            const response = await fetch('../logs/history/latest.json?t=' + Date.now());
+            const data = await response.json();
+            renderState(data);
+        } catch (e) { console.error("Could not load latest.json", e); }
+    }
+
+    function loadSpecificStep() {
+        step = parseInt(document.getElementById('step-index').value);
+        // This requires knowing the session ID. For now, let's assume we can fetch 
+        // from a specific session if the user provides it, or just use latest.
+        // For simplicity in this version, "History" will just use the current session's sequence
+        // if we can find where it is.
+    }
+
+    function renderState(data) {
+        currentData = data;
+        document.getElementById('turn-info').innerText = "Turn " + data.turn;
+        document.getElementById('phase-info').innerText = data.phase + " (" + data.step_id + ")";
+        document.getElementById('last-action').innerText = data.action;
+
+        // Reset lists
+        document.getElementById('opp-bf-list').innerHTML = '';
+        document.getElementById('player-bf-list').innerHTML = '';
+        document.getElementById('opp-hand-list').innerHTML = '';
+        document.getElementById('player-hand-list').innerHTML = '';
+        document.getElementById('stack-list').innerHTML = '';
+
+        const entities = data.entities;
+        const activePlayerId = data.active_player;
+
+        // Find Players
+        let playerObj = null;
+        let oppObj = null;
+        for (const id in entities) {
+            if (entities[id].type_id === 101) { // Assuming 101 is Player type
+                if (id === activePlayerId) playerObj = {id, ...entities[id]};
+                else oppObj = {id, ...entities[id]};
+            }
+        }
+
+        if (playerObj) document.getElementById('player-life').innerText = playerObj.properties.life_total || 20;
+        if (oppObj) document.getElementById('opp-life').innerText = oppObj.properties.life_total || 20;
+
+        // Relationships for zones
+        data.relationships.forEach(rel => {
+            const source = entities[rel.source];
+            const target = entities[rel.target];
+            if (!source || !target) return;
+
+            // Is In Zone
+            if (rel.type_id === 12) { // Assuming 12 is IS_IN_ZONE
+                const zoneType = target.type_id;
+                const controllerId = getController(rel.source, data.relationships);
+                
+                const cardEl = createCardElement(source);
+                
+                if (zoneType === 104) { // Battlefield
+                    if (controllerId === activePlayerId) document.getElementById('player-bf-list').appendChild(cardEl);
+                    else document.getElementById('opp-bf-list').appendChild(cardEl);
+                } else if (zoneType === 103) { // Hand
+                    if (controllerId === activePlayerId) document.getElementById('player-hand-list').appendChild(cardEl);
+                    else document.getElementById('opp-hand-list').appendChild(cardEl);
+                }
+            }
+        });
+
+        // Update counts
+        document.getElementById('player-hand-count').innerText = document.getElementById('player-hand-list').children.length;
+        document.getElementById('opp-hand-count').innerText = document.getElementById('opp-hand-list').children.length;
+    }
+
+    function getController(entityId, relationships) {
+        const rel = relationships.find(r => r.source === entityId && r.type_id === 10); // 10 = CONTROLLED_BY
+        return rel ? rel.target : null;
+    }
+
+    function createCardElement(entity) {
+        const div = document.createElement('div');
+        div.className = 'card';
+        if (entity.properties.tapped) div.classList.add('tapped');
+        if (entity.properties.is_creature) div.classList.add('is-creature');
+
+        const name = document.createElement('div');
+        name.className = 'card-name';
+        name.innerText = entity.display_name;
+        div.appendChild(name);
+
+        if (entity.properties.is_creature) {
+            const stats = document.createElement('div');
+            stats.className = 'card-stats';
+            const p = entity.properties.effective_power || entity.properties.power || 0;
+            const t = entity.properties.effective_toughness || entity.properties.toughness || 0;
+            stats.innerText = p + "/" + t;
+            div.appendChild(stats);
+        }
+
+        return div;
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (mode !== 'history') return;
+        if (e.key === 'ArrowLeft') {
+            step = Math.max(0, step - 1);
+            updateStep();
+        } else if (e.key === 'ArrowRight') {
+            step++;
+            updateStep();
+        }
+    });
+
+    function updateStep() {
+        document.getElementById('step-index').value = step;
+        loadSpecificStep();
+    }
+
+    startLivePolling();
+</script>
+</body>
+</html>

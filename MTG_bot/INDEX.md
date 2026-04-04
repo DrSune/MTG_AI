@@ -5,10 +5,13 @@ This file serves as a map for the codebase and documentation to help agents navi
 ## 📁 Project Structure
 
 - `MTG_bot/`: Core logic for the MTG AI.
+    - `main_train.py`: Primary entry point for large-scale training (Teacher-led curriculum).
     - `rule_engine/`: The Magic: The Gathering rule implementation.
         - `engine.py`: Main game logic controller.
         - `game_graph.py`: State representation as a graph of entities and relationships.
     - `strategic_brain/`: The AI/RL components.
+        - `student.py`: The learning agent.
+        - `teacher.py`: The curriculum manager.
         - `decision_maker.py`: Move selection logic.
         - `state_converter.py`: Graph-to-tensor conversion.
     - `scenarios/`: (NEW) Tactical puzzles for benchmarking intelligence.

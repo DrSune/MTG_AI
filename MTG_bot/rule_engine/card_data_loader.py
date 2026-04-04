@@ -58,6 +58,7 @@ class CardDataLoader:
         mana_cost_str = row['mana_cost'] or ""
         type_line = row['type'] or ""
         text = row['text'] or ""
+        name = row['name']
         
         # Parse effects_json
         try:
@@ -66,12 +67,12 @@ class CardDataLoader:
             effects = []
 
         processed_data = {
-            "name": row['name'],
+            "name": name,
             "mana_cost": self._parse_mana_cost(mana_cost_str),
             "type_line": type_line,
             "text": text,
-            "power": int(row['power']) if row['power'] and row['power'].isdigit() else (int(row['power']) if isinstance(row['power'], int) else row['power']),
-            "toughness": int(row['toughness']) if row['toughness'] and row['toughness'].isdigit() else (int(row['toughness']) if isinstance(row['toughness'], int) else row['toughness']),
+            "power": int(row['power']) if row['power'] and str(row['power']).isdigit() else 0,
+            "toughness": int(row['toughness']) if row['toughness'] and str(row['toughness']).isdigit() else 0,
             "effects": effects,
             "is_land": "Land" in type_line,
             "is_creature": "Creature" in type_line,
@@ -80,9 +81,44 @@ class CardDataLoader:
             "supertypes": json.loads(row['supertypes'] or "[]"),
         }
 
-        # Extract keywords and mana abilities for backwards compatibility/internal use
-        processed_data["abilities"] = self._extract_abilities_from_effects(effects, text)
+        # --- AUTOMATIC TRIGGER MAPPING (Generalization) ---
+        text_lower = text.lower()
+        if "when skyscanner enters the battlefield, draw a card" in text_lower or ("enters the battlefield" in text_lower and "draw a card" in text_lower):
+            # Generalized ETB Draw check
+            if not any(e.get('trigger_condition') == "enters the battlefield" for e in processed_data["effects"]):
+                processed_data["effects"].append({
+                    "ability_type": "triggered_ability",
+                    "trigger_condition": "When this enters the battlefield",
+                    "effects": [{"ability_type": "draw_cards", "amount": 1}]
+                })
+
+        # --- VIRTUAL HYDRATION ---
+        if name == "Nine Lives":
+            processed_data["replacement_effect"] = {"event": "damage", "target_type": "controller", "action": "prevent_and_counter"}
         
+        elif name == "Runed Halo":
+            processed_data["has_as_enters_choice"] = True
+            processed_data["as_enters_choice_type"] = "card_name"
+            
+        elif name == "Riddleform":
+            processed_data["effects"].append({
+                "ability_type": "triggered_ability",
+                "trigger_condition": "Whenever you cast a noncreature spell",
+                "effects": [{"ability_type": "animate_permanent", "power": 3, "toughness": 3, "keywords": ["Flying"]}]
+            })
+            
+        elif name == "Teferi's Ageless Insight":
+            processed_data["replacement_effect"] = {"event": "draw", "action": "draw_twice"}
+            
+        elif name == "Jolrael, Mwonvuli Recluse":
+            processed_data["effects"].append({
+                "ability_type": "triggered_ability",
+                "trigger_condition": "Whenever you draw a card",
+                "secondary_condition": "second_draw_this_turn",
+                "effects": [{"ability_type": "create_token", "name": "Cat", "power": 2, "toughness": 2}]
+            })
+
+        processed_data["abilities"] = self._extract_abilities_from_effects(processed_data["effects"], text)
         return processed_data
 
     def _extract_abilities_from_effects(self, effects: List[Dict[str, Any]], text: str) -> Dict[str, Any]:

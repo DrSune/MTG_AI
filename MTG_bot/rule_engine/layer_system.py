@@ -71,24 +71,43 @@ class LayerSystem:
                             effect_data=eff_data.get("effect"),
                             duration="as_long_as_on_battlefield",
                             layer=eff_data.get("layer", 7),
-                            target_filter=eff_data.get("target_filter")
+                            target_filter=eff_data.get("target_filter") or eff_data.get("filter")
                         )
                         self.effect_manager.add_effect(new_effect)
 
     def _reset_to_base_characteristics(self, graph: GameGraph):
-        """Resets all permanents to their base stats before applying layers."""
+        """Resets all permanents to their base P/T before layers apply."""
         for entity in graph.entities.values():
-            if entity.properties.get("is_creature"):
-                entity.properties['effective_power'] = int(entity.properties.get('power', 0))
-                entity.properties['effective_toughness'] = int(entity.properties.get('toughness', 0))
+            if entity.properties.get('is_on_battlefield'):
+                def safe_int(val):
+                    if val is None: return 0
+                    if isinstance(val, int): return val
+                    s = str(val).strip()
+                    if not s or s in ["*", "X"]: return 0
+                    try:
+                        import re
+                        m = re.match(r"(\d+)", s)
+                        return int(m.group(1)) if m else 0
+                    except: return 0
+
+                entity.properties['effective_power'] = safe_int(entity.properties.get('power', 0))
+                entity.properties['effective_toughness'] = safe_int(entity.properties.get('toughness', 0))
+
 
     def _apply_layer(self, graph: GameGraph, layer: int):
         """Applies effects for a specific layer."""
         effects = self.effect_manager.get_effects_for_layer(layer)
         for eff in effects:
-            source_player = graph.get_controller(graph.entities.get(eff.source_id))
-            if not source_player: continue
-
+            source_entity = graph.entities.get(eff.source_id)
+            if not source_entity: continue
+            
+            source_player_id = graph.get_controller_id(source_entity)
+            source_player = graph.entities.get(source_player_id) if source_player_id else None
+            
+            # Static effects like Kaervek might not have a source player if not set up correctly in tests,
+            # but in a real game they always will.
+            # However, for global filters, we MUST have a source player to check 'opponent' etc.
+            
             # Determine targets
             targets = []
             if eff.target_id:

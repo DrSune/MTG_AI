@@ -20,11 +20,13 @@ class CastSpellAction:
     """Represents the action of casting a spell from hand."""
     player_id: uuid.UUID
     card_id: uuid.UUID
-    target_id: Optional[uuid.UUID] = None # Added for spells that target, like Auras
+    target_id: Optional[uuid.UUID] = None # Primary target
+    cost_target_id: Optional[uuid.UUID] = None # Added for additional costs like sacrifice
 
     def __repr__(self) -> str:
         target_str = f", Target: {str(self.target_id)[:4]}" if self.target_id else ""
-        return f"CastSpell(Player: {str(self.player_id)[:4]}, Card: {str(self.card_id)[:4]}{target_str})"
+        cost_str = f", CostTarget: {str(self.cost_target_id)[:4]}" if self.cost_target_id else ""
+        return f"CastSpell(Player: {str(self.player_id)[:4]}, Card: {str(self.card_id)[:4]}{target_str}{cost_str})"
 
 @dataclass
 class ActivateManaAbilityAction:

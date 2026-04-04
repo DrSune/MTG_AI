@@ -1,139 +1,109 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from typing import List, Dict, Any, Optional
+try:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+    HAS_TORCH = True
+except ImportError:
+    torch = None
+    nn = None
+    F = None
+    HAS_TORCH = False
+
+from typing import List, Dict, Any, Optional, Tuple
+import random
+import sqlite3
 from MTG_bot.rule_engine.card_data_loader import CardDataLoader
 from MTG_bot.utils.logger import setup_logger
+from .deck_generator import DeckGenerator, Archetypes
+from .model import TeacherModel
 
-class DeckMatchupAnalyzer(nn.Module):
-    """
-    A Transformer-based model that evaluates the synergy of a deck and its 
-    performance against an opponent's deck.
-    
-    It serves as the 'Brain' for the Teacher, allowing it to evaluate 
-    card combinations holistically rather than just as a sequence.
-    """
-    def __init__(self, embedding_dim, nhead, num_layers, d_model):
-        super().__init__()
-        self.d_model = d_model
-        # Processes the 'Current Deck A' tokens
-        encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, batch_first=True)
-        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        
-        # Outputs a 'Query Vector' for the next card selection
-        self.query_head = nn.Linear(d_model, embedding_dim)
-        
-        # Evaluation head to predict matchup outcome (Win Rate / Learning Gain)
-        self.eval_head = nn.Sequential(
-            nn.Linear(d_model, d_model),
-            nn.ReLU(),
-            nn.Linear(d_model, 1)
-        )
-
-    def forward(self, deck_embeddings, opponent_deck_embeddings=None, student_weakness_context=None):
-        """
-        Args:
-            deck_embeddings: (batch, num_cards, d_model)
-            opponent_deck_embeddings: (batch, num_opponent_cards, d_model)
-            student_weakness_context: (batch, context_dim)
-        """
-        # 1. Self-Attention over the current deck to understand synergy
-        combined_context = deck_embeddings
-        if opponent_deck_embeddings is not None:
-            # In a full implementation, we would use cross-attention or concat 
-            # to see how Deck A interacts with Deck B
-            combined_context = torch.cat([deck_embeddings, opponent_deck_embeddings], dim=1)
-            
-        z = self.transformer_encoder(combined_context)
-        
-        # 2. Pool the state to get a global 'Matchup Representation'
-        z_pooled = z.mean(dim=1)
-        
-        # 3. Generate a Query Vector for the next card search
-        query_vector = self.query_head(z_pooled)
-        
-        # 4. Predict the 'Matchup Quality'
-        quality_score = torch.sigmoid(self.eval_head(z_pooled))
-        
-        return query_vector, quality_score
+try:
+    import torch.optim as optim
+except ImportError:
+    optim = None
 
 class Teacher:
     """
-    The Teacher RL agent. Dual-purpose:
-    1. Curriculum Designer: Challenges the Student AI.
-    2. Deck Optimizer: Assists human players in finding synergistic cards.
+    The Teacher agent.
+    Learns to select 'Lesson Cards' that maximize student learning.
     """
     def __init__(self, card_loader: CardDataLoader, model_config: Dict[str, Any]):
         self.card_loader = card_loader
         self.logger = setup_logger(__name__)
+        self.deck_gen = DeckGenerator()
         
-        self.embedding_dim = model_config.get("embedding_dim", 128)
-        self.d_model = model_config.get("d_model", 256)
+        if HAS_TORCH:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.model = TeacherModel(input_dim=4).to(self.device)
+            self.optimizer = optim.Adam(self.model.parameters(), lr=0.01)
+        else:
+            self.device = "cpu"
+            self.model = TeacherModel(input_dim=4)
+            self.optimizer = None
         
-        self.analyzer = DeckMatchupAnalyzer(
-            embedding_dim=self.embedding_dim,
-            nhead=model_config.get("nhead", 8),
-            num_layers=model_config.get("num_layers", 4),
-            d_model=self.d_model
-        )
+        self.last_benchmark_score = 0.0
+        self.teacher_reward_history = []
+
+    def select_archetypes(self, current_benchmark_score: float, self_play_winrate: float = 0.5, avg_steps: float = 1000) -> Tuple[List[int], List[int]]:
+        benchmark_improvement = current_benchmark_score - self.last_benchmark_score
+        speed_factor = (1000 - avg_steps) / 1000
         
-        # Placeholder for the global card embedding pool (TurboQuant target)
-        # In production, this would be a FAISS index or similar vector DB
-        self.card_pool_embeddings: Dict[int, torch.Tensor] = {} 
+        if HAS_TORCH:
+            state = torch.tensor([current_benchmark_score, benchmark_improvement, self_play_winrate, speed_factor], dtype=torch.float, device=self.device)
+            with torch.no_grad():
+                weights = self.model(state)
+                w = weights.tolist()
+        else:
+            w = [random.random() for _ in range(7)]
+
+        curiosity_factor = 0.5
+        w = [ (1 - curiosity_factor) * wi + curiosity_factor * random.random() for wi in w ]
+
+        conn = sqlite3.connect(self.card_loader.db_path)
+        cursor = conn.cursor()
         
-        self.student_weakness_profile = {} # Detailed tracking of Student misplays
-        self.min_deck_size = 40
+        def get_cards(query_part, count):
+            # FOUNDATION PHASE: Disallow life-gain to ensure games finish
+            forbidden = "(text NOT LIKE '%gain life%' AND text NOT LIKE '%life total becomes%' AND text NOT LIKE '%lifelink%')"
+            cursor.execute(f"SELECT card_id FROM cards WHERE ({query_part}) AND {forbidden} ORDER BY RANDOM() LIMIT ?", (max(1, int(count)),))
+            return [row[0] for row in cursor.fetchall()]
 
-    def select_next_card(self, current_deck: List[int], opponent_deck: Optional[List[int]] = None) -> int:
-        """
-        Sequentially selects the best card to add to the deck.
-        Uses the Transformer to generate a 'Query' and searches the card pool.
-        """
-        if not current_deck:
-            # Start with a random 'Seed' card or an archetype staple
-            return random.choice(self.card_loader.get_all_card_ids())
+        total_w = sum(w[i] for i in [0, 1, 2, 5, 6]) or 1.0
+        def get_count(weight_idx, deck_size):
+            return max(0, int(deck_size * (w[weight_idx] / total_w)))
 
-        # 1. Convert current IDs to embeddings
-        deck_vecs = torch.stack([self.card_pool_embeddings.get(cid, torch.zeros(self.d_model)) for cid in current_deck])
-        deck_vecs = deck_vecs.unsqueeze(0) # Add batch dim
+        format_size = 60 
+        c_count = get_count(0, format_size)
+        s_count = get_count(1, format_size)
+        l_count = get_count(2, format_size)
+        a_count = get_count(5, format_size)
+        e_count = get_count(6, format_size)
 
-        # 2. Get the Query Vector from the Transformer
-        query_vector, _ = self.analyzer(deck_vecs)
-
-        # 3. Perform Vector Search (Cosine Similarity)
-        # This is the 'Search' part: find the card in the pool most similar to the query
-        best_card_id = self._vector_search(query_vector)
+        creatures = get_cards("type LIKE '%Creature%'", c_count)
+        spells = get_cards("(type LIKE '%Instant%' OR type LIKE '%Sorcery%')", s_count)
+        artifacts = get_cards("type LIKE '%Artifact%'", a_count)
+        enchantments = get_cards("type LIKE '%Enchantment%'", e_count)
         
-        return best_card_id
+        all_non_lands = (creatures + spells + artifacts + enchantments)
+        random.shuffle(all_non_lands)
+        
+        mid = len(all_non_lands) // 2
+        deck_a_seeds = all_non_lands[:mid]
+        deck_b_seeds = all_non_lands[mid:]
+        
+        conn.close()
+        self.last_benchmark_score = current_benchmark_score
+        return deck_a_seeds, deck_b_seeds
 
-    def _vector_search(self, query_vector: torch.Tensor) -> int:
-        """
-        Searches the card embedding database for the best match.
-        For now, this is a conceptual placeholder.
-        """
-        # Concept:
-        # scores = {}
-        # for card_id, emb in self.card_pool_embeddings.items():
-        #     scores[card_id] = F.cosine_similarity(query_vector, emb)
-        # return max(scores, key=scores.get)
-        return random.choice(self.card_loader.get_all_card_ids())
+    def train_teacher(self, student_improvement: float):
+        if not HAS_TORCH or self.optimizer is None: return
+        self.teacher_reward_history.append(student_improvement)
 
-    def generate_optimized_deck(self, archetype_staples: List[int], opponent_deck: Optional[List[int]] = None) -> List[int]:
-        """
-        Builds a full deck sequentially. 
-        Can be used to challenge a Student or optimize a Human Player's deck.
-        """
-        deck = list(archetype_staples)
-        while len(deck) < self.min_deck_size:
-            next_card = self.select_next_card(deck, opponent_deck)
-            deck.append(next_card)
-        return deck
+    def generate_matchup(self, format_name: str, archetypes: Tuple[str, str]) -> List[List[int]]:
+        if isinstance(archetypes[0], list):
+            deck_a = self.deck_gen.build_from_sequence(archetypes[0], format_name)
+            deck_b = self.deck_gen.build_from_sequence(archetypes[1], format_name)
+            return [deck_a, deck_b]
 
-    def evaluate_matchup(self, deck_a: List[int], deck_b: List[int]) -> float:
-        """
-        Uses full information to predict the 'Fairness' and 'Learning Potential'
-        of a matchup before starting the simulation.
-        """
-        # Convert to embeddings and run through the analyzer's eval_head
-        # Returns a score between 0 and 1
-        return 0.5
+        return self.deck_gen.build_constructed_deck(archetypes[0], format_name), \
+               self.deck_gen.build_constructed_deck(archetypes[1], format_name)

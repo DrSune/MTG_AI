@@ -50,7 +50,12 @@ def execute_tap_for_mana(graph: GameGraph, player: Entity, card: Entity, ability
             for mana_type, amount in ability.get("produces", {}).items():
                 m_type = int(mana_type)
                 m_amount = int(amount)
-                player.properties['mana_pool'][m_type] += m_amount
+                # Ensure the mana pool is a dictionary
+                if 'mana_pool' not in player.properties or not isinstance(player.properties['mana_pool'], dict):
+                    player.properties['mana_pool'] = {}
+                
+                # Increment the mana amount, defaulting to 0 if the type doesn't exist
+                player.properties['mana_pool'][m_type] = player.properties['mana_pool'].get(m_type, 0) + m_amount
             logger.info(f"Player {player.properties.get('name')} added {ability.get('produces')} mana. Mana pool: {player.properties['mana_pool']}")
 
     except Exception as e:

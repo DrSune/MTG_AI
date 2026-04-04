@@ -1,0 +1,16 @@
+{
+    "name": "Lethal Burn Var 48",
+    "supported_formats": [
+        "Limited",
+        "Commander",
+        "Standard"
+    ],
+    "setup": {
+        "p1_hand": [
+            159
+        ],
+        "p2_life": 1,
+        "p1_mana": 3
+    },
+    "goal": "p2_life <= 0"
+}

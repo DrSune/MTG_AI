@@ -193,6 +193,7 @@ class TestEngine(unittest.TestCase):
 
         # Declare Attackers Step
         self.graph.turn_number = 2 
+        self.graph.phase = self.id_mapper.get_id_by_name("Combat Phase", "game_vocabulary")
         self.graph.step = self.id_mapper.get_id_by_name("Declare Attackers Step", "game_vocabulary")
         attack_move = next(move for move in self.engine.get_legal_moves() if isinstance(move, DeclareAttackerAction))
         self.engine.execute_move(attack_move)

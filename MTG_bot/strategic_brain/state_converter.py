@@ -1,127 +1,129 @@
-from typing import List, Dict
+from typing import List, Dict, Any, Optional
 import numpy as np
-import torch
+import uuid
 
 from ..rule_engine.game_graph import GameGraph, Entity
 from ..rule_engine import vocabulary as vocab
 
+try:
+    import torch
+    HAS_TORCH = True
+except ImportError:
+    HAS_TORCH = False
+
 class StateConverter:
     """
-    Converts the GameGraph into numerical observations and token sequences for the RL agent.
+    Converts the GameGraph into numerical observations and token sequences.
+    Ensures high-priority spatial tokens (Zones) are always included.
     """
     def __init__(self):
-        self.observation_size = 2 + 2 + 2 + 12 + 5
-        self.component_dim = 10 # Example: power, toughness, CMC, type_bits...
-
-    def convert_graph_to_tokens(self, graph: GameGraph) -> Dict[str, torch.Tensor]:
-        """
-        Converts the GameGraph into tensors for the System 2 model.
-        Returns:
-            atomic_ids: (1, num_entities) tensor of unique card IDs.
-            component_features: (1, num_entities, component_dim) tensor of stats.
-        """
-        entities = list(graph.entities.values())
-        num_entities = len(entities)
+        self.observation_size = 64 
+        self.feature_dim = 32 
+        self.max_tokens = 500 # Increased for Pro-Scale
         
-        atomic_ids = torch.zeros(1, num_entities, dtype=torch.long)
-        component_features = torch.zeros(1, num_entities, self.component_dim)
-        
-        for i, entity in enumerate(entities):
-            atomic_ids[0, i] = entity.type_id
-            
-            # Extract component features
-            # 0: power, 1: toughness, 2: cmc, 3: is_creature, 4: is_land...
-            feats = torch.zeros(self.component_dim)
-            feats[0] = entity.properties.get('effective_power', 0)
-            feats[1] = entity.properties.get('effective_toughness', 0)
-            feats[2] = entity.properties.get('cmc', 0)
-            feats[3] = 1.0 if entity.properties.get('is_creature') else 0.0
-            feats[4] = 1.0 if entity.properties.get('is_land') else 0.0
-            
-            component_features[0, i] = feats
-            
-        return {
-            "atomic_ids": atomic_ids,
-            "component_features": component_features
+        self.keyword_map = {
+            "flying": 0, "haste": 1, "indestructible": 2, "hexproof": 3,
+            "lifelink": 4, "deathtouch": 5, "trample": 6, "vigilance": 7,
+            "unblockable": 8, "protection_from_name": 9
         }
 
+    def convert_graph_to_tokens(self, graph: GameGraph, engine_stack: List[Any] = None) -> Dict[str, Any]:
+        """
+        Converts the GameGraph into numeric arrays/tensors.
+        Token order: [Zones, Players, Stack, Cards...]
+        """
+        active_player_id = graph.active_player_id
+        
+        # 1. Identify Priority Entities (Zones and Players)
+        priority_entities = []
+        for eid, entity in graph.entities.items():
+            if entity.type_id in [vocab.ID_PLAYER, vocab.ID_ZONE_BATTLEFIELD, vocab.ID_ZONE_HAND, vocab.ID_ZONE_GRAVEYARD, vocab.ID_ZONE_LIBRARY]:
+                priority_entities.append(entity)
+        
+        # 2. Identify Cards and other entities
+        other_entities = [e for e in graph.entities.values() if e not in priority_entities]
+        
+        # 3. Stack items
+        stack_items = engine_stack if engine_stack else []
+        
+        # Combine in priority order
+        all_tokens_list = priority_entities + stack_items + other_entities
+        total_tokens = min(len(all_tokens_list), self.max_tokens)
+        
+        atomic_ids = np.zeros(total_tokens, dtype=np.int64)
+        features = np.zeros((total_tokens, self.feature_dim), dtype=np.float32)
+        zone_ids = np.zeros(total_tokens, dtype=np.int64)
+        controller_ids = np.zeros(total_tokens, dtype=np.int64)
+
+        for i in range(total_tokens):
+            item = all_tokens_list[i]
+            
+            if isinstance(item, Entity):
+                atomic_ids[i] = item.type_id
+                c_id = graph.get_controller_id(item)
+                if c_id == active_player_id: controller_ids[i] = 1
+                elif c_id is not None: controller_ids[i] = 2
+                
+                zone_ids[i] = self._get_zone_type_id(graph, item)
+                features[i] = self._extract_features(item)
+            else:
+                # Stack Item
+                source = graph.entities.get(item.source_id)
+                atomic_ids[i] = source.type_id if source else 0
+                controller_ids[i] = 1 if item.controller_id == active_player_id else 2
+                zone_ids[i] = 999 
+                features[i, 15] = 1.0
+
+        res = {"atomic_ids": atomic_ids, "features": features, "zone_ids": zone_ids, "controller_ids": controller_ids}
+        if HAS_TORCH:
+            return {k: torch.from_numpy(v).unsqueeze(0) for k, v in res.items()}
+        return res
+
+    def _get_zone_type_id(self, graph: GameGraph, entity: Entity) -> int:
+        if entity.properties.get('is_on_battlefield'): return vocab.ID_ZONE_BATTLEFIELD
+        if entity.properties.get('is_in_hand'): return vocab.ID_ZONE_HAND
+        if entity.properties.get('is_in_graveyard'): return vocab.ID_ZONE_GRAVEYARD
+        return 0
+
+    def _extract_features(self, entity: Entity) -> np.ndarray:
+        feats = np.zeros(self.feature_dim, dtype=np.float32)
+        props = entity.properties
+        
+        def safe_float(val):
+            if val is None: return 0.0
+            if isinstance(val, (int, float)): return float(val)
+            s = str(val).strip()
+            if not s or s in ["*", "X"]: return 0.0
+            try:
+                import re
+                match = re.match(r"(\d+)", s)
+                return float(match.group(1)) if match else 0.0
+            except: return 0.0
+
+        feats[0] = safe_float(props.get('effective_power') or props.get('power'))
+        feats[1] = safe_float(props.get('effective_toughness') or props.get('toughness'))
+        feats[2] = safe_float(props.get('cmc'))
+        feats[3] = 1.0 if props.get('tapped') else 0.0
+        feats[4] = 1.0 if props.get('has_summoning_sickness') else 0.0
+        feats[5] = 1.0 if props.get('is_creature') else 0.0
+        feats[6] = 1.0 if props.get('is_land') else 0.0
+        feats[7] = 1.0 if props.get('is_attacking') else 0.0
+        feats[8] = 1.0 if props.get('is_blocking') else 0.0
+        
+        if 'life_total' in props: feats[9] = float(props.get('life_total') or 20) / 20.0
+        if 'mana_pool' in props: feats[10] = float(sum((props['mana_pool'] or {}).values()))
+        for kw, bit in self.keyword_map.items():
+            if props.get(kw): feats[11] += (2 ** bit)
+        return feats
+
     def convert_graph_to_observation(self, graph: GameGraph) -> np.ndarray:
-        """
-        Converts the GameGraph into a fixed-size numerical observation vector.
-        """
-        observation = np.zeros(self.observation_size, dtype=np.float32)
-        
-        # --- Player Information ---
-        player1 = None
-        player2 = None
-        for entity in graph.entities.values():
-            if entity.type_id == vocab.ID_PLAYER:
-                if entity.instance_id == graph.active_player_id:
-                    player1 = entity # Active player
-                else:
-                    player2 = entity # Non-active player
-        
-        if player1 and player2:
-            # Helper to get cards in a zone for a player
-            def get_cards_in_zone(player_entity, zone_type_id, card_type_filter=None):
-                control_rels = graph.get_relationships(source=player_entity, rel_type=vocab.ID_REL_CONTROLS)
-                zone_entity = next((graph.entities[r.target] for r in control_rels if graph.entities[r.target].type_id == zone_type_id), None)
-                if zone_entity:
-                    cards_in_zone_rels = graph.get_relationships(target=zone_entity, rel_type=vocab.ID_REL_IS_IN_ZONE)
-                    cards = [graph.entities[r.source] for r in cards_in_zone_rels]
-                    if card_type_filter:
-                        return [card for card in cards if card.type_id == card_type_filter]
-                    return cards
-                return []
-
-            # Player 1 (Active Player)
-            observation[0] = player1.properties.get('life_total', 0)
-            observation[1] = len(get_cards_in_zone(player1, vocab.ID_ZONE_HAND)) # Cards in hand
-            observation[2] = len(get_cards_in_zone(player1, vocab.ID_ZONE_BATTLEFIELD, vocab.ID_CREATURE)) # Creatures on battlefield
-            # Add mana pool for player 1
-            mana_pool_p1 = player1.properties.get('mana_pool', {})
-            observation[3] = mana_pool_p1.get(vocab.ID_MANA_GREEN, 0)
-            observation[4] = mana_pool_p1.get(vocab.ID_MANA_BLUE, 0)
-            observation[5] = mana_pool_p1.get(vocab.ID_MANA_BLACK, 0)
-            observation[6] = mana_pool_p1.get(vocab.ID_MANA_RED, 0)
-            observation[7] = mana_pool_p1.get(vocab.ID_MANA_WHITE, 0)
-            observation[8] = mana_pool_p1.get(vocab.ID_MANA_COLORLESS, 0)
-
-            # Player 2 (Non-Active Player)
-            observation[9] = player2.properties.get('life_total', 0)
-            observation[10] = len(get_cards_in_zone(player2, vocab.ID_ZONE_HAND)) # Cards in hand
-            observation[11] = len(get_cards_in_zone(player2, vocab.ID_ZONE_BATTLEFIELD, vocab.ID_CREATURE)) # Creatures on battlefield
-            # Add mana pool for player 2
-            mana_pool_p2 = player2.properties.get('mana_pool', {})
-            observation[12] = mana_pool_p2.get(vocab.ID_MANA_GREEN, 0)
-            observation[13] = mana_pool_p2.get(vocab.ID_MANA_BLUE, 0)
-            observation[14] = mana_pool_p2.get(vocab.ID_MANA_BLACK, 0)
-            observation[15] = mana_pool_p2.get(vocab.ID_MANA_RED, 0)
-            observation[16] = mana_pool_p2.get(vocab.ID_MANA_WHITE, 0)
-            observation[17] = mana_pool_p2.get(vocab.ID_MANA_COLORLESS, 0)
-
-        # --- Game State Information ---
-        # Current Phase (one-hot encoding for simplicity, assuming 5 phases)
-        phase_one_hot = np.zeros(5)
-        if graph.phase == vocab.ID_PHASE_BEGINNING: phase_one_hot[0] = 1
-        elif graph.phase == vocab.ID_PHASE_MAIN1: phase_one_hot[1] = 1
-        elif graph.phase == vocab.ID_PHASE_COMBAT: phase_one_hot[2] = 1
-        elif graph.phase == vocab.ID_PHASE_MAIN2: phase_one_hot[3] = 1
-        elif graph.phase == vocab.ID_PHASE_ENDING: phase_one_hot[4] = 1
-        
-        # Concatenate phase one-hot encoding to the observation vector
-        observation[18:23] = phase_one_hot
-        
-        return observation
-
-def game_state_encoder(game_state):
-    # The game-state encoder must produce a fixed-size vector.
-    # TODO: How big should the game-state vectors be? This will be a trade-off between expressiveness and computational cost.
-    # This function should learn to represent the game state in a way that captures the archetypes of cards in play,
-    # not just the specific cards themselves.
-    # We believe that a larger transformer (that encodes more entities individually) can have a higher ceiling than a small one.
-    # A small one benefits from quick learning but risks reaching learning saturation more quickly.
-    # It can do deeper searches (higher N for the same time) but with less sophisticated analysis.
-    # Very long-term, the increased complexity of a bigger transformer can reach higher levels, and might generalize better,
-    # but needs significantly more time to reach this, since exploration will take longer, as N per time will be lower as a result of the quadratic computational cost.
-    pass
+        obs = np.zeros(self.observation_size, dtype=np.float32)
+        obs[0] = float(graph.phase); obs[1] = float(graph.step); obs[2] = float(graph.turn_number)
+        ap = graph.entities.get(graph.active_player_id)
+        if ap:
+            obs[3] = float(ap.properties.get('life_total', 20))
+            obs[4] = float(sum(ap.properties.get('mana_pool', {}).values()))
+        opp_id = next((pid for pid in graph.players if pid != graph.active_player_id), None)
+        opp = graph.entities.get(opp_id) if opp_id else None
+        if opp: obs[5] = float(opp.properties.get('life_total', 20))
+        return obs

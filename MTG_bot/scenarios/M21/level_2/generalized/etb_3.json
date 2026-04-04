@@ -1,0 +1,15 @@
+{
+    "name": "L2_ETB_Value_3",
+    "supported_formats": [
+        "Limited",
+        "Commander"
+    ],
+    "setup": {
+        "p1_life": 18,
+        "p1_hand": [
+            5
+        ],
+        "p1_mana": 6
+    },
+    "goal": "p1_life >= 20"
+}

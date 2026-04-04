@@ -1,0 +1,262 @@
+try:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+    HAS_TORCH = True
+except ImportError:
+    torch = None
+    nn = None
+    F = None
+    HAS_TORCH = False
+
+import time
+import os
+import random
+import numpy as np
+from typing import List, Dict, Any, Optional, Tuple
+
+from .environment import MTGEnv
+from .student import Student, ExperienceBuffer
+from .teacher import Teacher
+from MTG_bot.rule_engine import vocabulary as vocab
+from MTG_bot.rule_engine.actions import PassPriorityAction, PassTurnAction
+from MTG_bot.rule_engine.card_data_loader import CardDataLoader
+from MTG_bot.utils.training_logger import TrainingLogger
+from MTG_bot.strategic_brain.config_rl import RLConfig
+from MTG_bot import config
+from MTG_bot.utils.logger import setup_logger
+
+logger = setup_logger("Training")
+
+def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[List[int], List[int]]] = None, 
+          initial_games: int = 0, initial_steps: int = 0):
+    """
+    Main training loop. 
+    Runs self-play episodes, collects experience, and updates the student.
+    """
+    logger.info(f"Initializing Training Loop: {cfg.format_mode}")
+    
+    loader = CardDataLoader(config.MTG_BOT_DB_PATH)
+    env = MTGEnv(loader)
+    
+    # Initialize logger with WandB if configured
+    t_logger = TrainingLogger(use_wandb=cfg.use_wandb, config=cfg.to_dict())
+    
+    # 1. Initialize Student and Frozen version
+    if student is None:
+        student = Student(cfg.to_dict())
+    
+    # Persistent metrics across generations
+    total_games_played_overall = initial_games
+    global_step_counter = initial_steps
+    
+    # Create a frozen copy of the student for self-play evaluation
+    import copy
+    frozen_model = copy.deepcopy(student.model)
+    frozen_model.eval()
+    
+    teacher = Teacher(loader, cfg.to_dict())
+    buffer = ExperienceBuffer()
+    
+    student_wins = 0
+    total_games_in_gen = 0
+    
+    # Track the current decks for stability
+    if fixed_matchup:
+        deck_a, deck_b = fixed_matchup
+    else:
+        deck_a, deck_b = [], []
+        
+    format_name = cfg.format_mode
+
+    for episode in range(cfg.episodes_per_generation):
+        total_games_played_overall += 1
+        total_games_in_gen += 1
+        is_foundation_phase = total_games_played_overall <= cfg.initial_phase_games
+        
+        # Adjust Hyperparameters dynamically
+        if is_foundation_phase:
+            current_lr = cfg.initial_lr
+            current_batch_size = cfg.initial_batch_size
+        else:
+            current_lr = cfg.lr
+            current_batch_size = cfg.batch_size
+            
+        student.set_learning_rate(current_lr)
+
+        # Update frozen model periodically (e.g., every 20 episodes)
+        if HAS_TORCH and total_games_played_overall > 0 and total_games_played_overall % 20 == 0:
+            frozen_model.load_state_dict(student.model.state_dict())
+            print(f"\n[SYSTEM] Frozen Student weights updated to match current Student.")
+
+        # Calculate exploration rate
+        exploration_rate = max(0.1, 0.5 * (1 - episode / cfg.episodes_per_generation))
+        
+        # 1. Matchup Stability: Update decks only every N games
+        if not fixed_matchup and episode % cfg.deck_refresh_freq == 0:
+            current_format = cfg.format_mode
+            print(f"\n" + "="*60)
+            print(f" [Teacher] >>> DESIGNING AUTONOMOUS MATCHUP <<<")
+            seeds_a, seeds_b = teacher.select_archetypes(0.0, student_wins/(total_games_in_gen or 1), 500)
+            deck_a = teacher.deck_gen.build_from_sequence(seeds_a, current_format)
+            deck_b = teacher.deck_gen.build_from_sequence(seeds_b, current_format)
+            format_name = current_format
+            print("="*60)
+        elif fixed_matchup:
+            format_name = cfg.format_mode
+        
+        # 2. Reset Environment
+        obs, _, _ = env.reset_with_decks(deck_a, deck_b, mode=format_name)
+        p1_id = env.graph.players[0]
+        p2_id = next(pid for pid in env.graph.players if pid != p1_id)
+        
+        p1_hand_size = len(env.graph.get_entities_in_zone(p1_id, vocab.ID_ZONE_HAND))
+        p2_hand_size = len(env.graph.get_entities_in_zone(p2_id, vocab.ID_ZONE_HAND))
+        print(f"\n[Game {total_games_played_overall}] {format_name} | Student (P1): {p1_hand_size} cards | Frozen (P2): {p2_hand_size} cards")
+        
+        done = False
+        steps = 0
+        episode_experience = []
+        episode_reward = 0
+        last_menu_str = ""
+        
+        while not done and steps < cfg.steps_per_episode:
+            active_id = obs["active_player"]
+            is_student = (active_id == p1_id)
+            current_turn = env.graph.turn_number
+            
+            # Select Action
+            if is_student:
+                legal_moves = env.engine.get_legal_moves()
+                meaningful_moves = [m for m in legal_moves if not isinstance(m, (PassPriorityAction, PassTurnAction)) and "Mana" not in type(m).__name__]
+                
+                menu_samples = []
+                for m in meaningful_moves[:3]:
+                    name = type(m).__name__.replace("Action", "")
+                    detail = f"({env._resolve_name(m.card_id)})" if hasattr(m, "card_id") else ""
+                    menu_samples.append(f"{name}{detail}")
+                current_menu_str = ", ".join(menu_samples)
+                
+                if (current_menu_str != last_menu_str and current_menu_str != "") or steps % 500 == 0:
+                    print(f"  [MENU] Turn {current_turn} | Options: {current_menu_str if current_menu_str else 'Pass Only'}")
+                    last_menu_str = current_menu_str
+
+                action_idx, value, log_prob, memory, thoughts = student.select_action(
+                    obs, requires_grad=HAS_TORCH, exploration_rate=exploration_rate
+                )
+            else:
+                if HAS_TORCH:
+                    with torch.no_grad():
+                        orig_model = student.model
+                        student.model = frozen_model
+                        action_idx, value, log_prob, memory, thoughts = student.select_action(
+                            obs, requires_grad=False, exploration_rate=0.0, deterministic=True
+                        )
+                        student.model = orig_model
+                else:
+                    action_idx, value, log_prob, memory, thoughts = student.select_action(obs, deterministic=True)
+            
+            next_obs, reward, done, info = env.step(action_idx)
+            
+            # Logging
+            action_str = info.get("action_taken", "Unknown")
+            is_phase_change = "Phase ->" in action_str
+            is_important_move = not ("PassPriority" in action_str or "PassTurn" in action_str or "ActivateManaAbility" in action_str) or "DeclareBlocker" in action_str
+            role = "[S]" if is_student else "[F]"
+
+            if is_important_move or is_phase_change:
+                p1_tele = f"S:{info.get('p1_life'):>2}hp {info.get('p1_hand'):>1}h"
+                p2_tele = f"F:{info.get('p2_life'):>2}hp {info.get('p2_hand'):>1}h"
+                log_prefix = ">>>" if is_phase_change else "   "
+                print(f"  {log_prefix} Step {steps:4d}: {role} {action_str:<45} | {p1_tele} | {p2_tele}")
+            
+            if steps % 20 == 0:
+                p1_deck = len(env.graph.get_entities_in_zone(p1_id, vocab.ID_ZONE_LIBRARY))
+                p2_deck = len(env.graph.get_entities_in_zone(p2_id, vocab.ID_ZONE_LIBRARY))
+                
+                t_logger.log_metrics({
+                    "step/p1_life": info.get("p1_life"),
+                    "step/p2_life": info.get("p2_life"),
+                    "step/p1_hand": info.get("p1_hand"),
+                    "step/p2_hand": info.get("p2_hand"),
+                    "step/p1_deck": p1_deck,
+                    "step/p2_deck": p2_deck,
+                    "step/p1_mana": info.get("p1_mana"),
+                    "step/p2_mana": info.get("p2_mana")
+                }, global_step=global_step_counter)
+
+            if is_student:
+                t_logger.log_thinking(thoughts)
+                episode_experience.append({
+                    "obs": obs, "action": action_idx, "reward": reward, "value": value, 
+                    "log_prob": log_prob.item() if hasattr(log_prob, "item") else log_prob, "done": done
+                })
+
+            obs = next_obs
+            episode_reward += reward if is_student else 0
+            steps += 1
+            global_step_counter += 1
+
+        # 3. Post-Episode Statistics
+        p1_life, p2_life = info.get("p1_life", 40), info.get("p2_life", 40)
+        is_timeout = (not done and steps >= cfg.steps_per_episode)
+        
+        if p2_life <= 0:
+            student_wins += 1; winner_str = "STUDENT (P1)"
+        elif p1_life <= 0:
+            winner_str = "FROZEN (P2)"
+        elif done or is_timeout:
+            if p1_life > p2_life:
+                student_wins += 1; winner_str = f"STUDENT (P1) [{'Timeout' if is_timeout else 'Done'}]"
+            elif p2_life > p1_life:
+                winner_str = f"FROZEN (P2) [{'Timeout' if is_timeout else 'Done'}]"
+            else:
+                winner_str = "DRAW (Stall)"
+        else:
+            winner_str = "FROZEN (P2)"
+            
+        win_rate = (student_wins / total_games_in_gen) * 100
+        print(f" >>> Episode End! Winner: {winner_str} | Steps: {steps} | S:{p1_life}hp F:{p2_life}hp | Student Win Rate: {win_rate:.1f}%")
+
+        # 4. Process Returns and Advantages for PPO
+        running_return = 0
+        for i in reversed(range(len(episode_experience))):
+            running_return = episode_experience[i]["reward"] + cfg.gamma * running_return * (1 - episode_experience[i]["done"])
+            episode_experience[i]["return"] = running_return
+            episode_experience[i]["advantage"] = running_return - episode_experience[i]["value"]
+            buffer.push(episode_experience[i])
+
+        # 5. Global Metrics
+        t_logger.log_metrics({
+            "episode/student_win_rate": win_rate,
+            "episode/reward": episode_reward,
+            "episode/game_length": steps
+        }, global_game=total_games_played_overall)
+
+        # 6. Periodic Model Update & Checkpoint
+        if len(buffer.buffer) >= current_batch_size:
+            loss_metrics = student.train_step(buffer.sample(current_batch_size), ppo_epochs=cfg.ppo_epochs, clip_param=cfg.clip_param)
+            t_logger.log_metrics(loss_metrics, global_game=total_games_played_overall)
+
+        # SAVE LOGIC: Save every 10 games, or EVERY game during foundation phase
+        if total_games_played_overall % cfg.save_freq == 0 or is_foundation_phase:
+            # Use absolute path to avoid ambiguity
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            model_dir = os.path.join(base_dir, "models")
+            os.makedirs(model_dir, exist_ok=True)
+            model_path = os.path.join(model_dir, cfg.get_model_name())
+            
+            if HAS_TORCH:
+                try:
+                    torch.save(student.model.state_dict(), model_path)
+                    print(f"\n[SYSTEM] Checkpoint saved: {model_path} (Game {total_games_played_overall})")
+                    
+                    if total_games_played_overall % 50 == 0:
+                        backup_path = model_path.replace(".pt", f"_G{total_games_played_overall}.pt")
+                        torch.save(student.model.state_dict(), backup_path)
+                        print(f"[SYSTEM] Permanent backup created: {backup_path}")
+                except Exception as e:
+                    print(f"[SYSTEM] Error saving checkpoint: {e}")
+
+    t_logger.save_report()
+    return student, win_rate / 100, 500, total_games_played_overall, global_step_counter

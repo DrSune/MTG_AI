@@ -106,16 +106,18 @@ def assign_combat_damage(graph: GameGraph):
         for attacker in attacking_creatures:
             blockers = [graph.entities[r.source] for r in graph.get_relationships(target=attacker, rel_type=id_mapper.get_id_by_name("Blocking", "game_vocabulary"))]
             attacker_power = attacker.properties.get('effective_power', get_creature_stats(attacker.type_id).get('power', 0))
+            
             abilities_dict = attacker.properties.get('abilities', {})
             attacker_abilities = abilities_dict.get("keywords", [])
             attacker_controller = next((graph.entities[r.target] for r in graph.get_relationships(source=attacker, rel_type=id_mapper.get_id_by_name("Controlled By", "game_vocabulary"))), None)
 
             if not blockers:
-
                 # Unblocked: Deal damage to defending player
                 if defending_player:
-                    defending_player.properties['life_total'] -= attacker_power
-                    logger.info(f"{attacker.properties.get('name', attacker.type_id)} ({attacker.type_id}) deals {attacker_power} damage to {defending_player.properties.get('name', defending_player.type_id)} ({defending_player.type_id}).")
+                    # Use effect_handlers.apply_damage to respect protection/Nine Lives
+                    from . import effect_handlers
+                    effect_handlers.apply_damage(graph, attacker, defending_player, attacker_power)
+                    
                     if id_mapper.get_id_by_name("Lifelink", "game_vocabulary") in attacker_abilities and attacker_controller:
                         attacker_controller.properties['life_total'] += attacker_power
                         logger.info(f"{attacker.properties.get('name')} has Lifelink. {attacker_controller.properties.get('name')} gains {attacker_power} life. New life total: {attacker_controller.properties['life_total']}")
@@ -124,7 +126,7 @@ def assign_combat_damage(graph: GameGraph):
                 # (Simplification: assumes one blocker)
                 blocker = blockers[0]
                 blocker_power = blocker.properties.get('effective_power', get_creature_stats(blocker.type_id).get('power', 0))
-
+                
                 # Attacker deals damage to blocker
                 blocker.properties['damage_taken'] = blocker.properties.get('damage_taken', 0) + attacker_power
                 logger.info(f"{attacker.properties.get('name', attacker.type_id)} ({attacker.type_id}) deals {attacker_power} damage to {blocker.properties.get('name', blocker.type_id)} ({blocker.type_id}).")
