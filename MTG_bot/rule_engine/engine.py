@@ -95,7 +95,7 @@ class Engine:
                     hand_cards = self.graph.get_entities_in_zone(decision_player_id, vocab.ID_ZONE_HAND)
                     for land in [c for c in hand_cards if c.properties.get('is_land')]:
                         legal_moves.append(PlayLandAction(player_id=decision_player_id, card_id=land.instance_id))
-                        break
+                        # Removed break to allow choosing which land to play if multiple exist
 
             # 4. Spells & Mana
             mana_pool = decision_player.properties.get('mana_pool', {})
