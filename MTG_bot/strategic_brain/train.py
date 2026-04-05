@@ -265,22 +265,30 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
             global_step_counter += 1
 
         # 3. Post-Episode Statistics
+        p1_id = env.graph.players[0]
         p1_life, p2_life = info.get("p1_life", 40), info.get("p2_life", 40)
         is_timeout = (not done and steps >= cfg.steps_per_episode)
         
-        if p2_life <= 0:
-            student_wins += 1; winner_str = "STUDENT (P1)"
-        elif p1_life <= 0:
-            winner_str = "FROZEN (P2)"
-        elif done or is_timeout:
+        # Check Engine's Winner First (Handles Deckout, State-Based Actions)
+        if env.engine.game_over and env.engine.winner_id is not None:
+            if env.engine.winner_id == p1_id:
+                student_wins += 1; winner_str = "STUDENT (P1)"
+            else:
+                winner_str = "FROZEN (P2)"
+        elif is_timeout:
+            # Fallback for Timeout/Draw
             if p1_life > p2_life:
-                student_wins += 1; winner_str = f"STUDENT (P1) [{'Timeout' if is_timeout else 'Done'}]"
+                student_wins += 1; winner_str = "STUDENT (P1) [Timeout]"
             elif p2_life > p1_life:
-                winner_str = f"FROZEN (P2) [{'Timeout' if is_timeout else 'Done'}]"
+                winner_str = "FROZEN (P2) [Timeout]"
             else:
                 winner_str = "DRAW (Stall)"
         else:
-            winner_str = "FROZEN (P2)"
+            # Fallback for other completions (e.g. done but winner_id not set, shouldn't happen)
+            if p1_life > p2_life:
+                student_wins += 1; winner_str = "STUDENT (P1)"
+            else:
+                winner_str = "FROZEN (P2)"
             
         win_rate = (student_wins / total_games_in_gen) * 100
         print(f" >>> Episode End! Winner: {winner_str} | Steps: {steps} | S:{p1_life}hp F:{p2_life}hp | Student Win Rate: {win_rate:.1f}%")
