@@ -129,7 +129,9 @@ class Student:
                 obs = t["obs"]
                 atomic_ids = torch.as_tensor(obs["tokens"]["atomic_ids"], device=self.device).unsqueeze(0)
                 features = torch.as_tensor(obs["tokens"]["component_features"], device=self.device).unsqueeze(0)
-                descriptors = torch.as_tensor(obs["legal_action_descriptors"], device=self.device, dtype=torch.float).unsqueeze(0)
+                
+                descriptors_np = np.array(obs["legal_action_descriptors"], dtype=np.float32)
+                descriptors = torch.as_tensor(descriptors_np, device=self.device).unsqueeze(0)
                 
                 action_idx = t["action"]
                 old_log_prob = t["log_prob"]

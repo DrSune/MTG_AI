@@ -205,10 +205,19 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
                     
                     if done: break
                 
+                # If plan was followed, 'obs' is now the state AFTER the last plan step.
+                # We should NOT append the original action_idx again.
                 if plan_steps_taken == 0 and not done:
                     # Fallback if plan loop didn't execute (e.g. immediate END_PLAN)
                     # We must take at least one real action (usually Pass)
                     next_obs, reward, done, info = env.step(action_idx)
+                    
+                    # Store fallback transition
+                    episode_experience.append({
+                        "obs": obs, "action": action_idx, "reward": reward, "value": value, 
+                        "log_prob": log_prob.item() if hasattr(log_prob, "item") else log_prob, "done": done
+                    })
+                    
                     obs = next_obs; episode_reward += reward; steps += 1; global_step_counter += 1
             else:
                 # Frozen/Opponent Move (Non-planning for simplicity)
@@ -254,16 +263,12 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
 
             if is_student:
                 t_logger.log_thinking(thoughts)
-                episode_experience.append({
-                    "obs": obs, "action": action_idx, "reward": reward, "value": value, 
-                    "log_prob": log_prob.item() if hasattr(log_prob, "item") else log_prob, "done": done
-                })
 
-            obs = next_obs
+            # Note: Transition recording is now handled INSIDE the plan/fallback loop above.
+            # We must NOT append again here.
+            
             episode_reward += reward if is_student else 0
-            steps += 1
-            global_step_counter += 1
-
+        
         # 3. Post-Episode Statistics
         p1_id = env.graph.players[0]
         p1_life, p2_life = info.get("p1_life", 40), info.get("p2_life", 40)

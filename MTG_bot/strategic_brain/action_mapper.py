@@ -9,7 +9,7 @@ from ..rule_engine.actions import (
     PassPriorityAction,
     PassTurnAction,
 )
-from ..rule_engine.game_graph import GameGraph
+from ..rule_engine.game_graph import GameGraph, Entity
 from ..rule_engine import vocabulary as vocab
 
 # Define constant IDs for action types

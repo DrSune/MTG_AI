@@ -149,6 +149,11 @@ class MTGEnv:
         self.engine.execute_move(actual_action)
         
         # 4. Calculate Impact & Dense Reward
+        action_discovery_reward = 0.0
+        if isinstance(actual_action, CastSpellAction): action_discovery_reward = 0.1
+        elif isinstance(actual_action, PlayLandAction): action_discovery_reward = 0.05
+        elif "ActivateManaAbility" in action_name: action_discovery_reward = 0.01
+
         # Turn/Efficiency Penalty: -0.005 per step (approx 1 damage per 10 steps)
         # This encourages winning fast and discourages stalling.
         step_penalty = -0.005 
@@ -169,8 +174,8 @@ class MTGEnv:
         self.game_over = self.engine.game_over
         win_loss_reward = self.engine.get_reward(p1_id)
         
-        # Total Reward: win + damage + life + board + cards + illegal penalty + efficiency penalty
-        total_reward = win_loss_reward + damage_reward + life_reward + board_reward + card_reward + penalty + step_penalty
+        # Total Reward: win + damage + life + board + cards + illegal penalty + efficiency penalty + discovery
+        total_reward = win_loss_reward + damage_reward + life_reward + board_reward + card_reward + penalty + step_penalty + action_discovery_reward
         
         p1_mana_pool = self.graph.entities[p1_id].properties.get('mana_pool', {})
         p2_mana_pool = self.graph.entities[p2_id].properties.get('mana_pool', {})
