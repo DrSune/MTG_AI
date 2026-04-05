@@ -148,7 +148,7 @@ class Student:
                 surr2 = torch.clamp(ratio, 1.0 - clip_param, 1.0 + clip_param) * advantage
                 
                 policy_loss = -torch.min(surr1, surr2)
-                value_loss = F.mse_loss(value.squeeze(), returns)
+                value_loss = F.mse_loss(value.view(-1), returns.view(-1))
                 
                 loss = policy_loss + 0.5 * value_loss
                 

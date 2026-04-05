@@ -21,6 +21,8 @@
 
 ### 🔄 Active Tasks
 - [x] **State Observation Update:** Added Zone information (Battlefield, Hand, Graveyard) to card features to help the model distinguish locations.
+- [x] **Reward Shaping:** Increased damage-based rewards to incentivize aggressive play.
+- [x] **Fairness Update:** Randomized starting player during game initialization.
 - [ ] **Initial Training Run:** Execute long-term training session using `main_train.py`.
 - [ ] **Temporal State Encoding:** Implement time-indexing and graveyard ordering for the relational transformer.
 - [ ] **Dynamic Choice Resolution:** Replace hardcoded "as enters" choices (like Runed Halo naming) with model-driven decisions.

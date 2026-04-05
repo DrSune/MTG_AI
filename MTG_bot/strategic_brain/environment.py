@@ -160,9 +160,9 @@ class MTGEnv:
         post_p1_hand = len(self.graph.get_entities_in_zone(p1_id, vocab.ID_ZONE_HAND)) if hasattr(vocab, "ID_ZONE_HAND") else 0
 
         damage_dealt = max(0, pre_p2_life - post_p2_life)
-        damage_reward = damage_dealt * 0.05
+        damage_reward = damage_dealt * 0.1 # Increased from 0.05
         
-        life_reward = ((pre_p2_life - post_p2_life) - (pre_p1_life - post_p1_life)) * 0.01
+        life_reward = ((pre_p2_life - post_p2_life) - (pre_p1_life - post_p1_life)) * 0.02 # Increased from 0.01
         board_reward = (post_p1_perm - pre_p1_perm) * 0.05
         card_reward = (post_p1_hand - pre_p1_hand) * 0.02
 

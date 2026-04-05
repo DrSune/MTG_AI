@@ -40,7 +40,8 @@ def initialize_game_state(decklist1: List[int], decklist2: List[int], game_mode:
     player2.properties.update({'life_total': start_life, 'hand_size': hand_size, 'name': "Player 2", 'lands_played_this_turn': 0, 'mana_pool': {m: 0 for m in [vocab.ID_MANA_GREEN, vocab.ID_MANA_BLUE, vocab.ID_MANA_BLACK, vocab.ID_MANA_RED, vocab.ID_MANA_WHITE, vocab.ID_MANA_COLORLESS, vocab.ID_MANA_GENERIC]}})
     graph.players.append(player2.instance_id)
 
-    graph.active_player_id = player1.instance_id
+    # Randomly select starting player
+    graph.active_player_id = random.choice(graph.players)
     
     # Initialize Phase and Step correctly
     graph.phase = id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary")

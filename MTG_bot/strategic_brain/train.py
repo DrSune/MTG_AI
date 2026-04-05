@@ -224,6 +224,17 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
                     action_idx, _, _, _, _, _, _ = student.select_action(obs, deterministic=True)
                 
                 next_obs, reward, done, info = env.step(action_idx)
+                
+                # Log the frozen model's action
+                action_str = info.get("action_taken", "Unknown")
+                role = "[F]"
+                p1_deck = len(env.graph.get_entities_in_zone(p1_id, vocab.ID_ZONE_LIBRARY))
+                p2_deck = len(env.graph.get_entities_in_zone(p2_id, vocab.ID_ZONE_LIBRARY))
+                
+                p1_tele = f"S:{info.get('p1_life'):>2}hp {info.get('p1_hand'):>1}h {p1_deck:>2}d"
+                p2_tele = f"F:{info.get('p2_life'):>2}hp {info.get('p2_hand'):>1}h {p2_deck:>2}d"
+                print(f"  Step {steps:4d}: {role} {action_str:<45} | {p1_tele} | {p2_tele}")
+
                 obs = next_obs; steps += 1; global_step_counter += 1
             
             if steps % 20 == 0:
