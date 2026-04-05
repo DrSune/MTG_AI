@@ -6,7 +6,9 @@
     - Handles variable action spaces natively.
 - **Fusion Card Embeddings**: Implemented Atomic + Component embedding path.
     - Supports both deep memorization of specific cards and generalization to new cards.
-- **Full Zone Visibility**: `StateConverter` now processes Hand, Battlefield, Graveyard, and known Deck info into the relational context.
+- **Full Zone Visibility**: `StateConverter` now processes Hand, Battlefield, Graveyard, and known Deck info into the relational context. (Added explicit Zone features to card vectors).
+- **Discovery Reward Structure**: Implemented explicit rewards for casting spells (+0.1), playing lands (+0.05), and tapping for mana (+0.01) to incentivize active play.
+- **Fairness & Stability**: Randomized starting player and fixed winner determination logic (handles deckout correctly).
 - **Opponent Predictor**: Implemented "Belief Vector" hallucination for hidden opponent info (Hand/Deck).
 - **Dynamic Reasoning Loop**: Truly autonomous System 2 thinking with `rethink_prob` stopping.
 - **Urgency Reward Structure**: Implemented efficiency penalty (-0.005/step) to force decisive play and prevent stalling.

@@ -4,6 +4,7 @@
 1.  **Update Documentation:** Always update relevant `.md` files (`engine_map.md`, `thought_checkpoint.md`) to reflect codebase changes.
 2.  **Generalization First:** Prioritize reusable components (selectors, actions) over card-specific hardcoding.
 3.  **Rigid Testing:** Implementation is incomplete until verified via automated test or the Visualizer.
+4.  **Verify Script Execution:** Always verify that the main scripts (`main_train.py`, etc.) run without bugs after making structural changes.
 
 ---
 
