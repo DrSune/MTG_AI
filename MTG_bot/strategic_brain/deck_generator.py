@@ -127,7 +127,7 @@ class DeckGenerator:
         conn.close()
         return deck
 
-    def build_from_sequence(self, card_ids: List[int], format_name: str) -> List[int]:
+    def build_from_sequence(self, card_ids: List[int], format_name: str, land_ratio: Optional[float] = None) -> List[int]:
         """
         Builds a deck directly from a sequence provided by the Teacher.
         Ensures the deck is valid for the format (size, lands).
@@ -136,14 +136,20 @@ class DeckGenerator:
         
         if format_name == "Commander":
             target_size = 100
-            land_target = 38
+            default_land_target = 38
         elif format_name == "Limited":
             target_size = 40
-            land_target = 17
+            default_land_target = 17
         else:
             target_size = 60
-            land_target = 24
+            default_land_target = 24
             
+        # Use provided land_ratio or the format default
+        if land_ratio is not None:
+            land_target = int(target_size * land_ratio)
+        else:
+            land_target = default_land_target
+
         # 1. Cap spells to respect land ratio
         spell_limit = target_size - land_target
         if len(deck) > spell_limit:

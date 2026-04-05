@@ -102,11 +102,23 @@ class Teacher:
         if not HAS_TORCH or self.optimizer is None: return
         self.teacher_reward_history.append(student_improvement)
 
-    def generate_matchup(self, format_name: str, archetypes: Tuple[str, str]) -> List[List[int]]:
+    def generate_matchup(self, format_name: str, archetypes: Tuple[str, str], total_games: int = 0) -> List[List[int]]:
+        """
+        Generates a matchup. If archetypes is a tuple of lists, it builds from those sequences.
+        Includes a 'Land Floor' curriculum that fades over 10,000 games.
+        """
+        # CURRICULUM: Fixed land floor starts at 38% (standard) and goes to 0% over 10k games.
+        # This prevents mana-starved games early but lets Teacher learn optimal ratios later.
+        initial_floor = 0.38
+        curriculum_length = 10000
+        land_floor = max(0.0, initial_floor * (1.0 - (total_games / curriculum_length)))
+        
         if isinstance(archetypes[0], list):
-            deck_a = self.deck_gen.build_from_sequence(archetypes[0], format_name)
-            deck_b = self.deck_gen.build_from_sequence(archetypes[1], format_name)
+            deck_a = self.deck_gen.build_from_sequence(archetypes[0], format_name, land_ratio=land_floor)
+            deck_b = self.deck_gen.build_from_sequence(archetypes[1], format_name, land_ratio=land_floor)
             return [deck_a, deck_b]
 
+        # For constructed archetypes, land_floor is not explicitly passed as they handle lands themselves
+        # but we could apply it there too if needed.
         return self.deck_gen.build_constructed_deck(archetypes[0], format_name), \
                self.deck_gen.build_constructed_deck(archetypes[1], format_name)

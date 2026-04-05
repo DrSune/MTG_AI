@@ -83,8 +83,8 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
             frozen_model.load_state_dict(student.model.state_dict())
             print(f"\n[SYSTEM] Frozen Student weights updated to match current Student.")
 
-        # Calculate exploration rate
-        exploration_rate = max(0.1, 0.5 * (1 - episode / cfg.episodes_per_generation))
+        # Calculate exploration rate: Start higher and decay slower
+        exploration_rate = max(0.15, 0.7 * (1 - total_games_played_overall / 10000))
         
         # 1. Matchup Stability: Update decks only every N games
         if not fixed_matchup and episode % cfg.deck_refresh_freq == 0:
@@ -92,8 +92,9 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
             print(f"\n" + "="*60)
             print(f" [Teacher] >>> DESIGNING AUTONOMOUS MATCHUP <<<")
             seeds_a, seeds_b = teacher.select_archetypes(0.0, student_wins/(total_games_in_gen or 1), 500)
-            deck_a = teacher.deck_gen.build_from_sequence(seeds_a, current_format)
-            deck_b = teacher.deck_gen.build_from_sequence(seeds_b, current_format)
+            # Use Teacher.generate_matchup to apply land curriculum
+            decks = teacher.generate_matchup(current_format, (seeds_a, seeds_b), total_games_played_overall)
+            deck_a, deck_b = decks[0], decks[1]
             format_name = current_format
             print("="*60)
         elif fixed_matchup:
@@ -120,13 +121,17 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
             current_turn = env.graph.turn_number
             
             # Select Action / Plan
+            legal_moves = env.engine.get_legal_moves()
+            legal_move_names = [type(m).__name__.replace("Action", "") for m in legal_moves]
+            
             if is_student:
                 # 1. Generate Grounded Plan
                 action_idx, value, log_prob, memory, thoughts, plan_sequence, plan_queries = student.select_action(
                     obs, requires_grad=HAS_TORCH, exploration_rate=exploration_rate
                 )
-                
-                # 2. Plan Execution Loop (Grounded Sequential Thinking)
+
+                # 2. Plan Execution Loop
+ (Grounded Sequential Thinking)
                 # We attempt to follow the plan as long as steps are legal and no rethink/end is hit.
                 plan_steps_taken = 0
                 max_plan_follow = 5 # Don't follow too far without seeing fresh board
@@ -137,25 +142,36 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
                     # Get legal moves for CURRENT sub-state
                     legal_moves = env.engine.get_legal_moves()
                     if not legal_moves: break
-                    
-                    # Match current legal moves against the query for this plan step
-                    # (In the first step, this matches the selection in model.py)
-                    query = plan_queries[0, step_idx, :]
-                    
-                    # Get descriptors for current legal moves
-                    descriptors = []
-                    for m in legal_moves:
-                        d = env.mapper.get_action_descriptor(m, env.graph)
-                        flat_d = np.concatenate([[d["type"]], d["source_features"], d["target_features"]])
-                        descriptors.append(flat_d)
-                    
-                    # Calculate similarity (dot product)
-                    # Use student's projection logic
-                    with torch.no_grad():
-                        proj_legal = student.model.decoder.action_proj(torch.tensor(np.array(descriptors), dtype=torch.float, device=student.device))
-                        scores = torch.mv(proj_legal, query)
-                        best_move_idx = torch.argmax(scores).item()
-                        max_score = scores[best_move_idx].item()
+
+                    if step_idx == 0:
+                        # For the first step, use the action_idx already selected (respects exploration)
+                        best_move_idx = action_idx
+                        max_score = 1.0 # Force follow first step
+                    else:
+                        # Match current legal moves against the query for this plan step
+                        query = plan_queries[0, step_idx, :]
+
+                        # Get descriptors for current legal moves
+                        descriptors = []
+                        for m in legal_moves:
+                            d = env.mapper.get_action_descriptor(m, env.graph)
+                            flat_d = np.concatenate([[d["type"]], d["source_features"], d["target_features"]])
+                            descriptors.append(flat_d)
+
+                        # Calculate similarity (dot product)
+                        with torch.no_grad():
+                            proj_legal = student.model.decoder.action_proj(torch.tensor(np.array(descriptors), dtype=torch.float, device=student.device))
+                            scores = torch.mv(proj_legal, query)
+
+                            if exploration_rate > 0 and random.random() < exploration_rate:
+                                # Explore within the plan too
+                                best_move_idx = random.randint(0, len(legal_moves) - 1)
+                            else:
+                                # Sample or Argmax
+                                probs = torch.softmax(scores, dim=-1)
+                                best_move_idx = torch.distributions.Categorical(probs).sample().item()
+
+                            max_score = scores[best_move_idx].item()
 
                     # SNAG DETECTION: If match is too weak, the plan is no longer valid
                     # Threshold should be learned, but for now we check if it's positive
