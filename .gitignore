@@ -5,3 +5,11 @@ mtg_datasets/*
 PP_env/*
 scraped_frames/*
 logs/
+__pycache__/
+*.pt
+*.pyc
+*.db
+*.log
+*.pt
+models/*.pt
+models/*.pth

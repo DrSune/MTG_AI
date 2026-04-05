@@ -20,11 +20,11 @@
 ## 📋 Current Phase: Large-Scale Learning (Phase 2)
 
 ### 🔄 Active Tasks
+- [x] **State Observation Update:** Added Zone information (Battlefield, Hand, Graveyard) to card features to help the model distinguish locations.
 - [ ] **Initial Training Run:** Execute long-term training session using `main_train.py`.
-- [ ] **Self-Play League:** Implement the `OpponentPool` to prevent strategy collapse.
-- [ ] **State Observation Update:** Ensure the AI's "Latent Memory" correctly tracks hidden information (opponents' hands) probabilistically.
 - [ ] **Temporal State Encoding:** Implement time-indexing and graveyard ordering for the relational transformer.
 - [ ] **Dynamic Choice Resolution:** Replace hardcoded "as enters" choices (like Runed Halo naming) with model-driven decisions.
+- [ ] **Card Learning Rate Schedule:** Implement a generalized curriculum filter that adjusts proportions of specific card types (low-cost, specific colors, etc.) based on training phase to facilitate faster generalization.
 
 ---
 

@@ -43,24 +43,28 @@ class Engine:
         self.winner_id = None
         self.stack = []
         self.move_count_this_step = 0
-        self.MAX_MOVES_PER_STEP = 500 # Increased for foundation exploration
+        self.MAX_MOVES_PER_STEP = 500 
         self.stall_detected = False
         self.recorder.record(self.graph, "Game Initialized")
         logger.info("Engine initialized.")
 
     def _can_pay_cost(self, mana_pool: dict, cost: dict) -> bool:
+        """Determines if a cost can be paid, correctly using colored mana for generic costs."""
         temp_pool = mana_pool.copy()
+        generic_mana_id = self.id_mapper.get_id_by_name("Generic Mana", "game_vocabulary")
+        
+        # 1. Pay colored requirements first
         for mana_type, amount in cost.items():
-            if mana_type == self.id_mapper.get_id_by_name("Generic Mana", "game_vocabulary"): continue
+            if mana_type == generic_mana_id: continue
             if temp_pool.get(mana_type, 0) < amount: return False
             temp_pool[mana_type] -= amount
-        generic_mana_id = self.id_mapper.get_id_by_name("Generic Mana", "game_vocabulary")
+            
+        # 2. Pay generic requirement from remaining pool
         generic_cost = cost.get(generic_mana_id, 0)
         return sum(temp_pool.values()) >= generic_cost
 
     def get_legal_moves(self) -> List[AnyAction]:
         legal_moves: List[AnyAction] = []
-        # Save original active player
         original_active_id = self.graph.active_player_id
         
         active_player_id = self.graph.active_player_id
@@ -70,10 +74,11 @@ class Engine:
         decision_player_id = defending_player_id if is_block_step else active_player_id
         decision_player = self.graph.entities[decision_player_id]
         
-        # Temporary priority swap for environment visibility
+        # Temporary priority swap
         self.graph.active_player_id = decision_player_id
 
         try:
+            # 1. Combat (Blockers)
             if is_block_step:
                 legal_blockers = combat_handlers.get_legal_blockers(self.graph, decision_player_id)
                 attacking_creatures = [c for c in self.graph.entities.values() if c.properties.get('is_attacking')]
@@ -92,14 +97,10 @@ class Engine:
                         legal_moves.append(PlayLandAction(player_id=decision_player_id, card_id=land.instance_id))
                         break
 
+            # 4. Spells & Mana
             mana_pool = decision_player.properties.get('mana_pool', {})
-            virtual_mana = mana_pool.copy()
-            for r in self.graph.get_relationships(source=decision_player, rel_type=vocab.ID_REL_CONTROLLED_BY):
-                card = self.graph.entities[r.target]
-                if card.properties.get('is_land') and card.properties.get('is_on_battlefield') and not card.properties.get('tapped'):
-                    gen_id = self.id_mapper.get_id_by_name("Generic Mana", "game_vocabulary")
-                    virtual_mana[gen_id] = virtual_mana.get(gen_id, 0) + 1
-
+            
+            # Use the actual mana pool for validation, no more virtual lookahead
             legal_moves.extend(mana_handlers.get_tap_for_mana_moves(self.graph, decision_player))
 
             hand_cards = self.graph.get_entities_in_zone(decision_player_id, vocab.ID_ZONE_HAND)
@@ -107,7 +108,7 @@ class Engine:
                 if not card.properties.get('is_land'):
                     if is_main or card.properties.get('is_instant'):
                         cost = card_database.get_card_cost(card.type_id)
-                        if cost and self._can_pay_cost(virtual_mana, cost):
+                        if cost and self._can_pay_cost(mana_pool, cost):
                             targets = effect_handlers.get_spell_potential_targets(self.graph, card)
                             if targets:
                                 for t in targets:
@@ -123,7 +124,6 @@ class Engine:
         except Exception as e:
             logger.error(f"Legal Moves Error: {e}")
         finally:
-            # RESTORE ORIGINAL ACTIVE PLAYER
             self.graph.active_player_id = original_active_id
             
         return legal_moves
@@ -134,6 +134,7 @@ class Engine:
             self.move_count_this_step += 1
             if self.move_count_this_step > self.MAX_MOVES_PER_STEP:
                 self.game_over = True
+                self.stall_detected = True
                 return ["Error: Infinite Loop"]
 
             pre_permanents = {eid for eid, e in self.graph.entities.items() if e.properties.get('is_on_battlefield')}
@@ -221,21 +222,11 @@ class Engine:
         }
         try:
             current_steps = phase_steps.get(self.graph.phase, [self.graph.step])
-            try: 
-                idx = current_steps.index(self.graph.step)
-            except ValueError:
-                logger.error(f"Step {self.graph.step} not found in current_steps {current_steps} for phase {self.graph.phase}")
-                idx = -1
-                
-            if not force_next_phase and idx < len(current_steps) - 1: 
-                self.graph.step = current_steps[idx+1]
+            try: idx = current_steps.index(self.graph.step)
+            except ValueError: idx = -1
+            if not force_next_phase and idx < len(current_steps) - 1: self.graph.step = current_steps[idx+1]
             else:
-                try:
-                    p_idx = turn_phases.index(self.graph.phase)
-                except ValueError:
-                    logger.error(f"Phase {self.graph.phase} not found in turn_phases {turn_phases}")
-                    raise
-                    
+                p_idx = turn_phases.index(self.graph.phase)
                 self.graph.phase = turn_phases[(p_idx + 1) % len(turn_phases)]
                 if self.graph.phase == beginning_id:
                     self.graph.turn_number += 1
@@ -243,8 +234,7 @@ class Engine:
                     if ops: self.graph.active_player_id = ops[0].instance_id
                 self.graph.step = phase_steps.get(self.graph.phase, [self.graph.phase])[0]
         except Exception as e:
-            logger.error(f"Error in progress_phase_and_step: {e}")
-            raise
+            logger.error(f"Error in progress_phase_and_step: {e}"); raise
         
         triggered_ability_handlers.check_triggers(self.graph, "beginning_of_step", self.graph.step)
 
@@ -277,7 +267,7 @@ class Engine:
         for eid, e in list(self.graph.entities.items()):
             if e.properties.get('name') == "Nine Lives" and e.properties.get('is_on_battlefield'):
                 if e.properties.get('reincarnation_counters', 0) >= 9: effect_handlers.apply_destroy(self.graph, e)
-            if e.properties.get('is_on_battlefield') and (e.properties.get("is_creature") or card_database.get_creature_stats(e.type_id)):
+            if e.properties.get('is_on_battlefield') and e.properties.get("is_creature"):
                 stats = card_database.get_creature_stats(e.type_id) or {}
                 t = e.properties.get('effective_toughness', stats.get('toughness', 0)); d = e.properties.get('damage_taken', 0)
                 if (d >= t and t > 0) or t <= 0: effect_handlers.apply_destroy(self.graph, e)

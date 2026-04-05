@@ -81,7 +81,8 @@ def _create_deck_entities(graph: GameGraph, player: Entity, decklist: List[int],
         commander_id = working_deck.pop(0)
         c_data = loader.get_card_data_by_id(commander_id)
         commander_card = graph.add_entity(commander_id, c_data)
-        graph.add_relationship(commander_card, player, vocab.ID_REL_CONTROLLED_BY)
+        # FIX: Player (Source) -> Card (Target)
+        graph.add_relationship(player, commander_card, vocab.ID_REL_CONTROLLED_BY)
         graph._move_card_to_zone(commander_card, command)
         commander_card.properties['is_commander'] = True
 
@@ -90,7 +91,8 @@ def _create_deck_entities(graph: GameGraph, player: Entity, decklist: List[int],
     for cid in working_deck:
         c_data = loader.get_card_data_by_id(cid)
         card = graph.add_entity(cid, c_data)
-        graph.add_relationship(card, player, vocab.ID_REL_CONTROLLED_BY)
+        # FIX: Player (Source) -> Card (Target)
+        graph.add_relationship(player, card, vocab.ID_REL_CONTROLLED_BY)
         graph._move_card_to_zone(card, library)
         deck_entities.append(card)
     

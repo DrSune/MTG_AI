@@ -68,16 +68,19 @@ class Teacher:
             cursor.execute(f"SELECT card_id FROM cards WHERE ({query_part}) AND {forbidden} ORDER BY RANDOM() LIMIT ?", (max(1, int(count)),))
             return [row[0] for row in cursor.fetchall()]
 
-        total_w = sum(w[i] for i in [0, 1, 2, 5, 6]) or 1.0
-        def get_count(weight_idx, deck_size):
-            return max(0, int(deck_size * (w[weight_idx] / total_w)))
+        # Commander = 100 cards. We want ~60 non-lands per deck. Total 120.
+        target_non_lands = 120 
+        
+        # Calculate weights excluding lands (index 2) to distribute spells/creatures
+        spell_weights = sum(w[i] for i in [0, 1, 5, 6]) or 1.0
+        
+        def get_count(weight_idx):
+            return max(1, int(target_non_lands * (w[weight_idx] / spell_weights)))
 
-        format_size = 60 
-        c_count = get_count(0, format_size)
-        s_count = get_count(1, format_size)
-        l_count = get_count(2, format_size)
-        a_count = get_count(5, format_size)
-        e_count = get_count(6, format_size)
+        c_count = get_count(0)
+        s_count = get_count(1)
+        a_count = get_count(5)
+        e_count = get_count(6)
 
         creatures = get_cards("type LIKE '%Creature%'", c_count)
         spells = get_cards("(type LIKE '%Instant%' OR type LIKE '%Sorcery%')", s_count)

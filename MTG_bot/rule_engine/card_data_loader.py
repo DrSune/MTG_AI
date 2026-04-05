@@ -71,8 +71,8 @@ class CardDataLoader:
             "mana_cost": self._parse_mana_cost(mana_cost_str),
             "type_line": type_line,
             "text": text,
-            "power": int(row['power']) if row['power'] and str(row['power']).isdigit() else 0,
-            "toughness": int(row['toughness']) if row['toughness'] and str(row['toughness']).isdigit() else 0,
+            "power": int(row['power']) if row['power'] and str(row['power']).strip() and row['power'] != "*" else None,
+            "toughness": int(row['toughness']) if row['toughness'] and str(row['toughness']).strip() and row['toughness'] != "*" else None,
             "effects": effects,
             "is_land": "Land" in type_line,
             "is_creature": "Creature" in type_line,
@@ -153,18 +153,25 @@ class CardDataLoader:
         cost = {}
         if not mana_cost_str: return cost
 
+        # Use internal vocab IDs directly for speed and reliability
+        from . import vocabulary as v
+        
+        # 1. Generic Mana
         generic_match = re.search(r'\{(\d+)\}', mana_cost_str)
         if generic_match:
-            generic_id = self._get_id_from_game_vocabulary("Generic Mana")
-            if generic_id:
-                cost[int(generic_id)] = int(generic_match.group(1))
+            cost[int(v.ID_MANA_GENERIC)] = int(generic_match.group(1))
 
-        for symbol, mana_name in [('W', "White Mana"), ('U', "Blue Mana"), ('B', "Black Mana"), ('R', "Red Mana"), ('G', "Green Mana"), ('C', "Colorless Mana")]:
+        # 2. Colored Mana
+        mapping = {
+            'W': v.ID_MANA_WHITE, 'U': v.ID_MANA_BLUE, 'B': v.ID_MANA_BLACK,
+            'R': v.ID_MANA_RED, 'G': v.ID_MANA_GREEN, 'C': v.ID_MANA_COLORLESS
+        }
+        
+        for symbol, mana_id in mapping.items():
             count = mana_cost_str.count(f'{{{symbol}}}')
             if count > 0:
-                mana_id = self._get_id_from_game_vocabulary(mana_name)
-                if mana_id:
-                    cost[int(mana_id)] = count
+                cost[int(mana_id)] = count
+                
         return {k: v for k, v in cost.items() if v > 0}
 
     def get_card_data_by_id(self, card_id: int) -> Dict[str, Any]:

@@ -51,12 +51,27 @@ class ActionSpaceMapper:
         if source_id:
             entity = graph.entities.get(source_id)
             if entity:
-                # Fill features: P, T, CMC, Tapped, Color, Type
-                source_features[0] = self._safe_float(entity.properties.get("power", 0))
-                source_features[1] = self._safe_float(entity.properties.get("toughness", 0))
-                source_features[2] = self._safe_float(entity.properties.get("cmc", 0))
-                source_features[3] = 1.0 if entity.properties.get("tapped") else 0.0
-                # ... more features ...
+                # Use common feature extraction logic
+                from .state_converter import StateConverter
+                sc = StateConverter()
+                source_features = sc._extract_features(entity)
+                
+                # Special handling for ActivateManaAbilityAction: encode produced mana
+                if isinstance(action, ActivateManaAbilityAction):
+                    # We have 32 dims. Let's use dims 20-26 for WUBRGC + Generic
+                    abilities = entity.properties.get("abilities", {}).get("mana_abilities", [])
+                    if action.ability_id < len(abilities):
+                        produces = abilities[action.ability_id].get("produces", {})
+                        # Mapping from vocab ID to index
+                        mana_map = {
+                            vocab.ID_MANA_WHITE: 20, vocab.ID_MANA_BLUE: 21,
+                            vocab.ID_MANA_BLACK: 22, vocab.ID_MANA_RED: 23,
+                            vocab.ID_MANA_GREEN: 24, vocab.ID_MANA_COLORLESS: 25,
+                            vocab.ID_MANA_GENERIC: 26
+                        }
+                        for m_id, amt in produces.items():
+                            idx = mana_map.get(m_id)
+                            if idx: source_features[idx] = float(amt)
 
         # Target Entity Features
         target_id = getattr(action, "target_id", getattr(action, "attacker_id", None))
@@ -64,8 +79,9 @@ class ActionSpaceMapper:
         if target_id:
             entity = graph.entities.get(target_id)
             if entity:
-                target_features[0] = self._safe_float(entity.properties.get("power", 0))
-                target_features[1] = self._safe_float(entity.properties.get("toughness", 0))
+                from .state_converter import StateConverter
+                sc = StateConverter()
+                target_features = sc._extract_features(entity)
 
         return {
             "type": action_type,
@@ -119,3 +135,40 @@ class ActionSpaceMapper:
             return PassTurnAction(player_id=active_player_id)
             
         return None
+
+    def action_to_tokens(self, action: any, graph: GameGraph) -> List[int]:
+        """Converts an Action object into a sequence of integer tokens."""
+        action_type_id = ACTION_TYPE_MAP.get(type(action), 0)
+        entities = self._get_sorted_entities(graph)
+        
+        def get_index(uuid_val):
+            if uuid_val is None:
+                return 0
+            for i, entity in enumerate(entities):
+                if entity.instance_id == uuid_val:
+                    return i + 1
+            return 0
+            
+        source_id = getattr(action, "card_id", getattr(action, "blocker_id", None))
+        target_id = getattr(action, "target_id", getattr(action, "attacker_id", None))
+        
+        source_idx = get_index(source_id)
+        
+        # Special case for mana abilities: target_idx is the ability_id
+        if isinstance(action, ActivateManaAbilityAction):
+            target_idx = action.ability_id
+        else:
+            target_idx = get_index(target_id)
+            
+        return [action_type_id, source_idx, target_idx]
+
+    def _get_sorted_entities(self, graph: GameGraph) -> List[Entity]:
+        """Returns a stable, sorted list of all entities in the graph."""
+        # This MUST match the sorting logic in StateConverter.convert_graph_to_tokens
+        priority_entities = []
+        for eid, entity in graph.entities.items():
+            if entity.type_id in [vocab.ID_PLAYER, vocab.ID_ZONE_BATTLEFIELD, vocab.ID_ZONE_HAND, vocab.ID_ZONE_GRAVEYARD, vocab.ID_ZONE_LIBRARY]:
+                priority_entities.append(entity)
+        
+        other_entities = [e for e in graph.entities.values() if e not in priority_entities]
+        return priority_entities + other_entities

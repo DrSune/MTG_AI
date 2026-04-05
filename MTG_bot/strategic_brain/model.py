@@ -50,18 +50,19 @@ class System2ReasoningHead(nn.Module):
     def __init__(self, d_model, nhead, belief_dim, vocab_size):
         super().__init__()
         if HAS_TORCH:
-            self.cross_attn = nn.MultiheadAttention(embed_dim=d_model, nhead=nhead, batch_first=True)
+            self.cross_attn = nn.MultiheadAttention(embed_dim=d_model, num_heads=nhead, batch_first=True)
             self.norm1 = nn.LayerNorm(d_model)
             self.norm2 = nn.LayerNorm(d_model)
             self.action_memory_embedder = nn.Embedding(vocab_size, d_model)
             self.action_fusion = nn.Linear(d_model * 2, d_model)
             self.refinement_mlp = nn.Sequential(nn.Linear(d_model + belief_dim, d_model), nn.ReLU(), nn.Linear(d_model, d_model))
-    def forward(self, memory_tokens, z_board, b_t, prev_action_tokens=None):
+    def forward(self, memory_tokens, z_board, b_t, prev_plan_embeddings=None):
         x = memory_tokens
-        if prev_action_tokens is not None:
-            action_vecs = self.action_memory_embedder(prev_action_tokens)
-            action_context = action_vecs.mean(dim=1, keepdim=True).expand(-1, x.size(1), -1)
-            x = self.action_fusion(torch.cat([x, action_context], dim=-1))
+        if prev_plan_embeddings is not None:
+            # Plan context: average over plan steps
+            plan_context = prev_plan_embeddings.mean(dim=1, keepdim=True).expand(-1, x.size(1), -1)
+            x = self.action_fusion(torch.cat([x, plan_context], dim=-1))
+            
         attn_output, _ = self.cross_attn(x, z_board, z_board)
         x = self.norm1(x + attn_output)
         b_t_expanded = b_t.unsqueeze(1).expand(-1, x.size(1), -1)
@@ -79,19 +80,108 @@ class TeacherModel(nn.Module):
     def forward(self, state):
         return torch.softmax(self.network(state), dim=-1)
 
+class ActionSequenceDecoder(nn.Module):
+    def __init__(self, d_model, nhead, max_seq_len=5):
+        super().__init__()
+        if HAS_TORCH:
+            self.max_seq_len = max_seq_len
+            # Tokens: 0:END, 1:PLAY_LAND, 2:CAST, 3:TAP, 4:ATTACK, 5:BLOCK, 6:PASS_PRIO, 7:PASS_TURN, 8:TARGET, 9:RETHINK
+            self.action_type_embed = nn.Embedding(10, d_model) 
+            self.pos_embed = nn.Parameter(torch.zeros(1, max_seq_len, d_model))
+            
+            # Autoregressive Transformer Decoder
+            decoder_layer = nn.TransformerDecoderLayer(d_model=d_model, nhead=nhead, batch_first=True)
+            self.transformer_decoder = nn.TransformerDecoder(decoder_layer, num_layers=4)
+            
+            # Heads for each part of the action tuple
+            self.type_head = nn.Linear(d_model, 10)
+            self.source_head = nn.Linear(d_model, d_model)
+            self.target_head = nn.Linear(d_model, d_model)
+
+    def forward(self, memory_tokens, board_tokens, action_menu):
+        # memory_tokens: (batch, rethink_steps, d_model)
+        # board_tokens: (batch, num_entities, d_model)
+        # action_menu: (batch, num_legal_actions, d_model)
+        batch_size = memory_tokens.size(0)
+        
+        # Grounding: The planning memory is a combination of Board + Available Actions
+        # This ensures the model "sees" its options before planning the sequence.
+        planning_memory = torch.cat([board_tokens, action_menu], dim=1)
+        
+        # Start token: Use global summary of memory
+        tgt = memory_tokens.mean(dim=1, keepdim=True)
+        
+        generated_sequences = []
+        plan_embeddings = []
+        
+        for i in range(self.max_seq_len):
+            tgt_with_pos = tgt + self.pos_embed[:, :tgt.size(1), :]
+            # Cross-attend over the board AND the actions
+            out = self.transformer_decoder(tgt_with_pos, planning_memory)
+            last_out = out[:, -1, :]
+            plan_embeddings.append(last_out.unsqueeze(1))
+            
+            type_logits = self.type_head(last_out)
+            source_query = self.source_head(last_out)
+            target_query = self.target_head(last_out)
+            
+            # Pointing: source/target can point to entities in planning_memory (Board or Action targets)
+            source_logits = torch.bmm(planning_memory, source_query.unsqueeze(2)).squeeze(2)
+            target_logits = torch.bmm(planning_memory, target_query.unsqueeze(2)).squeeze(2)
+            
+            generated_sequences.append({
+                "type_logits": type_logits,
+                "source_logits": source_logits,
+                "target_logits": target_logits
+            })
+            
+            next_type = torch.argmax(type_logits, dim=-1)
+            next_embed = self.action_type_embed(next_type).unsqueeze(1)
+            tgt = torch.cat([tgt, next_embed], dim=1)
+            
+            if next_type.item() == 0 or next_type.item() == 7:
+                pass
+            
+        full_plan_embedding = torch.cat(plan_embeddings, dim=1)
+        return generated_sequences, full_plan_embedding
+
 class ActionPointerHead(nn.Module):
-    def __init__(self, d_model, component_dim):
+    def __init__(self, d_model, component_dim, nhead):
         super().__init__()
         if HAS_TORCH:
             self.intent_proj = nn.Linear(d_model, d_model)
             self.action_proj = nn.Linear(component_dim * 2 + 1, d_model)
-            self.rethink_head = nn.Linear(d_model, 1)
             self.value_head = nn.Linear(d_model, 1)
-    def forward(self, memory_tokens, legal_action_descriptors):
-        intent = self.intent_proj(memory_tokens.mean(dim=1))
-        projected_actions = self.action_proj(legal_action_descriptors)
-        logits = torch.bmm(projected_actions, intent.unsqueeze(2)).squeeze(2)
-        return logits, torch.sigmoid(self.rethink_head(intent)), self.value_head(intent)
+            self.sequence_decoder = ActionSequenceDecoder(d_model, nhead)
+            self.plan_query_proj = nn.Linear(d_model, d_model)
+
+    def forward(self, memory_tokens, board_tokens, legal_action_descriptors):
+        # 1. Global state summary
+        z_global = memory_tokens.mean(dim=1)
+        
+        # 2. Project actions to Intelligence Space FIRST
+        projected_actions = self.action_proj(legal_action_descriptors) # (batch, num_legal, d_model)
+        
+        # 3. Action-Aware Sequence Generation (The Plan)
+        # The planner now receives the available actions as part of its "memory"
+        plan_sequence, plan_embedding = self.sequence_decoder(memory_tokens, board_tokens, projected_actions)
+        
+        # 4. Grounded Matching (Gatekeeper)
+        plan_step_queries = self.plan_query_proj(plan_embedding)
+        first_step_query = plan_step_queries[:, 0, :]
+        logits = torch.bmm(projected_actions, first_step_query.unsqueeze(2)).squeeze(2)
+        
+        # Rethink Signal
+        rethink_signal = plan_sequence[0]["type_logits"][:, 9] 
+        
+        return {
+            "logits": logits,
+            "rethink_prob": torch.sigmoid(rethink_signal),
+            "value": self.value_head(z_global),
+            "plan_sequence": plan_sequence,
+            "plan_embedding": plan_embedding,
+            "plan_step_queries": plan_step_queries
+        }
 
 class System2Transformer(nn.Module):
     def __init__(self, vocab_size, embedding_dim, component_dim, nhead, num_layers, belief_dim, max_actions):
@@ -100,32 +190,47 @@ class System2Transformer(nn.Module):
         self.board_encoder = BoardEncoder(embedding_dim, nhead, num_layers)
         self.opponent_predictor = OpponentPredictor(embedding_dim, belief_dim)
         self.reasoning_head = System2ReasoningHead(embedding_dim, nhead, belief_dim, vocab_size)
-        self.decoder = ActionPointerHead(embedding_dim, component_dim)
+        self.decoder = ActionPointerHead(embedding_dim, component_dim, nhead)
         
-    def forward(self, atomic_ids, component_features, legal_action_descriptors, num_passes=1, threshold=0.5):
+    def forward(self, atomic_ids, component_features, legal_action_descriptors, num_passes=8, threshold=0.5):
         if not HAS_TORCH:
             return {"action_logits": None, "action_idx": 0, "rethink_prob": 0.0, "value": torch.zeros(1), "state_memory": None, "passes_taken": 1}
         
-        z_board = self.board_encoder(self.card_embedder(atomic_ids, component_features))
+        board_tokens = self.card_embedder(atomic_ids, component_features)
+        z_board = self.board_encoder(board_tokens)
         b_t = self.opponent_predictor(z_board)
-        memory_tokens = z_board
         
+        memory_tokens = z_board
+        prev_plan_emb = None
         actual_passes = 0
+        
         for p in range(num_passes):
             actual_passes += 1
-            memory_tokens = self.reasoning_head(memory_tokens, z_board, b_t)
-            _, rethink_prob, _ = self.decoder(memory_tokens, legal_action_descriptors)
-            if p > 0 and rethink_prob.item() < threshold:
-                break
+            # Reasoning pass: sees board, opponent belief, and PREVIOUS plan
+            memory_tokens = self.reasoning_head(memory_tokens, z_board, b_t, prev_plan_embeddings=prev_plan_emb)
             
-        logits, rethink_prob, value = self.decoder(memory_tokens, legal_action_descriptors)
+            res = self.decoder(memory_tokens, z_board, legal_action_descriptors)
+            prev_plan_emb = res["plan_embedding"]
+            
+            # --- AUTONOMOUS RETHINK TRIGGER ---
+            # Model rethinks ONLY if it predicted RETHINK (9) in the plan
+            # We check the top prediction of the first step of the plan
+            predicted_first_type = torch.argmax(res["plan_sequence"][0]["type_logits"], dim=-1)
+            is_rethink_requested = (predicted_first_type == 9).any()
+            
+            if not is_rethink_requested and p >= 0: # Stop if rethink not requested
+                break
+        
+        logits = res["logits"]
         action_idx = torch.argmax(logits, dim=-1)
         
         return {
             "action_logits": logits, 
             "action_idx": action_idx, 
-            "rethink_prob": rethink_prob, 
-            "value": value, 
+            "rethink_prob": res["rethink_prob"], 
+            "value": res["value"], 
+            "plan_sequence": res["plan_sequence"],
+            "plan_step_queries": res["plan_step_queries"],
             "state_memory": (z_board, b_t, memory_tokens),
             "passes_taken": actual_passes
         }

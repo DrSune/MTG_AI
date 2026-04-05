@@ -59,6 +59,48 @@ class MTGEnv:
         if not entity: return "Unknown"
         return entity.properties.get('name', str(instance_id)[:4])
 
+    def _format_plan(self, plan_sequence: List[Dict[str, Any]]) -> str:
+        """Converts a sequence of action logits into a readable plan string."""
+        if not plan_sequence: return "None"
+        
+        # Get sorted entities for indexing (matches ActionSpaceMapper logic)
+        priority_entities = []
+        for eid, entity in self.graph.entities.items():
+            if entity.type_id in [vocab.ID_PLAYER, vocab.ID_ZONE_BATTLEFIELD, vocab.ID_ZONE_HAND, vocab.ID_ZONE_GRAVEYARD, vocab.ID_ZONE_LIBRARY]:
+                priority_entities.append(entity)
+        other_entities = [e for e in self.graph.entities.values() if e not in priority_entities]
+        all_entities = priority_entities + other_entities
+
+        plan_steps = []
+        from .action_mapper import ID_TO_ACTION_TYPE
+        
+        for step in plan_sequence:
+            # step: {"type_logits": (1, 10), "source_logits": (1, 500), "target_logits": (1, 500)}
+            type_id = torch.argmax(step["type_logits"], dim=-1).item()
+            action_class = ID_TO_ACTION_TYPE.get(type_id)
+            if not action_class or type_id == 0: continue # Skip null/unknown actions
+            
+            action_name = action_class.__name__.replace("Action", "")
+            
+            # Pointing: Get most probable source and target indices
+            source_idx = torch.argmax(step["source_logits"], dim=-1).item()
+            target_idx = torch.argmax(step["target_logits"], dim=-1).item()
+            
+            source_name = "None"
+            if source_idx < len(all_entities):
+                source_name = self._resolve_name(all_entities[source_idx].instance_id)
+                
+            target_name = "None"
+            if target_idx < len(all_entities):
+                target_name = self._resolve_name(all_entities[target_idx].instance_id)
+                
+            if target_name != "None" and action_name in ["CastSpell", "DeclareBlocker"]:
+                plan_steps.append(f"{action_name}({source_name} -> {target_name})")
+            else:
+                plan_steps.append(f"{action_name}({source_name})")
+                
+        return " -> ".join(plan_steps[:3]) # Show first 3 steps of plan
+
     def step(self, action_idx: int) -> Tuple[Dict[str, Any], float, bool, Dict[str, Any]]:
         """
         Executes an action from the model using its index in the legal moves list.

@@ -1,13 +1,7 @@
-try:
-    import torch
-    import torch.nn as nn
-    import torch.nn.functional as F
-    HAS_TORCH = True
-except ImportError:
-    torch = None
-    nn = None
-    F = None
-    HAS_TORCH = False
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+HAS_TORCH = True
 
 import time
 import os
@@ -19,7 +13,7 @@ from .environment import MTGEnv
 from .student import Student, ExperienceBuffer
 from .teacher import Teacher
 from MTG_bot.rule_engine import vocabulary as vocab
-from MTG_bot.rule_engine.actions import PassPriorityAction, PassTurnAction
+from MTG_bot.rule_engine.actions import PassPriorityAction, PassTurnAction, ActivateManaAbilityAction
 from MTG_bot.rule_engine.card_data_loader import CardDataLoader
 from MTG_bot.utils.training_logger import TrainingLogger
 from MTG_bot.strategic_brain.config_rl import RLConfig
@@ -125,50 +119,112 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
             is_student = (active_id == p1_id)
             current_turn = env.graph.turn_number
             
-            # Select Action
+            # Select Action / Plan
             if is_student:
-                legal_moves = env.engine.get_legal_moves()
-                meaningful_moves = [m for m in legal_moves if not isinstance(m, (PassPriorityAction, PassTurnAction)) and "Mana" not in type(m).__name__]
-                
-                menu_samples = []
-                for m in meaningful_moves[:3]:
-                    name = type(m).__name__.replace("Action", "")
-                    detail = f"({env._resolve_name(m.card_id)})" if hasattr(m, "card_id") else ""
-                    menu_samples.append(f"{name}{detail}")
-                current_menu_str = ", ".join(menu_samples)
-                
-                if (current_menu_str != last_menu_str and current_menu_str != "") or steps % 500 == 0:
-                    print(f"  [MENU] Turn {current_turn} | Options: {current_menu_str if current_menu_str else 'Pass Only'}")
-                    last_menu_str = current_menu_str
-
-                action_idx, value, log_prob, memory, thoughts = student.select_action(
+                # 1. Generate Grounded Plan
+                action_idx, value, log_prob, memory, thoughts, plan_sequence, plan_queries = student.select_action(
                     obs, requires_grad=HAS_TORCH, exploration_rate=exploration_rate
                 )
+                
+                # 2. Plan Execution Loop (Grounded Sequential Thinking)
+                # We attempt to follow the plan as long as steps are legal and no rethink/end is hit.
+                plan_steps_taken = 0
+                max_plan_follow = 5 # Don't follow too far without seeing fresh board
+                
+                current_plan_obs = obs
+                
+                for step_idx in range(min(len(plan_sequence), max_plan_follow)):
+                    # Get legal moves for CURRENT sub-state
+                    legal_moves = env.engine.get_legal_moves()
+                    if not legal_moves: break
+                    
+                    # Match current legal moves against the query for this plan step
+                    # (In the first step, this matches the selection in model.py)
+                    query = plan_queries[0, step_idx, :]
+                    
+                    # Get descriptors for current legal moves
+                    descriptors = []
+                    for m in legal_moves:
+                        d = env.mapper.get_action_descriptor(m, env.graph)
+                        flat_d = np.concatenate([[d["type"]], d["source_features"], d["target_features"]])
+                        descriptors.append(flat_d)
+                    
+                    # Calculate similarity (dot product)
+                    # Use student's projection logic
+                    with torch.no_grad():
+                        proj_legal = student.model.decoder.action_proj(torch.tensor(np.array(descriptors), dtype=torch.float, device=student.device))
+                        scores = torch.mv(proj_legal, query)
+                        best_move_idx = torch.argmax(scores).item()
+                        max_score = scores[best_move_idx].item()
+
+                    # SNAG DETECTION: If match is too weak, the plan is no longer valid
+                    # Threshold should be learned, but for now we check if it's positive
+                    if max_score < 0.0 and step_idx > 0:
+                        intended_type_id = torch.argmax(plan_sequence[step_idx]["type_logits"]).item()
+                        from .action_mapper import ID_TO_ACTION_TYPE
+                        intended_name = ID_TO_ACTION_TYPE.get(intended_type_id, type(None)).__name__.replace("Action", "")
+                        print(f"  [PLAN] Snag at step {step_idx}: Intended {intended_name} not viable. Rethinking...")
+                        # Tiny penalty for plan inconsistency (worth 1/10,000th of a win)
+                        episode_reward -= 0.0001 
+                        break
+
+                    # Check for Gating Tokens
+                    type_id = torch.argmax(plan_sequence[step_idx]["type_logits"]).item()
+                    if type_id == 0: # END_PLAN
+                        break
+                    if type_id == 9: # RETHINK
+                        break
+
+                    # Execute the grounded move
+                    next_obs, reward, done, info = env.step(best_move_idx)
+                    
+                    # Log the grounded action
+                    action_str = info.get("action_taken", "Unknown")
+                    role = "[S]"
+                    p1_deck = len(env.graph.get_entities_in_zone(p1_id, vocab.ID_ZONE_LIBRARY))
+                    p2_deck = len(env.graph.get_entities_in_zone(p2_id, vocab.ID_ZONE_LIBRARY))
+                    
+                    p1_tele = f"S:{info.get('p1_life'):>2}hp {info.get('p1_hand'):>1}h {p1_deck:>2}d"
+                    p2_tele = f"F:{info.get('p2_life'):>2}hp {info.get('p2_hand'):>1}h {p2_deck:>2}d"
+                    print(f"  (Plan {step_idx}) Step {steps:4d}: {role} {action_str:<45} | {p1_tele} | {p2_tele}")
+
+                    # Store transition
+                    if is_student:
+                        episode_experience.append({
+                            "obs": current_plan_obs, "action": best_move_idx, "reward": reward, "value": value, 
+                            "log_prob": log_prob.item() if hasattr(log_prob, "item") else log_prob, "done": done
+                        })
+
+                    # Update state
+                    current_plan_obs = next_obs
+                    obs = next_obs
+                    episode_reward += reward
+                    steps += 1
+                    global_step_counter += 1
+                    plan_steps_taken += 1
+                    
+                    if done: break
+                
+                if plan_steps_taken == 0 and not done:
+                    # Fallback if plan loop didn't execute (e.g. immediate END_PLAN)
+                    # We must take at least one real action (usually Pass)
+                    next_obs, reward, done, info = env.step(action_idx)
+                    obs = next_obs; episode_reward += reward; steps += 1; global_step_counter += 1
             else:
+                # Frozen/Opponent Move (Non-planning for simplicity)
                 if HAS_TORCH:
                     with torch.no_grad():
                         orig_model = student.model
                         student.model = frozen_model
-                        action_idx, value, log_prob, memory, thoughts = student.select_action(
+                        action_idx, _, _, _, _, _, _ = student.select_action(
                             obs, requires_grad=False, exploration_rate=0.0, deterministic=True
                         )
                         student.model = orig_model
                 else:
-                    action_idx, value, log_prob, memory, thoughts = student.select_action(obs, deterministic=True)
-            
-            next_obs, reward, done, info = env.step(action_idx)
-            
-            # Logging
-            action_str = info.get("action_taken", "Unknown")
-            is_phase_change = "Phase ->" in action_str
-            is_important_move = not ("PassPriority" in action_str or "PassTurn" in action_str or "ActivateManaAbility" in action_str) or "DeclareBlocker" in action_str
-            role = "[S]" if is_student else "[F]"
-
-            if is_important_move or is_phase_change:
-                p1_tele = f"S:{info.get('p1_life'):>2}hp {info.get('p1_hand'):>1}h"
-                p2_tele = f"F:{info.get('p2_life'):>2}hp {info.get('p2_hand'):>1}h"
-                log_prefix = ">>>" if is_phase_change else "   "
-                print(f"  {log_prefix} Step {steps:4d}: {role} {action_str:<45} | {p1_tele} | {p2_tele}")
+                    action_idx, _, _, _, _, _, _ = student.select_action(obs, deterministic=True)
+                
+                next_obs, reward, done, info = env.step(action_idx)
+                obs = next_obs; steps += 1; global_step_counter += 1
             
             if steps % 20 == 0:
                 p1_deck = len(env.graph.get_entities_in_zone(p1_id, vocab.ID_ZONE_LIBRARY))

@@ -26,27 +26,26 @@ def main():
     print("="*60)
     
     # 1. Setup
+    print(f"[SYSTEM] Hardware: {'CUDA' if HAS_TORCH and torch.cuda.is_available() else 'CPU'}")
+    print(f"[SYSTEM] Mode: {'TORCH' if HAS_TORCH else 'MOCK (No Torch found)'}")
+    
     loader = CardDataLoader(config.MTG_BOT_DB_PATH)
     env = MTGEnv(loader)
     student = Student(cfg.to_dict())
     
-    # --- RESUME LOGIC ---
+    # --- RESUME COUNTERS ---
+    # We let Student handle weight loading, but we need to estimate progress
     model_dir = "models"
     model_path = os.path.join(model_dir, cfg.get_model_name())
     total_games_played = 0
     global_step_counter = 0
     
-    if HAS_TORCH and os.path.exists(model_path):
-        try:
-            student.model.load_state_dict(torch.load(model_path, map_location=student.device, weights_only=True))
-            print(f"\n[SYSTEM] Resuming from existing checkpoint: {model_path}")
-            # Estimate counters based on existence
-            total_games_played = 10 
-            global_step_counter = 5000 
-        except Exception as e:
-            print(f"[SYSTEM] Could not load checkpoint: {e}")
+    if os.path.exists(model_path):
+        print(f"[SYSTEM] Resume detected via {model_path}")
+        total_games_played = 10 # Baseline estimate
+        global_step_counter = 5000
     else:
-        print(f"\n[SYSTEM] No checkpoint found. Starting fresh.")
+        print(f"[SYSTEM] No checkpoint found. Starting fresh.")
 
     teacher = Teacher(loader, cfg.to_dict())
     benchmarker = Benchmarker(env)

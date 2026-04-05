@@ -74,9 +74,7 @@ class StateConverter:
                 zone_ids[i] = 999 
                 features[i, 15] = 1.0
 
-        res = {"atomic_ids": atomic_ids, "features": features, "zone_ids": zone_ids, "controller_ids": controller_ids}
-        if HAS_TORCH:
-            return {k: torch.from_numpy(v).unsqueeze(0) for k, v in res.items()}
+        res = {"atomic_ids": atomic_ids, "component_features": features, "zone_ids": zone_ids, "controller_ids": controller_ids}
         return res
 
     def _get_zone_type_id(self, graph: GameGraph, entity: Entity) -> int:
@@ -110,6 +108,11 @@ class StateConverter:
         feats[7] = 1.0 if props.get('is_attacking') else 0.0
         feats[8] = 1.0 if props.get('is_blocking') else 0.0
         
+        # New Zone Features (Help model distinguish hand vs battlefield)
+        feats[12] = 1.0 if props.get('is_on_battlefield') else 0.0
+        feats[13] = 1.0 if props.get('is_in_hand') else 0.0
+        feats[14] = 1.0 if props.get('is_in_graveyard') else 0.0
+        
         if 'life_total' in props: feats[9] = float(props.get('life_total') or 20) / 20.0
         if 'mana_pool' in props: feats[10] = float(sum((props['mana_pool'] or {}).values()))
         for kw, bit in self.keyword_map.items():
@@ -119,11 +122,25 @@ class StateConverter:
     def convert_graph_to_observation(self, graph: GameGraph) -> np.ndarray:
         obs = np.zeros(self.observation_size, dtype=np.float32)
         obs[0] = float(graph.phase); obs[1] = float(graph.step); obs[2] = float(graph.turn_number)
-        ap = graph.entities.get(graph.active_player_id)
+        ap_id = graph.active_player_id
+        ap = graph.entities.get(ap_id)
         if ap:
-            obs[3] = float(ap.properties.get('life_total', 20))
-            obs[4] = float(sum(ap.properties.get('mana_pool', {}).values()))
+            obs[3] = float(ap.properties.get('life_total', 20)) / 20.0
+            mana_pool = ap.properties.get('mana_pool', {})
+            obs[4] = float(sum(mana_pool.values())) / 10.0
+            
+            # --- POTENTIAL MANA (Deep Analysis Fix) ---
+            # Calculate how much mana is available if all untapped lands are used
+            potential_mana = 0
+            # Get all lands controlled by active player on battlefield
+            for eid, e in graph.entities.items():
+                if e.properties.get('is_land') and e.properties.get('is_on_battlefield') and not e.properties.get('tapped'):
+                    # Check controller
+                    if graph.get_controller_id(e) == ap_id:
+                        potential_mana += 1 # Simplified: assume each land gives 1
+            obs[5] = float(potential_mana) / 10.0
+
         opp_id = next((pid for pid in graph.players if pid != graph.active_player_id), None)
         opp = graph.entities.get(opp_id) if opp_id else None
-        if opp: obs[5] = float(opp.properties.get('life_total', 20))
+        if opp: obs[6] = float(opp.properties.get('life_total', 20)) / 20.0
         return obs

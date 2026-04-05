@@ -6,9 +6,22 @@ This list tracks bugs, features, and research items. All agents must contribute 
 - [x] **Generalized Target Filtering:** Implemented `target_filtering.py` to handle complex criteria (controller, type, status) using structured data.
 - [x] **Temporary Effect Manager:** Built `effect_manager.py` to track and expire "until end of turn" effects.
 - [x] **CR-Compliant Layer System:** Refactored `layer_system.py` to support all 7 layers and integrate with `TargetFilter` for static/static-like effects.
-- [ ] **Advanced Effect Parsing:** Improve the `card_data_parser.py` regex/logic to populate `effects_json` for more complex card text.
+- [x] **Autonomous Rethink Signal:** Refactored System 2 to be determined solely by the model via `RETHINK` tokens (max 8 passes), removing forced thinking loops.
+- [x] **Minimized Snag Penalty:** Reduced the plan-inconsistency penalty to `0.0001` to ensure winning remains the primary objective.
+- [x] **Action-Aware Intent Sequencing:** Implemented a system where the model evaluates legal moves (Action Menu) *before* constructing its plan, ensuring strategy is grounded in possibility.
+- [x] **Sub-action Rethink Integration:** Updated the execution loop to allow the model to re-plan and re-evaluate at every step, including during forced sub-actions like mana activation.
+- [x] **Robust Weight Loading:** Implemented shape-matching weight loader in `Student` class to handle architectural mismatches during checkpoint loading.
+- [x] **Fix TypeError in Plan Execution:** Resolved `NoneType` subscript error by correctly passing `plan_step_queries` through the `System2Transformer` output.
+- [x] **Action Menu Grounding:** The model now constructs its plans by looking at actual legal moves (Action Menu) first, ensuring its strategies are grounded.
 - [x] **Dynamic Sequence Gating:** Update `Engine` to allow multiple actions per phase until an explicit `Pass` is chosen.
 - [x] **Effect System Extension:** Generalized handlers for "Damage," "Draw," and "Destroy" effects. Robust regex-based parsing for card text.
+- [x] **Improved Model Vision:** Added detailed action descriptors (Color, Type, Mana production) and potential mana observation to help the model learn sequencing without virtual mana.
+- [x] **Consolidated Training Logs:** Grouped mana actions in `[MENU]` output for clearer debugging of model choices.
+- [x] **Explicit Mana Activation:** Removed virtual mana lookahead in `Engine.get_legal_moves`. Spells now require actual mana in the pool.
+- [x] **Fix State-Based Action Bug:** Corrected `check_state_based_actions` to only destroy creatures with 0 toughness, preventing land destruction.
+- [x] **Basic Land Fallback:** Added name-based fallback for basic land mana abilities in `mana_handlers.py`.
+- [x] **Fix NameError in Target Filtering:** Fixed undefined `is_player` and `is_on_battlefield` in `target_filtering.py`.
+- [x] **Improved Action Visibility:** Updated `train.py` to always show `PassPriority` and `PassTurn` in the MENU, ensuring actions don't appear forced.
 - [x] **Action Space Mapping:** Create a mapper that converts model action tokens back into `rule_engine.actions` objects for execution.
 - [x] **Autoregressive Decoder Implementation:** Replace the dummy decoder in `model.py` with a true autoregressive loop for sequence generation.
 - [x] **Phase/Step Validation in Engine:** `get_legal_moves` now strictly checks phases (e.g., Lands/Sorceries only in Main Phases).

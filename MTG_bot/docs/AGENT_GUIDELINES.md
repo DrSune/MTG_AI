@@ -18,7 +18,14 @@ Documentation is the "memory" of this project.
 *   **Action:** Add it to `MTG_bot/docs/TASKLIST.md` immediately with a description and priority level.
 *   **Resolution:** When a task is finished, move it to the "Completed" section.
 
-## 4. Engineering Standards
-*   **Security:** Never log or print API keys or database credentials.
-*   **Testing:** Every code change should be validated via the `Scenario Runner` or existing unit tests.
-*   **Idempotency:** Ensure scripts (like the data loader) can be run multiple times without corrupting the database.
+## 5. Import Integrity (Crucial)
+When extending core logic (especially in `train.py`, `engine.py`, or `environment.py`), you MUST ensure all referenced classes and actions are imported.
+*   **Action Types:** If you use `ActivateManaAbilityAction`, `CastSpellAction`, etc., verify they are in the `from ...actions import ...` block.
+*   **Vocabulary:** Ensure `vocab` is imported if accessing `ID_MANA_GREEN` or similar constants.
+*   **Avoid NameErrors:** Most crashes in the training loop are due to missing imports after a logic update.
+
+## 6. Pre-Execution Checklist
+Before starting a long training run:
+1.  **Syntax Check:** Run `python -m py_compile path/to/modified_file.py` to catch basic errors.
+2.  **Import Audit:** Scan your changes for new class names and ensure they have corresponding import statements.
+3.  **Smoke Test:** Run a small reproduction script or the `Scenario Runner` to ensure the core loop still starts.

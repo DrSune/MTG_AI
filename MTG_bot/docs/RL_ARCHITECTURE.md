@@ -20,14 +20,27 @@ Since the opponent's Hand and Deck are hidden, the model includes a dedicated **
 ## 4. System 2 Reasoning (Recursive Planning)
 The model does not just react. It uses a **Reasoning Head** to iteratively refine its internal plan:
 - **Recursion**: The model proposes a "draft intent," feeds it back into itself, and refines it (up to 8 times).
-- **Dynamic Stopping**: Based on a `rethink_prob` (confidence), the model chooses when to stop thinking and act.
+- **Plan Feedback**: The reasoning head receives the **Plan Embedding** from the previous pass, allowing it to evaluate and refine its own proposed sequence of actions.
+- **Autonomous Rethink Signal**: 
+    - Thinking is never forced. The number of reasoning passes is controlled by the model itself.
+    - If the model predicts a `RETHINK` (9) token in its action plan, it triggers another reasoning pass.
+    - If no `RETHINK` is requested, it stops after the first pass (Pass 1) and executes.
+    - This allows the model to learn when it needs to "stop and think" versus when it can act purely on intuition.
 
-## 5. Semantic Pointer Action Selection
-The model uses a **Pointer Network** for decision making:
-- **Intent Matching**: The reasoning process produces a "Global Intent" vector.
-- **Descriptor Matching**: Every legal action is converted into a semantic descriptor (e.g., "Cast a 3/3 for 4").
-- **Similarity**: The model calculates the dot-product similarity between its Intent and all legal descriptors, "pointing" to the most appropriate move.
-- **Benefit**: This handles variable action spaces and generalizes across thousands of cards by their properties rather than their list position.
+## 5. Grounded Predictive Intent Sequencing
+Instead of a single reactive move, the model generates a **Predictive Intent Sequence** (The Plan) using an autoregressive transformer decoder:
+- **Autoregressive Intent Generation**: The model predicts a sequence of "Semantic Queries." Each query represents an intended action type and the desired properties of its source/target.
+- **Semantic Alignment Gatekeeper**: 
+    - At each execution step, the model evaluates all **actual legal moves** from the Rule Engine.
+    - It calculates the alignment (dot-product similarity) between its current "Intent Query" and the legal action descriptors.
+    - This ensures that every action taken is **100% legal** while being guided by long-term strategy.
+- **Plan Continuity & Snags**:
+    - If an intended action becomes illegal (a "snag"), the model receives a small **Plan-Consistency Penalty**.
+    - It then immediately triggers a "Rethink" to generate a new grounded plan from the updated board state.
+- **Sub-action Awareness**: This architecture naturally handles forced sub-actions (mana tapping, targeting) because the model learns that these intents are prerequisites for high-reward terminal actions (casting spells).
+- **Special Gating Tokens**:
+    - `END_PLAN` (0): Signals the sequence is complete.
+    - `RETHINK` (9): Signals the model wants to re-evaluate the board before the next step.
 
 ## 6. Reward & Urgency Logic
 - **Primary Reward**: Win (+1.0) / Loss (-1.0).

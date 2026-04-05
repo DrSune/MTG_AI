@@ -73,7 +73,9 @@ def get_valid_targets(graph: GameGraph, source_player: Entity, criteria: Any, so
     
     # Check all entities
     for entity in graph.entities.values():
-        # ...
+        is_player = entity.type_id == vocab.ID_PLAYER
+        is_on_battlefield = entity.properties.get("is_on_battlefield", False)
+        
         if is_player or is_on_battlefield:
             if filter_obj.matches(graph, source_player, entity, source_card):
                 valid_targets.append(entity)
