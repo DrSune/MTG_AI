@@ -5,6 +5,7 @@
 2.  **Generalization First:** Prioritize reusable components (selectors, actions) over card-specific hardcoding.
 3.  **Rigid Testing:** Implementation is incomplete until verified via automated test or the Visualizer.
 4.  **Verify Script Execution:** Always verify that the main scripts (`main_train.py`, etc.) run without bugs after making structural changes.
+5. **Update the tasklist.md file with the current status of the project.** Always note things that are out of scope or should be done in the future here, so we can come back to them later, without disturbing you in finishing whatever you are currently working on. (This is a meta instruction list for the agent)
 
 ---
 
@@ -25,10 +26,10 @@
 - [x] **Reward Shaping:** Increased damage-based rewards and added Discovery Rewards (Lands, Spells, Mana) to incentivize active play.
 - [x] **Training Stability:** Fixed IndexError and double-counting in plan execution loop.
 - [x] **Fairness Update:** Randomized starting player during game initialization.
+- [x] **Temporal State Encoding:** Implemented time-indexing and graveyard ordering for the relational transformer.
+- [x] **Dynamic Choice Resolution:** Replaced hardcoded "as enters" choices with model-driven decisions (MakeChoiceAction).
+- [x] **Card Learning Rate Schedule:** Implemented CMC-based curriculum filter in Teacher.
 - [ ] **Initial Training Run:** Execute long-term training session using `main_train.py`.
-- [ ] **Temporal State Encoding:** Implement time-indexing and graveyard ordering for the relational transformer.
-- [ ] **Dynamic Choice Resolution:** Replace hardcoded "as enters" choices (like Runed Halo naming) with model-driven decisions.
-- [ ] **Card Learning Rate Schedule:** Implement a generalized curriculum filter that adjusts proportions of specific card types (low-cost, specific colors, etc.) based on training phase to facilitate faster generalization.
 
 ---
 
@@ -44,4 +45,4 @@
 - [ ] **Dynamic Teacher:** Implement RL for the Teacher to generate "weakness-targeted" matchups.
 
 ---
-*Last updated: Friday, 3 April 2026*
+*Last updated: Friday, 10 April 2026*

@@ -1,18 +1,19 @@
-## Progress: Pro-Scale Hybrid Intelligence (Phase 2 Complete)
+## Progress: Pro-Scale Hybrid Intelligence (Phase 2 Enhanced)
 
 ### Completed:
 - **Semantic Pointer Network**: Replaced menu-index selection with Intent-Descriptor matching.
     - Model now reasons about card properties (P/T, CMC) rather than positional memory.
-    - Handles variable action spaces natively.
 - **Fusion Card Embeddings**: Implemented Atomic + Component embedding path.
-    - Supports both deep memorization of specific cards and generalization to new cards.
-- **Full Zone Visibility**: `StateConverter` now processes Hand, Battlefield, Graveyard, and known Deck info into the relational context. (Added explicit Zone features to card vectors).
-- **Discovery Reward Structure**: Implemented explicit rewards for casting spells (+0.1), playing lands (+0.05), and tapping for mana (+0.01) to incentivize active play.
-- **Fairness & Stability**: Randomized starting player and fixed winner determination logic (handles deckout correctly).
-- **Opponent Predictor**: Implemented "Belief Vector" hallucination for hidden opponent info (Hand/Deck).
+- **Full Zone Visibility**: `StateConverter` now processes Hand, Battlefield, Graveyard, and known Deck info into the relational context.
+- **Discovery Reward Structure**: Implemented explicit rewards for casting spells (+0.1), playing lands (+0.05), and tapping for mana (+0.01).
+- **Fairness & Stability**: Randomized starting player and fixed winner determination logic.
+- **Opponent Predictor**: Implemented "Belief Vector" hallucination for hidden opponent info.
 - **Dynamic Reasoning Loop**: Truly autonomous System 2 thinking with `rethink_prob` stopping.
-- **Urgency Reward Structure**: Implemented efficiency penalty (-0.005/step) to force decisive play and prevent stalling.
+- **Urgency Reward Structure**: Implemented efficiency penalty (-0.005/step) to force decisive play.
 - **Autonomous Teacher**: Reward aligned with Student Progress Delta (Learning Rate Optimization).
+- **Temporal State Encoding**: Added card timestamps and zone-priority sorting to transformer tokens for CR-compliant ordering.
+- **Dynamic Choice Resolution**: Implemented `MakeChoiceAction` and Engine-pausing for "As enters" effects (e.g. Runed Halo).
+- **Card Learning Rate Schedule**: Integrated CMC-based curriculum (Phase 1: CMC <= 3) into Teacher's archetype selection.
 
 ### In Progress:
 - **Phase 3 (Universal Generalization)**: Scaling training to include all M21 mechanics and beyond.

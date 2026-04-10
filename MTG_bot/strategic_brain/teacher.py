@@ -12,6 +12,7 @@ except ImportError:
 from typing import List, Dict, Any, Optional, Tuple
 import random
 import sqlite3
+import re
 from MTG_bot.rule_engine.card_data_loader import CardDataLoader
 from MTG_bot.utils.logger import setup_logger
 from .deck_generator import DeckGenerator, Archetypes
@@ -44,9 +45,15 @@ class Teacher:
         self.last_benchmark_score = 0.0
         self.teacher_reward_history = []
 
-    def select_archetypes(self, current_benchmark_score: float, self_play_winrate: float = 0.5, avg_steps: float = 1000) -> Tuple[List[int], List[int]]:
+    def select_archetypes(self, current_benchmark_score: float, self_play_winrate: float = 0.5, avg_steps: float = 1000, total_games: int = 0) -> Tuple[List[int], List[int]]:
         benchmark_improvement = current_benchmark_score - self.last_benchmark_score
         speed_factor = (1000 - avg_steps) / 1000
+        
+        # --- PHASE-BASED CURRICULUM (Card Learning Rate Schedule) ---
+        # Adjust CMC and complexity based on total games played
+        max_cmc = 10 # Default
+        if total_games < 1000: max_cmc = 3
+        elif total_games < 3000: max_cmc = 5
         
         if HAS_TORCH:
             state = torch.tensor([current_benchmark_score, benchmark_improvement, self_play_winrate, speed_factor], dtype=torch.float, device=self.device)
@@ -65,8 +72,32 @@ class Teacher:
         def get_cards(query_part, count):
             # FOUNDATION PHASE: Disallow life-gain to ensure games finish
             forbidden = "(text NOT LIKE '%gain life%' AND text NOT LIKE '%life total becomes%' AND text NOT LIKE '%lifelink%')"
-            cursor.execute(f"SELECT card_id FROM cards WHERE ({query_part}) AND {forbidden} ORDER BY RANDOM() LIMIT ?", (max(1, int(count)),))
-            return [row[0] for row in cursor.fetchall()]
+            
+            cursor.execute(f"SELECT card_id, mana_cost FROM cards WHERE ({query_part}) AND {forbidden} ORDER BY RANDOM()")
+            rows = cursor.fetchall()
+            
+            filtered_ids = []
+            for card_id, mana_cost in rows:
+                if len(filtered_ids) >= count: break
+                
+                # Calculate CMC in Python
+                cmc = 0
+                if mana_cost:
+                    # Generic
+                    gen_match = re.search(r'\{(\d+)\}', mana_cost)
+                    if gen_match: cmc += int(gen_match.group(1))
+                    # Colored
+                    cmc += len(re.findall(r'\{[WUBRGC]\}', mana_cost))
+                
+                if cmc <= max_cmc:
+                    filtered_ids.append(card_id)
+            
+            # If we don't have enough, just take what we found (or fallback)
+            if not filtered_ids:
+                cursor.execute(f"SELECT card_id FROM cards WHERE ({query_part}) AND {forbidden} ORDER BY RANDOM() LIMIT ?", (max(1, int(count)),))
+                filtered_ids = [row[0] for row in cursor.fetchall()]
+                
+            return filtered_ids
 
         # Commander = 100 cards. We want ~60 non-lands per deck. Total 120.
         target_non_lands = 120 

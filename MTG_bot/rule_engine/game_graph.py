@@ -27,10 +27,11 @@ class Entity:
         self.instance_id = instance_id
         self.type_id = type_id
         self.properties: Dict[str, Any] = {}
+        self.timestamp: int = 0
 
     def __repr__(self):
         name = self.properties.get('name', str(self.instance_id)[:4])
-        return f"Entity({name}, type={self.type_id})"
+        return f"Entity({name}, type={self.type_id}, t={self.timestamp})"
 
 class GameGraph:
     def __init__(self):
@@ -42,6 +43,7 @@ class GameGraph:
         self.turn_number: int = 1
         self.step: int = 0
         self.phase: int = 0
+        self.global_clock: int = 0
         self.properties: Dict[str, Any] = {}
 
     def add_entity(self, type_id: int, properties: Optional[Dict[str, Any]] = None) -> Entity:
@@ -49,6 +51,10 @@ class GameGraph:
         entity = Entity(instance_id, type_id)
         if properties:
             entity.properties.update(properties)
+        
+        self.global_clock += 1
+        entity.timestamp = self.global_clock
+        
         self.entities[instance_id] = entity
         return entity
 
@@ -167,6 +173,10 @@ class GameGraph:
 
     def _move_card_to_zone(self, card: Entity, target_zone: Entity):
         """Helper to move an entity to a specific zone by updating its 'Is In Zone' relationship."""
+        # Update timestamp and global clock
+        self.global_clock += 1
+        card.timestamp = self.global_clock
+        
         # 1. Remove old zone relationships
         rel_type_id = self.id_mapper.get_id_by_name("Is In Zone", "game_vocabulary")
         old_rels = [r for r in self.relationships if r.source == card.instance_id and r.type_id == rel_type_id]

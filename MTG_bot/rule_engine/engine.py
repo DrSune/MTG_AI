@@ -12,6 +12,7 @@ from .state_recorder import StateRecorder
 from .actions import (
     PlayLandAction, CastSpellAction, ActivateManaAbilityAction,
     DeclareAttackerAction, DeclareBlockerAction, PassPriorityAction, PassTurnAction,
+    MakeChoiceAction
 )
 from MTG_bot.utils.logger import setup_logger
 from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
@@ -20,6 +21,7 @@ from MTG_bot import config
 AnyAction = Union[
     PlayLandAction, CastSpellAction, ActivateManaAbilityAction,
     DeclareAttackerAction, DeclareBlockerAction, PassPriorityAction, PassTurnAction,
+    MakeChoiceAction
 ]
 
 logger = setup_logger(__name__)
@@ -45,6 +47,7 @@ class Engine:
         self.move_count_this_step = 0
         self.MAX_MOVES_PER_STEP = 500 
         self.stall_detected = False
+        self.waiting_for_choice = None # Track entity requesting a choice
         self.recorder.record(self.graph, "Game Initialized")
         logger.info("Engine initialized.")
 
@@ -65,6 +68,33 @@ class Engine:
 
     def get_legal_moves(self) -> List[AnyAction]:
         legal_moves: List[AnyAction] = []
+        
+        # 0. Handle Dynamic Choices (Blocking Priority)
+        if self.waiting_for_choice:
+            entity = self.graph.entities.get(self.waiting_for_choice)
+            if not entity:
+                self.waiting_for_choice = None
+                return self.get_legal_moves()
+            
+            player_id = self.graph.get_controller_id(entity)
+            choice_type = entity.properties.get('as_enters_choice_type')
+            
+            if choice_type == "card_name":
+                # For foundation, we provide a few relevant names from the current set
+                from .card_data_loader import CardDataLoader
+                loader = CardDataLoader(config.MTG_BOT_DB_PATH)
+                all_cards = list(loader.card_name_to_id.keys())
+                # To keep action space sane for early RL, we sample 5 names + "Shock"
+                sample_names = random.sample(all_cards, min(len(all_cards), 5))
+                if "Shock" not in sample_names: sample_names.append("Shock")
+                for name in sample_names:
+                    legal_moves.append(MakeChoiceAction(player_id=player_id, source_id=self.waiting_for_choice, choice_value=name))
+            elif choice_type == "color":
+                for color in ["White", "Blue", "Black", "Red", "Green"]:
+                    legal_moves.append(MakeChoiceAction(player_id=player_id, source_id=self.waiting_for_choice, choice_value=color))
+            
+            return legal_moves
+
         original_active_id = self.graph.active_player_id
         
         active_player_id = self.graph.active_player_id
@@ -172,6 +202,28 @@ class Engine:
             elif isinstance(move, PassTurnAction):
                 self.end_turn(move.player_id)
                 events.append("Turn Passed")
+            elif isinstance(move, MakeChoiceAction):
+                source = self.graph.entities.get(move.source_id)
+                choice_type = source.properties.get('as_enters_choice_type')
+                if choice_type == "card_name":
+                    source.properties['named_card'] = move.choice_value
+                    if source.properties.get('name') == "Runed Halo":
+                        controller = self.graph.get_controller(source)
+                        if controller:
+                            protections = controller.properties.get('protections_from_names', [])
+                            if move.choice_value not in protections: protections.append(move.choice_value)
+                            controller.properties['protections_from_names'] = protections
+                elif choice_type == "color":
+                    source.properties['chosen_color'] = move.choice_value
+                
+                events.append(f"{player.properties.get('name')} chose {move.choice_value} for {source.properties.get('name')}")
+                self.waiting_for_choice = None
+                
+                # After choice, the card finally enters the battlefield
+                self.graph._move_card_to_zone(source, self.graph.get_zone(player.instance_id, vocab.ID_ZONE_BATTLEFIELD))
+                source.properties['is_on_battlefield'] = True
+                if source.properties.get('is_creature'): source.properties['has_summoning_sickness'] = True
+                source.properties['is_on_stack'] = False
 
             self.layer_system.apply_all_layers(self.graph)
             self.check_state_based_actions()
@@ -201,14 +253,16 @@ class Engine:
         effect_handlers.resolve_spell_effects(self.graph, player, source, item.target_id, effect_manager=self.effect_manager)
         if source.properties.get("is_instant") or source.properties.get("is_sorcery"):
             self.graph._move_card_to_zone(source, self.graph.get_zone(player.instance_id, vocab.ID_ZONE_GRAVEYARD))
+            source.properties['is_on_stack'] = False
         else:
             if source.properties.get('has_as_enters_choice'):
-                from .handlers import card_specific_handlers
-                card_specific_handlers.handle_generalized_enters_choice(self.graph, source)
+                self.waiting_for_choice = source.instance_id
+                return f"Waiting for choice for {source.properties.get('name')}"
+            
             self.graph._move_card_to_zone(source, self.graph.get_zone(player.instance_id, vocab.ID_ZONE_BATTLEFIELD))
             source.properties['is_on_battlefield'] = True
             if source.properties.get('is_creature'): source.properties['has_summoning_sickness'] = True
-        source.properties['is_on_stack'] = False
+            source.properties['is_on_stack'] = False
         return f"Resolved {source.properties.get('name', 'Spell')}"
 
     def progress_phase_and_step(self, force_next_phase: bool = False):

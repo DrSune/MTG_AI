@@ -12,7 +12,7 @@ The primary goal of this project is to develop a sophisticated AI that can play 
 *   **Intelligent Deck Generation & Analysis:** A dual-purpose system that:
     *   **Teacher RL:** Generates challenging, legal deck matchups to train the Student AI on its specific weaknesses.
     *   **Player Utility:** Provides real-world MTG players with a tool to analyze deck synergy, suggest optimizations, and generate decks based on specific themes or meta-game constraints.
-
+    **The finalized model** should be able to play the game at a high level, comparable to a professional Magic: The Gathering player. It should be similar to how stockfish can suggest the top 3 moves/move line so players can play or set up scenarios to figure out what is best. The same for the drafting (both from empty deck or with a partial deck the model should complete with a great understanding of synergies it has learned from playing)
 
 ## Key Ideas and Approaches
 

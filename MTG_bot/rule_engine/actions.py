@@ -66,6 +66,16 @@ class PassPriorityAction:
         return f"PassPriority(Player: {str(self.player_id)[:4]})"
 
 @dataclass
+class MakeChoiceAction:
+    """Represents a choice being made by the model (e.g. naming a card, choosing a color)."""
+    player_id: uuid.UUID
+    source_id: uuid.UUID # The entity requesting the choice
+    choice_value: str # The value chosen (e.g. "Shock" or "White")
+
+    def __repr__(self) -> str:
+        return f"MakeChoice(Player: {str(self.player_id)[:4]}, Source: {str(self.source_id)[:4]}, Choice: {self.choice_value})"
+
+@dataclass
 class PassTurnAction:
     """Represents the action of passing the turn."""
     player_id: uuid.UUID

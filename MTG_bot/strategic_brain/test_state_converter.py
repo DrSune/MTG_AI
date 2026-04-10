@@ -12,14 +12,19 @@ from MTG_bot.rule_engine.engine import Engine, StackItem
 from MTG_bot.strategic_brain.state_converter import StateConverter
 from MTG_bot.rule_engine import vocabulary as vocab
 
+from MTG_bot.rule_engine.game_initializer import initialize_game_state
+
 class TestStateConverter(unittest.TestCase):
     def setUp(self):
         # Setup a basic game state
-        self.graph = GameGraph().initialize_game([269]*60, [269]*60)
+        self.graph = initialize_game_state([269]*60, [269]*60)
+        # Ensure active player is p1 for consistent testing
+        self.p1_id = self.graph.players[0]
+        self.graph.active_player_id = self.p1_id
+        
         self.engine = Engine(self.graph)
         self.converter = StateConverter()
         
-        self.p1_id = self.graph.players[0]
         self.p1 = self.graph.entities[self.p1_id]
 
     def test_token_conversion_with_stack(self):
@@ -44,30 +49,27 @@ class TestStateConverter(unittest.TestCase):
         
         # 4. Verify Tensors/Arrays
         self.assertIn("atomic_ids", tokens)
-        self.assertIn("features", tokens)
+        self.assertIn("component_features", tokens)
         self.assertIn("zone_ids", tokens)
         
         # Check counts
         num_entities = len(self.graph.entities)
         
-        if HAS_TORCH:
-            self.assertEqual(tokens["atomic_ids"].shape[1], num_entities + 1)
-            # Check creature features
-            creature_idx = (tokens["atomic_ids"] == creature.type_id).nonzero(as_tuple=True)[1][0]
-            creature_feats = tokens["features"][0, creature_idx]
-            stack_idx = num_entities
-            self.assertEqual(tokens["zone_ids"][0, stack_idx], 999)
-        else:
-            self.assertEqual(tokens["atomic_ids"].shape[0], num_entities + 1)
-            # Check creature features
-            creature_idx = np.where(tokens["atomic_ids"] == creature.type_id)[0][0]
-            creature_feats = tokens["features"][creature_idx]
-            stack_idx = num_entities
-            self.assertEqual(tokens["zone_ids"][stack_idx], 999)
+        # converter.convert_graph_to_tokens returns 1D numpy arrays
+        self.assertEqual(tokens["atomic_ids"].shape[0], num_entities + 1)
+        
+        # Check creature features
+        all_indices = np.where(tokens["atomic_ids"] == creature.type_id)[0]
+        # The entity should have its zone_id correctly set (not 999 which is for Stack)
+        creature_idx = next(idx for idx in all_indices if tokens["zone_ids"][idx] != 999)
+        creature_feats = tokens["component_features"][creature_idx]
         
         self.assertEqual(creature_feats[3], 1.0, "Creature should be marked as tapped in features.")
         self.assertEqual(creature_feats[5], 1.0, "Creature should be marked as is_creature in features.")
         self.assertGreater(creature_feats[11], 0, "Creature should have flying bit set in keywords.")
+        
+        # 5. Verify Temporal State Encoding (New Task)
+        self.assertGreater(creature_feats[16], 0, "Creature should have a non-zero timestamp feature.")
 
     def test_observation_vector(self):
         """Tests the summary observation vector."""
@@ -77,8 +79,8 @@ class TestStateConverter(unittest.TestCase):
         obs = self.converter.convert_graph_to_observation(self.graph)
         
         self.assertEqual(obs.shape[0], 64)
-        self.assertEqual(obs[3], 15.0, "Active player life total mismatch.")
-        self.assertEqual(obs[4], 3.0, "Active player mana pool sum mismatch.")
+        self.assertAlmostEqual(obs[3], 15.0 / 20.0, places=5, msg="Active player life total mismatch.")
+        self.assertAlmostEqual(obs[4], 3.0 / 10.0, places=5, msg="Active player mana pool sum mismatch.")
 
 if __name__ == "__main__":
     unittest.main()

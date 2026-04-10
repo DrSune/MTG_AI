@@ -8,6 +8,7 @@ from ..rule_engine.actions import (
     DeclareBlockerAction,
     PassPriorityAction,
     PassTurnAction,
+    MakeChoiceAction,
 )
 from ..rule_engine.game_graph import GameGraph, Entity
 from ..rule_engine import vocabulary as vocab
@@ -21,6 +22,7 @@ ACTION_TYPE_MAP = {
     DeclareBlockerAction: 5,
     PassPriorityAction: 6,
     PassTurnAction: 7,
+    MakeChoiceAction: 8,
 }
 ID_TO_ACTION_TYPE = {v: k for k, v in ACTION_TYPE_MAP.items()}
 
@@ -108,6 +110,23 @@ class ActionSpaceMapper:
             return entities[idx - 1].instance_id
             
         source_uuid = get_uuid(tokens[1])
+
+        if action_class == MakeChoiceAction and source_uuid:
+            val_idx = tokens[2]
+            choice_val = str(val_idx)
+            # Check for colors first (simple)
+            colors = {1: "White", 2: "Blue", 3: "Black", 4: "Red", 5: "Green"}
+            if val_idx in colors:
+                choice_val = colors[val_idx]
+            else:
+                # Check if it's a card ID
+                from ..rule_engine.card_data_loader import CardDataLoader
+                from MTG_bot import config
+                loader = CardDataLoader(config.MTG_BOT_DB_PATH)
+                name = loader.get_card_name_by_id(val_idx)
+                if name: choice_val = name
+            return MakeChoiceAction(player_id=active_player_id, source_id=source_uuid, choice_value=choice_val)
+
         target_uuid = get_uuid(tokens[2])
         
         if action_class == PlayLandAction and source_uuid:
@@ -149,11 +168,28 @@ class ActionSpaceMapper:
                     return i + 1
             return 0
             
-        source_id = getattr(action, "card_id", getattr(action, "blocker_id", None))
+        source_id = getattr(action, "source_id", getattr(action, "card_id", getattr(action, "blocker_id", None)))
         target_id = getattr(action, "target_id", getattr(action, "attacker_id", None))
         
         source_idx = get_index(source_id)
         
+        if isinstance(action, MakeChoiceAction):
+            # Map choice_value back to int
+            val_idx = 0
+            colors = {"White": 1, "Blue": 2, "Black": 3, "Red": 4, "Green": 5}
+            if action.choice_value in colors:
+                val_idx = colors[action.choice_value]
+            else:
+                # Try to find card ID by name (very slow but only used in training/teacher)
+                from ..rule_engine.card_data_loader import CardDataLoader
+                from MTG_bot import config
+                loader = CardDataLoader(config.MTG_BOT_DB_PATH)
+                all_names = loader.get_all_card_names()
+                if action.choice_value in all_names:
+                    # We need a reverse map. For now, we'll skip or use a dummy
+                    val_idx = 999 
+            return [action_type_id, source_idx, val_idx]
+
         # Special case for mana abilities: target_idx is the ability_id
         if isinstance(action, ActivateManaAbilityAction):
             target_idx = action.ability_id

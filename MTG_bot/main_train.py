@@ -75,8 +75,8 @@ def main():
         
         # --- TRAINING PHASE ---
         print("\n[PHASE 1: TRAINING]")
-        current_matchup = teacher.select_archetypes(last_avg_score, last_self_play_winrate, last_avg_steps)
-        deck_a, deck_b = teacher.generate_matchup(cfg.format_mode, current_matchup)
+        current_matchup = teacher.select_archetypes(last_avg_score, last_self_play_winrate, last_avg_steps, total_games=total_games_played)
+        deck_a, deck_b = teacher.generate_matchup(cfg.format_mode, current_matchup, total_games=total_games_played)
         
         print(f"Running {cfg.episodes_per_generation} episodes of self-play...")
         student, last_self_play_winrate, last_avg_steps, total_games_played, global_step_counter = run_training_cycle(

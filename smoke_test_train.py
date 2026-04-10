@@ -1,31 +1,40 @@
+
+import sys
 import os
-import torch
-from MTG_bot.strategic_brain.train import train
-from MTG_bot.strategic_brain.config_rl import RLConfig
+from MTG_bot.strategic_brain.train import train as run_training_cycle
+from MTG_bot.strategic_brain.environment import MTGEnv
 from MTG_bot.strategic_brain.student import Student
+from MTG_bot.strategic_brain.teacher import Teacher
 from MTG_bot.rule_engine.card_data_loader import CardDataLoader
+from MTG_bot.strategic_brain.config_rl import RLConfig
 from MTG_bot import config
 
-def smoke_test():
-    print("Starting Training Smoke Test...")
+def main():
     cfg = RLConfig()
-    cfg.episodes_per_generation = 1
+    # Smoke test settings
     cfg.num_generations = 1
-    cfg.use_wandb = False # Disable for smoke test
-    cfg.save_freq = 100
-    cfg.initial_phase_games = 0 # Skip foundation phase logic for test
+    cfg.episodes_per_generation = 2
+    cfg.use_wandb = False
+    
+    print("Starting Smoke Test Training Run...")
     
     loader = CardDataLoader(config.MTG_BOT_DB_PATH)
+    env = MTGEnv(loader)
     student = Student(cfg.to_dict())
+    teacher = Teacher(loader, cfg.to_dict())
     
-    # We want to test the full loop, so let's just call train
-    try:
-        train(cfg, student=student)
-        print("\nSUCCESS: Training loop executed one episode without crashing.")
-    except Exception as e:
-        print(f"\nFAILURE: Training loop crashed with error: {e}")
-        import traceback
-        traceback.print_exc()
+    # Run 1 generation
+    print("\n[PHASE 1: SMOKE TEST TRAINING]")
+    current_matchup = teacher.select_archetypes(0.0, 0.5, 1000, total_games=0)
+    deck_a, deck_b = teacher.generate_matchup(cfg.format_mode, current_matchup, total_games=0)
+    
+    student, winrate, steps, games, global_steps = run_training_cycle(
+        cfg, student=student, fixed_matchup=(deck_a, deck_b),
+        initial_games=0, initial_steps=0
+    )
+    
+    print("\nSmoke Test Complete!")
+    print(f"Games played: {games}, Winrate: {winrate}")
 
 if __name__ == "__main__":
-    smoke_test()
+    main()

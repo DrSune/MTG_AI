@@ -86,6 +86,14 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
         # Calculate exploration rate: Start higher and decay slower
         exploration_rate = max(0.15, 0.7 * (1 - total_games_played_overall / 10000))
         
+        # Calculate curriculum discovery factor (1.0 -> 0.0 over 10k games)
+        discovery_factor = max(0.0, 1.0 - (total_games_played_overall / 10000))
+        env.discovery_factor = discovery_factor
+        
+        # Calculate 'Forced Activity' probability (1.0 -> 0.0 over 5k games)
+        # This forces the model to choose non-pass actions if they are legal.
+        forced_play_prob = max(0.0, 1.0 - (total_games_played_overall / 5000))
+        
         # 1. Matchup Stability: Update decks only every N games
         if not fixed_matchup and episode % cfg.deck_refresh_freq == 0:
             current_format = cfg.format_mode
@@ -121,17 +129,59 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
             current_turn = env.graph.turn_number
             
             # Select Action / Plan
-            legal_moves = env.engine.get_legal_moves()
+            all_legal = env.engine.get_legal_moves()
+            
+            # INTENTIONAL ACTION FILTERING: 
+            # If we have spells to cast or combat moves, limit the number of mana tapping options
+            # to prevent the model from getting lost in 'Safe' but 'Useless' loops.
+            intentional_moves = [m for m in all_legal if isinstance(m, (CastSpellAction, DeclareAttackerAction, DeclareBlockerAction, MakeChoiceAction, PlayLandAction))]
+            mana_moves = [m for m in all_legal if isinstance(m, ActivateManaAbilityAction)]
+            pass_moves = [m for m in all_legal if isinstance(m, (PassPriorityAction, PassTurnAction))]
+            
+            if intentional_moves:
+                # If we have something 'Real' to do, only show a few mana options (or none if prob hits)
+                sampled_mana = random.sample(mana_moves, min(len(mana_moves), 2))
+                candidate_moves = intentional_moves + sampled_mana
+                if random.random() > forced_play_prob:
+                    candidate_moves += pass_moves
+            else:
+                candidate_moves = all_legal
+
+            # FORCED ACTIVITY MASKING: Temporarily hide Pass actions if alternatives exist
+            non_pass_moves = [m for m in candidate_moves if not isinstance(m, (PassPriorityAction, PassTurnAction))]
+            if non_pass_moves and random.random() < forced_play_prob:
+                legal_moves = non_pass_moves
+            else:
+                legal_moves = candidate_moves
+                
             legal_move_names = [type(m).__name__.replace("Action", "") for m in legal_moves]
             
+            # Create a mapping from filtered indices back to original engine indices
+            filtered_to_original = []
+            for m in legal_moves:
+                for idx, orig_m in enumerate(all_legal):
+                    if m == orig_m:
+                        filtered_to_original.append(idx)
+                        break
+
             if is_student:
+                # Update observation with FILTERED descriptors
+                descriptors = []
+                for m in legal_moves:
+                    d = env.mapper.get_action_descriptor(m, env.graph)
+                    flat_d = np.concatenate([[d["type"]], d["source_features"], d["target_features"]])
+                    descriptors.append(flat_d)
+                
+                # Update current obs for the model
+                obs["legal_action_descriptors"] = descriptors
+                obs["legal_actions_count"] = len(legal_moves)
+
                 # 1. Generate Grounded Plan
                 action_idx, value, log_prob, memory, thoughts, plan_sequence, plan_queries = student.select_action(
                     obs, requires_grad=HAS_TORCH, exploration_rate=exploration_rate
                 )
 
-                # 2. Plan Execution Loop
- (Grounded Sequential Thinking)
+                # 2. Plan Execution Loop (Grounded Sequential Thinking)
                 # We attempt to follow the plan as long as steps are legal and no rethink/end is hit.
                 plan_steps_taken = 0
                 max_plan_follow = 5 # Don't follow too far without seeing fresh board
@@ -139,21 +189,27 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
                 current_plan_obs = obs
                 
                 for step_idx in range(min(len(plan_sequence), max_plan_follow)):
-                    # Get legal moves for CURRENT sub-state
-                    legal_moves = env.engine.get_legal_moves()
-                    if not legal_moves: break
+                    # Get legal moves for CURRENT sub-state (re-apply masking if needed)
+                    current_legal_all = env.engine.get_legal_moves()
+                    curr_non_pass = [m for m in current_legal_all if not isinstance(m, (PassPriorityAction, PassTurnAction))]
+                    if curr_non_pass and random.random() < forced_play_prob:
+                        current_legal = curr_non_pass
+                    else:
+                        current_legal = current_legal_all
+
+                    if not current_legal: break
 
                     if step_idx == 0:
-                        # For the first step, use the action_idx already selected (respects exploration)
+                        # For the first step, use the action_idx already selected
+                        # This action_idx is ALREADY an index into the FILTERED current_legal
                         best_move_idx = action_idx
-                        max_score = 1.0 # Force follow first step
                     else:
                         # Match current legal moves against the query for this plan step
                         query = plan_queries[0, step_idx, :]
 
-                        # Get descriptors for current legal moves
+                        # Get descriptors for current FILTERED legal moves
                         descriptors = []
-                        for m in legal_moves:
+                        for m in current_legal:
                             d = env.mapper.get_action_descriptor(m, env.graph)
                             flat_d = np.concatenate([[d["type"]], d["source_features"], d["target_features"]])
                             descriptors.append(flat_d)
@@ -164,39 +220,46 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
                             scores = torch.mv(proj_legal, query)
 
                             if exploration_rate > 0 and random.random() < exploration_rate:
-                                # Explore within the plan too
-                                best_move_idx = random.randint(0, len(legal_moves) - 1)
+                                categories = {}
+                                for idx, move in enumerate(current_legal):
+                                    m_type = type(move)
+                                    if m_type not in categories: categories[m_type] = []
+                                    categories[m_type].append(idx)
+                                chosen_cat = random.choice(list(categories.keys()))
+                                best_move_idx = random.choice(categories[chosen_cat])
                             else:
-                                # Sample or Argmax
                                 probs = torch.softmax(scores, dim=-1)
                                 best_move_idx = torch.distributions.Categorical(probs).sample().item()
 
-                            max_score = scores[best_move_idx].item()
+                    # Execute the move (must use ORIGINAL engine index if needed, 
+                    # but here env.step handles it via index in its OWN current engine.get_legal_moves call)
+                    # Wait, env.step(idx) uses engine.get_legal_moves()[idx]. 
+                    # If we filtered, we must map back to the original index.
+                    
+                    actual_move = current_legal[best_move_idx]
+                    # Find original index for env.step
+                    original_legal = env.engine.get_legal_moves()
+                    original_idx = -1
+                    for i, m in enumerate(original_legal):
+                        if m == actual_move:
+                            original_idx = i; break
+                    
+                    if original_idx == -1: break # Should not happen
 
-                    # SNAG DETECTION: If match is too weak, the plan is no longer valid
-                    # Threshold should be learned, but for now we check if it's positive
-                    if max_score < 0.0 and step_idx > 0:
-                        intended_type_id = torch.argmax(plan_sequence[step_idx]["type_logits"]).item()
-                        from .action_mapper import ID_TO_ACTION_TYPE
-                        intended_name = ID_TO_ACTION_TYPE.get(intended_type_id, type(None)).__name__.replace("Action", "")
-                        print(f"  [PLAN] Snag at step {step_idx}: Intended {intended_name} not viable. Rethinking...")
-                        # Tiny penalty for plan inconsistency (worth 1/10,000th of a win)
-                        episode_reward -= 0.0001 
-                        break
-
-                    # Check for Gating Tokens
-                    type_id = torch.argmax(plan_sequence[step_idx]["type_logits"]).item()
-                    if type_id == 0: # END_PLAN
-                        break
-                    if type_id == 9: # RETHINK
-                        break
-
-                    # Execute the grounded move
-                    next_obs, reward, done, info = env.step(best_move_idx)
+                    next_obs, reward, done, info = env.step(original_idx)
                     
                     # Log the grounded action
                     action_str = info.get("action_taken", "Unknown")
                     role = "[S]"
+                    
+                    # ENHANCED LOGGING: Alert when active play happens
+                    if "CastSpell" in action_str and ("Creature" in action_str or "Artifact" in action_str):
+                        print(f"  *** [S] DEPLOYED PERMANENT: {action_str}")
+                    elif "DeclareAttacker" in action_str:
+                        print(f"  >>> [S] ATTACK: {action_str}")
+                    elif "DeclareBlocker" in action_str:
+                        print(f"  <<< [S] BLOCK: {action_str}")
+
                     p1_deck = len(env.graph.get_entities_in_zone(p1_id, vocab.ID_ZONE_LIBRARY))
                     p2_deck = len(env.graph.get_entities_in_zone(p2_id, vocab.ID_ZONE_LIBRARY))
                     
@@ -241,18 +304,28 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
                     with torch.no_grad():
                         orig_model = student.model
                         student.model = frozen_model
+                        # Use small exploration for Frozen to keep it "active"
                         action_idx, _, _, _, _, _, _ = student.select_action(
-                            obs, requires_grad=False, exploration_rate=0.0, deterministic=True
+                            obs, requires_grad=False, exploration_rate=0.05, deterministic=False
                         )
                         student.model = orig_model
                 else:
-                    action_idx, _, _, _, _, _, _ = student.select_action(obs, deterministic=True)
+                    action_idx, _, _, _, _, _, _ = student.select_action(obs, deterministic=False)
                 
                 next_obs, reward, done, info = env.step(action_idx)
                 
                 # Log the frozen model's action
                 action_str = info.get("action_taken", "Unknown")
                 role = "[F]"
+                
+                # ENHANCED LOGGING for Frozen too
+                if "CastSpell" in action_str and ("Creature" in action_str or "Artifact" in action_str):
+                    print(f"  *** [F] DEPLOYED PERMANENT: {action_str}")
+                elif "DeclareAttacker" in action_str:
+                    print(f"  >>> [F] ATTACK: {action_str}")
+                elif "DeclareBlocker" in action_str:
+                    print(f"  <<< [F] BLOCK: {action_str}")
+
                 p1_deck = len(env.graph.get_entities_in_zone(p1_id, vocab.ID_ZONE_LIBRARY))
                 p2_deck = len(env.graph.get_entities_in_zone(p2_id, vocab.ID_ZONE_LIBRARY))
                 

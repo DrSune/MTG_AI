@@ -30,6 +30,7 @@ class MTGEnv:
         self.engine: Optional[Engine] = None
         self.graph: Optional[GameGraph] = None
         self.game_over = False
+        self.discovery_factor = 1.0 # Dynamic curriculum factor (1.0 -> 0.0)
 
     def reset(self, format: str = "limited", archetypes: Tuple[str, str] = ("random", "random")) -> Tuple[Dict[str, Any], List[int], List[int]]:
         """Resets the environment with a new game and matchup."""
@@ -119,6 +120,9 @@ class MTGEnv:
         
         pre_p1_perm = len(self.graph.get_entities_in_zone(p1_id, vocab.ID_ZONE_BATTLEFIELD)) if hasattr(vocab, "ID_ZONE_BATTLEFIELD") else 0
         pre_p1_hand = len(self.graph.get_entities_in_zone(p1_id, vocab.ID_ZONE_HAND)) if hasattr(vocab, "ID_ZONE_HAND") else 0
+        
+        pre_p1_mana_pool = self.graph.entities[p1_id].properties.get('mana_pool', {})
+        pre_p1_mana_total = sum(pre_p1_mana_pool.values()) if isinstance(pre_p1_mana_pool, dict) else 0
 
         # 1. Select Action by Index (Pointer Logic)
         legal_moves = self.engine.get_legal_moves()
@@ -149,33 +153,36 @@ class MTGEnv:
         self.engine.execute_move(actual_action)
         
         # 4. Calculate Impact & Dense Reward
+        post_p1_mana_pool = self.graph.entities[p1_id].properties.get('mana_pool', {})
+        post_p1_mana_total = sum(post_p1_mana_pool.values()) if isinstance(post_p1_mana_pool, dict) else 0
+        
+        # Action Discovery CURRICULUM (Starts strong to break ties, fades over time)
         action_discovery_reward = 0.0
-        if isinstance(actual_action, CastSpellAction): action_discovery_reward = 0.1
-        elif isinstance(actual_action, PlayLandAction): action_discovery_reward = 0.05
-        elif "ActivateManaAbility" in action_name: action_discovery_reward = 0.01
-
-        # Turn/Efficiency Penalty: -0.005 per step (approx 1 damage per 10 steps)
-        # This encourages winning fast and discourages stalling.
-        step_penalty = -0.005 
-
-        post_p1_life = self.graph.entities[p1_id].properties.get('life_total', 20)
-        post_p2_life = self.graph.entities[p2_id].properties.get('life_total', 20)
+        from ..rule_engine.actions import DeclareAttackerAction, MakeChoiceAction
         
-        post_p1_perm = len(self.graph.get_entities_in_zone(p1_id, vocab.ID_ZONE_BATTLEFIELD)) if hasattr(vocab, "ID_ZONE_BATTLEFIELD") else 0
-        post_p1_hand = len(self.graph.get_entities_in_zone(p1_id, vocab.ID_ZONE_HAND)) if hasattr(vocab, "ID_ZONE_HAND") else 0
+        # Proactivity Reward: Small bonus for actually using cards/abilities 
+        # that aren't just tapping for mana or passing.
+        proactivity_bonus = 0.0
+        is_proactive = not isinstance(actual_action, (PassPriorityAction, PlayLandAction, ActivateManaAbilityAction))
+        if is_proactive:
+            # Tiny reward to encourage 'Doing Something' over 'Doing Nothing'
+            proactivity_bonus = 0.005 
 
-        damage_dealt = max(0, pre_p2_life - post_p2_life)
-        damage_reward = damage_dealt * 0.1 # Increased from 0.05
+        if isinstance(actual_action, CastSpellAction):
+            # Reward casting, especially creatures
+            action_discovery_reward = 0.2 * self.discovery_factor 
+        elif isinstance(actual_action, PlayLandAction):
+            action_discovery_reward = 0.05 * self.discovery_factor
+        elif isinstance(actual_action, DeclareAttackerAction):
+            action_discovery_reward = 0.1 * self.discovery_factor
+        elif isinstance(actual_action, MakeChoiceAction):
+            action_discovery_reward = 0.05 * self.discovery_factor
         
-        life_reward = ((pre_p2_life - post_p2_life) - (pre_p1_life - post_p1_life)) * 0.02 # Increased from 0.01
-        board_reward = (post_p1_perm - pre_p1_perm) * 0.05
-        card_reward = (post_p1_hand - pre_p1_hand) * 0.02
+        # Generalized Mana Reward (Rewards Tapping Land, Elves, Artifacts)
+        mana_gen_reward = max(0, post_p1_mana_total - pre_p1_mana_total) * 0.01 * self.discovery_factor
 
-        self.game_over = self.engine.game_over
-        win_loss_reward = self.engine.get_reward(p1_id)
-        
-        # Total Reward: win + damage + life + board + cards + illegal penalty + efficiency penalty + discovery
-        total_reward = win_loss_reward + damage_reward + life_reward + board_reward + card_reward + penalty + step_penalty + action_discovery_reward
+        # Total Reward: win + damage + life + board + cards + penalty + step + discovery + proactivity
+        total_reward = win_loss_reward + damage_reward + life_reward + board_reward + card_reward + penalty + step_penalty + action_discovery_reward + mana_gen_reward + proactivity_bonus
         
         p1_mana_pool = self.graph.entities[p1_id].properties.get('mana_pool', {})
         p2_mana_pool = self.graph.entities[p2_id].properties.get('mana_pool', {})

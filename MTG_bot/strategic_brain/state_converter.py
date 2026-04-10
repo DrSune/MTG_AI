@@ -40,8 +40,9 @@ class StateConverter:
             if entity.type_id in [vocab.ID_PLAYER, vocab.ID_ZONE_BATTLEFIELD, vocab.ID_ZONE_HAND, vocab.ID_ZONE_GRAVEYARD, vocab.ID_ZONE_LIBRARY]:
                 priority_entities.append(entity)
         
-        # 2. Identify Cards and other entities
+        # 2. Identify Cards and other entities, sorted by Zone and Timestamp
         other_entities = [e for e in graph.entities.values() if e not in priority_entities]
+        other_entities.sort(key=lambda e: (self._get_zone_priority(graph, e), e.timestamp))
         
         # 3. Stack items
         stack_items = engine_stack if engine_stack else []
@@ -76,6 +77,22 @@ class StateConverter:
 
         res = {"atomic_ids": atomic_ids, "component_features": features, "zone_ids": zone_ids, "controller_ids": controller_ids}
         return res
+
+    def _get_zone_priority(self, graph: GameGraph, entity: Entity) -> int:
+        """Returns priority for sorting: Battlefield(1), Hand(2), Stack(3), Graveyard(4), Library(5), Exile(6), Other(7)"""
+        if entity.properties.get('is_on_battlefield'): return 1
+        if entity.properties.get('is_in_hand'): return 2
+        if entity.properties.get('is_on_stack'): return 3
+        if entity.properties.get('is_in_graveyard'): return 4
+        # Library check
+        rel_type_id = vocab.ID_REL_IS_IN_ZONE
+        rels = graph.get_relationships(source=entity, rel_type=rel_type_id)
+        for r in rels:
+            zone = graph.entities.get(r.target)
+            if zone:
+                if zone.type_id == vocab.ID_ZONE_LIBRARY: return 5
+                if zone.type_id == vocab.ID_ZONE_EXILE: return 6
+        return 7
 
     def _get_zone_type_id(self, graph: GameGraph, entity: Entity) -> int:
         if entity.properties.get('is_on_battlefield'): return vocab.ID_ZONE_BATTLEFIELD
@@ -113,6 +130,10 @@ class StateConverter:
         feats[13] = 1.0 if props.get('is_in_hand') else 0.0
         feats[14] = 1.0 if props.get('is_in_graveyard') else 0.0
         
+        # Temporal State Encoding (normalized timestamp)
+        # We use a large scale (10000) because global_clock can grow quite large
+        feats[16] = float(getattr(entity, 'timestamp', 0)) / 10000.0
+
         if 'life_total' in props: feats[9] = float(props.get('life_total') or 20) / 20.0
         if 'mana_pool' in props: feats[10] = float(sum((props['mana_pool'] or {}).values()))
         for kw, bit in self.keyword_map.items():
