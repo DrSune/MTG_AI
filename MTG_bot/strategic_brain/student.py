@@ -43,7 +43,7 @@ class Student:
             num_layers=model_config.get("num_layers", 16),
             belief_dim=model_config.get("belief_dim", 512),
             max_actions=model_config.get("max_actions", 100)
-        )
+        ).to(self.device)
         
         # --- ROBUST WEIGHT LOADING ---
         if HAS_TORCH:
@@ -87,7 +87,7 @@ class Student:
             for param_group in self.optimizer.param_groups:
                 param_group['lr'] = lr
 
-    def select_action(self, obs: Dict[str, Any], deterministic: bool = False, requires_grad: bool = False, exploration_rate: float = 0.0) -> Tuple[int, float, Any, Any, int, Optional[List[Dict[str, Any]]], Optional[torch.Tensor]]:
+    def select_action(self, obs: Dict[str, Any], deterministic: bool = False, requires_grad: bool = False, exploration_rate: float = 0.0, proactivity_bias: float = 0.0) -> Tuple[int, float, Any, Any, int, Optional[List[Dict[str, Any]]], Optional[torch.Tensor]]:
         legal_descriptors = obs.get("legal_action_descriptors", [[0]*65])
         
         if not HAS_TORCH:
@@ -108,6 +108,16 @@ class Student:
 
             output = self.model(atomic_ids, features, descriptors, num_passes=self.max_thoughts if not deterministic else 1, threshold=self.thought_threshold)
             logits = output["action_logits"]
+            
+            # --- PROACTIVITY BIAS (Foundation Phase Hook) ---
+            if proactivity_bias > 0 and not deterministic:
+                # Identify 'Pass' actions in the legal moves
+                # We know the type ID from the first element of descriptors
+                # Action types (matching ActionSpaceMapper): 6:PassPriority, 7:PassTurn
+                for i, desc in enumerate(legal_descriptors):
+                    a_type = desc[0]
+                    if a_type in [6, 7]: # Pass actions
+                        logits[0, i] -= 10.0 * proactivity_bias # Heavily discourage passing
             
             probs = torch.softmax(logits, dim=-1)
             if not deterministic and random.random() < exploration_rate:

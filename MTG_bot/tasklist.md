@@ -29,6 +29,9 @@
 - [x] **Temporal State Encoding:** Implemented time-indexing and graveyard ordering for the relational transformer.
 - [x] **Dynamic Choice Resolution:** Replaced hardcoded "as enters" choices with model-driven decisions (MakeChoiceAction).
 - [x] **Card Learning Rate Schedule:** Implemented CMC-based curriculum filter in Teacher.
+- [x] **Proactive Hooking:** Added `proactivity_bias` and action masking to force exploration of active moves (Spells, Combat) during Phase 0.
+- [x] **General Repetition Safeguard:** Global `step_action_history` cap (max 5 per step) to prevent infinite loops in all scenarios.
+- [x] **GPU Acceleration:** Automatic CUDA detection and model migration for 10x training speed.
 - [ ] **Initial Training Run:** Execute long-term training session using `main_train.py`.
 
 ---

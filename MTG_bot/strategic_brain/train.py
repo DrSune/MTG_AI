@@ -13,7 +13,8 @@ from .environment import MTGEnv
 from .student import Student, ExperienceBuffer
 from .teacher import Teacher
 from MTG_bot.rule_engine import vocabulary as vocab
-from MTG_bot.rule_engine.actions import PassPriorityAction, PassTurnAction, ActivateManaAbilityAction
+from MTG_bot.rule_engine.actions import PassPriorityAction, PassTurnAction, ActivateManaAbilityAction, \
+    CastSpellAction, DeclareAttackerAction, DeclareBlockerAction, MakeChoiceAction, PlayLandAction
 from MTG_bot.rule_engine.card_data_loader import CardDataLoader
 from MTG_bot.utils.training_logger import TrainingLogger
 from MTG_bot.strategic_brain.config_rl import RLConfig
@@ -46,7 +47,7 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
     
     # Create a frozen copy of the student for self-play evaluation
     import copy
-    frozen_model = copy.deepcopy(student.model)
+    frozen_model = copy.deepcopy(student.model).to(student.device)
     frozen_model.eval()
     
     teacher = Teacher(loader, cfg.to_dict())
@@ -90,9 +91,13 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
         discovery_factor = max(0.0, 1.0 - (total_games_played_overall / 10000))
         env.discovery_factor = discovery_factor
         
-        # Calculate 'Forced Activity' probability (1.0 -> 0.0 over 5k games)
-        # This forces the model to choose non-pass actions if they are legal.
-        forced_play_prob = max(0.0, 1.0 - (total_games_played_overall / 5000))
+        # Calculate 'Forced Activity' probability (1.0 -> 0.0 over 10k games - SLOWED)
+        # We want to force proactivity for a long time to build the habit.
+        forced_play_prob = max(0.0, 1.0 - (total_games_played_overall / 10000))
+        
+        # Calculate Proactivity Bias (1.0 -> 0.0 over 2k games - SLOWED)
+        # This influences the model's sampling toward proactive actions.
+        proactivity_bias = max(0.0, 1.0 - (total_games_played_overall / 2000))
         
         # 1. Matchup Stability: Update decks only every N games
         if not fixed_matchup and episode % cfg.deck_refresh_freq == 0:
@@ -123,39 +128,87 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
         episode_reward = 0
         last_menu_str = ""
         
+        # Track action history per step to prevent infinite loops
+        step_action_history = {}
+        last_step_count = -1
+        
+        # Track "Meaningful Action" to detect stalls
+        last_meaningful_step = 0
+        last_p1_life, last_p2_life = 40, 40
+        last_board_count = 0
+        
         while not done and steps < cfg.steps_per_episode:
             active_id = obs["active_player"]
             is_student = (active_id == p1_id)
             current_turn = env.graph.turn_number
             
+            # Reset action history if steps advanced
+            if steps != last_step_count:
+                step_action_history = {}
+                last_step_count = steps
+
             # Select Action / Plan
             all_legal = env.engine.get_legal_moves()
             
-            # INTENTIONAL ACTION FILTERING: 
-            # If we have spells to cast or combat moves, limit the number of mana tapping options
-            # to prevent the model from getting lost in 'Safe' but 'Useless' loops.
-            intentional_moves = [m for m in all_legal if isinstance(m, (CastSpellAction, DeclareAttackerAction, DeclareBlockerAction, MakeChoiceAction, PlayLandAction))]
-            mana_moves = [m for m in all_legal if isinstance(m, ActivateManaAbilityAction)]
-            pass_moves = [m for m in all_legal if isinstance(m, (PassPriorityAction, PassTurnAction))]
+            # Detect Stall: If 100 steps without damage or board change, force aggressive Pass
+            current_board = len(env.graph.entities)
+            current_p1_life = env.graph.entities[p1_id].properties.get('life_total', 40)
+            current_p2_life = env.graph.entities[p2_id].properties.get('life_total', 40)
             
-            if intentional_moves:
-                # If we have something 'Real' to do, only show a few mana options (or none if prob hits)
-                sampled_mana = random.sample(mana_moves, min(len(mana_moves), 2))
+            is_stall = (steps - last_meaningful_step > 100)
+            if current_p1_life != last_p1_life or current_p2_life != last_p2_life or current_board != last_board_count:
+                last_meaningful_step = steps
+                last_p1_life, last_p2_life = current_p1_life, current_p2_life
+                last_board_count = current_board
+            
+            # FILTER REPETITIVE ACTIONS: If an exact action was done > 5 times this step, hide it
+            non_repetitive_legal = []
+            for m in all_legal:
+                m_str = str(m)
+                if step_action_history.get(m_str, 0) < 5:
+                    non_repetitive_legal.append(m)
+            
+            # Fallback if ALL legal moves were repetitive (force a Pass)
+            if not non_repetitive_legal:
+                non_repetitive_legal = [m for m in all_legal if isinstance(m, (PassPriorityAction, PassTurnAction))]
+                if not non_repetitive_legal: non_repetitive_legal = [all_legal[0]]
+
+            # INTENTIONAL ACTION FILTERING (using non-repetitive list)
+            intentional_moves = [m for m in non_repetitive_legal if isinstance(m, (CastSpellAction, DeclareAttackerAction, DeclareBlockerAction, MakeChoiceAction, PlayLandAction))]
+            mana_moves = [m for m in non_repetitive_legal if isinstance(m, ActivateManaAbilityAction)]
+            pass_moves = [m for m in non_repetitive_legal if isinstance(m, (PassPriorityAction, PassTurnAction))]
+            
+            # STALL BREAKER: If stalled, only allow passing or intentional moves (NO MANA TAPPING)
+            if is_stall:
+                candidate_moves = intentional_moves + pass_moves
+                if not candidate_moves: candidate_moves = [all_legal[0]]
+                if steps % 50 == 0: print(f"  [STALL WARNING] Step {steps}: Forcing game progression...")
+            elif intentional_moves:
+                sampled_mana = random.sample(mana_moves, min(len(mana_moves), 1))
                 candidate_moves = intentional_moves + sampled_mana
                 if random.random() > forced_play_prob:
                     candidate_moves += pass_moves
             else:
-                candidate_moves = all_legal
+                if mana_moves and random.random() < forced_play_prob:
+                    candidate_moves = mana_moves
+                else:
+                    candidate_moves = non_repetitive_legal
+            
+            if not candidate_moves:
+                candidate_moves = pass_moves if pass_moves else [non_repetitive_legal[0]]
 
-            # FORCED ACTIVITY MASKING: Temporarily hide Pass actions if alternatives exist
+            # FORCED ACTIVITY MASKING
             non_pass_moves = [m for m in candidate_moves if not isinstance(m, (PassPriorityAction, PassTurnAction))]
-            if non_pass_moves and random.random() < forced_play_prob:
+            
+            # AGGRESSIVE MASKING: If we are in the foundation phase and have non-pass options, 
+            # hide pass actions with very high probability (95%).
+            if non_pass_moves and total_games_played_overall < 1000 and random.random() < 0.95:
+                legal_moves = non_pass_moves
+            elif non_pass_moves and random.random() < forced_play_prob:
                 legal_moves = non_pass_moves
             else:
                 legal_moves = candidate_moves
                 
-            legal_move_names = [type(m).__name__.replace("Action", "") for m in legal_moves]
-            
             # Create a mapping from filtered indices back to original engine indices
             filtered_to_original = []
             for m in legal_moves:
@@ -164,21 +217,21 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
                         filtered_to_original.append(idx)
                         break
 
-            if is_student:
-                # Update observation with FILTERED descriptors
-                descriptors = []
-                for m in legal_moves:
-                    d = env.mapper.get_action_descriptor(m, env.graph)
-                    flat_d = np.concatenate([[d["type"]], d["source_features"], d["target_features"]])
-                    descriptors.append(flat_d)
-                
-                # Update current obs for the model
-                obs["legal_action_descriptors"] = descriptors
-                obs["legal_actions_count"] = len(legal_moves)
+            # Update observation with FILTERED descriptors for BOTH players
+            descriptors = []
+            for m in legal_moves:
+                d = env.mapper.get_action_descriptor(m, env.graph)
+                flat_d = np.concatenate([[d["type"]], d["source_features"], d["target_features"]])
+                descriptors.append(flat_d)
+            
+            # Update current obs for the model
+            obs["legal_action_descriptors"] = descriptors
+            obs["legal_actions_count"] = len(legal_moves)
 
-                # 1. Generate Grounded Plan
+            if is_student:
+                # 1. Generate Grounded Plan (with proactivity bias)
                 action_idx, value, log_prob, memory, thoughts, plan_sequence, plan_queries = student.select_action(
-                    obs, requires_grad=HAS_TORCH, exploration_rate=exploration_rate
+                    obs, requires_grad=HAS_TORCH, exploration_rate=exploration_rate, proactivity_bias=proactivity_bias
                 )
 
                 # 2. Plan Execution Loop (Grounded Sequential Thinking)
@@ -246,6 +299,11 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
                     
                     if original_idx == -1: break # Should not happen
 
+                    # Track action usage
+                    curr_move = (all_legal[original_idx] if not is_student else current_legal[best_move_idx])
+                    m_str = str(curr_move)
+                    step_action_history[m_str] = step_action_history.get(m_str, 0) + 1
+                    
                     next_obs, reward, done, info = env.step(original_idx)
                     
                     # Log the grounded action
@@ -289,7 +347,13 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
                 if plan_steps_taken == 0 and not done:
                     # Fallback if plan loop didn't execute (e.g. immediate END_PLAN)
                     # We must take at least one real action (usually Pass)
-                    next_obs, reward, done, info = env.step(action_idx)
+                    original_idx = filtered_to_original[action_idx]
+                    # Track action usage
+                    curr_move = (all_legal[original_idx] if not is_student else current_legal[best_move_idx])
+                    m_str = str(curr_move)
+                    step_action_history[m_str] = step_action_history.get(m_str, 0) + 1
+                    
+                    next_obs, reward, done, info = env.step(original_idx)
                     
                     # Store fallback transition
                     episode_experience.append({
@@ -304,15 +368,23 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
                     with torch.no_grad():
                         orig_model = student.model
                         student.model = frozen_model
-                        # Use small exploration for Frozen to keep it "active"
+                        # Use small exploration and proactivity bias for Frozen to keep it "active"
                         action_idx, _, _, _, _, _, _ = student.select_action(
-                            obs, requires_grad=False, exploration_rate=0.05, deterministic=False
+                            obs, requires_grad=False, exploration_rate=0.05, deterministic=False, proactivity_bias=proactivity_bias
                         )
                         student.model = orig_model
                 else:
                     action_idx, _, _, _, _, _, _ = student.select_action(obs, deterministic=False)
                 
-                next_obs, reward, done, info = env.step(action_idx)
+                # Map back to original index for Frozen player too
+                original_idx = filtered_to_original[action_idx]
+                
+                # Track action usage for Frozen player
+                curr_move = all_legal[original_idx]
+                m_str = str(curr_move)
+                step_action_history[m_str] = step_action_history.get(m_str, 0) + 1
+                
+                next_obs, reward, done, info = env.step(original_idx)
                 
                 # Log the frozen model's action
                 action_str = info.get("action_taken", "Unknown")

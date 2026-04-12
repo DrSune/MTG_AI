@@ -6,7 +6,7 @@ class RLConfig:
     # --- Training Loop ---
     num_generations: int = 1000 # Extended for deep learning
     episodes_per_generation: int = 50 
-    steps_per_episode: int = 10000 # Increased from 2000 to remove bottleneck
+    steps_per_episode: int = 10000 # Increased from 500 as requested to allow full games
     deck_refresh_freq: int = 1 
     save_freq: int = 10
     
@@ -44,7 +44,7 @@ class RLConfig:
     use_cuda: bool = True 
     
     # --- Logging ---
-    use_wandb: bool = True
+    use_wandb: bool = False # Default to False to prevent blocking
     project_name: str = "MTG-AI-Pro-Foundation"
     
     def to_dict(self) -> Dict[str, Any]:

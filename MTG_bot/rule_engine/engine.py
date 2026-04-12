@@ -112,9 +112,12 @@ class Engine:
             if is_block_step:
                 legal_blockers = combat_handlers.get_legal_blockers(self.graph, decision_player_id)
                 attacking_creatures = [c for c in self.graph.entities.values() if c.properties.get('is_attacking')]
+                blocking_rel_id = self.id_mapper.get_id_by_name("Blocking", "game_vocabulary")
                 for blocker in legal_blockers:
                     for attacker in attacking_creatures:
-                        legal_moves.append(DeclareBlockerAction(player_id=decision_player_id, blocker_id=blocker.instance_id, attacker_id=attacker.instance_id))
+                        # Only allow blocking if NOT already blocking this attacker
+                        if not any(r.source == blocker.instance_id and r.target == attacker.instance_id and r.type_id == blocking_rel_id for r in self.graph.relationships):
+                            legal_moves.append(DeclareBlockerAction(player_id=decision_player_id, blocker_id=blocker.instance_id, attacker_id=attacker.instance_id))
             
             legal_moves.append(PassPriorityAction(player_id=decision_player_id))
             
@@ -191,9 +194,10 @@ class Engine:
                 combat_handlers.declare_attacker(self.graph, card)
                 events.append(f"{player.properties.get('name')} attacked with {card.properties.get('name')}")
             elif isinstance(move, DeclareBlockerAction):
+                blocker = self.graph.entities.get(move.blocker_id)
                 attacker = self.graph.entities.get(move.attacker_id)
-                self.graph.add_relationship(card, attacker, self.id_mapper.get_id_by_name("Blocking", "game_vocabulary"))
-                events.append(f"{player.properties.get('name')} blocked {attacker.properties.get('name')} with {card.properties.get('name')}")
+                self.graph.add_relationship(blocker, attacker, self.id_mapper.get_id_by_name("Blocking", "game_vocabulary"))
+                events.append(f"{player.properties.get('name')} blocked {attacker.properties.get('name')} with {blocker.properties.get('name')}")
             elif isinstance(move, PassPriorityAction):
                 if self.stack: events.append(self.resolve_stack())
                 else:
