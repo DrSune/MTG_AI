@@ -53,6 +53,9 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
     teacher = Teacher(loader, cfg.to_dict())
     buffer = ExperienceBuffer()
     
+    # Track win history for smoothed metrics
+    win_history = [] # Stores 1 for win, 0.5 for draw/timeout, 0 for loss
+    
     student_wins = 0
     total_games_in_gen = 0
     
@@ -197,17 +200,10 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
             if not candidate_moves:
                 candidate_moves = pass_moves if pass_moves else [non_repetitive_legal[0]]
 
-            # FORCED ACTIVITY MASKING
-            non_pass_moves = [m for m in candidate_moves if not isinstance(m, (PassPriorityAction, PassTurnAction))]
-            
-            # AGGRESSIVE MASKING: If we are in the foundation phase and have non-pass options, 
-            # hide pass actions with very high probability (95%).
-            if non_pass_moves and total_games_played_overall < 1000 and random.random() < 0.95:
-                legal_moves = non_pass_moves
-            elif non_pass_moves and random.random() < forced_play_prob:
-                legal_moves = non_pass_moves
-            else:
-                legal_moves = candidate_moves
+            # FORCED ACTIVITY MASKING: Removed hard removal of Pass actions.
+            # We now rely on Soft Masking (logit biasing) in student.select_action
+            # to steer the model while still allowing it to 'see' all legal moves.
+            legal_moves = candidate_moves
                 
             # Create a mapping from filtered indices back to original engine indices
             filtered_to_original = []
@@ -436,28 +432,33 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
         is_timeout = (not done and steps >= cfg.steps_per_episode)
         
         # Check Engine's Winner First (Handles Deckout, State-Based Actions)
+        game_result = 0.5 # Default to draw
         if env.engine.game_over and env.engine.winner_id is not None:
             if env.engine.winner_id == p1_id:
-                student_wins += 1; winner_str = "STUDENT (P1)"
+                student_wins += 1; winner_str = "STUDENT (P1)"; game_result = 1.0
             else:
-                winner_str = "FROZEN (P2)"
+                winner_str = "FROZEN (P2)"; game_result = 0.0
         elif is_timeout:
             # Fallback for Timeout/Draw
             if p1_life > p2_life:
-                student_wins += 1; winner_str = "STUDENT (P1) [Timeout]"
+                student_wins += 1; winner_str = "STUDENT (P1) [Timeout]"; game_result = 1.0
             elif p2_life > p1_life:
-                winner_str = "FROZEN (P2) [Timeout]"
+                winner_str = "FROZEN (P2) [Timeout]"; game_result = 0.0
             else:
-                winner_str = "DRAW (Stall)"
+                winner_str = "DRAW (Stall)"; game_result = 0.5
         else:
             # Fallback for other completions (e.g. done but winner_id not set, shouldn't happen)
             if p1_life > p2_life:
-                student_wins += 1; winner_str = "STUDENT (P1)"
+                student_wins += 1; winner_str = "STUDENT (P1)"; game_result = 1.0
             else:
-                winner_str = "FROZEN (P2)"
+                winner_str = "FROZEN (P2)"; game_result = 0.0
             
+        win_history.append(game_result)
+        if len(win_history) > 100: win_history.pop(0)
+        smoothed_win_rate = np.mean(win_history) * 100
+
         win_rate = (student_wins / total_games_in_gen) * 100
-        print(f" >>> Episode End! Winner: {winner_str} | Steps: {steps} | S:{p1_life}hp F:{p2_life}hp | Student Win Rate: {win_rate:.1f}%")
+        print(f" >>> Episode End! Winner: {winner_str} | Steps: {steps} | S:{p1_life}hp F:{p2_life}hp | Student Win Rate (Gen): {win_rate:.1f}% | Smooth (100g): {smoothed_win_rate:.1f}%")
 
         # 4. Process Returns and Advantages for PPO
         running_return = 0
@@ -469,9 +470,12 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
 
         # 5. Global Metrics
         t_logger.log_metrics({
-            "episode/student_win_rate": win_rate,
+            "episode/student_win_rate_gen": win_rate,
+            "episode/student_win_rate_smooth": smoothed_win_rate,
             "episode/reward": episode_reward,
-            "episode/game_length": steps
+            "episode/game_length": steps,
+            "episode/p1_deck_end": len(env.graph.get_entities_in_zone(p1_id, vocab.ID_ZONE_LIBRARY)),
+            "episode/p2_deck_end": len(env.graph.get_entities_in_zone(env.graph.players[1], vocab.ID_ZONE_LIBRARY))
         }, global_game=total_games_played_overall)
 
         # 6. Periodic Model Update & Checkpoint

@@ -44,10 +44,14 @@ class TrainingLogger:
         if global_game is not None:
             log_data["global_game"] = global_game
             
-        # Add thinking stats if logging at step level
-        if global_step is not None and self.thinking_stats:
-            log_data["thinking/avg_passes"] = np.mean(self.thinking_stats)
-            self.thinking_stats = []
+        # Add thinking stats
+        if self.thinking_stats:
+            if global_step is not None:
+                log_data["thinking/step_avg_passes"] = np.mean(self.thinking_stats)
+                self.thinking_stats = [] # Clear for next step sample
+            elif global_game is not None:
+                log_data["thinking/game_avg_passes"] = np.mean(self.thinking_stats)
+                self.thinking_stats = [] # Clear for next game
             
         wandb.log(log_data)
 

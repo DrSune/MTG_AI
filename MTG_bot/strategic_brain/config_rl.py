@@ -44,7 +44,7 @@ class RLConfig:
     use_cuda: bool = True 
     
     # --- Logging ---
-    use_wandb: bool = False # Default to False to prevent blocking
+    use_wandb: bool = True
     project_name: str = "MTG-AI-Pro-Foundation"
     
     def to_dict(self) -> Dict[str, Any]:
