@@ -148,4 +148,33 @@ MCTS
 MCTS
   is a best-response policy derived from simulations that explicitly use the current best estimate of the opponent's predictable actions.
 
-In this way, the main policy and value heads are where the high-impact lesson is learned, and the auxiliary head simply provides the necessary information for the MCTS to execute a smarter, exploitation-aware search.
+
+## Training Speedups & Efficiency
+
+### KV-Cache for Game States
+- Implement a mechanism similar to a KV Cache to save board states or their complex analyses.
+- Goal: Reuse information across action sequence generations within a round to avoid redundant computation of the same state representation.
+
+### Vocabulary and Context Window Optimization
+- **Atomic Modular Abilities**: Directly address and optimize what essentially functions as our "vocabulary"—the atomic components of card abilities.
+- **Context Window**: Refine the context window size and content to maximize learning efficiency without overloading the model with irrelevant history.
+
+### Vector Database Optimization (TurboQuant)
+- If using card embeddings rather than just atomic encodings, investigate **TurboQuant** methods to accelerate similarity searches and retrievals from the card embedding vector database.
+- This is particularly relevant for scaling the number of cards the bot can recognize and reason about efficiently.
+
+### Super-Human Learning Progress: Matchup Winrate Delta
+- **Concept**: When human puzzles are exhausted, the Teacher can be rewarded for finding "teachable" matchups.
+- **Mechanism**: The Teacher picks a hard matchup, and the Student plays a large block of games (e.g., 1000). The Teacher is rewarded if the Student's winrate in the second half of the block is significantly higher than the first half ($WR_{\text{last 500}} - WR_{\text{first 500}}$).
+- **Goal**: This ensures the Teacher prioritizes scenarios where the Student still has "room to grow" rather than scenarios it has already mastered or those that are purely random.
+
+### Mirror Matchup Mastery (Fairness Evaluation)
+- **Concept**: Isolate deck advantage from skill by having the agents swap sides.
+- **Mechanism**: Execute blocks of 100 games:
+    - 50 games: Student (Deck A) vs. Frozen Self (Deck B).
+    - 50 games: Student (Deck B) vs. Frozen Self (Deck A).
+- **Evaluation**: 
+    - If Student wins both sides consistently, they have mastered the matchup.
+    - If they only win side A, then Deck A is likely "broken" in that matchup.
+    - **Teacher Reward**: Reward the Teacher for finding matchups where the Student *cannot* win both sides yet, but succeeds in doing so after the training block.
+

@@ -34,16 +34,32 @@ def main():
     student = Student(cfg.to_dict())
     
     # --- RESUME COUNTERS ---
-    # We let Student handle weight loading, but we need to estimate progress
-    model_dir = "models"
+    model_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
     model_path = os.path.join(model_dir, cfg.get_model_name())
     total_games_played = 0
     global_step_counter = 0
     
     if os.path.exists(model_path):
-        print(f"[SYSTEM] Resume detected via {model_path}")
-        total_games_played = 10 # Baseline estimate
-        global_step_counter = 5000
+        # Estimate games based on file modification time or a secondary tracker
+        # For now, we use a more robust detection: if the model exists, we assume
+        # it has completed at least some generations.
+        try:
+            # We look for the latest backup to get a better game count estimate
+            import glob
+            backups = glob.glob(os.path.join(model_dir, model_path.replace(".pt", "_G*.pt")))
+            if backups:
+                latest_backup = max(backups, key=os.path.getctime)
+                import re
+                match = re.search(r"_G(\d+)\.pt", latest_backup)
+                if match:
+                    total_games_played = int(match.group(1))
+                    global_step_counter = total_games_played * 100 # Rough estimate of 100 steps per game
+            else:
+                total_games_played = cfg.episodes_per_generation # Minimum one gen resume
+        except Exception:
+            total_games_played = cfg.episodes_per_generation
+
+        print(f"[SYSTEM] Resume detected: {total_games_played} games already played.")
     else:
         print(f"[SYSTEM] No checkpoint found. Starting fresh.")
 

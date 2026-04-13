@@ -12,5 +12,7 @@
         "p2_life": 1,
         "p1_mana": 3
     },
-    "goal": "p2_life <= 0"
+    "goal": "p2_life <= 0",
+    "concept": "First_Principles",
+    "level": 1
 }

@@ -23,3 +23,7 @@
 - Execute 1,000 game Foundation Run using `run_train.ps1`.
 - Analyze Teacher's "Deck Bias" to see if it discovers the 40/60 land-to-spell meta independently.
 - Fine-tune Pointer matching weights if specific card types (e.g., global board clears) are being ignored.
+- **Deep analysis of potential speedups for training**:
+    - Investigate KV Cache for saving board state/analysis to avoid recomputation during action sequence generation.
+    - Optimize learning by addressing "vocabulary" (atomic modular abilities) and context window.
+    - Explore TurboQuant methods for card embedding vector database speedups (if embeddings are used rather than atomic encodings).

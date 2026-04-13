@@ -66,6 +66,9 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
         deck_a, deck_b = [], []
         
     format_name = cfg.format_mode
+    
+    # 2. Benchmark Curriculum State
+    consecutive_mastery_counts = {}
 
     for episode in range(cfg.episodes_per_generation):
         total_games_played_overall += 1
@@ -94,13 +97,13 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
         discovery_factor = max(0.0, 1.0 - (total_games_played_overall / 10000))
         env.discovery_factor = discovery_factor
         
-        # Calculate 'Forced Activity' probability (1.0 -> 0.0 over 10k games - SLOWED)
+        # Calculate 'Forced Activity' probability (1.0 -> 0.0 over 10k games)
         # We want to force proactivity for a long time to build the habit.
         forced_play_prob = max(0.0, 1.0 - (total_games_played_overall / 10000))
         
-        # Calculate Proactivity Bias (1.0 -> 0.0 over 2k games - SLOWED)
-        # This influences the model's sampling toward proactive actions.
-        proactivity_bias = max(0.0, 1.0 - (total_games_played_overall / 2000))
+        # Calculate Proactivity Bias (1.0 -> 0.0 over 10k games)
+        # We match this to forced_play_prob for consistent phasing.
+        proactivity_bias = max(0.0, 1.0 - (total_games_played_overall / 10000))
         
         # 1. Matchup Stability: Update decks only every N games
         if not fixed_matchup and episode % cfg.deck_refresh_freq == 0:
@@ -233,26 +236,28 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
                 # 2. Plan Execution Loop (Grounded Sequential Thinking)
                 # We attempt to follow the plan as long as steps are legal and no rethink/end is hit.
                 plan_steps_taken = 0
-                max_plan_follow = 5 # Don't follow too far without seeing fresh board
+                max_plan_follow = 5 # TODO consider if good for generalization!! XXX Don't follow too far without seeing fresh board
                 
                 current_plan_obs = obs
                 
                 for step_idx in range(min(len(plan_sequence), max_plan_follow)):
-                    # Get legal moves for CURRENT sub-state (re-apply masking if needed)
-                    current_legal_all = env.engine.get_legal_moves()
-                    curr_non_pass = [m for m in current_legal_all if not isinstance(m, (PassPriorityAction, PassTurnAction))]
-                    if curr_non_pass and random.random() < forced_play_prob:
-                        current_legal = curr_non_pass
-                    else:
-                        current_legal = current_legal_all
-
-                    if not current_legal: break
-
                     if step_idx == 0:
-                        # For the first step, use the action_idx already selected
-                        # This action_idx is ALREADY an index into the FILTERED current_legal
+                        # For the first step, we use the action ALREADY selected
+                        # from the initial 'legal_moves' list.
                         best_move_idx = action_idx
+                        actual_move = legal_moves[best_move_idx]
                     else:
+                        # For subsequent steps, we must recalculate legal moves for the NEW sub-state
+                        current_legal_all = env.engine.get_legal_moves()
+                        # Apply the same 'forced activity' filtering as the main loop
+                        curr_non_pass = [m for m in current_legal_all if not isinstance(m, (PassPriorityAction, PassTurnAction))]
+                        if curr_non_pass and random.random() < forced_play_prob:
+                            current_legal = curr_non_pass
+                        else:
+                            current_legal = current_legal_all
+
+                        if not current_legal: break
+
                         # Match current legal moves against the query for this plan step
                         query = plan_queries[0, step_idx, :]
 
@@ -274,19 +279,18 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
                                     m_type = type(move)
                                     if m_type not in categories: categories[m_type] = []
                                     categories[m_type].append(idx)
-                                chosen_cat = random.choice(list(categories.keys()))
-                                best_move_idx = random.choice(categories[chosen_cat])
+                                if categories:
+                                    chosen_cat = random.choice(list(categories.keys()))
+                                    best_move_idx = random.choice(categories[chosen_cat])
+                                else:
+                                    best_move_idx = 0
                             else:
                                 probs = torch.softmax(scores, dim=-1)
                                 best_move_idx = torch.distributions.Categorical(probs).sample().item()
+                        
+                        actual_move = current_legal[best_move_idx]
 
-                    # Execute the move (must use ORIGINAL engine index if needed, 
-                    # but here env.step handles it via index in its OWN current engine.get_legal_moves call)
-                    # Wait, env.step(idx) uses engine.get_legal_moves()[idx]. 
-                    # If we filtered, we must map back to the original index.
-                    
-                    actual_move = current_legal[best_move_idx]
-                    # Find original index for env.step
+                    # Execute the move (must use ORIGINAL engine index for env.step)
                     original_legal = env.engine.get_legal_moves()
                     original_idx = -1
                     for i, m in enumerate(original_legal):
@@ -296,7 +300,7 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
                     if original_idx == -1: break # Should not happen
 
                     # Track action usage
-                    curr_move = (all_legal[original_idx] if not is_student else current_legal[best_move_idx])
+                    curr_move = actual_move
                     m_str = str(curr_move)
                     step_action_history[m_str] = step_action_history.get(m_str, 0) + 1
                     
@@ -474,9 +478,68 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
             "episode/student_win_rate_smooth": smoothed_win_rate,
             "episode/reward": episode_reward,
             "episode/game_length": steps,
-            "episode/p1_deck_end": len(env.graph.get_entities_in_zone(p1_id, vocab.ID_ZONE_LIBRARY)),
-            "episode/p2_deck_end": len(env.graph.get_entities_in_zone(env.graph.players[1], vocab.ID_ZONE_LIBRARY))
+            "episode/p1_deck_end": len(env.graph.get_entities_in_zone(p1_id, vocab.ID_ZONE_HAND)),
+            "episode/p2_deck_end": len(env.graph.get_entities_in_zone(env.graph.players[1], vocab.ID_ZONE_HAND))
         }, global_game=total_games_played_overall)
+
+        # After the generation (or periodically), run Benchmarking to update Teacher
+        if total_games_played_overall % cfg.deck_refresh_freq == 0:
+            from .benchmarker import Benchmarker
+            benchmarker = Benchmarker(env)
+            
+            # --- Global Benchmark Evaluation ---
+            # Discover all available levels in the scenario directory
+            scenario_root = "MTG_bot/scenarios/M21"
+            all_levels = sorted([int(d.split('_')[1]) for d in os.listdir(scenario_root) if d.startswith('level_')])
+            
+            lvl_scores = {}
+            concept_scores = {} # {concept_name: [list of scores]}
+            
+            for lvl in all_levels:
+                results = benchmarker.run_level_evaluation(student, level=lvl, current_format=cfg.format_mode)
+                if "error" in results: continue
+                
+                score = results.get("score", 0.0)
+                lvl_scores[lvl] = score
+                
+                # Accumulate conceptual progress
+                for scenario in results.get("scenarios", []):
+                    c = scenario.get("concept", "Generic")
+                    s = scenario.get("score", 0.0)
+                    if c not in concept_scores: concept_scores[c] = []
+                    concept_scores[c].append(s)
+                
+                # Check for mastery streak (>98% solve rate)
+                if score >= 0.98:
+                    consecutive_mastery_counts[lvl] = consecutive_mastery_counts.get(lvl, 0) + 1
+                else:
+                    consecutive_mastery_counts[lvl] = 0
+                
+                # Signal mastery in logs
+                if consecutive_mastery_counts[lvl] == 3:
+                    print(f"\n [CURRICULUM] Level {lvl} officially MASTERED (3x >98% streak)!")
+            
+            # Calculate aggregate score for Teacher reward
+            overall_solve_rate = sum(lvl_scores.values()) / len(lvl_scores) if lvl_scores else 0.0
+            
+            # Update Teacher with the current curriculum learning progress (Fractional)
+            teacher.train_teacher(overall_solve_rate, student_wins / (total_games_in_gen or 1))
+            
+            # Detailed Logging
+            metrics = {
+                "puzzles/overall_solve_rate": overall_solve_rate * 100,
+                "teacher/last_reward": teacher.teacher_reward_history[-1] if teacher.teacher_reward_history else 0
+            }
+            # Log per-level metrics
+            for lvl, s in lvl_scores.items():
+                metrics[f"puzzles/level_{lvl}_solve_rate"] = s * 100
+                metrics[f"puzzles/level_{lvl}_consecutive_streak"] = consecutive_mastery_counts.get(lvl, 0)
+            
+            # Log per-concept metrics
+            for c, s_list in concept_scores.items():
+                metrics[f"concepts/{c}_solve_rate"] = (sum(s_list) / len(s_list)) * 100
+            
+            t_logger.log_metrics(metrics, global_game=total_games_played_overall)
 
         # 6. Periodic Model Update & Checkpoint
         if len(buffer.buffer) >= current_batch_size:

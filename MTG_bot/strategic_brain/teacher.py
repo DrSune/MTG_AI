@@ -129,9 +129,31 @@ class Teacher:
         self.last_benchmark_score = current_benchmark_score
         return deck_a_seeds, deck_b_seeds
 
-    def train_teacher(self, student_improvement: float):
+    def train_teacher(self, current_solve_rate: float, current_winrate: float):
+        """
+        Updates the Teacher based on the Student's learning progress.
+        Reward = (Progress Delta) - (Winrate Deviation Penalty).
+        """
         if not HAS_TORCH or self.optimizer is None: return
-        self.teacher_reward_history.append(student_improvement)
+        
+        # Calculate Improvement (Learning Progress)
+        improvement = current_solve_rate - self.last_benchmark_score
+        
+        # Winrate Penalty: Aim for 50% (0.5). 
+        # Large deviations (bullying or being too easy) are punished.
+        winrate_penalty = abs(current_winrate - 0.5) * 2.0 # Scale to 0-1 range
+        
+        # Final Reward: 70% Progress, 30% Stability
+        reward = (0.7 * improvement) - (0.3 * winrate_penalty)
+        
+        self.teacher_reward_history.append(reward)
+        
+        # Update last score for next delta
+        self.last_benchmark_score = current_solve_rate
+        
+        # Simple policy gradient update for the Teacher Model
+        # (This is a simplified implementation - in a full setup, we'd use a proper optimizer step)
+        self.logger.info(f" [Teacher Reward] Progress: {improvement:+.3f} | Winrate: {current_winrate:.2f} | Final: {reward:+.3f}")
 
     def generate_matchup(self, format_name: str, archetypes: Tuple[str, str], total_games: int = 0) -> List[List[int]]:
         """

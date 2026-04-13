@@ -12,5 +12,7 @@
     "supported_formats": [
         "Limited",
         "Standard"
-    ]
+    ],
+    "concept": "Combat_Lethal",
+    "level": 1
 }

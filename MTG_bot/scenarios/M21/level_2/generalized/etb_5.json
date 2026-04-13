@@ -11,5 +11,7 @@
         ],
         "p1_mana": 6
     },
-    "goal": "p1_life >= 20"
+    "goal": "p1_life >= 20",
+    "concept": "Leverage_and_Sequencing",
+    "level": 2
 }

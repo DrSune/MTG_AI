@@ -100,20 +100,33 @@ class DeckGenerator:
             cursor.execute("SELECT card_id FROM cards WHERE type NOT LIKE '%Land%' LIMIT 100")
             pool = [r[0] for r in cursor.fetchall()]
 
-        # 4. Fill deck with synergistic cards
-        deck = []
-        # Add primary seed first (this will be our 'Commander' or key card)
+        # 4. Fill deck with variety of cards
+        # To maximize learning, we prioritize picking UNIQUE cards from the pool 
+        # before adding multiple copies (unless it's a seed or mandatory card).
+        random.shuffle(pool)
+        
+        # Add primary seeds first (Goalposts)
         if seeds:
-            cursor.execute("SELECT card_id FROM cards WHERE name = ?", (seeds[0],))
-            rid = cursor.fetchone()
-            if rid: deck.append(rid[0])
+            for seed_name in seeds:
+                cursor.execute("SELECT card_id FROM cards WHERE name = ?", (seed_name,))
+                rid = cursor.fetchone()
+                if rid and rid[0] not in deck:
+                    deck.append(rid[0])
             
         # Add cards from pool to reach non-land count
         # Foundation Phase Fix: Strict 40% land / 60% non-land ratio
         non_land_target = int(deck_size * 0.6)
         # Safety for small pools
         actual_non_land_target = min(non_land_target, len(pool) * max_copies)
+
+        # Fill with unique cards from the pool first
+        for card_id in pool:
+            if len(deck) >= actual_non_land_target: 
+                break
+            if card_id not in deck:
+                deck.append(card_id)
         
+        # If still not full (e.g. deck_size > pool size), add copies up to max_copies
         while len(deck) < actual_non_land_target:
             card = random.choice(pool)
             if deck.count(card) < max_copies:

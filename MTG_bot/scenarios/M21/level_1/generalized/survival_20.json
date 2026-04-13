@@ -14,5 +14,7 @@
             153
         ]
     },
-    "goal": "p1_life > 0"
+    "goal": "p1_life > 0",
+    "concept": "First_Principles",
+    "level": 1
 }

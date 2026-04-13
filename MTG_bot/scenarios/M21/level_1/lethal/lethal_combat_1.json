@@ -7,5 +7,7 @@
         ],
         "p2_life": 1
     },
-    "goal": "p2_life <= 0"
+    "goal": "p2_life <= 0",
+    "concept": "Combat_Lethal",
+    "level": 1
 }

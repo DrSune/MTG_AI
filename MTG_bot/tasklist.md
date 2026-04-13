@@ -3,7 +3,7 @@
 ## 🤖 Agent Instructions
 1.  **Update Documentation:** Always update relevant `.md` files (`engine_map.md`, `thought_checkpoint.md`) to reflect codebase changes.
 2.  **Generalization First:** Prioritize reusable components (selectors, actions) over card-specific hardcoding.
-3.  **Rigid Testing:** Implementation is incomplete until verified via automated test or the Visualizer.
+3.  **Rigid Testing:** Implementation is incomplete until verified via automated test or the Visualizer. Remember to clean up after tests to avoid cluttering the workspace.
 4.  **Verify Script Execution:** Always verify that the main scripts (`main_train.py`, etc.) run without bugs after making structural changes.
 5. **Update the tasklist.md file with the current status of the project.** Always note things that are out of scope or should be done in the future here, so we can come back to them later, without disturbing you in finishing whatever you are currently working on. (This is a meta instruction list for the agent)
 
