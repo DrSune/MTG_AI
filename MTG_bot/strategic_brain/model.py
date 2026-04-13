@@ -192,24 +192,49 @@ class System2Transformer(nn.Module):
         self.reasoning_head = System2ReasoningHead(embedding_dim, nhead, belief_dim, vocab_size)
         self.decoder = ActionPointerHead(embedding_dim, component_dim, nhead)
         
-    def forward(self, atomic_ids, component_features, legal_action_descriptors, num_passes=8, threshold=0.5):
+        # --- RECURRENCE (Full BPTT Support) ---
+        if HAS_TORCH:
+            self.rnn = nn.LSTMCell(embedding_dim, embedding_dim)
+            # Projection to merge RNN state back into board tokens if needed
+            self.temporal_fusion = nn.Linear(embedding_dim * 2, embedding_dim)
+
+    def forward(self, atomic_ids, component_features, legal_action_descriptors, rnn_state=None, num_passes=8, threshold=0.5):
         if not HAS_TORCH:
-            return {"action_logits": None, "action_idx": 0, "rethink_prob": 0.0, "value": torch.zeros(1), "state_memory": None, "passes_taken": 1}
+            return {"action_logits": None, "action_idx": 0, "rethink_prob": 0.0, "value": torch.zeros(1), "state_memory": None, "passes_taken": 1, "rnn_state": None}
         
         board_tokens = self.card_embedder(atomic_ids, component_features)
         z_board = self.board_encoder(board_tokens)
-        b_t = self.opponent_predictor(z_board)
         
-        memory_tokens = z_board
+        # 1. Temporal Aggregation (RNN)
+        # We use the mean of board tokens as the "summary" to update our temporal hidden state
+        z_global = z_board.mean(dim=1)
+        
+        if rnn_state is None:
+            batch_size = z_global.size(0)
+            h = torch.zeros(batch_size, z_global.size(1), device=z_global.device)
+            c = torch.zeros(batch_size, z_global.size(1), device=z_global.device)
+            rnn_state = (h, c)
+            
+        h_new, c_new = self.rnn(z_global, rnn_state)
+        new_rnn_state = (h_new, c_new)
+        
+        # 2. Information Fusion: Inject temporal context into all board tokens
+        # Allows the reasoning head to know "where we are" in the game's history
+        h_expanded = h_new.unsqueeze(1).expand(-1, z_board.size(1), -1)
+        z_board_temporal = self.temporal_fusion(torch.cat([z_board, h_expanded], dim=-1))
+        
+        b_t = self.opponent_predictor(z_board_temporal)
+        
+        memory_tokens = z_board_temporal
         prev_plan_emb = None
         actual_passes = 0
         
         for p in range(num_passes):
             actual_passes += 1
             # Reasoning pass: sees board, opponent belief, and PREVIOUS plan
-            memory_tokens = self.reasoning_head(memory_tokens, z_board, b_t, prev_plan_embeddings=prev_plan_emb)
+            memory_tokens = self.reasoning_head(memory_tokens, z_board_temporal, b_t, prev_plan_embeddings=prev_plan_emb)
             
-            res = self.decoder(memory_tokens, z_board, legal_action_descriptors)
+            res = self.decoder(memory_tokens, z_board_temporal, legal_action_descriptors)
             prev_plan_emb = res["plan_embedding"]
             
             # --- AUTONOMOUS RETHINK TRIGGER ---
@@ -231,6 +256,7 @@ class System2Transformer(nn.Module):
             "value": res["value"], 
             "plan_sequence": res["plan_sequence"],
             "plan_step_queries": res["plan_step_queries"],
-            "state_memory": (z_board, b_t, memory_tokens),
-            "passes_taken": actual_passes
+            "state_memory": (z_board_temporal, b_t, memory_tokens),
+            "passes_taken": actual_passes,
+            "rnn_state": new_rnn_state
         }

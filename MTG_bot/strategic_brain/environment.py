@@ -181,7 +181,6 @@ class MTGEnv:
         board_delta_reward = (post_p1_perm - pre_p1_perm) * 0.1 # Increased from 0.05
         
         card_reward = (post_p1_hand - pre_p1_hand) * 0.02
-        step_penalty = -0.005 # Force decisive play
         
         # Action Discovery CURRICULUM (Starts strong to break ties, fades over time)
         action_discovery_reward = 0.0
@@ -208,8 +207,8 @@ class MTGEnv:
         # Generalized Mana Reward (Rewards Tapping Land, Elves, Artifacts)
         mana_gen_reward = max(0, post_p1_mana_total - pre_p1_mana_total) * 0.05 * self.discovery_factor # Increased from 0.02
 
-        # Total Reward: win + damage + life + board + cards + penalty + step + discovery + proactivity
-        total_reward = win_loss_reward + damage_reward + life_reward + board_presence_reward + board_delta_reward + card_reward + penalty + step_penalty + action_discovery_reward + mana_gen_reward + proactivity_bonus
+        # Total Reward: win + damage + life + board + cards + penalty + discovery + proactivity
+        total_reward = win_loss_reward + damage_reward + life_reward + board_presence_reward + board_delta_reward + card_reward + penalty + action_discovery_reward + mana_gen_reward + proactivity_bonus
         
         p1_mana_pool = self.graph.entities[p1_id].properties.get('mana_pool', {})
         p2_mana_pool = self.graph.entities[p2_id].properties.get('mana_pool', {})
