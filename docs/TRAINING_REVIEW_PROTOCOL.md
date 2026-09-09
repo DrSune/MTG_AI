@@ -678,10 +678,52 @@ the call and says why in section 11.
 
 ## 7. Cadence
 
-**OWNER DECISION REQUIRED.** The owner said the frequency is to be decided. This is a proposal.
+**Determined 2026-09-10.** The owner asked for this to be worked out rather than left open. It is
+settled below and should be followed until evidence says otherwise. Change it by editing this
+section, not by drifting.
 
-A calendar is the wrong primitive for a training run, so the proposal is **event-driven with a
-calendar backstop**.
+A calendar is the wrong primitive for a training run, so cadence is **event-driven with a calendar
+backstop**.
+
+### 7.0 The principle: cadence is set by games, not by hours
+
+A review that happens more often than the metric can resolve is a review of noise. Win rate is a
+binomial proportion with standard error `sqrt(p(1-p)/n)`, so seeing a difference `d` at about two
+standard errors needs roughly `n = 0.25 / (d/2)^2` games.
+
+| True edge to detect | Games, independent | Games, paired |
+|---|---|---|
+| 10 points | 100 | 25 |
+| **5 points** | **400** | **100** |
+| 3 points | 1,111 | 278 |
+| **2 points** | **2,500** | **625** |
+| 1 point | 10,000 | 2,500 |
+
+Paired evaluation is worth roughly 4x (§8 measures the honest figure at 5 to 7x once seat rotation
+and common random numbers are included) and is the default: same seeds, same decks, same opening
+hands, both policies, compared per pair. Deck and draw variance cancels and what remains is the
+policy difference.
+
+At the projected 1,200 games per hour, 400 games is 20 minutes and 2,500 games is about two hours.
+That is why the triggers below land on convenient intervals, but **the trigger is the game or
+decision count, not the clock.** If throughput changes, the wall-clock moves and the statistics
+stay honest.
+
+Two reasons not to review more often than this. **Statistical:** below about 400 games, win-rate
+movement is noise, and a human looking at noise will find a story in it. This repository already
+contains the fossil record of that failure, twelve commits of mechanisms bolted on to fight one
+symptom, none measured, one added and reverted the same day. **Attention:** a protocol that demands
+attention hourly is abandoned within a week, and an abandoned protocol is worse than none because
+it creates the belief that things are being watched. Tier 0 exists so that what genuinely cannot
+wait is handled by the machine, which is what lets the human tiers be infrequent and thorough.
+
+### 7.0a The one thing that is not on this schedule
+
+**Engine correctness counters are continuous and enforced, not reviewed.** An engine error, an
+unhandled effect, or a missed trigger invalidates every strength number computed after it, so there
+is no point reviewing the play tendencies of a run whose simulator was throwing exceptions. That is
+why the review order in §4 is correctness first, strength second, style third, and why correctness
+gets a hard halt rather than a discussion.
 
 ### 7.1 Triggers
 
