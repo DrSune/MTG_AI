@@ -15,6 +15,21 @@ from .actions import (
     MakeChoiceAction
 )
 from MTG_bot.utils.logger import setup_logger
+
+class NullRecorder:
+    """Does nothing. The default, so training never pays for recording."""
+
+    __slots__ = ()
+
+    def record(self, *args, **kwargs):
+        return None
+
+    def emit(self, *args, **kwargs):
+        return None
+
+
+_NULL_RECORDER = NullRecorder()
+
 from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
 from MTG_bot import config
 
@@ -34,13 +49,26 @@ class StackItem:
         self.target_id = target_id
 
 class Engine:
-    def __init__(self, graph: GameGraph, manual_mode: bool = False):
+    def __init__(self, graph: GameGraph, manual_mode: bool = False, recorder=None):
+        """
+        recorder: optional state/replay recorder.
+
+        PERFORMANCE, do not undo. This used to construct a StateRecorder
+        unconditionally, which wrote two indent-2 JSON snapshots of the whole graph
+        to disk on every single move -- roughly 2,400 files per game, and about
+        three quarters of engine wall time. MTGEnv builds a fresh Engine per
+        episode, so every training episode was paying for it, and parallel workers
+        clobbered each other's shared logs/history/latest.json.
+
+        Recording is now OFF by default. Pass an explicit recorder from the
+        spectator/validation entry points only. Never from a training loop.
+        """
         self.graph = graph
         self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
         self.manual_mode = manual_mode
         self.effect_manager = EffectManager()
         self.layer_system = LayerSystem(self.effect_manager)
-        self.recorder = StateRecorder()
+        self.recorder = recorder if recorder is not None else _NULL_RECORDER
         self.game_over = False
         self.winner_id = None
         self.stack = []

@@ -1,15 +1,38 @@
-yt_scraping/data/videos/*
-wandb/*
-basic_land_images/*
-mtg_datasets/*
-PP_env/*
-scraped_frames/*
-logs/
+# --- Python ---
 __pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+PP_env/
+
+# --- Models & checkpoints (large, machine-specific) ---
 *.pt
-*.pyc
-*.db
+*.pth
+models/
+checkpoints/
+
+# --- Runtime output ---
+logs/
+wandb/
+replays/
 *.log
-*.pt
-models/*.pt
-models/*.pth
+*.mtgreplay.jsonl
+*.mtgreplay.jsonl.gz
+
+# --- Caches ---
+.pytest_cache/
+art_cache/
+
+# --- Legacy vision/scraping data (see attic/) ---
+yt_scraping/data/videos/
+basic_land_images/
+mtg_datasets/
+scraped_frames/
+
+# --- Card database ---
+# The built SQLite DB is a derived artifact of the offline ingest, but it is small
+# and currently committed so the engine runs out of the box. Keep the exception
+# until the ingest pipeline is reproducible from MTGJSON on a clean checkout.
+*.db
+!MTG_bot/data/mtg_bot.db

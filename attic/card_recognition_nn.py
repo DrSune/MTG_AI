@@ -19,7 +19,10 @@ import cv2
 import glob
 
 # Set your W&B API key directly
-os.environ["WANDB_API_KEY"] = "170694f36aeba75ee06ea0efea1e2d12a584d276"  # Replace with your actual key
+# SECURITY: a live W&B API key was hardcoded here and committed to git history.
+# It has been removed from the working tree. It MUST still be revoked at
+# https://wandb.ai/settings -- deleting the line does not remove it from history.
+# Set WANDB_API_KEY in the environment instead.
 # Optional: Set other W&B environment variables
 os.environ["WANDB_MODE"] = "online"  # or "offline" if you want to run without internet
 #os.environ["WANDB_MODE"] = "disabled"
