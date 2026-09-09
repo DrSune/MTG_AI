@@ -57,6 +57,28 @@ The MTG rules themselves are not heuristics — implement those exactly.
 - The C: drive on this machine is near full. Do not write large caches or checkpoints into the repo;
   put them behind a configurable path.
 
+## Git: commit and push often, to main
+
+**Standing instruction from the owner, 2026-09-10: commit and push to `main` after changes. Err
+heavily toward too many commits rather than too few. Nothing may be lost.**
+
+This overrides the usual caution about committing only when asked, and the usual habit of working
+on a side branch. Work on `main` and push to `origin`.
+
+- Commit when a coherent piece of work is done, not at the end of a session. If you have been
+  working for a while without committing, that is already too long.
+- **Push after every commit.** A commit that is not pushed is not safe. `git push origin main`.
+- Never leave the working tree dirty at the end of a turn. If it is not worth committing, it is not
+  worth leaving on disk.
+- Before starting work, `git pull` so you are not building on a stale tree.
+- Write real commit messages. They are the project's history of *why*, and this repo has already
+  lost design content to a doc rewrite that a good message would have preserved.
+
+Why this exists: an earlier working copy of this project at `Videos\MTG_AI` had its index
+destroyed, showing 320 staged deletions against files that were still on disk, and a stale partial
+tree that looked authoritative. The fresh clone in `Documents\MTG_AI` is the only real one. That
+near-miss is the reason for the rule.
+
 ## Working conventions
 
 - Cite `file.py:line` when describing behaviour. Do not describe code you have not read.
