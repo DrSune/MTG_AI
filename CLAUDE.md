@@ -39,6 +39,10 @@ The MTG rules themselves are not heuristics — implement those exactly.
 | `NORTH_STAR.md` | Charter. Read first. |
 | `docs/` | Design docs, open-problem write-ups, backlog, hardware notes |
 | `docs/ARCHITECTURE.md` | How the system actually fits together today |
+| `docs/DECISIONS.md` | Settled calls, and the register of questions needing deeper reasoning |
+| `docs/TRAINING_REVIEW_PROTOCOL.md` | **What to do before, during and after every training run** |
+| `docs/METRICS.md` | The metric catalogue. Check §17 before adding any metric |
+| `docs/COST_MODEL.md` | Why a parameter's cost depends on where you put it |
 | `docs/BACKLOG.md` | Parked ideas, with the reason they are parked |
 | `MTG_bot/rule_engine/` | The Magic rules simulator |
 | `MTG_bot/strategic_brain/` | Network, RL training, environment wrapper |
@@ -78,6 +82,19 @@ Why this exists: an earlier working copy of this project at `Videos\MTG_AI` had 
 destroyed, showing 320 staged deletions against files that were still on disk, and a stale partial
 tree that looked authoritative. The fresh clone in `Documents\MTG_AI` is the only real one. That
 near-miss is the reason for the rule.
+
+## Before and after any training run
+
+Follow [`docs/TRAINING_REVIEW_PROTOCOL.md`](docs/TRAINING_REVIEW_PROTOCOL.md). Do not start a run
+that fails pre-flight and do not report a number that skipped a gate.
+
+Two rules that catch most of the damage:
+
+- **Correctness before strength before style.** An engine error invalidates every strength number
+  computed after it, so never review play tendencies from a run whose simulator was throwing.
+- **Check `docs/METRICS.md` §17 before adding any metric.** If a do-nothing policy scores well on
+  it, it must be published paired with a metric that only acting well can satisfy. This project has
+  already shipped a benchmark that paid a do-nothing policy 0.900.
 
 ## Working conventions
 
