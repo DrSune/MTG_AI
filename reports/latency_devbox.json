@@ -1,0 +1,324 @@
+{
+ "env": {
+  "device": "xpu",
+  "torch": "2.11.0+xpu",
+  "python": "3.12.1",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "machine": "AMD64",
+  "dtype": "bf16",
+  "cuda_available": false,
+  "device_name": "Intel(R) Arc(TM) 140V GPU (16GB)",
+  "gb10_assumptions": {
+   "bandwidth_bytes_s": 273000000000.0,
+   "streaming_efficiency": 0.7,
+   "dense_bf16_flops": 125000000000000.0,
+   "compute_efficiency": 0.4,
+   "launch_overhead_s": 8e-06,
+   "graph_residual_launches": 20
+  }
+ },
+ "results": [
+  {
+   "arch": "current",
+   "n_tokens": 256,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 100,
+    "min": 15.853,
+    "p50": 27.896,
+    "p90": 33.691,
+    "p99": 47.791,
+    "max": 70.269,
+    "mean": 27.201,
+    "tail_ratio_p99_over_p50": 1.71,
+    "p50_median_of_rounds": 27.883,
+    "round_spread_pct": 13.3,
+    "effective_gb_per_s": 28.7
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 400058368,
+    "bytes_per_decision": 800116736,
+    "flops_per_decision": 83969998848,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.187,
+    "compute_s": 1.679,
+    "roofline_s": 4.187,
+    "dispatch_s": 8.056,
+    "eager_s": 12.243,
+    "cuda_graph_s": 4.347,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 256,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 100,
+    "min": 147.628,
+    "p50": 170.05,
+    "p90": 196.268,
+    "p99": 294.621,
+    "max": 297.844,
+    "mean": 177.557,
+    "tail_ratio_p99_over_p50": 1.73,
+    "p50_median_of_rounds": 175.424,
+    "round_spread_pct": 7.3,
+    "effective_gb_per_s": 24.7
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162526208,
+    "bytes_per_decision": 4325052416,
+    "flops_per_decision": 143920857088,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.632,
+    "compute_s": 2.878,
+    "roofline_s": 22.632,
+    "dispatch_s": 46.528,
+    "eager_s": 69.16,
+    "cuda_graph_s": 22.792,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 256,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 100,
+    "min": 13.587,
+    "p50": 16.119,
+    "p90": 23.457,
+    "p99": 27.06,
+    "max": 27.187,
+    "mean": 17.605,
+    "tail_ratio_p99_over_p50": 1.68,
+    "p50_median_of_rounds": 16.41,
+    "round_spread_pct": 4.6,
+    "effective_gb_per_s": 19.5
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159926016,
+    "bytes_per_decision": 319852032,
+    "flops_per_decision": 19695951872,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.674,
+    "compute_s": 0.394,
+    "roofline_s": 1.674,
+    "dispatch_s": 4.249,
+    "eager_s": 5.923,
+    "cuda_graph_s": 1.834,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 256,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 100,
+    "min": 9.411,
+    "p50": 16.548,
+    "p90": 28.395,
+    "p99": 33.748,
+    "max": 35.936,
+    "mean": 18.635,
+    "tail_ratio_p99_over_p50": 2.04,
+    "p50_median_of_rounds": 16.944,
+    "round_spread_pct": 7.7,
+    "effective_gb_per_s": 35.5
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300883626,
+    "bytes_per_decision": 601767253,
+    "flops_per_decision": 43569414144,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.149,
+    "compute_s": 0.871,
+    "roofline_s": 3.149,
+    "dispatch_s": 4.452,
+    "eager_s": 7.601,
+    "cuda_graph_s": 3.309,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 256,
+   "n_actions": 96,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 100,
+    "min": 13.98,
+    "p50": 16.086,
+    "p90": 22.785,
+    "p99": 47.71,
+    "max": 51.965,
+    "mean": 17.901,
+    "tail_ratio_p99_over_p50": 2.97,
+    "p50_median_of_rounds": 16.116,
+    "round_spread_pct": 18.1,
+    "effective_gb_per_s": 32.1
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258298880,
+    "bytes_per_decision": 516597760,
+    "flops_per_decision": 20878229640,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.703,
+    "compute_s": 0.418,
+    "roofline_s": 2.703,
+    "dispatch_s": 3.936,
+    "eager_s": 6.639,
+    "cuda_graph_s": 2.863,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 256,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 100,
+    "min": 41.292,
+    "p50": 53.321,
+    "p90": 74.018,
+    "p99": 103.272,
+    "max": 105.307,
+    "mean": 57.212,
+    "tail_ratio_p99_over_p50": 1.94,
+    "p50_median_of_rounds": 51.272,
+    "round_spread_pct": 37.9,
+    "effective_gb_per_s": 30.1
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770817706,
+    "bytes_per_decision": 1541635413,
+    "flops_per_decision": 84796997632,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.067,
+    "compute_s": 1.696,
+    "roofline_s": 8.067,
+    "dispatch_s": 12.18,
+    "eager_s": 20.247,
+    "cuda_graph_s": 8.227,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 256,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 100,
+    "min": 20.332,
+    "p50": 32.078,
+    "p90": 56.071,
+    "p99": 78.72,
+    "max": 88.936,
+    "mean": 37.788,
+    "tail_ratio_p99_over_p50": 2.45,
+    "p50_median_of_rounds": 32.88,
+    "round_spread_pct": 48.0,
+    "effective_gb_per_s": 45.6
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 748946944,
+    "bytes_per_decision": 1497893888,
+    "flops_per_decision": 124836966400,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.838,
+    "compute_s": 2.497,
+    "roofline_s": 7.838,
+    "dispatch_s": 5.097,
+    "eager_s": 12.936,
+    "cuda_graph_s": 7.998,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  }
+ ],
+ "note": "See docs/DESIGN_LATENCY.md. GB10 columns are projections until run on the Spark."
+}

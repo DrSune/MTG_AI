@@ -21,14 +21,40 @@ Work is ranked. A lower rank never displaces a higher one.
 |---|---|---|
 | **1 — King** | Play the trained sets *really well* | Beats strong baselines and human play on the trained pool |
 | **1 — King (tied)** | Auto-extend to new cards built from known primitives | A card never seen before, whose text is composed of already-practised primitives, is played competently on day one with **zero code changes** |
-| 2 | Fast inference, near real-time | Single-decision latency low enough to feel instant in the spectator tool |
-| 3 | Extend to all sets | One shared-knowledge model (or MoE/conditioning) covering the full card pool |
+| **1 — King (tied)** | Play well **within a real match clock** | Wins the match without ever being the reason it goes to time. See §1a. |
+| 2 | Extend to all sets | One shared-knowledge model covering the full card pool |
 
-Rank 1 has two entries and that is deliberate. The owner stated the atomic/modular ability
+Rank 1 has three entries and that is deliberate.
+
+The **compositional** entry is there because the owner stated the atomic/modular ability
 composition — so that new sets are playable immediately except for genuinely new keywords — is
 "part of the highest priorities too". Treat compositional card understanding as load-bearing for the
-King Goal, not as a nice-to-have that comes later. A design that gets strong play by memorising
-specific cards has **failed rank 1**, because it cannot satisfy the second entry.
+King Goal, not as a nice-to-have. A design that gets strong play by memorising specific cards has
+**failed rank 1**, because it cannot satisfy that entry.
+
+### 1a. The championship-final standard
+
+The **clock** entry was promoted from rank 2 by the owner on 2026-09-10, in their words:
+
+> *"The scenario we optimize for in theory is something alike the world championship final. We want
+> best quality, but must make decisions in time or we will be greatly punished by skipping turns."*
+
+That reframes latency. It is not "nice if it feels snappy". **A decision that arrives too late is
+worth zero, no matter how good it is.** Quality and speed are not being traded against each other
+on a smooth curve; there is a deadline, and beyond it the value falls off a cliff.
+
+Two consequences that bind every design decision:
+
+- **Optimise the tail, not the mean.** A median of 3 ms with a 99th percentile of 800 ms is far
+  worse in a timed match than a flat 60 ms. Predictability is a feature.
+- **The hard part is that difficulty varies.** The owner named it: *"some turns will require more
+  reasoning passes than others, due to increased complexity of the board and state or number of
+  possible actions to take."* A fixed compute budget per decision is both wasteful on easy turns
+  and inadequate on hard ones. **The agent should learn to allocate its own clock**, which is the
+  learnability principle applied to compute. See [`docs/DESIGN_LATENCY.md`](docs/DESIGN_LATENCY.md).
+
+**Do not choose a model size before the latency harness has produced numbers.** The owner was
+explicit: test first, then decide whether a bigger model is affordable under live conditions.
 
 **Format priority: Commander.** If a design decision trades off between formats, Commander wins.
 That implies: multiplayer-capable state, a command zone, 100-card singleton decks, very large
@@ -88,6 +114,38 @@ Before calling anything finished, check it against the ladder:
 4. Can the owner *see* the effect in the spectator tool, or measure it in a benchmark?
 
 If the answer to 1 is no, it probably should not have been built yet.
+
+---
+
+## 5. Decisions already taken
+
+These are settled. Do not re-litigate them; build on them. The reasoning is in
+[`docs/DECISIONS.md`](docs/DECISIONS.md).
+
+- **Rebuild the environment and the card representation.** Approved 2026-09-10. Making the
+  interaction real *is* the rewrite.
+- **The ability tree is the foundation.** Cards decompose into typed sub-components and the network
+  learns embeddings over those. This is what makes learning transfer to new sets.
+- **Three things survive the rebuild, by the owner's explicit instruction.** They are requirements,
+  not preferences:
+  1. **The action tokenizer.** Keep the structure where network output decomposes into actions, and
+     build a real tokenizer for it.
+  2. **Multi-step planning, with every step trained.** *"Train all the actions irregardless of how
+     far down a plan it is before it is chosen."* This corrects the earlier audit, which proposed
+     deleting the plan decoder because only its first step received gradient. The owner's answer is
+     better: keep it and train all of it.
+  3. **Transferable learning of abilities, traits, stats, and origins** through learned encodings.
+- **Full-game BPTT is not assumed.** Test it against truncated BPTT and let the measurement decide.
+
+## 6. When a problem is beyond you
+
+The owner has asked that work requiring deeper reasoning than the current agent can reliably
+provide be **marked as such rather than guessed at**. Do not manufacture these to look careful, and
+do not use the label to avoid work you can do. Mark a task when you genuinely could not resolve it
+and a wrong answer would be expensive to discover later.
+
+Marked items live in [`docs/DECISIONS.md`](docs/DECISIONS.md) under "Needs deeper reasoning", each
+with the specific question, what was tried, and why the answer matters.
 
 ---
 

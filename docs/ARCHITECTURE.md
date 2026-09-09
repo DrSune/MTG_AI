@@ -81,6 +81,17 @@ relationship in the wrong direction, so the attacker's controller is always `Non
 `uuid.uuid4()`, and zone-change triggers are computed by iterating `set` differences of UUIDs,
 so enters/leaves trigger ordering is non-deterministic across runs under a fixed seed.
 
+**`MTGEnv.reset()` raises `NameError` for every format.** `deck_generator.build_constructed_deck`
+never initialises `deck` before appending to it. The only working entry point is
+`reset_with_decks`, which the training loop happens to use. Anything else that calls `reset` is
+dead, and that includes most of what looks like a usable API.
+
+**The descriptor the network scores carries no card identity at all.** It is 65 floats: an
+action-type id plus two 32-dim generic feature blocks. No card id, no name, no colour, no type line
+beyond creature-or-land, no text, no ability structure. Two different 2/2s are byte-identical, and
+so are `PlayLand(Forest#1)` and `PlayLand(Forest#2)`. Every `MakeChoice` option in a menu is the
+same vector. This is the entire "transferable learning" surface today.
+
 **`MAX_MOVES_PER_STEP = 500` punishes combos as hard as a loss.** Tripping it sets
 `game_over` with `winner_id = None`, and the reward function then pays **−10.0 to both
 players**, while the win-rate metric separately scores the same game as a 0.5 draw. Reward and
