@@ -36,6 +36,11 @@ python_files = ["test_*.py"]
 # The engine has no global step cap once the stall detector is removed; never let a
 # hung rules loop wedge CI.
 timeout = 120
+markers = [
+    "slow: runs whole self-play games; excluded from the default run",
+]
+# Slow tests are opt-in: `pytest -m slow` or `pytest --override-ini=addopts=`.
+addopts = "-m 'not slow'"
 
 [tool.mtg-ai.notes]
 # torch is deliberately NOT a declared dependency, because the correct wheel differs

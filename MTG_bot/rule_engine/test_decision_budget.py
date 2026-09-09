@@ -52,7 +52,43 @@ BUDGET_C1 = 2
 # per-pair action space takes 256 engine round trips and 19.1 s of pure CPU on the dev
 # box (reports/block_commit_timing.txt), so the large boards belong in the sweep tool
 # (tools/latency/decisions.py --combat-sweep), not in CI.
-SWEEP = [(1, 1), (2, 2), (4, 4), (8, 8)]
+# The quadratic cost only exceeds the additive bound once the board is big enough for
+# A*B to overtake C0 + C1*(A+B). Below the crossover a per-pair action space still fits
+# inside the budget, so those cases legitimately PASS today and must not be marked xfail:
+# with strict=True an unexpected pass is itself a failure.
+#
+#   board   A*B (actual)   C0+C1*(A+B) (bound)   within budget?
+#   1x1     1              8                     yes
+#   2x2     4              12                    yes
+#   4x4     16             20                    yes
+#   6x6     36             28                    NO
+#   8x8     64             36                    NO
+#
+# So the gate marks only the post-crossover cases as expected failures. When BLOCK_ASSIGN
+# lands, every row passes and the strict markers force their own removal.
+_SWEEP = [(1, 1), (2, 2), (4, 4), (6, 6), (8, 8)]
+
+
+def _budget(attackers: int, blockers: int) -> int:
+    return BUDGET_C0 + BUDGET_C1 * (attackers + blockers)
+
+
+def _sweep_params():
+    """Attach xfail only where the current per-pair action space actually breaches the
+    bound, so the marker means what it says."""
+    out = []
+    for a, b in _SWEEP:
+        expected_now = a * b                      # current engine: one action per pair
+        marks = ()
+        if expected_now > _budget(a, b):
+            marks = pytest.mark.xfail(strict=True, reason=(
+                f"engine.py:141-148 emits one DeclareBlockerAction per (blocker, attacker) "
+                f"pair, so a {a}x{b} board needs {expected_now} sequential calls against a "
+                f"bound of {_budget(a, b)}. Remove this marker when BLOCK_ASSIGN lands "
+                f"(docs/DESIGN_ACTION_SPACE.md 1.3)."
+            ))
+        out.append(pytest.param(a, b, marks=marks))
+    return out
 
 
 def _sequential_block_decisions(attackers: int, blockers: int) -> int:
@@ -71,15 +107,10 @@ def _sequential_block_decisions(attackers: int, blockers: int) -> int:
     raise AssertionError("block declaration did not terminate")
 
 
-@pytest.mark.parametrize("attackers,blockers", SWEEP)
-@pytest.mark.xfail(strict=True, reason=(
-    "engine.py:141-148 emits one DeclareBlockerAction per (blocker, attacker) pair, so this "
-    "is A*B, not A+B. Remove this marker when BLOCK_ASSIGN lands "
-    "(docs/DESIGN_ACTION_SPACE.md 1.3)."
-))
+@pytest.mark.parametrize("attackers,blockers", _sweep_params())
 def test_block_assignment_scales_additively(attackers, blockers):
     n = _sequential_block_decisions(attackers, blockers)
-    bound = BUDGET_C0 + BUDGET_C1 * (attackers + blockers)
+    bound = _budget(attackers, blockers)
     assert n <= bound, (
         f"{attackers}x{blockers} board needs {n} sequential model calls, bound is {bound}. "
         f"Sequential decision count is the only measured quantity that can breach the "
