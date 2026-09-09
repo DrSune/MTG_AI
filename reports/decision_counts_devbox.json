@@ -1,0 +1,1652 @@
+{
+ "full_games": {
+  "n_games": 24,
+  "terminations": {
+   "win": 24
+  },
+  "decisions_per_game": {
+   "n": 24,
+   "min": 1632,
+   "p50": 2173,
+   "p90": 2533,
+   "p99": 2802,
+   "max": 2802,
+   "mean": 2199.3
+  },
+  "decisions_per_seat_per_game": {
+   "n": 48,
+   "min": 743,
+   "p50": 1077,
+   "p90": 1339,
+   "p99": 1603,
+   "max": 1603,
+   "mean": 1099.6
+  },
+  "turns_per_game": {
+   "n": 24,
+   "min": 128,
+   "p50": 181,
+   "p90": 185,
+   "p99": 185,
+   "max": 185,
+   "mean": 178.4
+  },
+  "decisions_per_turn": {
+   "n": 24,
+   "min": 9.34,
+   "p50": 12.29,
+   "p90": 14.15,
+   "p99": 15.31,
+   "max": 15.31,
+   "mean": 12.3
+  },
+  "forced_decisions": 18073,
+  "forced_fraction": 0.3424,
+  "by_chosen_class": {
+   "PassPriorityAction": 29034,
+   "ActivateManaAbilityAction": 19558,
+   "PassTurnAction": 3201,
+   "PlayLandAction": 445,
+   "CastSpellAction": 317,
+   "DeclareAttackerAction": 192,
+   "DeclareBlockerAction": 36
+  },
+  "by_chosen_class_pct": {
+   "PassPriorityAction": 55.0,
+   "ActivateManaAbilityAction": 37.1,
+   "PassTurnAction": 6.1,
+   "PlayLandAction": 0.8,
+   "CastSpellAction": 0.6,
+   "DeclareAttackerAction": 0.4,
+   "DeclareBlockerAction": 0.1
+  },
+  "by_step": {
+   "Untap Step": 14615,
+   "Upkeep Step": 9440,
+   "Draw Step": 6661,
+   "Pre-Combat Main Phase": 5690,
+   "Beginning of Combat Step": 2601,
+   "Declare Attackers Step": 2535,
+   "Declare Blockers Step": 2420,
+   "Post-Combat Main Phase": 2271,
+   "Combat Damage Step": 2213,
+   "End of Combat Step": 2165,
+   "End of Turn Step": 1099,
+   "Cleanup Step": 1073
+  },
+  "by_phase": {
+   "Beginning Phase": 30716,
+   "Combat Phase": 11934,
+   "Pre-Combat Main Phase": 5690,
+   "Post-Combat Main Phase": 2271,
+   "Ending Phase": 2172
+  },
+  "wall_seconds": 463.0,
+  "engine_ms_per_decision": 8.771
+ },
+ "forced": {
+  "overall_forced_pct": 34.2,
+  "by_step": [
+   {
+    "step": "Untap Step",
+    "decisions": 14615,
+    "forced": 1251,
+    "forced_pct": 8.6
+   },
+   {
+    "step": "Upkeep Step",
+    "decisions": 9440,
+    "forced": 2229,
+    "forced_pct": 23.6
+   },
+   {
+    "step": "Draw Step",
+    "decisions": 6661,
+    "forced": 2941,
+    "forced_pct": 44.2
+   },
+   {
+    "step": "Pre-Combat Main Phase",
+    "decisions": 5690,
+    "forced": 0,
+    "forced_pct": 0.0
+   },
+   {
+    "step": "Beginning of Combat Step",
+    "decisions": 2601,
+    "forced": 1794,
+    "forced_pct": 69.0
+   },
+   {
+    "step": "Declare Attackers Step",
+    "decisions": 2535,
+    "forced": 1794,
+    "forced_pct": 70.8
+   },
+   {
+    "step": "Declare Blockers Step",
+    "decisions": 2420,
+    "forced": 1907,
+    "forced_pct": 78.8
+   },
+   {
+    "step": "Post-Combat Main Phase",
+    "decisions": 2271,
+    "forced": 0,
+    "forced_pct": 0.0
+   },
+   {
+    "step": "Combat Damage Step",
+    "decisions": 2213,
+    "forced": 2022,
+    "forced_pct": 91.4
+   },
+   {
+    "step": "End of Combat Step",
+    "decisions": 2165,
+    "forced": 2060,
+    "forced_pct": 95.2
+   },
+   {
+    "step": "End of Turn Step",
+    "decisions": 1099,
+    "forced": 1030,
+    "forced_pct": 93.7
+   },
+   {
+    "step": "Cleanup Step",
+    "decisions": 1073,
+    "forced": 1045,
+    "forced_pct": 97.4
+   }
+  ],
+  "forced_by_chosen_class": {
+   "PassPriorityAction": 18073
+  }
+ },
+ "per_game": [
+  {
+   "game": 0,
+   "n_decisions": 2417,
+   "per_seat": {
+    "0": 1444,
+    "1": 973
+   },
+   "turns": 180,
+   "termination": "win",
+   "forced_decisions": 711,
+   "by_class": {
+    "PassPriorityAction": 1160,
+    "PassTurnAction": 145,
+    "PlayLandAction": 26,
+    "ActivateManaAbilityAction": 1068,
+    "CastSpellAction": 15,
+    "DeclareAttackerAction": 3
+   },
+   "by_step": {
+    "Untap Step": 781,
+    "Upkeep Step": 466,
+    "Draw Step": 275,
+    "Pre-Combat Main Phase": 240,
+    "Beginning of Combat Step": 115,
+    "Declare Attackers Step": 111,
+    "Declare Blockers Step": 95,
+    "Combat Damage Step": 87,
+    "End of Combat Step": 84,
+    "Post-Combat Main Phase": 93,
+    "End of Turn Step": 36,
+    "Cleanup Step": 34
+   },
+   "by_phase": {
+    "Beginning Phase": 1522,
+    "Pre-Combat Main Phase": 240,
+    "Combat Phase": 492,
+    "Post-Combat Main Phase": 93,
+    "Ending Phase": 70
+   }
+  },
+  {
+   "game": 1,
+   "n_decisions": 2099,
+   "per_seat": {
+    "1": 993,
+    "0": 1106
+   },
+   "turns": 179,
+   "termination": "win",
+   "forced_decisions": 707,
+   "by_class": {
+    "PassPriorityAction": 1161,
+    "PassTurnAction": 135,
+    "PlayLandAction": 19,
+    "ActivateManaAbilityAction": 757,
+    "CastSpellAction": 19,
+    "DeclareAttackerAction": 7,
+    "DeclareBlockerAction": 1
+   },
+   "by_step": {
+    "Untap Step": 560,
+    "Upkeep Step": 388,
+    "Draw Step": 306,
+    "Pre-Combat Main Phase": 248,
+    "Beginning of Combat Step": 89,
+    "Declare Attackers Step": 93,
+    "Declare Blockers Step": 81,
+    "Combat Damage Step": 81,
+    "End of Combat Step": 80,
+    "Post-Combat Main Phase": 82,
+    "End of Turn Step": 48,
+    "Cleanup Step": 43
+   },
+   "by_phase": {
+    "Beginning Phase": 1254,
+    "Pre-Combat Main Phase": 248,
+    "Combat Phase": 424,
+    "Post-Combat Main Phase": 82,
+    "Ending Phase": 91
+   }
+  },
+  {
+   "game": 2,
+   "n_decisions": 2533,
+   "per_seat": {
+    "0": 1456,
+    "1": 1077
+   },
+   "turns": 179,
+   "termination": "win",
+   "forced_decisions": 728,
+   "by_class": {
+    "PassPriorityAction": 1246,
+    "PassTurnAction": 136,
+    "PlayLandAction": 21,
+    "ActivateManaAbilityAction": 1095,
+    "CastSpellAction": 14,
+    "DeclareAttackerAction": 21
+   },
+   "by_step": {
+    "Untap Step": 733,
+    "Upkeep Step": 458,
+    "Draw Step": 331,
+    "Pre-Combat Main Phase": 255,
+    "Beginning of Combat Step": 117,
+    "Declare Attackers Step": 129,
+    "Declare Blockers Step": 112,
+    "Combat Damage Step": 105,
+    "End of Combat Step": 97,
+    "Post-Combat Main Phase": 106,
+    "End of Turn Step": 46,
+    "Cleanup Step": 44
+   },
+   "by_phase": {
+    "Beginning Phase": 1522,
+    "Pre-Combat Main Phase": 255,
+    "Combat Phase": 560,
+    "Post-Combat Main Phase": 106,
+    "Ending Phase": 90
+   }
+  },
+  {
+   "game": 3,
+   "n_decisions": 2655,
+   "per_seat": {
+    "0": 1572,
+    "1": 1083
+   },
+   "turns": 184,
+   "termination": "win",
+   "forced_decisions": 761,
+   "by_class": {
+    "PassPriorityAction": 1331,
+    "PlayLandAction": 23,
+    "ActivateManaAbilityAction": 1112,
+    "PassTurnAction": 133,
+    "CastSpellAction": 12,
+    "DeclareAttackerAction": 31,
+    "DeclareBlockerAction": 13
+   },
+   "by_step": {
+    "Untap Step": 742,
+    "Upkeep Step": 493,
+    "Draw Step": 324,
+    "Pre-Combat Main Phase": 260,
+    "Beginning of Combat Step": 144,
+    "Declare Attackers Step": 145,
+    "Declare Blockers Step": 128,
+    "Combat Damage Step": 104,
+    "End of Combat Step": 106,
+    "Post-Combat Main Phase": 107,
+    "End of Turn Step": 52,
+    "Cleanup Step": 50
+   },
+   "by_phase": {
+    "Beginning Phase": 1559,
+    "Pre-Combat Main Phase": 260,
+    "Combat Phase": 627,
+    "Post-Combat Main Phase": 107,
+    "Ending Phase": 102
+   }
+  },
+  {
+   "game": 4,
+   "n_decisions": 1727,
+   "per_seat": {
+    "1": 813,
+    "0": 914
+   },
+   "turns": 185,
+   "termination": "win",
+   "forced_decisions": 877,
+   "by_class": {
+    "PassPriorityAction": 1224,
+    "PassTurnAction": 137,
+    "PlayLandAction": 10,
+    "ActivateManaAbilityAction": 352,
+    "CastSpellAction": 4
+   },
+   "by_step": {
+    "Untap Step": 375,
+    "Upkeep Step": 279,
+    "Draw Step": 219,
+    "Pre-Combat Main Phase": 208,
+    "Beginning of Combat Step": 97,
+    "Declare Attackers Step": 92,
+    "Declare Blockers Step": 92,
+    "Combat Damage Step": 90,
+    "End of Combat Step": 90,
+    "Post-Combat Main Phase": 91,
+    "End of Turn Step": 47,
+    "Cleanup Step": 47
+   },
+   "by_phase": {
+    "Beginning Phase": 873,
+    "Pre-Combat Main Phase": 208,
+    "Combat Phase": 461,
+    "Post-Combat Main Phase": 91,
+    "Ending Phase": 94
+   }
+  },
+  {
+   "game": 5,
+   "n_decisions": 2317,
+   "per_seat": {
+    "0": 1144,
+    "1": 1173
+   },
+   "turns": 184,
+   "termination": "win",
+   "forced_decisions": 791,
+   "by_class": {
+    "PassPriorityAction": 1271,
+    "PassTurnAction": 134,
+    "PlayLandAction": 23,
+    "ActivateManaAbilityAction": 867,
+    "CastSpellAction": 9,
+    "DeclareAttackerAction": 11,
+    "DeclareBlockerAction": 2
+   },
+   "by_step": {
+    "Untap Step": 628,
+    "Upkeep Step": 383,
+    "Draw Step": 315,
+    "Pre-Combat Main Phase": 249,
+    "Beginning of Combat Step": 121,
+    "Declare Attackers Step": 117,
+    "Declare Blockers Step": 105,
+    "Combat Damage Step": 102,
+    "End of Combat Step": 96,
+    "Post-Combat Main Phase": 100,
+    "End of Turn Step": 50,
+    "Cleanup Step": 51
+   },
+   "by_phase": {
+    "Beginning Phase": 1326,
+    "Pre-Combat Main Phase": 249,
+    "Combat Phase": 541,
+    "Post-Combat Main Phase": 100,
+    "Ending Phase": 101
+   }
+  },
+  {
+   "game": 6,
+   "n_decisions": 2090,
+   "per_seat": {
+    "0": 1105,
+    "1": 985
+   },
+   "turns": 170,
+   "termination": "win",
+   "forced_decisions": 752,
+   "by_class": {
+    "PassPriorityAction": 1190,
+    "PassTurnAction": 120,
+    "PlayLandAction": 20,
+    "ActivateManaAbilityAction": 736,
+    "CastSpellAction": 18,
+    "DeclareAttackerAction": 4,
+    "DeclareBlockerAction": 2
+   },
+   "by_step": {
+    "Untap Step": 568,
+    "Upkeep Step": 381,
+    "Draw Step": 237,
+    "Pre-Combat Main Phase": 226,
+    "Beginning of Combat Step": 99,
+    "Declare Attackers Step": 97,
+    "Declare Blockers Step": 100,
+    "Combat Damage Step": 97,
+    "End of Combat Step": 87,
+    "Post-Combat Main Phase": 96,
+    "End of Turn Step": 51,
+    "Cleanup Step": 51
+   },
+   "by_phase": {
+    "Beginning Phase": 1186,
+    "Pre-Combat Main Phase": 226,
+    "Combat Phase": 480,
+    "Post-Combat Main Phase": 96,
+    "Ending Phase": 102
+   }
+  },
+  {
+   "game": 7,
+   "n_decisions": 2093,
+   "per_seat": {
+    "0": 1020,
+    "1": 1073
+   },
+   "turns": 177,
+   "termination": "win",
+   "forced_decisions": 757,
+   "by_class": {
+    "PassPriorityAction": 1220,
+    "PlayLandAction": 17,
+    "PassTurnAction": 131,
+    "ActivateManaAbilityAction": 704,
+    "CastSpellAction": 17,
+    "DeclareAttackerAction": 3,
+    "DeclareBlockerAction": 1
+   },
+   "by_step": {
+    "Untap Step": 568,
+    "Upkeep Step": 365,
+    "Draw Step": 246,
+    "Pre-Combat Main Phase": 233,
+    "Beginning of Combat Step": 108,
+    "Declare Attackers Step": 104,
+    "Declare Blockers Step": 101,
+    "Combat Damage Step": 94,
+    "End of Combat Step": 91,
+    "Post-Combat Main Phase": 92,
+    "End of Turn Step": 45,
+    "Cleanup Step": 46
+   },
+   "by_phase": {
+    "Beginning Phase": 1179,
+    "Pre-Combat Main Phase": 233,
+    "Combat Phase": 498,
+    "Post-Combat Main Phase": 92,
+    "Ending Phase": 91
+   }
+  },
+  {
+   "game": 8,
+   "n_decisions": 1812,
+   "per_seat": {
+    "1": 1069,
+    "0": 743
+   },
+   "turns": 183,
+   "termination": "win",
+   "forced_decisions": 893,
+   "by_class": {
+    "PassPriorityAction": 1267,
+    "PlayLandAction": 7,
+    "ActivateManaAbilityAction": 403,
+    "PassTurnAction": 127,
+    "CastSpellAction": 8
+   },
+   "by_step": {
+    "Untap Step": 385,
+    "Upkeep Step": 300,
+    "Draw Step": 232,
+    "Pre-Combat Main Phase": 204,
+    "Beginning of Combat Step": 110,
+    "Declare Attackers Step": 98,
+    "Declare Blockers Step": 94,
+    "Combat Damage Step": 91,
+    "End of Combat Step": 91,
+    "Post-Combat Main Phase": 95,
+    "End of Turn Step": 55,
+    "Cleanup Step": 57
+   },
+   "by_phase": {
+    "Beginning Phase": 917,
+    "Pre-Combat Main Phase": 204,
+    "Combat Phase": 484,
+    "Post-Combat Main Phase": 95,
+    "Ending Phase": 112
+   }
+  },
+  {
+   "game": 9,
+   "n_decisions": 2105,
+   "per_seat": {
+    "0": 1023,
+    "1": 1082
+   },
+   "turns": 181,
+   "termination": "win",
+   "forced_decisions": 802,
+   "by_class": {
+    "PassPriorityAction": 1261,
+    "PassTurnAction": 134,
+    "PlayLandAction": 14,
+    "ActivateManaAbilityAction": 684,
+    "CastSpellAction": 11,
+    "DeclareAttackerAction": 1
+   },
+   "by_step": {
+    "Untap Step": 555,
+    "Upkeep Step": 345,
+    "Draw Step": 259,
+    "Pre-Combat Main Phase": 239,
+    "Beginning of Combat Step": 115,
+    "Declare Attackers Step": 101,
+    "Declare Blockers Step": 101,
+    "Combat Damage Step": 99,
+    "End of Combat Step": 97,
+    "Post-Combat Main Phase": 101,
+    "End of Turn Step": 46,
+    "Cleanup Step": 47
+   },
+   "by_phase": {
+    "Beginning Phase": 1159,
+    "Pre-Combat Main Phase": 239,
+    "Combat Phase": 513,
+    "Post-Combat Main Phase": 101,
+    "Ending Phase": 93
+   }
+  },
+  {
+   "game": 10,
+   "n_decisions": 1980,
+   "per_seat": {
+    "1": 913,
+    "0": 1067
+   },
+   "turns": 176,
+   "termination": "win",
+   "forced_decisions": 696,
+   "by_class": {
+    "PassPriorityAction": 1119,
+    "PlayLandAction": 14,
+    "ActivateManaAbilityAction": 706,
+    "PassTurnAction": 131,
+    "CastSpellAction": 10
+   },
+   "by_step": {
+    "Untap Step": 591,
+    "Upkeep Step": 349,
+    "Draw Step": 233,
+    "Pre-Combat Main Phase": 229,
+    "Beginning of Combat Step": 87,
+    "Declare Attackers Step": 80,
+    "Declare Blockers Step": 84,
+    "Combat Damage Step": 76,
+    "End of Combat Step": 76,
+    "Post-Combat Main Phase": 84,
+    "End of Turn Step": 45,
+    "Cleanup Step": 46
+   },
+   "by_phase": {
+    "Beginning Phase": 1173,
+    "Pre-Combat Main Phase": 229,
+    "Combat Phase": 403,
+    "Post-Combat Main Phase": 84,
+    "Ending Phase": 91
+   }
+  },
+  {
+   "game": 11,
+   "n_decisions": 2089,
+   "per_seat": {
+    "0": 1027,
+    "1": 1062
+   },
+   "turns": 185,
+   "termination": "win",
+   "forced_decisions": 820,
+   "by_class": {
+    "PassPriorityAction": 1246,
+    "PassTurnAction": 139,
+    "PlayLandAction": 18,
+    "ActivateManaAbilityAction": 674,
+    "CastSpellAction": 11,
+    "DeclareAttackerAction": 1
+   },
+   "by_step": {
+    "Untap Step": 517,
+    "Upkeep Step": 363,
+    "Draw Step": 280,
+    "Pre-Combat Main Phase": 249,
+    "Beginning of Combat Step": 112,
+    "Declare Attackers Step": 96,
+    "Declare Blockers Step": 99,
+    "Combat Damage Step": 95,
+    "End of Combat Step": 92,
+    "Post-Combat Main Phase": 94,
+    "End of Turn Step": 47,
+    "Cleanup Step": 45
+   },
+   "by_phase": {
+    "Beginning Phase": 1160,
+    "Pre-Combat Main Phase": 249,
+    "Combat Phase": 494,
+    "Post-Combat Main Phase": 94,
+    "Ending Phase": 92
+   }
+  },
+  {
+   "game": 12,
+   "n_decisions": 2173,
+   "per_seat": {
+    "1": 959,
+    "0": 1214
+   },
+   "turns": 182,
+   "termination": "win",
+   "forced_decisions": 729,
+   "by_class": {
+    "PassPriorityAction": 1195,
+    "PassTurnAction": 142,
+    "PlayLandAction": 19,
+    "ActivateManaAbilityAction": 799,
+    "CastSpellAction": 17,
+    "DeclareAttackerAction": 1
+   },
+   "by_step": {
+    "Untap Step": 610,
+    "Upkeep Step": 397,
+    "Draw Step": 274,
+    "Pre-Combat Main Phase": 239,
+    "Beginning of Combat Step": 99,
+    "Declare Attackers Step": 95,
+    "Declare Blockers Step": 106,
+    "Combat Damage Step": 90,
+    "End of Combat Step": 89,
+    "Post-Combat Main Phase": 91,
+    "End of Turn Step": 44,
+    "Cleanup Step": 39
+   },
+   "by_phase": {
+    "Beginning Phase": 1281,
+    "Pre-Combat Main Phase": 239,
+    "Combat Phase": 479,
+    "Post-Combat Main Phase": 91,
+    "Ending Phase": 83
+   }
+  },
+  {
+   "game": 13,
+   "n_decisions": 2047,
+   "per_seat": {
+    "1": 1238,
+    "0": 809
+   },
+   "turns": 179,
+   "termination": "win",
+   "forced_decisions": 760,
+   "by_class": {
+    "PassPriorityAction": 1159,
+    "PassTurnAction": 146,
+    "PlayLandAction": 20,
+    "ActivateManaAbilityAction": 695,
+    "CastSpellAction": 11,
+    "DeclareAttackerAction": 13,
+    "DeclareBlockerAction": 3
+   },
+   "by_step": {
+    "Untap Step": 547,
+    "Upkeep Step": 358,
+    "Draw Step": 255,
+    "Pre-Combat Main Phase": 240,
+    "Beginning of Combat Step": 98,
+    "Declare Attackers Step": 104,
+    "Declare Blockers Step": 109,
+    "Combat Damage Step": 90,
+    "End of Combat Step": 88,
+    "Post-Combat Main Phase": 93,
+    "End of Turn Step": 32,
+    "Cleanup Step": 33
+   },
+   "by_phase": {
+    "Beginning Phase": 1160,
+    "Pre-Combat Main Phase": 240,
+    "Combat Phase": 489,
+    "Post-Combat Main Phase": 93,
+    "Ending Phase": 65
+   }
+  },
+  {
+   "game": 14,
+   "n_decisions": 2802,
+   "per_seat": {
+    "0": 1603,
+    "1": 1199
+   },
+   "turns": 183,
+   "termination": "win",
+   "forced_decisions": 663,
+   "by_class": {
+    "PassPriorityAction": 1235,
+    "PlayLandAction": 25,
+    "ActivateManaAbilityAction": 1354,
+    "PassTurnAction": 138,
+    "CastSpellAction": 20,
+    "DeclareAttackerAction": 22,
+    "DeclareBlockerAction": 8
+   },
+   "by_step": {
+    "Untap Step": 896,
+    "Upkeep Step": 528,
+    "Draw Step": 351,
+    "Pre-Combat Main Phase": 274,
+    "Beginning of Combat Step": 124,
+    "Declare Attackers Step": 123,
+    "Declare Blockers Step": 122,
+    "Combat Damage Step": 93,
+    "End of Combat Step": 95,
+    "Post-Combat Main Phase": 104,
+    "End of Turn Step": 47,
+    "Cleanup Step": 45
+   },
+   "by_phase": {
+    "Beginning Phase": 1775,
+    "Pre-Combat Main Phase": 274,
+    "Combat Phase": 557,
+    "Post-Combat Main Phase": 104,
+    "Ending Phase": 92
+   }
+  },
+  {
+   "game": 15,
+   "n_decisions": 2222,
+   "per_seat": {
+    "1": 1102,
+    "0": 1120
+   },
+   "turns": 183,
+   "termination": "win",
+   "forced_decisions": 760,
+   "by_class": {
+    "PassPriorityAction": 1218,
+    "PlayLandAction": 18,
+    "ActivateManaAbilityAction": 835,
+    "PassTurnAction": 137,
+    "CastSpellAction": 13,
+    "DeclareAttackerAction": 1
+   },
+   "by_step": {
+    "Untap Step": 621,
+    "Upkeep Step": 421,
+    "Draw Step": 287,
+    "Pre-Combat Main Phase": 233,
+    "Beginning of Combat Step": 105,
+    "Declare Attackers Step": 95,
+    "Declare Blockers Step": 100,
+    "Combat Damage Step": 92,
+    "End of Combat Step": 88,
+    "Post-Combat Main Phase": 88,
+    "End of Turn Step": 47,
+    "Cleanup Step": 45
+   },
+   "by_phase": {
+    "Beginning Phase": 1329,
+    "Pre-Combat Main Phase": 233,
+    "Combat Phase": 480,
+    "Post-Combat Main Phase": 88,
+    "Ending Phase": 92
+   }
+  },
+  {
+   "game": 16,
+   "n_decisions": 2441,
+   "per_seat": {
+    "0": 1249,
+    "1": 1192
+   },
+   "turns": 183,
+   "termination": "win",
+   "forced_decisions": 708,
+   "by_class": {
+    "PassPriorityAction": 1230,
+    "PlayLandAction": 21,
+    "ActivateManaAbilityAction": 1026,
+    "PassTurnAction": 142,
+    "CastSpellAction": 10,
+    "DeclareAttackerAction": 12
+   },
+   "by_step": {
+    "Untap Step": 721,
+    "Upkeep Step": 464,
+    "Draw Step": 312,
+    "Pre-Combat Main Phase": 232,
+    "Beginning of Combat Step": 115,
+    "Declare Attackers Step": 115,
+    "Declare Blockers Step": 106,
+    "Combat Damage Step": 96,
+    "End of Combat Step": 95,
+    "Post-Combat Main Phase": 104,
+    "End of Turn Step": 41,
+    "Cleanup Step": 40
+   },
+   "by_phase": {
+    "Beginning Phase": 1497,
+    "Pre-Combat Main Phase": 232,
+    "Combat Phase": 527,
+    "Post-Combat Main Phase": 104,
+    "Ending Phase": 81
+   }
+  },
+  {
+   "game": 17,
+   "n_decisions": 2428,
+   "per_seat": {
+    "0": 1456,
+    "1": 972
+   },
+   "turns": 185,
+   "termination": "win",
+   "forced_decisions": 791,
+   "by_class": {
+    "PassPriorityAction": 1251,
+    "PlayLandAction": 19,
+    "PassTurnAction": 142,
+    "ActivateManaAbilityAction": 989,
+    "CastSpellAction": 19,
+    "DeclareAttackerAction": 7,
+    "DeclareBlockerAction": 1
+   },
+   "by_step": {
+    "Untap Step": 718,
+    "Upkeep Step": 453,
+    "Draw Step": 312,
+    "Pre-Combat Main Phase": 260,
+    "Beginning of Combat Step": 111,
+    "Declare Attackers Step": 110,
+    "Declare Blockers Step": 99,
+    "Combat Damage Step": 93,
+    "End of Combat Step": 92,
+    "Post-Combat Main Phase": 96,
+    "End of Turn Step": 42,
+    "Cleanup Step": 42
+   },
+   "by_phase": {
+    "Beginning Phase": 1483,
+    "Pre-Combat Main Phase": 260,
+    "Combat Phase": 505,
+    "Post-Combat Main Phase": 96,
+    "Ending Phase": 84
+   }
+  },
+  {
+   "game": 18,
+   "n_decisions": 2493,
+   "per_seat": {
+    "1": 1293,
+    "0": 1200
+   },
+   "turns": 181,
+   "termination": "win",
+   "forced_decisions": 767,
+   "by_class": {
+    "PassPriorityAction": 1278,
+    "PlayLandAction": 19,
+    "PassTurnAction": 130,
+    "ActivateManaAbilityAction": 1037,
+    "CastSpellAction": 16,
+    "DeclareAttackerAction": 11,
+    "DeclareBlockerAction": 2
+   },
+   "by_step": {
+    "Untap Step": 732,
+    "Upkeep Step": 475,
+    "Draw Step": 295,
+    "Pre-Combat Main Phase": 240,
+    "Beginning of Combat Step": 118,
+    "Declare Attackers Step": 119,
+    "Declare Blockers Step": 109,
+    "Combat Damage Step": 98,
+    "End of Combat Step": 98,
+    "Post-Combat Main Phase": 105,
+    "End of Turn Step": 52,
+    "Cleanup Step": 52
+   },
+   "by_phase": {
+    "Beginning Phase": 1502,
+    "Pre-Combat Main Phase": 240,
+    "Combat Phase": 542,
+    "Post-Combat Main Phase": 105,
+    "Ending Phase": 104
+   }
+  },
+  {
+   "game": 19,
+   "n_decisions": 1924,
+   "per_seat": {
+    "1": 951,
+    "0": 973
+   },
+   "turns": 181,
+   "termination": "win",
+   "forced_decisions": 818,
+   "by_class": {
+    "PassPriorityAction": 1261,
+    "PassTurnAction": 135,
+    "PlayLandAction": 12,
+    "ActivateManaAbilityAction": 488,
+    "CastSpellAction": 8,
+    "DeclareAttackerAction": 20
+   },
+   "by_step": {
+    "Untap Step": 419,
+    "Upkeep Step": 324,
+    "Draw Step": 243,
+    "Pre-Combat Main Phase": 210,
+    "Beginning of Combat Step": 106,
+    "Declare Attackers Step": 126,
+    "Declare Blockers Step": 103,
+    "Combat Damage Step": 103,
+    "End of Combat Step": 96,
+    "Post-Combat Main Phase": 102,
+    "End of Turn Step": 47,
+    "Cleanup Step": 45
+   },
+   "by_phase": {
+    "Beginning Phase": 986,
+    "Pre-Combat Main Phase": 210,
+    "Combat Phase": 534,
+    "Post-Combat Main Phase": 102,
+    "Ending Phase": 92
+   }
+  },
+  {
+   "game": 20,
+   "n_decisions": 2098,
+   "per_seat": {
+    "1": 1167,
+    "0": 931
+   },
+   "turns": 173,
+   "termination": "win",
+   "forced_decisions": 705,
+   "by_class": {
+    "PassPriorityAction": 1135,
+    "PlayLandAction": 23,
+    "ActivateManaAbilityAction": 794,
+    "PassTurnAction": 126,
+    "CastSpellAction": 17,
+    "DeclareAttackerAction": 2,
+    "DeclareBlockerAction": 1
+   },
+   "by_step": {
+    "Untap Step": 605,
+    "Upkeep Step": 381,
+    "Draw Step": 263,
+    "Pre-Combat Main Phase": 253,
+    "Beginning of Combat Step": 92,
+    "Declare Attackers Step": 88,
+    "Declare Blockers Step": 86,
+    "Combat Damage Step": 79,
+    "End of Combat Step": 78,
+    "Post-Combat Main Phase": 80,
+    "End of Turn Step": 47,
+    "Cleanup Step": 46
+   },
+   "by_phase": {
+    "Beginning Phase": 1249,
+    "Pre-Combat Main Phase": 253,
+    "Combat Phase": 423,
+    "Post-Combat Main Phase": 80,
+    "Ending Phase": 93
+   }
+  },
+  {
+   "game": 21,
+   "n_decisions": 1632,
+   "per_seat": {
+    "0": 849,
+    "1": 783
+   },
+   "turns": 128,
+   "termination": "win",
+   "forced_decisions": 497,
+   "by_class": {
+    "PassPriorityAction": 837,
+    "PassTurnAction": 100,
+    "PlayLandAction": 18,
+    "ActivateManaAbilityAction": 654,
+    "CastSpellAction": 8,
+    "DeclareAttackerAction": 14,
+    "DeclareBlockerAction": 1
+   },
+   "by_step": {
+    "Untap Step": 478,
+    "Upkeep Step": 292,
+    "Draw Step": 209,
+    "Pre-Combat Main Phase": 192,
+    "Beginning of Combat Step": 68,
+    "Declare Attackers Step": 82,
+    "Declare Blockers Step": 70,
+    "Combat Damage Step": 63,
+    "End of Combat Step": 61,
+    "Post-Combat Main Phase": 61,
+    "End of Turn Step": 29,
+    "Cleanup Step": 27
+   },
+   "by_phase": {
+    "Beginning Phase": 979,
+    "Pre-Combat Main Phase": 192,
+    "Combat Phase": 344,
+    "Post-Combat Main Phase": 61,
+    "Ending Phase": 56
+   }
+  },
+  {
+   "game": 22,
+   "n_decisions": 2330,
+   "per_seat": {
+    "1": 991,
+    "0": 1339
+   },
+   "turns": 181,
+   "termination": "win",
+   "forced_decisions": 778,
+   "by_class": {
+    "PassPriorityAction": 1249,
+    "PlayLandAction": 19,
+    "PassTurnAction": 136,
+    "ActivateManaAbilityAction": 901,
+    "CastSpellAction": 17,
+    "DeclareAttackerAction": 7,
+    "DeclareBlockerAction": 1
+   },
+   "by_step": {
+    "Untap Step": 667,
+    "Upkeep Step": 384,
+    "Draw Step": 316,
+    "Pre-Combat Main Phase": 243,
+    "Beginning of Combat Step": 117,
+    "Declare Attackers Step": 109,
+    "Declare Blockers Step": 110,
+    "Combat Damage Step": 96,
+    "End of Combat Step": 97,
+    "Post-Combat Main Phase": 100,
+    "End of Turn Step": 46,
+    "Cleanup Step": 45
+   },
+   "by_phase": {
+    "Beginning Phase": 1367,
+    "Pre-Combat Main Phase": 243,
+    "Combat Phase": 529,
+    "Post-Combat Main Phase": 100,
+    "Ending Phase": 91
+   }
+  },
+  {
+   "game": 23,
+   "n_decisions": 2276,
+   "per_seat": {
+    "0": 969,
+    "1": 1307
+   },
+   "turns": 179,
+   "termination": "win",
+   "forced_decisions": 802,
+   "by_class": {
+    "PassPriorityAction": 1290,
+    "PassTurnAction": 125,
+    "PlayLandAction": 20,
+    "ActivateManaAbilityAction": 828,
+    "CastSpellAction": 13
+   },
+   "by_step": {
+    "Untap Step": 598,
+    "Upkeep Step": 393,
+    "Draw Step": 287,
+    "Pre-Combat Main Phase": 234,
+    "Beginning of Combat Step": 134,
+    "Declare Attackers Step": 106,
+    "Declare Blockers Step": 108,
+    "Combat Damage Step": 99,
+    "End of Combat Step": 101,
+    "Post-Combat Main Phase": 106,
+    "End of Turn Step": 57,
+    "Cleanup Step": 53
+   },
+   "by_phase": {
+    "Beginning Phase": 1278,
+    "Pre-Combat Main Phase": 234,
+    "Combat Phase": 548,
+    "Post-Combat Main Phase": 106,
+    "Ending Phase": 110
+   }
+  }
+ ],
+ "combat_sweep": [
+  {
+   "attackers": 1,
+   "blockers": 1,
+   "sequential_block_decisions": 1,
+   "first_menu_width": 2,
+   "max_menu_width": 2,
+   "predicted_A_times_B": 1
+  },
+  {
+   "attackers": 1,
+   "blockers": 2,
+   "sequential_block_decisions": 2,
+   "first_menu_width": 3,
+   "max_menu_width": 3,
+   "predicted_A_times_B": 2
+  },
+  {
+   "attackers": 1,
+   "blockers": 4,
+   "sequential_block_decisions": 4,
+   "first_menu_width": 5,
+   "max_menu_width": 5,
+   "predicted_A_times_B": 4
+  },
+  {
+   "attackers": 1,
+   "blockers": 8,
+   "sequential_block_decisions": 8,
+   "first_menu_width": 9,
+   "max_menu_width": 9,
+   "predicted_A_times_B": 8
+  },
+  {
+   "attackers": 1,
+   "blockers": 12,
+   "sequential_block_decisions": 12,
+   "first_menu_width": 13,
+   "max_menu_width": 13,
+   "predicted_A_times_B": 12
+  },
+  {
+   "attackers": 1,
+   "blockers": 16,
+   "sequential_block_decisions": 11,
+   "first_menu_width": 17,
+   "max_menu_width": 17,
+   "predicted_A_times_B": 16
+  },
+  {
+   "attackers": 1,
+   "blockers": 20,
+   "sequential_block_decisions": 14,
+   "first_menu_width": 21,
+   "max_menu_width": 21,
+   "predicted_A_times_B": 20
+  },
+  {
+   "attackers": 1,
+   "blockers": 24,
+   "sequential_block_decisions": 17,
+   "first_menu_width": 25,
+   "max_menu_width": 25,
+   "predicted_A_times_B": 24
+  },
+  {
+   "attackers": 2,
+   "blockers": 1,
+   "sequential_block_decisions": 2,
+   "first_menu_width": 3,
+   "max_menu_width": 3,
+   "predicted_A_times_B": 2
+  },
+  {
+   "attackers": 2,
+   "blockers": 2,
+   "sequential_block_decisions": 4,
+   "first_menu_width": 5,
+   "max_menu_width": 5,
+   "predicted_A_times_B": 4
+  },
+  {
+   "attackers": 2,
+   "blockers": 4,
+   "sequential_block_decisions": 8,
+   "first_menu_width": 9,
+   "max_menu_width": 9,
+   "predicted_A_times_B": 8
+  },
+  {
+   "attackers": 2,
+   "blockers": 8,
+   "sequential_block_decisions": 16,
+   "first_menu_width": 17,
+   "max_menu_width": 17,
+   "predicted_A_times_B": 16
+  },
+  {
+   "attackers": 2,
+   "blockers": 12,
+   "sequential_block_decisions": 24,
+   "first_menu_width": 25,
+   "max_menu_width": 25,
+   "predicted_A_times_B": 24
+  },
+  {
+   "attackers": 2,
+   "blockers": 16,
+   "sequential_block_decisions": 22,
+   "first_menu_width": 33,
+   "max_menu_width": 33,
+   "predicted_A_times_B": 32
+  },
+  {
+   "attackers": 2,
+   "blockers": 20,
+   "sequential_block_decisions": 28,
+   "first_menu_width": 41,
+   "max_menu_width": 41,
+   "predicted_A_times_B": 40
+  },
+  {
+   "attackers": 2,
+   "blockers": 24,
+   "sequential_block_decisions": 34,
+   "first_menu_width": 49,
+   "max_menu_width": 49,
+   "predicted_A_times_B": 48
+  },
+  {
+   "attackers": 4,
+   "blockers": 1,
+   "sequential_block_decisions": 4,
+   "first_menu_width": 5,
+   "max_menu_width": 5,
+   "predicted_A_times_B": 4
+  },
+  {
+   "attackers": 4,
+   "blockers": 2,
+   "sequential_block_decisions": 8,
+   "first_menu_width": 9,
+   "max_menu_width": 9,
+   "predicted_A_times_B": 8
+  },
+  {
+   "attackers": 4,
+   "blockers": 4,
+   "sequential_block_decisions": 16,
+   "first_menu_width": 17,
+   "max_menu_width": 17,
+   "predicted_A_times_B": 16
+  },
+  {
+   "attackers": 4,
+   "blockers": 8,
+   "sequential_block_decisions": 32,
+   "first_menu_width": 33,
+   "max_menu_width": 33,
+   "predicted_A_times_B": 32
+  },
+  {
+   "attackers": 4,
+   "blockers": 12,
+   "sequential_block_decisions": 48,
+   "first_menu_width": 49,
+   "max_menu_width": 49,
+   "predicted_A_times_B": 48
+  },
+  {
+   "attackers": 4,
+   "blockers": 16,
+   "sequential_block_decisions": 44,
+   "first_menu_width": 65,
+   "max_menu_width": 65,
+   "predicted_A_times_B": 64
+  },
+  {
+   "attackers": 4,
+   "blockers": 20,
+   "sequential_block_decisions": 56,
+   "first_menu_width": 81,
+   "max_menu_width": 81,
+   "predicted_A_times_B": 80
+  },
+  {
+   "attackers": 4,
+   "blockers": 24,
+   "sequential_block_decisions": 68,
+   "first_menu_width": 97,
+   "max_menu_width": 97,
+   "predicted_A_times_B": 96
+  },
+  {
+   "attackers": 8,
+   "blockers": 1,
+   "sequential_block_decisions": 8,
+   "first_menu_width": 9,
+   "max_menu_width": 9,
+   "predicted_A_times_B": 8
+  },
+  {
+   "attackers": 8,
+   "blockers": 2,
+   "sequential_block_decisions": 16,
+   "first_menu_width": 17,
+   "max_menu_width": 17,
+   "predicted_A_times_B": 16
+  },
+  {
+   "attackers": 8,
+   "blockers": 4,
+   "sequential_block_decisions": 32,
+   "first_menu_width": 33,
+   "max_menu_width": 33,
+   "predicted_A_times_B": 32
+  },
+  {
+   "attackers": 8,
+   "blockers": 8,
+   "sequential_block_decisions": 64,
+   "first_menu_width": 65,
+   "max_menu_width": 65,
+   "predicted_A_times_B": 64
+  },
+  {
+   "attackers": 8,
+   "blockers": 12,
+   "sequential_block_decisions": 96,
+   "first_menu_width": 97,
+   "max_menu_width": 97,
+   "predicted_A_times_B": 96
+  },
+  {
+   "attackers": 8,
+   "blockers": 16,
+   "sequential_block_decisions": 88,
+   "first_menu_width": 129,
+   "max_menu_width": 129,
+   "predicted_A_times_B": 128
+  },
+  {
+   "attackers": 8,
+   "blockers": 20,
+   "sequential_block_decisions": 112,
+   "first_menu_width": 161,
+   "max_menu_width": 161,
+   "predicted_A_times_B": 160
+  },
+  {
+   "attackers": 8,
+   "blockers": 24,
+   "sequential_block_decisions": 136,
+   "first_menu_width": 193,
+   "max_menu_width": 193,
+   "predicted_A_times_B": 192
+  },
+  {
+   "attackers": 12,
+   "blockers": 1,
+   "sequential_block_decisions": 12,
+   "first_menu_width": 13,
+   "max_menu_width": 13,
+   "predicted_A_times_B": 12
+  },
+  {
+   "attackers": 12,
+   "blockers": 2,
+   "sequential_block_decisions": 24,
+   "first_menu_width": 25,
+   "max_menu_width": 25,
+   "predicted_A_times_B": 24
+  },
+  {
+   "attackers": 12,
+   "blockers": 4,
+   "sequential_block_decisions": 48,
+   "first_menu_width": 49,
+   "max_menu_width": 49,
+   "predicted_A_times_B": 48
+  },
+  {
+   "attackers": 12,
+   "blockers": 8,
+   "sequential_block_decisions": 96,
+   "first_menu_width": 97,
+   "max_menu_width": 97,
+   "predicted_A_times_B": 96
+  },
+  {
+   "attackers": 12,
+   "blockers": 12,
+   "sequential_block_decisions": 144,
+   "first_menu_width": 145,
+   "max_menu_width": 145,
+   "predicted_A_times_B": 144
+  },
+  {
+   "attackers": 12,
+   "blockers": 16,
+   "sequential_block_decisions": 192,
+   "first_menu_width": 193,
+   "max_menu_width": 193,
+   "predicted_A_times_B": 192
+  },
+  {
+   "attackers": 12,
+   "blockers": 20,
+   "sequential_block_decisions": 240,
+   "first_menu_width": 241,
+   "max_menu_width": 241,
+   "predicted_A_times_B": 240
+  },
+  {
+   "attackers": 12,
+   "blockers": 24,
+   "sequential_block_decisions": 288,
+   "first_menu_width": 289,
+   "max_menu_width": 289,
+   "predicted_A_times_B": 288
+  },
+  {
+   "attackers": 16,
+   "blockers": 1,
+   "sequential_block_decisions": 16,
+   "first_menu_width": 17,
+   "max_menu_width": 17,
+   "predicted_A_times_B": 16
+  },
+  {
+   "attackers": 16,
+   "blockers": 2,
+   "sequential_block_decisions": 32,
+   "first_menu_width": 33,
+   "max_menu_width": 33,
+   "predicted_A_times_B": 32
+  },
+  {
+   "attackers": 16,
+   "blockers": 4,
+   "sequential_block_decisions": 64,
+   "first_menu_width": 65,
+   "max_menu_width": 65,
+   "predicted_A_times_B": 64
+  },
+  {
+   "attackers": 16,
+   "blockers": 8,
+   "sequential_block_decisions": 128,
+   "first_menu_width": 129,
+   "max_menu_width": 129,
+   "predicted_A_times_B": 128
+  },
+  {
+   "attackers": 16,
+   "blockers": 12,
+   "sequential_block_decisions": 192,
+   "first_menu_width": 193,
+   "max_menu_width": 193,
+   "predicted_A_times_B": 192
+  },
+  {
+   "attackers": 16,
+   "blockers": 16,
+   "sequential_block_decisions": 256,
+   "first_menu_width": 257,
+   "max_menu_width": 257,
+   "predicted_A_times_B": 256
+  },
+  {
+   "attackers": 16,
+   "blockers": 20,
+   "sequential_block_decisions": 320,
+   "first_menu_width": 321,
+   "max_menu_width": 321,
+   "predicted_A_times_B": 320
+  },
+  {
+   "attackers": 16,
+   "blockers": 24,
+   "sequential_block_decisions": 384,
+   "first_menu_width": 385,
+   "max_menu_width": 385,
+   "predicted_A_times_B": 384
+  },
+  {
+   "attackers": 20,
+   "blockers": 1,
+   "sequential_block_decisions": 20,
+   "first_menu_width": 21,
+   "max_menu_width": 21,
+   "predicted_A_times_B": 20
+  },
+  {
+   "attackers": 20,
+   "blockers": 2,
+   "sequential_block_decisions": 40,
+   "first_menu_width": 41,
+   "max_menu_width": 41,
+   "predicted_A_times_B": 40
+  },
+  {
+   "attackers": 20,
+   "blockers": 4,
+   "sequential_block_decisions": 80,
+   "first_menu_width": 81,
+   "max_menu_width": 81,
+   "predicted_A_times_B": 80
+  },
+  {
+   "attackers": 20,
+   "blockers": 8,
+   "sequential_block_decisions": 160,
+   "first_menu_width": 161,
+   "max_menu_width": 161,
+   "predicted_A_times_B": 160
+  },
+  {
+   "attackers": 20,
+   "blockers": 12,
+   "sequential_block_decisions": 240,
+   "first_menu_width": 241,
+   "max_menu_width": 241,
+   "predicted_A_times_B": 240
+  },
+  {
+   "attackers": 20,
+   "blockers": 16,
+   "sequential_block_decisions": 220,
+   "first_menu_width": 321,
+   "max_menu_width": 321,
+   "predicted_A_times_B": 320
+  },
+  {
+   "attackers": 20,
+   "blockers": 20,
+   "sequential_block_decisions": 280,
+   "first_menu_width": 401,
+   "max_menu_width": 401,
+   "predicted_A_times_B": 400
+  },
+  {
+   "attackers": 20,
+   "blockers": 24,
+   "sequential_block_decisions": 340,
+   "first_menu_width": 481,
+   "max_menu_width": 481,
+   "predicted_A_times_B": 480
+  },
+  {
+   "attackers": 24,
+   "blockers": 1,
+   "sequential_block_decisions": 24,
+   "first_menu_width": 25,
+   "max_menu_width": 25,
+   "predicted_A_times_B": 24
+  },
+  {
+   "attackers": 24,
+   "blockers": 2,
+   "sequential_block_decisions": 48,
+   "first_menu_width": 49,
+   "max_menu_width": 49,
+   "predicted_A_times_B": 48
+  },
+  {
+   "attackers": 24,
+   "blockers": 4,
+   "sequential_block_decisions": 96,
+   "first_menu_width": 97,
+   "max_menu_width": 97,
+   "predicted_A_times_B": 96
+  },
+  {
+   "attackers": 24,
+   "blockers": 8,
+   "sequential_block_decisions": 192,
+   "first_menu_width": 193,
+   "max_menu_width": 193,
+   "predicted_A_times_B": 192
+  },
+  {
+   "attackers": 24,
+   "blockers": 12,
+   "sequential_block_decisions": 288,
+   "first_menu_width": 289,
+   "max_menu_width": 289,
+   "predicted_A_times_B": 288
+  },
+  {
+   "attackers": 24,
+   "blockers": 16,
+   "sequential_block_decisions": 264,
+   "first_menu_width": 385,
+   "max_menu_width": 385,
+   "predicted_A_times_B": 384
+  },
+  {
+   "attackers": 24,
+   "blockers": 20,
+   "sequential_block_decisions": 336,
+   "first_menu_width": 481,
+   "max_menu_width": 481,
+   "predicted_A_times_B": 480
+  },
+  {
+   "attackers": 24,
+   "blockers": 24,
+   "sequential_block_decisions": 408,
+   "first_menu_width": 577,
+   "max_menu_width": 577,
+   "predicted_A_times_B": 576
+  }
+ ],
+ "combat_sweep_seconds": 321.8
+}

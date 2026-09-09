@@ -1,0 +1,65 @@
+[
+ {
+  "attackers": 1,
+  "blockers": 1,
+  "menu_width": 2,
+  "get_legal_moves_ms_median": 0.408,
+  "get_legal_moves_ms_max": 0.605,
+  "entities": 214,
+  "relationships": 412
+ },
+ {
+  "attackers": 4,
+  "blockers": 4,
+  "menu_width": 17,
+  "get_legal_moves_ms_median": 1.033,
+  "get_legal_moves_ms_max": 1.372,
+  "entities": 214,
+  "relationships": 412
+ },
+ {
+  "attackers": 8,
+  "blockers": 8,
+  "menu_width": 65,
+  "get_legal_moves_ms_median": 3.323,
+  "get_legal_moves_ms_max": 3.766,
+  "entities": 214,
+  "relationships": 412
+ },
+ {
+  "attackers": 12,
+  "blockers": 12,
+  "menu_width": 145,
+  "get_legal_moves_ms_median": 6.596,
+  "get_legal_moves_ms_max": 7.169,
+  "entities": 214,
+  "relationships": 412
+ },
+ {
+  "attackers": 16,
+  "blockers": 16,
+  "menu_width": 257,
+  "get_legal_moves_ms_median": 10.705,
+  "get_legal_moves_ms_max": 11.003,
+  "entities": 214,
+  "relationships": 412
+ },
+ {
+  "attackers": 20,
+  "blockers": 20,
+  "menu_width": 401,
+  "get_legal_moves_ms_median": 16.07,
+  "get_legal_moves_ms_max": 17.335,
+  "entities": 214,
+  "relationships": 412
+ },
+ {
+  "attackers": 24,
+  "blockers": 24,
+  "menu_width": 577,
+  "get_legal_moves_ms_median": 22.773,
+  "get_legal_moves_ms_max": 24.681,
+  "entities": 214,
+  "relationships": 412
+ }
+]

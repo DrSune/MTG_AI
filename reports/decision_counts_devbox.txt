@@ -1,0 +1,686 @@
+--- Executing game_graph.py ---
+--- Executing engine.py ---
+{
+  "full_games": {
+    "n_games": 24,
+    "terminations": {
+      "win": 24
+    },
+    "decisions_per_game": {
+      "n": 24,
+      "min": 1632,
+      "p50": 2173,
+      "p90": 2533,
+      "p99": 2802,
+      "max": 2802,
+      "mean": 2199.3
+    },
+    "decisions_per_seat_per_game": {
+      "n": 48,
+      "min": 743,
+      "p50": 1077,
+      "p90": 1339,
+      "p99": 1603,
+      "max": 1603,
+      "mean": 1099.6
+    },
+    "turns_per_game": {
+      "n": 24,
+      "min": 128,
+      "p50": 181,
+      "p90": 185,
+      "p99": 185,
+      "max": 185,
+      "mean": 178.4
+    },
+    "decisions_per_turn": {
+      "n": 24,
+      "min": 9.34,
+      "p50": 12.29,
+      "p90": 14.15,
+      "p99": 15.31,
+      "max": 15.31,
+      "mean": 12.3
+    },
+    "forced_decisions": 18073,
+    "forced_fraction": 0.3424,
+    "by_chosen_class": {
+      "PassPriorityAction": 29034,
+      "ActivateManaAbilityAction": 19558,
+      "PassTurnAction": 3201,
+      "PlayLandAction": 445,
+      "CastSpellAction": 317,
+      "DeclareAttackerAction": 192,
+      "DeclareBlockerAction": 36
+    },
+    "by_chosen_class_pct": {
+      "PassPriorityAction": 55.0,
+      "ActivateManaAbilityAction": 37.1,
+      "PassTurnAction": 6.1,
+      "PlayLandAction": 0.8,
+      "CastSpellAction": 0.6,
+      "DeclareAttackerAction": 0.4,
+      "DeclareBlockerAction": 0.1
+    },
+    "by_step": {
+      "Untap Step": 14615,
+      "Upkeep Step": 9440,
+      "Draw Step": 6661,
+      "Pre-Combat Main Phase": 5690,
+      "Beginning of Combat Step": 2601,
+      "Declare Attackers Step": 2535,
+      "Declare Blockers Step": 2420,
+      "Post-Combat Main Phase": 2271,
+      "Combat Damage Step": 2213,
+      "End of Combat Step": 2165,
+      "End of Turn Step": 1099,
+      "Cleanup Step": 1073
+    },
+    "by_phase": {
+      "Beginning Phase": 30716,
+      "Combat Phase": 11934,
+      "Pre-Combat Main Phase": 5690,
+      "Post-Combat Main Phase": 2271,
+      "Ending Phase": 2172
+    },
+    "wall_seconds": 463.0,
+    "engine_ms_per_decision": 8.771
+  },
+  "forced": {
+    "overall_forced_pct": 34.2,
+    "by_step": [
+      {
+        "step": "Untap Step",
+        "decisions": 14615,
+        "forced": 1251,
+        "forced_pct": 8.6
+      },
+      {
+        "step": "Upkeep Step",
+        "decisions": 9440,
+        "forced": 2229,
+        "forced_pct": 23.6
+      },
+      {
+        "step": "Draw Step",
+        "decisions": 6661,
+        "forced": 2941,
+        "forced_pct": 44.2
+      },
+      {
+        "step": "Pre-Combat Main Phase",
+        "decisions": 5690,
+        "forced": 0,
+        "forced_pct": 0.0
+      },
+      {
+        "step": "Beginning of Combat Step",
+        "decisions": 2601,
+        "forced": 1794,
+        "forced_pct": 69.0
+      },
+      {
+        "step": "Declare Attackers Step",
+        "decisions": 2535,
+        "forced": 1794,
+        "forced_pct": 70.8
+      },
+      {
+        "step": "Declare Blockers Step",
+        "decisions": 2420,
+        "forced": 1907,
+        "forced_pct": 78.8
+      },
+      {
+        "step": "Post-Combat Main Phase",
+        "decisions": 2271,
+        "forced": 0,
+        "forced_pct": 0.0
+      },
+      {
+        "step": "Combat Damage Step",
+        "decisions": 2213,
+        "forced": 2022,
+        "forced_pct": 91.4
+      },
+      {
+        "step": "End of Combat Step",
+        "decisions": 2165,
+        "forced": 2060,
+        "forced_pct": 95.2
+      },
+      {
+        "step": "End of Turn Step",
+        "decisions": 1099,
+        "forced": 1030,
+        "forced_pct": 93.7
+      },
+      {
+        "step": "Cleanup Step",
+        "decisions": 1073,
+        "forced": 1045,
+        "forced_pct": 97.4
+      }
+    ],
+    "forced_by_chosen_class": {
+      "PassPriorityAction": 18073
+    }
+  },
+  "combat_sweep": [
+    {
+      "attackers": 1,
+      "blockers": 1,
+      "sequential_block_decisions": 1,
+      "first_menu_width": 2,
+      "max_menu_width": 2,
+      "predicted_A_times_B": 1
+    },
+    {
+      "attackers": 1,
+      "blockers": 2,
+      "sequential_block_decisions": 2,
+      "first_menu_width": 3,
+      "max_menu_width": 3,
+      "predicted_A_times_B": 2
+    },
+    {
+      "attackers": 1,
+      "blockers": 4,
+      "sequential_block_decisions": 4,
+      "first_menu_width": 5,
+      "max_menu_width": 5,
+      "predicted_A_times_B": 4
+    },
+    {
+      "attackers": 1,
+      "blockers": 8,
+      "sequential_block_decisions": 8,
+      "first_menu_width": 9,
+      "max_menu_width": 9,
+      "predicted_A_times_B": 8
+    },
+    {
+      "attackers": 1,
+      "blockers": 12,
+      "sequential_block_decisions": 12,
+      "first_menu_width": 13,
+      "max_menu_width": 13,
+      "predicted_A_times_B": 12
+    },
+    {
+      "attackers": 1,
+      "blockers": 16,
+      "sequential_block_decisions": 11,
+      "first_menu_width": 17,
+      "max_menu_width": 17,
+      "predicted_A_times_B": 16
+    },
+    {
+      "attackers": 1,
+      "blockers": 20,
+      "sequential_block_decisions": 14,
+      "first_menu_width": 21,
+      "max_menu_width": 21,
+      "predicted_A_times_B": 20
+    },
+    {
+      "attackers": 1,
+      "blockers": 24,
+      "sequential_block_decisions": 17,
+      "first_menu_width": 25,
+      "max_menu_width": 25,
+      "predicted_A_times_B": 24
+    },
+    {
+      "attackers": 2,
+      "blockers": 1,
+      "sequential_block_decisions": 2,
+      "first_menu_width": 3,
+      "max_menu_width": 3,
+      "predicted_A_times_B": 2
+    },
+    {
+      "attackers": 2,
+      "blockers": 2,
+      "sequential_block_decisions": 4,
+      "first_menu_width": 5,
+      "max_menu_width": 5,
+      "predicted_A_times_B": 4
+    },
+    {
+      "attackers": 2,
+      "blockers": 4,
+      "sequential_block_decisions": 8,
+      "first_menu_width": 9,
+      "max_menu_width": 9,
+      "predicted_A_times_B": 8
+    },
+    {
+      "attackers": 2,
+      "blockers": 8,
+      "sequential_block_decisions": 16,
+      "first_menu_width": 17,
+      "max_menu_width": 17,
+      "predicted_A_times_B": 16
+    },
+    {
+      "attackers": 2,
+      "blockers": 12,
+      "sequential_block_decisions": 24,
+      "first_menu_width": 25,
+      "max_menu_width": 25,
+      "predicted_A_times_B": 24
+    },
+    {
+      "attackers": 2,
+      "blockers": 16,
+      "sequential_block_decisions": 22,
+      "first_menu_width": 33,
+      "max_menu_width": 33,
+      "predicted_A_times_B": 32
+    },
+    {
+      "attackers": 2,
+      "blockers": 20,
+      "sequential_block_decisions": 28,
+      "first_menu_width": 41,
+      "max_menu_width": 41,
+      "predicted_A_times_B": 40
+    },
+    {
+      "attackers": 2,
+      "blockers": 24,
+      "sequential_block_decisions": 34,
+      "first_menu_width": 49,
+      "max_menu_width": 49,
+      "predicted_A_times_B": 48
+    },
+    {
+      "attackers": 4,
+      "blockers": 1,
+      "sequential_block_decisions": 4,
+      "first_menu_width": 5,
+      "max_menu_width": 5,
+      "predicted_A_times_B": 4
+    },
+    {
+      "attackers": 4,
+      "blockers": 2,
+      "sequential_block_decisions": 8,
+      "first_menu_width": 9,
+      "max_menu_width": 9,
+      "predicted_A_times_B": 8
+    },
+    {
+      "attackers": 4,
+      "blockers": 4,
+      "sequential_block_decisions": 16,
+      "first_menu_width": 17,
+      "max_menu_width": 17,
+      "predicted_A_times_B": 16
+    },
+    {
+      "attackers": 4,
+      "blockers": 8,
+      "sequential_block_decisions": 32,
+      "first_menu_width": 33,
+      "max_menu_width": 33,
+      "predicted_A_times_B": 32
+    },
+    {
+      "attackers": 4,
+      "blockers": 12,
+      "sequential_block_decisions": 48,
+      "first_menu_width": 49,
+      "max_menu_width": 49,
+      "predicted_A_times_B": 48
+    },
+    {
+      "attackers": 4,
+      "blockers": 16,
+      "sequential_block_decisions": 44,
+      "first_menu_width": 65,
+      "max_menu_width": 65,
+      "predicted_A_times_B": 64
+    },
+    {
+      "attackers": 4,
+      "blockers": 20,
+      "sequential_block_decisions": 56,
+      "first_menu_width": 81,
+      "max_menu_width": 81,
+      "predicted_A_times_B": 80
+    },
+    {
+      "attackers": 4,
+      "blockers": 24,
+      "sequential_block_decisions": 68,
+      "first_menu_width": 97,
+      "max_menu_width": 97,
+      "predicted_A_times_B": 96
+    },
+    {
+      "attackers": 8,
+      "blockers": 1,
+      "sequential_block_decisions": 8,
+      "first_menu_width": 9,
+      "max_menu_width": 9,
+      "predicted_A_times_B": 8
+    },
+    {
+      "attackers": 8,
+      "blockers": 2,
+      "sequential_block_decisions": 16,
+      "first_menu_width": 17,
+      "max_menu_width": 17,
+      "predicted_A_times_B": 16
+    },
+    {
+      "attackers": 8,
+      "blockers": 4,
+      "sequential_block_decisions": 32,
+      "first_menu_width": 33,
+      "max_menu_width": 33,
+      "predicted_A_times_B": 32
+    },
+    {
+      "attackers": 8,
+      "blockers": 8,
+      "sequential_block_decisions": 64,
+      "first_menu_width": 65,
+      "max_menu_width": 65,
+      "predicted_A_times_B": 64
+    },
+    {
+      "attackers": 8,
+      "blockers": 12,
+      "sequential_block_decisions": 96,
+      "first_menu_width": 97,
+      "max_menu_width": 97,
+      "predicted_A_times_B": 96
+    },
+    {
+      "attackers": 8,
+      "blockers": 16,
+      "sequential_block_decisions": 88,
+      "first_menu_width": 129,
+      "max_menu_width": 129,
+      "predicted_A_times_B": 128
+    },
+    {
+      "attackers": 8,
+      "blockers": 20,
+      "sequential_block_decisions": 112,
+      "first_menu_width": 161,
+      "max_menu_width": 161,
+      "predicted_A_times_B": 160
+    },
+    {
+      "attackers": 8,
+      "blockers": 24,
+      "sequential_block_decisions": 136,
+      "first_menu_width": 193,
+      "max_menu_width": 193,
+      "predicted_A_times_B": 192
+    },
+    {
+      "attackers": 12,
+      "blockers": 1,
+      "sequential_block_decisions": 12,
+      "first_menu_width": 13,
+      "max_menu_width": 13,
+      "predicted_A_times_B": 12
+    },
+    {
+      "attackers": 12,
+      "blockers": 2,
+      "sequential_block_decisions": 24,
+      "first_menu_width": 25,
+      "max_menu_width": 25,
+      "predicted_A_times_B": 24
+    },
+    {
+      "attackers": 12,
+      "blockers": 4,
+      "sequential_block_decisions": 48,
+      "first_menu_width": 49,
+      "max_menu_width": 49,
+      "predicted_A_times_B": 48
+    },
+    {
+      "attackers": 12,
+      "blockers": 8,
+      "sequential_block_decisions": 96,
+      "first_menu_width": 97,
+      "max_menu_width": 97,
+      "predicted_A_times_B": 96
+    },
+    {
+      "attackers": 12,
+      "blockers": 12,
+      "sequential_block_decisions": 144,
+      "first_menu_width": 145,
+      "max_menu_width": 145,
+      "predicted_A_times_B": 144
+    },
+    {
+      "attackers": 12,
+      "blockers": 16,
+      "sequential_block_decisions": 192,
+      "first_menu_width": 193,
+      "max_menu_width": 193,
+      "predicted_A_times_B": 192
+    },
+    {
+      "attackers": 12,
+      "blockers": 20,
+      "sequential_block_decisions": 240,
+      "first_menu_width": 241,
+      "max_menu_width": 241,
+      "predicted_A_times_B": 240
+    },
+    {
+      "attackers": 12,
+      "blockers": 24,
+      "sequential_block_decisions": 288,
+      "first_menu_width": 289,
+      "max_menu_width": 289,
+      "predicted_A_times_B": 288
+    },
+    {
+      "attackers": 16,
+      "blockers": 1,
+      "sequential_block_decisions": 16,
+      "first_menu_width": 17,
+      "max_menu_width": 17,
+      "predicted_A_times_B": 16
+    },
+    {
+      "attackers": 16,
+      "blockers": 2,
+      "sequential_block_decisions": 32,
+      "first_menu_width": 33,
+      "max_menu_width": 33,
+      "predicted_A_times_B": 32
+    },
+    {
+      "attackers": 16,
+      "blockers": 4,
+      "sequential_block_decisions": 64,
+      "first_menu_width": 65,
+      "max_menu_width": 65,
+      "predicted_A_times_B": 64
+    },
+    {
+      "attackers": 16,
+      "blockers": 8,
+      "sequential_block_decisions": 128,
+      "first_menu_width": 129,
+      "max_menu_width": 129,
+      "predicted_A_times_B": 128
+    },
+    {
+      "attackers": 16,
+      "blockers": 12,
+      "sequential_block_decisions": 192,
+      "first_menu_width": 193,
+      "max_menu_width": 193,
+      "predicted_A_times_B": 192
+    },
+    {
+      "attackers": 16,
+      "blockers": 16,
+      "sequential_block_decisions": 256,
+      "first_menu_width": 257,
+      "max_menu_width": 257,
+      "predicted_A_times_B": 256
+    },
+    {
+      "attackers": 16,
+      "blockers": 20,
+      "sequential_block_decisions": 320,
+      "first_menu_width": 321,
+      "max_menu_width": 321,
+      "predicted_A_times_B": 320
+    },
+    {
+      "attackers": 16,
+      "blockers": 24,
+      "sequential_block_decisions": 384,
+      "first_menu_width": 385,
+      "max_menu_width": 385,
+      "predicted_A_times_B": 384
+    },
+    {
+      "attackers": 20,
+      "blockers": 1,
+      "sequential_block_decisions": 20,
+      "first_menu_width": 21,
+      "max_menu_width": 21,
+      "predicted_A_times_B": 20
+    },
+    {
+      "attackers": 20,
+      "blockers": 2,
+      "sequential_block_decisions": 40,
+      "first_menu_width": 41,
+      "max_menu_width": 41,
+      "predicted_A_times_B": 40
+    },
+    {
+      "attackers": 20,
+      "blockers": 4,
+      "sequential_block_decisions": 80,
+      "first_menu_width": 81,
+      "max_menu_width": 81,
+      "predicted_A_times_B": 80
+    },
+    {
+      "attackers": 20,
+      "blockers": 8,
+      "sequential_block_decisions": 160,
+      "first_menu_width": 161,
+      "max_menu_width": 161,
+      "predicted_A_times_B": 160
+    },
+    {
+      "attackers": 20,
+      "blockers": 12,
+      "sequential_block_decisions": 240,
+      "first_menu_width": 241,
+      "max_menu_width": 241,
+      "predicted_A_times_B": 240
+    },
+    {
+      "attackers": 20,
+      "blockers": 16,
+      "sequential_block_decisions": 220,
+      "first_menu_width": 321,
+      "max_menu_width": 321,
+      "predicted_A_times_B": 320
+    },
+    {
+      "attackers": 20,
+      "blockers": 20,
+      "sequential_block_decisions": 280,
+      "first_menu_width": 401,
+      "max_menu_width": 401,
+      "predicted_A_times_B": 400
+    },
+    {
+      "attackers": 20,
+      "blockers": 24,
+      "sequential_block_decisions": 340,
+      "first_menu_width": 481,
+      "max_menu_width": 481,
+      "predicted_A_times_B": 480
+    },
+    {
+      "attackers": 24,
+      "blockers": 1,
+      "sequential_block_decisions": 24,
+      "first_menu_width": 25,
+      "max_menu_width": 25,
+      "predicted_A_times_B": 24
+    },
+    {
+      "attackers": 24,
+      "blockers": 2,
+      "sequential_block_decisions": 48,
+      "first_menu_width": 49,
+      "max_menu_width": 49,
+      "predicted_A_times_B": 48
+    },
+    {
+      "attackers": 24,
+      "blockers": 4,
+      "sequential_block_decisions": 96,
+      "first_menu_width": 97,
+      "max_menu_width": 97,
+      "predicted_A_times_B": 96
+    },
+    {
+      "attackers": 24,
+      "blockers": 8,
+      "sequential_block_decisions": 192,
+      "first_menu_width": 193,
+      "max_menu_width": 193,
+      "predicted_A_times_B": 192
+    },
+    {
+      "attackers": 24,
+      "blockers": 12,
+      "sequential_block_decisions": 288,
+      "first_menu_width": 289,
+      "max_menu_width": 289,
+      "predicted_A_times_B": 288
+    },
+    {
+      "attackers": 24,
+      "blockers": 16,
+      "sequential_block_decisions": 264,
+      "first_menu_width": 385,
+      "max_menu_width": 385,
+      "predicted_A_times_B": 384
+    },
+    {
+      "attackers": 24,
+      "blockers": 20,
+      "sequential_block_decisions": 336,
+      "first_menu_width": 481,
+      "max_menu_width": 481,
+      "predicted_A_times_B": 480
+    },
+    {
+      "attackers": 24,
+      "blockers": 24,
+      "sequential_block_decisions": 408,
+      "first_menu_width": 577,
+      "max_menu_width": 577,
+      "predicted_A_times_B": 576
+    }
+  ],
+  "combat_sweep_seconds": 321.8
+}
+
+wrote reports\decision_counts_devbox.json

@@ -63,6 +63,12 @@ class DeckGenerator:
             deck_size = 60
             max_copies = 4
         
+        # The accumulating decklist. This was missing entirely, so the first
+        # `deck.append(...)` below raised NameError and MTGEnv.reset() was dead for
+        # every format. Only reset_with_decks worked, which is why the training loop
+        # ran and nothing else did.
+        deck: List[int] = []
+
         # 2. Get Color Identity
         colors = set()
         seeds = []

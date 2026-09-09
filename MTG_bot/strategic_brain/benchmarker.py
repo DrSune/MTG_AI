@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import json
 from typing import List, Dict, Any
 from .environment import MTGEnv
@@ -10,14 +11,25 @@ class Benchmarker:
     Evaluates Student performance across standardized scenario levels.
     Supports Fractional Scoring (Reward Function Delta) and Concept Tagging.
     """
-    def __init__(self, env: MTGEnv):
+    # Repo-relative, resolved from this file. It used to be the literal string
+    # "MTG_bot/scenarios/M21", so evaluation silently returned {"error": ...} from any
+    # working directory other than the repo root, and the set was hardcoded.
+    _REPO_ROOT = Path(__file__).resolve().parents[2]
+
+    def __init__(self, env: MTGEnv, set_code: str = "M21"):
         self.env = env
-        self.scenario_root = "MTG_bot/scenarios/M21"
+        self.set_code = set_code
+        self.scenario_root = self._REPO_ROOT / "MTG_bot" / "scenarios" / set_code
 
     def run_level_evaluation(self, student: Student, level: int, current_format: str) -> Dict[str, Any]:
         level_dir = os.path.join(self.scenario_root, f"level_{level}")
         if not os.path.exists(level_dir):
-            return {"error": f"Level {level} directory not found."}
+            # Loud, not silent. A missing scenario corpus used to look like a score of 0,
+            # which is indistinguishable from a policy that solved nothing.
+            raise FileNotFoundError(
+                f"Scenario level {level} not found at {level_dir}. "
+                f"Set code is {self.set_code!r}."
+            )
 
         results = {"total_puzzles": 0, "total_score": 0.0, "scenarios": []}
         
@@ -102,8 +114,12 @@ class Benchmarker:
         obs = self.env._get_obs()
         
         while not done and steps < 5:
-            # select_action returns (tokens, value, log_prob, memory, thoughts)
-            action, _, _, _, _ = student.select_action(obs, deterministic=True)
+            # select_action returns an 8-tuple:
+            #   (action_idx, value, log_prob, memory, thoughts, plan, plan_queries, rnn_state)
+            # This used to unpack 5 and raised ValueError on the first call, which meant the
+            # only play-mode path in the repo had never executed. Unpack positionally so a
+            # future change to the tail of the tuple does not break it again.
+            action = student.select_action(obs, deterministic=True)[0]
             obs, _, done, _ = self.env.step(action)
             
             # Calculate current proximity to goal

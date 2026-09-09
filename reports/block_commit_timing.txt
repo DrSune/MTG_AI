@@ -1,0 +1,4 @@
+--- Executing game_graph.py ---
+--- Executing engine.py ---
+{"board": "8x8", "sequential_decisions": 64, "engine_only_seconds": 1.76, "ms_per_decision": 27.51}
+{"board": "16x16", "sequential_decisions": 256, "engine_only_seconds": 19.12, "ms_per_decision": 74.69}

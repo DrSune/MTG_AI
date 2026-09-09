@@ -84,6 +84,79 @@ outright. Parked in [`BACKLOG.md`](BACKLOG.md).
 If experts are ever wanted, the correct axis is mechanical function, and that falls out of the
 ability tree via attention without needing to be declared.
 
+## D8 — Train small first, then scale, and inherit representations rather than policy
+**2026-09-10. Owner proposed; agent agrees with one significant qualification.**
+
+The owner: *"we train a small model, fast, then we scale up, and can even use it to 'distill'
+knowledge using it as a teacher, to kickstart the bigger models learning (unless we are afraid it
+will teach it wrong things that makes it go permanently down the wrong track)."*
+
+Train small first: **yes, unambiguously.** Throughput scales inversely with size, and until the
+engine is correct and the evaluation is honest, games are worth more than capacity.
+
+The worry about teaching the wrong things is **well founded, and it has a specific mechanism.**
+Distillation produces low-entropy outputs, because the student is trained to reproduce a
+distribution the teacher was already confident about. Low entropy means little exploration. Little
+exploration means the teacher's errors are never visited, never punished, and never corrected. The
+student ends up confidently wrong in exactly the places the teacher was wrong, and reinforcement
+learning afterwards does not fix it because the policy no longer generates the experience that
+would. That is the "permanently down the wrong track" failure, and it is real.
+
+**The qualification: what you transfer decides whether the risk applies.**
+
+| what is transferred | risk | why |
+|---|---|---|
+| **Representations** (board encoder, card and ability-tree encoding) | **low** | Close to a perception problem with a right answer. What a card does and what is on the table are not opinions. A weak player still sees the board correctly. |
+| Value function | medium | Encodes the teacher's evaluation errors, but is continuously corrected by real outcomes during RL. |
+| **Policy** (the action distribution) | **high** | This is exactly where the teacher's strategic errors and exploration blind spots live. Copying it is copying its ceiling. |
+
+The two-tier architecture in [`COST_MODEL.md`](COST_MODEL.md) makes this boundary **architectural
+rather than a matter of judgement**, which is a genuine piece of luck. Tier A is board
+understanding and is safe to inherit. Tier C is where the strategy lives and should be
+reinitialised. So the plan is:
+
+1. Train the small model to a decent standard.
+2. Scale up by **inheriting tier A weights** and reinitialising the decision head, rather than by
+   distilling the policy.
+3. Keep the small model **in the opponent league**, so the large model is rewarded for beating it
+   rather than for imitating it. That signal actively punishes copying, which pure distillation
+   cannot do.
+4. If policy distillation is used at all, use it as a short initialisation with an **entropy floor
+   afterwards**, never as a converged target.
+
+**The gate that makes this checkable:** the student must exceed the teacher's Elo within a stated
+number of generations. If it plateaus *at* the teacher's level, the transfer became a cap rather
+than a kickstart, and the run should be restarted without it. Log the gap every evaluation.
+
+## D9 — Decision count is monitored, not estimated
+**2026-09-10. Owner redirected an in-flight analysis.**
+
+The owner: *"decision count is easier to estimate once we actually have built the game engine, and
+have some complex scenarios actually play out. I think we monitor it during some of our trainings,
+and try to use those numbers for having some proof on it."*
+
+Right, and it kills a piece of speculative work. An upfront combinatorial bound on the adversarial
+worst case would have been an argument, not evidence, and the current engine cannot produce
+evidence because its action space is degenerate (median 1 legal action). So:
+
+- **Decisions per game per seat becomes a tier-1 monitored metric**, tracked every training run,
+  reported at median, p99 and max, broken down by phase and action class.
+- The adversarial question stays live as a **regression gate** rather than an analysis: if the
+  measured p99 climbs past the clock budget, that is the alarm.
+- The one structural finding that motivated it stands on its own and does not need the analysis:
+  block declaration currently emits one action per attacker-blocker pair, so a combinatorial
+  assignment becomes N sequential model calls. Collapsing that into one structured decision is
+  already required by [`DESIGN_ACTION_SPACE.md`](DESIGN_ACTION_SPACE.md).
+
+## D10 — Train against a hard-loss clock
+**2026-09-10. Agent recommendation, owner has not yet ruled.**
+
+Full reasoning in [`CLOCK_TARGETS.md`](CLOCK_TARGETS.md). A policy trained under a hard-loss
+per-player chess clock is safe under every more forgiving environment; the reverse is not true,
+because a policy trained where timing out yields a draw learns that stalling when behind is
+correct, and that loses outright elsewhere. Adopting the harsh contract means the deployment-target
+question does not have to be answered now.
+
 ---
 
 ## Measurements that decisions rest on
@@ -207,7 +280,9 @@ at current model sizes. Circular.
 
 ## Deferred pending information
 
-**The deployment target's clock is unknown**, and it changes the arithmetic. Everything in
+**The deployment target's clock is unknown**, and it changes the arithmetic. **Superseded in
+practice by D10**, which makes the choice unnecessary for now. Kept here because it returns if
+paper Commander becomes the deployment target. Everything in
 [`DESIGN_LATENCY.md`](DESIGN_LATENCY.md) §1 assumes paper tournament rules. A bot on Arena faces a
 per-priority rope plus a match reserve. A bot on Magic Online faces a per-player chess clock with
 **no five-additional-turns mercy**, which is materially harsher and removes the draw-versus-loss

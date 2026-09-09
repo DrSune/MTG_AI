@@ -1,0 +1,493 @@
+{
+ "full_games": {
+  "n_games": 8,
+  "terminations": {
+   "win": 8
+  },
+  "decisions_per_game": {
+   "n": 8,
+   "min": 1727,
+   "p50": 2317,
+   "p90": 2533,
+   "p99": 2655,
+   "max": 2655,
+   "mean": 2241.4
+  },
+  "decisions_per_seat_per_game": {
+   "n": 16,
+   "min": 813,
+   "p50": 1083,
+   "p90": 1456,
+   "p99": 1572,
+   "max": 1572,
+   "mean": 1120.7
+  },
+  "turns_per_game": {
+   "n": 8,
+   "min": 170,
+   "p50": 180,
+   "p90": 184,
+   "p99": 185,
+   "max": 185,
+   "mean": 179.8
+  },
+  "decisions_per_turn": {
+   "n": 8,
+   "min": 9.34,
+   "p50": 12.59,
+   "p90": 14.15,
+   "p99": 14.43,
+   "max": 14.43,
+   "mean": 12.5
+  },
+  "forced_decisions": 6084,
+  "forced_fraction": 0.3393,
+  "by_chosen_class": {
+   "PassPriorityAction": 9803,
+   "ActivateManaAbilityAction": 6691,
+   "PassTurnAction": 1071,
+   "PlayLandAction": 159,
+   "CastSpellAction": 108,
+   "DeclareAttackerAction": 80,
+   "DeclareBlockerAction": 19
+  },
+  "by_chosen_class_pct": {
+   "PassPriorityAction": 54.7,
+   "ActivateManaAbilityAction": 37.3,
+   "PassTurnAction": 6.0,
+   "PlayLandAction": 0.9,
+   "CastSpellAction": 0.6,
+   "DeclareAttackerAction": 0.4,
+   "DeclareBlockerAction": 0.1
+  },
+  "by_step": {
+   "Untap Step": 4955,
+   "Upkeep Step": 3213,
+   "Draw Step": 2253,
+   "Pre-Combat Main Phase": 1919,
+   "Beginning of Combat Step": 890,
+   "Declare Attackers Step": 888,
+   "Declare Blockers Step": 814,
+   "Post-Combat Main Phase": 767,
+   "Combat Damage Step": 760,
+   "End of Combat Step": 731,
+   "End of Turn Step": 375,
+   "Cleanup Step": 366
+  },
+  "by_phase": {
+   "Beginning Phase": 10421,
+   "Combat Phase": 4083,
+   "Pre-Combat Main Phase": 1919,
+   "Post-Combat Main Phase": 767,
+   "Ending Phase": 741
+  },
+  "wall_seconds": 155.6,
+  "engine_ms_per_decision": 8.677
+ },
+ "forced": {
+  "overall_forced_pct": 33.9,
+  "by_step": [
+   {
+    "step": "Untap Step",
+    "decisions": 4955,
+    "forced": 447,
+    "forced_pct": 9.0
+   },
+   {
+    "step": "Upkeep Step",
+    "decisions": 3213,
+    "forced": 742,
+    "forced_pct": 23.1
+   },
+   {
+    "step": "Draw Step",
+    "decisions": 2253,
+    "forced": 979,
+    "forced_pct": 43.5
+   },
+   {
+    "step": "Pre-Combat Main Phase",
+    "decisions": 1919,
+    "forced": 0,
+    "forced_pct": 0.0
+   },
+   {
+    "step": "Beginning of Combat Step",
+    "decisions": 890,
+    "forced": 593,
+    "forced_pct": 66.6
+   },
+   {
+    "step": "Declare Attackers Step",
+    "decisions": 888,
+    "forced": 590,
+    "forced_pct": 66.4
+   },
+   {
+    "step": "Declare Blockers Step",
+    "decisions": 814,
+    "forced": 638,
+    "forced_pct": 78.4
+   },
+   {
+    "step": "Post-Combat Main Phase",
+    "decisions": 767,
+    "forced": 0,
+    "forced_pct": 0.0
+   },
+   {
+    "step": "Combat Damage Step",
+    "decisions": 760,
+    "forced": 687,
+    "forced_pct": 90.4
+   },
+   {
+    "step": "End of Combat Step",
+    "decisions": 731,
+    "forced": 699,
+    "forced_pct": 95.6
+   },
+   {
+    "step": "End of Turn Step",
+    "decisions": 375,
+    "forced": 352,
+    "forced_pct": 93.9
+   },
+   {
+    "step": "Cleanup Step",
+    "decisions": 366,
+    "forced": 357,
+    "forced_pct": 97.5
+   }
+  ],
+  "forced_by_chosen_class": {
+   "PassPriorityAction": 6084
+  }
+ },
+ "per_game": [
+  {
+   "game": 0,
+   "n_decisions": 2417,
+   "per_seat": {
+    "0": 1444,
+    "1": 973
+   },
+   "turns": 180,
+   "termination": "win",
+   "forced_decisions": 711,
+   "by_class": {
+    "PassPriorityAction": 1160,
+    "PassTurnAction": 145,
+    "PlayLandAction": 26,
+    "ActivateManaAbilityAction": 1068,
+    "CastSpellAction": 15,
+    "DeclareAttackerAction": 3
+   },
+   "by_step": {
+    "Untap Step": 781,
+    "Upkeep Step": 466,
+    "Draw Step": 275,
+    "Pre-Combat Main Phase": 240,
+    "Beginning of Combat Step": 115,
+    "Declare Attackers Step": 111,
+    "Declare Blockers Step": 95,
+    "Combat Damage Step": 87,
+    "End of Combat Step": 84,
+    "Post-Combat Main Phase": 93,
+    "End of Turn Step": 36,
+    "Cleanup Step": 34
+   },
+   "by_phase": {
+    "Beginning Phase": 1522,
+    "Pre-Combat Main Phase": 240,
+    "Combat Phase": 492,
+    "Post-Combat Main Phase": 93,
+    "Ending Phase": 70
+   }
+  },
+  {
+   "game": 1,
+   "n_decisions": 2099,
+   "per_seat": {
+    "1": 993,
+    "0": 1106
+   },
+   "turns": 179,
+   "termination": "win",
+   "forced_decisions": 707,
+   "by_class": {
+    "PassPriorityAction": 1161,
+    "PassTurnAction": 135,
+    "PlayLandAction": 19,
+    "ActivateManaAbilityAction": 757,
+    "CastSpellAction": 19,
+    "DeclareAttackerAction": 7,
+    "DeclareBlockerAction": 1
+   },
+   "by_step": {
+    "Untap Step": 560,
+    "Upkeep Step": 388,
+    "Draw Step": 306,
+    "Pre-Combat Main Phase": 248,
+    "Beginning of Combat Step": 89,
+    "Declare Attackers Step": 93,
+    "Declare Blockers Step": 81,
+    "Combat Damage Step": 81,
+    "End of Combat Step": 80,
+    "Post-Combat Main Phase": 82,
+    "End of Turn Step": 48,
+    "Cleanup Step": 43
+   },
+   "by_phase": {
+    "Beginning Phase": 1254,
+    "Pre-Combat Main Phase": 248,
+    "Combat Phase": 424,
+    "Post-Combat Main Phase": 82,
+    "Ending Phase": 91
+   }
+  },
+  {
+   "game": 2,
+   "n_decisions": 2533,
+   "per_seat": {
+    "0": 1456,
+    "1": 1077
+   },
+   "turns": 179,
+   "termination": "win",
+   "forced_decisions": 728,
+   "by_class": {
+    "PassPriorityAction": 1246,
+    "PassTurnAction": 136,
+    "PlayLandAction": 21,
+    "ActivateManaAbilityAction": 1095,
+    "CastSpellAction": 14,
+    "DeclareAttackerAction": 21
+   },
+   "by_step": {
+    "Untap Step": 733,
+    "Upkeep Step": 458,
+    "Draw Step": 331,
+    "Pre-Combat Main Phase": 255,
+    "Beginning of Combat Step": 117,
+    "Declare Attackers Step": 129,
+    "Declare Blockers Step": 112,
+    "Combat Damage Step": 105,
+    "End of Combat Step": 97,
+    "Post-Combat Main Phase": 106,
+    "End of Turn Step": 46,
+    "Cleanup Step": 44
+   },
+   "by_phase": {
+    "Beginning Phase": 1522,
+    "Pre-Combat Main Phase": 255,
+    "Combat Phase": 560,
+    "Post-Combat Main Phase": 106,
+    "Ending Phase": 90
+   }
+  },
+  {
+   "game": 3,
+   "n_decisions": 2655,
+   "per_seat": {
+    "0": 1572,
+    "1": 1083
+   },
+   "turns": 184,
+   "termination": "win",
+   "forced_decisions": 761,
+   "by_class": {
+    "PassPriorityAction": 1331,
+    "PlayLandAction": 23,
+    "ActivateManaAbilityAction": 1112,
+    "PassTurnAction": 133,
+    "CastSpellAction": 12,
+    "DeclareAttackerAction": 31,
+    "DeclareBlockerAction": 13
+   },
+   "by_step": {
+    "Untap Step": 742,
+    "Upkeep Step": 493,
+    "Draw Step": 324,
+    "Pre-Combat Main Phase": 260,
+    "Beginning of Combat Step": 144,
+    "Declare Attackers Step": 145,
+    "Declare Blockers Step": 128,
+    "Combat Damage Step": 104,
+    "End of Combat Step": 106,
+    "Post-Combat Main Phase": 107,
+    "End of Turn Step": 52,
+    "Cleanup Step": 50
+   },
+   "by_phase": {
+    "Beginning Phase": 1559,
+    "Pre-Combat Main Phase": 260,
+    "Combat Phase": 627,
+    "Post-Combat Main Phase": 107,
+    "Ending Phase": 102
+   }
+  },
+  {
+   "game": 4,
+   "n_decisions": 1727,
+   "per_seat": {
+    "1": 813,
+    "0": 914
+   },
+   "turns": 185,
+   "termination": "win",
+   "forced_decisions": 877,
+   "by_class": {
+    "PassPriorityAction": 1224,
+    "PassTurnAction": 137,
+    "PlayLandAction": 10,
+    "ActivateManaAbilityAction": 352,
+    "CastSpellAction": 4
+   },
+   "by_step": {
+    "Untap Step": 375,
+    "Upkeep Step": 279,
+    "Draw Step": 219,
+    "Pre-Combat Main Phase": 208,
+    "Beginning of Combat Step": 97,
+    "Declare Attackers Step": 92,
+    "Declare Blockers Step": 92,
+    "Combat Damage Step": 90,
+    "End of Combat Step": 90,
+    "Post-Combat Main Phase": 91,
+    "End of Turn Step": 47,
+    "Cleanup Step": 47
+   },
+   "by_phase": {
+    "Beginning Phase": 873,
+    "Pre-Combat Main Phase": 208,
+    "Combat Phase": 461,
+    "Post-Combat Main Phase": 91,
+    "Ending Phase": 94
+   }
+  },
+  {
+   "game": 5,
+   "n_decisions": 2317,
+   "per_seat": {
+    "0": 1144,
+    "1": 1173
+   },
+   "turns": 184,
+   "termination": "win",
+   "forced_decisions": 791,
+   "by_class": {
+    "PassPriorityAction": 1271,
+    "PassTurnAction": 134,
+    "PlayLandAction": 23,
+    "ActivateManaAbilityAction": 867,
+    "CastSpellAction": 9,
+    "DeclareAttackerAction": 11,
+    "DeclareBlockerAction": 2
+   },
+   "by_step": {
+    "Untap Step": 628,
+    "Upkeep Step": 383,
+    "Draw Step": 315,
+    "Pre-Combat Main Phase": 249,
+    "Beginning of Combat Step": 121,
+    "Declare Attackers Step": 117,
+    "Declare Blockers Step": 105,
+    "Combat Damage Step": 102,
+    "End of Combat Step": 96,
+    "Post-Combat Main Phase": 100,
+    "End of Turn Step": 50,
+    "Cleanup Step": 51
+   },
+   "by_phase": {
+    "Beginning Phase": 1326,
+    "Pre-Combat Main Phase": 249,
+    "Combat Phase": 541,
+    "Post-Combat Main Phase": 100,
+    "Ending Phase": 101
+   }
+  },
+  {
+   "game": 6,
+   "n_decisions": 2090,
+   "per_seat": {
+    "0": 1105,
+    "1": 985
+   },
+   "turns": 170,
+   "termination": "win",
+   "forced_decisions": 752,
+   "by_class": {
+    "PassPriorityAction": 1190,
+    "PassTurnAction": 120,
+    "PlayLandAction": 20,
+    "ActivateManaAbilityAction": 736,
+    "CastSpellAction": 18,
+    "DeclareAttackerAction": 4,
+    "DeclareBlockerAction": 2
+   },
+   "by_step": {
+    "Untap Step": 568,
+    "Upkeep Step": 381,
+    "Draw Step": 237,
+    "Pre-Combat Main Phase": 226,
+    "Beginning of Combat Step": 99,
+    "Declare Attackers Step": 97,
+    "Declare Blockers Step": 100,
+    "Combat Damage Step": 97,
+    "End of Combat Step": 87,
+    "Post-Combat Main Phase": 96,
+    "End of Turn Step": 51,
+    "Cleanup Step": 51
+   },
+   "by_phase": {
+    "Beginning Phase": 1186,
+    "Pre-Combat Main Phase": 226,
+    "Combat Phase": 480,
+    "Post-Combat Main Phase": 96,
+    "Ending Phase": 102
+   }
+  },
+  {
+   "game": 7,
+   "n_decisions": 2093,
+   "per_seat": {
+    "0": 1020,
+    "1": 1073
+   },
+   "turns": 177,
+   "termination": "win",
+   "forced_decisions": 757,
+   "by_class": {
+    "PassPriorityAction": 1220,
+    "PlayLandAction": 17,
+    "PassTurnAction": 131,
+    "ActivateManaAbilityAction": 704,
+    "CastSpellAction": 17,
+    "DeclareAttackerAction": 3,
+    "DeclareBlockerAction": 1
+   },
+   "by_step": {
+    "Untap Step": 568,
+    "Upkeep Step": 365,
+    "Draw Step": 246,
+    "Pre-Combat Main Phase": 233,
+    "Beginning of Combat Step": 108,
+    "Declare Attackers Step": 104,
+    "Declare Blockers Step": 101,
+    "Combat Damage Step": 94,
+    "End of Combat Step": 91,
+    "Post-Combat Main Phase": 92,
+    "End of Turn Step": 45,
+    "Cleanup Step": 46
+   },
+   "by_phase": {
+    "Beginning Phase": 1179,
+    "Pre-Combat Main Phase": 233,
+    "Combat Phase": 498,
+    "Post-Combat Main Phase": 92,
+    "Ending Phase": 91
+   }
+  }
+ ]
+}

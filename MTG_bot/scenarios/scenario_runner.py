@@ -112,7 +112,7 @@ class ScenarioRunner:
         print("="*30)
         passed = 0
         for name, success in results:
-            status = "✅ PASS" if success else "❌ FAIL"
+            status = "PASS" if success else "FAIL"
             print(f"{name}: {status}")
             if success:
                 passed += 1
