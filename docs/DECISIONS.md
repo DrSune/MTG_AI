@@ -157,6 +157,81 @@ because a policy trained where timing out yields a draw learns that stalling whe
 correct, and that loses outright elsewhere. Adopting the harsh contract means the deployment-target
 question does not have to be answered now.
 
+## D11 — Two halting decisions, both learned, neither scheduled
+**2026-09-10. Owner instruction.**
+
+The owner: *"we should do like with LLM training, where we dont force it to reason. If it is sure
+of its plan the first round it can just simply act the steps it had planned for that turn.
+Thinking should be discovered with logic to reason about next turns, missed risks, alternative
+plans, critique its own plan etc etc."*
+
+That names **two separate halting decisions**, and they have different shapes. Both are learned;
+neither is a fixed count.
+
+| | Question | Granularity | Mechanism |
+|---|---|---|---|
+| **Within a decision** | think again, or commit? | one priority window | Interruptible. The halting head in [`DESIGN_LATENCY.md`](DESIGN_LATENCY.md) §3.3, trained as a sampled policy action. |
+| **Across decisions** | is the plan I already made still good, or do I re-plan? | several priority windows | A contract. The agent commits to executing the next steps of an existing plan without a fresh trunk forward. |
+
+The second one is new, and it is the more valuable of the two. It is simultaneously the owner's
+cognitive framing ("if it is sure of its plan, just act the steps") and the compute amortiser in
+[`DESIGN_LATENCY.md`](DESIGN_LATENCY.md) §2.4. Executing K planned steps from one expensive forward
+pass divides the trunk cost by K. **The thing that makes the agent feel decisive is the same thing
+that makes it fast**, which is a rare alignment and should be exploited rather than treated as two
+features.
+
+Three constraints on the commitment mechanism:
+
+- **It must be verified, not trusted.** A plan made before the opponent responds can be invalidated
+  by anything that changes the board. Cheap check first: if the legal-action set or the board hash
+  changed materially, the plan is void and the trunk re-runs. That check costs almost nothing
+  against a trunk forward.
+- **Committing must be a learned action with a real cost, not a heuristic.** The agent chooses to
+  commit; it is not committed for it. If the plan turns out wrong, the loss it causes is the
+  penalty, exactly as with the clock bank. No authored penalty term.
+- **Never let commitment hide a mistake.** Log plan-abandonment rate and executed-plan length.
+  A rising commitment rate with a falling win rate is a policy trading correctness for speed, and
+  that pair belongs in the review protocol's precedence table.
+
+**What a reasoning pass should do** is the owner's other point, and the answer is not to schedule
+it. Do not hardcode "pass one is critique, pass two is alternatives". Give the pass what it needs
+to play any of those roles, which is attention over its own current plan, the board, and its own
+uncertainty, and let the role be learned. A pass that can see its own draft plan can learn to
+critique it; a pass that cannot see it can only re-derive it.
+
+## D12 — Build the small, fast configuration first
+**2026-09-10. Owner instruction, consistent with D5 and D8.**
+
+The owner: *"Moving the bulk of the information to board encoder and making planner focus on just
+acting and reasoning sounds good. We do this first to have fast iteration speed and we see how good
+it becomes."*
+
+Confirms the budget rule in [`COST_MODEL.md`](COST_MODEL.md): depth goes in the board encoder where
+it is read once and cached; the plan and reasoning loops stay narrow because everything inside them
+is charged once per iteration. Start at the v0.5 shape, roughly 150M parameters, and scale only when
+the win-rate curve against the league flattens.
+
+## D13 — Time pressure is a feature, and its absence is the ablation
+**2026-09-10. Owner idea, adopted.**
+
+The owner: *"I wonder if we could have a better model if it isnt forced to think quickly, but I
+guess we could simulate that by letting it know it has max time at every decision it must take, or
+by having some token representing it isnt under time pressure EVER in that game."*
+
+Adopt the second form. The clock enters the observation as a feature, and **a distinguished
+no-time-pressure value is part of its range**. That gives three things for one mechanism:
+
+1. Training under a real clock, which is the deployment condition.
+2. An **unlimited-time evaluation mode**, by setting the feature to its no-pressure value. The gap
+   between clocked and unclocked play is then a directly measured number: *the price of the clock*.
+   Nothing in the repo can currently measure that.
+3. A guard against the clock becoming a crutch. If unclocked play is not better than clocked play,
+   the agent is not actually using extra thinking time and the whole adaptive-compute programme is
+   not paying for itself.
+
+Track it as a tier-2 metric. The owner's first suggestion, exposing a per-decision maximum, is the
+weaker version: it is a rail rather than a feature, and it cannot express "no pressure at all".
+
 ---
 
 ## Measurements that decisions rest on
