@@ -246,6 +246,25 @@ specified, that cost nothing to adopt and belong under the `EC` engine-correctne
 
 ---
 
+## Parked, with the reason — added 2026-09-10 from the Spark session
+
+**NeMo-RL (`nvcr.io/nvidia/nemo-rl`).** NVIDIA's RL toolkit, multi-arch on NGC. Parked rather than adopted:
+it is shaped around LLM post-training (GRPO/DPO over HuggingFace models with vLLM rollouts), and this
+project's rollout is a Magic rules engine with a command zone and four-player boards, not token generation.
+The ladder is served by the environment and by batching inference across concurrent games, not by adopting
+someone else's trainer. **Would unpark if:** the rollout ever becomes a generic vectorised env and the
+bottleneck is the trainer rather than the simulator.
+
+**Moving the project into the NGC container now.** Parked with a dated trigger rather than rejected. The
+usual argument for it is false here (the pip wheel has 475 `sm_120` cubins and zero PTX, so there is no
+PTX JIT to avoid; the container's own arch list stops at `sm_120` too). **Would unpark when:** the first
+training number intended for publication or cross-month comparison is about to be produced, at which point
+the job moves into the container pinned **by digest** and the digest is recorded beside the run. Detail in
+[`HARDWARE_DGX_SPARK.md`](HARDWARE_DGX_SPARK.md).
+
+**Generative card invention.** Already parked under D18; restated here only because the Spark session
+confirmed the demand-ranked worklist half is cheap and the generative half is not.
+
 ## Corrections owed to the docs
 
 Contradictions found in the 2026-09-10 notes audit. These are not decisions; they are files that

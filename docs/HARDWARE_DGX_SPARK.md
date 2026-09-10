@@ -112,6 +112,110 @@ gnome-shell, Firefox and LM Studio together held ~850 MiB and were actively rend
 latency harness correctly flagged a 48.6% between-round spread on the widest configuration. Close
 the browser and LM Studio before taking numbers a decision will rest on.
 
+## NGC: what it is, what it actually buys here, and when to adopt it
+
+NGC is not a cloud you rent. It is three separate things sharing one name:
+
+1. **The registry `nvcr.io`**, an ordinary OCI registry you pull from with plain `docker pull`.
+2. **The images**, built monthly and tagged by *date*, not framework version.
+   `nvcr.io/nvidia/pytorch:26.08-py3` is NVIDIA's August 2026 PyTorch image. Inside it, every NVIDIA
+   library is a set NVIDIA tested *together* on that date. **That co-testing is the product.**
+3. **The `ngc` CLI and API keys**, for private or gated content and non-container artifacts. **You do not
+   need an account or a login for the PyTorch image** — verified: an anonymous bearer token from
+   `nvcr.io/proxy_auth?scope=repository:nvidia/pytorch:pull` returns pull access and the `26.08-py3`
+   manifest then returns 200. The bare `401` from `curl https://nvcr.io/v2/` is the standard registry auth
+   challenge, not a paywall.
+
+`/opt/NVIDIA AI Workbench` is a separate Electron GUI over the same containers. Ignore it for this project.
+
+### The usual argument for the container is false on this box
+
+The common pitch is "the container has kernels compiled for your arch, pip gives you PTX JIT and stalls".
+Checked directly with `cuobjdump` on the installed pip wheel's `libtorch_cuda.so`: **475 `sm_120` cubins,
+one `sm_121a` cubin, and zero PTX sections.** No PTX means PTX JIT is not even possible for torch's own
+kernels — the driver loads `sm_120` SASS natively on this `sm_121` device, which is legal because 12.0 and
+12.1 are one binary family. And the container's own build-time `TORCH_CUDA_ARCH_LIST` is
+`8.0 8.6 9.0 10.0 11.0 12.0+PTX`, the **same** `sm_120` ceiling with a PTX fallback added. Neither build
+compiles `sm_121`. The container does not fix a problem that exists.
+
+### What it does buy, in order of how much it matters here
+
+- **Reproducibility by digest.** This is the real "training stability" argument. Pinning
+  `nvcr.io/nvidia/pytorch@sha256:<digest>` gets byte-identical libraries in a year.
+  `pip install torch --index-url .../cu130` does not: PyTorch's index moves and old aarch64 builds are not
+  retained. For a project whose protocol forbids citing a number that skipped a gate, **a published
+  training number should name the image digest it was produced under.** Proposed as a new pre-flight line
+  beside P6 in [`TRAINING_REVIEW_PROTOCOL.md`](TRAINING_REVIEW_PROTOCOL.md).
+- **It fixes the missing-CPython-headers defect** described above, which is the one that actually bit us.
+  The image ships the headers and a matched toolchain, so a dependency reachable from only one code path
+  cannot be missing.
+- **Transformer Engine prebuilt for aarch64** (2.18). The genuinely hard thing to get on ARM; building it
+  yourself on a 20-core ARM box is a bad afternoon. Only matters once fused attention or MXFP8 is wanted.
+- **nvFuser, CUTLASS DSL, and `TORCHINDUCTOR_CUTLASS_DIR` / `TRITON_PTXAS_PATH` preset.** That is
+  `torch.compile` wired against a CUTLASS tree out of the box, which is the fix for the launch-bound
+  batch-1 problem the 6.93 us measurement confirms.
+- **A year-newer profiler.** Container Nsight Systems 2026.5 against host 2025.3.
+- **A matched NCCL / NVSHMEM / OpenMPI / UCX / cuBLASMp set**, if multi-Spark clustering ever happens.
+
+### What it costs, and one trap
+
+A ~12 GB pull, 25-30 GB extracted. `docker exec` in front of every test run. Root-owned files appearing in
+the git tree through the bind mount. An editor and LSP that no longer see the interpreter imports resolve
+against. Against a 6-second `pytest` cycle over a pure-Python rules engine, that is a real tax.
+
+**The trap:** cuDNN and cuBLASLt *do* JIT at runtime, independently of torch. Measured:
+`~/.nv/ComputeCache` grew 78 MB during one cold softmax plus SDPA run, and a warm rerun grew it by 0 KB.
+With `--rm` that cache lives inside the container and is discarded on exit, so **uncached, the container
+loses to the venv on first-iteration latency.** Mount the cache if you care.
+
+### The recommendation
+
+**Keep the pip venv as the primary environment. Pull the container once as an oracle. Adopt it for
+training at the moment you start producing numbers you intend to publish or compare across months.**
+
+The work in front of this project is a rules-engine rebuild: pure Python, numpy, a 6-second `pytest`
+cycle. That cycle is the most valuable asset the project has right now and `pyproject.toml` declares
+nothing a container helps with. Use the container as the answer to *"is this the engine, my code, or my
+environment?"* — re-run the same script in it, same answer means your code, different answer means a
+library version and you know which side to chase. That is a high-value use of a co-tested stack and costs
+nothing day to day.
+
+### Setup, in order
+
+**Step 1, owner action, the only blocking one.** The user is not in the `docker` group and `sudo` needs a
+password, so this cannot be done by an agent. Note it is effectively a root grant on this box; accept that
+knowingly.
+
+```bash
+sudo usermod -aG docker $USER    # then log out and back in, or: newgrp docker
+sudo apt install python3.12-dev  # fixes the Triton backward-pass defect in the venv too
+```
+
+Everything else is already in place, verified: Docker 29.2.1 active, `nvidia-container-toolkit` 1.20.0
+installed, `/var/run/cdi/nvidia.yaml` present declaring `nvidia.com/gpu`, and `/dev/nvidia*` world-readable.
+
+**Step 2.** `docker pull nvcr.io/nvidia/pytorch:26.08-py3` — no login needed. 3.5 TB free, so free in practice.
+
+**Step 3, the learning exercise.** Compare the two environments side by side:
+
+```bash
+docker run --rm -it --device nvidia.com/gpu=all --ipc=host \
+  -v "$PWD":/workspace -w /workspace nvcr.io/nvidia/pytorch:26.08-py3 \
+  python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.get_arch_list())"
+```
+
+Use `--device nvidia.com/gpu=all`, not `--gpus all`: CDI is on by default in Docker >= 28.3.0 and the spec
+already declares an `all` device, so no `daemon.json` edit is needed. If it fails, that is when to run
+`sudo nvidia-ctk runtime configure --runtime=docker && sudo systemctl restart docker` and switch to
+`--gpus all`. Expect the container to report an **alpha** torch (`2.14.0a0+...`) and CUDA 13.4 against the
+venv's `2.14.0+cu130` and CUDA 13.0 — and expect its arch list to stop at `sm_120` too.
+
+**Also on NGC, for later:** `nvcr.io/nvidia/tensorrt:26.08-py3` (inference only), and
+`nvcr.io/nvidia/cuda-dl-base:26.08-cuda13.4-devel-ubuntu24.04` if a slim project image is ever wanted
+instead of inheriting 12 GB. `nvcr.io/nvidia/nemo-rl` exists and is **parked in
+[`BACKLOG.md`](BACKLOG.md)**: it is shaped around LLM post-training with vLLM rollouts, and this project's
+rollout is a Magic rules engine with a command zone and four-player boards, not token generation.
+
 ## Cited sources
 
 - [NVIDIA DGX Spark product page](https://www.nvidia.com/en-us/products/workstations/dgx-spark/)
