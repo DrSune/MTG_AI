@@ -52,14 +52,28 @@ The MTG rules themselves are not heuristics — implement those exactly.
 
 ## Environment facts that will bite you
 
-- **Training runs on a DGX Spark**, not on this machine. ARM64, CUDA 13, sm_121, 128 GB unified
-  memory at ~273 GB/s. Capacity is huge, bandwidth is mid-range.
-- **This Windows box is Intel Arc XPU** (`torch 2.11.0+xpu`). CUDA is unavailable locally. Any code
-  that assumes `torch.cuda` will fail here. Always go through the central device helper.
-- Use `MTG_bot/utils/device.py` for device selection (CUDA → XPU → CPU). Never call
-  `torch.device("cuda")` directly.
-- The C: drive on this machine is near full. Do not write large caches or checkpoints into the repo;
-  put them behind a configurable path.
+**Since 2026-09-10 this repo is checked out on the DGX Spark itself.** Tests, benchmarks and
+training all run here. Measured bring-up detail in [`reports/SPARK_BRINGUP.md`](reports/SPARK_BRINGUP.md).
+
+- **This box is the DGX Spark.** aarch64, 20 cores (10x Cortex-X925 + 10x Cortex-A725), NVIDIA GB10
+  at sm_121, CUDA 13.0, 121 GiB unified memory. `torch 2.14.0+cu130`. Capacity is huge (a full-scale
+  315.7M-param training step peaks at 5.5 GB of 130.7); bandwidth is mid-range and **measures
+  223.7 GB/s**, not the 273 GB/s spec figure.
+- **`python` does not exist here, only `python3`.** Inside the repo always use `.venv/bin/python`.
+- **A forward pass passing does not mean training works.** torch 2.14 routes some backward ops
+  through Triton, which JIT-compiles with `gcc` against CPython headers. `python3.12-dev` is not
+  installed, so the first gradient raises `Python.h: No such file or directory`. Until someone runs
+  `sudo apt install python3.12-dev`, export `TORCH_DISABLE_NATIVE_JIT=1` for anything that computes
+  a gradient. Prefer the NGC PyTorch container for real training runs; it ships the headers.
+- There is **also a Windows Intel Arc box** (`torch 2.11.0+xpu`) used for dev and the spectator app.
+  It cannot run CUDA. So code that assumes `torch.cuda` still breaks there.
+- Use `MTG_bot/utils/device.py` for device selection (CUDA → XPU → MPS → CPU). Never call
+  `torch.device("cuda")` directly. Two live violations:
+  `strategic_brain/student.py:34` and `strategic_brain/teacher.py:37` both write
+  `torch.device("cuda" if torch.cuda.is_available() else "cpu")`, which happens to be right here and
+  silently selects CPU instead of XPU on the Windows box.
+- Disk here is 3.7 TB with 46 GB used, so the old C:-drive pressure note does not apply. Still keep
+  large caches and checkpoints behind a configurable path, because the Windows box is tight.
 
 ## Git: commit and push often, to main
 
@@ -102,4 +116,9 @@ Two rules that catch most of the damage:
 - Any new hard limit, cap, or schedule must be recorded in `docs/BACKLOG.md` under "scaffolds to
   remove", with the condition that would let it go.
 - Prefer editing an existing doc over adding a near-duplicate one.
-- Tests: `python -m pytest MTG_bot -q`. Report real results, never assumed ones.
+- Tests: `.venv/bin/python -m pytest MTG_bot -q`. Report real results, never assumed ones.
+  Baseline at the time of writing is **17 passed / 22 failed / 2 xfailed**, about 6 s. Anything that
+  computes a gradient needs `TORCH_DISABLE_NATIVE_JIT=1` until `python3.12-dev` is installed.
+  Two tests in `strategic_brain/test_model.py` fail **by design**: they are the gates for D3
+  (every plan step trained) and D11 (learned halting), and their failure messages carry the
+  measured numbers. Do not "fix" them by weakening the assertion.
