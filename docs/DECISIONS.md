@@ -149,7 +149,7 @@ evidence because its action space is degenerate (median 1 legal action). So:
   already required by [`DESIGN_ACTION_SPACE.md`](DESIGN_ACTION_SPACE.md).
 
 ## D10 — Train against a hard-loss clock
-**2026-09-10. Agent recommendation, owner has not yet ruled.**
+**2026-09-10. RULED by the owner: "Hard loss clock is fine."**
 
 Full reasoning in [`CLOCK_TARGETS.md`](CLOCK_TARGETS.md). A policy trained under a hard-loss
 per-player chess clock is safe under every more forgiving environment; the reverse is not true,
@@ -231,6 +231,72 @@ no-time-pressure value is part of its range**. That gives three things for one m
 
 Track it as a tier-2 metric. The owner's first suggestion, exposing a per-decision maximum, is the
 weaker version: it is a rail rather than a feature, and it cannot express "no pressure at all".
+
+## D14 — Niche-deck strength is part of rank 1, not a refinement
+**2026-09-10. Owner instruction.**
+
+The owner: *"I mainly care that it makes our model better at normal AND niche decks, and maybe even
+can draft/create new niche decks."*
+
+So a bot that plays the three strongest archetypes at a high level and collapses against a weird
+combo pile **has not met the King Goal**. Three consequences that are now rank-1 concerns rather
+than nice-to-haves:
+
+- The self-play league must actively keep unusual decks alive. A league that converges on the
+  current best archetype trains a bot that has never seen the decks it will lose to.
+- Combo discovery in [`DESIGN_INFINITIES.md`](DESIGN_INFINITIES.md) is load-bearing, because combo
+  decks are the sharpest case of "niche but strong".
+- The deck-space evolution ideas parked in [`BACKLOG.md`](BACKLOG.md), the elite pool and novelty
+  reward and the annealed robustness weight, move from "recorded but never built" to on the path.
+
+## D15 — The Teacher is a curator; the drafter is a generative policy; they share the critic
+**2026-09-10. Owner delegated this: "About curator plus critic vs RL its your call. Do it according
+to project goals and what I want."**
+
+**The call: both, and they are different components.** The owner's instinct that the two overlap is
+right, but the overlap is the critic, not the whole agent.
+
+| | job | shape | why |
+|---|---|---|---|
+| **Teacher** | choose which matchup the Student trains on next | **curator + critic**, selecting among proposals | It is a selection problem, and selection measured better than a trained generator at it: curator 0.893 of oracle against REINFORCE 0.849 and a linear bandit 0.751, which is worse than uniform random at 0.815 |
+| **Drafter** | produce a deck, pick by pick, on demand | **generative policy** | It has to be. A curator picks among things that already exist; build-from-empty, complete-a-partial-deck and counter-draft all require *generating* a deck that does not exist yet |
+
+**What they share:** the critic that scores a deck, and the card and deck encoders under it. That
+shared critic is the load-bearing piece, because it is what lets the drafter be trained without a
+human reference corpus of good decks. Nothing else in the project can supply that signal.
+
+Why this serves the stated goals better than either pure option. A pure RL teacher was measured
+worse than curation at the teaching job and needs volume the machine does not have. A pure curator
+cannot deliver [`NORTH_STAR.md`](../NORTH_STAR.md) §4a's three drafting modes at all. Splitting them
+gets the measured-best teacher and the product the owner asked for, at the cost of one extra
+component, and that component reuses the encoders rather than adding a per-decision cost.
+
+## D16 — Nicheness and randomness are two knobs, never one
+**2026-09-10. Owner requirement, with the design constraint made explicit.**
+
+The owner asked for a drafter tunable on how non-standard a deck is and how random it is. These are
+independent axes and the most likely way to get this wrong is to ship one control for both.
+
+- **Nicheness** is a *directed* deviation toward a different local optimum. A niche deck is
+  coherent and unusual.
+- **Randomness** is *undirected* variety at a fixed nicheness. It is what stops an identical
+  request returning an identical deck.
+
+**Raising randomness on a standard-deck request produces a worse standard deck, not a niche one.**
+Sampling noise moves you away from the mode in every direction at once, which is damage, not
+character.
+
+Two further constraints, both of which a naive implementation fails:
+
+1. **Randomness must not compound over the ~100 sequential picks of a Commander deck.** Small noise
+   at every pick gives an aggregate that is random and incoherent, which is the opposite of niche.
+   The fix mirrors D11's plan commitment: sample a deck-intent once, then draft near-greedily
+   conditional on it. Commit to a direction, then execute it well.
+2. **Nicheness must be measured, not authored, and must not be satisfiable by garbage.** A deck of
+   100 random bad cards is maximally unusual. Whatever statistic defines nicheness has to be paired
+   with the critic's quality score, per [`METRICS.md`](METRICS.md) §17.
+
+Design in [`DESIGN_DRAFTER.md`](DESIGN_DRAFTER.md).
 
 ---
 

@@ -26,6 +26,12 @@ Work is ranked. A lower rank never displaces a higher one.
 
 Rank 1 has three entries and that is deliberate.
 
+**"Really well" includes niche decks, not just good decks.** The owner: *"I mainly care that it
+makes our model better at normal AND niche decks."* A bot that plays the three strongest archetypes
+at a high level and falls apart against a weird combo pile has not met rank 1. This is why full
+rollouts and combo discovery are in scope at all, and why a self-play league that keeps unusual
+decks alive is a rank-1 concern rather than a refinement.
+
 The **compositional** entry is there because the owner stated the atomic/modular ability
 composition — so that new sets are playable immediately except for genuinely new keywords — is
 "part of the highest priorities too". Treat compositional card understanding as load-bearing for the
@@ -117,6 +123,45 @@ If the answer to 1 is no, it probably should not have been built yet.
 
 ---
 
+## 4a. The drafter, and why it is tunable
+
+Stated by the owner on 2026-09-10 and recorded here because it is a product goal in its own right,
+not a by-product of training.
+
+**Three modes, one model:**
+
+| mode | input | output |
+|---|---|---|
+| **draft from start** | a format, and optionally a commander or a direction | a complete legal deck |
+| **draft completer** | a partial human deck of any size, 3 cards or 97 | the remaining cards |
+| **counter-drafter** | a partial or empty deck, plus a named opponent deck | a deck built to beat that one |
+
+**Two knobs, and they are not the same knob.** The owner: *"preferably it should be tunable so you
+can set how niche/non-standard your deck is supposed to be, and how random it is (we dont want it
+to just choose THE best deck it can make every time we make a standard deck or same situation for a
+niche one)."*
+
+Those are two independent axes and a design that offers one control for both is wrong:
+
+- **Nicheness** is a *directed* deviation. A niche deck is coherent but unusual: a different local
+  optimum, not a damaged version of the usual one.
+- **Randomness** is *undirected* variety at a fixed level of nicheness. It is what stops the
+  drafter returning an identical answer to an identical request.
+
+**Turning up randomness on a standard-deck request gives you a worse standard deck, not a niche
+one.** Any implementation that conflates them has failed this goal. See
+[`docs/DESIGN_DRAFTER.md`](docs/DESIGN_DRAFTER.md).
+
+Both knobs must be settable at inference and learnable during training. Neither may be a
+hand-authored schedule.
+
+**Relationship to the Teacher.** The owner: *"It is not strictly required for me that this teacher
+is the drafter, I just think they have an overlap."* The overlap is real but narrower than one
+shared agent. The Teacher *selects* among candidate matchups; the drafter *generates* a deck pick by
+pick, which a selector cannot do. What they share is the **critic** that scores a deck, and the card
+and deck encoders underneath it. That shared critic is what makes the drafter trainable without a
+human reference corpus. See [`docs/DECISIONS.md`](docs/DECISIONS.md) D15.
+
 ## 5. Decisions already taken
 
 These are settled. Do not re-litigate them; build on them. The reasoning is in
@@ -136,6 +181,11 @@ These are settled. Do not re-litigate them; build on them. The reasoning is in
      better: keep it and train all of it.
   3. **Transferable learning of abilities, traits, stats, and origins** through learned encodings.
 - **Full-game BPTT is not assumed.** Test it against truncated BPTT and let the measurement decide.
+- **Train against a hard-loss clock.** Ruled 2026-09-10. Running out of time is a loss, never a
+  draw, so the incentive is monotone and the deployment target does not have to be chosen now. See
+  [`docs/CLOCK_TARGETS.md`](docs/CLOCK_TARGETS.md).
+- **The Teacher is a curator plus a critic, not a reinforcement-learning agent. The drafter is a
+  generative policy.** They share the critic. See [`docs/DECISIONS.md`](docs/DECISIONS.md) D15.
 
 ## 6. When a problem is beyond you
 

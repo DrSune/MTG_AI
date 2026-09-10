@@ -60,7 +60,9 @@ much they serve the King Goal.
   end-of-turn timing, combat tricks) and second-order thinking (playing around sweepers, bluff
   attacks, baiting counterspells). Only levels 1 and 2 exist. Levels 3 and 4 are unreachable
   until the engine has real priority.
-- **Deck-space evolution to find niche decks** (`ideas.md`): an elite pool of niche decks,
+- **Deck-space evolution to find niche decks** (`ideas.md`). **Promoted 2026-09-10 by D14: this is
+  now on the path, not parked.** Niche-deck strength is part of rank 1, so the mechanism for
+  finding niche decks is too. Original note follows: an elite pool of niche decks,
   periodic re-evaluation, mutation, under-confidence sampling, a novelty reward, robustness
   testing by perturbing one card, and `R_final = R(D) + λ·Robustness(D)` with **λ annealed from
   high to low** so that early training punishes sharp minima and late training goes looking for
