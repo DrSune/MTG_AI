@@ -29,6 +29,14 @@ Three consequences drive the whole design.
 **Practical rule: capacity is free, FLOPs are moderately scarce, bandwidth per decision is the
 scarce resource.**
 
+> **Superseded in one place, 2026-09-10.** An earlier version of this document recommended
+> deleting the plan decoder because 50.4M of its parameters receive no gradient.
+> [`DECISIONS.md`](DECISIONS.md) **D3 overrides that**: the owner's instruction is to keep
+> multi-step planning and train every step, and the head is untrained rather than useless. The
+> cost-model consequence is in [`COST_MODEL.md`](COST_MODEL.md): parameters inside the plan and
+> pass loops are read up to 40 times per decision, so the decoder must be made **narrow**, not
+> removed. The loss that trains it is [`DESIGN_ACTION_SPACE.md`](DESIGN_ACTION_SPACE.md) §4.
+
 ## 1. What is wrong with the current network — shape, not size
 
 315,666,955 parameters, of which about 207M are live.
@@ -118,7 +126,7 @@ per card object ─┼─ ability tree ─► RulesEncoder(2L, d256) ───�
 | Card vocab | 50,000 rows on an unstable rowid | 65,536 on stable oracle id, factorised | |
 | Component dim | 32, no controller | 96, with 4-seat controller, 8 zones, colours, types, counters, commander damage | |
 | Temporal core | LSTMCell, 8.4M | GRU d_state 2048 + 32-slot episodic KV, 25.2M | |
-| Plan decoder | 4L, 50.4M, 3 of 4 heads untrained | **deleted** | −50M dead weight |
+| Plan decoder | 4L, 50.4M, 3 of 4 heads untrained | **kept, and every step trained** (D3) | narrow it instead of deleting it: see below |
 | `action_memory_embedder` | 51.2M, zero gradient | **deleted** | −51.2M |
 | Tokens, 4-player Commander | 428, including both libraries | **256** | closes the clairvoyance leak too |
 | Weight bytes per decision | 631 MB, all of it, every pass | **199 MB** | **3.2× lower latency** |
@@ -341,7 +349,7 @@ the entire compute time.
 
 | Blocker | Where | Fix |
 |---|---|---|
-| `.item()` inside the plan loop — device sync and graph break every step, and locks batch to 1 | `model.py:142` | Delete the plan decoder; it gets no gradient anyway |
+| `.item()` inside the plan loop, a device sync and graph break every step, which also locks batch to 1 | `model.py:142` | Remove the `.item()`. Keep the plan decoder: **D3 is a binding instruction to train every plan step.** The sync is the bug, not the head |
 | `.any()` plus a Python `if ... break` on a device tensor | `model.py:244-247` | Fixed pass count with masking |
 | Python loop mutating logits in place | `student.py:126-129` | Vectorise as an additive mask. **Also fixes the 10-nat old/new log-prob mismatch that pins the PPO ratio to e^±10 on every pass action.** |
 | No `src_key_padding_mask` passed | `model.py:206` | Required for any batch above 1 |
@@ -391,7 +399,9 @@ Each line is a measured or computed payoff.
    forward path.** Unblocks batch > 1, `torch.compile`, and CUDA graphs simultaneously, and
    cuts activation memory 1.45×.
 4. **Step-level gradient checkpointing.** Removes the BPTT memory question permanently.
-5. **Delete the 105.9M zero-gradient parameters, then widen `d_ff` to 4096.** Same total size,
+5. **Delete the 52.2M genuinely unreachable parameters, then widen `d_ff` to 4096.** That is
+   `action_memory_embedder` and `intent_proj`, neither of which is referenced in `forward` at all.
+   **Not the plan decoder's heads:** D3 requires those trained, not removed. Same total size,
    roughly double the trained capacity.
 6. **Stable oracle-id vocabulary, atomic-id dropout, pool token.** This is the whole mechanism
    for tied-rank-1 and rank-3, and it is a few hundred lines.

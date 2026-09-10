@@ -298,6 +298,62 @@ Two further constraints, both of which a naive implementation fails:
 
 Design in [`DESIGN_DRAFTER.md`](DESIGN_DRAFTER.md).
 
+## D17 — Retrieval is the pointer head, not an alternative to it
+**2026-09-10. Owner idea, and it turns out to be their own earlier one.**
+
+The owner: *"it has a prediction of the card it wants to add to a deck, and then searches it up in
+the vector database with the encoded values from the ability tree, and it can choose the card that
+comes the closest to what card it thinks is ideal."*
+
+This is the same idea as the deleted `RL_ARCHITECTURE.md` §5.1, recovered at
+[`recovered/`](recovered/RL_ARCHITECTURE_pre_db5e024.md): *"the model generates a Query Vector...
+It performs a Vector Search against the card embedding pool."* Written months earlier and lost to a
+doc rewrite.
+
+**The unification.** The drafter's pointer head already computes `score(c|s) = q(s) . k(c)`, where
+`q(s)` is the predicted ideal card and `k(c)` is the encoded ability tree. The argmax of an inner
+product over a set **is** nearest-neighbour search under that inner product. So retrieval is the
+*implementation* of the pointer head at scale, not a competing design. Same operator, used three
+times: the drafter, the in-game pool conditioning, and this.
+
+Four consequences that are not obvious from that equivalence:
+
+- **Similarity metric is a real decision.** Raw inner product rewards high-norm vectors, which in a
+  learned card space means generically strong cards, so "closest" would silently mean "best". That
+  makes the nicheness knob a strength slider by construction. Use cosine for *kind* plus a separate
+  learned impact scalar for *strength*.
+- **A single query averages modes.** When the right pick is either a removal spell or a threat, the
+  mean of the two embeddings is neither and can retrieve something incoherent. Fixed with four
+  query heads, which cost nothing extra on the scan because the keys are read once regardless.
+- **Set filtering falls out for free**, as a mask over scores. It is a third flag beside
+  `format_legal` and `engine_supported`. Masking scores rather than the index keeps legality exact,
+  which approximate search would not.
+- **Do not build an approximate index.** An exact scan of 25,000 cards costs about 47 microseconds,
+  and the drafter is off the per-decision path entirely. Approximate search would trade exact
+  legality for speed we do not need.
+
+## D18 — Card invention: keep the free half, park the rest
+**2026-09-10. Owner idea, partially adopted.**
+
+The owner: *"or even eventually extend it to 'invent' new cards in the gaps"*.
+
+**The free half is worth building now.** The distance between the query and its nearest real card is
+an unmet-need signal, available the day retrieval works and costing nothing. Aggregated over many
+drafts it maps what the pool lacks. One slice of it is immediately useful: needs that fall on cards
+we have marked `engine_supported = false` give a **demand-ranked worklist for the ability-tree
+compiler**, so the next primitive implemented is the one the drafter most wants and cannot have.
+Publish it normalised, since a null drafter's queries also have nearest neighbours.
+
+**The generative half is parked**, with the reason. Decoding an embedding back into an ability tree
+has one genuinely strong property: a tree decoded from the grammar is **executable by
+construction**, so an invented card is playable rather than merely describable. Against that:
+balance is a far harder problem than legality; the critic that says a card would be good here is
+trained on real cards and is badly miscalibrated off distribution, so its argmax over invented
+cards is not trustworthy; and it does not serve the King Goal. Park it.
+
+**One thing must not be deferred:** the per-pick logging that would let this be studied later has to
+land when the drafter is first built. It is unrecoverable afterwards.
+
 ---
 
 ## Measurements that decisions rest on

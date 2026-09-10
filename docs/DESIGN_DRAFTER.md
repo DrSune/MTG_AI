@@ -723,3 +723,476 @@ passes every gate while returning decks no player would call unusual. The cheap 
 (`DFT-17`, 20 human-minutes) and the cheap fix exists (a deck-level human corpus at stage 0). Both
 are cheap only if they happen **before** the knob ships, which is why they are stage-0 items in §8
 and not stage-5 ones.
+
+---
+
+## 12. Query-then-retrieve, and the card index
+
+Implements the owner's request to "use the encodings" for card selection: emit a prediction of the
+card the deck wants, then look that prediction up against the encoded ability-tree vectors. This
+section says plainly that the mechanism is **already specified** in `DESIGN_TEACHER.md` §4.3:506,
+then says what genuinely changes when it is implemented as retrieval rather than as a scoring loop.
+It touches §5.1's shared-object table, §5.2's parameter count and §7.2's register, and it
+contradicts nothing in §4: the fix recommended in §12.4 is deterministic, so per-pick temperature
+stays exactly zero (§4.3:277) and the one-draw structure of §4.2:269 is untouched.
+
+### 12.0 The owner's own earlier statement of this, recovered
+
+This is not a new idea. It is the owner's, written down and then deleted. From
+`git show db5e024^:MTG_bot/docs/RL_ARCHITECTURE.md` §5.1:
+
+> **Action Space (Intelligent Sequential Selection):** The Teacher builds decks card-by-card using a
+> **Transformer-based Matchup Analyzer**.
+> * For each slot, the model generates a **Query Vector** based on the current deck's synergy and the
+>   opponent's strategy.
+> * It performs a **Vector Search** against the card embedding pool to find the optimal card to add.
+
+Three parts of that document, and their fate here. The **query vector plus vector search** is
+adopted, and is what this section specifies. The **illegal-proposal penalty** of its §5.3 is refused,
+at `DESIGN_TEACHER.md` §4.4:542, in favour of a hard mask. The **matchup history plus diversity
+bonus** survives as the archive with a per-cell cap, `DESIGN_TEACHER.md` §2.3:255. The idea is also
+parked in `BACKLOG.md:82-86` under "Product goals beyond the King Goal", and its acceleration half is
+`ideas.md:162-164` (TurboQuant). This section promotes the mechanism and keeps TurboQuant parked, for
+the measured reason in §12.2.
+
+### 12.1 The unification: the pointer head already **is** the vector search
+
+`DESIGN_TEACHER.md` §4.3:506 specifies
+
+```
+score(c | s)  =  q(s) . k(c)     where  k(c) = W_k v_card(c),  q(s) = W_q deck_encoder(s)
+pi(c | s)     =  softmax over the candidate set, after the hard legality mask
+```
+
+**`argmax` of an inner product over a set is, by definition, maximum-inner-product search over that
+set.** "Predict the ideal card, then look it up in a vector database" and "score every candidate with
+the pointer head and take the best" are the same arithmetic written two ways. There is no second
+algorithm to choose between. `DESIGN_TEACHER.md` §4.3:516 already draws the conclusion ("the drafter
+and the in-game pool-conditioning mechanism are **one network used twice**. Do not build two"), and
+§5.1:366 of this document repeats it.
+
+So the question is not whether to build retrieval. It is **what changes when the retrieval framing is
+taken seriously**. Five things, and the fifth is a cost.
+
+1. **The candidate set becomes a stored, filterable object** rather than a tensor assembled per call.
+   Set, colour identity and singleton filters become mask algebra over one index (§12.5).
+2. **The query becomes a materialised, loggable object**, emitted *before* any candidate is seen.
+   That is the interpretability win (§12.6), and it does not exist in the pointer framing, where the
+   query lives and dies inside a matmul.
+3. **Scoring decouples from supply.** One query can hit the 25,000-card Commander pool, a 15-card
+   pack, or a hypothetical-card index, with no retraining. Invention is only *expressible* because of
+   this (§12.8).
+4. **Approximation becomes an option.** We then decline it, on arithmetic (§12.2).
+5. **A failure mode arrives that the pointer framing did not have.** Scoring an explicit candidate
+   set evaluates every mode of a multimodal pick. A single query plus a top-k cut can fail to
+   retrieve a whole mode. That is the real risk, and it is quantified in §12.4.
+
+### 12.2 Cost, and why the index is exact and stays exact
+
+The key matrix `K = V W_k^T` is `[|pool| x 256]`, cached exactly as `DESIGN_CARD_POOL.md`:196 caches
+`v_card` ("per-decision cost of the card encoder is zero"). Against `COST_MODEL.md`:23, where the
+machine's balance point is 458 FLOPs per byte and batch-1 latency is weight bytes over bandwidth:
+
+| | Commander pool | Limited pack |
+|---|---|---|
+| `M`, candidates | **25,000** (`DESIGN_CARD_POOL.md`:231) | **15** (`DESIGN_TEACHER.md` §4.3:524, up to 14 plus the commander slot) |
+| key bytes read, d = 256 bf16 | 12.8 MB | 7.68 kB |
+| stage-1 scan at 273 GB/s | **46.9 us** | **28 ns** |
+| arithmetic, `2 M d` | 12.8 MFLOP = 0.10 us | 7.7 kFLOP |
+| bandwidth : arithmetic | **457 : 1**, matching `COST_MODEL.md`:23 | irrelevant |
+| binding constraint | **bandwidth** | **kernel launch**, ~8 us floor (`COST_MODEL.md`:140) |
+
+Two conclusions, and they point opposite ways.
+
+- **Stage 1 never needs approximating.** A full exact scan of the whole Commander-legal pool costs 47
+  microseconds. Over the ~103 forwards per deck of §5.3:392 that is 4.8 ms and 1.32 GB of extra
+  traffic on top of the 1.57 GB already booked. Amortised over the 65,190 decisions those decks then
+  play, it is **20.2 kB per decision against the board encoder's 800 MB, about 0.0025%**. The drafter
+  is off the per-decision path entirely (§5.3:401), so this is charged against a budget it barely
+  touches.
+- **Stage 2 always needs a shortlist.** The 1.64 M-parameter cross-attention rescorer
+  (`DESIGN_TEACHER.md` §3.3:425) does per-candidate work, so its cost is linear in `M`. The shortlist
+  buys `25,000 / 256 = 98x` **on the rescorer and nothing at all on the scanner.** That is where the
+  two-stage structure of `DESIGN_CARD_POOL.md`:204 earns its place, and it is not where anyone
+  assumes it is.
+
+**The crossover, and the position.** An HNSW or IVF-PQ query costs roughly 50 to 100 us at these
+sizes, near flat in `M`, and returns approximate results. Exact scan is `M x 512 / 273e9` seconds, so
+parity sits at `M ~ 2.7e4` to `5.3e4` cards for a single query. Magic has roughly 30,000 oracle cards
+(`DESIGN_CARD_POOL.md`:202) and prints 3,000 to 4,000 a year, so on the most ANN-favourable
+assumption **we are at parity today and pulling away on three independent axes**:
+
+- **`K = 4` query heads (§12.4) cost one key read, not four.** Four queries against one cached matrix
+  is one pass of bandwidth plus `4 x 0.10 us` of arithmetic. An ANN pays per query. Crossover moves
+  out by 4x.
+- **The filter (§12.5) is free for an exact scan and hostile to an ANN.** Mono-white in Commander is
+  roughly 8% of the pool. Filtered approximate search at that selectivity either over-fetches by an
+  order of magnitude or falls off a recall cliff, because the graph edges do not respect the filter.
+- **An exact scan can assert the Rail L:239 invariant** that zero returned candidates violate the
+  mask. An approximate index cannot make that assertion at all.
+
+> **Position: never build an approximate index. The "vector database" is a 12.8 MB tensor plus a
+> 3.1 kB bitmask held in the process. Do not add FAISS, hnswlib, or a service.** `ideas.md:162-164`'s
+> TurboQuant stays parked, with this arithmetic as the written reason. The instinct about the
+> *mechanism* is right; the instinct about the *infrastructure* is wrong, and the second is expensive
+> to reverse once training scripts import it.
+
+The falsifier is `SYS-x` in §12.9: if measured `pick_scan_ms` at `|pool| = 25,000` exceeds 1 ms on
+the Spark, reopen the question. Not before.
+
+### 12.3 The similarity metric is two decisions, not one
+
+Since `||q - k||^2 = ||q||^2 - 2 q.k + ||k||^2`, the three candidate metrics differ only in how they
+treat the card key's norm:
+
+| metric | treats the card norm as | what its argmax means |
+|---|---|---|
+| inner product | a reward | **"the best card"**: long keys win regardless of direction |
+| cosine | noise, discarded | **"the right kind of card"** |
+| L2 | a target to match | "as splashy as I asked for, no more and no less" |
+
+In a space trained by a pointer softmax, the key norm absorbs each card's **unconditional pick
+prior**. Staples grow long keys. Raw inner product therefore bakes a quality prior into the geometry,
+where it is invisible, untunable and unlogged.
+
+**This is not cosmetic, because of §10 Q1.** Q1:645 is this document's most dangerous open question:
+the `n_hat` axis may run modal -> bad monotonically, making `N` "a strength slider with a nicer
+label". **Raw inner product makes that failure structurally guaranteed**, because in an IP geometry
+"unusual direction" and "short key" are correlated by construction, so turning `N` up and turning
+quality down are literally the same movement in the metric.
+
+> **Position: split the key. Retrieve on cosine over a direction block, score quality with a separate
+> learned scalar, and never let one norm carry both.**
+
+```
+k_dir(c)   = normalize(W_dir v_card(c))          # cached, unit norm, the "kind" axis
+impact(c)  = w_imp . v_card(c)                   # cached scalar, 257 params, the "quality" axis
+score(c|s) = alpha(s) * cos(q_dir(s), k_dir(c))
+           + beta(s)  * impact(c)
+           + the existing bilinear pointer residual
+```
+
+`W_dir` replaces `W_k`, so it is a rename and not a new block. `alpha, beta` come from a 256 -> 2 head
+on the deck state, so the model learns for itself when to chase a kind and when to take the strongest
+thing available. Keep `log ||W_dir v_card(c)||` as an explicit input feature, so normalisation loses
+nothing.
+
+Why it earns its 771 parameters:
+
+- **`N` acts on `q_dir` only.** The intent FiLM of §5.2:374 conditions the direction and must not be
+  able to move `beta`. That makes `dn_hat/dT ~ 0` and §9:625's "quality is always maximised
+  conditional on `(N, T)`" enforceable **in the geometry**, not only in the calibration of §7.1.
+- **`DFT-10 price_of_nicheness` becomes decomposable**: how much of the price was paid in direction
+  against how much in impact. Today it is one opaque number.
+- **The shortlist stops being pre-biased.** A cosine shortlist retrieves the right *kind* at every
+  point of the `N` range. An IP shortlist retrieves staples first and then asks the rescorer to be
+  niche among staples, which is the §9:624 trap wearing a hat.
+
+**Reject L2 for retrieval.** Matching the norm would retrieve cards whose unconditional prior equals
+the query's magnitude, a semantics nobody asked for. Keep L2 for exactly one job: the invention
+residual of §12.7, where "how far away is the nearest real card" is a distance question, not a
+ranking question.
+
+This position is falsifiable and must be falsified rather than assumed: `DFT-24` in §12.9 runs
+`DFT-10` under cosine-plus-impact against raw inner product. If IP matches, simplify.
+
+### 12.4 Mode averaging: the one failure retrieval genuinely adds
+
+**The failure.** At many picks the right answer is bimodal: cheap interaction **or** a threat, both
+fine. A single query trained by softmax MLE lands between the modes. With an explicit candidate set
+and a softmax over all of it that is survivable, because both modes are still scored. **With a query
+plus a top-k cut it is not**, because cards sitting near the midpoint outrank both modes and fill the
+shortlist with things that are neither.
+
+**How much risk.** Let the modes be unit directions separated by `2 theta` about a midpoint `m`. Any
+card within angular radius `theta` of `m` beats both modes under cosine. The fraction of a
+`d_eff`-dimensional sphere inside that cap is about `sin(theta)^(d_eff - 1)`, where `d_eff` is the
+**effective dimensionality** of the cached key matrix, `(sum lambda_i)^2 / sum lambda_i^2` over its
+PCA spectrum. At `d_eff = 16` over a 25,000-card pool:
+
+| mode separation `2 theta` | expected decoys beating both modes |
+|---|---|
+| 30 deg | ~0.00004 |
+| 60 deg | **0.8** |
+| 90 deg | **138** |
+| 120 deg | **2,893** |
+
+Near-synonym modes are safe. **The risk explodes past roughly 80 to 90 degrees of separation, which
+is exactly the removal-versus-threat case the concern is about.** At 120 degrees a 256-card shortlist
+is composed entirely of decoys and the correct card is never rescored. The failure is silent: the
+rescorer only ever sees what retrieval handed it, and `pi` looks confident.
+
+`d_eff` is the parameter this whole estimate hangs on, and it is currently unknown. **Measure it
+before building anything on top of it**: one SVD of a `[25,000 x 256]` tensor, seconds, zero games,
+at stage 3.
+
+**The three candidate fixes.**
+
+| fix | verdict |
+|---|---|
+| **sample the query** | **Refused, and not on this section's authority.** `DECISIONS.md` D16:274 and §4.3:277 already set per-pick temperature to exactly zero, and §9:624 deletes the per-pick temperature slider by name. Sampling the query is that slider in a different costume, and it re-opens the compounding problem of §4.1:262 over ~100 picks |
+| **shortlist, then rescore exactly** | **Necessary, insufficient.** It is already the design. It fixes precision, not recall: a mode-averaged query's shortlist does not contain the missing mode, so exact rescoring cannot recover it |
+| **emit `k` queries** | **Recommended** |
+
+> **Recommendation: `K = 4` query heads, union their top-64 into one shortlist of up to 256, then
+> rescore exactly with the existing cross-attention pointer. Deterministic end to end.**
+
+- **The failure is a recall failure, and recall is what extra queries buy.** The union is a superset
+  of the single-head shortlist, so `K > 1` is weakly dominant on quality by construction. There is no
+  accuracy trade-off to argue about.
+- **It costs almost nothing.** `W_q` is one 256x256 map, so four heads is **+0.20 M parameters**
+  against §5.2's +0.45 M and the teacher's 7.2 M. Scan cost is **unchanged at 46.9 us**, because four
+  queries read the same cached `K` once and add 0.3 us of arithmetic.
+- **No new loss term.** The heads need no diversity objective and no EM responsibility assignment.
+  The rescorer supplies the gradient, and heads that duplicate each other merely waste capacity,
+  which the diagnostic below detects.
+- **It makes the multimodality visible.** Four labelled intents per pick is a far better spectator
+  artefact than one averaged one: *"it was weighing cheap removal against a four-drop threat."*
+
+**The falsifier for `K > 1` is mandatory:** `DFT-20 mode_gap`, the share of picks whose final winner
+was retrieved by a head other than head 0. The null and the single-head ablation both score exactly 0
+by construction. If `mode_gap` stays near zero across a checkpoint, `K = 4` is dead weight and drops
+to 1. If it is materially positive, single-query retrieval was silently losing those picks. Free,
+zero games.
+
+**One trap the shortlist creates.** `DESIGN_TEACHER.md` §4.3:507 defines `pi` as a softmax over the
+candidate set. Truncating to 256 makes that a softmax over a **query-dependent** set, so entropy and
+`top1_margin` stop being comparable across picks. Because default `T = 0` the argmax is unaffected
+*provided recall holds*, and recall is exactly `DFT-19`. So: log the shortlist size and the truncated
+probability mass on every `E-DRAFT` record, and never compare entropies across picks with different
+shortlist sizes without saying so.
+
+### 12.5 Set and pool filtering falls out as mask algebra
+
+The owner asks to filter by set when drafting. `DESIGN_TEACHER.md` §4.4:530 already writes the mask,
+and retrieval changes nothing about it except making the implementation obvious: **the mask is
+applied to the scores, not to the index.** One `[25,000]` boolean, additive `-inf`, 3.1 kB,
+microseconds. The index is never rebuilt, never sharded per filter, never re-indexed when a set is
+toggled.
+
+> **Position: add `set_in_scope BOOLEAN` as a third independent flag beside `format_legal` and
+> `engine_supported` (`DESIGN_CARD_POOL.md`:210). Never fold set selection into `format_legal`.**
+
+`format_legal` is external truth from MTGJSON legalities. `set_in_scope` is a training-time or user
+choice. Conflating them destroys the ability to tell *"this card is banned"* from *"we chose not to
+draft this set"*, which is precisely the coverage instrumentation `DESIGN_CARD_POOL.md`:220 says the
+project has never had, and it is what makes §12.7's unmet-need map actionable rather than
+decorative. It is also a bug fix: `DESIGN_CARD_POOL.md`:216 records that `cards.set_code` exists and
+**no query filters on it**, with the config's card-subset setting dead and pointing at a set that is
+not in the database.
+
+| constraint | implementation | cost |
+|---|---|---|
+| **colour identity** | static bitset per identity bucket, 32 in the full pool (`DESIGN_TEACHER.md` §4.4:539), precomputed once | one AND |
+| **singleton** | dynamic bitset over already-picked oracle ids, one bit flipped per pick | one AND |
+| **set scope** | static bitset per set, OR-composed for a multi-set request | one OR, one AND |
+| **commander eligibility (pick 0)** | static bitset from `leadershipSkills.commander` | one AND |
+| **forced includes, the user's prefix** | prefix tokens, not a mask (§3.2:201) | zero |
+
+These are rules of Magic, and `NORTH_STAR.md` §3:109 is explicit that rules are hardcoded precisely.
+Masking, never penalty: `DESIGN_TEACHER.md` §4.4:542's refusal of the recovered document's
+illegal-state penalty stands unchanged. **Invariant, per Rail L:239, not a scored metric:** the count
+of returned candidates violating the mask is **exactly 0**, asserted every pick, logged in `E-SLATE`
+with the masked-out set and its reason, as §4.4:538 already requires.
+
+**Same index, in-game.** `DESIGN_CARD_POOL.md`:184 specifies `retrieve_topk(query(board, belief),
+legal_pool)` at `k = 64..256`, refreshed **once per turn, not per decision** (:188). Same `K` tensor,
+same masks, different query source. The numbers make that a hard contract rather than a preference:
+
+- **per turn**: ~100 refreshes per Commander game x 12.8 MB = 1.28 GB over 65,190 decisions =
+  **19.6 kB per decision against 800 MB, 0.0025%**;
+- **per decision**: 12.8 MB against 800 MB = **1.6%, a 650x regression**.
+
+Survivable, but ruinous relative to the alternative. Log the refresh count in `SYS`.
+`DESIGN_CARD_POOL.md`:187's rule holds unchanged: pool tokens are keys and values only, never
+queries.
+
+**§5.1 gains a row.** `K`, the cached key matrix, is the fourth object the teacher, the drafter and
+in-game pool conditioning share, at **0 marginal parameters**. It is the concrete form of "one
+network used twice".
+
+### 12.6 What a pre-candidate query buys, which a pointer does not
+
+A query emitted *before* the candidate set is seen is a statement of intent that exists independently
+of what happened to be available. The pointer framing can only produce a ranking over what was there,
+and so cannot express *"it wanted cheap interaction and there was none."* Five uses, in increasing
+order of product value.
+
+1. **Nearest-neighbour readout.** Print the top-10 cards by `cos(q_dir, k_dir)` with scores, per
+   head. Free, already computed, and it makes every pick an inspectable event.
+2. **Atom decoding, without a text decoder.** Because `v_card` is composed from a typed tree over a
+   **closed** vocabulary (`DESIGN_CARD_POOL.md`:76: roughly 60 verbs, 40 filter predicates, 10
+   combinators), train ~110 linear probes `q_dir -> P(atom present in the picked card)`. That is
+   `110 x 256 + 110 = 28,270` parameters, supervised for free off the random-prefix objective of
+   `DESIGN_TEACHER.md` §4.5:567. Output: *"wants `DESTROY`, `Selector{mode:TARGET,
+   filter:{type:creature}}`, instant, mana value <= 3."* This is the cheap and honest version of
+   "decode the query toward an ability tree", and it is a prerequisite for §12.8 in any case.
+3. **The residual as a first-class quantity.** `1 - max_c cos(q_dir, k_dir(c))` after masking. Small
+   means the pool answered the intent, large means it did not. One float (§12.7).
+4. **The spectator, per `NORTH_STAR.md` §4:120** ("can the owner *see* the effect"). Per pick: four
+   intent atom bar charts, the shortlist with scores and which head supplied each entry, the mask
+   reasons from `E-SLATE`, the chosen card, the residual. The current alternative is a card name.
+5. **Explaining a pick to a human.** `DESIGN_TEACHER.md` §4.6:576's leave-one-out sweep gives a *post
+   hoc counterfactual*: "the deck is worse without X." The query gives an *ex ante intent*: "at pick
+   34 I was looking for cheap white interaction; the best available scored 0.91, the second 0.89, and
+   nothing in the pool matched the second head's ask at all." Those are different explanations, and
+   the second is the one a player asks for. It is also the missing mechanism under `BACKLOG.md:80`'s
+   Stockfish-style top-3 suggestion.
+
+**Do not ship a readout that has not passed its own falsifier.** `DFT-22 query_pick_agreement` is
+top-1 agreement between the stage-1 head-0 argmax and the final rescored pick, **restricted to picks
+where the unconditional prior's argmax differs**. Unrestricted agreement is `METRICS.md` §17:844's
+trap verbatim: a constant query agrees often, because it picks staples and so does the rescorer. The
+restriction makes the null exactly 0 by construction. Below the null, the query is decoration and the
+spectator panel is lying to the owner.
+
+### 12.7 The unmet-need map
+
+Per pick, over the masked enabled pool:
+
+```
+unmet_need(s) = 1 - max_{c : legal(c|s)} cos( q_dir(s), k_dir(c) )
+```
+
+Aggregate over many drafts, bucketed by `(colour identity, mana value bucket, top-3 decoded atoms)`
+and weighted by how often each bucket is queried. That is a map of what the pool does not contain. It
+is one float per pick plus the query vector, and it needs no new machinery at all.
+
+**Split it by the flags of §12.5, which is where it stops being a curiosity:**
+
+| bucket | meaning | action |
+|---|---|---|
+| high need, no card at all | Magic has not printed this | a genuine design gap, and the only bucket where invention is even the question |
+| high need, best match has `engine_supported = false` | **the card exists, our compiler cannot compile it** | a **demand-ranked worklist for the unparsed queue** (`DESIGN_CARD_POOL.md`:226) |
+| high need, best match has `format_legal = false` | banned, or out of format | not actionable |
+| high need, best match has `set_in_scope = false` | outside the requested sets | the honest answer to "what is this set restriction costing me" |
+
+The second row is a real King-Goal contribution: it turns "which primitive do we implement next" from
+a judgement call into a queue priced in decks that wanted it. `DESIGN_CARD_POOL.md`:268 asks for
+coverage instrumentation from day one, and this is its demand side.
+
+**And this metric is a §17 trap of exactly the kind Rail B:82 exists for.**
+
+| | raw `unmet_need` | why |
+|---|---|---|
+| null drafter (constant query) | one fixed value, no map | it asks the same question every pick |
+| **uniform-random query** | **near maximal everywhere** | a random direction in high `d` has `cos ~ 0` with every card |
+| working drafter | small in dense regions, large in genuine gaps | the map has structure |
+
+An **untrained** query head maximises this metric. So `DFT-23` is published **only** as the difference
+against a shuffled-pool permutation control, and only once `DFT-22` has cleared its null. Under that
+normalisation the null scores 0 and random scores 0, and a raw number is inadmissible on its own.
+This is `METRICS.md` §17:863's rule applied before the metric exists rather than after it embarrasses
+someone.
+
+### 12.8 "Invent new cards in the gaps": the honest verdict
+
+**The strong property, stated because it is genuinely strong.** Real invention means decoding an
+embedding back into an ability tree, the inverse of `DESIGN_CARD_POOL.md` steps 1 to 2. What makes
+that more than a party trick:
+
+> **A tree decoded under the grammar, with type checking at each production, is EXECUTABLE by
+> construction.** `DESIGN_CARD_POOL.md`:9 commits to one representation that is simultaneously the
+> only thing the engine executes and the only thing the network reads. So any well-typed tree the
+> decoder emits **runs**. An invented card would be playable, not merely describable.
+
+Constrained decoding also makes validity free by masking rather than by penalty, the same argument as
+§12.5 and the same refusal as `DESIGN_TEACHER.md` §4.4:542. It is strictly stronger than any
+text-generation approach: an LLM-written card is a wish, a grammar-decoded tree is a card. That is the
+single most interesting property in this section, and it is why invention is **parked rather than
+abandoned**.
+
+**The three problems, bluntly.**
+
+1. **Balance is a different problem from legality, and far harder.** Executable says it runs. It says
+   nothing about the mana cost being right. The unconstrained argmax over tree space is *"0 mana: you
+   win the game"*, and constraining it requires a cost model over trees, which is the hardest open
+   problem in Magic design and which Wizards solves by playtesting rather than with a critic. We have
+   no cost model and no plan for one.
+2. **The critic is badly miscalibrated off distribution, and this is fatal on its own.** `Phi_wr` is
+   fit on ~10^4 noisy deck labels over **real** cards (§5.2:384, §5.5:425). An invented card is by construction
+   the argmax of `Phi` over a region `Phi` never saw. That is not evaluation, it is
+   adversarial-example generation against our own value function. §5.5:428 already names the starved
+   estimator as `p_ref`'s tail, and invention lives past the end of that tail. `DESIGN_TEACHER.md`
+   §8:862 prices the general shape of this failure at 0.566 nuisance payout, and `DECISIONS.md`
+   R8:420 is the same circularity one step less severe. **It will look like it is working.** The
+   invented card will score beautifully and mean nothing, and no instrument in `METRICS.md` can tell.
+3. **It does not serve the King Goal.** `NORTH_STAR.md` §0:10 is "genuinely strong on the sets it has
+   been trained on". Invented cards are in no pool anyone plays, and training on them risks the
+   tied-rank-1 auto-extension goal directly, by filling the training distribution with cards whose
+   statistics are the critic's blind spots. The one steelman is data augmentation for the
+   compositional encoder, a card built from known primitives that was never printed being exactly the
+   tied-rank-1 test case. But `DESIGN_CARD_POOL.md`:262 already specifies a **better** version of
+   that test, holding out *real* cards, which has ground truth about what the card does and real
+   decks that play it. The augmentation argument does not survive contact with the test already
+   planned.
+
+> **Verdict: PARK the generator, BUILD the residual map.** Per `NORTH_STAR.md` §2:69, this goes to
+> the backlog **with the reason written down**, not into the design.
+
+Parked: the grammar decoder, any balance model, any training on invented cards, any product surface
+that shows a generated card. **The cheap piece that must not be lost, and it has to happen at stage 0
+or it is unrecoverable:**
+
+> **Log `q_dir(s)` for all `K` heads, the shortlist ids and scores, the truncated probability mass,
+> and the residual, in the `E-DRAFT` event.**
+
+`DESIGN_TEACHER.md` §4.7:607 records that `E-DRAFT` **does not exist in the catalogue at all**, so it
+is being specified now and this is the moment to specify it correctly. Cost: `4 x 256` bf16 plus 256
+ids and scores per pick, about 3.6 kB per pick and 360 kB per deck built. Keep only the top-32 of the
+shortlist if even that matters.
+
+The urgency is not aesthetic. It is the identical failure to `student.py:131` computing the full
+probability vector and `:138` keeping only the scalar `log_prob`, which `METRICS.md` `DFT-3` records
+as making no confidence, entropy, PR-AUC, F1 or calibration metric recoverable post hoc. If the query
+is not logged, §12.6 and §12.7 are unreachable retrospectively and every draft ever run has to be
+re-run. Log it before anything reads it.
+
+### 12.9 Register rows, per `METRICS.md` §17:827
+
+All rows extend family DFT, continuing §7.2's table, which ends at `DFT-18`. `M_null` is the
+unconditional decoder of §6.1, measured in the same episode on the same RNG stream (Rail B:82).
+`M_random` is the permanent uniform-random-legal outgroup of `DESIGN_TEACHER.md` §2.5:291.
+
+| ID | metric | null (ignores the knobs) | uniform random legal | mandatory pairing |
+|---|---|---|---|---|
+| **`DFT-19`** | `shortlist_recall@k`: P(the final rescored winner is in the stage-1 union shortlist), **restricted to picks where the winner is not in the pool's unconditional top-256** | high unrestricted, **0 on the restriction** | `k/\|pool\|` = **1.0%** at k = 256, M = 25,000 | never report unrestricted; the restriction **is** the metric. Publish with `DFT-20` |
+| **`DFT-20`** | `mode_gap`: share of picks whose winner came from a head other than head 0 | 0 | ~0 | **the falsifier for `K > 1`.** The single-head ablation scores 0 by construction. Publish with `DFT-19` |
+| **`DFT-21`** | `intent_atom_lift`: PR-lift of the ~110 linear atom probes against the picked card's actual atom set, macro-averaged | equals the atom base rate, **lift 0** | lift 0 | report `PR_lift`, never raw PR-AUC (§17:842) |
+| **`DFT-22`** | `query_pick_agreement \| non-prior`: stage-1 head-0 argmax against the final pick, restricted as in `DFT-19` | **0 by construction** | ~0 | gates `DFT-23`. Below the null the §12.6 spectator readout does not ship. The unrestricted version is §17:844's trap verbatim |
+| **`DFT-23`** | `unmet_need_map`: the residual, normalised against a shuffled-pool permutation control, bucketed and split by the four flags of §12.7 | 0 | **maximal raw, 0 normalised** | **inadmissible raw.** Gated on `DFT-22`. Publish the `engine_supported = false` slice as the compiler worklist |
+| **`DFT-24`** | `metric_ablation`: `DFT-10 price_of_nicheness` under cosine-plus-impact against raw inner product | - | - | how §12.3's position gets falsified rather than asserted. If IP matches, simplify |
+| **`SYS-x`** | `pick_scan_ms` and `pool_refresh_count_per_game`, measured on the Spark | - | - | falsifies §12.2. If exact scan at `\|pool\| = 25,000` exceeds 1 ms **measured**, reopen the ANN question. Not before |
+| **invariant** (Rail L:239) | mask violations among returned candidates | **exactly 0**, asserted every pick | 0 | not a scored metric. An approximate index cannot assert it; an exact one cannot fail it |
+
+Also publish **`d_eff`** (§12.4) at every encoder version bump, with a Rail H:190 epoch stamp. It is
+the parameter the whole §12.4 risk estimate rests on, and it is one SVD.
+
+**Budget, against Rail I:207.** `DFT-19` through `DFT-23` all ride the 750-deck calibration run of
+§7.6:591, about 4 minutes per checkpoint at **zero games**. `DFT-24` doubles that run. Nothing here
+books a game.
+
+### 12.10 Staging, and what §5.2 and §8 become
+
+| stage | deliverable | games |
+|---|---|---|
+| **0** (constraint filter) | **`set_in_scope` as the third flag** beside `format_legal` / `engine_supported`; **the `E-DRAFT` event specified to carry `query_vector[K]`, `shortlist_ids`, `shortlist_scores`, `truncated_mass`, `residual`, `mask_reason`** (it does not exist yet, so specify it right); register rows `DFT-19..24` written before anything is built (Rails F:169, J:217); the bitset representation for the four masks | **zero** |
+| **1** (gamma experiment) | **nothing.** Reserve the `E-DRAFT` fields | zero |
+| **2** (league, outgroup) | the uniform-random-legal outgroup becomes the external null for `DFT-19..23` as well | none marginal |
+| **3** (archive plus critic) | cache `K = V W_dir^T` and the `impact` scalar as one tensor the moment a `v_card` exists, interim vector included (`DESIGN_TEACHER.md` §7 stage 0 already de-risks this). **Measure `d_eff`.** Train the 110 atom probes off the random-prefix objective. `DFT-21` computable | zero marginal |
+| **4** (pick head) | **this is where query-then-retrieve *is* the pick head.** `K = 4` query heads (+0.20 M), the cosine/impact split (+771), the union shortlist, exact rescore. `DFT-19`, `DFT-20`, `DFT-22`, `DFT-24` run here, free. The split lands here because it interacts with the intent FiLM of §5.2:374 | zero |
+| **5** (products) | set filtering exposed as a product control; the spectator query panel; the Limited pack as the identical code path at `M = 15`; `DFT-23`'s map published | ~300 to 600, already booked in §8 |
+| **parked** | the grammar decoder and card invention (§12.8); any ANN or vector-DB dependency; `ideas.md:162` TurboQuant | - |
+
+**§5.2's arithmetic, revised.** Four query heads **+0.20 M**; the atom probes **+0.03 M**; the impact
+head and the `alpha, beta` gate **+771**. `W_dir` renames `W_k` and adds nothing. Against §5.2's
++0.45 M the drafter's new total is **+0.68 M**, and the combined system moves from ~7.6 M to
+**~7.9 M, 15.7 MB in bf16**, still entirely off the per-decision path.
+
+**What must survive from this section.** *The pointer head and vector retrieval are one operator, and
+retrieval is its scalable implementation. The index is exact, in-process and masked, never
+approximate.* Everything else here is replaceable. The two choices that are not merely
+implementation, because they decide whether §10 Q1's failure is structurally guaranteed or merely
+possible, are **cosine for kind with a separate scalar for quality**, and **more than one query so
+that a bimodal pick is not silently averaged away**. Both are falsifiable at zero games, by `DFT-24`
+and `DFT-20` respectively, and both should be settled by those numbers rather than by this document.
