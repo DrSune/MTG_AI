@@ -164,6 +164,47 @@ Three consequences, and they bear directly on settled decisions:
 `passes_taken` is returned by the forward pass and recorded nowhere. It should be a monitored
 metric before any adaptive-compute claim is made.
 
+## The 54.4M ungradiented parameters are unwired layers, not an untrained decoder
+
+`docs/ARCHITECTURE.md` records that 315.7M parameters include 54.4M that "receive no gradient,
+ever", and attributes it to only plan step 0 reaching the loss. The number is right. **The
+attribution is wrong**, and the difference changes what has to be built.
+
+Measured at the real training shape, under a loss constructed to touch *every* differentiable
+output including every plan step, so that "no gradient" means unreachable from the architecture
+rather than merely absent from today's loss:
+
+| params | tensor | why it gets nothing |
+|---|---|---|
+| **51.20M** | `reasoning_head.action_memory_embedder.weight` | declared `model.py:56`, **referenced nowhere else in the file** |
+| **2.10M** | `reasoning_head.action_fusion.weight` | declared `:57`, used `:64`, but only when `prev_plan_embeddings is not None`, which is only true from reasoning pass 2 |
+| **1.05M** | `decoder.intent_proj.weight` | declared `:152`, **referenced nowhere else in the file** |
+| 0.00M | the two matching biases | same |
+| **54.3M total** | **17.2% of 315.7M** | matches the audit's 54.4M |
+
+Three things follow.
+
+**52.25M of it is two layers no code path touches.** An `nn.Embedding(50000, 1024)` and an
+`nn.Linear(1024, 1024)` are constructed and never called. That is not an untrained parameter, it is
+an unwired one, and D3's ruling does not reach it. D3 overturned an audit recommendation to delete
+the `ActionSequenceDecoder`, on the premise that its parameters were "untrained, not worthless".
+That ruling stands and is still right, but it was defending the wrong tensors.
+
+**The plan sequence heads are not in the list.** `sequence_decoder.type_head`, `source_head` and
+`target_head` all receive gradient as soon as the loss includes the plan steps. So D3's requirement
+that every plan step be trained is **a change to the loss in `student.py`, not a change to the
+model.** That is a materially smaller job than the audit implied, and it is the one actually on the
+critical path.
+
+**2.10M wakes up for free when halting is fixed.** `action_fusion` is the layer that injects the
+previous pass's plan back into the next pass, so it is unreachable precisely because the reasoning
+loop never reaches pass 2. The dead-parameter defect and the inert-loop defect are one defect.
+
+Both findings are now gated by tests in `MTG_bot/strategic_brain/test_model.py`:
+`test_no_parameter_is_orphaned_from_the_architecture` and
+`test_reasoning_loop_can_actually_iterate`. Both fail today, by design, and name the exact tensors
+and counts in the failure message.
+
 ## Engine position complexity, re-measured on this hardware
 
 `tools/latency/positions.py --games 8 --mode Commander`, seed 20260910, 5,607 decisions.
