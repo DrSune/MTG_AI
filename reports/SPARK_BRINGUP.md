@@ -225,6 +225,95 @@ the training hardware**. It is not a dev-box artefact. The step time being 1.4x 
 the Intel Arc box measures the Cortex-X925 cores, because this path is pure Python over a linearly
 scanned relationship list and touches no GPU at all.
 
+## The latency harness has now run on the Spark, which is what D5 was waiting for
+
+`tools/latency/bench.py --reps 200 --rounds 7 --burn-in 5`, 112 configurations, full output in
+`reports/latency_dgx.json`. The harness's own docstring said to run it here and replace its GB10
+projections with measurements. Done. 111 of the 112 configs came in under the 15% between-round spread
+threshold, so they are separable; the exception is `current-8pass` at 64 tokens / 192 actions at 18.3%.
+
+At 256 board tokens and 96 legal actions:
+
+| arch | params | MB/dec | launches | p50 | p99 | tail | eager proj | graph proj | GB/s |
+|---|---|---|---|---|---|---|---|---|---|
+| `current` | 249.6M | 800.1 | 564 | 5.75 | 7.18 | 1.25 | 12.24 (−53%) | 4.35 (+32%) | 138 |
+| `current-8pass` | 249.6M | 4325.1 | 2804 | 30.73 | 33.81 | 1.10 | 69.16 (−56%) | 22.79 (+35%) | 141 |
+| `v0.5` | 190.5M | 319.9 | 272 | **2.45** | 4.39 | 1.79 | 5.92 (−59%) | 1.83 (+34%) | 130 |
+| `v1` | 413.0M | 601.8 | 290 | 3.57 | 9.16 | **2.56** | 7.60 (−53%) | 3.31 (+8%) | 169 |
+| `v1-cached` | 413.0M | 516.6 | 244 | 3.50 | **4.05** | **1.16** | 6.64 (−47%) | 2.86 (+22%) | 147 |
+| `v1-3pass` | 413.0M | 1541.6 | 738 | 10.28 | 15.25 | 1.48 | 20.25 (−49%) | 8.23 (+25%) | 149 |
+| `v2-wide` | 1053.3M | 1497.9 | 332 | 8.79 | 19.65 | 2.24 | 12.94 (−32%) | 8.00 (+10%) | 170 |
+
+**The cost model brackets reality correctly, which is a real validation of
+[`../docs/COST_MODEL.md`](../docs/COST_MODEL.md).** Measured eager latency is 32% to 59% *faster* than the
+eager projection and 8% to 35% *slower* than the CUDA-graph projection. Since the measurement is eager and
+graphs are not implemented, sitting between the two bounds and nearer the graph bound is exactly right.
+Keep the bracket and stop treating either end as the answer.
+
+**These configurations are bandwidth-bound, not launch-bound.** Every row reports `bound_by: bandwidth`,
+and achieved bandwidth is 130 to 170 GB/s against the 223.7 GB/s this device actually delivers, so 58% to
+76% of achievable. That does not contradict the 6.93 us launch cost: launch overhead binds the *real*
+model at batch 1 with hundreds of tiny sequential kernels, whereas these probes stream real weight volume.
+Both are true of different workloads, and the distinction decides whether the fix is architecture or CUDA
+graphs, so do not collapse them.
+
+### Every candidate is far inside a match clock, and that reframes the clock work
+
+Worst p99 anywhere in the sweep, per architecture:
+
+| arch | worst p99 | worst single observation |
+|---|---|---|
+| `v1-cached` | **4.49 ms** | 5.16 ms |
+| `v0.5` | 5.27 ms | 6.05 ms |
+| `current` | 8.70 ms | 9.38 ms |
+| `v1` | 10.38 ms | 12.82 ms |
+| `v1-3pass` | 17.08 ms | 17.84 ms |
+| `v2-wide` | 22.58 ms | 23.26 ms |
+| `current-8pass` | 71.72 ms | 89.63 ms |
+
+Against [`../docs/CLOCK_TARGETS.md`](../docs/CLOCK_TARGETS.md)'s budget these have enormous headroom. So
+**the network is not currently what threatens the clock.** The engine is: 5.477 ms of pure Python per step
+against 2.45 ms for a whole v0.5 forward pass. Rollout throughput, not model size, is the binding
+constraint, exactly as [`../docs/HARDWARE_DGX_SPARK.md`](../docs/HARDWARE_DGX_SPARK.md) predicted.
+
+### `v1-cached` dominates on the thing NORTH_STAR section 1a actually asks for
+
+The charter says to optimise the tail, not the mean, and that predictability is a feature. On that
+criterion `v1-cached` wins the sweep outright: **413M parameters at p50 3.50 ms with a tail ratio of 1.16
+and a worst-case p99 of 4.49 ms anywhere.** It is both 2.2x the parameters of `v0.5` and *more* predictable
+than it (`v0.5` reaches a 2.02 tail ratio). Caching the board encoder is what buys this: 244 kernel
+launches against `v1`'s 290, and a tail ratio of 1.16 against the same architecture's 2.56 uncached.
+
+**This does not overturn D12, and it is not a size decision.** D12 starts at `v0.5` for *throughput*, not
+latency, and a 43% higher per-decision cost does reduce games per hour. What the measurement removes is the
+**latency** objection to scaling: D5 forbade a size commitment before the harness ran here, and the harness
+now says no candidate in this range, up to 1.05B parameters, is anywhere near a clock limit. The remaining
+argument for starting small is purely games-per-hour, which is the right argument and should be made on
+throughput numbers that do not exist yet.
+
+### There is currently no mechanism producing compute variance at all
+
+NORTH_STAR section 1a rests on the owner's observation that *"some turns will require more reasoning passes
+than others, due to increased complexity of the board and state or number of possible actions to take"*.
+Measured, from the easiest shape (64 tokens, 8 actions) to the hardest (384 tokens, 192 actions):
+
+| arch | easiest p50 | hardest p50 | growth |
+|---|---|---|---|
+| `current-8pass` | 30.93 | 32.98 | 1.07x |
+| `v1` | 3.58 | 4.03 | 1.12x |
+| `v1-cached` | 3.17 | 3.65 | 1.15x |
+| `v2-wide` | 8.07 | 9.49 | 1.18x |
+| `current` | 5.39 | 6.50 | 1.20x |
+| `v1-3pass` | 9.38 | 11.21 | 1.20x |
+| `v0.5` | 2.13 | 2.82 | 1.33x |
+
+**A six-fold increase in board size and a twenty-four-fold increase in action count buy at most 1.33x in
+latency.** Position complexity, in the range the engine can even produce, barely moves the cost. The only
+mechanism in the design that would create real compute variance is the number of reasoning passes, and
+that loop is inert (see above: 50 of 50 positions take one pass). So **today nothing in the system
+produces compute variance, and the adaptive-compute programme has nothing to adapt.** The halting head is
+the whole mechanism, not a refinement of one, which raises how much D11 is load-bearing.
+
 ## Determinism, re-verified and worse than recorded
 
 `docs/ARCHITECTURE.md` says nothing is seeded. Confirmed: every `random.seed`, `manual_seed` and

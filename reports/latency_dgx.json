@@ -1,0 +1,4850 @@
+{
+ "env": {
+  "device": "cuda",
+  "torch": "2.14.0+cu130",
+  "python": "3.12.3",
+  "platform": "Linux-6.17.0-1032-nvidia-aarch64-with-glibc2.39",
+  "machine": "aarch64",
+  "dtype": "bf16",
+  "cuda_available": true,
+  "device_name": "NVIDIA GB10",
+  "gb10_assumptions": {
+   "bandwidth_bytes_s": 273000000000.0,
+   "streaming_efficiency": 0.7,
+   "dense_bf16_flops": 125000000000000.0,
+   "compute_efficiency": 0.4,
+   "launch_overhead_s": 8e-06,
+   "graph_residual_launches": 20
+  },
+  "cuda_capability": [
+   12,
+   1
+  ],
+  "cuda_arch_list": [
+   "sm_80",
+   "sm_90",
+   "sm_100",
+   "sm_110",
+   "sm_120"
+  ]
+ },
+ "results": [
+  {
+   "arch": "current",
+   "n_tokens": 64,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.635,
+    "p50": 5.395,
+    "p90": 6.167,
+    "p99": 6.425,
+    "max": 7.17,
+    "mean": 4.931,
+    "tail_ratio_p99_over_p50": 1.19,
+    "p50_median_of_rounds": 5.422,
+    "round_spread_pct": 0.7,
+    "effective_gb_per_s": 147.5
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 399861760,
+    "bytes_per_decision": 799723520,
+    "flops_per_decision": 19195035648,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.185,
+    "compute_s": 0.384,
+    "roofline_s": 4.185,
+    "dispatch_s": 8.056,
+    "eager_s": 12.241,
+    "cuda_graph_s": 4.345,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current",
+   "n_tokens": 64,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.485,
+    "p50": 5.228,
+    "p90": 5.932,
+    "p99": 6.353,
+    "max": 6.79,
+    "mean": 4.752,
+    "tail_ratio_p99_over_p50": 1.22,
+    "p50_median_of_rounds": 5.264,
+    "round_spread_pct": 1.1,
+    "effective_gb_per_s": 151.9
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 399861760,
+    "bytes_per_decision": 799723520,
+    "flops_per_decision": 21263843328,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.185,
+    "compute_s": 0.425,
+    "roofline_s": 4.185,
+    "dispatch_s": 8.056,
+    "eager_s": 12.241,
+    "cuda_graph_s": 4.345,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current",
+   "n_tokens": 64,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.563,
+    "p50": 5.295,
+    "p90": 6.12,
+    "p99": 6.844,
+    "max": 7.237,
+    "mean": 4.801,
+    "tail_ratio_p99_over_p50": 1.29,
+    "p50_median_of_rounds": 5.308,
+    "round_spread_pct": 0.6,
+    "effective_gb_per_s": 150.7
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 399861760,
+    "bytes_per_decision": 799723520,
+    "flops_per_decision": 26780663808,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.185,
+    "compute_s": 0.536,
+    "roofline_s": 4.185,
+    "dispatch_s": 8.056,
+    "eager_s": 12.241,
+    "cuda_graph_s": 4.345,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current",
+   "n_tokens": 64,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.678,
+    "p50": 5.41,
+    "p90": 6.192,
+    "p99": 6.825,
+    "max": 7.727,
+    "mean": 4.898,
+    "tail_ratio_p99_over_p50": 1.26,
+    "p50_median_of_rounds": 5.425,
+    "round_spread_pct": 0.6,
+    "effective_gb_per_s": 147.4
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 399861760,
+    "bytes_per_decision": 799723520,
+    "flops_per_decision": 35055894528,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.185,
+    "compute_s": 0.701,
+    "roofline_s": 4.185,
+    "dispatch_s": 8.056,
+    "eager_s": 12.241,
+    "cuda_graph_s": 4.345,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current",
+   "n_tokens": 128,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.575,
+    "p50": 5.484,
+    "p90": 6.033,
+    "p99": 6.665,
+    "max": 7.135,
+    "mean": 4.785,
+    "tail_ratio_p99_over_p50": 1.22,
+    "p50_median_of_rounds": 5.498,
+    "round_spread_pct": 0.4,
+    "effective_gb_per_s": 145.5
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 399927296,
+    "bytes_per_decision": 799854592,
+    "flops_per_decision": 37721276416,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.186,
+    "compute_s": 0.754,
+    "roofline_s": 4.186,
+    "dispatch_s": 8.056,
+    "eager_s": 12.242,
+    "cuda_graph_s": 4.346,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current",
+   "n_tokens": 128,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.54,
+    "p50": 5.452,
+    "p90": 6.004,
+    "p99": 6.471,
+    "max": 7.476,
+    "mean": 4.745,
+    "tail_ratio_p99_over_p50": 1.19,
+    "p50_median_of_rounds": 5.46,
+    "round_spread_pct": 0.8,
+    "effective_gb_per_s": 146.5
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 399927296,
+    "bytes_per_decision": 799854592,
+    "flops_per_decision": 39790084096,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.186,
+    "compute_s": 0.796,
+    "roofline_s": 4.186,
+    "dispatch_s": 8.056,
+    "eager_s": 12.242,
+    "cuda_graph_s": 4.346,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current",
+   "n_tokens": 128,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.541,
+    "p50": 5.468,
+    "p90": 6.059,
+    "p99": 6.93,
+    "max": 7.267,
+    "mean": 4.805,
+    "tail_ratio_p99_over_p50": 1.27,
+    "p50_median_of_rounds": 5.471,
+    "round_spread_pct": 0.3,
+    "effective_gb_per_s": 146.2
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 399927296,
+    "bytes_per_decision": 799854592,
+    "flops_per_decision": 45306904576,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.186,
+    "compute_s": 0.906,
+    "roofline_s": 4.186,
+    "dispatch_s": 8.056,
+    "eager_s": 12.242,
+    "cuda_graph_s": 4.346,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current",
+   "n_tokens": 128,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.692,
+    "p50": 5.589,
+    "p90": 6.151,
+    "p99": 6.849,
+    "max": 7.183,
+    "mean": 4.923,
+    "tail_ratio_p99_over_p50": 1.23,
+    "p50_median_of_rounds": 5.602,
+    "round_spread_pct": 0.6,
+    "effective_gb_per_s": 142.8
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 399927296,
+    "bytes_per_decision": 799854592,
+    "flops_per_decision": 53582135296,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.186,
+    "compute_s": 1.072,
+    "roofline_s": 4.186,
+    "dispatch_s": 8.056,
+    "eager_s": 12.242,
+    "cuda_graph_s": 4.346,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current",
+   "n_tokens": 256,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.527,
+    "p50": 5.775,
+    "p90": 6.462,
+    "p99": 7.166,
+    "max": 8.045,
+    "mean": 4.974,
+    "tail_ratio_p99_over_p50": 1.24,
+    "p50_median_of_rounds": 5.797,
+    "round_spread_pct": 0.9,
+    "effective_gb_per_s": 138.0
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 400058368,
+    "bytes_per_decision": 800116736,
+    "flops_per_decision": 76384370688,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.187,
+    "compute_s": 1.528,
+    "roofline_s": 4.187,
+    "dispatch_s": 8.056,
+    "eager_s": 12.243,
+    "cuda_graph_s": 4.347,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current",
+   "n_tokens": 256,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.499,
+    "p50": 5.742,
+    "p90": 6.395,
+    "p99": 7.029,
+    "max": 7.547,
+    "mean": 4.935,
+    "tail_ratio_p99_over_p50": 1.22,
+    "p50_median_of_rounds": 5.797,
+    "round_spread_pct": 1.3,
+    "effective_gb_per_s": 138.0
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 400058368,
+    "bytes_per_decision": 800116736,
+    "flops_per_decision": 78453178368,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.187,
+    "compute_s": 1.569,
+    "roofline_s": 4.187,
+    "dispatch_s": 8.056,
+    "eager_s": 12.243,
+    "cuda_graph_s": 4.347,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current",
+   "n_tokens": 256,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.495,
+    "p50": 5.754,
+    "p90": 6.387,
+    "p99": 7.184,
+    "max": 7.482,
+    "mean": 4.946,
+    "tail_ratio_p99_over_p50": 1.25,
+    "p50_median_of_rounds": 5.784,
+    "round_spread_pct": 1.1,
+    "effective_gb_per_s": 138.3
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 400058368,
+    "bytes_per_decision": 800116736,
+    "flops_per_decision": 83969998848,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.187,
+    "compute_s": 1.679,
+    "roofline_s": 4.187,
+    "dispatch_s": 8.056,
+    "eager_s": 12.243,
+    "cuda_graph_s": 4.347,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current",
+   "n_tokens": 256,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.605,
+    "p50": 5.86,
+    "p90": 6.518,
+    "p99": 7.306,
+    "max": 8.013,
+    "mean": 5.062,
+    "tail_ratio_p99_over_p50": 1.25,
+    "p50_median_of_rounds": 5.924,
+    "round_spread_pct": 1.2,
+    "effective_gb_per_s": 135.1
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 400058368,
+    "bytes_per_decision": 800116736,
+    "flops_per_decision": 92245229568,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.187,
+    "compute_s": 1.845,
+    "roofline_s": 4.187,
+    "dispatch_s": 8.056,
+    "eager_s": 12.243,
+    "cuda_graph_s": 4.347,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current",
+   "n_tokens": 384,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.579,
+    "p50": 6.41,
+    "p90": 7.194,
+    "p99": 8.245,
+    "max": 9.193,
+    "mean": 5.361,
+    "tail_ratio_p99_over_p50": 1.29,
+    "p50_median_of_rounds": 6.422,
+    "round_spread_pct": 0.8,
+    "effective_gb_per_s": 124.6
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 400189440,
+    "bytes_per_decision": 800378880,
+    "flops_per_decision": 117194948608,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.188,
+    "compute_s": 2.344,
+    "roofline_s": 4.188,
+    "dispatch_s": 8.056,
+    "eager_s": 12.244,
+    "cuda_graph_s": 4.348,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current",
+   "n_tokens": 384,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.559,
+    "p50": 6.374,
+    "p90": 7.53,
+    "p99": 8.697,
+    "max": 9.385,
+    "mean": 5.442,
+    "tail_ratio_p99_over_p50": 1.36,
+    "p50_median_of_rounds": 6.395,
+    "round_spread_pct": 0.5,
+    "effective_gb_per_s": 125.2
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 400189440,
+    "bytes_per_decision": 800378880,
+    "flops_per_decision": 119263756288,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.188,
+    "compute_s": 2.385,
+    "roofline_s": 4.188,
+    "dispatch_s": 8.056,
+    "eager_s": 12.244,
+    "cuda_graph_s": 4.348,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current",
+   "n_tokens": 384,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.547,
+    "p50": 6.38,
+    "p90": 7.142,
+    "p99": 8.166,
+    "max": 8.941,
+    "mean": 5.318,
+    "tail_ratio_p99_over_p50": 1.28,
+    "p50_median_of_rounds": 6.383,
+    "round_spread_pct": 0.2,
+    "effective_gb_per_s": 125.4
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 400189440,
+    "bytes_per_decision": 800378880,
+    "flops_per_decision": 124780576768,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.188,
+    "compute_s": 2.496,
+    "roofline_s": 4.188,
+    "dispatch_s": 8.056,
+    "eager_s": 12.244,
+    "cuda_graph_s": 4.348,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current",
+   "n_tokens": 384,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.69,
+    "p50": 6.496,
+    "p90": 7.344,
+    "p99": 8.032,
+    "max": 8.637,
+    "mean": 5.473,
+    "tail_ratio_p99_over_p50": 1.24,
+    "p50_median_of_rounds": 6.513,
+    "round_spread_pct": 0.4,
+    "effective_gb_per_s": 122.9
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 400189440,
+    "bytes_per_decision": 800378880,
+    "flops_per_decision": 133055807488,
+    "kernel_launches": 564
+   },
+   "kernel_launches_measured": {
+    "cold": 1007,
+    "cached": 696,
+    "blended": 1007.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 4.188,
+    "compute_s": 2.661,
+    "roofline_s": 4.188,
+    "dispatch_s": 8.056,
+    "eager_s": 12.244,
+    "cuda_graph_s": 4.348,
+    "bound_by": "bandwidth",
+    "launches_used": 1007000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 64,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 28.261,
+    "p50": 30.925,
+    "p90": 37.206,
+    "p99": 63.244,
+    "max": 68.986,
+    "mean": 33.429,
+    "tail_ratio_p99_over_p50": 2.05,
+    "p50_median_of_rounds": 30.909,
+    "round_spread_pct": 8.5,
+    "effective_gb_per_s": 139.9
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162329600,
+    "bytes_per_decision": 4324659200,
+    "flops_per_decision": 27421605888,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.63,
+    "compute_s": 0.548,
+    "roofline_s": 22.63,
+    "dispatch_s": 46.528,
+    "eager_s": 69.158,
+    "cuda_graph_s": 22.79,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 64,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 28.682,
+    "p50": 31.17,
+    "p90": 32.623,
+    "p99": 62.58,
+    "max": 67.566,
+    "mean": 31.918,
+    "tail_ratio_p99_over_p50": 2.01,
+    "p50_median_of_rounds": 31.167,
+    "round_spread_pct": 3.4,
+    "effective_gb_per_s": 138.8
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162329600,
+    "bytes_per_decision": 4324659200,
+    "flops_per_decision": 43597037568,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.63,
+    "compute_s": 0.872,
+    "roofline_s": 22.63,
+    "dispatch_s": 46.528,
+    "eager_s": 69.158,
+    "cuda_graph_s": 22.79,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 64,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 27.767,
+    "p50": 29.808,
+    "p90": 31.034,
+    "p99": 34.664,
+    "max": 41.105,
+    "mean": 29.745,
+    "tail_ratio_p99_over_p50": 1.16,
+    "p50_median_of_rounds": 29.784,
+    "round_spread_pct": 3.4,
+    "effective_gb_per_s": 145.2
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162329600,
+    "bytes_per_decision": 4324659200,
+    "flops_per_decision": 86731522048,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.63,
+    "compute_s": 1.735,
+    "roofline_s": 22.63,
+    "dispatch_s": 46.528,
+    "eager_s": 69.158,
+    "cuda_graph_s": 22.79,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 64,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 28.686,
+    "p50": 31.249,
+    "p90": 34.132,
+    "p99": 71.722,
+    "max": 89.626,
+    "mean": 32.944,
+    "tail_ratio_p99_over_p50": 2.3,
+    "p50_median_of_rounds": 31.231,
+    "round_spread_pct": 18.3,
+    "effective_gb_per_s": 138.5
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162329600,
+    "bytes_per_decision": 4324659200,
+    "flops_per_decision": 151433248768,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.63,
+    "compute_s": 3.029,
+    "roofline_s": 22.63,
+    "dispatch_s": 46.528,
+    "eager_s": 69.158,
+    "cuda_graph_s": 22.79,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 128,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 28.932,
+    "p50": 31.67,
+    "p90": 33.057,
+    "p99": 56.789,
+    "max": 59.289,
+    "mean": 32.05,
+    "tail_ratio_p99_over_p50": 1.79,
+    "p50_median_of_rounds": 31.564,
+    "round_spread_pct": 1.9,
+    "effective_gb_per_s": 137.0
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162395136,
+    "bytes_per_decision": 4324790272,
+    "flops_per_decision": 45947846656,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.631,
+    "compute_s": 0.919,
+    "roofline_s": 22.631,
+    "dispatch_s": 46.528,
+    "eager_s": 69.159,
+    "cuda_graph_s": 22.791,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 128,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 28.708,
+    "p50": 31.128,
+    "p90": 32.82,
+    "p99": 39.232,
+    "max": 45.463,
+    "mean": 31.266,
+    "tail_ratio_p99_over_p50": 1.26,
+    "p50_median_of_rounds": 31.18,
+    "round_spread_pct": 2.0,
+    "effective_gb_per_s": 138.7
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162395136,
+    "bytes_per_decision": 4324790272,
+    "flops_per_decision": 62123278336,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.631,
+    "compute_s": 1.242,
+    "roofline_s": 22.631,
+    "dispatch_s": 46.528,
+    "eager_s": 69.159,
+    "cuda_graph_s": 22.791,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 128,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 28.24,
+    "p50": 30.661,
+    "p90": 32.279,
+    "p99": 33.049,
+    "max": 33.711,
+    "mean": 30.613,
+    "tail_ratio_p99_over_p50": 1.08,
+    "p50_median_of_rounds": 30.789,
+    "round_spread_pct": 1.8,
+    "effective_gb_per_s": 140.5
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162395136,
+    "bytes_per_decision": 4324790272,
+    "flops_per_decision": 105257762816,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.631,
+    "compute_s": 2.105,
+    "roofline_s": 22.631,
+    "dispatch_s": 46.528,
+    "eager_s": 69.159,
+    "cuda_graph_s": 22.791,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 128,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 28.838,
+    "p50": 31.679,
+    "p90": 33.047,
+    "p99": 33.932,
+    "max": 37.094,
+    "mean": 31.573,
+    "tail_ratio_p99_over_p50": 1.07,
+    "p50_median_of_rounds": 31.801,
+    "round_spread_pct": 3.5,
+    "effective_gb_per_s": 136.0
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162395136,
+    "bytes_per_decision": 4324790272,
+    "flops_per_decision": 169959489536,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.631,
+    "compute_s": 3.399,
+    "roofline_s": 22.631,
+    "dispatch_s": 46.528,
+    "eager_s": 69.159,
+    "cuda_graph_s": 22.791,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 256,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 28.489,
+    "p50": 31.385,
+    "p90": 32.724,
+    "p99": 33.612,
+    "max": 34.748,
+    "mean": 31.144,
+    "tail_ratio_p99_over_p50": 1.07,
+    "p50_median_of_rounds": 31.423,
+    "round_spread_pct": 1.2,
+    "effective_gb_per_s": 137.6
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162526208,
+    "bytes_per_decision": 4325052416,
+    "flops_per_decision": 84610940928,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.632,
+    "compute_s": 1.692,
+    "roofline_s": 22.632,
+    "dispatch_s": 46.528,
+    "eager_s": 69.16,
+    "cuda_graph_s": 22.792,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 256,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 27.945,
+    "p50": 30.863,
+    "p90": 32.652,
+    "p99": 33.404,
+    "max": 34.309,
+    "mean": 30.949,
+    "tail_ratio_p99_over_p50": 1.08,
+    "p50_median_of_rounds": 31.086,
+    "round_spread_pct": 2.3,
+    "effective_gb_per_s": 139.1
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162526208,
+    "bytes_per_decision": 4325052416,
+    "flops_per_decision": 100786372608,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.632,
+    "compute_s": 2.016,
+    "roofline_s": 22.632,
+    "dispatch_s": 46.528,
+    "eager_s": 69.16,
+    "cuda_graph_s": 22.792,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 256,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 27.86,
+    "p50": 30.729,
+    "p90": 32.744,
+    "p99": 33.806,
+    "max": 35.271,
+    "mean": 30.807,
+    "tail_ratio_p99_over_p50": 1.1,
+    "p50_median_of_rounds": 30.757,
+    "round_spread_pct": 4.2,
+    "effective_gb_per_s": 140.6
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162526208,
+    "bytes_per_decision": 4325052416,
+    "flops_per_decision": 143920857088,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.632,
+    "compute_s": 2.878,
+    "roofline_s": 22.632,
+    "dispatch_s": 46.528,
+    "eager_s": 69.16,
+    "cuda_graph_s": 22.792,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 256,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 29.008,
+    "p50": 31.785,
+    "p90": 33.076,
+    "p99": 34.015,
+    "max": 38.073,
+    "mean": 31.533,
+    "tail_ratio_p99_over_p50": 1.07,
+    "p50_median_of_rounds": 31.912,
+    "round_spread_pct": 3.0,
+    "effective_gb_per_s": 135.5
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162526208,
+    "bytes_per_decision": 4325052416,
+    "flops_per_decision": 208622583808,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.632,
+    "compute_s": 4.172,
+    "roofline_s": 22.632,
+    "dispatch_s": 46.528,
+    "eager_s": 69.16,
+    "cuda_graph_s": 22.792,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 384,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 28.935,
+    "p50": 32.02,
+    "p90": 33.085,
+    "p99": 34.005,
+    "max": 34.924,
+    "mean": 31.353,
+    "tail_ratio_p99_over_p50": 1.06,
+    "p50_median_of_rounds": 32.194,
+    "round_spread_pct": 1.0,
+    "effective_gb_per_s": 134.4
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162657280,
+    "bytes_per_decision": 4325314560,
+    "flops_per_decision": 125421518848,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.634,
+    "compute_s": 2.508,
+    "roofline_s": 22.634,
+    "dispatch_s": 46.528,
+    "eager_s": 69.162,
+    "cuda_graph_s": 22.794,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 384,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 28.51,
+    "p50": 31.859,
+    "p90": 33.062,
+    "p99": 33.988,
+    "max": 35.042,
+    "mean": 31.262,
+    "tail_ratio_p99_over_p50": 1.07,
+    "p50_median_of_rounds": 32.024,
+    "round_spread_pct": 1.0,
+    "effective_gb_per_s": 135.1
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162657280,
+    "bytes_per_decision": 4325314560,
+    "flops_per_decision": 141596950528,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.634,
+    "compute_s": 2.832,
+    "roofline_s": 22.634,
+    "dispatch_s": 46.528,
+    "eager_s": 69.162,
+    "cuda_graph_s": 22.794,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 384,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 27.519,
+    "p50": 31.639,
+    "p90": 33.459,
+    "p99": 38.411,
+    "max": 44.622,
+    "mean": 31.618,
+    "tail_ratio_p99_over_p50": 1.21,
+    "p50_median_of_rounds": 32.468,
+    "round_spread_pct": 5.2,
+    "effective_gb_per_s": 133.2
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162657280,
+    "bytes_per_decision": 4325314560,
+    "flops_per_decision": 184731435008,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.634,
+    "compute_s": 3.695,
+    "roofline_s": 22.634,
+    "dispatch_s": 46.528,
+    "eager_s": 69.162,
+    "cuda_graph_s": 22.794,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "current-8pass",
+   "n_tokens": 384,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 28.611,
+    "p50": 32.985,
+    "p90": 34.443,
+    "p99": 36.524,
+    "max": 46.125,
+    "mean": 32.36,
+    "tail_ratio_p99_over_p50": 1.11,
+    "p50_median_of_rounds": 32.95,
+    "round_spread_pct": 2.8,
+    "effective_gb_per_s": 131.3
+   },
+   "analytic": {
+    "params_total": 249571328,
+    "params_streamed_per_decision": 2162657280,
+    "bytes_per_decision": 4325314560,
+    "flops_per_decision": 249433161728,
+    "kernel_launches": 2804
+   },
+   "kernel_launches_measured": {
+    "cold": 5816,
+    "cached": 5505,
+    "blended": 5816.0
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 22.634,
+    "compute_s": 4.989,
+    "roofline_s": 22.634,
+    "dispatch_s": 46.528,
+    "eager_s": 69.162,
+    "cuda_graph_s": 22.794,
+    "bound_by": "bandwidth",
+    "launches_used": 5816000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 64,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.085,
+    "p50": 2.126,
+    "p90": 3.309,
+    "p99": 4.032,
+    "max": 4.375,
+    "mean": 2.425,
+    "tail_ratio_p99_over_p50": 1.9,
+    "p50_median_of_rounds": 2.134,
+    "round_spread_pct": 7.1,
+    "effective_gb_per_s": 149.8
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159827712,
+    "bytes_per_decision": 319655424,
+    "flops_per_decision": 3501461504,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.673,
+    "compute_s": 0.07,
+    "roofline_s": 1.673,
+    "dispatch_s": 4.249,
+    "eager_s": 5.922,
+    "cuda_graph_s": 1.833,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 64,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.051,
+    "p50": 2.091,
+    "p90": 3.285,
+    "p99": 3.97,
+    "max": 4.129,
+    "mean": 2.389,
+    "tail_ratio_p99_over_p50": 1.9,
+    "p50_median_of_rounds": 2.093,
+    "round_spread_pct": 11.6,
+    "effective_gb_per_s": 152.7
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159827712,
+    "bytes_per_decision": 319655424,
+    "flops_per_decision": 5718204416,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.673,
+    "compute_s": 0.114,
+    "roofline_s": 1.673,
+    "dispatch_s": 4.249,
+    "eager_s": 5.922,
+    "cuda_graph_s": 1.833,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 64,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.113,
+    "p50": 2.346,
+    "p90": 3.357,
+    "p99": 3.901,
+    "max": 4.094,
+    "mean": 2.492,
+    "tail_ratio_p99_over_p50": 1.66,
+    "p50_median_of_rounds": 2.354,
+    "round_spread_pct": 10.1,
+    "effective_gb_per_s": 135.8
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159827712,
+    "bytes_per_decision": 319655424,
+    "flops_per_decision": 11698724864,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.673,
+    "compute_s": 0.234,
+    "roofline_s": 1.673,
+    "dispatch_s": 4.249,
+    "eager_s": 5.922,
+    "cuda_graph_s": 1.833,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 64,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.344,
+    "p50": 2.603,
+    "p90": 3.58,
+    "p99": 4.143,
+    "max": 4.829,
+    "mean": 2.753,
+    "tail_ratio_p99_over_p50": 1.59,
+    "p50_median_of_rounds": 2.6,
+    "round_spread_pct": 3.4,
+    "effective_gb_per_s": 122.9
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159827712,
+    "bytes_per_decision": 319655424,
+    "flops_per_decision": 20858249216,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.673,
+    "compute_s": 0.417,
+    "roofline_s": 1.673,
+    "dispatch_s": 4.249,
+    "eager_s": 5.922,
+    "cuda_graph_s": 1.833,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 128,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.091,
+    "p50": 2.138,
+    "p90": 3.435,
+    "p99": 3.959,
+    "max": 4.865,
+    "mean": 2.475,
+    "tail_ratio_p99_over_p50": 1.85,
+    "p50_median_of_rounds": 2.136,
+    "round_spread_pct": 8.6,
+    "effective_gb_per_s": 149.7
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159860480,
+    "bytes_per_decision": 319720960,
+    "flops_per_decision": 6047666176,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.673,
+    "compute_s": 0.121,
+    "roofline_s": 1.673,
+    "dispatch_s": 4.249,
+    "eager_s": 5.922,
+    "cuda_graph_s": 1.833,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 128,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.044,
+    "p50": 2.091,
+    "p90": 3.372,
+    "p99": 3.951,
+    "max": 4.416,
+    "mean": 2.398,
+    "tail_ratio_p99_over_p50": 1.89,
+    "p50_median_of_rounds": 2.094,
+    "round_spread_pct": 11.1,
+    "effective_gb_per_s": 152.7
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159860480,
+    "bytes_per_decision": 319720960,
+    "flops_per_decision": 8283283456,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.673,
+    "compute_s": 0.166,
+    "roofline_s": 1.673,
+    "dispatch_s": 4.249,
+    "eager_s": 5.922,
+    "cuda_graph_s": 1.833,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 128,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.108,
+    "p50": 2.347,
+    "p90": 3.466,
+    "p99": 3.94,
+    "max": 4.492,
+    "mean": 2.506,
+    "tail_ratio_p99_over_p50": 1.68,
+    "p50_median_of_rounds": 2.384,
+    "round_spread_pct": 10.4,
+    "effective_gb_per_s": 134.1
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159860480,
+    "bytes_per_decision": 319720960,
+    "flops_per_decision": 14314135552,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.673,
+    "compute_s": 0.286,
+    "roofline_s": 1.673,
+    "dispatch_s": 4.249,
+    "eager_s": 5.922,
+    "cuda_graph_s": 1.833,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 128,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.378,
+    "p50": 2.692,
+    "p90": 3.7,
+    "p99": 4.384,
+    "max": 5.305,
+    "mean": 2.809,
+    "tail_ratio_p99_over_p50": 1.63,
+    "p50_median_of_rounds": 2.692,
+    "round_spread_pct": 2.0,
+    "effective_gb_per_s": 118.8
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159860480,
+    "bytes_per_decision": 319720960,
+    "flops_per_decision": 23549157376,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.673,
+    "compute_s": 0.471,
+    "roofline_s": 1.673,
+    "dispatch_s": 4.249,
+    "eager_s": 5.922,
+    "cuda_graph_s": 1.833,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 256,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.19,
+    "p50": 2.469,
+    "p90": 3.788,
+    "p99": 4.36,
+    "max": 5.72,
+    "mean": 2.641,
+    "tail_ratio_p99_over_p50": 1.77,
+    "p50_median_of_rounds": 2.467,
+    "round_spread_pct": 3.7,
+    "effective_gb_per_s": 129.7
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159926016,
+    "bytes_per_decision": 319852032,
+    "flops_per_decision": 11291070464,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.674,
+    "compute_s": 0.226,
+    "roofline_s": 1.674,
+    "dispatch_s": 4.249,
+    "eager_s": 5.923,
+    "cuda_graph_s": 1.834,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 256,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.152,
+    "p50": 2.418,
+    "p90": 3.734,
+    "p99": 4.28,
+    "max": 4.667,
+    "mean": 2.585,
+    "tail_ratio_p99_over_p50": 1.77,
+    "p50_median_of_rounds": 2.424,
+    "round_spread_pct": 3.1,
+    "effective_gb_per_s": 132.0
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159926016,
+    "bytes_per_decision": 319852032,
+    "flops_per_decision": 13564436480,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.674,
+    "compute_s": 0.271,
+    "roofline_s": 1.674,
+    "dispatch_s": 4.249,
+    "eager_s": 5.923,
+    "cuda_graph_s": 1.834,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 256,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.212,
+    "p50": 2.452,
+    "p90": 3.805,
+    "p99": 4.395,
+    "max": 5.279,
+    "mean": 2.664,
+    "tail_ratio_p99_over_p50": 1.79,
+    "p50_median_of_rounds": 2.455,
+    "round_spread_pct": 4.6,
+    "effective_gb_per_s": 130.3
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159926016,
+    "bytes_per_decision": 319852032,
+    "flops_per_decision": 19695951872,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.674,
+    "compute_s": 0.394,
+    "roofline_s": 1.674,
+    "dispatch_s": 4.249,
+    "eager_s": 5.923,
+    "cuda_graph_s": 1.834,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 256,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.452,
+    "p50": 2.713,
+    "p90": 4.046,
+    "p99": 4.553,
+    "max": 5.384,
+    "mean": 2.923,
+    "tail_ratio_p99_over_p50": 1.68,
+    "p50_median_of_rounds": 2.733,
+    "round_spread_pct": 1.7,
+    "effective_gb_per_s": 117.0
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159926016,
+    "bytes_per_decision": 319852032,
+    "flops_per_decision": 29081968640,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.674,
+    "compute_s": 0.582,
+    "roofline_s": 1.674,
+    "dispatch_s": 4.249,
+    "eager_s": 5.923,
+    "cuda_graph_s": 1.834,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 384,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.203,
+    "p50": 2.497,
+    "p90": 4.179,
+    "p99": 4.67,
+    "max": 5.613,
+    "mean": 2.729,
+    "tail_ratio_p99_over_p50": 1.87,
+    "p50_median_of_rounds": 2.495,
+    "round_spread_pct": 0.6,
+    "effective_gb_per_s": 128.2
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159991552,
+    "bytes_per_decision": 319983104,
+    "flops_per_decision": 16735801344,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.674,
+    "compute_s": 0.335,
+    "roofline_s": 1.674,
+    "dispatch_s": 4.249,
+    "eager_s": 5.924,
+    "cuda_graph_s": 1.834,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 384,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.158,
+    "p50": 2.437,
+    "p90": 4.087,
+    "p99": 4.924,
+    "max": 5.755,
+    "mean": 2.684,
+    "tail_ratio_p99_over_p50": 2.02,
+    "p50_median_of_rounds": 2.442,
+    "round_spread_pct": 0.9,
+    "effective_gb_per_s": 131.0
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159991552,
+    "bytes_per_decision": 319983104,
+    "flops_per_decision": 19046916096,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.674,
+    "compute_s": 0.381,
+    "roofline_s": 1.674,
+    "dispatch_s": 4.249,
+    "eager_s": 5.924,
+    "cuda_graph_s": 1.834,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 384,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.251,
+    "p50": 2.549,
+    "p90": 4.224,
+    "p99": 4.929,
+    "max": 5.343,
+    "mean": 2.793,
+    "tail_ratio_p99_over_p50": 1.93,
+    "p50_median_of_rounds": 2.549,
+    "round_spread_pct": 0.3,
+    "effective_gb_per_s": 125.5
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159991552,
+    "bytes_per_decision": 319983104,
+    "flops_per_decision": 25279094784,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.674,
+    "compute_s": 0.506,
+    "roofline_s": 1.674,
+    "dispatch_s": 4.249,
+    "eager_s": 5.924,
+    "cuda_graph_s": 1.834,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v0.5",
+   "n_tokens": 384,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.52,
+    "p50": 2.819,
+    "p90": 4.718,
+    "p99": 5.266,
+    "max": 6.052,
+    "mean": 3.069,
+    "tail_ratio_p99_over_p50": 1.87,
+    "p50_median_of_rounds": 2.815,
+    "round_spread_pct": 2.3,
+    "effective_gb_per_s": 113.7
+   },
+   "analytic": {
+    "params_total": 190488320,
+    "params_streamed_per_decision": 159991552,
+    "bytes_per_decision": 319983104,
+    "flops_per_decision": 34816106496,
+    "kernel_launches": 272
+   },
+   "kernel_launches_measured": {
+    "cold": 727,
+    "cached": 492,
+    "blended": 531.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 1.674,
+    "compute_s": 0.696,
+    "roofline_s": 1.674,
+    "dispatch_s": 4.249,
+    "eager_s": 5.924,
+    "cuda_graph_s": 1.834,
+    "bound_by": "bandwidth",
+    "launches_used": 531166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 64,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.071,
+    "p50": 3.584,
+    "p90": 6.635,
+    "p99": 6.944,
+    "max": 7.397,
+    "mean": 3.936,
+    "tail_ratio_p99_over_p50": 1.94,
+    "p50_median_of_rounds": 3.628,
+    "round_spread_pct": 5.9,
+    "effective_gb_per_s": 165.8
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300785322,
+    "bytes_per_decision": 601570645,
+    "flops_per_decision": 8374632448,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.148,
+    "compute_s": 0.167,
+    "roofline_s": 3.148,
+    "dispatch_s": 4.452,
+    "eager_s": 7.6,
+    "cuda_graph_s": 3.308,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 64,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.122,
+    "p50": 3.427,
+    "p90": 6.246,
+    "p99": 7.25,
+    "max": 7.656,
+    "mean": 3.887,
+    "tail_ratio_p99_over_p50": 2.12,
+    "p50_median_of_rounds": 3.441,
+    "round_spread_pct": 1.2,
+    "effective_gb_per_s": 174.8
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300785322,
+    "bytes_per_decision": 601570645,
+    "flops_per_decision": 12299173888,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.148,
+    "compute_s": 0.246,
+    "roofline_s": 3.148,
+    "dispatch_s": 4.452,
+    "eager_s": 7.6,
+    "cuda_graph_s": 3.308,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 64,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.106,
+    "p50": 3.364,
+    "p90": 6.226,
+    "p99": 7.297,
+    "max": 7.607,
+    "mean": 3.868,
+    "tail_ratio_p99_over_p50": 2.17,
+    "p50_median_of_rounds": 3.34,
+    "round_spread_pct": 6.5,
+    "effective_gb_per_s": 180.1
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300785322,
+    "bytes_per_decision": 601570645,
+    "flops_per_decision": 22856892416,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.148,
+    "compute_s": 0.457,
+    "roofline_s": 3.148,
+    "dispatch_s": 4.452,
+    "eager_s": 7.6,
+    "cuda_graph_s": 3.308,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 64,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.432,
+    "p50": 3.868,
+    "p90": 6.952,
+    "p99": 7.695,
+    "max": 7.953,
+    "mean": 4.247,
+    "tail_ratio_p99_over_p50": 1.99,
+    "p50_median_of_rounds": 3.875,
+    "round_spread_pct": 1.9,
+    "effective_gb_per_s": 155.2
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300785322,
+    "bytes_per_decision": 601570645,
+    "flops_per_decision": 38945128448,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.148,
+    "compute_s": 0.779,
+    "roofline_s": 3.148,
+    "dispatch_s": 4.452,
+    "eager_s": 7.6,
+    "cuda_graph_s": 3.308,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 128,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.038,
+    "p50": 3.507,
+    "p90": 6.737,
+    "p99": 7.851,
+    "max": 8.629,
+    "mean": 3.957,
+    "tail_ratio_p99_over_p50": 2.24,
+    "p50_median_of_rounds": 3.549,
+    "round_spread_pct": 8.6,
+    "effective_gb_per_s": 169.5
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300818090,
+    "bytes_per_decision": 601636181,
+    "flops_per_decision": 15074683562,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.148,
+    "compute_s": 0.301,
+    "roofline_s": 3.148,
+    "dispatch_s": 4.452,
+    "eager_s": 7.6,
+    "cuda_graph_s": 3.308,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 128,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.113,
+    "p50": 3.601,
+    "p90": 7.1,
+    "p99": 7.871,
+    "max": 8.602,
+    "mean": 4.04,
+    "tail_ratio_p99_over_p50": 2.19,
+    "p50_median_of_rounds": 3.604,
+    "round_spread_pct": 0.7,
+    "effective_gb_per_s": 166.9
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300818090,
+    "bytes_per_decision": 601636181,
+    "flops_per_decision": 19024390826,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.148,
+    "compute_s": 0.38,
+    "roofline_s": 3.148,
+    "dispatch_s": 4.452,
+    "eager_s": 7.6,
+    "cuda_graph_s": 3.308,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 128,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.117,
+    "p50": 3.593,
+    "p90": 7.126,
+    "p99": 7.805,
+    "max": 8.557,
+    "mean": 4.059,
+    "tail_ratio_p99_over_p50": 2.17,
+    "p50_median_of_rounds": 3.585,
+    "round_spread_pct": 4.4,
+    "effective_gb_per_s": 167.8
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300818090,
+    "bytes_per_decision": 601636181,
+    "flops_per_decision": 29649218218,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.148,
+    "compute_s": 0.593,
+    "roofline_s": 3.148,
+    "dispatch_s": 4.452,
+    "eager_s": 7.6,
+    "cuda_graph_s": 3.308,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 128,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.465,
+    "p50": 3.927,
+    "p90": 7.603,
+    "p99": 8.344,
+    "max": 8.767,
+    "mean": 4.45,
+    "tail_ratio_p99_over_p50": 2.12,
+    "p50_median_of_rounds": 3.949,
+    "round_spread_pct": 3.0,
+    "effective_gb_per_s": 152.4
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300818090,
+    "bytes_per_decision": 601636181,
+    "flops_per_decision": 45838117546,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.148,
+    "compute_s": 0.917,
+    "roofline_s": 3.148,
+    "dispatch_s": 4.452,
+    "eager_s": 7.6,
+    "cuda_graph_s": 3.308,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 256,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.138,
+    "p50": 3.53,
+    "p90": 7.66,
+    "p99": 8.841,
+    "max": 9.325,
+    "mean": 4.176,
+    "tail_ratio_p99_over_p50": 2.5,
+    "p50_median_of_rounds": 3.531,
+    "round_spread_pct": 3.5,
+    "effective_gb_per_s": 170.4
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300883626,
+    "bytes_per_decision": 601767253,
+    "flops_per_decision": 28810330112,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.149,
+    "compute_s": 0.576,
+    "roofline_s": 3.149,
+    "dispatch_s": 4.452,
+    "eager_s": 7.601,
+    "cuda_graph_s": 3.309,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 256,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.169,
+    "p50": 3.522,
+    "p90": 7.616,
+    "p99": 9.06,
+    "max": 9.341,
+    "mean": 4.188,
+    "tail_ratio_p99_over_p50": 2.57,
+    "p50_median_of_rounds": 3.524,
+    "round_spread_pct": 2.7,
+    "effective_gb_per_s": 170.8
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300883626,
+    "bytes_per_decision": 601767253,
+    "flops_per_decision": 32810369024,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.149,
+    "compute_s": 0.656,
+    "roofline_s": 3.149,
+    "dispatch_s": 4.452,
+    "eager_s": 7.601,
+    "cuda_graph_s": 3.309,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 256,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.175,
+    "p50": 3.572,
+    "p90": 7.605,
+    "p99": 9.156,
+    "max": 9.829,
+    "mean": 4.259,
+    "tail_ratio_p99_over_p50": 2.56,
+    "p50_median_of_rounds": 3.568,
+    "round_spread_pct": 4.8,
+    "effective_gb_per_s": 168.7
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300883626,
+    "bytes_per_decision": 601767253,
+    "flops_per_decision": 43569414144,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.149,
+    "compute_s": 0.871,
+    "roofline_s": 3.149,
+    "dispatch_s": 4.452,
+    "eager_s": 7.601,
+    "cuda_graph_s": 3.309,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 256,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.515,
+    "p50": 3.962,
+    "p90": 8.043,
+    "p99": 9.257,
+    "max": 10.449,
+    "mean": 4.579,
+    "tail_ratio_p99_over_p50": 2.34,
+    "p50_median_of_rounds": 3.92,
+    "round_spread_pct": 4.9,
+    "effective_gb_per_s": 153.5
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300883626,
+    "bytes_per_decision": 601767253,
+    "flops_per_decision": 59959640064,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.149,
+    "compute_s": 1.199,
+    "roofline_s": 3.149,
+    "dispatch_s": 4.452,
+    "eager_s": 7.601,
+    "cuda_graph_s": 3.309,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 384,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.15,
+    "p50": 3.622,
+    "p90": 8.469,
+    "p99": 10.052,
+    "max": 12.823,
+    "mean": 4.39,
+    "tail_ratio_p99_over_p50": 2.78,
+    "p50_median_of_rounds": 3.623,
+    "round_spread_pct": 11.1,
+    "effective_gb_per_s": 166.1
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300949162,
+    "bytes_per_decision": 601898325,
+    "flops_per_decision": 42993369088,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.15,
+    "compute_s": 0.86,
+    "roofline_s": 3.15,
+    "dispatch_s": 4.452,
+    "eager_s": 7.602,
+    "cuda_graph_s": 3.31,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 384,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.214,
+    "p50": 3.695,
+    "p90": 8.523,
+    "p99": 10.067,
+    "max": 10.808,
+    "mean": 4.437,
+    "tail_ratio_p99_over_p50": 2.72,
+    "p50_median_of_rounds": 3.695,
+    "round_spread_pct": 1.0,
+    "effective_gb_per_s": 162.9
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300949162,
+    "bytes_per_decision": 601898325,
+    "flops_per_decision": 47043739648,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.15,
+    "compute_s": 0.941,
+    "roofline_s": 3.15,
+    "dispatch_s": 4.452,
+    "eager_s": 7.602,
+    "cuda_graph_s": 3.31,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 384,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.218,
+    "p50": 3.801,
+    "p90": 8.772,
+    "p99": 9.783,
+    "max": 10.34,
+    "mean": 4.482,
+    "tail_ratio_p99_over_p50": 2.57,
+    "p50_median_of_rounds": 3.804,
+    "round_spread_pct": 3.5,
+    "effective_gb_per_s": 158.2
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300949162,
+    "bytes_per_decision": 601898325,
+    "flops_per_decision": 57937002496,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.15,
+    "compute_s": 1.159,
+    "roofline_s": 3.15,
+    "dispatch_s": 4.452,
+    "eager_s": 7.602,
+    "cuda_graph_s": 3.31,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1",
+   "n_tokens": 384,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.453,
+    "p50": 4.03,
+    "p90": 9.076,
+    "p99": 10.375,
+    "max": 10.967,
+    "mean": 4.768,
+    "tail_ratio_p99_over_p50": 2.57,
+    "p50_median_of_rounds": 4.012,
+    "round_spread_pct": 5.6,
+    "effective_gb_per_s": 150.0
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 300949162,
+    "bytes_per_decision": 601898325,
+    "flops_per_decision": 74528555008,
+    "kernel_launches": 290
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 556.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 3.15,
+    "compute_s": 1.491,
+    "roofline_s": 3.15,
+    "dispatch_s": 4.452,
+    "eager_s": 7.602,
+    "cuda_graph_s": 3.31,
+    "bound_by": "bandwidth",
+    "launches_used": 556500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 64,
+   "n_actions": 8,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 1400,
+    "min": 2.988,
+    "p50": 3.169,
+    "p90": 3.841,
+    "p99": 4.087,
+    "max": 4.689,
+    "mean": 3.32,
+    "tail_ratio_p99_over_p50": 1.29,
+    "p50_median_of_rounds": 3.172,
+    "round_spread_pct": 3.5,
+    "effective_gb_per_s": 162.8
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258200576,
+    "bytes_per_decision": 516401152,
+    "flops_per_decision": 2869608481,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.702,
+    "compute_s": 0.057,
+    "roofline_s": 2.702,
+    "dispatch_s": 3.936,
+    "eager_s": 6.638,
+    "cuda_graph_s": 2.862,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 64,
+   "n_actions": 32,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.068,
+    "p50": 3.289,
+    "p90": 3.961,
+    "p99": 4.154,
+    "max": 4.308,
+    "mean": 3.436,
+    "tail_ratio_p99_over_p50": 1.26,
+    "p50_median_of_rounds": 3.288,
+    "round_spread_pct": 3.3,
+    "effective_gb_per_s": 157.1
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258200576,
+    "bytes_per_decision": 516401152,
+    "flops_per_decision": 6794149921,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.702,
+    "compute_s": 0.136,
+    "roofline_s": 2.702,
+    "dispatch_s": 3.936,
+    "eager_s": 6.638,
+    "cuda_graph_s": 2.862,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 64,
+   "n_actions": 96,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.123,
+    "p50": 3.441,
+    "p90": 3.851,
+    "p99": 4.29,
+    "max": 4.811,
+    "mean": 3.469,
+    "tail_ratio_p99_over_p50": 1.25,
+    "p50_median_of_rounds": 3.466,
+    "round_spread_pct": 5.3,
+    "effective_gb_per_s": 149.0
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258200576,
+    "bytes_per_decision": 516401152,
+    "flops_per_decision": 17351868449,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.702,
+    "compute_s": 0.347,
+    "roofline_s": 2.702,
+    "dispatch_s": 3.936,
+    "eager_s": 6.638,
+    "cuda_graph_s": 2.862,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 64,
+   "n_actions": 192,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.36,
+    "p50": 3.554,
+    "p90": 4.252,
+    "p99": 4.492,
+    "max": 5.145,
+    "mean": 3.689,
+    "tail_ratio_p99_over_p50": 1.26,
+    "p50_median_of_rounds": 3.548,
+    "round_spread_pct": 7.4,
+    "effective_gb_per_s": 145.5
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258200576,
+    "bytes_per_decision": 516401152,
+    "flops_per_decision": 33440104481,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.702,
+    "compute_s": 0.669,
+    "roofline_s": 2.702,
+    "dispatch_s": 3.936,
+    "eager_s": 6.638,
+    "cuda_graph_s": 2.862,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 128,
+   "n_actions": 8,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.002,
+    "p50": 3.31,
+    "p90": 3.662,
+    "p99": 4.109,
+    "max": 5.013,
+    "mean": 3.329,
+    "tail_ratio_p99_over_p50": 1.24,
+    "p50_median_of_rounds": 3.316,
+    "round_spread_pct": 5.1,
+    "effective_gb_per_s": 155.7
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258233344,
+    "bytes_per_decision": 516466688,
+    "flops_per_decision": 3952787522,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.703,
+    "compute_s": 0.079,
+    "roofline_s": 2.703,
+    "dispatch_s": 3.936,
+    "eager_s": 6.639,
+    "cuda_graph_s": 2.863,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 128,
+   "n_actions": 32,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.142,
+    "p50": 3.317,
+    "p90": 3.949,
+    "p99": 4.218,
+    "max": 4.659,
+    "mean": 3.451,
+    "tail_ratio_p99_over_p50": 1.27,
+    "p50_median_of_rounds": 3.312,
+    "round_spread_pct": 10.7,
+    "effective_gb_per_s": 155.9
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258233344,
+    "bytes_per_decision": 516466688,
+    "flops_per_decision": 7902494786,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.703,
+    "compute_s": 0.158,
+    "roofline_s": 2.703,
+    "dispatch_s": 3.936,
+    "eager_s": 6.639,
+    "cuda_graph_s": 2.863,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 128,
+   "n_actions": 96,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.097,
+    "p50": 3.289,
+    "p90": 3.93,
+    "p99": 4.104,
+    "max": 4.628,
+    "mean": 3.418,
+    "tail_ratio_p99_over_p50": 1.25,
+    "p50_median_of_rounds": 3.289,
+    "round_spread_pct": 0.3,
+    "effective_gb_per_s": 157.0
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258233344,
+    "bytes_per_decision": 516466688,
+    "flops_per_decision": 18527322178,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.703,
+    "compute_s": 0.371,
+    "roofline_s": 2.703,
+    "dispatch_s": 3.936,
+    "eager_s": 6.639,
+    "cuda_graph_s": 2.863,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 128,
+   "n_actions": 192,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.473,
+    "p50": 3.805,
+    "p90": 4.074,
+    "p99": 4.268,
+    "max": 4.991,
+    "mean": 3.813,
+    "tail_ratio_p99_over_p50": 1.12,
+    "p50_median_of_rounds": 3.811,
+    "round_spread_pct": 3.0,
+    "effective_gb_per_s": 135.5
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258233344,
+    "bytes_per_decision": 516466688,
+    "flops_per_decision": 34716221506,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.703,
+    "compute_s": 0.694,
+    "roofline_s": 2.703,
+    "dispatch_s": 3.936,
+    "eager_s": 6.639,
+    "cuda_graph_s": 2.863,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 256,
+   "n_actions": 8,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.1,
+    "p50": 3.288,
+    "p90": 3.924,
+    "p99": 4.115,
+    "max": 4.64,
+    "mean": 3.406,
+    "tail_ratio_p99_over_p50": 1.25,
+    "p50_median_of_rounds": 3.294,
+    "round_spread_pct": 0.8,
+    "effective_gb_per_s": 156.8
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258298880,
+    "bytes_per_decision": 516597760,
+    "flops_per_decision": 6119145608,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.703,
+    "compute_s": 0.122,
+    "roofline_s": 2.703,
+    "dispatch_s": 3.936,
+    "eager_s": 6.639,
+    "cuda_graph_s": 2.863,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 256,
+   "n_actions": 32,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.107,
+    "p50": 3.322,
+    "p90": 3.874,
+    "p99": 4.107,
+    "max": 4.606,
+    "mean": 3.432,
+    "tail_ratio_p99_over_p50": 1.24,
+    "p50_median_of_rounds": 3.316,
+    "round_spread_pct": 2.9,
+    "effective_gb_per_s": 155.8
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258298880,
+    "bytes_per_decision": 516597760,
+    "flops_per_decision": 10119184520,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.703,
+    "compute_s": 0.202,
+    "roofline_s": 2.703,
+    "dispatch_s": 3.936,
+    "eager_s": 6.639,
+    "cuda_graph_s": 2.863,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 256,
+   "n_actions": 96,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.232,
+    "p50": 3.501,
+    "p90": 3.81,
+    "p99": 4.053,
+    "max": 4.428,
+    "mean": 3.537,
+    "tail_ratio_p99_over_p50": 1.16,
+    "p50_median_of_rounds": 3.504,
+    "round_spread_pct": 2.6,
+    "effective_gb_per_s": 147.4
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258298880,
+    "bytes_per_decision": 516597760,
+    "flops_per_decision": 20878229640,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.703,
+    "compute_s": 0.418,
+    "roofline_s": 2.703,
+    "dispatch_s": 3.936,
+    "eager_s": 6.639,
+    "cuda_graph_s": 2.863,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 256,
+   "n_actions": 192,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.472,
+    "p50": 3.807,
+    "p90": 4.062,
+    "p99": 4.313,
+    "max": 5.159,
+    "mean": 3.793,
+    "tail_ratio_p99_over_p50": 1.13,
+    "p50_median_of_rounds": 3.804,
+    "round_spread_pct": 2.2,
+    "effective_gb_per_s": 135.8
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258298880,
+    "bytes_per_decision": 516597760,
+    "flops_per_decision": 37268455560,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.703,
+    "compute_s": 0.745,
+    "roofline_s": 2.703,
+    "dispatch_s": 3.936,
+    "eager_s": 6.639,
+    "cuda_graph_s": 2.863,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 384,
+   "n_actions": 8,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.187,
+    "p50": 3.443,
+    "p90": 3.751,
+    "p99": 3.882,
+    "max": 4.119,
+    "mean": 3.481,
+    "tail_ratio_p99_over_p50": 1.13,
+    "p50_median_of_rounds": 3.445,
+    "round_spread_pct": 0.3,
+    "effective_gb_per_s": 150.0
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258364416,
+    "bytes_per_decision": 516728832,
+    "flops_per_decision": 8285503696,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.704,
+    "compute_s": 0.166,
+    "roofline_s": 2.704,
+    "dispatch_s": 3.936,
+    "eager_s": 6.64,
+    "cuda_graph_s": 2.864,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 384,
+   "n_actions": 32,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.126,
+    "p50": 3.322,
+    "p90": 3.78,
+    "p99": 3.956,
+    "max": 4.327,
+    "mean": 3.417,
+    "tail_ratio_p99_over_p50": 1.19,
+    "p50_median_of_rounds": 3.303,
+    "round_spread_pct": 2.1,
+    "effective_gb_per_s": 156.4
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258364416,
+    "bytes_per_decision": 516728832,
+    "flops_per_decision": 12335874256,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.704,
+    "compute_s": 0.247,
+    "roofline_s": 2.704,
+    "dispatch_s": 3.936,
+    "eager_s": 6.64,
+    "cuda_graph_s": 2.864,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 384,
+   "n_actions": 96,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.299,
+    "p50": 3.493,
+    "p90": 4.14,
+    "p99": 4.31,
+    "max": 4.666,
+    "mean": 3.645,
+    "tail_ratio_p99_over_p50": 1.23,
+    "p50_median_of_rounds": 3.495,
+    "round_spread_pct": 0.5,
+    "effective_gb_per_s": 147.8
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258364416,
+    "bytes_per_decision": 516728832,
+    "flops_per_decision": 23229137104,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.704,
+    "compute_s": 0.465,
+    "roofline_s": 2.704,
+    "dispatch_s": 3.936,
+    "eager_s": 6.64,
+    "cuda_graph_s": 2.864,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-cached",
+   "n_tokens": 384,
+   "n_actions": 192,
+   "cached_board": true,
+   "measured_ms": {
+    "n": 1400,
+    "min": 3.468,
+    "p50": 3.654,
+    "p90": 4.206,
+    "p99": 4.446,
+    "max": 4.658,
+    "mean": 3.775,
+    "tail_ratio_p99_over_p50": 1.22,
+    "p50_median_of_rounds": 3.654,
+    "round_spread_pct": 1.1,
+    "effective_gb_per_s": 141.4
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 258364416,
+    "bytes_per_decision": 516728832,
+    "flops_per_decision": 39820689616,
+    "kernel_launches": 244
+   },
+   "kernel_launches_measured": {
+    "cold": 879,
+    "cached": 492,
+    "blended": 492.000000387
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 2.704,
+    "compute_s": 0.796,
+    "roofline_s": 2.704,
+    "dispatch_s": 3.936,
+    "eager_s": 6.64,
+    "cuda_graph_s": 2.864,
+    "bound_by": "bandwidth",
+    "launches_used": 492000.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 64,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 8.464,
+    "p50": 9.384,
+    "p90": 12.252,
+    "p99": 12.91,
+    "max": 13.152,
+    "mean": 9.681,
+    "tail_ratio_p99_over_p50": 1.38,
+    "p50_median_of_rounds": 9.382,
+    "round_spread_pct": 0.9,
+    "effective_gb_per_s": 164.3
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770719402,
+    "bytes_per_decision": 1541438805,
+    "flops_per_decision": 14000570368,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.066,
+    "compute_s": 0.28,
+    "roofline_s": 8.066,
+    "dispatch_s": 12.18,
+    "eager_s": 20.246,
+    "cuda_graph_s": 8.226,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 64,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 8.651,
+    "p50": 9.696,
+    "p90": 12.471,
+    "p99": 13.118,
+    "max": 13.306,
+    "mean": 9.92,
+    "tail_ratio_p99_over_p50": 1.35,
+    "p50_median_of_rounds": 9.698,
+    "round_spread_pct": 1.1,
+    "effective_gb_per_s": 158.9
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770719402,
+    "bytes_per_decision": 1541438805,
+    "flops_per_decision": 25660850176,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.066,
+    "compute_s": 0.513,
+    "roofline_s": 8.066,
+    "dispatch_s": 12.18,
+    "eager_s": 20.246,
+    "cuda_graph_s": 8.226,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 64,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 8.874,
+    "p50": 9.886,
+    "p90": 12.773,
+    "p99": 13.459,
+    "max": 13.839,
+    "mean": 10.184,
+    "tail_ratio_p99_over_p50": 1.36,
+    "p50_median_of_rounds": 9.887,
+    "round_spread_pct": 1.4,
+    "effective_gb_per_s": 155.9
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770719402,
+    "bytes_per_decision": 1541438805,
+    "flops_per_decision": 57031753728,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.066,
+    "compute_s": 1.141,
+    "roofline_s": 8.066,
+    "dispatch_s": 12.18,
+    "eager_s": 20.246,
+    "cuda_graph_s": 8.226,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 64,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 9.631,
+    "p50": 10.548,
+    "p90": 13.618,
+    "p99": 14.302,
+    "max": 14.842,
+    "mean": 10.998,
+    "tail_ratio_p99_over_p50": 1.36,
+    "p50_median_of_rounds": 10.523,
+    "round_spread_pct": 1.1,
+    "effective_gb_per_s": 146.5
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770719402,
+    "bytes_per_decision": 1541438805,
+    "flops_per_decision": 104843083776,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.066,
+    "compute_s": 2.097,
+    "roofline_s": 8.066,
+    "dispatch_s": 12.18,
+    "eager_s": 20.246,
+    "cuda_graph_s": 8.226,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 128,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 8.487,
+    "p50": 9.369,
+    "p90": 12.732,
+    "p99": 13.429,
+    "max": 13.989,
+    "mean": 9.858,
+    "tail_ratio_p99_over_p50": 1.43,
+    "p50_median_of_rounds": 9.373,
+    "round_spread_pct": 2.2,
+    "effective_gb_per_s": 164.5
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770752170,
+    "bytes_per_decision": 1541504341,
+    "flops_per_decision": 22866979498,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.066,
+    "compute_s": 0.457,
+    "roofline_s": 8.066,
+    "dispatch_s": 12.18,
+    "eager_s": 20.246,
+    "cuda_graph_s": 8.226,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 128,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 8.642,
+    "p50": 9.624,
+    "p90": 12.944,
+    "p99": 13.752,
+    "max": 14.476,
+    "mean": 10.041,
+    "tail_ratio_p99_over_p50": 1.43,
+    "p50_median_of_rounds": 9.623,
+    "round_spread_pct": 3.8,
+    "effective_gb_per_s": 160.2
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770752170,
+    "bytes_per_decision": 1541504341,
+    "flops_per_decision": 34602756778,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.066,
+    "compute_s": 0.692,
+    "roofline_s": 8.066,
+    "dispatch_s": 12.18,
+    "eager_s": 20.246,
+    "cuda_graph_s": 8.226,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 128,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 8.698,
+    "p50": 9.627,
+    "p90": 12.938,
+    "p99": 13.558,
+    "max": 13.838,
+    "mean": 10.115,
+    "tail_ratio_p99_over_p50": 1.41,
+    "p50_median_of_rounds": 9.619,
+    "round_spread_pct": 1.6,
+    "effective_gb_per_s": 160.3
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770752170,
+    "bytes_per_decision": 1541504341,
+    "flops_per_decision": 66174986922,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.066,
+    "compute_s": 1.323,
+    "roofline_s": 8.066,
+    "dispatch_s": 12.18,
+    "eager_s": 20.246,
+    "cuda_graph_s": 8.226,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 128,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 9.534,
+    "p50": 10.426,
+    "p90": 14.068,
+    "p99": 14.586,
+    "max": 15.005,
+    "mean": 10.966,
+    "tail_ratio_p99_over_p50": 1.4,
+    "p50_median_of_rounds": 10.433,
+    "round_spread_pct": 1.4,
+    "effective_gb_per_s": 147.8
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770752170,
+    "bytes_per_decision": 1541504341,
+    "flops_per_decision": 114288306858,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.066,
+    "compute_s": 2.286,
+    "roofline_s": 8.066,
+    "dispatch_s": 12.18,
+    "eager_s": 20.246,
+    "cuda_graph_s": 8.226,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 256,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 8.814,
+    "p50": 9.87,
+    "p90": 13.959,
+    "p99": 14.612,
+    "max": 15.341,
+    "mean": 10.401,
+    "tail_ratio_p99_over_p50": 1.48,
+    "p50_median_of_rounds": 9.859,
+    "round_spread_pct": 0.9,
+    "effective_gb_per_s": 156.4
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770817706,
+    "bytes_per_decision": 1541635413,
+    "flops_per_decision": 40935342080,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.067,
+    "compute_s": 0.819,
+    "roofline_s": 8.067,
+    "dispatch_s": 12.18,
+    "eager_s": 20.247,
+    "cuda_graph_s": 8.227,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 256,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 8.958,
+    "p50": 9.983,
+    "p90": 14.221,
+    "p99": 14.8,
+    "max": 15.455,
+    "mean": 10.592,
+    "tail_ratio_p99_over_p50": 1.48,
+    "p50_median_of_rounds": 9.996,
+    "round_spread_pct": 1.3,
+    "effective_gb_per_s": 154.2
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770817706,
+    "bytes_per_decision": 1541635413,
+    "flops_per_decision": 52822114304,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.067,
+    "compute_s": 1.056,
+    "roofline_s": 8.067,
+    "dispatch_s": 12.18,
+    "eager_s": 20.247,
+    "cuda_graph_s": 8.227,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 256,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 9.053,
+    "p50": 10.282,
+    "p90": 14.496,
+    "p99": 15.252,
+    "max": 16.086,
+    "mean": 10.88,
+    "tail_ratio_p99_over_p50": 1.48,
+    "p50_median_of_rounds": 10.335,
+    "round_spread_pct": 4.9,
+    "effective_gb_per_s": 149.2
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770817706,
+    "bytes_per_decision": 1541635413,
+    "flops_per_decision": 84796997632,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.067,
+    "compute_s": 1.696,
+    "roofline_s": 8.067,
+    "dispatch_s": 12.18,
+    "eager_s": 20.247,
+    "cuda_graph_s": 8.227,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 256,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 9.815,
+    "p50": 11.032,
+    "p90": 15.148,
+    "p99": 16.001,
+    "max": 17.014,
+    "mean": 11.582,
+    "tail_ratio_p99_over_p50": 1.45,
+    "p50_median_of_rounds": 11.013,
+    "round_spread_pct": 2.0,
+    "effective_gb_per_s": 140.0
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770817706,
+    "bytes_per_decision": 1541635413,
+    "flops_per_decision": 133514297344,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.067,
+    "compute_s": 2.67,
+    "roofline_s": 8.067,
+    "dispatch_s": 12.18,
+    "eager_s": 20.247,
+    "cuda_graph_s": 8.227,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 384,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 9.044,
+    "p50": 10.054,
+    "p90": 15.009,
+    "p99": 15.671,
+    "max": 16.579,
+    "mean": 10.753,
+    "tail_ratio_p99_over_p50": 1.56,
+    "p50_median_of_rounds": 10.02,
+    "round_spread_pct": 2.4,
+    "effective_gb_per_s": 153.9
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770883242,
+    "bytes_per_decision": 1541766485,
+    "flops_per_decision": 59451097088,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.068,
+    "compute_s": 1.189,
+    "roofline_s": 8.068,
+    "dispatch_s": 12.18,
+    "eager_s": 20.248,
+    "cuda_graph_s": 8.228,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 384,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 9.344,
+    "p50": 10.029,
+    "p90": 15.054,
+    "p99": 15.722,
+    "max": 16.543,
+    "mean": 10.773,
+    "tail_ratio_p99_over_p50": 1.57,
+    "p50_median_of_rounds": 10.044,
+    "round_spread_pct": 2.4,
+    "effective_gb_per_s": 153.5
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770883242,
+    "bytes_per_decision": 1541766485,
+    "flops_per_decision": 71488864256,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.068,
+    "compute_s": 1.43,
+    "roofline_s": 8.068,
+    "dispatch_s": 12.18,
+    "eager_s": 20.248,
+    "cuda_graph_s": 8.228,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 384,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 9.393,
+    "p50": 10.552,
+    "p90": 15.497,
+    "p99": 16.28,
+    "max": 17.16,
+    "mean": 11.231,
+    "tail_ratio_p99_over_p50": 1.54,
+    "p50_median_of_rounds": 10.559,
+    "round_spread_pct": 1.1,
+    "effective_gb_per_s": 146.0
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770883242,
+    "bytes_per_decision": 1541766485,
+    "flops_per_decision": 103866400768,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.068,
+    "compute_s": 2.077,
+    "roofline_s": 8.068,
+    "dispatch_s": 12.18,
+    "eager_s": 20.248,
+    "cuda_graph_s": 8.228,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v1-3pass",
+   "n_tokens": 384,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 10.033,
+    "p50": 11.215,
+    "p90": 16.283,
+    "p99": 17.079,
+    "max": 17.837,
+    "mean": 11.886,
+    "tail_ratio_p99_over_p50": 1.52,
+    "p50_median_of_rounds": 11.215,
+    "round_spread_pct": 0.9,
+    "effective_gb_per_s": 137.5
+   },
+   "analytic": {
+    "params_total": 412963840,
+    "params_streamed_per_decision": 770883242,
+    "bytes_per_decision": 1541766485,
+    "flops_per_decision": 153187680256,
+    "kernel_launches": 738
+   },
+   "kernel_launches_measured": {
+    "cold": 1845,
+    "cached": 1458,
+    "blended": 1522.5
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 8.068,
+    "compute_s": 3.064,
+    "roofline_s": 8.068,
+    "dispatch_s": 12.18,
+    "eager_s": 20.248,
+    "cuda_graph_s": 8.228,
+    "bound_by": "bandwidth",
+    "launches_used": 1522500.0,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 64,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 7.102,
+    "p50": 8.073,
+    "p90": 15.483,
+    "p99": 15.974,
+    "max": 16.317,
+    "mean": 8.956,
+    "tail_ratio_p99_over_p50": 1.98,
+    "p50_median_of_rounds": 8.081,
+    "round_spread_pct": 0.9,
+    "effective_gb_per_s": 185.3
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 748848640,
+    "bytes_per_decision": 1497697280,
+    "flops_per_decision": 23577972736,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.837,
+    "compute_s": 0.472,
+    "roofline_s": 7.837,
+    "dispatch_s": 5.097,
+    "eager_s": 12.935,
+    "cuda_graph_s": 7.997,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 64,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 7.182,
+    "p50": 8.147,
+    "p90": 15.589,
+    "p99": 16.227,
+    "max": 17.243,
+    "mean": 9.107,
+    "tail_ratio_p99_over_p50": 1.99,
+    "p50_median_of_rounds": 8.222,
+    "round_spread_pct": 2.9,
+    "effective_gb_per_s": 182.2
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 748848640,
+    "bytes_per_decision": 1497697280,
+    "flops_per_decision": 35573592064,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.837,
+    "compute_s": 0.711,
+    "roofline_s": 7.837,
+    "dispatch_s": 5.097,
+    "eager_s": 12.935,
+    "cuda_graph_s": 7.997,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 64,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 7.599,
+    "p50": 8.464,
+    "p90": 16.186,
+    "p99": 16.975,
+    "max": 18.128,
+    "mean": 9.583,
+    "tail_ratio_p99_over_p50": 2.01,
+    "p50_median_of_rounds": 8.498,
+    "round_spread_pct": 1.6,
+    "effective_gb_per_s": 176.2
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 748848640,
+    "bytes_per_decision": 1497697280,
+    "flops_per_decision": 67769528320,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.837,
+    "compute_s": 1.355,
+    "roofline_s": 7.837,
+    "dispatch_s": 5.097,
+    "eager_s": 12.935,
+    "cuda_graph_s": 7.997,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 64,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 7.921,
+    "p50": 9.128,
+    "p90": 16.745,
+    "p99": 17.69,
+    "max": 18.158,
+    "mean": 10.082,
+    "tail_ratio_p99_over_p50": 1.94,
+    "p50_median_of_rounds": 9.137,
+    "round_spread_pct": 1.3,
+    "effective_gb_per_s": 163.9
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 748848640,
+    "bytes_per_decision": 1497697280,
+    "flops_per_decision": 116629663744,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.837,
+    "compute_s": 2.333,
+    "roofline_s": 7.837,
+    "dispatch_s": 5.097,
+    "eager_s": 12.935,
+    "cuda_graph_s": 7.997,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 128,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 7.11,
+    "p50": 8.215,
+    "p90": 16.599,
+    "p99": 17.282,
+    "max": 17.65,
+    "mean": 9.232,
+    "tail_ratio_p99_over_p50": 2.1,
+    "p50_median_of_rounds": 8.28,
+    "round_spread_pct": 2.7,
+    "effective_gb_per_s": 180.9
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 748881408,
+    "bytes_per_decision": 1497762816,
+    "flops_per_decision": 42191507456,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.838,
+    "compute_s": 0.844,
+    "roofline_s": 7.838,
+    "dispatch_s": 5.097,
+    "eager_s": 12.935,
+    "cuda_graph_s": 7.998,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 128,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 7.305,
+    "p50": 8.311,
+    "p90": 16.794,
+    "p99": 17.48,
+    "max": 18.029,
+    "mean": 9.41,
+    "tail_ratio_p99_over_p50": 2.1,
+    "p50_median_of_rounds": 8.343,
+    "round_spread_pct": 2.2,
+    "effective_gb_per_s": 179.5
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 748881408,
+    "bytes_per_decision": 1497762816,
+    "flops_per_decision": 54243749888,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.838,
+    "compute_s": 1.085,
+    "roofline_s": 7.838,
+    "dispatch_s": 5.097,
+    "eager_s": 12.935,
+    "cuda_graph_s": 7.998,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 128,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 7.573,
+    "p50": 8.495,
+    "p90": 16.972,
+    "p99": 17.882,
+    "max": 18.369,
+    "mean": 9.656,
+    "tail_ratio_p99_over_p50": 2.11,
+    "p50_median_of_rounds": 8.556,
+    "round_spread_pct": 2.9,
+    "effective_gb_per_s": 175.1
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 748881408,
+    "bytes_per_decision": 1497762816,
+    "flops_per_decision": 86590681088,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.838,
+    "compute_s": 1.732,
+    "roofline_s": 7.838,
+    "dispatch_s": 5.097,
+    "eager_s": 12.935,
+    "cuda_graph_s": 7.998,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 128,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 7.888,
+    "p50": 9.049,
+    "p90": 17.5,
+    "p99": 18.52,
+    "max": 19.081,
+    "mean": 10.094,
+    "tail_ratio_p99_over_p50": 2.05,
+    "p50_median_of_rounds": 9.029,
+    "round_spread_pct": 1.9,
+    "effective_gb_per_s": 165.9
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 748881408,
+    "bytes_per_decision": 1497762816,
+    "flops_per_decision": 135677308928,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.838,
+    "compute_s": 2.714,
+    "roofline_s": 7.838,
+    "dispatch_s": 5.097,
+    "eager_s": 12.935,
+    "cuda_graph_s": 7.998,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 256,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 7.206,
+    "p50": 8.37,
+    "p90": 17.945,
+    "p99": 18.982,
+    "max": 19.738,
+    "mean": 9.628,
+    "tail_ratio_p99_over_p50": 2.27,
+    "p50_median_of_rounds": 8.424,
+    "round_spread_pct": 2.6,
+    "effective_gb_per_s": 177.8
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 748946944,
+    "bytes_per_decision": 1497893888,
+    "flops_per_decision": 80022556672,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.838,
+    "compute_s": 1.6,
+    "roofline_s": 7.838,
+    "dispatch_s": 5.097,
+    "eager_s": 12.936,
+    "cuda_graph_s": 7.998,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 256,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 7.337,
+    "p50": 8.313,
+    "p90": 17.985,
+    "p99": 19.011,
+    "max": 19.843,
+    "mean": 9.651,
+    "tail_ratio_p99_over_p50": 2.29,
+    "p50_median_of_rounds": 8.407,
+    "round_spread_pct": 3.5,
+    "effective_gb_per_s": 178.2
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 748946944,
+    "bytes_per_decision": 1497893888,
+    "flops_per_decision": 92188045312,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.838,
+    "compute_s": 1.844,
+    "roofline_s": 7.838,
+    "dispatch_s": 5.097,
+    "eager_s": 12.936,
+    "cuda_graph_s": 7.998,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 256,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 7.686,
+    "p50": 8.789,
+    "p90": 18.575,
+    "p99": 19.649,
+    "max": 20.268,
+    "mean": 10.143,
+    "tail_ratio_p99_over_p50": 2.24,
+    "p50_median_of_rounds": 8.82,
+    "round_spread_pct": 1.5,
+    "effective_gb_per_s": 169.8
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 748946944,
+    "bytes_per_decision": 1497893888,
+    "flops_per_decision": 124836966400,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.838,
+    "compute_s": 2.497,
+    "roofline_s": 7.838,
+    "dispatch_s": 5.097,
+    "eager_s": 12.936,
+    "cuda_graph_s": 7.998,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 256,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 7.981,
+    "p50": 9.186,
+    "p90": 19.263,
+    "p99": 20.334,
+    "max": 21.162,
+    "mean": 10.567,
+    "tail_ratio_p99_over_p50": 2.21,
+    "p50_median_of_rounds": 9.193,
+    "round_spread_pct": 1.3,
+    "effective_gb_per_s": 162.9
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 748946944,
+    "bytes_per_decision": 1497893888,
+    "flops_per_decision": 174376579072,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.838,
+    "compute_s": 3.488,
+    "roofline_s": 7.838,
+    "dispatch_s": 5.097,
+    "eager_s": 12.936,
+    "cuda_graph_s": 7.998,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 384,
+   "n_actions": 8,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 7.31,
+    "p50": 8.332,
+    "p90": 19.697,
+    "p99": 20.948,
+    "max": 21.806,
+    "mean": 9.982,
+    "tail_ratio_p99_over_p50": 2.51,
+    "p50_median_of_rounds": 8.345,
+    "round_spread_pct": 2.0,
+    "effective_gb_per_s": 179.5
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 749012480,
+    "bytes_per_decision": 1498024960,
+    "flops_per_decision": 118658912256,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.839,
+    "compute_s": 2.373,
+    "roofline_s": 7.839,
+    "dispatch_s": 5.097,
+    "eager_s": 12.936,
+    "cuda_graph_s": 7.999,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 384,
+   "n_actions": 32,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 7.53,
+    "p50": 8.652,
+    "p90": 20.066,
+    "p99": 21.336,
+    "max": 22.025,
+    "mean": 10.241,
+    "tail_ratio_p99_over_p50": 2.47,
+    "p50_median_of_rounds": 8.675,
+    "round_spread_pct": 3.0,
+    "effective_gb_per_s": 172.7
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 749012480,
+    "bytes_per_decision": 1498024960,
+    "flops_per_decision": 130937647104,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.839,
+    "compute_s": 2.619,
+    "roofline_s": 7.839,
+    "dispatch_s": 5.097,
+    "eager_s": 12.936,
+    "cuda_graph_s": 7.999,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 384,
+   "n_actions": 96,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 7.909,
+    "p50": 9.141,
+    "p90": 20.76,
+    "p99": 22.051,
+    "max": 22.988,
+    "mean": 10.77,
+    "tail_ratio_p99_over_p50": 2.41,
+    "p50_median_of_rounds": 9.136,
+    "round_spread_pct": 1.0,
+    "effective_gb_per_s": 164.0
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 749012480,
+    "bytes_per_decision": 1498024960,
+    "flops_per_decision": 163888558080,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.839,
+    "compute_s": 3.278,
+    "roofline_s": 7.839,
+    "dispatch_s": 5.097,
+    "eager_s": 12.936,
+    "cuda_graph_s": 7.999,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  },
+  {
+   "arch": "v2-wide",
+   "n_tokens": 384,
+   "n_actions": 192,
+   "cached_board": false,
+   "measured_ms": {
+    "n": 1400,
+    "min": 8.139,
+    "p50": 9.494,
+    "p90": 21.227,
+    "p99": 22.579,
+    "max": 23.257,
+    "mean": 11.061,
+    "tail_ratio_p99_over_p50": 2.38,
+    "p50_median_of_rounds": 9.502,
+    "round_spread_pct": 1.2,
+    "effective_gb_per_s": 157.7
+   },
+   "analytic": {
+    "params_total": 1053337088,
+    "params_streamed_per_decision": 749012480,
+    "bytes_per_decision": 1498024960,
+    "flops_per_decision": 213881155584,
+    "kernel_launches": 332
+   },
+   "kernel_launches_measured": {
+    "cold": 1023,
+    "cached": 560,
+    "blended": 637.1666666666666
+   },
+   "gb10_projection_ms": {
+    "bandwidth_s": 7.839,
+    "compute_s": 4.278,
+    "roofline_s": 7.839,
+    "dispatch_s": 5.097,
+    "eager_s": 12.936,
+    "cuda_graph_s": 7.999,
+    "bound_by": "bandwidth",
+    "launches_used": 637166.667,
+    "launches_measured": true,
+    "effective_bandwidth_gb_s": 191100.0
+   }
+  }
+ ],
+ "note": "See docs/DESIGN_LATENCY.md. GB10 columns are projections until run on the Spark."
+}
