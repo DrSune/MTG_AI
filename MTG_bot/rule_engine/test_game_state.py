@@ -2,7 +2,8 @@ import unittest
 import uuid
 from typing import List
 
-from .game_graph import GameGraph, Entity, Relationship
+from .game_graph import Entity, Relationship
+from .game_initializer import initialize_game_state
 from .engine import Engine, PlayLandAction, PassTurnAction
 from .card_database import card_data_loader
 from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
@@ -11,8 +12,6 @@ from MTG_bot import config
 class TestGameState(unittest.TestCase):
 
     def setUp(self):
-        self.game_graph = GameGraph()
-        self.engine = Engine(self.game_graph)
         self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
 
         # Define simple decks for testing
@@ -27,7 +26,8 @@ class TestGameState(unittest.TestCase):
             card_data_loader.get_card_id_by_name("Walking Corpse"), card_data_loader.get_card_id_by_name("Walking Corpse")
         ] * 2 # 40 cards total
 
-        self.game_graph.initialize_game(self.decklist1, self.decklist2, shuffle=False) # Don't shuffle for predictable tests
+        self.game_graph = initialize_game_state(self.decklist1, self.decklist2, shuffle=False) # Don't shuffle for predictable tests
+        self.engine = Engine(self.game_graph)
 
         self.player1 = next(p for p in self.game_graph.entities.values() if p.type_id == self.id_mapper.get_id_by_name("Player", "game_vocabulary") and p.properties['name'] == "Player 1")
         self.player2 = next(p for p in self.game_graph.entities.values() if p.type_id == self.id_mapper.get_id_by_name("Player", "game_vocabulary") and p.properties['name'] == "Player 2")

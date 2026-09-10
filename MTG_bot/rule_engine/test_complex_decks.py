@@ -6,7 +6,7 @@ import os
 # Add the project root to sys.path to resolve absolute imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from MTG_bot.rule_engine.game_graph import GameGraph
+from MTG_bot.rule_engine.game_initializer import initialize_game_state
 from MTG_bot.rule_engine.engine import Engine
 from MTG_bot.rule_engine.actions import PlayLandAction, ActivateManaAbilityAction, CastSpellAction, PassPriorityAction
 from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
@@ -17,7 +17,6 @@ from MTG_bot.rule_engine import vocabulary as vocab
 class TestComplexDecks(unittest.TestCase):
 
     def setUp(self):
-        self.graph = GameGraph()
         self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
         # Deck with varied effects
         self.deck1 = [
@@ -29,7 +28,7 @@ class TestComplexDecks(unittest.TestCase):
             card_data_loader.get_card_id_by_name("Finishing Blow"),
             card_data_loader.get_card_id_by_name("Snarespinner"),
         ] * 10 # 70 cards
-        self.graph.initialize_game(
+        self.graph = initialize_game_state(
             decklist1=self.deck1, 
             decklist2=[card_data_loader.get_card_id_by_name("Snarespinner")] * 60,
             shuffle=False,

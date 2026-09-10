@@ -2,7 +2,7 @@
 import unittest
 import uuid
 import time
-from MTG_bot.rule_engine.game_graph import GameGraph
+from MTG_bot.rule_engine.game_initializer import initialize_game_state
 from MTG_bot.rule_engine.engine import Engine
 from MTG_bot.rule_engine.actions import CastSpellAction, PassPriorityAction
 from MTG_bot.rule_engine import vocabulary as vocab
@@ -15,7 +15,7 @@ class TestStackStress(unittest.TestCase):
         self.mountain_id = 269
         
         # Initialize Game: 60 Mountains each
-        self.graph = GameGraph().initialize_game([269]*60, [269]*60)
+        self.graph = initialize_game_state([269]*60, [269]*60)
         self.engine = Engine(self.graph)
         self.player1_id = self.graph.players[0]
         self.player2_id = self.graph.players[1]

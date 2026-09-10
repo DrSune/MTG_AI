@@ -1,15 +1,14 @@
 
 import unittest
-from MTG_bot.rule_engine.game_graph import GameGraph
+from MTG_bot.rule_engine.game_initializer import initialize_game_state
 from MTG_bot.rule_engine.actions import PlayLandAction, PassPriorityAction
 from MTG_bot.strategic_brain.action_mapper import ActionSpaceMapper
 from MTG_bot.rule_engine.card_database import card_data_loader
 
 class TestActionMapper(unittest.TestCase):
     def setUp(self):
-        self.graph = GameGraph()
         # Initialize with some cards
-        self.graph.initialize_game(
+        self.graph = initialize_game_state(
             decklist1=[card_data_loader.get_card_id_by_name("Forest")] * 10,
             decklist2=[card_data_loader.get_card_id_by_name("Mountain")] * 10,
             shuffle=False
@@ -26,8 +25,7 @@ class TestActionMapper(unittest.TestCase):
         tokens1 = self.mapper.action_to_tokens(action, self.graph)
         
         # Create a second graph with same setup
-        graph2 = GameGraph()
-        graph2.initialize_game(
+        graph2 = initialize_game_state(
             decklist1=[card_data_loader.get_card_id_by_name("Forest")] * 10,
             decklist2=[card_data_loader.get_card_id_by_name("Mountain")] * 10,
             shuffle=False

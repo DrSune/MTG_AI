@@ -1,6 +1,6 @@
 
 import time
-from MTG_bot.rule_engine.game_graph import GameGraph
+from MTG_bot.rule_engine.game_initializer import initialize_game_state
 from MTG_bot.rule_engine.engine import Engine
 from MTG_bot.rule_engine.actions import PlayLandAction, CastSpellAction, PassTurnAction, PassPriorityAction, DeclareAttackerAction
 from MTG_bot.rule_engine import vocabulary as vocab
@@ -12,7 +12,7 @@ def run_test():
     deck1 = [269] * 30 + [153] * 30 
     deck2 = deck1.copy()
     
-    graph = GameGraph().initialize_game(deck1, deck2)
+    graph = initialize_game_state(deck1, deck2)
     engine = Engine(graph, manual_mode=False)
     
     # We'll use the IDs for specific M21 cards if available, 

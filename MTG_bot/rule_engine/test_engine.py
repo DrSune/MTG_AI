@@ -6,7 +6,7 @@ import os
 # Add the project root to sys.path to resolve absolute imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from MTG_bot.rule_engine.game_graph import GameGraph
+from MTG_bot.rule_engine.game_initializer import initialize_game_state
 from MTG_bot.rule_engine.engine import Engine
 from MTG_bot.rule_engine.actions import PlayLandAction, ActivateManaAbilityAction, CastSpellAction, DeclareAttackerAction, DeclareBlockerAction
 from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
@@ -17,10 +17,8 @@ class TestEngine(unittest.TestCase):
 
     def setUp(self):
         """Set up a fresh game state for each test."""
-        self.graph = GameGraph()
         self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
-        # The GameGraph's initialize_game function is a great way to set up a clean state
-        self.graph.initialize_game(
+        self.graph = initialize_game_state(
             decklist1=[card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Snarespinner")],
             decklist2=[]
         )
@@ -85,7 +83,7 @@ class TestEngine(unittest.TestCase):
     def test_cast_creature(self):
         """Test that a player can use mana to cast a creature spell."""
         # We need to adjust the decklist for this test
-        self.graph.initialize_game(
+        self.graph = initialize_game_state(
             decklist1=[card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Snarespinner")],
             decklist2=[]
         )
@@ -130,7 +128,7 @@ class TestEngine(unittest.TestCase):
     def test_declare_attacker(self):
         """Test that a creature can be declared as an attacker."""
         # Cast a creature and move it to the battlefield
-        self.graph.initialize_game(decklist1=[card_data_loader.get_card_id_by_name("Snarespinner")], decklist2=[])
+        self.graph = initialize_game_state(decklist1=[card_data_loader.get_card_id_by_name("Snarespinner")], decklist2=[])
         self.player1 = self.graph.entities[self.graph.active_player_id]
         self.engine = Engine(self.graph)
         creature_card = next(c for c in self.graph.entities.values() if c.type_id == card_data_loader.get_card_id_by_name("Snarespinner"))
@@ -168,7 +166,7 @@ class TestEngine(unittest.TestCase):
     def test_full_combat(self):
         """Test a full combat sequence: attack, block, and damage."""
         # Setup: Player 1 has a Snarespinner, Player 2 has a Snarespinner.
-        self.graph.initialize_game(
+        self.graph = initialize_game_state(
             decklist1=[card_data_loader.get_card_id_by_name("Snarespinner")],
             decklist2=[card_data_loader.get_card_id_by_name("Snarespinner")]
         )

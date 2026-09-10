@@ -1,14 +1,14 @@
 
 import unittest
 import uuid
-from MTG_bot.rule_engine.game_graph import GameGraph
+from MTG_bot.rule_engine.game_initializer import initialize_game_state
 from MTG_bot.rule_engine.engine import Engine
 from MTG_bot.rule_engine.actions import CastSpellAction, PassPriorityAction, PlayLandAction
 from MTG_bot.rule_engine import vocabulary as vocab
 
 class TestInteractions(unittest.TestCase):
     def setUp(self):
-        self.graph = GameGraph().initialize_game([269]*60, [269]*60)
+        self.graph = initialize_game_state([269]*60, [269]*60)
         self.engine = Engine(self.graph)
         self.p1_id = self.graph.players[0]
         self.p2_id = self.graph.players[1]
