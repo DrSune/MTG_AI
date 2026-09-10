@@ -851,6 +851,15 @@ against this register before it ships.** That is the register's job.
 | `thinking/*_avg_passes` | measures an untrained argmax hitting class 9 | - | **deleted** until `DQ-9` shows non-zero churn |
 | existing puzzle scores | **0.900 / 1.000** | ~0.9 | **deleted**; `PZL-1` rules 1-5 replace them |
 
+Drafter rows, added 2026-09-10 with [`DESIGN_DRAFTER.md`](DESIGN_DRAFTER.md) §7:
+
+| Metric | Null (always pass) | Uniform random | Mandatory pairing |
+|---|---|---|---|
+| `n_hat` measured nicheness | - | **maximal**, a random legal pile is maximally unusual | never alone. Publish the triple with `DFT-12` intent recoverability and `DFT-10` the price curve. Random scores (max, ~0, ~0) |
+| `DFT-11` output variety | 0 | **maximal** | condition on every sample clearing the same quality quantile. A random drafter then produces zero admissible samples, so the metric is 0 or undefined rather than maximal |
+| `conflation_alarm` | 0 | 0 | a null scores 0 too, so it is only meaningful beside a positive knob-response diagonal |
+| archive cell coverage | 0 | **maximal** | null-zero per cell against best-of-m random decks landing in that same cell. For a random drafter the elite is the null, so the score is ~0 while coverage is maximal |
+
 **The rule that generalises, and the one to apply to any metric not on this list:** *any metric
 whose numerator can be satisfied by not acting must be published paired with a metric whose
 numerator can only be satisfied by acting well.* And more generally, when you are about to measure a

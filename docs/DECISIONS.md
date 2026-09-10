@@ -417,6 +417,30 @@ slow on exactly the positions Commander produces. The two errors point in opposi
 choosing between them needs a training run long enough for the clock to bind, which does not happen
 at current model sizes. Circular.
 
+### R8 - "Niche" may only ever mean "unlike what we ourselves built"
+
+Raised by [`DESIGN_DRAFTER.md`](DESIGN_DRAFTER.md) §10 Q2, and mirrored here at that document's own
+request.
+
+Nicheness is measured as low likelihood under a reference distribution of decks. Early on, that
+reference is dominated by our own archive, which the curator has been actively shaping toward
+teaching value. So "niche" collapses into "unusual relative to what our own teacher happened to
+build", which is circular, and it drifts as the drafter itself changes the archive.
+
+The dangerous part is that **it will look like it is working.** Every instrument in the drafter's
+metric set except the human panel is measured against the same reference, so a self-referential
+nicheness axis produces a high knob-response diagonal, a near-zero conflation alarm, and green
+gates, while returning decks no player would call unusual.
+
+Tried: card-level popularity ranks, which are external but too coarse, and roughly 150 published
+preconstructed deck lists, which are deck-level and external but thin for a 32-dimensional density
+estimate. Both help. Neither settles it.
+
+Why it matters: the failure is invisible to the entire instrument panel. The only thing that
+catches it is a blinded human weirdness panel, which is why that check is not optional. Either
+acquire a larger deck-level human corpus, or state the circularity out loud rather than shipping
+the self-referential version quietly.
+
 ---
 
 ## Deferred pending information

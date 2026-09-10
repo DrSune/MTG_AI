@@ -467,9 +467,11 @@ Probe evaluation, K = 2,048 records, forward only, one static batch, at 0.4 comp
 it is what makes the teacher free.
 
 The honest answer to *"I imagine this teacher would need to be quite a large network"*: **you can
-afford an enormous one.** The teacher sits in `COST_MODEL.md` §4 tier A at roughly 0.001 reads per
-decision; even 200 M parameters would stay under 1% of the decision budget and would build a deck in
-about 140 ms. **The binding constraint is deck labels, not parameters.** Start at 7 M and grow by the
+afford an enormous one.** The teacher is **not on the per-decision path at all**, so it is not
+tier A and not any tier: `COST_MODEL.md` §4 tier A means the board encoder at about 0.15 reads per
+decision, and the teacher runs roughly 103 forwards per deck against about 65,190 decisions, which
+is 0.0016. Even 200 M parameters would stay under 1% of the decision budget and would build a deck
+in about 140 ms. **The binding constraint is deck labels, not parameters.** Start at 7 M and grow by the
 rule. The one failure mode to avoid absolutely: never let the teacher run inside the game loop,
 which would move it to tier C and charge it 40 reads per decision.
 
