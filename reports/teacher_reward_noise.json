@@ -32,75 +32,75 @@
    "trials": 1500,
    "estimators": {
     "halves (as proposed)": {
-     "between_deck_spread": 0.0173,
-     "within_deck_noise": 0.1715,
-     "snr": 0.101,
+     "between_deck_spread": 0.013,
+     "within_deck_noise": 0.17459,
+     "snr": 0.074,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.004,
-      "too easy     (student crushes)": -0.0019,
-      "even but dull": 0.0062,
-      "instructive  (modest lift)": 0.0115,
-      "very instructive": 0.0469
+      "unwinnable   (student crushed)": 0.008,
+      "too easy     (student crushes)": 0.0036,
+      "even but dull": -0.0009,
+      "instructive  (modest lift)": 0.0101,
+      "very instructive": 0.0363
      }
     },
     "halves + paired": {
-     "between_deck_spread": 0.01067,
-     "within_deck_noise": 0.11935,
-     "snr": 0.089,
+     "between_deck_spread": 0.0154,
+     "within_deck_noise": 0.17093,
+     "snr": 0.09,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.0052,
-      "too easy     (student crushes)": 0.0015,
-      "even but dull": 0.0125,
-      "instructive  (modest lift)": 0.0199,
-      "very instructive": 0.0313
+      "unwinnable   (student crushed)": 0.0023,
+      "too easy     (student crushes)": -0.0044,
+      "even but dull": 0.0035,
+      "instructive  (modest lift)": 0.0183,
+      "very instructive": 0.0387
      }
     },
     "slope": {
-     "between_deck_spread": 0.03421,
-     "within_deck_noise": 0.29806,
-     "snr": 0.115,
+     "between_deck_spread": 0.02795,
+     "within_deck_noise": 0.29893,
+     "snr": 0.094,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.0043,
-      "too easy     (student crushes)": -0.0042,
-      "even but dull": 0.0154,
-      "instructive  (modest lift)": 0.0303,
-      "very instructive": 0.0919
+      "unwinnable   (student crushed)": 0.0108,
+      "too easy     (student crushes)": 0.0041,
+      "even but dull": 0.0002,
+      "instructive  (modest lift)": 0.0182,
+      "very instructive": 0.0765
      }
     },
     "slope + paired": {
-     "between_deck_spread": 0.02163,
-     "within_deck_noise": 0.20759,
-     "snr": 0.104,
+     "between_deck_spread": 0.02979,
+     "within_deck_noise": 0.29482,
+     "snr": 0.101,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.0094,
-      "too easy     (student crushes)": 0.0039,
-      "even but dull": 0.0211,
-      "instructive  (modest lift)": 0.0396,
-      "very instructive": 0.0631
+      "unwinnable   (student crushed)": 0.0068,
+      "too easy     (student crushes)": -0.0044,
+      "even but dull": 0.0069,
+      "instructive  (modest lift)": 0.0428,
+      "very instructive": 0.076
      }
     },
     "closeness to 50%": {
-     "between_deck_spread": 0.34491,
-     "within_deck_noise": 0.1282,
-     "snr": 2.69,
+     "between_deck_spread": 0.3449,
+     "within_deck_noise": 0.1298,
+     "snr": 2.657,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.1083,
-      "too easy     (student crushes)": 0.0935,
-      "even but dull": 0.8298,
-      "instructive  (modest lift)": 0.802,
-      "very instructive": 0.7806
+      "unwinnable   (student crushed)": 0.1049,
+      "too easy     (student crushes)": 0.0967,
+      "even but dull": 0.8291,
+      "instructive  (modest lift)": 0.8038,
+      "very instructive": 0.7793
      }
     },
     "per-decision proxy slope": {
-     "between_deck_spread": 0.02909,
-     "within_deck_noise": 0.00483,
-     "snr": 6.022,
+     "between_deck_spread": 0.02898,
+     "within_deck_noise": 0.04243,
+     "snr": 0.683,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.005,
-      "too easy     (student crushes)": 0.0051,
-      "even but dull": 0.0103,
-      "instructive  (modest lift)": 0.0403,
-      "very instructive": 0.0801
+      "unwinnable   (student crushed)": 0.0063,
+      "too easy     (student crushes)": 0.0057,
+      "even but dull": 0.0087,
+      "instructive  (modest lift)": 0.0397,
+      "very instructive": 0.0802
      }
     }
    }
@@ -110,75 +110,75 @@
    "trials": 1500,
    "estimators": {
     "halves (as proposed)": {
-     "between_deck_spread": 0.01331,
-     "within_deck_noise": 0.07795,
-     "snr": 0.171,
+     "between_deck_spread": 0.01431,
+     "within_deck_noise": 0.07805,
+     "snr": 0.183,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.0026,
-      "too easy     (student crushes)": 0.0017,
-      "even but dull": 0.0071,
-      "instructive  (modest lift)": 0.0206,
-      "very instructive": 0.0367
+      "unwinnable   (student crushed)": 0.0022,
+      "too easy     (student crushes)": 0.0038,
+      "even but dull": 0.008,
+      "instructive  (modest lift)": 0.0192,
+      "very instructive": 0.0408
      }
     },
     "halves + paired": {
-     "between_deck_spread": 0.0132,
-     "within_deck_noise": 0.05339,
-     "snr": 0.247,
+     "between_deck_spread": 0.01276,
+     "within_deck_noise": 0.07583,
+     "snr": 0.168,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.0021,
-      "too easy     (student crushes)": 0.0042,
+      "unwinnable   (student crushed)": 0.0035,
+      "too easy     (student crushes)": 0.0039,
       "even but dull": 0.0051,
-      "instructive  (modest lift)": 0.0181,
-      "very instructive": 0.0372
+      "instructive  (modest lift)": 0.0198,
+      "very instructive": 0.0361
      }
     },
     "slope": {
-     "between_deck_spread": 0.02596,
-     "within_deck_noise": 0.13565,
-     "snr": 0.191,
+     "between_deck_spread": 0.02812,
+     "within_deck_noise": 0.1359,
+     "snr": 0.207,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.0061,
-      "too easy     (student crushes)": 0.0033,
-      "even but dull": 0.0155,
-      "instructive  (modest lift)": 0.0404,
-      "very instructive": 0.0724
+      "unwinnable   (student crushed)": 0.0047,
+      "too easy     (student crushes)": 0.0088,
+      "even but dull": 0.0134,
+      "instructive  (modest lift)": 0.041,
+      "very instructive": 0.0797
      }
     },
     "slope + paired": {
-     "between_deck_spread": 0.02658,
-     "within_deck_noise": 0.09197,
-     "snr": 0.289,
+     "between_deck_spread": 0.02626,
+     "within_deck_noise": 0.13071,
+     "snr": 0.201,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.0054,
-      "too easy     (student crushes)": 0.0082,
-      "even but dull": 0.01,
-      "instructive  (modest lift)": 0.0365,
-      "very instructive": 0.0753
+      "unwinnable   (student crushed)": 0.0056,
+      "too easy     (student crushes)": 0.0071,
+      "even but dull": 0.0103,
+      "instructive  (modest lift)": 0.0451,
+      "very instructive": 0.0716
      }
     },
     "closeness to 50%": {
-     "between_deck_spread": 0.37989,
-     "within_deck_noise": 0.06572,
-     "snr": 5.78,
+     "between_deck_spread": 0.38124,
+     "within_deck_noise": 0.06413,
+     "snr": 5.945,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.1036,
-      "too easy     (student crushes)": 0.0952,
-      "even but dull": 0.9198,
-      "instructive  (modest lift)": 0.8663,
-      "very instructive": 0.8321
+      "unwinnable   (student crushed)": 0.106,
+      "too easy     (student crushes)": 0.0957,
+      "even but dull": 0.9215,
+      "instructive  (modest lift)": 0.869,
+      "very instructive": 0.8414
      }
     },
     "per-decision proxy slope": {
-     "between_deck_spread": 0.02907,
-     "within_deck_noise": 0.0022,
-     "snr": 13.218,
+     "between_deck_spread": 0.0288,
+     "within_deck_noise": 0.01891,
+     "snr": 1.523,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.0051,
-      "too easy     (student crushes)": 0.005,
-      "even but dull": 0.01,
-      "instructive  (modest lift)": 0.0401,
-      "very instructive": 0.0799
+      "unwinnable   (student crushed)": 0.0054,
+      "too easy     (student crushes)": 0.0051,
+      "even but dull": 0.0097,
+      "instructive  (modest lift)": 0.0396,
+      "very instructive": 0.0794
      }
     }
    }
@@ -188,74 +188,74 @@
    "trials": 1500,
    "estimators": {
     "halves (as proposed)": {
-     "between_deck_spread": 0.01476,
-     "within_deck_noise": 0.03795,
-     "snr": 0.389,
+     "between_deck_spread": 0.01472,
+     "within_deck_noise": 0.03826,
+     "snr": 0.385,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.0029,
-      "too easy     (student crushes)": 0.0019,
-      "even but dull": 0.0055,
-      "instructive  (modest lift)": 0.0186,
-      "very instructive": 0.0409
+      "unwinnable   (student crushed)": 0.0013,
+      "too easy     (student crushes)": 0.0017,
+      "even but dull": 0.0047,
+      "instructive  (modest lift)": 0.0215,
+      "very instructive": 0.0391
      }
     },
     "halves + paired": {
-     "between_deck_spread": 0.01373,
-     "within_deck_noise": 0.02635,
-     "snr": 0.521,
+     "between_deck_spread": 0.01339,
+     "within_deck_noise": 0.03808,
+     "snr": 0.352,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.0029,
-      "too easy     (student crushes)": 0.0032,
-      "even but dull": 0.0045,
-      "instructive  (modest lift)": 0.0185,
-      "very instructive": 0.0383
+      "unwinnable   (student crushed)": 0.0037,
+      "too easy     (student crushes)": 0.0029,
+      "even but dull": 0.0067,
+      "instructive  (modest lift)": 0.0177,
+      "very instructive": 0.0385
      }
     },
     "slope": {
-     "between_deck_spread": 0.02868,
-     "within_deck_noise": 0.06546,
-     "snr": 0.438,
+     "between_deck_spread": 0.02908,
+     "within_deck_noise": 0.06651,
+     "snr": 0.437,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.0053,
-      "too easy     (student crushes)": 0.0043,
-      "even but dull": 0.0098,
-      "instructive  (modest lift)": 0.0376,
-      "very instructive": 0.0792
+      "unwinnable   (student crushed)": 0.002,
+      "too easy     (student crushes)": 0.0032,
+      "even but dull": 0.0092,
+      "instructive  (modest lift)": 0.0404,
+      "very instructive": 0.0774
      }
     },
     "slope + paired": {
-     "between_deck_spread": 0.02747,
-     "within_deck_noise": 0.04578,
-     "snr": 0.6,
+     "between_deck_spread": 0.02691,
+     "within_deck_noise": 0.06572,
+     "snr": 0.409,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.0057,
-      "too easy     (student crushes)": 0.007,
-      "even but dull": 0.0097,
-      "instructive  (modest lift)": 0.0377,
-      "very instructive": 0.0771
+      "unwinnable   (student crushed)": 0.0067,
+      "too easy     (student crushes)": 0.0055,
+      "even but dull": 0.0117,
+      "instructive  (modest lift)": 0.0365,
+      "very instructive": 0.0762
      }
     },
     "closeness to 50%": {
-     "between_deck_spread": 0.39016,
-     "within_deck_noise": 0.03447,
-     "snr": 11.319,
+     "between_deck_spread": 0.39041,
+     "within_deck_noise": 0.03461,
+     "snr": 11.281,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.1051,
-      "too easy     (student crushes)": 0.0951,
-      "even but dull": 0.9586,
-      "instructive  (modest lift)": 0.8779,
-      "very instructive": 0.8417
+      "unwinnable   (student crushed)": 0.1052,
+      "too easy     (student crushes)": 0.0952,
+      "even but dull": 0.96,
+      "instructive  (modest lift)": 0.8796,
+      "very instructive": 0.8398
      }
     },
     "per-decision proxy slope": {
-     "between_deck_spread": 0.02909,
-     "within_deck_noise": 0.00109,
-     "snr": 26.649,
+     "between_deck_spread": 0.02912,
+     "within_deck_noise": 0.00967,
+     "snr": 3.012,
      "per_deck_mean": {
-      "unwinnable   (student crushed)": 0.005,
-      "too easy     (student crushes)": 0.005,
-      "even but dull": 0.01,
-      "instructive  (modest lift)": 0.04,
+      "unwinnable   (student crushed)": 0.0048,
+      "too easy     (student crushes)": 0.0051,
+      "even but dull": 0.0098,
+      "instructive  (modest lift)": 0.0399,
       "very instructive": 0.08
      }
     }

@@ -80,16 +80,23 @@ def play_block(m: Matchup, n_games: int, rng: np.random.Generator,
     That cancels the seat and draw luck the two games share, which is why it reduces
     variance without changing the mean.
     """
-    t = (np.arange(n_games) + 0.5) / n_games
-    p = np.array([m.win_prob(x) for x in t])
     if not paired:
+        t = (np.arange(n_games) + 0.5) / n_games
+        p = np.array([m.win_prob(x) for x in t])
         return rng.binomial(1, p).astype(float)
 
-    # A shared latent per pair (deck/draw luck) that affects both seats in opposite
+    # CORRECTED 2026-09-10. This used to build n_games PAIRS, i.e. 2*n_games games, and
+    # compare that against n_games unpaired games. The apparent gain was therefore mostly
+    # a doubled budget, worth sqrt(2), rather than a pairing effect. The comparison is now
+    # budget-matched: n_games total games means n_games//2 mirrored pairs.
+    n_pairs = max(1, n_games // 2)
+    t = (np.arange(n_pairs) + 0.5) / n_pairs
+    p = np.array([m.win_prob(x) for x in t])
+    # A shared latent per pair (deck and draw luck) pushing the two seats in opposite
     # directions, plus independent noise. Averaging the mirrored pair removes the shared
-    # part. rho is how much of the outcome variance is shared, i.e. cancellable.
+    # part, which is the actual variance reduction pairing buys.
     rho = 0.55
-    shared = rng.normal(0.0, 1.0, size=n_games)
+    shared = rng.normal(0.0, 1.0, size=n_pairs)
     z = np.log(p / (1 - p))
     a = rng.binomial(1, 1 / (1 + np.exp(-(z + rho * shared))))
     b = rng.binomial(1, 1 / (1 + np.exp(-(z - rho * shared))))
@@ -131,7 +138,8 @@ def est_closeness(results: np.ndarray) -> float:
 
 
 def est_proxy(m: Matchup, n_games: int, rng: np.random.Generator,
-              per_game_decisions: int = 250, proxy_noise: float = 1.0) -> float:
+              per_game_decisions: int = 250, proxy_noise: float = 1.0,
+              icc: float = 0.30) -> float:
     """The owner's own escape hatch, and the important one.
 
     "measurements like speed of action / confidence / reasoning passes can be proxies for
@@ -144,14 +152,38 @@ def est_proxy(m: Matchup, n_games: int, rng: np.random.Generator,
 
     proxy_noise is the per-decision noise relative to the effect size, and 1.0 is a
     deliberately pessimistic setting: it assumes the signal is as noisy as it is large.
+
+    CORRECTED 2026-09-10. The first version drew independent noise per decision, which
+    treated all n_games * 250 decisions as independent samples. That is exactly what
+    docs/METRICS.md section 1.4 Rail D forbids: decisions inside a game are massively
+    autocorrelated through the recurrent state, the deck and the opponent, so a naive
+    per-decision count is several-fold too optimistic. The first version's headline
+    result was inflated by that error.
+
+    Now modelled properly as a random-effects design: every game carries a shared latent
+    (this deck, this draw, this opponent) that moves all of its decisions together, plus
+    independent per-decision noise. `icc` is the intra-class correlation. The effective
+    sample size is n_games * m / (1 + (m - 1) * icc), so at icc = 0.3 and m = 250 the
+    250 decisions in a game are worth about 3.3 independent observations, not 250.
     """
-    n_obs = n_games * per_game_decisions
-    t = (np.arange(n_obs) + 0.5) / n_obs
-    # Difficulty falls in proportion to what was learned.
-    signal = -m.lift * t
-    obs = signal + rng.normal(0.0, proxy_noise * 0.10, size=n_obs)
-    xc = t - t.mean()
-    return float(-(xc * (obs - obs.mean())).sum() / (xc ** 2).sum())
+    m_dec = per_game_decisions
+    # Split total noise into a between-game share (icc) and a within-game share.
+    total_sd = proxy_noise * 0.10
+    sd_between = total_sd * np.sqrt(icc)
+    sd_within = total_sd * np.sqrt(1.0 - icc)
+
+    # Regress the per-GAME mean on time. Averaging within a game is the correct summary
+    # under clustering, and it makes the effective sample size visible: n_games points.
+    t_game = (np.arange(n_games) + 0.5) / n_games
+    signal = -m.lift * t_game
+    game_mean = (signal
+                 + rng.normal(0.0, sd_between, size=n_games)
+                 + rng.normal(0.0, sd_within / np.sqrt(m_dec), size=n_games))
+    xc = t_game - t_game.mean()
+    denom = float((xc ** 2).sum())
+    if denom == 0:
+        return 0.0
+    return float(-(xc * (game_mean - game_mean.mean())).sum() / denom)
 
 
 # --------------------------------------------------------------------------------------
@@ -221,6 +253,12 @@ def main():
             row += f"{runs[g]['estimators'][nm]['snr']:>12.2f}"
         print(row)
 
+    m_dec, icc = 250, 0.30
+    deff = 1 + (m_dec - 1) * icc
+    print(f"\nClustering: {m_dec} decisions/game at icc={icc} gives a design effect of "
+          f"{deff:.0f},")
+    print(f"so one game's decisions are worth about {m_dec / deff:.1f} independent "
+          f"observations, not {m_dec}.")
     print("\nReading it:")
     print("  < 1.0   the Teacher cannot distinguish decks; the reward is noise")
     print("  1 - 2   trainable in principle, very slowly")

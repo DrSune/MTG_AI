@@ -1,0 +1,116 @@
+{
+ "config": {
+  "decisions": 2173,
+  "icc": 0.05,
+  "ar1": 0.9,
+  "shared_frac": 0.5,
+  "gamma": 0.15,
+  "kappa_gain": 0.4,
+  "trials": 4000,
+  "seed": 20260910
+ },
+ "design_effect": 126.7,
+ "effective_decisions_per_game": 114.36842105263156,
+ "snr": {
+  "A win-rate halves (as proposed)": {
+   "20": 0.09017305921350177,
+   "100": 0.18807556648605211,
+   "400": 0.37528608658420703,
+   "1000": 0.5949498932308949
+  },
+  "B win-rate slope": {
+   "20": 0.10236872137886309,
+   "100": 0.20976947229000853,
+   "400": 0.4387999682404407,
+   "1000": 0.6909398079556567
+  },
+  "C slope + mirrored/CRN": {
+   "20": 0.05656584697880267,
+   "100": 0.13781859420351772,
+   "400": 0.27596197503894415,
+   "1000": 0.43039360430986945
+  },
+  "D closeness to 50%": {
+   "20": 2.6654352158408403,
+   "100": 5.917699966720387,
+   "400": 11.339211606573357,
+   "1000": 17.704032995190428
+  },
+  "E per-decision proxy slope (clustered)": {
+   "20": 0.1561411138458864,
+   "100": 0.34622536190997805,
+   "400": 0.6958673176393783,
+   "1000": 1.1048701989089493
+  },
+  "F per-decision proxy slope (naive, WRONG)": {
+   "20": 1.757987657814346,
+   "100": 3.883388830622708,
+   "400": 7.855128943233046,
+   "1000": 12.25166043888612
+  },
+  "G frozen-probe paired delta": {
+   "20": 0.6574882838014218,
+   "100": 1.4372203675153146,
+   "400": 2.8670443416521656,
+   "1000": 4.553047079805054
+  },
+  "H raw gradient magnitude": {
+   "20": 2.6092316089606067,
+   "100": 5.754096573612324,
+   "400": 11.432359787468455,
+   "1000": 18.19099248990916
+  }
+ },
+ "gameability_payout_ratio": {
+  "A win-rate halves (as proposed)": 0.08557017398798283,
+  "B win-rate slope": 0.0744856315083911,
+  "C slope + mirrored/CRN": 0.14965757604586533,
+  "D closeness to 50%": 0.0011405543034614459,
+  "E per-decision proxy slope (clustered)": 0.03009986585639846,
+  "F per-decision proxy slope (naive, WRONG)": 0.004869637228866118,
+  "G frozen-probe paired delta": 0.002880059099453957,
+  "H raw gradient magnitude": 0.5656563302795641
+ },
+ "rank_rho": {
+  "A win-rate halves (as proposed)": 1.0,
+  "B win-rate slope": 1.0,
+  "C slope + mirrored/CRN": 0.9,
+  "D closeness to 50%": 0.5,
+  "E per-decision proxy slope (clustered)": 1.0,
+  "F per-decision proxy slope (naive, WRONG)": 1.0,
+  "G frozen-probe paired delta": 1.0,
+  "H raw gradient magnitude": 1.0
+ },
+ "ladder": [
+  {
+   "name": "unwinnable",
+   "p0": 0.05,
+   "tau": 0.004,
+   "kappa": 0.0
+  },
+  {
+   "name": "too easy",
+   "p0": 0.95,
+   "tau": 0.008,
+   "kappa": 0.0
+  },
+  {
+   "name": "even but dull",
+   "p0": 0.5,
+   "tau": 0.01,
+   "kappa": 0.0
+  },
+  {
+   "name": "instructive",
+   "p0": 0.42,
+   "tau": 0.04,
+   "kappa": 0.0
+  },
+  {
+   "name": "very instructive",
+   "p0": 0.38,
+   "tau": 0.08,
+   "kappa": 0.0
+  }
+ ]
+}
