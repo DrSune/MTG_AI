@@ -139,13 +139,10 @@ def main():
         print(f"{C:>16}{s:>9.2f}{s/wr_snr:>15.1f}x")
     out["by_concurrency"] = rows3
 
-    print(json.dumps(out, indent=1)[:0])
+    print(json.dumps(out, indent=1))
     return out
 
 
-if __name__ == "__main__":
-    main()
-    revisit_vs_slope()
 
 
 # ---------------------------------------------------------------------------------------
@@ -198,3 +195,10 @@ def revisit_vs_slope(n_games=100, m=250, icc=0.20, noise=0.10, trials=4000,
                     "x": round(s / base, 2)})
     return res
 
+
+# The entry point must come last: `revisit_vs_slope` is defined below `main`, and this
+# guard used to sit between them, so running the module raised NameError before the
+# second study ever executed. The headline table in the report it fed was dead code.
+if __name__ == "__main__":
+    main()
+    revisit_vs_slope()

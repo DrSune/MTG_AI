@@ -96,6 +96,41 @@ right for other reasons and reduces variance for *level* estimates. It is an arg
 mirroring does not rescue a *trend* estimate, because halving the number of time points costs about
 what the variance reduction gains.
 
+## The idea that beats all of them: stop looking inside the block
+
+The best result did not come from a better estimator. It came from questioning the premise.
+
+Every estimator above tries to see the Student learn *during* a block of 100 or 400 games. Learning
+over 100 games is tiny, which is why they all struggle. The alternative is to not look there at
+all: **replay the same deck with a much later checkpoint, and difference two block means.**
+
+Measured with [`tools/teacher/proxy_clustering.py`](../tools/teacher/proxy_clustering.py), with a
+Student whose competence on a deck saturates over about 8,000 games of training:
+
+| estimator | SNR | versus the within-block slope |
+|---|---|---|
+| within-block slope, as proposed | 0.04 | 1.0x |
+| revisit after 200 games | 0.11 | 3.0x |
+| revisit after 1,000 games | 0.53 | 14.8x |
+| **revisit after 5,000 games** | **2.12** | **59.5x** |
+| revisit after 20,000 games | 4.22 | 118.2x |
+
+The signal was never too small. It was being measured over the wrong interval. A difference of two
+well-estimated means separated by thousands of games of training is far easier to see than a trend
+inside a few hundred.
+
+**Pick the gap deliberately, around 5,000 games.** Too short and there is no signal. Too long and
+the estimator degenerates: once the Student has fully saturated on a deck, "how much better is it
+now than then" collapses into "how good is it now", which is a level, and levels are how
+closeness-to-50% went wrong. At a 20,000-game gap against an 8,000-game time constant, about 92% of
+the learning has already happened and the estimator is mostly measuring the current level. The
+5,000-game row keeps a genuine difference and still reaches a usable 2.12.
+
+The cost is real and should be stated: it requires **keeping decks and replaying them later**, so
+the Teacher's reward for a deck arrives thousands of games after it built it. That is fine for a
+critic fitted over a buffer, which is what the design uses, and fatal for a policy gradient
+consuming one scalar per update, which is one more reason the design does not use one.
+
 ## What follows for the design
 
 1. **Train on per-decision difficulty proxies**, not win-rate delta. Reasoning passes is the most
