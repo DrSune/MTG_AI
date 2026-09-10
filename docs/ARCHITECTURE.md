@@ -6,6 +6,16 @@ of the older docs describe a system that was planned and never built.
 
 Read this before changing anything. It exists so nobody has to rediscover it.
 
+> **Superseded in places by [`../reports/AUDIT_2026_09_10.md`](../reports/AUDIT_2026_09_10.md).**
+> That addendum was taken on the DGX Spark with `torch` installed and the suite actually running, so it
+> could verify things this audit could not. It corrects three claims here and adds sixteen defects this
+> audit missed, including two severe ones: **generic mana is effectively free** (`engine.py:216` pays the
+> generic part of every cost out of a pool slot no land fills, so a 3-mana spell costs 1), and **the engine
+> cannot report that it failed** (`engine.py:185-189` and `:278-279` swallow every exception and return a
+> partial result, which is why no strength number from this engine is falsifiable). Where the two
+> disagree, the newer file is right. Environment and hardware measurements are in
+> [`../reports/SPARK_BRINGUP.md`](../reports/SPARK_BRINGUP.md).
+
 ## The one-paragraph verdict
 
 The rule engine runs full games end to end, but **the game it simulates is not Magic in the
@@ -28,7 +38,14 @@ Taken on the Windows dev box, Commander, two 100-card decks, random policy.
 | SQLite connections per step | ~70 | **0** |
 | `copy.deepcopy(graph)` | 6.0 ms | unchanged |
 | `get_legal_moves()` | 6.2 ms | faster, not re-measured |
-| Rule-engine test suite | 1 pass, 18 errors, 3 failures of 22 | unchanged |
+| Rule-engine test suite | 1 pass, 18 errors, 3 failures of 22 | **now 10 passed / 16 failed**, see below |
+
+The test line needs its own note, because the number was misleading. Twenty of the errors were a single
+stale method name: seven modules still called `GameGraph.initialize_game`, extracted into
+`game_initializer.initialize_game_state` back in `188451c`. After migrating them the full suite is
+**17 passed / 22 failed / 2 xfailed** in about 6 s, and `rule_engine` alone is 10 passed / 16 failed.
+Protocol check P7 still fails. Two of the 22 failures are **deliberate gates** for D3 and D11 in
+`strategic_brain/test_model.py`; do not "fix" them by weakening the assertion.
 
 Graph size at a Commander start: 214 entities, 412 relationships.
 
