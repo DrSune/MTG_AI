@@ -17,6 +17,7 @@ from MTG_bot.rule_engine.card_data_loader import CardDataLoader
 from MTG_bot.utils.logger import setup_logger
 from .deck_generator import DeckGenerator, Archetypes
 from .model import TeacherModel
+from MTG_bot.utils.rng import stream
 
 try:
     import torch.optim as optim
@@ -61,10 +62,10 @@ class Teacher:
                 weights = self.model(state)
                 w = weights.tolist()
         else:
-            w = [random.random() for _ in range(7)]
+            w = [stream("teacher").random() for _ in range(7)]
 
         curiosity_factor = 0.5
-        w = [ (1 - curiosity_factor) * wi + curiosity_factor * random.random() for wi in w ]
+        w = [ (1 - curiosity_factor) * wi + curiosity_factor * stream("teacher").random() for wi in w ]
 
         conn = sqlite3.connect(self.card_loader.db_path)
         cursor = conn.cursor()
@@ -119,7 +120,7 @@ class Teacher:
         enchantments = get_cards("type LIKE '%Enchantment%'", e_count)
         
         all_non_lands = (creatures + spells + artifacts + enchantments)
-        random.shuffle(all_non_lands)
+        stream("teacher").shuffle(all_non_lands)
         
         mid = len(all_non_lands) // 2
         deck_a_seeds = all_non_lands[:mid]

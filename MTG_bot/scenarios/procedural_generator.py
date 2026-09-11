@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 from MTG_bot import config
 from MTG_bot.rule_engine.card_database import card_data_loader
 from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
+from MTG_bot.utils.rng import stream
 
 class ProceduralGenerator:
     """
@@ -61,7 +62,7 @@ class ProceduralGenerator:
             return None
         
         burn_pool = list(burn_cards)
-        random.shuffle(burn_pool)
+        stream("scenario").shuffle(burn_pool)
         
         chosen_card_id = None
         damage = 0
@@ -85,7 +86,7 @@ class ProceduralGenerator:
             return None
 
         card_data = card_data_loader.get_card_data_by_id(chosen_card_id)
-        opponent_life = random.randint(1, damage)
+        opponent_life = stream("scenario").randint(1, damage)
         mana_cost = card_data.get("mana_cost", {})
         
         needed_lands = []
@@ -112,7 +113,7 @@ class ProceduralGenerator:
             return None
         
         creature_pool = list(creatures)
-        random.shuffle(creature_pool)
+        stream("scenario").shuffle(creature_pool)
         
         chosen_card_id = None
         power = 0
@@ -132,7 +133,7 @@ class ProceduralGenerator:
             return None
 
         card_data = card_data_loader.get_card_data_by_id(chosen_card_id)
-        opponent_life = random.randint(1, power)
+        opponent_life = stream("scenario").randint(1, power)
         
         return {
             "name": f"Lethal Combat: {card_data['name']}",

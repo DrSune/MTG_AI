@@ -67,6 +67,11 @@ training all run here. Measured bring-up detail in [`reports/SPARK_BRINGUP.md`](
   a gradient. Prefer the NGC PyTorch container for real training runs; it ships the headers.
 - There is **also a Windows Intel Arc box** (`torch 2.11.0+xpu`) used for dev and the spectator app.
   It cannot run CUDA. So code that assumes `torch.cuda` still breaks there.
+- **Never use the `random` module directly.** Go through `MTG_bot/utils/rng.py`:
+  `stream("shuffle" | "engine" | "policy" | "exploration" | "deckbuild" | "teacher" | "scenario")`.
+  Sharing a stream couples two concerns' draw counts, which is what pre-flight P11 forbids. Add a name
+  to `STREAM_NAMES` rather than reusing one. Call `seed_all(master_seed)` once at run start and record
+  the seed in the manifest.
 - Use `MTG_bot/utils/device.py` for device selection (CUDA → XPU → MPS → CPU). Never call
   `torch.device("cuda")` directly. Two live violations:
   `strategic_brain/student.py:34` and `strategic_brain/teacher.py:37` both write
@@ -117,8 +122,10 @@ Two rules that catch most of the damage:
   remove", with the condition that would let it go.
 - Prefer editing an existing doc over adding a near-duplicate one.
 - Tests: `.venv/bin/python -m pytest MTG_bot -q`. Report real results, never assumed ones.
-  Baseline at the time of writing is **17 passed / 22 failed / 2 xfailed**, about 6 s. Anything that
-  computes a gradient needs `TORCH_DISABLE_NATIVE_JIT=1` until `python3.12-dev` is installed.
+  Baseline is **23 passed / 27 failed / 2 xfailed**, about 5.5 s, and it is now **reproducible**:
+  `MTG_bot/conftest.py` seeds every test, so the same numbers come back every run. Before that, three
+  tests were coin flips and the older "17 passed" figure was partly luck. Anything that computes a
+  gradient needs `TORCH_DISABLE_NATIVE_JIT=1` until `python3.12-dev` is installed.
   Two tests in `strategic_brain/test_model.py` fail **by design**: they are the gates for D3
   (every plan step trained) and D11 (learned halting), and their failure messages carry the
   measured numbers. Do not "fix" them by weakening the assertion.

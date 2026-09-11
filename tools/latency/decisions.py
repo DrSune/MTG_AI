@@ -36,6 +36,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, asdict, field
 from pathlib import Path
 from typing import List, Dict, Optional
+from MTG_bot.utils.rng import seed_all
 
 REPO = Path(__file__).resolve().parents[2]
 if str(REPO) not in sys.path:
@@ -111,7 +112,7 @@ def run_games(n_games: int, max_steps: int, seed: int, mode: str = "Commander",
     all_decisions: List[Decision] = []
 
     for g in range(n_games):
-        random.seed(seed + g)
+        seed_all(seed + g, seed_frameworks=False)
         deck_a = [rng.randint(1, 397) for _ in range(100)]
         deck_b = [rng.randint(1, 397) for _ in range(100)]
         graph = initialize_game_state(deck_a, deck_b, game_mode=mode)
@@ -233,7 +234,7 @@ def _plant_board(n_attackers: int, n_blockers: int, seed: int = 7):
     from MTG_bot.rule_engine.engine import Engine
     from MTG_bot.rule_engine import vocabulary as vocab
 
-    random.seed(seed)
+    seed_all(seed, seed_frameworks=False)
     cids = _creature_ids(60)
     deck = (cids * 20)[:100]
     graph = initialize_game_state(list(deck), list(deck), game_mode="Commander")

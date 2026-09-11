@@ -27,6 +27,7 @@ from collections import Counter
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import List
+from MTG_bot.utils.rng import seed_all
 
 REPO = Path(__file__).resolve().parents[2]
 if str(REPO) not in sys.path:
@@ -64,10 +65,10 @@ def collect(n_games: int = 8, max_steps: int = 400, seed: int = 20260910,
     out: List[PositionSample] = []
 
     for g in range(n_games):
-        # The global random module is what the engine itself uses; seed it so a run is
-        # repeatable. Note this is NOT full determinism: entity ids come from uuid4 and
-        # some trigger ordering iterates set differences. See docs/ARCHITECTURE.md.
-        random.seed(seed + g)
+        # Seed every named stream the engine draws from, so a run is repeatable.
+        # NOT full determinism: entity ids come from uuid4 and some trigger ordering
+        # iterates set differences. See docs/ARCHITECTURE.md and MTG_bot/utils/rng.py.
+        seed_all(seed + g, seed_frameworks=False)
         deck_a = [rng.randint(1, 397) for _ in range(100)]
         deck_b = [rng.randint(1, 397) for _ in range(100)]
         graph = initialize_game_state(deck_a, deck_b, game_mode=game_mode)

@@ -246,6 +246,26 @@ specified, that cost nothing to adopt and belong under the `EC` engine-correctne
 
 ---
 
+## Revealed by seeding the suite — 2026-09-11
+
+Three tests were passing on a lucky roll and now fail consistently under
+[`../MTG_bot/conftest.py`](../MTG_bot/conftest.py)'s fixed seed. They are **real failures that were
+hidden**, not regressions, and they need fixing before P7 can be green:
+
+- `rule_engine/test_dynamic_choices.py::test_runed_halo_choice_flow`
+- `rule_engine/test_engine.py::test_play_land`
+- `rule_engine/test_game_state.py::test_game_initialization`
+
+All three assume a seat order or an opening hand that `initialize_game_state` assigns at random
+(`game_initializer.py:45` picks the starting player, `:91` shuffles the library). Measured over six
+consecutive runs before seeding, their pass count was 1, 1, 1, 2, 0, 1 out of 3. **The correct fix is
+to make each test state the seat it means rather than to hunt for a seed that makes it pass.**
+
+**Scaffold to remove:** `conftest.py`'s single fixed `TEST_MASTER_SEED`. It is the right default now,
+but a conformance suite should eventually run over k seeds and assert the result is seed-independent,
+which is what P13's seed band is for. **Removal condition:** once P13 exists, replace the constant
+with a parametrised seed sweep.
+
 ## Parked, with the reason — added 2026-09-10 from the Spark session
 
 **NeMo-RL (`nvcr.io/nvidia/nemo-rl`).** NVIDIA's RL toolkit, multi-arch on NGC. Parked rather than adopted:

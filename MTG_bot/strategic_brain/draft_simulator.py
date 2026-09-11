@@ -2,6 +2,7 @@ import sqlite3
 import random
 from typing import List, Dict, Any, Optional
 from MTG_bot import config
+from MTG_bot.utils.rng import stream
 
 class DraftSimulator:
     """
@@ -38,19 +39,19 @@ class DraftSimulator:
         pack = []
         
         # 1. Rare or Mythic (1/8 chance for mythic)
-        if random.random() < 0.125 and self.cards_by_rarity["mythic"]:
-            pack.append(random.choice(self.cards_by_rarity["mythic"]))
+        if stream("deckbuild").random() < 0.125 and self.cards_by_rarity["mythic"]:
+            pack.append(stream("deckbuild").choice(self.cards_by_rarity["mythic"]))
         else:
-            pack.append(random.choice(self.cards_by_rarity["rare"]))
+            pack.append(stream("deckbuild").choice(self.cards_by_rarity["rare"]))
             
         # 2. Uncommons (3)
-        pack.extend(random.sample(self.cards_by_rarity["uncommon"], 3))
+        pack.extend(stream("deckbuild").sample(self.cards_by_rarity["uncommon"], 3))
         
         # 3. Commons (10)
-        pack.extend(random.sample(self.cards_by_rarity["common"], 10))
+        pack.extend(stream("deckbuild").sample(self.cards_by_rarity["common"], 10))
         
         # 4. Basic Land (1)
-        pack.append(random.choice(self.cards_by_rarity["basic"]))
+        pack.append(stream("deckbuild").choice(self.cards_by_rarity["basic"]))
         
         return pack
 
@@ -74,7 +75,7 @@ class DraftSimulator:
                     
                     if current_pack:
                         # Simple random pick for now
-                        pick = random.choice(current_pack)
+                        pick = stream("deckbuild").choice(current_pack)
                         current_pack.remove(pick)
                         player_pools[i].append(pick)
                         
@@ -103,7 +104,7 @@ class DraftSimulator:
         # Add basic lands until target size
         while len(deck) < target_size:
             if self.cards_by_rarity["basic"]:
-                land_pick = random.choice(self.cards_by_rarity["basic"])
+                land_pick = stream("deckbuild").choice(self.cards_by_rarity["basic"])
                 deck.append(land_pick)
             else:
                 break

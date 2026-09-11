@@ -7,6 +7,7 @@ from MTG_bot.rule_engine.game_graph import GameGraph, Entity
 from MTG_bot.rule_engine.card_database import card_data_loader
 from MTG_bot.utils.id_to_name_mapper import IDToNameMapper
 from MTG_bot.utils.logger import setup_logger
+from MTG_bot.utils.rng import stream
 from MTG_bot import config
 from . import vocabulary as vocab
 
@@ -41,7 +42,7 @@ def initialize_game_state(decklist1: List[int], decklist2: List[int], game_mode:
     graph.players.append(player2.instance_id)
 
     # Randomly select starting player
-    graph.active_player_id = random.choice(graph.players)
+    graph.active_player_id = stream("shuffle").choice(graph.players)
     
     # Initialize Phase and Step correctly
     graph.phase = id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary")
@@ -87,7 +88,7 @@ def _create_deck_entities(graph: GameGraph, player: Entity, decklist: List[int],
         graph._move_card_to_zone(commander_card, command)
         commander_card.properties['is_commander'] = True
 
-    if shuffle: random.shuffle(working_deck)
+    if shuffle: stream("shuffle").shuffle(working_deck)
 
     for cid in working_deck:
         c_data = loader.get_card_data_by_id(cid)

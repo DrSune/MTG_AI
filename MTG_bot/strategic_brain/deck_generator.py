@@ -3,6 +3,7 @@ import random
 import json
 from typing import List, Dict, Any, Optional
 from MTG_bot import config
+from MTG_bot.utils.rng import stream
 
 class Archetypes:
     LIFE_GAIN = "life_gain"
@@ -35,7 +36,7 @@ class DeckGenerator:
         Generates two decks for a 1v1 matchup using the full card pool.
         """
         if not archetypes:
-            archetypes = random.sample([Archetypes.LIFE_GAIN, Archetypes.RAMP, Archetypes.AGGRO, Archetypes.CONTROL, Archetypes.FLYING], 2)
+            archetypes = stream("deckbuild").sample([Archetypes.LIFE_GAIN, Archetypes.RAMP, Archetypes.AGGRO, Archetypes.CONTROL, Archetypes.FLYING], 2)
         
         print(f"  [Teacher] Building Constructed Matchup: {archetypes[0]} vs {archetypes[1]} ({format_name})")
         
@@ -83,8 +84,8 @@ class DeckGenerator:
         else:
             # Assume it's a color string like 'WRG' or 'random'
             if archetype_or_colors == "random":
-                num_colors = random.randint(1, 3)
-                colors = set(random.sample("WUBRG", num_colors))
+                num_colors = stream("deckbuild").randint(1, 3)
+                colors = set(stream("deckbuild").sample("WUBRG", num_colors))
             else:
                 for c in archetype_or_colors.upper():
                     if c in "WUBRG": colors.add(c)
@@ -109,7 +110,7 @@ class DeckGenerator:
         # 4. Fill deck with variety of cards
         # To maximize learning, we prioritize picking UNIQUE cards from the pool 
         # before adding multiple copies (unless it's a seed or mandatory card).
-        random.shuffle(pool)
+        stream("deckbuild").shuffle(pool)
         
         # Add primary seeds first (Goalposts)
         if seeds:
@@ -134,14 +135,14 @@ class DeckGenerator:
         
         # If still not full (e.g. deck_size > pool size), add copies up to max_copies
         while len(deck) < actual_non_land_target:
-            card = random.choice(pool)
+            card = stream("deckbuild").choice(pool)
             if deck.count(card) < max_copies:
                 deck.append(card)
         
         # 5. Fill with basic lands (FIXED: Exact land count)
         relevant_basics = self._get_basics_for_colors(list(colors))
         while len(deck) < deck_size:
-            deck.append(random.choice(relevant_basics))
+            deck.append(stream("deckbuild").choice(relevant_basics))
             
         conn.close()
         return deck
@@ -190,10 +191,10 @@ class DeckGenerator:
         
         # Add lands until we reach target size
         while len(deck) < target_size:
-            deck.append(random.choice(basics))
+            deck.append(stream("deckbuild").choice(basics))
             
         conn.close()
-        random.shuffle(deck) # Shuffle the final deck
+        stream("deckbuild").shuffle(deck) # Shuffle the final deck
         return deck
 
     def _get_basics_for_colors(self, identity: List[str]) -> List[int]:

@@ -14,6 +14,7 @@ from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
 from .model import System2Transformer
 from MTG_bot.utils.logger import setup_logger
+from MTG_bot.utils.rng import stream
 
 class ExperienceBuffer:
     def __init__(self, capacity: int = 1000):
@@ -24,7 +25,7 @@ class ExperienceBuffer:
         self.buffer.append(trajectory)
     def sample(self, batch_size: int):
         if len(self.buffer) < batch_size: return self.buffer
-        return random.sample(self.buffer, batch_size)
+        return stream("policy").sample(self.buffer, batch_size)
 
 class Student:
     def __init__(self, model_config: Dict[str, Any]):
@@ -97,7 +98,7 @@ class Student:
         legal_descriptors = obs.get("legal_action_descriptors", [[0]*65])
         
         if not HAS_TORCH:
-            return random.randint(0, len(legal_descriptors)-1), 0.0, 0.0, None, 1, None, None, None
+            return stream("policy").randint(0, len(legal_descriptors)-1), 0.0, 0.0, None, 1, None, None, None
 
         if requires_grad: self.model.train()
         else: self.model.eval()
@@ -129,8 +130,8 @@ class Student:
                         logits[0, i] -= 10.0 * proactivity_bias
             
             probs = torch.softmax(logits, dim=-1)
-            if not deterministic and random.random() < exploration_rate:
-                idx = random.randint(0, len(legal_descriptors) - 1)
+            if not deterministic and stream("exploration").random() < exploration_rate:
+                idx = stream("exploration").randint(0, len(legal_descriptors) - 1)
             else:
                 if deterministic: idx = torch.argmax(logits, dim=-1).item()
                 else: idx = torch.distributions.Categorical(probs).sample().item()

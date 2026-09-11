@@ -113,7 +113,7 @@ class Engine:
                 loader = CardDataLoader(config.MTG_BOT_DB_PATH)
                 all_cards = list(loader.card_name_to_id.keys())
                 # To keep action space sane for early RL, we sample 5 names + "Shock"
-                sample_names = random.sample(all_cards, min(len(all_cards), 5))
+                sample_names = stream("engine").sample(all_cards, min(len(all_cards), 5))
                 if "Shock" not in sample_names: sample_names.append("Shock")
                 for name in sample_names:
                     legal_moves.append(MakeChoiceAction(player_id=player_id, source_id=self.waiting_for_choice, choice_value=name))
@@ -337,7 +337,7 @@ class Engine:
             for pid in self.graph.players:
                 hand = self.graph.get_entities_in_zone(pid, vocab.ID_ZONE_HAND)
                 if len(hand) > 7:
-                    for c in random.sample(hand, len(hand)-7): self.graph._move_card_to_zone(c, self.graph.get_zone(pid, vocab.ID_ZONE_GRAVEYARD))
+                    for c in stream("engine").sample(hand, len(hand)-7): self.graph._move_card_to_zone(c, self.graph.get_zone(pid, vocab.ID_ZONE_GRAVEYARD))
             for c in self.graph.entities.values():
                 if c.properties.get('is_creature'):
                     c.properties['is_attacking'] = False; c.properties['damage_taken'] = 0

@@ -20,6 +20,7 @@ from MTG_bot.utils.training_logger import TrainingLogger
 from MTG_bot.strategic_brain.config_rl import RLConfig
 from MTG_bot import config
 from MTG_bot.utils.logger import setup_logger
+from MTG_bot.utils.rng import stream
 
 logger = setup_logger("Training")
 
@@ -182,12 +183,12 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
                 if not candidate_moves: candidate_moves = [all_legal[0]]
                 if steps % 50 == 0: print(f"  [STALL WARNING] Step {steps}: Forcing game progression...")
             elif intentional_moves:
-                sampled_mana = random.sample(mana_moves, min(len(mana_moves), 1))
+                sampled_mana = stream("exploration").sample(mana_moves, min(len(mana_moves), 1))
                 candidate_moves = intentional_moves + sampled_mana
-                if random.random() > forced_play_prob:
+                if stream("exploration").random() > forced_play_prob:
                     candidate_moves += pass_moves
             else:
-                if mana_moves and random.random() < forced_play_prob:
+                if mana_moves and stream("exploration").random() < forced_play_prob:
                     candidate_moves = mana_moves
                 else:
                     candidate_moves = non_repetitive_legal
@@ -232,7 +233,7 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
                     else:
                         current_legal_all = env.engine.get_legal_moves()
                         curr_non_pass = [m for m in current_legal_all if not isinstance(m, (PassPriorityAction, PassTurnAction))]
-                        if curr_non_pass and random.random() < forced_play_prob:
+                        if curr_non_pass and stream("exploration").random() < forced_play_prob:
                             current_legal = curr_non_pass
                         else:
                             current_legal = current_legal_all
@@ -250,15 +251,15 @@ def train(cfg: RLConfig, student: Student = None, fixed_matchup: Optional[Tuple[
                             proj_legal = student.model.decoder.action_proj(torch.tensor(np.array(descriptors), dtype=torch.float, device=student.device))
                             scores = torch.mv(proj_legal, query)
 
-                            if exploration_rate > 0 and random.random() < exploration_rate:
+                            if exploration_rate > 0 and stream("exploration").random() < exploration_rate:
                                 categories = {}
                                 for idx, move in enumerate(current_legal):
                                     m_type = type(move)
                                     if m_type not in categories: categories[m_type] = []
                                     categories[m_type].append(idx)
                                 if categories:
-                                    chosen_cat = random.choice(list(categories.keys()))
-                                    best_move_idx = random.choice(categories[chosen_cat])
+                                    chosen_cat = stream("exploration").choice(list(categories.keys()))
+                                    best_move_idx = stream("exploration").choice(categories[chosen_cat])
                                 else:
                                     best_move_idx = 0
                             else:
