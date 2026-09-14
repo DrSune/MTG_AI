@@ -10,10 +10,11 @@
 
 | Agent Name | Model Tier | Context | Mode / Permissions | Primary Role |
 | :--- | :--- | :--- | :--- | :--- |
-| **`reader`** | `64k-instant` | 65,536 | `subagent` (Read-only, no bash, no edit, no websearch) | Fast multi-file inspection, symbol extraction, doc summarization. |
+| **`ultra`** | `262k-xhigh` | 262,144 | `subagent` (Read, edit, bash allowed) | Ultra Max Quality subagent for complex cross-module features, monumental refactors, and deep proofs. |
 | **`coder`** | `128k-medium` | 131,072 | `subagent` (Read, edit, bash allowed) | Full module implementation, refactoring, unit testing & LSP verification. |
-| **`tester`** | `64k-instant` | 65,536 | `subagent` (Bash allowed, no edit, no websearch) | Runs `pytest` and test suites, reports compact pass/fail breakdowns. |
 | **`analyst`** | `128k-xhigh` | 131,072 | `subagent` (Read-only, no edit) | Deep architectural alignment against MTG engine mandates, deep thinking. |
+| **`reader`** | `64k-instant` | 65,536 | `subagent` (Read-only, no bash, no edit, no websearch) | Fast multi-file inspection, symbol extraction, doc summarization. |
+| **`tester`** | `64k-instant` | 65,536 | `subagent` (Bash allowed, no edit, no websearch) | Runs `pytest` and test suites, reports compact pass/fail breakdowns. |
 | **`adversarial`**| `64k-xhigh` | 65,536 | `subagent` (Read-only, no edit) | Hunts edge cases, infinite loops, rules loopholes, and invariants. |
 
 ---
@@ -32,7 +33,10 @@ token-estimate <files...>
 2. **128k Subagents (`coder`, `analyst`)**:
    - **Input Budget**: Up to **64,000–80,000 tokens**.
    - **Headroom**: 48,000+ tokens reserved for balanced/xhigh thinking + full module generation.
-3. **Orchestrator & Compaction (`262k Native Context`)**:
+3. **262k Subagents (`ultra`)**:
+   - **Input Budget**: Up to **180,000 tokens**.
+   - **Headroom**: 80,000+ tokens reserved for extensive `xhigh` reasoning + up to 32,768 code output tokens.
+4. **Orchestrator & Compaction (`262k Native Context`)**:
    - The main orchestrator operates at Qwen 3.8 27B's full native training sequence length of **262,144 tokens**.
    - Automatic compaction triggers when context reaches **200,000 tokens** (leaving 62k headroom). Compaction runs with **`xhigh` reasoning effort** and a **32,768 token output ceiling**, preserving 120,000 tokens of recent session state with zero truncation.
 
