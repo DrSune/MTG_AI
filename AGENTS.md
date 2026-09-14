@@ -36,8 +36,15 @@ token-estimate <files...>
    - The main orchestrator operates at Qwen 3.8 27B's full native training sequence length of **262,144 tokens**.
    - Automatic compaction triggers when context reaches **200,000 tokens** (leaving 62k headroom). Compaction runs with **`xhigh` reasoning effort** and a **32,768 token output ceiling**, preserving 120,000 tokens of recent session state with zero truncation.
 
+> [!CAUTION]
+> ### CRITICAL ARCHITECTURAL MANDATE: SUBAGENTS CANNOT AND WILL NOT COMPACT!
+> - **Subagents have HARD context limits** (64k for `reader`/`tester`/`adversarial`, 128k for `coder`/`analyst`).
+> - **Auto-compaction is NEVER enabled or executed for subagents.** Only the main orchestrator (`262k`) compacts.
+> - **The orchestrator MUST NOT assign open-ended or oversized tasks assuming a subagent will compact.** If a subagent runs out of tokens, it will crash or truncate permanently, breaking the workflow.
+> - **Mandatory Task Decomposition**: Every delegated task MUST be strictly bounded to fit within the subagent's input budget (e.g. implementing 1 class/function, running 1 test file, reading 1–3 specific files). If a feature touches multiple modules, the orchestrator MUST dispatch separate, sequential subagent calls.
+
 ### Rules for Subagents:
-* **No Subagent Compaction**: Subagents run bounded tasks and report back. If a subagent would require compaction, the task is **too broad**. Decompose it into multiple focused sub-tasks.
+* **No Subagent Compaction**: As stated above, subagents run short-horizon bounded tasks. If a subagent approaches its context ceiling, the task is flawed—decompose it.
 * **Default Forbid Unbounded Exploration**: Subagents are strictly forbidden from autonomous recursive reading or open-ended web browsing unless explicitly commanded in their task prompt.
 * **Concise Returns**: Instruct all subagents to return structured summaries under 400 words or diffs. Never let a subagent regurgitate raw file dumps back to the orchestrator.
 * **Python LSP Enabled**: Pyright LSP is active for real-time type checking and diagnostics across all `.py` files.
