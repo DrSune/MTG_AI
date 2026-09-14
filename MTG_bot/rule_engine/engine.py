@@ -15,6 +15,7 @@ from .actions import (
     MakeChoiceAction
 )
 from MTG_bot.utils.logger import setup_logger
+from MTG_bot.utils.rng import stream
 
 class NullRecorder:
     """Does nothing. The default, so training never pays for recording."""

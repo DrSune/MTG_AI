@@ -26,7 +26,8 @@ class TestGameState(unittest.TestCase):
             card_data_loader.get_card_id_by_name("Walking Corpse"), card_data_loader.get_card_id_by_name("Walking Corpse")
         ] * 2 # 40 cards total
 
-        self.game_graph = initialize_game_state(self.decklist1, self.decklist2, shuffle=False) # Don't shuffle for predictable tests
+        # Don't shuffle for predictable tests; state the seat so the active player is deterministic
+        self.game_graph = initialize_game_state(self.decklist1, self.decklist2, shuffle=False, start_with=0)
         self.engine = Engine(self.game_graph)
 
         self.player1 = next(p for p in self.game_graph.entities.values() if p.type_id == self.id_mapper.get_id_by_name("Player", "game_vocabulary") and p.properties['name'] == "Player 1")

@@ -20,7 +20,8 @@ class TestEngine(unittest.TestCase):
         self.id_mapper = IDToNameMapper(config.MTG_BOT_DB_PATH)
         self.graph = initialize_game_state(
             decklist1=[card_data_loader.get_card_id_by_name("Forest"), card_data_loader.get_card_id_by_name("Snarespinner")],
-            decklist2=[]
+            decklist2=[],
+            start_with=0
         )
         self.engine = Engine(self.graph)
         self.player1 = self.graph.entities[self.graph.active_player_id]

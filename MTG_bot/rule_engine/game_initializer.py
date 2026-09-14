@@ -19,9 +19,14 @@ def _get_game_settings(game_mode: str) -> Dict[str, Any]:
     # Placeholder for DB lookup
     return {}
 
-def initialize_game_state(decklist1: List[int], decklist2: List[int], game_mode: str = "Standard", shuffle: bool = True, player1_starting_hand_ids: Optional[List[int]] = None, player2_starting_hand_ids: Optional[List[int]] = None) -> GameGraph:
+def initialize_game_state(decklist1: List[int], decklist2: List[int], game_mode: str = "Standard", shuffle: bool = True, player1_starting_hand_ids: Optional[List[int]] = None, player2_starting_hand_ids: Optional[List[int]] = None, start_with: Optional[int] = None) -> GameGraph:
     """
     Initializes the game state with players, zones, and decks based on the format.
+
+    start_with: index into the players list (0 = first player) to force the
+    starting player. When None, the starting player is drawn from the seeded
+    "shuffle" stream, preserving production behaviour. Tests that need a
+    deterministic seat pass this explicitly rather than relying on the draw.
     """
     logger.info(f"Initializing game state for {game_mode} mode...")
     graph = GameGraph()
@@ -41,8 +46,11 @@ def initialize_game_state(decklist1: List[int], decklist2: List[int], game_mode:
     player2.properties.update({'life_total': start_life, 'hand_size': hand_size, 'name': "Player 2", 'lands_played_this_turn': 0, 'mana_pool': {m: 0 for m in [vocab.ID_MANA_GREEN, vocab.ID_MANA_BLUE, vocab.ID_MANA_BLACK, vocab.ID_MANA_RED, vocab.ID_MANA_WHITE, vocab.ID_MANA_COLORLESS, vocab.ID_MANA_GENERIC]}})
     graph.players.append(player2.instance_id)
 
-    # Randomly select starting player
-    graph.active_player_id = stream("shuffle").choice(graph.players)
+    # Starting player: state it explicitly (tests) or draw from the seeded stream (production)
+    if start_with is not None:
+        graph.active_player_id = graph.players[start_with]
+    else:
+        graph.active_player_id = stream("shuffle").choice(graph.players)
     
     # Initialize Phase and Step correctly
     graph.phase = id_mapper.get_id_by_name("Beginning Phase", "game_vocabulary")
