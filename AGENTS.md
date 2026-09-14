@@ -32,8 +32,9 @@ token-estimate <files...>
 2. **128k Subagents (`coder`, `analyst`)**:
    - **Input Budget**: Up to **64,000–80,000 tokens**.
    - **Headroom**: 48,000+ tokens reserved for balanced/xhigh thinking + full module generation.
-3. **Orchestrator & Compaction (`128k`)**:
-   - Compaction runs with **`xhigh` reasoning effort** and a **32,768 token output ceiling**, ensuring deep analytical synthesis and zero truncation of session state.
+3. **Orchestrator & Compaction (`262k Native Context`)**:
+   - The main orchestrator operates at Qwen 3.8 27B's full native training sequence length of **262,144 tokens**.
+   - Automatic compaction triggers when context reaches **200,000 tokens** (leaving 62k headroom). Compaction runs with **`xhigh` reasoning effort** and a **32,768 token output ceiling**, preserving 120,000 tokens of recent session state with zero truncation.
 
 ### Rules for Subagents:
 * **No Subagent Compaction**: Subagents run bounded tasks and report back. If a subagent would require compaction, the task is **too broad**. Decompose it into multiple focused sub-tasks.
