@@ -6,16 +6,37 @@
 
 ---
 
-## 2. Specialized Subagent Roster
+## 2. Specialized Subagent Roster & Full Matrix
 
-| Agent Name | Model Tier | Context | Mode / Permissions | Primary Role |
-| :--- | :--- | :--- | :--- | :--- |
-| **`ultra`** | `262k-xhigh` | 262,144 | `subagent` (Read, edit, bash allowed) | Ultra Max Quality subagent for complex cross-module features, monumental refactors, and deep proofs. |
-| **`coder`** | `128k-medium` | 131,072 | `subagent` (Read, edit, bash allowed) | Full module implementation, refactoring, unit testing & LSP verification. |
-| **`analyst`** | `128k-xhigh` | 131,072 | `subagent` (Read-only, no edit) | Deep architectural alignment against MTG engine mandates, deep thinking. |
-| **`reader`** | `64k-instant` | 65,536 | `subagent` (Read-only, no bash, no edit, no websearch) | Fast multi-file inspection, symbol extraction, doc summarization. |
-| **`tester`** | `64k-instant` | 65,536 | `subagent` (Bash allowed, no edit, no websearch) | Runs `pytest` and test suites, reports compact pass/fail breakdowns. |
-| **`adversarial`**| `64k-xhigh` | 65,536 | `subagent` (Read-only, no edit) | Hunts edge cases, infinite loops, rules loopholes, and invariants. |
+### Standard Production Roster (Default Recommendation)
+Stick to this standard roster for 95% of daily tasks. Each subagent has a tuned balance of context capacity, reasoning depth, and speed:
+
+| Agent Name | Model Tier | Context | Output Ceiling | Mode / Permissions | Primary Role |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`ultra`** | `262k-xhigh` | 262,144 | 32,768 | `subagent` (Read, edit, bash) | Complex cross-module features, monumental refactors, deep proofs. |
+| **`coder`** | `128k-medium` | 131,072 | 32,768 | `subagent` (Read, edit, bash) | Full module implementation, refactoring, unit testing & verification. |
+| **`analyst`** | `128k-xhigh` | 131,072 | 32,768 | `subagent` (Read-only, no edit) | Deep architectural alignment against MTG engine mandates. |
+| **`reader`** | `64k-instant` | 65,536 | 8,192 | `subagent` (Read-only, no bash) | Fast multi-file inspection, symbol extraction, doc summarization. |
+| **`tester`** | `64k-instant` | 65,536 | 8,192 | `subagent` (Bash, no edit) | Runs `pytest` and test suites, reports compact pass/fail breakdowns. |
+| **`adversarial`**| `64k-xhigh` | 65,536 | 16,384 | `subagent` (Read-only, no edit) | Hunts edge cases, infinite loops, rules loopholes, and invariants. |
+
+### Complete 16-Combination Matrix (Available for Custom Scenarios)
+The gateway and OpenCode support the full matrix of **4 Context Tiers $\times$ 4 Reasoning Efforts**:
+`vllm/nvidia/Qwen3.8-27B-NVFP4-{context}-{effort}`
+
+| Context | `instant` (no thinking) | `low` (light thinking) | `medium` (balanced) | `xhigh` (deep reasoning) |
+| :---: | :--- | :--- | :--- | :--- |
+| **`32k`** | Fast worker / summaries | Quick lint/tool checks | Short-context refactors | Micro-proofs / regex / bitwise |
+| **`64k`** | **`reader`**, **`tester`** | Fast test diagnostics | Medium bugfixes | **`adversarial`** review |
+| **`128k`**| Fast bulk file inspect | Doc migration passes | **`coder`** implementation | **`analyst`** deep review |
+| **`262k`**| Whole-repo AST extraction | Fast whole-repo search | Balanced orchestrator | **`ultra`** / Primary orchestrator |
+
+### When to Use Non-Standard / Niche Combinations:
+Stick to the standard roster unless you have a specific, high-leverage reason. Examples where "odd" combinations shine:
+* **`32k-xhigh` (Deep reasoning, micro footprint)**: Use when solving a mathematical, bitwise, or formal MTG rule proof (e.g. layers interaction, state-based action loop prevention) that requires massive deductive reasoning but only needs a tiny snippet of code in context. Runs with minimal KV cache overhead.
+* **`262k-instant` (Max context, zero thinking latency)**: Use when performing whole-repository symbol extraction, formatting massive log dumps, or running AST scans across 400 cards where thinking tokens would waste time and you only need high-speed direct text processing.
+* **`128k-low` / `64k-low` (High context, light verification)**: Use for straightforward repetitive tasks across medium-sized files (e.g., updating docstrings, migrating type annotations) where pure instant might hallucinate, but full `medium`/`xhigh` thinking adds unnecessary latency.
+* **`262k-medium` (Full orchestrator context, faster turn times)**: A great alternative for the main orchestrator when coordinating routine execution phases that do not require maximum `xhigh` contemplation.
 
 ---
 
@@ -40,18 +61,24 @@ token-estimate <files...>
    - The main orchestrator operates at Qwen 3.8 27B's full native training sequence length of **262,144 tokens**.
    - Automatic compaction triggers when context reaches **200,000 tokens** (leaving 62k headroom). Compaction runs with **`xhigh` reasoning effort** and a **32,768 token output ceiling**, preserving 120,000 tokens of recent session state with zero truncation.
 
-> [!CAUTION]
-> ### CRITICAL ARCHITECTURAL MANDATE: SUBAGENTS CANNOT AND WILL NOT COMPACT!
-> - **Subagents have HARD context limits** (64k for `reader`/`tester`/`adversarial`, 128k for `coder`/`analyst`).
-> - **Auto-compaction is NEVER enabled or executed for subagents.** Only the main orchestrator (`262k`) compacts.
-> - **The orchestrator MUST NOT assign open-ended or oversized tasks assuming a subagent will compact.** If a subagent runs out of tokens, it will crash or truncate permanently, breaking the workflow.
-> - **Mandatory Task Decomposition**: Every delegated task MUST be strictly bounded to fit within the subagent's input budget (e.g. implementing 1 class/function, running 1 test file, reading 1–3 specific files). If a feature touches multiple modules, the orchestrator MUST dispatch separate, sequential subagent calls.
+> [!IMPORTANT]
+> ### SUBAGENT BOUNDING & FAIL-SAFE COMPACTION
+> - **Subagents are designed for short-horizon bounded tasks** (implementing 1 module, running tests, analyzing 1 spec).
+> - **Avoid relying on subagent compaction**: Decompose tasks so they fit comfortably within the subagent's token budget (32k, 64k, 128k) without needing compaction.
+> - **Safety Net**: If a large task (e.g. `coder`) exceeds turn limits, OpenCode's intelligent reasoning compaction (`nvidia/Qwen3.8-27B-NVFP4-compaction-thinking`) will trigger automatically, distilling the session down to a ~15k working memory checkpoint so the task completes safely rather than overflowing.
 
 ### Rules for Subagents:
-* **No Subagent Compaction**: As stated above, subagents run short-horizon bounded tasks. If a subagent approaches its context ceiling, the task is flawed—decompose it.
+* **Bounded Horizons**: Design tasks to finish within the subagent's context window. If a subagent approaches its context ceiling, the task should have been decomposed into smaller steps.
 * **Default Forbid Unbounded Exploration**: Subagents are strictly forbidden from autonomous recursive reading or open-ended web browsing unless explicitly commanded in their task prompt.
 * **Concise Returns**: Instruct all subagents to return structured summaries under 400 words or diffs. Never let a subagent regurgitate raw file dumps back to the orchestrator.
-* **Python LSP Enabled**: Pyright LSP is active for real-time type checking and diagnostics across all `.py` files.
+* **LSP & Symbol Navigation Active**: Pyright LSP is active for real-time type checking and diagnostics across all `.py` files. Use the `lsp` tool (`goToDefinition`, `hover`, `documentSymbol`, `workspaceSymbol`) to inspect functions, interfaces, and classes rather than reading entire source files into context.
+* **Auto-Formatting & Verification**: Ruff is enabled as the auto-formatter on edits. Lingering compiler warnings in edit outputs do not mean an edit failed. For full repo-level checks, use `ruff check` and `pytest`.
+
+* **Orchestrator Lifecycle & Subagent Delegation Protocol**:
+  - **Orchestrator is IDLE during subagent runs**: When you invoke a subagent via `task(...)`, your session pauses completely until that subagent finishes and returns its report. You do NOT compute, plan, or execute parallel tool calls while awaiting subagent completion.
+  - **Batch Blocking**: If you emit multiple `task(...)` calls in the *same* turn, you will remain blocked and idle until the *very slowest* subagent in that batch completes. Fast agents will sit finished and unread while you wait for the longest task.
+  - **When to dispatch sequentially**: Whenever tasks have unequal expected durations (e.g. pairing a 1-minute `reader` or `tester` with a 30-minute `coder`), or when the findings of one subagent should inform the prompt/scope of the next. Dispatch one `task` per turn so you can immediately inspect the return.
+  - **When parallel dispatch is acceptable**: Only when tasks are strictly independent, non-overlapping in file scope, and have similar expected completion times (e.g. 2-3 parallel test suites or parallel file readers).
 
 ---
 
@@ -96,3 +123,13 @@ task(
 - **Use Sparingly**: Only search for up-to-date library APIs, Scryfall data nuances, or obscure syntax.
 - **Narrow Queries**: Always specify exact keywords (e.g. `"Scryfall oracle_id format 2026"`).
 - **Never Ingest Full Web Pages**: Summarize extracted search snippets before incorporating into context.
+
+## 6. The Knowledge Tree (binding)
+- **Every session starts** by reading `KNOWLEDGE/INDEX.md`, the newest dated folder's orientation
+  note, `KNOWLEDGE/NUMBERS.md` (latest measurements) and `KNOWLEDGE/PITFALLS.md` (standing traps).
+- **Every delegation** names the specific `KNOWLEDGE/` files the subagent must read first, in the
+  task prompt. A subagent that has not read them is operating blind.
+- **Every discovery, decision, or measurement** is appended to `KNOWLEDGE/<date>/NN-*.md`
+  (dated, numbered, never deleted — mark `superseded by …` instead). Headline numbers go into
+  `NUMBERS.md` with date + producing command; traps go into `PITFALLS.md`.
+- A number not recorded in `NUMBERS.md` with a date and command is not admissible evidence.
