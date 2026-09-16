@@ -1,0 +1,2066 @@
+"""The typed ability-tree grammar: the ONE representation, TWO consumers.
+
+NORTH_STAR / DESIGN_CARD_POOL.md step 1: the executor walks this tree and the
+encoder reads the same tree. No second shape, no English anywhere (PITFALLS:
+"English substrings cannot be the IR" — the ETB-substring bug killed forty
+triggers for months). Every node is a frozen dataclass, every validation
+fails loudly in ``__post_init__``, every node serializes to a tagged dict
+with a stable string tag, so ``fingerprint`` is the golden-file key
+(PC-4/PC-9) and ``walk`` is what the executor and the EC-2 unhandled-node
+rate (METRICS.md §3) walk the tree with.
+
+Design decisions (each pinned by tests in test_ability_tree.py):
+
+- **Quantity on every numeric field, without exception**: ``QConst`` (>= 0),
+  ``QX``, ``QUnbounded`` ("any number" — Siege Striker, Necromentia),
+  ``QCount(selector)``, ``QProp(referent, field, agg)``, ``QBin``. QProp's
+  referent is ``Selector | "source" | "controller" | "target" | "event"`` —
+  the design lists three referents; "event" is the documented fourth because
+  Brash Taunter ("deals that much damage") and Garruk's Harbinger ("look at
+  that many cards") reference the triggering event's damage amount.
+  ``QBinOp.DIV`` is floor division ("round up half" = ``(n+1)//2``, Peer
+  into the Abyss). Negative quantities are rejected at construction: signed
+  P/T adjustments go through :class:`PtDelta`; the single documented
+  exception is ``CostLoyalty.delta`` (a -7 loyalty cost is negative by
+  definition).
+- **Filter = ``FAtom(pred, typed slots)``**: one atom class with a closed
+  per-predicate slot table (``_FATOM_RULES``) instead of one class per
+  predicate — smaller encoder tag space, arity and types still enforced.
+  ``FAnd(())`` is the universal filter, so "any card" selectors exist.
+- **``AtomArgs``** = frozen role -> typed value mapping, stored as ``pairs``
+  sorted by role in ``__post_init__`` (stdlib has no hashable frozen dict;
+  sorted pairs give value equality, hashability, and
+  construction-order-independent canonical form).
+- **Duration** = a union of four frozen dataclasses, not an enum: an enum
+  cannot carry the ``Filter`` that ``WHILE_CONDITION`` needs.
+- **Cost parts**: tap (``CostTap(target=None)`` = "tap the source" — every
+  ``{T}:`` in the pool), generic/coloured/hybrid mana, life, sacrifice,
+  discard, put-counter (Mazemind Tome's page-counter cost), loyalty (the
+  only signed cost). Empty ``Cost()`` is a free activation.
+- **Emblem**: ``CardRecord.emblem: Optional[CardRecord]`` — embedded in its
+  planeswalker's record (the pool's 3 emblem-layout records are Basri Ket,
+  Garruk Unleashed, Liliana's emblems). One-directional and validated: only
+  a Planeswalker may carry an emblem; the emblem is an Emblem-typed token
+  record that itself carries no emblem.
+- **Selector.count by mode**: TARGET exact, CHOOSE up-to (``QUnbounded`` =
+  any number), ALL ignores count (the compiler writes ``QConst(1)``),
+  RANDOM exact; TARGET/RANDOM with ``QUnbounded`` are rejected.
+- **Keyword enum**: 23 members — the pool's 24 MTGJSON keyword strings with
+  "Hexproof from" folded into HEXPROOF (the "from X" is a Filter param, see
+  ``_KEYWORD_PARAMS``).
+- **Events**: 13 structured EventSpecs; ETB is a ZoneChange from anywhere to
+  the battlefield, never a substring. declare_blockers / becomes_blocked /
+  tap_state / targeting exist because pool cards need them (Pirate token
+  "can't block", Gloom Sower, Ghostly Pilferer, Warden of the Woods,
+  hexproof/protection statics).
+- **No orphan guarantee yet**: verbs are cited to pool cards in docstrings;
+  orphans are MEASURED by PC-6 and pruned then — the vocabulary is the
+  Phase-1 hypothesis, not the post-hoc truth.
+"""
+
+from __future__ import annotations
+
+import dataclasses
+import hashlib
+import json
+from collections.abc import Iterator
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any
+
+from MTG_bot.core.identity import validate_oracle_id
+
+# The five magic colours. Colourless ("C") is only ever a value for the
+# ADD_MANA "color" atom role; ColorSets are always drawn from WUBRG.
+_COLORS = ("W", "U", "B", "R", "G")
+_COLORLESS = "C"
+
+
+# ---- Closed vocabularies (enums) ----
+
+
+class Verb(Enum):
+    """The closed verb vocabulary (DESIGN_CARD_POOL step 1: ~60 verbs).
+
+    35 members covering the M21 pool; orphans are measured (PC-6) and pruned
+    later. Each docstring cites the pool card(s) that need it.
+    """
+
+    DEAL_DAMAGE = "DEAL_DAMAGE"  # Brash Taunter (deals that much damage to target player or creature)
+    DESTROY = "DESTROY"  # Legion's Judgment, Eliminate, Swift Response
+    EXILE = "EXILE"  # Angelic Ascension, Transmogrify, Chandra [-9]
+    DRAW = "DRAW"  # Opt, Frantic Inventory, Jeskai Elder
+    MILL = "MILL"  # Carrion Grub ("mill four cards")
+    GAIN_LIFE = "GAIN_LIFE"  # Faith's Fetters, Aven Gagglemaster, Witch's Cauldron
+    LOSE_LIFE = "LOSE_LIFE"  # Grim Tutor
+    ADD_MANA = "ADD_MANA"  # Vodalian Arcanist, Llanowar Visionary, Treasure token
+    CREATE_TOKEN = "CREATE_TOKEN"  # Basri Ket, Falconer Adept, Gadrak (Treasure tokens)
+    PUT_COUNTER = "PUT_COUNTER"  # Basri's Lieutenant (+1/+1), Malefic Scythe (soul), Basri Ket Emblem
+    REMOVE_COUNTER = "REMOVE_COUNTER"  # Pestilent Haze ("remove two loyalty counters")
+    MODIFY_PT = "MODIFY_PT"  # Defiant Strike, Jeskai Elder (prowess), Pestilent Haze (all creatures -2/-2)
+    SET_PT = "SET_PT"  # Experimental Overload (Weird tokens' P/T), Tarmogoyf-class dynamic P/T
+    GRANT_ABILITY = "GRANT_ABILITY"  # Riddleform (a 3/3 Sphinx creature with flying), Dub (first strike)
+    GRANT_TYPE = "GRANT_TYPE"  # Riddleform/Dub: "is a Knight in addition to its other types"
+    TAP = "TAP"  # Celestial Enforcer ("tap target creature")
+    UNTAP = "UNTAP"  # Traitorous Greed ("untap that creature")
+    MOVE_ZONE = "MOVE_ZONE"  # Sublime Epiphany (return to hand), Rise Again
+    SEARCH = "SEARCH"  # Grim Tutor, Cultivate, Fierce Empath, Garruk's Unleashed emblem
+    SHUFFLE = "SHUFFLE"  # Grim Tutor ("then shuffle"), Necromentia
+    COUNTER_SPELL = "COUNTER_SPELL"  # Cancel, Lofty Denial, Miscast, Rewind
+    COPY = "COPY"  # design list; no M21 card — orphan to be measured by PC-6
+    SACRIFICE = "SACRIFICE"  # Goremand ("each opponent sacrifices a creature"); cost side: Village Rites, Witch's Cauldron
+    DISCARD = "DISCARD"  # Teferi, Master of Time [+1] ("draw a card, then discard a card"), Jeskai Elder
+    SCRY = "SCRY"  # Opt ("scry 1"), Riddleform
+    REVEAL = "REVEAL"  # Track Down, Garruk's Harbinger
+    LOOK_AT = "LOOK_AT"  # Opt, See the Truth, Garruk's Harbinger
+    ATTACH = "ATTACH"  # Short Sword / Malefic Scythe (Equip)
+    GAIN_CONTROL = "GAIN_CONTROL"  # Traitorous Greed
+    PREVENT_EFFECT = "PREVENT_EFFECT"  # Faith's Fetters ("can't attack or block"), hexproof/protection statics
+    PHASE_IN = "PHASE_IN"  # no M21 card — commander's general; kept pool-agnostic, PC-6 will say
+    PHASE_OUT = "PHASE_OUT"  # Teferi, Master of Time [-3]
+    EXTRA_TURN = "EXTRA_TURN"  # Teferi, Master of Time [-10] ("take two extra turns")
+    END_TURN = "END_TURN"  # Discontinuity ("end the turn")
+    MANDATE_ATTACK = "MANDATE_ATTACK"  # Pirate token: "creatures you control attack each combat if able"
+
+
+class SelectorMode(Enum):
+    """How a selector picks its objects (DESIGN_CARD_POOL: one Selector type
+    used by targets, statics, counts, triggers, and search)."""
+
+    TARGET = "TARGET"  # exactly `count` objects, chosen by the effect
+    CHOOSE = "CHOOSE"  # up to `count` objects, chosen by a controller
+    ALL = "ALL"  # every object in the zone matching the filter (count ignored)
+    RANDOM = "RANDOM"  # exactly `count` objects, chosen at random
+
+
+class ZoneKind(Enum):
+    """Where objects live. ANY = every zone (Necromentia searches "graveyard,
+    hand, and library" with one Zone(ANY, opponent))."""
+
+    LIBRARY = "LIBRARY"
+    HAND = "HAND"
+    BATTLEFIELD = "BATTLEFIELD"
+    GRAVEYARD = "GRAVEYARD"
+    EXILE = "EXILE"
+    COMMAND = "COMMAND"  # commander zone (PHASE_IN lives here)
+    STACK = "STACK"  # spells/abilities (COUNTER_SPELL targets here)
+    PLAYER = "PLAYER"  # the player object itself — the only non-card target ("target player or players")
+    ANY = "ANY"
+
+
+class ControllerRef(Enum):
+    """Whose zone. ANY = every controller's zones combined; in a two-player
+    game that is both players, which is how "all graveyards" selectors read.
+    OPPONENT is per-opponent in multiplayer (the executor evaluates each)."""
+
+    YOU = "YOU"
+    OPPONENT = "OPPONENT"
+    TARGET_PLAYER = "TARGET_PLAYER"  # "the target player" — the spell's target, when it is a player
+    ANY = "ANY"
+    ALL_OPPONENTS = "ALL_OPPONENTS"
+
+
+class QPropField(Enum):
+    """Which property QProp reads from its referent. The player-count fields
+    only make sense with the "controller" referent; AMOUNT only with
+    "event" (validated in QProp.__post_init__)."""
+
+    POWER = "POWER"
+    TOUGHNESS = "TOUGHNESS"
+    CMC = "CMC"
+    MANA_VALUE = "MANA_VALUE"
+    CARDS_IN_HAND = "CARDS_IN_HAND"  # "the number of cards in your hand"
+    CARDS_IN_LIBRARY = "CARDS_IN_LIBRARY"  # Peer into the Abyss
+    CARDS_IN_GRAVEYARD = "CARDS_IN_GRAVEYARD"  # Liliana, Waker of the Dead [-3]
+    AMOUNT = "AMOUNT"  # the triggering event's damage amount (Brash Taunter)
+
+
+class QAgg(Enum):
+    """How a multi-object Selector referent collapses to one number. FIRST =
+    "the (single) selected object's property"; MAX = Carrion Grub's
+    "greatest power among creature cards in your graveyard"."""
+
+    FIRST = "FIRST"
+    MAX = "MAX"
+    MIN = "MIN"
+    SUM = "SUM"
+
+
+class QBinOp(Enum):
+    """Quantity arithmetic. DIV is floor division (//); round-up-half is
+    expressed as (n + 1) // 2, keeping the operator set closed."""
+
+    ADD = "ADD"
+    SUB = "SUB"
+    MUL = "MUL"
+    DIV = "DIV"
+    MAX = "MAX"
+    MIN = "MIN"
+
+
+class FAtomPred(Enum):
+    """Atomic filter predicates (the design's ~20; the pool pushed a few
+    more). Each row of ``_FATOM_RULES`` names exactly which typed slots the
+    predicate takes; anything else raises (see FAtom)."""
+
+    TYPE_EQ = "TYPE_EQ"  # "Creature" in the object's types — Necromentia's search
+    SUBTYPE_EQ = "SUBTYPE_EQ"  # "protection from Demons and from Dragons"
+    SUPERTYPE_EQ = "SUPERTYPE_EQ"  # "Legendary" / "Basic"
+    COLOR_HAS = "COLOR_HAS"  # "hexproof from black"
+    COLOR_IN = "COLOR_IN"  # colours are a non-empty subset of the given set
+    COLOR_COUNT_GE = "COLOR_COUNT_GE"  # >= 2 = "protection from multicolored" (Basri's Lieutenant)
+    CMC_LE = "CMC_LE"  # mana-value thresholds
+    CMC_GE = "CMC_GE"  # Fierce Empath: "creature card with mana value 6 or greater"
+    PT_LE = "PT_LE"  # both components <= value (documented convention)
+    PT_GE = "PT_GE"  # both components >= value
+    KEYWORD_HAS = "KEYWORD_HAS"  # "has flying"
+    NAME_EQ = "NAME_EQ"  # "cards named Frantic Inventory"
+    IS_TAPPED = "IS_TAPPED"
+    IS_UNTAPPED = "IS_UNTAPPED"  # Siege Striker
+    IS_ATTACKING = "IS_ATTACKING"
+    IS_BLOCKING = "IS_BLOCKING"
+    HAS_COUNTER = "HAS_COUNTER"  # Basri's Lieutenant: "if it had a +1/+1 counter on it"
+    CONTROLLER_IS = "CONTROLLER_IS"  # "target creature you control"
+    CONTROLLER_COUNT_GE = "CONTROLLER_COUNT_GE"  # Gadrak: "you control four or more artifacts"
+    CONTROLLER_COUNT_LE = "CONTROLLER_COUNT_LE"
+    IS_SOURCE = "IS_SOURCE"  # the object is the source of the current ability
+    IS_ANY_TARGET = "IS_ANY_TARGET"  # "another target" (Selfless Savior)
+    IS_PERMANENT = "IS_PERMANENT"  # on the battlefield, vs a card in a zone
+    IS_TOKEN = "IS_TOKEN"  # Gadrak: "nontoken creature that died this turn"
+    DIED_THIS_TURN = "DIED_THIS_TURN"  # turn-scoped; Carrion Grub, Gadrak
+    IS_ATTACHED_TO_SOURCE = "IS_ATTACHED_TO_SOURCE"  # Malefic Scythe's "equipped creature"
+
+
+class CounterKind(Enum):
+    """Counter types. Pool-verified kinds: +1/+1, incarnation (Nine Lives),
+    loyalty (Pestilent Haze), page (Mazemind Tome), soul (Malefic Scythe).
+    -1/-1 and charge are standard MTG kinds kept for pool-agnostic grammar."""
+
+    PLUS_1_PLUS_1 = "PLUS_1_PLUS_1"
+    MINUS_1_MINUS_1 = "MINUS_1_MINUS_1"
+    CHARGE = "CHARGE"
+    INCARNATION = "INCARNATION"
+    LOYALTY = "LOYALTY"
+    PAGE = "PAGE"
+    SOUL = "SOUL"
+
+
+class SpellKind(Enum):
+    """SpellAbility kinds — the pool's card classes."""
+
+    INSTANT = "INSTANT"
+    SORCERY = "SORCERY"
+    CREATURE = "CREATURE"
+    ENCHANTMENT = "ENCHANTMENT"
+    PLANESWALKER = "PLANESWALKER"
+    LAND = "LAND"
+
+
+class Keyword(Enum):
+    """The pool's keyword abilities — 23 distinct keywords.
+
+    The M21 file carries 24 distinct keyword *strings*; "Hexproof from" is
+    HEXPROOF plus a Filter param on the KeywordAbility (Spine
+    Megalodon/Sporeweb Weaver), not a separate keyword. File-level counts
+    (NUMBERS.md): Flying 28, Scry 19, Vigilance 12, Lifelink 12, Flash 11,
+    Enchant 11, Trample 9, Prowess 8, Reach 8, Hexproof 7 (+4 from),
+    Protection 6, Mill 5, Defender 4, Haste 4, Fight 4, Deathtouch 3,
+    First strike 2, Equip 2, Indestructible 2, Treasure 2, Battalion 1,
+    Double strike 1, Menace 1.
+    """
+
+    FLYING = "FLYING"
+    SCRY = "SCRY"  # param: Quantity ("scry 1")
+    VIGILANCE = "VIGILANCE"
+    LIFELINK = "LIFELINK"
+    FLASH = "FLASH"
+    ENCHANT = "ENCHANT"
+    TRAMPLE = "TRAMPLE"
+    PROWESS = "PROWESS"
+    REACH = "REACH"
+    HEXPROOF = "HEXPROOF"  # optional param: Filter ("hexproof from blue")
+    PROTECTION = "PROTECTION"  # param: Filter ("protection from planeswalkers")
+    MILL = "MILL"  # param: Quantity
+    DEFENDER = "DEFENDER"
+    HASTE = "HASTE"
+    FIGHT = "FIGHT"
+    DEATHTOUCH = "DEATHTOUCH"
+    FIRST_STRIKE = "FIRST_STRIKE"
+    DOUBLE_STRIKE = "DOUBLE_STRIKE"
+    EQUIP = "EQUIP"
+    INDESTRUCTIBLE = "INDESTRUCTIBLE"
+    TREASURE = "TREASURE"  # the Treasure artifact-type keyword (Gadrak's tokens)
+    BATTALION = "BATTALION"  # param: Quantity (Makeshift Battalion)
+    MENACE = "MENACE"
+
+
+class PtDirection(Enum):
+    """Direction of a P/T adjustment (keeps every quantity non-negative)."""
+
+    INCREASE = "INCREASE"
+    DECREASE = "DECREASE"
+
+
+class Phase(Enum):
+    """TurnPhaseEvent phases, all observed in the pool.
+
+    UPKEEP: "at the beginning of your upkeep" (Sanctum of All). FIRST_MAIN:
+    "at the beginning of your first main phase" (Sanctum of Calm Waters).
+    END_TURN: "at the beginning of your end step" (Gadrak, Griffin Aerie,
+    Garruk's Unleashed emblem). COMBAT: "at the beginning of combat on your
+    turn" (the three emblems).
+    """
+
+    UPKEEP = "UPKEEP"
+    FIRST_MAIN = "FIRST_MAIN"
+    END_TURN = "END_TURN"
+    COMBAT = "COMBAT"
+
+
+class Step(Enum):
+    """StepEvent sub-steps (finer than Phase). The pool has no step-level
+    triggers today; the members are the standard combat steps the executor
+    will eventually emit."""
+
+    DECLARE_ATTACKERS = "DECLARE_ATTACKERS"
+    DEALS_COMBAT_DAMAGE = "DEALS_COMBAT_DAMAGE"
+    END_OF_COMBAT = "END_OF_COMBAT"
+
+
+# ---- Quantity — "Quantity on every numeric field, without exception" ----
+
+
+@dataclass(frozen=True)
+class QConst:
+    """A literal, non-negative quantity. Negative quantities are rejected:
+    you cannot draw -2 cards, and signed adjustments have their own type
+    (PtDelta)."""
+
+    value: int
+
+    def __post_init__(self) -> None:
+        if isinstance(self.value, bool) or not isinstance(self.value, int):
+            raise ValueError(f"QConst: value must be an int, got {self.value!r}")
+        if self.value < 0:
+            raise ValueError(f"QConst: negative quantity rejected: {self.value}")
+
+
+@dataclass(frozen=True)
+class QX:
+    """The X in the card's cost/effect ({X}{R}{R} costs, X-cost spells)."""
+
+
+@dataclass(frozen=True)
+class QUnbounded:
+    """"Any number of" — an unbounded CHOOSE selector (Siege Striker's "tap
+    any number of untapped creatures you control", Necromentia's "any
+    number of cards with that name")."""
+
+
+@dataclass(frozen=True)
+class QCount:
+    """The number of objects a selector matches (Tarmogoyf-class P/T,
+    Frantic Inventory's draw count, Gadrak's "for each nontoken creature
+    that died this turn")."""
+
+    selector: Selector
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.selector, Selector):
+            raise ValueError(f"QCount: selector must be a Selector, got {type(self.selector).__name__}")
+
+
+_QPROP_STR_REFERENTS = ("source", "controller", "target", "event")
+
+
+@dataclass(frozen=True)
+class QProp:
+    """A property of a referent.
+
+    referent = Selector | "source" | "controller" | "target" | "event"
+    (the design's three referents plus the documented "event"). field is
+    validated against the referent: player-count fields need "controller",
+    AMOUNT needs "event". With a Selector referent, `agg` collapses the
+    (possibly many) selected objects; a string referent is singular, so agg
+    must be FIRST.
+    """
+
+    referent: Selector | str
+    field: QPropField
+    agg: QAgg = QAgg.FIRST
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.referent, Selector) and self.referent not in _QPROP_STR_REFERENTS:
+            raise ValueError(
+                f"QProp: referent must be a Selector or one of {_QPROP_STR_REFERENTS}, got {self.referent!r}"
+            )
+        if not isinstance(self.field, QPropField):
+            raise ValueError(f"QProp: field must be a QPropField, got {type(self.field).__name__}")
+        if not isinstance(self.agg, QAgg):
+            raise ValueError(f"QProp: agg must be a QAgg, got {type(self.agg).__name__}")
+        player_fields = (QPropField.CARDS_IN_HAND, QPropField.CARDS_IN_LIBRARY, QPropField.CARDS_IN_GRAVEYARD)
+        if self.field in player_fields and self.referent != "controller":
+            raise ValueError(f"QProp: {self.field.name} requires the 'controller' referent")
+        if self.field is QPropField.AMOUNT and self.referent != "event":
+            raise ValueError("QProp: AMOUNT requires the 'event' referent")
+        if isinstance(self.referent, str) and self.agg is not QAgg.FIRST:
+            raise ValueError("QProp: a singular referent cannot aggregate (agg must be FIRST)")
+
+
+@dataclass(frozen=True)
+class QBin:
+    """Quantity arithmetic: ADD / SUB / MUL / DIV (floor) / MAX / MIN."""
+
+    op: QBinOp
+    left: Quantity
+    right: Quantity
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.op, QBinOp):
+            raise ValueError(f"QBin: op must be a QBinOp, got {type(self.op).__name__}")
+        for side in (self.left, self.right):
+            if not _is_quantity(side):
+                raise ValueError(f"QBin: operand must be a Quantity, got {type(side).__name__}")
+
+
+Quantity = QConst | QX | QUnbounded | QCount | QProp | QBin
+
+
+# ---- Zones and the selector ----
+
+
+@dataclass(frozen=True)
+class Zone:
+    """A (kind, controller) zone."""
+
+    kind: ZoneKind
+    controller: ControllerRef
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.kind, ZoneKind):
+            raise ValueError(f"Zone: kind must be a ZoneKind, got {self.kind!r}")
+        if not isinstance(self.controller, ControllerRef):
+            raise ValueError(f"Zone: controller must be a ControllerRef, got {self.controller!r}")
+
+
+@dataclass(frozen=True)
+class Selector:
+    """The one selector type used by targets, statics, counts, triggers,
+    and search (DESIGN_CARD_POOL). count semantics by mode: TARGET exact,
+    CHOOSE up-to (QUnbounded = any), ALL ignores count, RANDOM exact."""
+
+    count: Quantity
+    mode: SelectorMode
+    filter: Filter
+    zone: Zone
+
+    def __post_init__(self) -> None:
+        if not _is_quantity(self.count):
+            raise ValueError(f"Selector: count must be a Quantity, got {type(self.count).__name__}")
+        if not isinstance(self.mode, SelectorMode):
+            raise ValueError(f"Selector: mode must be a SelectorMode, got {self.mode!r}")
+        if not _is_filter(self.filter):
+            raise ValueError(f"Selector: filter must be a Filter, got {type(self.filter).__name__}")
+        if not isinstance(self.zone, Zone):
+            raise ValueError(f"Selector: zone must be a Zone, got {type(self.zone).__name__}")
+        if self.mode in (SelectorMode.TARGET, SelectorMode.RANDOM) and isinstance(self.count, QUnbounded):
+            raise ValueError(f"Selector: mode {self.mode.name} needs a concrete count, not QUnbounded")
+
+
+# ---- Filters ----
+
+
+@dataclass(frozen=True)
+class FAnd:
+    """Conjunction. ``FAnd(())`` is the universal filter ("any card")."""
+
+    children: tuple[Filter, ...]
+
+    def __post_init__(self) -> None:
+        for child in self.children:
+            if not _is_filter(child):
+                raise ValueError(f"FAnd: child must be a Filter, got {type(child).__name__}")
+
+
+@dataclass(frozen=True)
+class FOr:
+    """Disjunction. ``FOr(())`` is the empty filter (matches nothing)."""
+
+    children: tuple[Filter, ...]
+
+    def __post_init__(self) -> None:
+        for child in self.children:
+            if not _is_filter(child):
+                raise ValueError(f"FOr: child must be a Filter, got {type(child).__name__}")
+
+
+@dataclass(frozen=True)
+class FNot:
+    """Negation."""
+
+    inner: Filter
+
+    def __post_init__(self) -> None:
+        if not _is_filter(self.inner):
+            raise ValueError(f"FNot: inner must be a Filter, got {type(self.inner).__name__}")
+
+
+@dataclass(frozen=True)
+class FAtom:
+    """An atomic predicate with a closed, per-predicate slot table.
+
+    Design choice (documented in the module docstring): ONE atom class with
+    typed slots instead of one class per predicate — the encoder's tag
+    space stays small while ``_FATOM_RULES[pred]`` still enforces which
+    slots the predicate takes and value validation still runs: an
+    unrequested non-default slot, or an invalid slot value, raises.
+
+    Slots:
+      string_value — type/subtype/supertype/name comparisons (data, not semantics)
+      color        — a single WUBRG colour (COLOR_HAS)
+      colors       — a WUBRG set (COLOR_IN)
+      count        — Quantity threshold (CMC_LE/GE, PT_LE/GE, COLOR_COUNT_GE,
+                      HAS_COUNTER, CONTROLLER_COUNT_GE/LE); a dynamic threshold
+                      (QProp/QBin/QCount) is as legal as a literal
+      counter_kind — CounterKind (HAS_COUNTER)
+      keyword      — Keyword (KEYWORD_HAS)
+      who          — ControllerRef (CONTROLLER_IS; you|opponent|target-player)
+      inner_filter — a nested Filter (CONTROLLER_COUNT_GE/LE)
+    """
+
+    pred: FAtomPred
+    string_value: str | None = None
+    color: str | None = None
+    colors: tuple[str, ...] = ()
+    count: Quantity | None = None
+    counter_kind: CounterKind | None = None
+    keyword: Keyword | None = None
+    who: ControllerRef | None = None
+    inner_filter: Filter | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.pred, FAtomPred):
+            raise ValueError(f"FAtom: pred must be a FAtomPred, got {self.pred!r}")
+        if self.string_value is not None and (
+            not isinstance(self.string_value, str) or not self.string_value.strip()
+        ):
+            raise ValueError(f"FAtom: string_value must be a non-empty str, got {self.string_value!r}")
+        if self.color is not None and self.color not in _COLORS:
+            raise ValueError(f"FAtom: color must be one of {_COLORS}, got {self.color!r}")
+        if not isinstance(self.colors, tuple) or not all(isinstance(c, str) for c in self.colors):
+            raise ValueError("FAtom: colors must be a tuple of str")
+        if any(c not in _COLORS for c in self.colors) or len(set(self.colors)) != len(self.colors):
+            raise ValueError(f"FAtom: colors must be distinct members of {_COLORS}")
+        if self.count is not None and not _is_quantity(self.count):
+            raise ValueError(f"FAtom: count must be a Quantity, got {self.count!r}")
+        if self.counter_kind is not None and not isinstance(self.counter_kind, CounterKind):
+            raise ValueError(f"FAtom: counter_kind must be a CounterKind, got {type(self.counter_kind).__name__}")
+        if self.keyword is not None and not isinstance(self.keyword, Keyword):
+            raise ValueError(f"FAtom: keyword must be a Keyword, got {type(self.keyword).__name__}")
+        if self.who is not None and not isinstance(self.who, ControllerRef):
+            raise ValueError(f"FAtom: who must be a ControllerRef, got {type(self.who).__name__}")
+        if self.inner_filter is not None and not _is_filter(self.inner_filter):
+            raise ValueError(f"FAtom: inner_filter must be a Filter, got {type(self.inner_filter).__name__}")
+
+        required, allowed = _FATOM_RULES[self.pred]
+        for slot in (
+            "string_value",
+            "color",
+            "colors",
+            "count",
+            "counter_kind",
+            "keyword",
+            "who",
+            "inner_filter",
+        ):
+            value = getattr(self, slot)
+            unset = value is None or (slot == "colors" and value == ())
+            if not unset and slot not in allowed:
+                raise ValueError(f"FAtom: {self.pred.name} does not take slot {slot!r}")
+            if (
+                slot in required
+                and unset
+                and slot in ("string_value", "color", "colors", "counter_kind", "keyword", "who", "inner_filter")
+            ):
+                raise ValueError(f"FAtom: {self.pred.name} requires slot {slot!r}")
+        if self.pred is FAtomPred.COLOR_IN and not self.colors:
+            raise ValueError("FAtom: COLOR_IN requires a non-empty colors tuple")
+        if (
+            self.pred is FAtomPred.COLOR_COUNT_GE
+            and isinstance(self.count, QConst)
+            and self.count.value < 1
+        ):
+            raise ValueError("FAtom: COLOR_COUNT_GE requires count >= 1")
+        if (
+            self.pred is FAtomPred.HAS_COUNTER
+            and isinstance(self.count, QConst)
+            and self.count.value < 1
+        ):
+            raise ValueError("FAtom: HAS_COUNTER requires count >= 1")
+        if self.pred is FAtomPred.CONTROLLER_IS and self.who not in (
+            ControllerRef.YOU,
+            ControllerRef.OPPONENT,
+            ControllerRef.TARGET_PLAYER,
+        ):
+            raise ValueError("FAtom: CONTROLLER_IS who must be you, opponent, or the target player")
+
+
+Filter = FAnd | FOr | FNot | FAtom
+
+
+# ---------------------------------------------------------------------------
+# Durations — a small union of frozen dataclasses. An enum cannot carry the
+# Filter that WHILE_CONDITION needs; one dataclass with an optional filter
+# would admit PERMANENT(filter=...). Decision documented in the module
+# docstring.
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class DurationEot:
+    """Until end of turn."""
+
+
+@dataclass(frozen=True)
+class DurationPermanent:
+    """Until removed by another effect (the default for most effects)."""
+
+
+@dataclass(frozen=True)
+class DurationUntilNextTurn:
+    """Until the controller's next turn (Teferi's phase-out)."""
+
+
+@dataclass(frozen=True)
+class DurationWhileCondition:
+    """While a condition holds (continuous effects)."""
+
+    filter: Filter
+
+    def __post_init__(self) -> None:
+        if not _is_filter(self.filter):
+            raise ValueError(
+                f"DurationWhileCondition: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+
+
+Duration = DurationEot | DurationPermanent | DurationUntilNextTurn | DurationWhileCondition
+
+
+# ---------------------------------------------------------------------------
+# EventSpec — structured, NEVER a substring (PITFALLS: the ETB-substring bug
+# killed forty triggers). Each event's filter selects the event's SUBJECT —
+# the object the event is about: the spell cast, the creature that dealt
+# damage / died / became blocked, the entering permanent, the damaged
+# object, the targeted object.
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ZoneChangeEvent:
+    """A permanent changed zones. ETB = from anywhere to the battlefield —
+    a ZoneChange, never a substring."""
+
+    from_zone: Zone
+    to_zone: Zone
+
+    def __post_init__(self) -> None:
+        for zone in (self.from_zone, self.to_zone):
+            if not isinstance(zone, Zone):
+                raise ValueError(f"ZoneChangeEvent: zone must be a Zone, got {type(zone).__name__}")
+
+
+@dataclass(frozen=True)
+class CastSpellEvent:
+    """A spell was cast (filter over the spell: type/subtype/name)."""
+
+    filter: Filter
+
+    def __post_init__(self) -> None:
+        if not _is_filter(self.filter):
+            raise ValueError(f"CastSpellEvent: filter must be a Filter, got {type(self.filter).__name__}")
+
+
+@dataclass(frozen=True)
+class DeclareAttackersEvent:
+    """Attackers were declared (filter over the declared creature)."""
+
+    filter: Filter
+
+    def __post_init__(self) -> None:
+        if not _is_filter(self.filter):
+            raise ValueError(
+                f"DeclareAttackersEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class DeclareBlockersEvent:
+    """Blockers were declared (filter over the blocking creature) — the
+    event "can't block" preventions attach to (the Pirate token)."""
+
+    filter: Filter
+
+    def __post_init__(self) -> None:
+        if not _is_filter(self.filter):
+            raise ValueError(
+                f"DeclareBlockersEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class CombatDamageEvent:
+    """Combat damage was dealt (filter over the damage-dealing creature —
+    Garruk's Harbinger, Jeskai Elder)."""
+
+    filter: Filter
+
+    def __post_init__(self) -> None:
+        if not _is_filter(self.filter):
+            raise ValueError(f"CombatDamageEvent: filter must be a Filter, got {type(self.filter).__name__}")
+
+
+@dataclass(frozen=True)
+class CounterPlacedEvent:
+    """Counters of a kind were placed on the subject."""
+
+    counter_kind: CounterKind
+    filter: Filter
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.counter_kind, CounterKind):
+            raise ValueError(f"CounterPlacedEvent: counter_kind must be a CounterKind, got {self.counter_kind!r}")
+        if not _is_filter(self.filter):
+            raise ValueError(
+                f"CounterPlacedEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class CreatureDiesEvent:
+    """A creature died (filter over the dying creature — Malefic Scythe's
+    "equipped creature", Basri's Lieutenant)."""
+
+    filter: Filter
+
+    def __post_init__(self) -> None:
+        if not _is_filter(self.filter):
+            raise ValueError(f"CreatureDiesEvent: filter must be a Filter, got {type(self.filter).__name__}")
+
+
+@dataclass(frozen=True)
+class BecomesBlockedEvent:
+    """A creature became blocked (filter over the blocker — Gloom Sower)."""
+
+    filter: Filter
+
+    def __post_init__(self) -> None:
+        if not _is_filter(self.filter):
+            raise ValueError(
+                f"BecomesBlockedEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class TapStateEvent:
+    """A permanent's tapped state changed (filter over the permanent —
+    Ghostly Pilferer's "becomes untapped"). `tapped` is the new state."""
+
+    tapped: bool
+    filter: Filter
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.tapped, bool):
+            raise ValueError(f"TapStateEvent: tapped must be a bool, got {self.tapped!r}")
+        if not _is_filter(self.filter):
+            raise ValueError(f"TapStateEvent: filter must be a Filter, got {type(self.filter).__name__}")
+
+
+@dataclass(frozen=True)
+class TurnPhaseEvent:
+    """A turn phase began for `controller` (see Phase for pool citations)."""
+
+    phase: Phase
+    controller: ControllerRef
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.phase, Phase):
+            raise ValueError(f"TurnPhaseEvent: phase must be a Phase, got {self.phase!r}")
+        if not isinstance(self.controller, ControllerRef):
+            raise ValueError(f"TurnPhaseEvent: controller must be a ControllerRef")
+
+
+@dataclass(frozen=True)
+class StepEvent:
+    """A step within a phase began for `controller`."""
+
+    phase: Phase
+    step: Step
+    controller: ControllerRef
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.phase, Phase):
+            raise ValueError(f"StepEvent: phase must be a Phase, got {self.phase!r}")
+        if not isinstance(self.step, Step):
+            raise ValueError(f"StepEvent: step must be a Step, got {self.step!r}")
+        if not isinstance(self.controller, ControllerRef):
+            raise ValueError(f"StepEvent: controller must be a ControllerRef")
+
+
+@dataclass(frozen=True)
+class DamageDealtEvent:
+    """Damage was dealt to the subject (filter over the damaged object —
+    Brash Taunter's "whenever this creature is dealt damage"). `amount`
+    rides the event for QProp("event", AMOUNT)."""
+
+    amount: Quantity
+    filter: Filter
+
+    def __post_init__(self) -> None:
+        if not _is_quantity(self.amount):
+            raise ValueError(f"DamageDealtEvent: amount must be a Quantity, got {type(self.amount).__name__}")
+        if not _is_filter(self.filter):
+            raise ValueError(f"DamageDealtEvent: filter must be a Filter, got {type(self.filter).__name__}")
+
+
+@dataclass(frozen=True)
+class TargetingEvent:
+    """The subject was targeted by a spell or ability (filter over the
+    targeted object — Warden of the Woods; the event hexproof/protection
+    preventions attach to)."""
+
+    filter: Filter
+
+    def __post_init__(self) -> None:
+        if not _is_filter(self.filter):
+            raise ValueError(f"TargetingEvent: filter must be a Filter, got {type(self.filter).__name__}")
+
+
+EventSpec = (
+    ZoneChangeEvent
+    | CastSpellEvent
+    | DeclareAttackersEvent
+    | DeclareBlockersEvent
+    | CombatDamageEvent
+    | CounterPlacedEvent
+    | CreatureDiesEvent
+    | BecomesBlockedEvent
+    | TapStateEvent
+    | TurnPhaseEvent
+    | StepEvent
+    | DamageDealtEvent
+    | TargetingEvent
+)
+
+
+# ---- Leaf value types used inside AtomArgs ----
+
+
+@dataclass(frozen=True)
+class LiteralName:
+    """A structured card-name reference (Necromentia's "choose a card name",
+    "cards named Frantic Inventory") — data, wrapped so it stays
+    distinguishable from a raw string in serialization."""
+
+    name: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.name, str) or not self.name.strip():
+            raise ValueError(f"LiteralName: name must be a non-empty str, got {self.name!r}")
+
+
+@dataclass(frozen=True)
+class PtDelta:
+    """A signed P/T adjustment expressed without negative quantities:
+    direction + non-negative magnitude (Pestilent Haze's -2/-2)."""
+
+    direction: PtDirection
+    magnitude: Quantity
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.direction, PtDirection):
+            raise ValueError(f"PtDelta: direction must be a PtDirection, got {self.direction!r}")
+        if not _is_quantity(self.magnitude):
+            raise ValueError(f"PtDelta: magnitude must be a Quantity, got {type(self.magnitude).__name__}")
+
+
+@dataclass(frozen=True)
+class TokenSpec:
+    """A nested card record for token creation (DESIGN_CARD_POOL: "token
+    creation takes a nested card record, not a string"). Creatures require
+    P/T Quantities (the Weird token's dynamic P/T is a SET_PT ability on
+    the token, with power/toughness None); non-creatures forbid P/T."""
+
+    name: str
+    type_line: str
+    types: tuple[str, ...]
+    subtypes: tuple[str, ...]
+    power: Quantity | None
+    toughness: Quantity | None
+    keywords: tuple[Keyword, ...]
+    abilities: tuple[Ability, ...]
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.name, str) or not self.name.strip():
+            raise ValueError(f"TokenSpec: name must be a non-empty str, got {self.name!r}")
+        if not isinstance(self.type_line, str) or not self.type_line.strip():
+            raise ValueError("TokenSpec: type_line must be a non-empty str")
+        if not self.types:
+            raise ValueError("TokenSpec: types must be non-empty")
+        if "Creature" in self.types:
+            if not _is_quantity(self.power) or not _is_quantity(self.toughness):
+                raise ValueError("TokenSpec: creature tokens require power and toughness Quantities")
+        elif self.power is not None or self.toughness is not None:
+            raise ValueError("TokenSpec: non-creature tokens cannot have P/T")
+        for keyword in self.keywords:
+            if not isinstance(keyword, Keyword):
+                raise ValueError(f"TokenSpec: keywords must be Keyword, got {type(keyword).__name__}")
+        for ability in self.abilities:
+            if not _is_ability(ability):
+                raise ValueError(f"TokenSpec: abilities must be Ability, got {type(ability).__name__}")
+
+
+# ---- Costs ----
+
+
+@dataclass(frozen=True)
+class CostTap:
+    """Tap as a cost. ``target=None`` means "the source itself" — every
+    ``{T}:`` activated ability in the pool."""
+
+    target: Selector | None = None
+
+    def __post_init__(self) -> None:
+        if self.target is not None and not isinstance(self.target, Selector):
+            raise ValueError(f"CostTap: target must be a Selector, got {type(self.target).__name__}")
+
+
+@dataclass(frozen=True)
+class CostManaColor:
+    """A specific colour of mana, `amount` of it ({R}, {2}{U}, {X} red...)."""
+
+    color: str
+    amount: Quantity
+
+    def __post_init__(self) -> None:
+        if self.color not in _COLORS:
+            raise ValueError(f"CostManaColor: color must be one of {_COLORS}, got {self.color!r}")
+        if not _is_quantity(self.amount):
+            raise ValueError(f"CostManaColor: amount must be a Quantity, got {type(self.amount).__name__}")
+
+
+@dataclass(frozen=True)
+class CostManaGeneric:
+    """Generic mana, `amount` of it ({1}, {X})."""
+
+    amount: Quantity
+
+    def __post_init__(self) -> None:
+        if not _is_quantity(self.amount):
+            raise ValueError(f"CostManaGeneric: amount must be a Quantity, got {type(self.amount).__name__}")
+
+
+@dataclass(frozen=True)
+class CostManaHybrid:
+    """Hybrid mana symbols ({W/U}); `amount` symbols, each payable with
+    either colour. Kept pool-agnostic: M21 has none, later sets do."""
+
+    colors: tuple[str, str]
+    amount: Quantity
+
+    def __post_init__(self) -> None:
+        if len(self.colors) != 2 or any(c not in _COLORS for c in self.colors):
+            raise ValueError(f"CostManaHybrid: colors must be two of {_COLORS}, got {self.colors!r}")
+        if self.colors[0] == self.colors[1]:
+            raise ValueError(f"CostManaHybrid: hybrid colours must differ, got {self.colors!r}")
+        if not _is_quantity(self.amount):
+            raise ValueError(f"CostManaHybrid: amount must be a Quantity, got {type(self.amount).__name__}")
+
+
+@dataclass(frozen=True)
+class CostLife:
+    """Lose `amount` life as a cost."""
+
+    amount: Quantity
+
+    def __post_init__(self) -> None:
+        if not _is_quantity(self.amount):
+            raise ValueError(f"CostLife: amount must be a Quantity, got {type(self.amount).__name__}")
+
+
+@dataclass(frozen=True)
+class CostSacrifice:
+    """Sacrifice the selected permanent(s) as a cost (Village Rites,
+    Witch's Cauldron, Selfless Savior, the Treasure token)."""
+
+    target: Selector
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.target, Selector):
+            raise ValueError(f"CostSacrifice: target must be a Selector, got {type(self.target).__name__}")
+
+
+@dataclass(frozen=True)
+class CostDiscard:
+    """Discard the selected card(s) as a cost (Sparkhunter Masticore's
+    additional cost to cast)."""
+
+    target: Selector
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.target, Selector):
+            raise ValueError(f"CostDiscard: target must be a Selector, got {type(self.target).__name__}")
+
+
+@dataclass(frozen=True)
+class CostPutCounter:
+    """Put counters on the selected object as a cost (Mazemind Tome:
+    "{T}, put a page counter on this artifact")."""
+
+    counter_kind: CounterKind
+    target: Selector
+    count: Quantity = QConst(1)
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.counter_kind, CounterKind):
+            raise ValueError(f"CostPutCounter: counter_kind must be a CounterKind, got {self.counter_kind!r}")
+        if not isinstance(self.target, Selector):
+            raise ValueError(f"CostPutCounter: target must be a Selector, got {type(self.target).__name__}")
+        if not _is_quantity(self.count):
+            raise ValueError(f"CostPutCounter: count must be a Quantity, got {type(self.count).__name__}")
+
+
+@dataclass(frozen=True)
+class CostLoyalty:
+    """A loyalty change as a cost — the ONLY signed value in the grammar,
+    because planeswalker costs (-2, -7) are negative by definition."""
+
+    delta: int
+
+    def __post_init__(self) -> None:
+        if isinstance(self.delta, bool) or not isinstance(self.delta, int):
+            raise ValueError(f"CostLoyalty: delta must be an int, got {self.delta!r}")
+        if self.delta == 0:
+            raise ValueError("CostLoyalty: delta must be non-zero")
+
+
+CostPart = (
+    CostTap
+    | CostManaColor
+    | CostManaGeneric
+    | CostManaHybrid
+    | CostLife
+    | CostSacrifice
+    | CostDiscard
+    | CostPutCounter
+    | CostLoyalty
+)
+
+
+@dataclass(frozen=True)
+class Cost:
+    """An ability's cost. Empty parts = a free activation (legal MTG)."""
+
+    parts: tuple[CostPart, ...] = ()
+
+    def __post_init__(self) -> None:
+        for part in self.parts:
+            if not _is_cost_part(part):
+                raise ValueError(f"Cost: part must be a CostPart, got {type(part).__name__}")
+
+
+# ---- Atom args and the Atom ----
+
+
+@dataclass(frozen=True)
+class AtomArgs:
+    """A frozen mapping of role name -> typed value for one Atom.
+
+    Stored as ``pairs``: a tuple of ``(role, value)`` sorted by role in
+    ``__post_init__`` — the stdlib has no hashable frozen dict, and sorted
+    pairs make the node value-equal, hashable, and canonical regardless of
+    the order the compiler (or a test) inserted the roles in. Every role is
+    checked against the closed table ``_ROLE_TYPES``; unknown roles,
+    duplicate roles, and wrong value types all raise.
+    """
+
+    pairs: tuple[tuple[str, object], ...] = ()
+
+    def __post_init__(self) -> None:
+        roles = [role for role, _ in self.pairs]
+        dupes = sorted({r for r in roles if roles.count(r) > 1})
+        if dupes:
+            raise ValueError(f"AtomArgs: duplicate roles {dupes}")
+        for role, value in self.pairs:
+            allowed = _ROLE_TYPES.get(role)
+            if allowed is None:
+                raise ValueError(f"AtomArgs: unknown role {role!r}")
+            if not isinstance(value, allowed):
+                raise ValueError(
+                    f"AtomArgs: role {role!r} got {type(value).__name__}, expected one of "
+                    + ", ".join(t.__name__ for t in allowed)
+                )
+            if role == "types" and not all(isinstance(x, str) for x in value):  # type: ignore[arg-type]
+                raise ValueError("AtomArgs: role 'types' must be a tuple of card-type strings")
+            if role == "color" and value not in (*_COLORS, _COLORLESS):
+                raise ValueError(f"AtomArgs: role 'color' must be one of WUBRG/C, got {value!r}")
+        object.__setattr__(self, "pairs", tuple(sorted(self.pairs, key=lambda p: p[0])))
+
+    def get(self, role: str) -> object | None:
+        """The value for `role`, or None — mapping ergonomics."""
+        for r, v in self.pairs:
+            if r == role:
+                return v
+        return None
+
+
+@dataclass(frozen=True)
+class Atom:
+    """A verb + its typed args — the leaf of every effect. The verb's
+    required/optional roles are validated against ``_VERB_ROLES``."""
+
+    verb: Verb
+    args: AtomArgs
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.verb, Verb):
+            raise ValueError(f"Atom: verb must be a Verb, got {self.verb!r}")
+        if not isinstance(self.args, AtomArgs):
+            raise ValueError(f"Atom: args must be an AtomArgs, got {type(self.args).__name__}")
+        roles = dict(self.args.pairs)
+        table = _VERB_ROLES[self.verb]
+        missing = sorted(r for r, req in table.items() if req and r not in roles)
+        if missing:
+            raise ValueError(f"Atom: {self.verb.name} missing required roles {missing}")
+        extra = sorted(r for r in roles if r not in table)
+        if extra:
+            raise ValueError(f"Atom: {self.verb.name} does not take roles {extra}")
+        if self.verb is Verb.MODIFY_PT and "power" not in roles and "toughness" not in roles:
+            raise ValueError("Atom: MODIFY_PT needs at least one of power/toughness")
+
+
+# ---- Effects ----
+
+
+@dataclass(frozen=True)
+class Seq:
+    """Steps in order. Empty sequences are rejected: a no-op is not a node
+    in the tree — the compiler emits nothing, not an empty Seq."""
+
+    steps: tuple[Effect, ...]
+
+    def __post_init__(self) -> None:
+        if not self.steps:
+            raise ValueError("Seq: steps must be non-empty")
+        for step in self.steps:
+            if not _is_effect(step):
+                raise ValueError(f"Seq: step must be an Effect, got {type(step).__name__}")
+
+
+@dataclass(frozen=True)
+class Choose:
+    """Pick `count` of the options (Tolarian Kraken's "tap or untap")."""
+
+    count: Quantity
+    options: tuple[Effect, ...]
+
+    def __post_init__(self) -> None:
+        if not _is_quantity(self.count):
+            raise ValueError(f"Choose: count must be a Quantity, got {type(self.count).__name__}")
+        if not self.options:
+            raise ValueError("Choose: options must be non-empty")
+        for option in self.options:
+            if not _is_effect(option):
+                raise ValueError(f"Choose: option must be an Effect, got {type(option).__name__}")
+
+
+@dataclass(frozen=True)
+class OptionalEffect:
+    """A step the controller may skip ("you may ...")."""
+
+    inner: Effect
+
+    def __post_init__(self) -> None:
+        if not _is_effect(self.inner):
+            raise ValueError(f"OptionalEffect: inner must be an Effect, got {type(self.inner).__name__}")
+
+
+@dataclass(frozen=True)
+class Conditional:
+    """If `pred` holds, then then_effect; else else_effect if present
+    (Jeskai Elder: "if you do, discard a card")."""
+
+    pred: Filter
+    then_effect: Effect
+    else_effect: Effect | None = None
+
+    def __post_init__(self) -> None:
+        if not _is_filter(self.pred):
+            raise ValueError(f"Conditional: pred must be a Filter, got {type(self.pred).__name__}")
+        if not _is_effect(self.then_effect):
+            raise ValueError(f"Conditional: then_effect must be an Effect, got {type(self.then_effect).__name__}")
+        if self.else_effect is not None and not _is_effect(self.else_effect):
+            raise ValueError(f"Conditional: else_effect must be an Effect, got {type(self.else_effect).__name__}")
+
+
+@dataclass(frozen=True)
+class Repeat:
+    """Repeat `inner` `count` times (mill-four = MILL x 4)."""
+
+    count: Quantity
+    inner: Effect
+
+    def __post_init__(self) -> None:
+        if not _is_quantity(self.count):
+            raise ValueError(f"Repeat: count must be a Quantity, got {type(self.count).__name__}")
+        if not _is_effect(self.inner):
+            raise ValueError(f"Repeat: inner must be an Effect, got {type(self.inner).__name__}")
+
+
+Effect = Seq | Choose | OptionalEffect | Conditional | Repeat | Atom
+
+
+# ---- Abilities ----
+
+
+@dataclass(frozen=True)
+class StaticAbility:
+    """A continuous effect (anthems, "can't attack" preventions, equipped
+    creature gets +1/+1 for each soul counter)."""
+
+    effect: Effect
+
+    def __post_init__(self) -> None:
+        if not _is_effect(self.effect):
+            raise ValueError(f"StaticAbility: effect must be an Effect, got {type(self.effect).__name__}")
+
+
+@dataclass(frozen=True)
+class TriggeredAbility:
+    """When/whenever `event` fires (and `condition` holds, if present),
+    `effect` happens. `condition` is a Filter over the event's subject."""
+
+    event: EventSpec
+    condition: Filter | None
+    effect: Effect
+
+    def __post_init__(self) -> None:
+        if not _is_event(self.event):
+            raise ValueError(f"TriggeredAbility: event must be an EventSpec, got {type(self.event).__name__}")
+        if self.condition is not None and not _is_filter(self.condition):
+            raise ValueError(f"TriggeredAbility: condition must be a Filter, got {type(self.condition).__name__}")
+        if not _is_effect(self.effect):
+            raise ValueError(f"TriggeredAbility: effect must be an Effect, got {type(self.effect).__name__}")
+
+
+@dataclass(frozen=True)
+class ActivatedAbility:
+    """Cost: Effect — mana abilities, loyalty abilities, and Mazemind
+    Tome's "{T}, put a page counter on this artifact: Scry 1"."""
+
+    cost: Cost
+    effect: Effect
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.cost, Cost):
+            raise ValueError(f"ActivatedAbility: cost must be a Cost, got {type(self.cost).__name__}")
+        if not _is_effect(self.effect):
+            raise ValueError(f"ActivatedAbility: effect must be an Effect, got {type(self.effect).__name__}")
+
+
+@dataclass(frozen=True)
+class SpellAbility:
+    """The card's own spell effect, keyed by card class. The printed mana
+    cost stays on CardRecord; this is what casting the card does."""
+
+    kind: SpellKind
+    effect: Effect
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.kind, SpellKind):
+            raise ValueError(f"SpellAbility: kind must be a SpellKind, got {self.kind!r}")
+        if not _is_effect(self.effect):
+            raise ValueError(f"SpellAbility: effect must be an Effect, got {type(self.effect).__name__}")
+
+
+@dataclass(frozen=True)
+class KeywordAbility:
+    """A keyword with typed params; arity is validated per keyword via
+    ``_KEYWORD_PARAMS``: Scry/Mill/Battalion take one Quantity, Protection
+    takes one Filter, Hexproof takes none or one Filter, the rest take
+    none. MTGJSON's "Hexproof from blue" is HEXPROOF + a Filter param."""
+
+    keyword: Keyword
+    params: tuple[Quantity | Filter | Cost, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.keyword, Keyword):
+            raise ValueError(f"KeywordAbility: keyword must be a Keyword, got {self.keyword!r}")
+        signatures = _KEYWORD_PARAMS.get(self.keyword, ((),))
+        if len(self.params) not in {len(sig) for sig in signatures}:
+            raise ValueError(
+                f"KeywordAbility: {self.keyword.name} takes params of arity "
+                f"{sorted(len(sig) for sig in signatures)}, got {len(self.params)}"
+            )
+        for sig in signatures:
+            if len(sig) == len(self.params) and all(
+                isinstance(param, allowed) for param, allowed in zip(self.params, sig)
+            ):
+                return
+        raise ValueError(
+            f"KeywordAbility: {self.keyword.name} got invalid param types "
+            f"{[type(p).__name__ for p in self.params]}"
+        )
+
+
+@dataclass(frozen=True)
+class ReplacementAbility:
+    """Replaces `event` (and `condition`, if present) with `action`.
+
+    Shares EventSpec with triggers deliberately (DESIGN_CARD_POOL: the same
+    predicate over the same typed event bus, differing only in whether it
+    fires before or after — commander's command-zone replacement needs
+    exactly this).
+    """
+
+    event: EventSpec
+    condition: Filter | None
+    action: Effect
+
+    def __post_init__(self) -> None:
+        if not _is_event(self.event):
+            raise ValueError(
+                f"ReplacementAbility: event must be an EventSpec, got {type(self.event).__name__}"
+            )
+        if self.condition is not None and not _is_filter(self.condition):
+            raise ValueError(f"ReplacementAbility: condition must be a Filter, got {type(self.condition).__name__}")
+        if not _is_effect(self.action):
+            raise ValueError(f"ReplacementAbility: action must be an Effect, got {type(self.action).__name__}")
+
+
+Ability = (
+    StaticAbility
+    | TriggeredAbility
+    | ActivatedAbility
+    | SpellAbility
+    | KeywordAbility
+    | ReplacementAbility
+)
+
+
+# ---- CardRecord — the root node ----
+
+
+@dataclass(frozen=True)
+class CardRecord:
+    """The root node: one card (or token) as a typed ability tree.
+
+    Fields are the structured ingest of DESIGN_CARD_POOL step 1 plus the
+    compiled abilities. P/T are Optional[Quantity]: a creature with
+    dynamic P/T (Tarmogoyf-class, the Weird token) carries None plus a
+    SET_PT ability; a non-creature can never carry P/T. `loyalty` is the
+    starting loyalty (an ability, not P/T — NUMBERS.md). `emblem` embeds
+    the card's emblem as a nested CardRecord; the link is one-directional
+    (the emblem does not point back) and validated in __post_init__.
+    """
+
+    oracle_id: str
+    name: str
+    type_line: str
+    types: tuple[str, ...]
+    subtypes: tuple[str, ...]
+    supertypes: tuple[str, ...]
+    colors: tuple[str, ...]
+    color_identity: frozenset[str]
+    mana_cost: Cost | None
+    mana_value: int
+    power: Quantity | None
+    toughness: Quantity | None
+    loyalty: int | None
+    keywords: tuple[KeywordAbility, ...]
+    abilities: tuple[Ability, ...]
+    is_token: bool
+    emblem: CardRecord | None = None
+
+    def __post_init__(self) -> None:
+        validate_oracle_id(self.oracle_id)
+        if not isinstance(self.name, str) or not self.name.strip():
+            raise ValueError(f"CardRecord: name must be a non-empty str, got {self.name!r}")
+        if not isinstance(self.type_line, str) or not self.type_line.strip():
+            raise ValueError("CardRecord: type_line must be a non-empty str")
+        if not self.types:
+            raise ValueError("CardRecord: types must be non-empty")
+        if any(c not in _COLORS for c in self.colors):
+            raise ValueError(f"CardRecord: colors must be drawn from {_COLORS}, got {self.colors!r}")
+        if any(c not in _COLORS for c in self.color_identity):
+            raise ValueError(f"CardRecord: color_identity must be drawn from {_COLORS}")
+        if isinstance(self.mana_value, bool) or not isinstance(self.mana_value, int) or self.mana_value < 0:
+            raise ValueError(f"CardRecord: mana_value must be an int >= 0, got {self.mana_value!r}")
+        if self.loyalty is not None and (
+            isinstance(self.loyalty, bool) or not isinstance(self.loyalty, int) or self.loyalty <= 0
+        ):
+            raise ValueError(f"CardRecord: loyalty must be a positive int, got {self.loyalty!r}")
+        if ("Planeswalker" in self.types) != (self.loyalty is not None):
+            raise ValueError("CardRecord: loyalty must be set exactly when the card is a Planeswalker")
+        if self.mana_cost is not None and not isinstance(self.mana_cost, Cost):
+            raise ValueError(f"CardRecord: mana_cost must be a Cost, got {type(self.mana_cost).__name__}")
+        if self.power is not None and not _is_quantity(self.power):
+            raise ValueError(f"CardRecord: power must be a Quantity, got {type(self.power).__name__}")
+        if self.toughness is not None and not _is_quantity(self.toughness):
+            raise ValueError(f"CardRecord: toughness must be a Quantity, got {type(self.toughness).__name__}")
+        if "Creature" not in self.types and (self.power is not None or self.toughness is not None):
+            raise ValueError("CardRecord: non-creatures cannot have P/T")
+        for keyword in self.keywords:
+            if not isinstance(keyword, KeywordAbility):
+                raise ValueError(f"CardRecord: keywords must be KeywordAbility, got {type(keyword).__name__}")
+        for ability in self.abilities:
+            if not _is_ability(ability):
+                raise ValueError(f"CardRecord: abilities must be Ability, got {type(ability).__name__}")
+        if not isinstance(self.is_token, bool):
+            raise ValueError(f"CardRecord: is_token must be a bool, got {self.is_token!r}")
+        if self.emblem is not None:
+            if not isinstance(self.emblem, CardRecord):
+                raise ValueError(f"CardRecord: emblem must be a CardRecord, got {type(self.emblem).__name__}")
+            if "Planeswalker" not in self.types:
+                raise ValueError("CardRecord: only a Planeswalker may carry an emblem")
+            if "Emblem" not in self.emblem.types or not self.emblem.is_token:
+                raise ValueError("CardRecord: emblem must be an Emblem-typed token record")
+            if self.emblem.emblem is not None:
+                raise ValueError("CardRecord: an emblem cannot carry an emblem")
+
+
+# ---------------------------------------------------------------------------
+# Validation tables + type guards.
+# Referenced from __post_init__ methods above; resolved at call time, so
+# they live after the classes they validate.
+# ---------------------------------------------------------------------------
+
+_Q_CLASSES = (QConst, QX, QUnbounded, QCount, QProp, QBin)
+_F_CLASSES = (FAnd, FOr, FNot, FAtom)
+_E_CLASSES = (Seq, Choose, OptionalEffect, Conditional, Repeat, Atom)
+_A_CLASSES = (StaticAbility, TriggeredAbility, ActivatedAbility, SpellAbility, KeywordAbility, ReplacementAbility)
+_EV_CLASSES = (
+    ZoneChangeEvent,
+    CastSpellEvent,
+    DeclareAttackersEvent,
+    DeclareBlockersEvent,
+    CombatDamageEvent,
+    CounterPlacedEvent,
+    CreatureDiesEvent,
+    BecomesBlockedEvent,
+    TapStateEvent,
+    TurnPhaseEvent,
+    StepEvent,
+    DamageDealtEvent,
+    TargetingEvent,
+)
+_D_CLASSES = (DurationEot, DurationPermanent, DurationUntilNextTurn, DurationWhileCondition)
+_COST_PART_CLASSES = (
+    CostTap,
+    CostManaColor,
+    CostManaGeneric,
+    CostManaHybrid,
+    CostLife,
+    CostSacrifice,
+    CostDiscard,
+    CostPutCounter,
+    CostLoyalty,
+)
+
+
+def _is_quantity(value: object) -> bool:
+    return isinstance(value, _Q_CLASSES)
+
+
+def _is_filter(value: object) -> bool:
+    return isinstance(value, _F_CLASSES)
+
+
+def _is_effect(value: object) -> bool:
+    return isinstance(value, _E_CLASSES)
+
+
+def _is_ability(value: object) -> bool:
+    return isinstance(value, _A_CLASSES)
+
+
+def _is_event(value: object) -> bool:
+    return isinstance(value, _EV_CLASSES)
+
+
+def _is_duration(value: object) -> bool:  # noqa: F841 — part of the closed guard set
+    return isinstance(value, _D_CLASSES)
+
+
+def _is_cost_part(value: object) -> bool:
+    return isinstance(value, _COST_PART_CLASSES)
+
+
+# FAtom predicate -> (required slots, allowed slots).
+_FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
+    FAtomPred.TYPE_EQ: (frozenset({"string_value"}), frozenset({"string_value"})),
+    FAtomPred.SUBTYPE_EQ: (frozenset({"string_value"}), frozenset({"string_value"})),
+    FAtomPred.SUPERTYPE_EQ: (frozenset({"string_value"}), frozenset({"string_value"})),
+    FAtomPred.NAME_EQ: (frozenset({"string_value"}), frozenset({"string_value"})),
+    FAtomPred.COLOR_HAS: (frozenset({"color"}), frozenset({"color"})),
+    FAtomPred.COLOR_IN: (frozenset({"colors"}), frozenset({"colors"})),
+    FAtomPred.COLOR_COUNT_GE: (frozenset({"count"}), frozenset({"count"})),
+    FAtomPred.CMC_LE: (frozenset({"count"}), frozenset({"count"})),
+    FAtomPred.CMC_GE: (frozenset({"count"}), frozenset({"count"})),
+    FAtomPred.PT_LE: (frozenset({"count"}), frozenset({"count"})),
+    FAtomPred.PT_GE: (frozenset({"count"}), frozenset({"count"})),
+    FAtomPred.KEYWORD_HAS: (frozenset({"keyword"}), frozenset({"keyword"})),
+    FAtomPred.HAS_COUNTER: (frozenset({"counter_kind", "count"}), frozenset({"counter_kind", "count"})),
+    FAtomPred.CONTROLLER_IS: (frozenset({"who"}), frozenset({"who"})),
+    FAtomPred.CONTROLLER_COUNT_GE: (
+        frozenset({"inner_filter", "count"}),
+        frozenset({"inner_filter", "count"}),
+    ),
+    FAtomPred.CONTROLLER_COUNT_LE: (
+        frozenset({"inner_filter", "count"}),
+        frozenset({"inner_filter", "count"}),
+    ),
+    FAtomPred.IS_TAPPED: (frozenset(), frozenset()),
+    FAtomPred.IS_UNTAPPED: (frozenset(), frozenset()),
+    FAtomPred.IS_ATTACKING: (frozenset(), frozenset()),
+    FAtomPred.IS_BLOCKING: (frozenset(), frozenset()),
+    FAtomPred.IS_SOURCE: (frozenset(), frozenset()),
+    FAtomPred.IS_ANY_TARGET: (frozenset(), frozenset()),
+    FAtomPred.IS_PERMANENT: (frozenset(), frozenset()),
+    FAtomPred.IS_TOKEN: (frozenset(), frozenset()),
+    FAtomPred.DIED_THIS_TURN: (frozenset(), frozenset()),
+    FAtomPred.IS_ATTACHED_TO_SOURCE: (frozenset(), frozenset()),
+}
+
+# Atom role -> allowed value types. "types" is a tuple of card-type strings
+# (data); "color" is a WUBRG string plus colourless "C" (ADD_MANA "any
+# colour", the Treasure token).
+_ROLE_TYPES: dict[str, tuple[type, ...]] = {
+    "target": (Selector,),
+    "source": (Selector,),
+    "cards": (Selector,),
+    "equipment": (Selector,),
+    "controller": (ControllerRef,),
+    "amount": _Q_CLASSES,
+    "count": _Q_CLASSES,
+    "power": (*_Q_CLASSES, PtDelta),
+    "toughness": (*_Q_CLASSES, PtDelta),
+    "destination": (Zone,),
+    "zone": (Zone,),
+    "tokens": (TokenSpec,),
+    "card_spec": (LiteralName,),
+    "duration": _D_CLASSES,
+    "ability": _A_CLASSES,
+    "types": (tuple,),
+    "counter_kind": (CounterKind,),
+    "event": _EV_CLASSES,
+    "condition": _F_CLASSES,
+    "color": (str,),
+}
+
+# Verb -> {role: required?}. MODIFY_PT additionally requires at least one
+# of power/toughness (enforced in Atom.__post_init__). The optional
+# "duration" role (Duration) marks the temporary-effect verbs: MODIFY_PT,
+# SET_PT, GRANT_ABILITY, GRANT_TYPE, PREVENT_EFFECT ("until end of turn"),
+# plus TAP / UNTAP (a tap or untap is a temporary effect) and MANDATE_ATTACK
+# (a continuous "attacks each combat if able").
+_VERB_ROLES: dict[Verb, dict[str, bool]] = {
+    Verb.DEAL_DAMAGE: {"target": True, "amount": True},
+    Verb.DESTROY: {"target": True},
+    Verb.EXILE: {"target": True},
+    Verb.DRAW: {"controller": True, "amount": True},
+    Verb.MILL: {"controller": True, "amount": True},
+    Verb.GAIN_LIFE: {"controller": True, "amount": True},
+    Verb.LOSE_LIFE: {"controller": True, "amount": True},
+    Verb.ADD_MANA: {"controller": True, "amount": True, "color": False},
+    Verb.CREATE_TOKEN: {"tokens": True, "count": False},
+    Verb.PUT_COUNTER: {"target": True, "counter_kind": True, "count": True},
+    Verb.REMOVE_COUNTER: {"target": True, "counter_kind": True, "count": True},
+    Verb.MODIFY_PT: {"target": True, "power": False, "toughness": False, "duration": False},
+    Verb.SET_PT: {"target": True, "power": True, "toughness": True, "duration": False},
+    Verb.GRANT_ABILITY: {"target": True, "ability": True, "duration": False},
+    Verb.GRANT_TYPE: {"target": True, "types": True, "duration": False},
+    Verb.TAP: {"target": True, "duration": False},
+    Verb.UNTAP: {"target": True, "duration": False},
+    Verb.MOVE_ZONE: {"cards": True, "destination": True},
+    Verb.SEARCH: {"cards": True, "destination": True, "controller": False},
+    Verb.SHUFFLE: {"zone": True},
+    Verb.COUNTER_SPELL: {"target": True},
+    Verb.COPY: {"source": True},
+    Verb.SACRIFICE: {"target": True},
+    Verb.DISCARD: {"controller": True, "cards": True},
+    Verb.SCRY: {"controller": True, "count": True},
+    Verb.REVEAL: {"controller": True, "count": True},
+    Verb.LOOK_AT: {"controller": True, "count": True},
+    Verb.ATTACH: {"equipment": True, "target": True},
+    Verb.GAIN_CONTROL: {"target": True, "controller": True},
+    Verb.PREVENT_EFFECT: {"condition": True, "event": True, "controller": False, "duration": False},
+    Verb.PHASE_IN: {"cards": True, "controller": True},
+    Verb.PHASE_OUT: {"target": True},
+    Verb.EXTRA_TURN: {"count": True},
+    Verb.END_TURN: {},
+    Verb.MANDATE_ATTACK: {"cards": True, "controller": False, "duration": False},
+}
+
+# Keyword -> tuple of allowed param signatures; each signature is a tuple
+# of per-position allowed type tuples (so the arity check and the
+# isinstance check both read off the same structure).
+_KEYWORD_PARAMS: dict[Keyword, tuple[tuple[tuple[type, ...], ...], ...]] = {
+    Keyword.SCRY: ((_Q_CLASSES,),),
+    Keyword.MILL: ((_Q_CLASSES,),),
+    Keyword.BATTALION: ((_Q_CLASSES,),),
+    Keyword.PROTECTION: ((_F_CLASSES,),),
+    Keyword.HEXPROOF: ((), (_F_CLASSES,)),
+}
+
+
+# ---------------------------------------------------------------------------
+# Serialization — to_dict / from_dict / canonical_json / fingerprint.
+#
+# Stable encoding (golden files and PC-9 depend on it — never renumber):
+#   dataclass   -> {"tag": <ClassName>, <field>: enc, ...}
+#   Enum        -> {"tag": <EnumClassName>, "name": <MEMBER>}
+#   frozenset   -> {"tag": "ColorSet", "items": <sorted list>}
+#   tuple       -> plain JSON list (element type is known from the field
+#                  spec at decode time)
+#   str/int/bool/None -> bare JSON values
+# Inside AtomArgs pairs, every value is always wrapped in a tag
+# ("String" / "StringTuple" / enum tag / dataclass tag) so no information
+# is lost inside the pairs tuple.
+# ---------------------------------------------------------------------------
+
+_ENUMS: dict[str, type[Enum]] = {
+    "Verb": Verb,
+    "SelectorMode": SelectorMode,
+    "ZoneKind": ZoneKind,
+    "ControllerRef": ControllerRef,
+    "QPropField": QPropField,
+    "QAgg": QAgg,
+    "QBinOp": QBinOp,
+    "FAtomPred": FAtomPred,
+    "CounterKind": CounterKind,
+    "SpellKind": SpellKind,
+    "Keyword": Keyword,
+    "PtDirection": PtDirection,
+    "Phase": Phase,
+    "Step": Step,
+}
+
+_DATACLASSES: tuple[type, ...] = (
+    QConst,
+    QX,
+    QUnbounded,
+    QCount,
+    QProp,
+    QBin,
+    Zone,
+    Selector,
+    FAnd,
+    FOr,
+    FNot,
+    FAtom,
+    DurationEot,
+    DurationPermanent,
+    DurationUntilNextTurn,
+    DurationWhileCondition,
+    ZoneChangeEvent,
+    CastSpellEvent,
+    DeclareAttackersEvent,
+    DeclareBlockersEvent,
+    CombatDamageEvent,
+    CounterPlacedEvent,
+    CreatureDiesEvent,
+    BecomesBlockedEvent,
+    TapStateEvent,
+    TurnPhaseEvent,
+    StepEvent,
+    DamageDealtEvent,
+    TargetingEvent,
+    LiteralName,
+    PtDelta,
+    TokenSpec,
+    CostTap,
+    CostManaColor,
+    CostManaGeneric,
+    CostManaHybrid,
+    CostLife,
+    CostSacrifice,
+    CostDiscard,
+    CostPutCounter,
+    CostLoyalty,
+    Cost,
+    AtomArgs,
+    Atom,
+    Seq,
+    Choose,
+    OptionalEffect,
+    Conditional,
+    Repeat,
+    StaticAbility,
+    TriggeredAbility,
+    ActivatedAbility,
+    SpellAbility,
+    KeywordAbility,
+    ReplacementAbility,
+    CardRecord,
+)
+
+_CLASS_BY_TAG: dict[str, type] = {c.__name__: c for c in _DATACLASSES}
+_TAG: dict[type, str] = {c: c.__name__ for c in _DATACLASSES}
+
+# tag -> ((field, converter), ...). Converters: "int", "bool", "str",
+# "opt:X", "tup:X", "enum:<Name>", "colorset", "qprop_referent",
+# "atom_pairs", "atom_value", and the union names in _UNION_CONVS.
+_SPECS: dict[str, tuple[tuple[str, str], ...]] = {
+    "QConst": (("value", "int"),),
+    "QX": (),
+    "QUnbounded": (),
+    "QCount": (("selector", "selector"),),
+    "QProp": (("referent", "qprop_referent"), ("field", "enum:QPropField"), ("agg", "enum:QAgg")),
+    "QBin": (("op", "enum:QBinOp"), ("left", "quantity"), ("right", "quantity")),
+    "Zone": (("kind", "enum:ZoneKind"), ("controller", "enum:ControllerRef")),
+    "Selector": (("count", "quantity"), ("mode", "enum:SelectorMode"), ("filter", "filter"), ("zone", "zone")),
+    "FAnd": (("children", "tup:filter"),),
+    "FOr": (("children", "tup:filter"),),
+    "FNot": (("inner", "filter"),),
+    "FAtom": (
+        ("pred", "enum:FAtomPred"),
+        ("string_value", "opt:str"),
+        ("color", "opt:str"),
+        ("colors", "tup:str"),
+        ("count", "opt:quantity"),
+        ("counter_kind", "opt:enum:CounterKind"),
+        ("keyword", "opt:enum:Keyword"),
+        ("who", "opt:enum:ControllerRef"),
+        ("inner_filter", "opt:filter"),
+    ),
+    "DurationEot": (),
+    "DurationPermanent": (),
+    "DurationUntilNextTurn": (),
+    "DurationWhileCondition": (("filter", "filter"),),
+    "ZoneChangeEvent": (("from_zone", "zone"), ("to_zone", "zone")),
+    "CastSpellEvent": (("filter", "filter"),),
+    "DeclareAttackersEvent": (("filter", "filter"),),
+    "DeclareBlockersEvent": (("filter", "filter"),),
+    "CombatDamageEvent": (("filter", "filter"),),
+    "CounterPlacedEvent": (("counter_kind", "enum:CounterKind"), ("filter", "filter")),
+    "CreatureDiesEvent": (("filter", "filter"),),
+    "BecomesBlockedEvent": (("filter", "filter"),),
+    "TapStateEvent": (("tapped", "bool"), ("filter", "filter")),
+    "TurnPhaseEvent": (("phase", "enum:Phase"), ("controller", "enum:ControllerRef")),
+    "StepEvent": (("phase", "enum:Phase"), ("step", "enum:Step"), ("controller", "enum:ControllerRef")),
+    "DamageDealtEvent": (("amount", "quantity"), ("filter", "filter")),
+    "TargetingEvent": (("filter", "filter"),),
+    "LiteralName": (("name", "str"),),
+    "PtDelta": (("direction", "enum:PtDirection"), ("magnitude", "quantity")),
+    "TokenSpec": (
+        ("name", "str"),
+        ("type_line", "str"),
+        ("types", "tup:str"),
+        ("subtypes", "tup:str"),
+        ("power", "opt:quantity"),
+        ("toughness", "opt:quantity"),
+        ("keywords", "tup:enum:Keyword"),
+        ("abilities", "tup:ability"),
+    ),
+    "CostTap": (("target", "opt:selector"),),
+    "CostManaColor": (("color", "str"), ("amount", "quantity")),
+    "CostManaGeneric": (("amount", "quantity"),),
+    "CostManaHybrid": (("colors", "tup:str"), ("amount", "quantity")),
+    "CostLife": (("amount", "quantity"),),
+    "CostSacrifice": (("target", "selector"),),
+    "CostDiscard": (("target", "selector"),),
+    "CostPutCounter": (("counter_kind", "enum:CounterKind"), ("target", "selector"), ("count", "quantity")),
+    "CostLoyalty": (("delta", "int"),),
+    "Cost": (("parts", "tup:cost_part"),),
+    "AtomArgs": (("pairs", "atom_pairs"),),
+    "Atom": (("verb", "enum:Verb"), ("args", "atom_args")),
+    "Seq": (("steps", "tup:effect"),),
+    "Choose": (("count", "quantity"), ("options", "tup:effect")),
+    "OptionalEffect": (("inner", "effect"),),
+    "Conditional": (("pred", "filter"), ("then_effect", "effect"), ("else_effect", "opt:effect")),
+    "Repeat": (("count", "quantity"), ("inner", "effect")),
+    "StaticAbility": (("effect", "effect"),),
+    "TriggeredAbility": (("event", "event"), ("condition", "opt:filter"), ("effect", "effect")),
+    "ActivatedAbility": (("cost", "cost"), ("effect", "effect")),
+    "SpellAbility": (("kind", "enum:SpellKind"), ("effect", "effect")),
+    "KeywordAbility": (("keyword", "enum:Keyword"), ("params", "tup:keyword_param")),
+    "ReplacementAbility": (("event", "event"), ("condition", "opt:filter"), ("action", "effect")),
+    "CardRecord": (
+        ("oracle_id", "str"),
+        ("name", "str"),
+        ("type_line", "str"),
+        ("types", "tup:str"),
+        ("subtypes", "tup:str"),
+        ("supertypes", "tup:str"),
+        ("colors", "tup:str"),
+        ("color_identity", "colorset"),
+        ("mana_cost", "opt:cost"),
+        ("mana_value", "int"),
+        ("power", "opt:quantity"),
+        ("toughness", "opt:quantity"),
+        ("loyalty", "opt:int"),
+        ("keywords", "tup:keyword_ability"),
+        ("abilities", "tup:ability"),
+        ("is_token", "bool"),
+        ("emblem", "opt:card"),
+    ),
+}
+
+_QUANTITY_TAGS = frozenset({"QConst", "QX", "QUnbounded", "QCount", "QProp", "QBin"})
+_FILTER_TAGS = frozenset({"FAnd", "FOr", "FNot", "FAtom"})
+_EFFECT_TAGS = frozenset({"Seq", "Choose", "OptionalEffect", "Conditional", "Repeat", "Atom"})
+_ABILITY_TAGS = frozenset(
+    {"StaticAbility", "TriggeredAbility", "ActivatedAbility", "SpellAbility", "KeywordAbility", "ReplacementAbility"}
+)
+_EVENT_TAGS = frozenset(
+    {
+        "ZoneChangeEvent",
+        "CastSpellEvent",
+        "DeclareAttackersEvent",
+        "DeclareBlockersEvent",
+        "CombatDamageEvent",
+        "CounterPlacedEvent",
+        "CreatureDiesEvent",
+        "BecomesBlockedEvent",
+        "TapStateEvent",
+        "TurnPhaseEvent",
+        "StepEvent",
+        "DamageDealtEvent",
+        "TargetingEvent",
+    }
+)
+_DURATION_TAGS = frozenset({"DurationEot", "DurationPermanent", "DurationUntilNextTurn", "DurationWhileCondition"})
+_COST_PART_TAGS = frozenset(
+    {
+        "CostTap",
+        "CostManaColor",
+        "CostManaGeneric",
+        "CostManaHybrid",
+        "CostLife",
+        "CostSacrifice",
+        "CostDiscard",
+        "CostPutCounter",
+        "CostLoyalty",
+    }
+)
+_KEYWORD_PARAM_TAGS = _QUANTITY_TAGS | _FILTER_TAGS | frozenset({"Cost"})
+_ATOM_VALUE_TAGS = (
+    _QUANTITY_TAGS
+    | _FILTER_TAGS
+    | _DURATION_TAGS
+    | _EVENT_TAGS
+    | _ABILITY_TAGS
+    | frozenset({"Selector", "Zone", "TokenSpec", "LiteralName", "PtDelta", "ControllerRef", "CounterKind"})
+)
+
+_UNION_CONVS: dict[str, frozenset[str]] = {
+    "quantity": _QUANTITY_TAGS,
+    "filter": _FILTER_TAGS,
+    "effect": _EFFECT_TAGS,
+    "ability": _ABILITY_TAGS,
+    "event": _EVENT_TAGS,
+    "duration": _DURATION_TAGS,
+    "zone": frozenset({"Zone"}),
+    "selector": frozenset({"Selector"}),
+    "cost": frozenset({"Cost"}),
+    "cost_part": _COST_PART_TAGS,
+    "token": frozenset({"TokenSpec"}),
+    "card": frozenset({"CardRecord"}),
+    "keyword_ability": frozenset({"KeywordAbility"}),
+    "keyword_param": _KEYWORD_PARAM_TAGS,
+    "atom_args": frozenset({"AtomArgs"}),
+}
+
+
+def _decode_union(d: Any, tags: frozenset[str], label: str) -> Any:
+    if not isinstance(d, dict):
+        raise ValueError(f"{label}: expected a tagged dict, got {type(d).__name__}")
+    tag = d.get("tag")
+    if tag not in tags:
+        raise ValueError(f"{label}: bad tag {tag!r} (expected one of {sorted(tags)})")
+    return from_dict(str(tag), d)
+
+
+def _decode(conv: str, d: Any) -> Any:
+    if conv in _UNION_CONVS:
+        return _decode_union(d, _UNION_CONVS[conv], conv)
+    if conv == "int":
+        if isinstance(d, bool) or not isinstance(d, int):
+            raise ValueError(f"expected int, got {type(d).__name__}")
+        return d
+    if conv == "bool":
+        if not isinstance(d, bool):
+            raise ValueError(f"expected bool, got {type(d).__name__}")
+        return d
+    if conv == "str":
+        if not isinstance(d, str):
+            raise ValueError(f"expected str, got {type(d).__name__}")
+        return d
+    if conv.startswith("opt:"):
+        if d is None:
+            return None
+        return _decode(conv[4:], d)
+    if conv.startswith("tup:"):
+        if not isinstance(d, list):
+            raise ValueError(f"expected a list of {conv[4:]}, got {type(d).__name__}")
+        return tuple(_decode(conv[4:], x) for x in d)
+    if conv.startswith("enum:"):
+        cls = _ENUMS.get(conv[5:])
+        if cls is None:
+            raise ValueError(f"unknown enum {conv[5:]!r}")
+        if not isinstance(d, dict) or d.get("tag") != cls.__name__:
+            raise ValueError(f"expected {cls.__name__} tagged dict, got {d!r}")
+        try:
+            return cls[str(d.get("name"))]
+        except KeyError:
+            raise ValueError(f"{cls.__name__}: unknown member {d.get('name')!r}") from None
+    if conv == "colorset":
+        if not isinstance(d, dict) or d.get("tag") != "ColorSet":
+            raise ValueError(f"expected a ColorSet tagged dict, got {d!r}")
+        items = d.get("items")
+        if not isinstance(items, list) or not all(isinstance(x, str) for x in items):
+            raise ValueError("ColorSet: items must be a list of str")
+        return frozenset(items)
+    if conv == "qprop_referent":
+        if isinstance(d, str):
+            if d not in _QPROP_STR_REFERENTS:
+                raise ValueError(f"QProp referent string must be one of {_QPROP_STR_REFERENTS}, got {d!r}")
+            return d
+        return _decode_union(d, frozenset({"Selector"}), "qprop referent")
+    if conv == "atom_pairs":
+        if not isinstance(d, list):
+            raise ValueError(f"expected a list of [role, value] pairs, got {type(d).__name__}")
+        pairs: list[tuple[str, object]] = []
+        for item in d:
+            if not isinstance(item, list) or len(item) != 2:
+                raise ValueError(f"atom pair must be [role, value], got {item!r}")
+            role, value = item
+            if not isinstance(role, str):
+                raise ValueError(f"atom pair role must be a str, got {type(role).__name__}")
+            pairs.append((role, _decode("atom_value", value)))
+        return tuple(pairs)
+    if conv == "atom_value":
+        if not isinstance(d, dict):
+            raise ValueError(f"atom value must be a tagged dict, got {type(d).__name__}")
+        tag = d.get("tag")
+        if tag == "String":
+            value = d.get("value")
+            if not isinstance(value, str):
+                raise ValueError(f"String atom value must hold a str, got {value!r}")
+            return value
+        if tag == "StringTuple":
+            items = d.get("items")
+            if not isinstance(items, list) or not all(isinstance(x, str) for x in items):
+                raise ValueError("StringTuple atom value must hold a list of str")
+            return tuple(items)
+        if tag in _ATOM_VALUE_TAGS:
+            return _decode_union(d, _ATOM_VALUE_TAGS, "atom value")
+        raise ValueError(f"atom value: unknown tag {tag!r}")
+    raise ValueError(f"unknown converter {conv!r}")
+
+
+def to_dict(node: Any) -> Any:
+    """Serialize any grammar node to a JSON-ready value.
+
+    A top-level node (always a dataclass) yields a tagged dict; the
+    encoding is documented in the serialization section header.
+    """
+    if dataclasses.is_dataclass(node) and not isinstance(node, type):
+        if type(node) is AtomArgs:
+            return {
+                "tag": "AtomArgs",
+                "pairs": [[role, _atom_value_to_dict(value)] for role, value in node.pairs],
+            }
+        out: dict[str, Any] = {"tag": _TAG[type(node)]}
+        for field in dataclasses.fields(node):
+            out[field.name] = to_dict(getattr(node, field.name))
+        return out
+    if isinstance(node, Enum):
+        return {"tag": type(node).__name__, "name": node.name}
+    if isinstance(node, frozenset):
+        return {"tag": "ColorSet", "items": sorted(node)}
+    if isinstance(node, tuple):
+        return [to_dict(x) for x in node]
+    if node is None or isinstance(node, (str, int, bool)):
+        return node
+    raise ValueError(f"not a grammar node: {type(node).__name__}")
+
+
+def _atom_value_to_dict(value: Any) -> Any:
+    """AtomArgs values are always wrapped in a tag (see section header)."""
+    if isinstance(value, str):
+        return {"tag": "String", "value": value}
+    if isinstance(value, tuple):
+        if not all(isinstance(x, str) for x in value):
+            raise ValueError("StringTuple atom value must hold str only")
+        return {"tag": "StringTuple", "items": list(value)}
+    return to_dict(value)
+
+
+def from_dict(tag: str, d: Any) -> Any:
+    """Rebuild the node with stable tag `tag` from its tagged dict `d`.
+
+    Strict: the tag must match, unknown or missing fields raise, and every
+    value is type-checked before the class is constructed (which re-runs
+    __post_init__). Round-trip guarantee: from_dict(tag, to_dict(x)) == x.
+    """
+    if not isinstance(d, dict):
+        raise ValueError(f"from_dict: {tag} expects a dict, got {type(d).__name__}")
+    if d.get("tag") != tag:
+        raise ValueError(f"from_dict: tag mismatch: asked {tag!r}, got {d.get('tag')!r}")
+    enum_cls = _ENUMS.get(tag)
+    if enum_cls is not None:
+        try:
+            return enum_cls[str(d.get("name"))]
+        except KeyError:
+            raise ValueError(f"{tag}: unknown member {d.get('name')!r}") from None
+    spec = _SPECS.get(tag)
+    cls = _CLASS_BY_TAG.get(tag)
+    if spec is None or cls is None:
+        raise ValueError(f"from_dict: unknown tag {tag!r}")
+    fields = {name: conv for name, conv in spec}
+    extra = sorted(set(d) - set(fields) - {"tag"})
+    if extra:
+        raise ValueError(f"from_dict: {tag}: unknown fields {extra}")
+    missing = sorted(set(fields) - set(d))
+    if missing:
+        raise ValueError(f"from_dict: {tag}: missing fields {missing}")
+    kwargs = {name: _decode(conv, d[name]) for name, conv in spec}
+    return cls(**kwargs)
+
+
+def canonical_json(node: Any) -> str:
+    """Canonical JSON of `node` (sort_keys=True, separators=(',',':')) —
+    the golden-file body (PC-4)."""
+    return json.dumps(to_dict(node), sort_keys=True, separators=(",", ":"))
+
+
+def fingerprint(node: Any) -> str:
+    """sha256 hexdigest of canonical_json — the PC-9 stability key."""
+    return hashlib.sha256(canonical_json(node).encode("utf-8")).hexdigest()
+
+
+def walk(node: Any) -> Iterator[Any]:
+    """Yield every dataclass grammar node in `node`'s tree, pre-order —
+    the card record first, then every child node (effects, selectors,
+    zones, quantities, filters, events, costs, tokens, the emblem). Enum
+    and scalar leaves are not yielded (their parent handles them). This is
+    the instrument both the executor and the EC-2 unhandled-node-rate
+    measurement (METRICS.md §3) walk the tree with.
+    """
+    yield node
+    if dataclasses.is_dataclass(node) and not isinstance(node, type):
+        for field in dataclasses.fields(node):
+            yield from _walk_value(getattr(node, field.name))
+
+
+def _walk_value(value: Any) -> Iterator[Any]:
+    if dataclasses.is_dataclass(value) and not isinstance(value, type):
+        yield from walk(value)
+    elif isinstance(value, tuple):
+        for item in value:
+            yield from _walk_value(item)
+    elif isinstance(value, frozenset):
+        for item in value:
+            yield from _walk_value(item)

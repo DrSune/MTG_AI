@@ -1,0 +1,19 @@
+{
+  "include": [
+    "MTG_bot",
+    "tools"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    ".venv",
+    ".git",
+    "attic",
+    "reports"
+  ],
+  "venvPath": ".",
+  "venv": ".venv",
+  "pythonVersion": "3.12",
+  "reportMissingImports": "warning",
+  "reportMissingTypeStubs": false
+}
