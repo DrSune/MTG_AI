@@ -1,23 +1,29 @@
-"""B4 bucket templates — 18 templates covering 18 of 47 B4 shapes.
+"""B4 bucket templates — 30 templates covering 30 of 47 B4 shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B4.json`` (47 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (47 = 18 template + 29 uncovered):
+Coverage (47 = 30 template + 17 uncovered):
 
-- **18 template-covered shapes**: static P/T grants (self, creatures you
+- **30 template-covered shapes**: static P/T grants (self, creatures you
   control, other creatures, opponents' creatures), static keyword grants
   (trample, lifelink, protection), PREVENT_EFFECT (can't block),
   MANDATE_ATTACK, GAIN_CONTROL, DRAW+DISCARD Seq, GAIN_LIFE (QConst and
   QCount), LOSE_LIFE, QProp P/T (Carrion Grub), conditional statics
-  (DurationWhileCondition), compound statics (P/T + protection Seq).
-- **29 uncovered shapes**: no grammar construct exists (MODIFY_COST,
-  ETB tapped, ETB counters, blocking restriction, must-be-blocked,
-  turn-scoped repeated statics, targeting restriction, name-choice,
-  You may activated abilities, alternate casting, tutor, mana ability).
-  Recorded in UNCOVERED.
+  (DurationWhileCondition), compound statics (P/T + protection Seq),
+   COST_MODIFIER (Watcher of the Spheres, Volcanic Salvo, Sanguine
+   Indulgence; Stormwing Entity's compound {N}{U} reduction; opponent
+   spell-cost increases — Terror of the Peaks, Pursued Whale),
+   ETB_STATE (tapped creature, tapped land),
+   ACTIVATED_ABILITY (cast from top of library, graveyard recast with
+   additional cost), TUTOR (name-specific library/graveyard search for
+   Basri / Liliana).
+- **17 uncovered shapes**: no grammar construct exists (ETB counters,
+  blocking restriction, must-be-blocked, turn-scoped repeated statics,
+  targeting restriction, name-choice, complex You may constructs, mana
+  ability).  Recorded in UNCOVERED.
 
 Conventions:
 - Static abilities on permanents → ``AbilityOutcome(StaticAbility(...))``
@@ -38,22 +44,32 @@ PC-3: every B4 concrete sentence fullmatches **at most one** template
 from __future__ import annotations
 
 import re
-from typing import Callable
 
 from MTG_bot.core.ability_tree import (
+    ActivatedAbility,
     Atom,
     AtomArgs,
     ControllerRef,
+    Cost,
+    CostDeltaIncreaseGeneric,
+    CostDeltaIncreaseLife,
+    CostDeltaReduceGeneric,
+    CostDeltaReduceMana,
+    CostDiscard,
+    CostLife,
+    CostModifier,
     CounterKind,
     DeclareBlockersEvent,
     DurationEot,
     DurationWhileCondition,
+    EtBState,
     FAnd,
     FAtom,
     FAtomPred,
     FNot,
     Keyword,
     KeywordAbility,
+    OptionalEffect,
     PtDelta,
     PtDirection,
     QAgg,
@@ -69,6 +85,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    ZonePosition,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -403,9 +420,13 @@ def _build_modify_pt_while_garruk(m: re.Match[str]) -> SentenceOutcome:
                     DurationWhileCondition(
                         FAnd(
                             children=(
-                                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
+                                FAtom(
+                                    pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"
+                                ),
                                 FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Garruk"),
-                                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                                FAtom(
+                                    pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU
+                                ),
                             )
                         )
                     ),
@@ -541,6 +562,242 @@ def _build_lose_life_n(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
+# Build functions — cost modifiers, ETB state, activated abilities, tutors
+# ---------------------------------------------------------------------------
+
+
+def _build_watcher_cost_modifier(m: re.Match[str]) -> SentenceOutcome:
+    """Creature spells with flying you cast cost {N} less to cast."""
+    n = int(m.group("n"))
+    modifier = CostModifier(
+        filter=FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+            )
+        ),
+        controller_ref=ControllerRef.YOU,
+        delta=CostDeltaReduceGeneric(amount=QConst(n)),
+    )
+    return AbilityOutcome(ability=modifier)
+
+
+def _build_total_power_cost_modifier(m: re.Match[str]) -> SentenceOutcome:
+    """This spell costs {X} less to cast, where X is the total power of
+    creatures you control."""
+    modifier = CostModifier(
+        filter=FAtom(pred=FAtomPred.IS_SOURCE),
+        controller_ref=ControllerRef.YOU,
+        delta=CostDeltaReduceGeneric(
+            amount=QProp(
+                referent=_creatures_you_control(),
+                field=QPropField.POWER,
+                agg=QAgg.SUM,
+            )
+        ),
+    )
+    return AbilityOutcome(ability=modifier)
+
+
+def _build_conditional_life_cost_modifier(m: re.Match[str]) -> SentenceOutcome:
+    """This spell costs {N} less to cast if you've gained N or more life
+    this turn."""
+    cost_n = int(m.group("cost_n"))
+    life_n = int(m.group("life_n"))
+    modifier = CostModifier(
+        filter=FAtom(pred=FAtomPred.IS_SOURCE),
+        controller_ref=ControllerRef.YOU,
+        delta=CostDeltaReduceGeneric(amount=QConst(cost_n)),
+        condition=FAtom(
+            pred=FAtomPred.LIFE_GAINED_THIS_TURN_GE,
+            count=QConst(life_n),
+            who=ControllerRef.YOU,
+        ),
+    )
+    return AbilityOutcome(ability=modifier)
+
+
+def _build_stormwing_cost(m: re.Match[str]) -> SentenceOutcome:
+    """This spell costs {N}{U} less to cast if you've cast an instant or
+    sorcery spell this turn.  Compound reduction: generic N plus one blue
+    (CostModifier.extra_deltas, T3 round R3-5)."""
+    n = int(m.group("n"))
+    modifier = CostModifier(
+        filter=FAtom(pred=FAtomPred.IS_SOURCE),
+        controller_ref=ControllerRef.YOU,
+        delta=CostDeltaReduceGeneric(amount=QConst(n)),
+        extra_deltas=(CostDeltaReduceMana(color="U", amount=QConst(1)),),
+        condition=FAtom(
+            pred=FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN,
+            who=ControllerRef.YOU,
+        ),
+    )
+    return AbilityOutcome(ability=modifier)
+
+
+def _build_opponent_spell_cost_life(m: re.Match[str]) -> SentenceOutcome:
+    """Spells your opponents cast that target this creature cost an
+    additional N life to cast.  R3-6: TARGETS_SOURCE filter selects the
+    affected spells; controller_ref scopes whose."""
+    n = int(m.group("n"))
+    modifier = CostModifier(
+        filter=FAtom(pred=FAtomPred.TARGETS_SOURCE),
+        controller_ref=ControllerRef.OPPONENT,
+        delta=CostDeltaIncreaseLife(amount=QConst(n)),
+    )
+    return AbilityOutcome(ability=modifier)
+
+
+def _build_opponent_spell_cost_mana(m: re.Match[str]) -> SentenceOutcome:
+    """Spells your opponents cast that target this creature cost {N} more
+    to cast.  R3-6: TARGETS_SOURCE filter, opponent-scoped generic
+    increase."""
+    n = int(m.group("n"))
+    modifier = CostModifier(
+        filter=FAtom(pred=FAtomPred.TARGETS_SOURCE),
+        controller_ref=ControllerRef.OPPONENT,
+        delta=CostDeltaIncreaseGeneric(amount=QConst(n)),
+    )
+    return AbilityOutcome(ability=modifier)
+
+
+def _build_enters_tapped(m: re.Match[str]) -> SentenceOutcome:
+    """This creature/land enters tapped."""
+    return AbilityOutcome(ability=EtBState(tapped=True))
+
+
+def _build_cast_goblin_top_library(m: re.Match[str]) -> SentenceOutcome:
+    """You may cast Goblin spells from the top of your library."""
+    source = Selector(
+        QUnbounded(),
+        SelectorMode.CHOOSE,
+        FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Goblin"),
+            )
+        ),
+        Zone(
+            kind=ZoneKind.LIBRARY,
+            controller=ControllerRef.YOU,
+            position=ZonePosition.TOP,
+        ),
+    )
+    atom = Atom(
+        verb=Verb.CAST,
+        args=AtomArgs(pairs=(("source", source),)),
+    )
+    ability = ActivatedAbility(
+        cost=Cost(),
+        effect=OptionalEffect(inner=atom),
+    )
+    return AbilityOutcome(ability=ability)
+
+
+def _build_cast_graveyard_recost(m: re.Match[str]) -> SentenceOutcome:
+    """You may cast this card from your graveyard by paying N life and
+    discarding a card in addition to paying its other costs."""
+    n = int(m.group("n"))
+    cost = Cost(
+        parts=(
+            CostLife(amount=QConst(n)),
+            CostDiscard(
+                target=Selector(
+                    QConst(1),
+                    SelectorMode.CHOOSE,
+                    FAnd(children=()),
+                    Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),
+                )
+            ),
+        )
+    )
+    source = Selector(
+        QConst(1),
+        SelectorMode.CHOOSE,
+        FAtom(pred=FAtomPred.IS_SOURCE),
+        Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
+    )
+    atom = Atom(
+        verb=Verb.CAST,
+        args=AtomArgs(pairs=(("source", source),)),
+    )
+    ability = ActivatedAbility(
+        cost=cost,
+        effect=OptionalEffect(inner=atom),
+    )
+    return AbilityOutcome(ability=ability)
+
+
+def _build_search_basri(m: re.Match[str]) -> SentenceOutcome:
+    """You may search your library and/or graveyard for a card named
+    Basri, Devoted Paladin, reveal it, and put it into your hand."""
+    return _build_search_named_card("Basri, Devoted Paladin")
+
+
+def _build_search_liliana(m: re.Match[str]) -> SentenceOutcome:
+    """You may search your library and/or graveyard for a card named
+    Liliana, Death Mage, reveal it, and put it into your hand."""
+    return _build_search_named_card("Liliana, Death Mage")
+
+
+def _build_search_named_card(card_name: str) -> SentenceOutcome:
+    """Shared tutor builder: search library/graveyard for a named card,
+    reveal it, put it into hand."""
+    cards = Selector(
+        QConst(1),
+        SelectorMode.CHOOSE,
+        FAtom(pred=FAtomPred.NAME_EQ, string_value=card_name),
+        Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),
+        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),
+    )
+    search_atom = Atom(
+        verb=Verb.SEARCH,
+        args=AtomArgs(
+            pairs=(
+                ("cards", cards),
+                ("destination", Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)),
+            )
+        ),
+    )
+    reveal_atom = Atom(
+        verb=Verb.REVEAL,
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                ("count", QConst(1)),
+            )
+        ),
+    )
+    move_atom = Atom(
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAtom(pred=FAtomPred.IS_SOURCE),
+                        Zone(
+                            kind=ZoneKind.LIBRARY,
+                            controller=ControllerRef.YOU,
+                            position=ZonePosition.TOP,
+                        ),
+                    ),
+                ),
+                ("destination", Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)),
+            )
+        ),
+    )
+    seq = Seq(steps=(search_atom, reveal_atom, move_atom))
+    ability = ActivatedAbility(
+        cost=Cost(),
+        effect=OptionalEffect(inner=seq),
+    )
+    return AbilityOutcome(ability=ability)
+
+
+# ---------------------------------------------------------------------------
 # Template definitions
 # ---------------------------------------------------------------------------
 
@@ -612,9 +869,7 @@ TEMPLATES: tuple[Template, ...] = (
         tid="B4-modify-pt-other-dogs",
         name="other dogs you control get +P/+T",
         bucket=_BUCKET,
-        pattern=re.compile(
-            r"^Other Dogs you control get \+(?P<p>\d+)/\+(?P<t>\d+)\.$"
-        ),
+        pattern=re.compile(r"^Other Dogs you control get \+(?P<p>\d+)/\+(?P<t>\d+)\.$"),
         priority=_PRIORITY,
         build=_build_modify_pt_other_dogs,
     ),
@@ -711,36 +966,193 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_lose_life_n,
     ),
+    Template(
+        tid="B4-cost-modifier-watcher",
+        name="creature spells with flying you cast cost N less",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Creature spells with flying you cast cost \{(?P<n>\d+)\} less to cast\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_watcher_cost_modifier,
+    ),
+    Template(
+        tid="B4-cost-modifier-total-power",
+        name="this spell costs X less, X = total power of creatures you control",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^This spell costs \{X\} less to cast, "
+            r"where X is the total power of creatures you control\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_total_power_cost_modifier,
+    ),
+    Template(
+        tid="B4-cost-modifier-conditional-life",
+        name="this spell costs N less if you've gained N or more life this turn",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^This spell costs \{(?P<cost_n>\d+)\} less to cast if you've "
+            r"gained (?P<life_n>\d+) or more life this turn\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_conditional_life_cost_modifier,
+    ),
+    Template(
+        tid="B4-enters-tapped-creature",
+        name="this creature enters tapped",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^This creature enters tapped\.$"),
+        priority=_PRIORITY,
+        build=_build_enters_tapped,
+    ),
+    Template(
+        tid="B4-enters-tapped-land",
+        name="this land enters tapped",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^This land enters tapped\.$"),
+        priority=_PRIORITY,
+        build=_build_enters_tapped,
+    ),
+    Template(
+        tid="B4-cast-goblin-top-library",
+        name="you may cast Goblin spells from the top of your library",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^You may cast Goblin spells from the top of your library\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_cast_goblin_top_library,
+    ),
+    Template(
+        tid="B4-cast-graveyard-recost",
+        name="you may cast this card from graveyard by paying N life and discarding",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^You may cast this card from your graveyard by paying (?P<n>\d+) life "
+            r"and discarding a card in addition to paying its other costs\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_cast_graveyard_recost,
+    ),
+    Template(
+        tid="B4-tutor-basri",
+        name="you may search library/graveyard for Basri, Devoted Paladin",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^You may search your library and/or graveyard for a card named "
+            r"Basri, Devoted Paladin, reveal it, and put it into your hand\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_search_basri,
+    ),
+    Template(
+        tid="B4-tutor-liliana",
+        name="you may search library/graveyard for Liliana, Death Mage",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^You may search your library and/or graveyard for a card named "
+            r"Liliana, Death Mage, reveal it, and put it into your hand\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_search_liliana,
+    ),
+    Template(
+        tid="B4-stormwing-cost",
+        name="this spell costs {N}{U} less if you've cast an instant/sorcery this turn",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^This spell costs \{(?P<n>\d+)\}\{U\} less to cast if you've cast an "
+            r"instant or sorcery spell this turn\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_stormwing_cost,
+    ),
+    Template(
+        tid="B4-opponent-spell-cost-life",
+        name="opponent spells targeting this creature cost an additional N life",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Spells your opponents cast that target this creature cost an "
+            r"additional (?P<n>\d+) life to cast\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_opponent_spell_cost_life,
+    ),
+    Template(
+        tid="B4-opponent-spell-cost-mana",
+        name="opponent spells targeting this creature cost {N} more",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Spells your opponents cast that target this creature cost "
+            r"\{(?P<n>\d+)\} more to cast\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_opponent_spell_cost_mana,
+    ),
 )
 
 UNCOVERED: tuple[tuple[str, str], ...] = (
-    ("Creature spells with flying you cast cost {N} less to cast.", "No MODIFY_COST verb in grammar"),
-    ("Spells your opponents cast that target this creature cost an additional N life to cast.", "No MODIFY_COST verb in grammar"),
-    ("Spells your opponents cast that target this creature cost {N} more to cast.", "No MODIFY_COST verb in grammar"),
-    ("This spell costs {N} less to cast if you've gained N or more life this turn.", "No MODIFY_COST verb in grammar"),
-    ("This spell costs {N}{U} less to cast if you've cast an instant or sorcery spell this turn.", "No MODIFY_COST verb in grammar"),
-    ("This spell costs {X} less to cast, where X is the total amount of noncombat damage dealt to your opponents this turn.", "No MODIFY_COST verb in grammar"),
-    ("This spell costs {X} less to cast, where X is the total power of creatures you control.", "No MODIFY_COST verb in grammar"),
-    ("This creature enters tapped.", "No TAP_ON_ETB verb in grammar"),
-    ("This creature enters with X +N/+N counters on it.", "No ETB counter-placement construct"),
-    ("This land enters tapped.", "No TAP_ON_ETB verb in grammar"),
-    ("This creature can block only creatures with flying.", "No blocking-restriction grammar construct"),
-    ("This creature can't be blocked as long as you've drawn two or more cards this turn.", "No conditional PREVENT_EFFECT with turn-scoped condition"),
+    (
+        "This spell costs {X} less to cast, where X is the total amount of noncombat damage dealt to your opponents this turn.",
+        "No MODIFY_COST verb in grammar",
+    ),
+    (
+        "This creature enters with X +N/+N counters on it.",
+        "No ETB counter-placement construct",
+    ),
+    (
+        "This creature can block only creatures with flying.",
+        "No blocking-restriction grammar construct",
+    ),
+    (
+        "This creature can't be blocked as long as you've drawn two or more cards this turn.",
+        "No conditional PREVENT_EFFECT with turn-scoped condition",
+    ),
     ("This creature must be blocked if able.", "No MUST_BE_BLOCKED grammar construct"),
-    ("This creature gets +N/+N until end of turn for each creature tapped this way.", "No per-event repeated static with turn-scoped trigger"),
-    ("You can't choose an untapped creature as this spell's target as you cast it.", "No targeting-restriction grammar construct"),
-    ("You choose a noncreature, nonland card from it.", "No anaphora / name-choice grammar construct"),
-    ("You have protection from the chosen card name.", "No dynamic protection-from-name grammar construct"),
-    ("You may activate loyalty abilities of Teferi on any player's turn any time you could cast an instant.", "No cross-card activated ability activation grammar"),
-    ("You may cast Goblin spells from the top of your library.", "No alternate-casting / cast-from-zone grammar construct"),
-    ("You may cast them this turn.", "No anaphora / cast-them-this-turn grammar construct"),
-    ("You may cast this card from your graveyard by paying N life and discarding a card in addition to paying its other costs.", "No alternate-casting with additional cost grammar"),
+    (
+        "This creature gets +N/+N until end of turn for each creature tapped this way.",
+        "No per-event repeated static with turn-scoped trigger",
+    ),
+    (
+        "You can't choose an untapped creature as this spell's target as you cast it.",
+        "No targeting-restriction grammar construct",
+    ),
+    (
+        "You choose a noncreature, nonland card from it.",
+        "No anaphora / name-choice grammar construct",
+    ),
+    (
+        "You have protection from the chosen card name.",
+        "No dynamic protection-from-name grammar construct",
+    ),
+    (
+        "You may activate loyalty abilities of Teferi on any player's turn any time you could cast an instant.",
+        "No cross-card activated ability activation grammar",
+    ),
+    (
+        "You may cast them this turn.",
+        "No anaphora / cast-them-this-turn grammar construct",
+    ),
     ("You may choose new targets for the copy.", "No copy-targeting grammar construct"),
-    ("You may look at the top card of your library any time, and you may play lands from the top of your library.", "No complex multi-ability You may construct"),
-    ("You may play that card until you exile another card with this enchantment.", "No anaphora / conditional play grammar"),
-    ("You may play two additional lands on each of your turns.", "No land-speed-modification grammar construct"),
-    ("You may reveal a creature card or Garruk planeswalker card from among them and put it into your hand.", "No complex tutor / reveal-and-put grammar"),
-    ("You may search your library and/or graveyard for a card named Basri, Devoted Paladin, reveal it, and put it into your hand.", "No name-specific tutor grammar construct"),
-    ("You may search your library and/or graveyard for a card named Liliana, Death Mage, reveal it, and put it into your hand.", "No name-specific tutor grammar construct"),
-    ("You may spend mana as though it were mana of any color.", "No mana-color-flooding grammar construct"),
+    (
+        "You may look at the top card of your library any time, and you may play lands from the top of your library.",
+        "No complex multi-ability You may construct",
+    ),
+    (
+        "You may play that card until you exile another card with this enchantment.",
+        "No anaphora / conditional play grammar",
+    ),
+    (
+        "You may play two additional lands on each of your turns.",
+        "No land-speed-modification grammar construct",
+    ),
+    (
+        "You may reveal a creature card or Garruk planeswalker card from among them and put it into your hand.",
+        "No complex tutor / reveal-and-put grammar",
+    ),
+    (
+        "You may spend mana as though it were mana of any color.",
+        "No mana-color-flooding grammar construct",
+    ),
 )

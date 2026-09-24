@@ -20,15 +20,16 @@ from MTG_bot.core.ability_tree import (
     AtomArgs,
     Choose,
     ControllerRef,
-    CounterKind,
     Cost,
     CostManaColor,
     CostManaGeneric,
     CostTap,
+    CounterKind,
     DurationEot,
     FAnd,
     FAtom,
     FAtomPred,
+    FNot,
     FOr,
     Keyword,
     KeywordAbility,
@@ -132,15 +133,33 @@ def _sel_target_planeswalker() -> Selector:
     )
 
 
+def _sel_target_player_or_planeswalker() -> Selector:
+    """Target player or planeswalker: PLAYER ∪ BATTLEFIELD."""
+    return Selector(
+        count=QConst(1),
+        mode=SelectorMode.TARGET,
+        filter=FOr(
+            children=(
+                FNot(inner=FAtom(pred=FAtomPred.IS_PERMANENT)),
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
+            )
+        ),
+        zone=Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
+    )
+
+
 def _sel_target_creature_flying() -> Selector:
     """Target creature with flying."""
     return Selector(
         count=QConst(1),
         mode=SelectorMode.TARGET,
-        filter=FAnd(children=(
-            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-            FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
-        )),
+        filter=FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+            )
+        ),
         zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
     )
 
@@ -170,10 +189,12 @@ def _sel_dogs_you_control() -> Selector:
     return Selector(
         count=QUnbounded(),
         mode=SelectorMode.ALL,
-        filter=FAnd(children=(
-            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-            FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Dog"),
-        )),
+        filter=FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Dog"),
+            )
+        ),
         zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
     )
 
@@ -183,17 +204,21 @@ def _sel_target_bird_cat_dog_goat_ox_snake() -> Selector:
     return Selector(
         count=QConst(1),
         mode=SelectorMode.TARGET,
-        filter=FAnd(children=(
-            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-            FOr(children=(
-                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Bird"),
-                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Cat"),
-                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Dog"),
-                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Goat"),
-                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Ox"),
-                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Snake"),
-            )),
-        )),
+        filter=FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FOr(
+                    children=(
+                        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Bird"),
+                        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Cat"),
+                        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Dog"),
+                        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Goat"),
+                        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Ox"),
+                        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Snake"),
+                    )
+                ),
+            )
+        ),
         zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
     )
 
@@ -203,10 +228,14 @@ def _sel_target_creature_with_plus1() -> Selector:
     return Selector(
         count=QConst(1),
         mode=SelectorMode.TARGET,
-        filter=FAnd(children=(
-            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-            FAtom(pred=FAtomPred.HAS_COUNTER, counter_kind=CounterKind.PLUS_1_PLUS_1),
-        )),
+        filter=FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(
+                    pred=FAtomPred.HAS_COUNTER, counter_kind=CounterKind.PLUS_1_PLUS_1
+                ),
+            )
+        ),
         zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
     )
 
@@ -261,11 +290,13 @@ def _build_grant_kw_self(m: re.Match[str]) -> AbilityOutcome:
     sel = _sel_self()
     effect = Atom(
         verb=Verb.GRANT_ABILITY,
-        args=AtomArgs(pairs=(
-            ("target", sel),
-            ("ability", KeywordAbility(keyword=kw)),
-            ("duration", DurationEot()),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("target", sel),
+                ("ability", KeywordAbility(keyword=kw)),
+                ("duration", DurationEot()),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -276,11 +307,13 @@ def _build_grant_kw_target_creature(m: re.Match[str]) -> AbilityOutcome:
     sel = _sel_target_creature()
     effect = Atom(
         verb=Verb.GRANT_ABILITY,
-        args=AtomArgs(pairs=(
-            ("target", sel),
-            ("ability", KeywordAbility(keyword=kw)),
-            ("duration", DurationEot()),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("target", sel),
+                ("ability", KeywordAbility(keyword=kw)),
+                ("duration", DurationEot()),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -291,11 +324,13 @@ def _build_grant_kw_all_you(m: re.Match[str]) -> AbilityOutcome:
     sel = _sel_creatures_you_control()
     effect = Atom(
         verb=Verb.GRANT_ABILITY,
-        args=AtomArgs(pairs=(
-            ("target", sel),
-            ("ability", KeywordAbility(keyword=kw)),
-            ("duration", DurationEot()),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("target", sel),
+                ("ability", KeywordAbility(keyword=kw)),
+                ("duration", DurationEot()),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -307,12 +342,17 @@ def _build_modify_pt_self(m: re.Match[str]) -> AbilityOutcome:
     sel = _sel_self()
     effect = Atom(
         verb=Verb.MODIFY_PT,
-        args=AtomArgs(pairs=(
-            ("target", sel),
-            ("power", PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(p))),
-            ("toughness", PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(t))),
-            ("duration", DurationEot()),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("target", sel),
+                ("power", PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(p))),
+                (
+                    "toughness",
+                    PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(t)),
+                ),
+                ("duration", DurationEot()),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -323,12 +363,17 @@ def _build_modify_pt_radha(m: re.Match[str]) -> AbilityOutcome:
     amount = QCount(_sel_lands_you_control())
     effect = Atom(
         verb=Verb.MODIFY_PT,
-        args=AtomArgs(pairs=(
-            ("target", sel),
-            ("power", PtDelta(direction=PtDirection.INCREASE, magnitude=amount)),
-            ("toughness", PtDelta(direction=PtDirection.INCREASE, magnitude=amount)),
-            ("duration", DurationEot()),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("target", sel),
+                ("power", PtDelta(direction=PtDirection.INCREASE, magnitude=amount)),
+                (
+                    "toughness",
+                    PtDelta(direction=PtDirection.INCREASE, magnitude=amount),
+                ),
+                ("duration", DurationEot()),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -339,12 +384,14 @@ def _build_set_pt_jolrael(m: re.Match[str]) -> AbilityOutcome:
     x = QProp(referent="controller", field=QPropField.CARDS_IN_HAND, agg=QAgg.FIRST)
     effect = Atom(
         verb=Verb.SET_PT,
-        args=AtomArgs(pairs=(
-            ("target", sel),
-            ("power", x),
-            ("toughness", x),
-            ("duration", DurationEot()),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("target", sel),
+                ("power", x),
+                ("toughness", x),
+                ("duration", DurationEot()),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -355,10 +402,12 @@ def _build_deal_dmg_const_planeswalker(m: re.Match[str]) -> AbilityOutcome:
     sel = _sel_target_planeswalker()
     effect = Atom(
         verb=Verb.DEAL_DAMAGE,
-        args=AtomArgs(pairs=(
-            ("target", sel),
-            ("amount", QConst(dmg)),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("target", sel),
+                ("amount", QConst(dmg)),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -369,10 +418,12 @@ def _build_deal_dmg_const_flying(m: re.Match[str]) -> AbilityOutcome:
     sel = _sel_target_creature_flying()
     effect = Atom(
         verb=Verb.DEAL_DAMAGE,
-        args=AtomArgs(pairs=(
-            ("target", sel),
-            ("amount", QConst(dmg)),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("target", sel),
+                ("amount", QConst(dmg)),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -383,10 +434,48 @@ def _build_deal_dmg_rin_seri(m: re.Match[str]) -> AbilityOutcome:
     amount = QCount(_sel_dogs_you_control())
     effect = Atom(
         verb=Verb.DEAL_DAMAGE,
-        args=AtomArgs(pairs=(
-            ("target", sel),
-            ("amount", amount),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("target", sel),
+                ("amount", amount),
+            )
+        ),
+    )
+    return _build_activated(cost, effect)
+
+
+def _build_deal_dmg_power_player_or_planeswalker(
+    m: re.Match[str],
+) -> AbilityOutcome:
+    cost = _parse_cost(m)
+    sel = _sel_target_player_or_planeswalker()
+    amount = QProp(referent="source", field=QPropField.POWER, agg=QAgg.FIRST)
+    effect = Atom(
+        verb=Verb.DEAL_DAMAGE,
+        args=AtomArgs(
+            pairs=(
+                ("target", sel),
+                ("amount", amount),
+            )
+        ),
+    )
+    return _build_activated(cost, effect)
+
+
+def _build_deal_dmg_const_player_or_planeswalker(
+    m: re.Match[str],
+) -> AbilityOutcome:
+    cost = _parse_cost(m)
+    dmg = int(m.group("dmg"))
+    sel = _sel_target_player_or_planeswalker()
+    effect = Atom(
+        verb=Verb.DEAL_DAMAGE,
+        args=AtomArgs(
+            pairs=(
+                ("target", sel),
+                ("amount", QConst(dmg)),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -396,10 +485,12 @@ def _build_lose_life_each_opponent(m: re.Match[str]) -> AbilityOutcome:
     life = int(m.group("life"))
     effect = Atom(
         verb=Verb.LOSE_LIFE,
-        args=AtomArgs(pairs=(
-            ("controller", ControllerRef.ALL_OPPONENTS),
-            ("amount", QConst(life)),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.ALL_OPPONENTS),
+                ("amount", QConst(life)),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -409,9 +500,7 @@ def _build_exile_target_graveyard(m: re.Match[str]) -> AbilityOutcome:
     sel = _sel_target_card_from_graveyard()
     effect = Atom(
         verb=Verb.EXILE,
-        args=AtomArgs(pairs=(
-            ("target", sel),
-        )),
+        args=AtomArgs(pairs=(("target", sel),)),
     )
     return _build_activated(cost, effect)
 
@@ -421,10 +510,15 @@ def _build_move_gy_to_library_bottom(m: re.Match[str]) -> AbilityOutcome:
     sel = _sel_cards_in_your_graveyard()
     effect = Atom(
         verb=Verb.MOVE_ZONE,
-        args=AtomArgs(pairs=(
-            ("cards", sel),
-            ("destination", Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("cards", sel),
+                (
+                    "destination",
+                    Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),
+                ),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -434,11 +528,13 @@ def _build_put_counter_subtype_list(m: re.Match[str]) -> AbilityOutcome:
     sel = _sel_target_bird_cat_dog_goat_ox_snake()
     effect = Atom(
         verb=Verb.PUT_COUNTER,
-        args=AtomArgs(pairs=(
-            ("target", sel),
-            ("counter_kind", CounterKind.PLUS_1_PLUS_1),
-            ("count", QConst(1)),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("target", sel),
+                ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                ("count", QConst(1)),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -448,11 +544,13 @@ def _build_put_counter_target_creature(m: re.Match[str]) -> AbilityOutcome:
     sel = _sel_target_creature()
     effect = Atom(
         verb=Verb.PUT_COUNTER,
-        args=AtomArgs(pairs=(
-            ("target", sel),
-            ("counter_kind", CounterKind.PLUS_1_PLUS_1),
-            ("count", QConst(1)),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("target", sel),
+                ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                ("count", QConst(1)),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -462,11 +560,13 @@ def _build_put_counter_creature_with_counter(m: re.Match[str]) -> AbilityOutcome
     sel = _sel_target_creature_with_plus1()
     effect = Atom(
         verb=Verb.PUT_COUNTER,
-        args=AtomArgs(pairs=(
-            ("target", sel),
-            ("counter_kind", CounterKind.PLUS_1_PLUS_1),
-            ("count", QConst(1)),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("target", sel),
+                ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                ("count", QConst(1)),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -475,17 +575,21 @@ def _build_seq_draw_discard(m: re.Match[str]) -> AbilityOutcome:
     cost = _parse_cost(m)
     draw = Atom(
         verb=Verb.DRAW,
-        args=AtomArgs(pairs=(
-            ("controller", ControllerRef.YOU),
-            ("amount", QConst(1)),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                ("amount", QConst(1)),
+            )
+        ),
     )
     discard = Atom(
         verb=Verb.DISCARD,
-        args=AtomArgs(pairs=(
-            ("controller", ControllerRef.YOU),
-            ("cards", _sel_cards_in_your_hand()),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                ("cards", _sel_cards_in_your_hand()),
+            )
+        ),
     )
     effect = Seq(steps=(draw, discard))
     return _build_activated(cost, effect)
@@ -496,10 +600,12 @@ def _build_scry_n(m: re.Match[str]) -> AbilityOutcome:
     n = int(m.group("n"))
     effect = Atom(
         verb=Verb.SCRY,
-        args=AtomArgs(pairs=(
-            ("controller", ControllerRef.YOU),
-            ("count", QConst(n)),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                ("count", QConst(n)),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -509,9 +615,7 @@ def _build_tap_target_creature(m: re.Match[str]) -> AbilityOutcome:
     sel = _sel_target_creature()
     effect = Atom(
         verb=Verb.TAP,
-        args=AtomArgs(pairs=(
-            ("target", sel),
-        )),
+        args=AtomArgs(pairs=(("target", sel),)),
     )
     return _build_activated(cost, effect)
 
@@ -521,11 +625,13 @@ def _build_add_mana_single(m: re.Match[str]) -> AbilityOutcome:
     col = m.group("col")
     effect = Atom(
         verb=Verb.ADD_MANA,
-        args=AtomArgs(pairs=(
-            ("controller", ControllerRef.YOU),
-            ("amount", QConst(1)),
-            ("color", col),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                ("amount", QConst(1)),
+                ("color", col),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -536,11 +642,13 @@ def _build_add_mana_colorless(m: re.Match[str]) -> AbilityOutcome:
     n = c_str.count("{C}")
     effect = Atom(
         verb=Verb.ADD_MANA,
-        args=AtomArgs(pairs=(
-            ("controller", ControllerRef.YOU),
-            ("amount", QConst(n)),
-            ("color", "C"),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                ("amount", QConst(n)),
+                ("color", "C"),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -551,19 +659,23 @@ def _build_add_mana_choose(m: re.Match[str]) -> AbilityOutcome:
     c2 = m.group("c2")
     opt1 = Atom(
         verb=Verb.ADD_MANA,
-        args=AtomArgs(pairs=(
-            ("controller", ControllerRef.YOU),
-            ("amount", QConst(1)),
-            ("color", c1),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                ("amount", QConst(1)),
+                ("color", c1),
+            )
+        ),
     )
     opt2 = Atom(
         verb=Verb.ADD_MANA,
-        args=AtomArgs(pairs=(
-            ("controller", ControllerRef.YOU),
-            ("amount", QConst(1)),
-            ("color", c2),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                ("amount", QConst(1)),
+                ("color", c2),
+            )
+        ),
     )
     effect = Choose(count=QConst(1), options=(opt1, opt2))
     return _build_activated(cost, effect)
@@ -573,11 +685,40 @@ def _build_add_mana_any(m: re.Match[str]) -> AbilityOutcome:
     cost = _parse_cost(m)
     effect = Atom(
         verb=Verb.ADD_MANA,
-        args=AtomArgs(pairs=(
-            ("controller", ControllerRef.YOU),
-            ("amount", QConst(1)),
-            ("color", "C"),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                ("amount", QConst(1)),
+                ("color", "C"),
+            )
+        ),
+    )
+    return _build_activated(cost, effect)
+
+
+def _build_add_mana_g_per_power_ge_creatures_you(m: re.Match[str]) -> AbilityOutcome:
+    cost = _parse_cost(m)
+    n = int(m.group("n"))
+    sel = Selector(
+        count=QUnbounded(),
+        mode=SelectorMode.ALL,
+        filter=FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.POWER_GE, count=QConst(n)),
+            )
+        ),
+        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+    )
+    effect = Atom(
+        verb=Verb.ADD_MANA,
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                ("amount", QCount(sel)),
+                ("color", "G"),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -598,10 +739,12 @@ def _build_create_token(m: re.Match[str]) -> AbilityOutcome:
     )
     effect = Atom(
         verb=Verb.CREATE_TOKEN,
-        args=AtomArgs(pairs=(
-            ("tokens", token),
-            ("count", QConst(1)),
-        )),
+        args=AtomArgs(
+            pairs=(
+                ("tokens", token),
+                ("count", QConst(1)),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -615,7 +758,9 @@ TEMPLATES: tuple[Template, ...] = (
         tid="B3-grant-kw-self",
         name="grant keyword to self until eot",
         bucket="B3",
-        pattern=re.compile(rf"^{_COST}\s*:\s*This creature gains (?P<kw>[a-z]+) until end of turn\.$"),
+        pattern=re.compile(
+            rf"^{_COST}\s*:\s*This creature gains (?P<kw>[a-z]+) until end of turn\.$"
+        ),
         priority=100,
         build=_build_grant_kw_self,
     ),
@@ -623,7 +768,9 @@ TEMPLATES: tuple[Template, ...] = (
         tid="B3-grant-kw-target-creature",
         name="grant keyword to target creature until eot",
         bucket="B3",
-        pattern=re.compile(rf"^{_COST}\s*:\s*Target creature gains (?P<kw>[a-z]+) until end of turn\.$"),
+        pattern=re.compile(
+            rf"^{_COST}\s*:\s*Target creature gains (?P<kw>[a-z]+) until end of turn\.$"
+        ),
         priority=100,
         build=_build_grant_kw_target_creature,
     ),
@@ -631,7 +778,9 @@ TEMPLATES: tuple[Template, ...] = (
         tid="B3-grant-kw-all-you",
         name="grant keyword to creatures you control until eot",
         bucket="B3",
-        pattern=re.compile(rf"^{_COST}\s*:\s*Creatures you control gain (?P<kw>[a-z]+) until end of turn\.$"),
+        pattern=re.compile(
+            rf"^{_COST}\s*:\s*Creatures you control gain (?P<kw>[a-z]+) until end of turn\.$"
+        ),
         priority=100,
         build=_build_grant_kw_all_you,
     ),
@@ -639,7 +788,9 @@ TEMPLATES: tuple[Template, ...] = (
         tid="B3-modify-pt-self",
         name="modify self P/T until eot",
         bucket="B3",
-        pattern=re.compile(rf"^{_COST}\s*:\s*This creature gets \+(?P<p>\d+)/\+(?P<t>\d+) until end of turn\.$"),
+        pattern=re.compile(
+            rf"^{_COST}\s*:\s*This creature gets \+(?P<p>\d+)/\+(?P<t>\d+) until end of turn\.$"
+        ),
         priority=100,
         build=_build_modify_pt_self,
     ),
@@ -700,6 +851,28 @@ TEMPLATES: tuple[Template, ...] = (
         build=_build_deal_dmg_rin_seri,
     ),
     Template(
+        tid="B3-deal-dmg-power-player-or-planeswalker",
+        name="deal damage equal to power to target player or planeswalker",
+        bucket="B3",
+        pattern=re.compile(
+            rf"^{_COST}\s*:\s*This creature deals damage equal to its power "
+            rf"to target player or planeswalker\.$"
+        ),
+        priority=100,
+        build=_build_deal_dmg_power_player_or_planeswalker,
+    ),
+    Template(
+        tid="B3-deal-dmg-const-player-or-planeswalker",
+        name="deal constant damage to target player or planeswalker",
+        bucket="B3",
+        pattern=re.compile(
+            rf"^{_COST}\s*:\s*This creature deals (?P<dmg>\d+) damage "
+            rf"to target player or planeswalker\.$"
+        ),
+        priority=100,
+        build=_build_deal_dmg_const_player_or_planeswalker,
+    ),
+    Template(
         tid="B3-lose-life-each-opponent",
         name="each opponent loses constant life",
         bucket="B3",
@@ -713,9 +886,7 @@ TEMPLATES: tuple[Template, ...] = (
         tid="B3-exile-target-graveyard",
         name="exile target card from a graveyard",
         bucket="B3",
-        pattern=re.compile(
-            rf"^{_COST}\s*:\s*Exile target card from a graveyard\.$"
-        ),
+        pattern=re.compile(rf"^{_COST}\s*:\s*Exile target card from a graveyard\.$"),
         priority=100,
         build=_build_exile_target_graveyard,
     ),
@@ -768,9 +939,7 @@ TEMPLATES: tuple[Template, ...] = (
         tid="B3-seq-draw-discard",
         name="draw a card then discard a card",
         bucket="B3",
-        pattern=re.compile(
-            rf"^{_COST}\s*:\s*Draw a card, then discard a card\.$"
-        ),
+        pattern=re.compile(rf"^{_COST}\s*:\s*Draw a card, then discard a card\.$"),
         priority=100,
         build=_build_seq_draw_discard,
     ),
@@ -778,9 +947,7 @@ TEMPLATES: tuple[Template, ...] = (
         tid="B3-scry-n",
         name="scry N",
         bucket="B3",
-        pattern=re.compile(
-            rf"^{_COST}\s*:\s*Scry (?P<n>\d+)\.$"
-        ),
+        pattern=re.compile(rf"^{_COST}\s*:\s*Scry (?P<n>\d+)\.$"),
         priority=100,
         build=_build_scry_n,
     ),
@@ -788,9 +955,7 @@ TEMPLATES: tuple[Template, ...] = (
         tid="B3-tap-target-creature",
         name="tap target creature",
         bucket="B3",
-        pattern=re.compile(
-            rf"^{_COST}\s*:\s*Tap target creature\.$"
-        ),
+        pattern=re.compile(rf"^{_COST}\s*:\s*Tap target creature\.$"),
         priority=100,
         build=_build_tap_target_creature,
     ),
@@ -798,9 +963,7 @@ TEMPLATES: tuple[Template, ...] = (
         tid="B3-add-mana-single",
         name="add one specific color mana",
         bucket="B3",
-        pattern=re.compile(
-            rf"^{_COST}\s*:\s*Add \{{(?P<col>[WUBRG])\}}\.$"
-        ),
+        pattern=re.compile(rf"^{_COST}\s*:\s*Add \{{(?P<col>[WUBRG])\}}\.$"),
         priority=100,
         build=_build_add_mana_single,
     ),
@@ -808,9 +971,7 @@ TEMPLATES: tuple[Template, ...] = (
         tid="B3-add-mana-colorless",
         name="add N colorless mana",
         bucket="B3",
-        pattern=re.compile(
-            rf"^{_COST}\s*:\s*Add (?P<c>(?:\{{C\}})+)\.$"
-        ),
+        pattern=re.compile(rf"^{_COST}\s*:\s*Add (?P<c>(?:\{{C\}})+)\.$"),
         priority=100,
         build=_build_add_mana_colorless,
     ),
@@ -829,11 +990,20 @@ TEMPLATES: tuple[Template, ...] = (
         tid="B3-add-mana-any",
         name="add one mana of any color",
         bucket="B3",
-        pattern=re.compile(
-            rf"^{_COST}\s*:\s*Add one mana of any color\.$"
-        ),
+        pattern=re.compile(rf"^{_COST}\s*:\s*Add one mana of any color\.$"),
         priority=100,
         build=_build_add_mana_any,
+    ),
+    Template(
+        tid="B3-add-mana-g-per-power-ge-creatures-you",
+        name="add G per creature with power N or greater you control",
+        bucket="B3",
+        pattern=re.compile(
+            rf"^{_COST}\s*:\s*Add \{{G\}} for each creature with power "
+            rf"(?P<n>\d+) or greater you control\.$"
+        ),
+        priority=100,
+        build=_build_add_mana_g_per_power_ge_creatures_you,
     ),
     Template(
         tid="B3-create-token",
@@ -856,35 +1026,40 @@ TEMPLATES: tuple[Template, ...] = (
 UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         "{N}, {T}: Draw a card for each color among permanents you control.",
-        "No quantity expression for distinct color count among permanents; "
-        "QCount counts objects, not color identities.",
+        (
+            "No quantity expression for distinct color count among permanents "
+            "you control; QCount counts objects, not distinct color "
+            "identities, and QProp has no distinct-color field."
+        ),
     ),
     (
         "{N}: Another target creature with power N or less can't be blocked this turn.",
-        "No power-only threshold predicate; PT_LE/PT_GE compare combined P/T, "
-        "not power alone.",
+        (
+            "DeclareBlockersEvent has no slot referencing the BLOCKED "
+            "creature: filter and subject (r3b) are both Filters over "
+            "the BLOCKING creature (subject mirrors ZoneChangeEvent."
+            "subject), and PREVENT_EFFECT.condition evaluates over the "
+            "blocker per the B4 cant-block precedent — so 'X can't be "
+            "blocked' (a restriction on the blocked creature) is "
+            "inexpressible; only blocker-side restrictions ('can't "
+            "block') are."
+        ),
     ),
     (
         "{N}{R}, {T}: This creature fights another target creature.",
-        "No FIGHT verb; FIGHT exists only as a Keyword, not as an "
-        "activatable effect verb.",
-    ),
-    (
-        "{N}{R}: This creature deals damage equal to its power to target player or planeswalker.",
-        "No player-or-planeswalker zone union; Zone is a single ZoneKind, "
-        "and players are non-card PLAYER zone objects.",
+        (
+            "No FIGHT verb; FIGHT exists only as a Keyword, not as an "
+            "activatable effect verb."
+        ),
     ),
     (
         "{N}{W}, {T}: Until end of turn, you may cast a creature spell from among cards exiled with this artifact without paying its mana cost.",
-        "No CAST verb / may-cast-from-exile expression in the current "
-        "effect grammar.",
-    ),
-    (
-        "{T}: Add {G} for each creature with power N or greater you control.",
-        "No power-only threshold predicate for a per-creature mana condition.",
-    ),
-    (
-        "{T}: This creature deals N damage to target player or planeswalker.",
-        "No player-or-planeswalker zone union; Zone is a single ZoneKind.",
+        (
+            "CAST exists and an empty cost expresses the waiver, but there "
+            "is no exiled-with-source grouping predicate to bound the "
+            "source selector to the artifact's exiled cards, and no "
+            "duration role on CAST/optional-cast to express the "
+            "until-end-of-turn permission."
+        ),
     ),
 )

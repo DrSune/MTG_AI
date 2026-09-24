@@ -1,27 +1,33 @@
-"""B5a bucket templates — 34 templates covering 38 of 90 B5a shapes.
+"""B5a bucket templates — 45 templates covering 49 of 90 B5a shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B5a.json`` (90 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (90 = 38 template + 23 rule-reminder + 29 uncovered):
+Coverage (90 = 49 template + 23 rule-reminder + 18 uncovered):
 
-- **38 template-covered shapes** (34 templates; the basic-land
+- **49 template-covered shapes** (45 templates; the basic-land
   ``({T}: Add {C}.)`` family is one template for five shapes):
   basic-land tap abilities, ADD_MANA, static P/T grants, counter-spell,
   token creation, keyword rule-reminder sentences (Deathtouch/Defender/
-  Double strike), DESTROY, EXILE, activated discard-tap, DRAW (+QCount),
-  DISCARD, LOSE_LIFE, GRANT_ABILITY/GRANT_TYPE compound statics, END_TURN,
-  Equip, equipped-P/T.
+  Double strike), DESTROY (incl. POWER_GE, T3 round A), EXILE, activated
+  discard-tap, DRAW (+QCount), DISCARD, LOSE_LIFE,
+  GRANT_ABILITY/GRANT_TYPE compound statics (incl. gain-life counter
+  trigger, T3 round F), SET_PT with QBin MUL ("double the power"),
+  Battalion keyword outcome (T3: params supplied by the template),
+  END_TURN, Equip, equipped-P/T, additional-cost (discard/sacrifice),
+  conditional static (Gnarled Sage), activation gate
+  (Caged Zombie, Celestial Enforcer), counter-unless-pays
+  (Miscast, Lofty Denial).
 - **23 rule-reminder shapes** — fully parenthesised sentences consumed by
   the compiler's ``_is_rule_reminder`` before template matching (no
   template needed; verified in tests).
-- **29 uncovered shapes** — no grammar construct exists (activation gates,
-  additional costs, conditional statics, name-choice, modal headers,
-  counter-unless-pays, anaphora, POWER_GE, multiplicative P/T, turn
-  referents, cost reduction, gain-life trigger, per-counter P/T,
-  complex prevention, until-leaves exile).  Recorded in the test file.
+- **18 uncovered shapes** — no expressible/attachable grammar construct
+  exists (activation gates, conditional statics, name-choice, modal
+  headers, anaphora, turn-scoped statics, cost reduction, untap
+  prevention, per-counter P/T, costed prevention, until-leaves exile).
+  Recorded in ``UNCOVERED`` below and pinned by tests.
 
 Conventions (documented build decisions):
 
@@ -51,7 +57,7 @@ PC-3: every B5a concrete sentence fullmatches **at most one** template
 from __future__ import annotations
 
 import re
-from typing import Callable
+from typing import Callable, Final
 
 from MTG_bot.core.ability_tree import (
     Atom,
@@ -61,20 +67,28 @@ from MTG_bot.core.ability_tree import (
     Cost,
     CostDiscard,
     CostManaGeneric,
+    CostSacrifice,
     CostTap,
     CounterKind,
     CreatureDiesEvent,
+    DurationEot,
     FAnd,
     FAtom,
     FAtomPred,
+    Filter,
     FNot,
     FOr,
     Keyword,
     KeywordAbility,
+    LifeGainedEvent,
     PtDelta,
     PtDirection,
+    QBin,
+    QBinOp,
     QConst,
     QCount,
+    QProp,
+    QPropField,
     QUnbounded,
     Selector,
     SelectorMode,
@@ -87,7 +101,9 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
 )
 from MTG_bot.core.compiler.templates import (
+    AdditionalCostOutcome,
     AbilityOutcome,
+    ActivationGateOutcome,
     EffectOutcome,
     KeywordOutcome,
     SentenceOutcome,
@@ -212,8 +228,7 @@ def _build_attacking_pt(m: re.Match[str]) -> SentenceOutcome:
                                 ),
                             )
                         ),
-                        Zone(kind=ZoneKind.BATTLEFIELD,
-                             controller=ControllerRef.YOU),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
                     ),
                 ),
                 ("power", _pt_delta(m, 1)),
@@ -242,6 +257,107 @@ def _build_counter_spell(m: re.Match[str]) -> SentenceOutcome:
         ),
     )
     return EffectOutcome(effect=atom)
+
+
+def _build_gnarled_sage(m: re.Match[str]) -> SentenceOutcome:
+    # "As long as you've drawn two or more cards this turn, this creature
+    # gets +N/+N and has vigilance." — conditional static: the whole
+    # Seq(MODIFY_PT, GRANT_ABILITY) is gated on the draw-count condition.
+    self_sel = _self_selector(
+        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY)
+    )
+    pt = Atom(
+        verb=Verb.MODIFY_PT,
+        args=AtomArgs(
+            pairs=(
+                ("target", self_sel),
+                ("power", _pt_delta(m, 1)),
+                ("toughness", _pt_delta(m, 2)),
+            )
+        ),
+    )
+    grant = Atom(
+        verb=Verb.GRANT_ABILITY,
+        args=AtomArgs(
+            pairs=(
+                ("target", self_sel),
+                ("ability", KeywordAbility(keyword=Keyword.VIGILANCE, params=())),
+            )
+        ),
+    )
+    return AbilityOutcome(
+        ability=StaticAbility(
+            effect=Seq(steps=(pt, grant)),
+            condition=FAtom(
+                pred=FAtomPred.CARDS_DRAWN_THIS_TURN_GE,
+                count=QConst(2),
+                who=ControllerRef.YOU,
+            ),
+        )
+    )
+
+
+def _build_activate_only_death(m: re.Match[str]) -> SentenceOutcome:
+    # "Activate only if a creature died this turn." — activation gate.
+    return ActivationGateOutcome(condition=FAtom(pred=FAtomPred.DIED_THIS_TURN))
+
+
+def _build_activate_only_flying(m: re.Match[str]) -> SentenceOutcome:
+    # "Activate only if you control a creature with flying." — activation
+    # gate (control-based).
+    return ActivationGateOutcome(
+        condition=FAtom(
+            pred=FAtomPred.CONTROLLER_COUNT_GE,
+            inner_filter=FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                    FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+                )
+            ),
+            count=QConst(1),
+        )
+    )
+
+
+def _counter_unless_atom(m: re.Match[str], target_filter: Filter) -> Atom:
+    # COUNTER_SPELL with an optional "unless its controller pays {N}" cost.
+    return Atom(
+        verb=Verb.COUNTER_SPELL,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.TARGET,
+                        target_filter,
+                        Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),
+                    ),
+                ),
+                (
+                    "unless",
+                    Cost(parts=(CostManaGeneric(amount=QConst(int(m.group(1)))),)),
+                ),
+            )
+        ),
+    )
+
+
+def _build_counter_unless_sps(m: re.Match[str]) -> SentenceOutcome:
+    # "Counter target instant or sorcery spell unless its controller pays
+    # {N}."
+    sps_filter = FOr(
+        children=(
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Instant"),
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Sorcery"),
+        )
+    )
+    return EffectOutcome(effect=_counter_unless_atom(m, sps_filter))
+
+
+def _build_counter_unless_spell(m: re.Match[str]) -> SentenceOutcome:
+    # "Counter target spell unless its controller pays {N}."
+    return EffectOutcome(effect=_counter_unless_atom(m, FAnd(children=())))
 
 
 def _grave_count_quantity() -> QCount:
@@ -312,23 +428,30 @@ def _build_goblin_wizard_tokens(m: re.Match[str]) -> SentenceOutcome:
     return EffectOutcome(effect=atom)
 
 
-def _build_keyword_reminder(keyword: Keyword) -> Callable[[re.Match[str]], SentenceOutcome]:
+def _build_keyword_reminder(
+    keyword: Keyword,
+) -> Callable[[re.Match[str]], SentenceOutcome]:
     def _build(m: re.Match[str]) -> SentenceOutcome:
         return KeywordOutcome(keyword=keyword, params=())
 
     return _build
 
 
-def _build_destroy(m: re.Match[str], f: "object", zone: Zone) -> SentenceOutcome:
+def _build_battalion(m: re.Match[str]) -> SentenceOutcome:
+    # Battalion is a keyword ability; the compiler skips bare Battalion
+    # keywords (see _KEYWORDS_BARE_UNBUILDABLE), so this template is the
+    # sole source of the trigger params.
+    return KeywordOutcome(keyword=Keyword.BATTALION, params=(QConst(2),))
+
+
+def _build_destroy(m: re.Match[str], f: Filter, zone: Zone) -> SentenceOutcome:
     atom = Atom(
         verb=Verb.DESTROY,
         args=AtomArgs(
             pairs=(
                 (
                     "target",
-                    Selector(
-                        QConst(1), SelectorMode.TARGET, f, zone  # type: ignore[arg-type]
-                    ),
+                    Selector(QConst(1), SelectorMode.TARGET, f, zone),
                 ),
             )
         ),
@@ -336,12 +459,57 @@ def _build_destroy(m: re.Match[str], f: "object", zone: Zone) -> SentenceOutcome
     return EffectOutcome(effect=atom)
 
 
-def _destroy_target_filter(m: re.Match[str], extra: tuple[object, ...]) -> FAnd:
-    base: list[object] = [
+def _destroy_target_filter(m: re.Match[str], extra: tuple[Filter, ...]) -> FAnd:
+    base: list[Filter] = [
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
     ]
     base.extend(extra)
-    return FAnd(children=tuple(base))  # type: ignore[arg-type]
+    return FAnd(children=tuple(base))
+
+
+def _build_destroy_power_ge(m: re.Match[str]) -> SentenceOutcome:
+    f = _destroy_target_filter(
+        m,
+        (FAtom(pred=FAtomPred.POWER_GE, count=QConst(int(m.group(1)))),),
+    )
+    return _build_destroy(
+        m, f, Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY)
+    )
+
+
+def _build_double_power(m: re.Match[str]) -> SentenceOutcome:
+    # SET_PT with power = 2 * target.power, toughness = target.toughness,
+    # duration = DurationEot.
+    atom = Atom(
+        verb=Verb.SET_PT,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.TARGET,
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                    ),
+                ),
+                (
+                    "power",
+                    QBin(
+                        op=QBinOp.MUL,
+                        left=QConst(2),
+                        right=QProp(referent="target", field=QPropField.POWER),
+                    ),
+                ),
+                (
+                    "toughness",
+                    QProp(referent="target", field=QPropField.TOUGHNESS),
+                ),
+                ("duration", DurationEot()),
+            )
+        ),
+    )
+    return EffectOutcome(effect=atom)
 
 
 def _build_exile_target(m: re.Match[str], f: "object") -> SentenceOutcome:
@@ -469,8 +637,7 @@ def _build_trample_counter(m: re.Match[str]) -> SentenceOutcome:
                                 ),
                             )
                         ),
-                        Zone(kind=ZoneKind.BATTLEFIELD,
-                             controller=ControllerRef.YOU),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
                     ),
                 ),
                 ("ability", KeywordAbility(keyword=Keyword.TRAMPLE, params=())),
@@ -542,13 +709,47 @@ def _build_enchant_pt_death_draw(m: re.Match[str]) -> SentenceOutcome:
     )
     grant = Atom(
         verb=Verb.GRANT_ABILITY,
-        args=AtomArgs(
-            pairs=(("target", _enchanted_creature()), ("ability", trigger))
+        args=AtomArgs(pairs=(("target", _enchanted_creature()), ("ability", trigger))),
+    )
+    return AbilityOutcome(ability=StaticAbility(effect=Seq(steps=(pt, grant))))
+
+
+def _build_enchant_gain_life(m: re.Match[str]) -> SentenceOutcome:
+    # Enchanted creature gains a trigger: "Whenever you gain life, put
+    # that many +1/+1 counters on this creature."
+    # IS_SOURCE inside the granted ability = the enchanted creature.
+    trigger = TriggeredAbility(
+        event=LifeGainedEvent(controller=ControllerRef.YOU),
+        condition=None,
+        effect=Atom(
+            verb=Verb.PUT_COUNTER,
+            args=AtomArgs(
+                pairs=(
+                    (
+                        "target",
+                        _self_selector(
+                            Zone(
+                                kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY
+                            )
+                        ),
+                    ),
+                    (
+                        "counter_kind",
+                        CounterKind.PLUS_1_PLUS_1,
+                    ),
+                    (
+                        "count",
+                        QProp(referent="event", field=QPropField.AMOUNT),
+                    ),
+                )
+            ),
         ),
     )
-    return AbilityOutcome(
-        ability=StaticAbility(effect=Seq(steps=(pt, grant)))
+    grant = Atom(
+        verb=Verb.GRANT_ABILITY,
+        args=AtomArgs(pairs=(("target", _enchanted_creature()), ("ability", trigger))),
     )
+    return AbilityOutcome(ability=StaticAbility(effect=grant))
 
 
 def _grant_keyword_atom(keyword: Keyword) -> Atom:
@@ -580,9 +781,7 @@ def _build_enchant_pt_trample(m: re.Match[str]) -> SentenceOutcome:
 def _grant_type_atom(types: tuple[str, ...]) -> Atom:
     return Atom(
         verb=Verb.GRANT_TYPE,
-        args=AtomArgs(
-            pairs=(("target", _enchanted_creature()), ("types", types))
-        ),
+        args=AtomArgs(pairs=(("target", _enchanted_creature()), ("types", types))),
     )
 
 
@@ -607,9 +806,7 @@ def _build_enchant_pt_flying_demon(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_end_turn(m: re.Match[str]) -> SentenceOutcome:
-    return EffectOutcome(
-        effect=Atom(verb=Verb.END_TURN, args=AtomArgs(pairs=()))
-    )
+    return EffectOutcome(effect=Atom(verb=Verb.END_TURN, args=AtomArgs(pairs=())))
 
 
 def _build_equip(m: re.Match[str]) -> SentenceOutcome:
@@ -642,8 +839,7 @@ def _build_equip(m: re.Match[str]) -> SentenceOutcome:
                                 ),
                             )
                         ),
-                        Zone(kind=ZoneKind.BATTLEFIELD,
-                             controller=ControllerRef.ANY),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
                     ),
                 ),
             )
@@ -651,9 +847,7 @@ def _build_equip(m: re.Match[str]) -> SentenceOutcome:
     )
     return AbilityOutcome(
         ability=ActivatedAbility(
-            cost=Cost(
-                parts=(CostManaGeneric(amount=QConst(int(m.group(1)))),)
-            ),
+            cost=Cost(parts=(CostManaGeneric(amount=QConst(int(m.group(1)))),)),
             effect=attach,
         )
     )
@@ -668,7 +862,8 @@ def _build_exile_self(m: re.Match[str]) -> SentenceOutcome:
     # "Exile Experimental Overload" — self-reference by name, encoded
     # semantically as IS_SOURCE (no hardcoded name).
     return _build_exile_target(
-        m, FAtom(pred=FAtomPred.IS_SOURCE)  # type: ignore[arg-type]
+        m,
+        FAtom(pred=FAtomPred.IS_SOURCE),  # type: ignore[arg-type]
     )
 
 
@@ -789,9 +984,7 @@ TEMPLATES: tuple[Template, ...] = (
                 children=(
                     FAnd(
                         children=(
-                            FAtom(
-                                pred=FAtomPred.TYPE_EQ, string_value="Creature"
-                            ),
+                            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                             FAtom(
                                 pred=FAtomPred.CMC_LE,
                                 count=QConst(int(m.group(1))),
@@ -800,9 +993,7 @@ TEMPLATES: tuple[Template, ...] = (
                     ),
                     FAnd(
                         children=(
-                            FAtom(
-                                pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"
-                            ),
+                            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
                             FAtom(
                                 pred=FAtomPred.CMC_LE,
                                 count=QConst(int(m.group(1))),
@@ -875,8 +1066,7 @@ TEMPLATES: tuple[Template, ...] = (
                                 QConst(1),
                                 SelectorMode.CHOOSE,
                                 FAnd(children=()),
-                                Zone(kind=ZoneKind.HAND,
-                                     controller=ControllerRef.YOU),
+                                Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),
                             )
                         ),
                     )
@@ -888,8 +1078,10 @@ TEMPLATES: tuple[Template, ...] = (
                             (
                                 "target",
                                 _self_selector(
-                                    Zone(kind=ZoneKind.BATTLEFIELD,
-                                         controller=ControllerRef.ANY)
+                                    Zone(
+                                        kind=ZoneKind.BATTLEFIELD,
+                                        controller=ControllerRef.ANY,
+                                    )
                                 ),
                             ),
                         )
@@ -968,7 +1160,7 @@ TEMPLATES: tuple[Template, ...] = (
         name='enchanted creature gets +N/+N and has "dies → draw a card"',
         bucket=_BUCKET,
         pattern=re.compile(
-            r'^Enchanted creature gets \+(\d+)/\+(\d+) and has '
+            r"^Enchanted creature gets \+(\d+)/\+(\d+) and has "
             r'"When this creature dies, draw a card\."$'
         ),
         priority=_PRIORITY,
@@ -978,7 +1170,9 @@ TEMPLATES: tuple[Template, ...] = (
         tid="B5a-enchant-pt-flying",
         name="enchanted creature gets +N/+N and has flying",
         bucket=_BUCKET,
-        pattern=re.compile(r"^Enchanted creature gets \+(\d+)/\+(\d+) and has flying\.$"),
+        pattern=re.compile(
+            r"^Enchanted creature gets \+(\d+)/\+(\d+) and has flying\.$"
+        ),
         priority=_PRIORITY,
         build=_build_enchant_pt_flying,
     ),
@@ -986,7 +1180,9 @@ TEMPLATES: tuple[Template, ...] = (
         tid="B5a-enchant-pt-trample",
         name="enchanted creature gets +N/+N and has trample",
         bucket=_BUCKET,
-        pattern=re.compile(r"^Enchanted creature gets \+(\d+)/\+(\d+) and has trample\.$"),
+        pattern=re.compile(
+            r"^Enchanted creature gets \+(\d+)/\+(\d+) and has trample\.$"
+        ),
         priority=_PRIORITY,
         build=_build_enchant_pt_trample,
     ),
@@ -1070,7 +1266,8 @@ TEMPLATES: tuple[Template, ...] = (
         pattern=re.compile(r"^Exile target creature\.$"),
         priority=_PRIORITY,
         build=lambda m: _build_exile_target(
-            m, FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")  # type: ignore[arg-type]
+            m,
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),  # type: ignore[arg-type]
         ),
     ),
     Template(
@@ -1088,5 +1285,222 @@ TEMPLATES: tuple[Template, ...] = (
                 )
             ),  # type: ignore[arg-type]
         ),
+    ),
+    Template(
+        tid="B5a-battalion",
+        name="battalion keyword",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Battalion — Whenever this creature and at least two other creatures attack, put a \+1/\+1 counter on this creature\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_battalion,
+    ),
+    Template(
+        tid="B5a-destroy-power-ge",
+        name="destroy target creature with power N or greater",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^Destroy target creature with power (\d+) or greater\.$"),
+        priority=_PRIORITY,
+        build=_build_destroy_power_ge,
+    ),
+    Template(
+        tid="B5a-double-power",
+        name="double power until end of turn",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Double the power of target creature until end of turn\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_double_power,
+    ),
+    Template(
+        tid="B5a-enchant-gain-life",
+        name="enchanted creature gains life-gain trigger",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r'^Enchanted creature has "Whenever you gain life, put that many \+1/\+1 counters on this creature\."$'
+        ),
+        priority=_PRIORITY,
+        build=_build_enchant_gain_life,
+    ),
+    Template(
+        tid="B5a-addl-cost-discard",
+        name="additional cost to cast: discard a card",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^As an additional cost to cast this spell, discard a card\.$"
+        ),
+        priority=_PRIORITY,
+        build=lambda m: AdditionalCostOutcome(
+            cost=Cost(
+                parts=(
+                    CostDiscard(
+                        target=Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            FAnd(children=()),
+                            Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),
+                        )
+                    ),
+                )
+            )
+        ),
+    ),
+    Template(
+        tid="B5a-addl-cost-sacrifice",
+        name="additional cost to cast: sacrifice a creature",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^As an additional cost to cast this spell, sacrifice a creature\.$"
+        ),
+        priority=_PRIORITY,
+        build=lambda m: AdditionalCostOutcome(
+            cost=Cost(
+                parts=(
+                    CostSacrifice(
+                        target=Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                            Zone(
+                                kind=ZoneKind.BATTLEFIELD,
+                                controller=ControllerRef.YOU,
+                            ),
+                        )
+                    ),
+                )
+            )
+        ),
+    ),
+    Template(
+        tid="B5a-gnarled-sage",
+        name="conditional static: drawn 2+ this turn -> +N/+N and vigilance",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^As long as you've drawn two or more cards this turn, this "
+            r"creature gets \+(\d+)/\+(\d+) and has vigilance\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_gnarled_sage,
+    ),
+    Template(
+        tid="B5a-activate-only-death",
+        name="activation gate: a creature died this turn",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^Activate only if a creature died this turn\.$"),
+        priority=_PRIORITY,
+        build=_build_activate_only_death,
+    ),
+    Template(
+        tid="B5a-activate-only-flying",
+        name="activation gate: you control a creature with flying",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^Activate only if you control a creature with flying\.$"),
+        priority=_PRIORITY,
+        build=_build_activate_only_flying,
+    ),
+    Template(
+        tid="B5a-counter-unless-sps",
+        name="counter target instant/sorcery unless controller pays {N}",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Counter target instant or sorcery spell unless its controller "
+            r"pays \{(\d+)\}\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_counter_unless_sps,
+    ),
+    Template(
+        tid="B5a-counter-unless-spell",
+        name="counter target spell unless controller pays {N}",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Counter target spell unless its controller pays \{(\d+)\}\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_counter_unless_spell,
+    ),
+)
+
+# UNCOVERED — 18 normalized-key rows
+#
+# Each row is (shape_key, reason).  shape_key is the B5a.json normalized
+# key (digits → "N").  Sorted alphabetically by shape_key.  The T4 test
+# pins this set against the SHAPES table.
+UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
+    (
+        "Activate only as a sorcery.",
+        "activation gate: ActivatedAbility has no condition slot (sorcery-mode restriction unrepresentable)",
+    ),
+    (
+        "Activate only if you have at least N life more than your starting life total and only as a sorcery.",
+        "activation gate: ActivatedAbility has no condition slot (life-total comparison + sorcery mode)",
+    ),
+    (
+        "As long as an opponent has eight or more cards in their graveyard, this creature gets +N/+N and has deathtouch.",
+        "conditional static: StaticAbility has no condition slot (opponent graveyard count)",
+    ),
+    (
+        "As long as the top card of your library is a Goblin card, this creature has all activated abilities of that card.",
+        "conditional static: StaticAbility has no condition slot (library-top)",
+    ),
+    (
+        "As long as you control a creature with power N or greater, this creature can attack as though it didn't have defender.",
+        'conditional static: StaticAbility has no condition slot (+ "as though" defence override unrepresentable)',
+    ),
+    (
+        "As this enchantment enters, choose a card name.",
+        "ETB choice effect not in grammar",
+    ),
+    (
+        "Choose a card name other than a basic land card name.",
+        "choice effect with exclusion not in grammar",
+    ),
+    (
+        "Choose one or more —",
+        "handled by the compiler's choose-opener built-in "
+        "(compiler._wrap_choose_openers), not a template",
+    ),
+    (
+        "Choose one —",
+        "handled by the compiler's choose-opener built-in "
+        "(compiler._wrap_choose_openers), not a template",
+    ),
+    (
+        "Destroy all Equipment attached to that creature.",
+        "multi-target destroy with zone relationship not in grammar",
+    ),
+    (
+        "Discard a card: This creature can't be blocked this turn.",
+        "costed activation with blocking prevention not in grammar",
+    ),
+    (
+        "During your turn, Radha has first strike.",
+        "named-card ability (not generic pattern) not in grammar",
+    ),
+    (
+        "During your turn, this spell costs {N}{U}{U} less to cast.",
+        "CostModifier exists, but cannot express turn-scoped condition nor a compound {N}{U}{U} reduction (single CostDelta)",
+    ),
+    (
+        "Each opponent who can't loses N life.",
+        '"who can\'t" payment-failure condition not in grammar',
+    ),
+    (
+        "Enchanted creature doesn't untap during its controller's untap step.",
+        "untap prevention not in grammar",
+    ),
+    (
+        "Enchanted permanent can't attack or block, and its activated abilities can't be activated unless they're mana abilities.",
+        "multi-restriction with exception clause not in grammar",
+    ),
+    (
+        "Equipped creature gets +N/+N for each soul counter on this Equipment.",
+        "counter-scaled P/T on equipped creature not in grammar",
+    ),
+    (
+        "Exile that card until this creature leaves the battlefield.",
+        "duration-conditional exile (leaves battlefield) not in grammar",
     ),
 )

@@ -48,11 +48,26 @@ Design decisions (each pinned by tests in test_ability_tree.py):
 - **Keyword enum**: 23 members — the pool's 24 MTGJSON keyword strings with
   "Hexproof from" folded into HEXPROOF (the "from X" is a Filter param, see
   ``_KEYWORD_PARAMS``).
-- **Events**: 13 structured EventSpecs; ETB is a ZoneChange from anywhere to
+- **Events**: 16 structured EventSpecs; ETB is a ZoneChange from anywhere to
   the battlefield, never a substring. declare_blockers / becomes_blocked /
   tap_state / targeting exist because pool cards need them (Pirate token
   "can't block", Gloom Sower, Ghostly Pilferer, Warden of the Woods,
-  hexproof/protection statics).
+  hexproof/protection statics). The T3 round (KNOWLEDGE 2026-09-19/02)
+  added additive optional scoping to ZoneChangeEvent / CastSpellEvent /
+  DamageDealtEvent (subject / controller+from_zone+ordinal / source+combat)
+  and the new CardDrawn / LifeGained / Sacrifice events (controller
+  referent); every such field defaults to None and serializes by
+  OMITTING the key, so all pre-T3 trees keep byte-identical canonical
+   JSON (pinned by test_ability_tree_t3.py).
+- **r3b round (coin-flip, minimum-quantity, blocker subject)**: three
+  additive, byte-stable vocabulary additions pinned by
+  test_ability_tree_r3b.py — ``Verb.FLIP_COIN`` (no roles; "flip a coin",
+  Tavern Swindler), ``FAtomPred.FLIP_WON`` (required ``who``; "you win the
+  flip", so "you lose it" is ``FNot(FAtom(FLIP_WON, who=YOU))``),
+  ``QAtLeast(n)`` (a quantity meaning "at least n", n >= 1 — the minimum
+  the compiler previously had to lose to ``QUnbounded``), and
+  ``DeclareBlockersEvent.subject`` (a ``Filter | None`` over the blocking
+  creature, mirroring ``ZoneChangeEvent.subject``; omitted when None).
 - **No orphan guarantee yet**: verbs are cited to pool cards in docstrings;
   orphans are MEASURED by PC-6 and pruned then — the vocabulary is the
   Phase-1 hypothesis, not the post-hoc truth.
@@ -82,7 +97,7 @@ _COLORLESS = "C"
 class Verb(Enum):
     """The closed verb vocabulary (DESIGN_CARD_POOL step 1: ~60 verbs).
 
-    35 members covering the M21 pool; orphans are measured (PC-6) and pruned
+    39 members covering the M21 pool; orphans are measured (PC-6) and pruned
     later. Each docstring cites the pool card(s) that need it.
     """
 
@@ -100,7 +115,9 @@ class Verb(Enum):
     MODIFY_PT = "MODIFY_PT"  # Defiant Strike, Jeskai Elder (prowess), Pestilent Haze (all creatures -2/-2)
     SET_PT = "SET_PT"  # Experimental Overload (Weird tokens' P/T), Tarmogoyf-class dynamic P/T
     GRANT_ABILITY = "GRANT_ABILITY"  # Riddleform (a 3/3 Sphinx creature with flying), Dub (first strike)
-    GRANT_TYPE = "GRANT_TYPE"  # Riddleform/Dub: "is a Knight in addition to its other types"
+    GRANT_TYPE = (
+        "GRANT_TYPE"  # Riddleform/Dub: "is a Knight in addition to its other types"
+    )
     TAP = "TAP"  # Celestial Enforcer ("tap target creature")
     UNTAP = "UNTAP"  # Traitorous Greed ("untap that creature")
     MOVE_ZONE = "MOVE_ZONE"  # Sublime Epiphany (return to hand), Rise Again
@@ -121,6 +138,14 @@ class Verb(Enum):
     EXTRA_TURN = "EXTRA_TURN"  # Teferi, Master of Time [-10] ("take two extra turns")
     END_TURN = "END_TURN"  # Discontinuity ("end the turn")
     MANDATE_ATTACK = "MANDATE_ATTACK"  # Pirate token: "creatures you control attack each combat if able"
+    CAST = "CAST"  # cast a spell from a zone (top-of-library via Zone.position; graveyard recasts; cost waivers / extra costs)
+    PAY = "PAY"  # pay a cost as an effect ("you may pay {2}", with an "if you do" continuation)
+    LOSE_GAME = (
+        "LOSE_GAME"  # "the player who cast this spell loses the game" (no roles)
+    )
+    FLIP_COIN = (
+        "FLIP_COIN"  # "flip a coin" (no roles; outcome gated by FAtomPred.FLIP_WON)
+    )
 
 
 class SelectorMode(Enum):
@@ -148,6 +173,17 @@ class ZoneKind(Enum):
     ANY = "ANY"
 
 
+class ZonePosition(Enum):
+    """A position within a zone — the top or bottom of an ordered pile
+    (library, graveyard, exile). ``Zone.position`` carries it: "the top
+    card of your library", "put on top of its owner's library". None (the
+    default) means the zone as a whole; None serializes by omitting the
+    key (T3 round, byte-stable for pre-T3 trees)."""
+
+    TOP = "TOP"
+    BOTTOM = "BOTTOM"
+
+
 class ControllerRef(Enum):
     """Whose zone. ANY = every controller's zones combined; in a two-player
     game that is both players, which is how "all graveyards" selectors read.
@@ -155,9 +191,12 @@ class ControllerRef(Enum):
 
     YOU = "YOU"
     OPPONENT = "OPPONENT"
-    TARGET_PLAYER = "TARGET_PLAYER"  # "the target player" — the spell's target, when it is a player
+    TARGET_PLAYER = (
+        "TARGET_PLAYER"  # "the target player" — the spell's target, when it is a player
+    )
     ANY = "ANY"
     ALL_OPPONENTS = "ALL_OPPONENTS"
+    OWNER = "OWNER"  # "its owner" — owner-scoped zones ("return to its owner's hand")
 
 
 class QPropField(Enum):
@@ -198,6 +237,16 @@ class QBinOp(Enum):
     MIN = "MIN"
 
 
+class ThisTurnKind(Enum):
+    """What QThisTurn counts within the current turn — turn-scoped
+    quantities ("the life you've gained this turn", "the cards an
+    opponent has drawn this turn"); the family named in the T3 grammar
+    decision (B2a #12/#14/#16, B4 #147/#163)."""
+
+    LIFE_GAINED = "LIFE_GAINED"
+    CARDS_DRAWN = "CARDS_DRAWN"
+
+
 class FAtomPred(Enum):
     """Atomic filter predicates (the design's ~20; the pool pushed a few
     more). Each row of ``_FATOM_RULES`` names exactly which typed slots the
@@ -208,7 +257,9 @@ class FAtomPred(Enum):
     SUPERTYPE_EQ = "SUPERTYPE_EQ"  # "Legendary" / "Basic"
     COLOR_HAS = "COLOR_HAS"  # "hexproof from black"
     COLOR_IN = "COLOR_IN"  # colours are a non-empty subset of the given set
-    COLOR_COUNT_GE = "COLOR_COUNT_GE"  # >= 2 = "protection from multicolored" (Basri's Lieutenant)
+    COLOR_COUNT_GE = (
+        "COLOR_COUNT_GE"  # >= 2 = "protection from multicolored" (Basri's Lieutenant)
+    )
     CMC_LE = "CMC_LE"  # mana-value thresholds
     CMC_GE = "CMC_GE"  # Fierce Empath: "creature card with mana value 6 or greater"
     PT_LE = "PT_LE"  # both components <= value (documented convention)
@@ -221,14 +272,39 @@ class FAtomPred(Enum):
     IS_BLOCKING = "IS_BLOCKING"
     HAS_COUNTER = "HAS_COUNTER"  # Basri's Lieutenant: "if it had a +1/+1 counter on it"
     CONTROLLER_IS = "CONTROLLER_IS"  # "target creature you control"
-    CONTROLLER_COUNT_GE = "CONTROLLER_COUNT_GE"  # Gadrak: "you control four or more artifacts"
+    CONTROLLER_COUNT_GE = (
+        "CONTROLLER_COUNT_GE"  # Gadrak: "you control four or more artifacts"
+    )
     CONTROLLER_COUNT_LE = "CONTROLLER_COUNT_LE"
     IS_SOURCE = "IS_SOURCE"  # the object is the source of the current ability
     IS_ANY_TARGET = "IS_ANY_TARGET"  # "another target" (Selfless Savior)
     IS_PERMANENT = "IS_PERMANENT"  # on the battlefield, vs a card in a zone
     IS_TOKEN = "IS_TOKEN"  # Gadrak: "nontoken creature that died this turn"
     DIED_THIS_TURN = "DIED_THIS_TURN"  # turn-scoped; Carrion Grub, Gadrak
-    IS_ATTACHED_TO_SOURCE = "IS_ATTACHED_TO_SOURCE"  # Malefic Scythe's "equipped creature"
+    IS_ATTACHED_TO_SOURCE = (
+        "IS_ATTACHED_TO_SOURCE"  # Malefic Scythe's "equipped creature"
+    )
+    POWER_LE = "POWER_LE"  # power <= value (power-only; PT_LE compares both components)
+    POWER_GE = "POWER_GE"  # power >= value ("a creature with power 3 or greater")
+    NAME_CONTAINS = (
+        "NAME_CONTAINS"  # name substring ("a Teferi planeswalker"); NAME_EQ stays exact
+    )
+    LIFE_GAINED_THIS_TURN_GE = (
+        "LIFE_GAINED_THIS_TURN_GE"  # "if you gained N or more life this turn"
+    )
+    CARDS_DRAWN_THIS_TURN_GE = (
+        "CARDS_DRAWN_THIS_TURN_GE"  # "if an opponent drew N or more cards this turn"
+    )
+    FLIP_WON = "FLIP_WON"  # "if you win the flip" (required who; Tavern Swindler)
+    INSTANT_OR_SORCERY_CAST_THIS_TURN = (
+        "INSTANT_OR_SORCERY_CAST_THIS_TURN"  # "if you've cast an instant or
+        # sorcery spell this turn" (Stormwing Entity; turn-scoped cast tracking;
+        # required who)
+    )
+    TARGETS_SOURCE = (
+        "TARGETS_SOURCE"  # "spells your opponents cast that target this creature"
+        # — the spell targets the source object (Terror of the Peaks)
+    )
 
 
 class CounterKind(Enum):
@@ -352,7 +428,7 @@ class QX:
 
 @dataclass(frozen=True)
 class QUnbounded:
-    """"Any number of" — an unbounded CHOOSE selector (Siege Striker's "tap
+    """ "Any number of" — an unbounded CHOOSE selector (Siege Striker's "tap
     any number of untapped creatures you control", Necromentia's "any
     number of cards with that name")."""
 
@@ -367,7 +443,9 @@ class QCount:
 
     def __post_init__(self) -> None:
         if not isinstance(self.selector, Selector):
-            raise ValueError(f"QCount: selector must be a Selector, got {type(self.selector).__name__}")
+            raise ValueError(
+                f"QCount: selector must be a Selector, got {type(self.selector).__name__}"
+            )
 
 
 _QPROP_STR_REFERENTS = ("source", "controller", "target", "event")
@@ -390,21 +468,36 @@ class QProp:
     agg: QAgg = QAgg.FIRST
 
     def __post_init__(self) -> None:
-        if not isinstance(self.referent, Selector) and self.referent not in _QPROP_STR_REFERENTS:
+        if (
+            not isinstance(self.referent, Selector)
+            and self.referent not in _QPROP_STR_REFERENTS
+        ):
             raise ValueError(
                 f"QProp: referent must be a Selector or one of {_QPROP_STR_REFERENTS}, got {self.referent!r}"
             )
         if not isinstance(self.field, QPropField):
-            raise ValueError(f"QProp: field must be a QPropField, got {type(self.field).__name__}")
+            raise ValueError(
+                f"QProp: field must be a QPropField, got {type(self.field).__name__}"
+            )
         if not isinstance(self.agg, QAgg):
-            raise ValueError(f"QProp: agg must be a QAgg, got {type(self.agg).__name__}")
-        player_fields = (QPropField.CARDS_IN_HAND, QPropField.CARDS_IN_LIBRARY, QPropField.CARDS_IN_GRAVEYARD)
+            raise ValueError(
+                f"QProp: agg must be a QAgg, got {type(self.agg).__name__}"
+            )
+        player_fields = (
+            QPropField.CARDS_IN_HAND,
+            QPropField.CARDS_IN_LIBRARY,
+            QPropField.CARDS_IN_GRAVEYARD,
+        )
         if self.field in player_fields and self.referent != "controller":
-            raise ValueError(f"QProp: {self.field.name} requires the 'controller' referent")
+            raise ValueError(
+                f"QProp: {self.field.name} requires the 'controller' referent"
+            )
         if self.field is QPropField.AMOUNT and self.referent != "event":
             raise ValueError("QProp: AMOUNT requires the 'event' referent")
         if isinstance(self.referent, str) and self.agg is not QAgg.FIRST:
-            raise ValueError("QProp: a singular referent cannot aggregate (agg must be FIRST)")
+            raise ValueError(
+                "QProp: a singular referent cannot aggregate (agg must be FIRST)"
+            )
 
 
 @dataclass(frozen=True)
@@ -420,10 +513,51 @@ class QBin:
             raise ValueError(f"QBin: op must be a QBinOp, got {type(self.op).__name__}")
         for side in (self.left, self.right):
             if not _is_quantity(side):
-                raise ValueError(f"QBin: operand must be a Quantity, got {type(side).__name__}")
+                raise ValueError(
+                    f"QBin: operand must be a Quantity, got {type(side).__name__}"
+                )
 
 
-Quantity = QConst | QX | QUnbounded | QCount | QProp | QBin
+@dataclass(frozen=True)
+class QThisTurn:
+    """A quantity scoped to the current turn: how much `kind` `referent`
+    has accumulated this turn — QThisTurn(LIFE_GAINED, YOU) = "the life
+    you've gained this turn", QThisTurn(CARDS_DRAWN, OPPONENT) = "the
+    cards an opponent has drawn this turn" (T3 round E)."""
+
+    kind: ThisTurnKind
+    referent: ControllerRef
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.kind, ThisTurnKind):
+            raise ValueError(
+                f"QThisTurn: kind must be a ThisTurnKind, got {self.kind!r}"
+            )
+        if not isinstance(self.referent, ControllerRef):
+            raise ValueError(
+                "QThisTurn: referent must be a ControllerRef, got "
+                f"{type(self.referent).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class QAtLeast:
+    """A quantity meaning "at least n" (n >= 1): the minimum a variable
+    amount must reach ("choose one or more", Sublime Epiphany). The
+    compiler previously had to write ``QUnbounded()`` for these, losing the
+    minimum-1 constraint; QAtLeast(1) restores it. n = 0 is redundant with
+    the unbounded reading, so 0 and negatives are rejected."""
+
+    n: int
+
+    def __post_init__(self) -> None:
+        if isinstance(self.n, bool) or not isinstance(self.n, int):
+            raise ValueError(f"QAtLeast: n must be an int, got {self.n!r}")
+        if self.n < 1:
+            raise ValueError(f"QAtLeast: n must be >= 1, got {self.n}")
+
+
+Quantity = QConst | QX | QUnbounded | QCount | QProp | QBin | QThisTurn | QAtLeast
 
 
 # ---- Zones and the selector ----
@@ -431,40 +565,73 @@ Quantity = QConst | QX | QUnbounded | QCount | QProp | QBin
 
 @dataclass(frozen=True)
 class Zone:
-    """A (kind, controller) zone."""
+    """A (kind, controller) zone. ``position`` pins a slot inside an
+    ordered pile (TOP/BOTTOM of a library/graveyard/exile — "the top
+    card of your library", "put on top of its owner's library"); None is
+    the zone as a whole and serializes by omitting the key (T3 round H,
+    byte-stable for pre-T3 trees)."""
 
     kind: ZoneKind
     controller: ControllerRef
+    position: ZonePosition | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.kind, ZoneKind):
             raise ValueError(f"Zone: kind must be a ZoneKind, got {self.kind!r}")
         if not isinstance(self.controller, ControllerRef):
-            raise ValueError(f"Zone: controller must be a ControllerRef, got {self.controller!r}")
+            raise ValueError(
+                f"Zone: controller must be a ControllerRef, got {self.controller!r}"
+            )
+        if self.position is not None and not isinstance(self.position, ZonePosition):
+            raise ValueError(
+                f"Zone: position must be a ZonePosition, got {self.position!r}"
+            )
 
 
 @dataclass(frozen=True)
 class Selector:
     """The one selector type used by targets, statics, counts, triggers,
     and search (DESIGN_CARD_POOL). count semantics by mode: TARGET exact,
-    CHOOSE up-to (QUnbounded = any), ALL ignores count, RANDOM exact."""
+    CHOOSE up-to (QUnbounded = any), ALL ignores count, RANDOM exact.
+    ``zones`` additively widens the effective zone set to {zone} ∪ zones
+    (T3 round C): "target player or planeswalker" = PLAYER ∪ BATTLEFIELD,
+    "library and graveyard" search = LIBRARY ∪ GRAVEYARD, "target spell
+    or creature" = STACK ∪ BATTLEFIELD. Empty (the default) serializes
+    by omitting the key — byte-stable for every pre-T3 tree."""
 
     count: Quantity
     mode: SelectorMode
     filter: Filter
     zone: Zone
+    zones: tuple[Zone, ...] = ()
 
     def __post_init__(self) -> None:
         if not _is_quantity(self.count):
-            raise ValueError(f"Selector: count must be a Quantity, got {type(self.count).__name__}")
+            raise ValueError(
+                f"Selector: count must be a Quantity, got {type(self.count).__name__}"
+            )
         if not isinstance(self.mode, SelectorMode):
-            raise ValueError(f"Selector: mode must be a SelectorMode, got {self.mode!r}")
+            raise ValueError(
+                f"Selector: mode must be a SelectorMode, got {self.mode!r}"
+            )
         if not _is_filter(self.filter):
-            raise ValueError(f"Selector: filter must be a Filter, got {type(self.filter).__name__}")
+            raise ValueError(
+                f"Selector: filter must be a Filter, got {type(self.filter).__name__}"
+            )
         if not isinstance(self.zone, Zone):
-            raise ValueError(f"Selector: zone must be a Zone, got {type(self.zone).__name__}")
-        if self.mode in (SelectorMode.TARGET, SelectorMode.RANDOM) and isinstance(self.count, QUnbounded):
-            raise ValueError(f"Selector: mode {self.mode.name} needs a concrete count, not QUnbounded")
+            raise ValueError(
+                f"Selector: zone must be a Zone, got {type(self.zone).__name__}"
+            )
+        if not isinstance(self.zones, tuple) or not all(
+            isinstance(z, Zone) for z in self.zones
+        ):
+            raise ValueError("Selector: zones must be a tuple of Zone")
+        if self.mode in (SelectorMode.TARGET, SelectorMode.RANDOM) and isinstance(
+            self.count, QUnbounded
+        ):
+            raise ValueError(
+                f"Selector: mode {self.mode.name} needs a concrete count, not QUnbounded"
+            )
 
 
 # ---- Filters ----
@@ -479,7 +646,9 @@ class FAnd:
     def __post_init__(self) -> None:
         for child in self.children:
             if not _is_filter(child):
-                raise ValueError(f"FAnd: child must be a Filter, got {type(child).__name__}")
+                raise ValueError(
+                    f"FAnd: child must be a Filter, got {type(child).__name__}"
+                )
 
 
 @dataclass(frozen=True)
@@ -491,7 +660,9 @@ class FOr:
     def __post_init__(self) -> None:
         for child in self.children:
             if not _is_filter(child):
-                raise ValueError(f"FOr: child must be a Filter, got {type(child).__name__}")
+                raise ValueError(
+                    f"FOr: child must be a Filter, got {type(child).__name__}"
+                )
 
 
 @dataclass(frozen=True)
@@ -502,7 +673,9 @@ class FNot:
 
     def __post_init__(self) -> None:
         if not _is_filter(self.inner):
-            raise ValueError(f"FNot: inner must be a Filter, got {type(self.inner).__name__}")
+            raise ValueError(
+                f"FNot: inner must be a Filter, got {type(self.inner).__name__}"
+            )
 
 
 @dataclass(frozen=True)
@@ -520,11 +693,15 @@ class FAtom:
       color        — a single WUBRG colour (COLOR_HAS)
       colors       — a WUBRG set (COLOR_IN)
       count        — Quantity threshold (CMC_LE/GE, PT_LE/GE, COLOR_COUNT_GE,
-                      HAS_COUNTER, CONTROLLER_COUNT_GE/LE); a dynamic threshold
-                      (QProp/QBin/QCount) is as legal as a literal
+                      HAS_COUNTER, CONTROLLER_COUNT_GE/LE,
+                      LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE);
+                      a dynamic threshold (QProp/QBin/QCount) is as legal
+                      as a literal
       counter_kind — CounterKind (HAS_COUNTER)
       keyword      — Keyword (KEYWORD_HAS)
-      who          — ControllerRef (CONTROLLER_IS; you|opponent|target-player)
+      who          — ControllerRef (CONTROLLER_IS; LIFE_GAINED_THIS_TURN_GE,
+                      CARDS_DRAWN_THIS_TURN_GE, INSTANT_OR_SORCERY_CAST_THIS_TURN;
+                      you|opponent|target-player)
       inner_filter — a nested Filter (CONTROLLER_COUNT_GE/LE)
     """
 
@@ -544,23 +721,41 @@ class FAtom:
         if self.string_value is not None and (
             not isinstance(self.string_value, str) or not self.string_value.strip()
         ):
-            raise ValueError(f"FAtom: string_value must be a non-empty str, got {self.string_value!r}")
+            raise ValueError(
+                f"FAtom: string_value must be a non-empty str, got {self.string_value!r}"
+            )
         if self.color is not None and self.color not in _COLORS:
-            raise ValueError(f"FAtom: color must be one of {_COLORS}, got {self.color!r}")
-        if not isinstance(self.colors, tuple) or not all(isinstance(c, str) for c in self.colors):
+            raise ValueError(
+                f"FAtom: color must be one of {_COLORS}, got {self.color!r}"
+            )
+        if not isinstance(self.colors, tuple) or not all(
+            isinstance(c, str) for c in self.colors
+        ):
             raise ValueError("FAtom: colors must be a tuple of str")
-        if any(c not in _COLORS for c in self.colors) or len(set(self.colors)) != len(self.colors):
+        if any(c not in _COLORS for c in self.colors) or len(set(self.colors)) != len(
+            self.colors
+        ):
             raise ValueError(f"FAtom: colors must be distinct members of {_COLORS}")
         if self.count is not None and not _is_quantity(self.count):
             raise ValueError(f"FAtom: count must be a Quantity, got {self.count!r}")
-        if self.counter_kind is not None and not isinstance(self.counter_kind, CounterKind):
-            raise ValueError(f"FAtom: counter_kind must be a CounterKind, got {type(self.counter_kind).__name__}")
+        if self.counter_kind is not None and not isinstance(
+            self.counter_kind, CounterKind
+        ):
+            raise ValueError(
+                f"FAtom: counter_kind must be a CounterKind, got {type(self.counter_kind).__name__}"
+            )
         if self.keyword is not None and not isinstance(self.keyword, Keyword):
-            raise ValueError(f"FAtom: keyword must be a Keyword, got {type(self.keyword).__name__}")
+            raise ValueError(
+                f"FAtom: keyword must be a Keyword, got {type(self.keyword).__name__}"
+            )
         if self.who is not None and not isinstance(self.who, ControllerRef):
-            raise ValueError(f"FAtom: who must be a ControllerRef, got {type(self.who).__name__}")
+            raise ValueError(
+                f"FAtom: who must be a ControllerRef, got {type(self.who).__name__}"
+            )
         if self.inner_filter is not None and not _is_filter(self.inner_filter):
-            raise ValueError(f"FAtom: inner_filter must be a Filter, got {type(self.inner_filter).__name__}")
+            raise ValueError(
+                f"FAtom: inner_filter must be a Filter, got {type(self.inner_filter).__name__}"
+            )
 
         required, allowed = _FATOM_RULES[self.pred]
         for slot in (
@@ -580,7 +775,16 @@ class FAtom:
             if (
                 slot in required
                 and unset
-                and slot in ("string_value", "color", "colors", "counter_kind", "keyword", "who", "inner_filter")
+                and slot
+                in (
+                    "string_value",
+                    "color",
+                    "colors",
+                    "counter_kind",
+                    "keyword",
+                    "who",
+                    "inner_filter",
+                )
             ):
                 raise ValueError(f"FAtom: {self.pred.name} requires slot {slot!r}")
         if self.pred is FAtomPred.COLOR_IN and not self.colors:
@@ -602,7 +806,9 @@ class FAtom:
             ControllerRef.OPPONENT,
             ControllerRef.TARGET_PLAYER,
         ):
-            raise ValueError("FAtom: CONTROLLER_IS who must be you, opponent, or the target player")
+            raise ValueError(
+                "FAtom: CONTROLLER_IS who must be you, opponent, or the target player"
+            )
 
 
 Filter = FAnd | FOr | FNot | FAtom
@@ -644,7 +850,9 @@ class DurationWhileCondition:
             )
 
 
-Duration = DurationEot | DurationPermanent | DurationUntilNextTurn | DurationWhileCondition
+Duration = (
+    DurationEot | DurationPermanent | DurationUntilNextTurn | DurationWhileCondition
+)
 
 
 # ---------------------------------------------------------------------------
@@ -659,26 +867,64 @@ Duration = DurationEot | DurationPermanent | DurationUntilNextTurn | DurationWhi
 @dataclass(frozen=True)
 class ZoneChangeEvent:
     """A permanent changed zones. ETB = from anywhere to the battlefield —
-    a ZoneChange, never a substring."""
+    a ZoneChange, never a substring. ``subject`` (T3 round F) narrows
+    WHICH zone change fires: None = any permanent, or a Filter over the
+    changing permanent ("another creature you control enters")."""
 
     from_zone: Zone
     to_zone: Zone
+    subject: Filter | None = None
 
     def __post_init__(self) -> None:
         for zone in (self.from_zone, self.to_zone):
             if not isinstance(zone, Zone):
-                raise ValueError(f"ZoneChangeEvent: zone must be a Zone, got {type(zone).__name__}")
+                raise ValueError(
+                    f"ZoneChangeEvent: zone must be a Zone, got {type(zone).__name__}"
+                )
+        if self.subject is not None and not _is_filter(self.subject):
+            raise ValueError(
+                f"ZoneChangeEvent: subject must be a Filter, got {type(self.subject).__name__}"
+            )
 
 
 @dataclass(frozen=True)
 class CastSpellEvent:
-    """A spell was cast (filter over the spell: type/subtype/name)."""
+    """A spell was cast (filter over the spell: type/subtype/name).
+    T3 round F optional scoping: ``controller`` = whose cast (None = any
+    — "an opponent casts"), ``from_zone`` = the source zone (None = any —
+    "from anywhere other than their hand"), ``ordinal`` = the Nth cast by
+    that controller this turn (None = every cast; 2 = "your second spell
+    each turn")."""
 
     filter: Filter
+    controller: ControllerRef | None = None
+    from_zone: Zone | None = None
+    ordinal: int | None = None
 
     def __post_init__(self) -> None:
         if not _is_filter(self.filter):
-            raise ValueError(f"CastSpellEvent: filter must be a Filter, got {type(self.filter).__name__}")
+            raise ValueError(
+                f"CastSpellEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+        if self.controller is not None and not isinstance(
+            self.controller, ControllerRef
+        ):
+            raise ValueError(
+                "CastSpellEvent: controller must be a ControllerRef, got "
+                f"{type(self.controller).__name__}"
+            )
+        if self.from_zone is not None and not isinstance(self.from_zone, Zone):
+            raise ValueError(
+                f"CastSpellEvent: from_zone must be a Zone, got {type(self.from_zone).__name__}"
+            )
+        if self.ordinal is not None and (
+            isinstance(self.ordinal, bool)
+            or not isinstance(self.ordinal, int)
+            or self.ordinal < 1
+        ):
+            raise ValueError(
+                f"CastSpellEvent: ordinal must be an int >= 1, got {self.ordinal!r}"
+            )
 
 
 @dataclass(frozen=True)
@@ -697,14 +943,23 @@ class DeclareAttackersEvent:
 @dataclass(frozen=True)
 class DeclareBlockersEvent:
     """Blockers were declared (filter over the blocking creature) — the
-    event "can't block" preventions attach to (the Pirate token)."""
+    event "can't block" preventions attach to (the Pirate token).
+    ``subject`` (r3b) narrows WHICH declaration fires: None = any blocker,
+    or a Filter over the blocking creature — mirroring
+    ``ZoneChangeEvent.subject``; omitted from the tagged dict when None,
+    so pre-r3b trees keep byte-identical canonical JSON."""
 
     filter: Filter
+    subject: Filter | None = None
 
     def __post_init__(self) -> None:
         if not _is_filter(self.filter):
             raise ValueError(
                 f"DeclareBlockersEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+        if self.subject is not None and not _is_filter(self.subject):
+            raise ValueError(
+                f"DeclareBlockersEvent: subject must be a Filter, got {type(self.subject).__name__}"
             )
 
 
@@ -717,7 +972,9 @@ class CombatDamageEvent:
 
     def __post_init__(self) -> None:
         if not _is_filter(self.filter):
-            raise ValueError(f"CombatDamageEvent: filter must be a Filter, got {type(self.filter).__name__}")
+            raise ValueError(
+                f"CombatDamageEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
 
 
 @dataclass(frozen=True)
@@ -729,7 +986,9 @@ class CounterPlacedEvent:
 
     def __post_init__(self) -> None:
         if not isinstance(self.counter_kind, CounterKind):
-            raise ValueError(f"CounterPlacedEvent: counter_kind must be a CounterKind, got {self.counter_kind!r}")
+            raise ValueError(
+                f"CounterPlacedEvent: counter_kind must be a CounterKind, got {self.counter_kind!r}"
+            )
         if not _is_filter(self.filter):
             raise ValueError(
                 f"CounterPlacedEvent: filter must be a Filter, got {type(self.filter).__name__}"
@@ -745,7 +1004,9 @@ class CreatureDiesEvent:
 
     def __post_init__(self) -> None:
         if not _is_filter(self.filter):
-            raise ValueError(f"CreatureDiesEvent: filter must be a Filter, got {type(self.filter).__name__}")
+            raise ValueError(
+                f"CreatureDiesEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
 
 
 @dataclass(frozen=True)
@@ -771,9 +1032,13 @@ class TapStateEvent:
 
     def __post_init__(self) -> None:
         if not isinstance(self.tapped, bool):
-            raise ValueError(f"TapStateEvent: tapped must be a bool, got {self.tapped!r}")
+            raise ValueError(
+                f"TapStateEvent: tapped must be a bool, got {self.tapped!r}"
+            )
         if not _is_filter(self.filter):
-            raise ValueError(f"TapStateEvent: filter must be a Filter, got {type(self.filter).__name__}")
+            raise ValueError(
+                f"TapStateEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
 
 
 @dataclass(frozen=True)
@@ -785,7 +1050,9 @@ class TurnPhaseEvent:
 
     def __post_init__(self) -> None:
         if not isinstance(self.phase, Phase):
-            raise ValueError(f"TurnPhaseEvent: phase must be a Phase, got {self.phase!r}")
+            raise ValueError(
+                f"TurnPhaseEvent: phase must be a Phase, got {self.phase!r}"
+            )
         if not isinstance(self.controller, ControllerRef):
             raise ValueError(f"TurnPhaseEvent: controller must be a ControllerRef")
 
@@ -811,16 +1078,34 @@ class StepEvent:
 class DamageDealtEvent:
     """Damage was dealt to the subject (filter over the damaged object —
     Brash Taunter's "whenever this creature is dealt damage"). `amount`
-    rides the event for QProp("event", AMOUNT)."""
+    rides the event for QProp("event", AMOUNT). T3 round F optional
+    scoping: ``source`` = a Filter over the damage SOURCE (None = any —
+    "whenever this creature is dealt damage by a source you control"),
+    ``combat`` = True/False to require combat / non-combat damage,
+    None = either ("deals noncombat damage to an opponent")."""
 
     amount: Quantity
     filter: Filter
+    source: Filter | None = None
+    combat: bool | None = None
 
     def __post_init__(self) -> None:
         if not _is_quantity(self.amount):
-            raise ValueError(f"DamageDealtEvent: amount must be a Quantity, got {type(self.amount).__name__}")
+            raise ValueError(
+                f"DamageDealtEvent: amount must be a Quantity, got {type(self.amount).__name__}"
+            )
         if not _is_filter(self.filter):
-            raise ValueError(f"DamageDealtEvent: filter must be a Filter, got {type(self.filter).__name__}")
+            raise ValueError(
+                f"DamageDealtEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+        if self.source is not None and not _is_filter(self.source):
+            raise ValueError(
+                f"DamageDealtEvent: source must be a Filter, got {type(self.source).__name__}"
+            )
+        if self.combat is not None and not isinstance(self.combat, bool):
+            raise ValueError(
+                f"DamageDealtEvent: combat must be a bool, got {self.combat!r}"
+            )
 
 
 @dataclass(frozen=True)
@@ -833,7 +1118,54 @@ class TargetingEvent:
 
     def __post_init__(self) -> None:
         if not _is_filter(self.filter):
-            raise ValueError(f"TargetingEvent: filter must be a Filter, got {type(self.filter).__name__}")
+            raise ValueError(
+                f"TargetingEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class CardDrawnEvent:
+    """A card was drawn by `controller` (T3 round F: "whenever you draw a
+    card", "whenever an opponent draws a card"). The drawn card is the
+    event subject — a TriggeredAbility `condition` Filter narrows it."""
+
+    controller: ControllerRef
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.controller, ControllerRef):
+            raise ValueError(
+                f"CardDrawnEvent: controller must be a ControllerRef, got {type(self.controller).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class LifeGainedEvent:
+    """`controller` gained life (T3 round F: "whenever you gain life,
+    target opponent loses that much life")."""
+
+    controller: ControllerRef
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.controller, ControllerRef):
+            raise ValueError(
+                f"LifeGainedEvent: controller must be a ControllerRef, got {type(self.controller).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class SacrificeEvent:
+    """`controller` sacrificed a permanent (T3 round F: "whenever you
+    sacrifice a permanent"). The sacrificed permanent is the event
+    subject — a TriggeredAbility `condition` Filter narrows it (e.g. a
+    creature filter)."""
+
+    controller: ControllerRef
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.controller, ControllerRef):
+            raise ValueError(
+                f"SacrificeEvent: controller must be a ControllerRef, got {type(self.controller).__name__}"
+            )
 
 
 EventSpec = (
@@ -850,6 +1182,9 @@ EventSpec = (
     | StepEvent
     | DamageDealtEvent
     | TargetingEvent
+    | CardDrawnEvent
+    | LifeGainedEvent
+    | SacrificeEvent
 )
 
 
@@ -866,7 +1201,9 @@ class LiteralName:
 
     def __post_init__(self) -> None:
         if not isinstance(self.name, str) or not self.name.strip():
-            raise ValueError(f"LiteralName: name must be a non-empty str, got {self.name!r}")
+            raise ValueError(
+                f"LiteralName: name must be a non-empty str, got {self.name!r}"
+            )
 
 
 @dataclass(frozen=True)
@@ -879,9 +1216,13 @@ class PtDelta:
 
     def __post_init__(self) -> None:
         if not isinstance(self.direction, PtDirection):
-            raise ValueError(f"PtDelta: direction must be a PtDirection, got {self.direction!r}")
+            raise ValueError(
+                f"PtDelta: direction must be a PtDirection, got {self.direction!r}"
+            )
         if not _is_quantity(self.magnitude):
-            raise ValueError(f"PtDelta: magnitude must be a Quantity, got {type(self.magnitude).__name__}")
+            raise ValueError(
+                f"PtDelta: magnitude must be a Quantity, got {type(self.magnitude).__name__}"
+            )
 
 
 @dataclass(frozen=True)
@@ -902,22 +1243,30 @@ class TokenSpec:
 
     def __post_init__(self) -> None:
         if not isinstance(self.name, str) or not self.name.strip():
-            raise ValueError(f"TokenSpec: name must be a non-empty str, got {self.name!r}")
+            raise ValueError(
+                f"TokenSpec: name must be a non-empty str, got {self.name!r}"
+            )
         if not isinstance(self.type_line, str) or not self.type_line.strip():
             raise ValueError("TokenSpec: type_line must be a non-empty str")
         if not self.types:
             raise ValueError("TokenSpec: types must be non-empty")
         if "Creature" in self.types:
             if not _is_quantity(self.power) or not _is_quantity(self.toughness):
-                raise ValueError("TokenSpec: creature tokens require power and toughness Quantities")
+                raise ValueError(
+                    "TokenSpec: creature tokens require power and toughness Quantities"
+                )
         elif self.power is not None or self.toughness is not None:
             raise ValueError("TokenSpec: non-creature tokens cannot have P/T")
         for keyword in self.keywords:
             if not isinstance(keyword, Keyword):
-                raise ValueError(f"TokenSpec: keywords must be Keyword, got {type(keyword).__name__}")
+                raise ValueError(
+                    f"TokenSpec: keywords must be Keyword, got {type(keyword).__name__}"
+                )
         for ability in self.abilities:
             if not _is_ability(ability):
-                raise ValueError(f"TokenSpec: abilities must be Ability, got {type(ability).__name__}")
+                raise ValueError(
+                    f"TokenSpec: abilities must be Ability, got {type(ability).__name__}"
+                )
 
 
 # ---- Costs ----
@@ -932,7 +1281,9 @@ class CostTap:
 
     def __post_init__(self) -> None:
         if self.target is not None and not isinstance(self.target, Selector):
-            raise ValueError(f"CostTap: target must be a Selector, got {type(self.target).__name__}")
+            raise ValueError(
+                f"CostTap: target must be a Selector, got {type(self.target).__name__}"
+            )
 
 
 @dataclass(frozen=True)
@@ -944,9 +1295,13 @@ class CostManaColor:
 
     def __post_init__(self) -> None:
         if self.color not in _COLORS:
-            raise ValueError(f"CostManaColor: color must be one of {_COLORS}, got {self.color!r}")
+            raise ValueError(
+                f"CostManaColor: color must be one of {_COLORS}, got {self.color!r}"
+            )
         if not _is_quantity(self.amount):
-            raise ValueError(f"CostManaColor: amount must be a Quantity, got {type(self.amount).__name__}")
+            raise ValueError(
+                f"CostManaColor: amount must be a Quantity, got {type(self.amount).__name__}"
+            )
 
 
 @dataclass(frozen=True)
@@ -957,7 +1312,9 @@ class CostManaGeneric:
 
     def __post_init__(self) -> None:
         if not _is_quantity(self.amount):
-            raise ValueError(f"CostManaGeneric: amount must be a Quantity, got {type(self.amount).__name__}")
+            raise ValueError(
+                f"CostManaGeneric: amount must be a Quantity, got {type(self.amount).__name__}"
+            )
 
 
 @dataclass(frozen=True)
@@ -970,11 +1327,17 @@ class CostManaHybrid:
 
     def __post_init__(self) -> None:
         if len(self.colors) != 2 or any(c not in _COLORS for c in self.colors):
-            raise ValueError(f"CostManaHybrid: colors must be two of {_COLORS}, got {self.colors!r}")
+            raise ValueError(
+                f"CostManaHybrid: colors must be two of {_COLORS}, got {self.colors!r}"
+            )
         if self.colors[0] == self.colors[1]:
-            raise ValueError(f"CostManaHybrid: hybrid colours must differ, got {self.colors!r}")
+            raise ValueError(
+                f"CostManaHybrid: hybrid colours must differ, got {self.colors!r}"
+            )
         if not _is_quantity(self.amount):
-            raise ValueError(f"CostManaHybrid: amount must be a Quantity, got {type(self.amount).__name__}")
+            raise ValueError(
+                f"CostManaHybrid: amount must be a Quantity, got {type(self.amount).__name__}"
+            )
 
 
 @dataclass(frozen=True)
@@ -985,7 +1348,9 @@ class CostLife:
 
     def __post_init__(self) -> None:
         if not _is_quantity(self.amount):
-            raise ValueError(f"CostLife: amount must be a Quantity, got {type(self.amount).__name__}")
+            raise ValueError(
+                f"CostLife: amount must be a Quantity, got {type(self.amount).__name__}"
+            )
 
 
 @dataclass(frozen=True)
@@ -997,7 +1362,9 @@ class CostSacrifice:
 
     def __post_init__(self) -> None:
         if not isinstance(self.target, Selector):
-            raise ValueError(f"CostSacrifice: target must be a Selector, got {type(self.target).__name__}")
+            raise ValueError(
+                f"CostSacrifice: target must be a Selector, got {type(self.target).__name__}"
+            )
 
 
 @dataclass(frozen=True)
@@ -1009,7 +1376,9 @@ class CostDiscard:
 
     def __post_init__(self) -> None:
         if not isinstance(self.target, Selector):
-            raise ValueError(f"CostDiscard: target must be a Selector, got {type(self.target).__name__}")
+            raise ValueError(
+                f"CostDiscard: target must be a Selector, got {type(self.target).__name__}"
+            )
 
 
 @dataclass(frozen=True)
@@ -1023,25 +1392,46 @@ class CostPutCounter:
 
     def __post_init__(self) -> None:
         if not isinstance(self.counter_kind, CounterKind):
-            raise ValueError(f"CostPutCounter: counter_kind must be a CounterKind, got {self.counter_kind!r}")
+            raise ValueError(
+                f"CostPutCounter: counter_kind must be a CounterKind, got {self.counter_kind!r}"
+            )
         if not isinstance(self.target, Selector):
-            raise ValueError(f"CostPutCounter: target must be a Selector, got {type(self.target).__name__}")
+            raise ValueError(
+                f"CostPutCounter: target must be a Selector, got {type(self.target).__name__}"
+            )
         if not _is_quantity(self.count):
-            raise ValueError(f"CostPutCounter: count must be a Quantity, got {type(self.count).__name__}")
+            raise ValueError(
+                f"CostPutCounter: count must be a Quantity, got {type(self.count).__name__}"
+            )
 
 
 @dataclass(frozen=True)
 class CostLoyalty:
     """A loyalty change as a cost — the ONLY signed value in the grammar,
-    because planeswalker costs (-2, -7) are negative by definition."""
+    because planeswalker costs (-2, -7) are negative by definition.
 
-    delta: int
+    ``delta`` is a literal int or a Quantity (T3 round 2, item 6: Ugin's
+    "[−X]" — a DYNAMIC loyalty cost); a dynamic delta is still always a
+    reduction (loyalty is never gained as a cost)."""
+
+    delta: int | Quantity
 
     def __post_init__(self) -> None:
-        if isinstance(self.delta, bool) or not isinstance(self.delta, int):
-            raise ValueError(f"CostLoyalty: delta must be an int, got {self.delta!r}")
-        if self.delta == 0:
-            raise ValueError("CostLoyalty: delta must be non-zero")
+        if isinstance(self.delta, bool):
+            raise ValueError(
+                f"CostLoyalty: delta must be an int or Quantity, got {self.delta!r}"
+            )
+        if isinstance(self.delta, int):
+            if self.delta == 0:
+                raise ValueError("CostLoyalty: delta must be non-zero")
+        elif _is_quantity(self.delta):
+            if isinstance(self.delta, QConst) and self.delta.value == 0:
+                raise ValueError("CostLoyalty: delta must be non-zero")
+        else:
+            raise ValueError(
+                "CostLoyalty: delta must be an int or Quantity, got "
+                f"{type(self.delta).__name__}"
+            )
 
 
 CostPart = (
@@ -1066,7 +1456,96 @@ class Cost:
     def __post_init__(self) -> None:
         for part in self.parts:
             if not _is_cost_part(part):
-                raise ValueError(f"Cost: part must be a CostPart, got {type(part).__name__}")
+                raise ValueError(
+                    f"Cost: part must be a CostPart, got {type(part).__name__}"
+                )
+
+
+# Cost deltas — the signed cost changes a CostModifier applies (T3 round
+# K: "cost {2} less to cast", "cost an additional 2 life to cast", "cost
+# {2}{U} less", "cast without paying its mana cost"). `amount` is a
+# Quantity, so X- and dynamic-amount deltas ("where X is the total power
+# of creatures you control") are legal.
+
+
+@dataclass(frozen=True)
+class CostDeltaReduceGeneric:
+    """Reduce the cost's generic-mana requirement by `amount`
+    ("cost {2} less to cast")."""
+
+    amount: Quantity
+
+    def __post_init__(self) -> None:
+        if not _is_quantity(self.amount):
+            raise ValueError(
+                "CostDeltaReduceGeneric: amount must be a Quantity, got "
+                f"{type(self.amount).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class CostDeltaIncreaseGeneric:
+    """Increase the cost's generic-mana requirement by `amount`
+    ("cost {2} more to cast")."""
+
+    amount: Quantity
+
+    def __post_init__(self) -> None:
+        if not _is_quantity(self.amount):
+            raise ValueError(
+                "CostDeltaIncreaseGeneric: amount must be a Quantity, got "
+                f"{type(self.amount).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class CostDeltaReduceMana:
+    """Reduce one `color` mana symbol in the cost by `amount`
+    ("cost {2}{U} less to cast")."""
+
+    color: str
+    amount: Quantity
+
+    def __post_init__(self) -> None:
+        if self.color not in _COLORS:
+            raise ValueError(
+                f"CostDeltaReduceMana: color must be one of {_COLORS}, got {self.color!r}"
+            )
+        if not _is_quantity(self.amount):
+            raise ValueError(
+                "CostDeltaReduceMana: amount must be a Quantity, got "
+                f"{type(self.amount).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class CostDeltaIncreaseLife:
+    """Add `amount` of life to the cost ("cost an additional 2 life to
+    cast")."""
+
+    amount: Quantity
+
+    def __post_init__(self) -> None:
+        if not _is_quantity(self.amount):
+            raise ValueError(
+                "CostDeltaIncreaseLife: amount must be a Quantity, got "
+                f"{type(self.amount).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class CostDeltaWaiveMana:
+    """Waive the cost's mana component entirely ("you may cast spells from
+    your hand without paying their mana costs")."""
+
+
+CostDelta = (
+    CostDeltaReduceGeneric
+    | CostDeltaIncreaseGeneric
+    | CostDeltaReduceMana
+    | CostDeltaIncreaseLife
+    | CostDeltaWaiveMana
+)
 
 
 # ---- Atom args and the Atom ----
@@ -1101,9 +1580,13 @@ class AtomArgs:
                     + ", ".join(t.__name__ for t in allowed)
                 )
             if role == "types" and not all(isinstance(x, str) for x in value):  # type: ignore[arg-type]
-                raise ValueError("AtomArgs: role 'types' must be a tuple of card-type strings")
+                raise ValueError(
+                    "AtomArgs: role 'types' must be a tuple of card-type strings"
+                )
             if role == "color" and value not in (*_COLORS, _COLORLESS):
-                raise ValueError(f"AtomArgs: role 'color' must be one of WUBRG/C, got {value!r}")
+                raise ValueError(
+                    f"AtomArgs: role 'color' must be one of WUBRG/C, got {value!r}"
+                )
         object.__setattr__(self, "pairs", tuple(sorted(self.pairs, key=lambda p: p[0])))
 
     def get(self, role: str) -> object | None:
@@ -1126,7 +1609,9 @@ class Atom:
         if not isinstance(self.verb, Verb):
             raise ValueError(f"Atom: verb must be a Verb, got {self.verb!r}")
         if not isinstance(self.args, AtomArgs):
-            raise ValueError(f"Atom: args must be an AtomArgs, got {type(self.args).__name__}")
+            raise ValueError(
+                f"Atom: args must be an AtomArgs, got {type(self.args).__name__}"
+            )
         roles = dict(self.args.pairs)
         table = _VERB_ROLES[self.verb]
         missing = sorted(r for r, req in table.items() if req and r not in roles)
@@ -1135,7 +1620,11 @@ class Atom:
         extra = sorted(r for r in roles if r not in table)
         if extra:
             raise ValueError(f"Atom: {self.verb.name} does not take roles {extra}")
-        if self.verb is Verb.MODIFY_PT and "power" not in roles and "toughness" not in roles:
+        if (
+            self.verb is Verb.MODIFY_PT
+            and "power" not in roles
+            and "toughness" not in roles
+        ):
             raise ValueError("Atom: MODIFY_PT needs at least one of power/toughness")
 
 
@@ -1154,7 +1643,9 @@ class Seq:
             raise ValueError("Seq: steps must be non-empty")
         for step in self.steps:
             if not _is_effect(step):
-                raise ValueError(f"Seq: step must be an Effect, got {type(step).__name__}")
+                raise ValueError(
+                    f"Seq: step must be an Effect, got {type(step).__name__}"
+                )
 
 
 @dataclass(frozen=True)
@@ -1166,12 +1657,16 @@ class Choose:
 
     def __post_init__(self) -> None:
         if not _is_quantity(self.count):
-            raise ValueError(f"Choose: count must be a Quantity, got {type(self.count).__name__}")
+            raise ValueError(
+                f"Choose: count must be a Quantity, got {type(self.count).__name__}"
+            )
         if not self.options:
             raise ValueError("Choose: options must be non-empty")
         for option in self.options:
             if not _is_effect(option):
-                raise ValueError(f"Choose: option must be an Effect, got {type(option).__name__}")
+                raise ValueError(
+                    f"Choose: option must be an Effect, got {type(option).__name__}"
+                )
 
 
 @dataclass(frozen=True)
@@ -1182,7 +1677,9 @@ class OptionalEffect:
 
     def __post_init__(self) -> None:
         if not _is_effect(self.inner):
-            raise ValueError(f"OptionalEffect: inner must be an Effect, got {type(self.inner).__name__}")
+            raise ValueError(
+                f"OptionalEffect: inner must be an Effect, got {type(self.inner).__name__}"
+            )
 
 
 @dataclass(frozen=True)
@@ -1196,11 +1693,17 @@ class Conditional:
 
     def __post_init__(self) -> None:
         if not _is_filter(self.pred):
-            raise ValueError(f"Conditional: pred must be a Filter, got {type(self.pred).__name__}")
+            raise ValueError(
+                f"Conditional: pred must be a Filter, got {type(self.pred).__name__}"
+            )
         if not _is_effect(self.then_effect):
-            raise ValueError(f"Conditional: then_effect must be an Effect, got {type(self.then_effect).__name__}")
+            raise ValueError(
+                f"Conditional: then_effect must be an Effect, got {type(self.then_effect).__name__}"
+            )
         if self.else_effect is not None and not _is_effect(self.else_effect):
-            raise ValueError(f"Conditional: else_effect must be an Effect, got {type(self.else_effect).__name__}")
+            raise ValueError(
+                f"Conditional: else_effect must be an Effect, got {type(self.else_effect).__name__}"
+            )
 
 
 @dataclass(frozen=True)
@@ -1212,12 +1715,38 @@ class Repeat:
 
     def __post_init__(self) -> None:
         if not _is_quantity(self.count):
-            raise ValueError(f"Repeat: count must be a Quantity, got {type(self.count).__name__}")
+            raise ValueError(
+                f"Repeat: count must be a Quantity, got {type(self.count).__name__}"
+            )
         if not _is_effect(self.inner):
-            raise ValueError(f"Repeat: inner must be an Effect, got {type(self.inner).__name__}")
+            raise ValueError(
+                f"Repeat: inner must be an Effect, got {type(self.inner).__name__}"
+            )
 
 
-Effect = Seq | Choose | OptionalEffect | Conditional | Repeat | Atom
+@dataclass(frozen=True)
+class EachPlayer:
+    """Apply `effect` once per player denoted by `ref` (T3 round I:
+    "each opponent creates a token / sacrifices a creature" — per-opponent
+    effects are a named cross-set mechanic). `ref` = the player set:
+    ALL_OPPONENTS for "each opponent", OPPONENT/YOU for the singular
+    per-player reading."""
+
+    ref: ControllerRef
+    effect: Effect
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.ref, ControllerRef):
+            raise ValueError(
+                f"EachPlayer: ref must be a ControllerRef, got {type(self.ref).__name__}"
+            )
+        if not _is_effect(self.effect):
+            raise ValueError(
+                f"EachPlayer: effect must be an Effect, got {type(self.effect).__name__}"
+            )
+
+
+Effect = Seq | Choose | OptionalEffect | Conditional | Repeat | EachPlayer | Atom
 
 
 # ---- Abilities ----
@@ -1226,13 +1755,25 @@ Effect = Seq | Choose | OptionalEffect | Conditional | Repeat | Atom
 @dataclass(frozen=True)
 class StaticAbility:
     """A continuous effect (anthems, "can't attack" preventions, equipped
-    creature gets +1/+1 for each soul counter)."""
+    creature gets +1/+1 for each soul counter). `condition` (T3 round 4,
+    2026-09-24) optionally scopes WHEN the continuous effect applies ("As
+    long as you've drawn two or more cards this turn, this creature gets
+    +0/+2"); None = unconditional — same convention as
+    TriggeredAbility.condition / CostModifier.condition (state predicate,
+    no event subject)."""
 
     effect: Effect
+    condition: Filter | None = None
 
     def __post_init__(self) -> None:
         if not _is_effect(self.effect):
-            raise ValueError(f"StaticAbility: effect must be an Effect, got {type(self.effect).__name__}")
+            raise ValueError(
+                f"StaticAbility: effect must be an Effect, got {type(self.effect).__name__}"
+            )
+        if self.condition is not None and not _is_filter(self.condition):
+            raise ValueError(
+                f"StaticAbility: condition must be a Filter, got {type(self.condition).__name__}"
+            )
 
 
 @dataclass(frozen=True)
@@ -1246,41 +1787,87 @@ class TriggeredAbility:
 
     def __post_init__(self) -> None:
         if not _is_event(self.event):
-            raise ValueError(f"TriggeredAbility: event must be an EventSpec, got {type(self.event).__name__}")
+            raise ValueError(
+                f"TriggeredAbility: event must be an EventSpec, got {type(self.event).__name__}"
+            )
         if self.condition is not None and not _is_filter(self.condition):
-            raise ValueError(f"TriggeredAbility: condition must be a Filter, got {type(self.condition).__name__}")
+            raise ValueError(
+                f"TriggeredAbility: condition must be a Filter, got {type(self.condition).__name__}"
+            )
         if not _is_effect(self.effect):
-            raise ValueError(f"TriggeredAbility: effect must be an Effect, got {type(self.effect).__name__}")
+            raise ValueError(
+                f"TriggeredAbility: effect must be an Effect, got {type(self.effect).__name__}"
+            )
 
 
 @dataclass(frozen=True)
 class ActivatedAbility:
     """Cost: Effect — mana abilities, loyalty abilities, and Mazemind
-    Tome's "{T}, put a page counter on this artifact: Scry 1"."""
+    Tome's "{T}, put a page counter on this artifact: Scry 1". `condition`
+    (T3 round 4, 2026-09-24) optionally gates activation ("Activate only
+    if a creature died this turn"); None = unconditional — same convention
+    as StaticAbility.condition (state predicate, no event subject)."""
 
     cost: Cost
     effect: Effect
+    condition: Filter | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.cost, Cost):
-            raise ValueError(f"ActivatedAbility: cost must be a Cost, got {type(self.cost).__name__}")
+            raise ValueError(
+                f"ActivatedAbility: cost must be a Cost, got {type(self.cost).__name__}"
+            )
         if not _is_effect(self.effect):
-            raise ValueError(f"ActivatedAbility: effect must be an Effect, got {type(self.effect).__name__}")
+            raise ValueError(
+                f"ActivatedAbility: effect must be an Effect, got {type(self.effect).__name__}"
+            )
+        if self.condition is not None and not _is_filter(self.condition):
+            raise ValueError(
+                f"ActivatedAbility: condition must be a Filter, got {type(self.condition).__name__}"
+            )
 
 
 @dataclass(frozen=True)
 class SpellAbility:
     """The card's own spell effect, keyed by card class. The printed mana
-    cost stays on CardRecord; this is what casting the card does."""
+    cost stays on CardRecord; this is what casting the card does.
+
+    ``additional_costs`` (T3 round 2, item 3) carries the "As an additional
+    cost to cast this spell, ..." costs ON TOP of the printed cost (sacrifice
+    a creature, discard a card, ...) — the printed cost itself still lives on
+    CardRecord.
+
+    ``effect`` (T3 round 3) is optional: a creature can be castable with
+    additional costs and no resolvable effect sentence of its own (Goremand,
+    Sparkhunter Masticore). The compiler then builds an effect-less
+    SpellAbility (``effect=None``) purely to carry the additional costs.
+    ``None`` serializes by omitting the ``"effect"`` key, so every
+    pre-round-3 tree (all of which carry an effect) stays byte-identical."""
 
     kind: SpellKind
-    effect: Effect
+    effect: Effect | None = None
+    additional_costs: tuple[Cost, ...] = ()
 
     def __post_init__(self) -> None:
         if not isinstance(self.kind, SpellKind):
-            raise ValueError(f"SpellAbility: kind must be a SpellKind, got {self.kind!r}")
-        if not _is_effect(self.effect):
-            raise ValueError(f"SpellAbility: effect must be an Effect, got {type(self.effect).__name__}")
+            raise ValueError(
+                f"SpellAbility: kind must be a SpellKind, got {self.kind!r}"
+            )
+        if self.effect is not None and not _is_effect(self.effect):
+            raise ValueError(
+                f"SpellAbility: effect must be an Effect, got {type(self.effect).__name__}"
+            )
+        if not isinstance(self.additional_costs, tuple):
+            raise ValueError(
+                "SpellAbility: additional_costs must be a tuple of Cost, got "
+                f"{type(self.additional_costs).__name__}"
+            )
+        for cost in self.additional_costs:
+            if not isinstance(cost, Cost):
+                raise ValueError(
+                    "SpellAbility: additional_costs must hold Cost nodes, got "
+                    f"{type(cost).__name__}"
+                )
 
 
 @dataclass(frozen=True)
@@ -1295,7 +1882,9 @@ class KeywordAbility:
 
     def __post_init__(self) -> None:
         if not isinstance(self.keyword, Keyword):
-            raise ValueError(f"KeywordAbility: keyword must be a Keyword, got {self.keyword!r}")
+            raise ValueError(
+                f"KeywordAbility: keyword must be a Keyword, got {self.keyword!r}"
+            )
         signatures = _KEYWORD_PARAMS.get(self.keyword, ((),))
         if len(self.params) not in {len(sig) for sig in signatures}:
             raise ValueError(
@@ -1333,9 +1922,120 @@ class ReplacementAbility:
                 f"ReplacementAbility: event must be an EventSpec, got {type(self.event).__name__}"
             )
         if self.condition is not None and not _is_filter(self.condition):
-            raise ValueError(f"ReplacementAbility: condition must be a Filter, got {type(self.condition).__name__}")
+            raise ValueError(
+                f"ReplacementAbility: condition must be a Filter, got {type(self.condition).__name__}"
+            )
         if not _is_effect(self.action):
-            raise ValueError(f"ReplacementAbility: action must be an Effect, got {type(self.action).__name__}")
+            raise ValueError(
+                f"ReplacementAbility: action must be an Effect, got {type(self.action).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class CostModifier:
+    """A continuous cost-altering effect (T3 round K: "creature spells
+    with flying you cast cost {2} less to cast", "cost an additional 2
+    life to cast", "cost {2}{U} less", "without paying its mana cost").
+
+    Structural choice (per the T3 decision doc's option 2): a SIBLING
+    Ability node, not a StaticAbility payload — a cost modifier is not an
+    executable Effect step (StaticAbility wraps an Effect: things that
+    HAPPEN), it declares its own payload exactly like StaticAbility
+    declares `effect`. `filter` selects the affected spells/permanents,
+    `controller_ref` scopes whose, `delta` is the signed cost change.
+    `condition` (T3 round 2, item 2) optionally narrows WHEN the modifier
+    applies ("This spell costs {2} less to cast if you've gained 2 or more
+    life this turn"); None = unconditional. `extra_deltas` (T3 round 4,
+    2026-09-24) carries further cost deltas beyond the single `delta` slot
+    (Stormwing Entity's {2}{U} = generic 2 + 1 blue); empty = single delta
+    only — the additive-slot pattern of Selector.zone/Selector.zones."""
+
+    filter: Filter
+    controller_ref: ControllerRef
+    delta: CostDelta
+    condition: Filter | None = None
+    extra_deltas: tuple[CostDelta, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not _is_filter(self.filter):
+            raise ValueError(
+                f"CostModifier: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+        if not isinstance(self.controller_ref, ControllerRef):
+            raise ValueError(
+                "CostModifier: controller_ref must be a ControllerRef, got "
+                f"{type(self.controller_ref).__name__}"
+            )
+        if not _is_cost_delta(self.delta):
+            raise ValueError(
+                f"CostModifier: delta must be a CostDelta, got {type(self.delta).__name__}"
+            )
+        if self.condition is not None and not _is_filter(self.condition):
+            raise ValueError(
+                "CostModifier: condition must be a Filter, got "
+                f"{type(self.condition).__name__}"
+            )
+        for extra in self.extra_deltas:
+            if not _is_cost_delta(extra):
+                raise ValueError(
+                    f"CostModifier: extra_deltas must be CostDelta, got {type(extra).__name__}"
+                )
+
+
+@dataclass(frozen=True)
+class EtBState:
+    """The entered state of a permanent: `tapped` ("this creature enters
+    tapped") and/or `initial_counters` ("enters with 3 +1/+1 counters",
+    "this Equipment enters with a soul counter") — T3 round J, among the
+    most common ETB states. An Ability node on the card record. Each
+    counter entry is a (CounterKind, Quantity) pair. A no-op state
+    (untapped, no counters) is rejected — a no-op is not a node in the
+    tree (Seq's rule)."""
+
+    tapped: bool = False
+    initial_counters: tuple[tuple[CounterKind, Quantity], ...] = ()
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.tapped, bool):
+            raise ValueError(f"EtBState: tapped must be a bool, got {self.tapped!r}")
+        if not isinstance(self.initial_counters, tuple):
+            raise ValueError(
+                "EtBState: initial_counters must be a tuple of (CounterKind, Quantity)"
+            )
+        for entry in self.initial_counters:
+            if not (isinstance(entry, tuple) and len(entry) == 2):
+                raise ValueError(
+                    "EtBState: each counter entry must be a (CounterKind, Quantity) pair"
+                )
+            kind, count = entry
+            if not isinstance(kind, CounterKind):
+                raise ValueError(
+                    f"EtBState: counter kind must be a CounterKind, got {kind!r}"
+                )
+            if not _is_quantity(count):
+                raise ValueError(
+                    "EtBState: counter count must be a Quantity, got "
+                    f"{type(count).__name__}"
+                )
+        if not self.tapped and not self.initial_counters:
+            raise ValueError(
+                "EtBState: a no-op state is not a node (tapped or counters required)"
+            )
+
+
+@dataclass(frozen=True)
+class EmblemAbility:
+    """An emblem's embedded ability — emblems carry triggered/static
+    abilities of their own (T3 round L: Basri Ket / Garruk / Liliana
+    emblems; "the emblem's -1: each opponent creates a token")."""
+
+    embedded: Ability
+
+    def __post_init__(self) -> None:
+        if not _is_ability(self.embedded):
+            raise ValueError(
+                f"EmblemAbility: embedded must be an Ability, got {type(self.embedded).__name__}"
+            )
 
 
 Ability = (
@@ -1345,6 +2045,9 @@ Ability = (
     | SpellAbility
     | KeywordAbility
     | ReplacementAbility
+    | CostModifier
+    | EtBState
+    | EmblemAbility
 )
 
 
@@ -1385,46 +2088,80 @@ class CardRecord:
     def __post_init__(self) -> None:
         validate_oracle_id(self.oracle_id)
         if not isinstance(self.name, str) or not self.name.strip():
-            raise ValueError(f"CardRecord: name must be a non-empty str, got {self.name!r}")
+            raise ValueError(
+                f"CardRecord: name must be a non-empty str, got {self.name!r}"
+            )
         if not isinstance(self.type_line, str) or not self.type_line.strip():
             raise ValueError("CardRecord: type_line must be a non-empty str")
         if not self.types:
             raise ValueError("CardRecord: types must be non-empty")
         if any(c not in _COLORS for c in self.colors):
-            raise ValueError(f"CardRecord: colors must be drawn from {_COLORS}, got {self.colors!r}")
+            raise ValueError(
+                f"CardRecord: colors must be drawn from {_COLORS}, got {self.colors!r}"
+            )
         if any(c not in _COLORS for c in self.color_identity):
             raise ValueError(f"CardRecord: color_identity must be drawn from {_COLORS}")
-        if isinstance(self.mana_value, bool) or not isinstance(self.mana_value, int) or self.mana_value < 0:
-            raise ValueError(f"CardRecord: mana_value must be an int >= 0, got {self.mana_value!r}")
-        if self.loyalty is not None and (
-            isinstance(self.loyalty, bool) or not isinstance(self.loyalty, int) or self.loyalty <= 0
+        if (
+            isinstance(self.mana_value, bool)
+            or not isinstance(self.mana_value, int)
+            or self.mana_value < 0
         ):
-            raise ValueError(f"CardRecord: loyalty must be a positive int, got {self.loyalty!r}")
+            raise ValueError(
+                f"CardRecord: mana_value must be an int >= 0, got {self.mana_value!r}"
+            )
+        if self.loyalty is not None and (
+            isinstance(self.loyalty, bool)
+            or not isinstance(self.loyalty, int)
+            or self.loyalty <= 0
+        ):
+            raise ValueError(
+                f"CardRecord: loyalty must be a positive int, got {self.loyalty!r}"
+            )
         if ("Planeswalker" in self.types) != (self.loyalty is not None):
-            raise ValueError("CardRecord: loyalty must be set exactly when the card is a Planeswalker")
+            raise ValueError(
+                "CardRecord: loyalty must be set exactly when the card is a Planeswalker"
+            )
         if self.mana_cost is not None and not isinstance(self.mana_cost, Cost):
-            raise ValueError(f"CardRecord: mana_cost must be a Cost, got {type(self.mana_cost).__name__}")
+            raise ValueError(
+                f"CardRecord: mana_cost must be a Cost, got {type(self.mana_cost).__name__}"
+            )
         if self.power is not None and not _is_quantity(self.power):
-            raise ValueError(f"CardRecord: power must be a Quantity, got {type(self.power).__name__}")
+            raise ValueError(
+                f"CardRecord: power must be a Quantity, got {type(self.power).__name__}"
+            )
         if self.toughness is not None and not _is_quantity(self.toughness):
-            raise ValueError(f"CardRecord: toughness must be a Quantity, got {type(self.toughness).__name__}")
-        if "Creature" not in self.types and (self.power is not None or self.toughness is not None):
+            raise ValueError(
+                f"CardRecord: toughness must be a Quantity, got {type(self.toughness).__name__}"
+            )
+        if "Creature" not in self.types and (
+            self.power is not None or self.toughness is not None
+        ):
             raise ValueError("CardRecord: non-creatures cannot have P/T")
         for keyword in self.keywords:
             if not isinstance(keyword, KeywordAbility):
-                raise ValueError(f"CardRecord: keywords must be KeywordAbility, got {type(keyword).__name__}")
+                raise ValueError(
+                    f"CardRecord: keywords must be KeywordAbility, got {type(keyword).__name__}"
+                )
         for ability in self.abilities:
             if not _is_ability(ability):
-                raise ValueError(f"CardRecord: abilities must be Ability, got {type(ability).__name__}")
+                raise ValueError(
+                    f"CardRecord: abilities must be Ability, got {type(ability).__name__}"
+                )
         if not isinstance(self.is_token, bool):
-            raise ValueError(f"CardRecord: is_token must be a bool, got {self.is_token!r}")
+            raise ValueError(
+                f"CardRecord: is_token must be a bool, got {self.is_token!r}"
+            )
         if self.emblem is not None:
             if not isinstance(self.emblem, CardRecord):
-                raise ValueError(f"CardRecord: emblem must be a CardRecord, got {type(self.emblem).__name__}")
+                raise ValueError(
+                    f"CardRecord: emblem must be a CardRecord, got {type(self.emblem).__name__}"
+                )
             if "Planeswalker" not in self.types:
                 raise ValueError("CardRecord: only a Planeswalker may carry an emblem")
             if "Emblem" not in self.emblem.types or not self.emblem.is_token:
-                raise ValueError("CardRecord: emblem must be an Emblem-typed token record")
+                raise ValueError(
+                    "CardRecord: emblem must be an Emblem-typed token record"
+                )
             if self.emblem.emblem is not None:
                 raise ValueError("CardRecord: an emblem cannot carry an emblem")
 
@@ -1435,10 +2172,20 @@ class CardRecord:
 # they live after the classes they validate.
 # ---------------------------------------------------------------------------
 
-_Q_CLASSES = (QConst, QX, QUnbounded, QCount, QProp, QBin)
+_Q_CLASSES = (QConst, QX, QUnbounded, QCount, QProp, QBin, QThisTurn, QAtLeast)
 _F_CLASSES = (FAnd, FOr, FNot, FAtom)
-_E_CLASSES = (Seq, Choose, OptionalEffect, Conditional, Repeat, Atom)
-_A_CLASSES = (StaticAbility, TriggeredAbility, ActivatedAbility, SpellAbility, KeywordAbility, ReplacementAbility)
+_E_CLASSES = (Seq, Choose, OptionalEffect, Conditional, Repeat, EachPlayer, Atom)
+_A_CLASSES = (
+    StaticAbility,
+    TriggeredAbility,
+    ActivatedAbility,
+    SpellAbility,
+    KeywordAbility,
+    ReplacementAbility,
+    CostModifier,
+    EtBState,
+    EmblemAbility,
+)
 _EV_CLASSES = (
     ZoneChangeEvent,
     CastSpellEvent,
@@ -1453,8 +2200,16 @@ _EV_CLASSES = (
     StepEvent,
     DamageDealtEvent,
     TargetingEvent,
+    CardDrawnEvent,
+    LifeGainedEvent,
+    SacrificeEvent,
 )
-_D_CLASSES = (DurationEot, DurationPermanent, DurationUntilNextTurn, DurationWhileCondition)
+_D_CLASSES = (
+    DurationEot,
+    DurationPermanent,
+    DurationUntilNextTurn,
+    DurationWhileCondition,
+)
 _COST_PART_CLASSES = (
     CostTap,
     CostManaColor,
@@ -1465,6 +2220,13 @@ _COST_PART_CLASSES = (
     CostDiscard,
     CostPutCounter,
     CostLoyalty,
+)
+_COST_DELTA_CLASSES = (
+    CostDeltaReduceGeneric,
+    CostDeltaIncreaseGeneric,
+    CostDeltaReduceMana,
+    CostDeltaIncreaseLife,
+    CostDeltaWaiveMana,
 )
 
 
@@ -1496,6 +2258,10 @@ def _is_cost_part(value: object) -> bool:
     return isinstance(value, _COST_PART_CLASSES)
 
 
+def _is_cost_delta(value: object) -> bool:
+    return isinstance(value, _COST_DELTA_CLASSES)
+
+
 # FAtom predicate -> (required slots, allowed slots).
 _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     FAtomPred.TYPE_EQ: (frozenset({"string_value"}), frozenset({"string_value"})),
@@ -1510,7 +2276,10 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     FAtomPred.PT_LE: (frozenset({"count"}), frozenset({"count"})),
     FAtomPred.PT_GE: (frozenset({"count"}), frozenset({"count"})),
     FAtomPred.KEYWORD_HAS: (frozenset({"keyword"}), frozenset({"keyword"})),
-    FAtomPred.HAS_COUNTER: (frozenset({"counter_kind", "count"}), frozenset({"counter_kind", "count"})),
+    FAtomPred.HAS_COUNTER: (
+        frozenset({"counter_kind", "count"}),
+        frozenset({"counter_kind", "count"}),
+    ),
     FAtomPred.CONTROLLER_IS: (frozenset({"who"}), frozenset({"who"})),
     FAtomPred.CONTROLLER_COUNT_GE: (
         frozenset({"inner_filter", "count"}),
@@ -1530,6 +2299,31 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     FAtomPred.IS_TOKEN: (frozenset(), frozenset()),
     FAtomPred.DIED_THIS_TURN: (frozenset(), frozenset()),
     FAtomPred.IS_ATTACHED_TO_SOURCE: (frozenset(), frozenset()),
+    FAtomPred.POWER_LE: (frozenset({"count"}), frozenset({"count"})),
+    FAtomPred.POWER_GE: (frozenset({"count"}), frozenset({"count"})),
+    FAtomPred.NAME_CONTAINS: (frozenset({"string_value"}), frozenset({"string_value"})),
+    FAtomPred.LIFE_GAINED_THIS_TURN_GE: (
+        frozenset({"count", "who"}),
+        frozenset({"count", "who"}),
+    ),
+    FAtomPred.CARDS_DRAWN_THIS_TURN_GE: (
+        frozenset({"count", "who"}),
+        frozenset({"count", "who"}),
+    ),
+    # FLIP_WON: the flippers side — "if you win the flip" (required who).
+    # "If you LOSE the flip" is FNot(FAtom(FLIP_WON, who=YOU)), never a
+    # separate predicate (PITFALLS: no duplicate predicates).
+    FAtomPred.FLIP_WON: (frozenset({"who"}), frozenset({"who"})),
+    # INSTANT_OR_SORCERY_CAST_THIS_TURN: turn-scoped cast tracking — "if
+    # you've cast an instant or sorcery spell this turn" (required who;
+    # Stormwing Entity). Precedent: LIFE_GAINED_THIS_TURN_GE.
+    FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN: (
+        frozenset({"who"}),
+        frozenset({"who"}),
+    ),
+    # TARGETS_SOURCE: "spells your opponents cast that target this creature"
+    # — the spell targets the source object. No slots (precedent: IS_SOURCE).
+    FAtomPred.TARGETS_SOURCE: (frozenset(), frozenset()),
 }
 
 # Atom role -> allowed value types. "types" is a tuple of card-type strings
@@ -1556,6 +2350,9 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     "event": _EV_CLASSES,
     "condition": _F_CLASSES,
     "color": (str,),
+    "cost": (Cost,),  # PAY's cost role; CAST's optional extra-cost / waiver role
+    "tapped_on_enter": (bool,),  # MOVE_ZONE/SEARCH: "put it on the battlefield tapped"
+    "unless": (Cost,),  # COUNTER_SPELL's "unless its controller pays X" role
 }
 
 # Verb -> {role: required?}. MODIFY_PT additionally requires at least one
@@ -1576,16 +2373,33 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     Verb.CREATE_TOKEN: {"tokens": True, "count": False},
     Verb.PUT_COUNTER: {"target": True, "counter_kind": True, "count": True},
     Verb.REMOVE_COUNTER: {"target": True, "counter_kind": True, "count": True},
-    Verb.MODIFY_PT: {"target": True, "power": False, "toughness": False, "duration": False},
+    Verb.MODIFY_PT: {
+        "target": True,
+        "power": False,
+        "toughness": False,
+        "duration": False,
+    },
     Verb.SET_PT: {"target": True, "power": True, "toughness": True, "duration": False},
     Verb.GRANT_ABILITY: {"target": True, "ability": True, "duration": False},
     Verb.GRANT_TYPE: {"target": True, "types": True, "duration": False},
     Verb.TAP: {"target": True, "duration": False},
     Verb.UNTAP: {"target": True, "duration": False},
-    Verb.MOVE_ZONE: {"cards": True, "destination": True},
-    Verb.SEARCH: {"cards": True, "destination": True, "controller": False},
+    # MOVE_ZONE / SEARCH: the optional `tapped_on_enter` bool role marks the
+    # entered state ("put that card onto the battlefield tapped"); the
+    # value is wrapped in a "Bool" tag inside the pairs (T3 round 2, item 4).
+    Verb.MOVE_ZONE: {
+        "cards": True,
+        "destination": True,
+        "tapped_on_enter": False,
+    },
+    Verb.SEARCH: {
+        "cards": True,
+        "destination": True,
+        "controller": False,
+        "tapped_on_enter": False,
+    },
     Verb.SHUFFLE: {"zone": True},
-    Verb.COUNTER_SPELL: {"target": True},
+    Verb.COUNTER_SPELL: {"target": True, "unless": False},
     Verb.COPY: {"source": True},
     Verb.SACRIFICE: {"target": True},
     Verb.DISCARD: {"controller": True, "cards": True},
@@ -1594,12 +2408,31 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     Verb.LOOK_AT: {"controller": True, "count": True},
     Verb.ATTACH: {"equipment": True, "target": True},
     Verb.GAIN_CONTROL: {"target": True, "controller": True},
-    Verb.PREVENT_EFFECT: {"condition": True, "event": True, "controller": False, "duration": False},
+    Verb.PREVENT_EFFECT: {
+        "condition": True,
+        "event": True,
+        "controller": False,
+        "duration": False,
+    },
     Verb.PHASE_IN: {"cards": True, "controller": True},
     Verb.PHASE_OUT: {"target": True},
     Verb.EXTRA_TURN: {"count": True},
     Verb.END_TURN: {},
     Verb.MANDATE_ATTACK: {"cards": True, "controller": False, "duration": False},
+    # CAST: source is the Selector over the source zone (top-of-library via
+    # Zone.position). The optional `cost` role carries the cost paid
+    # BEYOND the spell's own — an empty Cost() is the cost-waiver reading
+    # ("cast ... without paying its mana cost"); Cost(parts=(...)) are
+    # additional costs ("by paying 2 life and discarding a card in
+    # addition to its other costs").
+    Verb.CAST: {"source": True, "cost": False},
+    # PAY: pay a cost as an effect ("you may pay {2}", with "if you do").
+    Verb.PAY: {"cost": True},
+    # LOSE_GAME: no roles — the effect is the loss itself.
+    Verb.LOSE_GAME: {},
+    # FLIP_COIN: no roles — the coin is flipped; the outcome is read by
+    # FAtomPred.FLIP_WON, never by an arg.
+    Verb.FLIP_COIN: {},
 }
 
 # Keyword -> tuple of allowed param signatures; each signature is a tuple
@@ -1625,18 +2458,20 @@ _KEYWORD_PARAMS: dict[Keyword, tuple[tuple[tuple[type, ...], ...], ...]] = {
 #                  spec at decode time)
 #   str/int/bool/None -> bare JSON values
 # Inside AtomArgs pairs, every value is always wrapped in a tag
-# ("String" / "StringTuple" / enum tag / dataclass tag) so no information
-# is lost inside the pairs tuple.
+# ("String" / "StringTuple" / "Bool" / enum tag / dataclass tag) so no
+# information is lost inside the pairs tuple.
 # ---------------------------------------------------------------------------
 
 _ENUMS: dict[str, type[Enum]] = {
     "Verb": Verb,
     "SelectorMode": SelectorMode,
     "ZoneKind": ZoneKind,
+    "ZonePosition": ZonePosition,
     "ControllerRef": ControllerRef,
     "QPropField": QPropField,
     "QAgg": QAgg,
     "QBinOp": QBinOp,
+    "ThisTurnKind": ThisTurnKind,
     "FAtomPred": FAtomPred,
     "CounterKind": CounterKind,
     "SpellKind": SpellKind,
@@ -1653,6 +2488,8 @@ _DATACLASSES: tuple[type, ...] = (
     QCount,
     QProp,
     QBin,
+    QThisTurn,
+    QAtLeast,
     Zone,
     Selector,
     FAnd,
@@ -1676,6 +2513,9 @@ _DATACLASSES: tuple[type, ...] = (
     StepEvent,
     DamageDealtEvent,
     TargetingEvent,
+    CardDrawnEvent,
+    LifeGainedEvent,
+    SacrificeEvent,
     LiteralName,
     PtDelta,
     TokenSpec,
@@ -1689,6 +2529,11 @@ _DATACLASSES: tuple[type, ...] = (
     CostPutCounter,
     CostLoyalty,
     Cost,
+    CostDeltaReduceGeneric,
+    CostDeltaIncreaseGeneric,
+    CostDeltaReduceMana,
+    CostDeltaIncreaseLife,
+    CostDeltaWaiveMana,
     AtomArgs,
     Atom,
     Seq,
@@ -1696,12 +2541,16 @@ _DATACLASSES: tuple[type, ...] = (
     OptionalEffect,
     Conditional,
     Repeat,
+    EachPlayer,
     StaticAbility,
     TriggeredAbility,
     ActivatedAbility,
     SpellAbility,
     KeywordAbility,
     ReplacementAbility,
+    CostModifier,
+    EtBState,
+    EmblemAbility,
     CardRecord,
 )
 
@@ -1716,10 +2565,26 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "QX": (),
     "QUnbounded": (),
     "QCount": (("selector", "selector"),),
-    "QProp": (("referent", "qprop_referent"), ("field", "enum:QPropField"), ("agg", "enum:QAgg")),
+    "QProp": (
+        ("referent", "qprop_referent"),
+        ("field", "enum:QPropField"),
+        ("agg", "enum:QAgg"),
+    ),
     "QBin": (("op", "enum:QBinOp"), ("left", "quantity"), ("right", "quantity")),
-    "Zone": (("kind", "enum:ZoneKind"), ("controller", "enum:ControllerRef")),
-    "Selector": (("count", "quantity"), ("mode", "enum:SelectorMode"), ("filter", "filter"), ("zone", "zone")),
+    "QThisTurn": (("kind", "enum:ThisTurnKind"), ("referent", "enum:ControllerRef")),
+    "QAtLeast": (("n", "int"),),
+    "Zone": (
+        ("kind", "enum:ZoneKind"),
+        ("controller", "enum:ControllerRef"),
+        ("position", "opt:enum:ZonePosition"),
+    ),
+    "Selector": (
+        ("count", "quantity"),
+        ("mode", "enum:SelectorMode"),
+        ("filter", "filter"),
+        ("zone", "zone"),
+        ("zones", "tup:zone"),
+    ),
     "FAnd": (("children", "tup:filter"),),
     "FOr": (("children", "tup:filter"),),
     "FNot": (("inner", "filter"),),
@@ -1738,19 +2603,40 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "DurationPermanent": (),
     "DurationUntilNextTurn": (),
     "DurationWhileCondition": (("filter", "filter"),),
-    "ZoneChangeEvent": (("from_zone", "zone"), ("to_zone", "zone")),
-    "CastSpellEvent": (("filter", "filter"),),
+    "ZoneChangeEvent": (
+        ("from_zone", "zone"),
+        ("to_zone", "zone"),
+        ("subject", "opt:filter"),
+    ),
+    "CastSpellEvent": (
+        ("filter", "filter"),
+        ("controller", "opt:enum:ControllerRef"),
+        ("from_zone", "opt:zone"),
+        ("ordinal", "opt:int"),
+    ),
     "DeclareAttackersEvent": (("filter", "filter"),),
-    "DeclareBlockersEvent": (("filter", "filter"),),
+    "DeclareBlockersEvent": (("filter", "filter"), ("subject", "opt:filter")),
     "CombatDamageEvent": (("filter", "filter"),),
     "CounterPlacedEvent": (("counter_kind", "enum:CounterKind"), ("filter", "filter")),
     "CreatureDiesEvent": (("filter", "filter"),),
     "BecomesBlockedEvent": (("filter", "filter"),),
     "TapStateEvent": (("tapped", "bool"), ("filter", "filter")),
     "TurnPhaseEvent": (("phase", "enum:Phase"), ("controller", "enum:ControllerRef")),
-    "StepEvent": (("phase", "enum:Phase"), ("step", "enum:Step"), ("controller", "enum:ControllerRef")),
-    "DamageDealtEvent": (("amount", "quantity"), ("filter", "filter")),
+    "StepEvent": (
+        ("phase", "enum:Phase"),
+        ("step", "enum:Step"),
+        ("controller", "enum:ControllerRef"),
+    ),
+    "DamageDealtEvent": (
+        ("amount", "quantity"),
+        ("filter", "filter"),
+        ("source", "opt:filter"),
+        ("combat", "opt:bool"),
+    ),
     "TargetingEvent": (("filter", "filter"),),
+    "CardDrawnEvent": (("controller", "enum:ControllerRef"),),
+    "LifeGainedEvent": (("controller", "enum:ControllerRef"),),
+    "SacrificeEvent": (("controller", "enum:ControllerRef"),),
     "LiteralName": (("name", "str"),),
     "PtDelta": (("direction", "enum:PtDirection"), ("magnitude", "quantity")),
     "TokenSpec": (
@@ -1770,22 +2656,64 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "CostLife": (("amount", "quantity"),),
     "CostSacrifice": (("target", "selector"),),
     "CostDiscard": (("target", "selector"),),
-    "CostPutCounter": (("counter_kind", "enum:CounterKind"), ("target", "selector"), ("count", "quantity")),
-    "CostLoyalty": (("delta", "int"),),
+    "CostPutCounter": (
+        ("counter_kind", "enum:CounterKind"),
+        ("target", "selector"),
+        ("count", "quantity"),
+    ),
+    "CostLoyalty": (("delta", "loyalty_delta"),),
     "Cost": (("parts", "tup:cost_part"),),
+    "CostDeltaReduceGeneric": (("amount", "quantity"),),
+    "CostDeltaIncreaseGeneric": (("amount", "quantity"),),
+    "CostDeltaReduceMana": (("color", "str"), ("amount", "quantity")),
+    "CostDeltaIncreaseLife": (("amount", "quantity"),),
+    "CostDeltaWaiveMana": (),
     "AtomArgs": (("pairs", "atom_pairs"),),
     "Atom": (("verb", "enum:Verb"), ("args", "atom_args")),
     "Seq": (("steps", "tup:effect"),),
     "Choose": (("count", "quantity"), ("options", "tup:effect")),
     "OptionalEffect": (("inner", "effect"),),
-    "Conditional": (("pred", "filter"), ("then_effect", "effect"), ("else_effect", "opt:effect")),
+    "Conditional": (
+        ("pred", "filter"),
+        ("then_effect", "effect"),
+        ("else_effect", "opt:effect"),
+    ),
     "Repeat": (("count", "quantity"), ("inner", "effect")),
-    "StaticAbility": (("effect", "effect"),),
-    "TriggeredAbility": (("event", "event"), ("condition", "opt:filter"), ("effect", "effect")),
-    "ActivatedAbility": (("cost", "cost"), ("effect", "effect")),
-    "SpellAbility": (("kind", "enum:SpellKind"), ("effect", "effect")),
+    "EachPlayer": (("ref", "enum:ControllerRef"), ("effect", "effect")),
+    "StaticAbility": (("effect", "effect"), ("condition", "opt:filter")),
+    "TriggeredAbility": (
+        ("event", "event"),
+        ("condition", "opt:filter"),
+        ("effect", "effect"),
+    ),
+    "ActivatedAbility": (
+        ("cost", "cost"),
+        ("effect", "effect"),
+        ("condition", "opt:filter"),
+    ),
+    "SpellAbility": (
+        ("kind", "enum:SpellKind"),
+        ("effect", "opt:effect"),
+        ("additional_costs", "tup:cost"),
+    ),
     "KeywordAbility": (("keyword", "enum:Keyword"), ("params", "tup:keyword_param")),
-    "ReplacementAbility": (("event", "event"), ("condition", "opt:filter"), ("action", "effect")),
+    "ReplacementAbility": (
+        ("event", "event"),
+        ("condition", "opt:filter"),
+        ("action", "effect"),
+    ),
+    "CostModifier": (
+        ("filter", "filter"),
+        ("controller_ref", "enum:ControllerRef"),
+        ("delta", "cost_delta"),
+        ("condition", "opt:filter"),
+        ("extra_deltas", "tup:cost_delta"),
+    ),
+    "EtBState": (
+        ("tapped", "bool"),
+        ("initial_counters", "tup:counter_placement"),
+    ),
+    "EmblemAbility": (("embedded", "ability"),),
     "CardRecord": (
         ("oracle_id", "str"),
         ("name", "str"),
@@ -1807,11 +2735,25 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
 }
 
-_QUANTITY_TAGS = frozenset({"QConst", "QX", "QUnbounded", "QCount", "QProp", "QBin"})
+_QUANTITY_TAGS = frozenset(
+    {"QConst", "QX", "QUnbounded", "QCount", "QProp", "QBin", "QThisTurn", "QAtLeast"}
+)
 _FILTER_TAGS = frozenset({"FAnd", "FOr", "FNot", "FAtom"})
-_EFFECT_TAGS = frozenset({"Seq", "Choose", "OptionalEffect", "Conditional", "Repeat", "Atom"})
+_EFFECT_TAGS = frozenset(
+    {"Seq", "Choose", "OptionalEffect", "Conditional", "Repeat", "EachPlayer", "Atom"}
+)
 _ABILITY_TAGS = frozenset(
-    {"StaticAbility", "TriggeredAbility", "ActivatedAbility", "SpellAbility", "KeywordAbility", "ReplacementAbility"}
+    {
+        "StaticAbility",
+        "TriggeredAbility",
+        "ActivatedAbility",
+        "SpellAbility",
+        "KeywordAbility",
+        "ReplacementAbility",
+        "CostModifier",
+        "EtBState",
+        "EmblemAbility",
+    }
 )
 _EVENT_TAGS = frozenset(
     {
@@ -1828,9 +2770,28 @@ _EVENT_TAGS = frozenset(
         "StepEvent",
         "DamageDealtEvent",
         "TargetingEvent",
+        "CardDrawnEvent",
+        "LifeGainedEvent",
+        "SacrificeEvent",
     }
 )
-_DURATION_TAGS = frozenset({"DurationEot", "DurationPermanent", "DurationUntilNextTurn", "DurationWhileCondition"})
+_COST_DELTA_TAGS = frozenset(
+    {
+        "CostDeltaReduceGeneric",
+        "CostDeltaIncreaseGeneric",
+        "CostDeltaReduceMana",
+        "CostDeltaIncreaseLife",
+        "CostDeltaWaiveMana",
+    }
+)
+_DURATION_TAGS = frozenset(
+    {
+        "DurationEot",
+        "DurationPermanent",
+        "DurationUntilNextTurn",
+        "DurationWhileCondition",
+    }
+)
 _COST_PART_TAGS = frozenset(
     {
         "CostTap",
@@ -1851,7 +2812,18 @@ _ATOM_VALUE_TAGS = (
     | _DURATION_TAGS
     | _EVENT_TAGS
     | _ABILITY_TAGS
-    | frozenset({"Selector", "Zone", "TokenSpec", "LiteralName", "PtDelta", "ControllerRef", "CounterKind"})
+    | frozenset(
+        {
+            "Selector",
+            "Zone",
+            "TokenSpec",
+            "LiteralName",
+            "PtDelta",
+            "ControllerRef",
+            "CounterKind",
+            "Cost",  # PAY / CAST's `cost` role carries a full Cost (T3 round)
+        }
+    )
 )
 
 _UNION_CONVS: dict[str, frozenset[str]] = {
@@ -1865,11 +2837,35 @@ _UNION_CONVS: dict[str, frozenset[str]] = {
     "selector": frozenset({"Selector"}),
     "cost": frozenset({"Cost"}),
     "cost_part": _COST_PART_TAGS,
+    "cost_delta": _COST_DELTA_TAGS,
     "token": frozenset({"TokenSpec"}),
     "card": frozenset({"CardRecord"}),
     "keyword_ability": frozenset({"KeywordAbility"}),
     "keyword_param": _KEYWORD_PARAM_TAGS,
     "atom_args": frozenset({"AtomArgs"}),
+}
+
+# tag -> fields whose EMPTY DEFAULT (None, or the empty tuple) is
+# serialized by OMITTING the key entirely, instead of serializing
+# null / []. Added by the T3 grammar round (binding constraint: every
+# tree constructible before T3 must serialize byte-identical — PC-4/PC-9
+# rail), so the table lists only NEW fields on pre-existing classes;
+# pre-existing optional fields (CostTap.target, FAtom.slots, ...) keep
+# serializing their null / [] defaults exactly as before. from_dict
+# accepts these keys both absent (the empty default is injected) and
+# present. This table is the only place a spec field may be absent from
+# the tagged dict.
+_OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
+    "Selector": frozenset({"zones"}),
+    "Zone": frozenset({"position"}),
+    "ZoneChangeEvent": frozenset({"subject"}),
+    "DeclareBlockersEvent": frozenset({"subject"}),
+    "CastSpellEvent": frozenset({"controller", "from_zone", "ordinal"}),
+    "DamageDealtEvent": frozenset({"source", "combat"}),
+    "CostModifier": frozenset({"condition", "extra_deltas"}),
+    "SpellAbility": frozenset({"effect", "additional_costs"}),
+    "StaticAbility": frozenset({"condition"}),
+    "ActivatedAbility": frozenset({"condition"}),
 }
 
 
@@ -1897,6 +2893,16 @@ def _decode(conv: str, d: Any) -> Any:
         if not isinstance(d, str):
             raise ValueError(f"expected str, got {type(d).__name__}")
         return d
+    if conv == "loyalty_delta":
+        # a literal int stays bare; a Quantity arrives as its tagged dict
+        # (T3 round 2, item 6: Ugin's "[−X]" dynamic loyalty cost).
+        if isinstance(d, bool):
+            raise ValueError(
+                "CostLoyalty delta: expected an int or a Quantity, got bool"
+            )
+        if isinstance(d, int):
+            return d
+        return _decode_union(d, _QUANTITY_TAGS, "CostLoyalty delta")
     if conv.startswith("opt:"):
         if d is None:
             return None
@@ -1914,7 +2920,9 @@ def _decode(conv: str, d: Any) -> Any:
         try:
             return cls[str(d.get("name"))]
         except KeyError:
-            raise ValueError(f"{cls.__name__}: unknown member {d.get('name')!r}") from None
+            raise ValueError(
+                f"{cls.__name__}: unknown member {d.get('name')!r}"
+            ) from None
     if conv == "colorset":
         if not isinstance(d, dict) or d.get("tag") != "ColorSet":
             raise ValueError(f"expected a ColorSet tagged dict, got {d!r}")
@@ -1925,24 +2933,39 @@ def _decode(conv: str, d: Any) -> Any:
     if conv == "qprop_referent":
         if isinstance(d, str):
             if d not in _QPROP_STR_REFERENTS:
-                raise ValueError(f"QProp referent string must be one of {_QPROP_STR_REFERENTS}, got {d!r}")
+                raise ValueError(
+                    f"QProp referent string must be one of {_QPROP_STR_REFERENTS}, got {d!r}"
+                )
             return d
         return _decode_union(d, frozenset({"Selector"}), "qprop referent")
+    if conv == "counter_placement":
+        # an EtBState counter entry: [CounterKind, Quantity]
+        if not isinstance(d, list) or len(d) != 2:
+            raise ValueError(
+                f"counter_placement must be [CounterKind, Quantity], got {d!r}"
+            )
+        return (_decode("enum:CounterKind", d[0]), _decode("quantity", d[1]))
     if conv == "atom_pairs":
         if not isinstance(d, list):
-            raise ValueError(f"expected a list of [role, value] pairs, got {type(d).__name__}")
+            raise ValueError(
+                f"expected a list of [role, value] pairs, got {type(d).__name__}"
+            )
         pairs: list[tuple[str, object]] = []
         for item in d:
             if not isinstance(item, list) or len(item) != 2:
                 raise ValueError(f"atom pair must be [role, value], got {item!r}")
             role, value = item
             if not isinstance(role, str):
-                raise ValueError(f"atom pair role must be a str, got {type(role).__name__}")
+                raise ValueError(
+                    f"atom pair role must be a str, got {type(role).__name__}"
+                )
             pairs.append((role, _decode("atom_value", value)))
         return tuple(pairs)
     if conv == "atom_value":
         if not isinstance(d, dict):
-            raise ValueError(f"atom value must be a tagged dict, got {type(d).__name__}")
+            raise ValueError(
+                f"atom value must be a tagged dict, got {type(d).__name__}"
+            )
         tag = d.get("tag")
         if tag == "String":
             value = d.get("value")
@@ -1951,9 +2974,16 @@ def _decode(conv: str, d: Any) -> Any:
             return value
         if tag == "StringTuple":
             items = d.get("items")
-            if not isinstance(items, list) or not all(isinstance(x, str) for x in items):
+            if not isinstance(items, list) or not all(
+                isinstance(x, str) for x in items
+            ):
                 raise ValueError("StringTuple atom value must hold a list of str")
             return tuple(items)
+        if tag == "Bool":
+            value = d.get("value")
+            if not isinstance(value, bool):
+                raise ValueError(f"Bool atom value must hold a bool, got {value!r}")
+            return value
         if tag in _ATOM_VALUE_TAGS:
             return _decode_union(d, _ATOM_VALUE_TAGS, "atom value")
         raise ValueError(f"atom value: unknown tag {tag!r}")
@@ -1970,11 +3000,17 @@ def to_dict(node: Any) -> Any:
         if type(node) is AtomArgs:
             return {
                 "tag": "AtomArgs",
-                "pairs": [[role, _atom_value_to_dict(value)] for role, value in node.pairs],
+                "pairs": [
+                    [role, _atom_value_to_dict(value)] for role, value in node.pairs
+                ],
             }
         out: dict[str, Any] = {"tag": _TAG[type(node)]}
+        omit = _OMIT_IF_EMPTY.get(type(node).__name__, frozenset())
         for field in dataclasses.fields(node):
-            out[field.name] = to_dict(getattr(node, field.name))
+            value = getattr(node, field.name)
+            if field.name in omit and (value is None or value == ()):
+                continue  # T3 additive field at its empty default: omit the key
+            out[field.name] = to_dict(value)
         return out
     if isinstance(node, Enum):
         return {"tag": type(node).__name__, "name": node.name}
@@ -1989,6 +3025,10 @@ def to_dict(node: Any) -> Any:
 
 def _atom_value_to_dict(value: Any) -> Any:
     """AtomArgs values are always wrapped in a tag (see section header)."""
+    if isinstance(value, bool):
+        # bool before anything else: a bare bool would otherwise fall
+        # through to to_dict's bare passthrough and decode as no tag.
+        return {"tag": "Bool", "value": value}
     if isinstance(value, str):
         return {"tag": "String", "value": value}
     if isinstance(value, tuple):
@@ -2008,7 +3048,9 @@ def from_dict(tag: str, d: Any) -> Any:
     if not isinstance(d, dict):
         raise ValueError(f"from_dict: {tag} expects a dict, got {type(d).__name__}")
     if d.get("tag") != tag:
-        raise ValueError(f"from_dict: tag mismatch: asked {tag!r}, got {d.get('tag')!r}")
+        raise ValueError(
+            f"from_dict: tag mismatch: asked {tag!r}, got {d.get('tag')!r}"
+        )
     enum_cls = _ENUMS.get(tag)
     if enum_cls is not None:
         try:
@@ -2020,13 +3062,28 @@ def from_dict(tag: str, d: Any) -> Any:
     if spec is None or cls is None:
         raise ValueError(f"from_dict: unknown tag {tag!r}")
     fields = {name: conv for name, conv in spec}
+    omit = _OMIT_IF_EMPTY.get(tag, frozenset())
     extra = sorted(set(d) - set(fields) - {"tag"})
     if extra:
         raise ValueError(f"from_dict: {tag}: unknown fields {extra}")
-    missing = sorted(set(fields) - set(d))
+    # omit-if-empty fields (T3 round) may be absent: the empty default is
+    # injected. Every other missing field still raises.
+    missing = sorted(f for f in set(fields) - set(d) if f not in omit)
     if missing:
         raise ValueError(f"from_dict: {tag}: missing fields {missing}")
-    kwargs = {name: _decode(conv, d[name]) for name, conv in spec}
+    kwargs: dict[str, Any] = {}
+    for name, conv in spec:
+        if name in d:
+            kwargs[name] = _decode(conv, d[name])
+        elif conv.startswith("opt:"):
+            kwargs[name] = None
+        elif conv.startswith("tup:"):
+            kwargs[name] = ()
+        else:
+            raise ValueError(
+                f"from_dict: {tag}: omit-if-empty field {name!r} needs an "
+                f"opt: or tup: converter, got {conv!r}"
+            )
     return cls(**kwargs)
 
 

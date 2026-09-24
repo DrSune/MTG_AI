@@ -1,0 +1,1095 @@
+{
+  "set": "M21",
+  "generated": "2026-09-22T23:09:50+02:00",
+  "git_head": "e1c5a43b4610e1ff6c8766bfc0bfff1684ad7cdc",
+  "python_version": "3.12.3",
+  "pinned_denominators": {
+    "entries": 305,
+    "sentences": 639,
+    "unique": 510
+  },
+  "pool_stats": {
+    "total": 305,
+    "with_text": 291,
+    "sentence_total": 639,
+    "sentence_unique": 510,
+    "keywords": {
+      "Battalion": 1,
+      "Deathtouch": 2,
+      "Defender": 4,
+      "Double strike": 1,
+      "Enchant": 10,
+      "Equip": 2,
+      "Fight": 2,
+      "First strike": 1,
+      "Flash": 7,
+      "Flying": 23,
+      "Haste": 3,
+      "Hexproof": 4,
+      "Hexproof from": 2,
+      "Indestructible": 1,
+      "Lifelink": 8,
+      "Menace": 1,
+      "Mill": 3,
+      "Protection": 3,
+      "Prowess": 6,
+      "Reach": 6,
+      "Scry": 12,
+      "Trample": 7,
+      "Treasure": 1,
+      "Vigilance": 9
+    },
+    "layouts": {
+      "emblem": 3,
+      "normal": 285,
+      "token": 17
+    },
+    "mana_value": {
+      "0": 44,
+      "1": 30,
+      "2": 63,
+      "3": 68,
+      "4": 43,
+      "5+": 57
+    },
+    "emblems": 3,
+    "emblem_owners": {
+      "56c1893f-1382-4a31-a28a-ea604677fcdb": [
+        "Liliana, Waker of the Dead"
+      ],
+      "8a908da7-b41c-4712-b7dc-8c6027875d36": [
+        "Garruk, Unleashed"
+      ],
+      "ab67e4ec-9392-4130-970f-6ad65656e5c1": [
+        "Basri Ket",
+        "Soldier"
+      ]
+    }
+  },
+  "pcs": {
+    "PC-1": {
+      "name": "card_coverage",
+      "cards_zero_unparsed": 193,
+      "denominator": 305,
+      "value": 0.632787,
+      "target": ">=0.90",
+      "stretch": ">=0.95",
+      "pass": false
+    },
+    "PC-2": {
+      "name": "sentence_coverage",
+      "sentences_matched": 493,
+      "denominator": 639,
+      "value": 0.771518,
+      "target": ">=0.95",
+      "stretch": ">=0.98",
+      "pass": false
+    },
+    "PC-3": {
+      "name": "ambiguity",
+      "value": 0,
+      "target": "0",
+      "pass": true,
+      "entries": []
+    },
+    "PC-4": {
+      "name": "golden_stability",
+      "value": 0,
+      "target": "0",
+      "pass": true,
+      "diffs": []
+    },
+    "PC-5": {
+      "name": "compile_latency_p99_ms_per_card",
+      "value": 0.167,
+      "target": "<50",
+      "stretch": "<20",
+      "pass": true,
+      "runs": 3,
+      "per_card_ms": [
+        0.161,
+        0.159,
+        0.167
+      ]
+    },
+    "PC-6": {
+      "name": "vocabulary_health",
+      "orphan_verbs": {
+        "value": 1,
+        "target": "0",
+        "pass": false,
+        "verbs": [
+          "PHASE_IN"
+        ]
+      },
+      "max_verb_share": {
+        "value": 0.112941,
+        "target": "<0.20",
+        "pass": true
+      },
+      "pass": false,
+      "atom_total": 425,
+      "max_share_verb": "ADD_MANA",
+      "verb_histogram": {
+        "ADD_MANA": 48,
+        "ATTACH": 2,
+        "CAST": 3,
+        "COPY": 1,
+        "COUNTER_SPELL": 4,
+        "CREATE_TOKEN": 19,
+        "DEAL_DAMAGE": 27,
+        "DESTROY": 11,
+        "DISCARD": 15,
+        "DRAW": 40,
+        "END_TURN": 1,
+        "EXILE": 12,
+        "EXTRA_TURN": 1,
+        "GAIN_CONTROL": 1,
+        "GAIN_LIFE": 29,
+        "GRANT_ABILITY": 25,
+        "GRANT_TYPE": 3,
+        "LOOK_AT": 2,
+        "LOSE_GAME": 1,
+        "LOSE_LIFE": 9,
+        "MANDATE_ATTACK": 2,
+        "MILL": 3,
+        "MODIFY_PT": 44,
+        "MOVE_ZONE": 24,
+        "PAY": 3,
+        "PHASE_OUT": 2,
+        "PREVENT_EFFECT": 2,
+        "PUT_COUNTER": 24,
+        "REMOVE_COUNTER": 1,
+        "REVEAL": 11,
+        "SACRIFICE": 4,
+        "SCRY": 12,
+        "SEARCH": 14,
+        "SET_PT": 3,
+        "SHUFFLE": 13,
+        "TAP": 7,
+        "UNTAP": 2
+      }
+    },
+    "PC-7": {
+      "name": "executor_coverage",
+      "status": "pending_executor",
+      "target": "25/25; >=0.70",
+      "pass": null,
+      "note": "core/executor.py ships in T6 — not stubbed by this harness"
+    },
+    "PC-8": {
+      "name": "targetable_card_fraction",
+      "targetable_entries": 82,
+      "denominator": 305,
+      "value": 0.268852,
+      "target": ">=0.40",
+      "stretch": ">=0.50",
+      "pass": false
+    },
+    "PC-9": {
+      "name": "determinism",
+      "value": true,
+      "target": "identical fingerprint multiset",
+      "pass": true
+    },
+    "PC-10": {
+      "name": "instrument_null_test",
+      "good_card_coverage": 1.0,
+      "bad_card_coverage": 0.0,
+      "bad_unparsed_sentence": "Nobody understands this.",
+      "target": "100% / 0% respectively, unparsed queue exact",
+      "pass": true
+    }
+  },
+  "failed_targets": [
+    "PC-1",
+    "PC-2",
+    "PC-6",
+    "PC-8"
+  ],
+  "golden": {
+    "dir": "/home/sune/Desktop/MTG_AI/MTG_bot/core/golden/M21",
+    "files": 305,
+    "diffs": [],
+    "stable": true
+  },
+  "unparsed_queue": [
+    {
+      "oracle_id": "00c0543c-2a1f-4425-8283-4062d74a1637",
+      "name": "Solemn Simulacrum",
+      "sentence": "When this creature enters, you may search your library for a basic land card, put that card onto the battlefield tapped, then shuffle.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "010ec11a-0484-486d-b7c0-de65593bf457",
+      "name": "Sanguine Indulgence",
+      "sentence": "This spell costs {3} less to cast if you've gained 3 or more life this turn.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "05f0feb6-6783-49fd-acf6-68b44aaff846",
+      "name": "Feline Sovereign",
+      "sentence": "Whenever one or more Cats you control deal combat damage to a player, destroy up to one target artifact or enchantment that player controls.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "0a865453-ddc8-4403-8f1e-5752e3582458",
+      "name": "Keral Keep Disciples",
+      "sentence": "Whenever you activate a loyalty ability of a Chandra planeswalker, this creature deals 1 damage to each opponent.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "0b4925d7-e2bb-4b74-a538-80fe759799ad",
+      "name": "Malefic Scythe",
+      "sentence": "Equipped creature gets +1/+1 for each soul counter on this Equipment.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "0c85b8f7-0bd0-4680-9ec5-d4b110460a54",
+      "name": "Fabled Passage",
+      "sentence": "Then if you control four or more lands, untap that land.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "0e11792b-7fe5-4208-aa0b-e5d09b2b65fe",
+      "name": "Baneslayer Angel",
+      "sentence": "Flying, first strike, lifelink, protection from Demons and from Dragons",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "0f63de7b-03f2-49ad-b217-88fe9c50d68a",
+      "name": "Snarespinner",
+      "sentence": "Whenever this creature blocks a creature with flying, this creature gets +2/+0 until end of turn.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "0f80f061-6304-4c7b-ab53-f406385e39df",
+      "name": "Goremand",
+      "sentence": "As an additional cost to cast this spell, sacrifice a creature.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "12dd664c-a279-4adc-b6cb-bec22eedca5c",
+      "name": "Siege Striker",
+      "sentence": "This creature gets +1/+1 until end of turn for each creature tapped this way.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "1306c72f-fc6b-470b-a95e-0364e0e30ac7",
+      "name": "Sparkhunter Masticore",
+      "sentence": "As an additional cost to cast this spell, discard a card.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "14cefb15-d833-4c70-80c9-f2d34b6c846b",
+      "name": "Runed Halo",
+      "sentence": "As this enchantment enters, choose a card name.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "14cefb15-d833-4c70-80c9-f2d34b6c846b",
+      "name": "Runed Halo",
+      "sentence": "You have protection from the chosen card name.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "15d2176b-ab3d-4738-bcbc-bcebf891d16e",
+      "name": "Life Goes On",
+      "sentence": "If a creature died this turn, you gain 8 life instead.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "1601e553-31c2-4e04-9f0c-bc17e49eeff7",
+      "name": "Basri, Devoted Paladin",
+      "sentence": "It gains vigilance until end of turn.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "1601e553-31c2-4e04-9f0c-bc17e49eeff7",
+      "name": "Basri, Devoted Paladin",
+      "sentence": "[−1]: Whenever a creature attacks this turn, put a +1/+1 counter on it.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "1818b0b1-0104-4673-9be8-acfc773ef87d",
+      "name": "Sanctum of Tranquil Light",
+      "sentence": "This ability costs {1} less to activate for each Shrine you control.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "1c9e1f75-73f0-4846-b53f-458a0984b1bb",
+      "name": "Teferi's Ageless Insight",
+      "sentence": "If you would draw a card except the first one you draw in each of your draw steps, draw two cards instead.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "1cb0610b-a731-42c2-b93f-0a29f63cebf4",
+      "name": "Thrill of Possibility",
+      "sentence": "As an additional cost to cast this spell, discard a card.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "1d07856b-d9ef-418c-bd06-3888dbcaddf4",
+      "name": "Vodalian Arcanist",
+      "sentence": "Spend this mana only to cast an instant or sorcery spell.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "1ef73b3b-ab4a-494b-b969-dcde995cee34",
+      "name": "Soul Sear",
+      "sentence": "That permanent loses indestructible until end of turn.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "1ff25f67-36a7-4cfa-a2b1-2135b5b6fb67",
+      "name": "Scavenging Ooze",
+      "sentence": "If it was a creature card, put a +1/+1 counter on this creature and you gain 1 life.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "2038f505-7b03-4c63-bc44-c5139729dd05",
+      "name": "Feat of Resistance",
+      "sentence": "It gains protection from the color of your choice until end of turn.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "21fa2442-6eac-4dce-a9cc-76f0053fdb8f",
+      "name": "Peer into the Abyss",
+      "sentence": "Round up each time.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "21fa2442-6eac-4dce-a9cc-76f0053fdb8f",
+      "name": "Peer into the Abyss",
+      "sentence": "Target player draws cards equal to half the number of cards in their library and loses half their life.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "236e1f57-7ef5-455a-82a6-8ff6b85d8849",
+      "name": "Nine Lives",
+      "sentence": "If a source would deal damage to you, prevent that damage and put an incarnation counter on this enchantment.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "2b2d76f5-4c9b-49dc-b202-68095e2d9b29",
+      "name": "Faith's Fetters",
+      "sentence": "Enchanted permanent can't attack or block, and its activated abilities can't be activated unless they're mana abilities.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "2dbe384b-71c4-43f9-be35-ba2894021b85",
+      "name": "Garruk's Harbinger",
+      "sentence": "Put the rest on the bottom of your library in a random order.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "2dbe384b-71c4-43f9-be35-ba2894021b85",
+      "name": "Garruk's Harbinger",
+      "sentence": "Whenever this creature deals combat damage to a player or planeswalker, look at that many cards from the top of your library.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "2dbe384b-71c4-43f9-be35-ba2894021b85",
+      "name": "Garruk's Harbinger",
+      "sentence": "You may reveal a creature card or Garruk planeswalker card from among them and put it into your hand.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "2dc59566-10cb-468a-b6a2-17d6c0186e6d",
+      "name": "Capture Sphere",
+      "sentence": "Enchanted creature doesn't untap during its controller's untap step.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "2e7c3881-6fa6-4fd2-ae86-9e3a0fcecdbd",
+      "name": "Sporeweb Weaver",
+      "sentence": "Reach, hexproof from blue",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "2f94cb83-1f48-4293-b219-67830c074aeb",
+      "name": "Enthralling Hold",
+      "sentence": "You can't choose an untapped creature as this spell's target as you cast it.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "3127ae9b-a7a7-43ec-89d7-688f8445b33d",
+      "name": "Garruk's Uprising",
+      "sentence": "When this enchantment enters, if you control a creature with power 4 or greater, draw a card.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "32ea6b1c-d48e-4663-ad5c-d7f4a85450af",
+      "name": "Garruk, Unleashed",
+      "sentence": "Then if an opponent controls more creatures than you, put a loyalty counter on Garruk.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "32ea6b1c-d48e-4663-ad5c-d7f4a85450af",
+      "name": "Garruk, Unleashed",
+      "sentence": "[−7]: You get an emblem with \"At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle.\"",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "33d405ea-7a9a-4970-b70f-9c05d90dd6f0",
+      "name": "Duress",
+      "sentence": "That player discards that card.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "33d405ea-7a9a-4970-b70f-9c05d90dd6f0",
+      "name": "Duress",
+      "sentence": "You choose a noncreature, nonland card from it.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "342eb666-838c-43d0-bf52-2f704f2a80e3",
+      "name": "Hooded Blightfang",
+      "sentence": "Whenever a creature you control with deathtouch deals damage to a planeswalker, destroy that planeswalker.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "344cdec9-60b3-42ec-a3d5-41ee1d4f7c6c",
+      "name": "Traitorous Greed",
+      "sentence": "Gain control of target creature until end of turn.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "344cdec9-60b3-42ec-a3d5-41ee1d4f7c6c",
+      "name": "Traitorous Greed",
+      "sentence": "It gains haste until end of turn.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "344cdec9-60b3-42ec-a3d5-41ee1d4f7c6c",
+      "name": "Traitorous Greed",
+      "sentence": "Untap that creature.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "365548fb-5acc-4a8a-b20b-26d28b7d029f",
+      "name": "Village Rites",
+      "sentence": "As an additional cost to cast this spell, sacrifice a creature.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "3701ed34-a97c-4d7b-a15a-4faec02ef24b",
+      "name": "Pack Leader",
+      "sentence": "Whenever this creature attacks, prevent all combat damage that would be dealt this turn to Dogs you control.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "382097b3-f753-493c-bde4-101c0538feb4",
+      "name": "Frost Breath",
+      "sentence": "Those creatures don't untap during their controller's next untap step.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "3a19a959-ea83-404b-89f7-e5dbf4cb7995",
+      "name": "Waker of Waves",
+      "sentence": "Put one of them into your hand and the other into your graveyard.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "3e41648f-c5a9-4b26-b97e-8176fe5e9c85",
+      "name": "Brash Taunter",
+      "sentence": "{2}{R}, {T}: This creature fights another target creature.",
+      "bucket_hint": "activated"
+    },
+    {
+      "oracle_id": "42d7ec93-0943-43e2-9b65-b7edc3349410",
+      "name": "Gadrak, the Crown-Scourge",
+      "sentence": "Gadrak can't attack unless you control four or more artifacts.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "430b3e61-09a5-4390-b377-89830cacf66e",
+      "name": "Caged Zombie",
+      "sentence": "Activate only if a creature died this turn.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "4339f621-8502-4433-a37a-654591ca1b43",
+      "name": "Turn to Slag",
+      "sentence": "Destroy all Equipment attached to that creature.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "497d7ab8-07f1-4c8a-a45a-52b9a4d9400f",
+      "name": "Basri Ket",
+      "sentence": "It gains indestructible until end of turn.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "497d7ab8-07f1-4c8a-a45a-52b9a4d9400f",
+      "name": "Basri Ket",
+      "sentence": "[−2]: Whenever one or more nontoken creatures attack this turn, create that many 1/1 white Soldier creature tokens that are tapped and attacking.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "497d7ab8-07f1-4c8a-a45a-52b9a4d9400f",
+      "name": "Basri Ket",
+      "sentence": "[−6]: You get an emblem with \"At the beginning of combat on your turn, create a 1/1 white Soldier creature token, then put a +1/+1 counter on each creature you control.\"",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "4c1c3a0a-5782-4b7d-8b9c-61eea913166d",
+      "name": "Transmogrify",
+      "sentence": "That creature's controller reveals cards from the top of their library until they reveal a creature card.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "4c1c3a0a-5782-4b7d-8b9c-61eea913166d",
+      "name": "Transmogrify",
+      "sentence": "That player puts that card onto the battlefield, then shuffles the rest into their library.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "4e698713-6203-44f2-b438-1b26b951536d",
+      "name": "Alchemist's Gift",
+      "sentence": "Target creature gets +1/+1 and gains your choice of deathtouch or lifelink until end of turn.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "515cee6a-a2e1-4eeb-8e1d-293724313b14",
+      "name": "Chandra's Incinerator",
+      "sentence": "This spell costs {X} less to cast, where X is the total amount of noncombat damage dealt to your opponents this turn.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "515cee6a-a2e1-4eeb-8e1d-293724313b14",
+      "name": "Chandra's Incinerator",
+      "sentence": "Whenever a source you control deals noncombat damage to an opponent, this creature deals that much damage to target creature or planeswalker that player controls.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "52159875-354c-47f9-bb1c-cd65395fcc68",
+      "name": "Fiery Emancipation",
+      "sentence": "If a source you control would deal damage to a permanent or player, it deals triple that damage to that permanent or player instead.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "5291deb9-0b89-42c2-bde6-26f88931c3f4",
+      "name": "Chandra's Pyreling",
+      "sentence": "Whenever a source you control deals noncombat damage to an opponent, this creature gets +1/+0 and gains double strike until end of turn.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "52b3a979-3b93-4441-9237-0c8a754e5523",
+      "name": "Furious Rise",
+      "sentence": "You may play that card until you exile another card with this enchantment.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "56c1893f-1382-4a31-a28a-ea604677fcdb",
+      "name": "Liliana, Waker of the Dead Emblem",
+      "sentence": "It gains haste.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "58ad45fc-b625-4484-8d49-ebc42db9040a",
+      "name": "Chandra, Heart of Fire",
+      "sentence": "Until end of turn, you may play cards exiled this way.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "58ad45fc-b625-4484-8d49-ebc42db9040a",
+      "name": "Chandra, Heart of Fire",
+      "sentence": "You may cast them this turn.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "58d7b8b3-ac47-4805-8259-4ba8e70d7dc3",
+      "name": "Primal Might",
+      "sentence": "Then it fights up to one target creature you don't control.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "595f1dee-8c3b-44a6-9e71-a4bb4334b309",
+      "name": "Liliana's Scrounger",
+      "sentence": "At the beginning of each end step, if a creature died this turn, you may put a loyalty counter on a Liliana planeswalker you control.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "5a898412-5b1e-4217-ac78-5b4099ed8e16",
+      "name": "Angelic Ascension",
+      "sentence": "Its controller creates a 4/4 white Angel creature token with flying.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "5cfd73ab-8509-4e4b-9704-68d8dad3b301",
+      "name": "Discontinuity",
+      "sentence": "During your turn, this spell costs {2}{U}{U} less to cast.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "5daac63a-1534-4194-8cb7-506508e364f4",
+      "name": "Invigorating Surge",
+      "sentence": "Put a +1/+1 counter on target creature you control, then double the number of +1/+1 counters on that creature.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "62c240ac-f2dd-4e39-9e82-50307efa833e",
+      "name": "Archfiend's Vessel",
+      "sentence": "When this creature enters, if it entered from your graveyard or you cast it from your graveyard, exile it.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "63f60dfc-2bc4-411f-ae53-504156fe0102",
+      "name": "Sanctum of All",
+      "sentence": "If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "645b5784-a6f7-4cf3-966a-e1a51420b96b",
+      "name": "Mystic Skyfish",
+      "sentence": "Whenever you draw your second card each turn, this creature gains flying until end of turn.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "6629a48b-be9a-4636-8add-69d096a1ca7e",
+      "name": "Double Vision",
+      "sentence": "Whenever you cast your first instant or sorcery spell each turn, copy that spell.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "6629a48b-be9a-4636-8add-69d096a1ca7e",
+      "name": "Double Vision",
+      "sentence": "You may choose new targets for the copy.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "6b946317-8a66-41b7-b902-308784d69b90",
+      "name": "Idol of Endurance",
+      "sentence": "When this artifact enters, exile all creature cards with mana value 3 or less from your graveyard until this artifact leaves the battlefield.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "6b946317-8a66-41b7-b902-308784d69b90",
+      "name": "Idol of Endurance",
+      "sentence": "{1}{W}, {T}: Until end of turn, you may cast a creature spell from among cards exiled with this artifact without paying its mana cost.",
+      "bucket_hint": "activated"
+    },
+    {
+      "oracle_id": "6c2c8bf3-9bf8-4a86-89d3-3bb36260dc51",
+      "name": "Azusa, Lost but Seeking",
+      "sentence": "You may play two additional lands on each of your turns.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "6de2d53c-06e3-4c56-a5cf-c9cb2db42527",
+      "name": "Pursued Whale",
+      "sentence": "Spells your opponents cast that target this creature cost {3} more to cast.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "6de2d53c-06e3-4c56-a5cf-c9cb2db42527",
+      "name": "Pursued Whale",
+      "sentence": "When this creature enters, each opponent creates a 1/1 red Pirate creature token with \"This token can't block\" and \"Creatures you control attack each combat if able.\"",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "7336a541-3ae9-4ab2-acb8-f574c0a5b3a9",
+      "name": "Vito, Thorn of the Dusk Rose",
+      "sentence": "Whenever you gain life, target opponent loses that much life.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "7721e800-fba6-4ae7-855e-631b2ecc8d6b",
+      "name": "Chandra, Flame's Catalyst",
+      "sentence": "If that spell would be put into your graveyard, exile it instead.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "7721e800-fba6-4ae7-855e-631b2ecc8d6b",
+      "name": "Chandra, Flame's Catalyst",
+      "sentence": "Until end of turn, you may cast spells from your hand without paying their mana costs.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "7a1e4880-9abb-4018-84bd-91b5ec702c51",
+      "name": "Shacklegeist",
+      "sentence": "This creature can block only creatures with flying.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "7b428e94-8428-455f-b555-f648fcdd2127",
+      "name": "Hunter's Edge",
+      "sentence": "Then that creature deals damage equal to its power to target creature you don't control.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "81674138-08d0-4126-9e6d-27f6e7dd2403",
+      "name": "Tavern Swindler",
+      "sentence": "If you win the flip, you gain 6 life.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "81674138-08d0-4126-9e6d-27f6e7dd2403",
+      "name": "Tavern Swindler",
+      "sentence": "{T}, Pay 3 life: Flip a coin.",
+      "bucket_hint": "activated"
+    },
+    {
+      "oracle_id": "81f5c70f-fbb1-4b3a-a048-1f4602adfa0e",
+      "name": "Celestial Enforcer",
+      "sentence": "Activate only if you control a creature with flying.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "8291bc2e-ef58-4bd4-b261-b587142bbb1c",
+      "name": "Ornery Dilophosaur",
+      "sentence": "Whenever this creature attacks, if you control a creature with power 4 or greater, this creature gets +2/+2 until end of turn.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "846887e4-744f-44ce-9110-d09680b11e95",
+      "name": "Tolarian Kraken",
+      "sentence": "When you do, you may tap or untap target creature.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "84c0db59-255d-41af-a3d4-3f3548f1195f",
+      "name": "Thieves' Guild Enforcer",
+      "sentence": "As long as an opponent has eight or more cards in their graveyard, this creature gets +2/+1 and has deathtouch.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "87e9065d-814a-47fa-9e92-19fb6fd6d78c",
+      "name": "Historian of Zhalfir",
+      "sentence": "Whenever this creature attacks, if you control a Teferi planeswalker, draw a card.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "8a76a9b9-3127-45fe-b20f-a8f643276281",
+      "name": "Containment Priest",
+      "sentence": "If a nontoken creature would enter and it wasn't cast, exile it instead.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "8aa1bbc9-b047-4d68-93f4-728e40dafc5e",
+      "name": "Kitesail Freebooter",
+      "sentence": "Exile that card until this creature leaves the battlefield.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "8aa1bbc9-b047-4d68-93f4-728e40dafc5e",
+      "name": "Kitesail Freebooter",
+      "sentence": "You choose a noncreature, nonland card from it.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "8b755881-a72d-4e21-a369-d2924eb4585a",
+      "name": "Cultivate",
+      "sentence": "Search your library for up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "8d83dfb3-5662-4109-b465-bf5f257e58a5",
+      "name": "Tide Skimmer",
+      "sentence": "Whenever you attack with two or more creatures with flying, draw a card.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "8f28b65b-4b73-4080-9cdc-d236ad99f39c",
+      "name": "Track Down",
+      "sentence": "If it's a creature or land card, draw a card.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "927fb139-0493-48be-8cc4-2c7d854d6a55",
+      "name": "Radha, Heart of Keld",
+      "sentence": "During your turn, Radha has first strike.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "927fb139-0493-48be-8cc4-2c7d854d6a55",
+      "name": "Radha, Heart of Keld",
+      "sentence": "You may look at the top card of your library any time, and you may play lands from the top of your library.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "92acbbeb-f82b-413b-b243-f7a012f5400c",
+      "name": "Necromentia",
+      "sentence": "Choose a card name other than a basic land card name.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "92acbbeb-f82b-413b-b243-f7a012f5400c",
+      "name": "Necromentia",
+      "sentence": "Search target opponent's graveyard, hand, and library for any number of cards with that name and exile them.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "92acbbeb-f82b-413b-b243-f7a012f5400c",
+      "name": "Necromentia",
+      "sentence": "That player shuffles, then creates a 2/2 black Zombie creature token for each card exiled from their hand this way.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "95c3976c-33f3-490b-bfd3-7f1af2fe0416",
+      "name": "Chromatic Orrery",
+      "sentence": "You may spend mana as though it were mana of any color.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "95c3976c-33f3-490b-bfd3-7f1af2fe0416",
+      "name": "Chromatic Orrery",
+      "sentence": "{5}, {T}: Draw a card for each color among permanents you control.",
+      "bucket_hint": "activated"
+    },
+    {
+      "oracle_id": "98e0b1a8-902d-4285-b13c-e63f2e1692f1",
+      "name": "Kinetic Augur",
+      "sentence": "Kinetic Augur's power is equal to the number of instant and sorcery cards in your graveyard.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "98e0b1a8-902d-4285-b13c-e63f2e1692f1",
+      "name": "Kinetic Augur",
+      "sentence": "When this creature enters, discard up to two cards, then draw that many cards.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "9e2e3272-d4e1-4329-b1d2-f393b3511b82",
+      "name": "Subira, Tulzidi Caravanner",
+      "sentence": "{1}: Another target creature with power 2 or less can't be blocked this turn.",
+      "bucket_hint": "activated"
+    },
+    {
+      "oracle_id": "9e2e3272-d4e1-4329-b1d2-f393b3511b82",
+      "name": "Subira, Tulzidi Caravanner",
+      "sentence": "{1}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power 2 or less deals combat damage to a player, draw a card.",
+      "bucket_hint": "activated"
+    },
+    {
+      "oracle_id": "a2fe5937-212c-4e71-8d6e-f408b38100aa",
+      "name": "Conclave Mentor",
+      "sentence": "If one or more +1/+1 counters would be put on a creature you control, that many plus one +1/+1 counters are put on that creature instead.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "b1062763-1fcf-4605-9253-daa1687e8173",
+      "name": "Canopy Stalker",
+      "sentence": "This creature must be blocked if able.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "b23c1f40-291d-43b3-971d-97ded8b367cb",
+      "name": "See the Truth",
+      "sentence": "If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "b23c1f40-291d-43b3-971d-97ded8b367cb",
+      "name": "See the Truth",
+      "sentence": "Put one of those cards into your hand and the rest on the bottom of your library in any order.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "b917f39a-3176-47ad-afda-08d09b873c02",
+      "name": "Fungal Rebirth",
+      "sentence": "If a creature died this turn, create two 1/1 green Saproling creature tokens.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "b9dec104-c636-4770-a7fc-7a3331face15",
+      "name": "Wildwood Scourge",
+      "sentence": "This creature enters with X +1/+1 counters on it.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "c36d7c2b-204f-432e-b8e2-ffb3ffb49231",
+      "name": "Gnarled Sage",
+      "sentence": "As long as you've drawn two or more cards this turn, this creature gets +0/+2 and has vigilance.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "c8c6924e-9af8-4212-be28-b0b4eaa4c7d8",
+      "name": "Warden of the Woods",
+      "sentence": "Whenever this creature becomes the target of a spell or ability an opponent controls, you may draw two cards.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "cbcb6d9a-6ae5-4bcd-8013-2b657553764a",
+      "name": "Mangara, the Diplomat",
+      "sentence": "Whenever an opponent attacks with creatures, if two or more of those creatures are attacking you and/or planeswalkers you control, draw a card.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "cc1203cb-6758-4454-b78b-341930ff4da1",
+      "name": "Liliana's Steward",
+      "sentence": "Activate only as a sorcery.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "d03dbb60-e32b-4b74-ae8a-73d428d344cd",
+      "name": "Seasoned Hallowblade",
+      "sentence": "It gains indestructible until end of turn.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "d14f313c-fea6-49c4-8197-5b74ee584a6b",
+      "name": "Scorching Dragonfire",
+      "sentence": "If that creature or planeswalker would die this turn, exile it instead.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "d654dd73-763d-4dfb-a30f-a058fd7f27a6",
+      "name": "Liliana, Death Mage",
+      "sentence": "Its controller loses 2 life.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "d6a9746c-eba5-4735-aec1-e70edba2c686",
+      "name": "Secure the Scene",
+      "sentence": "Its controller creates a 1/1 white Soldier creature token.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "d799a2c4-628a-45da-b9ca-0337c46e3e14",
+      "name": "Lofty Denial",
+      "sentence": "Counter target spell unless its controller pays {1}.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "d799a2c4-628a-45da-b9ca-0337c46e3e14",
+      "name": "Lofty Denial",
+      "sentence": "If you control a creature with flying, counter that spell unless its controller pays {4} instead.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "dfbd5ad1-0f68-4219-95c4-98f674f321be",
+      "name": "Jeskai Elder",
+      "sentence": "Whenever this creature deals combat damage to a player, you may draw a card.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "e08c71aa-d35c-4c20-b4db-ae9d36ee3169",
+      "name": "Miscast",
+      "sentence": "Counter target instant or sorcery spell unless its controller pays {3}.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "e0df8e2a-96d2-4e4d-b065-aa2e162abbfe",
+      "name": "Liliana, Waker of the Dead",
+      "sentence": "Each opponent who can't loses 3 life.",
+      "bucket_hint": "static"
+    },
+    {
+      "oracle_id": "e0df8e2a-96d2-4e4d-b065-aa2e162abbfe",
+      "name": "Liliana, Waker of the Dead",
+      "sentence": "It gains haste.\"",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "e0df8e2a-96d2-4e4d-b065-aa2e162abbfe",
+      "name": "Liliana, Waker of the Dead",
+      "sentence": "[−7]: You get an emblem with \"At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "e4a68bb3-5a79-4764-8223-acddd16fb660",
+      "name": "Tome Anima",
+      "sentence": "This creature can't be blocked as long as you've drawn two or more cards this turn.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "e4bacf1b-0a45-4c73-857d-dffadb7e6fa5",
+      "name": "Speaker of the Heavens",
+      "sentence": "Activate only if you have at least 7 life more than your starting life total and only as a sorcery.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "e5cc1492-c9cc-48f0-8c11-02ead883675c",
+      "name": "Gloom Sower",
+      "sentence": "Whenever this creature becomes blocked by a creature, that creature's controller loses 2 life and you gain 2 life.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "e802fb53-7cf5-46bc-8a0b-f99cf5c20f74",
+      "name": "Teferi, Master of Time",
+      "sentence": "You may activate loyalty abilities of Teferi on any player's turn any time you could cast an instant.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "ea43fd04-e9fa-42fb-ba20-22dcc21c6c43",
+      "name": "Stormwing Entity",
+      "sentence": "This spell costs {2}{U} less to cast if you've cast an instant or sorcery spell this turn.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "ee811356-ef6a-4972-b827-32c2d329b3c3",
+      "name": "Drowsing Tyrannodon",
+      "sentence": "As long as you control a creature with power 4 or greater, this creature can attack as though it didn't have defender.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "f379fa0b-e9fc-4307-a574-a0c95e5e7f72",
+      "name": "Chrome Replicator",
+      "sentence": "When this creature enters, if you control two or more nonland, nontoken permanents with the same name as one another, create a 4/4 colorless Construct artifact creature token.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "f5d1bd3c-0e65-4999-a810-881b2389b40e",
+      "name": "Conspicuous Snoop",
+      "sentence": "As long as the top card of your library is a Goblin card, this creature has all activated abilities of that card.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "f5d1bd3c-0e65-4999-a810-881b2389b40e",
+      "name": "Conspicuous Snoop",
+      "sentence": "Play with the top card of your library revealed.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "f8640899-2458-40f2-98a3-35c402ee9a7a",
+      "name": "Jolrael, Mwonvuli Recluse",
+      "sentence": "Whenever you draw your second card each turn, create a 2/2 green Cat creature token.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "f8e17f4f-080d-4bba-bd05-ca27e94ccecc",
+      "name": "Terror of the Peaks",
+      "sentence": "Spells your opponents cast that target this creature cost an additional 3 life to cast.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "f98f7cb7-90ca-41e7-9f1d-8054931ecf0e",
+      "name": "Barrin, Tolarian Archmage",
+      "sentence": "At the beginning of your end step, if a permanent was put into your hand from the battlefield this turn, draw a card.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "fc762e40-84c1-4762-82f7-a0fc4f6fd522",
+      "name": "Garruk, Savage Herald",
+      "sentence": "If it's a creature card, put it into your hand.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "fc762e40-84c1-4762-82f7-a0fc4f6fd522",
+      "name": "Garruk, Savage Herald",
+      "sentence": "Otherwise, put it on the bottom of your library.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "fc762e40-84c1-4762-82f7-a0fc4f6fd522",
+      "name": "Garruk, Savage Herald",
+      "sentence": "[−7]: Until end of turn, creatures you control gain \"You may have this creature assign its combat damage as though it weren't blocked.\"",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "fe168bf1-f626-460c-890b-1ce758af01fc",
+      "name": "Ghostly Pilferer",
+      "sentence": "Discard a card: This creature can't be blocked this turn.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "fe168bf1-f626-460c-890b-1ce758af01fc",
+      "name": "Ghostly Pilferer",
+      "sentence": "Whenever an opponent casts a spell from anywhere other than their hand, draw a card.",
+      "bucket_hint": "triggered"
+    }
+  ],
+  "unparsed_count": 146
+}

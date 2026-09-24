@@ -10,11 +10,11 @@ from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     Atom,
     Choose,
+    ControllerRef,
     CostManaColor,
     CostManaGeneric,
     CostPart,
     CostTap,
-    ControllerRef,
     CounterKind,
     DurationEot,
     Keyword,
@@ -35,12 +35,12 @@ from MTG_bot.core.ability_tree import (
     canonical_json,
     fingerprint,
 )
+from MTG_bot.core.compiler import templates_b3
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     Match,
     TemplateRegistry,
 )
-from MTG_bot.core.compiler import templates_b3
 
 _B3_PATH = Path("/tmp/opencode/phase1_buckets/B3.json")
 
@@ -125,8 +125,8 @@ class TestB3Coverage(unittest.TestCase):
         self.assertEqual(total, 55)
 
     def test_public_api_counts(self) -> None:
-        self.assertEqual(len(templates_b3.TEMPLATES), 23)
-        self.assertEqual(len(templates_b3.UNCOVERED), 7)
+        self.assertEqual(len(templates_b3.TEMPLATES), 26)
+        self.assertEqual(len(templates_b3.UNCOVERED), 4)
 
     def test_covered_shape_and_occurrence_counts(self) -> None:
         covered_shapes = 0
@@ -139,8 +139,8 @@ class TestB3Coverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 41)
-        self.assertEqual(matched_occurrences, 48)
+        self.assertEqual(covered_shapes, 44)
+        self.assertEqual(matched_occurrences, 51)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -199,7 +199,9 @@ class TestB3CostParsing(unittest.TestCase):
         self.assertEqual(_cost_parts(ability), (CostManaGeneric(QConst(2)),))
 
     def test_color_cost(self) -> None:
-        ability = _ability(_single_match(self.reg, "{R}: This creature gets +1/+0 until end of turn."))
+        ability = _ability(
+            _single_match(self.reg, "{R}: This creature gets +1/+0 until end of turn.")
+        )
         self.assertEqual(_cost_parts(ability), (CostManaColor("R", QConst(1)),))
 
     def test_mixed_cost_preserves_order(self) -> None:
@@ -377,9 +379,7 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertEqual(_qconst(atom, "amount").value, 1)
 
     def test_add_mana_colorless_counts_repeated_c_symbols(self) -> None:
-        ability = _ability(
-            _single_match(self.reg, "{T}: Add {C}{C}{C}{C}{C}.")
-        )
+        ability = _ability(_single_match(self.reg, "{T}: Add {C}{C}{C}{C}{C}."))
         atom = _atom(ability)
         self.assertIs(atom.verb, Verb.ADD_MANA)
         color = atom.args.get("color")
@@ -403,14 +403,67 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertEqual(second.args.get("color"), "G")
 
     def test_add_mana_any_color_uses_colorless_marker(self) -> None:
-        ability = _ability(
-            _single_match(self.reg, "{T}: Add one mana of any color.")
-        )
+        ability = _ability(_single_match(self.reg, "{T}: Add one mana of any color."))
         atom = _atom(ability)
         self.assertIs(atom.verb, Verb.ADD_MANA)
         color = atom.args.get("color")
         self.assertEqual(color, "C")
         self.assertEqual(_qconst(atom, "amount").value, 1)
+
+    def test_deal_dmg_equal_power_to_player_or_planeswalker(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "{7}{R}: This creature deals damage equal to its power "
+                "to target player or planeswalker.",
+            )
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.DEAL_DAMAGE)
+        target = _selector(atom, "target")
+        self.assertIs(target.mode, SelectorMode.TARGET)
+        self.assertIs(target.zone.kind, ZoneKind.PLAYER)
+        self.assertEqual(len(target.zones), 1)
+        self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
+        amount = atom.args.get("amount")
+        assert isinstance(amount, QProp)
+        self.assertEqual(amount.referent, "source")
+        self.assertIs(amount.field, QPropField.POWER)
+        self.assertIs(amount.agg, QAgg.FIRST)
+
+    def test_deal_dmg_constant_to_player_or_planeswalker(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "{T}: This creature deals 1 damage to target player or planeswalker.",
+            )
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.DEAL_DAMAGE)
+        target = _selector(atom, "target")
+        self.assertIs(target.mode, SelectorMode.TARGET)
+        self.assertIs(target.zone.kind, ZoneKind.PLAYER)
+        self.assertEqual(len(target.zones), 1)
+        self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertEqual(_qconst(atom, "amount").value, 1)
+
+    def test_add_mana_per_power_ge_creature_you_control(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "{T}: Add {G} for each creature with power 4 or greater you control.",
+            )
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.ADD_MANA)
+        controller = atom.args.get("controller")
+        self.assertIs(controller, ControllerRef.YOU)
+        color = atom.args.get("color")
+        self.assertEqual(color, "G")
+        amount = atom.args.get("amount")
+        assert isinstance(amount, QCount)
+        self.assertIs(amount.selector.zone.kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(amount.selector.zone.controller, ControllerRef.YOU)
 
     def test_create_token_builds_flying_angel_token(self) -> None:
         ability = _ability(

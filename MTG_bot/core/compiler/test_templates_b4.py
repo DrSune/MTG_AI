@@ -2,9 +2,9 @@
 
 Covers all 47 shapes in ``/tmp/opencode/phase1_buckets/B4.json``
 (63 concrete sentences):
-- 18 shapes template-covered (19 concrete sentences; ``You gain N life.``
-  carries two) -> 18 templates
-- 29 shapes UNCOVERED (44 concrete sentences; no grammar construct)
+- 30 shapes template-covered (45 concrete sentences; ``This land enters
+  tapped.`` carries 15) -> 30 templates
+- 17 shapes UNCOVERED (18 concrete sentences; no grammar construct)
 
 PC-3: every B4 concrete sentence fullmatches at most one template.
 """
@@ -17,20 +17,31 @@ from pathlib import Path
 from typing import Any
 
 from MTG_bot.core.ability_tree import (
+    ActivatedAbility,
     Atom,
     ControllerRef,
+    Cost,
+    CostDeltaIncreaseGeneric,
+    CostDeltaIncreaseLife,
+    CostDeltaReduceGeneric,
+    CostDeltaReduceMana,
+    CostDiscard,
+    CostLife,
+    CostModifier,
     CounterKind,
     DeclareBlockersEvent,
     DurationEot,
     DurationWhileCondition,
     Effect,
+    EtBState,
     FAnd,
     FAtom,
     FAtomPred,
-    FNot,
     Filter,
+    FNot,
     Keyword,
     KeywordAbility,
+    OptionalEffect,
     PtDelta,
     PtDirection,
     QAgg,
@@ -44,7 +55,9 @@ from MTG_bot.core.ability_tree import (
     Seq,
     StaticAbility,
     Verb,
+    Zone,
     ZoneKind,
+    ZonePosition,
     canonical_json,
     fingerprint,
 )
@@ -219,6 +232,44 @@ def _as_blockers_event(value: object) -> DeclareBlockersEvent:
     return value
 
 
+def _as_cost_modifier(value: object) -> CostModifier:
+    if not isinstance(value, CostModifier):
+        raise AssertionError(f"expected CostModifier, got {type(value).__name__}")
+    return value
+
+
+def _as_etb_state(value: object) -> EtBState:
+    if not isinstance(value, EtBState):
+        raise AssertionError(f"expected EtBState, got {type(value).__name__}")
+    return value
+
+
+def _as_activated(value: object) -> ActivatedAbility:
+    if not isinstance(value, ActivatedAbility):
+        raise AssertionError(f"expected ActivatedAbility, got {type(value).__name__}")
+    return value
+
+
+def _as_optional(value: object) -> OptionalEffect:
+    if not isinstance(value, OptionalEffect):
+        raise AssertionError(f"expected OptionalEffect, got {type(value).__name__}")
+    return value
+
+
+def _as_cost(value: object) -> Cost:
+    if not isinstance(value, Cost):
+        raise AssertionError(f"expected Cost, got {type(value).__name__}")
+    return value
+
+
+def _as_cost_delta(value: object) -> CostDeltaReduceGeneric:
+    if not isinstance(value, CostDeltaReduceGeneric):
+        raise AssertionError(
+            f"expected CostDeltaReduceGeneric, got {type(value).__name__}"
+        )
+    return value
+
+
 def _and_children(f: Filter) -> tuple[Filter, ...]:
     assert isinstance(f, FAnd), f"expected FAnd filter, got {type(f).__name__}"
     return f.children
@@ -227,8 +278,10 @@ def _and_children(f: Filter) -> tuple[Filter, ...]:
 def _find_atom(f: Filter, pred: FAtomPred, **slots: Any) -> FAtom:
     """Find an FAtom child of an FAnd with the given pred and slot values."""
     for child in _and_children(f):
-        if isinstance(child, FAtom) and child.pred is pred and all(
-            getattr(child, key) == value for key, value in slots.items()
+        if (
+            isinstance(child, FAtom)
+            and child.pred is pred
+            and all(getattr(child, key) == value for key, value in slots.items())
         ):
             return child
     raise AssertionError(f"no FAtom(pred={pred.name}, {slots}) inside FAnd")
@@ -294,6 +347,45 @@ EXPECTED_KIND: dict[str, tuple[str, str]] = {
         "ability",
     ),
     "You lose 3 life.": ("B4-lose-life-n", "effect"),
+    "Creature spells with flying you cast cost {1} less to cast.": (
+        "B4-cost-modifier-watcher",
+        "ability",
+    ),
+    "This spell costs {X} less to cast, where X is the total power of "
+    "creatures you control.": ("B4-cost-modifier-total-power", "ability"),
+    "This spell costs {3} less to cast if you've gained 3 or more life this turn.": (
+        "B4-cost-modifier-conditional-life",
+        "ability",
+    ),
+    "This creature enters tapped.": ("B4-enters-tapped-creature", "ability"),
+    "This land enters tapped.": ("B4-enters-tapped-land", "ability"),
+    "You may cast Goblin spells from the top of your library.": (
+        "B4-cast-goblin-top-library",
+        "ability",
+    ),
+    "You may cast this card from your graveyard by paying 3 life and "
+    "discarding a card in addition to paying its other costs.": (
+        "B4-cast-graveyard-recost",
+        "ability",
+    ),
+    "You may search your library and/or graveyard for a card named "
+    "Basri, Devoted Paladin, reveal it, and put it into your hand.": (
+        "B4-tutor-basri",
+        "ability",
+    ),
+    "You may search your library and/or graveyard for a card named "
+    "Liliana, Death Mage, reveal it, and put it into your hand.": (
+        "B4-tutor-liliana",
+        "ability",
+    ),
+    "This spell costs {2}{U} less to cast if you've cast an instant or "
+    "sorcery spell this turn.": ("B4-stormwing-cost", "ability"),
+    "Spells your opponents cast that target this creature cost an "
+    "additional 3 life to cast.": ("B4-opponent-spell-cost-life", "ability"),
+    "Spells your opponents cast that target this creature cost {3} more to cast.": (
+        "B4-opponent-spell-cost-mana",
+        "ability",
+    ),
 }
 
 
@@ -308,11 +400,11 @@ class TestB4Inventory(unittest.TestCase):
     def setUp(self) -> None:
         self.data = _load_b4()
 
-    def test_18_templates(self) -> None:
-        self.assertEqual(len(templates_b4.TEMPLATES), 18)
+    def test_30_templates(self) -> None:
+        self.assertEqual(len(templates_b4.TEMPLATES), 30)
 
-    def test_29_uncovered(self) -> None:
-        self.assertEqual(len(templates_b4.UNCOVERED), 29)
+    def test_17_uncovered(self) -> None:
+        self.assertEqual(len(templates_b4.UNCOVERED), 17)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in templates_b4.TEMPLATES]
@@ -328,7 +420,7 @@ class TestB4Inventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _registry()
-        self.assertEqual(len(reg), 18)
+        self.assertEqual(len(reg), 30)
 
     def test_every_template_matches_some_bucket_sentence(self) -> None:
         sentences = [
@@ -365,8 +457,8 @@ class TestB4Coverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 18)
-        self.assertEqual(matched_occurrences, 19)
+        self.assertEqual(covered_shapes, 30)
+        self.assertEqual(matched_occurrences, 45)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -383,9 +475,9 @@ class TestB4Coverage(unittest.TestCase):
                 self.assertEqual(self.reg.match(sentence), (), sentence)
 
     def test_expected_kind_table_is_consistent_with_bucket(self) -> None:
-        self.assertEqual(len(EXPECTED_KIND), 19)
+        self.assertEqual(len(EXPECTED_KIND), 31)
         for sentence in EXPECTED_KIND:
-            for _shape, entries in self.data.items():
+            for entries in self.data.values():
                 if sentence in [s for _card, s in entries]:
                     break
             else:
@@ -456,8 +548,7 @@ class TestB4Matching(unittest.TestCase):
                 self.assertEqual(
                     first,
                     second,
-                    f"fingerprint unstable for {card!r} / {shape_key!r}: "
-                    f"{sentence!r}",
+                    f"fingerprint unstable for {card!r} / {shape_key!r}: {sentence!r}",
                 )
 
 
@@ -472,7 +563,11 @@ class TestB4IrStructure(unittest.TestCase):
 
     def test_mandate_attack_you(self) -> None:
         atom = _as_atom(
-            _effect_of(_single_match(self.reg, "Creatures you control attack each combat if able."))
+            _effect_of(
+                _single_match(
+                    self.reg, "Creatures you control attack each combat if able."
+                )
+            )
         )
         self.assertIs(atom.verb, Verb.MANDATE_ATTACK)
         cards = _selector(atom, "cards")
@@ -629,7 +724,9 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertEqual(_qconst(toughness.magnitude).value, 1)
 
     def test_cant_block(self) -> None:
-        outcome = _as_ability(_single_match(self.reg, "This creature can't block.").outcome)
+        outcome = _as_ability(
+            _single_match(self.reg, "This creature can't block.").outcome
+        )
         atom = _as_atom(_as_static(outcome.ability).effect)
         self.assertIs(atom.verb, Verb.PREVENT_EFFECT)
         condition = _as_fatom(_pairs(atom).get("condition"))
@@ -654,9 +751,7 @@ class TestB4IrStructure(unittest.TestCase):
         target_filter = _as_fatom(target.filter)
         self.assertIs(target_filter.pred, FAtomPred.IS_SOURCE)
         duration = _as_duration_while(atom.args.get("duration"))
-        _find_atom(
-            duration.filter, FAtomPred.TYPE_EQ, string_value="Planeswalker"
-        )
+        _find_atom(duration.filter, FAtomPred.TYPE_EQ, string_value="Planeswalker")
         _find_atom(duration.filter, FAtomPred.SUBTYPE_EQ, string_value="Garruk")
         _find_atom(duration.filter, FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
         power = _pt_delta(atom, "power")
@@ -690,8 +785,7 @@ class TestB4IrStructure(unittest.TestCase):
         outcome = _as_ability(
             _single_match(
                 self.reg,
-                "This creature has lifelink as long as it has a +1/+1 counter "
-                "on it.",
+                "This creature has lifelink as long as it has a +1/+1 counter on it.",
             ).outcome
         )
         atom = _as_atom(_as_static(outcome.ability).effect)
@@ -778,6 +872,261 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.LOSE_LIFE)
         self.assertIs(_pairs(atom).get("controller"), ControllerRef.YOU)
         self.assertEqual(_qconst(_pairs(atom).get("amount")).value, 3)
+
+    # ------------------------------------------------------------------
+    # Cost modifiers
+    # ------------------------------------------------------------------
+
+    def test_cost_modifier_watcher(self) -> None:
+        outcome = _as_ability(
+            _single_match(
+                self.reg,
+                "Creature spells with flying you cast cost {1} less to cast.",
+            ).outcome
+        )
+        modifier = _as_cost_modifier(outcome.ability)
+        self.assertIs(modifier.controller_ref, ControllerRef.YOU)
+        delta = _as_cost_delta(modifier.delta)
+        self.assertIsInstance(delta, CostDeltaReduceGeneric)
+        self.assertEqual(_qconst(delta.amount).value, 1)
+        _find_atom(modifier.filter, FAtomPred.TYPE_EQ, string_value="Creature")
+        kw = _find_atom(modifier.filter, FAtomPred.KEYWORD_HAS)
+        self.assertIs(kw.keyword, Keyword.FLYING)
+
+    def test_cost_modifier_total_power(self) -> None:
+        outcome = _as_ability(
+            _single_match(
+                self.reg,
+                "This spell costs {X} less to cast, where X is the total "
+                "power of creatures you control.",
+            ).outcome
+        )
+        modifier = _as_cost_modifier(outcome.ability)
+        self.assertIs(modifier.controller_ref, ControllerRef.YOU)
+        delta = _as_cost_delta(modifier.delta)
+        self.assertIsInstance(delta, CostDeltaReduceGeneric)
+        qprop = _as_qprop(delta.amount)
+        self.assertIs(qprop.field, QPropField.POWER)
+        self.assertIs(qprop.agg, QAgg.SUM)
+        referent = _as_selector(qprop.referent)
+        self.assertIs(referent.zone.kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(referent.zone.controller, ControllerRef.YOU)
+        _find_atom(referent.filter, FAtomPred.TYPE_EQ, string_value="Creature")
+        _find_atom(referent.filter, FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+        # filter is IS_SOURCE
+        filter_atom = _as_fatom(modifier.filter)
+        self.assertIs(filter_atom.pred, FAtomPred.IS_SOURCE)
+
+    def test_cost_modifier_conditional_life(self) -> None:
+        outcome = _as_ability(
+            _single_match(
+                self.reg,
+                "This spell costs {3} less to cast if you've gained 3 or "
+                "more life this turn.",
+            ).outcome
+        )
+        modifier = _as_cost_modifier(outcome.ability)
+        self.assertIs(modifier.controller_ref, ControllerRef.YOU)
+        delta = _as_cost_delta(modifier.delta)
+        self.assertIsInstance(delta, CostDeltaReduceGeneric)
+        self.assertEqual(_qconst(delta.amount).value, 3)
+        condition = _as_fatom(modifier.condition)
+        self.assertIs(condition.pred, FAtomPred.LIFE_GAINED_THIS_TURN_GE)
+        self.assertEqual(_qconst(condition.count).value, 3)
+        self.assertIs(condition.who, ControllerRef.YOU)
+        filter_atom = _as_fatom(modifier.filter)
+        self.assertIs(filter_atom.pred, FAtomPred.IS_SOURCE)
+
+    def test_cost_modifier_stormwing_compound(self) -> None:
+        outcome = _as_ability(
+            _single_match(
+                self.reg,
+                "This spell costs {2}{U} less to cast if you've cast an "
+                "instant or sorcery spell this turn.",
+            ).outcome
+        )
+        modifier = _as_cost_modifier(outcome.ability)
+        self.assertIs(modifier.controller_ref, ControllerRef.YOU)
+        delta = _as_cost_delta(modifier.delta)
+        self.assertIsInstance(delta, CostDeltaReduceGeneric)
+        self.assertEqual(_qconst(delta.amount).value, 2)
+        self.assertEqual(
+            modifier.extra_deltas,
+            (CostDeltaReduceMana(color="U", amount=QConst(1)),),
+        )
+        condition = _as_fatom(modifier.condition)
+        self.assertIs(condition.pred, FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN)
+        self.assertIs(condition.who, ControllerRef.YOU)
+        filter_atom = _as_fatom(modifier.filter)
+        self.assertIs(filter_atom.pred, FAtomPred.IS_SOURCE)
+
+    def test_cost_modifier_opponent_life(self) -> None:
+        outcome = _as_ability(
+            _single_match(
+                self.reg,
+                "Spells your opponents cast that target this creature "
+                "cost an additional 3 life to cast.",
+            ).outcome
+        )
+        modifier = _as_cost_modifier(outcome.ability)
+        self.assertIs(modifier.controller_ref, ControllerRef.OPPONENT)
+        delta = modifier.delta
+        if not isinstance(delta, CostDeltaIncreaseLife):
+            self.fail(f"expected CostDeltaIncreaseLife, got {type(delta).__name__}")
+        self.assertEqual(_qconst(delta.amount).value, 3)
+        self.assertIsNone(modifier.condition)
+        filter_atom = _as_fatom(modifier.filter)
+        self.assertIs(filter_atom.pred, FAtomPred.TARGETS_SOURCE)
+
+    def test_cost_modifier_opponent_generic(self) -> None:
+        outcome = _as_ability(
+            _single_match(
+                self.reg,
+                "Spells your opponents cast that target this creature "
+                "cost {3} more to cast.",
+            ).outcome
+        )
+        modifier = _as_cost_modifier(outcome.ability)
+        self.assertIs(modifier.controller_ref, ControllerRef.OPPONENT)
+        delta = modifier.delta
+        if not isinstance(delta, CostDeltaIncreaseGeneric):
+            self.fail(f"expected CostDeltaIncreaseGeneric, got {type(delta).__name__}")
+        self.assertEqual(_qconst(delta.amount).value, 3)
+        self.assertIsNone(modifier.condition)
+        filter_atom = _as_fatom(modifier.filter)
+        self.assertIs(filter_atom.pred, FAtomPred.TARGETS_SOURCE)
+
+    # ------------------------------------------------------------------
+    # ETB state
+    # ------------------------------------------------------------------
+
+    def test_enters_tapped_creature(self) -> None:
+        outcome = _as_ability(
+            _single_match(self.reg, "This creature enters tapped.").outcome
+        )
+        etb = _as_etb_state(outcome.ability)
+        self.assertTrue(etb.tapped)
+        self.assertEqual(etb.initial_counters, ())
+
+    def test_enters_tapped_land(self) -> None:
+        outcome = _as_ability(
+            _single_match(self.reg, "This land enters tapped.").outcome
+        )
+        etb = _as_etb_state(outcome.ability)
+        self.assertTrue(etb.tapped)
+        self.assertEqual(etb.initial_counters, ())
+
+    # ------------------------------------------------------------------
+    # Activated abilities — cast from zone
+    # ------------------------------------------------------------------
+
+    def test_cast_goblin_top_library(self) -> None:
+        outcome = _as_ability(
+            _single_match(
+                self.reg, "You may cast Goblin spells from the top of your library."
+            ).outcome
+        )
+        ability = _as_activated(outcome.ability)
+        self.assertEqual(ability.cost.parts, ())
+        optional = _as_optional(ability.effect)
+        atom = _as_atom(optional.inner)
+        self.assertIs(atom.verb, Verb.CAST)
+        source = _selector(atom, "source")
+        self.assertIs(source.zone.kind, ZoneKind.LIBRARY)
+        self.assertIs(source.zone.controller, ControllerRef.YOU)
+        self.assertIs(source.zone.position, ZonePosition.TOP)
+        self.assertIsInstance(source.count, QUnbounded)
+        self.assertIs(source.mode, SelectorMode.CHOOSE)
+        _find_atom(source.filter, FAtomPred.TYPE_EQ, string_value="Creature")
+        _find_atom(source.filter, FAtomPred.SUBTYPE_EQ, string_value="Goblin")
+
+    def test_cast_graveyard_recost(self) -> None:
+        outcome = _as_ability(
+            _single_match(
+                self.reg,
+                "You may cast this card from your graveyard by paying 3 life "
+                "and discarding a card in addition to paying its other costs.",
+            ).outcome
+        )
+        ability = _as_activated(outcome.ability)
+        cost = ability.cost
+        self.assertEqual(len(cost.parts), 2)
+        life_part = cost.parts[0]
+        assert isinstance(life_part, CostLife)
+        self.assertEqual(_qconst(life_part.amount).value, 3)
+        discard_part = cost.parts[1]
+        assert isinstance(discard_part, CostDiscard)
+        discard_target = discard_part.target
+        self.assertIs(discard_target.zone.kind, ZoneKind.HAND)
+        self.assertIs(discard_target.zone.controller, ControllerRef.YOU)
+        self.assertEqual(_qconst(discard_target.count).value, 1)
+        self.assertEqual(discard_target.filter, FAnd(children=()))
+        optional = _as_optional(ability.effect)
+        atom = _as_atom(optional.inner)
+        self.assertIs(atom.verb, Verb.CAST)
+        source = _selector(atom, "source")
+        self.assertIs(source.zone.kind, ZoneKind.GRAVEYARD)
+        self.assertIs(source.zone.controller, ControllerRef.YOU)
+        self.assertEqual(_qconst(source.count).value, 1)
+        source_filter = _as_fatom(source.filter)
+        self.assertIs(source_filter.pred, FAtomPred.IS_SOURCE)
+
+    # ------------------------------------------------------------------
+    # Tutor (name-specific search)
+    # ------------------------------------------------------------------
+
+    def test_tutor_basri(self) -> None:
+        self._assert_tutor_structure(
+            "You may search your library and/or graveyard for a card named "
+            "Basri, Devoted Paladin, reveal it, and put it into your hand.",
+            "Basri, Devoted Paladin",
+        )
+
+    def test_tutor_liliana(self) -> None:
+        self._assert_tutor_structure(
+            "You may search your library and/or graveyard for a card named "
+            "Liliana, Death Mage, reveal it, and put it into your hand.",
+            "Liliana, Death Mage",
+        )
+
+    def _assert_tutor_structure(self, sentence: str, card_name: str) -> None:
+        outcome = _as_ability(_single_match(self.reg, sentence).outcome)
+        ability = _as_activated(outcome.ability)
+        self.assertEqual(ability.cost.parts, ())
+        optional = _as_optional(ability.effect)
+        seq = _as_seq(optional.inner)
+        self.assertEqual(len(seq.steps), 3)
+        search_atom, reveal_atom, move_atom = seq.steps
+        assert isinstance(search_atom, Atom)
+        assert isinstance(reveal_atom, Atom)
+        assert isinstance(move_atom, Atom)
+        # SEARCH
+        self.assertIs(search_atom.verb, Verb.SEARCH)
+        cards = _selector(search_atom, "cards")
+        self.assertEqual(_qconst(cards.count).value, 1)
+        self.assertIs(cards.mode, SelectorMode.CHOOSE)
+        name_atom = _as_fatom(cards.filter)
+        self.assertIs(name_atom.pred, FAtomPred.NAME_EQ)
+        self.assertEqual(name_atom.string_value, card_name)
+        self.assertIs(cards.zone.kind, ZoneKind.LIBRARY)
+        self.assertIs(cards.zone.controller, ControllerRef.YOU)
+        self.assertEqual(len(cards.zones), 1)
+        self.assertIs(cards.zones[0].kind, ZoneKind.GRAVEYARD)
+        self.assertIs(cards.zones[0].controller, ControllerRef.YOU)
+        dest = search_atom.args.get("destination")
+        assert isinstance(dest, Zone)
+        self.assertIs(dest.kind, ZoneKind.HAND)
+        self.assertIs(dest.controller, ControllerRef.YOU)
+        # REVEAL
+        self.assertIs(reveal_atom.verb, Verb.REVEAL)
+        self.assertIs(_pairs(reveal_atom).get("controller"), ControllerRef.YOU)
+        self.assertEqual(_qconst(_pairs(reveal_atom).get("count")).value, 1)
+        # MOVE_ZONE
+        self.assertIs(move_atom.verb, Verb.MOVE_ZONE)
+        move_dest = move_atom.args.get("destination")
+        assert isinstance(move_dest, Zone)
+        self.assertIs(move_dest.kind, ZoneKind.HAND)
+        self.assertIs(move_dest.controller, ControllerRef.YOU)
 
 
 if __name__ == "__main__":

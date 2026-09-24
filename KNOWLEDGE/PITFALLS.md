@@ -1,5 +1,200 @@
 # PITFALLS — standing traps (each dated; newest first)
 
+## 2026-09-24
+- **[git/golden — re-staging loses the pre-baseline audit state.]** When a
+  batch re-baselines goldens via `tools/measure_grammar.py --refresh-goldens`
+  and then `git add`s the refreshed files, the prior index blobs are
+  replaced and `git fsck --dangling` recovers nothing — the "abilities key
+  is the only changed key" audit can no longer be independently re-run
+  against the staged baseline. Rule: before refreshing + staging goldens,
+  copy the pre-state (e.g. `cp -r MTG_bot/core/golden /tmp/golden_pre_$(date +%s)`)
+  so the structural audit stays reproducible. (Happened in the 2026-09-24
+  round-3 template batch; audit was valid but done pre-staging only.)
+- **[ability_tree.py — ruff format churn on first edit.]** The committed
+  `ability_tree.py` was NOT ruff-format-clean at HEAD. The first edit in a
+  session triggers the auto-formatter, which reformats the entire file
+  (line-wraps every long `raise ValueError(...)` and reflows `_SPECS` /
+  `_VERB_ROLES` / frozenset literals), producing a ~1200-line diff that
+  buries the real change. `git diff -w` still shows most of it (the
+  reflows are structural, not whitespace-only). Rule: review `ability_tree.py`
+  changes by symbol (grep the new field/role/pred by name) rather than by
+  diff size; don't be alarmed by a huge diff on that file. The file is now
+  format-clean, so this is a one-time cost.
+- **[tools/gen_buckets.py — stale pinned asserts after template growth.]**
+  `gen_buckets.py` hard-asserts exact covered-key counts per bucket
+  (`b2a_keys == 51`, `b4_keys == 26` at 2026-09-17). When template modules
+  gain covered shapes, these asserts go stale and the script dies
+  `AssertionError: B2a pattern keys=54`, leaving
+  `/tmp/opencode/phase1_buckets/*.json` missing — which then makes ALL
+  per-bucket test files fail (55 failed + 8 errors, all in
+  `test_templates_b*.py`). Symptom to recognize: a mass of bucket-test
+  failures with no production change is almost always missing
+  `/tmp` bucket JSONs. Rule: after any template-module lands, re-run
+  `python tools/gen_buckets.py` and bump the pinned asserts to the new
+  counts (docstring counts drift too).
+- **[measure_grammar NUMBERS.md — one section per run.]** Every
+  `python tools/measure_grammar.py --set M21` run appends a fresh
+  `## <date> (T5 …)` section to NUMBERS.md. A session with several runs
+  produces several same-date sections (7 on 2026-09-24). The harness owns
+  this format — do not hand-edit the tables; mark superseded same-date
+  sections by appending a `— superseded by …` note to the header only.
+- **[Goremand "double-parse" was a misdiagnosis.]** The 2026-09-23/03
+  follow-up claimed the same sentence fed both a (wrong) TriggeredAbility
+  and the correct CostSacrifice. Verified false: the two clauses are
+  distinct sentences parsed by distinct per-card templates
+  (B2a-goremand for the ETB, B5a-addl-cost-sacrifice for the cost),
+  `ambiguities=()` for the card, and the trigger is correct under the
+  binding EachPlayer rebinding contract (PITFALLS 2026-09-22, Goremand is
+  the canonical example). No code change needed. Rule: when a prior note
+  asserts a "double parse", re-derive from the live compiler
+  (`compile_card` → per-sentence outcomes) before treating it as real.
+
+## 2026-09-23
+- **[compiler/pyright — Optional grammar field exposes latent non-None
+  assumptions.]** Widening `SpellAbility.effect` to `Effect | None = None`
+  silently invalidated latent non-None assumptions in the compiler's
+  continuation-merge path: both the backward merge-target search and the
+  merge branch dereference `ab.effect` and needed explicit guards
+  (`ab.effect is not None` in the search; `if ab.effect is None: continue`
+  in the merge), and the test helpers (`_seq`/`_choose`/`_atom` in
+  `test_compiler.py`) needed their signatures widened to `Effect | None`
+  in the same edit batch or the whole module fails static check. Rule:
+  when widening a grammar dataclass field to `X | None`, audit every
+  consumer path AND the test helper signatures in one pass — pyright
+  reports the consumer errors but only after the test-file cascade.
+  (SpellAbility-effect-optional, 2026-09-23.)
+- **[golden/diff — single-line canonical JSON defeats `git diff`.]**
+  Golden files are one-line canonical JSON, so after `--refresh-goldens`
+  `git diff` shows the whole file changed with no hunk-level signal about
+  which card or which key changed; and the post-refresh `AM` status means
+  *index = pre-change baseline, worktree = refreshed* (do not read `A`
+  as "staged my changes"). Targeted verification = structural JSON
+  compare: parse `git show :path` (staged baseline) vs the worktree file
+  and diff the objects key-wise. That is what proved only the `abilities`
+  key changed in the 4 affected goldens. Resolve `AM` with
+  `git add MTG_bot/core/golden/`. (SpellAbility-effect-optional, 2026-09-23.)
+- **[M21.json — oracle id path.]** Card records live at
+  `payload['data']['cards']` (397 records) and the oracle id is at
+  `c['identifiers']['scryfallOracleId']` — there is no top-level
+  `oracle_id` key on each record (see the 2026-09-14 entry for the
+  `text` vs `oracleText` sibling trap). A blind `c.get('oracle_id')`
+  silently maps 0/397 and makes every card name unmappable. (2026-09-23.)
+
+## 2026-09-22
+- **[measure_grammar/PC-4 — tautological golden check]** `tools/measure_grammar.py`
+  calls `write_goldens` (full regenerate, overwrites) BEFORE
+  `verify_goldens`, and `MTG_bot/core/golden/M21/` is untracked in git —
+  so a measurement run's "PC-4 0 diffs" proves nothing: every run
+  silently rewrites all 305 goldens and the same-run verify trivially
+  passes. Real drift detection exists only in `test_golden.py`
+  (write → tamper → verify). Do not cite harness PC-4 as evidence of
+  golden stability; to check drift, run `verify_goldens` alone against
+  the on-disk baseline BEFORE any write. (2026-09-22.)
+- **[compiler/OutcomeSlot — `None` is a two-use sentinel]** A `None`
+  outcome slot in `compile_card` must mean *unparsed* and nothing else.
+  The choose-opener wrapper originally marked consumed option slots
+  `None`, and the post-fold `unparsed` reconstruction (`outcome is
+  None`) then reported every consumed bullet as unparsed while the
+  opener vanished from the report (6 tests failed). Fix: dedicated
+  `_OptionConsumed` sentinel (`_OPTION_CONSUMED`, `__slots__ = ()`);
+  `_OutcomeSlot = SentenceOutcome | _ChooseOpenerOutcome |
+  _OptionConsumed | None`. Any future "consumed/handled" state needs
+  its own type, never `None`. (choose-opener, 2026-09-22.)
+- **[ability_tree/EachPlayer — BINDING SEMANTIC CONTRACT]** Inside an
+  `EachPlayer(ref, effect)`, the referent `YOU` in the inner effect rebinds to
+  the iterated player (so `EACH_PLAYER(ALL_OPPONENTS): SACRIFICE(... 
+  CONTROLLER_IS(YOU) ...)` means "each opponent sacrifices a creature THEY
+  control" — e.g. Goremand). The tree text alone reads "a creature you control";
+  the executor AND the trained model MUST implement this rebinding or the
+  encoding is silently inverted. Never "simplify" such trees by lifting the
+  inner effect out of the EachPlayer wrapper. (T7 2026-09-22.)
+- **[compiler/MoveState]** `Verb.MOVE_ZONE` roles = {cards, destination} and
+  `Verb.SEARCH` = {cards, destination, controller}: there is NO tap-state
+  parameter, so "put that card onto the battlefield TAPPED" currently encodes
+  the tap state as a silent loss (Solemn Simulacrum, Fabled Passage). Round-2
+  grammar item: optional tap-on-enter role. Until then, do not add templates
+  that promise tap-on-enter semantics the grammar cannot carry.
+- **[review/Renderer]** Ad-hoc tree renderers must be verified against the
+  canonical JSON BEFORE drawing semantic conclusions — three field-name bugs
+  (`OptionalEffect.inner` not `.effect`, `Choose.options` are plain effects
+  with no labels, cost `amount` not `count`; plus `PtDelta.magnitude`,
+  `CostModifier.controller_ref`) produced false "empty effect" readings.
+  (T7 2026-09-22.)
+
+## 2026-09-21
+- **[ability_tree/MOVE_ZONE]** Verb.MOVE_ZONE takes roles ('cards', <selector>) and ('destination', <zone>).
+- **[runtime/memory]** Never run standalone diffusion or large PyTorch scripts concurrently with vLLM unless available RAM > 40GB.
+- **[tools/gen_buckets]** When test suite fails with missing /tmp/opencode bucket files, run 'python tools/gen_buckets.py' to regenerate all 8 buckets.
+- **[ability_tree/Effect]** Leaf effects must be constructed as Atom(verb=Verb.*, args=AtomArgs(...)), never Effect(...).
+- **[test_templates/CostLoyalty]** Always use assertEqual for dataclasses (CostLoyalty, DurationEot); assertIs is only valid for Enum singletons.
+- **[ability_tree/PtDelta]** PtDelta uses field 'magnitude', not 'amount'.
+
+## 2026-09-19
+- **There is no ruff config file anywhere, yet `ruff check` runs an ALL-style
+  ruleset (~826 rules; line_length 88).** ruff 0.16.7 (uv tool at
+  `/home/sune/.local/bin/ruff`) resolves `SIM114`/`I001`/`TRY004`… on files with
+  no config discoverable (verified from a bare /tmp dir; no `ruff.toml`, no
+  `[tool.ruff]`, no env var). Consequence: `ruff check` on
+  `MTG_bot/core/ability_tree.py` was **already failing at git HEAD (40
+  findings)** — the module's pinned `ValueError`-based type validation trips
+  TRY004 (which demands `TypeError`) and the pinned test suite asserts
+  `ValueError`, so converting is forbidden. Interpret any "ruff check clean"
+  gate as: *no new violation kinds beyond the pre-existing ones* +
+  `ruff format --check` passes (it does). Do NOT mass-`noqa` or rewrite the
+  module's validation style.
+- **`# noqa: SLF001` is a live RUF100 (unused-noqa) trap in this
+  environment.** SLF001 is not in the resolved ruleset, so the noqa directive
+  is "unused" and fails `ruff check` (caught 7× in
+  `test_ability_tree_t3.py`; removed). Only add `# noqa` for rules that are
+  actually enabled — check with `ruff check --select <rule> file`.
+- **pyright `# type: ignore` must sit on the line of the bad argument, and
+  ruff auto-format can move lines after each edit.** When an edit triggers
+  the formatter hook, multi-line calls get re-wrapped (one arg per line) and
+  an ignore placed on the call-opening line stops matching the reported
+  error line. After any batch of edits, re-run pyright and move the ignores
+  to the final line positions (pattern used for the rejection catalog in
+  `test_ability_tree_t3.py`).
+- **`EtBState()` no-op is a grammar error, not a default.** Entering the
+  battlefield "as normal" is expressed by having *no* EtBState node; an
+  empty EtBState is rejected by `__post_init__`. (T3 round 1 decision,
+  pinned by `test_t3_rejections[etb_noop]`.)
+
+## 2026-09-18
+- **`PtDelta` uses `magnitude`, not `amount`.**
+  `MTG_bot/core/ability_tree.py` defines `PtDelta(direction: PtDirection, magnitude: Quantity)`.
+  Repeated pyright errors in `test_templates_b2b.py` (`Cannot access attribute "amount" for
+  class "PtDelta"`) were fixed by using `magnitude`.
+- **Repeated `Atom.args.get(...)` expressions are not reliably narrowed by pyright.**
+  Writing `atom.args.get("q").value` more than once can produce
+  `Cannot access attribute "value" for class "object"` or
+  `"value" is not a known attribute of "None"`. Bind the extracted value to a local variable or a
+  typed helper (e.g. `_qconst(...)`) before accessing it.
+- **`assertIs` on freshly constructed frozen dataclasses recurred in B2b.**
+  `assertIs(x, DurationEot())` failed with `AssertionError: DurationEot() is not DurationEot()`.
+  Use `assertEqual` for frozen dataclasses; `assertIs` is safe only for enum singletons. See the
+  2026-09-17 B2a entry.
+
+## 2026-09-17
+- **`assertIs` on freshly constructed frozen dataclasses always fails.**
+  `self.assertIs(x, DurationEot())` / `assertIs(x, FAtom(...))` compare
+  *identity*; frozen dataclasses mint a new instance per call, so the check
+  can never pass. Use `assertEqual` (dataclass field equality). `assertIs` is
+  only safe for enum members (true singletons: `CounterKind.*`, `Verb.*`,
+  `ControllerRef.*`, `Phase.*`). Caught in `test_templates_b2a.py`
+  (3× DurationEot, 3× FAtom) before first green run.
+- **`template.build({})` is not a valid IR probe.** Builders read
+  `group.group("name")`, so passing a bare dict raises
+  `AttributeError: 'dict' object has no attribute 'group'`. The only faithful
+  driver is `TemplateRegistry.match(<concrete sentence>)` with real regex
+  group context (see 2026-09-17/02-test-templates-b2a.md).
+- **Mixed import paths split class identity → `KeyError` in
+  `canonical_json`/`to_dict`.** An ad-hoc script that mixes `sys.path`
+  top-level imports with package imports (`MTG_bot.core...`) creates two
+  distinct class objects for the same name; `to_dict`'s `_TAG` registry is
+  keyed by the first class, so the second raises `KeyError: <class
+  'TriggeredAbility'>`. In tests/scripts, use one consistent import style
+  (package imports). Not a product bug — a tooling artifact.
+
 ## 2026-09-15
 - **Session 4: pyright does not narrow on unittest assertions.**
   `assertIsInstance`/`assertIsNotNone` narrow at runtime but are invisible to

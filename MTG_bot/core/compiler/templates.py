@@ -88,12 +88,40 @@ class MetaOutcome:
     filter: Filter | None = None
 
 
+@dataclass(frozen=True)
+class AdditionalCostOutcome:
+    """An additional-cost sentence for a spell.
+
+    "As an additional cost to cast this spell, ..." produces a ``Cost``
+    that the compiler attaches to the card's ``SpellAbility``
+    ``additional_costs`` during assembly (on top of the printed cost,
+    which stays on the ``CardRecord``).
+    """
+
+    cost: Cost
+
+
+@dataclass(frozen=True)
+class ActivationGateOutcome:
+    """An activation-gate sentence: "Activate only if <condition>."
+
+    The gate carries no ability or effect of its own — the compiler
+    attaches ``condition`` to the nearest preceding unconditional
+    ``ActivatedAbility`` during assembly (StateCorruptionError if none
+    exists).
+    """
+
+    condition: Filter
+
+
 SentenceOutcome = Union[
     KeywordOutcome,
     RuleReminderOutcome,
     AbilityOutcome,
     EffectOutcome,
     MetaOutcome,
+    AdditionalCostOutcome,
+    ActivationGateOutcome,
 ]
 
 # ---------------------------------------------------------------------------

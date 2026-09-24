@@ -11,39 +11,50 @@ from __future__ import annotations
 
 import re
 import unittest
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from MTG_bot.core.ability_tree import (
+    QX,
     Ability,
     ActivatedAbility,
     Atom,
     AtomArgs,
+    Choose,
     ControllerRef,
     Cost,
+    CostDiscard,
+    CostLoyalty,
     CostManaColor,
     CostManaGeneric,
     CostManaHybrid,
+    CostSacrifice,
     CostTap,
+    DeclareAttackersEvent,
+    DeclareBlockersEvent,
+    DurationUntilNextTurn,
     Effect,
+    FAnd,
     FAtom,
     FAtomPred,
-    FAnd,
     Filter,
     Keyword,
     KeywordAbility,
     OptionalEffect,
     QConst,
-    QX,
+    QUnbounded,
     Selector,
     SelectorMode,
     Seq,
     SpellAbility,
     SpellKind,
     StaticAbility,
+    TriggeredAbility,
     Verb,
     Zone,
+    ZoneChangeEvent,
     ZoneKind,
+    canonical_json,
 )
 from MTG_bot.core.compiler.compiler import (
     CompileResult,
@@ -53,9 +64,12 @@ from MTG_bot.core.compiler.compiler import (
     parse_mana_cost,
     parse_pt,
 )
+from MTG_bot.core.compiler.coverage import build_full_registry
 from MTG_bot.core.compiler.ingest import RawCard, ingest_pool
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
+    ActivationGateOutcome,
+    AdditionalCostOutcome,
     EffectOutcome,
     KeywordOutcome,
     MetaOutcome,
@@ -66,7 +80,6 @@ from MTG_bot.core.compiler.templates import (
 )
 from MTG_bot.core.errors import StateCorruptionError
 from MTG_bot.core.identity import CardIdentity
-
 
 # ---------------------------------------------------------------------------
 # Synthetic-data helpers
@@ -132,7 +145,11 @@ def _add_mana_atom() -> Atom:
     return Atom(
         verb=Verb.ADD_MANA,
         args=AtomArgs(
-            pairs=(("controller", ControllerRef.YOU), ("amount", QConst(1)), ("color", "W"))
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                ("amount", QConst(1)),
+                ("color", "W"),
+            )
         ),
     )
 
@@ -160,6 +177,78 @@ def _set_pt_atom() -> Atom:
                 ("target", _target_selector()),
                 ("power", QConst(1)),
                 ("toughness", QConst(1)),
+            )
+        ),
+    )
+
+
+def _shuffle_atom() -> Atom:
+    """The compiler's canonical search-shuffle boilerplate atom."""
+    return Atom(
+        verb=Verb.SHUFFLE,
+        args=AtomArgs(
+            pairs=(("zone", Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)),)
+        ),
+    )
+
+
+def _search_atom() -> Atom:
+    return Atom(
+        verb=Verb.SEARCH,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAnd(children=()),
+                        Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),
+                    ),
+                ),
+                ("destination", Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)),
+                ("controller", ControllerRef.YOU),
+            )
+        ),
+    )
+
+
+def _phase_out_atom() -> Atom:
+    """A canonical phase-out atom (the mandatory first half of a loyalty
+    activation whose creatures must not phase back in)."""
+    return Atom(
+        verb=Verb.PHASE_OUT,
+        args=AtomArgs(pairs=(("target", _target_selector()),)),
+    )
+
+
+def _phase_in_atom() -> Atom:
+    """The compiler's canonical phase-in prevention atom.
+
+    Mirrors ``compiler._phase_in_prevention_effect``: prevents the opponent's
+    command-zone permanents re-entering the battlefield until the controller's
+    next turn.
+    """
+    return Atom(
+        verb=Verb.PREVENT_EFFECT,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "condition",
+                    FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
+                ),
+                (
+                    "event",
+                    ZoneChangeEvent(
+                        from_zone=Zone(
+                            kind=ZoneKind.COMMAND, controller=ControllerRef.OPPONENT
+                        ),
+                        to_zone=Zone(
+                            kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.OPPONENT
+                        ),
+                    ),
+                ),
+                ("duration", DurationUntilNextTurn()),
             )
         ),
     )
@@ -204,13 +293,25 @@ def _spell(ability: Ability) -> SpellAbility:
     return ability
 
 
-def _seq(effect: Effect) -> Seq:
+def _seq(effect: Effect | None) -> Seq:
     if not isinstance(effect, Seq):
-        raise AssertionError(f"expected Seq, got {type(effect).__name__}")
+        raise AssertionError(f"expected a Seq, got {type(effect).__name__}")
     return effect
 
 
-def _atom(effect: Effect) -> Atom:
+def _choose(effect: Effect | None) -> Choose:
+    if not isinstance(effect, Choose):
+        raise AssertionError(f"expected a Choose, got {type(effect).__name__}")
+    return effect
+
+
+def _triggered(ability: Ability) -> TriggeredAbility:
+    if not isinstance(ability, TriggeredAbility):
+        raise AssertionError(f"expected TriggeredAbility, got {type(ability).__name__}")
+    return ability
+
+
+def _atom(effect: Effect | None) -> Atom:
     if not isinstance(effect, Atom):
         raise AssertionError(f"expected Atom, got {type(effect).__name__}")
     return effect
@@ -345,9 +446,7 @@ class TestBucketHint(unittest.TestCase):
         )
 
     def test_static(self) -> None:
-        self.assertEqual(
-            _bucket_hint("Creatures you control get +1/+1."), "static"
-        )
+        self.assertEqual(_bucket_hint("Creatures you control get +1/+1."), "static")
         self.assertEqual(_bucket_hint("Other creatures can't be blocked."), "static")
 
     def test_keyword(self) -> None:
@@ -379,9 +478,7 @@ class TestRuleReminder(unittest.TestCase):
     def test_bare_keyword_reminder(self) -> None:
         raw = _raw_card("R", 1, keywords=("Flying",), sentences=("Flying.",))
         res = compile_card(raw, TemplateRegistry())
-        self.assertEqual(
-            res.rule_reminders, (RuleReminderOutcome("keyword_reminder"),)
-        )
+        self.assertEqual(res.rule_reminders, (RuleReminderOutcome("keyword_reminder"),))
         self.assertEqual(res.unparsed, ())
 
     def test_paren_activated_is_not_reminder(self) -> None:
@@ -430,7 +527,9 @@ class TestRuleReminder(unittest.TestCase):
         res = compile_card(raw, reg)
         self.assertEqual(res.rule_reminders, ())
         self.assertEqual(res.unparsed, ())
-        self.assertEqual(res.card.keywords, (KeywordAbility(Keyword.HEXPROOF, (filt,)),))
+        self.assertEqual(
+            res.card.keywords, (KeywordAbility(Keyword.HEXPROOF, (filt,)),)
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -478,13 +577,14 @@ class TestKeywordDedup(unittest.TestCase):
         res = compile_card(raw, reg)
         self.assertEqual(
             res.card.keywords,
-            (KeywordAbility(Keyword.HEXPROOF, ()), KeywordAbility(Keyword.HEXPROOF, (filt,))),
+            (
+                KeywordAbility(Keyword.HEXPROOF, ()),
+                KeywordAbility(Keyword.HEXPROOF, (filt,)),
+            ),
         )
 
     def test_unbuildable_keywords_reported(self) -> None:
-        raw = _raw_card(
-            "C", 1, types=("Creature", "Card"), keywords=("Scry", "Mill")
-        )
+        raw = _raw_card("C", 1, types=("Creature", "Card"), keywords=("Scry", "Mill"))
         res = compile_card(raw, TemplateRegistry())
         self.assertEqual(res.card.keywords, ())
         self.assertEqual(len(res.known_gaps), 2)
@@ -492,9 +592,7 @@ class TestKeywordDedup(unittest.TestCase):
         self.assertTrue(any("Mill" in g for g in res.known_gaps))
 
     def test_hexproof_from_reported(self) -> None:
-        raw = _raw_card(
-            "C", 1, types=("Creature", "Card"), keywords=("Hexproof from",)
-        )
+        raw = _raw_card("C", 1, types=("Creature", "Card"), keywords=("Hexproof from",))
         res = compile_card(raw, TemplateRegistry())
         self.assertEqual(res.card.keywords, ())
         self.assertTrue(any("Hexproof from" in g for g in res.known_gaps))
@@ -532,9 +630,7 @@ def _draw_templates(reg: TemplateRegistry) -> None:
 
 class TestContinuation(unittest.TestCase):
     def test_merges_into_previous_effect(self) -> None:
-        raw = _raw_card(
-            "I", 1, sentences=("Draw a card.", "If you do, draw another.")
-        )
+        raw = _raw_card("I", 1, sentences=("Draw a card.", "If you do, draw another."))
         reg = TemplateRegistry()
         _draw_templates(reg)
         res = compile_card(raw, reg)
@@ -563,9 +659,7 @@ class TestContinuation(unittest.TestCase):
         reg = TemplateRegistry()
         _draw_templates(reg)
         res = compile_card(raw, reg)
-        self.assertEqual(
-            res.rule_reminders, (RuleReminderOutcome("keyword_reminder"),)
-        )
+        self.assertEqual(res.rule_reminders, (RuleReminderOutcome("keyword_reminder"),))
         ab = _spell(res.card.abilities[0])
         steps = _seq(ab.effect)
         self.assertEqual(steps.steps[0], _draw_atom(1))
@@ -604,6 +698,236 @@ class TestContinuation(unittest.TestCase):
                 ),
             ),
         )
+
+    def test_search_shuffle_injects_inside_optional_seq(self) -> None:
+        """Boilerplate shuffle joins the inner Seq of the previous OptionalEffect.
+
+        "If you search your library this way, shuffle." is compiler-built-in:
+        the shuffle is mandatory only if the optional search ran, so it must
+        land INSIDE the OptionalEffect, not as a sibling optional step.
+        """
+        raw = _raw_card(
+            "I",
+            1,
+            sentences=(
+                "You may search your library this way.",
+                "If you search your library this way, shuffle.",
+            ),
+        )
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "search-opt",
+                r"^You may search your library this way\.$",
+                lambda m: EffectOutcome(
+                    effect=OptionalEffect(Seq(steps=(_draw_atom(1), _draw_atom(2))))
+                ),
+            )
+        )
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        ab = _spell(res.card.abilities[0])
+        self.assertEqual(
+            ab.effect,
+            OptionalEffect(Seq(steps=(_draw_atom(1), _draw_atom(2), _shuffle_atom()))),
+        )
+
+    def test_search_shuffle_wraps_single_atom_inner(self) -> None:
+        """OptionalEffect(Atom) predecessor (Sanctum of All shape)."""
+        raw = _raw_card(
+            "I",
+            1,
+            sentences=(
+                "You may search your library this way.",
+                "If you search your library this way, shuffle.",
+            ),
+        )
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "search-opt",
+                r"^You may search your library this way\.$",
+                lambda m: EffectOutcome(effect=OptionalEffect(_search_atom())),
+            )
+        )
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        ab = _spell(res.card.abilities[0])
+        self.assertEqual(
+            ab.effect,
+            OptionalEffect(Seq(steps=(_search_atom(), _shuffle_atom()))),
+        )
+
+    def test_search_shuffle_merges_into_activated_ability(self) -> None:
+        """B4 tutor shape: shuffle lands inside the ActivatedAbility's OptionalEffect."""
+        raw = _raw_card(
+            "C",
+            1,
+            types=("Creature", "Card"),
+            sentences=(
+                "{2}{U}: You may search your library this way.",
+                "If you search your library this way, shuffle.",
+            ),
+        )
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "tutor-opt",
+                r"^\{2\}\{U\}: You may search your library this way\.$",
+                lambda m: AbilityOutcome(
+                    ability=ActivatedAbility(
+                        cost=Cost(
+                            parts=(
+                                CostManaGeneric(QConst(2)),
+                                CostManaColor("U", QConst(1)),
+                            )
+                        ),
+                        effect=OptionalEffect(Seq(steps=(_search_atom(),))),
+                    )
+                ),
+            )
+        )
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        self.assertEqual(len(res.card.abilities), 1)
+        ab = res.card.abilities[0]
+        if not isinstance(ab, ActivatedAbility):
+            self.fail(f"expected ActivatedAbility, got {type(ab).__name__}")
+        self.assertEqual(
+            ab.cost,
+            Cost(parts=(CostManaGeneric(QConst(2)), CostManaColor("U", QConst(1)))),
+        )
+        self.assertEqual(
+            ab.effect,
+            OptionalEffect(Seq(steps=(_search_atom(), _shuffle_atom()))),
+        )
+
+    def test_search_shuffle_without_previous_effect(self) -> None:
+        """Boilerplate with no searchable predecessor: standalone optional shuffle.
+
+        With no preceding optional search the condition can never hold, so
+        the generic OptionalEffect wrap is the correct (never-fires) encoding.
+        """
+        raw = _raw_card(
+            "I", 1, sentences=("If you search your library this way, shuffle.",)
+        )
+        reg = TemplateRegistry()
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        ab = _spell(res.card.abilities[0])
+        self.assertEqual(ab.effect, OptionalEffect(_shuffle_atom()))
+
+    def test_phase_in_merges_into_activated_ability(self) -> None:
+        """B5c loyalty shape: phase-in prevention is appended MANDATORILY.
+
+        "Until the end of your next turn, they can't phase in." is a
+        compiler built-in: it joins the preceding [−N] activation's effect
+        Seq without an OptionalEffect wrap (the effect always fires).
+        """
+        raw = _raw_card(
+            "P",
+            1,
+            types=("Planeswalker", "Card"),
+            loyalty_raw="8",
+            sentences=(
+                "[−8]: Each creature target opponent controls phases out.",
+                "Until the end of your next turn, they can't phase in.",
+            ),
+        )
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "loyalty-phase-out",
+                r"^\[−8\]: Each creature target opponent controls phases out\.$",
+                lambda m: AbilityOutcome(
+                    ability=ActivatedAbility(
+                        cost=Cost(parts=(CostLoyalty(-8),)),
+                        effect=_phase_out_atom(),
+                    )
+                ),
+            )
+        )
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        self.assertEqual(len(res.card.abilities), 1)
+        ab = res.card.abilities[0]
+        if not isinstance(ab, ActivatedAbility):
+            self.fail(f"expected ActivatedAbility, got {type(ab).__name__}")
+        self.assertEqual(ab.cost, Cost(parts=(CostLoyalty(-8),)))
+        self.assertEqual(ab.effect, Seq(steps=(_phase_out_atom(), _phase_in_atom())))
+
+    def test_phase_in_merges_into_spell_effect(self) -> None:
+        """Instant predecessor: phase-in prevention joins the spell effect Seq."""
+        raw = _raw_card(
+            "I",
+            1,
+            sentences=(
+                "Each creature target opponent controls phases out.",
+                "Until the end of your next turn, they can't phase in.",
+            ),
+        )
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "phase-out",
+                r"^Each creature target opponent controls phases out\.$",
+                lambda m: EffectOutcome(effect=_phase_out_atom()),
+            )
+        )
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        ab = _spell(res.card.abilities[0])
+        self.assertEqual(ab.effect, Seq(steps=(_phase_out_atom(), _phase_in_atom())))
+
+    def test_phase_in_appends_to_existing_seq(self) -> None:
+        """Predecessor already a Seq: phase-in prevention lands as the last step."""
+        raw = _raw_card(
+            "I",
+            1,
+            sentences=(
+                (
+                    "Each creature target opponent controls phases out, "
+                    "then you draw a card."
+                ),
+                "Until the end of your next turn, they can't phase in.",
+            ),
+        )
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "phase-out-draw",
+                r"^Each creature target opponent controls phases out, "
+                r"then you draw a card\.$",
+                lambda m: EffectOutcome(
+                    effect=Seq(steps=(_phase_out_atom(), _draw_atom(1)))
+                ),
+            )
+        )
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        ab = _spell(res.card.abilities[0])
+        self.assertEqual(
+            ab.effect,
+            Seq(steps=(_phase_out_atom(), _draw_atom(1), _phase_in_atom())),
+        )
+
+    def test_phase_in_without_previous_effect(self) -> None:
+        """No predecessor: phase-in prevention stands alone, bare and mandatory.
+
+        Unlike a generic orphaned continuation (wrapped in OptionalEffect),
+        a phase-in prevention is a guaranteed effect, so it is appended
+        bare — never inside an OptionalEffect.
+        """
+        raw = _raw_card(
+            "I",
+            1,
+            sentences=("Until the end of your next turn, they can't phase in.",),
+        )
+        reg = TemplateRegistry()
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        ab = _spell(res.card.abilities[0])
+        self.assertEqual(ab.effect, _phase_in_atom())
 
 
 # ---------------------------------------------------------------------------
@@ -664,7 +988,9 @@ class TestAssembly(unittest.TestCase):
         )
         reg = TemplateRegistry()
         reg.register(
-            _template("d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom()))
+            _template(
+                "d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom())
+            )
         )
         res = compile_card(raw, reg)
         card = res.card
@@ -672,7 +998,8 @@ class TestAssembly(unittest.TestCase):
         self.assertEqual(card.power, QConst(2))
         self.assertEqual(card.toughness, QConst(2))
         self.assertEqual(
-            card.abilities, (SpellAbility(kind=SpellKind.CREATURE, effect=_draw_atom()),)
+            card.abilities,
+            (SpellAbility(kind=SpellKind.CREATURE, effect=_draw_atom()),),
         )
 
     def test_instant_folds_sequence(self) -> None:
@@ -684,7 +1011,9 @@ class TestAssembly(unittest.TestCase):
         )
         reg = TemplateRegistry()
         reg.register(
-            _template("d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom()))
+            _template(
+                "d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom())
+            )
         )
         res = compile_card(raw, reg)
         ab = _spell(res.card.abilities[0])
@@ -692,12 +1021,12 @@ class TestAssembly(unittest.TestCase):
         self.assertEqual(len(_seq(ab.effect).steps), 2)
 
     def test_sorcery_kind(self) -> None:
-        raw = _raw_card(
-            "S", 1, types=("Sorcery", "Card"), sentences=("Draw a card.",)
-        )
+        raw = _raw_card("S", 1, types=("Sorcery", "Card"), sentences=("Draw a card.",))
         reg = TemplateRegistry()
         reg.register(
-            _template("d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom()))
+            _template(
+                "d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom())
+            )
         )
         res = compile_card(raw, reg)
         ab = _spell(res.card.abilities[0])
@@ -716,7 +1045,9 @@ class TestAssembly(unittest.TestCase):
         )
         reg = TemplateRegistry()
         reg.register(
-            _template("d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom()))
+            _template(
+                "d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom())
+            )
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.card.loyalty, 3)
@@ -738,17 +1069,22 @@ class TestAssembly(unittest.TestCase):
         )
         reg = TemplateRegistry()
         reg.register(
-            _template("d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom()))
+            _template(
+                "d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom())
+            )
         )
         res = compile_card(raw, reg)
         self.assertTrue(res.card.is_token)
-        self.assertEqual(
-            res.card.abilities, (StaticAbility(effect=_draw_atom()),)
-        )
+        self.assertEqual(res.card.abilities, (StaticAbility(effect=_draw_atom()),))
 
     def test_land_tap_ability(self) -> None:
-        raw = _raw_card("L", 1, types=("Land", "Basic", "Card"), subtypes=("Plains",),
-                       sentences=("({T}: Add {W}.)",))
+        raw = _raw_card(
+            "L",
+            1,
+            types=("Land", "Basic", "Card"),
+            subtypes=("Plains",),
+            sentences=("({T}: Add {W}.)",),
+        )
         reg = TemplateRegistry()
         reg.register(
             _template(
@@ -764,13 +1100,423 @@ class TestAssembly(unittest.TestCase):
         res = compile_card(raw, reg)
         self.assertEqual(
             res.card.abilities,
-            (
-                ActivatedAbility(
-                    cost=Cost(parts=(CostTap(),)), effect=_add_mana_atom()
-                ),
-            ),
+            (ActivatedAbility(cost=Cost(parts=(CostTap(),)), effect=_add_mana_atom()),),
         )
         self.assertIsNone(res.card.mana_cost)
+
+
+# ---------------------------------------------------------------------------
+# Additional-cost sentences ("As an additional cost to cast this spell, …")
+# ---------------------------------------------------------------------------
+
+
+def _hand_card_selector() -> Selector:
+    """Choose a card from your hand (B5a additional-cost discard target)."""
+    return Selector(
+        count=QConst(1),
+        mode=SelectorMode.CHOOSE,
+        filter=FAnd(children=()),
+        zone=Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),
+    )
+
+
+def _additional_cost_discard() -> Cost:
+    """The canonical "discard a card" additional cost."""
+    return Cost(parts=(CostDiscard(target=_hand_card_selector()),))
+
+
+def _additional_cost_sacrifice() -> Cost:
+    """The canonical "sacrifice a creature" additional cost."""
+    return Cost(parts=(CostSacrifice(target=_target_selector()),))
+
+
+def _additional_cost_templates(reg: TemplateRegistry) -> None:
+    reg.register(
+        _template(
+            "ac-discard",
+            r"^As an additional cost to cast this spell, discard a card\.$",
+            lambda m: AdditionalCostOutcome(cost=_additional_cost_discard()),
+        )
+    )
+    reg.register(
+        _template(
+            "ac-sacrifice",
+            r"^As an additional cost to cast this spell, sacrifice a creature\.$",
+            lambda m: AdditionalCostOutcome(cost=_additional_cost_sacrifice()),
+        )
+    )
+
+
+class TestAdditionalCost(unittest.TestCase):
+    def test_sorcery_discard_additional_cost(self) -> None:
+        raw = _raw_card(
+            "S",
+            1,
+            types=("Sorcery", "Card"),
+            colors=("B",),
+            mana_cost_raw="{2}{B}",
+            mana_value=3,
+            sentences=(
+                "Draw a card.",
+                "As an additional cost to cast this spell, discard a card.",
+            ),
+        )
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom())
+            )
+        )
+        _additional_cost_templates(reg)
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        ab = _spell(res.card.abilities[0])
+        self.assertIs(ab.kind, SpellKind.SORCERY)
+        self.assertEqual(ab.effect, _draw_atom())
+        self.assertEqual(ab.additional_costs, (_additional_cost_discard(),))
+
+    def test_instant_sacrifice_additional_cost(self) -> None:
+        raw = _raw_card(
+            "I",
+            1,
+            types=("Instant", "Card"),
+            colors=("R",),
+            mana_cost_raw="{1}{R}",
+            mana_value=2,
+            sentences=(
+                "Destroy target creature.",
+                "As an additional cost to cast this spell, sacrifice a creature.",
+            ),
+        )
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "dest",
+                r"^Destroy target creature\.$",
+                lambda m: EffectOutcome(effect=_destroy_atom()),
+            )
+        )
+        _additional_cost_templates(reg)
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        ab = _spell(res.card.abilities[0])
+        self.assertIs(ab.kind, SpellKind.INSTANT)
+        self.assertEqual(ab.additional_costs, (_additional_cost_sacrifice(),))
+
+    def test_multiple_additional_costs_attached_in_order(self) -> None:
+        raw = _raw_card(
+            "S",
+            1,
+            types=("Sorcery", "Card"),
+            sentences=(
+                "Draw a card.",
+                "As an additional cost to cast this spell, discard a card.",
+                "As an additional cost to cast this spell, sacrifice a creature.",
+            ),
+        )
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom())
+            )
+        )
+        _additional_cost_templates(reg)
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        ab = _spell(res.card.abilities[0])
+        self.assertEqual(
+            ab.additional_costs,
+            (_additional_cost_discard(), _additional_cost_sacrifice()),
+        )
+
+    def test_canonical_json_omits_empty_costs(self) -> None:
+        raw = _raw_card("S", 1, types=("Sorcery", "Card"), sentences=("Draw a card.",))
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom())
+            )
+        )
+        res = compile_card(raw, reg)
+        self.assertNotIn("additional_costs", canonical_json(res.card))
+
+    def test_canonical_json_includes_costs(self) -> None:
+        raw = _raw_card(
+            "S",
+            1,
+            types=("Sorcery", "Card"),
+            sentences=(
+                "Draw a card.",
+                "As an additional cost to cast this spell, discard a card.",
+            ),
+        )
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom())
+            )
+        )
+        _additional_cost_templates(reg)
+        res = compile_card(raw, reg)
+        self.assertIn("additional_costs", canonical_json(res.card))
+
+    def test_orphan_land_raises(self) -> None:
+        raw = _raw_card(
+            "L",
+            1,
+            types=("Land", "Basic", "Card"),
+            subtypes=("Plains",),
+            sentences=("As an additional cost to cast this spell, discard a card.",),
+        )
+        reg = TemplateRegistry()
+        _additional_cost_templates(reg)
+        with self.assertRaises(StateCorruptionError):
+            compile_card(raw, reg)
+
+    def test_orphan_token_raises(self) -> None:
+        raw = _raw_card(
+            "T",
+            1,
+            types=("Creature", "Token", "Card"),
+            subtypes=("Bird",),
+            power_raw="1",
+            toughness_raw="1",
+            is_token=True,
+            sentences=("As an additional cost to cast this spell, discard a card.",),
+        )
+        reg = TemplateRegistry()
+        _additional_cost_templates(reg)
+        with self.assertRaises(StateCorruptionError):
+            compile_card(raw, reg)
+
+    def test_continuation_preserves_additional_costs(self) -> None:
+        # A template-carried SpellAbility with additional costs must keep
+        # them when a continuation sentence merges into its effect.
+        raw = _raw_card(
+            "S",
+            1,
+            types=("Sorcery", "Card"),
+            sentences=(
+                "Fireball hits.",
+                "Then draw another.",
+            ),
+        )
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "spell",
+                r"^Fireball hits\.$",
+                lambda m: AbilityOutcome(
+                    ability=SpellAbility(
+                        kind=SpellKind.SORCERY,
+                        effect=_destroy_atom(),
+                        additional_costs=(_additional_cost_sacrifice(),),
+                    )
+                ),
+            )
+        )
+        reg.register(
+            _template(
+                "then-draw",
+                r"^Then draw another\.$",
+                lambda m: EffectOutcome(effect=_draw_atom(2)),
+            )
+        )
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        self.assertEqual(len(res.card.abilities), 1)
+        ab = _spell(res.card.abilities[0])
+        steps = _seq(ab.effect)
+        self.assertEqual(steps.steps[0], _destroy_atom())
+        self.assertEqual(steps.steps[1], OptionalEffect(_draw_atom(2)))
+        self.assertEqual(ab.additional_costs, (_additional_cost_sacrifice(),))
+
+    def test_creature_discard_additional_cost_no_effect(self) -> None:
+        # A castable creature whose only relevant sentence is the
+        # additional cost (M21 Goremand / Sparkhunter Masticore shape):
+        # the compiler must build an effect-less SpellAbility, not raise.
+        raw = _raw_card(
+            "C",
+            1,
+            types=("Creature", "Demon", "Card"),
+            colors=("B",),
+            mana_cost_raw="{2}{B}",
+            mana_value=3,
+            power_raw="3",
+            toughness_raw="1",
+            sentences=(
+                "Flying.",
+                "As an additional cost to cast this spell, discard a card.",
+            ),
+        )
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "fly",
+                r"^Flying\.$",
+                lambda m: KeywordOutcome(keyword=Keyword.FLYING, params=()),
+            )
+        )
+        _additional_cost_templates(reg)
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        spells = [a for a in res.card.abilities if isinstance(a, SpellAbility)]
+        self.assertEqual(len(spells), 1)
+        ab = spells[0]
+        self.assertIs(ab.kind, SpellKind.CREATURE)
+        self.assertIsNone(ab.effect)
+        self.assertEqual(ab.additional_costs, (_additional_cost_discard(),))
+
+
+# ---------------------------------------------------------------------------
+# Activation-gate sentences ("Activate only if ...")
+# ---------------------------------------------------------------------------
+
+
+def _gate_dead_filter() -> Filter:
+    """Gate condition: a creature died this turn."""
+    return FAtom(pred=FAtomPred.DIED_THIS_TURN)
+
+
+def _gate_flying_filter() -> Filter:
+    """Gate condition: you control at least one creature with flying."""
+    return FAtom(
+        pred=FAtomPred.CONTROLLER_COUNT_GE,
+        count=QConst(1),
+        inner_filter=FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+            )
+        ),
+    )
+
+
+def _activation_gate_templates(reg: TemplateRegistry) -> None:
+    reg.register(
+        _template(
+            "gate-death",
+            r"^Activate only if a creature died this turn\.$",
+            lambda m: ActivationGateOutcome(condition=_gate_dead_filter()),
+        )
+    )
+    reg.register(
+        _template(
+            "gate-flying",
+            r"^Activate only if you control a creature with flying\.$",
+            lambda m: ActivationGateOutcome(condition=_gate_flying_filter()),
+        )
+    )
+
+
+def _activated_templates(reg: TemplateRegistry) -> None:
+    """Two tap-style activated abilities for gates to anchor to."""
+    reg.register(
+        _template(
+            "act-tap-draw",
+            r"^Tap to draw a card\.$",
+            lambda m: AbilityOutcome(
+                ability=ActivatedAbility(
+                    cost=Cost(parts=(CostTap(),)),
+                    effect=_draw_atom(),
+                )
+            ),
+        )
+    )
+    reg.register(
+        _template(
+            "act-two-tap-mana",
+            r"^\{2\}, Tap: Add \{W\}\.$",
+            lambda m: AbilityOutcome(
+                ability=ActivatedAbility(
+                    cost=Cost(parts=(CostManaGeneric(QConst(2)), CostTap())),
+                    effect=_add_mana_atom(),
+                )
+            ),
+        )
+    )
+
+
+class TestActivationGate(unittest.TestCase):
+    def test_gate_attaches_to_preceding_activated_ability(self) -> None:
+        raw = _raw_card(
+            "C",
+            1,
+            types=("Creature", "Card"),
+            sentences=(
+                "Tap to draw a card.",
+                "Activate only if a creature died this turn.",
+            ),
+        )
+        reg = TemplateRegistry()
+        _activated_templates(reg)
+        _activation_gate_templates(reg)
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        acts = [a for a in res.card.abilities if isinstance(a, ActivatedAbility)]
+        self.assertEqual(len(acts), 1)
+        ab = acts[0]
+        self.assertEqual(ab.condition, _gate_dead_filter())
+        self.assertEqual(ab.effect, _draw_atom())
+
+    def test_gates_pair_with_preceding_abilities_in_order(self) -> None:
+        # Once an ability carries a condition it stops qualifying, so the
+        # second gate must land on the second activated ability, not
+        # re-bind the first.
+        raw = _raw_card(
+            "C",
+            2,
+            types=("Creature", "Card"),
+            sentences=(
+                "Tap to draw a card.",
+                "Activate only if a creature died this turn.",
+                "{2}, Tap: Add {W}.",
+                "Activate only if you control a creature with flying.",
+            ),
+        )
+        reg = TemplateRegistry()
+        _activated_templates(reg)
+        _activation_gate_templates(reg)
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        acts = [a for a in res.card.abilities if isinstance(a, ActivatedAbility)]
+        self.assertEqual(len(acts), 2)
+        self.assertEqual(acts[0].condition, _gate_dead_filter())
+        self.assertEqual(acts[1].condition, _gate_flying_filter())
+
+    def test_orphan_gate_raises(self) -> None:
+        raw = _raw_card(
+            "S",
+            3,
+            types=("Sorcery", "Card"),
+            sentences=("Activate only if a creature died this turn.",),
+        )
+        reg = TemplateRegistry()
+        _activation_gate_templates(reg)
+        with self.assertRaises(StateCorruptionError):
+            compile_card(raw, reg)
+
+    def test_gate_does_not_attach_to_non_activated_ability(self) -> None:
+        # A SpellAbility is not a valid anchor: even though the card
+        # compiled an ability, the gate has no ActivatedAbility to bind.
+        raw = _raw_card(
+            "S",
+            4,
+            types=("Sorcery", "Card"),
+            sentences=(
+                "Draw a card.",
+                "Activate only if a creature died this turn.",
+            ),
+        )
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom())
+            )
+        )
+        _activation_gate_templates(reg)
+        with self.assertRaises(StateCorruptionError):
+            compile_card(raw, reg)
 
 
 # ---------------------------------------------------------------------------
@@ -790,7 +1536,9 @@ class TestStarPt(unittest.TestCase):
         )
         reg = TemplateRegistry()
         reg.register(
-            _template("d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom()))
+            _template(
+                "d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom())
+            )
         )
         res = compile_card(raw, reg)  # must not raise
         self.assertIsNone(res.card.power)
@@ -832,7 +1580,9 @@ class TestEngineSupported(unittest.TestCase):
         raw = _raw_card("I", 1, sentences=("Draw a card.",))
         reg = TemplateRegistry()
         reg.register(
-            _template("d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom()))
+            _template(
+                "d", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom())
+            )
         )
         return compile_card(raw, reg, supported_verbs=supported)
 
@@ -917,9 +1667,7 @@ class TestCompilePoolSynthetic(unittest.TestCase):
         # The grammar requires an emblem's owner to be a Planeswalker with a
         # loyalty value (CardRecord.__post_init__), and an emblem to be an
         # "Emblem"-typed token record — mirror the real M21 pool shape.
-        owner = _raw_card(
-            "Owner", 1, types=("Planeswalker", "Card"), loyalty_raw="3"
-        )
+        owner = _raw_card("Owner", 1, types=("Planeswalker", "Card"), loyalty_raw="3")
         emblem = _raw_card(
             "Emblem",
             2,
@@ -967,6 +1715,203 @@ class TestCompilePoolSynthetic(unittest.TestCase):
 # Real M21.json smoke test
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Choose-opener built-in ("Choose one —" folding)
+# ---------------------------------------------------------------------------
+
+
+def _choose_option_templates(reg: TemplateRegistry) -> None:
+    reg.register(
+        _template(
+            "opt-draw",
+            r"^• Draw a card\.$",
+            lambda m: EffectOutcome(effect=_draw_atom(1)),
+        )
+    )
+    reg.register(
+        _template(
+            "opt-destroy",
+            r"^• Destroy target artifact\.$",
+            lambda m: EffectOutcome(effect=_destroy_atom()),
+        )
+    )
+
+
+class TestChooseOpener(unittest.TestCase):
+    """Compiler built-in folding a choose-opener sentence with its parsed
+    option bullets into a Choose node (or trigger-owned Choose nodes)."""
+
+    def test_spell_choose_one_folds_into_choose(self) -> None:
+        raw = _raw_card(
+            "I",
+            1,
+            sentences=(
+                "Choose one —",
+                "• Draw a card.",
+                "• Destroy target artifact.",
+            ),
+        )
+        reg = TemplateRegistry()
+        _choose_option_templates(reg)
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        self.assertEqual(
+            res.card.abilities,
+            (
+                SpellAbility(
+                    kind=SpellKind.INSTANT,
+                    effect=Choose(
+                        count=QConst(1),
+                        options=(_draw_atom(1), _destroy_atom()),
+                    ),
+                ),
+            ),
+        )
+
+    def test_spell_choose_one_or_more_uses_unbounded(self) -> None:
+        raw = _raw_card(
+            "I",
+            1,
+            sentences=(
+                "Choose one or more —",
+                "• Draw a card.",
+                "• Destroy target artifact.",
+                "• Draw a card.",
+            ),
+        )
+        reg = TemplateRegistry()
+        _choose_option_templates(reg)
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        ab = _spell(res.card.abilities[0])
+        choose = _choose(ab.effect)
+        self.assertEqual(choose.count, QUnbounded())
+        self.assertEqual(
+            choose.options, (_draw_atom(1), _destroy_atom(), _draw_atom(1))
+        )
+
+    def test_etb_choose_one_becomes_triggered_ability(self) -> None:
+        raw = _raw_card(
+            "C",
+            1,
+            types=("Creature",),
+            sentences=(
+                "When this creature enters, choose one —",
+                "• Draw a card.",
+                "• Destroy target artifact.",
+            ),
+        )
+        reg = TemplateRegistry()
+        _choose_option_templates(reg)
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        self.assertEqual(
+            res.card.abilities,
+            (
+                TriggeredAbility(
+                    event=ZoneChangeEvent(
+                        from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
+                        to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                    ),
+                    condition=None,
+                    effect=Choose(
+                        count=QConst(1),
+                        options=(_draw_atom(1), _destroy_atom()),
+                    ),
+                ),
+            ),
+        )
+
+    def test_attack_block_choose_one_decomposes_into_two_triggers(self) -> None:
+        raw = _raw_card(
+            "C",
+            1,
+            types=("Creature",),
+            sentences=(
+                "Whenever this creature attacks or blocks, choose one —",
+                "• Draw a card.",
+                "• Destroy target artifact.",
+            ),
+        )
+        reg = TemplateRegistry()
+        _choose_option_templates(reg)
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        choose = Choose(count=QConst(1), options=(_draw_atom(1), _destroy_atom()))
+        self.assertEqual(
+            res.card.abilities,
+            (
+                TriggeredAbility(
+                    event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
+                    condition=None,
+                    effect=choose,
+                ),
+                TriggeredAbility(
+                    event=DeclareBlockersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
+                    condition=None,
+                    effect=choose,
+                ),
+            ),
+        )
+
+    def test_single_option_opener_stays_unparsed(self) -> None:
+        """Fewer than two parsed options: the opener must NOT be folded
+        into a degenerate single-option Choose."""
+        raw = _raw_card(
+            "I",
+            1,
+            sentences=("Choose one —", "• Draw a card."),
+        )
+        reg = TemplateRegistry()
+        _choose_option_templates(reg)
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, (("Choose one —", "spell-effect"),))
+        self.assertEqual(
+            res.card.abilities,
+            (SpellAbility(kind=SpellKind.INSTANT, effect=_draw_atom(1)),),
+        )
+
+    def test_opener_without_options_stays_unparsed(self) -> None:
+        raw = _raw_card("I", 1, sentences=("Choose one —",))
+        reg = TemplateRegistry()
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, (("Choose one —", "spell-effect"),))
+        self.assertEqual(res.card.abilities, ())
+
+    def test_continuation_after_options_not_folded_into_choose(self) -> None:
+        """A continuation after the option bullets must not merge into the
+        Choose; with no other merge target it becomes its own optional
+        step beside the Choose in the spell effect Seq."""
+        raw = _raw_card(
+            "I",
+            1,
+            sentences=(
+                "Choose one —",
+                "• Draw a card.",
+                "• Destroy target artifact.",
+                "If you do, draw another.",
+            ),
+        )
+        reg = TemplateRegistry()
+        _choose_option_templates(reg)
+        reg.register(
+            _template(
+                "cont-draw",
+                r"^If you do, draw another\.$",
+                lambda m: EffectOutcome(effect=_draw_atom(2)),
+            )
+        )
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        ab = _spell(res.card.abilities[0])
+        steps = _seq(ab.effect)
+        self.assertEqual(
+            steps.steps[0],
+            Choose(count=QConst(1), options=(_draw_atom(1), _destroy_atom())),
+        )
+        self.assertEqual(steps.steps[1], OptionalEffect(_draw_atom(2)))
+
+
 _M21_PATH = Path(__file__).resolve().parents[2] / "data" / "M21.json"
 
 
@@ -1005,6 +1950,139 @@ class TestM21Smoke(unittest.TestCase):
                 f"{r.card.name} should report a star P/T coverage gap",
             )
             self.assertIsNone(r.card.power)
+
+
+class TestChooseOpenerM21(unittest.TestCase):
+    """The seven M21 choose-opener cards must compile with zero unparsed
+    sentences once the built-in is in place (full registry)."""
+
+    EXPECTED_NAMES = (
+        "Return to Nature",
+        "Pestilent Haze",
+        "Read the Tides",
+        "Destructive Tampering",
+        "Sublime Epiphany",
+        "Trufflesnout",
+        "Elder Gargaroth",
+    )
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.pool = ingest_pool(_M21_PATH)
+        cls.reg = build_full_registry()
+        cls.by_name = {raw.identity.name: raw for raw in cls.pool.values()}
+
+    def _compile(self, name: str) -> CompileResult:
+        self.assertIn(name, self.by_name, f"{name} missing from M21 pool")
+        return compile_card(self.by_name[name], self.reg)
+
+    def test_all_seven_cards_present(self) -> None:
+        for name in self.EXPECTED_NAMES:
+            self.assertIn(name, self.by_name, f"{name} missing from M21 pool")
+
+    def test_no_unparsed_opener(self) -> None:
+        for name in self.EXPECTED_NAMES:
+            res = self._compile(name)
+            self.assertEqual(res.unparsed, (), f"{name}: {res.unparsed}")
+
+    def test_spell_opener_shape(self) -> None:
+        for name in self.EXPECTED_NAMES[:4]:
+            res = self._compile(name)
+            self.assertEqual(len(res.card.abilities), 1, name)
+            ab = _spell(res.card.abilities[0])
+            choose = _choose(ab.effect)
+            self.assertEqual(choose.count, QConst(1), name)
+            self.assertGreaterEqual(len(choose.options), 2, name)
+
+    def test_one_or_more_shape(self) -> None:
+        res = self._compile("Sublime Epiphany")
+        self.assertEqual(len(res.card.abilities), 1)
+        ab = _spell(res.card.abilities[0])
+        choose = _choose(ab.effect)
+        self.assertEqual(choose.count, QUnbounded())
+        self.assertEqual(len(choose.options), 5)
+
+    def test_etb_shape(self) -> None:
+        res = self._compile("Trufflesnout")
+        self.assertEqual(len(res.card.abilities), 1)
+        ab = _triggered(res.card.abilities[0])
+        event = ab.event
+        assert isinstance(event, ZoneChangeEvent)
+        self.assertEqual(event.from_zone, Zone(ZoneKind.ANY, ControllerRef.ANY))
+        self.assertEqual(event.to_zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
+        choose = _choose(ab.effect)
+        self.assertEqual(choose.count, QConst(1))
+        self.assertEqual(len(choose.options), 2)
+
+    def test_attack_block_shape(self) -> None:
+        res = self._compile("Elder Gargaroth")
+        triggers = [a for a in res.card.abilities if isinstance(a, TriggeredAbility)]
+        self.assertEqual(len(triggers), 2)
+        self.assertIsInstance(triggers[0].event, DeclareAttackersEvent)
+        self.assertIsInstance(triggers[1].event, DeclareBlockersEvent)
+        # Both triggers share the same Choose effect.
+        choose = _choose(triggers[0].effect)
+        self.assertEqual(choose, triggers[1].effect)
+        self.assertEqual(choose.count, QConst(1))
+        self.assertEqual(len(choose.options), 3)
+
+
+class TestAdditionalCostM21(unittest.TestCase):
+    """The four M21 additional-cost cards must compile cleanly (full
+    registry, round-3 behavior): instants keep their effect and gain the
+    additional cost; effect-less creatures get an effect-less SpellAbility
+    carrying the additional cost. No card raises StateCorruptionError."""
+
+    NAMES = (
+        "Goremand",
+        "Sparkhunter Masticore",
+        "Thrill of Possibility",
+        "Village Rites",
+    )
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.pool = ingest_pool(_M21_PATH)
+        cls.reg = build_full_registry()
+        cls.by_name = {raw.identity.name: raw for raw in cls.pool.values()}
+
+    def _compile(self, name: str) -> CompileResult:
+        self.assertIn(name, self.by_name, f"{name} missing from M21 pool")
+        return compile_card(self.by_name[name], self.reg)
+
+    def test_all_four_cards_present(self) -> None:
+        for name in self.NAMES:
+            self.assertIn(name, self.by_name, f"{name} missing from M21 pool")
+
+    def test_exactly_one_spell_with_one_additional_cost(self) -> None:
+        for name in self.NAMES:
+            res = self._compile(name)
+            spells = [a for a in res.card.abilities if isinstance(a, SpellAbility)]
+            self.assertEqual(len(spells), 1, name)
+            self.assertEqual(len(spells[0].additional_costs), 1, name)
+
+    def test_creatures_are_effectless(self) -> None:
+        for name in ("Goremand", "Sparkhunter Masticore"):
+            res = self._compile(name)
+            spells = [a for a in res.card.abilities if isinstance(a, SpellAbility)]
+            self.assertEqual(len(spells), 1, name)
+            self.assertIsNone(spells[0].effect, name)
+
+    def test_instants_carry_effect(self) -> None:
+        for name in ("Thrill of Possibility", "Village Rites"):
+            res = self._compile(name)
+            spells = [a for a in res.card.abilities if isinstance(a, SpellAbility)]
+            self.assertEqual(len(spells), 1, name)
+            self.assertIsNotNone(spells[0].effect, name)
+
+    def test_no_unparsed_additional_cost_sentences(self) -> None:
+        for name in self.NAMES:
+            res = self._compile(name)
+            for sentence, _hint in res.unparsed:
+                self.assertFalse(
+                    sentence.startswith("As an additional cost"),
+                    f"{name}: {sentence!r} left unparsed",
+                )
 
 
 if __name__ == "__main__":

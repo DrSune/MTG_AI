@@ -20,6 +20,7 @@ from dataclasses import dataclass, replace
 from typing import Any
 
 from MTG_bot.core.ability_tree import (
+    QX,
     Ability,
     ActivatedAbility,
     Atom,
@@ -27,19 +28,25 @@ from MTG_bot.core.ability_tree import (
     CardRecord,
     Choose,
     Conditional,
+    ControllerRef,
     Cost,
     CostManaColor,
     CostManaGeneric,
     CostManaHybrid,
     CostPart,
+    DeclareAttackersEvent,
+    DeclareBlockersEvent,
+    DurationUntilNextTurn,
     Effect,
     FAnd,
+    FAtom,
+    FAtomPred,
     Filter,
     Keyword,
     KeywordAbility,
     OptionalEffect,
     QConst,
-    QX,
+    QUnbounded,
     Repeat,
     Selector,
     SelectorMode,
@@ -49,11 +56,16 @@ from MTG_bot.core.ability_tree import (
     StaticAbility,
     TriggeredAbility,
     Verb,
+    Zone,
+    ZoneChangeEvent,
+    ZoneKind,
     walk,
 )
 from MTG_bot.core.compiler.ingest import RawCard
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
+    ActivationGateOutcome,
+    AdditionalCostOutcome,
     AmbiguityRecord,
     EffectOutcome,
     KeywordOutcome,
@@ -115,8 +127,250 @@ _CONTINUATION_PREFIXES: tuple[str, ...] = (
     "If target",
     "If it ",
     "If that",
+    "If you search your library this way",
     "Then ",
 )
+
+# ---------------------------------------------------------------------------
+# Search-shuffle boilerplate (compiler built-in, no template).
+#
+# "If you search your library this way, shuffle." (6x in M21) mandates the
+# shuffle ONLY IF the preceding optional search was performed.  No template
+# matches the sentence, so the compiler synthesizes a SHUFFLE EffectOutcome
+# and the continuation pass injects it INSIDE the previous OptionalEffect's
+# sequence — appending it as a sibling optional step would shuffle even when
+# no search happened.
+# ---------------------------------------------------------------------------
+
+_SEARCH_SHUFFLE_TAIL_RE = re.compile(
+    r"^If you search your library this way, shuffle\.$"
+)
+
+
+def _search_shuffle_effect() -> Atom:
+    """Canonical mandatory library-shuffle atom for the boilerplate."""
+    return Atom(
+        verb=Verb.SHUFFLE,
+        args=AtomArgs(
+            pairs=(("zone", Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)),)
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Phase-in prevention (compiler built-in, no template).
+#
+# "Until the end of your next turn, they can't phase in." (Teferi, Timeless
+# Voyager [−8]; 1x in M21) is the mandatory second sentence of a loyalty
+# ability whose first sentence phases out the same creatures.  No template
+# matches the bare sentence, so the compiler synthesizes a PREVENT_EFFECT
+# EffectOutcome and the continuation pass appends it MANDATORILY (no
+# OptionalEffect wrap) to the previous ability's effect.  Wrapping it in
+# OptionalEffect would mis-model a guaranteed effect as optional, and
+# leaving it standalone would mis-container it as an inherent planeswalker
+# effect instead of part of the [−8] activation.
+# ---------------------------------------------------------------------------
+
+_PHASE_IN_PREVENT_RE = re.compile(
+    r"^Until the end of your next turn, they can't phase in\.$"
+)
+
+
+def _phase_in_prevention_effect() -> Atom:
+    """Canonical phase-in prevention atom (T3 round 2, item 5 composition).
+
+    Prevents the opponent's command-zone permanents entering the battlefield
+    until the controller's next turn.  ``DurationUntilNextTurn`` carries the
+    "until the end of your next turn" scope.
+    """
+    return Atom(
+        verb=Verb.PREVENT_EFFECT,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "condition",
+                    FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
+                ),
+                (
+                    "event",
+                    ZoneChangeEvent(
+                        from_zone=Zone(
+                            kind=ZoneKind.COMMAND, controller=ControllerRef.OPPONENT
+                        ),
+                        to_zone=Zone(
+                            kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.OPPONENT
+                        ),
+                    ),
+                ),
+                ("duration", DurationUntilNextTurn()),
+            )
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Choose-opener boilerplate (compiler built-in, no template).
+#
+# "Choose one —" (7 cards in M21) is an opener sentence: the option bullets
+# that follow are already parsed as sibling EffectOutcomes by the option
+# templates, so only the opener itself fails template matching.  This pass
+# folds the opener + its option bullets into one Choose node (or a triggered
+# ability carrying one) so the card no longer reports an unparsed sentence.
+#
+# KNOWN-GAP: "Choose one or more —" (Sublime Epiphany) is approximated with
+#   QUnbounded() — the grammar has no QAtLeast(1), so the minimum-1
+#   constraint is lost.
+# KNOWN-GAP: "attacks or blocks" (Elder Gargaroth) is decomposed into two
+#   TriggeredAbility nodes (DeclareAttackersEvent + DeclareBlockersEvent)
+#   sharing the same Choose effect — the grammar has no composite
+#   "attacks or blocks" EventSpec.  A creature cannot attack and block in
+#   the same turn, so the decomposition is behaviourally equivalent.
+# ---------------------------------------------------------------------------
+
+_CHOOSE_ONE_RE = re.compile(r"^Choose one —$")
+_CHOOSE_ONE_OR_MORE_RE = re.compile(r"^Choose one or more —$")
+_CHOOSE_ETB_RE = re.compile(r"^When this creature enters, choose one —$")
+_CHOOSE_ATTACK_BLOCK_RE = re.compile(
+    r"^Whenever this creature attacks or blocks, choose one —$"
+)
+
+# Option bullets are printed as "• <effect>" (M21 oracle-text convention).
+_OPTION_BULLET_PREFIX = "• "
+
+# Opener kinds.
+_CHOOSE_SPELL_ONE = "spell_one"
+_CHOOSE_SPELL_ONE_OR_MORE = "spell_one_or_more"
+_CHOOSE_ETB_ONE = "etb_one"
+_CHOOSE_ATTACK_BLOCK_ONE = "attack_block_one"
+
+
+@dataclass(frozen=True)
+class _ChooseOpenerOutcome:
+    """Compiler-internal: a choose-opener sentence folded with its options.
+
+    Not part of the SentenceOutcome union: the continuation pass passes it
+    through unchanged (it is neither an EffectOutcome nor an AbilityOutcome,
+    so it is never a continuation merge target), and the
+    separate-abilities/effects step expands it into its final nodes.
+    """
+
+    kind: str
+    options: tuple[Effect, ...]
+
+
+class _OptionConsumed:
+    """Sentinel: an option bullet consumed into a choose-opener fold.
+
+    Distinguishes consumed bullets from ``None`` (truly unparsed) so the
+    post-fold unparsed rebuild only reports unmatched sentences.
+    """
+
+    __slots__ = ()
+
+
+_OPTION_CONSUMED = _OptionConsumed()
+
+
+# Outcome slot for the pre-assembly pipeline: a template outcome, an
+# unfolded choose-opener, a consumed option bullet, or None (unparsed).
+_OutcomeSlot = SentenceOutcome | _ChooseOpenerOutcome | _OptionConsumed | None
+
+
+def _choose_opener_kind(sentence: str) -> str | None:
+    """Classify an anchored choose-opener sentence; None if not one."""
+    if _CHOOSE_ONE_RE.match(sentence):
+        return _CHOOSE_SPELL_ONE
+    if _CHOOSE_ONE_OR_MORE_RE.match(sentence):
+        return _CHOOSE_SPELL_ONE_OR_MORE
+    if _CHOOSE_ETB_RE.match(sentence):
+        return _CHOOSE_ETB_ONE
+    if _CHOOSE_ATTACK_BLOCK_RE.match(sentence):
+        return _CHOOSE_ATTACK_BLOCK_ONE
+    return None
+
+
+def _wrap_choose_openers(
+    outcomes: list[_OutcomeSlot],
+    sentences: tuple[str, ...],
+) -> list[_OutcomeSlot]:
+    """Fold choose-opener sentences together with their parsed options.
+
+    For each opener, the following consecutive sentences that are option
+    bullets ("• …") parsed as EffectOutcomes are consumed into a
+    _ChooseOpenerOutcome at the opener's index; the consumed option indices
+    become the ``_OPTION_CONSUMED`` sentinel but KEEP their positions, so
+    the one-entry-per-sentence alignment the continuation pass relies on
+    (``raw.sentences[i]`` vs ``outcomes[i]``) is preserved and consumed
+    bullets are never mistaken for unparsed sentences.  An opener with
+    fewer than two parsed options is left untouched (the opener stays
+    unparsed rather than being folded into a degenerate single-option
+    Choose).
+    """
+    wrapped: list[_OutcomeSlot] = list(outcomes)
+    total = len(sentences)
+    for i, sentence in enumerate(sentences):
+        kind = _choose_opener_kind(sentence)
+        if kind is None:
+            continue
+        options: list[Effect] = []
+        j = i + 1
+        while j < total and sentences[j].startswith(_OPTION_BULLET_PREFIX):
+            option = outcomes[j]
+            if not isinstance(option, EffectOutcome):
+                break
+            options.append(option.effect)
+            j += 1
+        if len(options) < 2:
+            continue
+        wrapped[i] = _ChooseOpenerOutcome(kind=kind, options=tuple(options))
+        for k in range(i + 1, j):
+            wrapped[k] = _OPTION_CONSUMED
+    return wrapped
+
+
+def _choose_etb_event() -> ZoneChangeEvent:
+    """Zone-change event for the "When this creature enters" opener."""
+    return ZoneChangeEvent(
+        from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
+        to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+    )
+
+
+def _expand_choose_opener(
+    outcome: _ChooseOpenerOutcome,
+    abilities: list[Ability],
+    effects: list[Effect],
+) -> None:
+    """Expand a folded choose-opener into its final ability/effect nodes.
+
+    Spell openers emit the bare Choose into ``effects`` (the existing
+    assembly folds it into the SpellAbility); the trigger openers emit
+    TriggeredAbility nodes into ``abilities``.
+    """
+    count = QUnbounded() if outcome.kind == _CHOOSE_SPELL_ONE_OR_MORE else QConst(1)
+    choose = Choose(count=count, options=outcome.options)
+    if outcome.kind in (_CHOOSE_SPELL_ONE, _CHOOSE_SPELL_ONE_OR_MORE):
+        effects.append(choose)
+    elif outcome.kind == _CHOOSE_ETB_ONE:
+        abilities.append(
+            TriggeredAbility(event=_choose_etb_event(), condition=None, effect=choose)
+        )
+    elif outcome.kind == _CHOOSE_ATTACK_BLOCK_ONE:
+        abilities.append(
+            TriggeredAbility(
+                event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
+                condition=None,
+                effect=choose,
+            )
+        )
+        abilities.append(
+            TriggeredAbility(
+                event=DeclareBlockersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
+                condition=None,
+                effect=choose,
+            )
+        )
+
 
 # Parenthesised activated-cost sentence (basic lands print their tap
 # ability as "({T}: Add {W}.)" — that is an ability, not a reminder).
@@ -219,9 +473,7 @@ def parse_pt(raw: str | None) -> QConst | QX | None:
 # Local bucket classifier for unparsed sentences (no /tmp import).
 # ---------------------------------------------------------------------------
 
-_KEYWORD_WORDS: frozenset[str] = frozenset(
-    kw for kw in _KEYWORD_STRING_TO_ENUM
-)
+_KEYWORD_WORDS: frozenset[str] = frozenset(kw for kw in _KEYWORD_STRING_TO_ENUM)
 _TRIGGER_PREFIXES: tuple[str, ...] = (
     "When ",
     "Whenever ",
@@ -367,9 +619,7 @@ class PoolCompile:
 _NO_OUTCOME = "__unparsed__"
 
 
-def _is_rule_reminder(
-    sentence: str, raw: RawCard
-) -> RuleReminderOutcome | None:
+def _is_rule_reminder(sentence: str, raw: RawCard) -> RuleReminderOutcome | None:
     """Detect rule-reminder sentences before template matching."""
     s = sentence.strip()
     # Full parenthetical — except a parenthesised activated-cost sentence
@@ -406,6 +656,37 @@ def _append_optional_to_seq(effect: Effect, inner: Effect) -> Effect:
     return Seq(steps=(effect, OptionalEffect(inner)))
 
 
+def _append_mandatory_to_seq(effect: Effect, inner: Effect) -> Effect:
+    """Append ``inner`` MANDATORILY to ``effect``'s step sequence.
+
+    Unlike :func:`_append_optional_to_seq`, no ``OptionalEffect`` wrap is
+    applied: the inner effect always fires.  Used by the phase-in prevention
+    boilerplate, which is the guaranteed second half of a loyalty activation.
+    If ``effect`` is not already a ``Seq``, it is wrapped into a two-step
+    ``Seq``.
+    """
+    if isinstance(effect, Seq):
+        return Seq(steps=effect.steps + (inner,))
+    return Seq(steps=(effect, inner))
+
+
+def _merge_search_shuffle(prev_effect: Effect, shuffle: Effect) -> Effect:
+    """Inject ``shuffle`` into the previous ``OptionalEffect``'s inner steps.
+
+    Unlike the generic continuation append (sibling optional step), the
+    search-shuffle boilerplate must run exactly when the optional search ran,
+    so the shuffle joins the INNER sequence of the ``OptionalEffect``.
+    Defensive fallback: if the previous effect carries no ``OptionalEffect``
+    (a template bug), keep the shuffle mandatory and append it after.
+    """
+    if isinstance(prev_effect, OptionalEffect):
+        inner = prev_effect.inner
+        if isinstance(inner, Seq):
+            return OptionalEffect(inner=Seq(steps=inner.steps + (shuffle,)))
+        return OptionalEffect(inner=Seq(steps=(inner, shuffle)))
+    return Seq(steps=(prev_effect, shuffle))
+
+
 def _fold_meta_filter(effect: Effect, meta_filter: Filter) -> Effect:
     """Conjoin meta_filter onto every TARGET-mode Selector in effect.
 
@@ -437,7 +718,10 @@ def _fold_meta_filter(effect: Effect, meta_filter: Filter) -> Effect:
                     new_filter = FAnd(children=(value.filter, meta_filter))
                     modified = True
                     new_pairs.append(
-                        (role, Selector(value.count, value.mode, new_filter, value.zone))
+                        (
+                            role,
+                            Selector(value.count, value.mode, new_filter, value.zone),
+                        )
                     )
                 else:
                     new_pairs.append((role, value))
@@ -452,6 +736,25 @@ def _fold_meta_filter(effect: Effect, meta_filter: Filter) -> Effect:
 # ---------------------------------------------------------------------------
 # compile_card
 # ---------------------------------------------------------------------------
+
+
+def _spell_kind_from_types(types: tuple[str, ...], is_creature: bool) -> SpellKind:
+    """Derive the SpellAbility kind for a castable card from its type line.
+
+    Mirrors the assembly branches in compile_card: the creature and
+    planeswalker branches win first, then the else-branch ordering
+    (Instant, Sorcery, Enchantment, fallback Sorcery)."""
+    if is_creature:
+        return SpellKind.CREATURE
+    if "Planeswalker" in types:
+        return SpellKind.PLANESWALKER
+    if "Instant" in types:
+        return SpellKind.INSTANT
+    if "Sorcery" in types:
+        return SpellKind.SORCERY
+    if "Enchantment" in types:
+        return SpellKind.ENCHANTMENT
+    return SpellKind.SORCERY
 
 
 def compile_card(
@@ -483,8 +786,9 @@ def compile_card(
     known_gaps: list[str] = []
 
     # Per-sentence outcomes, in order.
-    # Each entry is a SentenceOutcome or None (unparsed).
-    outcomes: list[SentenceOutcome | None] = []
+    # Each entry is a SentenceOutcome, an unfolded choose-opener, or None
+    # (unparsed).
+    outcomes: list[_OutcomeSlot] = []
 
     for sentence in raw.sentences:
         # Step 1: rule reminder check
@@ -492,6 +796,20 @@ def compile_card(
         if rr is not None:
             rule_reminders.append(rr)
             outcomes.append(rr)
+            continue
+
+        # Step 1b: search-shuffle boilerplate (compiler built-in — no
+        # template; the continuation pass injects the shuffle inside the
+        # previous OptionalEffect).
+        if _SEARCH_SHUFFLE_TAIL_RE.match(sentence):
+            outcomes.append(EffectOutcome(effect=_search_shuffle_effect()))
+            continue
+
+        # Step 1c: phase-in prevention boilerplate (compiler built-in — no
+        # template; the continuation pass appends it MANDATORILY to the
+        # previous ability's effect Seq).
+        if _PHASE_IN_PREVENT_RE.match(sentence):
+            outcomes.append(EffectOutcome(effect=_phase_in_prevention_effect()))
             continue
 
         # Step 2: template match
@@ -507,9 +825,10 @@ def compile_card(
         if len(matches) > 1:
             tids = tuple(m.template.tid for m in matches)
             # Check if outcomes are truly distinct (different type or value)
-            distinct = len({type(m.outcome).__name__ for m in matches}) > 1 or len(
-                {repr(m.outcome) for m in matches}
-            ) > 1
+            distinct = (
+                len({type(m.outcome).__name__ for m in matches}) > 1
+                or len({repr(m.outcome) for m in matches}) > 1
+            )
             if distinct:
                 ambiguities.append(
                     AmbiguityRecord(
@@ -522,22 +841,55 @@ def compile_card(
         # Use highest-priority match (first in ordered tuple)
         outcomes.append(best_match.outcome)
 
+    # Step 2b: choose-opener folding (compiler built-in — no template).
+    # Runs before the continuation pass so consumed option bullets are
+    # already sentinel slots (and thus never continuation merge targets,
+    # and never mistaken for unparsed sentences).  Index alignment with
+    # raw.sentences is preserved, so the continuation pass is unaffected.
+    outcomes = _wrap_choose_openers(outcomes, raw.sentences)
+    # Rebuild unparsed from the post-fold outcome list (one entry per
+    # None slot, in sentence order) — folded openers drop out.
+    unparsed = [
+        (sentence, _bucket_hint(sentence))
+        for sentence, outcome in zip(raw.sentences, outcomes)
+        if outcome is None
+    ]
+
     # -- Handle continuation prefixes ---------------------------------------
     # A continuation sentence's effect is wrapped in OptionalEffect and
     # appended to the previous sentence's effect Seq.  We search backwards
     # in the *processed* list (not the raw outcomes list) so indices stay
     # stable even when earlier continuations consumed entries.
-    processed: list[SentenceOutcome | None] = []
+    processed: list[_OutcomeSlot] = []
+    # Parallel raw-sentence index for each processed entry (consumed
+    # continuations are not appended), so post-assembly mechanisms can
+    # anchor to the sentence that produced each ability.
+    processed_sentence_idx: list[int] = []
     for i, outcome in enumerate(outcomes):
         # Non-effect entries pass through unchanged.
         if outcome is None or not isinstance(outcome, EffectOutcome):
             processed.append(outcome)
+            processed_sentence_idx.append(i)
             continue
 
         sentence = raw.sentences[i]
-        if not _is_continuation(sentence):
+        if not _is_continuation(sentence) and not _PHASE_IN_PREVENT_RE.match(sentence):
             processed.append(outcome)
+            processed_sentence_idx.append(i)
             continue
+
+        # Special-case merges:
+        #   - search-shuffle: the shuffle joins the INSIDE of the previous
+        #     OptionalEffect (mandatory only if the optional search ran).
+        #   - phase-in prevention: a MANDATORY append to the previous effect
+        #     (no OptionalEffect wrap — the effect always fires).
+        #   - default continuation: a sibling optional step.
+        if _SEARCH_SHUFFLE_TAIL_RE.match(sentence):
+            merge = _merge_search_shuffle
+        elif _PHASE_IN_PREVENT_RE.match(sentence):
+            merge = _append_mandatory_to_seq
+        else:
+            merge = _append_optional_to_seq
 
         # --- continuation: find the previous meaningful entry in processed ---
         prev_idx: int | None = None
@@ -553,8 +905,13 @@ def compile_card(
                 ab = prev.ability
                 if isinstance(
                     ab,
-                    (StaticAbility, ActivatedAbility, SpellAbility, TriggeredAbility),
+                    (StaticAbility, ActivatedAbility, TriggeredAbility),
                 ):
+                    prev_idx = j
+                    break
+                # An effect-less SpellAbility (pure additional-costs
+                # carrier) has nothing to merge into — keep searching.
+                if isinstance(ab, SpellAbility) and ab.effect is not None:
                     prev_idx = j
                     break
                 # KeywordAbility / ReplacementAbility: skip, keep searching.
@@ -563,35 +920,39 @@ def compile_card(
         if prev_idx is not None:
             prev = processed[prev_idx]
             if isinstance(prev, EffectOutcome):
-                merged = _append_optional_to_seq(prev.effect, outcome.effect)
+                merged = merge(prev.effect, outcome.effect)
                 processed[prev_idx] = EffectOutcome(effect=merged)
             elif isinstance(prev, AbilityOutcome):
                 ab = prev.ability
                 if isinstance(ab, StaticAbility):
-                    merged_eff = _append_optional_to_seq(
-                        ab.effect, outcome.effect
-                    )
+                    merged_eff = merge(ab.effect, outcome.effect)
                     processed[prev_idx] = AbilityOutcome(
                         ability=StaticAbility(effect=merged_eff)
                     )
                 elif isinstance(ab, ActivatedAbility):
-                    merged_eff = _append_optional_to_seq(
-                        ab.effect, outcome.effect
-                    )
+                    merged_eff = merge(ab.effect, outcome.effect)
                     processed[prev_idx] = AbilityOutcome(
-                        ability=ActivatedAbility(cost=ab.cost, effect=merged_eff)
+                        ability=ActivatedAbility(
+                            cost=ab.cost, effect=merged_eff, condition=ab.condition
+                        )
                     )
                 elif isinstance(ab, SpellAbility):
-                    merged_eff = _append_optional_to_seq(
-                        ab.effect, outcome.effect
-                    )
+                    if ab.effect is None:
+                        # Unreachable: the search loop above skips
+                        # effect-less SpellAbilities. Consume the
+                        # continuation, matching the existing
+                        # fall-through for non-mergeable entries.
+                        continue
+                    merged_eff = merge(ab.effect, outcome.effect)
                     processed[prev_idx] = AbilityOutcome(
-                        ability=SpellAbility(kind=ab.kind, effect=merged_eff)
+                        ability=SpellAbility(
+                            kind=ab.kind,
+                            effect=merged_eff,
+                            additional_costs=ab.additional_costs,
+                        )
                     )
                 elif isinstance(ab, TriggeredAbility):
-                    merged_eff = _append_optional_to_seq(
-                        ab.effect, outcome.effect
-                    )
+                    merged_eff = merge(ab.effect, outcome.effect)
                     processed[prev_idx] = AbilityOutcome(
                         ability=TriggeredAbility(
                             event=ab.event,
@@ -602,8 +963,16 @@ def compile_card(
             # The continuation sentence is consumed — not appended.
             continue
 
-        # No previous effect to attach to: create own OptionalEffect.
+        # No previous effect to attach to.
+        if _PHASE_IN_PREVENT_RE.match(sentence):
+            # A phase-in prevention is mandatory even in isolation — append
+            # it bare (no OptionalEffect wrap).
+            processed.append(outcome)
+            processed_sentence_idx.append(i)
+            continue
+        # A generic continuation becomes its own optional step.
         processed.append(EffectOutcome(effect=OptionalEffect(outcome.effect)))
+        processed_sentence_idx.append(i)
 
     # -- Collect keywords ---------------------------------------------------
     bare_keywords = _build_bare_keywords(raw)
@@ -642,14 +1011,50 @@ def compile_card(
         if isinstance(outcome, MetaOutcome) and outcome.filter is not None:
             meta_filters.append(outcome.filter)
 
+    # -- Collect additional costs -------------------------------------------
+    # "As an additional cost to cast this spell, ..." sentences: attached
+    # to the card's SpellAbility right after assembly (order preserved).
+    additional_costs: tuple[Cost, ...] = tuple(
+        outcome.cost
+        for outcome in processed
+        if isinstance(outcome, AdditionalCostOutcome)
+    )
+
+    # -- Collect activation gates -------------------------------------------
+    # "Activate only if ..." sentences carry a condition that binds the
+    # card's ActivatedAbility rather than a sentence of their own.  Collected
+    # from ``outcomes`` (strictly sentence-aligned) rather than ``processed``
+    # (whose indices can drift after consumed continuations).
+    activation_gates: list[tuple[int, Filter]] = [
+        (i, outcome.condition)
+        for i, outcome in enumerate(outcomes)
+        if isinstance(outcome, ActivationGateOutcome)
+    ]
+
     # -- Separate abilities and effects -------------------------------------
+    # Each outcome is tracked back to its source raw-sentence index so
+    # post-assembly mechanisms (activation gates) can anchor to the
+    # abilities they modify.
     ability_outcomes: list[Ability] = []
+    ability_src: list[int] = []
     effect_outcomes: list[Effect] = []
-    for outcome in processed:
+    effect_src: list[int] = []
+    for src, outcome in zip(processed_sentence_idx, processed):
         if isinstance(outcome, AbilityOutcome):
             ability_outcomes.append(outcome.ability)
+            ability_src.append(src)
         elif isinstance(outcome, EffectOutcome):
             effect_outcomes.append(outcome.effect)
+            effect_src.append(src)
+        elif isinstance(outcome, _ChooseOpenerOutcome):
+            # Choose-opener folded by Step 2b — expand into its final
+            # nodes (bare Choose into the spell's effects, or
+            # TriggeredAbility nodes for the trigger openers).
+            n_ab = len(ability_outcomes)
+            n_eff = len(effect_outcomes)
+            _expand_choose_opener(outcome, ability_outcomes, effect_outcomes)
+            ability_src.extend([src] * (len(ability_outcomes) - n_ab))
+            effect_src.extend([src] * (len(effect_outcomes) - n_eff))
 
     # Apply meta filters to all effects (Enchant X conjunct)
     if meta_filters:
@@ -667,16 +1072,21 @@ def compile_card(
     is_emblem = raw.is_emblem
 
     abilities: list[Ability] = []
+    # Source sentence index per assembled ability (invariant:
+    # len(ability_srcs) == len(abilities)).
+    ability_srcs: list[int] = []
     abilities.extend(ability_outcomes)
+    ability_srcs.extend(ability_src)
 
     if is_emblem or is_token:
         # Tokens/emblems: effects become standalone abilities
         # (no SpellAbility for tokens — they're not cast).
-        for eff in effect_outcomes:
+        for eff, src in zip(effect_outcomes, effect_src):
             # Wrap in a StaticAbility if no better category is apparent.
             # # KNOWN-GAP: token effect categorization is bucket-specific;
             #   for now, StaticAbility is the closest honest wrapper.
             abilities.append(StaticAbility(effect=eff))
+            ability_srcs.append(src)
     elif is_planeswalker:
         # Planeswalker: effects become SpellAbility (PLANESWALKER)
         if effect_outcomes:
@@ -685,14 +1095,14 @@ def compile_card(
                 if len(effect_outcomes) == 1
                 else Seq(steps=tuple(effect_outcomes))
             )
-            abilities.append(
-                SpellAbility(kind=SpellKind.PLANESWALKER, effect=combined)
-            )
+            abilities.append(SpellAbility(kind=SpellKind.PLANESWALKER, effect=combined))
+            ability_srcs.append(max(effect_src))
     elif is_land:
         # Land: effects become ActivatedAbility (free cost if no cost given).
         # # KNOWN-GAP: land cost extraction is bucket-specific.
-        for eff in effect_outcomes:
+        for eff, src in zip(effect_outcomes, effect_src):
             abilities.append(ActivatedAbility(cost=Cost(parts=()), effect=eff))
+            ability_srcs.append(src)
     elif is_creature:
         # Creature: EffectOutcome → SpellAbility(CREATURE, effect)
         if effect_outcomes:
@@ -701,9 +1111,8 @@ def compile_card(
                 if len(effect_outcomes) == 1
                 else Seq(steps=tuple(effect_outcomes))
             )
-            abilities.append(
-                SpellAbility(kind=SpellKind.CREATURE, effect=combined)
-            )
+            abilities.append(SpellAbility(kind=SpellKind.CREATURE, effect=combined))
+            ability_srcs.append(max(effect_src))
     else:
         # Instant/Sorcery/Enchantment/other: fold all effects into one
         # SpellAbility.
@@ -723,6 +1132,73 @@ def compile_card(
                 else Seq(steps=tuple(effect_outcomes))
             )
             abilities.append(SpellAbility(kind=kind, effect=combined))
+            ability_srcs.append(max(effect_src))
+
+    # -- Attach additional costs to the spell --------------------------------
+    # Additional-cost sentences ride on a SpellAbility. A card that matched
+    # one but compiled without one falls into two cases (T3 round 3):
+    #   - land / token / emblem: the card is never cast, so there is no
+    #     spell to attach the cost to — state corruption, not a gap;
+    #   - any other castable spell with no effect sentence (e.g. Goremand,
+    #     whose only sentence is a triggered ability): build an effect-less
+    #     SpellAbility (effect=None) carrying the additional costs.
+    if additional_costs:
+        if not any(isinstance(ab, SpellAbility) for ab in abilities):
+            if is_land or is_token or is_emblem:
+                raise StateCorruptionError(
+                    "compile_card: additional-cost sentence matched but the "
+                    "card compiled as a non-castable card (land, token, or "
+                    f"emblem) with no SpellAbility to attach it to "
+                    f"(type line: {raw.type_line!r})",
+                    context={
+                        "oracle_id": raw.identity.oracle_id,
+                        "types": raw.types,
+                    },
+                )
+            abilities.append(
+                SpellAbility(
+                    kind=_spell_kind_from_types(types, is_creature),
+                    additional_costs=additional_costs,
+                )
+            )
+            # Synthetic carrier, not tied to a sentence — use the last
+            # sentence index so it can never masquerade as a "preceding"
+            # ability when anchoring activation gates.
+            ability_srcs.append(len(raw.sentences) - 1)
+        else:
+            abilities = [
+                replace(ab, additional_costs=ab.additional_costs + additional_costs)
+                if isinstance(ab, SpellAbility)
+                else ab
+                for ab in abilities
+            ]
+
+    # -- Attach activation gates ---------------------------------------------
+    # Each "Activate only if ..." gate binds its condition to the nearest
+    # preceding unconditional ActivatedAbility (source sentence index).
+    # Gates are processed in sentence order; once an ability has received a
+    # condition it no longer qualifies, so N gates pair with the N
+    # preceding abilities in order.
+    for gate_src, gate_condition in activation_gates:
+        candidates = [
+            (src, j)
+            for j, (ab, src) in enumerate(zip(abilities, ability_srcs))
+            if src < gate_src
+            and isinstance(ab, ActivatedAbility)
+            and ab.condition is None
+        ]
+        if not candidates:
+            raise StateCorruptionError(
+                "compile_card: activation-gate sentence matched but no "
+                "preceding unconditional ActivatedAbility exists to "
+                f"attach it to (gate: {raw.sentences[gate_src]!r})",
+                context={
+                    "oracle_id": raw.identity.oracle_id,
+                    "name": raw.identity.name,
+                },
+            )
+        _, target = max(candidates)
+        abilities[target] = replace(abilities[target], condition=gate_condition)
 
     # -- Build CardRecord ----------------------------------------------------
     card = CardRecord(
@@ -756,9 +1232,8 @@ def compile_card(
     #   (the data itself is sound). Report it; power/toughness stay None
     #   (= "resolve at runtime"). M21 has exactly two such cards: Weird and
     #   Kinetic Augur.
-    needs_set_pt = (
-        (raw.power_raw is not None and raw.power_raw.strip() == "*")
-        or (raw.toughness_raw is not None and raw.toughness_raw.strip() == "*")
+    needs_set_pt = (raw.power_raw is not None and raw.power_raw.strip() == "*") or (
+        raw.toughness_raw is not None and raw.toughness_raw.strip() == "*"
     )
     if needs_set_pt:
         has_set_pt = False
@@ -870,12 +1345,8 @@ def compile_pool(
             else:
                 # Rebuild owner's CardRecord with emblem
                 owner_result = results[owner_oid]
-                owner_card = replace(
-                    owner_result.card, emblem=results[oid].card
-                )
-                results[owner_oid] = replace(
-                    owner_result, card=owner_card
-                )
+                owner_card = replace(owner_result.card, emblem=results[oid].card)
+                results[owner_oid] = replace(owner_result, card=owner_card)
 
     # Second pass: collect non-emblem cards (now with emblems attached).
     cards: dict[str, CardRecord] = {}
