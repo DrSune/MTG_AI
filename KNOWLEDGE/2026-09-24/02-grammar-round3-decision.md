@@ -123,9 +123,13 @@ decided here.
 
 ## Items explicitly NOT in round 3 (round-4 design queue)
 
-- Conditional triggers (B2b's 18 shapes: trigger `condition` slots exist,
-  but the events need cast-from-zone scoping, first/second-this-turn
-  ordinals, damage-source attributes) — largest residual family.
+**Queue item 1 superseded by `05-grammar-round4-decision.md`** (2026-09-24
+grounding: `CastSpellEvent.from_zone`/`.ordinal`, `DamageDealtEvent.source`/
+`.combat`, and `TriggeredAbility.condition` already exist; the true gaps are
+`CardDrawnEvent.ordinal`, `LoyaltyActivatedEvent`, `from_zone_not`, three
+condition predicates, and object-anaphora `Selector.referent`).
+
+- Conditional triggers (B2b's 18 shapes) — largest residual family.
 - Replacement/"instead" effects (~10 shapes in B5b).
 - Emblem-with-text loyalty sentences (4 shapes) — emblem pool entries'
   inner text needs recursive compilation.
