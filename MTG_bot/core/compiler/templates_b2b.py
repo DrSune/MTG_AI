@@ -1,12 +1,12 @@
-"""B2b bucket templates — 42 templates covering 44 of 62 B2b normalized shape keys.
+"""B2b bucket templates — 57 templates covering 58 of 62 B2b normalized shape keys.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B2b.json`` (62 normalized shape
 keys → ``[card, sentence]`` pairs; 76 card/sentence entries).  Templates
 fullmatch the **concrete** oracle sentence, never the normalized key.
 
-Coverage (62 shapes = 44 template-covered + 18 uncovered):
+Coverage (62 shapes = 58 template-covered + 4 uncovered):
 
-- **42 templates** cover 44 normalized keys and 58 concrete rows.
+- **57 templates** cover 58 normalized keys and 72 concrete rows.
   - *Round 1* (18 templates): 18 shapes and 32 concrete rows.  Shape ``#10``
     has 5 concrete rows and ``#11`` has 11; all other covered shapes have 1
     each.
@@ -16,7 +16,31 @@ Coverage (62 shapes = 44 template-covered + 18 uncovered):
   - *Round 4* (6 templates): 6 shapes and 6 concrete rows, each a single-card
     shape (Solemn Simulacrum, Garruk's Uprising, Historian of Zhalfir,
     Ornery Dilophosaur, Tide Skimmer, Vito).
-- **18 uncovered normalized keys** have no grammar construct and are recorded
+  - *Round 5* (15 templates, 2026-09-25): 14 new shapes and 14 concrete rows
+    — Warden of the Woods (TargetingEvent + OptionalEffect DRAW; lossy:
+    "an opponent controls"), Jeskai Elder (CombatDamageEvent + OptionalEffect
+    DRAW; lossy: "to a player"), Chandra's Incinerator / Pyreling
+    (DamageDealtEvent ``combat=False`` + source filter; the Incinerator deals
+    ``QProp("event", AMOUNT)`` to a target "that player controls" via
+    ``CONTROLLER_IS`` with a referent ``Selector``), Pack Leader
+    (PREVENT_EFFECT with condition/event over the protected Dogs +
+    DurationEot), Gloom Sower (BecomesBlockedEvent + LOSE_LIFE via the event
+    referent + GAIN_LIFE), Hooded Blightfang (planeswalker-damage variant;
+    DamageDealtEvent + SUPERTYPE_EQ Planeswalker recipient + DESTROY via the
+    event referent — disjoint from the existing attacks sentence), Feline
+    Sovereign (CombatDamageEvent + DESTROY "that player controls" via the
+    event referent), Ghostly Pilferer s2 (CastSpellEvent.from_zone_not
+    Zone(HAND, OPPONENT)), Double Vision s1 (CastSpellEvent ordinal=1 over
+    instant/sorcery + COPY via the event referent), Double Vision s2
+    (RuleReminderOutcome — its concrete row "You may choose new targets for
+    the copy." lives in the B4 bucket), Garruk's Harbinger (DamageDealtEvent
+    ``combat=True`` + source IS_SOURCE + LOOK_AT ``QProp("event", AMOUNT)``;
+    lossy: "a player or planeswalker" recipient), Jolrael (CardDrawnEvent
+    ordinal=2 + Cat token; lossy: token color), Mystic Skyfish (CardDrawnEvent
+    ordinal=2 + GRANT_ABILITY FLYING DurationEot), and Keral Keep Disciples
+    (LoyaltyActivatedEvent + EachPlayer ALL_OPPONENTS DEAL_DAMAGE rebound to
+    the iterated opponent).
+- **4 uncovered normalized keys** have no grammar construct and are recorded
   in ``UNCOVERED``.
 
 Conventions (documented build decisions):
@@ -42,10 +66,31 @@ Conventions (documented build decisions):
 - ``you may pay {N}`` is ``Verb.PAY`` with ``Cost(parts=(CostManaGeneric(N),))``.
 - ``each opponent`` for life gain/loss uses ``ControllerRef.ALL_OPPONENTS``; an
   ``EachPlayer`` effect runs relative to the iterated (opponent) player.
-- ``CastSpellEvent.from_zone`` exists but is a single ``Zone`` (not a
-  ``Filter``), so "anywhere other than their hand" is not expressible.
-- ``CardDrawnEvent`` has no ordinal field, so "second card each turn" is not
-  expressible.
+- ``CastSpellEvent.from_zone_not`` (grammar round 4) carries the single
+  ``Zone`` exclusion: "anywhere other than their hand" →
+  ``Zone(HAND, OPPONENT)`` ("their" relative to the iterated opponent,
+  matching ``controller=ControllerRef.OPPONENT``); mutually exclusive with
+  ``from_zone``.
+- ``CastSpellEvent.ordinal`` (grammar round 4) counts the Nth cast by that
+  controller this turn among the event's filter: ``ordinal=1`` over an
+  instant/sorcery filter = "your first instant or sorcery spell each turn".
+- ``CardDrawnEvent.ordinal`` (grammar round 4) carries "your second card each
+  turn" the same way.
+- Object anaphora (grammar round 4, convention C2): a referent ``Selector``
+  binds to an in-scope object — here always ``referent="event"`` (the
+  triggering event's subject: cast → the cast spell; damage_dealt → the
+  damaged recipient; becomes_blocked → the blocker; declare_attackers → the
+  attacker) and is written ``Selector(QConst(1), CHOOSE, universal filter,
+  Zone(ANY, ANY), referent="event")`` by ``_event_reference()``.  It serves
+  as a role value (``LOSE_LIFE.controller``, ``DEAL_DAMAGE``/``DESTROY``
+  ``target``, ``COPY.source``) and as the ``who`` of ``CONTROLLER_IS``
+  ("that player controls").
+- Quantity anaphora (convention C4): "that much" / "that many" ride the
+  triggering event and read ``QProp(referent="event", field=AMOUNT)``; the
+  event itself carries ``amount=QUnbounded()`` (any amount).
+- ``LoyaltyActivatedEvent`` (grammar round 4, convention C5) carries
+  "whenever you activate a loyalty ability of a Chandra planeswalker"; its
+  filter is required (subtype Chandra + type Planeswalker).
 
 PC-3: every B2b concrete sentence fullmatches **at most one** template
 (patterns are pairwise disjoint by construction; the three named-card-search
@@ -60,8 +105,10 @@ from typing import Final
 from MTG_bot.core.ability_tree import (
     Atom,
     AtomArgs,
+    BecomesBlockedEvent,
     CardDrawnEvent,
     CastSpellEvent,
+    CombatDamageEvent,
     ControllerRef,
     Cost,
     CostManaGeneric,
@@ -81,6 +128,7 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     KeywordAbility,
     LifeGainedEvent,
+    LoyaltyActivatedEvent,
     OptionalEffect,
     PtDelta,
     PtDirection,
@@ -95,6 +143,7 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     Seq,
     TapStateEvent,
+    TargetingEvent,
     TokenSpec,
     TriggeredAbility,
     Verb,
@@ -105,6 +154,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
+    RuleReminderOutcome,
     SentenceOutcome,
     Template,
 )
@@ -290,6 +340,22 @@ def _you_control_at_least(inner_filter: Filter, count: int) -> FAtom:
     )
 
 
+def _event_reference() -> Selector:
+    """Selector bound to the triggering event's subject (grammar round 4,
+    object anaphora, convention C2: mode CHOOSE + count QConst(1) + the
+    neutral zone + empty zones; the universal filter carries no type check).
+    Per-event subject: cast → the cast spell; damage_dealt → the damaged
+    recipient; becomes_blocked → the blocker; declare_attackers → the
+    attacker (Selector docstring)."""
+    return Selector(
+        QConst(1),
+        SelectorMode.CHOOSE,
+        FAnd(children=()),
+        Zone(ZoneKind.ANY, ControllerRef.ANY),
+        referent="event",
+    )
+
+
 def _bird_token(power: int, toughness: int) -> TokenSpec:
     # GAP: token color omitted — TokenSpec has no color field.
     return TokenSpec(
@@ -325,6 +391,20 @@ def _saproling_token(power: int, toughness: int) -> TokenSpec:
         type_line="Creature — Saproling",
         types=("Creature",),
         subtypes=("Saproling",),
+        power=QConst(power),
+        toughness=QConst(toughness),
+        keywords=(),
+        abilities=(),
+    )
+
+
+def _cat_token(power: int, toughness: int) -> TokenSpec:
+    # GAP: token color omitted — TokenSpec has no color field.
+    return TokenSpec(
+        name="Cat",
+        type_line="Creature — Cat",
+        types=("Creature",),
+        subtypes=("Cat",),
         power=QConst(power),
         toughness=QConst(toughness),
         keywords=(),
@@ -1497,6 +1577,453 @@ def _build_vito_gain_life_lose_life(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
+# Builders — Round 5 (grammar round 4/5 shapes: object anaphora, ordinals,
+# from_zone_not, this-turn FAtoms, loyalty activation)
+# ---------------------------------------------------------------------------
+
+
+def _build_warden_of_the_woods(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #1: becomes the target of an opponent's spell/ability,
+    you may draw two cards.
+
+    Lossy: "an opponent controls" is dropped — TargetingEvent constrains
+    only the targeted object (IS_SOURCE), never the spell's controller
+    (doc-05 row #1)."""
+    return _ability(
+        TargetingEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
+        OptionalEffect(
+            inner=Atom(
+                verb=Verb.DRAW,
+                args=AtomArgs(
+                    pairs=(
+                        ("controller", ControllerRef.YOU),
+                        ("amount", QConst(2)),
+                    )
+                ),
+            )
+        ),
+    )
+
+
+def _build_jeskai_elder(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #2: deals combat damage to a player, you may draw a card.
+
+    Lossy: "to a player" is dropped — CombatDamageEvent.filter is over the
+    damage-dealing creature and exposes no recipient field (doc-05 row #2)."""
+    return _ability(
+        CombatDamageEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
+        OptionalEffect(
+            inner=Atom(
+                verb=Verb.DRAW,
+                args=AtomArgs(
+                    pairs=(
+                        ("controller", ControllerRef.YOU),
+                        ("amount", QConst(1)),
+                    )
+                ),
+            )
+        ),
+    )
+
+
+def _noncombat_source_event() -> DamageDealtEvent:
+    """DamageDealtEvent for "a source you control deals noncombat damage to
+    an opponent" (Incinerator / Pyreling).  Lossy: "to an opponent" is
+    dropped from the damaged-recipient filter (no opponent predicate);
+    "a source" is read as any source you control (CONTROLLER_IS, no type).
+    ``combat=False`` pins noncombat damage."""
+    return DamageDealtEvent(
+        amount=QUnbounded(),
+        filter=FAnd(children=()),
+        source=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+        combat=False,
+    )
+
+
+def _build_chandras_incinerator(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #4: this creature deals that much damage to target
+    creature or planeswalker that player controls.
+
+    "That much" = QProp("event", AMOUNT) (convention C4); "that player" =
+    the damaged recipient via the event referent in the CONTROLLER_IS who
+    slot (convention C1 + C2)."""
+    target = Selector(
+        QConst(1),
+        SelectorMode.TARGET,
+        FAnd(
+            children=(
+                FOr(
+                    children=(
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
+                    )
+                ),
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=_event_reference()),
+            )
+        ),
+        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+    )
+    return _ability(
+        _noncombat_source_event(),
+        Atom(
+            verb=Verb.DEAL_DAMAGE,
+            args=AtomArgs(
+                pairs=(
+                    ("target", target),
+                    (
+                        "amount",
+                        QProp(referent="event", field=QPropField.AMOUNT),
+                    ),
+                )
+            ),
+        ),
+    )
+
+
+def _build_chandras_pyreling(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #5: this creature gets +N/+N and gains double strike
+    until end of turn (both effects DurationEot-scoped, mirroring the B5c
+    creatures-pt-flying shape)."""
+    p = _n(m, 1)
+    t = _n(m, 2)
+    return _ability(
+        _noncombat_source_event(),
+        Seq(
+            steps=(
+                Atom(
+                    verb=Verb.MODIFY_PT,
+                    args=AtomArgs(
+                        pairs=(
+                            ("target", _self_selector()),
+                            ("power", PtDelta(PtDirection.INCREASE, QConst(p))),
+                            ("toughness", PtDelta(PtDirection.INCREASE, QConst(t))),
+                            ("duration", DurationEot()),
+                        )
+                    ),
+                ),
+                Atom(
+                    verb=Verb.GRANT_ABILITY,
+                    args=AtomArgs(
+                        pairs=(
+                            ("target", _self_selector()),
+                            ("ability", KeywordAbility(keyword=Keyword.DOUBLE_STRIKE)),
+                            ("duration", DurationEot()),
+                        )
+                    ),
+                ),
+            )
+        ),
+    )
+
+
+def _build_pack_leader(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #6: prevent all combat damage that would be dealt this
+    turn to Dogs you control.
+
+    PREVENT_EFFECT convention (B4 precedent: condition and event pin the
+    same protected subject): condition = the Dogs filter, event = the
+    damage event over the same subject with ``combat=True``, duration =
+    DurationEot for "this turn"."""
+    dogs = FAnd(
+        children=(
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+            FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Dog"),
+            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+        )
+    )
+    return _ability(
+        DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
+        Atom(
+            verb=Verb.PREVENT_EFFECT,
+            args=AtomArgs(
+                pairs=(
+                    ("condition", dogs),
+                    (
+                        "event",
+                        DamageDealtEvent(amount=QUnbounded(), filter=dogs, combat=True),
+                    ),
+                    ("duration", DurationEot()),
+                )
+            ),
+        ),
+    )
+
+
+def _build_gloom_sower(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #7: becomes blocked by a creature, that creature's
+    controller loses N life and you gain N life.
+
+    "That creature" = the blocker, the BecomesBlockedEvent subject, bound
+    via the event referent in the LOSE_LIFE controller role (convention
+    C1: becomes_blocked → the blocker; C2)."""
+    # The pattern's \1 backreference guarantees the two life values are
+    # equal, so a single capture group carries both.
+    n = _n(m, 1)
+    return _ability(
+        BecomesBlockedEvent(
+            filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+        ),
+        Seq(
+            steps=(
+                Atom(
+                    verb=Verb.LOSE_LIFE,
+                    args=AtomArgs(
+                        pairs=(
+                            ("controller", _event_reference()),
+                            ("amount", QConst(n)),
+                        )
+                    ),
+                ),
+                Atom(
+                    verb=Verb.GAIN_LIFE,
+                    args=AtomArgs(
+                        pairs=(
+                            ("controller", ControllerRef.YOU),
+                            ("amount", QConst(n)),
+                        )
+                    ),
+                ),
+            )
+        ),
+    )
+
+
+def _build_hooded_blightfang_planeswalker(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #8: a creature you control with deathtouch deals damage
+    to a planeswalker, destroy that planeswalker.
+
+    The damaged recipient carries the Planeswalker supertype filter;
+    "that planeswalker" binds via the event referent (convention C1:
+    damage_dealt → the damaged recipient).  Disjoint from the existing
+    B2b-hooded-blightfang attacks sentence — no PC-3 collision.  Lossy:
+    none."""
+    source = FAnd(
+        children=(
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.DEATHTOUCH),
+        )
+    )
+    return _ability(
+        DamageDealtEvent(
+            amount=QUnbounded(),
+            filter=FAtom(pred=FAtomPred.SUPERTYPE_EQ, string_value="Planeswalker"),
+            source=source,
+        ),
+        Atom(
+            verb=Verb.DESTROY,
+            args=AtomArgs(pairs=(("target", _event_reference()),)),
+        ),
+    )
+
+
+def _build_feline_sovereign(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #9: one or more Cats you control deal combat damage to a
+    player, destroy up to one target artifact or enchantment that player
+    controls.
+
+    "That player" = the damaged recipient, the event referent in the
+    CONTROLLER_IS who slot (round 4, object anaphora); CombatDamageEvent
+    fires per Cat, so the trigger is the Cats filter over the
+    damage-dealing creature."""
+    cats = FAnd(
+        children=(
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+            FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Cat"),
+            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+        )
+    )
+    target = Selector(
+        QConst(1),
+        SelectorMode.TARGET,
+        FAnd(
+            children=(
+                FOr(
+                    children=(
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Artifact"),
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Enchantment"),
+                    )
+                ),
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=_event_reference()),
+            )
+        ),
+        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+    )
+    return _ability(
+        CombatDamageEvent(filter=cats),
+        Atom(
+            verb=Verb.DESTROY,
+            args=AtomArgs(pairs=(("target", target),)),
+        ),
+    )
+
+
+def _build_ghostly_pilferer_cast(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #10: an opponent casts a spell from anywhere other than
+    their hand, draw a card.
+
+    CastSpellEvent.from_zone_not (grammar round 4) carries the exclusion;
+    "their hand" is relative to the iterated opponent → Zone(HAND,
+    OPPONENT)."""
+    return _ability(
+        CastSpellEvent(
+            filter=FAnd(children=()),
+            controller=ControllerRef.OPPONENT,
+            from_zone_not=Zone(ZoneKind.HAND, ControllerRef.OPPONENT),
+        ),
+        Atom(
+            verb=Verb.DRAW,
+            args=AtomArgs(
+                pairs=(
+                    ("controller", ControllerRef.YOU),
+                    ("amount", QConst(1)),
+                )
+            ),
+        ),
+    )
+
+
+def _build_double_vision_copy(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #11: you cast your first instant or sorcery spell each
+    turn, copy that spell.
+
+    CastSpellEvent.ordinal=1 counts the first cast matching the event's
+    instant/sorcery filter this turn; "that spell" binds via the event
+    referent on COPY.source (convention C1: cast → the cast spell)."""
+    return _ability(
+        CastSpellEvent(
+            filter=FOr(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Instant"),
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Sorcery"),
+                )
+            ),
+            controller=ControllerRef.YOU,
+            ordinal=1,
+        ),
+        Atom(
+            verb=Verb.COPY,
+            args=AtomArgs(pairs=(("source", _event_reference()),)),
+        ),
+    )
+
+
+def _build_double_vision_new_targets(m: re.Match[str]) -> RuleReminderOutcome:
+    """Round 4 row #12: "You may choose new targets for the copy." — the
+    Double Vision s1 copy rule's continuation; the anaphoric "the copy"
+    cannot be resolved standalone (owner ruling, doc-05 row #12).  The
+    concrete row lives in the B4 bucket; this template is assigned to B2b
+    by the phase-1 row allocation."""
+    return RuleReminderOutcome(reason="anaphoric_continuation")
+
+
+def _build_garruks_harbinger(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #13: this creature deals combat damage to a player or
+    planeswalker, look at that many cards from the top of your library.
+
+    DamageDealtEvent carries ``amount`` (CombatDamageEvent does not) and
+    ``combat=True``; "that many" = QProp("event", AMOUNT) (convention C4:
+    LOOK_AT implicitly looks at the top of the library).  Lossy: the
+    "a player or planeswalker" recipient filter is dropped (no recipient
+    predicate)."""
+    return _ability(
+        DamageDealtEvent(
+            amount=QUnbounded(),
+            filter=FAnd(children=()),
+            source=FAtom(pred=FAtomPred.IS_SOURCE),
+            combat=True,
+        ),
+        Atom(
+            verb=Verb.LOOK_AT,
+            args=AtomArgs(
+                pairs=(
+                    ("controller", ControllerRef.YOU),
+                    (
+                        "count",
+                        QProp(referent="event", field=QPropField.AMOUNT),
+                    ),
+                )
+            ),
+        ),
+    )
+
+
+def _build_jolrael_cat_token(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #14: you draw your second card each turn, create a Cat
+    token.
+
+    CardDrawnEvent.ordinal=2 (grammar round 4).  Lossy: the token's green
+    color is omitted — TokenSpec has no color field (bucket convention)."""
+    p = _n(m, 1)
+    t = _n(m, 2)
+    return _ability(
+        CardDrawnEvent(controller=ControllerRef.YOU, ordinal=2),
+        Atom(
+            verb=Verb.CREATE_TOKEN,
+            args=AtomArgs(pairs=(("tokens", _cat_token(p, t)), ("count", QConst(1)))),
+        ),
+    )
+
+
+def _build_mystic_skyfish(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #15: you draw your second card each turn, this creature
+    gains flying until end of turn."""
+    return _ability(
+        CardDrawnEvent(controller=ControllerRef.YOU, ordinal=2),
+        Atom(
+            verb=Verb.GRANT_ABILITY,
+            args=AtomArgs(
+                pairs=(
+                    ("target", _self_selector()),
+                    ("ability", KeywordAbility(keyword=Keyword.FLYING)),
+                    ("duration", DurationEot()),
+                )
+            ),
+        ),
+    )
+
+
+def _build_keral_keep_disciples(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #16: you activate a loyalty ability of a Chandra
+    planeswalker, this creature deals 1 damage to each opponent.
+
+    LoyaltyActivatedEvent (grammar round 4, convention C5: the trigger tags
+    the loyalty activation; filter = subtype Chandra + type Planeswalker).
+    "Each opponent" follows the b2b precedent: EachPlayer(ref=ALL_OPPONENTS)
+    with the inner DEAL_DAMAGE rebound to the iterated opponent
+    (Zone(PLAYER, YOU); PITFALLS 2026-09-22 binding rebinding contract)."""
+    chandra = FAnd(
+        children=(
+            FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Chandra"),
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
+        )
+    )
+    return _ability(
+        LoyaltyActivatedEvent(controller=ControllerRef.YOU, filter=chandra),
+        EachPlayer(
+            ref=ControllerRef.ALL_OPPONENTS,
+            effect=Atom(
+                verb=Verb.DEAL_DAMAGE,
+                args=AtomArgs(
+                    pairs=(
+                        (
+                            "target",
+                            Selector(
+                                QConst(1),
+                                SelectorMode.CHOOSE,
+                                FAnd(children=()),
+                                Zone(ZoneKind.PLAYER, ControllerRef.YOU),
+                            ),
+                        ),
+                        ("amount", QConst(1)),
+                    )
+                ),
+            ),
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
 # Templates
 # ---------------------------------------------------------------------------
 
@@ -1846,6 +2373,143 @@ TEMPLATES: Final[tuple[Template, ...]] = (
         _exact("Whenever you gain life, target opponent loses that much life."),
         _build_vito_gain_life_lose_life,
     ),
+    # --- Round 5 (grammar round 4/5 shapes) ---
+    _template(
+        "B2b-warden-of-the-woods",
+        "Warden of the Woods",
+        _exact(
+            "Whenever this creature becomes the target of a spell or ability an "
+            "opponent controls, you may draw two cards."
+        ),
+        _build_warden_of_the_woods,
+    ),
+    _template(
+        "B2b-jeskai-elder",
+        "Jeskai Elder",
+        _exact(
+            "Whenever this creature deals combat damage to a player, you may "
+            "draw a card."
+        ),
+        _build_jeskai_elder,
+    ),
+    _template(
+        "B2b-chandras-incinerator",
+        "Chandra's Incinerator",
+        _exact(
+            "Whenever a source you control deals noncombat damage to an "
+            "opponent, this creature deals that much damage to target "
+            "creature or planeswalker that player controls."
+        ),
+        _build_chandras_incinerator,
+    ),
+    _template(
+        "B2b-chandras-pyreling",
+        "Chandra's Pyreling",
+        re.compile(
+            r"^Whenever a source you control deals noncombat damage to an "
+            r"opponent, this creature gets \+(\d+)/\+(\d+) and gains double "
+            r"strike until end of turn\.$"
+        ),
+        _build_chandras_pyreling,
+    ),
+    _template(
+        "B2b-pack-leader",
+        "Pack Leader",
+        _exact(
+            "Whenever this creature attacks, prevent all combat damage that "
+            "would be dealt this turn to Dogs you control."
+        ),
+        _build_pack_leader,
+    ),
+    _template(
+        "B2b-gloom-sower",
+        "Gloom Sower",
+        re.compile(
+            r"^Whenever this creature becomes blocked by a creature, that "
+            r"creature's controller loses (\d+) life and you gain \1 life\.$"
+        ),
+        _build_gloom_sower,
+    ),
+    _template(
+        "B2b-hooded-blightfang-pw",
+        "Hooded Blightfang Planeswalker",
+        _exact(
+            "Whenever a creature you control with deathtouch deals damage to "
+            "a planeswalker, destroy that planeswalker."
+        ),
+        _build_hooded_blightfang_planeswalker,
+    ),
+    _template(
+        "B2b-feline-sovereign",
+        "Feline Sovereign",
+        _exact(
+            "Whenever one or more Cats you control deal combat damage to a "
+            "player, destroy up to one target artifact or enchantment that "
+            "player controls."
+        ),
+        _build_feline_sovereign,
+    ),
+    _template(
+        "B2b-ghostly-pilferer-cast",
+        "Ghostly Pilferer Cast",
+        _exact(
+            "Whenever an opponent casts a spell from anywhere other than "
+            "their hand, draw a card."
+        ),
+        _build_ghostly_pilferer_cast,
+    ),
+    _template(
+        "B2b-double-vision-copy",
+        "Double Vision Copy",
+        _exact(
+            "Whenever you cast your first instant or sorcery spell each "
+            "turn, copy that spell."
+        ),
+        _build_double_vision_copy,
+    ),
+    _template(
+        "B2b-double-vision-new-targets",
+        "Double Vision New Targets",
+        _exact("You may choose new targets for the copy."),
+        _build_double_vision_new_targets,
+    ),
+    _template(
+        "B2b-garruks-harbinger",
+        "Garruk's Harbinger",
+        _exact(
+            "Whenever this creature deals combat damage to a player or "
+            "planeswalker, look at that many cards from the top of your "
+            "library."
+        ),
+        _build_garruks_harbinger,
+    ),
+    _template(
+        "B2b-jolrael-cat-token",
+        "Jolrael Cat Token",
+        re.compile(
+            r"^Whenever you draw your second card each turn, create a "
+            r"(\d+)/(\d+) green Cat creature token\.$"
+        ),
+        _build_jolrael_cat_token,
+    ),
+    _template(
+        "B2b-mystic-skyfish",
+        "Mystic Skyfish",
+        _exact(
+            "Whenever you draw your second card each turn, this creature "
+            "gains flying until end of turn."
+        ),
+        _build_mystic_skyfish,
+    ),
+    _template(
+        "B2b-keral-keep-disciples",
+        "Keral Keep Disciples",
+        _exact(
+            "Whenever you activate a loyalty ability of a Chandra "
+            "planeswalker, this creature deals 1 damage to each opponent."
+        ),
+        _build_keral_keep_disciples,
+    ),
 )
 
 
@@ -1859,91 +2523,29 @@ UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
         "Anaphoric 'When you do' has no expressible continuation trigger event.",
     ),
     (
-        "Whenever a creature you control with deathtouch deals damage to a planeswalker, "
-        "destroy that planeswalker.",
-        "The effect 'destroy that planeswalker' needs a referent to the damaged "
-        "object; the grammar exposes no damaged-object selector in the effect.",
-    ),
-    (
-        "Whenever a source you control deals noncombat damage to an opponent, "
-        "this creature deals that much damage to target creature or planeswalker "
-        "that player controls.",
-        "The effect 'that player controls' needs a referent to the damaged "
-        "opponent; no damaged-opponent referent is exposed.",
-    ),
-    (
-        "Whenever a source you control deals noncombat damage to an opponent, "
-        "this creature gets +N/+N and gains double strike until end of turn.",
-        "The damaged object 'an opponent' is not expressible as a "
-        "DamageDealtEvent.filter (no opponent/player predicate); source/combat "
-        "fields exist but the opponent filter is the blocker.",
-    ),
-    (
-        "Whenever an opponent attacks with creatures, if two or more of those creatures "
-        "are attacking you and/or planeswalkers you control, draw a card.",
+        (
+            "Whenever an opponent attacks with creatures, if two or more of those creatures "
+            "are attacking you and/or planeswalkers you control, draw a card."
+        ),
         "Set-level 'two or more of those creatures' condition not expressible.",
     ),
     (
-        "Whenever an opponent casts a spell from anywhere other than their hand, "
-        "draw a card.",
-        "CastSpellEvent.from_zone is a single Zone, not a Filter/negation, so "
-        "'anywhere other than their hand' is not expressible.",
-    ),
-    (
-        "Whenever one or more Cats you control deal combat damage to a player, "
-        "destroy up to one target artifact or enchantment that player controls.",
-        "CombatDamageEvent lacks source/recipient distinction.",
-    ),
-    (
         "Whenever this creature attacks or blocks, choose one —",
-        "handled by the compiler's choose-opener built-in; "
-        "two TriggeredAbilities share one Choose",
+        (
+            "handled by the compiler's choose-opener built-in; "
+            "two TriggeredAbilities share one Choose"
+        ),
     ),
     (
-        "Whenever this creature attacks, prevent all combat damage that would be dealt "
-        "this turn to Dogs you control.",
-        "No turn-scoped PREVENT_EFFECT; B4 precedent is static source-scoped only.",
-    ),
-    (
-        "Whenever this creature becomes blocked by a creature, that creature's controller "
-        "loses N life and you gain N life.",
-        "BecomesBlockedEvent filter is over the blocker; blocker controller not referenceable.",
-    ),
-    (
-        "Whenever this creature becomes the target of a spell or ability an opponent controls, "
-        "you may draw two cards.",
-        "TargetingEvent has no source-controller field.",
-    ),
-    (
-        "Whenever this creature blocks a creature with flying, "
-        "this creature gets +N/+N until end of turn.",
-        "DeclareBlockersEvent filter is over the blocking creature only.",
-    ),
-    (
-        "Whenever this creature deals combat damage to a player or planeswalker, "
-        "look at that many cards from the top of your library.",
-        "CombatDamageEvent lacks amount and recipient fields.",
-    ),
-    (
-        "Whenever this creature deals combat damage to a player, you may draw a card.",
-        "CombatDamageEvent lacks recipient field.",
-    ),
-    (
-        "Whenever you activate a loyalty ability of a Chandra planeswalker, "
-        "this creature deals N damage to each opponent.",
-        "No loyalty-activation event.",
-    ),
-    (
-        "Whenever you cast your first instant or sorcery spell each turn, copy that spell.",
-        "The COPY effect needs the cast spell as an explicit selector, "
-        "which CastSpellEvent does not expose.",
-    ),
-    (
-        "Whenever you draw your second card each turn, create a N/N green Cat creature token.",
-        "No ordinal per-turn draw event.",
-    ),
-    (
-        "Whenever you draw your second card each turn, this creature gains flying until end of turn.",
-        "No ordinal per-turn draw event.",
+        (
+            "Whenever this creature blocks a creature with flying, "
+            "this creature gets +N/+N until end of turn."
+        ),
+        (
+            "blocked-creature (attacked-creature) filter gap — "
+            "DeclareBlockersEvent.filter/subject are both over the blocker; "
+            "'blocks a creature with flying' constrains the blocked creature. "
+            "Round-5 grammar item: DeclareBlockersEvent.blocked: Filter | None."
+        ),
     ),
 )

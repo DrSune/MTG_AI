@@ -1,5 +1,21 @@
 # PITFALLS — standing traps (each dated; newest first)
 
+## 2026-09-25
+- **[docs/queue — decision-table rows can be cross-bucket misassigned or
+  built-in-consumed.]** Decision tables (e.g. 05's 20-row batch) assign
+  sentences to buckets by phase-1 row allocation, not by where the sentence
+  actually lands. The Double Vision s2 row ("You may choose new targets for
+  the copy.") was assigned to B2b, but the concrete sentence buckets in
+  `phase1_buckets/B4.json` — the B2b template covers it only set-level (the
+  compiler dispatches by bucket; PC-3 = 0 confirms the mapping). Worse, one
+  assigned row ("...attacks or blocks, choose one —") was already consumed by
+  a `compiler.py` built-in (`_CHOOSE_ETB_RE`) and can never be templated.
+  Rule: before implementing a doc row, verify the normalized key exists in
+  the target bucket's `/tmp/opencode/phase1_buckets/*.json` UNCOVERED list;
+  keep built-in-consumed rows in UNCOVERED with a "handled by built-in"
+  reason. Per-bucket UNCOVERED counts are bookkeeping; set-level coverage
+  (PC-3 / the queue dump) is ground truth. (Round-4 batch, 2026-09-25.)
+
 ## 2026-09-24
 - **[git/golden — re-staging loses the pre-baseline audit state.]** When a
   batch re-baselines goldens via `tools/measure_grammar.py --refresh-goldens`

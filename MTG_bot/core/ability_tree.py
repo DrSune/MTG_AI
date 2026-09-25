@@ -68,6 +68,26 @@ Design decisions (each pinned by tests in test_ability_tree.py):
   the compiler previously had to lose to ``QUnbounded``), and
   ``DeclareBlockersEvent.subject`` (a ``Filter | None`` over the blocking
   creature, mirroring ``ZoneChangeEvent.subject``; omitted when None).
+- **grammar round 4 (conditional & filtered triggers + object anaphora,
+  KNOWLEDGE 2026-09-24/05)**: five additive, byte-stable items pinned by
+  test_ability_tree_r5.py — ``CardDrawnEvent.ordinal`` (the Nth card drawn
+  by the controller this turn; mirrors CastSpellEvent.ordinal — Jolrael,
+  Mystic Skyfish), the new ``LoyaltyActivatedEvent(controller, filter)``
+  ("Whenever you activate a loyalty ability of a Chandra planeswalker, ..."
+  — Keral Keep Disciples), ``CastSpellEvent.from_zone_not`` ("from anywhere
+  other than their hand" — Ghostly Pilferer; mutually exclusive with
+  ``from_zone``), three ``FAtom`` zone slots (``zone`` / ``from_zone`` /
+  ``to_zone``) with the condition predicates
+  ``ENTERED_THIS_TURN_FROM`` / ``CAST_THIS_TURN_FROM`` /
+  ``MOVED_TO_ZONE_THIS_TURN`` (Archfiend's Vessel, Barrin), and object
+  anaphora: ``Selector.referent`` (the ``_QPROP_STR_REFERENTS`` vocabulary
+  shared with QProp — "source" / "controller" / "target" / "event", where
+  "event" is the triggering event's subject object; convention C2:
+  CHOOSE + QConst(1) + neutral zone), plus the ``controller`` atom role
+  and the ``CONTROLLER_IS`` ``who`` slot widened to ``ControllerRef |
+  Selector`` (Gloom Sower, Feline Sovereign). Every new field defaults to
+  None and serializes by OMITTING the key, so all pre-round-4 trees keep
+  byte-identical canonical JSON.
 - **No orphan guarantee yet**: verbs are cited to pool cards in docstrings;
   orphans are MEASURED by PC-6 and pruned then — the vocabulary is the
   Phase-1 hypothesis, not the post-hoc truth.
@@ -304,6 +324,19 @@ class FAtomPred(Enum):
     TARGETS_SOURCE = (
         "TARGETS_SOURCE"  # "spells your opponents cast that target this creature"
         # — the spell targets the source object (Terror of the Peaks)
+    )
+    ENTERED_THIS_TURN_FROM = (
+        "ENTERED_THIS_TURN_FROM"  # "if it entered from your graveyard"
+        # (Archfiend's Vessel; grammar round 4 — required zone slot)
+    )
+    CAST_THIS_TURN_FROM = (
+        "CAST_THIS_TURN_FROM"  # "or you cast it from your graveyard"
+        # (Archfiend's Vessel; grammar round 4 — required zone + who)
+    )
+    MOVED_TO_ZONE_THIS_TURN = (
+        "MOVED_TO_ZONE_THIS_TURN"  # "a permanent was put into your hand
+        # from the battlefield this turn" (Barrin, Tolarian Archmage;
+        # grammar round 4 — required from_zone + to_zone + who)
     )
 
 
@@ -597,13 +630,29 @@ class Selector:
     (T3 round C): "target player or planeswalker" = PLAYER ∪ BATTLEFIELD,
     "library and graveyard" search = LIBRARY ∪ GRAVEYARD, "target spell
     or creature" = STACK ∪ BATTLEFIELD. Empty (the default) serializes
-    by omitting the key — byte-stable for every pre-T3 tree."""
+    by omitting the key — byte-stable for every pre-T3 tree.
+
+    ``referent`` (grammar round 4, object anaphora) binds the selector to
+    an object already in scope instead of searching: one of
+    ``_QPROP_STR_REFERENTS`` — "source", "controller", "target", "event" —
+    the closed vocabulary shared with ``QProp``; "event" = the triggering
+    event's subject object (cast → the cast spell; damage_dealt → the
+    damaged recipient; becomes_blocked → the blocker; declare_attackers
+    → the attacker; targeting → the new target). When set, the selector
+    denotes the bound object and ``filter`` (if non-universal) acts as a
+    type-check on it, not a fresh search. Convention C2: a referent
+    selector must be ``mode=CHOOSE`` + ``count=QConst(1)`` + the neutral
+    zone ``Zone(ANY, ANY)`` + ``zones=()`` (a bound object is not chosen,
+    and its zone is unknown at compile time); violations raise in
+    ``__post_init__``. None (the default) serializes by omitting the key
+    — byte-stable for every pre-round-4 tree."""
 
     count: Quantity
     mode: SelectorMode
     filter: Filter
     zone: Zone
     zones: tuple[Zone, ...] = ()
+    referent: str | None = None
 
     def __post_init__(self) -> None:
         if not _is_quantity(self.count):
@@ -632,6 +681,31 @@ class Selector:
             raise ValueError(
                 f"Selector: mode {self.mode.name} needs a concrete count, not QUnbounded"
             )
+        if self.referent is not None:
+            if self.referent not in _QPROP_STR_REFERENTS:
+                raise ValueError(
+                    f"Selector: referent must be one of _QPROP_STR_REFERENTS, got {self.referent!r}"
+                )
+            if self.mode is not SelectorMode.CHOOSE:
+                raise ValueError(
+                    f"Selector: referent convention C2 requires mode CHOOSE, got {self.mode.name}"
+                )
+            if not isinstance(self.count, QConst) or self.count.value != 1:
+                raise ValueError(
+                    f"Selector: referent convention C2 requires count QConst(1), got {self.count!r}"
+                )
+            if not (
+                self.zone.kind is ZoneKind.ANY
+                and self.zone.controller is ControllerRef.ANY
+                and self.zone.position is None
+            ):
+                raise ValueError(
+                    f"Selector: referent convention C2 requires the neutral zone, got {self.zone!r}"
+                )
+            if self.zones:
+                raise ValueError(
+                    f"Selector: referent convention C2 requires empty zones, got {self.zones!r}"
+                )
 
 
 # ---- Filters ----
@@ -699,10 +773,17 @@ class FAtom:
                       as a literal
       counter_kind — CounterKind (HAS_COUNTER)
       keyword      — Keyword (KEYWORD_HAS)
-      who          — ControllerRef (CONTROLLER_IS; LIFE_GAINED_THIS_TURN_GE,
-                      CARDS_DRAWN_THIS_TURN_GE, INSTANT_OR_SORCERY_CAST_THIS_TURN;
-                      you|opponent|target-player)
-      inner_filter — a nested Filter (CONTROLLER_COUNT_GE/LE)
+       who          — ControllerRef | Selector (CONTROLLER_IS;
+                       LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE,
+                       INSTANT_OR_SORCERY_CAST_THIS_TURN,
+                       CAST_THIS_TURN_FROM, MOVED_TO_ZONE_THIS_TURN;
+                       you|opponent|target-player, or a referent Selector —
+                       grammar round 4, object anaphora)
+       inner_filter — a nested Filter (CONTROLLER_COUNT_GE/LE)
+       zone         — Zone (ENTERED_THIS_TURN_FROM / CAST_THIS_TURN_FROM —
+                       "entered from / cast from this zone this turn")
+       from_zone,   — Zones (MOVED_TO_ZONE_THIS_TURN — "a permanent was
+       to_zone        put into your hand from the battlefield this turn")
     """
 
     pred: FAtomPred
@@ -712,8 +793,11 @@ class FAtom:
     count: Quantity | None = None
     counter_kind: CounterKind | None = None
     keyword: Keyword | None = None
-    who: ControllerRef | None = None
+    who: ControllerRef | Selector | None = None
     inner_filter: Filter | None = None
+    zone: Zone | None = None
+    from_zone: Zone | None = None
+    to_zone: Zone | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.pred, FAtomPred):
@@ -748,13 +832,25 @@ class FAtom:
             raise ValueError(
                 f"FAtom: keyword must be a Keyword, got {type(self.keyword).__name__}"
             )
-        if self.who is not None and not isinstance(self.who, ControllerRef):
+        if self.who is not None and not isinstance(self.who, (ControllerRef, Selector)):
             raise ValueError(
                 f"FAtom: who must be a ControllerRef, got {type(self.who).__name__}"
             )
         if self.inner_filter is not None and not _is_filter(self.inner_filter):
             raise ValueError(
                 f"FAtom: inner_filter must be a Filter, got {type(self.inner_filter).__name__}"
+            )
+        if self.zone is not None and not isinstance(self.zone, Zone):
+            raise ValueError(
+                f"FAtom: zone must be a Zone, got {type(self.zone).__name__}"
+            )
+        if self.from_zone is not None and not isinstance(self.from_zone, Zone):
+            raise ValueError(
+                f"FAtom: from_zone must be a Zone, got {type(self.from_zone).__name__}"
+            )
+        if self.to_zone is not None and not isinstance(self.to_zone, Zone):
+            raise ValueError(
+                f"FAtom: to_zone must be a Zone, got {type(self.to_zone).__name__}"
             )
 
         required, allowed = _FATOM_RULES[self.pred]
@@ -767,6 +863,9 @@ class FAtom:
             "keyword",
             "who",
             "inner_filter",
+            "zone",
+            "from_zone",
+            "to_zone",
         ):
             value = getattr(self, slot)
             unset = value is None or (slot == "colors" and value == ())
@@ -784,6 +883,9 @@ class FAtom:
                     "keyword",
                     "who",
                     "inner_filter",
+                    "zone",
+                    "from_zone",
+                    "to_zone",
                 )
             ):
                 raise ValueError(f"FAtom: {self.pred.name} requires slot {slot!r}")
@@ -801,13 +903,19 @@ class FAtom:
             and self.count.value < 1
         ):
             raise ValueError("FAtom: HAS_COUNTER requires count >= 1")
-        if self.pred is FAtomPred.CONTROLLER_IS and self.who not in (
-            ControllerRef.YOU,
-            ControllerRef.OPPONENT,
-            ControllerRef.TARGET_PLAYER,
+        if (
+            self.pred is FAtomPred.CONTROLLER_IS
+            and self.who
+            not in (
+                ControllerRef.YOU,
+                ControllerRef.OPPONENT,
+                ControllerRef.TARGET_PLAYER,
+            )
+            and not (isinstance(self.who, Selector) and self.who.referent is not None)
         ):
             raise ValueError(
-                "FAtom: CONTROLLER_IS who must be you, opponent, or the target player"
+                "FAtom: CONTROLLER_IS who must be you, opponent, the target "
+                "player, or a referent Selector (grammar round 4)"
             )
 
 
@@ -891,15 +999,18 @@ class ZoneChangeEvent:
 class CastSpellEvent:
     """A spell was cast (filter over the spell: type/subtype/name).
     T3 round F optional scoping: ``controller`` = whose cast (None = any
-    — "an opponent casts"), ``from_zone`` = the source zone (None = any —
-    "from anywhere other than their hand"), ``ordinal`` = the Nth cast by
-    that controller this turn (None = every cast; 2 = "your second spell
-    each turn")."""
+    — "an opponent casts"), ``from_zone`` = the source zone (None = any),
+    ``ordinal`` = the Nth cast by that controller this turn (None = every
+    cast; 2 = "your second spell each turn"). Grammar round 4 adds
+    ``from_zone_not`` = exclusion: the cast came from anywhere OTHER than
+    this zone ("from anywhere other than their hand" — Ghostly Pilferer;
+    mutually exclusive with ``from_zone``)."""
 
     filter: Filter
     controller: ControllerRef | None = None
     from_zone: Zone | None = None
     ordinal: int | None = None
+    from_zone_not: Zone | None = None
 
     def __post_init__(self) -> None:
         if not _is_filter(self.filter):
@@ -924,6 +1035,14 @@ class CastSpellEvent:
         ):
             raise ValueError(
                 f"CastSpellEvent: ordinal must be an int >= 1, got {self.ordinal!r}"
+            )
+        if self.from_zone_not is not None and not isinstance(self.from_zone_not, Zone):
+            raise ValueError(
+                f"CastSpellEvent: from_zone_not must be a Zone, got {type(self.from_zone_not).__name__}"
+            )
+        if self.from_zone is not None and self.from_zone_not is not None:
+            raise ValueError(
+                "CastSpellEvent: from_zone and from_zone_not are mutually exclusive"
             )
 
 
@@ -1127,14 +1246,27 @@ class TargetingEvent:
 class CardDrawnEvent:
     """A card was drawn by `controller` (T3 round F: "whenever you draw a
     card", "whenever an opponent draws a card"). The drawn card is the
-    event subject — a TriggeredAbility `condition` Filter narrows it."""
+    event subject — a TriggeredAbility `condition` Filter narrows it.
+    ``ordinal`` (grammar round 4) = the Nth card drawn by that controller
+    this turn (None = every draw) — "whenever you draw your second card
+    each turn" (Jolrael, Mwonvuli Recluse; Mystic Skyfish). Mirrors
+    CastSpellEvent.ordinal."""
 
     controller: ControllerRef
+    ordinal: int | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.controller, ControllerRef):
             raise ValueError(
                 f"CardDrawnEvent: controller must be a ControllerRef, got {type(self.controller).__name__}"
+            )
+        if self.ordinal is not None and (
+            isinstance(self.ordinal, bool)
+            or not isinstance(self.ordinal, int)
+            or self.ordinal < 1
+        ):
+            raise ValueError(
+                f"CardDrawnEvent: ordinal must be an int >= 1, got {self.ordinal!r}"
             )
 
 
@@ -1168,6 +1300,31 @@ class SacrificeEvent:
             )
 
 
+@dataclass(frozen=True)
+class LoyaltyActivatedEvent:
+    """`controller` activated a loyalty ability on a planeswalker (grammar
+    round 4: Keral Keep Disciples' "whenever you activate a loyalty ability
+    of a Chandra planeswalker"). ``filter`` selects the planeswalker whose
+    loyalty ability was activated (e.g. subtype Chandra + type Planeswalker);
+    it is required — a bare "any loyalty ability" trigger is never expressible.
+    Convention C5: loyalty triggers compile as the EFFECT of the
+    ActivatedAbility whose cost is the loyalty part, not as a standalone
+    TriggeredAbility, so this event tags that activation."""
+
+    controller: ControllerRef
+    filter: Filter
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.controller, ControllerRef):
+            raise ValueError(  # noqa: TRY004 — module convention, tests pin ValueError
+                f"LoyaltyActivatedEvent: controller must be a ControllerRef, got {type(self.controller).__name__}"
+            )
+        if not _is_filter(self.filter):
+            raise ValueError(
+                f"LoyaltyActivatedEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+
+
 EventSpec = (
     ZoneChangeEvent
     | CastSpellEvent
@@ -1185,6 +1342,7 @@ EventSpec = (
     | CardDrawnEvent
     | LifeGainedEvent
     | SacrificeEvent
+    | LoyaltyActivatedEvent
 )
 
 
@@ -2203,6 +2361,7 @@ _EV_CLASSES = (
     CardDrawnEvent,
     LifeGainedEvent,
     SacrificeEvent,
+    LoyaltyActivatedEvent,
 )
 _D_CLASSES = (
     DurationEot,
@@ -2324,6 +2483,28 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     # TARGETS_SOURCE: "spells your opponents cast that target this creature"
     # — the spell targets the source object. No slots (precedent: IS_SOURCE).
     FAtomPred.TARGETS_SOURCE: (frozenset(), frozenset()),
+    # ENTERED_THIS_TURN_FROM: "if it entered from your graveyard this turn"
+    # (Archfiend's Vessel). The zone slot names the source zone of the
+    # entry. Precedent: the zone slots on CastSpellEvent.from_zone.
+    FAtomPred.ENTERED_THIS_TURN_FROM: (
+        frozenset({"zone"}),
+        frozenset({"zone"}),
+    ),
+    # CAST_THIS_TURN_FROM: "or you cast it from your graveyard this turn"
+    # (Archfiend's Vessel). zone = the cast's source zone; who = the
+    # controller who cast it (a referent Selector is legal — round 4).
+    FAtomPred.CAST_THIS_TURN_FROM: (
+        frozenset({"zone", "who"}),
+        frozenset({"zone", "who"}),
+    ),
+    # MOVED_TO_ZONE_THIS_TURN: "if a permanent was put into your hand from
+    # the battlefield this turn" (Barrin, Tolarian Archmage). from_zone /
+    # to_zone name the two zones; who = the controller the move was
+    # relative to (a referent Selector is legal — round 4).
+    FAtomPred.MOVED_TO_ZONE_THIS_TURN: (
+        frozenset({"from_zone", "to_zone", "who"}),
+        frozenset({"from_zone", "to_zone", "who"}),
+    ),
 }
 
 # Atom role -> allowed value types. "types" is a tuple of card-type strings
@@ -2334,7 +2515,11 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     "source": (Selector,),
     "cards": (Selector,),
     "equipment": (Selector,),
-    "controller": (ControllerRef,),
+    # "controller" takes a referent Selector too (grammar round 4,
+    # object anaphora): Gloom Sower's "its controller loses life" =
+    # controller=Selector(referent="event"); the executor derives the
+    # controller of the bound object.
+    "controller": (ControllerRef, Selector),
     "amount": _Q_CLASSES,
     "count": _Q_CLASSES,
     "power": (*_Q_CLASSES, PtDelta),
@@ -2516,6 +2701,7 @@ _DATACLASSES: tuple[type, ...] = (
     CardDrawnEvent,
     LifeGainedEvent,
     SacrificeEvent,
+    LoyaltyActivatedEvent,
     LiteralName,
     PtDelta,
     TokenSpec,
@@ -2584,6 +2770,7 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("filter", "filter"),
         ("zone", "zone"),
         ("zones", "tup:zone"),
+        ("referent", "opt:referent_str"),
     ),
     "FAnd": (("children", "tup:filter"),),
     "FOr": (("children", "tup:filter"),),
@@ -2596,8 +2783,13 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("count", "opt:quantity"),
         ("counter_kind", "opt:enum:CounterKind"),
         ("keyword", "opt:enum:Keyword"),
-        ("who", "opt:enum:ControllerRef"),
+        # who widens to a referent Selector (grammar round 4, object
+        # anaphora): ControllerRef OR a tagged Selector dict.
+        ("who", "opt:controller_ref_or_selector"),
         ("inner_filter", "opt:filter"),
+        ("zone", "opt:zone"),
+        ("from_zone", "opt:zone"),
+        ("to_zone", "opt:zone"),
     ),
     "DurationEot": (),
     "DurationPermanent": (),
@@ -2613,6 +2805,9 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("controller", "opt:enum:ControllerRef"),
         ("from_zone", "opt:zone"),
         ("ordinal", "opt:int"),
+        # from_zone_not (grammar round 4): "from anywhere other than the
+        # hand" — mutually exclusive with from_zone, omitted when None.
+        ("from_zone_not", "opt:zone"),
     ),
     "DeclareAttackersEvent": (("filter", "filter"),),
     "DeclareBlockersEvent": (("filter", "filter"), ("subject", "opt:filter")),
@@ -2634,9 +2829,16 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("combat", "opt:bool"),
     ),
     "TargetingEvent": (("filter", "filter"),),
-    "CardDrawnEvent": (("controller", "enum:ControllerRef"),),
+    "CardDrawnEvent": (
+        ("controller", "enum:ControllerRef"),
+        ("ordinal", "opt:int"),
+    ),
     "LifeGainedEvent": (("controller", "enum:ControllerRef"),),
     "SacrificeEvent": (("controller", "enum:ControllerRef"),),
+    "LoyaltyActivatedEvent": (
+        ("controller", "enum:ControllerRef"),
+        ("filter", "filter"),
+    ),
     "LiteralName": (("name", "str"),),
     "PtDelta": (("direction", "enum:PtDirection"), ("magnitude", "quantity")),
     "TokenSpec": (
@@ -2773,6 +2975,7 @@ _EVENT_TAGS = frozenset(
         "CardDrawnEvent",
         "LifeGainedEvent",
         "SacrificeEvent",
+        "LoyaltyActivatedEvent",
     }
 )
 _COST_DELTA_TAGS = frozenset(
@@ -2856,11 +3059,21 @@ _UNION_CONVS: dict[str, frozenset[str]] = {
 # present. This table is the only place a spec field may be absent from
 # the tagged dict.
 _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
-    "Selector": frozenset({"zones"}),
+    # referent (grammar round 4): omit when None — byte-stable.
+    "Selector": frozenset({"zones", "referent"}),
     "Zone": frozenset({"position"}),
     "ZoneChangeEvent": frozenset({"subject"}),
     "DeclareBlockersEvent": frozenset({"subject"}),
-    "CastSpellEvent": frozenset({"controller", "from_zone", "ordinal"}),
+    # from_zone_not (grammar round 4): omit when None.
+    "CastSpellEvent": frozenset(
+        {"controller", "from_zone", "ordinal", "from_zone_not"}
+    ),
+    # ordinal (grammar round 4): omit when None.
+    "CardDrawnEvent": frozenset({"ordinal"}),
+    # zone/from_zone/to_zone (grammar round 4, R4-4): omit when None. Every
+    # pre-round-4 FAtom serializes byte-identical because these three keys
+    # are absent (the pre-existing null/[] slots still serialize as before).
+    "FAtom": frozenset({"zone", "from_zone", "to_zone"}),
     "DamageDealtEvent": frozenset({"source", "combat"}),
     "CostModifier": frozenset({"condition", "extra_deltas"}),
     "SpellAbility": frozenset({"effect", "additional_costs"}),
@@ -2938,6 +3151,23 @@ def _decode(conv: str, d: Any) -> Any:
                 )
             return d
         return _decode_union(d, frozenset({"Selector"}), "qprop referent")
+    if conv == "referent_str":
+        # Selector.referent (grammar round 4, object anaphora): a bare
+        # string from the _QPROP_STR_REFERENTS vocabulary — never a tagged
+        # dict (a bound object's name is data, not a node).
+        if not isinstance(d, str):
+            raise ValueError(f"Selector referent must be a str, got {type(d).__name__}")
+        if d not in _QPROP_STR_REFERENTS:
+            raise ValueError(
+                f"Selector referent string must be one of {_QPROP_STR_REFERENTS}, got {d!r}"
+            )
+        return d
+    if conv == "controller_ref_or_selector":
+        # FAtom.who (grammar round 4, object anaphora): a ControllerRef
+        # tagged dict, OR a Selector tagged dict (the referent selector).
+        if isinstance(d, dict) and d.get("tag") == "Selector":
+            return _decode_union(d, frozenset({"Selector"}), "FAtom who selector")
+        return _decode("enum:ControllerRef", d)
     if conv == "counter_placement":
         # an EtBState counter entry: [CounterKind, Quantity]
         if not isinstance(d, list) or len(d) != 2:

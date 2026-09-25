@@ -37,6 +37,7 @@ from MTG_bot.core.ability_tree import (
     CostSacrifice,
     CostTap,
     CounterKind,
+    DeclareAttackersEvent,
     DurationEot,
     EtBState,
     FAnd,
@@ -60,6 +61,7 @@ from MTG_bot.core.ability_tree import (
     Seq,
     StaticAbility,
     TokenSpec,
+    TriggeredAbility,
     Verb,
     ZoneKind,
     ZonePosition,
@@ -198,8 +200,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     ),
     (
         "[−1]: Whenever a creature attacks this turn, put a +1/+1 counter on it.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5c-loyalty-basri-attack-counter",
     ),
     (
         "[−2]: Create a 3/3 green Beast creature token.",
@@ -474,7 +476,7 @@ _EXPECTED_STATIC = ("B5c-zombies-pt",)
 _EXPECTED_ETB = ("B5c-etb-soul-counter",)
 
 _EXPECTED_ACTIVATED = (
-    # 26 loyalty
+    # 27 loyalty
     "B5c-loyalty-chandra-dmg-any",
     "B5c-loyalty-chandra-dmg-opps",
     "B5c-loyalty-draw-discard",
@@ -501,6 +503,7 @@ _EXPECTED_ACTIVATED = (
     "B5c-loyalty-discard-exile-top",
     "B5c-loyalty-top-owner-library",
     "B5c-loyalty-may-cast-graveyard",
+    "B5c-loyalty-basri-attack-counter",
     # 17 cost
     "B5c-cost-shrine-dmg",
     "B5c-cost-sacrifice-counter",
@@ -561,6 +564,7 @@ EXPECTED_LOYALTY_DELTA: dict[str, int] = {
     "B5c-loyalty-discard-exile-top": 1,
     "B5c-loyalty-top-owner-library": -3,
     "B5c-loyalty-may-cast-graveyard": -2,
+    "B5c-loyalty-basri-attack-counter": -1,
 }
 
 # Expected ordered cost-part types per cost template.
@@ -796,8 +800,8 @@ def _find_atom(node: Any, pred: FAtomPred) -> Any:
 class TestB5cInventory(unittest.TestCase):
     """Verify the B5c template collection is well-formed."""
 
-    def test_73_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 73)
+    def test_74_templates(self) -> None:
+        self.assertEqual(len(TEMPLATES), 74)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -812,10 +816,10 @@ class TestB5cInventory(unittest.TestCase):
             self.assertEqual(t.priority, 100, f"{t.tid} has priority {t.priority}")
 
     def test_registry_accepts_all(self) -> None:
-        self.assertEqual(len(_REG), 73)
+        self.assertEqual(len(_REG), 74)
 
-    def test_uncovered_has_17_rows(self) -> None:
-        self.assertEqual(len(UNCOVERED), 17)
+    def test_uncovered_has_16_rows(self) -> None:
+        self.assertEqual(len(UNCOVERED), 16)
 
 
 # ---------------------------------------------------------------------------
@@ -837,17 +841,17 @@ class TestB5cShapeTable(unittest.TestCase):
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
         rr = sum(1 for s in SHAPES if s[1] == "RR")
-        self.assertEqual(covered, 74, f"COVERED count {covered} != 74")
-        self.assertEqual(uncov, 17, f"UNCOV count {uncov} != 17")
+        self.assertEqual(covered, 75, f"COVERED count {covered} != 75")
+        self.assertEqual(uncov, 16, f"UNCOV count {uncov} != 16")
         self.assertEqual(rr, 0, f"B5c has no rule-reminder shapes, got {rr}")
 
-    def test_covered_tids_valid_and_unique_73(self) -> None:
+    def test_covered_tids_valid_and_unique_74(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
             len(unique_tids),
-            73,
-            f"expected 73 unique tids, got {len(unique_tids)}",
+            74,
+            f"expected 74 unique tids, got {len(unique_tids)}",
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5c-"), f"bad tid: {tid}")
@@ -931,7 +935,7 @@ class TestB5cOutcomeKind(unittest.TestCase):
     def test_kind_table_is_complete(self) -> None:
         covered_tids = {t for _s, c, t in SHAPES if c == "COVERED"}
         self.assertEqual(set(EXPECTED_KIND_BY_TID), covered_tids)
-        self.assertEqual(len(EXPECTED_KIND_BY_TID), 73)
+        self.assertEqual(len(EXPECTED_KIND_BY_TID), 74)
 
     def test_all_kinds_match(self) -> None:
         for tid, expected in EXPECTED_KIND_BY_TID.items():
@@ -947,7 +951,7 @@ class TestB5cOutcomeKind(unittest.TestCase):
         self.assertEqual(kinds.count("effect"), 23)
         self.assertEqual(kinds.count("keyword"), 5)
         self.assertEqual(kinds.count("static"), 1)
-        self.assertEqual(kinds.count("activated"), 43)
+        self.assertEqual(kinds.count("activated"), 44)
         self.assertEqual(kinds.count("ability:EtBState"), 1)
 
 
@@ -1269,6 +1273,42 @@ class TestB5cIrStructure(unittest.TestCase):
         }
         self.assertEqual(names, {"Instant", "Sorcery"})
 
+    # -- Round 5 (grammar round 4 shapes) ------------------------------
+
+    def test_loyalty_basri_attack_counter(self) -> None:
+        """Basri [−1]: GRANT_ABILITY(DurationEot) of a TriggeredAbility."""
+        ability = _activated_ability(_match_outcome("B5c-loyalty-basri-attack-counter"))
+        delta = _as_cost_loyalty(ability.cost.parts[0]).delta
+        self.assertEqual(delta, -1)
+        grant = _as_atom(ability.effect)
+        self.assertIs(grant.verb, Verb.GRANT_ABILITY)
+        target = _pairs(grant)["target"]
+        self.assertIs(target.zone.kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(target.zone.controller, ControllerRef.YOU)
+        self.assertIs(target.filter.pred, FAtomPred.IS_SOURCE)
+        self.assertIsInstance(grant.args.get("duration"), DurationEot)
+        triggered = grant.args.get("ability")
+        if not isinstance(triggered, TriggeredAbility):
+            raise TypeError(f"expected TriggeredAbility, got {type(triggered)}")
+        event = triggered.event
+        if not isinstance(event, DeclareAttackersEvent):
+            raise TypeError(f"expected DeclareAttackersEvent, got {type(event)}")
+        if not isinstance(event.filter, FAtom):
+            raise TypeError(f"expected FAtom filter, got {type(event.filter)}")
+        self.assertIs(event.filter.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(event.filter.string_value, "Creature")
+        self.assertIsNone(triggered.condition)
+        put = _as_atom(triggered.effect)
+        self.assertIs(put.verb, Verb.PUT_COUNTER)
+        self.assertIs(put.args.get("counter_kind"), CounterKind.PLUS_1_PLUS_1)
+        count = _pairs(put)["count"]
+        self.assertIsInstance(count, QConst)
+        self.assertEqual(count.value, 1)
+        put_target = _pairs(put)["target"]
+        self.assertIsInstance(put_target, Selector)
+        self.assertEqual(put_target.referent, "event")
+        self.assertIs(put_target.mode, SelectorMode.CHOOSE)
+
     # -- cost wrappers -------------------------------------------------
 
     def test_all_cost_part_types(self) -> None:
@@ -1427,8 +1467,8 @@ class TestB5cCanonicalStability(unittest.TestCase):
             seen.add(tid)
         self.assertEqual(
             len(seen),
-            73,
-            f"only {len(seen)} unique tids tested, expected 73",
+            74,
+            f"only {len(seen)} unique tids tested, expected 74",
         )
 
 
@@ -1484,7 +1524,7 @@ class TestB5cJsonCrossCheck(unittest.TestCase):
             for k, pairs in self.json_data.items()
             if any(_REG.match(sent) for _c, sent in pairs)
         }
-        self.assertEqual(len(covered), 73)
+        self.assertEqual(len(covered), 74)
 
 
 if __name__ == "__main__":

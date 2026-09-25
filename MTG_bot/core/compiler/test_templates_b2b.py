@@ -11,8 +11,8 @@ that drive the registry end-to-end with concrete oracle sentences and assert
 the exact IR each template produces.
 
 Pinned bucket facts (measured against /tmp/opencode/phase1_buckets/B2b.json):
-62 shapes, 76 occurrences, 44 covered shapes, 58 matched occurrences, and the
-42 templates in ``templates_b2b.TEMPLATES`` (with 18 declared UNCOVERED shapes).
+62 shapes, 76 occurrences, 58 covered shapes, 72 matched occurrences, and the
+57 templates in ``templates_b2b.TEMPLATES`` (with 4 declared UNCOVERED shapes).
 The bucket priority is 50 (NOT the 100 used by B1/B3/B4).
 """
 
@@ -24,8 +24,10 @@ from pathlib import Path
 
 from MTG_bot.core.ability_tree import (
     Atom,
+    BecomesBlockedEvent,
     CardDrawnEvent,
     CastSpellEvent,
+    CombatDamageEvent,
     ControllerRef,
     Cost,
     CostManaGeneric,
@@ -45,6 +47,7 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     KeywordAbility,
     LifeGainedEvent,
+    LoyaltyActivatedEvent,
     OptionalEffect,
     PtDelta,
     PtDirection,
@@ -59,6 +62,7 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     Seq,
     TapStateEvent,
+    TargetingEvent,
     TokenSpec,
     TriggeredAbility,
     Verb,
@@ -73,6 +77,7 @@ from MTG_bot.core.compiler import templates_b2b
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     Match,
+    RuleReminderOutcome,
     TemplateRegistry,
 )
 
@@ -255,6 +260,63 @@ EXPECTED: dict[str, tuple[str, str]] = {
     "Whenever you gain life, target opponent loses that much life.": (
         "B2b-gain-life-target-opponent",
         "Gain Life Target Opponent",
+    ),
+    # --- Round 5 (grammar round 4/5 shapes) ---
+    "Whenever this creature becomes the target of a spell or ability an opponent controls, you may draw two cards.": (
+        "B2b-warden-of-the-woods",
+        "Warden of the Woods",
+    ),
+    "Whenever this creature deals combat damage to a player, you may draw a card.": (
+        "B2b-jeskai-elder",
+        "Jeskai Elder",
+    ),
+    "Whenever a source you control deals noncombat damage to an opponent, this creature deals that much damage to target creature or planeswalker that player controls.": (
+        "B2b-chandras-incinerator",
+        "Chandra's Incinerator",
+    ),
+    "Whenever a source you control deals noncombat damage to an opponent, this creature gets +N/+N and gains double strike until end of turn.": (
+        "B2b-chandras-pyreling",
+        "Chandra's Pyreling",
+    ),
+    "Whenever this creature attacks, prevent all combat damage that would be dealt this turn to Dogs you control.": (
+        "B2b-pack-leader",
+        "Pack Leader",
+    ),
+    "Whenever this creature becomes blocked by a creature, that creature's controller loses N life and you gain N life.": (
+        "B2b-gloom-sower",
+        "Gloom Sower",
+    ),
+    "Whenever a creature you control with deathtouch deals damage to a planeswalker, destroy that planeswalker.": (
+        "B2b-hooded-blightfang-pw",
+        "Hooded Blightfang Planeswalker",
+    ),
+    "Whenever one or more Cats you control deal combat damage to a player, destroy up to one target artifact or enchantment that player controls.": (
+        "B2b-feline-sovereign",
+        "Feline Sovereign",
+    ),
+    "Whenever an opponent casts a spell from anywhere other than their hand, draw a card.": (
+        "B2b-ghostly-pilferer-cast",
+        "Ghostly Pilferer Cast",
+    ),
+    "Whenever you cast your first instant or sorcery spell each turn, copy that spell.": (
+        "B2b-double-vision-copy",
+        "Double Vision Copy",
+    ),
+    "Whenever this creature deals combat damage to a player or planeswalker, look at that many cards from the top of your library.": (
+        "B2b-garruks-harbinger",
+        "Garruk's Harbinger",
+    ),
+    "Whenever you draw your second card each turn, create a N/N green Cat creature token.": (
+        "B2b-jolrael-cat-token",
+        "Jolrael Cat Token",
+    ),
+    "Whenever you draw your second card each turn, this creature gains flying until end of turn.": (
+        "B2b-mystic-skyfish",
+        "Mystic Skyfish",
+    ),
+    "Whenever you activate a loyalty ability of a Chandra planeswalker, this creature deals N damage to each opponent.": (
+        "B2b-keral-keep-disciples",
+        "Keral Keep Disciples",
     ),
 }
 
@@ -446,8 +508,8 @@ class TestB2bCoverage(unittest.TestCase):
         self.assertEqual(total, 76)
 
     def test_public_api_counts(self) -> None:
-        self.assertEqual(len(templates_b2b.TEMPLATES), 42)
-        self.assertEqual(len(templates_b2b.UNCOVERED), 18)
+        self.assertEqual(len(templates_b2b.TEMPLATES), 57)
+        self.assertEqual(len(templates_b2b.UNCOVERED), 4)
 
     def test_bucket_labels_b2b(self) -> None:
         for template in templates_b2b.TEMPLATES:
@@ -473,8 +535,8 @@ class TestB2bCoverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 44)
-        self.assertEqual(matched_occurrences, 58)
+        self.assertEqual(covered_shapes, 58)
+        self.assertEqual(matched_occurrences, 72)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -496,7 +558,7 @@ class TestB2bCoverage(unittest.TestCase):
             if any(self.reg.match(sentence) for _card, sentence in entries):
                 covered.add(shape_key)
         self.assertEqual(set(EXPECTED), covered)
-        self.assertEqual(len(EXPECTED), 44)
+        self.assertEqual(len(EXPECTED), 58)
 
     def test_expected_table_matches_registry(self) -> None:
         for shape_key, (tid, name) in EXPECTED.items():
@@ -1033,6 +1095,224 @@ class TestB2bTriggerEvents(unittest.TestCase):
         assert isinstance(event, LifeGainedEvent)
         self.assertIs(event.controller, ControllerRef.YOU)
         self.assertIsNone(ability.condition)
+
+    # --- Round 5 (grammar round 4/5 shapes) ---
+
+    def test_warden_of_the_woods_is_targeting_event(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever this creature becomes the target of a spell or "
+                "ability an opponent controls, you may draw two cards.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, TargetingEvent)
+        assert isinstance(event.filter, FAtom)
+        self.assertIs(event.filter.pred, FAtomPred.IS_SOURCE)
+        self.assertIsNone(ability.condition)
+
+    def test_jeskai_elder_is_combat_damage_event(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever this creature deals combat damage to a player, "
+                "you may draw a card.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, CombatDamageEvent)
+        assert isinstance(event.filter, FAtom)
+        self.assertIs(event.filter.pred, FAtomPred.IS_SOURCE)
+        self.assertIsNone(ability.condition)
+
+    def test_incinerator_is_noncombat_damage_event(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever a source you control deals noncombat damage to an "
+                "opponent, this creature deals that much damage to target "
+                "creature or planeswalker that player controls.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, DamageDealtEvent)
+        self.assertEqual(event.amount, QUnbounded())
+        self.assertIs(event.combat, False)
+        assert isinstance(event.source, FAtom)
+        self.assertIs(event.source.pred, FAtomPred.CONTROLLER_IS)
+        self.assertIs(event.source.who, ControllerRef.YOU)
+        self.assertIsNone(ability.condition)
+
+    def test_pyreling_is_noncombat_damage_event(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever a source you control deals noncombat damage to an "
+                "opponent, this creature gets +1/+0 and gains double "
+                "strike until end of turn.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, DamageDealtEvent)
+        self.assertIs(event.combat, False)
+        assert isinstance(event.source, FAtom)
+        self.assertIs(event.source.who, ControllerRef.YOU)
+
+    def test_pack_leader_is_declare_attackers(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever this creature attacks, prevent all combat damage "
+                "that would be dealt this turn to Dogs you control.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, DeclareAttackersEvent)
+        assert isinstance(event.filter, FAtom)
+        self.assertIs(event.filter.pred, FAtomPred.IS_SOURCE)
+        self.assertIsNone(ability.condition)
+
+    def test_gloom_sower_is_becomes_blocked(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever this creature becomes blocked by a creature, that "
+                "creature's controller loses 2 life and you gain 2 life.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, BecomesBlockedEvent)
+        assert isinstance(event.filter, FAtom)
+        self.assertIs(event.filter.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(event.filter.string_value, "Creature")
+
+    def test_hooded_blightfang_pw_is_damage_event(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever a creature you control with deathtouch deals "
+                "damage to a planeswalker, destroy that planeswalker.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, DamageDealtEvent)
+        self.assertEqual(event.amount, QUnbounded())
+        assert isinstance(event.source, FAnd)
+        self._assert_has_type_eq_creature(event.source)
+        self._assert_has_controller_you(event.source)
+        self._assert_has_keyword_deathtouch(event.source)
+        recipient = event.filter
+        assert isinstance(recipient, FAtom)
+        self.assertIs(recipient.pred, FAtomPred.SUPERTYPE_EQ)
+        self.assertEqual(recipient.string_value, "Planeswalker")
+
+    def test_feline_sovereign_is_combat_damage_cats(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever one or more Cats you control deal combat damage "
+                "to a player, destroy up to one target artifact or "
+                "enchantment that player controls.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, CombatDamageEvent)
+        assert isinstance(event.filter, FAnd)
+        self._assert_has_type_eq_creature(event.filter)
+        self._assert_has_controller_you(event.filter)
+        self._assert_has_subtype_cat(event.filter)
+
+    def test_ghostly_pilferer_cast_is_from_zone_not(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever an opponent casts a spell from anywhere other "
+                "than their hand, draw a card.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, CastSpellEvent)
+        self.assertIs(event.controller, ControllerRef.OPPONENT)
+        self.assertIsNone(event.from_zone)
+        self.assertEqual(
+            event.from_zone_not, Zone(ZoneKind.HAND, ControllerRef.OPPONENT)
+        )
+
+    def test_double_vision_copy_is_ordinal_cast(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever you cast your first instant or sorcery spell "
+                "each turn, copy that spell.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, CastSpellEvent)
+        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertEqual(event.ordinal, 1)
+        assert isinstance(event.filter, FOr)
+        self.assertEqual(len(event.filter.children), 2)
+
+    def test_garruks_harbinger_is_combat_damage_event(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever this creature deals combat damage to a player or "
+                "planeswalker, look at that many cards from the top of your "
+                "library.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, DamageDealtEvent)
+        self.assertEqual(event.amount, QUnbounded())
+        self.assertIs(event.combat, True)
+        assert isinstance(event.source, FAtom)
+        self.assertIs(event.source.pred, FAtomPred.IS_SOURCE)
+
+    def test_jolrael_is_second_draw_event(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever you draw your second card each turn, create a "
+                "2/2 green Cat creature token.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, CardDrawnEvent)
+        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertEqual(event.ordinal, 2)
+
+    def test_mystic_skyfish_is_second_draw_event(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever you draw your second card each turn, this "
+                "creature gains flying until end of turn.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, CardDrawnEvent)
+        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertEqual(event.ordinal, 2)
+
+    def test_keral_keep_is_loyalty_activation_event(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever you activate a loyalty ability of a Chandra "
+                "planeswalker, this creature deals 1 damage to each "
+                "opponent.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, LoyaltyActivatedEvent)
+        self.assertIs(event.controller, ControllerRef.YOU)
+        assert isinstance(event.filter, FAnd)
+        subtype = _find_atom(event.filter, FAtomPred.SUBTYPE_EQ)
+        self.assertEqual(subtype.string_value, "Chandra")
+        type_atom = _find_atom(event.filter, FAtomPred.TYPE_EQ)
+        self.assertEqual(type_atom.string_value, "Planeswalker")
 
     # --- small filter assertion helpers ---
 
@@ -1866,6 +2146,282 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertEqual(amount.referent, "event")
         self.assertIs(amount.field, QPropField.AMOUNT)
         self.assertIs(amount.agg, QAgg.FIRST)
+
+    # --- Round 5 (grammar round 4/5 shapes) ---
+
+    def _referent_selector(self, atom: Atom, role: str) -> Selector:
+        selector = _selector(atom, role)
+        self.assertEqual(selector.referent, "event")
+        self.assertEqual(selector.count, QConst(1))
+        self.assertIs(selector.mode, SelectorMode.CHOOSE)
+        self.assertEqual(selector.zone, Zone(ZoneKind.ANY, ControllerRef.ANY))
+        assert isinstance(selector.filter, FAnd)
+        self.assertEqual(len(selector.filter.children), 0)
+        return selector
+
+    def test_warden_of_the_woods_optional_draw_two(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever this creature becomes the target of a spell or "
+                "ability an opponent controls, you may draw two cards.",
+            )
+        )
+        option = _optional(ability)
+        draw = _atom_inner(option)
+        self.assertIs(draw.verb, Verb.DRAW)
+        self.assertIs(draw.args.get("controller"), ControllerRef.YOU)
+        amount = _qconst(draw, "amount")
+        self.assertEqual(amount.value, 2)
+
+    def test_jeskai_elder_optional_draw_one(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever this creature deals combat damage to a player, "
+                "you may draw a card.",
+            )
+        )
+        option = _optional(ability)
+        draw = _atom_inner(option)
+        self.assertIs(draw.verb, Verb.DRAW)
+        self.assertIs(draw.args.get("controller"), ControllerRef.YOU)
+        amount = _qconst(draw, "amount")
+        self.assertEqual(amount.value, 1)
+
+    def test_incinerator_deals_that_much_to_referent_controlled(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever a source you control deals noncombat damage to an "
+                "opponent, this creature deals that much damage to target "
+                "creature or planeswalker that player controls.",
+            )
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.DEAL_DAMAGE)
+        amount = _qprop(atom, "amount")
+        self.assertEqual(amount.referent, "event")
+        self.assertIs(amount.field, QPropField.AMOUNT)
+        target = _selector(atom, "target")
+        self.assertIs(target.mode, SelectorMode.TARGET)
+        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        assert isinstance(target.filter, FAnd)
+        self.assertEqual(len(target.filter.children), 2)
+        controller_atom = _find_atom(target.filter, FAtomPred.CONTROLLER_IS)
+        who = controller_atom.who
+        assert isinstance(who, Selector)
+        self.assertEqual(who.referent, "event")
+
+    def test_pyreling_modify_pt_and_double_strike_seq(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever a source you control deals noncombat damage to an "
+                "opponent, this creature gets +3/+1 and gains double "
+                "strike until end of turn.",
+            )
+        )
+        seq = _seq(ability)
+        self.assertEqual(len(seq.steps), 2)
+        modify = _atom_step(seq, 0)
+        self.assertIs(modify.verb, Verb.MODIFY_PT)
+        power = modify.args.get("power")
+        assert isinstance(power, PtDelta)
+        self.assertIs(power.direction, PtDirection.INCREASE)
+        self.assertEqual(power.magnitude, QConst(3))
+        toughness = modify.args.get("toughness")
+        assert isinstance(toughness, PtDelta)
+        self.assertEqual(toughness.magnitude, QConst(1))
+        self.assertIsInstance(modify.args.get("duration"), DurationEot)
+        grant = _atom_step(seq, 1)
+        self.assertIs(grant.verb, Verb.GRANT_ABILITY)
+        keyword = grant.args.get("ability")
+        assert isinstance(keyword, KeywordAbility)
+        self.assertIs(keyword.keyword, Keyword.DOUBLE_STRIKE)
+        self.assertIsInstance(grant.args.get("duration"), DurationEot)
+
+    def test_pack_leader_prevent_combat_damage_eot(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever this creature attacks, prevent all combat damage "
+                "that would be dealt this turn to Dogs you control.",
+            )
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.PREVENT_EFFECT)
+        condition = atom.args.get("condition")
+        assert isinstance(condition, FAnd)
+        self._assert_has_subtype_dog_like(condition)
+        event = atom.args.get("event")
+        assert isinstance(event, DamageDealtEvent)
+        self.assertIs(event.combat, True)
+        self.assertIsInstance(atom.args.get("duration"), DurationEot)
+
+    def test_gloom_sower_referent_lose_you_gain_seq(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever this creature becomes blocked by a creature, that "
+                "creature's controller loses 3 life and you gain 3 life.",
+            )
+        )
+        seq = _seq(ability)
+        self.assertEqual(len(seq.steps), 2)
+        lose = _atom_step(seq, 0)
+        self.assertIs(lose.verb, Verb.LOSE_LIFE)
+        self._referent_selector(lose, "controller")
+        self.assertEqual(_qconst(lose, "amount").value, 3)
+        gain = _atom_step(seq, 1)
+        self.assertIs(gain.verb, Verb.GAIN_LIFE)
+        self.assertIs(gain.args.get("controller"), ControllerRef.YOU)
+        self.assertEqual(_qconst(gain, "amount").value, 3)
+
+    def test_hooded_blightfang_pw_destroy_referent(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever a creature you control with deathtouch deals "
+                "damage to a planeswalker, destroy that planeswalker.",
+            )
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.DESTROY)
+        self._referent_selector(atom, "target")
+
+    def test_feline_sovereign_destroy_referent_controlled(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever one or more Cats you control deal combat damage "
+                "to a player, destroy up to one target artifact or "
+                "enchantment that player controls.",
+            )
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.DESTROY)
+        target = _selector(atom, "target")
+        self.assertIs(target.mode, SelectorMode.TARGET)
+        assert isinstance(target.filter, FAnd)
+        controller_atom = _find_atom(target.filter, FAtomPred.CONTROLLER_IS)
+        who = controller_atom.who
+        assert isinstance(who, Selector)
+        self.assertEqual(who.referent, "event")
+
+    def test_ghostly_pilferer_cast_draw_one(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever an opponent casts a spell from anywhere other "
+                "than their hand, draw a card.",
+            )
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.DRAW)
+        self.assertIs(atom.args.get("controller"), ControllerRef.YOU)
+        self.assertEqual(_qconst(atom, "amount").value, 1)
+
+    def test_double_vision_copy_referent_source(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever you cast your first instant or sorcery spell "
+                "each turn, copy that spell.",
+            )
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.COPY)
+        self._referent_selector(atom, "source")
+
+    def test_double_vision_new_targets_is_rule_reminder(self) -> None:
+        match = _single_match(
+            self.reg,
+            "You may choose new targets for the copy.",
+        )
+        outcome = match.outcome
+        assert isinstance(outcome, RuleReminderOutcome)
+        self.assertEqual(outcome.reason, "anaphoric_continuation")
+
+    def test_garruks_harbinger_look_at_event_amount(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever this creature deals combat damage to a player or "
+                "planeswalker, look at that many cards from the top of your "
+                "library.",
+            )
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.LOOK_AT)
+        self.assertIs(atom.args.get("controller"), ControllerRef.YOU)
+        count = _qprop(atom, "count")
+        self.assertEqual(count.referent, "event")
+        self.assertIs(count.field, QPropField.AMOUNT)
+
+    def test_jolrael_create_cat_token(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever you draw your second card each turn, create a "
+                "2/2 green Cat creature token.",
+            )
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.CREATE_TOKEN)
+        token = _token(atom, "tokens")
+        self.assertEqual(token.name, "Cat")
+        self.assertEqual(token.type_line, "Creature — Cat")
+        self.assertEqual(token.subtypes, ("Cat",))
+        assert isinstance(token.power, QConst)
+        self.assertEqual(token.power.value, 2)
+        assert isinstance(token.toughness, QConst)
+        self.assertEqual(token.toughness.value, 2)
+        self.assertEqual(_qconst(atom, "count").value, 1)
+
+    def test_mystic_skyfish_grant_flying_eot(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever you draw your second card each turn, this "
+                "creature gains flying until end of turn.",
+            )
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.GRANT_ABILITY)
+        target = _selector(atom, "target")
+        # b2b self-reference convention: battlefield zone, ANY controller.
+        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        assert isinstance(target.filter, FAtom)
+        self.assertIs(target.filter.pred, FAtomPred.IS_SOURCE)
+        keyword = atom.args.get("ability")
+        assert isinstance(keyword, KeywordAbility)
+        self.assertIs(keyword.keyword, Keyword.FLYING)
+        self.assertIsInstance(atom.args.get("duration"), DurationEot)
+
+    def test_keral_keep_each_opponent_deal_one(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "Whenever you activate a loyalty ability of a Chandra "
+                "planeswalker, this creature deals 1 damage to each "
+                "opponent.",
+            )
+        )
+        each = ability.effect
+        assert isinstance(each, EachPlayer)
+        self.assertIs(each.ref, ControllerRef.ALL_OPPONENTS)
+        effect = each.effect
+        assert isinstance(effect, Atom)
+        self.assertIs(effect.verb, Verb.DEAL_DAMAGE)
+        target = _selector(effect, "target")
+        self.assertIs(target.mode, SelectorMode.CHOOSE)
+        self.assertEqual(target.zone, Zone(ZoneKind.PLAYER, ControllerRef.YOU))
+        self.assertEqual(_qconst(effect, "amount").value, 1)
+
+    def _assert_has_subtype_dog_like(self, a_filter: Filter) -> None:
+        atom = _find_atom(a_filter, FAtomPred.SUBTYPE_EQ)
+        self.assertEqual(atom.string_value, "Dog")
 
     # --- small filter assertion helpers ---
 

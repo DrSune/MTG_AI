@@ -1,15 +1,15 @@
-"""B5c bucket templates — 73 templates covering 74 of 90 B5c shapes.
+"""B5c bucket templates — 74 templates covering 75 of 90 B5c shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B5c.json`` (90 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (90 normalized keys = 73 covered + 17 uncovered; 91 concrete
-sentences = 74 covered + 17 uncovered; ``• You gain N life.`` has two
+Coverage (90 normalized keys = 74 covered + 16 uncovered; 91 concrete
+sentences = 75 covered + 16 uncovered; ``• You gain N life.`` has two
 concrete variants both covered by one template):
 
-- **73 covered shapes** (73 unique tids; the gain-life template covers two
+- **74 covered shapes** (74 unique tids; the gain-life template covers two
   concrete variants):
   keyword reminders (Trample, Vigilance, Vigilance+lifelink,
   Vigilance+protection, Vigilance+reach+trample), then-continuation
@@ -18,8 +18,11 @@ concrete variants both covered by one template):
   token creation, token copy, phase out, counter spells, extra turns,
   scry/reveal/look-at, per-creature life loss, ETB counter placement,
   loyalty discard-hand/exile-top-library, loyalty move-to-top-of-library,
-  loyalty may-cast-from-graveyard, bullet return-to-owner-hand.
-- **17 uncovered shapes** — no grammar construct exists (anaphoric targets,
+  loyalty may-cast-from-graveyard, bullet return-to-owner-hand,
+  loyalty turn-scoped trigger grant (Basri [−1] — GRANT_ABILITY with
+  DurationEot wrapping a TriggeredAbility, round-4 convention C3; "it" =
+  the attacker via the event referent).
+- **16 uncovered shapes** — no grammar construct exists (anaphoric targets,
   conditional Then-continuations, cost reduction, turn-scoped
   triggers, emblems, coin-flip).  Recorded in UNCOVERED.
 
@@ -71,6 +74,7 @@ from MTG_bot.core.ability_tree import (
     CostSacrifice,
     CostTap,
     CounterKind,
+    DeclareAttackersEvent,
     DurationEot,
     EtBState,
     FAnd,
@@ -96,6 +100,7 @@ from MTG_bot.core.ability_tree import (
     Seq,
     StaticAbility,
     TokenSpec,
+    TriggeredAbility,
     Verb,
     Zone,
     ZoneKind,
@@ -543,6 +548,21 @@ def _loyalty_wrapper(effect: Atom | Seq, m: re.Match[str]) -> SentenceOutcome:
     )
 
 
+def _event_reference() -> Selector:
+    """Selector bound to the triggering event's subject (grammar round 4,
+    object anaphora, convention C2: mode CHOOSE + count QConst(1) + the
+    neutral zone + empty zones; the universal filter carries no type
+    check).  Per-event subject: declare_attackers → the attacker
+    (Selector docstring)."""
+    return Selector(
+        QConst(1),
+        SelectorMode.CHOOSE,
+        FAnd(children=()),
+        Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+        referent="event",
+    )
+
+
 def _build_loyalty_chandra_dmg_any(m: re.Match[str]) -> SentenceOutcome:
     atom = Atom(
         verb=Verb.DEAL_DAMAGE,
@@ -563,6 +583,60 @@ def _build_loyalty_chandra_dmg_opps(m: re.Match[str]) -> SentenceOutcome:
             pairs=(
                 ("target", _each_opponent_player()),
                 ("amount", QConst(int(m.group(2)))),
+            )
+        ),
+    )
+    return _loyalty_wrapper(atom, m)
+
+
+def _build_loyalty_basri_attack_counter(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #17: [−1] grant a turn-scoped triggered ability —
+    whenever a creature attacks this turn, put a +N/+N counter on it.
+
+    GRANT_ABILITY(target=self, ability=TriggeredAbility(...),
+    duration=DurationEot) — the round-4 convention C3 (grant with
+    DurationEot); "it" = the attacker, the declare_attackers event
+    subject, bound via the event referent in the PUT_COUNTER target
+    role (convention C1: declare_attackers → the attacker; C2).  Lossy:
+    none."""
+    p = int(m.group("p"))
+    t = int(m.group("t"))
+    if p != t:
+        raise ValueError(
+            f"B5c-loyalty-basri-attack-counter expects equal P/T, got +{p}/+{t}"
+        )
+    atom = Atom(
+        verb=Verb.GRANT_ABILITY,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    _self_selector(
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU)
+                    ),
+                ),
+                (
+                    "ability",
+                    TriggeredAbility(
+                        event=DeclareAttackersEvent(
+                            filter=FAtom(
+                                pred=FAtomPred.TYPE_EQ, string_value="Creature"
+                            )
+                        ),
+                        condition=None,
+                        effect=Atom(
+                            verb=Verb.PUT_COUNTER,
+                            args=AtomArgs(
+                                pairs=(
+                                    ("target", _event_reference()),
+                                    ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                                    ("count", QConst(p)),
+                                )
+                            ),
+                        ),
+                    ),
+                ),
+                ("duration", DurationEot()),
             )
         ),
     )
@@ -2024,7 +2098,7 @@ def _build_bullet_return_two_creatures_hand(m: re.Match[str]) -> SentenceOutcome
 
 
 # ---------------------------------------------------------------------------
-# TEMPLATES — 73 entries
+# TEMPLATES — 74 entries
 # ---------------------------------------------------------------------------
 
 TEMPLATES: tuple[Template, ...] = (
@@ -2149,7 +2223,7 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_etb_soul_counter,
     ),
-    # --- LOYALTY (25) ---
+    # --- LOYALTY (26) ---
     Template(
         tid="B5c-loyalty-chandra-dmg-any",
         name="loyalty: chandra deals N damage to any target",
@@ -2418,6 +2492,18 @@ TEMPLATES: tuple[Template, ...] = (
         ),
         priority=_PRIORITY,
         build=_build_loyalty_may_cast_graveyard,
+    ),
+    Template(
+        tid="B5c-loyalty-basri-attack-counter",
+        name="loyalty: grant turn-scoped attack counter trigger (Basri)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^\[(?P<loy>\+\d+|\u2212\d+)\]: "
+            r"Whenever a creature attacks this turn, "
+            r"put a \+(?P<p>\d+)/\+(?P<t>\d+) counter on it\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_loyalty_basri_attack_counter,
     ),
     # --- COST (17) ---
     Template(
@@ -2755,7 +2841,7 @@ TEMPLATES: tuple[Template, ...] = (
 
 
 # ---------------------------------------------------------------------------
-# UNCOVERED — 18 normalized-key rows
+# UNCOVERED — 16 normalized-key rows
 # ---------------------------------------------------------------------------
 
 UNCOVERED: tuple[tuple[str, str], ...] = (
@@ -2798,10 +2884,6 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         '[\u2212N]: Until end of turn, creatures you control gain "You may have this creature assign its combat damage as though it weren\'t blocked."',
         "No embedded replacement ability text",
-    ),
-    (
-        "[\u2212N]: Whenever a creature attacks this turn, put a +N/+N counter on it.",
-        "No triggered ability with turn-scoped trigger",
     ),
     (
         "[\u2212N]: Whenever one or more nontoken creatures attack this turn, create that many N/N white Soldier creature tokens that are tapped and attacking.",

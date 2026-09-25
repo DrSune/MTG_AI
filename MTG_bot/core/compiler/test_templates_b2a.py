@@ -12,8 +12,8 @@ registry end-to-end with concrete oracle sentences and assert the exact IR each
 template produces.
 
 Pinned bucket facts (measured against /tmp/opencode/phase1_buckets/B2a.json):
-62 shapes, 66 occurrences, 54 covered shapes, 58 matched occurrences, and the
-54 templates in ``templates_b2a.TEMPLATES`` (with 8 declared UNCOVERED shapes).
+62 shapes, 66 occurrences, 57 covered shapes, 61 matched occurrences, and the
+57 templates in ``templates_b2a.TEMPLATES`` (with 5 declared UNCOVERED shapes).
 The bucket priority is 50 (NOT the 100 used by B1/B3/B4): this is documented in
 ``templates_b2a`` and pinned here.
 """
@@ -295,6 +295,19 @@ EXPECTED: dict[str, tuple[str, str]] = {
         "B2a-silversmote-ghoul",
         "Silversmote Ghoul",
     ),
+    # --- Round 5 (grammar round 4 shapes) ---
+    "When this creature enters, if it entered from your graveyard or you cast it from your graveyard, exile it.": (
+        "B2a-archfiends-vessel",
+        "Archfiend's Vessel",
+    ),
+    "At the beginning of each end step, if a creature died this turn, you may put a loyalty counter on a Liliana planeswalker you control.": (
+        "B2a-lilianas-scrounger",
+        "Liliana's Scrounger",
+    ),
+    "At the beginning of your end step, if a permanent was put into your hand from the battlefield this turn, draw a card.": (
+        "B2a-barrin-end-step",
+        "Barrin, Tolarian Archmage End Step",
+    ),
 }
 
 
@@ -515,8 +528,8 @@ class TestB2aCoverage(unittest.TestCase):
         self.assertEqual(total, 66)
 
     def test_public_api_counts(self) -> None:
-        self.assertEqual(len(templates_b2a.TEMPLATES), 54)
-        self.assertEqual(len(templates_b2a.UNCOVERED), 8)
+        self.assertEqual(len(templates_b2a.TEMPLATES), 57)
+        self.assertEqual(len(templates_b2a.UNCOVERED), 5)
 
     def test_bucket_labels_b2a(self) -> None:
         for template in templates_b2a.TEMPLATES:
@@ -543,8 +556,8 @@ class TestB2aCoverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 54)
-        self.assertEqual(matched_occurrences, 58)
+        self.assertEqual(covered_shapes, 57)
+        self.assertEqual(matched_occurrences, 61)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -566,7 +579,7 @@ class TestB2aCoverage(unittest.TestCase):
             if any(self.reg.match(sentence) for _card, sentence in entries):
                 covered.add(shape_key)
         self.assertEqual(set(EXPECTED), covered)
-        self.assertEqual(len(EXPECTED), 54)
+        self.assertEqual(len(EXPECTED), 57)
 
     def test_expected_table_matches_registry(self) -> None:
         for shape_key, (tid, name) in EXPECTED.items():
@@ -858,6 +871,71 @@ class TestB2aTriggerEvents(unittest.TestCase):
         assert isinstance(condition, FAtom)
         self.assertIs(condition.pred, FAtomPred.LIFE_GAINED_THIS_TURN_GE)
         self.assertEqual(condition.count, QConst(3))
+        self.assertIs(condition.who, ControllerRef.YOU)
+
+    # --- Round 5 (grammar round 4 shapes) ---
+
+    def test_archfiends_vessel_is_etb_with_this_turn_condition(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "When this creature enters, if it entered from your "
+                "graveyard or you cast it from your graveyard, exile it.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, ZoneChangeEvent)
+        self.assertEqual(event.to_zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
+        condition = ability.condition
+        assert isinstance(condition, FOr)
+        self.assertEqual(len(condition.children), 2)
+        entered = condition.children[0]
+        assert isinstance(entered, FAtom)
+        self.assertIs(entered.pred, FAtomPred.ENTERED_THIS_TURN_FROM)
+        self.assertEqual(entered.zone, Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU))
+        cast = condition.children[1]
+        assert isinstance(cast, FAtom)
+        self.assertIs(cast.pred, FAtomPred.CAST_THIS_TURN_FROM)
+        self.assertEqual(cast.zone, Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU))
+        self.assertIs(cast.who, ControllerRef.YOU)
+
+    def test_scrounger_is_each_end_step_with_died_condition(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "At the beginning of each end step, if a creature died "
+                "this turn, you may put a loyalty counter on a Liliana "
+                "planeswalker you control.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, TurnPhaseEvent)
+        self.assertIs(event.phase, Phase.END_TURN)
+        # 'each end step' = both players' end steps in a two-player game.
+        self.assertIs(event.controller, ControllerRef.ANY)
+        condition = ability.condition
+        assert isinstance(condition, FAtom)
+        self.assertIs(condition.pred, FAtomPred.DIED_THIS_TURN)
+
+    def test_barrin_end_step_is_moved_to_hand_this_turn(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "At the beginning of your end step, if a permanent was put "
+                "into your hand from the battlefield this turn, draw a card.",
+            )
+        )
+        event = ability.event
+        assert isinstance(event, TurnPhaseEvent)
+        self.assertIs(event.phase, Phase.END_TURN)
+        self.assertIs(event.controller, ControllerRef.YOU)
+        condition = ability.condition
+        assert isinstance(condition, FAtom)
+        self.assertIs(condition.pred, FAtomPred.MOVED_TO_ZONE_THIS_TURN)
+        self.assertEqual(
+            condition.from_zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)
+        )
+        self.assertEqual(condition.to_zone, Zone(ZoneKind.HAND, ControllerRef.YOU))
         self.assertIs(condition.who, ControllerRef.YOU)
 
 
@@ -1770,6 +1848,59 @@ class TestB2aEffectStructure(unittest.TestCase):
             atom.args.get("destination"), Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)
         )
         self.assertIs(atom.args.get("tapped_on_enter"), True)
+
+    # --- Round 5 (grammar round 4 shapes) ---
+
+    def test_archfiends_vessel_exiles_self(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "When this creature enters, if it entered from your "
+                "graveyard or you cast it from your graveyard, exile it.",
+            )
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.EXILE)
+        target = _selector(atom, "target")
+        assert isinstance(target.filter, FAtom)
+        self.assertIs(target.filter.pred, FAtomPred.IS_SOURCE)
+
+    def test_scrounger_optional_loyalty_counter_on_liliana(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "At the beginning of each end step, if a creature died "
+                "this turn, you may put a loyalty counter on a Liliana "
+                "planeswalker you control.",
+            )
+        )
+        option = _optional(ability)
+        atom = _atom_inner(option)
+        self.assertIs(atom.verb, Verb.PUT_COUNTER)
+        self.assertIs(atom.args.get("counter_kind"), CounterKind.LOYALTY)
+        self.assertEqual(_qconst(atom, "count").value, 1)
+        target = _selector(atom, "target")
+        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
+        assert isinstance(target.filter, FAnd)
+        name = _find_atom(target.filter, FAtomPred.NAME_CONTAINS)
+        self.assertEqual(name.string_value, "Liliana")
+        supertype = _find_atom(target.filter, FAtomPred.SUPERTYPE_EQ)
+        self.assertEqual(supertype.string_value, "Planeswalker")
+        controller = _find_atom(target.filter, FAtomPred.CONTROLLER_IS)
+        self.assertIs(controller.who, ControllerRef.YOU)
+
+    def test_barrin_end_step_draws_one(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "At the beginning of your end step, if a permanent was put "
+                "into your hand from the battlefield this turn, draw a card.",
+            )
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.DRAW)
+        self.assertIs(atom.args.get("controller"), ControllerRef.YOU)
+        self.assertEqual(_qconst(atom, "amount").value, 1)
 
 
 if __name__ == "__main__":

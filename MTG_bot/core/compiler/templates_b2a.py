@@ -1,20 +1,27 @@
-"""B2a bucket templates — 54 templates covering 56 of 64 B2a concrete rows.
+"""B2a bucket templates — 57 templates covering 59 of 64 B2a concrete rows.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B2a.json`` (62 normalized shape
 keys → ``[card, sentence]`` pairs; 66 card/sentence entries collapse to 64
 distinct concrete oracle sentences).  Templates fullmatch the **concrete**
 oracle sentence, never the normalized key.
 
-Coverage (64 concrete rows = 56 template-covered + 8 uncovered):
+Coverage (64 concrete rows = 59 template-covered + 5 uncovered):
 
-- **54 templates** cover 54 normalized keys and 56 concrete rows.  Two
+- **57 templates** cover 57 normalized keys and 59 concrete rows.  Two
   normalized keys map to two concrete rows each (``scry N`` and
   ``target creature gets +N/+0 until end of turn``), while two other
   normalized keys each collapse two cards into one concrete row
   (``When this creature enters, draw a card.`` and
   ``When this creature enters, put a +1/+1 counter on target creature you
   control.``).
-- **8 uncovered normalized keys** have no grammar construct and are recorded
+- *Round 5* (3 templates, 2026-09-25): Archfiend's Vessel s1 (ETB + FOr of
+  the round-4 this-turn FAtoms ENTERED_THIS_TURN_FROM / CAST_THIS_TURN_FROM
+  over your graveyard → EXILE self), Liliana's Scrounger (TurnPhaseEvent
+  END_TURN with ``controller=ANY`` for "each end step" + DIED_THIS_TURN
+  condition + OptionalEffect PUT_COUNTER LOYALTY on a Liliana planeswalker),
+  and Barrin s2 (TurnPhaseEvent END_TURN + MOVED_TO_ZONE_THIS_TURN condition
+  battlefield→hand → DRAW 1).
+- **5 uncovered normalized keys** have no grammar construct and are recorded
   in ``UNCOVERED``.
 
 Conventions (documented build decisions):
@@ -1747,6 +1754,112 @@ def _build_silversmote_ghoul(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
+# Builders — Round 5 (grammar round 4 shapes: this-turn FAtom conditions,
+# each-end-step turn-phase events)
+# ---------------------------------------------------------------------------
+
+
+def _build_archfiends_vessel(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #18: ETB, if it entered from your graveyard or you cast
+    it from your graveyard, exile it.
+
+    Condition = FOr of the two round-4 this-turn FAtoms
+    (ENTERED_THIS_TURN_FROM / CAST_THIS_TURN_FROM, both zone = your
+    graveyard; the CAST variant's who slot = YOU, the caster).  Lossy:
+    none."""
+    condition = FOr(
+        children=(
+            FAtom(
+                pred=FAtomPred.ENTERED_THIS_TURN_FROM,
+                zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+            ),
+            FAtom(
+                pred=FAtomPred.CAST_THIS_TURN_FROM,
+                zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                who=ControllerRef.YOU,
+            ),
+        )
+    )
+    return _ability(
+        _etb_event(),
+        Atom(
+            verb=Verb.EXILE,
+            args=AtomArgs(pairs=(("target", _self_selector()),)),
+        ),
+        condition=condition,
+    )
+
+
+def _build_lilianas_scrounger(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #19: at the beginning of each end step, if a creature
+    died this turn, you may put a loyalty counter on a Liliana
+    planeswalker you control.
+
+    'Each end step' = both players' end steps → TurnPhaseEvent(END_TURN,
+    controller=ANY) (in a two-player game ANY = both players).  The
+    condition follows the established b2a 'if a creature died this turn'
+    precedent (bare FAtom(DIED_THIS_TURN), e.g. the Twinblade builder).
+    Lossy: none."""
+    target = Selector(
+        QConst(1),
+        SelectorMode.CHOOSE,
+        FAnd(
+            children=(
+                FAtom(pred=FAtomPred.NAME_CONTAINS, string_value="Liliana"),
+                FAtom(pred=FAtomPred.SUPERTYPE_EQ, string_value="Planeswalker"),
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            )
+        ),
+        Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+    )
+    return _ability(
+        TurnPhaseEvent(phase=Phase.END_TURN, controller=ControllerRef.ANY),
+        OptionalEffect(
+            inner=Atom(
+                verb=Verb.PUT_COUNTER,
+                args=AtomArgs(
+                    pairs=(
+                        ("target", target),
+                        ("counter_kind", CounterKind.LOYALTY),
+                        ("count", QConst(1)),
+                    )
+                ),
+            )
+        ),
+        condition=FAtom(pred=FAtomPred.DIED_THIS_TURN),
+    )
+
+
+def _build_barrin_end_step(m: re.Match[str]) -> SentenceOutcome:
+    """Round 4 row #20: at the beginning of your end step, if a permanent
+    was put into your hand from the battlefield this turn, draw a card.
+
+    Condition = MOVED_TO_ZONE_THIS_TURN (from_zone = the battlefield,
+    to_zone = your hand, who = YOU — the controller the move is relative
+    to; a referent Selector would also be legal, round 4).  Lossy:
+    'a permanent' is unconstrained (no permanent-type filter on the
+    move)."""
+    return _ability(
+        _end_step_event(),
+        Atom(
+            verb=Verb.DRAW,
+            args=AtomArgs(
+                pairs=(
+                    ("controller", ControllerRef.YOU),
+                    ("amount", QConst(1)),
+                )
+            ),
+        ),
+        condition=FAtom(
+            pred=FAtomPred.MOVED_TO_ZONE_THIS_TURN,
+            from_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+            to_zone=Zone(ZoneKind.HAND, ControllerRef.YOU),
+            who=ControllerRef.YOU,
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
 # Template table
 # ---------------------------------------------------------------------------
 
@@ -2219,27 +2332,47 @@ TEMPLATES: Final[tuple[Template, ...]] = (
         ),
         _build_silversmote_ghoul,
     ),
+    # --- Round 5 (grammar round 4 shapes) ---
+    _template(
+        "B2a-archfiends-vessel",
+        "Archfiend's Vessel",
+        _exact(
+            "When this creature enters, "
+            "if it entered from your graveyard or you cast it from your "
+            "graveyard, exile it."
+        ),
+        _build_archfiends_vessel,
+    ),
+    _template(
+        "B2a-lilianas-scrounger",
+        "Liliana's Scrounger",
+        _exact(
+            "At the beginning of each end step, "
+            "if a creature died this turn, "
+            "you may put a loyalty counter on a Liliana planeswalker you control."
+        ),
+        _build_lilianas_scrounger,
+    ),
+    _template(
+        "B2a-barrin-end-step",
+        "Barrin, Tolarian Archmage End Step",
+        _exact(
+            "At the beginning of your end step, "
+            "if a permanent was put into your hand from the battlefield this turn, "
+            "draw a card."
+        ),
+        _build_barrin_end_step,
+    ),
 )
 
 
 UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
     (
-        "At the beginning of each end step, "
-        "if a creature died this turn, "
-        "you may put a loyalty counter on a Liliana planeswalker you control.",
-        "Turn-phase triggers are single-controller; "
-        "'each end step' (both players) is not expressible.",
-    ),
-    (
-        "At the beginning of your end step, "
-        "if a permanent was put into your hand from the battlefield this turn, "
-        "draw a card.",
-        "No turn-scoped zone-change trigger.",
-    ),
-    (
-        "When this artifact enters, "
-        "exile all creature cards with mana value N or less "
-        "from your graveyard until this artifact leaves the battlefield.",
+        (
+            "When this artifact enters, "
+            "exile all creature cards with mana value N or less "
+            "from your graveyard until this artifact leaves the battlefield."
+        ),
         "No duration-until-source-leaves construct.",
     ),
     (
@@ -2247,28 +2380,28 @@ UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
         "handled by the compiler's choose-opener built-in (ETB variant)",
     ),
     (
-        "When this creature enters, "
-        "discard up to two cards, then draw that many cards.",
+        (
+            "When this creature enters, "
+            "discard up to two cards, then draw that many cards."
+        ),
         "Anaphoric 'that many' quantity is not expressible.",
     ),
     (
-        "When this creature enters, "
-        "each opponent creates a N/N red Pirate creature token "
-        'with "This token can\'t block" '
-        'and "Creatures you control attack each combat if able."',
+        (
+            "When this creature enters, "
+            "each opponent creates a N/N red Pirate creature token "
+            'with "This token can\'t block" '
+            'and "Creatures you control attack each combat if able."'
+        ),
         "Per-opponent token creation with nested token abilities.",
     ),
     (
-        "When this creature enters, "
-        "if it entered from your graveyard or you cast it from your graveyard, "
-        "exile it.",
-        "Event/source disjunction is not expressible.",
-    ),
-    (
-        "When this creature enters, "
-        "if you control two or more nonland, nontoken permanents "
-        "with the same name as one another, "
-        "create a N/N colorless Construct artifact creature token.",
+        (
+            "When this creature enters, "
+            "if you control two or more nonland, nontoken permanents "
+            "with the same name as one another, "
+            "create a N/N colorless Construct artifact creature token."
+        ),
         "No pairwise name-equality predicate.",
     ),
 )
