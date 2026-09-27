@@ -2,9 +2,9 @@
 
 Covers all 90 shapes in ``/tmp/opencode/phase1_buckets/B5b.json``
 (91 distinct concrete sentences):
-- 42 template-covered rows over 41 shapes / 37 tids (34 single-shape tids,
+- 50 template-covered rows over 49 shapes / 45 tids (42 single-shape tids,
   3 multi-shape tids, plus one shape with two concrete rows)
-- 49 UNCOVERED (no template; 48 have no grammar construct, 1 is
+- 41 UNCOVERED (no template; 40 have no grammar construct, 1 is
   compiler-built-in: "If you search your library this way, shuffle." —
   see test_compiler.py::TestContinuation::test_search_shuffle_*)
 - 0 rule-reminder pre-consumed
@@ -24,31 +24,42 @@ from MTG_bot.core.ability_tree import (
     QX,
     ActivatedAbility,
     Atom,
+    CardDrawnEvent,
     ControllerRef,
     CostDeltaIncreaseGeneric,
     CostModifier,
     CostSacrifice,
     CostTap,
     CounterKind,
+    CounterPlacedEvent,
+    CreatureDiesEvent,
+    DamageDealtEvent,
     DurationEot,
+    FAnd,
     FAtom,
     FAtomPred,
     FNot,
     FOr,
     Keyword,
     KeywordAbility,
+    LifeGainedEvent,
     PtDelta,
     PtDirection,
+    QAtLeast,
+    QBin,
+    QBinOp,
     QConst,
     QProp,
     QPropField,
     QUnbounded,
+    ReplacementAbility,
     Selector,
     SelectorMode,
     Seq,
     TokenSpec,
     Verb,
     Zone,
+    ZoneChangeEvent,
     ZoneKind,
     canonical_json,
 )
@@ -107,12 +118,16 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "",
     ),
     # shape 8
-    ("If a creature died this turn, you gain 8 life instead.", "UNCOV", ""),
+    (
+        "If a creature died this turn, you gain 8 life instead.",
+        "COVERED",
+        "B5b-repl-died-gain-life",
+    ),
     # shape 9
     (
         "If a nontoken creature would enter and it wasn't cast, exile it instead.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-repl-nontoken-enter-exile",
     ),
     # shape 10
     (
@@ -123,8 +138,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 11
     (
         "If a source you control would deal damage to a permanent or player, it deals triple that damage to that permanent or player instead.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-repl-triple-damage",
     ),
     # shape 12
     (
@@ -145,17 +160,21 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 16
     (
         "If one or more +1/+1 counters would be put on a creature you control, that many plus one +1/+1 counters are put on that creature instead.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-repl-counter-plus-one",
     ),
     # shape 17
     (
         "If that creature or planeswalker would die this turn, exile it instead.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-repl-die-exile",
     ),
     # shape 18
-    ("If that spell would be put into your graveyard, exile it instead.", "UNCOV", ""),
+    (
+        "If that spell would be put into your graveyard, exile it instead.",
+        "COVERED",
+        "B5b-repl-graveyard-exile",
+    ),
     # shape 19
     (
         "If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead.",
@@ -165,8 +184,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 20
     (
         "If you control a creature with flying, counter that spell unless its controller pays {4} instead.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-counter-unless-pays",
     ),
     # shape 21
     (
@@ -205,8 +224,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 30
     (
         "If you would draw a card except the first one you draw in each of your draw steps, draw two cards instead.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-repl-draw-not-first",
     ),
     # shape 31
     ("It gains haste until end of turn.", "UNCOV", ""),
@@ -590,6 +609,12 @@ def _as_cost_modifier(ab: Any) -> CostModifier:
     return ab
 
 
+def _as_replacement(ab: Any) -> ReplacementAbility:
+    """Narrow Ability to ReplacementAbility (Pyright type guard)."""
+    assert isinstance(ab, ReplacementAbility), f"got {type(ab).__name__}"
+    return ab
+
+
 def _find_shape(sent: str) -> tuple[str, str, str]:
     """Find a shape entry by sentence."""
     for s in SHAPES:
@@ -606,8 +631,8 @@ def _find_shape(sent: str) -> tuple[str, str, str]:
 class TestTemplateInventory(unittest.TestCase):
     """Verify the B5b template collection is well-formed."""
 
-    def test_37_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 37)
+    def test_45_templates(self) -> None:
+        self.assertEqual(len(TEMPLATES), 45)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -623,7 +648,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 37)
+        self.assertEqual(len(reg), 45)
 
 
 # ---------------------------------------------------------------------------
@@ -644,14 +669,14 @@ class TestShapeTable(unittest.TestCase):
     def test_category_counts(self) -> None:
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
-        self.assertEqual(covered, 42, f"COVERED count {covered} != 42")
-        self.assertEqual(uncov, 49, f"UNCOV count {uncov} != 49")
+        self.assertEqual(covered, 50, f"COVERED count {covered} != 50")
+        self.assertEqual(uncov, 41, f"UNCOV count {uncov} != 41")
 
-    def test_covered_tids_valid_and_unique_37(self) -> None:
+    def test_covered_tids_valid_and_unique_45(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
-            len(unique_tids), 37, f"expected 37 unique tids, got {len(unique_tids)}"
+            len(unique_tids), 45, f"expected 45 unique tids, got {len(unique_tids)}"
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5b-"), f"bad tid: {tid}")
@@ -1238,6 +1263,201 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(leaf.pred, FAtomPred.TYPE_EQ)
         self.assertEqual(leaf.string_value, "Creature")
 
+    # -- Replacement effects (grammar round 5 — doc-07 batch, 8 tids) --
+
+    def test_repl_died_gain_life(self) -> None:
+        """B5b-repl-died-gain-life: ReplacementAbility(LifeGainedEvent(YOU),
+        DIED_THIS_TURN, GAIN_LIFE 8)."""
+        outcome = self._match_outcome("B5b-repl-died-gain-life")
+        ab = _as_replacement(_as_ability(outcome).ability)
+        event = ab.event
+        assert isinstance(event, LifeGainedEvent)
+        self.assertEqual(event.controller, ControllerRef.YOU)
+        cond = ab.condition
+        assert isinstance(cond, FAtom)
+        self.assertEqual(cond.pred, FAtomPred.DIED_THIS_TURN)
+        atom = _as_atom(ab.action)
+        self.assertEqual(atom.verb, Verb.GAIN_LIFE)
+        p = _pairs_dict(atom)
+        self.assertEqual(p["controller"], ControllerRef.YOU)
+        self.assertEqual(p["amount"], QConst(8))
+
+    def test_repl_nontoken_enter_exile(self) -> None:
+        """B5b-repl-nontoken-enter-exile: ANY→BATTLEFIELD zone change of a
+        nontoken creature, not-cast condition, exile the event referent."""
+        outcome = self._match_outcome("B5b-repl-nontoken-enter-exile")
+        ab = _as_replacement(_as_ability(outcome).ability)
+        event = ab.event
+        assert isinstance(event, ZoneChangeEvent)
+        self.assertEqual(event.from_zone.kind, ZoneKind.ANY)
+        self.assertEqual(event.to_zone.kind, ZoneKind.BATTLEFIELD)
+        subject = event.subject
+        assert isinstance(subject, FAnd)
+        type_leaf, not_token = subject.children
+        assert isinstance(type_leaf, FAtom)
+        self.assertEqual(type_leaf.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(type_leaf.string_value, "Creature")
+        assert isinstance(not_token, FNot)
+        assert isinstance(not_token.inner, FAtom)
+        self.assertEqual(not_token.inner.pred, FAtomPred.IS_TOKEN)
+        cond = ab.condition
+        assert isinstance(cond, FNot)
+        was_cast = cond.inner
+        assert isinstance(was_cast, FAtom)
+        self.assertEqual(was_cast.pred, FAtomPred.WAS_CAST_THIS_TURN)
+        self.assertEqual(was_cast.who, ControllerRef.ANY)
+        atom = _as_atom(ab.action)
+        self.assertEqual(atom.verb, Verb.EXILE)
+        target = _pairs_dict(atom)["target"]
+        assert isinstance(target, Selector)
+        self.assertEqual(target.referent, "event")
+
+    def test_repl_triple_damage(self) -> None:
+        """B5b-repl-triple-damage: DamageDealtEvent(X, source you control) →
+        DEAL_DAMAGE 3 * QProp(event, AMOUNT) to the event referent."""
+        outcome = self._match_outcome("B5b-repl-triple-damage")
+        ab = _as_replacement(_as_ability(outcome).ability)
+        event = ab.event
+        assert isinstance(event, DamageDealtEvent)
+        self.assertIsInstance(event.amount, QX)
+        source = event.source
+        assert isinstance(source, FAtom)
+        self.assertEqual(source.pred, FAtomPred.CONTROLLER_IS)
+        self.assertEqual(source.who, ControllerRef.YOU)
+        self.assertEqual(event.filter, FAnd(children=()))
+        self.assertIsNone(ab.condition)
+        atom = _as_atom(ab.action)
+        self.assertEqual(atom.verb, Verb.DEAL_DAMAGE)
+        p = _pairs_dict(atom)
+        target = p["target"]
+        assert isinstance(target, Selector)
+        self.assertEqual(target.referent, "event")
+        amount = p["amount"]
+        assert isinstance(amount, QBin)
+        self.assertEqual(amount.op, QBinOp.MUL)
+        self.assertEqual(amount.left, QConst(3))
+        self.assertEqual(amount.right, QProp("event", QPropField.AMOUNT))
+
+    def test_repl_counter_plus_one(self) -> None:
+        """B5b-repl-counter-plus-one: CounterPlacedEvent(+1/+1, QAtLeast(1))
+        → PUT_COUNTER QBin(ADD, QProp(event, COUNTER_COUNT), 1)."""
+        outcome = self._match_outcome("B5b-repl-counter-plus-one")
+        ab = _as_replacement(_as_ability(outcome).ability)
+        event = ab.event
+        assert isinstance(event, CounterPlacedEvent)
+        self.assertEqual(event.counter_kind, CounterKind.PLUS_1_PLUS_1)
+        self.assertEqual(event.count, QAtLeast(1))
+        flt = event.filter
+        assert isinstance(flt, FAnd)
+        type_leaf, controller_leaf = flt.children
+        assert isinstance(type_leaf, FAtom)
+        self.assertEqual(type_leaf.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(type_leaf.string_value, "Creature")
+        assert isinstance(controller_leaf, FAtom)
+        self.assertEqual(controller_leaf.pred, FAtomPred.CONTROLLER_IS)
+        self.assertEqual(controller_leaf.who, ControllerRef.YOU)
+        self.assertIsNone(ab.condition)
+        atom = _as_atom(ab.action)
+        self.assertEqual(atom.verb, Verb.PUT_COUNTER)
+        p = _pairs_dict(atom)
+        target = p["target"]
+        assert isinstance(target, Selector)
+        self.assertEqual(target.referent, "event")
+        self.assertEqual(p["counter_kind"], CounterKind.PLUS_1_PLUS_1)
+        count = p["count"]
+        assert isinstance(count, QBin)
+        self.assertEqual(count.op, QBinOp.ADD)
+        self.assertEqual(count.left, QProp("event", QPropField.COUNTER_COUNT))
+        self.assertEqual(count.right, QConst(1))
+
+    def test_repl_die_exile(self) -> None:
+        """B5b-repl-die-exile: CreatureDiesEvent(IS_ANY_TARGET) → exile the
+        event referent."""
+        outcome = self._match_outcome("B5b-repl-die-exile")
+        ab = _as_replacement(_as_ability(outcome).ability)
+        event = ab.event
+        assert isinstance(event, CreatureDiesEvent)
+        flt = event.filter
+        assert isinstance(flt, FAtom)
+        self.assertEqual(flt.pred, FAtomPred.IS_ANY_TARGET)
+        self.assertIsNone(ab.condition)
+        atom = _as_atom(ab.action)
+        self.assertEqual(atom.verb, Verb.EXILE)
+        target = _pairs_dict(atom)["target"]
+        assert isinstance(target, Selector)
+        self.assertEqual(target.referent, "event")
+
+    def test_repl_graveyard_exile(self) -> None:
+        """B5b-repl-graveyard-exile: STACK(any)→GRAVEYARD(you) of the
+        spell's target → exile the event referent."""
+        outcome = self._match_outcome("B5b-repl-graveyard-exile")
+        ab = _as_replacement(_as_ability(outcome).ability)
+        event = ab.event
+        assert isinstance(event, ZoneChangeEvent)
+        self.assertEqual(event.from_zone.kind, ZoneKind.STACK)
+        self.assertEqual(event.from_zone.controller, ControllerRef.ANY)
+        self.assertEqual(event.to_zone.kind, ZoneKind.GRAVEYARD)
+        self.assertEqual(event.to_zone.controller, ControllerRef.YOU)
+        subject = event.subject
+        assert isinstance(subject, FAtom)
+        self.assertEqual(subject.pred, FAtomPred.IS_ANY_TARGET)
+        self.assertIsNone(ab.condition)
+        atom = _as_atom(ab.action)
+        self.assertEqual(atom.verb, Verb.EXILE)
+        target = _pairs_dict(atom)["target"]
+        assert isinstance(target, Selector)
+        self.assertEqual(target.referent, "event")
+
+    def test_counter_unless_pays(self) -> None:
+        """B5b-counter-unless-pays: CostModifier on the spell's target,
+        controller_ref=Selector(referent='target'), delta +{3}, flying
+        gate (C7)."""
+        outcome = self._match_outcome("B5b-counter-unless-pays")
+        mod = _as_cost_modifier(_as_ability(outcome).ability)
+        flt = mod.filter
+        assert isinstance(flt, FAtom)
+        self.assertEqual(flt.pred, FAtomPred.IS_ANY_TARGET)
+        controller_ref = mod.controller_ref
+        assert isinstance(controller_ref, Selector)
+        self.assertEqual(controller_ref.referent, "target")
+        self.assertEqual(controller_ref.mode, SelectorMode.CHOOSE)
+        self.assertEqual(controller_ref.count, QConst(1))
+        self.assertEqual(controller_ref.zone.kind, ZoneKind.ANY)
+        self.assertEqual(controller_ref.zone.controller, ControllerRef.ANY)
+        delta = mod.delta
+        assert isinstance(delta, CostDeltaIncreaseGeneric)
+        self.assertEqual(delta.amount, QConst(3))
+        cond = mod.condition
+        assert isinstance(cond, FAnd)
+        type_leaf, keyword_leaf, controller_leaf = cond.children
+        assert isinstance(type_leaf, FAtom)
+        self.assertEqual(type_leaf.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(type_leaf.string_value, "Creature")
+        assert isinstance(keyword_leaf, FAtom)
+        self.assertEqual(keyword_leaf.pred, FAtomPred.KEYWORD_HAS)
+        self.assertEqual(keyword_leaf.keyword, Keyword.FLYING)
+        assert isinstance(controller_leaf, FAtom)
+        self.assertEqual(controller_leaf.pred, FAtomPred.CONTROLLER_IS)
+        self.assertEqual(controller_leaf.who, ControllerRef.YOU)
+
+    def test_repl_draw_not_first(self) -> None:
+        """B5b-repl-draw-not-first: CardDrawnEvent(YOU) with
+        NOT_FIRST_DRAW_THIS_STEP condition → draw 2."""
+        outcome = self._match_outcome("B5b-repl-draw-not-first")
+        ab = _as_replacement(_as_ability(outcome).ability)
+        event = ab.event
+        assert isinstance(event, CardDrawnEvent)
+        self.assertEqual(event.controller, ControllerRef.YOU)
+        cond = ab.condition
+        assert isinstance(cond, FAtom)
+        self.assertEqual(cond.pred, FAtomPred.NOT_FIRST_DRAW_THIS_STEP)
+        self.assertEqual(cond.who, ControllerRef.YOU)
+        atom = _as_atom(ab.action)
+        self.assertEqual(atom.verb, Verb.DRAW)
+        p = _pairs_dict(atom)
+        self.assertEqual(p["controller"], ControllerRef.YOU)
+        self.assertEqual(p["amount"], QConst(2))
+
 
 # ---------------------------------------------------------------------------
 # Test: Canonical Stability (PC-4)
@@ -1272,7 +1492,7 @@ class TestCanonicalStability(unittest.TestCase):
                 f"canonical instability for {tid} ({sent[:40]})",
             )
             seen.add(tid)
-        self.assertEqual(len(seen), 37, f"only {len(seen)} unique tids tested")
+        self.assertEqual(len(seen), 45, f"only {len(seen)} unique tids tested")
 
 
 # ---------------------------------------------------------------------------
@@ -1395,6 +1615,76 @@ class TestEndToEndCompile(unittest.TestCase):
         result = compile_card(raw, self.reg)
         self.assertEqual(len(result.card.abilities), 1)
         self.assertEqual(len(result.unparsed), 0)
+
+
+class TestReplacementBatchEndToEnd(unittest.TestCase):
+    """Round-5 replacement batch: each new sentence, compiled through the
+    full compile_card pipeline, yields exactly one ability node and no
+    unparsed residue (the compiler consumes ReplacementAbility /
+    CostModifier AbilityOutcomes generically)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.reg = _make_registry()
+
+    def test_replacement_batch_cards_compile(self) -> None:
+        cases = (
+            ("Life Goes On", "If a creature died this turn, you gain 8 life instead."),
+            (
+                "Containment Priest",
+                (
+                    "If a nontoken creature would enter and it wasn't cast, "
+                    "exile it instead."
+                ),
+            ),
+            (
+                "Fiery Emancipation",
+                (
+                    "If a source you control would deal damage to a permanent "
+                    "or player, it deals triple that damage to that permanent "
+                    "or player instead."
+                ),
+            ),
+            (
+                "Conclave Mentor",
+                (
+                    "If one or more +1/+1 counters would be put on a creature "
+                    "you control, that many plus one +1/+1 counters are put on "
+                    "that creature instead."
+                ),
+            ),
+            (
+                "Scorching Dragonfire",
+                (
+                    "If that creature or planeswalker would die this turn, "
+                    "exile it instead."
+                ),
+            ),
+            (
+                "Chandra, Flame's Catalyst",
+                "If that spell would be put into your graveyard, exile it instead.",
+            ),
+            (
+                "Lofty Denial",
+                (
+                    "If you control a creature with flying, counter that spell "
+                    "unless its controller pays {4} instead."
+                ),
+            ),
+            (
+                "Teferi's Ageless Insight",
+                (
+                    "If you would draw a card except the first one you draw in "
+                    "each of your draw steps, draw two cards instead."
+                ),
+            ),
+        )
+        for name, sent in cases:
+            raw = _raw(name, (sent,))
+            result = compile_card(raw, self.reg)
+            self.assertEqual(len(result.card.abilities), 1, f"{name}: ability count")
+            self.assertEqual(len(result.unparsed), 0, f"{name}: unparsed")
+            self.assertEqual(len(result.rule_reminders), 0, f"{name}: rule reminders")
 
 
 # ---------------------------------------------------------------------------

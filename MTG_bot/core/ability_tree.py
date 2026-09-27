@@ -80,14 +80,34 @@ Design decisions (each pinned by tests in test_ability_tree.py):
   ``to_zone``) with the condition predicates
   ``ENTERED_THIS_TURN_FROM`` / ``CAST_THIS_TURN_FROM`` /
   ``MOVED_TO_ZONE_THIS_TURN`` (Archfiend's Vessel, Barrin), and object
-  anaphora: ``Selector.referent`` (the ``_QPROP_STR_REFERENTS`` vocabulary
-  shared with QProp — "source" / "controller" / "target" / "event", where
-  "event" is the triggering event's subject object; convention C2:
-  CHOOSE + QConst(1) + neutral zone), plus the ``controller`` atom role
-  and the ``CONTROLLER_IS`` ``who`` slot widened to ``ControllerRef |
-  Selector`` (Gloom Sower, Feline Sovereign). Every new field defaults to
-  None and serializes by OMITTING the key, so all pre-round-4 trees keep
-  byte-identical canonical JSON.
+   anaphora: ``Selector.referent`` (the ``_QPROP_STR_REFERENTS`` vocabulary
+   shared with QProp — "source" / "controller" / "target" / "event", where
+   "event" is the triggering event's subject object; convention C2:
+   CHOOSE + QConst(1) + neutral zone), plus the ``controller`` atom role
+   and the ``CONTROLLER_IS`` ``who`` slot widened to ``ControllerRef |
+   Selector`` (Gloom Sower, Feline Sovereign). Every new field defaults to
+   None and serializes by OMITTING the key, so all pre-round-4 trees keep
+   byte-identical canonical JSON.
+ - **grammar round 5 (replacement/"instead" effects, KNOWLEDGE
+   2026-09-24/07)**: four additive, byte-stable items pinned by
+   test_ability_tree_r6.py — ``FAtomPred.WAS_CAST_THIS_TURN`` (required
+   ``who``; "[the object] was cast this turn (by who)", Containment
+   Priest; zone-agnostic, unlike ``CAST_THIS_TURN_FROM``),
+   ``FAtomPred.NOT_FIRST_DRAW_THIS_STEP`` (required ``who``; "not the
+   first card who draws in their draw step", Teferi's Ageless Insight —
+   evaluated against the CardDrawnEvent subject),
+   ``CounterPlacedEvent.count: Quantity | None`` (the number placed;
+   "one or more" = ``QAtLeast(1)``) with the new
+   ``QPropField.COUNTER_COUNT`` ("that many" =
+   ``QProp("event", COUNTER_COUNT)`` — Conclave Mentor; event-referent
+   only, like ``AMOUNT``), and ``CostModifier.controller_ref`` widened to
+   ``ControllerRef | Selector`` (convention C7: a Selector means the
+   controller of the selected object, and the modifier applies to costs
+   that controller pays FOR the filtered object, including ``unless``
+   payments — Lofty Denial; reuses the ``controller_ref_or_selector``
+   dual conv). Every new field defaults to None and serializes by
+   OMITTING the key, so all pre-round-5 trees keep byte-identical
+   canonical JSON.
 - **No orphan guarantee yet**: verbs are cited to pool cards in docstrings;
   orphans are MEASURED by PC-6 and pruned then — the vocabulary is the
   Phase-1 hypothesis, not the post-hoc truth.
@@ -221,8 +241,8 @@ class ControllerRef(Enum):
 
 class QPropField(Enum):
     """Which property QProp reads from its referent. The player-count fields
-    only make sense with the "controller" referent; AMOUNT only with
-    "event" (validated in QProp.__post_init__)."""
+    only make sense with the "controller" referent; AMOUNT and COUNTER_COUNT
+    only with "event" (validated in QProp.__post_init__)."""
 
     POWER = "POWER"
     TOUGHNESS = "TOUGHNESS"
@@ -232,6 +252,7 @@ class QPropField(Enum):
     CARDS_IN_LIBRARY = "CARDS_IN_LIBRARY"  # Peer into the Abyss
     CARDS_IN_GRAVEYARD = "CARDS_IN_GRAVEYARD"  # Liliana, Waker of the Dead [-3]
     AMOUNT = "AMOUNT"  # the triggering event's damage amount (Brash Taunter)
+    COUNTER_COUNT = "COUNTER_COUNT"  # the event's counter count (Conclave Mentor)
 
 
 class QAgg(Enum):
@@ -337,6 +358,16 @@ class FAtomPred(Enum):
         "MOVED_TO_ZONE_THIS_TURN"  # "a permanent was put into your hand
         # from the battlefield this turn" (Barrin, Tolarian Archmage;
         # grammar round 4 — required from_zone + to_zone + who)
+    )
+    WAS_CAST_THIS_TURN = (
+        "WAS_CAST_THIS_TURN"  # "it was cast this turn (by who)" (Containment
+        # Priest; grammar round 5 — required who; turn-scoped cast tracking
+        # without a zone constraint, unlike CAST_THIS_TURN_FROM)
+    )
+    NOT_FIRST_DRAW_THIS_STEP = (
+        "NOT_FIRST_DRAW_THIS_STEP"  # "not the first card who draws in their
+        # draw step" (Teferi's Ageless Insight; grammar round 5 — required who;
+        # evaluated against the drawn card, CardDrawnEvent subject)
     )
 
 
@@ -525,8 +556,9 @@ class QProp:
             raise ValueError(
                 f"QProp: {self.field.name} requires the 'controller' referent"
             )
-        if self.field is QPropField.AMOUNT and self.referent != "event":
-            raise ValueError("QProp: AMOUNT requires the 'event' referent")
+        event_fields = (QPropField.AMOUNT, QPropField.COUNTER_COUNT)
+        if self.field in event_fields and self.referent != "event":
+            raise ValueError(f"QProp: {self.field.name} requires the 'event' referent")
         if isinstance(self.referent, str) and self.agg is not QAgg.FIRST:
             raise ValueError(
                 "QProp: a singular referent cannot aggregate (agg must be FIRST)"
@@ -774,11 +806,13 @@ class FAtom:
       counter_kind — CounterKind (HAS_COUNTER)
       keyword      — Keyword (KEYWORD_HAS)
        who          — ControllerRef | Selector (CONTROLLER_IS;
-                       LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE,
-                       INSTANT_OR_SORCERY_CAST_THIS_TURN,
-                       CAST_THIS_TURN_FROM, MOVED_TO_ZONE_THIS_TURN;
-                       you|opponent|target-player, or a referent Selector —
-                       grammar round 4, object anaphora)
+                        LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE,
+                        INSTANT_OR_SORCERY_CAST_THIS_TURN,
+                        CAST_THIS_TURN_FROM, MOVED_TO_ZONE_THIS_TURN,
+                        WAS_CAST_THIS_TURN, NOT_FIRST_DRAW_THIS_STEP —
+                        grammar round 5;
+                        you|opponent|target-player, or a referent Selector —
+                        grammar round 4, object anaphora)
        inner_filter — a nested Filter (CONTROLLER_COUNT_GE/LE)
        zone         — Zone (ENTERED_THIS_TURN_FROM / CAST_THIS_TURN_FROM —
                        "entered from / cast from this zone this turn")
@@ -1098,10 +1132,15 @@ class CombatDamageEvent:
 
 @dataclass(frozen=True)
 class CounterPlacedEvent:
-    """Counters of a kind were placed on the subject."""
+    """Counters of a kind were placed on the subject.
+
+    `count` (grammar round 5, R5-2) names the number placed ("one or more"
+    = QAtLeast(1); "that many" = QProp("event", COUNTER_COUNT)); omitted
+    when None (byte-stable)."""
 
     counter_kind: CounterKind
     filter: Filter
+    count: Quantity | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.counter_kind, CounterKind):
@@ -1111,6 +1150,11 @@ class CounterPlacedEvent:
         if not _is_filter(self.filter):
             raise ValueError(
                 f"CounterPlacedEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+        if self.count is not None and not _is_quantity(self.count):
+            raise ValueError(
+                "CounterPlacedEvent: count must be a Quantity or None, got "
+                f"{type(self.count).__name__}"
             )
 
 
@@ -2106,10 +2150,15 @@ class CostModifier:
     life this turn"); None = unconditional. `extra_deltas` (T3 round 4,
     2026-09-24) carries further cost deltas beyond the single `delta` slot
     (Stormwing Entity's {2}{U} = generic 2 + 1 blue); empty = single delta
-    only — the additive-slot pattern of Selector.zone/Selector.zones."""
+    only — the additive-slot pattern of Selector.zone/Selector.zones.
+    `controller_ref` widened (grammar round 5, R5-3) to
+    ``ControllerRef | Selector``: convention C7 — a Selector means the
+    controller of the selected object, and the modifier applies to costs
+    that controller pays FOR the filtered object (Lofty Denial: the {1} of
+    s1 becomes {4} under the condition, including `unless` payments)."""
 
     filter: Filter
-    controller_ref: ControllerRef
+    controller_ref: ControllerRef | Selector
     delta: CostDelta
     condition: Filter | None = None
     extra_deltas: tuple[CostDelta, ...] = ()
@@ -2119,10 +2168,10 @@ class CostModifier:
             raise ValueError(
                 f"CostModifier: filter must be a Filter, got {type(self.filter).__name__}"
             )
-        if not isinstance(self.controller_ref, ControllerRef):
+        if not isinstance(self.controller_ref, (ControllerRef, Selector)):
             raise ValueError(
-                "CostModifier: controller_ref must be a ControllerRef, got "
-                f"{type(self.controller_ref).__name__}"
+                "CostModifier: controller_ref must be a ControllerRef or a "
+                f"Selector, got {type(self.controller_ref).__name__}"
             )
         if not _is_cost_delta(self.delta):
             raise ValueError(
@@ -2505,6 +2554,22 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
         frozenset({"from_zone", "to_zone", "who"}),
         frozenset({"from_zone", "to_zone", "who"}),
     ),
+    # WAS_CAST_THIS_TURN (grammar round 5, R5-1): "[the object] was cast this
+    # turn (by who)" — Containment Priest. who = the controller who cast it
+    # (a referent Selector is legal — round 4); no zone slot (the predicate is
+    # zone-agnostic, unlike CAST_THIS_TURN_FROM).
+    FAtomPred.WAS_CAST_THIS_TURN: (
+        frozenset({"who"}),
+        frozenset({"who"}),
+    ),
+    # NOT_FIRST_DRAW_THIS_STEP (grammar round 5, R5-4): "not the first card
+    # who draws in their draw step" — Teferi's Ageless Insight. who = the
+    # player drawing (a referent Selector is legal — round 4); evaluated
+    # against the drawn card (the CardDrawnEvent subject).
+    FAtomPred.NOT_FIRST_DRAW_THIS_STEP: (
+        frozenset({"who"}),
+        frozenset({"who"}),
+    ),
 }
 
 # Atom role -> allowed value types. "types" is a tuple of card-type strings
@@ -2812,7 +2877,12 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "DeclareAttackersEvent": (("filter", "filter"),),
     "DeclareBlockersEvent": (("filter", "filter"), ("subject", "opt:filter")),
     "CombatDamageEvent": (("filter", "filter"),),
-    "CounterPlacedEvent": (("counter_kind", "enum:CounterKind"), ("filter", "filter")),
+    "CounterPlacedEvent": (
+        ("counter_kind", "enum:CounterKind"),
+        ("filter", "filter"),
+        # count (grammar round 5, R5-2): the number placed; omitted when None.
+        ("count", "opt:quantity"),
+    ),
     "CreatureDiesEvent": (("filter", "filter"),),
     "BecomesBlockedEvent": (("filter", "filter"),),
     "TapStateEvent": (("tapped", "bool"), ("filter", "filter")),
@@ -2906,7 +2976,9 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "CostModifier": (
         ("filter", "filter"),
-        ("controller_ref", "enum:ControllerRef"),
+        # controller_ref (grammar round 5, R5-3): ControllerRef, OR a
+        # Selector (the controller of the selected object — convention C7).
+        ("controller_ref", "controller_ref_or_selector"),
         ("delta", "cost_delta"),
         ("condition", "opt:filter"),
         ("extra_deltas", "tup:cost_delta"),
@@ -3070,6 +3142,8 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     ),
     # ordinal (grammar round 4): omit when None.
     "CardDrawnEvent": frozenset({"ordinal"}),
+    # count (grammar round 5, R5-2): omit when None.
+    "CounterPlacedEvent": frozenset({"count"}),
     # zone/from_zone/to_zone (grammar round 4, R4-4): omit when None. Every
     # pre-round-4 FAtom serializes byte-identical because these three keys
     # are absent (the pre-existing null/[] slots still serialize as before).
@@ -3163,10 +3237,15 @@ def _decode(conv: str, d: Any) -> Any:
             )
         return d
     if conv == "controller_ref_or_selector":
-        # FAtom.who (grammar round 4, object anaphora): a ControllerRef
-        # tagged dict, OR a Selector tagged dict (the referent selector).
+        # Shared by FAtom.who (grammar round 4, object anaphora) and
+        # CostModifier.controller_ref (grammar round 5, R5-3): a
+        # ControllerRef tagged dict, OR a Selector tagged dict (the
+        # referent selector — convention C7: the controller of the
+        # selected object).
         if isinstance(d, dict) and d.get("tag") == "Selector":
-            return _decode_union(d, frozenset({"Selector"}), "FAtom who selector")
+            return _decode_union(
+                d, frozenset({"Selector"}), "controller_ref/who selector"
+            )
         return _decode("enum:ControllerRef", d)
     if conv == "counter_placement":
         # an EtBState counter entry: [CounterKind, Quantity]
