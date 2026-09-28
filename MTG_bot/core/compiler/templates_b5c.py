@@ -1,16 +1,19 @@
-"""B5c bucket templates — 76 templates covering 77 of 90 B5c shapes.
+"""B5c bucket templates — 84 templates covering 86 of 90 B5c shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B5c.json`` (90 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (90 normalized keys = 76 covered + 14 uncovered; 91 concrete
-sentences = 77 covered + 14 uncovered; ``• You gain N life.`` has two
-concrete variants both covered by one template):
+Coverage (90 normalized keys = 86 covered + 4 uncovered; 91 concrete
+sentences = 87 covered + 4 uncovered; ``• You gain N life.`` has two
+concrete variants both covered by one template; the round-8-C emblem
+marker template covers three ``[−N]: You get an emblem with "…"``
+shapes — C19 keeps the quoted text out of the IR, the card-level
+emblem attach is the payload):
 
-- **77 covered shapes** (76 unique tids; the gain-life template covers two
-  concrete variants):
+- **86 covered shapes** (84 unique tids; the gain-life template covers two
+  concrete variants, the emblem marker covers three):
   keyword reminders (Trample, Vigilance, Vigilance+lifelink,
   Vigilance+protection, Vigilance+reach+trample), then-continuation
   effects, static P/T grants, activated cost/loyalty abilities,
@@ -22,9 +25,13 @@ concrete variants both covered by one template):
   loyalty turn-scoped trigger grant (Basri [−1] — GRANT_ABILITY with
   DurationEot wrapping a TriggeredAbility, round-4 convention C3; "it" =
   the attacker via the event referent).
-- **14 uncovered shapes** — no grammar construct exists (anaphoric targets,
-  conditional Then-continuations, cost reduction, turn-scoped
-  triggers, emblems, coin-flip).  Recorded in UNCOVERED.
+- **4 uncovered shapes** — no grammar construct exists (untap-step
+  prevention, embedded replacement text, Subira's delayed trigger inside
+  an activation-cost grant).  Recorded in UNCOVERED.  Round-8-C landed
+  the emblem markers, Basri's attack-token grant, the Catalyst/HoF
+  cast-play permissions (CAST cost-waiver idiom) and the Sanctum
+  activation-cost reducer; the r7-B no-grammar top-ups (flip-cost,
+  then-if-lands, damage-equal-power) are counted here too.
 
 Conventions (documented build decisions):
 
@@ -67,11 +74,13 @@ from MTG_bot.core.ability_tree import (
     Conditional,
     ControllerRef,
     Cost,
+    CostDeltaReduceGeneric,
     CostDiscard,
     CostLife,
     CostLoyalty,
     CostManaColor,
     CostManaGeneric,
+    CostModifier,
     CostPutCounter,
     CostSacrifice,
     CostTap,
@@ -2283,6 +2292,224 @@ def _build_then_it_fights_up_to_one(m: re.Match[str]) -> SentenceOutcome:
     return EffectOutcome(effect=atom)
 
 
+# ---------------------------------------------------------------------------
+# Grammar round-8-C coverage batch builders (doc 2026-09-28/08 §8-C)
+# ---------------------------------------------------------------------------
+
+
+def _build_get_emblem(m: re.Match[str]) -> SentenceOutcome:
+    """``[−N]: You get an emblem with "…".`` (Basri Ket / Liliana, Waker of
+    the Dead / Garruk, Unleashed — ONE template for all three, C19).
+
+    Verb.GET_EMBLEM (R8-7) is a ROLE-LESS MARKER: the quoted inner text
+    NEVER enters the ability IR — the emblem's own abilities are the
+    payload via the card-level emblem attach (compile_pool two-pass,
+    compiler.py L1374+; all three emblems already attach today — the
+    [−N] rows were the last missing piece).  Mirrors the FLIP_COIN
+    role-less row exactly.  Executor deferred per the MANDATE_ATTACK /
+    FIGHT orphan precedent (PC-6 unaffected: the verb is consumed, the
+    attach is compile-pool state).
+
+    C16: none — fully forced (the emblem is granted; its inner decisions
+    live in the attached emblem's own compiled tree)."""
+    return _loyalty_wrapper(Atom(verb=Verb.GET_EMBLEM, args=AtomArgs(pairs=())), m)
+
+
+def _build_loyalty_soldier_attack_tokens(m: re.Match[str]) -> SentenceOutcome:
+    """``[−2]: Whenever one or more nontoken creatures attack this turn,
+    create that many 1/1 white Soldier creature tokens that are tapped and
+    attacking.`` (Basri Ket) — the round-4 C3 turn-scoped-trigger-grant
+    convention (_build_loyalty_basri_attack_counter precedent):
+    GRANT_ABILITY(target=self, ability=TriggeredAbility(...),
+    duration=DurationEot), so the loyalty PAY decision stays the single
+    activation vertex and the trigger fires once per attack declaration.
+
+    Filter: FAnd(Creature, FNot(IS_TOKEN)) — "nontoken" via the Gadrak
+    FAtomPred.IS_TOKEN (FNot precedent: b2b 'another' →
+    FNot(IS_SOURCE)); the nontoken condition also blocks the self-feed
+    the created tokens would otherwise cause.  "one or more" is intrinsic
+    to a filtered event firing (every qualifying declaration event
+    satisfies ≥1) — no quantity collapse; the token count stays OPEN via
+    QProp(event, THAT_MANY_COUNT) (R7-5).
+    TokenSpec carries color="W" (R8-2) + enters_tapped/enters_attacking
+    True (R8-4, the C-2 repair this row was the pool case for).
+    C16: open — the [−2] loyalty activation, and each attack event's
+    attacker set (board-dynamic "that many")."""
+    p = int(m.group("p"))
+    t = int(m.group("t"))
+    atom = Atom(
+        verb=Verb.GRANT_ABILITY,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    _self_selector(
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU)
+                    ),
+                ),
+                (
+                    "ability",
+                    TriggeredAbility(
+                        event=DeclareAttackersEvent(
+                            filter=FAnd(
+                                children=(
+                                    FAtom(
+                                        pred=FAtomPred.TYPE_EQ, string_value="Creature"
+                                    ),
+                                    FNot(inner=FAtom(pred=FAtomPred.IS_TOKEN)),
+                                )
+                            )
+                        ),
+                        condition=None,
+                        effect=Atom(
+                            verb=Verb.CREATE_TOKEN,
+                            args=AtomArgs(
+                                pairs=(
+                                    (
+                                        "tokens",
+                                        TokenSpec(
+                                            name="Soldier",
+                                            type_line="Creature — Soldier",
+                                            types=("Creature",),
+                                            subtypes=("Soldier",),
+                                            power=QConst(p),
+                                            toughness=QConst(t),
+                                            keywords=(),
+                                            abilities=(),
+                                            color="W",
+                                            enters_tapped=True,
+                                            enters_attacking=True,
+                                        ),
+                                    ),
+                                    (
+                                        "count",
+                                        QProp(
+                                            referent="event",
+                                            field=QPropField.THAT_MANY_COUNT,
+                                        ),
+                                    ),
+                                )
+                            ),
+                        ),
+                    ),
+                ),
+                ("duration", DurationEot()),
+            )
+        ),
+    )
+    return _loyalty_wrapper(atom, m)
+
+
+def _build_waive_cast_from_hand(m: re.Match[str]) -> SentenceOutcome:
+    """``Until end of turn, you may cast spells from your hand without
+    paying their mana costs.`` (Chandra, Flame's Catalyst [−8] s2).
+
+    House permission idiom (B4-cast-goblin-top-library): empty-cost
+    ActivatedAbility carrying OptionalEffect(CAST) — "may" stays the
+    open decision (C15), "which card" stays open via the CHOOSE selector
+    over your hand (QUnbounded — any number).  The mana waiver is the
+    CAST atom's ``cost`` role = Cost(parts=()) — the established empty-
+    cost waiver reading (B5c-loyalty-may-cast-graveyard precedent; the
+    b3 UNCOVERED note calls it out explicitly).
+    Lossy (C11 class, verbatim): "Until end of turn" — CAST/optional-cast
+    have no duration role (R9 grammar item: CAST duration role).
+    Assembly note: non-continuation second sentence of the [−8]
+    activation; the empty-cost ActivatedAbility assembles as a sibling
+    node (r7-B deviation-2 class, executor association note).
+    C16: open — whether to cast, which cards, how many."""
+    atom = Atom(
+        verb=Verb.CAST,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "source",
+                    Selector(
+                        QUnbounded(),
+                        SelectorMode.CHOOSE,
+                        FAnd(children=()),
+                        Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),
+                    ),
+                ),
+                ("cost", Cost(parts=())),
+            )
+        ),
+    )
+    return AbilityOutcome(
+        ability=ActivatedAbility(cost=Cost(), effect=OptionalEffect(inner=atom))
+    )
+
+
+def _build_play_cards_exiled_this_way(m: re.Match[str]) -> SentenceOutcome:
+    """``Until end of turn, you may play cards exiled this way.`` (Chandra,
+    Heart of Fire [+1] s2) — same empty-cost ActivatedAbility +
+    OptionalEffect(CAST) permission idiom, source scoped by
+    FAtomPred.IS_EXILED_WITH_SOURCE (R8-6: "exiled by this ability's
+    source" — HoF's own top-three exile; HoF exiles from HER library,
+    so Zone(EXILE, YOU) is the printed zone).
+
+    Lossy (C11 class, verbatim): "play" covers lands too, CAST is the
+    only from-zone permission verb (R9 item: PLAY-from-zone, or a land
+    role on CAST); "Until end of turn" — no CAST duration role.
+    C16: open — whether to play, which exiled cards, how many."""
+    atom = Atom(
+        verb=Verb.CAST,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "source",
+                    Selector(
+                        QUnbounded(),
+                        SelectorMode.CHOOSE,
+                        FAtom(pred=FAtomPred.IS_EXILED_WITH_SOURCE),
+                        Zone(kind=ZoneKind.EXILE, controller=ControllerRef.YOU),
+                    ),
+                ),
+                ("cost", Cost(parts=())),
+            )
+        ),
+    )
+    return AbilityOutcome(
+        ability=ActivatedAbility(cost=Cost(), effect=OptionalEffect(inner=atom))
+    )
+
+
+def _build_shrine_activation_cost_reduction(m: re.Match[str]) -> SentenceOutcome:
+    """``This ability costs {1} less to activate for each Shrine you
+    control.`` (Sanctum of Tranquil Light) — CostModifier sibling node
+    (T3 round K, b4 precedent _build_total_power_cost_modifier):
+    filter=IS_SOURCE (the printed "This ability" anchor object — the
+    source card), delta=CostDeltaReduceGeneric(QBin(MUL, {N},
+    QCount(Shrine-you-control))) — the "for each X" multiplication,
+    Shrine count via the b2a ``NAME_EQ "Shrine"`` precedent (M21 Shrines
+    carry the Shrine supertype name in NAME_EQ position).
+
+    Lossy (verbatim): "to activate" — CostModifier's filter vocabulary
+    is spell/permanent-scoped, the sibling node's adjacency to the {5}{W}
+    activation is the binding signal for the executor (R9 item: ability-
+    scope filter for CostModifier).
+    C16: none — board-conditioned amount, fully forced."""
+    n = int(m.group("n"))
+    modifier = CostModifier(
+        filter=FAtom(pred=FAtomPred.IS_SOURCE),
+        controller_ref=ControllerRef.YOU,
+        delta=CostDeltaReduceGeneric(
+            amount=QBin(
+                op=QBinOp.MUL,
+                left=QConst(n),
+                right=QCount(
+                    Selector(
+                        QUnbounded(),
+                        SelectorMode.ALL,
+                        FAtom(pred=FAtomPred.NAME_EQ, string_value="Shrine"),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+                    )
+                ),
+            )
+        ),
+    )
+    return AbilityOutcome(ability=modifier)
+
+
 TEMPLATES: tuple[Template, ...] = (
     # --- MISC (13) ---
     Template(
@@ -3065,8 +3292,64 @@ TEMPLATES: tuple[Template, ...] = (
             r"^Then that creature deals damage equal to its power to target "
             r"creature you don't control\.$"
         ),
-        priority=100,
+        priority=_PRIORITY,
         build=_build_then_that_creature_damage_power,
+    ),
+    # --- grammar round-8-C coverage batch (doc 2026-09-28/08 §8-C) ---
+    Template(
+        tid="B5c-get-emblem",
+        name="loyalty: you get an emblem with (marker, C19)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r'^\[(?P<loy>\+\d+|\u2212\d+)\]: You get an emblem with ".+$'
+        ),
+        priority=_PRIORITY,
+        build=_build_get_emblem,
+    ),
+    Template(
+        tid="B5c-loyalty-soldier-attack-tokens",
+        name="loyalty: nontoken attackers this turn make that many tapped/attacking Soldier tokens (Basri Ket)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^\[(?P<loy>\+\d+|\u2212\d+)\]: Whenever one or more nontoken "
+            r"creatures attack this turn, create that many (?P<p>\d+)/"
+            r"(?P<t>\d+) white Soldier creature tokens that are tapped "
+            r"and attacking\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_loyalty_soldier_attack_tokens,
+    ),
+    Template(
+        tid="B5c-waive-cast-from-hand",
+        name="until end of turn, cast spells from hand without paying mana costs (Catalyst)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Until end of turn, you may cast spells from your hand "
+            r"without paying their mana costs\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_waive_cast_from_hand,
+    ),
+    Template(
+        tid="B5c-play-cards-exiled-this-way",
+        name="until end of turn, play cards exiled this way (Heart of Fire)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Until end of turn, you may play cards exiled this way\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_play_cards_exiled_this_way,
+    ),
+    Template(
+        tid="B5c-shrine-activation-cost",
+        name="this ability costs N less to activate for each Shrine you control",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^This ability costs \{(?P<n>\d+)\} less to activate for each "
+            r"Shrine you control\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_shrine_activation_cost_reduction,
     ),
 )
 
@@ -3077,20 +3360,8 @@ TEMPLATES: tuple[Template, ...] = (
 
 UNCOVERED: tuple[tuple[str, str], ...] = (
     (
-        "This ability costs {N} less to activate for each Shrine you control.",
-        "No activation-cost reduction construct",
-    ),
-    (
         "Those creatures don't untap during their controller's next untap step.",
         "No turn-scoped untap prevention",
-    ),
-    (
-        "Until end of turn, you may cast spells from your hand without paying their mana costs.",
-        "No mana-cost waiver grant",
-    ),
-    (
-        "Until end of turn, you may play cards exiled this way.",
-        "No 'play cards exiled this way' grant",
     ),
     (
         "Until the end of your next turn, they can't phase in.",
@@ -3101,23 +3372,7 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
         "No embedded replacement ability text",
     ),
     (
-        "[−N]: Whenever one or more nontoken creatures attack this turn, create that many N/N white Soldier creature tokens that are tapped and attacking.",
-        "No triggered ability with attack-count token creation",
-    ),
-    (
-        '[−N]: You get an emblem with "At the beginning of combat on your turn, create a N/N white Soldier creature token, then put a +N/+N counter on each creature you control."',
-        "No emblem with embedded trigger",
-    ),
-    (
-        '[−N]: You get an emblem with "At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control.',
-        "No emblem with embedded triggered ability",
-    ),
-    (
-        '[−N]: You get an emblem with "At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle."',
-        "No emblem with embedded end-step search trigger",
-    ),
-    (
         "{N}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power N or less deals combat damage to a player, draw a card.",
-        "No turn-scoped combat-damage trigger grant",
+        "No turn-scoped combat-damage trigger grant (R9: delayed-trigger-in-duration — same family re-examined for Basri [−2] in 8-C, landed there via the round-4 C3 self-grant convention; Subira's activation-cost opener keeps the row open)",
     ),
 )

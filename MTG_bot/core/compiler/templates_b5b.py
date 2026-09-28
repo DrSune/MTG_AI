@@ -1,13 +1,13 @@
-"""B5b bucket templates — 62 templates covering 69 of 90 B5b shapes.
+"""B5b bucket templates — 75 templates covering 84 of 90 B5b shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B5b.json`` (90 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (90 = 69 template + 0 rule-reminder + 21 uncovered):
+Coverage (90 = 84 template + 0 rule-reminder + 6 uncovered):
 
-- **69 template-covered shapes** (62 templates: 57 single-shape tids +
+- **84 template-covered shapes** (75 templates: 57 single-shape tids +
   5 multi-shape normalized tids — put-counter ×3, return-cards-hand ×2,
   named-damage ×2, it-gains-kw-eot ×3, if-it-type-then ×2;
   ``B5b-modpt-plus`` is one shape with two concrete rows):
@@ -32,14 +32,20 @@ Coverage (90 = 69 template + 0 rule-reminder + 21 uncovered):
   search-by-name → per-exile-token chain, ONE_OF/REST split moves
   (Waker of Waves, See the Truth, Garruk's Harbinger, Cultivate), the
   cast-elsewhere Conditional, LOSE_ABILITY (Soul Sear) and
-  GAIN_CONTROL's new duration role (Traitorous Greed).
+  GAIN_CONTROL's new duration role (Traitorous Greed) and the grammar
+  round-8-C coverage batch (doc 2026-09-28/08 §8-C): Scavenging Ooze's
+  C18 was-type Conditional, Peer into the Abyss's round-up-half library
+  draw (+ the rounding-directive marker row), Invigorating Surge's
+  counter-doubling (QProp COUNTER_COUNT referent=target, R8-11), Garruk
+  Unleashed's CONTROLLER_COUNT_GT loyalty gate (R8-9) and the
+  ``It gains haste."`` emblem-quote residue marker (C19 — payload lives
+  in the emblem attach).
 - **0 rule-reminder shapes** — no fully-parenthesised sentences in B5b.
-- **21 uncovered shapes** — Transmogrify's reveal-until dig (deferred
-  D14), coin-flip gates, fractional computation, "Its controller …"
-  controller-referent continuations, keyword-list params,
-  rounding/replacement trivia, and the ``It gains haste."`` ingest
-  artifact (class E — stray quote, queue-pinned).
-  Recorded in the test file.
+- **6 uncovered shapes** — Transmogrify's reveal-until dig (deferred
+  D14), Sanctum-of-All additional trigger, Vodalian mana restriction,
+  the Snoop topdeck-revealed state (8-C re-examined and withdrawn: no
+  continuous revealed-zone-state marker), and the search-shuffle
+  boilerplate note.  Recorded in the test file.
 
 Conventions (documented build decisions):
 
@@ -159,6 +165,7 @@ from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     EffectOutcome,
     KeywordOutcome,
+    RuleReminderOutcome,
     SentenceOutcome,
     Template,
 )
@@ -2218,6 +2225,245 @@ def _build_its_controller_loses_life(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
+# Grammar round-8-C coverage batch builders (doc 2026-09-28/08 §8-C)
+# ---------------------------------------------------------------------------
+
+
+def _build_if_was_creature_counter_gain(m: re.Match[str]) -> SentenceOutcome:
+    """``If it was a creature card, put a +1/+1 counter on this creature and
+    you gain 1 life.`` (Scavenging Ooze) — C18 was-check.  FAtom rules
+    keep the referent slot closed to IS_ATTACHED_TO, so the conditional
+    subject is the result register by executor convention (the landed
+    B5b-if-it-type-then precedent, verbatim); the executor SNAPSHOTS the
+    exiled card's printed type at the antecedent event (C18: "was" reads
+    the value-at-antecedent-event — the card's printed type is immutable
+    across zones, so the register subject carries it).  Then-branch is a
+    two-step Seq: PUT_COUNTER on the Ooze itself (B5b self convention
+    CHOOSE/QConst(1)/IS_SOURCE/BATTLEFIELD-ANY) + GAIN_LIFE you 1.
+
+    C16: the counter/gain-life pair is gated on the exiled card's printed
+    type (game state, not a choice); the exile target of s1 stays open
+    there — nothing defaulted here."""
+    counter = Atom(
+        verb=Verb.PUT_COUNTER,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAtom(pred=FAtomPred.IS_SOURCE),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                    ),
+                ),
+                ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                ("count", QConst(1)),
+            )
+        ),
+    )
+    gain = Atom(
+        verb=Verb.GAIN_LIFE,
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                ("amount", QConst(int(m.group("life")))),
+            )
+        ),
+    )
+    return EffectOutcome(
+        effect=Conditional(
+            pred=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+            then_effect=Seq(steps=(counter, gain)),
+        )
+    )
+
+
+def _build_peer_half_library(m: re.Match[str]) -> SentenceOutcome:
+    """``Target player draws cards equal to half the number of cards in
+    their library and loses half their life.`` (Peer into the Abyss s1).
+
+    Draw: DRAW controller=ControllerRef.TARGET_PLAYER, amount = the
+    round-up half of the TARGET player's library — "their" is the spell's
+    player target, so the count rides
+    QCount(Selector(ALL, QUnbounded, universal filter,
+    Zone(LIBRARY, TARGET_PLAYER))), not QProp CARDS_IN_LIBRARY (that
+    field is pinned to the ability controller, QProp validator).
+    Round-up = the closed QBinOp idiom (n + 1) // 2 (QBinOp docstring —
+    "Peer needs NO new op", grammar-round-8 grounding) — the companion
+    row ``Round up each time.`` is consumed as the rounding directive
+    (B5b-peer-round-up-each-time).
+
+    Lossy (C11 class, verbatim): the life-loss half — the grammar has NO
+    life-total quantity (no QPropField.LIFE; QCount counts zone objects,
+    players are not zone objects), so ``loses half their life`` has no
+    expressible amount (R9 grammar item: life-total Quantity field).
+    C16: open — which player is targeted (s1 TARGET selector lives with
+    the covered target-prefix template); both halves are board-dynamic
+    quantities, nothing controller-chosen is defaulted."""
+    library_count = QCount(
+        Selector(
+            QUnbounded(),
+            SelectorMode.ALL,
+            FAnd(children=()),
+            Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.TARGET_PLAYER),
+        )
+    )
+    half_rounded = QBin(
+        op=QBinOp.DIV,
+        left=QBin(op=QBinOp.ADD, left=library_count, right=QConst(1)),
+        right=QConst(2),
+    )
+    return EffectOutcome(
+        effect=Atom(
+            verb=Verb.DRAW,
+            args=AtomArgs(
+                pairs=(
+                    ("controller", ControllerRef.TARGET_PLAYER),
+                    ("amount", half_rounded),
+                )
+            ),
+        )
+    )
+
+
+def _build_peer_round_up_each_time(m: re.Match[str]) -> SentenceOutcome:
+    """``Round up each time.`` (Peer into the Abyss s2) — rounding
+    directive consumed as a RuleReminderOutcome, the landed precedent for
+    anaphoric instruction rows being matched rather than defaulted
+    (B2b-double-vision-new-targets, reason 'anaphoric_continuation').
+    The rounding itself is already the shape of the s1 amount:
+    QBinOp.DIV is floor, round-up-half is (n+1)//2 — the closed-operator
+    idiom (QBinOp docstring), so this row carries no residual payload and
+    must NOT spawn a duplicate draw/lose step.  "each time" = both
+    half-computations of s1 (library draw; the life half is dropped
+    lossy — see _build_peer_half_library).
+    C16: none — computation directive, fully forced."""
+    return RuleReminderOutcome(reason="rounding_directive")
+
+
+def _build_double_counters_on_target(m: re.Match[str]) -> SentenceOutcome:
+    """``Put a +1/+1 counter on target creature you control, then double the
+    number of +1/+1 counters on that creature.`` (Invigorating Surge) —
+    Seq inside the spell's effect: step 1 PUT_COUNTER +1/+1 x1 on the
+    TARGET (B5b convention #63 TARGET selector); step 2 doubles by
+    PUT_COUNTER of QProp(referent="target", field=COUNTER_COUNT) (R8-11 —
+    the counter count of the chosen target): adding the CURRENT count to
+    itself is the doubling, the "that creature" anaphor binds
+    referent="target" (R4 vocabulary, the spell's designation).
+    C16: open — the target creature; the doubled amount is board-dynamic
+    (evaluated at resolution), not a choice."""
+    target = _target_creature_you_control()
+    put_one = Atom(
+        verb=Verb.PUT_COUNTER,
+        args=AtomArgs(
+            pairs=(
+                ("target", target),
+                ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                ("count", QConst(1)),
+            )
+        ),
+    )
+    double_up = Atom(
+        verb=Verb.PUT_COUNTER,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                        Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+                        referent="target",
+                    ),
+                ),
+                ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                (
+                    "count",
+                    QProp(referent="target", field=QPropField.COUNTER_COUNT),
+                ),
+            )
+        ),
+    )
+    return EffectOutcome(effect=Seq(steps=(put_one, double_up)))
+
+
+def _build_then_if_opponent_more_creatures(m: re.Match[str]) -> SentenceOutcome:
+    """``Then if an opponent controls more creatures than you, put a loyalty
+    counter on Garruk.`` (Garruk, Unleashed [−2] s2) — "Then " continuation
+    merged into the [−2] ActivatedAbility;
+    Conditional(CONTROLLER_COUNT_GT) — R8-9 dual-filter comparison:
+    inner_filter counts creatures an OPPONENT controls (FAnd TYPE_EQ
+    Creature + CONTROLLER_IS who=OPPONENT, the Nine Lives flipped shape),
+    right_inner_filter counts YOUR creatures; both slots REQUIRED by the
+    predicate's role entry.  "an opponent" = ControllerRef.OPPONENT (the
+    per-opponent reading — the executor evaluates each rival, C13-
+    adjacent, documented).  Then-branch: PUT_COUNTER LOYALTY (the
+    CounterKind exists since T3, Pestilent Haze) x1 on Garruk = the
+    ability's SOURCE object (IS_SOURCE CHOOSE selector, B5b self
+    convention).
+    C16: none new — board comparison gate, forced counter."""
+    gated = Conditional(
+        pred=FAtom(
+            pred=FAtomPred.CONTROLLER_COUNT_GT,
+            inner_filter=FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
+                )
+            ),
+            right_inner_filter=FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                )
+            ),
+        ),
+        then_effect=Atom(
+            verb=Verb.PUT_COUNTER,
+            args=AtomArgs(
+                pairs=(
+                    (
+                        "target",
+                        Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            FAtom(pred=FAtomPred.IS_SOURCE),
+                            Zone(
+                                kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU
+                            ),
+                        ),
+                    ),
+                    ("counter_kind", CounterKind.LOYALTY),
+                    ("count", QConst(1)),
+                )
+            ),
+        ),
+    )
+    return EffectOutcome(effect=gated)
+
+
+def _build_it_gains_haste_emblem_residue(m: re.Match[str]) -> SentenceOutcome:
+    """``It gains haste."`` (Liliana, Waker of the Dead — trailing-quote
+    ingest artifact: the second sentence of the [−7]'s QUOTED emblem text,
+    sentence-splitter residue; class E in the module header, queue-pinned
+    since r7-A).
+
+    Consumed as a RuleReminderOutcome (B2b-double-vision precedent).
+    C19 binds: the quoted emblem text NEVER enters the row's payload —
+    the haste grant is already compiled INSIDE the attached emblem
+    CardRecord by ``B5b-it-gains-haste`` (verified: the landed Liliana
+    golden's emblem carries the two-ability trigger with the grant).
+    Re-granting at the planeswalker's card level would DUPLICATE the
+    payload outside the emblem the text belongs to — the marker row is
+    the C19-honest consumption (Double Vision class: semantics live
+    elsewhere in the tree).
+    C16: none — payload lives in the emblem attach."""
+    return RuleReminderOutcome(reason="emblem_text_payload_attached")
+
+
+# ---------------------------------------------------------------------------
 # Template registry
 # ---------------------------------------------------------------------------
 
@@ -2925,6 +3171,68 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_its_controller_loses_life,
     ),
+    # --- grammar round-8-C coverage batch (doc 2026-09-28/08 §8-C) ---
+    Template(
+        tid="B5b-if-was-creature-counter-gain",
+        name="if it was a creature card, counter + gain life (C18 result TYPE_EQ)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^If it was a creature card, put a \+\d+/\+\d+ counter on this "
+            r"creature and you gain (?P<life>\d+) life\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_if_was_creature_counter_gain,
+    ),
+    Template(
+        tid="B5b-peer-half-library",
+        name="target player draws round-up half their library (Peer; life-half lossy)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Target player draws cards equal to half the number of cards "
+            r"in their library and loses half their life\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_peer_half_library,
+    ),
+    Template(
+        tid="B5b-peer-round-up-each-time",
+        name="round up each time (rounding directive consumed by s1 (n+1)//2)",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^Round up each time\.$"),
+        priority=_PRIORITY,
+        build=_build_peer_round_up_each_time,
+    ),
+    Template(
+        tid="B5b-double-counters-target",
+        name="counter target, then double its counters (COUNTER_COUNT referent-target)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Put a \+\d+/\+\d+ counter on target creature you control, "
+            r"then double the number of \+\d+/\+\d+ counters on that "
+            r"creature\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_double_counters_on_target,
+    ),
+    Template(
+        tid="B5b-then-if-opponent-more-creatures",
+        name="then if an opponent controls more creatures than you, loyalty counter (CONTROLLER_COUNT_GT)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Then if an opponent controls more creatures than you, put a "
+            r"loyalty counter on Garruk\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_then_if_opponent_more_creatures,
+    ),
+    Template(
+        tid="B5b-gains-haste-emblem-residue",
+        name='it gains haste." (emblem-quote residue marker, C19)',
+        bucket=_BUCKET,
+        pattern=re.compile(r'^It gains haste\."$'),
+        priority=_PRIORITY,
+        build=_build_it_gains_haste_emblem_residue,
+    ),
 )
 
 UNCOVERED: tuple[tuple[str, str], ...] = (
@@ -2933,36 +3241,16 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
         "Additional trigger with shrine-count gate",
     ),
     (
-        "If it was a creature card, put a +N/+N counter on this creature and you gain N life.",
-        "Conditional counter-and-gain-life with anaphoric 'it'",
-    ),
-    (
         "If you search your library this way, shuffle.",
         "Conditional shuffle on library-search trigger",
     ),
     (
-        'It gains haste."',
-        "Anaphoric 'It' keyword grant with trailing quote",
-    ),
-    (
         "Play with the top card of your library revealed.",
-        "No top-card-revealed-play-state grammar construct",
-    ),
-    (
-        "Put a +N/+N counter on target creature you control, then double the number of +N/+N counters on that creature.",
-        "Counter-placement with follow-up doubling (multi-step counter)",
-    ),
-    (
-        "Round up each time.",
-        "Anaphoric 'each time' rounding instruction",
+        "No top-card-revealed-play-state grammar construct (8-C re-examined: REVEAL is an event verb (controller+count roles), no continuous zone-state marker exists; R9 grammar item — continuous revealed-zone-state)",
     ),
     (
         "Spend this mana only to cast an instant or sorcery spell.",
         "No mana-restriction grammar construct",
-    ),
-    (
-        "Target player draws cards equal to half the number of cards in their library and loses half their life.",
-        "Half-library draw with half-life loss (fractional computation)",
     ),
     (
         "That creature's controller reveals cards from the top of their library until they reveal a creature card.",
@@ -2971,9 +3259,5 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         "That player puts that card onto the battlefield, then shuffles the rest into their library.",
         "Anaphoric zone-move with shuffle-remainder (modal continuation)",
-    ),
-    (
-        "Then if an opponent controls more creatures than you, put a loyalty counter on Garruk.",
-        "Conditional loyalty-counter with opponent-creature-count gate",
     ),
 )

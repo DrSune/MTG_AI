@@ -1,13 +1,13 @@
-"""B4 bucket templates — 34 templates covering 34 of 47 B4 shapes.
+"""B4 bucket templates — 43 templates covering 43 of 47 B4 shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B4.json`` (47 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (47 = 34 template + 13 uncovered):
+Coverage (47 = 43 template + 4 uncovered):
 
-- **34 template-covered shapes**: static P/T grants (self, creatures you
+- **43 template-covered shapes**: static P/T grants (self, creatures you
   control, other creatures, opponents' creatures), static keyword grants
   (trample, lifelink, protection), PREVENT_EFFECT (can't block),
   PREVENT_EFFECT blocked-side (can't be blocked as long as drawn —
@@ -25,10 +25,13 @@ Coverage (47 = 34 template + 13 uncovered):
    ACTIVATED_ABILITY (cast from top of library, graveyard recast with
    additional cost), TUTOR (name-specific library/graveyard search for
    Basri / Liliana).
-- **13 uncovered shapes**: no grammar construct exists (damage-based cost
-  reduction without MODIFY_COST, per-event repeated statics, targeting
-  restriction, chosen-name anaphora, complex You may constructs,
-  mana-color flooding).  Recorded in UNCOVERED.
+- **4 uncovered shapes**: no grammar construct exists (targeting
+  restriction, copy-retarget anaphora, Teferi's loyalty-activation
+  permission, F-MANA mana-color flooding — owner-deferred R9).  The
+  round-8-C batch landed the cast-them-this-turn register hop, the
+  Radha two-permission sentence, Furious Rise's play-that-card, Azusa's
+  ADD_LAND_PLAY and the QThisTurn(NONCOMBAT_DAMAGE) cost reducer.
+  Recorded in UNCOVERED.
 
 Conventions:
 - Static abilities on permanents → ``AbilityOutcome(StaticAbility(...))``
@@ -67,6 +70,7 @@ from MTG_bot.core.ability_tree import (
     CounterKind,
     DeclareBlockersEvent,
     DurationEot,
+    DurationPermanent,
     DurationWhileCondition,
     EtBState,
     FAnd,
@@ -87,11 +91,14 @@ from MTG_bot.core.ability_tree import (
     QCount,
     QProp,
     QPropField,
+    QThisTurn,
+    Quantity,
     QUnbounded,
     Selector,
     SelectorMode,
     Seq,
     StaticAbility,
+    ThisTurnKind,
     TriggeredAbility,
     Verb,
     Zone,
@@ -1083,6 +1090,195 @@ def _build_reveal_one_from_among(m: re.Match[str]) -> SentenceOutcome:
 # Template definitions
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Grammar round-8-C coverage batch builders (doc 2026-09-28/08 §8-C)
+# ---------------------------------------------------------------------------
+
+
+def _result_register_selector(count: Quantity) -> Selector:
+    """Neutral-zone CHOOSE selector bound to the ability's result register
+    (C2 convention: mode CHOOSE + the neutral Zone(ANY, ANY) + the
+    structured referent string).  ``count`` is QConst(1) for a singular
+    "that card" and QUnbounded() for a plural "them" — the register holds
+    whatever the previous sentence produced, the controller then picks
+    any number of them (HoF's "You may cast them this turn")."""
+    return Selector(
+        count,
+        SelectorMode.CHOOSE,
+        FAnd(children=()),
+        Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+        referent="result",
+    )
+
+
+def _build_cast_them_this_turn(m: re.Match[str]) -> SentenceOutcome:
+    """``You may cast them this turn.`` (Chandra, Heart of Fire [−9] s3 —
+    the anaphoric follow-on to "…exile them, then shuffle").
+
+    Permission idiom (B4-cast-goblin-top-library): empty-cost
+    ActivatedAbility + OptionalEffect(CAST).  "them" = the cards the [−9]
+    search exiled — the result register (R7-1/R7-5, C12 structured
+    referent).  C2 pins the referent selector to CHOOSE + QConst(1) +
+    the neutral zone (Selector.__post_init__ validates), so the register
+    selector carries QConst(1) like every landed referent row (See the
+    Truth's cast-elsewhere row for the same plural anaphor); casting more
+    than one exiled card is an executor-side reading of the register,
+    not a count the IR may vary (documented, not defaulted).  Mana
+    waiver via the CAST atom's cost role = Cost(parts=()) (the
+    established empty-cost waiver reading, see the b3 UNCOVERED note).
+    Lossy (C11 class, verbatim): "this turn" — CAST has no duration role
+    (R9 grammar item: CAST duration role).
+    Assembly note: the [−9]'s third sentence; the empty-cost
+    ActivatedAbility assembles as a sibling node (r7-B deviation-2
+    class — the register hop is executor-side association).
+    C16: open — whether to cast, which of the exiled cards."""
+    atom = Atom(
+        verb=Verb.CAST,
+        args=AtomArgs(
+            pairs=(
+                ("source", _result_register_selector(QConst(1))),
+                ("cost", Cost(parts=())),
+            )
+        ),
+    )
+    return AbilityOutcome(
+        ability=ActivatedAbility(cost=Cost(), effect=OptionalEffect(inner=atom))
+    )
+
+
+def _build_look_and_play_top_of_library(m: re.Match[str]) -> SentenceOutcome:
+    """``You may look at the top card of your library any time, and you may
+    play lands from the top of your library.`` (Radha, Heart of Keld) —
+    TWO permissions in one sentence (the compiler splits sentences on ". "
+    only, never ", and ", so one template emits both).  The empty-cost
+    ActivatedAbility effect is a Seq of TWO sibling OptionalEffect steps
+    — LOOK_AT and top-land CAST — keeping BOTH may-decisions open (C15:
+    Optional(Seq(a, b)) would fuse them into one decision; Seq of
+    Optionals keeps two independent vertices, the same shape the default
+    continuation merge uses for "do X. You may do Y").
+    LOOK_AT carries no zone role — the B2b precedent (Sasaya) notes
+    "LOOK_AT implicitly looks at the top of the library"; count=1 = "the
+    top card".  "any time" is the static permission reading (the
+    empty-cost ActivatedAbility idiom).
+    Lossy (C11 class, verbatim): lands are PLAYED, not cast — CAST is the
+    only from-zone permission verb (ADD_LAND_PLAY is the additional-drop
+    count, not a from-zone play); same note as the HoF row.
+    C16: open — whether to look, whether to play the top land."""
+    look = OptionalEffect(
+        inner=Atom(
+            verb=Verb.LOOK_AT,
+            args=AtomArgs(
+                pairs=(
+                    ("controller", ControllerRef.YOU),
+                    ("count", QConst(1)),
+                )
+            ),
+        )
+    )
+    play_top = OptionalEffect(
+        inner=Atom(
+            verb=Verb.CAST,
+            args=AtomArgs(
+                pairs=(
+                    (
+                        "source",
+                        Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land"),
+                            Zone(
+                                kind=ZoneKind.LIBRARY,
+                                controller=ControllerRef.YOU,
+                                position=ZonePosition.TOP,
+                            ),
+                        ),
+                    ),
+                )
+            ),
+        )
+    )
+    return AbilityOutcome(
+        ability=ActivatedAbility(cost=Cost(), effect=Seq(steps=(look, play_top)))
+    )
+
+
+def _build_play_that_card_until(m: re.Match[str]) -> SentenceOutcome:
+    """``You may play that card until you exile another card with this
+    enchantment.`` (Furious Rise s2) — OptionalEffect(CAST) over the
+    result register (QConst(1): "that card" singular — the end-step exile
+    of s1).
+    Lossy (C11 class, verbatim): "until you exile another card with this
+    enchantment" — the Duration vocabulary has no until-the-next-event
+    variant (DurationUntilLeaves is leaves-the-battlefield only,
+    DurationWhileCondition is a state predicate) — the window is dropped
+    (R9 grammar item: until-next-event duration).  CAST-for-play as in
+    the Radha/HoF rows.
+    Assembly note: s2 of the end-step trigger; the empty-cost
+    ActivatedAbility assembles as a sibling node (r7-B deviation-2).
+    C16: open — whether to play the exiled card."""
+    atom = Atom(
+        verb=Verb.CAST,
+        args=AtomArgs(pairs=(("source", _result_register_selector(QConst(1))),)),
+    )
+    return AbilityOutcome(
+        ability=ActivatedAbility(cost=Cost(), effect=OptionalEffect(inner=atom))
+    )
+
+
+def _build_azusa_extra_land_plays(m: re.Match[str]) -> SentenceOutcome:
+    """``You may play two additional lands on each of your turns.`` (Azusa,
+    Lost but Seeking) — Verb.ADD_LAND_PLAY (R8-8): count = QConst(2) —
+    C14 spelled-number word-pin ("two" is not digit-normalized into the
+    shape; Gnarled-Sage precedent), duration = DurationPermanent ("on
+    each of your turns" is the card's permanent land-drop allowance).
+    OptionalEffect wrap keeps the may-decision (C15).  Executor deferred
+    per the FIGHT orphan precedent (PC-6: the verb is consumed here —
+    the orphan count drops).
+    C16: open — whether to use either additional land play."""
+    atom = Atom(
+        verb=Verb.ADD_LAND_PLAY,
+        args=AtomArgs(
+            pairs=(
+                ("count", QConst(2)),
+                ("duration", DurationPermanent()),
+            )
+        ),
+    )
+    return AbilityOutcome(
+        ability=ActivatedAbility(cost=Cost(), effect=OptionalEffect(inner=atom))
+    )
+
+
+def _build_noncombat_damage_cost_modifier(m: re.Match[str]) -> SentenceOutcome:
+    """``This spell costs {X} less to cast, where X is the total amount of
+    noncombat damage dealt to your opponents this turn.`` (Chandra's
+    Incinerator) — CostModifier sibling (b4 _build_total_power_cost_
+    modifier precedent: filter=IS_SOURCE, delta=CostDeltaReduceGeneric
+    with a dynamic amount): amount = QThisTurn(NONCOMBAT_DAMAGE,
+    ALL_OPPONENTS) — R8-10's this-turn kind aggregated across ALL
+    opponents (the single total across the opponent set the printed
+    "total … to your opponents" asks for).
+    Lossy (C11 class, verbatim): QThisTurn's referent is a
+    ControllerRef — the R8-10 grounding note reads it DEALT-BY-the
+    referent while the printed text is dealt-TO-the-opponents; no
+    damage-recipient quantity exists (dealer and recipient sides cannot
+    both be pinned in one node — R9 item: damage-received this-turn
+    referent).  The executor binds the ALL_OPPONENTS reading to the
+    recipient side per this docstring.
+    C16: none — board-dynamic amount, fully forced."""
+    modifier = CostModifier(
+        filter=FAtom(pred=FAtomPred.IS_SOURCE),
+        controller_ref=ControllerRef.YOU,
+        delta=CostDeltaReduceGeneric(
+            amount=QThisTurn(
+                kind=ThisTurnKind.NONCOMBAT_DAMAGE,
+                referent=ControllerRef.ALL_OPPONENTS,
+            )
+        ),
+    )
+    return AbilityOutcome(ability=modifier)
+
+
 TEMPLATES: tuple[Template, ...] = (
     Template(
         tid="B4-mandate-attack-you",
@@ -1445,43 +1641,76 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_reveal_one_from_among,
     ),
+    # --- grammar round-8-C coverage batch (doc 2026-09-28/08 §8-C) ---
+    Template(
+        tid="B4-cast-them-this-turn",
+        name="you may cast them this turn (result-register CAST + cost waiver)",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^You may cast them this turn\.$"),
+        priority=_PRIORITY,
+        build=_build_cast_them_this_turn,
+    ),
+    Template(
+        tid="B4-look-play-top-of-library",
+        name="look at top card any time AND play lands from top (two optionals, C15)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^You may look at the top card of your library any time, and "
+            r"you may play lands from the top of your library\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_look_and_play_top_of_library,
+    ),
+    Template(
+        tid="B4-play-that-card-until",
+        name="you may play that card until you exile another (result-register CAST; duration lossy)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^You may play that card until you exile another card with "
+            r"this enchantment\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_play_that_card_until,
+    ),
+    Template(
+        tid="B4-azusa-extra-land-plays",
+        name="you may play two additional lands each of your turns (ADD_LAND_PLAY)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^You may play two additional lands on each of your turns\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_azusa_extra_land_plays,
+    ),
+    Template(
+        tid="B4-noncombat-damage-cost-modifier",
+        name="this spell costs X less where X is noncombat damage this turn (QThisTurn)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^This spell costs \{X\} less to cast, where X is the total "
+            r"amount of noncombat damage dealt to your opponents this "
+            r"turn\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_noncombat_damage_cost_modifier,
+    ),
 )
 
 UNCOVERED: tuple[tuple[str, str], ...] = (
-    (
-        "This spell costs {X} less to cast, where X is the total amount of noncombat damage dealt to your opponents this turn.",
-        "No MODIFY_COST verb in grammar",
-    ),
     (
         "You can't choose an untapped creature as this spell's target as you cast it.",
         "No targeting-restriction grammar construct (round-7 family: target legality)",
     ),
     (
         "You may activate loyalty abilities of Teferi on any player's turn any time you could cast an instant.",
-        "No cross-card activated ability activation grammar",
-    ),
-    (
-        "You may cast them this turn.",
-        "No anaphora / cast-them-this-turn grammar construct",
+        "No cross-card activated ability activation grammar (8-C re-examined: no ACTIVATE-permission verb exists — NAME_EQ('Teferi') would gate a permission node that cannot be built; R9 grammar item — loyalty-activation permission verb + activation-window widening)",
     ),
     (
         "You may choose new targets for the copy.",
         "No copy-targeting grammar construct",
     ),
     (
-        "You may look at the top card of your library any time, and you may play lands from the top of your library.",
-        "No complex multi-ability You may construct",
-    ),
-    (
-        "You may play that card until you exile another card with this enchantment.",
-        "No anaphora / conditional play grammar",
-    ),
-    (
-        "You may play two additional lands on each of your turns.",
-        "No land-speed-modification grammar construct",
-    ),
-    (
         "You may spend mana as though it were mana of any color.",
-        "No mana-color-flooding grammar construct",
+        "No mana-color-flooding grammar construct (F-MANA family, owner-deferred R9: MANA_POLICY verb)",
     ),
 )

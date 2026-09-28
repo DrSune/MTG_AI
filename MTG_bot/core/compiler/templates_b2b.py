@@ -2579,7 +2579,7 @@ TEMPLATES: Final[tuple[Template, ...]] = (
 UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
     (
         "When you do, you may tap or untap target creature.",
-        "Anaphoric 'When you do' has no expressible continuation trigger event.",
+        "Anaphoric 'When you do' has no expressible continuation trigger event. (8-C re-examined: the default continuation merge appends the tap/untap as an INDEPENDENT sibling Optional step, not gated on the antecedent 'you may pay {1}' — a C15 violation; no paid-cost predicate or payment event class exists. Kept withdrawn. R9 grammar item: do-continuation merge for optional PAY / PaidCostEvent.)",
     ),
     (
         (

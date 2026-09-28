@@ -2,9 +2,9 @@
 
 Covers all 47 shapes in ``/tmp/opencode/phase1_buckets/B4.json``
 (63 concrete sentences):
-- 34 shapes template-covered (49 concrete sentences; ``This land enters
-  tapped.`` carries 15) -> 34 templates
-- 13 shapes UNCOVERED (14 concrete sentences; no grammar construct)
+- 43 shapes template-covered (59 concrete sentences; ``This land enters
+  tapped.`` carries 15) -> 43 templates
+- 4 shapes UNCOVERED (5 concrete sentences; no grammar construct)
 
 PC-3: every B4 concrete sentence fullmatches at most one template.
 """
@@ -304,6 +304,29 @@ def _find_fnot(f: Filter) -> FNot:
 # ---------------------------------------------------------------------------
 
 EXPECTED_KIND: dict[str, tuple[str, str]] = {
+    "You may cast them this turn.": (
+        "B4-cast-them-this-turn",
+        "ability",
+    ),
+    "You may look at the top card of your library any time, and you may "
+    "play lands from the top of your library.": (
+        "B4-look-play-top-of-library",
+        "ability",
+    ),
+    "You may play that card until you exile another card with this "
+    "enchantment.": (
+        "B4-play-that-card-until",
+        "ability",
+    ),
+    "You may play two additional lands on each of your turns.": (
+        "B4-azusa-extra-land-plays",
+        "ability",
+    ),
+    "This spell costs {X} less to cast, where X is the total amount of "
+    "noncombat damage dealt to your opponents this turn.": (
+        "B4-noncombat-damage-cost-modifier",
+        "ability",
+    ),
     "Creatures you control attack each combat if able.": (
         "B4-mandate-attack-you",
         "ability",
@@ -431,11 +454,11 @@ class TestB4Inventory(unittest.TestCase):
     def setUp(self) -> None:
         self.data = _load_b4()
 
-    def test_38_templates(self) -> None:
-        self.assertEqual(len(templates_b4.TEMPLATES), 38)
+    def test_43_templates(self) -> None:
+        self.assertEqual(len(templates_b4.TEMPLATES), 43)
 
-    def test_9_uncovered(self) -> None:
-        self.assertEqual(len(templates_b4.UNCOVERED), 9)
+    def test_4_uncovered(self) -> None:
+        self.assertEqual(len(templates_b4.UNCOVERED), 4)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in templates_b4.TEMPLATES]
@@ -451,7 +474,7 @@ class TestB4Inventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _registry()
-        self.assertEqual(len(reg), 38)
+        self.assertEqual(len(reg), 43)
 
     def test_every_template_matches_some_bucket_sentence(self) -> None:
         sentences = [
@@ -488,8 +511,8 @@ class TestB4Coverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 38)
-        self.assertEqual(matched_occurrences, 54)
+        self.assertEqual(covered_shapes, 43)
+        self.assertEqual(matched_occurrences, 59)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -506,7 +529,7 @@ class TestB4Coverage(unittest.TestCase):
                 self.assertEqual(self.reg.match(sentence), (), sentence)
 
     def test_expected_kind_table_is_consistent_with_bucket(self) -> None:
-        self.assertEqual(len(EXPECTED_KIND), 39)
+        self.assertEqual(len(EXPECTED_KIND), 44)
         for sentence in EXPECTED_KIND:
             for entries in self.data.values():
                 if sentence in [s for _card, s in entries]:

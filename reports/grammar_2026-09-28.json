@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-09-28T20:19:50+02:00",
-  "git_head": "995478797a9dfb43c624e899c2370ae97fcc15c1",
+  "generated": "2026-09-28T21:29:49+02:00",
+  "git_head": "a492987e272a44a47d8f9a5f812e2e1650050135",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -69,21 +69,21 @@
   "pcs": {
     "PC-1": {
       "name": "card_coverage",
-      "cards_zero_unparsed": 274,
+      "cards_zero_unparsed": 287,
       "denominator": 305,
-      "value": 0.898361,
+      "value": 0.940984,
       "target": ">=0.90",
       "stretch": ">=0.95",
-      "pass": false
+      "pass": true
     },
     "PC-2": {
       "name": "sentence_coverage",
-      "sentences_matched": 599,
+      "sentences_matched": 618,
       "denominator": 639,
-      "value": 0.937402,
+      "value": 0.967136,
       "target": ">=0.95",
       "stretch": ">=0.98",
-      "pass": false
+      "pass": true
     },
     "PC-3": {
       "name": "ambiguity",
@@ -101,60 +101,60 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.222,
+      "value": 0.231,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.213,
-        0.213,
-        0.222
+        0.223,
+        0.231,
+        0.224
       ]
     },
     "PC-6": {
       "name": "vocabulary_health",
       "orphan_verbs": {
-        "value": 3,
+        "value": 1,
         "target": "0",
         "pass": false,
         "verbs": [
-          "ADD_LAND_PLAY",
-          "GET_EMBLEM",
           "PHASE_IN"
         ]
       },
       "max_verb_share": {
-        "value": 0.096296,
+        "value": 0.093023,
         "target": "<0.20",
         "pass": true
       },
       "pass": false,
-      "atom_total": 540,
+      "atom_total": 559,
       "max_share_verb": "MODIFY_PT",
       "verb_histogram": {
+        "ADD_LAND_PLAY": 1,
         "ADD_MANA": 48,
         "ATTACH": 2,
-        "CAST": 3,
+        "CAST": 9,
         "CHOOSE": 2,
         "CHOOSE_NAME": 2,
         "COPY": 2,
         "COUNTER_SPELL": 6,
-        "CREATE_TOKEN": 24,
+        "CREATE_TOKEN": 25,
         "DEAL_DAMAGE": 31,
         "DESTROY": 14,
         "DISCARD": 17,
-        "DRAW": 50,
+        "DRAW": 51,
         "END_TURN": 1,
         "EXILE": 19,
         "EXTRA_TURN": 1,
         "FIGHT": 2,
         "FLIP_COIN": 1,
         "GAIN_CONTROL": 2,
-        "GAIN_LIFE": 32,
-        "GRANT_ABILITY": 45,
+        "GAIN_LIFE": 33,
+        "GET_EMBLEM": 3,
+        "GRANT_ABILITY": 46,
         "GRANT_TYPE": 3,
-        "LOOK_AT": 3,
+        "LOOK_AT": 4,
         "LOSE_ABILITY": 1,
         "LOSE_GAME": 1,
         "LOSE_LIFE": 12,
@@ -166,7 +166,7 @@
         "PAY": 3,
         "PHASE_OUT": 2,
         "PREVENT_EFFECT": 11,
-        "PUT_COUNTER": 29,
+        "PUT_COUNTER": 33,
         "REMOVE_COUNTER": 1,
         "REVEAL": 13,
         "SACRIFICE": 4,
@@ -187,9 +187,9 @@
     },
     "PC-8": {
       "name": "targetable_card_fraction",
-      "targetable_entries": 96,
+      "targetable_entries": 97,
       "denominator": 305,
-      "value": 0.314754,
+      "value": 0.318033,
       "target": ">=0.40",
       "stretch": ">=0.50",
       "pass": false
@@ -210,8 +210,6 @@
     }
   },
   "failed_targets": [
-    "PC-1",
-    "PC-2",
     "PC-6",
     "PC-8"
   ],
@@ -220,38 +218,14 @@
     "files": 305,
     "diffs": [],
     "stable": true,
-    "goldens": "verified",
+    "goldens": "refreshed",
     "baseline": "VCS-tracked (committed goldens; verify-only by default)"
   },
   "unparsed_queue": [
     {
-      "oracle_id": "1818b0b1-0104-4673-9be8-acfc773ef87d",
-      "name": "Sanctum of Tranquil Light",
-      "sentence": "This ability costs {1} less to activate for each Shrine you control.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "1d07856b-d9ef-418c-bd06-3888dbcaddf4",
       "name": "Vodalian Arcanist",
       "sentence": "Spend this mana only to cast an instant or sorcery spell.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "1ff25f67-36a7-4cfa-a2b1-2135b5b6fb67",
-      "name": "Scavenging Ooze",
-      "sentence": "If it was a creature card, put a +1/+1 counter on this creature and you gain 1 life.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "21fa2442-6eac-4dce-a9cc-76f0053fdb8f",
-      "name": "Peer into the Abyss",
-      "sentence": "Round up each time.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "21fa2442-6eac-4dce-a9cc-76f0053fdb8f",
-      "name": "Peer into the Abyss",
-      "sentence": "Target player draws cards equal to half the number of cards in their library and loses half their life.",
       "bucket_hint": "spell-effect"
     },
     {
@@ -261,33 +235,9 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "32ea6b1c-d48e-4663-ad5c-d7f4a85450af",
-      "name": "Garruk, Unleashed",
-      "sentence": "Then if an opponent controls more creatures than you, put a loyalty counter on Garruk.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "32ea6b1c-d48e-4663-ad5c-d7f4a85450af",
-      "name": "Garruk, Unleashed",
-      "sentence": "[−7]: You get an emblem with \"At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle.\"",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "382097b3-f753-493c-bde4-101c0538feb4",
       "name": "Frost Breath",
       "sentence": "Those creatures don't untap during their controller's next untap step.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "497d7ab8-07f1-4c8a-a45a-52b9a4d9400f",
-      "name": "Basri Ket",
-      "sentence": "[−2]: Whenever one or more nontoken creatures attack this turn, create that many 1/1 white Soldier creature tokens that are tapped and attacking.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "497d7ab8-07f1-4c8a-a45a-52b9a4d9400f",
-      "name": "Basri Ket",
-      "sentence": "[−6]: You get an emblem with \"At the beginning of combat on your turn, create a 1/1 white Soldier creature token, then put a +1/+1 counter on each creature you control.\"",
       "bucket_hint": "spell-effect"
     },
     {
@@ -303,51 +253,9 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "515cee6a-a2e1-4eeb-8e1d-293724313b14",
-      "name": "Chandra's Incinerator",
-      "sentence": "This spell costs {X} less to cast, where X is the total amount of noncombat damage dealt to your opponents this turn.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "52b3a979-3b93-4441-9237-0c8a754e5523",
-      "name": "Furious Rise",
-      "sentence": "You may play that card until you exile another card with this enchantment.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "58ad45fc-b625-4484-8d49-ebc42db9040a",
-      "name": "Chandra, Heart of Fire",
-      "sentence": "Until end of turn, you may play cards exiled this way.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "58ad45fc-b625-4484-8d49-ebc42db9040a",
-      "name": "Chandra, Heart of Fire",
-      "sentence": "You may cast them this turn.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "5daac63a-1534-4194-8cb7-506508e364f4",
-      "name": "Invigorating Surge",
-      "sentence": "Put a +1/+1 counter on target creature you control, then double the number of +1/+1 counters on that creature.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "63f60dfc-2bc4-411f-ae53-504156fe0102",
       "name": "Sanctum of All",
       "sentence": "If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "6b946317-8a66-41b7-b902-308784d69b90",
-      "name": "Idol of Endurance",
-      "sentence": "{1}{W}, {T}: Until end of turn, you may cast a creature spell from among cards exiled with this artifact without paying its mana cost.",
-      "bucket_hint": "activated"
-    },
-    {
-      "oracle_id": "6c2c8bf3-9bf8-4a86-89d3-3bb36260dc51",
-      "name": "Azusa, Lost but Seeking",
-      "sentence": "You may play two additional lands on each of your turns.",
       "bucket_hint": "spell-effect"
     },
     {
@@ -357,22 +265,10 @@
       "bucket_hint": "triggered"
     },
     {
-      "oracle_id": "7721e800-fba6-4ae7-855e-631b2ecc8d6b",
-      "name": "Chandra, Flame's Catalyst",
-      "sentence": "Until end of turn, you may cast spells from your hand without paying their mana costs.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "846887e4-744f-44ce-9110-d09680b11e95",
       "name": "Tolarian Kraken",
       "sentence": "When you do, you may tap or untap target creature.",
       "bucket_hint": "triggered"
-    },
-    {
-      "oracle_id": "927fb139-0493-48be-8cc4-2c7d854d6a55",
-      "name": "Radha, Heart of Keld",
-      "sentence": "You may look at the top card of your library any time, and you may play lands from the top of your library.",
-      "bucket_hint": "spell-effect"
     },
     {
       "oracle_id": "95c3976c-33f3-490b-bfd3-7f1af2fe0416",
@@ -409,18 +305,6 @@
       "name": "Liliana, Waker of the Dead",
       "sentence": "Each opponent who can't loses 3 life.",
       "bucket_hint": "static"
-    },
-    {
-      "oracle_id": "e0df8e2a-96d2-4e4d-b065-aa2e162abbfe",
-      "name": "Liliana, Waker of the Dead",
-      "sentence": "It gains haste.\"",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "e0df8e2a-96d2-4e4d-b065-aa2e162abbfe",
-      "name": "Liliana, Waker of the Dead",
-      "sentence": "[−7]: You get an emblem with \"At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control.",
-      "bucket_hint": "spell-effect"
     },
     {
       "oracle_id": "e4bacf1b-0a45-4c73-857d-dffadb7e6fa5",
@@ -465,5 +349,5 @@
       "bucket_hint": "spell-effect"
     }
   ],
-  "unparsed_count": 40
+  "unparsed_count": 21
 }

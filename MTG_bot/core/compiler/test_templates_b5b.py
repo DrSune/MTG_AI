@@ -78,6 +78,7 @@ from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     EffectOutcome,
     KeywordOutcome,
+    RuleReminderOutcome,
     SentenceOutcome,
     TemplateRegistry,
 )
@@ -167,8 +168,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 13
     (
         "If it was a creature card, put a +1/+1 counter on this creature and you gain 1 life.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-if-was-creature-counter-gain",
     ),
     # shape 14
     (
@@ -253,7 +254,7 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 32
     ("It gains haste.", "COVERED", "B5b-it-gains-haste"),
     # shape 33
-    ('It gains haste."', "UNCOV", ""),
+    ('It gains haste."', "COVERED", "B5b-gains-haste-emblem-residue"),
     # shape 34
     ("It gains indestructible until end of turn.", "COVERED", "B5b-it-gains-kw-eot"),
     # shape 35
@@ -335,8 +336,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 51
     (
         "Put a +1/+1 counter on target creature you control, then double the number of +1/+1 counters on that creature.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-double-counters-target",
     ),
     # shape 52
     (
@@ -391,7 +392,7 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "B5b-return-cards-hand",
     ),
     # shape 62
-    ("Round up each time.", "UNCOV", ""),
+    ("Round up each time.", "COVERED", "B5b-peer-round-up-each-time"),
     # shape 63
     (
         "Sacrifice this creature: Another target creature you control gains indestructible until end of turn.",
@@ -486,8 +487,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 84
     (
         "Target player draws cards equal to half the number of cards in their library and loses half their life.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-peer-half-library",
     ),
     # shape 85
     (
@@ -518,8 +519,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 90
     (
         "Then if an opponent controls more creatures than you, put a loyalty counter on Garruk.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-then-if-opponent-more-creatures",
     ),
 )
 
@@ -593,6 +594,10 @@ def _inner_node(outcome: SentenceOutcome) -> Any:
         return outcome.effect
     if isinstance(outcome, KeywordOutcome):
         return KeywordAbility(keyword=outcome.keyword, params=outcome.params)
+    if isinstance(outcome, RuleReminderOutcome):
+        # r8-C: directive/marker rows (Round-up, emblem-quote residue)
+        # carry only their reason string — stable-identity by reason.
+        return outcome.reason
     raise TypeError(f"cannot extract inner node from {type(outcome)}")
 
 
@@ -678,8 +683,8 @@ def _find_shape(sent: str) -> tuple[str, str, str]:
 class TestTemplateInventory(unittest.TestCase):
     """Verify the B5b template collection is well-formed."""
 
-    def test_69_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 69)
+    def test_75_templates(self) -> None:
+        self.assertEqual(len(TEMPLATES), 75)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -695,7 +700,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 69)
+        self.assertEqual(len(reg), 75)
 
 
 # ---------------------------------------------------------------------------
@@ -716,14 +721,14 @@ class TestShapeTable(unittest.TestCase):
     def test_category_counts(self) -> None:
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
-        self.assertEqual(covered, 79, f"COVERED count {covered} != 79")
-        self.assertEqual(uncov, 12, f"UNCOV count {uncov} != 12")
+        self.assertEqual(covered, 85, f"COVERED count {covered} != 85")
+        self.assertEqual(uncov, 6, f"UNCOV count {uncov} != 6")
 
-    def test_covered_tids_valid_and_unique_69(self) -> None:
+    def test_covered_tids_valid_and_unique_75(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
-            len(unique_tids), 69, f"expected 69 unique tids, got {len(unique_tids)}"
+            len(unique_tids), 75, f"expected 75 unique tids, got {len(unique_tids)}"
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5b-"), f"bad tid: {tid}")
@@ -1610,7 +1615,7 @@ class TestCanonicalStability(unittest.TestCase):
                 f"canonical instability for {tid} ({sent[:40]})",
             )
             seen.add(tid)
-        self.assertEqual(len(seen), 69, f"only {len(seen)} unique tids tested")
+        self.assertEqual(len(seen), 75, f"only {len(seen)} unique tids tested")
 
 
 # ---------------------------------------------------------------------------

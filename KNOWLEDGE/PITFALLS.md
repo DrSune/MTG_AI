@@ -1,6 +1,27 @@
 # PITFALLS — standing traps (each dated; newest first)
 
 ## 2026-09-28
+- **[round-8-C — three construction-time validators bite before any test
+  runs.]** (a) C2 is enforced in `Selector.__post_init__`: a `referent=`
+  selector must be CHOOSE + **QConst(1)** + neutral zone — a plural
+  anaphor ("cast them this turn") may NOT carry QUnbounded; the register
+  plural is an executor-side reading, the IR stays QConst(1).
+  (b) `FAtom` slot rules close `referent` to IS_ATTACHED_TO only — a
+  "was a creature card" gate CANNOT carry referent="result"; the landed
+  `B5b-if-it-type-then` convention is the conditional subject binds the
+  result register by executor convention (C18 wording in 08 §Decisions
+  describes semantics, not a new slot).
+  (c) the b5b/b5c canonical-stability tests extract inner nodes from
+  every COVERED outcome — a template returning `RuleReminderOutcome`
+  (directive/marker rows) needs an `_inner_node` branch (reason string)
+  or the test raises TypeError.
+- **[round-8-C — quoted emblem lines vary at the sentence splitter.]**
+  The two emblem sentences whose inner text ends mid-quote are split on
+  the inner ". ": Liliana's [−7] row ENDS WITHOUT the closing quote
+  (`…under your control.`) while Basri's/Garruk's carry `."`. A pattern
+  requiring a closing `"` fullmatches only two of three. Use
+  `You get an emblem with ".+$` (opening quote required, tail free) — one
+  template, three shapes, C19 keeps all inner text out of the payload.
 - **[tools/measure_grammar.py — every run APPENDS a PC block to NUMBERS.md
   under a fixed header.]** The tool auto-inserts its full PC table at the top
   of NUMBERS.md on every invocation, with the hard-coded section title

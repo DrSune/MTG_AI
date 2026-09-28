@@ -34,6 +34,7 @@ from MTG_bot.core.ability_tree import (
     FOr,
     Keyword,
     KeywordAbility,
+    OptionalEffect,
     PtDelta,
     PtDirection,
     QAgg,
@@ -836,6 +837,51 @@ def _build_fight_another(m: re.Match[str]) -> SentenceOutcome:
     return _build_activated(cost, effect)
 
 
+def _build_may_cast_exiled_creature(m: re.Match[str]) -> SentenceOutcome:
+    """``{1}{W}, {T}: Until end of turn, you may cast a creature spell from
+    among cards exiled with this artifact without paying its mana cost.``
+    (Idol of Endurance) — the row this module held in UNCOVERED since r2
+    ("no exiled-with-source grouping predicate" — R8-6 shipped
+    FAtomPred.IS_EXILED_WITH_SOURCE; "empty cost expresses the waiver" —
+    the CAST cost role carries Cost(parts=())).  The exiled cards were
+    taken from YOUR graveyard by the Idol's ETB, so Zone(EXILE, YOU).
+    May-cast → OptionalEffect inside the real (paid) ActivatedAbility.
+    Lossy (C11 class, verbatim): "Until end of turn" — CAST/optional-cast
+    have no duration role (R9 grammar item; the second half of the stale
+    UNCOVERED note, still true).
+    C16: open — the activation (mana+tap cost), whether to cast, which
+    exiled creature card."""
+    cost = _parse_cost(m)
+    effect = OptionalEffect(
+        inner=Atom(
+            verb=Verb.CAST,
+            args=AtomArgs(
+                pairs=(
+                    (
+                        "source",
+                        Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            FAnd(
+                                children=(
+                                    FAtom(
+                                        pred=FAtomPred.TYPE_EQ,
+                                        string_value="Creature",
+                                    ),
+                                    FAtom(pred=FAtomPred.IS_EXILED_WITH_SOURCE),
+                                )
+                            ),
+                            Zone(kind=ZoneKind.EXILE, controller=ControllerRef.YOU),
+                        ),
+                    ),
+                    ("cost", Cost(parts=())),
+                )
+            ),
+        )
+    )
+    return AbilityOutcome(ability=ActivatedAbility(cost=cost, effect=effect))
+
+
 TEMPLATES: tuple[Template, ...] = (
     Template(
         tid="B3-grant-kw-self",
@@ -1121,6 +1167,19 @@ TEMPLATES: tuple[Template, ...] = (
         priority=100,
         build=_build_fight_another,
     ),
+    # --- grammar round-8-C coverage batch (doc 2026-09-28/08 §8-C) ---
+    Template(
+        tid="B3-idol-cast-exiled-creature",
+        name="until end of turn, cast creature from cards exiled with this artifact free (IS_EXILED_WITH_SOURCE)",
+        bucket="B3",
+        pattern=re.compile(
+            rf"^{_COST}\s*:\s*Until end of turn, you may cast a creature "
+            rf"spell from among cards exiled with this artifact without "
+            rf"paying its mana cost\.$"
+        ),
+        priority=100,
+        build=_build_may_cast_exiled_creature,
+    ),
 )
 
 # ---------------------------------------------------------------------------
@@ -1131,9 +1190,5 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         "{N}, {T}: Draw a card for each color among permanents you control.",
         "No quantity expression for distinct color count among permanents you control; QCount counts objects, not distinct color identities, and QProp has no distinct-color field.",
-    ),
-    (
-        "{N}{W}, {T}: Until end of turn, you may cast a creature spell from among cards exiled with this artifact without paying its mana cost.",
-        "CAST exists and an empty cost expresses the waiver, but there is no exiled-with-source grouping predicate to bound the source selector to the artifact's exiled cards, and no duration role on CAST/optional-cast to express the until-end-of-turn permission.",
     ),
 )

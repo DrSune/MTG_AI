@@ -113,8 +113,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     ),
     (
         "This ability costs {1} less to activate for each Shrine you control.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5c-shrine-activation-cost",
     ),
     (
         "Those creatures don't untap during their controller's next untap step.",
@@ -136,10 +136,14 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     ),
     (
         "Until end of turn, you may cast spells from your hand without paying their mana costs.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5c-waive-cast-from-hand",
     ),
-    ("Until end of turn, you may play cards exiled this way.", "UNCOV", ""),
+    (
+        "Until end of turn, you may play cards exiled this way.",
+        "COVERED",
+        "B5c-play-cards-exiled-this-way",
+    ),
     ("Until the end of your next turn, they can't phase in.", "UNCOV", ""),
     (
         "Vigilance (Attacking doesn't cause this creature to tap.)",
@@ -226,8 +230,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     ),
     (
         "[−2]: Whenever one or more nontoken creatures attack this turn, create that many 1/1 white Soldier creature tokens that are tapped and attacking.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5c-loyalty-soldier-attack-tokens",
     ),
     (
         "[−2]: You may cast target red instant or sorcery card from your graveyard.",
@@ -257,8 +261,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     ),
     (
         '[−6]: You get an emblem with "At the beginning of combat on your turn, create a 1/1 white Soldier creature token, then put a +1/+1 counter on each creature you control."',
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5c-get-emblem",
     ),
     (
         "[−7]: Target opponent loses 2 life for each creature card in their graveyard.",
@@ -272,13 +276,13 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     ),
     (
         '[−7]: You get an emblem with "At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control.',
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5c-get-emblem",
     ),
     (
         '[−7]: You get an emblem with "At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle."',
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5c-get-emblem",
     ),
     (
         "[−8]: Discard your hand, then draw seven cards.",
@@ -551,6 +555,16 @@ for _t in _EXPECTED_ETB:
     EXPECTED_KIND_BY_TID[_t] = "ability:EtBState"
 for _t in _EXPECTED_ACTIVATED:
     EXPECTED_KIND_BY_TID[_t] = "activated"
+# grammar round 8-C (doc 2026-09-28/08): four new ActivatedAbility rows +
+# the Sanctum CostModifier sibling (a new outcome kind for this module).
+for _t in (
+    "B5c-get-emblem",
+    "B5c-loyalty-soldier-attack-tokens",
+    "B5c-waive-cast-from-hand",
+    "B5c-play-cards-exiled-this-way",
+):
+    EXPECTED_KIND_BY_TID[_t] = "activated"
+EXPECTED_KIND_BY_TID["B5c-shrine-activation-cost"] = "ability:CostModifier"
 
 
 # Expected LoyaltyActivation delta per loyalty template.
@@ -817,8 +831,8 @@ def _find_atom(node: Any, pred: FAtomPred) -> Any:
 class TestB5cInventory(unittest.TestCase):
     """Verify the B5c template collection is well-formed."""
 
-    def test_79_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 79)
+    def test_84_templates(self) -> None:
+        self.assertEqual(len(TEMPLATES), 84)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -833,10 +847,10 @@ class TestB5cInventory(unittest.TestCase):
             self.assertEqual(t.priority, 100, f"{t.tid} has priority {t.priority}")
 
     def test_registry_accepts_all(self) -> None:
-        self.assertEqual(len(_REG), 79)
+        self.assertEqual(len(_REG), 84)
 
-    def test_uncovered_has_11_rows(self) -> None:
-        self.assertEqual(len(UNCOVERED), 11)
+    def test_uncovered_has_4_rows(self) -> None:
+        self.assertEqual(len(UNCOVERED), 4)
 
 
 # ---------------------------------------------------------------------------
@@ -858,17 +872,17 @@ class TestB5cShapeTable(unittest.TestCase):
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
         rr = sum(1 for s in SHAPES if s[1] == "RR")
-        self.assertEqual(covered, 80, f"COVERED count {covered} != 80")
-        self.assertEqual(uncov, 11, f"UNCOV count {uncov} != 11")
+        self.assertEqual(covered, 87, f"COVERED count {covered} != 87")
+        self.assertEqual(uncov, 4, f"UNCOV count {uncov} != 4")
         self.assertEqual(rr, 0, f"B5c has no rule-reminder shapes, got {rr}")
 
-    def test_covered_tids_valid_and_unique_79(self) -> None:
+    def test_covered_tids_valid_and_unique_84(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
             len(unique_tids),
-            79,
-            f"expected 79 unique tids, got {len(unique_tids)}",
+            84,
+            f"expected 84 unique tids, got {len(unique_tids)}",
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5c-"), f"bad tid: {tid}")
@@ -952,7 +966,7 @@ class TestB5cOutcomeKind(unittest.TestCase):
     def test_kind_table_is_complete(self) -> None:
         covered_tids = {t for _s, c, t in SHAPES if c == "COVERED"}
         self.assertEqual(set(EXPECTED_KIND_BY_TID), covered_tids)
-        self.assertEqual(len(EXPECTED_KIND_BY_TID), 79)
+        self.assertEqual(len(EXPECTED_KIND_BY_TID), 84)
 
     def test_all_kinds_match(self) -> None:
         for tid, expected in EXPECTED_KIND_BY_TID.items():
@@ -968,8 +982,9 @@ class TestB5cOutcomeKind(unittest.TestCase):
         self.assertEqual(kinds.count("effect"), 27)
         self.assertEqual(kinds.count("keyword"), 5)
         self.assertEqual(kinds.count("static"), 1)
-        self.assertEqual(kinds.count("activated"), 45)
+        self.assertEqual(kinds.count("activated"), 49)
         self.assertEqual(kinds.count("ability:EtBState"), 1)
+        self.assertEqual(kinds.count("ability:CostModifier"), 1)
 
 
 # ---------------------------------------------------------------------------
@@ -1513,8 +1528,8 @@ class TestB5cCanonicalStability(unittest.TestCase):
             seen.add(tid)
         self.assertEqual(
             len(seen),
-            79,
-            f"only {len(seen)} unique tids tested, expected 79",
+            84,
+            f"only {len(seen)} unique tids tested, expected 84",
         )
 
 
@@ -1570,7 +1585,7 @@ class TestB5cJsonCrossCheck(unittest.TestCase):
             for k, pairs in self.json_data.items()
             if any(_REG.match(sent) for _c, sent in pairs)
         }
-        self.assertEqual(len(covered), 79)
+        self.assertEqual(len(covered), 86)
 
 
 class TestB5cRound7BTopUps(unittest.TestCase):
