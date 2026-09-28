@@ -151,6 +151,14 @@ _COLORLESS = "C"
 # mana, "ANY" means a choice among WUBRG. Existing templates keep "C"
 # until the 8-B fidelity flip.
 _ANY_COLOR = "ANY"
+# _MANA_POLICY_SCOPES (grammar round 9, R9-3, C21): the MANA_POLICY
+# "scope" role vocabulary — THIS_MANA anchors the policy to the mana the
+# ability itself added (Vodalian Arcanist's "Spend this mana only to
+# cast instant or sorcery spells"), ALL_YOURS is a DurationPermanent
+# permission over the player's whole mana pool (Orrery's "you may spend
+# mana as though it were mana of any color"). Validated in
+# AtomArgs.__post_init__ like the "color" role.
+_MANA_POLICY_SCOPES = ("THIS_MANA", "ALL_YOURS")
 
 
 # ---- Closed vocabularies (enums) ----
@@ -239,6 +247,23 @@ class Verb(Enum):
     # additional plays, `duration` scopes the grant. Executor deferred
     # per the FIGHT orphan precedent.
     ADD_LAND_PLAY = "ADD_LAND_PLAY"
+    # MANA_POLICY (grammar round 9, R9-3, C21): spend-restriction verbs —
+    # "Spend this mana only to cast instant or sorcery spells" (Vodalian
+    # Arcanist; scope=THIS_MANA, event-anchored to the ability's own
+    # ADD_MANA) and "you may spend mana as though it were mana of any
+    # color" (Orrery; scope=ALL_YOURS, a DurationPermanent permission).
+    # `scope` is the closed _MANA_POLICY_SCOPES string pair; `filter`
+    # over narrows the allowed spend (a CastSpellEvent-shape Filter like
+    # IS_INSTANT readings). Executor deferred per the ADD_LAND_PLAY
+    # orphan precedent.
+    MANA_POLICY = "MANA_POLICY"
+    # GRANT_ACTIVATION (grammar round 9, R9-7): "You may activate
+    # loyalty abilities of [targets] whenever you wish" (Teferi, Master
+    # of Time — the NAME_CONTAINS("Teferi") gate closes the 8-C
+    # withdrawal). `filter` selects the ability-holders, `window` is the
+    # optional ActivationWindow the extra activation joins. Executor
+    # deferred per the GRANT_ABILITY-adjacent orphan precedent.
+    GRANT_ACTIVATION = "GRANT_ACTIVATION"
 
 
 class SelectorMode(Enum):
@@ -484,6 +509,15 @@ class FAtomPred(Enum):
         # creatures than any opponent" split; dual-filter comparison,
         # the second filter lives in the new right_inner_filter slot.
     )
+    LIFE_LEAD_OVER_START_GE = (
+        "LIFE_LEAD_OVER_START_GE"  # grammar round 9, R9-2: the referent
+        # (a player) has gained a net life lead of at least `count` over
+        # their starting life total — "if you gained at least 7 life more
+        # than your starting life total this game" (Speaker of the Heavens
+        # class). The executor reads current-life minus starting-life;
+        # the count slot carries the threshold Quantity from the text
+        # (the PRED carries slots only — the number is template-side).
+    )
 
 
 class CounterKind(Enum):
@@ -575,11 +609,26 @@ class Phase(Enum):
 class Step(Enum):
     """StepEvent sub-steps (finer than Phase). The pool has no step-level
     triggers today; the members are the standard combat steps the executor
-    will eventually emit."""
+    will eventually emit. UNTAP (grammar round 9, R9-4) is not a trigger
+    step but a DURATION scope: Frost Breath's "can't untap during their
+    controller's next untap step" (see DurationUntilNextStep)."""
 
     DECLARE_ATTACKERS = "DECLARE_ATTACKERS"
     DEALS_COMBAT_DAMAGE = "DEALS_COMBAT_DAMAGE"
     END_OF_COMBAT = "END_OF_COMBAT"
+    UNTAP = "UNTAP"  # the untap step (grammar round 9, R9-4, Frost Breath)
+
+
+class ActivationWindow(Enum):
+    """When an activated ability may be activated (grammar round 9, R9-1,
+    convention C20). None on ActivatedAbility = the default window (play
+    the activation any time you could cast an instant); SORCERY = only
+    during the controller's own main phase with the stack empty
+    ("Activate only as a sorcery" — Steward class). The timing slot lives
+    ONLY on ActivatedAbility (C20)."""
+
+    SORCERY = "SORCERY"
+    INSTANT = "INSTANT"
 
 
 # ---- Quantity — "Quantity on every numeric field, without exception" ----
@@ -624,6 +673,25 @@ class QCount:
         if not isinstance(self.selector, Selector):
             raise ValueError(
                 f"QCount: selector must be a Selector, got {type(self.selector).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class QDistinctColorCount:
+    """The number of DISTINCT colors among the objects a selector matches
+    (grammar round 9, R9-6) — Orrery's "{5},{T}: Draw a card for each
+    color among permanents you control" (selector = ALL permanents, the
+    count collapses the set to its color-colorimeter). QAgg has no
+    distinct-count aggregation (verified round 9), so this is its own
+    Quantity node; it is the count, the selector names the population it
+    is counted over (QCount's registration shape mirrored exactly)."""
+
+    selector: Selector
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.selector, Selector):
+            raise ValueError(
+                f"QDistinctColorCount: selector must be a Selector, got {type(self.selector).__name__}"
             )
 
 
@@ -784,7 +852,16 @@ class QAtMost:
 
 
 Quantity = (
-    QConst | QX | QUnbounded | QCount | QProp | QBin | QThisTurn | QAtLeast | QAtMost
+    QConst
+    | QX
+    | QUnbounded
+    | QCount
+    | QDistinctColorCount
+    | QProp
+    | QBin
+    | QThisTurn
+    | QAtLeast
+    | QAtMost
 )
 
 
@@ -1189,6 +1266,30 @@ class DurationWhileCondition:
 
 
 @dataclass(frozen=True)
+class DurationUntilNextStep:
+    """Until the next occurrence of a named Step, optionally relative to
+    an owner (grammar round 9, R9-4, closing the round-6 item-3 note).
+    Frost Breath's "Those creatures can't untap during their controller's
+    next untap step" = PREVENT_EFFECT(TapStateEvent UNTAP,
+    step=Step.UNTAP) under this duration; ``owner_scoped`` True binds the
+    step to the affected object's controller ("THEIR controller's next
+    untap step"), False to the active turn's step."""
+
+    step: Step
+    owner_scoped: bool = True
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.step, Step):
+            raise ValueError(
+                f"DurationUntilNextStep: step must be a Step, got {type(self.step).__name__}"
+            )
+        if not isinstance(self.owner_scoped, bool):
+            raise ValueError(
+                f"DurationUntilNextStep: owner_scoped must be a bool, got {self.owner_scoped!r}"
+            )
+
+
+@dataclass(frozen=True)
 class DurationUntilLeaves:
     """Until the referenced permanent leaves the battlefield (Kitesail
     Cabinet's "until this creature leaves the battlefield", Idol of
@@ -1211,6 +1312,7 @@ Duration = (
     | DurationPermanent
     | DurationUntilNextTurn
     | DurationWhileCondition
+    | DurationUntilNextStep
     | DurationUntilLeaves
 )
 
@@ -2040,6 +2142,14 @@ class AtomArgs:
                 raise ValueError(
                     f"AtomArgs: role 'color' must be one of WUBRG/C/ANY, got {value!r}"
                 )
+            # scope (grammar round 9, R9-3, C21): MANA_POLICY's closed
+            # spend-restriction vocabulary; same vocab-check precedent as
+            # the "color" role above.
+            if role == "scope" and value not in _MANA_POLICY_SCOPES:
+                raise ValueError(
+                    f"AtomArgs: role 'scope' must be one of {_MANA_POLICY_SCOPES}, "
+                    f"got {value!r}"
+                )
         object.__setattr__(self, "pairs", tuple(sorted(self.pairs, key=lambda p: p[0])))
 
     def get(self, role: str) -> object | None:
@@ -2201,7 +2311,50 @@ class EachPlayer:
             )
 
 
-Effect = Seq | Choose | OptionalEffect | Conditional | Repeat | EachPlayer | Atom
+@dataclass(frozen=True)
+class DelayedTrigger:
+    """A trigger created *inside* another effect, live only for `duration`
+    (grammar round 9, R9-5, C22). Subira Toralf's "When a creature you
+    control enters this turn, ..." is an Atom effect that registers this
+    node; the node itself is never a standalone Ability — the duration is
+    REQUIRED because a delayed trigger without a lifetime window is just a
+    TriggeredAbility. `condition` optionally gates the fired event, same
+    convention as TriggeredAbility.condition."""
+
+    duration: Duration
+    event: EventSpec
+    condition: Filter | None
+    effect: Effect
+
+    def __post_init__(self) -> None:
+        if not _is_duration(self.duration):
+            raise ValueError(
+                f"DelayedTrigger: duration must be a Duration, got {type(self.duration).__name__}"
+            )
+        if not _is_event(self.event):
+            raise ValueError(
+                f"DelayedTrigger: event must be an EventSpec, got {type(self.event).__name__}"
+            )
+        if self.condition is not None and not _is_filter(self.condition):
+            raise ValueError(
+                f"DelayedTrigger: condition must be a Filter, got {type(self.condition).__name__}"
+            )
+        if not _is_effect(self.effect):
+            raise ValueError(
+                f"DelayedTrigger: effect must be an Effect, got {type(self.effect).__name__}"
+            )
+
+
+Effect = (
+    Seq
+    | Choose
+    | OptionalEffect
+    | Conditional
+    | Repeat
+    | EachPlayer
+    | Atom
+    | DelayedTrigger
+)
 
 
 # ---- Abilities ----
@@ -2261,11 +2414,16 @@ class ActivatedAbility:
     Tome's "{T}, put a page counter on this artifact: Scry 1". `condition`
     (T3 round 4, 2026-09-24) optionally gates activation ("Activate only
     if a creature died this turn"); None = unconditional — same convention
-    as StaticAbility.condition (state predicate, no event subject)."""
+    as StaticAbility.condition (state predicate, no event subject).
+    `timing` (grammar round 9, R9-1, C20) optionally pins WHEN the ability
+    may be activated (ActivationWindow.SORCERY for "Activate only as a
+    sorcery"); None = default instant speed — the existing default, so no
+    pre-round-9 tree needs the key."""
 
     cost: Cost
     effect: Effect
     condition: Filter | None = None
+    timing: ActivationWindow | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.cost, Cost):
@@ -2279,6 +2437,10 @@ class ActivatedAbility:
         if self.condition is not None and not _is_filter(self.condition):
             raise ValueError(
                 f"ActivatedAbility: condition must be a Filter, got {type(self.condition).__name__}"
+            )
+        if self.timing is not None and not isinstance(self.timing, ActivationWindow):
+            raise ValueError(
+                f"ActivatedAbility: timing must be an ActivationWindow, got {type(self.timing).__name__}"
             )
 
 
@@ -2644,9 +2806,19 @@ _Q_CLASSES = (
     QThisTurn,
     QAtLeast,
     QAtMost,
+    QDistinctColorCount,
 )
 _F_CLASSES = (FAnd, FOr, FNot, FAtom)
-_E_CLASSES = (Seq, Choose, OptionalEffect, Conditional, Repeat, EachPlayer, Atom)
+_E_CLASSES = (
+    Seq,
+    Choose,
+    OptionalEffect,
+    Conditional,
+    Repeat,
+    EachPlayer,
+    Atom,
+    DelayedTrigger,
+)
 _A_CLASSES = (
     StaticAbility,
     TriggeredAbility,
@@ -2683,6 +2855,7 @@ _D_CLASSES = (
     DurationUntilNextTurn,
     DurationWhileCondition,
     DurationUntilLeaves,
+    DurationUntilNextStep,
 )
 _COST_PART_CLASSES = (
     CostTap,
@@ -2875,6 +3048,11 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
         frozenset({"inner_filter", "right_inner_filter"}),
         frozenset({"inner_filter", "right_inner_filter"}),
     ),
+    # LIFE_LEAD_OVER_START_GE (grammar round 9, R9-2): net life lead over
+    # the referent player's starting total — count = the threshold Quantity
+    # (rule row {count}-only, the CARDS_DRAWN-style single-slot precedent;
+    # no who slot: the predicate binds its subject player directly).
+    FAtomPred.LIFE_LEAD_OVER_START_GE: (frozenset({"count"}), frozenset({"count"})),
 }
 
 # Atom role -> allowed value types. "types" is a tuple of card-type strings
@@ -2919,6 +3097,22 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     # "controller": a referent, a referent Selector, or a Filter.
     "dealer": (ControllerRef, Selector) + _F_CLASSES,
     "recipient": (ControllerRef, Selector) + _F_CLASSES,
+    # filter (grammar round 9, R9-3): MANA_POLICY's / GRANT_ACTIVATION's
+    # shape restriction role — "spells that cost {X} or less to cast" —
+    # Filter-valued like the name_filter / condition roles above.
+    "filter": _F_CLASSES,
+    # scope (grammar round 9, R9-3, C21): MANA_POLICY's closed string pair
+    # ("THIS_MANA" / "ALL_YOURS"), validated against _MANA_POLICY_SCOPES
+    # in AtomArgs.__post_init__ (the "color" role's vocab-check precedent).
+    "scope": (str,),
+    # step (grammar round 9, R9-4): PREVENT_EFFECT's "during a target's
+    # next untap step" role (Frost Breath) — same Step enum the StepEvent
+    # and DurationUntilNextStep fields carry.
+    "step": (Step,),
+    # window (grammar round 9, R9-7): GRANT_ACTIVATION's optional timing
+    # role — which ActivationWindow the extra activation joins (Teferi,
+    # Master of Time's +2: "until end of turn" = the sorcery window).
+    "window": (ActivationWindow,),
 }
 
 # Verb -> {role: required?}. MODIFY_PT and SET_PT additionally require at
@@ -2990,18 +3184,27 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     Verb.SACRIFICE: {"target": True},
     Verb.DISCARD: {"controller": True, "cards": True},
     Verb.SCRY: {"controller": True, "count": True},
-    Verb.REVEAL: {"controller": True, "count": True},
+    # REVEAL += duration (grammar round 8 R8-3 / round 9, R9-8): Snoop's
+    # "Play with the top card of your library revealed" is a continuous
+    # revealed state — DurationPermanent, top-of-library implicit per the
+    # LOOK_AT convention (doc /10).
+    Verb.REVEAL: {"controller": True, "count": True, "duration": False},
     Verb.LOOK_AT: {"controller": True, "count": True},
     Verb.ATTACH: {"equipment": True, "target": True},
     # GAIN_CONTROL: duration (grammar round 7, R7-2) — "gain control of
     # target creature until end of turn" (Traitorous), "…until this
     # creature leaves the battlefield" pairs with DurationUntilLeaves.
     Verb.GAIN_CONTROL: {"target": True, "controller": True, "duration": False},
+    # PREVENT_EFFECT += step (grammar round 9, R9-4): Frost Breath's
+    # "a target's next untap step" is prevented during Step.UNTAP — the
+    # step slot names WHICH step the prevention covers, paired with
+    # DurationUntilNextStep (doc /10).
     Verb.PREVENT_EFFECT: {
         "condition": True,
         "event": True,
         "controller": False,
         "duration": False,
+        "step": False,
     },
     Verb.PHASE_IN: {"cards": True, "controller": True},
     Verb.PHASE_OUT: {"target": True},
@@ -3060,6 +3263,20 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     # (DurationPermanent for "on each of your turns"). Executor deferred
     # per the FIGHT / MANDATE_ATTACK orphan precedent.
     Verb.ADD_LAND_PLAY: {"count": False, "duration": False},
+    # MANA_POLICY (grammar round 9, R9-3, C21): spend-restriction verbs —
+    # Vodalian Invoice's "this spell can't be countered" style mana-use
+    # policies are scope=THIS_MANA, Orrery-style "you may spend mana as
+    # though it were mana of any color to cast that spell" is
+    # scope=ALL_YOURS with a filter over the spell's cast shape. Executor
+    # deferred per the ADD_LAND_PLAY orphan precedent (consumed in 9-B).
+    Verb.MANA_POLICY: {"scope": True, "filter": False},
+    # GRANT_ACTIVATION (grammar round 9, R9-7): "You may activate an
+    # additional loyalty ability of targets named Teferi this turn" —
+    # filter over the permanent shape (NAME_CONTAINS gate, closing the 8-C
+    # withdrawal), window (R9-1's ActivationWindow) names which timing
+    # window the extra activation joins. Executor deferred per the FIGHT /
+    # ADD_LAND_PLAY orphan precedent.
+    Verb.GRANT_ACTIVATION: {"filter": True, "window": False},
 }
 
 # Keyword -> tuple of allowed param signatures; each signature is a tuple
@@ -3106,6 +3323,7 @@ _ENUMS: dict[str, type[Enum]] = {
     "PtDirection": PtDirection,
     "Phase": Phase,
     "Step": Step,
+    "ActivationWindow": ActivationWindow,
 }
 
 _DATACLASSES: tuple[type, ...] = (
@@ -3118,6 +3336,7 @@ _DATACLASSES: tuple[type, ...] = (
     QThisTurn,
     QAtLeast,
     QAtMost,
+    QDistinctColorCount,
     Zone,
     Selector,
     FAnd,
@@ -3129,6 +3348,7 @@ _DATACLASSES: tuple[type, ...] = (
     DurationUntilNextTurn,
     DurationWhileCondition,
     DurationUntilLeaves,
+    DurationUntilNextStep,
     ZoneChangeEvent,
     CastSpellEvent,
     DeclareAttackersEvent,
@@ -3172,6 +3392,7 @@ _DATACLASSES: tuple[type, ...] = (
     Conditional,
     Repeat,
     EachPlayer,
+    DelayedTrigger,
     StaticAbility,
     TriggeredAbility,
     ActivatedAbility,
@@ -3195,6 +3416,9 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "QX": (),
     "QUnbounded": (),
     "QCount": (("selector", "selector"),),
+    # grammar round 9, R9-6: distinct-color count of the selector's cards
+    # (Orrery draw-per-color); same single-selector encoding as QCount.
+    "QDistinctColorCount": (("selector", "selector"),),
     "QProp": (
         ("referent", "qprop_referent"),
         ("field", "enum:QPropField"),
@@ -3246,6 +3470,10 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     # source (grammar round 7, R7-2): a referent string, serialized bare;
     # vocabulary validated in __post_init__ (also on the from_dict path).
     "DurationUntilLeaves": (("source", "str"),),
+    # grammar round 9, R9-4: "until <owner>'s next <step>" (Frost Breath
+    # pairs it with PREVENT_EFFECT step=Step.UNTAP); owner_scoped True
+    # (the default) serializes as a bare bool, byte-stable like TapStateEvent.
+    "DurationUntilNextStep": (("step", "enum:Step"), ("owner_scoped", "bool")),
     "ZoneChangeEvent": (
         ("from_zone", "zone"),
         ("to_zone", "zone"),
@@ -3349,6 +3577,15 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "Repeat": (("count", "quantity"), ("inner", "effect")),
     "EachPlayer": (("ref", "enum:ControllerRef"), ("effect", "effect")),
+    # grammar round 9, R9-5 (C22): duration REQUIRED — a delayed trigger
+    # without a lifetime window is just a TriggeredAbility. Tag order
+    # mirrors TriggeredAbility's event/condition/effect trio.
+    "DelayedTrigger": (
+        ("duration", "duration"),
+        ("event", "event"),
+        ("condition", "opt:filter"),
+        ("effect", "effect"),
+    ),
     "StaticAbility": (("effect", "effect"), ("condition", "opt:filter")),
     "TriggeredAbility": (
         ("event", "event"),
@@ -3359,6 +3596,9 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("cost", "cost"),
         ("effect", "effect"),
         ("condition", "opt:filter"),
+        # timing (grammar round 9, R9-1, C20): omitted at the None
+        # default (_OMIT_IF_EMPTY row) — byte-stable.
+        ("timing", "opt:enum:ActivationWindow"),
     ),
     "SpellAbility": (
         ("kind", "enum:SpellKind"),
@@ -3417,11 +3657,21 @@ _QUANTITY_TAGS = frozenset(
         "QThisTurn",
         "QAtLeast",
         "QAtMost",
+        "QDistinctColorCount",
     }
 )
 _FILTER_TAGS = frozenset({"FAnd", "FOr", "FNot", "FAtom"})
 _EFFECT_TAGS = frozenset(
-    {"Seq", "Choose", "OptionalEffect", "Conditional", "Repeat", "EachPlayer", "Atom"}
+    {
+        "Seq",
+        "Choose",
+        "OptionalEffect",
+        "Conditional",
+        "Repeat",
+        "EachPlayer",
+        "Atom",
+        "DelayedTrigger",
+    }
 )
 _ABILITY_TAGS = frozenset(
     {
@@ -3473,6 +3723,7 @@ _DURATION_TAGS = frozenset(
         "DurationUntilNextTurn",
         "DurationWhileCondition",
         "DurationUntilLeaves",
+        "DurationUntilNextStep",
     }
 )
 _COST_PART_TAGS = frozenset(
@@ -3505,6 +3756,11 @@ _ATOM_VALUE_TAGS = (
             "ControllerRef",
             "CounterKind",
             "Cost",  # PAY / CAST's `cost` role carries a full Cost (T3 round)
+            # grammar round 9, R9-4/R9-7: PREVENT_EFFECT's `step` role and
+            # GRANT_ACTIVATION's `window` role carry enum values — the
+            # CounterKind / ControllerRef enum-in-pairs precedent.
+            "Step",
+            "ActivationWindow",
         }
     )
 )
@@ -3572,7 +3828,10 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     "CostModifier": frozenset({"condition", "extra_deltas"}),
     "SpellAbility": frozenset({"effect", "additional_costs"}),
     "StaticAbility": frozenset({"condition"}),
-    "ActivatedAbility": frozenset({"condition"}),
+    # timing (grammar round 9, R9-1, C20): omit when None — without this
+    # row every existing ActivatedAbility golden would byte-diff
+    # (dual-registration rule, PITFALLS 2026-09-28).
+    "ActivatedAbility": frozenset({"condition", "timing"}),
 }
 
 

@@ -1,0 +1,355 @@
+{
+  "set": "M21",
+  "generated": "2026-09-29T01:25:42+02:00",
+  "git_head": "8783b4f00fee0cc57d21cc5982c2236e5c6456d6",
+  "python_version": "3.12.3",
+  "pinned_denominators": {
+    "entries": 305,
+    "sentences": 639,
+    "unique": 510
+  },
+  "pool_stats": {
+    "total": 305,
+    "with_text": 291,
+    "sentence_total": 639,
+    "sentence_unique": 510,
+    "keywords": {
+      "Battalion": 1,
+      "Deathtouch": 2,
+      "Defender": 4,
+      "Double strike": 1,
+      "Enchant": 10,
+      "Equip": 2,
+      "Fight": 2,
+      "First strike": 1,
+      "Flash": 7,
+      "Flying": 23,
+      "Haste": 3,
+      "Hexproof": 4,
+      "Hexproof from": 2,
+      "Indestructible": 1,
+      "Lifelink": 8,
+      "Menace": 1,
+      "Mill": 3,
+      "Protection": 3,
+      "Prowess": 6,
+      "Reach": 6,
+      "Scry": 12,
+      "Trample": 7,
+      "Treasure": 1,
+      "Vigilance": 9
+    },
+    "layouts": {
+      "emblem": 3,
+      "normal": 285,
+      "token": 17
+    },
+    "mana_value": {
+      "0": 44,
+      "1": 30,
+      "2": 63,
+      "3": 68,
+      "4": 43,
+      "5+": 57
+    },
+    "emblems": 3,
+    "emblem_owners": {
+      "56c1893f-1382-4a31-a28a-ea604677fcdb": [
+        "Liliana, Waker of the Dead"
+      ],
+      "8a908da7-b41c-4712-b7dc-8c6027875d36": [
+        "Garruk, Unleashed"
+      ],
+      "ab67e4ec-9392-4130-970f-6ad65656e5c1": [
+        "Basri Ket",
+        "Soldier"
+      ]
+    }
+  },
+  "pcs": {
+    "PC-1": {
+      "name": "card_coverage",
+      "cards_zero_unparsed": 287,
+      "denominator": 305,
+      "value": 0.940984,
+      "target": ">=0.90",
+      "stretch": ">=0.95",
+      "pass": true
+    },
+    "PC-2": {
+      "name": "sentence_coverage",
+      "sentences_matched": 618,
+      "denominator": 639,
+      "value": 0.967136,
+      "target": ">=0.95",
+      "stretch": ">=0.98",
+      "pass": true
+    },
+    "PC-3": {
+      "name": "ambiguity",
+      "value": 0,
+      "target": "0",
+      "pass": true,
+      "entries": []
+    },
+    "PC-4": {
+      "name": "golden_stability",
+      "value": 0,
+      "target": "0",
+      "pass": true,
+      "diffs": []
+    },
+    "PC-5": {
+      "name": "compile_latency_p99_ms_per_card",
+      "value": 0.232,
+      "target": "<50",
+      "stretch": "<20",
+      "pass": true,
+      "runs": 3,
+      "per_card_ms": [
+        0.223,
+        0.222,
+        0.232
+      ]
+    },
+    "PC-6": {
+      "name": "vocabulary_health",
+      "orphan_verbs": {
+        "value": 3,
+        "target": "0",
+        "pass": false,
+        "verbs": [
+          "GRANT_ACTIVATION",
+          "MANA_POLICY",
+          "PHASE_IN"
+        ]
+      },
+      "max_verb_share": {
+        "value": 0.093023,
+        "target": "<0.20",
+        "pass": true
+      },
+      "pass": false,
+      "atom_total": 559,
+      "max_share_verb": "MODIFY_PT",
+      "verb_histogram": {
+        "ADD_LAND_PLAY": 1,
+        "ADD_MANA": 48,
+        "ATTACH": 2,
+        "CAST": 9,
+        "CHOOSE": 2,
+        "CHOOSE_NAME": 2,
+        "COPY": 2,
+        "COUNTER_SPELL": 6,
+        "CREATE_TOKEN": 25,
+        "DEAL_DAMAGE": 31,
+        "DESTROY": 14,
+        "DISCARD": 17,
+        "DRAW": 51,
+        "END_TURN": 1,
+        "EXILE": 19,
+        "EXTRA_TURN": 1,
+        "FIGHT": 2,
+        "FLIP_COIN": 1,
+        "GAIN_CONTROL": 2,
+        "GAIN_LIFE": 33,
+        "GET_EMBLEM": 3,
+        "GRANT_ABILITY": 46,
+        "GRANT_TYPE": 3,
+        "LOOK_AT": 4,
+        "LOSE_ABILITY": 1,
+        "LOSE_GAME": 1,
+        "LOSE_LIFE": 12,
+        "MANDATE_ATTACK": 2,
+        "MANDATE_BLOCK": 1,
+        "MILL": 3,
+        "MODIFY_PT": 52,
+        "MOVE_ZONE": 35,
+        "PAY": 3,
+        "PHASE_OUT": 2,
+        "PREVENT_EFFECT": 11,
+        "PUT_COUNTER": 33,
+        "REMOVE_COUNTER": 1,
+        "REVEAL": 13,
+        "SACRIFICE": 4,
+        "SCRY": 12,
+        "SEARCH": 17,
+        "SET_PT": 4,
+        "SHUFFLE": 16,
+        "TAP": 7,
+        "UNTAP": 4
+      }
+    },
+    "PC-7": {
+      "name": "executor_coverage",
+      "status": "pending_executor",
+      "target": "25/25; >=0.70",
+      "pass": null,
+      "note": "core/executor.py ships in T6 — not stubbed by this harness"
+    },
+    "PC-8": {
+      "name": "targetable_card_fraction",
+      "targetable_entries": 97,
+      "denominator": 305,
+      "value": 0.318033,
+      "target": ">=0.40",
+      "stretch": ">=0.50",
+      "pass": false
+    },
+    "PC-9": {
+      "name": "determinism",
+      "value": true,
+      "target": "identical fingerprint multiset",
+      "pass": true
+    },
+    "PC-10": {
+      "name": "instrument_null_test",
+      "good_card_coverage": 1.0,
+      "bad_card_coverage": 0.0,
+      "bad_unparsed_sentence": "Nobody understands this.",
+      "target": "100% / 0% respectively, unparsed queue exact",
+      "pass": true
+    }
+  },
+  "failed_targets": [
+    "PC-6",
+    "PC-8"
+  ],
+  "golden": {
+    "dir": "/home/sune/Desktop/MTG_AI/MTG_bot/core/golden/M21",
+    "files": 305,
+    "diffs": [],
+    "stable": true,
+    "goldens": "verified",
+    "baseline": "VCS-tracked (committed goldens; verify-only by default)"
+  },
+  "unparsed_queue": [
+    {
+      "oracle_id": "1d07856b-d9ef-418c-bd06-3888dbcaddf4",
+      "name": "Vodalian Arcanist",
+      "sentence": "Spend this mana only to cast an instant or sorcery spell.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "2f94cb83-1f48-4293-b219-67830c074aeb",
+      "name": "Enthralling Hold",
+      "sentence": "You can't choose an untapped creature as this spell's target as you cast it.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "382097b3-f753-493c-bde4-101c0538feb4",
+      "name": "Frost Breath",
+      "sentence": "Those creatures don't untap during their controller's next untap step.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "4c1c3a0a-5782-4b7d-8b9c-61eea913166d",
+      "name": "Transmogrify",
+      "sentence": "That creature's controller reveals cards from the top of their library until they reveal a creature card.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "4c1c3a0a-5782-4b7d-8b9c-61eea913166d",
+      "name": "Transmogrify",
+      "sentence": "That player puts that card onto the battlefield, then shuffles the rest into their library.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "63f60dfc-2bc4-411f-ae53-504156fe0102",
+      "name": "Sanctum of All",
+      "sentence": "If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "6de2d53c-06e3-4c56-a5cf-c9cb2db42527",
+      "name": "Pursued Whale",
+      "sentence": "When this creature enters, each opponent creates a 1/1 red Pirate creature token with \"This token can't block\" and \"Creatures you control attack each combat if able.\"",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "846887e4-744f-44ce-9110-d09680b11e95",
+      "name": "Tolarian Kraken",
+      "sentence": "When you do, you may tap or untap target creature.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "95c3976c-33f3-490b-bfd3-7f1af2fe0416",
+      "name": "Chromatic Orrery",
+      "sentence": "You may spend mana as though it were mana of any color.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "95c3976c-33f3-490b-bfd3-7f1af2fe0416",
+      "name": "Chromatic Orrery",
+      "sentence": "{5}, {T}: Draw a card for each color among permanents you control.",
+      "bucket_hint": "activated"
+    },
+    {
+      "oracle_id": "9e2e3272-d4e1-4329-b1d2-f393b3511b82",
+      "name": "Subira, Tulzidi Caravanner",
+      "sentence": "{1}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power 2 or less deals combat damage to a player, draw a card.",
+      "bucket_hint": "activated"
+    },
+    {
+      "oracle_id": "cbcb6d9a-6ae5-4bcd-8013-2b657553764a",
+      "name": "Mangara, the Diplomat",
+      "sentence": "Whenever an opponent attacks with creatures, if two or more of those creatures are attacking you and/or planeswalkers you control, draw a card.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "cc1203cb-6758-4454-b78b-341930ff4da1",
+      "name": "Liliana's Steward",
+      "sentence": "Activate only as a sorcery.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "e0df8e2a-96d2-4e4d-b065-aa2e162abbfe",
+      "name": "Liliana, Waker of the Dead",
+      "sentence": "Each opponent who can't loses 3 life.",
+      "bucket_hint": "static"
+    },
+    {
+      "oracle_id": "e4bacf1b-0a45-4c73-857d-dffadb7e6fa5",
+      "name": "Speaker of the Heavens",
+      "sentence": "Activate only if you have at least 7 life more than your starting life total and only as a sorcery.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "e802fb53-7cf5-46bc-8a0b-f99cf5c20f74",
+      "name": "Teferi, Master of Time",
+      "sentence": "You may activate loyalty abilities of Teferi on any player's turn any time you could cast an instant.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "ee811356-ef6a-4972-b827-32c2d329b3c3",
+      "name": "Drowsing Tyrannodon",
+      "sentence": "As long as you control a creature with power 4 or greater, this creature can attack as though it didn't have defender.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "f379fa0b-e9fc-4307-a574-a0c95e5e7f72",
+      "name": "Chrome Replicator",
+      "sentence": "When this creature enters, if you control two or more nonland, nontoken permanents with the same name as one another, create a 4/4 colorless Construct artifact creature token.",
+      "bucket_hint": "triggered"
+    },
+    {
+      "oracle_id": "f5d1bd3c-0e65-4999-a810-881b2389b40e",
+      "name": "Conspicuous Snoop",
+      "sentence": "As long as the top card of your library is a Goblin card, this creature has all activated abilities of that card.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "f5d1bd3c-0e65-4999-a810-881b2389b40e",
+      "name": "Conspicuous Snoop",
+      "sentence": "Play with the top card of your library revealed.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "fc762e40-84c1-4762-82f7-a0fc4f6fd522",
+      "name": "Garruk, Savage Herald",
+      "sentence": "[−7]: Until end of turn, creatures you control gain \"You may have this creature assign its combat damage as though it weren't blocked.\"",
+      "bucket_hint": "spell-effect"
+    }
+  ],
+  "unparsed_count": 21
+}

@@ -1,5 +1,21 @@
 # PITFALLS — standing traps (each dated; newest first)
 
+## 2026-09-29
+- **[subagent reports — report-body vocabulary can be HALLUCINATED while the
+  CODE is correct.]** The r9-A completion report described "Verb.DO (48
+  verbs)", "DurationKind.NEXT_PERMANENT_UNTAP", "SNOOP_TARGETS",
+  "ActivationWindow PHASE_OUT", "ManaPolicy dataclass" — grep of the
+  committed tree finds ZERO occurrences of those names; the actual diff
+  implements the binding spec exactly (`Verb.MANA_POLICY` +
+  `_MANA_POLICY_SCOPES`, `ActivationWindow={SORCERY,INSTANT}`,
+  `QDistinctColorCount`, `GRANT_ACTIVATION`). Rule: before a dependent
+  downstream phase (batch writing against grammar names), grep-verify the
+  real symbol surface (`grep -n "class X\|X = " ability_tree.py`) and
+  dispatch on the CODE's vocabulary, never the report prose; all gates
+  (tests/measure) passing is the reliable signal, the narrative is not.
+  Same round also confirmed the measure tool's per-run NUMBERS.md append
+  (reports named grammar_2026-09-29.json after midnight rollover).
+
 ## 2026-09-28
 - **[round-8-C — three construction-time validators bite before any test
   runs.]** (a) C2 is enforced in `Selector.__post_init__`: a `referent=`

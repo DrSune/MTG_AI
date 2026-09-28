@@ -36,7 +36,9 @@ from MTG_bot.core.ability_tree import (
     CostPart,
     DeclareAttackersEvent,
     DeclareBlockersEvent,
+    DelayedTrigger,
     DurationUntilNextTurn,
+    EachPlayer,
     Effect,
     FAnd,
     FAtom,
@@ -131,9 +133,10 @@ _CONTINUATION_PREFIXES: tuple[str, ...] = (
     "Then ",
     # Grammar round 7, R7-3: "Otherwise" attaches as the else_effect of
     # the previous Conditional (_merge_otherwise, C13 fallback); "When
-    # you do" is registered but has no matching template yet — its event
-    # binding (Tolarian Kraken: antecedent "you may pay {1}") is queued
-    # (no clean existing event class; batch-phase concern).
+    # you do" (grammar round 9, R9-9) attaches INSIDE the previous
+    # OptionalEffect whose inner pays a cost (Tolarian Kraken: antecedent
+    # "you may pay {1}" — _merge_do_continuation, C24; the s2 template
+    # ships with the 9-B batch).
     "Otherwise",
     "When you do",
 )
@@ -726,6 +729,59 @@ def _merge_otherwise(prev_effect: Effect, inner: Effect) -> Effect:
     return _append_optional_to_seq(prev_effect, inner)
 
 
+def _contains_pay_atom(effect: Effect) -> bool:
+    """True if any Atom with ``Verb.PAY`` appears anywhere inside ``effect``.
+
+    Structural test for the "When you do" antecedent (grammar round 9,
+    R9-9): the continuation's "do" refers to paying the cost, so the prior
+    effect must actually contain the PAY atom — mirrors the exhaustive
+    Effect-union traversal of :func:`_fold_meta_filter`'s transform.
+    """
+    if isinstance(effect, Atom):
+        return effect.verb is Verb.PAY
+    if isinstance(effect, Seq):
+        return any(_contains_pay_atom(s) for s in effect.steps)
+    if isinstance(effect, Choose):
+        return any(_contains_pay_atom(o) for o in effect.options)
+    if isinstance(effect, OptionalEffect):
+        return _contains_pay_atom(effect.inner)
+    if isinstance(effect, Conditional):
+        if _contains_pay_atom(effect.then_effect):
+            return True
+        return effect.else_effect is not None and _contains_pay_atom(effect.else_effect)
+    if isinstance(effect, Repeat):
+        return _contains_pay_atom(effect.inner)
+    if isinstance(effect, EachPlayer):
+        return _contains_pay_atom(effect.effect)
+    if isinstance(effect, DelayedTrigger):
+        return _contains_pay_atom(effect.effect)
+    return False
+
+
+def _merge_do_continuation(prev_effect: Effect, continuation: Effect) -> Effect:
+    """Grammar round 9 (R9-9, C24): "When you do, …" joins the INSIDE of
+    the prior ``OptionalEffect`` that pays a cost.
+
+    Tolarian Kraken: "When you draw a card, you may pay {1}. When you do,
+    …" — the second optional only EXISTS if the payment was made, so the
+    parsed continuation (already optional if the text says "you may") is
+    injected into the prior OptionalEffect's inner sequence, the
+    search-shuffle twin (:func:`_merge_search_shuffle`) shape.  C24
+    (mandate): a sibling append here would fabricate an independent
+    optional the text never grants.  Any other prior falls back to the
+    EXISTING default continuation merge (sibling optional step), the same
+    C13 discipline as :func:`_merge_otherwise`.
+    """
+    if isinstance(prev_effect, OptionalEffect) and _contains_pay_atom(
+        prev_effect.inner
+    ):
+        inner = prev_effect.inner
+        if isinstance(inner, Seq):
+            return OptionalEffect(inner=Seq(steps=inner.steps + (continuation,)))
+        return OptionalEffect(inner=Seq(steps=(inner, continuation)))
+    return _append_optional_to_seq(prev_effect, continuation)
+
+
 def _fold_meta_filter(effect: Effect, meta_filter: Filter) -> Effect:
     """Conjoin meta_filter onto every TARGET-mode Selector in effect.
 
@@ -924,6 +980,8 @@ def compile_card(
         #     (no OptionalEffect wrap — the effect always fires).
         #   - "Otherwise" (grammar round 7, R7-3): else_effect of the last
         #     Conditional, C13 fallback to the default merge.
+        #   - "When you do" (grammar round 9, R9-9, C24): inside the prior
+        #     cost-paying OptionalEffect, C13 fallback to the default merge.
         #   - default continuation: a sibling optional step.
         if _SEARCH_SHUFFLE_TAIL_RE.match(sentence):
             merge = _merge_search_shuffle
@@ -931,6 +989,8 @@ def compile_card(
             merge = _append_mandatory_to_seq
         elif sentence.strip().startswith("Otherwise"):
             merge = _merge_otherwise
+        elif sentence.strip().startswith("When you do"):
+            merge = _merge_do_continuation
         else:
             merge = _append_optional_to_seq
 
@@ -976,7 +1036,12 @@ def compile_card(
                     merged_eff = merge(ab.effect, outcome.effect)
                     processed[prev_idx] = AbilityOutcome(
                         ability=ActivatedAbility(
-                            cost=ab.cost, effect=merged_eff, condition=ab.condition
+                            cost=ab.cost,
+                            effect=merged_eff,
+                            condition=ab.condition,
+                            # timing (grammar round 9, R9-1): a continuation
+                            # merge must not silently drop the timing window.
+                            timing=ab.timing,
                         )
                     )
                 elif isinstance(ab, SpellAbility):
