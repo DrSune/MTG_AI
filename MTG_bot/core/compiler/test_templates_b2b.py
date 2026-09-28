@@ -36,6 +36,7 @@ from MTG_bot.core.ability_tree import (
     CreatureDiesEvent,
     DamageDealtEvent,
     DeclareAttackersEvent,
+    DeclareBlockersEvent,
     DurationEot,
     EachPlayer,
     FAnd,
@@ -318,6 +319,10 @@ EXPECTED: dict[str, tuple[str, str]] = {
         "B2b-keral-keep-disciples",
         "Keral Keep Disciples",
     ),
+    "Whenever this creature blocks a creature with flying, this creature gets +N/+N until end of turn.": (
+        "B2b-blocks-flying-pump",
+        "Snarespinner",
+    ),
 }
 
 
@@ -508,8 +513,8 @@ class TestB2bCoverage(unittest.TestCase):
         self.assertEqual(total, 76)
 
     def test_public_api_counts(self) -> None:
-        self.assertEqual(len(templates_b2b.TEMPLATES), 57)
-        self.assertEqual(len(templates_b2b.UNCOVERED), 4)
+        self.assertEqual(len(templates_b2b.TEMPLATES), 58)
+        self.assertEqual(len(templates_b2b.UNCOVERED), 3)
 
     def test_bucket_labels_b2b(self) -> None:
         for template in templates_b2b.TEMPLATES:
@@ -535,8 +540,8 @@ class TestB2bCoverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 58)
-        self.assertEqual(matched_occurrences, 72)
+        self.assertEqual(covered_shapes, 59)
+        self.assertEqual(matched_occurrences, 73)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -558,7 +563,7 @@ class TestB2bCoverage(unittest.TestCase):
             if any(self.reg.match(sentence) for _card, sentence in entries):
                 covered.add(shape_key)
         self.assertEqual(set(EXPECTED), covered)
-        self.assertEqual(len(EXPECTED), 58)
+        self.assertEqual(len(EXPECTED), 59)
 
     def test_expected_table_matches_registry(self) -> None:
         for shape_key, (tid, name) in EXPECTED.items():
@@ -2440,3 +2445,44 @@ class TestB2bEffectStructure(unittest.TestCase):
     def _assert_has_is_untapped(self, a_filter: Filter) -> None:
         atom = _find_atom(a_filter, FAtomPred.IS_UNTAPPED)
         del atom
+
+
+class TestB2bRound7BTopUp(unittest.TestCase):
+    """R7-B: Snarespinner — first production TRIGGER use of the R6-4
+    DeclareBlockersEvent.blocked slot (doc 2026-09-28/03 §3 B-table row 7)."""
+
+    def test_blocks_flying_pump_structure(self) -> None:
+        reg = _registry()
+        m = _single_match(
+            reg,
+            "Whenever this creature blocks a creature with flying, this "
+            "creature gets +2/+0 until end of turn.",
+        )
+        ability = _ability(m)
+        event = ability.event
+        assert isinstance(event, DeclareBlockersEvent)
+        # blocker side: IS_SOURCE rides the primary filter (b4 cant-block shape)
+        blocker_filter = event.filter
+        assert isinstance(blocker_filter, FAtom)
+        self.assertIs(blocker_filter.pred, FAtomPred.IS_SOURCE)
+        self.assertIsNone(event.subject)
+        # blocked side (R6-4 slot): KEYWORD_HAS flying — Shacklegeist idiom,
+        # now on the trigger (validation is type-only, __post_init__ permits it)
+        blocked = event.blocked
+        assert isinstance(blocked, FAtom)
+        self.assertIs(blocked.pred, FAtomPred.KEYWORD_HAS)
+        self.assertEqual(blocked.keyword, Keyword.FLYING)
+        # effect: MODIFY_PT on self, power-only (+2/+0), EOT
+        eff = ability.effect
+        assert isinstance(eff, Atom)
+        self.assertIs(eff.verb, Verb.MODIFY_PT)
+        roles = dict(eff.args.pairs)
+        self.assertEqual(roles["duration"], DurationEot())
+        self.assertNotIn("toughness", roles)
+        power = roles["power"]
+        assert isinstance(power, PtDelta)
+        self.assertEqual(power, PtDelta(PtDirection.INCREASE, QConst(2)))
+        target = roles["target"]
+        assert isinstance(target, Selector)
+        self.assertIs(target.mode, SelectorMode.CHOOSE)
+        self.assertEqual(target.filter, FAtom(pred=FAtomPred.IS_SOURCE))

@@ -5,6 +5,57 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-09-28 (round 7-B — R7-B no-grammar top-ups; round summary)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| core test state after round 7-B | **1448 passed / 0 failed** (`MTG_bot/core`) | `python -m pytest MTG_bot/core -q` | 1434 → 1448 (batch +14 tests across 3 bucket test files; golden verify zero-diff) |
+| PC-1 card coverage round delta | **262 → 274 / 305** (0.8590 → 0.8984) | `python tools/measure_grammar.py --set M21` | +12 full cards from the 13-sentence batch (Tavern Swindler carries 2 rows); prediction 274 HIT |
+| PC-2 sentence coverage round delta | **586 → 599 / 639** (0.9171 → 0.9374) | same | **+13 = exactly the batch**, zero overshoot |
+| residual unparsed queue | **53/53 → 40 shapes / 40 occ** | `python tools/dump_unparsed_queue.py --set M21` | −13 shapes / −13 occ, **0 new shapes** (set-diff regression check); `/tmp/opencode/r7b/queue_post_r7b.txt` |
+| goldens re-baselined | **exactly 12 files** | `--refresh-goldens` + per-file audit vs `/tmp/golden_pre_r7b_2026-09-28/` | 293 byte-identical; 10 abilities-key, **2 keywords-key** (Baneslayer/Sporeweb KeywordOutcome rows fold into `card.keywords` — audit rule now "abilities/emblem/keywords payload only") |
+| PC-6 orphans | **2 → 1** (PHASE_IN) | `python tools/measure_grammar.py --set M21` | FLIP_COIN consumed by `B5c-flip-cost` the round it became template-usable; standing 1 = executor-deferred |
+| PC-8 targetable | **87 → 88 / 305** | same | +1 (Hunter's Edge s2 TARGET selector) |
+| bucket pins after round 7-B | **unchanged** (B2a 59/3, B3 46/2, B4 38/9) | `python tools/gen_buckets.py` | R7-B modules (b2b/b5b/b5c) do not feed the partition; all 8 JSONs **byte-identical** (cmp vs `/tmp/opencode/phase1_buckets_pre_r7b/`); UNCOVERED prunes b5b 21→12, b5c 14→11, b2b 4→3 are test-pinned |
+| pyright / ruff on 7 touched files | 0 errors / **delta 0** | `pyright <files>`; `ruff check --output-format=concise` vs HEAD copies | one self-introduced I001 fixed via `ruff --fix` in-session; 7 TRY004 residual = HEAD's pre-existing b5b helper pattern; `ruff format` clean |
+
+NOTE: the two identical-header blocks below (dated 2026-09-28, PC-2 599/639) are **per-run tool
+auto-appends**, newest first: post-refresh final (PC-4 0 refreshed), pre-refresh verify (PC-4 12
+diffs — expected, drift reported not repaired). Full write-up:
+`KNOWLEDGE/2026-09-28/07-grammar-round7b-results.md`.
+
+## 2026-09-28 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.8984** (274/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — FAIL |
+| PC-2 sentence_coverage | **0.9374** (599/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — FAIL |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, refreshed) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.223 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0963** (MODIFY_PT) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.2885** (88/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-09-28 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.8984** (274/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — FAIL |
+| PC-2 sentence_coverage | **0.9374** (599/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — FAIL |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **12 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — FAIL |
+| PC-5 compile_latency p99 | **0.222 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0963** (MODIFY_PT) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.2885** (88/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
 ## 2026-09-28 (T5 — Phase-1 grammar measurement harness)
 
 | Number | Value | Command | Notes |

@@ -68,6 +68,28 @@
   unique-tid counts 51→56 (twice: table + canonical-stability) AND rewrote the
   Finishing Blow end-to-end expectations (its 2nd sentence became covered → Seq of
   2 steps, 0 unparsed). Budget for five coordinated edits per landing batch.
+- **[goldens — keyword-list coverage rows change the `keywords` KEY, not
+  `abilities`.]** A `KeywordOutcome` folds into the card-level `keywords`
+  array, so the R7-B Baneslayer/Sporeweb goldens diffed outside the `abilities`
+  payload for the first time. The golden-audit rule is now: diffs allowed ONLY
+  in the abilities payload — `abilities`, `emblem`, or `keywords` (r7-A emblem
+  + r7-B keywords precedents). Anything else (identity, P/T, colors, cost) in
+  a diff set = stop and investigate.
+- **[grammar — the controller-role asymmetry: LOSE_LIFE takes a referent
+  Selector in `controller` (controller-of-the-object, Gloom-Sower shape);
+  CREATE_TOKEN has NO controller role at all.** "Its controller loses N life"
+  encodes; "Its controller creates a token" cannot — creator is implicit +
+  verbatim lossy (Necromentia precedent). `_VERB_ROLES` is validated strictly
+  BOTH ways (missing-required AND extra roles raise), so build AtomArgs from
+  the table, never from a doc sketch. DEAL_DAMAGE likewise has no source role
+  (dealer = the amount-QProp's referent, executor-side).
+- **[knowledge tree — VERIFY claimed doc edits landed; reports are not files.]**
+  /06 recorded "Updated INDEX.md (+2 rows)" for r7-A, but INDEX.md's last
+  change is the round-6 commit — the r7-A rows were never written (lost in
+  that session's compaction). r7-B backfilled /03–/06 + added /07. Rule: every
+  closeout claim (INDEX/PITFALLS/NUMBERS) must be `grep`-confirmed after the
+  write, and the next session's orientation check should spot-check the newest
+  INDEX rows against `ls KNOWLEDGE/<date>/`.
 
 
 ## 2026-09-27

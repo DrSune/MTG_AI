@@ -117,6 +117,7 @@ from MTG_bot.core.ability_tree import (
     CreatureDiesEvent,
     DamageDealtEvent,
     DeclareAttackersEvent,
+    DeclareBlockersEvent,
     DurationEot,
     EachPlayer,
     FAnd,
@@ -2023,6 +2024,39 @@ def _build_keral_keep_disciples(m: re.Match[str]) -> SentenceOutcome:
     )
 
 
+def _build_blocks_flying_pump(m: re.Match[str]) -> SentenceOutcome:
+    """Grammar round-7-B row (Snarespinner): this creature blocks a creature
+    with flying, this creature gets +2/+0 until end of turn.
+
+    First production TRIGGER use of the R6-4 ``blocked`` slot — previously
+    only the b3/b4/b5a/b5b PREVENT_EFFECT restriction rows consumed it.
+    ``__post_init__`` constrains ``blocked`` only to be a Filter (no
+    prevention-only validation exists), so the KEYWORD_HAS filter rides the
+    trigger the same way Shacklegeist's prevention does.  The blocker
+    ("this creature") is the primary event filter = IS_SOURCE, the b4
+    cant-block shape.  ``+2/+0``: the zero toughness delta is omitted
+    (MODIFY_PT requires only one of power/toughness).  This prunes the
+    stale b2b UNCOVERED entry, whose "filter/subject are both over the
+    blocker" diagnosis predates grammar round 6.  C16: none — fully
+    forced."""
+    return _ability(
+        DeclareBlockersEvent(
+            FAtom(pred=FAtomPred.IS_SOURCE),
+            blocked=FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+        ),
+        Atom(
+            verb=Verb.MODIFY_PT,
+            args=AtomArgs(
+                pairs=(
+                    ("target", _self_selector()),
+                    ("power", PtDelta(PtDirection.INCREASE, QConst(_n(m, 1)))),
+                    ("duration", DurationEot()),
+                )
+            ),
+        ),
+    )
+
+
 # ---------------------------------------------------------------------------
 # Templates
 # ---------------------------------------------------------------------------
@@ -2510,6 +2544,15 @@ TEMPLATES: Final[tuple[Template, ...]] = (
         ),
         _build_keral_keep_disciples,
     ),
+    _template(
+        "B2b-blocks-flying-pump",
+        "Snarespinner",
+        re.compile(
+            r"^Whenever this creature blocks a creature with flying, this "
+            r"creature gets \+(\d+)/\+0 until end of turn\.$"
+        ),
+        _build_blocks_flying_pump,
+    ),
 )
 
 
@@ -2534,18 +2577,6 @@ UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
         (
             "handled by the compiler's choose-opener built-in; "
             "two TriggeredAbilities share one Choose"
-        ),
-    ),
-    (
-        (
-            "Whenever this creature blocks a creature with flying, "
-            "this creature gets +N/+N until end of turn."
-        ),
-        (
-            "blocked-creature (attacked-creature) filter gap — "
-            "DeclareBlockersEvent.filter/subject are both over the blocker; "
-            "'blocks a creature with flying' constrains the blocked creature. "
-            "Round-5 grammar item: DeclareBlockersEvent.blocked: Filter | None."
         ),
     ),
 )

@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-09-28T17:47:04+02:00",
-  "git_head": "0726e9361ac07c914bbeee76f5b58a7af17b8d02",
+  "generated": "2026-09-28T18:33:44+02:00",
+  "git_head": "dfbaf1d3a575ce5fea57a686beadeec7b90bc5fd",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -69,18 +69,18 @@
   "pcs": {
     "PC-1": {
       "name": "card_coverage",
-      "cards_zero_unparsed": 262,
+      "cards_zero_unparsed": 274,
       "denominator": 305,
-      "value": 0.859016,
+      "value": 0.898361,
       "target": ">=0.90",
       "stretch": ">=0.95",
       "pass": false
     },
     "PC-2": {
       "name": "sentence_coverage",
-      "sentences_matched": 586,
+      "sentences_matched": 599,
       "denominator": 639,
-      "value": 0.917058,
+      "value": 0.937402,
       "target": ">=0.95",
       "stretch": ">=0.98",
       "pass": false
@@ -101,35 +101,34 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.217,
+      "value": 0.223,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.207,
-        0.207,
-        0.217
+        0.215,
+        0.223,
+        0.214
       ]
     },
     "PC-6": {
       "name": "vocabulary_health",
       "orphan_verbs": {
-        "value": 2,
+        "value": 1,
         "target": "0",
         "pass": false,
         "verbs": [
-          "FLIP_COIN",
           "PHASE_IN"
         ]
       },
       "max_verb_share": {
-        "value": 0.094877,
+        "value": 0.096296,
         "target": "<0.20",
         "pass": true
       },
       "pass": false,
-      "atom_total": 527,
+      "atom_total": 540,
       "max_share_verb": "MODIFY_PT",
       "verb_histogram": {
         "ADD_MANA": 48,
@@ -139,8 +138,8 @@
         "CHOOSE_NAME": 2,
         "COPY": 2,
         "COUNTER_SPELL": 6,
-        "CREATE_TOKEN": 21,
-        "DEAL_DAMAGE": 30,
+        "CREATE_TOKEN": 24,
+        "DEAL_DAMAGE": 31,
         "DESTROY": 14,
         "DISCARD": 17,
         "DRAW": 50,
@@ -148,23 +147,24 @@
         "EXILE": 19,
         "EXTRA_TURN": 1,
         "FIGHT": 2,
+        "FLIP_COIN": 1,
         "GAIN_CONTROL": 2,
-        "GAIN_LIFE": 31,
-        "GRANT_ABILITY": 43,
+        "GAIN_LIFE": 32,
+        "GRANT_ABILITY": 45,
         "GRANT_TYPE": 3,
         "LOOK_AT": 3,
         "LOSE_ABILITY": 1,
         "LOSE_GAME": 1,
-        "LOSE_LIFE": 11,
+        "LOSE_LIFE": 12,
         "MANDATE_ATTACK": 2,
         "MANDATE_BLOCK": 1,
         "MILL": 3,
-        "MODIFY_PT": 50,
+        "MODIFY_PT": 52,
         "MOVE_ZONE": 35,
         "PAY": 3,
         "PHASE_OUT": 2,
         "PREVENT_EFFECT": 11,
-        "PUT_COUNTER": 28,
+        "PUT_COUNTER": 29,
         "REMOVE_COUNTER": 1,
         "REVEAL": 13,
         "SACRIFICE": 4,
@@ -173,7 +173,7 @@
         "SET_PT": 4,
         "SHUFFLE": 16,
         "TAP": 7,
-        "UNTAP": 3
+        "UNTAP": 4
       }
     },
     "PC-7": {
@@ -185,9 +185,9 @@
     },
     "PC-8": {
       "name": "targetable_card_fraction",
-      "targetable_entries": 87,
+      "targetable_entries": 88,
       "denominator": 305,
-      "value": 0.285246,
+      "value": 0.288525,
       "target": ">=0.40",
       "stretch": ">=0.50",
       "pass": false
@@ -218,28 +218,10 @@
     "files": 305,
     "diffs": [],
     "stable": true,
-    "goldens": "verified",
+    "goldens": "refreshed",
     "baseline": "VCS-tracked (committed goldens; verify-only by default)"
   },
   "unparsed_queue": [
-    {
-      "oracle_id": "0c85b8f7-0bd0-4680-9ec5-d4b110460a54",
-      "name": "Fabled Passage",
-      "sentence": "Then if you control four or more lands, untap that land.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "0e11792b-7fe5-4208-aa0b-e5d09b2b65fe",
-      "name": "Baneslayer Angel",
-      "sentence": "Flying, first strike, lifelink, protection from Demons and from Dragons",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "0f63de7b-03f2-49ad-b217-88fe9c50d68a",
-      "name": "Snarespinner",
-      "sentence": "Whenever this creature blocks a creature with flying, this creature gets +2/+0 until end of turn.",
-      "bucket_hint": "triggered"
-    },
     {
       "oracle_id": "1818b0b1-0104-4673-9be8-acfc773ef87d",
       "name": "Sanctum of Tranquil Light",
@@ -268,18 +250,6 @@
       "oracle_id": "21fa2442-6eac-4dce-a9cc-76f0053fdb8f",
       "name": "Peer into the Abyss",
       "sentence": "Target player draws cards equal to half the number of cards in their library and loses half their life.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "236e1f57-7ef5-455a-82a6-8ff6b85d8849",
-      "name": "Nine Lives",
-      "sentence": "If a source would deal damage to you, prevent that damage and put an incarnation counter on this enchantment.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "2e7c3881-6fa6-4fd2-ae86-9e3a0fcecdbd",
-      "name": "Sporeweb Weaver",
-      "sentence": "Reach, hexproof from blue",
       "bucket_hint": "spell-effect"
     },
     {
@@ -331,12 +301,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "4e698713-6203-44f2-b438-1b26b951536d",
-      "name": "Alchemist's Gift",
-      "sentence": "Target creature gets +1/+1 and gains your choice of deathtouch or lifelink until end of turn.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "515cee6a-a2e1-4eeb-8e1d-293724313b14",
       "name": "Chandra's Incinerator",
       "sentence": "This spell costs {X} less to cast, where X is the total amount of noncombat damage dealt to your opponents this turn.",
@@ -358,12 +322,6 @@
       "oracle_id": "58ad45fc-b625-4484-8d49-ebc42db9040a",
       "name": "Chandra, Heart of Fire",
       "sentence": "You may cast them this turn.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "5a898412-5b1e-4217-ac78-5b4099ed8e16",
-      "name": "Angelic Ascension",
-      "sentence": "Its controller creates a 4/4 white Angel creature token with flying.",
       "bucket_hint": "spell-effect"
     },
     {
@@ -403,24 +361,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "7b428e94-8428-455f-b555-f648fcdd2127",
-      "name": "Hunter's Edge",
-      "sentence": "Then that creature deals damage equal to its power to target creature you don't control.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "81674138-08d0-4126-9e6d-27f6e7dd2403",
-      "name": "Tavern Swindler",
-      "sentence": "If you win the flip, you gain 6 life.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "81674138-08d0-4126-9e6d-27f6e7dd2403",
-      "name": "Tavern Swindler",
-      "sentence": "{T}, Pay 3 life: Flip a coin.",
-      "bucket_hint": "activated"
-    },
-    {
       "oracle_id": "846887e4-744f-44ce-9110-d09680b11e95",
       "name": "Tolarian Kraken",
       "sentence": "When you do, you may tap or untap target creature.",
@@ -451,12 +391,6 @@
       "bucket_hint": "activated"
     },
     {
-      "oracle_id": "b917f39a-3176-47ad-afda-08d09b873c02",
-      "name": "Fungal Rebirth",
-      "sentence": "If a creature died this turn, create two 1/1 green Saproling creature tokens.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "cbcb6d9a-6ae5-4bcd-8013-2b657553764a",
       "name": "Mangara, the Diplomat",
       "sentence": "Whenever an opponent attacks with creatures, if two or more of those creatures are attacking you and/or planeswalkers you control, draw a card.",
@@ -466,18 +400,6 @@
       "oracle_id": "cc1203cb-6758-4454-b78b-341930ff4da1",
       "name": "Liliana's Steward",
       "sentence": "Activate only as a sorcery.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "d654dd73-763d-4dfb-a30f-a058fd7f27a6",
-      "name": "Liliana, Death Mage",
-      "sentence": "Its controller loses 2 life.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "d6a9746c-eba5-4735-aec1-e70edba2c686",
-      "name": "Secure the Scene",
-      "sentence": "Its controller creates a 1/1 white Soldier creature token.",
       "bucket_hint": "spell-effect"
     },
     {
@@ -541,5 +463,5 @@
       "bucket_hint": "spell-effect"
     }
   ],
-  "unparsed_count": 53
+  "unparsed_count": 40
 }

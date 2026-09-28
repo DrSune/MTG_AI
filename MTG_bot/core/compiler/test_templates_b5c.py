@@ -28,8 +28,10 @@ from MTG_bot.core.ability_tree import (
     QX,
     ActivatedAbility,
     Atom,
+    Conditional,
     ControllerRef,
     CostDiscard,
+    CostLife,
     CostLoyalty,
     CostManaColor,
     CostManaGeneric,
@@ -83,7 +85,11 @@ from MTG_bot.core.compiler.templates_b5c import TEMPLATES, UNCOVERED
 # ---------------------------------------------------------------------------
 
 SHAPES: tuple[tuple[str, str, str], ...] = (
-    ("Then if you control four or more lands, untap that land.", "UNCOV", ""),
+    (
+        "Then if you control four or more lands, untap that land.",
+        "COVERED",
+        "B5c-then-if-lands-untap",
+    ),
     (
         "Then it fights up to one target creature you don't control.",
         "COVERED",
@@ -91,8 +97,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     ),
     (
         "Then that creature deals damage equal to its power to target creature you don't control.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5c-damage-equal-power",
     ),
     (
         "Then you may return an instant or sorcery card from your graveyard to your hand.",
@@ -358,7 +364,7 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "COVERED",
         "B5c-cost-r-sacrifice-power-dmg",
     ),
-    ("{T}, Pay 3 life: Flip a coin.", "UNCOV", ""),
+    ("{T}, Pay 3 life: Flip a coin.", "COVERED", "B5c-flip-cost"),
     (
         "{T}, Put a page counter on this artifact: Scry 1.",
         "COVERED",
@@ -444,6 +450,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
 _EXPECTED_EFFECT = (
     "B5c-then-return-is",
     "B5c-then-it-fights",
+    "B5c-then-if-lands-untap",
+    "B5c-damage-equal-power",
     "B5c-untap-that-creature",
     "B5c-turn-to-slag",
     "B5c-untap-lands",
@@ -528,6 +536,7 @@ _EXPECTED_ACTIVATED = (
     "B5c-cost-sacrifice-discard",
     "B5c-cost-sacrifice-search",
     "B5c-cost-sacrifice-mana",
+    "B5c-flip-cost",
 )
 
 EXPECTED_KIND_BY_TID: dict[str, str] = {}
@@ -575,6 +584,7 @@ EXPECTED_LOYALTY_DELTA: dict[str, int] = {
 
 # Expected ordered cost-part types per cost template.
 EXPECTED_COST_PARTS: dict[str, tuple[type, ...]] = {
+    "B5c-flip-cost": (CostTap, CostLife),
     "B5c-cost-shrine-dmg": (CostManaGeneric, CostDiscard),
     "B5c-cost-sacrifice-counter": (CostManaGeneric, CostSacrifice),
     "B5c-cost-sacrifice-destroy": (CostManaGeneric, CostSacrifice),
@@ -806,8 +816,8 @@ def _find_atom(node: Any, pred: FAtomPred) -> Any:
 class TestB5cInventory(unittest.TestCase):
     """Verify the B5c template collection is well-formed."""
 
-    def test_76_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 76)
+    def test_79_templates(self) -> None:
+        self.assertEqual(len(TEMPLATES), 79)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -822,10 +832,10 @@ class TestB5cInventory(unittest.TestCase):
             self.assertEqual(t.priority, 100, f"{t.tid} has priority {t.priority}")
 
     def test_registry_accepts_all(self) -> None:
-        self.assertEqual(len(_REG), 76)
+        self.assertEqual(len(_REG), 79)
 
-    def test_uncovered_has_14_rows(self) -> None:
-        self.assertEqual(len(UNCOVERED), 14)
+    def test_uncovered_has_11_rows(self) -> None:
+        self.assertEqual(len(UNCOVERED), 11)
 
 
 # ---------------------------------------------------------------------------
@@ -847,17 +857,17 @@ class TestB5cShapeTable(unittest.TestCase):
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
         rr = sum(1 for s in SHAPES if s[1] == "RR")
-        self.assertEqual(covered, 77, f"COVERED count {covered} != 77")
-        self.assertEqual(uncov, 14, f"UNCOV count {uncov} != 14")
+        self.assertEqual(covered, 80, f"COVERED count {covered} != 80")
+        self.assertEqual(uncov, 11, f"UNCOV count {uncov} != 11")
         self.assertEqual(rr, 0, f"B5c has no rule-reminder shapes, got {rr}")
 
-    def test_covered_tids_valid_and_unique_76(self) -> None:
+    def test_covered_tids_valid_and_unique_79(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
             len(unique_tids),
-            76,
-            f"expected 76 unique tids, got {len(unique_tids)}",
+            79,
+            f"expected 79 unique tids, got {len(unique_tids)}",
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5c-"), f"bad tid: {tid}")
@@ -941,7 +951,7 @@ class TestB5cOutcomeKind(unittest.TestCase):
     def test_kind_table_is_complete(self) -> None:
         covered_tids = {t for _s, c, t in SHAPES if c == "COVERED"}
         self.assertEqual(set(EXPECTED_KIND_BY_TID), covered_tids)
-        self.assertEqual(len(EXPECTED_KIND_BY_TID), 76)
+        self.assertEqual(len(EXPECTED_KIND_BY_TID), 79)
 
     def test_all_kinds_match(self) -> None:
         for tid, expected in EXPECTED_KIND_BY_TID.items():
@@ -954,10 +964,10 @@ class TestB5cOutcomeKind(unittest.TestCase):
 
     def test_kind_counts(self) -> None:
         kinds = [k for k in EXPECTED_KIND_BY_TID.values()]
-        self.assertEqual(kinds.count("effect"), 25)
+        self.assertEqual(kinds.count("effect"), 27)
         self.assertEqual(kinds.count("keyword"), 5)
         self.assertEqual(kinds.count("static"), 1)
-        self.assertEqual(kinds.count("activated"), 44)
+        self.assertEqual(kinds.count("activated"), 45)
         self.assertEqual(kinds.count("ability:EtBState"), 1)
 
 
@@ -1502,8 +1512,8 @@ class TestB5cCanonicalStability(unittest.TestCase):
             seen.add(tid)
         self.assertEqual(
             len(seen),
-            76,
-            f"only {len(seen)} unique tids tested, expected 76",
+            79,
+            f"only {len(seen)} unique tids tested, expected 79",
         )
 
 
@@ -1559,7 +1569,66 @@ class TestB5cJsonCrossCheck(unittest.TestCase):
             for k, pairs in self.json_data.items()
             if any(_REG.match(sent) for _c, sent in pairs)
         }
-        self.assertEqual(len(covered), 76)
+        self.assertEqual(len(covered), 79)
+
+
+class TestB5cRound7BTopUps(unittest.TestCase):
+    """Structural assertions for the R7-B top-up rows (doc 2026-09-28/03 §3
+    B-table); uses the module's SHAPES-driven _match_outcome helper."""
+
+    def test_flip_cost_activation(self) -> None:
+        """B5c-flip-cost: ActivatedAbility Cost(Tap+Life 3) + role-less
+        Verb.FLIP_COIN atom (r3b vocabulary)."""
+        ability = _activated_ability(_match_outcome("B5c-flip-cost"))
+        tap, life = ability.cost.parts
+        assert isinstance(tap, CostTap)
+        assert isinstance(life, CostLife)
+        self.assertEqual(life.amount, QConst(3))
+        atom = _as_atom(ability.effect)
+        self.assertIs(atom.verb, Verb.FLIP_COIN)
+        self.assertEqual(len(atom.args.pairs), 0)
+
+    def test_then_if_lands_untap(self) -> None:
+        """Fabled Passage s2: Conditional(CONTROLLER_COUNT_GE(Land,4)) ->
+        UNTAP(referent='result' — verified against the landed Fabled Passage
+        golden: s1 is a SEARCH with no TARGET selector, so 'that land'
+        binds the R7-1 result register, NOT the doc sketch's 'target')."""
+        cond = _as_effect(_match_outcome("B5c-then-if-lands-untap")).effect
+        assert isinstance(cond, Conditional)
+        pred = cond.pred
+        assert isinstance(pred, FAtom)
+        self.assertIs(pred.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertEqual(pred.count, QConst(4))
+        inner = pred.inner_filter
+        assert isinstance(inner, FAtom)
+        self.assertIs(inner.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(inner.string_value, "Land")
+        self.assertIsNone(cond.else_effect)
+        atom = _as_atom(cond.then_effect)
+        self.assertIs(atom.verb, Verb.UNTAP)
+        target = _pairs(atom)["target"]
+        assert isinstance(target, Selector)
+        # C2 referent-selector pin: CHOOSE + QConst(1) + neutral zone
+        self.assertIs(target.mode, SelectorMode.CHOOSE)
+        self.assertEqual(target.count, QConst(1))
+        self.assertEqual(target.referent, "result")
+        self.assertIs(target.zone.kind, ZoneKind.ANY)
+
+    def test_damage_equal_power(self) -> None:
+        """Hunter's Edge s2: DEAL_DAMAGE target = new TARGET creature-you-
+        dont-control; amount = QProp("target", POWER) (the dealer is the
+        referent, DEAL_DAMAGE has no source role — r8 canonical)."""
+        atom = _as_atom(_as_effect(_match_outcome("B5c-damage-equal-power")).effect)
+        self.assertIs(atom.verb, Verb.DEAL_DAMAGE)
+        d = _pairs(atom)
+        target = d["target"]
+        assert isinstance(target, Selector)
+        self.assertIs(target.mode, SelectorMode.TARGET)
+        self.assertEqual(target.count, QConst(1))
+        amount = d["amount"]
+        assert isinstance(amount, QProp)
+        self.assertEqual(amount.referent, "target")
+        self.assertIs(amount.field, QPropField.POWER)
 
 
 if __name__ == "__main__":

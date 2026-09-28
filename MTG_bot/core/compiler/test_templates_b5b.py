@@ -100,8 +100,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 2
     (
         "Flying, first strike, lifelink, protection from Demons and from Dragons",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-keyword-list-params",
     ),
     # shape 3
     (
@@ -130,8 +130,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 7
     (
         "If a creature died this turn, create two 1/1 green Saproling creature tokens.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-if-died-two-tokens",
     ),
     # shape 8
     (
@@ -148,8 +148,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 10
     (
         "If a source would deal damage to you, prevent that damage and put an incarnation counter on this enchantment.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-would-damage-incarnation",
     ),
     # shape 11
     (
@@ -240,7 +240,7 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 28
     ("If you search your library this way, shuffle.", "UNCOV", ""),
     # shape 29
-    ("If you win the flip, you gain 6 life.", "UNCOV", ""),
+    ("If you win the flip, you gain 6 life.", "COVERED", "B5b-flip-won"),
     # shape 30
     (
         "If you would draw a card except the first one you draw in each of your draw steps, draw two cards instead.",
@@ -266,13 +266,17 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 37
     (
         "Its controller creates a 4/4 white Angel creature token with flying.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-its-controller-token",
     ),
     # shape 38
-    ("Its controller creates a 1/1 white Soldier creature token.", "UNCOV", ""),
+    (
+        "Its controller creates a 1/1 white Soldier creature token.",
+        "COVERED",
+        "B5b-its-controller-token",
+    ),
     # shape 39
-    ("Its controller loses 2 life.", "UNCOV", ""),
+    ("Its controller loses 2 life.", "COVERED", "B5b-its-controller-loses-life"),
     # shape 40
     (
         "Kinetic Augur's power is equal to the number of instant and sorcery cards in your graveyard.",
@@ -360,7 +364,7 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 56
     ("Reach (This creature can block creatures with flying.)", "COVERED", "B5b-reach"),
     # shape 57
-    ("Reach, hexproof from blue", "UNCOV", ""),
+    ("Reach, hexproof from blue", "COVERED", "B5b-keyword-list-params"),
     # shape 58
     (
         "Return target creature card from your graveyard to the battlefield.",
@@ -448,8 +452,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 76
     (
         "Target creature gets +1/+1 and gains your choice of deathtouch or lifelink until end of turn.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-choice-of-grants",
     ),
     # shape 77 (two concrete rows)
     ("Target creature gets +1/+0 until end of turn.", "COVERED", "B5b-modpt-plus"),
@@ -673,8 +677,8 @@ def _find_shape(sent: str) -> tuple[str, str, str]:
 class TestTemplateInventory(unittest.TestCase):
     """Verify the B5b template collection is well-formed."""
 
-    def test_62_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 62)
+    def test_69_templates(self) -> None:
+        self.assertEqual(len(TEMPLATES), 69)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -690,7 +694,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 62)
+        self.assertEqual(len(reg), 69)
 
 
 # ---------------------------------------------------------------------------
@@ -711,14 +715,14 @@ class TestShapeTable(unittest.TestCase):
     def test_category_counts(self) -> None:
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
-        self.assertEqual(covered, 70, f"COVERED count {covered} != 70")
-        self.assertEqual(uncov, 21, f"UNCOV count {uncov} != 21")
+        self.assertEqual(covered, 79, f"COVERED count {covered} != 79")
+        self.assertEqual(uncov, 12, f"UNCOV count {uncov} != 12")
 
-    def test_covered_tids_valid_and_unique_62(self) -> None:
+    def test_covered_tids_valid_and_unique_69(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
-            len(unique_tids), 62, f"expected 62 unique tids, got {len(unique_tids)}"
+            len(unique_tids), 69, f"expected 69 unique tids, got {len(unique_tids)}"
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5b-"), f"bad tid: {tid}")
@@ -1596,7 +1600,7 @@ class TestCanonicalStability(unittest.TestCase):
                 f"canonical instability for {tid} ({sent[:40]})",
             )
             seen.add(tid)
-        self.assertEqual(len(seen), 62, f"only {len(seen)} unique tids tested")
+        self.assertEqual(len(seen), 69, f"only {len(seen)} unique tids tested")
 
 
 # ---------------------------------------------------------------------------
@@ -1656,13 +1660,14 @@ class TestEndToEndCompile(unittest.TestCase):
         self.assertEqual(len(result.card.abilities), 1)
         self.assertEqual(len(result.unparsed), 0)
 
-    def test_fungal_rebirth_covered_and_uncov(self) -> None:
-        """Fungal Rebirth: covered + uncovered → 1 ability + 1 unparsed."""
+    def test_fungal_rebirth_all_covered(self) -> None:
+        """Fungal Rebirth: both sentences covered (R7-B) → 1 SpellAbility,
+        0 unparsed; the died-this-turn Conditional is a sibling Seq step."""
         raw = _raw(
             "Fungal Rebirth",
             (
-                "If a creature died this turn, create two 1/1 green Saproling creature tokens.",
                 "Return target permanent card from your graveyard to your hand.",
+                "If a creature died this turn, create two 1/1 green Saproling creature tokens.",
             ),
             types=("Sorcery",),
             colors=("G",),
@@ -1670,13 +1675,14 @@ class TestEndToEndCompile(unittest.TestCase):
             mana_value=1,
         )
         result = compile_card(raw, self.reg)
-        # First sentence is UNCOV, second is COVERED
         self.assertEqual(len(result.card.abilities), 1)
-        self.assertEqual(len(result.unparsed), 1)
-        self.assertEqual(
-            result.unparsed[0][0],
-            "If a creature died this turn, create two 1/1 green Saproling creature tokens.",
-        )
+        self.assertEqual(len(result.unparsed), 0)
+        spell = result.card.abilities[0]
+        assert isinstance(spell, SpellAbility)
+        assert isinstance(spell.effect, Seq)
+        self.assertEqual(len(spell.effect.steps), 2)
+        cond = spell.effect.steps[1]
+        assert isinstance(cond, Conditional)
 
     def test_gnarled_sage_reach(self) -> None:
         """Gnarled Sage: Reach keyword reminder → KeywordAbility, no unparsed."""
@@ -2071,3 +2077,223 @@ class TestRound7AnaphoraEndToEnd(unittest.TestCase):
         self.assertIsNotNone(eff.else_effect)
         move = _as_atom(eff.else_effect)
         self.assertEqual(_pairs_dict(move)["cards"].referent, "result")
+
+
+class TestRound7BTopUps(unittest.TestCase):
+    """Structural + end-to-end assertions for the R7-B top-up rows
+    (doc 2026-09-28/03 §3 B-table, no-grammar batch)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.reg = _make_registry()
+
+    def _match_one(self, sent: str) -> SentenceOutcome:
+        matches = self.reg.match(sent)
+        self.assertEqual(len(matches), 1, f"expected 1 match: {sent!r}")
+        return matches[0].outcome
+
+    def test_keyword_list_baneslayer_protection_params(self) -> None:
+        """Baneslayer list → KeywordOutcome(PROTECTION, subtype-OR)."""
+        outcome = self._match_one(
+            "Flying, first strike, lifelink, protection from Demons and from Dragons"
+        )
+        assert isinstance(outcome, KeywordOutcome)
+        self.assertIs(outcome.keyword, Keyword.PROTECTION)
+        (filt,) = outcome.params
+        assert isinstance(filt, FOr)
+        atoms = [c for c in filt.children if isinstance(c, FAtom)]
+        self.assertEqual(len(atoms), len(filt.children))
+        subs = {a.string_value for a in atoms}
+        assert subs == {"Demon", "Dragon"}
+        self.assertTrue(all(a.pred is FAtomPred.SUBTYPE_EQ for a in atoms))
+
+    def test_keyword_list_sporeweb_hexproof_params(self) -> None:
+        """Sporeweb list → KeywordOutcome(HEXPROOF, COLOR_HAS blue)."""
+        outcome = self._match_one("Reach, hexproof from blue")
+        assert isinstance(outcome, KeywordOutcome)
+        self.assertIs(outcome.keyword, Keyword.HEXPROOF)
+        (filt,) = outcome.params
+        assert isinstance(filt, FAtom)
+        self.assertIs(filt.pred, FAtomPred.COLOR_HAS)
+        self.assertEqual(filt.color, "U")
+
+    def test_if_died_two_tokens(self) -> None:
+        """DIED_THIS_TURN Conditional; C14 word-pinned QConst(2); token
+        carries no colour (C-2 lossy, TokenSpec has no color field)."""
+        outcome = self._match_one(
+            "If a creature died this turn, create two 1/1 green Saproling "
+            "creature tokens."
+        )
+        cond = _as_effect(outcome).effect
+        assert isinstance(cond, Conditional)
+        pred = cond.pred
+        assert isinstance(pred, FAtom)
+        self.assertIs(pred.pred, FAtomPred.DIED_THIS_TURN)
+        self.assertIsNone(cond.else_effect)
+        atom = _as_atom(cond.then_effect)
+        self.assertEqual(atom.verb, Verb.CREATE_TOKEN)
+        p = _pairs_dict(atom)
+        self.assertEqual(p["count"], QConst(2))
+        spec = p["tokens"]
+        assert isinstance(spec, TokenSpec)
+        self.assertEqual(spec.subtypes, ("Saproling",))
+        self.assertEqual(spec.power, QConst(1))
+        self.assertEqual(spec.toughness, QConst(1))
+
+    def test_would_damage_incarnation_replacement(self) -> None:
+        """Nine Lives: ReplacementAbility over DamageDealtEvent (source=None
+        = the printed universal 'a source'); action PUT_COUNTER(INCARNATION,
+        1) on the self enchantment (r5 convention: the replacement itself
+        carries the prevention, no PREVENT atom)."""
+        outcome = self._match_one(
+            "If a source would deal damage to you, prevent that damage and "
+            "put an incarnation counter on this enchantment."
+        )
+        assert isinstance(outcome, AbilityOutcome)
+        repl = outcome.ability
+        assert isinstance(repl, ReplacementAbility)
+        event = repl.event
+        assert isinstance(event, DamageDealtEvent)
+        self.assertIsNone(event.source)
+        self.assertEqual(repl.condition, None)
+        atom = _as_atom(repl.action)
+        self.assertEqual(atom.verb, Verb.PUT_COUNTER)
+        p = _pairs_dict(atom)
+        self.assertEqual(p["counter_kind"], CounterKind.INCARNATION)
+        self.assertEqual(p["count"], QConst(1))
+        sel = p["target"]
+        assert isinstance(sel, Selector)
+        self.assertEqual(sel.count, QConst(1))
+        self.assertEqual(sel.mode, SelectorMode.CHOOSE)
+        filt = sel.filter
+        assert isinstance(filt, FAtom)
+        self.assertIs(filt.pred, FAtomPred.IS_SOURCE)
+
+    def test_flip_won_conditional(self) -> None:
+        """Tavern Swindler s2: Conditional(FLIP_WON who=YOU, gain 6)."""
+        outcome = self._match_one("If you win the flip, you gain 6 life.")
+        cond = _as_effect(outcome).effect
+        assert isinstance(cond, Conditional)
+        pred = cond.pred
+        assert isinstance(pred, FAtom)
+        self.assertIs(pred.pred, FAtomPred.FLIP_WON)
+        self.assertEqual(pred.who, ControllerRef.YOU)
+        atom = _as_atom(cond.then_effect)
+        self.assertEqual(atom.verb, Verb.GAIN_LIFE)
+        p = _pairs_dict(atom)
+        self.assertEqual(p["controller"], ControllerRef.YOU)
+        self.assertEqual(p["amount"], QConst(6))
+
+    def test_choice_of_grants_choose(self) -> None:
+        """C15: your-choice grant stays a Choose(1-of-2); the grant targets
+        the spell's own target via referent='target'."""
+        outcome = self._match_one(
+            "Target creature gets +1/+1 and gains your choice of deathtouch "
+            "or lifelink until end of turn."
+        )
+        seq = _as_effect(outcome).effect
+        assert isinstance(seq, Seq)
+        mod, choice = seq.steps
+        mod = _as_atom(mod)
+        self.assertEqual(mod.verb, Verb.MODIFY_PT)
+        mp = _pairs_dict(mod)
+        self.assertEqual(mp["target"].mode, SelectorMode.TARGET)
+        self.assertEqual(mp["power"], PtDelta(PtDirection.INCREASE, QConst(1)))
+        assert isinstance(choice, Choose)
+        self.assertEqual(choice.count, QConst(1))
+        self.assertEqual(len(choice.options), 2)
+        kws = set()
+        for opt in choice.options:
+            opt = _as_atom(opt)
+            self.assertEqual(opt.verb, Verb.GRANT_ABILITY)
+            p = _pairs_dict(opt)
+            self.assertEqual(p["target"].referent, "target")
+            ka = p["ability"]
+            assert isinstance(ka, KeywordAbility)
+            kws.add(ka.keyword)
+            self.assertEqual(p["duration"], DurationEot())
+        self.assertEqual(kws, {Keyword.DEATHTOUCH, Keyword.LIFELINK})
+
+    def test_its_controller_tokens(self) -> None:
+        """Angel (4/4, flying) and Soldier (1/1) tokens; colour dropped
+        (C-2), creator implicit (Necromentia precedent)."""
+        for sent, pt, flying in [
+            (
+                "Its controller creates a 4/4 white Angel creature token with flying.",
+                (QConst(4), QConst(4)),
+                True,
+            ),
+            (
+                "Its controller creates a 1/1 white Soldier creature token.",
+                (QConst(1), QConst(1)),
+                False,
+            ),
+        ]:
+            outcome = self._match_one(sent)
+            atom = _as_atom(_as_effect(outcome).effect)
+            self.assertEqual(atom.verb, Verb.CREATE_TOKEN)
+            p = _pairs_dict(atom)
+            spec = p["tokens"]
+            assert isinstance(spec, TokenSpec)
+            self.assertEqual((spec.power, spec.toughness), pt)
+            self.assertEqual(spec.keywords, (Keyword.FLYING,) if flying else ())
+
+    def test_its_controller_loses_life(self) -> None:
+        """Death Mage [−3] s2: LOSE_LIFE controller role = referent-target
+        selector (Gloom-Sower event-reference shape in the controller role)."""
+        outcome = self._match_one("Its controller loses 2 life.")
+        atom = _as_atom(_as_effect(outcome).effect)
+        self.assertEqual(atom.verb, Verb.LOSE_LIFE)
+        p = _pairs_dict(atom)
+        sel = p["controller"]
+        assert isinstance(sel, Selector)
+        self.assertEqual(sel.referent, "target")
+        self.assertEqual(sel.mode, SelectorMode.CHOOSE)
+        self.assertEqual(sel.count, QConst(1))
+        self.assertEqual(p["amount"], QConst(2))
+
+    # -- end-to-end card compiles --
+
+    def test_baneslayer_keyword_dedup(self) -> None:
+        """Baneslayer: bare members from raw.keywords + template PROTECTION
+        merge without duplication (compiler kw_set dedup)."""
+        raw = _raw(
+            "Baneslayer Angel",
+            (
+                "Flying, first strike, lifelink, protection from Demons and from Dragons",
+            ),
+            types=("Creature",),
+            subtypes=("Angel",),
+            colors=("W",),
+            keywords=("First strike", "Flying", "Lifelink", "Protection"),
+        )
+        result = compile_card(raw, self.reg)
+        self.assertEqual(len(result.unparsed), 0)
+        kws = [ka.keyword for ka in result.card.keywords]
+        self.assertEqual(len(kws), len(set(kws)), f"dup keyword: {kws}")
+        self.assertIn(Keyword.PROTECTION, kws)
+        self.assertIn(Keyword.FLYING, kws)
+
+    def test_angelic_ascension_seq(self) -> None:
+        """Ascension: s1 EXILE (b5c-owned sentence) + s2 CREATE_TOKEN fold
+        into one Seq; 0 unparsed — run against the FULL registry because
+        the antecedent sentence is owned by another bucket module."""
+        from MTG_bot.core.compiler.coverage import build_full_registry
+
+        raw = _raw(
+            "Angelic Ascension",
+            (
+                "Exile target creature or planeswalker.",
+                "Its controller creates a 4/4 white Angel creature token with flying.",
+            ),
+            types=("Instant",),
+            colors=("W",),
+        )
+        result = compile_card(raw, build_full_registry())
+        self.assertEqual(len(result.unparsed), 0)
+        spells = [ab for ab in result.card.abilities if isinstance(ab, SpellAbility)]
+        self.assertEqual(len(spells), 1)
+        eff = spells[0].effect
+        assert isinstance(eff, Seq)
+        self.assertEqual(len(eff.steps), 2)
+        self.assertEqual(_as_atom(eff.steps[1]).verb, Verb.CREATE_TOKEN)

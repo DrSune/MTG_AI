@@ -64,9 +64,11 @@ from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     Atom,
     AtomArgs,
+    Conditional,
     ControllerRef,
     Cost,
     CostDiscard,
+    CostLife,
     CostLoyalty,
     CostManaColor,
     CostManaGeneric,
@@ -2098,8 +2100,96 @@ def _build_bullet_return_two_creatures_hand(m: re.Match[str]) -> SentenceOutcome
 
 
 # ---------------------------------------------------------------------------
-# TEMPLATES — 76 entries
+# Grammar round-7-B batch builders (doc 2026-09-28/03 §3, R7-B top-ups)
 # ---------------------------------------------------------------------------
+
+
+def _build_flip_coin_pay_life(m: re.Match[str]) -> SentenceOutcome:
+    """``{T}, Pay 3 life: Flip a coin.`` (Tavern Swindler s1) —
+    ActivatedAbility whose cost is CostTap + CostLife (the standing cost
+    parts list; ``CostLife`` already exists in the grammar) and whose
+    effect is the role-less Verb.FLIP_COIN atom (r3b: "the coin is
+    flipped; the outcome is read by FAtomPred.FLIP_WON, never by an arg").
+    Together with the B5b-flip-won row this consumes the FLIP_COIN orphan
+    (PC-6 must drop to the standing 1 = PHASE_IN).
+    C16: the coin flip is the stochastic decision vertex; the activation
+    itself is fully forced."""
+    return AbilityOutcome(
+        ability=ActivatedAbility(
+            cost=Cost(parts=(CostTap(), CostLife(amount=QConst(int(m.group(1)))))),
+            effect=Atom(verb=Verb.FLIP_COIN, args=AtomArgs(pairs=())),
+        )
+    )
+
+
+def _build_then_if_lands_untap(m: re.Match[str]) -> SentenceOutcome:
+    """``Then if you control four or more lands, untap that land.`` (Fabled
+    Passage s2) — "Then " continuation merged after the search+shuffle
+    effect; Conditional(CONTROLLER_COUNT_GE(Land, QConst(4)), UNTAP).
+    The referent is bound ``referent="result"`` (R7-1 result register),
+    NOT the doc sketch's ``referent="target"``: checked against the landed
+    Fabled Passage golden, s1 is a SEARCH (no TARGET selector exists), so
+    "that land" names the card the previous sentence searched-and-moved =
+    the result register — the only antecedent that exists today (C12).
+    "four or more lands" is a CONTROLLER_COUNT_GE over lands with the
+    you-scoped board reading (no ``who`` role on that predicate).
+    C16: the four-lands gate is a board condition, the untap target is the
+    register — nothing controller-chosen is defaulted."""
+    untap = Atom(
+        verb=Verb.UNTAP,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land"),
+                        Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+                        referent="result",
+                    ),
+                ),
+            )
+        ),
+    )
+    return EffectOutcome(
+        effect=Conditional(
+            pred=FAtom(
+                pred=FAtomPred.CONTROLLER_COUNT_GE,
+                inner_filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land"),
+                count=QConst(4),
+            ),
+            then_effect=untap,
+        )
+    )
+
+
+def _build_then_that_creature_damage_power(m: re.Match[str]) -> SentenceOutcome:
+    """``Then that creature deals damage equal to its power to target
+    creature you don't control.`` (Hunter's Edge s2) — "Then "
+    continuation; DEAL_DAMAGE with target = the new TARGET creature and
+    amount = ``QProp("target", POWER)`` (grammar-round-2 dynamic power —
+    the dealer is the previous sentence's countered creature, bound as the
+    target referent).  DEAL_DAMAGE has no source role; the dealer is the
+    QProp referent, executor-side (r8 canonical, same as the r7-A
+    Primal-Might FIGHT attacker — documented, not defaulted).
+    C16: the damage target is an open controller choice; the amount is
+    board-dynamic, not a choice."""
+    return EffectOutcome(
+        effect=Atom(
+            verb=Verb.DEAL_DAMAGE,
+            args=AtomArgs(
+                pairs=(
+                    ("target", _target_creature_you_dont_control()),
+                    (
+                        "amount",
+                        QProp(referent="target", field=QPropField.POWER),
+                    ),
+                )
+            ),
+        )
+    )
+
 
 # ---------------------------------------------------------------------------
 # Grammar round-7 batch builders (doc 2026-09-28/03 §3 R7-A)
@@ -2926,22 +3016,44 @@ TEMPLATES: tuple[Template, ...] = (
         priority=100,
         build=_build_then_it_fights_up_to_one,
     ),
+    # --- grammar round-7-B batch (no-grammar top-ups; doc 2026-09-28/03 §3) ---
+    Template(
+        tid="B5c-flip-cost",
+        name="tap, pay N life: flip a coin (Tavern Swindler)",
+        bucket="B5c",
+        pattern=re.compile(r"^\{T\}, Pay (\d+) life: Flip a coin\.$"),
+        priority=100,
+        build=_build_flip_coin_pay_life,
+    ),
+    Template(
+        tid="B5c-then-if-lands-untap",
+        name="then if you control four or more lands, untap that land (result)",
+        bucket="B5c",
+        pattern=re.compile(
+            r"^Then if you control four or more lands, untap that land\.$"
+        ),
+        priority=100,
+        build=_build_then_if_lands_untap,
+    ),
+    Template(
+        tid="B5c-damage-equal-power",
+        name="then that creature deals damage equal to its power (QProp POWER)",
+        bucket="B5c",
+        pattern=re.compile(
+            r"^Then that creature deals damage equal to its power to target "
+            r"creature you don't control\.$"
+        ),
+        priority=100,
+        build=_build_then_that_creature_damage_power,
+    ),
 )
 
 
 # ---------------------------------------------------------------------------
-# UNCOVERED — 16 normalized-key rows
+# UNCOVERED — 11 normalized-key rows
 # ---------------------------------------------------------------------------
 
 UNCOVERED: tuple[tuple[str, str], ...] = (
-    (
-        "Then if you control four or more lands, untap that land.",
-        "No conditional Then-continuation with land-count condition",
-    ),
-    (
-        "Then that creature deals damage equal to its power to target creature you don't control.",
-        "No Then-continuation anaphoric power-based DEAL_DAMAGE",
-    ),
     (
         "This ability costs {N} less to activate for each Shrine you control.",
         "No activation-cost reduction construct",
@@ -2985,9 +3097,5 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         "{N}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power N or less deals combat damage to a player, draw a card.",
         "No turn-scoped combat-damage trigger grant",
-    ),
-    (
-        "{T}, Pay N life: Flip a coin.",
-        "No Pay-life coin-flip construct",
     ),
 )

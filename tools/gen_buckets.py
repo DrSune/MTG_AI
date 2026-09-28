@@ -192,6 +192,10 @@ def main() -> None:
         buckets[bucket_of_key[key]].setdefault(key, []).append([card, sentence])
 
     # Pinned counts (keys / occurrences).
+    # 2026-09-28 r7-B batch (docs/KNOWLEDGE 2026-09-28/07): 11 templates landed
+    # in templates_b2b/_b5b/_b5c; NONE of these modules feeds this partition
+    # (B2b is derived trigger-minus-B2a; B5 thirds are coverage-independent), so
+    # no pin changed and all 8 JSONs regenerate byte-identical (cmp-verified).
     expected_keys = {
         "B1": 15,
         "B2a": 62,

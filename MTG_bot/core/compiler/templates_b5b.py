@@ -1912,6 +1912,284 @@ def _build_gain_control_eot(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
+# Grammar round-7-B batch builders (doc 2026-09-28/03 §3, R7-B top-ups)
+# ---------------------------------------------------------------------------
+
+
+def _build_keyword_list_params(m: re.Match[str]) -> SentenceOutcome:
+    """``Flying, first strike, lifelink, protection from Demons and from
+    Dragons`` (Baneslayer Angel) and ``Reach, hexproof from blue``
+    (Sporeweb Weaver) — keyword-list sentences carrying one parameterized
+    member that ``_KEYWORDS_BARE_UNBUILDABLE`` proves cannot be built from
+    the bare identity string (PROTECTION needs a Filter, and HEXPROOF's
+    second ``_KEYWORD_PARAMS`` signature takes one).  The template emits
+    ONLY the parameterized member: the bare members (Flying / First
+    strike / Lifelink / Reach) already arrive via ``raw.keywords`` and the
+    compiler's keyword-dedup merge keeps one copy each, so the card ends
+    complete.  Baneslayer's protection filter is the OR of the two named
+    creature subtypes (SUBTYPE_EQ is singular, Equipment precedent);
+    Sporeweb's hexproof filter is COLOR_HAS blue (Feat-of-Resistance
+    param shape).  Lossy (verbatim): Scryfall's keyword field lists bare
+    'Hexproof' beside 'Hexproof from' for Sporeweb Weaver, so the card
+    also carries the parameterless HEXPROOF the bare path builds — a
+    keyword-field artifact, not a template choice.  C16: none — forced
+    static grants."""
+    if m.group("form").startswith("Flying"):
+        return KeywordOutcome(
+            keyword=Keyword.PROTECTION,
+            params=(
+                FOr(
+                    children=(
+                        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Demon"),
+                        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Dragon"),
+                    )
+                ),
+            ),
+        )
+    return KeywordOutcome(
+        keyword=Keyword.HEXPROOF,
+        params=(FAtom(pred=FAtomPred.COLOR_HAS, color="U"),),
+    )
+
+
+def _build_if_died_two_tokens(m: re.Match[str]) -> SentenceOutcome:
+    """``If a creature died this turn, create two 1/1 green Saproling
+    creature tokens.`` (Fungal Rebirth s2) — Conditional over the
+    turn-scoped DIED_THIS_TURN atom (resolution-time check, not a
+    trigger), then CREATE_TOKEN.  C14: the spelled-out ``two`` is outside
+    the number regex, so the count is word-pinned ``QConst(2)`` (Gnarled
+    Sage house idiom).  The sentence carries no continuation prefix, so
+    the instant's effect fold appends it as the sibling step after s1
+    (already landed).  Lossy (verbatim, known gap C-2): TokenSpec has no
+    colour field — ``green`` dropped (R8-2 queue).  C16: none — fully
+    forced."""
+    token = TokenSpec(
+        name="Saproling",
+        type_line="Creature — Saproling",
+        types=("Creature",),
+        subtypes=("Saproling",),
+        power=QConst(1),
+        toughness=QConst(1),
+        keywords=(),
+        abilities=(),
+    )
+    return EffectOutcome(
+        effect=Conditional(
+            pred=FAtom(pred=FAtomPred.DIED_THIS_TURN),
+            then_effect=Atom(
+                verb=Verb.CREATE_TOKEN,
+                args=AtomArgs(pairs=(("tokens", token), ("count", QConst(2)))),
+            ),
+        )
+    )
+
+
+def _build_would_damage_incarnation(m: re.Match[str]) -> SentenceOutcome:
+    """``If a source would deal damage to you, prevent that damage and put
+    an incarnation counter on this enchantment.`` (Nine Lives) —
+    ReplacementAbility over DamageDealtEvent (r5 landed pattern: Life
+    Goes On / Containment Priest / Conclave Mentor).
+    ``source=None`` IS the printed universal ``a source`` — no narrowing
+    (the mission's flagged lossy candidate stays faithful).
+    Lossy (verbatim): (1) ``to you`` is dropped from the damaged-recipient
+    filter — no player-identity FAtomPred exists to name "you" as the
+    damaged object (the b2b noncombat-damage rows drop the recipient the
+    same way; player-recipient predicate is an R8 grammar candidate);
+    (2) ``prevent that damage`` has no PREVENT atom inside the action —
+    PREVENT_EFFECT is the duration-scoped restriction verb (can't-be-
+    blocked family), not a replacement step; per the landed r5 convention
+    the replacement itself subsumes prevention (Containment Priest's
+    "exile it instead" carries no prevent atom either), so the action is
+    just PUT_COUNTER(INCARNATION, 1) on the self enchantment.
+    C16: none — fully forced."""
+    return AbilityOutcome(
+        ability=ReplacementAbility(
+            event=DamageDealtEvent(
+                amount=QUnbounded(),
+                filter=FAnd(children=()),
+            ),
+            condition=None,
+            action=Atom(
+                verb=Verb.PUT_COUNTER,
+                args=AtomArgs(
+                    pairs=(
+                        (
+                            "target",
+                            Selector(
+                                QConst(1),
+                                SelectorMode.CHOOSE,
+                                FAtom(pred=FAtomPred.IS_SOURCE),
+                                Zone(
+                                    kind=ZoneKind.BATTLEFIELD,
+                                    controller=ControllerRef.ANY,
+                                ),
+                            ),
+                        ),
+                        ("counter_kind", CounterKind.INCARNATION),
+                        ("count", QConst(1)),
+                    )
+                ),
+            ),
+        )
+    )
+
+
+def _build_flip_won(m: re.Match[str]) -> SentenceOutcome:
+    """``If you win the flip, you gain 6 life.`` (Tavern Swindler s2) —
+    Conditional gated on FAtomPred.FLIP_WON (who=YOU; r3b vocabulary —
+    "you lose it" would be FNot).  Sibling of the b5c B5c-flip-cost
+    activation: the two rows together consume the FLIP_COIN orphan verb.
+    Assembly note (documented deviation): the sentence has no continuation
+    prefix, so the creature-card effect fold wraps it into a
+    SpellAbility(CREATURE); rules-wise it is the activation's second
+    sentence — the FLIP_WON gate keeps the stochastic branch explicit
+    either way.  C16: the coin flip itself is the stochastic vertex;
+    gain amount forced."""
+    return EffectOutcome(
+        effect=Conditional(
+            pred=FAtom(pred=FAtomPred.FLIP_WON, who=ControllerRef.YOU),
+            then_effect=Atom(
+                verb=Verb.GAIN_LIFE,
+                args=AtomArgs(
+                    pairs=(
+                        ("controller", ControllerRef.YOU),
+                        ("amount", QConst(int(m.group(1)))),
+                    )
+                ),
+            ),
+        )
+    )
+
+
+def _build_choice_of_grants(m: re.Match[str]) -> SentenceOutcome:
+    """``Target creature gets +1/+1 and gains your choice of deathtouch or
+    lifelink until end of turn.`` (Alchemist's Gift) — one sentence, one
+    spell step: Seq(MODIFY_PT, Choose) where the Choose is the C15
+    controller decision — one of two KeywordAbility grants, nothing
+    defaulted (Feat-of-Resistance five-way shape, reduced to the printed
+    two).  The grant targets the spell's own target via
+    ``referent="target"`` (R4 vocabulary) so no second target declaration
+    is minted.  C16: target choice (1 creature) × keyword choice
+    (deathtouch | lifelink) stay open."""
+    p, t = int(m.group("p")), int(m.group("t"))
+    grant_target = Selector(
+        QConst(1),
+        SelectorMode.CHOOSE,
+        FAnd(children=()),
+        Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+        referent="target",
+    )
+    mod = Atom(
+        verb=Verb.MODIFY_PT,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.TARGET,
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                    ),
+                ),
+                ("power", PtDelta(PtDirection.INCREASE, QConst(p))),
+                ("toughness", PtDelta(PtDirection.INCREASE, QConst(t))),
+                ("duration", DurationEot()),
+            )
+        ),
+    )
+    grants = tuple(
+        Atom(
+            verb=Verb.GRANT_ABILITY,
+            args=AtomArgs(
+                pairs=(
+                    ("target", grant_target),
+                    ("ability", KeywordAbility(keyword=kw)),
+                    ("duration", DurationEot()),
+                )
+            ),
+        )
+        for kw in (Keyword.DEATHTOUCH, Keyword.LIFELINK)
+    )
+    return EffectOutcome(
+        effect=Seq(steps=(mod, Choose(count=QConst(1), options=grants)))
+    )
+
+
+def _build_its_controller_token(m: re.Match[str]) -> SentenceOutcome:
+    """``Its controller creates a 4/4 white Angel creature token with
+    flying.`` (Angelic Ascension s2) and ``Its controller creates a 1/1
+    white Soldier creature token.`` (Secure the Scene s2) — CREATE_TOKEN;
+    ``Its`` = the spell's exiled target (both cards' s1 already landed
+    with a TARGET selector; the non-continuation s2 folds into the same
+    SpellAbility Seq, so the antecedent is the ability's own target —
+    executor-side referent binding per R4).
+    Lossy (verbatim): (1) TokenSpec has no colour field — ``white``
+    dropped (known gap C-2, R8-2 queue); (2) ``Its controller`` as the
+    CREATING player has no CREATE_TOKEN controller role — the creator is
+    implicit (the exact Necromentia s3 precedent documented in
+    B5b-token-per-exiled-this-way).
+    C16: none — fully forced."""
+    subtype = m.group("st")
+    return EffectOutcome(
+        effect=Atom(
+            verb=Verb.CREATE_TOKEN,
+            args=AtomArgs(
+                pairs=(
+                    (
+                        "tokens",
+                        TokenSpec(
+                            name=subtype,
+                            type_line=f"Creature — {subtype}",
+                            types=("Creature",),
+                            subtypes=(subtype,),
+                            power=QConst(int(m.group("p"))),
+                            toughness=QConst(int(m.group("t"))),
+                            keywords=(Keyword.FLYING,) if m.group("fly") else (),
+                            abilities=(),
+                        ),
+                    ),
+                )
+            ),
+        )
+    )
+
+
+def _build_its_controller_loses_life(m: re.Match[str]) -> SentenceOutcome:
+    """``Its controller loses 2 life.`` (Liliana, Death Mage [−3] s2) —
+    LOSE_LIFE whose controller role carries an R4 ``referent="target"``
+    selector: the controller-of-the-selected-object executor convention,
+    Gloom-Sower precedent (B2b-gloom-sower puts the event-referent
+    Selector in the same role).  ``Its`` = the [−3]'s destroyed creature.
+    Assembly note (documented deviation): the sentence has no continuation
+    prefix, so the planeswalker effect fold lands it as a card-level
+    SpellAbility(PLANESWALKER); rules-wise it belongs inside the [−3]
+    ActivatedAbility, whose target the referent names — the closest
+    structured binding available without compiler changes.
+    C16: none — fully forced."""
+    return EffectOutcome(
+        effect=Atom(
+            verb=Verb.LOSE_LIFE,
+            args=AtomArgs(
+                pairs=(
+                    (
+                        "controller",
+                        Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            FAnd(children=()),
+                            Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+                            referent="target",
+                        ),
+                    ),
+                    ("amount", QConst(int(m.group(1)))),
+                )
+            ),
+        )
+    )
+
+
+# ---------------------------------------------------------------------------
 # Template registry
 # ---------------------------------------------------------------------------
 
@@ -2547,21 +2825,81 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_gain_control_eot,
     ),
+    # --- grammar round-7-B batch (no-grammar top-ups; doc 2026-09-28/03 §3) ---
+    Template(
+        tid="B5b-keyword-list-params",
+        name="keyword list with parameterized PROTECTION/HEXPROOF member",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^(?P<form>Flying, first strike, lifelink, protection from "
+            r"Demons and from Dragons|Reach, hexproof from blue)$"
+        ),
+        priority=_PRIORITY,
+        build=_build_keyword_list_params,
+    ),
+    Template(
+        tid="B5b-if-died-two-tokens",
+        name="if a creature died this turn, create two Saproling tokens",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^If a creature died this turn, create two 1/1 green Saproling "
+            r"creature tokens\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_if_died_two_tokens,
+    ),
+    Template(
+        tid="B5b-would-damage-incarnation",
+        name="would-deal-damage replacement: put an incarnation counter (Nine Lives)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^If a source would deal damage to you, prevent that damage and "
+            r"put an incarnation counter on this enchantment\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_would_damage_incarnation,
+    ),
+    Template(
+        tid="B5b-flip-won",
+        name="if you win the flip, you gain N life (FLIP_WON Conditional)",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^If you win the flip, you gain (\d+) life\.$"),
+        priority=_PRIORITY,
+        build=_build_flip_won,
+    ),
+    Template(
+        tid="B5b-choice-of-grants",
+        name="gets +N/+N and gains your choice of two keywords (Choose 1-of-2)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Target creature gets \+(?P<p>\d+)/\+(?P<t>\d+) and gains your "
+            r"choice of deathtouch or lifelink until end of turn\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_choice_of_grants,
+    ),
+    Template(
+        tid="B5b-its-controller-token",
+        name="its controller creates a white Angel/Soldier token (controller referent)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Its controller creates a (?P<p>\d+)/(?P<t>\d+) white "
+            r"(?P<st>Angel|Soldier) creature token(?P<fly> with flying)?\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_its_controller_token,
+    ),
+    Template(
+        tid="B5b-its-controller-loses-life",
+        name="its controller loses N life (referent-target controller role)",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^Its controller loses (\d+) life\.$"),
+        priority=_PRIORITY,
+        build=_build_its_controller_loses_life,
+    ),
 )
 
 UNCOVERED: tuple[tuple[str, str], ...] = (
-    (
-        "Flying, first strike, lifelink, protection from Demons and from Dragons",
-        "Composite keyword list with protection-from-subtypes",
-    ),
-    (
-        "If a creature died this turn, create two N/N green Saproling creature tokens.",
-        "Conditional token creation on creature-death trigger",
-    ),
-    (
-        "If a source would deal damage to you, prevent that damage and put an incarnation counter on this enchantment.",
-        "Prevent-damage-and-put-counter replacement",
-    ),
     (
         "If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.",
         "Additional trigger with shrine-count gate",
@@ -2575,24 +2913,8 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
         "Conditional shuffle on library-search trigger",
     ),
     (
-        "If you win the flip, you gain N life.",
-        "Conditional life-gain on coin-flip outcome",
-    ),
-    (
         'It gains haste."',
         "Anaphoric 'It' keyword grant with trailing quote",
-    ),
-    (
-        "Its controller creates a N/N white Angel creature token with flying.",
-        "Controller-referent token creation with anaphoric 'Its'",
-    ),
-    (
-        "Its controller creates a N/N white Soldier creature token.",
-        "Controller-referent token creation with anaphoric 'Its'",
-    ),
-    (
-        "Its controller loses N life.",
-        "Controller-referent life-loss with anaphoric 'Its'",
     ),
     (
         "Play with the top card of your library revealed.",
@@ -2603,20 +2925,12 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
         "Counter-placement with follow-up doubling (multi-step counter)",
     ),
     (
-        "Reach, hexproof from blue",
-        "Composite keyword with colored hexproof variant",
-    ),
-    (
         "Round up each time.",
         "Anaphoric 'each time' rounding instruction",
     ),
     (
         "Spend this mana only to cast an instant or sorcery spell.",
         "No mana-restriction grammar construct",
-    ),
-    (
-        "Target creature gets +N/+N and gains your choice of deathtouch or lifelink until end of turn.",
-        "Keyword-choice grant with anaphoric 'your choice'",
     ),
     (
         "Target player draws cards equal to half the number of cards in their library and loses half their life.",
