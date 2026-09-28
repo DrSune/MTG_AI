@@ -16,7 +16,11 @@ from MTG_bot.core.ability_tree import (
     CostPart,
     CostTap,
     CounterKind,
+    DeclareBlockersEvent,
     DurationEot,
+    FAnd,
+    FAtom,
+    FAtomPred,
     Keyword,
     KeywordAbility,
     PtDelta,
@@ -125,8 +129,8 @@ class TestB3Coverage(unittest.TestCase):
         self.assertEqual(total, 55)
 
     def test_public_api_counts(self) -> None:
-        self.assertEqual(len(templates_b3.TEMPLATES), 26)
-        self.assertEqual(len(templates_b3.UNCOVERED), 4)
+        self.assertEqual(len(templates_b3.TEMPLATES), 27)
+        self.assertEqual(len(templates_b3.UNCOVERED), 3)
 
     def test_covered_shape_and_occurrence_counts(self) -> None:
         covered_shapes = 0
@@ -139,8 +143,8 @@ class TestB3Coverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 44)
-        self.assertEqual(matched_occurrences, 51)
+        self.assertEqual(covered_shapes, 45)
+        self.assertEqual(matched_occurrences, 52)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -488,6 +492,38 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertEqual(toughness.value, 4)
         self.assertEqual(token.keywords, (Keyword.FLYING,))
         self.assertEqual(_qconst(atom, "count").value, 1)
+
+    def test_target_cant_be_blocked_r6(self) -> None:
+        """Round-6 R6-4: {1} activation → PREVENT_EFFECT with the blocked
+        slot = FAnd(IS_ANY_TARGET, POWER_LE 2), condition = IS_ANY_TARGET,
+        universal blocker filter, DurationEot."""
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "{1}: Another target creature with power 2 or less can't "
+                "be blocked this turn.",
+            )
+        )
+        self.assertEqual(_cost_parts(ability), (CostManaGeneric(QConst(1)),))
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.PREVENT_EFFECT)
+        condition = atom.args.get("condition")
+        assert isinstance(condition, FAtom)
+        self.assertIs(condition.pred, FAtomPred.IS_ANY_TARGET)
+        event = atom.args.get("event")
+        assert isinstance(event, DeclareBlockersEvent)
+        self.assertEqual(event.filter, FAnd(children=()))
+        self.assertIsNone(event.subject)
+        blocked = event.blocked
+        assert isinstance(blocked, FAnd)
+        target_pred, power_pred = blocked.children
+        assert isinstance(target_pred, FAtom)
+        assert isinstance(power_pred, FAtom)
+        self.assertIs(target_pred.pred, FAtomPred.IS_ANY_TARGET)
+        self.assertIs(power_pred.pred, FAtomPred.POWER_LE)
+        assert isinstance(power_pred.count, QConst)
+        self.assertEqual(power_pred.count.value, 2)
+        self.assertIsInstance(atom.args.get("duration"), DurationEot)
 
 
 if __name__ == "__main__":

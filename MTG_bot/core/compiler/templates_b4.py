@@ -1,15 +1,18 @@
-"""B4 bucket templates — 30 templates covering 30 of 47 B4 shapes.
+"""B4 bucket templates — 34 templates covering 34 of 47 B4 shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B4.json`` (47 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (47 = 30 template + 17 uncovered):
+Coverage (47 = 34 template + 13 uncovered):
 
-- **30 template-covered shapes**: static P/T grants (self, creatures you
+- **34 template-covered shapes**: static P/T grants (self, creatures you
   control, other creatures, opponents' creatures), static keyword grants
   (trample, lifelink, protection), PREVENT_EFFECT (can't block),
+  PREVENT_EFFECT blocked-side (can't be blocked as long as drawn —
+  C9 StaticAbility.condition; can block only flying — subject+blocked
+  narrowing), MANDATE_BLOCK (must be blocked if able, R6-5),
   MANDATE_ATTACK, GAIN_CONTROL, DRAW+DISCARD Seq, GAIN_LIFE (QConst and
   QCount), LOSE_LIFE, QProp P/T (Carrion Grub), conditional statics
   (DurationWhileCondition), compound statics (P/T + protection Seq),
@@ -17,13 +20,15 @@ Coverage (47 = 30 template + 17 uncovered):
    Indulgence; Stormwing Entity's compound {N}{U} reduction; opponent
    spell-cost increases — Terror of the Peaks, Pursued Whale),
    ETB_STATE (tapped creature, tapped land),
+   ETB X +1/+1 counters (Wildwood Scourge: ZoneChangeEvent subject
+   IS_SOURCE + PUT_COUNTER count QX, target bound to the event referent),
    ACTIVATED_ABILITY (cast from top of library, graveyard recast with
    additional cost), TUTOR (name-specific library/graveyard search for
    Basri / Liliana).
-- **17 uncovered shapes**: no grammar construct exists (ETB counters,
-  blocking restriction, must-be-blocked, turn-scoped repeated statics,
-  targeting restriction, name-choice, complex You may constructs, mana
-  ability).  Recorded in UNCOVERED.
+- **13 uncovered shapes**: no grammar construct exists (damage-based cost
+  reduction without MODIFY_COST, per-event repeated statics, targeting
+  restriction, chosen-name anaphora, complex You may constructs,
+  mana-color flooding).  Recorded in UNCOVERED.
 
 Conventions:
 - Static abilities on permanents → ``AbilityOutcome(StaticAbility(...))``
@@ -46,6 +51,7 @@ from __future__ import annotations
 import re
 
 from MTG_bot.core.ability_tree import (
+    QX,
     ActivatedAbility,
     Atom,
     AtomArgs,
@@ -82,8 +88,10 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     Seq,
     StaticAbility,
+    TriggeredAbility,
     Verb,
     Zone,
+    ZoneChangeEvent,
     ZoneKind,
     ZonePosition,
 )
@@ -798,6 +806,127 @@ def _build_search_named_card(card_name: str) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
+# Build functions — round-6 batch (blocked-side restrictions, MANDATE_BLOCK,
+# ETB X-counters)
+# ---------------------------------------------------------------------------
+
+
+def _build_cant_be_blocked_aslong_drawn(m: re.Match[str]) -> SentenceOutcome:
+    """This creature can't be blocked as long as you've drawn N or more
+    cards this turn.  (Tome Anima; grammar round 6 C9 — the "as long as"
+    condition lives in ``StaticAbility.condition``
+    (CARDS_DRAWN_THIS_TURN_GE, b5a Gnarled Sage precedent), NEVER a
+    duration approximation; C10 — the restriction is a PREVENT_EFFECT over
+    a universal DeclareBlockersEvent whose R6-4 ``blocked`` slot names the
+    source as the blocked-side participant.)  The literal "two" follows the
+    Gnarled Sage pattern idiom (b5a pins ``drawn two or more``)."""
+    atom = Atom(
+        verb=Verb.PREVENT_EFFECT,
+        args=AtomArgs(
+            pairs=(
+                ("condition", FAtom(pred=FAtomPred.IS_SOURCE)),
+                (
+                    "event",
+                    DeclareBlockersEvent(
+                        FAnd(children=()),
+                        blocked=FAtom(pred=FAtomPred.IS_SOURCE),
+                    ),
+                ),
+            )
+        ),
+    )
+    return AbilityOutcome(
+        ability=StaticAbility(
+            effect=atom,
+            condition=FAtom(
+                pred=FAtomPred.CARDS_DRAWN_THIS_TURN_GE,
+                count=QConst(2),
+                who=ControllerRef.YOU,
+            ),
+        )
+    )
+
+
+def _build_must_block(m: re.Match[str]) -> SentenceOutcome:
+    """This creature must be blocked if able.  (Canopy Stalker; grammar
+    round 6 R6-5 — MANDATE_BLOCK mirrors MANDATE_ATTACK: subject-scoped
+    ``cards`` role, executor deferred per the PHASE_IN-orphan
+    precedent.)"""
+    atom = Atom(
+        verb=Verb.MANDATE_BLOCK,
+        args=AtomArgs(pairs=(("cards", _self_selector()),)),
+    )
+    return AbilityOutcome(ability=StaticAbility(atom))
+
+
+def _build_block_only_flying(m: re.Match[str]) -> SentenceOutcome:
+    """This creature can block only creatures with flying.  (Shacklegeist;
+    C10 — PREVENT_EFFECT whose blocked-side ``blocked`` slot (R6-4) is
+    FNot(KEYWORD_HAS flying): the prevented declarations are exactly the
+    source-as-blocker declarations (subject=IS_SOURCE, grammar-round-7
+    ``_dbe_both`` idiom) over a non-flying blocked creature.)"""
+    atom = Atom(
+        verb=Verb.PREVENT_EFFECT,
+        args=AtomArgs(
+            pairs=(
+                ("condition", FAtom(pred=FAtomPred.IS_SOURCE)),
+                (
+                    "event",
+                    DeclareBlockersEvent(
+                        FAnd(children=()),
+                        subject=FAtom(pred=FAtomPred.IS_SOURCE),
+                        blocked=FNot(
+                            inner=FAtom(
+                                pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING
+                            )
+                        ),
+                    ),
+                ),
+            )
+        ),
+    )
+    return AbilityOutcome(ability=StaticAbility(atom))
+
+
+def _build_enters_with_x_counters(m: re.Match[str]) -> SentenceOutcome:
+    """This creature enters with X +1/+1 counters on it.  (Wildwood
+    Scourge; bucket-ownership deviation: the round-6 decision doc guessed
+    b2a, but the JSON partition owns this key in B4.  X semantics per the
+    b5c event-referent precedent (convention C2 + ``QX()`` — b5c line
+    ~551 ``_event_reference`` / b5b C8): ETB ZoneChangeEvent with
+    subject=IS_SOURCE, then PUT_COUNTER on the event's subject object.)"""
+    atom = Atom(
+        verb=Verb.PUT_COUNTER,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAnd(children=()),
+                        Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+                        referent="event",
+                    ),
+                ),
+                ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                ("count", QX()),
+            )
+        ),
+    )
+    ability = TriggeredAbility(
+        event=ZoneChangeEvent(
+            from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+            to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+            subject=FAtom(pred=FAtomPred.IS_SOURCE),
+        ),
+        condition=None,
+        effect=atom,
+    )
+    return AbilityOutcome(ability=ability)
+
+
+# ---------------------------------------------------------------------------
 # Template definitions
 # ---------------------------------------------------------------------------
 
@@ -1090,6 +1219,41 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_opponent_spell_cost_mana,
     ),
+    Template(
+        tid="B4-cant-be-blocked-aslong-drawn",
+        name="this creature can't be blocked as long as you've drawn two this turn",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^This creature can't be blocked as long as you've drawn two "
+            r"or more cards this turn\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_cant_be_blocked_aslong_drawn,
+    ),
+    Template(
+        tid="B4-must-block",
+        name="this creature must be blocked if able",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^This creature must be blocked if able\.$"),
+        priority=_PRIORITY,
+        build=_build_must_block,
+    ),
+    Template(
+        tid="B4-block-only-flying",
+        name="this creature can block only creatures with flying",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^This creature can block only creatures with flying\.$"),
+        priority=_PRIORITY,
+        build=_build_block_only_flying,
+    ),
+    Template(
+        tid="B4-enters-with-x-counters",
+        name="this creature enters with X +1/+1 counters on it",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^This creature enters with X \+1/\+1 counters on it\.$"),
+        priority=_PRIORITY,
+        build=_build_enters_with_x_counters,
+    ),
 )
 
 UNCOVERED: tuple[tuple[str, str], ...] = (
@@ -1098,25 +1262,15 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
         "No MODIFY_COST verb in grammar",
     ),
     (
-        "This creature enters with X +N/+N counters on it.",
-        "No ETB counter-placement construct",
-    ),
-    (
-        "This creature can block only creatures with flying.",
-        "No blocking-restriction grammar construct",
-    ),
-    (
-        "This creature can't be blocked as long as you've drawn two or more cards this turn.",
-        "No conditional PREVENT_EFFECT with turn-scoped condition",
-    ),
-    ("This creature must be blocked if able.", "No MUST_BE_BLOCKED grammar construct"),
-    (
         "This creature gets +N/+N until end of turn for each creature tapped this way.",
-        "No per-event repeated static with turn-scoped trigger",
+        (
+            "No per-event repeated static with turn-scoped trigger "
+            "(round-7 family: trigger-counted statics)"
+        ),
     ),
     (
         "You can't choose an untapped creature as this spell's target as you cast it.",
-        "No targeting-restriction grammar construct",
+        "No targeting-restriction grammar construct (round-7 family: target legality)",
     ),
     (
         "You choose a noncreature, nonland card from it.",
@@ -1124,7 +1278,10 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
     ),
     (
         "You have protection from the chosen card name.",
-        "No dynamic protection-from-name grammar construct",
+        (
+            "No dynamic protection-from-name grammar construct "
+            "(round-7 family: chosen-name anaphora)"
+        ),
     ),
     (
         "You may activate loyalty abilities of Teferi on any player's turn any time you could cast an instant.",

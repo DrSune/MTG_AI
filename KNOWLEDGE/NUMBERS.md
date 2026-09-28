@@ -5,6 +5,70 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-09-28 (round 6 — conditional statics + restriction semantics; round summary)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| core test state after round 6 | **1333 passed / 0 failed** (`MTG_bot/core`) | `python -m pytest MTG_bot/core -q` | 1278 → 1320 (grammar +42 `test_ability_tree_r7.py`) → 1333 (batch +13 bucket tests) |
+| PC-1 card coverage round delta | **231 → 241 / 305** (0.7574 → 0.7902) | `python tools/measure_grammar.py --set M21` | +10 full cards from 13 batch rows; prediction band 240–243 HIT |
+| PC-2 sentence coverage round delta | **539 → 552 / 639** (0.8435 → 0.8639) | same | +13 = exactly the batch (all rows 1-occurrence) |
+| residual unparsed queue | **98/100 → 85 shapes / 87 occ** | `python tools/dump_unparsed_queue.py` | all 13 batch sentences absent |
+| goldens re-baselined | **exactly 13 files**, abilities-key-only | `--refresh-goldens` + per-file audit vs `/tmp/golden_pre_r6_2026-09-27/` | 292 byte-identical; grammar phase itself 0 diffs |
+| PC-6 orphans | **2** (PHASE_IN, FLIP_COIN — owner-ratified) | `python tools/measure_grammar.py --set M21` | MANDATE_BLOCK consumed by `B4-must-block` same round it was added |
+
+NOTE: the three identical-header blocks below ("T5 — Phase-1 grammar measurement harness", all dated
+2026-09-28) are **per-run tool auto-appends**, newest first: post-refresh final (PC-4 0), mid-batch
+verify (PC-4 13 diffs pre-rebaseline — expected), grammar-phase baseline (231/539, orphans 3 incl.
+pre-use MANDATE_BLOCK). The tool's header label is fixed regardless of round (see PITFALLS 2026-09-28).
+
+## 2026-09-28 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.7902** (241/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — FAIL |
+| PC-2 sentence_coverage | **0.8639** (552/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — FAIL |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, refreshed) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.2 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **2** / max share **0.1004** (MODIFY_PT) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.2820** (86/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-09-28 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.7902** (241/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — FAIL |
+| PC-2 sentence_coverage | **0.8639** (552/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — FAIL |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **13 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — FAIL |
+| PC-5 compile_latency p99 | **0.195 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **2** / max share **0.1004** (MODIFY_PT) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.2820** (86/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-09-28 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.7574** (231/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — FAIL |
+| PC-2 sentence_coverage | **0.8435** (539/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — FAIL |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.188 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **3** / max share **0.1034** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.2820** (86/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
 ## 2026-09-27 (T5 — Phase-1 grammar measurement harness)
 
 | Number | Value | Command | Notes |

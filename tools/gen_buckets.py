@@ -21,10 +21,10 @@ verified against every pinned constraint before this script was written):
   * B2b          = trigger-shaped keys not in B2a (62)
                    trigger  = ^(When|Whenever|At (the )?(start|beginning))\\b
                    ("As ..." sentences are NOT triggers; they stay in B5)
-  * B3           = templates_b3 pattern matches (44 keys, 2026-09-24)
-                    union the 4 pinned templates_b3.UNCOVERED keys (48 total)
-  * B4           = templates_b4 pattern matches (30 keys, 2026-09-26)
-                     union the 17 pinned templates_b4.UNCOVERED keys (47 total)
+  * B3           = templates_b3 pattern matches (45 keys, 2026-09-28)
+                    union the 3 pinned templates_b3.UNCOVERED keys (48 total)
+  * B4           = templates_b4 pattern matches (34 keys, 2026-09-28)
+                     union the 13 pinned templates_b4.UNCOVERED keys (47 total)
   * B5           = every remaining key (270); B5a / B5b / B5c are the first /
                    middle / last thirds in plain alphabetical key order (90
                    each). B5a's concrete sentences must equal the 90-entry
@@ -110,11 +110,15 @@ def main() -> None:
         f"B2a pattern keys={len(b2a_keys)}"
     )  # 2026-09-26: was 54 (2026-09-24); round-4 batch (6a267cd) added 3 b2a
     # patterns: keys 54->57 while its UNCOVERED prune 8->5 kept the bucket at 62.
-    assert len(b3_keys) == 44, f"B3 pattern keys={len(b3_keys)}"
-    assert len(b4_keys) == 30, (
+    assert len(b3_keys) == 45, (
+        f"B3 pattern keys={len(b3_keys)}"
+    )  # 2026-09-28 r6-batch: was 44 (2026-09-24); Subira's blocked-side
+    # activation (R6-4) added 1 b3 pattern: keys 44->45 while its UNCOVERED
+    # prune 4->3 kept the bucket at 48.
+    assert len(b4_keys) == 34, (
         f"B4 pattern keys={len(b4_keys)}"
-    )  # 2026-09-26: was 27 (2026-09-24); round-4 batch (6a267cd) added 3 b4
-    # patterns: keys 27->30 while its UNCOVERED prune 20->17 kept the bucket at 47.
+    )  # 2026-09-28 r6-batch: was 30 (2026-09-26); round-6 batch added 4 b4
+    # patterns: keys 30->34 while its UNCOVERED prune 17->13 kept the bucket at 47.
     assert b2a_keys & b2a_unc == set(), "B2a pattern/uncovered overlap"
     assert b3_keys & b3_unc == set(), "B3 pattern/uncovered overlap"
     assert b4_keys & b4_unc == set(), "B4 pattern/uncovered overlap"

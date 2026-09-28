@@ -25,6 +25,7 @@ from MTG_bot.core.ability_tree import (
     CostManaGeneric,
     CostTap,
     CounterKind,
+    DeclareBlockersEvent,
     DurationEot,
     FAnd,
     FAtom,
@@ -750,6 +751,44 @@ def _build_create_token(m: re.Match[str]) -> AbilityOutcome:
 
 
 # ---------------------------------------------------------------------------
+# Round-6 batch builder: blocked-side restriction activation (Subira)
+# ---------------------------------------------------------------------------
+
+
+def _build_target_cant_be_blocked(m: re.Match[str]) -> AbilityOutcome:
+    """Another target creature with power N or less can't be blocked this
+    turn.  (Subira, Tulzidi Caravanner {1} ability; grammar round 6 R6-4 —
+    DeclareBlockersEvent.blocked names the BLOCKED-side participant, the
+    standing b3 UNCOVERED diagnosis.  The restricted participant is the
+    ability's target: PREVENT_EFFECT.condition = FAtom(IS_ANY_TARGET)
+    (same shape as the Tome Anima blocked-side idiom, source → target),
+    and the ``blocked`` filter also carries the printed POWER_LE bound —
+    IR-faithful superset of the decision-doc sketch (which omitted the
+    power cap); "another target" is IS_ANY_TARGET per the Selfless Savior
+    precedent.  Duration: this turn = DurationEot.)"""
+    blocked = FAnd(
+        children=(
+            FAtom(pred=FAtomPred.IS_ANY_TARGET),
+            FAtom(pred=FAtomPred.POWER_LE, count=QConst(int(m.group("pw")))),
+        )
+    )
+    effect = Atom(
+        verb=Verb.PREVENT_EFFECT,
+        args=AtomArgs(
+            pairs=(
+                ("condition", FAtom(pred=FAtomPred.IS_ANY_TARGET)),
+                (
+                    "event",
+                    DeclareBlockersEvent(FAnd(children=()), blocked=blocked),
+                ),
+                ("duration", DurationEot()),
+            )
+        ),
+    )
+    return _build_activated(_parse_cost(m), effect)
+
+
+# ---------------------------------------------------------------------------
 # Template definitions
 # ---------------------------------------------------------------------------
 
@@ -1016,6 +1055,17 @@ TEMPLATES: tuple[Template, ...] = (
         priority=100,
         build=_build_create_token,
     ),
+    Template(
+        tid="B3-target-cant-be-blocked",
+        name="another target creature with power N or less can't be blocked this turn",
+        bucket="B3",
+        pattern=re.compile(
+            rf"^{_COST}\s*:\s*Another target creature with power "
+            rf"(?P<pw>\d+) or less can't be blocked this turn\.$"
+        ),
+        priority=100,
+        build=_build_target_cant_be_blocked,
+    ),
 )
 
 
@@ -1030,19 +1080,6 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
             "No quantity expression for distinct color count among permanents "
             "you control; QCount counts objects, not distinct color "
             "identities, and QProp has no distinct-color field."
-        ),
-    ),
-    (
-        "{N}: Another target creature with power N or less can't be blocked this turn.",
-        (
-            "DeclareBlockersEvent has no slot referencing the BLOCKED "
-            "creature: filter and subject (r3b) are both Filters over "
-            "the BLOCKING creature (subject mirrors ZoneChangeEvent."
-            "subject), and PREVENT_EFFECT.condition evaluates over the "
-            "blocker per the B4 cant-block precedent — so 'X can't be "
-            "blocked' (a restriction on the blocked creature) is "
-            "inexpressible; only blocker-side restrictions ('can't "
-            "block') are."
         ),
     ),
     (

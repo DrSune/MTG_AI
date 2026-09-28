@@ -178,6 +178,7 @@ class Verb(Enum):
     EXTRA_TURN = "EXTRA_TURN"  # Teferi, Master of Time [-10] ("take two extra turns")
     END_TURN = "END_TURN"  # Discontinuity ("end the turn")
     MANDATE_ATTACK = "MANDATE_ATTACK"  # Pirate token: "creatures you control attack each combat if able"
+    MANDATE_BLOCK = "MANDATE_BLOCK"  # Canopy Stalker: "must be blocked if able"
     CAST = "CAST"  # cast a spell from a zone (top-of-library via Zone.position; graveyard recasts; cost waivers / extra costs)
     PAY = "PAY"  # pay a cost as an effect ("you may pay {2}", with an "if you do" continuation)
     LOSE_GAME = (
@@ -368,6 +369,16 @@ class FAtomPred(Enum):
         "NOT_FIRST_DRAW_THIS_STEP"  # "not the first card who draws in their
         # draw step" (Teferi's Ageless Insight; grammar round 5 — required who;
         # evaluated against the drawn card, CardDrawnEvent subject)
+    )
+    TURN_OF = (
+        "TURN_OF"  # "it is <who>'s turn" — "During your turn, …" (Radha,
+        # Heart of Keld; Discontinuity; grammar round 6 — required who; the
+        # Phase enum carries no turn owner)
+    )
+    ZONE_COUNT_GE = (
+        "ZONE_COUNT_GE"  # "<who> has >= count cards in their <zone>
+        # matching inner_filter" (Thieves' Guild Enforcer; grammar round 6
+        # — required who + zone + inner_filter + count)
     )
 
 
@@ -1100,10 +1111,16 @@ class DeclareBlockersEvent:
     ``subject`` (r3b) narrows WHICH declaration fires: None = any blocker,
     or a Filter over the blocking creature — mirroring
     ``ZoneChangeEvent.subject``; omitted from the tagged dict when None,
-    so pre-r3b trees keep byte-identical canonical JSON."""
+    so pre-r3b trees keep byte-identical canonical JSON.
+    ``blocked`` (grammar round 6, R6-4) narrows the BLOCKED-side creature
+    — "can't be blocked" / "can block only creatures with flying"
+    restrict the blocked participant (Tome Anima, Ghostly Pilferer,
+    Subira, Shacklegeist); omitted from the tagged dict when None, so
+    pre-round-6 trees keep byte-identical canonical JSON."""
 
     filter: Filter
     subject: Filter | None = None
+    blocked: Filter | None = None
 
     def __post_init__(self) -> None:
         if not _is_filter(self.filter):
@@ -1113,6 +1130,10 @@ class DeclareBlockersEvent:
         if self.subject is not None and not _is_filter(self.subject):
             raise ValueError(
                 f"DeclareBlockersEvent: subject must be a Filter, got {type(self.subject).__name__}"
+            )
+        if self.blocked is not None and not _is_filter(self.blocked):
+            raise ValueError(
+                f"DeclareBlockersEvent: blocked must be a Filter, got {type(self.blocked).__name__}"
             )
 
 
@@ -1823,11 +1844,13 @@ class Atom:
         if extra:
             raise ValueError(f"Atom: {self.verb.name} does not take roles {extra}")
         if (
-            self.verb is Verb.MODIFY_PT
+            self.verb in (Verb.MODIFY_PT, Verb.SET_PT)
             and "power" not in roles
             and "toughness" not in roles
         ):
-            raise ValueError("Atom: MODIFY_PT needs at least one of power/toughness")
+            raise ValueError(
+                f"Atom: {self.verb.name} needs at least one of power/toughness"
+            )
 
 
 # ---- Effects ----
@@ -2570,6 +2593,20 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
         frozenset({"who"}),
         frozenset({"who"}),
     ),
+    # TURN_OF (grammar round 6, R6-1): "it is <who>'s turn" — "During your
+    # turn, …" (Radha, Heart of Keld; Discontinuity). who = the turn owner
+    # (ControllerRef or referent Selector — precedent CONTROLLER_IS).
+    FAtomPred.TURN_OF: (frozenset({"who"}), frozenset({"who"})),
+    # ZONE_COUNT_GE (grammar round 6, R6-2): "an opponent has 8 or more
+    # cards in their graveyard" (Thieves' Guild Enforcer). who = the player
+    # whose zone is counted; zone = the zone counted (same Zone class and
+    # required-zone-slot precedent as CAST_THIS_TURN_FROM); inner_filter =
+    # the cards counted; count = the threshold Quantity (precedent
+    # CONTROLLER_COUNT_GE — count unsetness is not enforced there either).
+    FAtomPred.ZONE_COUNT_GE: (
+        frozenset({"who", "zone", "inner_filter", "count"}),
+        frozenset({"who", "zone", "inner_filter", "count"}),
+    ),
 }
 
 # Atom role -> allowed value types. "types" is a tuple of card-type strings
@@ -2605,8 +2642,8 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     "unless": (Cost,),  # COUNTER_SPELL's "unless its controller pays X" role
 }
 
-# Verb -> {role: required?}. MODIFY_PT additionally requires at least one
-# of power/toughness (enforced in Atom.__post_init__). The optional
+# Verb -> {role: required?}. MODIFY_PT and SET_PT additionally require at
+# least one of power/toughness (enforced in Atom.__post_init__). The optional
 # "duration" role (Duration) marks the temporary-effect verbs: MODIFY_PT,
 # SET_PT, GRANT_ABILITY, GRANT_TYPE, PREVENT_EFFECT ("until end of turn"),
 # plus TAP / UNTAP (a tap or untap is a temporary effect) and MANDATE_ATTACK
@@ -2629,7 +2666,16 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
         "toughness": False,
         "duration": False,
     },
-    Verb.SET_PT: {"target": True, "power": True, "toughness": True, "duration": False},
+    # SET_PT (grammar round 6, R6-3): power/toughness are each optional,
+    # but at least one is required (Kinetic Augur defines only power —
+    # "power is equal to the number of …"); the at-least-one check is
+    # enforced in Atom.__post_init__ alongside MODIFY_PT's.
+    Verb.SET_PT: {
+        "target": True,
+        "power": False,
+        "toughness": False,
+        "duration": False,
+    },
     Verb.GRANT_ABILITY: {"target": True, "ability": True, "duration": False},
     Verb.GRANT_TYPE: {"target": True, "types": True, "duration": False},
     Verb.TAP: {"target": True, "duration": False},
@@ -2669,6 +2715,10 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     Verb.EXTRA_TURN: {"count": True},
     Verb.END_TURN: {},
     Verb.MANDATE_ATTACK: {"cards": True, "controller": False, "duration": False},
+    # MANDATE_BLOCK (grammar round 6, R6-5): mirrors MANDATE_ATTACK exactly
+    # — "must be blocked if able" (Canopy Stalker); subject-scoped, the
+    # executor is deferred per the PHASE_IN-orphan precedent.
+    Verb.MANDATE_BLOCK: {"cards": True, "controller": False, "duration": False},
     # CAST: source is the Selector over the source zone (top-of-library via
     # Zone.position). The optional `cost` role carries the cost paid
     # BEYOND the spell's own — an empty Cost() is the cost-waiver reading
@@ -2875,7 +2925,13 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("from_zone_not", "opt:zone"),
     ),
     "DeclareAttackersEvent": (("filter", "filter"),),
-    "DeclareBlockersEvent": (("filter", "filter"), ("subject", "opt:filter")),
+    "DeclareBlockersEvent": (
+        ("filter", "filter"),
+        ("subject", "opt:filter"),
+        # blocked (grammar round 6, R6-4): narrows the blocked-side
+        # creature; omitted when None.
+        ("blocked", "opt:filter"),
+    ),
     "CombatDamageEvent": (("filter", "filter"),),
     "CounterPlacedEvent": (
         ("counter_kind", "enum:CounterKind"),
@@ -3135,7 +3191,8 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     "Selector": frozenset({"zones", "referent"}),
     "Zone": frozenset({"position"}),
     "ZoneChangeEvent": frozenset({"subject"}),
-    "DeclareBlockersEvent": frozenset({"subject"}),
+    # subject (r3b) + blocked (grammar round 6, R6-4): omit when None.
+    "DeclareBlockersEvent": frozenset({"subject", "blocked"}),
     # from_zone_not (grammar round 4): omit when None.
     "CastSpellEvent": frozenset(
         {"controller", "from_zone", "ordinal", "from_zone_not"}

@@ -1,13 +1,13 @@
-"""B5a bucket templates — 45 templates covering 49 of 90 B5a shapes.
+"""B5a bucket templates — 51 templates covering 55 of 90 B5a shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B5a.json`` (90 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (90 = 49 template + 23 rule-reminder + 18 uncovered):
+Coverage (90 = 55 template + 23 rule-reminder + 12 uncovered):
 
-- **49 template-covered shapes** (45 templates; the basic-land
+- **55 template-covered shapes** (51 templates; the basic-land
   ``({T}: Add {C}.)`` family is one template for five shapes):
   basic-land tap abilities, ADD_MANA, static P/T grants, counter-spell,
   token creation, keyword rule-reminder sentences (Deathtouch/Defender/
@@ -19,14 +19,18 @@ Coverage (90 = 49 template + 23 rule-reminder + 18 uncovered):
   END_TURN, Equip, equipped-P/T, additional-cost (discard/sacrifice),
   conditional static (Gnarled Sage), activation gate
   (Caged Zombie, Celestial Enforcer), counter-unless-pays
-  (Miscast, Lofty Denial).
+  (Miscast, Lofty Denial), round-6 batch: ZONE_COUNT_GE conditional static
+  (Thieves' Guild Enforcer), TURN_OF static grant (Radha) and TURN_OF
+  CostModifier (Discontinuity), blocked-side PREVENT_EFFECT
+  (Ghostly Pilferer discard, Faith's Fetters attack+block Seq — C11
+  lossy), untap-prevention on enchanted creature (Capture Sphere, lossy).
 - **23 rule-reminder shapes** — fully parenthesised sentences consumed by
   the compiler's ``_is_rule_reminder`` before template matching (no
   template needed; verified in tests).
-- **18 uncovered shapes** — no expressible/attachable grammar construct
-  exists (activation gates, conditional statics, name-choice, modal
-  headers, anaphora, turn-scoped statics, cost reduction, untap
-  prevention, per-counter P/T, costed prevention, until-leaves exile).
+- **12 uncovered shapes** — no expressible/attachable grammar construct
+  exists (sorcery-mode activation gates, library-top ability grant,
+  as-though defender override, name-choice, modal headers,
+  payment-failure condition, per-counter P/T, until-leaves exile).
   Recorded in ``UNCOVERED`` below and pinned by tests.
 
 Conventions (documented build decisions):
@@ -65,12 +69,17 @@ from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     ControllerRef,
     Cost,
+    CostDeltaReduceGeneric,
+    CostDeltaReduceMana,
     CostDiscard,
     CostManaGeneric,
+    CostModifier,
     CostSacrifice,
     CostTap,
     CounterKind,
     CreatureDiesEvent,
+    DeclareAttackersEvent,
+    DeclareBlockersEvent,
     DurationEot,
     FAnd,
     FAtom,
@@ -94,6 +103,7 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     Seq,
     StaticAbility,
+    TapStateEvent,
     TokenSpec,
     TriggeredAbility,
     Verb,
@@ -872,6 +882,199 @@ _PLUS_1_PLUS_1 = CounterKind.PLUS_1_PLUS_1
 
 
 # ---------------------------------------------------------------------------
+# Round-6 batch builders (conditional statics + restriction semantics)
+# ---------------------------------------------------------------------------
+
+
+def _bf_any() -> Zone:
+    return Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY)
+
+
+def _build_aslong_opp_gy_count(m: re.Match[str]) -> SentenceOutcome:
+    """As long as an opponent has eight or more cards in their graveyard,
+    this creature gets +2/+1 and has deathtouch.  (Thieves' Guild Enforcer;
+    grammar round 6 R6-2 — ZONE_COUNT_GE carries who + zone + inner_filter
+    + count; C9 — the "as long as" predicate lives in
+    ``StaticAbility.condition``, never a duration approximation.  The
+    literal "eight" follows the Gnarled Sage pattern idiom; the +N/+N
+    digits are captured.)"""
+    p, t = int(m.group("p")), int(m.group("t"))
+    self_sel = _self_selector(_bf_any())
+    pt = Atom(
+        verb=Verb.MODIFY_PT,
+        args=AtomArgs(
+            pairs=(
+                ("target", self_sel),
+                ("power", PtDelta(PtDirection.INCREASE, QConst(p))),
+                ("toughness", PtDelta(PtDirection.INCREASE, QConst(t))),
+            )
+        ),
+    )
+    grant = Atom(
+        verb=Verb.GRANT_ABILITY,
+        args=AtomArgs(
+            pairs=(
+                ("target", self_sel),
+                ("ability", KeywordAbility(keyword=Keyword.DEATHTOUCH, params=())),
+            )
+        ),
+    )
+    return AbilityOutcome(
+        ability=StaticAbility(
+            effect=Seq(steps=(pt, grant)),
+            condition=FAtom(
+                pred=FAtomPred.ZONE_COUNT_GE,
+                who=ControllerRef.OPPONENT,
+                zone=Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.OPPONENT),
+                inner_filter=FAnd(children=()),
+                count=QConst(8),
+            ),
+        )
+    )
+
+
+def _build_radha_first_strike(m: re.Match[str]) -> SentenceOutcome:
+    """During your turn, Radha has first strike.  (Radha, Heart of Keld;
+    grammar round 6 R6-1 — TURN_OF carries the turn owner, the Phase enum
+    has none; "Radha" is the card self-referent, encoded as the house
+    IS_SOURCE selector, never a hardcoded name (convention, shape #86).)"""
+    atom = Atom(
+        verb=Verb.GRANT_ABILITY,
+        args=AtomArgs(
+            pairs=(
+                ("target", _self_selector(_bf_any())),
+                ("ability", KeywordAbility(keyword=Keyword.FIRST_STRIKE, params=())),
+            )
+        ),
+    )
+    return AbilityOutcome(
+        ability=StaticAbility(
+            atom,
+            condition=FAtom(pred=FAtomPred.TURN_OF, who=ControllerRef.YOU),
+        )
+    )
+
+
+def _build_during_turn_cost_reduce(m: re.Match[str]) -> SentenceOutcome:
+    """During your turn, this spell costs {2}{U}{U} less to cast.
+    (Discontinuity; grammar round 6 R6-1 TURN_OF in
+    ``CostModifier.condition`` (T3 round-2 slot), Stormwing's delta +
+    extra_deltas compound split (generic + colored) — the old UNCOVERED
+    reason's "single CostDelta" claim was already fixed by T3 round 4's
+    extra_deltas.)"""
+    generic = int(m.group("generic"))
+    modifier = CostModifier(
+        filter=FAtom(pred=FAtomPred.IS_SOURCE),
+        controller_ref=ControllerRef.YOU,
+        delta=CostDeltaReduceGeneric(amount=QConst(generic)),
+        extra_deltas=(CostDeltaReduceMana(color="U", amount=QConst(2)),),
+        condition=FAtom(pred=FAtomPred.TURN_OF, who=ControllerRef.YOU),
+    )
+    return AbilityOutcome(ability=modifier)
+
+
+def _build_enchant_no_untap(m: re.Match[str]) -> SentenceOutcome:
+    """Enchanted creature doesn't untap during its controller's untap step.
+    (Capture Sphere; C10 — PREVENT_EFFECT over the untap transition
+    (TapStateEvent tapped=False) restricted to the enchanted permanent.)
+
+    LOSSY (verbatim): "during its controller's untap step" — the untap-step
+    scope is dropped (Step enum has no UNTAP member; step-scope slot
+    registered for round 7, 2026-09-28 decision doc deferred family 3).
+    """
+    enchanted = FAnd(
+        children=(
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+            FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),
+        )
+    )
+    atom = Atom(
+        verb=Verb.PREVENT_EFFECT,
+        args=AtomArgs(
+            pairs=(
+                ("condition", FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE)),
+                ("event", TapStateEvent(tapped=False, filter=enchanted)),
+            )
+        ),
+    )
+    return AbilityOutcome(ability=StaticAbility(atom))
+
+
+def _build_enchant_cant_attack_block(m: re.Match[str]) -> SentenceOutcome:
+    """Enchanted permanent can't attack or block, and its activated
+    abilities can't be activated unless they're mana abilities.
+    (Faith's Fetters; decision C11 — Seq of two PREVENT_EFFECT atoms on
+    the enchanted permanent (IS_ATTACHED_TO_SOURCE), the attack atom over
+    DeclareAttackersEvent, the block atom over DeclareBlockersEvent
+    following the B4 cant-block idiom (filter selects the restricted
+    participant).)
+
+    LOSSY (verbatim, per C11): "and its activated abilities can't be
+    activated unless they're mana abilities" is DROPPED — needs an
+    ability-activation event class + ability-kind predicate
+    (ability-introspection family, 2026-09-28 decision doc deferred
+    family 1).
+    """
+    enchanted = FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE)
+    attack = Atom(
+        verb=Verb.PREVENT_EFFECT,
+        args=AtomArgs(
+            pairs=(
+                ("condition", enchanted),
+                ("event", DeclareAttackersEvent(filter=enchanted)),
+            )
+        ),
+    )
+    block = Atom(
+        verb=Verb.PREVENT_EFFECT,
+        args=AtomArgs(
+            pairs=(
+                ("condition", enchanted),
+                ("event", DeclareBlockersEvent(filter=enchanted)),
+            )
+        ),
+    )
+    return AbilityOutcome(ability=StaticAbility(Seq(steps=(attack, block))))
+
+
+def _build_discard_cant_be_blocked(m: re.Match[str]) -> SentenceOutcome:
+    """Discard a card: This creature can't be blocked this turn.
+    (Ghostly Pilferer; C10 + R6-4 — costed activation whose PREVENT_EFFECT
+    narrows the blocked side to the source via the ``blocked`` slot over a
+    universal blocker filter (grammar-round-7 ``_dbe_blocked`` idiom),
+    duration until end of turn.)"""
+    cost = Cost(
+        parts=(
+            CostDiscard(
+                target=Selector(
+                    QConst(1),
+                    SelectorMode.CHOOSE,
+                    FAnd(children=()),
+                    Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),
+                )
+            ),
+        )
+    )
+    atom = Atom(
+        verb=Verb.PREVENT_EFFECT,
+        args=AtomArgs(
+            pairs=(
+                ("condition", FAtom(pred=FAtomPred.IS_SOURCE)),
+                (
+                    "event",
+                    DeclareBlockersEvent(
+                        FAnd(children=()),
+                        blocked=FAtom(pred=FAtomPred.IS_SOURCE),
+                    ),
+                ),
+                ("duration", DurationEot()),
+            )
+        ),
+    )
+    return AbilityOutcome(ability=ActivatedAbility(cost=cost, effect=atom))
+
+
+# ---------------------------------------------------------------------------
 # TEMPLATES
 # ---------------------------------------------------------------------------
 
@@ -1421,9 +1624,72 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_counter_unless_spell,
     ),
+    Template(
+        tid="B5a-aslong-opp-gy-count",
+        name="as long as an opponent has 8+ GY cards: +N/+N and deathtouch",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^As long as an opponent has eight or more cards in their "
+            r"graveyard, this creature gets \+(?P<p>\d+)/\+(?P<t>\d+) and "
+            r"has deathtouch\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_aslong_opp_gy_count,
+    ),
+    Template(
+        tid="B5a-radha-first-strike",
+        name="during your turn Radha has first strike",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^During your turn, Radha has first strike\.$"),
+        priority=_PRIORITY,
+        build=_build_radha_first_strike,
+    ),
+    Template(
+        tid="B5a-during-turn-cost-reduce",
+        name="during your turn this spell costs {N}{U}{U} less to cast",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^During your turn, this spell costs \{(?P<generic>\d+)\}"
+            r"\{U\}\{U\} less to cast\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_during_turn_cost_reduce,
+    ),
+    Template(
+        tid="B5a-enchant-no-untap",
+        name="enchanted creature doesn't untap during its controller's untap step",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Enchanted creature doesn't untap during its controller's "
+            r"untap step\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_enchant_no_untap,
+    ),
+    Template(
+        tid="B5a-enchant-cant-attack-block",
+        name="enchanted permanent can't attack or block (mana-abilities clause dropped, C11)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Enchanted permanent can't attack or block, and its activated "
+            r"abilities can't be activated unless they're mana abilities\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_enchant_cant_attack_block,
+    ),
+    Template(
+        tid="B5a-discard-cant-be-blocked",
+        name="discard a card: this creature can't be blocked this turn",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Discard a card: This creature can't be blocked this turn\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_discard_cant_be_blocked,
+    ),
 )
 
-# UNCOVERED — 18 normalized-key rows
+# UNCOVERED — 12 normalized-key rows
 #
 # Each row is (shape_key, reason).  shape_key is the B5a.json normalized
 # key (digits → "N").  Sorted alphabetically by shape_key.  The T4 test
@@ -1436,10 +1702,6 @@ UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
     (
         "Activate only if you have at least N life more than your starting life total and only as a sorcery.",
         "activation gate: ActivatedAbility has no condition slot (life-total comparison + sorcery mode)",
-    ),
-    (
-        "As long as an opponent has eight or more cards in their graveyard, this creature gets +N/+N and has deathtouch.",
-        "conditional static: StaticAbility has no condition slot (opponent graveyard count)",
     ),
     (
         "As long as the top card of your library is a Goblin card, this creature has all activated abilities of that card.",
@@ -1472,28 +1734,8 @@ UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
         "multi-target destroy with zone relationship not in grammar",
     ),
     (
-        "Discard a card: This creature can't be blocked this turn.",
-        "costed activation with blocking prevention not in grammar",
-    ),
-    (
-        "During your turn, Radha has first strike.",
-        "named-card ability (not generic pattern) not in grammar",
-    ),
-    (
-        "During your turn, this spell costs {N}{U}{U} less to cast.",
-        "CostModifier exists, but cannot express turn-scoped condition nor a compound {N}{U}{U} reduction (single CostDelta)",
-    ),
-    (
         "Each opponent who can't loses N life.",
         '"who can\'t" payment-failure condition not in grammar',
-    ),
-    (
-        "Enchanted creature doesn't untap during its controller's untap step.",
-        "untap prevention not in grammar",
-    ),
-    (
-        "Enchanted permanent can't attack or block, and its activated abilities can't be activated unless they're mana abilities.",
-        "multi-restriction with exception clause not in grammar",
     ),
     (
         "Equipped creature gets +N/+N for each soul counter on this Equipment.",

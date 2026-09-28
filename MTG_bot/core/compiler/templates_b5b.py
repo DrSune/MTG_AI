@@ -1,13 +1,13 @@
-"""B5b bucket templates — 45 templates covering 49 of 90 B5b shapes.
+"""B5b bucket templates — 47 templates covering 51 of 90 B5b shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B5b.json`` (90 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (90 = 49 template + 0 rule-reminder + 41 uncovered):
+Coverage (90 = 51 template + 0 rule-reminder + 39 uncovered):
 
-- **49 template-covered shapes** (45 templates: 42 single-shape tids +
+- **51 template-covered shapes** (47 templates: 44 single-shape tids +
   3 multi-shape normalized tids — put-counter ×3, return-cards-hand ×2,
   named-damage ×2; ``B5b-modpt-plus`` is one shape with two concrete rows):
   keyword rule-reminder sentences (Flash/Haste/Hexproof/Lifelink/Menace/
@@ -20,12 +20,16 @@ Coverage (90 = 49 template + 0 rule-reminder + 41 uncovered):
   reveal-hand, sacrifice-flying, discard-2, replacement/"instead" effects
   (died-gain-life, nontoken-enter-exile, triple-damage, counter-plus-one,
   die-exile, graveyard-exile, draw-not-first) and the counter-unless-pays
-  cost modifier (grammar round 5, doc-07 batch).
+  cost modifier (grammar round 5, doc-07 batch), conditional attack
+  restriction (Gadrak: StaticAbility.condition = FNot(CONTROLLER_COUNT_GE
+  Artifact) over a PREVENT_EFFECT/DeclareAttackersEvent — C9/C10) and
+  dynamic power definition (Kinetic Augur: SET_PT power-only via
+  QCount(GY instant-or-sorcery) — grammar round 6 R6-3).
 - **0 rule-reminder shapes** — no fully-parenthesised sentences in B5b.
-- **41 uncovered shapes** — conditional triggers, anaphora,
+- **39 uncovered shapes** — conditional triggers, anaphora,
   coin-flip gates, fractional computation, modal continuations,
-  protection-from-color-choice, multi-zone search, keyword-loss, power-
-  tied-to-card-count, and other constructs with no grammar equivalent.
+  protection-from-color-choice, multi-zone search, keyword-loss, and
+  other constructs with no grammar equivalent.
   Recorded in the test file.
 
 Conventions (documented build decisions):
@@ -103,6 +107,7 @@ from MTG_bot.core.ability_tree import (
     CounterPlacedEvent,
     CreatureDiesEvent,
     DamageDealtEvent,
+    DeclareAttackersEvent,
     DurationEot,
     FAnd,
     FAtom,
@@ -119,6 +124,7 @@ from MTG_bot.core.ability_tree import (
     QBin,
     QBinOp,
     QConst,
+    QCount,
     QProp,
     QPropField,
     QUnbounded,
@@ -126,6 +132,7 @@ from MTG_bot.core.ability_tree import (
     Selector,
     SelectorMode,
     Seq,
+    StaticAbility,
     TokenSpec,
     Verb,
     Zone,
@@ -1247,6 +1254,84 @@ def _build_repl_draw_not_first(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
+# Round-6 batch builders (Gadrak, Kinetic Augur — decision doc guessed b4,
+# the JSON partition owns these keys in B5b)
+# ---------------------------------------------------------------------------
+
+
+def _build_cant_attack_unless_artifacts(m: re.Match[str]) -> SentenceOutcome:
+    """Gadrak can't attack unless you control four or more artifacts.
+    (Gadrak, the Crown-Scourge; C9 — the "unless" gate is
+    ``StaticAbility.condition`` = FNot(CONTROLLER_COUNT_GE Artifact), never
+    a duration approximation; C10 — the restriction is a PREVENT_EFFECT
+    over DeclareAttackersEvent with the source as event filter (B4
+    cant-block idiom).  "Gadrak" is the card self-referent (IS_SOURCE).
+    The literal "four" follows the Gnarled Sage word-pinned pattern idiom.)"""
+    is_source = FAtom(pred=FAtomPred.IS_SOURCE)
+    atom = Atom(
+        verb=Verb.PREVENT_EFFECT,
+        args=AtomArgs(
+            pairs=(
+                ("condition", is_source),
+                ("event", DeclareAttackersEvent(filter=is_source)),
+            )
+        ),
+    )
+    return AbilityOutcome(
+        ability=StaticAbility(
+            effect=atom,
+            condition=FNot(
+                inner=FAtom(
+                    pred=FAtomPred.CONTROLLER_COUNT_GE,
+                    inner_filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Artifact"),
+                    count=QConst(4),
+                )
+            ),
+        )
+    )
+
+
+def _build_set_pt_power_gy_count(m: re.Match[str]) -> SentenceOutcome:
+    """Kinetic Augur's power is equal to the number of instant and sorcery
+    cards in your graveyard.  (Kinetic Augur; grammar round 6 R6-3 —
+    SET_PT power/toughness roles are each optional with at-least-one
+    enforced, so the power-only definition carries a single role; the
+    count reuses B5a's Weird-token instant-or-sorcery graveyard QCount
+    shape.  Named subject = the card self-referent, IS_SOURCE.)"""
+    atom = Atom(
+        verb=Verb.SET_PT,
+        args=AtomArgs(
+            pairs=(
+                ("target", _this_creature()),
+                (
+                    "power",
+                    QCount(
+                        Selector(
+                            QUnbounded(),
+                            SelectorMode.ALL,
+                            FOr(
+                                children=(
+                                    FAtom(
+                                        pred=FAtomPred.TYPE_EQ,
+                                        string_value="Instant",
+                                    ),
+                                    FAtom(
+                                        pred=FAtomPred.TYPE_EQ,
+                                        string_value="Sorcery",
+                                    ),
+                                )
+                            ),
+                            Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
+                        )
+                    ),
+                ),
+            )
+        ),
+    )
+    return AbilityOutcome(ability=StaticAbility(atom))
+
+
+# ---------------------------------------------------------------------------
 # Template registry
 # ---------------------------------------------------------------------------
 
@@ -1706,16 +1791,34 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_repl_draw_not_first,
     ),
+    Template(
+        tid="B5b-gadrak-cant-attack-unless-artifacts",
+        name="Gadrak can't attack unless you control four or more artifacts",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Gadrak can't attack unless you control four or more "
+            r"artifacts\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_cant_attack_unless_artifacts,
+    ),
+    Template(
+        tid="B5b-set-pt-power-gy-instant-sorcery",
+        name="named creature's power equals instant+sorcery count in your graveyard",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Kinetic Augur's power is equal to the number of instant and "
+            r"sorcery cards in your graveyard\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_set_pt_power_gy_count,
+    ),
 )
 
 UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         "Flying, first strike, lifelink, protection from Demons and from Dragons",
         "Composite keyword list with protection-from-subtypes",
-    ),
-    (
-        "Gadrak can't attack unless you control four or more artifacts.",
-        "Conditional attack restriction with artifact-count gate",
     ),
     (
         "Gain control of target creature until end of turn.",
@@ -1792,10 +1895,6 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         "Its controller loses N life.",
         "Controller-referent life-loss with anaphoric 'Its'",
-    ),
-    (
-        "Kinetic Augur's power is equal to the number of instant and sorcery cards in your graveyard.",
-        "Power-tied-to-card-count static ability",
     ),
     (
         "Otherwise, put it on the bottom of your library.",

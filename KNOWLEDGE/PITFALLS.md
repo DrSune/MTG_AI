@@ -1,5 +1,43 @@
 # PITFALLS — standing traps (each dated; newest first)
 
+## 2026-09-28
+- **[tools/measure_grammar.py — every run APPENDS a PC block to NUMBERS.md
+  under a fixed header.]** The tool auto-inserts its full PC table at the top
+  of NUMBERS.md on every invocation, with the hard-coded section title
+  "## <date> (T5 — Phase-1 grammar measurement harness)" regardless of what
+  round is running. Three same-day runs (grammar baseline, mid-batch verify,
+  post-refresh) produced three near-identical blocks, one mid-process with a
+  legitimate PC-4 FAIL (pre-refresh 13 diffs). Rule: treat those blocks as
+  per-run snapshots (newest first), do not delete or edit their content, and
+  cap the day with a hand-written round-summary block + header caveat (see
+  2026-09-28 round-6 entry). A header fix to the tool itself is an owner call
+  (same file as the unfixed exit-code finding, 2026-09-27).
+- **[ability_tree/serialization — `_OMIT_IF_EMPTY` is the WRITE-side omission
+  driver; `_SPECS` `opt:` tags only inject None on READ.]** Refines the
+  2026-09-25 entry: when adding a new trailing optional field to a serialized
+  dataclass (R6-4 `DeclareBlockersEvent.blocked`), BOTH registrations are
+  required: the `("field","opt:kind")` `_SPECS` entry (read path) AND the
+  field name in `_OMIT_IF_EMPTY["Tag"]` (write path, `to_dict` ~L3320).
+  Missing the `_OMIT_IF_EMPTY` half makes every pre-existing tree grow the new
+  key on regeneration → golden byte-diff storm. Guard with a
+  construction-and-serialize test asserting the key is ABSENT for None.
+  (Discovered R6 grammar phase.)
+- **[decision docs — tid module prefixes are GUESSES; bucket JSONs are the
+  partition.]** Reconfirmed at scale in the round-6 batch: 9 of 13 rows
+  registered in a module other than their doc tid (final: b5a 6, b4 4, b5b 2,
+  b3 1, b2a 0 — e.g. Gadrak "can't attack unless…" and Kinetic "power is
+  equal to…" are B5b-keyed, not B4). Rule: before writing a builder, look up
+  the normalized shape key (digits→N, mana→C) in
+  `/tmp/opencode/phase1_buckets/<B>.json`; register where the JSON says. The
+  gen_buckets UNCOVERED/pattern overlap asserts catch violations only when
+  regenerated — check first, save a rewrite. (Round-6 batch.)
+- **[templates — spelled-out numbers ("two","eight","four") are NOT captured
+  by digit normalization.]** Shape normalization maps DIGITS to N; number WORDS
+  survive verbatim into the shape key. Builders for word-pinned sentences
+  hard-code QConst per the Gnarled-Sage house precedent (round-6: Tome Anima 2,
+  Thieves' Guild Enforcer 8, Gadrak 4). `+N/+N` and `{N}` ARE digit-captured
+  and can be regex-grouped. (Round-6 batch results §"Pitfall confirmed again".)
+
 ## 2026-09-27
 - **[tools/measure_grammar.py — exit code is ALWAYS 0.]** The docstring promises
   "Exit code: 0 when every evaluated pre-registered target passes, 1 when any

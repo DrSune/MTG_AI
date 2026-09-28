@@ -2,9 +2,9 @@
 
 Covers all 47 shapes in ``/tmp/opencode/phase1_buckets/B4.json``
 (63 concrete sentences):
-- 30 shapes template-covered (45 concrete sentences; ``This land enters
-  tapped.`` carries 15) -> 30 templates
-- 17 shapes UNCOVERED (18 concrete sentences; no grammar construct)
+- 34 shapes template-covered (49 concrete sentences; ``This land enters
+  tapped.`` carries 15) -> 34 templates
+- 13 shapes UNCOVERED (14 concrete sentences; no grammar construct)
 
 PC-3: every B4 concrete sentence fullmatches at most one template.
 """
@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from MTG_bot.core.ability_tree import (
+    QX,
     ActivatedAbility,
     Atom,
     ControllerRef,
@@ -54,8 +55,10 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     Seq,
     StaticAbility,
+    TriggeredAbility,
     Verb,
     Zone,
+    ZoneChangeEvent,
     ZoneKind,
     ZonePosition,
     canonical_json,
@@ -386,6 +389,17 @@ EXPECTED_KIND: dict[str, tuple[str, str]] = {
         "B4-opponent-spell-cost-mana",
         "ability",
     ),
+    "This creature can't be blocked as long as you've drawn two or more "
+    "cards this turn.": ("B4-cant-be-blocked-aslong-drawn", "ability"),
+    "This creature must be blocked if able.": ("B4-must-block", "ability"),
+    "This creature can block only creatures with flying.": (
+        "B4-block-only-flying",
+        "ability",
+    ),
+    "This creature enters with X +1/+1 counters on it.": (
+        "B4-enters-with-x-counters",
+        "ability",
+    ),
 }
 
 
@@ -400,11 +414,11 @@ class TestB4Inventory(unittest.TestCase):
     def setUp(self) -> None:
         self.data = _load_b4()
 
-    def test_30_templates(self) -> None:
-        self.assertEqual(len(templates_b4.TEMPLATES), 30)
+    def test_34_templates(self) -> None:
+        self.assertEqual(len(templates_b4.TEMPLATES), 34)
 
-    def test_17_uncovered(self) -> None:
-        self.assertEqual(len(templates_b4.UNCOVERED), 17)
+    def test_13_uncovered(self) -> None:
+        self.assertEqual(len(templates_b4.UNCOVERED), 13)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in templates_b4.TEMPLATES]
@@ -420,7 +434,7 @@ class TestB4Inventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _registry()
-        self.assertEqual(len(reg), 30)
+        self.assertEqual(len(reg), 34)
 
     def test_every_template_matches_some_bucket_sentence(self) -> None:
         sentences = [
@@ -457,8 +471,8 @@ class TestB4Coverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 30)
-        self.assertEqual(matched_occurrences, 45)
+        self.assertEqual(covered_shapes, 34)
+        self.assertEqual(matched_occurrences, 49)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -475,7 +489,7 @@ class TestB4Coverage(unittest.TestCase):
                 self.assertEqual(self.reg.match(sentence), (), sentence)
 
     def test_expected_kind_table_is_consistent_with_bucket(self) -> None:
-        self.assertEqual(len(EXPECTED_KIND), 31)
+        self.assertEqual(len(EXPECTED_KIND), 35)
         for sentence in EXPECTED_KIND:
             for entries in self.data.values():
                 if sentence in [s for _card, s in entries]:
@@ -1127,6 +1141,105 @@ class TestB4IrStructure(unittest.TestCase):
         assert isinstance(move_dest, Zone)
         self.assertIs(move_dest.kind, ZoneKind.HAND)
         self.assertIs(move_dest.controller, ControllerRef.YOU)
+
+    # ------------------------------------------------------------------
+    # Round-6 batch: blocked-side restrictions, MANDATE_BLOCK, ETB X-counters
+    # ------------------------------------------------------------------
+
+    def test_cant_be_blocked_aslong_drawn(self) -> None:
+        outcome = _as_ability(
+            _single_match(
+                self.reg,
+                "This creature can't be blocked as long as you've drawn "
+                "two or more cards this turn.",
+            ).outcome
+        )
+        static = _as_static(outcome.ability)
+        # C9: the turn-scoped condition is StaticAbility.condition.
+        drawn = _as_fatom(static.condition)
+        self.assertIs(drawn.pred, FAtomPred.CARDS_DRAWN_THIS_TURN_GE)
+        self.assertEqual(_qconst(drawn.count).value, 2)
+        self.assertIs(drawn.who, ControllerRef.YOU)
+        atom = _as_atom(static.effect)
+        self.assertIs(atom.verb, Verb.PREVENT_EFFECT)
+        condition = _as_fatom(atom.args.get("condition"))
+        self.assertIs(condition.pred, FAtomPred.IS_SOURCE)
+        event = _as_blockers_event(atom.args.get("event"))
+        self.assertIsNone(event.subject)
+        self.assertEqual(event.filter, FAnd(children=()))
+        blocked = _as_fatom(event.blocked)
+        self.assertIs(blocked.pred, FAtomPred.IS_SOURCE)
+        self.assertNotIn("duration", _pairs(atom))
+
+    def test_must_block(self) -> None:
+        outcome = _as_ability(
+            _single_match(self.reg, "This creature must be blocked if able.").outcome
+        )
+        atom = _as_atom(_as_static(outcome.ability).effect)
+        self.assertIs(atom.verb, Verb.MANDATE_BLOCK)
+        cards = _selector(atom, "cards")
+        self.assertIs(cards.mode, SelectorMode.CHOOSE)
+        self.assertEqual(_qconst(cards.count).value, 1)
+        self.assertIs(cards.zone.kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(cards.zone.controller, ControllerRef.ANY)
+        self.assertIs(_as_fatom(cards.filter).pred, FAtomPred.IS_SOURCE)
+        self.assertNotIn("controller", _pairs(atom))
+
+    def test_block_only_flying(self) -> None:
+        outcome = _as_ability(
+            _single_match(
+                self.reg, "This creature can block only creatures with flying."
+            ).outcome
+        )
+        static = _as_static(outcome.ability)
+        self.assertIsNone(static.condition)
+        atom = _as_atom(static.effect)
+        self.assertIs(atom.verb, Verb.PREVENT_EFFECT)
+        condition = _as_fatom(atom.args.get("condition"))
+        self.assertIs(condition.pred, FAtomPred.IS_SOURCE)
+        event = _as_blockers_event(atom.args.get("event"))
+        self.assertEqual(event.filter, FAnd(children=()))
+        subject = _as_fatom(event.subject)
+        self.assertIs(subject.pred, FAtomPred.IS_SOURCE)
+        blocked_filter = event.blocked
+        assert isinstance(blocked_filter, FNot), (
+            f"expected FNot blocked filter, got {type(blocked_filter).__name__}"
+        )
+        inner = blocked_filter.inner
+        assert isinstance(inner, FAtom)
+        self.assertIs(inner.pred, FAtomPred.KEYWORD_HAS)
+        self.assertIs(inner.keyword, Keyword.FLYING)
+
+    def test_enters_with_x_counters(self) -> None:
+        outcome = _as_ability(
+            _single_match(
+                self.reg, "This creature enters with X +1/+1 counters on it."
+            ).outcome
+        )
+        ability = outcome.ability
+        assert isinstance(ability, TriggeredAbility), (
+            f"expected TriggeredAbility, got {type(ability).__name__}"
+        )
+        self.assertIsNone(ability.condition)
+        event = ability.event
+        assert isinstance(event, ZoneChangeEvent), (
+            f"expected ZoneChangeEvent, got {type(event).__name__}"
+        )
+        self.assertIs(event.from_zone.kind, ZoneKind.ANY)
+        self.assertIs(event.to_zone.kind, ZoneKind.BATTLEFIELD)
+        assert event.subject is not None
+        self.assertIs(_as_fatom(event.subject).pred, FAtomPred.IS_SOURCE)
+        atom = _as_atom(ability.effect)
+        self.assertIs(atom.verb, Verb.PUT_COUNTER)
+        target = _selector(atom, "target")
+        # Convention C2: referent selector — CHOOSE + QConst(1) + neutral zone.
+        self.assertEqual(target.referent, "event")
+        self.assertIs(target.mode, SelectorMode.CHOOSE)
+        self.assertEqual(_qconst(target.count).value, 1)
+        self.assertIs(target.zone.kind, ZoneKind.ANY)
+        self.assertEqual(target.filter, FAnd(children=()))
+        self.assertIs(_pairs(atom).get("counter_kind"), CounterKind.PLUS_1_PLUS_1)
+        self.assertIsInstance(_pairs(atom).get("count"), QX)
 
 
 if __name__ == "__main__":

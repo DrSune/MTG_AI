@@ -2,9 +2,9 @@
 
 Covers all 90 shapes in ``/tmp/opencode/phase1_buckets/B5b.json``
 (91 distinct concrete sentences):
-- 50 template-covered rows over 49 shapes / 45 tids (42 single-shape tids,
+- 52 template-covered rows over 51 shapes / 47 tids (44 single-shape tids,
   3 multi-shape tids, plus one shape with two concrete rows)
-- 41 UNCOVERED (no template; 40 have no grammar construct, 1 is
+- 39 UNCOVERED (no template; 38 have no grammar construct, 1 is
   compiler-built-in: "If you search your library this way, shuffle." —
   see test_compiler.py::TestContinuation::test_search_shuffle_*)
 - 0 rule-reminder pre-consumed
@@ -34,6 +34,7 @@ from MTG_bot.core.ability_tree import (
     CounterPlacedEvent,
     CreatureDiesEvent,
     DamageDealtEvent,
+    DeclareAttackersEvent,
     DurationEot,
     FAnd,
     FAtom,
@@ -49,6 +50,7 @@ from MTG_bot.core.ability_tree import (
     QBin,
     QBinOp,
     QConst,
+    QCount,
     QProp,
     QPropField,
     QUnbounded,
@@ -56,6 +58,7 @@ from MTG_bot.core.ability_tree import (
     Selector,
     SelectorMode,
     Seq,
+    StaticAbility,
     TokenSpec,
     Verb,
     Zone,
@@ -96,7 +99,11 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "",
     ),
     # shape 3
-    ("Gadrak can't attack unless you control four or more artifacts.", "UNCOV", ""),
+    (
+        "Gadrak can't attack unless you control four or more artifacts.",
+        "COVERED",
+        "B5b-gadrak-cant-attack-unless-artifacts",
+    ),
     # shape 4
     ("Gain control of target creature until end of turn.", "UNCOV", ""),
     # shape 5
@@ -256,8 +263,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 40
     (
         "Kinetic Augur's power is equal to the number of instant and sorcery cards in your graveyard.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-set-pt-power-gy-instant-sorcery",
     ),
     # shape 41
     (
@@ -615,6 +622,12 @@ def _as_replacement(ab: Any) -> ReplacementAbility:
     return ab
 
 
+def _as_static(ab: Any) -> StaticAbility:
+    """Narrow Ability to StaticAbility (Pyright type guard)."""
+    assert isinstance(ab, StaticAbility), f"got {type(ab).__name__}"
+    return ab
+
+
 def _find_shape(sent: str) -> tuple[str, str, str]:
     """Find a shape entry by sentence."""
     for s in SHAPES:
@@ -631,8 +644,8 @@ def _find_shape(sent: str) -> tuple[str, str, str]:
 class TestTemplateInventory(unittest.TestCase):
     """Verify the B5b template collection is well-formed."""
 
-    def test_45_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 45)
+    def test_47_templates(self) -> None:
+        self.assertEqual(len(TEMPLATES), 47)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -648,7 +661,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 45)
+        self.assertEqual(len(reg), 47)
 
 
 # ---------------------------------------------------------------------------
@@ -669,14 +682,14 @@ class TestShapeTable(unittest.TestCase):
     def test_category_counts(self) -> None:
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
-        self.assertEqual(covered, 50, f"COVERED count {covered} != 50")
-        self.assertEqual(uncov, 41, f"UNCOV count {uncov} != 41")
+        self.assertEqual(covered, 52, f"COVERED count {covered} != 52")
+        self.assertEqual(uncov, 39, f"UNCOV count {uncov} != 39")
 
-    def test_covered_tids_valid_and_unique_45(self) -> None:
+    def test_covered_tids_valid_and_unique_47(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
-            len(unique_tids), 45, f"expected 45 unique tids, got {len(unique_tids)}"
+            len(unique_tids), 47, f"expected 47 unique tids, got {len(unique_tids)}"
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5b-"), f"bad tid: {tid}")
@@ -1458,6 +1471,68 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(p["controller"], ControllerRef.YOU)
         self.assertEqual(p["amount"], QConst(2))
 
+    # ------------------------------------------------------------------
+    # Round-6 batch (Gadrak, Kinetic Augur)
+    # ------------------------------------------------------------------
+
+    def test_gadrak_cant_attack_structure(self) -> None:
+        """C9 + C10: StaticAbility.condition = FNot(CONTROLLER_COUNT_GE
+        Artifact 4) over PREVENT_EFFECT/DeclareAttackersEvent(IS_SOURCE)."""
+        outcome = self._match_outcome("B5b-gadrak-cant-attack-unless-artifacts")
+        ab = _as_static(_as_ability(outcome).ability)
+        cond = ab.condition
+        if not isinstance(cond, FNot):
+            self.fail(f"expected FNot condition, got {type(cond)}")
+        gate = cond.inner
+        if not isinstance(gate, FAtom):
+            self.fail(f"expected FAtom gate, got {type(gate)}")
+        self.assertEqual(gate.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertEqual(gate.count, QConst(4))
+        inner_filter = gate.inner_filter
+        if not isinstance(inner_filter, FAtom):
+            self.fail(f"expected FAtom inner_filter, got {type(inner_filter)}")
+        self.assertEqual(inner_filter.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(inner_filter.string_value, "Artifact")
+        atom = _as_atom(ab.effect)
+        self.assertEqual(atom.verb, Verb.PREVENT_EFFECT)
+        p = _pairs_dict(atom)
+        condition = p["condition"]
+        assert isinstance(condition, FAtom)
+        self.assertEqual(condition.pred, FAtomPred.IS_SOURCE)
+        event = p["event"]
+        if not isinstance(event, DeclareAttackersEvent):
+            self.fail(f"expected DeclareAttackersEvent, got {type(event)}")
+        self.assertEqual(event.filter, FAtom(pred=FAtomPred.IS_SOURCE))
+        self.assertNotIn("duration", p)
+
+    def test_set_pt_power_gy_count_structure(self) -> None:
+        """R6-3: SET_PT with the power role ONLY, quantity = QCount over
+        the instant-or-sorcery graveyard selector."""
+        outcome = self._match_outcome("B5b-set-pt-power-gy-instant-sorcery")
+        ab = _as_static(_as_ability(outcome).ability)
+        atom = _as_atom(ab.effect)
+        self.assertEqual(atom.verb, Verb.SET_PT)
+        p = _pairs_dict(atom)
+        self.assertIn("power", p)
+        self.assertNotIn("toughness", p)
+        target = p["target"]
+        assert isinstance(target, Selector)
+        self.assertEqual(target.mode, SelectorMode.CHOOSE)
+        assert isinstance(target.filter, FAtom)
+        self.assertEqual(target.filter.pred, FAtomPred.IS_SOURCE)
+        power = p["power"]
+        if not isinstance(power, QCount):
+            self.fail(f"expected QCount power, got {type(power)}")
+        cards = power.selector
+        self.assertEqual(cards.mode, SelectorMode.ALL)
+        self.assertEqual(cards.zone.kind, ZoneKind.GRAVEYARD)
+        self.assertEqual(cards.zone.controller, ControllerRef.YOU)
+        filt = cards.filter
+        if not isinstance(filt, FOr):
+            self.fail(f"expected FOr filter, got {type(filt)}")
+        names = [c.string_value for c in filt.children if isinstance(c, FAtom)]
+        self.assertEqual(names, ["Instant", "Sorcery"])
+
 
 # ---------------------------------------------------------------------------
 # Test: Canonical Stability (PC-4)
@@ -1492,7 +1567,7 @@ class TestCanonicalStability(unittest.TestCase):
                 f"canonical instability for {tid} ({sent[:40]})",
             )
             seen.add(tid)
-        self.assertEqual(len(seen), 45, f"only {len(seen)} unique tids tested")
+        self.assertEqual(len(seen), 47, f"only {len(seen)} unique tids tested")
 
 
 # ---------------------------------------------------------------------------

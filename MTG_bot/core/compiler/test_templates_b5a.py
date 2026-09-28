@@ -1,9 +1,9 @@
 """Tests for B5a bucket templates (templates_b5a.py).
 
 Covers all 90 shapes in ``/tmp/opencode/phase1_buckets/B5a.json``:
-- 49 template-covered (45 templates; B5a-land-add matches 5 basic-land shapes)
+- 55 template-covered (51 templates; B5a-land-add matches 5 basic-land shapes)
 - 23 rule-reminder pre-consumed by the compiler
-- 18 UNCOVERED (no expressible/attachable construct; recorded in UNCOVERED and pinned)
+- 12 UNCOVERED (no expressible/attachable construct; recorded in UNCOVERED and pinned)
 
 PC-3: every concrete sentence fullmatches at most one template.
 """
@@ -23,12 +23,17 @@ from MTG_bot.core.ability_tree import (
     AtomArgs,
     ControllerRef,
     Cost,
+    CostDeltaReduceGeneric,
+    CostDeltaReduceMana,
     CostDiscard,
     CostManaGeneric,
+    CostModifier,
     CostSacrifice,
     CostTap,
     CounterKind,
     CreatureDiesEvent,
+    DeclareAttackersEvent,
+    DeclareBlockersEvent,
     DurationEot,
     FAnd,
     FAtom,
@@ -52,6 +57,7 @@ from MTG_bot.core.ability_tree import (
     Seq,
     SpellAbility,
     StaticAbility,
+    TapStateEvent,
     TokenSpec,
     TriggeredAbility,
     Verb,
@@ -236,8 +242,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 37
     (
         "As long as an opponent has eight or more cards in their graveyard, this creature gets +2/+1 and has deathtouch.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5a-aslong-opp-gy-count",
     ),
     # shape 38
     (
@@ -330,7 +336,11 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 60
     ("Discard a card: Tap this creature.", "COVERED", "B5a-discard-tap-self"),
     # shape 61
-    ("Discard a card: This creature can't be blocked this turn.", "UNCOV", ""),
+    (
+        "Discard a card: This creature can't be blocked this turn.",
+        "COVERED",
+        "B5a-discard-cant-be-blocked",
+    ),
     # shape 62
     (
         "Double strike (This creature deals both first-strike and regular combat damage.)",
@@ -360,9 +370,13 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 67
     ("Draw two cards.", "COVERED", "B5a-draw-two"),
     # shape 68
-    ("During your turn, Radha has first strike.", "UNCOV", ""),
+    ("During your turn, Radha has first strike.", "COVERED", "B5a-radha-first-strike"),
     # shape 69
-    ("During your turn, this spell costs {2}{U}{U} less to cast.", "UNCOV", ""),
+    (
+        "During your turn, this spell costs {2}{U}{U} less to cast.",
+        "COVERED",
+        "B5a-during-turn-cost-reduce",
+    ),
     # shape 70
     (
         "Each creature you control with a +1/+1 counter on it has trample.",
@@ -376,8 +390,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 73
     (
         "Enchanted creature doesn't untap during its controller's untap step.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5a-enchant-no-untap",
     ),
     # shape 74
     (
@@ -424,8 +438,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 81
     (
         "Enchanted permanent can't attack or block, and its activated abilities can't be activated unless they're mana abilities.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5a-enchant-cant-attack-block",
     ),
     # shape 82
     ("End the turn.", "COVERED", "B5a-end-turn"),
@@ -582,8 +596,8 @@ def _find_shape(sent: str) -> tuple[str, str, str]:
 class TestTemplateInventory(unittest.TestCase):
     """Verify the B5a template collection is well-formed."""
 
-    def test_45_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 45)
+    def test_51_templates(self) -> None:
+        self.assertEqual(len(TEMPLATES), 51)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -599,7 +613,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 45)
+        self.assertEqual(len(reg), 51)
 
 
 # ---------------------------------------------------------------------------
@@ -622,14 +636,14 @@ class TestShapeTable(unittest.TestCase):
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
         self.assertEqual(rr, 23, f"RR count {rr} != 23")
-        self.assertEqual(covered, 49, f"COVERED count {covered} != 49")
-        self.assertEqual(uncov, 18, f"UNCOV count {uncov} != 18")
+        self.assertEqual(covered, 55, f"COVERED count {covered} != 55")
+        self.assertEqual(uncov, 12, f"UNCOV count {uncov} != 12")
 
-    def test_covered_tids_valid_and_unique_45(self) -> None:
+    def test_covered_tids_valid_and_unique_51(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
-            len(unique_tids), 45, f"expected 45 unique tids, got {len(unique_tids)}"
+            len(unique_tids), 51, f"expected 51 unique tids, got {len(unique_tids)}"
         )
         # All tids start with B5a-
         for tid in unique_tids:
@@ -658,8 +672,8 @@ class TestShapeTable(unittest.TestCase):
 class TestUncovered(unittest.TestCase):
     """Verify the UNCOVERED attribute is well-formed and pinned to SHAPES."""
 
-    def test_18_rows(self) -> None:
-        self.assertEqual(len(UNCOVERED), 18)
+    def test_12_rows(self) -> None:
+        self.assertEqual(len(UNCOVERED), 12)
 
     def test_unique_sorted_keys(self) -> None:
         keys = [k for k, _ in UNCOVERED]
@@ -1448,6 +1462,189 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertIsInstance(cmg, CostManaGeneric)
         self.assertEqual(cmg.amount, QConst(1))
 
+    # ------------------------------------------------------------------
+    # Round-6 batch (Thieves' Guild / Radha / Discontinuity / Capture
+    # Sphere / Faith's Fetters / Ghostly Pilferer)
+    # ------------------------------------------------------------------
+
+    def test_aslong_opp_gy_count_structure(self) -> None:
+        """R6-2 + C9: ZONE_COUNT_GE in StaticAbility.condition, effect =
+        Seq(MODIFY_PT, GRANT deathtouch) on the self selector."""
+        outcome = self._match_outcome("B5a-aslong-opp-gy-count")
+        if not isinstance(outcome, AbilityOutcome):
+            self.fail(f"expected AbilityOutcome, got {type(outcome)}")
+        ab = outcome.ability
+        if not isinstance(ab, StaticAbility):
+            self.fail(f"expected StaticAbility, got {type(ab)}")
+        cond = ab.condition
+        if not isinstance(cond, FAtom):
+            self.fail(f"expected FAtom condition, got {type(cond)}")
+        self.assertEqual(cond.pred, FAtomPred.ZONE_COUNT_GE)
+        self.assertEqual(cond.who, ControllerRef.OPPONENT)
+        self.assertEqual(cond.count, QConst(8))
+        assert cond.zone is not None
+        self.assertEqual(cond.zone.kind, ZoneKind.GRAVEYARD)
+        self.assertEqual(cond.zone.controller, ControllerRef.OPPONENT)
+        self.assertEqual(cond.inner_filter, FAnd(children=()))
+        eff = ab.effect
+        if not isinstance(eff, Seq):
+            self.fail(f"expected Seq effect, got {type(eff)}")
+        self.assertEqual(len(eff.steps), 2)
+        pt, grant = eff.steps
+        assert isinstance(pt, Atom) and isinstance(grant, Atom)
+        self.assertEqual(pt.verb, Verb.MODIFY_PT)
+        pp = _pairs_dict(pt)
+        self.assertEqual(pp["power"], PtDelta(PtDirection.INCREASE, QConst(2)))
+        self.assertEqual(pp["toughness"], PtDelta(PtDirection.INCREASE, QConst(1)))
+        target = pp["target"]
+        assert isinstance(target, Selector)
+        self.assertEqual(target.mode, SelectorMode.CHOOSE)
+        assert isinstance(target.filter, FAtom)
+        self.assertEqual(target.filter.pred, FAtomPred.IS_SOURCE)
+        self.assertEqual(grant.verb, Verb.GRANT_ABILITY)
+        gp = _pairs_dict(grant)
+        ka = gp["ability"]
+        assert isinstance(ka, KeywordAbility)
+        self.assertEqual(ka.keyword, Keyword.DEATHTOUCH)
+        self.assertEqual(ka.params, ())
+
+    def test_radha_first_strike_structure(self) -> None:
+        """R6-1: TURN_OF(YOU) condition over a static GRANT first strike."""
+        outcome = self._match_outcome("B5a-radha-first-strike")
+        if not isinstance(outcome, AbilityOutcome):
+            self.fail(f"expected AbilityOutcome, got {type(outcome)}")
+        ab = outcome.ability
+        if not isinstance(ab, StaticAbility):
+            self.fail(f"expected StaticAbility, got {type(ab)}")
+        cond = ab.condition
+        if not isinstance(cond, FAtom):
+            self.fail(f"expected FAtom condition, got {type(cond)}")
+        self.assertEqual(cond.pred, FAtomPred.TURN_OF)
+        self.assertEqual(cond.who, ControllerRef.YOU)
+        atom = ab.effect
+        if not isinstance(atom, Atom):
+            self.fail(f"expected Atom effect, got {type(atom)}")
+        self.assertEqual(atom.verb, Verb.GRANT_ABILITY)
+        ka = _pairs_dict(atom)["ability"]
+        assert isinstance(ka, KeywordAbility)
+        self.assertEqual(ka.keyword, Keyword.FIRST_STRIKE)
+
+    def test_during_turn_cost_reduce_structure(self) -> None:
+        """R6-1 + T3 extra_deltas: {N}{U}{U} = generic delta + one blue
+        delta of 2, TURN_OF condition, AbilityOutcome delivery."""
+        outcome = self._match_outcome("B5a-during-turn-cost-reduce")
+        if not isinstance(outcome, AbilityOutcome):
+            self.fail(f"expected AbilityOutcome, got {type(outcome)}")
+        mod = outcome.ability
+        if not isinstance(mod, CostModifier):
+            self.fail(f"expected CostModifier, got {type(mod)}")
+        self.assertEqual(mod.controller_ref, ControllerRef.YOU)
+        filt = mod.filter
+        if not isinstance(filt, FAtom):
+            self.fail(f"expected FAtom filter, got {type(filt)}")
+        self.assertEqual(filt.pred, FAtomPred.IS_SOURCE)
+        self.assertEqual(mod.delta, CostDeltaReduceGeneric(amount=QConst(2)))
+        self.assertEqual(
+            mod.extra_deltas,
+            (CostDeltaReduceMana(color="U", amount=QConst(2)),),
+        )
+        cond = mod.condition
+        if not isinstance(cond, FAtom):
+            self.fail(f"expected FAtom condition, got {type(cond)}")
+        self.assertEqual(cond.pred, FAtomPred.TURN_OF)
+        self.assertEqual(cond.who, ControllerRef.YOU)
+
+    def test_enchant_no_untap_structure(self) -> None:
+        """C10: PREVENT(TapStateEvent tapped=False) on the enchanted
+        creature; untap-step scope dropped (lossy, documented)."""
+        outcome = self._match_outcome("B5a-enchant-no-untap")
+        if not isinstance(outcome, AbilityOutcome):
+            self.fail(f"expected AbilityOutcome, got {type(outcome)}")
+        ab = outcome.ability
+        if not isinstance(ab, StaticAbility):
+            self.fail(f"expected StaticAbility, got {type(ab)}")
+        atom = ab.effect
+        if not isinstance(atom, Atom):
+            self.fail(f"expected Atom effect, got {type(atom)}")
+        self.assertEqual(atom.verb, Verb.PREVENT_EFFECT)
+        p = _pairs_dict(atom)
+        cond = p["condition"]
+        assert isinstance(cond, FAtom)
+        self.assertEqual(cond.pred, FAtomPred.IS_ATTACHED_TO_SOURCE)
+        ev = p["event"]
+        if not isinstance(ev, TapStateEvent):
+            self.fail(f"expected TapStateEvent, got {type(ev)}")
+        self.assertIs(ev.tapped, False)
+        filt = ev.filter
+        if not isinstance(filt, FAnd):
+            self.fail(f"expected FAnd filter, got {type(filt)}")
+        preds = [c.pred for c in filt.children if isinstance(c, FAtom)]
+        self.assertEqual(preds, [FAtomPred.TYPE_EQ, FAtomPred.IS_ATTACHED_TO_SOURCE])
+        self.assertNotIn("duration", p)
+
+    def test_enchant_cant_attack_block_structure(self) -> None:
+        """C11: Seq of two PREVENT atoms (attack + block) on
+        IS_ATTACHED_TO_SOURCE; mana-abilities clause dropped (lossy)."""
+        outcome = self._match_outcome("B5a-enchant-cant-attack-block")
+        if not isinstance(outcome, AbilityOutcome):
+            self.fail(f"expected AbilityOutcome, got {type(outcome)}")
+        ab = outcome.ability
+        if not isinstance(ab, StaticAbility):
+            self.fail(f"expected StaticAbility, got {type(ab)}")
+        eff = ab.effect
+        if not isinstance(eff, Seq):
+            self.fail(f"expected Seq effect, got {type(eff)}")
+        self.assertEqual(len(eff.steps), 2)
+        attack, block = eff.steps
+        assert isinstance(attack, Atom) and isinstance(block, Atom)
+        ap = _pairs_dict(attack)
+        bp = _pairs_dict(block)
+        self.assertEqual(ap["condition"], FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE))
+        self.assertEqual(bp["condition"], FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE))
+        aev = ap["event"]
+        if not isinstance(aev, DeclareAttackersEvent):
+            self.fail(f"expected DeclareAttackersEvent, got {type(aev)}")
+        self.assertEqual(aev.filter, FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE))
+        bev = bp["event"]
+        if not isinstance(bev, DeclareBlockersEvent):
+            self.fail(f"expected DeclareBlockersEvent, got {type(bev)}")
+        self.assertEqual(bev.filter, FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE))
+        self.assertIsNone(bev.blocked)
+
+    def test_discard_cant_be_blocked_structure(self) -> None:
+        """R6-4: activated (discard) → PREVENT with blocked=IS_SOURCE over
+        the universal blocker filter, DurationEot."""
+        outcome = self._match_outcome("B5a-discard-cant-be-blocked")
+        if not isinstance(outcome, AbilityOutcome):
+            self.fail(f"expected AbilityOutcome, got {type(outcome)}")
+        ab = outcome.ability
+        if not isinstance(ab, ActivatedAbility):
+            self.fail(f"expected ActivatedAbility, got {type(ab)}")
+        self.assertEqual(len(ab.cost.parts), 1)
+        cd = ab.cost.parts[0]
+        if not isinstance(cd, CostDiscard):
+            self.fail(f"expected CostDiscard, got {type(cd)}")
+        self.assertEqual(cd.target.zone.kind, ZoneKind.HAND)
+        self.assertEqual(cd.target.zone.controller, ControllerRef.YOU)
+        atom = ab.effect
+        if not isinstance(atom, Atom):
+            self.fail(f"expected Atom effect, got {type(atom)}")
+        self.assertEqual(atom.verb, Verb.PREVENT_EFFECT)
+        p = _pairs_dict(atom)
+        cond = p["condition"]
+        assert isinstance(cond, FAtom)
+        self.assertEqual(cond.pred, FAtomPred.IS_SOURCE)
+        ev = p["event"]
+        if not isinstance(ev, DeclareBlockersEvent):
+            self.fail(f"expected DeclareBlockersEvent, got {type(ev)}")
+        self.assertEqual(ev.filter, FAnd(children=()))
+        self.assertIsNone(ev.subject)
+        blocked = ev.blocked
+        if not isinstance(blocked, FAtom):
+            self.fail(f"expected FAtom blocked, got {type(blocked)}")
+        self.assertEqual(blocked.pred, FAtomPred.IS_SOURCE)
+        self.assertIsInstance(p["duration"], DurationEot)
+
 
 # ---------------------------------------------------------------------------
 # Test: Canonical Stability (PC-4)
@@ -1482,7 +1679,7 @@ class TestCanonicalStability(unittest.TestCase):
                 f"canonical instability for {tid} ({sent[:40]})",
             )
             seen.add(tid)
-        self.assertEqual(len(seen), 45, f"only {len(seen)} unique tids tested")
+        self.assertEqual(len(seen), 51, f"only {len(seen)} unique tids tested")
 
 
 # ---------------------------------------------------------------------------
