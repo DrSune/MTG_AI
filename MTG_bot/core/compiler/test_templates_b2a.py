@@ -12,8 +12,9 @@ registry end-to-end with concrete oracle sentences and assert the exact IR each
 template produces.
 
 Pinned bucket facts (measured against /tmp/opencode/phase1_buckets/B2a.json):
-62 shapes, 66 occurrences, 57 covered shapes, 61 matched occurrences, and the
-57 templates in ``templates_b2a.TEMPLATES`` (with 5 declared UNCOVERED shapes).
+62 shapes, 66 occurrences, 59 covered shapes, 63 matched occurrences, and the
+59 templates in ``templates_b2a.TEMPLATES`` (with 3 declared UNCOVERED shapes;
+the grammar round-7 batch landed Kinetic Augur and Idol of Endurance).
 The bucket priority is 50 (NOT the 100 used by B1/B3/B4): this is documented in
 ``templates_b2a`` and pinned here.
 """
@@ -83,6 +84,14 @@ _B2A_PATH = Path("/tmp/opencode/phase1_buckets/B2a.json")
 # fullmatching each shape's first concrete sentence against the live registry and
 # asserting exactly one match; pin it so any template rename / re-shape is caught.
 EXPECTED: dict[str, tuple[str, str]] = {
+    "When this creature enters, discard up to two cards, then draw that many cards.": (
+        "B2a-draw-that-many",
+        "Kinetic Augur",
+    ),
+    "When this artifact enters, exile all creature cards with mana value N or less from your graveyard until this artifact leaves the battlefield.": (
+        "B2a-etb-exile-until-leaves",
+        "Idol of Endurance",
+    ),
     "At the beginning of combat on your turn, create a N/N white Soldier creature token, then put a +N/+N counter on each creature you control.": (
         "B2a-basri-ket-emblem",
         "Basri Ket Emblem",
@@ -528,8 +537,8 @@ class TestB2aCoverage(unittest.TestCase):
         self.assertEqual(total, 66)
 
     def test_public_api_counts(self) -> None:
-        self.assertEqual(len(templates_b2a.TEMPLATES), 57)
-        self.assertEqual(len(templates_b2a.UNCOVERED), 5)
+        self.assertEqual(len(templates_b2a.TEMPLATES), 59)
+        self.assertEqual(len(templates_b2a.UNCOVERED), 3)
 
     def test_bucket_labels_b2a(self) -> None:
         for template in templates_b2a.TEMPLATES:
@@ -556,8 +565,8 @@ class TestB2aCoverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 57)
-        self.assertEqual(matched_occurrences, 61)
+        self.assertEqual(covered_shapes, 59)
+        self.assertEqual(matched_occurrences, 63)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -579,7 +588,7 @@ class TestB2aCoverage(unittest.TestCase):
             if any(self.reg.match(sentence) for _card, sentence in entries):
                 covered.add(shape_key)
         self.assertEqual(set(EXPECTED), covered)
-        self.assertEqual(len(EXPECTED), 57)
+        self.assertEqual(len(EXPECTED), 59)
 
     def test_expected_table_matches_registry(self) -> None:
         for shape_key, (tid, name) in EXPECTED.items():
@@ -1901,6 +1910,52 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.DRAW)
         self.assertIs(atom.args.get("controller"), ControllerRef.YOU)
         self.assertEqual(_qconst(atom, "amount").value, 1)
+
+
+class TestB2aRound7Batch(unittest.TestCase):
+    """Grammar round-7 R7-A rows landing in B2a (doc 2026-09-28/03 §3)."""
+
+    def setUp(self) -> None:
+        self.reg = _registry()
+
+    def test_kinetic_augur_choose_and_that_many(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "When this creature enters, discard up to two cards, then "
+                "draw that many cards.",
+            )
+        )
+        seq = _seq(ability)
+        discard = _atom_step(seq, 0)
+        self.assertIs(discard.verb, Verb.DISCARD)
+        cards = _selector(discard, "cards")
+        # C15: "up to two" stays CHOOSE + QConst(2) — never TARGET.
+        self.assertIs(cards.mode, SelectorMode.CHOOSE)
+        self.assertEqual(cards.count, QConst(2))
+        draw = _atom_step(seq, 1)
+        self.assertIs(draw.verb, Verb.DRAW)
+        amount = dict(draw.args.pairs).get("amount")
+        assert isinstance(amount, QProp)
+        self.assertIs(amount.field, QPropField.THAT_MANY_COUNT)
+        self.assertEqual(amount.referent, "event")
+
+    def test_idol_of_endurance_graveyard_exile(self) -> None:
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "When this artifact enters, exile all creature cards with "
+                "mana value 3 or less from your graveyard until this "
+                "artifact leaves the battlefield.",
+            )
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.EXILE)
+        target = _selector(atom, "target")
+        self.assertIs(target.mode, SelectorMode.ALL)
+        self.assertIsInstance(target.count, QUnbounded)
+        self.assertIs(target.zone.kind, ZoneKind.GRAVEYARD)
+        self.assertIs(target.zone.controller, ControllerRef.YOU)
 
 
 if __name__ == "__main__":

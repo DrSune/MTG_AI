@@ -1864,6 +1864,83 @@ def _build_barrin_end_step(m: re.Match[str]) -> SentenceOutcome:
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# Grammar round-7 batch builders (doc 2026-09-28/03 §3 R7-A)
+# ---------------------------------------------------------------------------
+
+
+def _build_kinetic_augur_etb(m: re.Match[str]) -> SentenceOutcome:
+    """``When this creature enters, discard up to two cards, then draw
+    that many cards.`` (Kinetic Augur) — C15: "up to two" stays
+    CHOOSE + QConst(2) (the 0/1/2 sub-choice is open, never TARGET-
+    pinned); the anaphor "that many" is the R7-5 ``THAT_MANY_COUNT``
+    quantity reading the discarded count off the effect register."""
+    discard = Atom(
+        verb=Verb.DISCARD,
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                (
+                    "cards",
+                    Selector(
+                        QConst(2),
+                        SelectorMode.CHOOSE,
+                        FAnd(children=()),
+                        Zone(ZoneKind.HAND, ControllerRef.YOU),
+                    ),
+                ),
+            )
+        ),
+    )
+    draw = Atom(
+        verb=Verb.DRAW,
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                ("amount", QProp(referent="event", field=QPropField.THAT_MANY_COUNT)),
+            )
+        ),
+    )
+    return _ability(_etb_event(), Seq(steps=(discard, draw)))
+
+
+def _build_idol_of_endurance_etb(m: re.Match[str]) -> SentenceOutcome:
+    """``When this artifact enters, exile all creature cards with mana
+    value N or less from your graveyard until this artifact leaves the
+    battlefield.`` (Idol of Endurance) — ALL+QUnbounded exile of the
+    filtered graveyard.
+    LOSSY (C11 verbatim): "until this artifact leaves the battlefield" —
+    ``_VERB_ROLES[EXILE]`` has no duration role (the round-7 grammar
+    added ``DurationUntilLeaves`` but wired the role only to
+    GAIN_CONTROL), so the temporary window is dropped; R8 grammar item.
+    The card SET choice (filter + ALL) is fully expressed."""
+    atom = Atom(
+        verb=Verb.EXILE,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QUnbounded(),
+                        SelectorMode.ALL,
+                        FAnd(
+                            children=(
+                                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                                FAtom(
+                                    pred=FAtomPred.CMC_LE,
+                                    count=QConst(_n(m, 1)),
+                                ),
+                            )
+                        ),
+                        Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                    ),
+                ),
+            )
+        ),
+    )
+    return _ability(_etb_event(), atom)
+
+
 TEMPLATES: Final[tuple[Template, ...]] = (
     _template(
         "B2a-basri-ket-emblem",
@@ -2362,46 +2439,40 @@ TEMPLATES: Final[tuple[Template, ...]] = (
             "draw a card."
         ),
         _build_barrin_end_step,
+    ),  # --- grammar round-7 batch (doc 2026-09-28/03 §3 R7-A) ---
+    _template(
+        "B2a-draw-that-many",
+        "Kinetic Augur",
+        _exact(
+            "When this creature enters, "
+            "discard up to two cards, then draw that many cards."
+        ),
+        _build_kinetic_augur_etb,
+    ),
+    _template(
+        "B2a-etb-exile-until-leaves",
+        "Idol of Endurance",
+        re.compile(
+            r"^When this artifact enters, exile all creature cards with "
+            r"mana value (\d+) or less from your graveyard until this "
+            r"artifact leaves the battlefield\.$"
+        ),
+        _build_idol_of_endurance_etb,
     ),
 )
 
 
 UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
     (
-        (
-            "When this artifact enters, "
-            "exile all creature cards with mana value N or less "
-            "from your graveyard until this artifact leaves the battlefield."
-        ),
-        "No duration-until-source-leaves construct.",
-    ),
-    (
         "When this creature enters, choose one —",
         "handled by the compiler's choose-opener built-in (ETB variant)",
     ),
     (
-        (
-            "When this creature enters, "
-            "discard up to two cards, then draw that many cards."
-        ),
-        "Anaphoric 'that many' quantity is not expressible.",
-    ),
-    (
-        (
-            "When this creature enters, "
-            "each opponent creates a N/N red Pirate creature token "
-            'with "This token can\'t block" '
-            'and "Creatures you control attack each combat if able."'
-        ),
+        'When this creature enters, each opponent creates a N/N red Pirate creature token with "This token can\'t block" and "Creatures you control attack each combat if able."',
         "Per-opponent token creation with nested token abilities.",
     ),
     (
-        (
-            "When this creature enters, "
-            "if you control two or more nonland, nontoken permanents "
-            "with the same name as one another, "
-            "create a N/N colorless Construct artifact creature token."
-        ),
+        "When this creature enters, if you control two or more nonland, nontoken permanents with the same name as one another, create a N/N colorless Construct artifact creature token.",
         "No pairwise name-equality predicate.",
     ),
 )

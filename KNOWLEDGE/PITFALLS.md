@@ -37,6 +37,38 @@
   hard-code QConst per the Gnarled-Sage house precedent (round-6: Tome Anima 2,
   Thieves' Guild Enforcer 8, Gadrak 4). `+N/+N` and `{N}` ARE digit-captured
   and can be regex-grouped. (Round-6 batch results §"Pitfall confirmed again".)
+- **[unittest — a helper named `_outcome` on a TestCase subclass is shadowed.]**
+  `unittest.TestCase` defines `_outcome` (the `_Outcome` context manager factory);
+  defining `_outcome(self, sentence)` in a test class turns every call into
+  `TypeError: '_Outcome' object is not callable` at run time, not import time.
+  Use `_match_one` / `_match_outcome`. (Discovered landing the R7-A b5a/b5b tests.)
+- **[test files — Pyright needs bare `assert isinstance(...)`, not
+  `self.assertIsInstance(...)`.]** Narrowing a union-typed IR node before touching
+  `.pred`/`.field`/`.referent`/`.inner`/`.then_effect`: `self.assertIsInstance` does
+  not narrow, so 116 `reportAttributeAccessIssue`s appeared in the three round-7
+  test files; converting the guards to bare `assert isinstance(...)` took them to 0
+  with zero behavior change. Same trick fixed b5b's `Conditional` checks.
+- **[b2a test — the EXPECTED table's second column must equal `Template.name`
+  verbatim.]** `test_expected_table_matches_registry` compares the card-name column
+  to the template's `name`, so the descriptive tid-label ("Kinetic Augur ETB
+  (discard up to two…)") fails the assertion; keep the template name equal to the
+  bucket card name. (Hit when landing Kinetic Augur/Idol of Endurance.)
+- **[ability_tree/_VERB_ROLES — `DurationUntilLeaves` exists but only GAIN_CONTROL
+  wires a duration role.]** EXILE/MOVE_ZONE have NO `duration` role, so R7-A's
+  "Exile that card until this creature leaves the battlefield." (Kitesail) and
+  "…until this artifact leaves the battlefield." (Idol of Endurance) landed lossily
+  without the leaves-play window; both builder docstrings carry the verbatim C11
+  note. Wiring EXILE/MOVE_ZONE durations is an R8 grammar item.
+- **[grammar — FIGHT is an effect verb with ONE role (`target` = the defender);
+  there is no attacker role.]** The attacker is whatever the rule reminder implies
+  (source for Brash Taunter, the result-register object for Primal Might's
+  "Then it fights …"). Do not invent an attacker slot; document the binding.
+- **[b5a test — a shape landing flips three independent pins at once.]** Covering
+  five B5a sentences moved TEMPLATES 51→56, SHAPES COVERED 55→60, UNCOVERED 12→7,
+  unique-tid counts 51→56 (twice: table + canonical-stability) AND rewrote the
+  Finishing Blow end-to-end expectations (its 2nd sentence became covered → Seq of
+  2 steps, 0 unparsed). Budget for five coordinated edits per landing batch.
+
 
 ## 2026-09-27
 - **[tools/measure_grammar.py — exit code is ALWAYS 0.]** The docstring promises

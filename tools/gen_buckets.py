@@ -106,19 +106,26 @@ def main() -> None:
     # Pinned counts are re-measured every time the template modules change
     # (these drift as templates land; see KNOWLEDGE entries for each bump).
     assert len(b1_keys) == 15, f"B1 pattern keys={len(b1_keys)}"
-    assert len(b2a_keys) == 57, (
+    assert len(b2a_keys) == 59, (
         f"B2a pattern keys={len(b2a_keys)}"
     )  # 2026-09-26: was 54 (2026-09-24); round-4 batch (6a267cd) added 3 b2a
     # patterns: keys 54->57 while its UNCOVERED prune 8->5 kept the bucket at 62.
-    assert len(b3_keys) == 45, (
+    # 2026-09-28 r7-batch: Kinetic Augur "that many" draw + Idol of Endurance
+    # graveyard exile landed: keys 57->59, UNCOVERED prune 5->3, bucket 62.
+    assert len(b3_keys) == 46, (
         f"B3 pattern keys={len(b3_keys)}"
     )  # 2026-09-28 r6-batch: was 44 (2026-09-24); Subira's blocked-side
     # activation (R6-4) added 1 b3 pattern: keys 44->45 while its UNCOVERED
     # prune 4->3 kept the bucket at 48.
-    assert len(b4_keys) == 34, (
+    # 2026-09-28 r7-batch: Brash Taunter FIGHT landed (R7-8 verb): keys
+    # 45->46, UNCOVERED prune 3->2, bucket 48.
+    assert len(b4_keys) == 38, (
         f"B4 pattern keys={len(b4_keys)}"
     )  # 2026-09-28 r6-batch: was 30 (2026-09-26); round-6 batch added 4 b4
     # patterns: keys 30->34 while its UNCOVERED prune 17->13 kept the bucket at 47.
+    # 2026-09-28 r7-batch: CHOOSE pool + protection-chosen-name + per-tapped
+    # this-way + reveal-one-from-among landed: keys 34->38, UNCOVERED prune
+    # 13->9, bucket 47.
     assert b2a_keys & b2a_unc == set(), "B2a pattern/uncovered overlap"
     assert b3_keys & b3_unc == set(), "B3 pattern/uncovered overlap"
     assert b4_keys & b4_unc == set(), "B4 pattern/uncovered overlap"

@@ -129,8 +129,8 @@ class TestB3Coverage(unittest.TestCase):
         self.assertEqual(total, 55)
 
     def test_public_api_counts(self) -> None:
-        self.assertEqual(len(templates_b3.TEMPLATES), 27)
-        self.assertEqual(len(templates_b3.UNCOVERED), 3)
+        self.assertEqual(len(templates_b3.TEMPLATES), 28)
+        self.assertEqual(len(templates_b3.UNCOVERED), 2)
 
     def test_covered_shape_and_occurrence_counts(self) -> None:
         covered_shapes = 0
@@ -143,8 +143,8 @@ class TestB3Coverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 45)
-        self.assertEqual(matched_occurrences, 52)
+        self.assertEqual(covered_shapes, 46)
+        self.assertEqual(matched_occurrences, 53)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()

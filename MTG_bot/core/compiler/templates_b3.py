@@ -50,7 +50,11 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
 )
-from MTG_bot.core.compiler.templates import AbilityOutcome, Template
+from MTG_bot.core.compiler.templates import (
+    AbilityOutcome,
+    SentenceOutcome,
+    Template,
+)
 
 # ---------------------------------------------------------------------------
 # Cost regex constants
@@ -792,6 +796,45 @@ def _build_target_cant_be_blocked(m: re.Match[str]) -> AbilityOutcome:
 # Template definitions
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Grammar round-7 batch builder (doc 2026-09-28/03 §3 R7-A)
+# ---------------------------------------------------------------------------
+
+
+def _build_fight_another(m: re.Match[str]) -> SentenceOutcome:
+    """``{COST}: This creature fights another target creature.`` (Brash
+    Taunter) — Verb.FIGHT as an effect verb (R7-9a; previously the verb
+    existed only as a Keyword).  FIGHT's single ``target`` role is the
+    *opponent* of the fight: the source creature is the implicit attacker
+    (no role for it), so "another" rides the IS_ANY_TARGET convention the
+    Selfless Savior precedent established for self-exclusion — the paired
+    damage rule ("each deals damage equal to its power to the other") is
+    FIGHT's rule reminder, never a sentence."""
+    cost = _parse_cost(m)
+    effect = Atom(
+        verb=Verb.FIGHT,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.TARGET,
+                        FAnd(
+                            children=(
+                                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                                FAtom(pred=FAtomPred.IS_ANY_TARGET),
+                            )
+                        ),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                    ),
+                ),
+            )
+        ),
+    )
+    return _build_activated(cost, effect)
+
+
 TEMPLATES: tuple[Template, ...] = (
     Template(
         tid="B3-grant-kw-self",
@@ -1066,8 +1109,18 @@ TEMPLATES: tuple[Template, ...] = (
         priority=100,
         build=_build_target_cant_be_blocked,
     ),
+    # --- grammar round-7 batch (doc 2026-09-28/03 §3 R7-A) ---
+    Template(
+        tid="B3-fights-target",
+        name="this creature fights another target creature",
+        bucket="B3",
+        pattern=re.compile(
+            rf"^{_COST}\s*:\s*This creature fights another target creature\.$"
+        ),
+        priority=100,
+        build=_build_fight_another,
+    ),
 )
-
 
 # ---------------------------------------------------------------------------
 # UNCOVERED — shapes that cannot be expressed in the current grammar
@@ -1076,27 +1129,10 @@ TEMPLATES: tuple[Template, ...] = (
 UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         "{N}, {T}: Draw a card for each color among permanents you control.",
-        (
-            "No quantity expression for distinct color count among permanents "
-            "you control; QCount counts objects, not distinct color "
-            "identities, and QProp has no distinct-color field."
-        ),
-    ),
-    (
-        "{N}{R}, {T}: This creature fights another target creature.",
-        (
-            "No FIGHT verb; FIGHT exists only as a Keyword, not as an "
-            "activatable effect verb."
-        ),
+        "No quantity expression for distinct color count among permanents you control; QCount counts objects, not distinct color identities, and QProp has no distinct-color field.",
     ),
     (
         "{N}{W}, {T}: Until end of turn, you may cast a creature spell from among cards exiled with this artifact without paying its mana cost.",
-        (
-            "CAST exists and an empty cost expresses the waiver, but there "
-            "is no exiled-with-source grouping predicate to bound the "
-            "source selector to the artifact's exiled cards, and no "
-            "duration role on CAST/optional-cast to express the "
-            "until-end-of-turn permission."
-        ),
+        "CAST exists and an empty cost expresses the waiver, but there is no exiled-with-source grouping predicate to bound the source selector to the artifact's exiled cards, and no duration role on CAST/optional-cast to express the until-end-of-turn permission.",
     ),
 )

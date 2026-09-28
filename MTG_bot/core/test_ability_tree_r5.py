@@ -321,7 +321,15 @@ def test_r5_enum_and_table_members() -> None:
         frozenset({"from_zone", "to_zone", "who"}),
     )
     assert at._ROLE_TYPES["controller"] == (at.ControllerRef, at.Selector)
-    assert at._QPROP_STR_REFERENTS == ("source", "controller", "target", "event")
+    # "result" appended by grammar round 7, R7-1 (anaphora to the object(s)
+    # the previous sentence acted on); the pre-round-7 four are order-pinned.
+    assert at._QPROP_STR_REFERENTS == (
+        "source",
+        "controller",
+        "target",
+        "event",
+        "result",
+    )
 
 
 def test_loyalty_activated_event_union_membership() -> None:

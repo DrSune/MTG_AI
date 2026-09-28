@@ -46,6 +46,7 @@ from MTG_bot.core.ability_tree import (
     PtDelta,
     PtDirection,
     QAgg,
+    QBin,
     QConst,
     QCount,
     QProp,
@@ -307,6 +308,22 @@ EXPECTED_KIND: dict[str, tuple[str, str]] = {
         "B4-mandate-attack-you",
         "ability",
     ),
+    "You choose a noncreature, nonland card from it.": (
+        "B4-you-choose-from-it",
+        "effect",
+    ),
+    "You have protection from the chosen card name.": (
+        "B4-protection-chosen-name",
+        "ability",
+    ),
+    "This creature gets +1/+1 until end of turn for each creature tapped this way.": (
+        "B4-per-tapped-this-way",
+        "effect",
+    ),
+    "You may reveal a creature card or Garruk planeswalker card from among them and put it into your hand.": (
+        "B4-reveal-one-from-among",
+        "effect",
+    ),
     "Creatures you control gain trample until end of turn.": (
         "B4-grant-trample-eot-you",
         "effect",
@@ -414,11 +431,11 @@ class TestB4Inventory(unittest.TestCase):
     def setUp(self) -> None:
         self.data = _load_b4()
 
-    def test_34_templates(self) -> None:
-        self.assertEqual(len(templates_b4.TEMPLATES), 34)
+    def test_38_templates(self) -> None:
+        self.assertEqual(len(templates_b4.TEMPLATES), 38)
 
-    def test_13_uncovered(self) -> None:
-        self.assertEqual(len(templates_b4.UNCOVERED), 13)
+    def test_9_uncovered(self) -> None:
+        self.assertEqual(len(templates_b4.UNCOVERED), 9)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in templates_b4.TEMPLATES]
@@ -434,7 +451,7 @@ class TestB4Inventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _registry()
-        self.assertEqual(len(reg), 34)
+        self.assertEqual(len(reg), 38)
 
     def test_every_template_matches_some_bucket_sentence(self) -> None:
         sentences = [
@@ -471,8 +488,8 @@ class TestB4Coverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 34)
-        self.assertEqual(matched_occurrences, 49)
+        self.assertEqual(covered_shapes, 38)
+        self.assertEqual(matched_occurrences, 54)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -489,7 +506,7 @@ class TestB4Coverage(unittest.TestCase):
                 self.assertEqual(self.reg.match(sentence), (), sentence)
 
     def test_expected_kind_table_is_consistent_with_bucket(self) -> None:
-        self.assertEqual(len(EXPECTED_KIND), 35)
+        self.assertEqual(len(EXPECTED_KIND), 39)
         for sentence in EXPECTED_KIND:
             for entries in self.data.values():
                 if sentence in [s for _card, s in entries]:
@@ -1240,6 +1257,86 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertEqual(target.filter, FAnd(children=()))
         self.assertIs(_pairs(atom).get("counter_kind"), CounterKind.PLUS_1_PLUS_1)
         self.assertIsInstance(_pairs(atom).get("count"), QX)
+
+
+class TestB4Round7AnaphoraIr(unittest.TestCase):
+    """Round-7 batch decision-surface assertions (doc 2026-09-28/03 §3)."""
+
+    def setUp(self) -> None:
+        self.reg = _registry()
+
+    def test_you_choose_from_it(self) -> None:
+        outcome = _as_effect(
+            _single_match(
+                self.reg, "You choose a noncreature, nonland card from it."
+            ).outcome
+        )
+        atom = _as_atom(outcome.effect)
+        self.assertIs(atom.verb, Verb.CHOOSE)
+        pool = _selector(atom, "target")
+        self.assertIs(pool.mode, SelectorMode.ALL)
+        self.assertIsInstance(pool.count, QUnbounded)
+        self.assertIs(pool.zone.kind, ZoneKind.HAND)
+        self.assertIs(pool.zone.controller, ControllerRef.TARGET_PLAYER)
+        self.assertEqual(_pairs(atom).get("count"), QConst(1))
+        assert isinstance(pool.filter, FAnd)
+        negs = [child for child in pool.filter.children if isinstance(child, FNot)]
+        self.assertEqual(len(negs), 2)
+
+    def test_protection_chosen_name(self) -> None:
+        outcome = _as_ability(
+            _single_match(
+                self.reg, "You have protection from the chosen card name."
+            ).outcome
+        )
+        static = _as_static(outcome.ability)
+        atom = _as_atom(static.effect)
+        self.assertIs(atom.verb, Verb.GRANT_ABILITY)
+        ka = _keyword_ability(atom, "ability")
+        self.assertIs(ka.keyword, Keyword.PROTECTION)
+        (param,) = ka.params
+        assert isinstance(param, FAtom)
+        self.assertIs(param.pred, FAtomPred.NAME_CHOSEN)
+        target = _selector(atom, "target")
+        self.assertIs(target.zone.kind, ZoneKind.PLAYER)
+
+    def test_per_tapped_this_way(self) -> None:
+        outcome = _as_effect(
+            _single_match(
+                self.reg,
+                "This creature gets +1/+1 until end of turn for each "
+                "creature tapped this way.",
+            ).outcome
+        )
+        atom = _as_atom(outcome.effect)
+        power = _pt_delta(atom, "power")
+        assert isinstance(power.magnitude, QBin)
+        prop = power.magnitude.right
+        assert isinstance(prop, QProp)
+        self.assertIs(prop.field, QPropField.THIS_WAY_COUNT)
+        self.assertEqual(prop.referent, "event")
+        self.assertIsInstance(atom.args.get("duration"), DurationEot)
+
+    def test_reveal_one_from_among(self) -> None:
+        outcome = _as_effect(
+            _single_match(
+                self.reg,
+                "You may reveal a creature card or Garruk planeswalker card "
+                "from among them and put it into your hand.",
+            ).outcome
+        )
+        opt = outcome.effect
+        assert isinstance(opt, OptionalEffect)
+        seq = _as_seq(opt.inner)
+        reveal = _as_atom(seq.steps[0])
+        self.assertIs(reveal.verb, Verb.REVEAL)
+        move = _as_atom(seq.steps[1])
+        self.assertIs(move.verb, Verb.MOVE_ZONE)
+        cards = _selector(move, "cards")
+        self.assertIs(cards.mode, SelectorMode.ONE_OF)
+        self.assertIsInstance(cards.count, QConst)
+        self.assertIs(cards.zone.kind, ZoneKind.LIBRARY)
+        self.assertIs(cards.zone.position, ZonePosition.TOP)
 
 
 if __name__ == "__main__":

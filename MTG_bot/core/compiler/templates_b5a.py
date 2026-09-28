@@ -1,13 +1,13 @@
-"""B5a bucket templates — 51 templates covering 55 of 90 B5a shapes.
+"""B5a bucket templates — 56 templates covering 60 of 90 B5a shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B5a.json`` (90 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (90 = 55 template + 23 rule-reminder + 12 uncovered):
+Coverage (90 = 60 template + 23 rule-reminder + 7 uncovered):
 
-- **55 template-covered shapes** (51 templates; the basic-land
+- **60 template-covered shapes** (56 templates; the basic-land
   ``({T}: Add {C}.)`` family is one template for five shapes):
   basic-land tap abilities, ADD_MANA, static P/T grants, counter-spell,
   token creation, keyword rule-reminder sentences (Deathtouch/Defender/
@@ -27,7 +27,7 @@ Coverage (90 = 55 template + 23 rule-reminder + 12 uncovered):
 - **23 rule-reminder shapes** — fully parenthesised sentences consumed by
   the compiler's ``_is_rule_reminder`` before template matching (no
   template needed; verified in tests).
-- **12 uncovered shapes** — no expressible/attachable grammar construct
+- **7 uncovered shapes** — no expressible/attachable grammar construct
   exists (sorcery-mode activation gates, library-top ability grant,
   as-though defender override, name-choice, modal headers,
   payment-failure condition, per-counter P/T, until-leaves exile).
@@ -108,6 +108,7 @@ from MTG_bot.core.ability_tree import (
     TriggeredAbility,
     Verb,
     Zone,
+    ZoneChangeEvent,
     ZoneKind,
 )
 from MTG_bot.core.compiler.templates import (
@@ -1075,6 +1076,153 @@ def _build_discard_cant_be_blocked(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
+# Grammar round-7 batch builders (doc 2026-09-28/03 §3 R7-A)
+# ---------------------------------------------------------------------------
+
+
+def _result_selector() -> Selector:
+    """C2 canonical result-referent selector (grammar round 7, R7-1):
+    the object the previous sentence acted on — here the card Kitesail
+    Freebooter's ``You choose … from it`` sentence picked."""
+    return Selector(
+        QConst(1),
+        SelectorMode.CHOOSE,
+        FAnd(children=()),
+        Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+        referent="result",
+    )
+
+
+def _equipped_creature() -> Selector:
+    """``Equipped creature`` = the permanent attached to the source —
+    same structured attachment predicate as ``enchanted creature``
+    (IS_ATTACHED_TO_SOURCE is attachment-generic; the aura name is
+    historical)."""
+    return _enchanted_creature()
+
+
+def _build_exile_that_until_leaves(m: re.Match[str]) -> SentenceOutcome:
+    """``Exile that card until this creature leaves the battlefield.``
+    (Kitesail Freebooter s3) — EXILE of the result-referent card.
+    LOSSY (C11 verbatim): "until this creature leaves the battlefield"
+    — ``_VERB_ROLES[EXILE]`` has no duration role (grammar phase added
+    ``DurationUntilLeaves`` but only wired it to GAIN_CONTROL, per the
+    round-7 spec's R7-2 role row), so the temporary window is dropped;
+    the exiled card would never return. Flagged as an R8 grammar item
+    (EXILE duration role); the card CHOICE (result referent) is
+    preserved."""
+    atom = Atom(
+        verb=Verb.EXILE,
+        args=AtomArgs(pairs=(("target", _result_selector()),)),
+    )
+    return EffectOutcome(effect=atom)
+
+
+def _build_etb_choose_name(m: re.Match[str]) -> SentenceOutcome:
+    """``As this enchantment enters, choose a card name.`` (Runed Halo s1)
+    — Verb.CHOOSE_NAME (R7-4) on an enters trigger; the pick is read back
+    by ``FAtomPred.NAME_CHOSEN`` in the protection static (B4).  C16: the
+    choice itself is the open decision (any card name)."""
+    return AbilityOutcome(
+        ability=TriggeredAbility(
+            event=ZoneChangeEvent(
+                from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
+                to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+            ),
+            condition=None,
+            effect=Atom(verb=Verb.CHOOSE_NAME, args=AtomArgs(pairs=())),
+        )
+    )
+
+
+def _build_choose_name_not_basic(m: re.Match[str]) -> SentenceOutcome:
+    """``Choose a card name other than a basic land card name.``
+    (Necromentia s1) — CHOOSE_NAME with the exclusion as a name_filter
+    (R7-4 role): a name is illegal exactly when it is a BASIC LAND
+    card's name (SUPERTYPE Basic AND TYPE Land — closer to the printed
+    exclusion than the r8 round-trip canonical's bare-SUPERTYPE form).
+    C16: the name choice stays open (all non-basic-land names)."""
+    name_filter = FNot(
+        inner=FAnd(
+            children=(
+                FAtom(pred=FAtomPred.SUPERTYPE_EQ, string_value="Basic"),
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land"),
+            )
+        )
+    )
+    atom = Atom(
+        verb=Verb.CHOOSE_NAME,
+        args=AtomArgs(pairs=(("name_filter", name_filter),)),
+    )
+    return EffectOutcome(effect=atom)
+
+
+def _build_equipped_pt_per_soul_counter(m: re.Match[str]) -> SentenceOutcome:
+    """``Equipped creature gets +P/+T for each soul counter on this
+    Equipment.`` (Malefic Scythe s2) — static MODIFY_PT whose delta
+    scales with ``QProp(COUNTER_COUNT, referent="source")`` (R7-9b
+    validation relaxation).
+    LOSSY (C11 verbatim): ``QProp`` has no counter-kind slot, so the
+    "soul" kind is dropped — faithful in context because Malefic Scythe
+    only ever carries soul counters."""
+    p, t = int(m.group("p")), int(m.group("t"))
+    count = QProp(referent="source", field=QPropField.COUNTER_COUNT)
+    atom = Atom(
+        verb=Verb.MODIFY_PT,
+        args=AtomArgs(
+            pairs=(
+                ("target", _equipped_creature()),
+                (
+                    "power",
+                    PtDelta(PtDirection.INCREASE, QBin(QBinOp.MUL, QConst(p), count)),
+                ),
+                (
+                    "toughness",
+                    PtDelta(PtDirection.INCREASE, QBin(QBinOp.MUL, QConst(t), count)),
+                ),
+            )
+        ),
+    )
+    return AbilityOutcome(ability=StaticAbility(effect=atom))
+
+
+def _build_destroy_attached_equipment(m: re.Match[str]) -> SentenceOutcome:
+    """``Destroy all Equipment attached to that creature.`` (Turn to Slag
+    s2) — FAtomPred.IS_ATTACHED_TO (R7-1) with the R4 target referent:
+    "that creature" is the spell's damaged target, so the filter binds
+    the s0 TARGET selector today (deviation from the spec sketch,
+    deliberate like B5b-loses-kw-eot)."""
+    atom = Atom(
+        verb=Verb.DESTROY,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QUnbounded(),
+                        SelectorMode.ALL,
+                        FAnd(
+                            children=(
+                                FAtom(
+                                    pred=FAtomPred.SUBTYPE_EQ,
+                                    string_value="Equipment",
+                                ),
+                                FAtom(
+                                    pred=FAtomPred.IS_ATTACHED_TO,
+                                    referent="target",
+                                ),
+                            )
+                        ),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                    ),
+                ),
+            )
+        ),
+    )
+    return EffectOutcome(effect=atom)
+
+
+# ---------------------------------------------------------------------------
 # TEMPLATES
 # ---------------------------------------------------------------------------
 
@@ -1686,10 +1834,55 @@ TEMPLATES: tuple[Template, ...] = (
         ),
         priority=_PRIORITY,
         build=_build_discard_cant_be_blocked,
+    ),  # --- grammar round-7 batch (doc 2026-09-28/03 §3 R7-A) ---
+    Template(
+        tid="B5a-exile-that-until-leaves",
+        name="exile that card (result referent; until-leaves window lossy)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Exile that card until this creature leaves the battlefield\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_exile_that_until_leaves,
+    ),
+    Template(
+        tid="B5a-etb-choose-name",
+        name="as this enchantment enters, choose a card name",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^As this enchantment enters, choose a card name\.$"),
+        priority=_PRIORITY,
+        build=_build_etb_choose_name,
+    ),
+    Template(
+        tid="B5a-choose-name-not-basic",
+        name="choose a card name other than a basic land card name",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^Choose a card name other than a basic land card name\.$"),
+        priority=_PRIORITY,
+        build=_build_choose_name_not_basic,
+    ),
+    Template(
+        tid="B5a-equipped-per-soul-counter",
+        name="equipped creature gets +P/+T per soul counter on this Equipment",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Equipped creature gets \+(?P<p>\d+)/\+(?P<t>\d+) for each "
+            r"soul counter on this Equipment\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_equipped_pt_per_soul_counter,
+    ),
+    Template(
+        tid="B5a-destroy-equipped",
+        name="destroy all Equipment attached to that creature (IS_ATTACHED_TO)",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^Destroy all Equipment attached to that creature\.$"),
+        priority=_PRIORITY,
+        build=_build_destroy_attached_equipment,
     ),
 )
 
-# UNCOVERED — 12 normalized-key rows
+# UNCOVERED — 7 normalized-key rows
 #
 # Each row is (shape_key, reason).  shape_key is the B5a.json normalized
 # key (digits → "N").  Sorted alphabetically by shape_key.  The T4 test
@@ -1712,37 +1905,15 @@ UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
         'conditional static: StaticAbility has no condition slot (+ "as though" defence override unrepresentable)',
     ),
     (
-        "As this enchantment enters, choose a card name.",
-        "ETB choice effect not in grammar",
-    ),
-    (
-        "Choose a card name other than a basic land card name.",
-        "choice effect with exclusion not in grammar",
-    ),
-    (
         "Choose one or more —",
-        "handled by the compiler's choose-opener built-in "
-        "(compiler._wrap_choose_openers), not a template",
+        "handled by the compiler's choose-opener built-in (compiler._wrap_choose_openers), not a template",
     ),
     (
         "Choose one —",
-        "handled by the compiler's choose-opener built-in "
-        "(compiler._wrap_choose_openers), not a template",
-    ),
-    (
-        "Destroy all Equipment attached to that creature.",
-        "multi-target destroy with zone relationship not in grammar",
+        "handled by the compiler's choose-opener built-in (compiler._wrap_choose_openers), not a template",
     ),
     (
         "Each opponent who can't loses N life.",
         '"who can\'t" payment-failure condition not in grammar',
-    ),
-    (
-        "Equipped creature gets +N/+N for each soul counter on this Equipment.",
-        "counter-scaled P/T on equipped creature not in grammar",
-    ),
-    (
-        "Exile that card until this creature leaves the battlefield.",
-        "duration-conditional exile (leaves battlefield) not in grammar",
     ),
 )

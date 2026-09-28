@@ -72,13 +72,17 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
+    Filter,
     FNot,
+    FOr,
     Keyword,
     KeywordAbility,
     OptionalEffect,
     PtDelta,
     PtDirection,
     QAgg,
+    QBin,
+    QBinOp,
     QConst,
     QCount,
     QProp,
@@ -927,6 +931,155 @@ def _build_enters_with_x_counters(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
+# Grammar round-7 batch builders (doc 2026-09-28/03 §3 R7-A)
+# ---------------------------------------------------------------------------
+
+
+def _you_player() -> Selector:
+    """Selector for the player ``you`` (b2b's player-zone precedent) —
+    the grant target of self-statics like Runed Halo's protection."""
+    return Selector(
+        QConst(1),
+        SelectorMode.CHOOSE,
+        FAnd(children=()),
+        Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.YOU),
+    )
+
+
+def _noncreature_nonland_pool() -> Selector:
+    """Duress / Kitesail Freebooter ``it`` — the whole revealed hand of
+    the target opponent is the CHOOSE pool (ALL + QUnbounded); the pick
+    itself is the verb's ``count`` role (r8 CHOOSE canonical)."""
+    return Selector(
+        QUnbounded(),
+        SelectorMode.ALL,
+        FAnd(
+            children=(
+                FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")),
+                FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land")),
+            )
+        ),
+        Zone(kind=ZoneKind.HAND, controller=ControllerRef.TARGET_PLAYER),
+    )
+
+
+def _build_you_choose_from_it(m: re.Match[str]) -> SentenceOutcome:
+    """``You choose a noncreature, nonland card from it.`` (Duress s2,
+    Kitesail Freebooter s2) — Verb.CHOOSE (R7-1) records the pick as the
+    ability's result register; the pool is the revealed hand ("from it"),
+    the pick size is QConst(1)."""
+    atom = Atom(
+        verb=Verb.CHOOSE,
+        args=AtomArgs(
+            pairs=(
+                ("target", _noncreature_nonland_pool()),
+                ("count", QConst(1)),
+            )
+        ),
+    )
+    return EffectOutcome(effect=atom)
+
+
+def _build_you_have_protection_chosen_name(m: re.Match[str]) -> SentenceOutcome:
+    """``You have protection from the chosen card name.`` (Runed Halo s2)
+    — static grant of KeywordAbility(PROTECTION) whose param is the
+    CHOOSE_NAME read-back FAtom(NAME_CHOSEN) (R7-4); the granted object
+    is the player zone for YOU (b2b precedent)."""
+    atom = Atom(
+        verb=Verb.GRANT_ABILITY,
+        args=AtomArgs(
+            pairs=(
+                ("target", _you_player()),
+                (
+                    "ability",
+                    KeywordAbility(
+                        keyword=Keyword.PROTECTION,
+                        params=(FAtom(pred=FAtomPred.NAME_CHOSEN),),
+                    ),
+                ),
+            )
+        ),
+    )
+    return AbilityOutcome(ability=StaticAbility(effect=atom))
+
+
+def _build_modpt_eot_per_tapped_this_way(m: re.Match[str]) -> SentenceOutcome:
+    """``This creature gets +1/+1 until end of turn for each creature
+    tapped this way.`` (Siege Striker s3) — the this-way counter (R7-5
+    THIS_WAY_COUNT) scales the delta via QBin(MUL); the tap-set comes
+    from the preceding optional tap-any-number ability (B2b, covered)."""
+    p, t = int(m.group("p")), int(m.group("t"))
+    scale = QBin(
+        op=QBinOp.MUL,
+        left=QConst(p),
+        right=QProp(referent="event", field=QPropField.THIS_WAY_COUNT),
+    )
+    atom = Atom(
+        verb=Verb.MODIFY_PT,
+        args=AtomArgs(
+            pairs=(
+                ("target", _self_selector()),
+                ("power", PtDelta(PtDirection.INCREASE, scale)),
+                (
+                    "toughness",
+                    PtDelta(
+                        PtDirection.INCREASE, QBin(QBinOp.MUL, QConst(t), _this_way())
+                    ),
+                ),
+                ("duration", DurationEot()),
+            )
+        ),
+    )
+    return EffectOutcome(effect=atom)
+
+
+def _this_way() -> QProp:
+    return QProp(referent="event", field=QPropField.THIS_WAY_COUNT)
+
+
+def _build_reveal_one_from_among(m: re.Match[str]) -> SentenceOutcome:
+    """``You may reveal a creature card or Garruk planeswalker card from
+    among them and put it into your hand.`` (Garruk's Harbinger s2) —
+    OptionalEffect ("may") over Seq(REVEAL 1, MOVE_ZONE ONE_OF): the
+    looked-at cards stay on top of the library, so the pool is the TOP
+    position and the pick is exactly ONE_OF (R7-7).  NAME_CONTAINS
+    "Garruk" covers the planeswalker leg."""
+    pick_filter: Filter = FOr(
+        children=(
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+            FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
+                    FAtom(pred=FAtomPred.NAME_CONTAINS, string_value="Garruk"),
+                )
+            ),
+        )
+    )
+    pool = Zone(
+        kind=ZoneKind.LIBRARY,
+        controller=ControllerRef.YOU,
+        position=ZonePosition.TOP,
+    )
+    reveal = Atom(
+        verb=Verb.REVEAL,
+        args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("count", QConst(1)))),
+    )
+    move = Atom(
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(QConst(1), SelectorMode.ONE_OF, pick_filter, pool),
+                ),
+                ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
+            )
+        ),
+    )
+    return EffectOutcome(effect=OptionalEffect(inner=Seq(steps=(reveal, move))))
+
+
+# ---------------------------------------------------------------------------
 # Template definitions
 # ---------------------------------------------------------------------------
 
@@ -1253,6 +1406,44 @@ TEMPLATES: tuple[Template, ...] = (
         pattern=re.compile(r"^This creature enters with X \+1/\+1 counters on it\.$"),
         priority=_PRIORITY,
         build=_build_enters_with_x_counters,
+    ),  # --- grammar round-7 batch (doc 2026-09-28/03 §3 R7-A) ---
+    Template(
+        tid="B4-you-choose-from-it",
+        name="you choose a noncreature nonland card from it (CHOOSE)",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^You choose a noncreature, nonland card from it\.$"),
+        priority=_PRIORITY,
+        build=_build_you_choose_from_it,
+    ),
+    Template(
+        tid="B4-protection-chosen-name",
+        name="you have protection from the chosen card name",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^You have protection from the chosen card name\.$"),
+        priority=_PRIORITY,
+        build=_build_you_have_protection_chosen_name,
+    ),
+    Template(
+        tid="B4-per-tapped-this-way",
+        name="this creature gets +P/+T EOT for each creature tapped this way",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^This creature gets \+(?P<p>\d+)/\+(?P<t>\d+) until end of turn "
+            r"for each creature tapped this way\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_modpt_eot_per_tapped_this_way,
+    ),
+    Template(
+        tid="B4-reveal-one-from-among",
+        name="you may reveal a creature or Garruk PW from among them to hand",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^You may reveal a creature card or Garruk planeswalker card "
+            r"from among them and put it into your hand\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_reveal_one_from_among,
     ),
 )
 
@@ -1262,26 +1453,8 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
         "No MODIFY_COST verb in grammar",
     ),
     (
-        "This creature gets +N/+N until end of turn for each creature tapped this way.",
-        (
-            "No per-event repeated static with turn-scoped trigger "
-            "(round-7 family: trigger-counted statics)"
-        ),
-    ),
-    (
         "You can't choose an untapped creature as this spell's target as you cast it.",
         "No targeting-restriction grammar construct (round-7 family: target legality)",
-    ),
-    (
-        "You choose a noncreature, nonland card from it.",
-        "No anaphora / name-choice grammar construct",
-    ),
-    (
-        "You have protection from the chosen card name.",
-        (
-            "No dynamic protection-from-name grammar construct "
-            "(round-7 family: chosen-name anaphora)"
-        ),
     ),
     (
         "You may activate loyalty abilities of Teferi on any player's turn any time you could cast an instant.",
@@ -1291,7 +1464,10 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
         "You may cast them this turn.",
         "No anaphora / cast-them-this-turn grammar construct",
     ),
-    ("You may choose new targets for the copy.", "No copy-targeting grammar construct"),
+    (
+        "You may choose new targets for the copy.",
+        "No copy-targeting grammar construct",
+    ),
     (
         "You may look at the top card of your library any time, and you may play lands from the top of your library.",
         "No complex multi-ability You may construct",
@@ -1303,10 +1479,6 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         "You may play two additional lands on each of your turns.",
         "No land-speed-modification grammar construct",
-    ),
-    (
-        "You may reveal a creature card or Garruk planeswalker card from among them and put it into your hand.",
-        "No complex tutor / reveal-and-put grammar",
     ),
     (
         "You may spend mana as though it were mana of any color.",

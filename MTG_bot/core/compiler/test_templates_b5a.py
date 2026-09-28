@@ -1,9 +1,9 @@
 """Tests for B5a bucket templates (templates_b5a.py).
 
 Covers all 90 shapes in ``/tmp/opencode/phase1_buckets/B5a.json``:
-- 55 template-covered (51 templates; B5a-land-add matches 5 basic-land shapes)
+- 60 template-covered (56 templates; B5a-land-add matches 5 basic-land shapes)
 - 23 rule-reminder pre-consumed by the compiler
-- 12 UNCOVERED (no expressible/attachable construct; recorded in UNCOVERED and pinned)
+- 7 UNCOVERED (no expressible/attachable construct; recorded in UNCOVERED and pinned)
 
 PC-3: every concrete sentence fullmatches at most one template.
 """
@@ -62,6 +62,7 @@ from MTG_bot.core.ability_tree import (
     TriggeredAbility,
     Verb,
     Zone,
+    ZoneChangeEvent,
     ZoneKind,
     canonical_json,
 )
@@ -264,7 +265,11 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "B5a-gnarled-sage",
     ),
     # shape 41
-    ("As this enchantment enters, choose a card name.", "UNCOV", ""),
+    (
+        "As this enchantment enters, choose a card name.",
+        "COVERED",
+        "B5a-etb-choose-name",
+    ),
     # shape 42
     ("Attacking creatures you control get +1/+0.", "COVERED", "B5a-attacking-pt"),
     # shape 43
@@ -274,7 +279,11 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "B5a-battalion",
     ),
     # shape 44
-    ("Choose a card name other than a basic land card name.", "UNCOV", ""),
+    (
+        "Choose a card name other than a basic land card name.",
+        "COVERED",
+        "B5a-choose-name-not-basic",
+    ),
     # shape 45
     ("Choose one or more —", "UNCOV", ""),
     # shape 46
@@ -314,7 +323,11 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 53
     ("Defender (This creature can't attack.)", "COVERED", "B5a-remind-defender"),
     # shape 54
-    ("Destroy all Equipment attached to that creature.", "UNCOV", ""),
+    (
+        "Destroy all Equipment attached to that creature.",
+        "COVERED",
+        "B5a-destroy-equipped",
+    ),
     # shape 55
     (
         "Destroy target creature or planeswalker with mana value 3 or less.",
@@ -452,8 +465,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 84
     (
         "Equipped creature gets +1/+1 for each soul counter on this Equipment.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5a-equipped-per-soul-counter",
     ),
     # shape 85
     ("Equipped creature gets +1/+1.", "COVERED", "B5a-equipped-pt"),
@@ -466,7 +479,11 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 89
     ("Exile target nonland permanent.", "COVERED", "B5a-exile-nonland"),
     # shape 90
-    ("Exile that card until this creature leaves the battlefield.", "UNCOV", ""),
+    (
+        "Exile that card until this creature leaves the battlefield.",
+        "COVERED",
+        "B5a-exile-that-until-leaves",
+    ),
 )
 
 
@@ -596,8 +613,8 @@ def _find_shape(sent: str) -> tuple[str, str, str]:
 class TestTemplateInventory(unittest.TestCase):
     """Verify the B5a template collection is well-formed."""
 
-    def test_51_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 51)
+    def test_56_templates(self) -> None:
+        self.assertEqual(len(TEMPLATES), 56)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -613,7 +630,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 51)
+        self.assertEqual(len(reg), 56)
 
 
 # ---------------------------------------------------------------------------
@@ -636,14 +653,14 @@ class TestShapeTable(unittest.TestCase):
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
         self.assertEqual(rr, 23, f"RR count {rr} != 23")
-        self.assertEqual(covered, 55, f"COVERED count {covered} != 55")
-        self.assertEqual(uncov, 12, f"UNCOV count {uncov} != 12")
+        self.assertEqual(covered, 60, f"COVERED count {covered} != 60")
+        self.assertEqual(uncov, 7, f"UNCOV count {uncov} != 7")
 
-    def test_covered_tids_valid_and_unique_51(self) -> None:
+    def test_covered_tids_valid_and_unique_56(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
-            len(unique_tids), 51, f"expected 51 unique tids, got {len(unique_tids)}"
+            len(unique_tids), 56, f"expected 56 unique tids, got {len(unique_tids)}"
         )
         # All tids start with B5a-
         for tid in unique_tids:
@@ -672,8 +689,8 @@ class TestShapeTable(unittest.TestCase):
 class TestUncovered(unittest.TestCase):
     """Verify the UNCOVERED attribute is well-formed and pinned to SHAPES."""
 
-    def test_12_rows(self) -> None:
-        self.assertEqual(len(UNCOVERED), 12)
+    def test_7_rows(self) -> None:
+        self.assertEqual(len(UNCOVERED), 7)
 
     def test_unique_sorted_keys(self) -> None:
         keys = [k for k, _ in UNCOVERED]
@@ -1651,6 +1668,93 @@ class TestStructuralAssertions(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 
+class TestRound7Structures(unittest.TestCase):
+    """Round-7 batch (R7-A) structural assertions; C15/C16 decision pins."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.reg = _make_registry()
+
+    def _match_one(self, sent: str) -> SentenceOutcome:
+        matches = self.reg.match(sent)
+        self.assertEqual(len(matches), 1, f"expected 1 match: {sent!r}")
+        return matches[0].outcome
+
+    def test_exile_that_until_leaves(self) -> None:
+        """EXILE on the result referent; the until-leaves window is the
+        documented lossy drop (no EXILE duration role)."""
+        outcome = self._match_one(
+            "Exile that card until this creature leaves the battlefield."
+        )
+        atom = _as_atom(_as_effect(outcome).effect)
+        self.assertIs(atom.verb, Verb.EXILE)
+        target = _pairs_dict(atom)["target"]
+        self.assertEqual(target.referent, "result")
+        self.assertIs(target.mode, SelectorMode.CHOOSE)
+        self.assertNotIn("duration", _pairs_dict(atom))
+
+    def test_etb_choose_name(self) -> None:
+        outcome = self._match_one("As this enchantment enters, choose a card name.")
+        ab = _as_ability(outcome).ability
+        assert isinstance(ab, TriggeredAbility)
+        assert isinstance(ab.event, ZoneChangeEvent)
+        self.assertIs(ab.event.to_zone.kind, ZoneKind.BATTLEFIELD)
+        atom = _as_atom(ab.effect)
+        self.assertIs(atom.verb, Verb.CHOOSE_NAME)
+        self.assertEqual(atom.args.pairs, ())
+
+    def test_choose_name_not_basic(self) -> None:
+        outcome = self._match_one(
+            "Choose a card name other than a basic land card name."
+        )
+        atom = _as_atom(_as_effect(outcome).effect)
+        self.assertIs(atom.verb, Verb.CHOOSE_NAME)
+        nf = _pairs_dict(atom)["name_filter"]
+        assert isinstance(nf, FNot)
+        inner = nf.inner
+        assert isinstance(inner, FAnd)
+        preds = set()
+        for child in inner.children:
+            assert isinstance(child, FAtom)
+            preds.add(child.pred)
+        self.assertEqual(preds, {FAtomPred.SUPERTYPE_EQ, FAtomPred.TYPE_EQ})
+
+    def test_equipped_per_soul_counter(self) -> None:
+        outcome = self._match_one(
+            "Equipped creature gets +1/+1 for each soul counter on this Equipment."
+        )
+        ab = _as_ability(outcome).ability
+        assert isinstance(ab, StaticAbility)
+        atom = _as_atom(ab.effect)
+        self.assertIs(atom.verb, Verb.MODIFY_PT)
+        p = _pairs_dict(atom)
+        power = p["power"]
+        assert isinstance(power, PtDelta)
+        assert isinstance(power.magnitude, QBin)
+        self.assertIs(power.magnitude.op, QBinOp.MUL)
+        prop = power.magnitude.right
+        assert isinstance(prop, QProp)
+        self.assertIs(prop.field, QPropField.COUNTER_COUNT)
+        self.assertEqual(prop.referent, "source")
+        target = p["target"]
+        _ = target
+
+    def test_destroy_attached_equipment(self) -> None:
+        outcome = self._match_one("Destroy all Equipment attached to that creature.")
+        atom = _as_atom(_as_effect(outcome).effect)
+        self.assertIs(atom.verb, Verb.DESTROY)
+        sel = _pairs_dict(atom)["target"]
+        self.assertIs(sel.mode, SelectorMode.ALL)
+        self.assertIsInstance(sel.count, QUnbounded)
+        attacher = [
+            child
+            for child in sel.filter.children
+            if isinstance(child, FAtom) and child.pred is FAtomPred.IS_ATTACHED_TO
+        ]
+        self.assertEqual(len(attacher), 1)
+        self.assertEqual(attacher[0].referent, "target")
+
+
 class TestCanonicalStability(unittest.TestCase):
     """Building each covered outcome twice yields identical canonical_json."""
 
@@ -1679,7 +1783,7 @@ class TestCanonicalStability(unittest.TestCase):
                 f"canonical instability for {tid} ({sent[:40]})",
             )
             seen.add(tid)
-        self.assertEqual(len(seen), 51, f"only {len(seen)} unique tids tested")
+        self.assertEqual(len(seen), 56, f"only {len(seen)} unique tids tested")
 
 
 # ---------------------------------------------------------------------------
@@ -1713,7 +1817,9 @@ class TestEndToEndCompile(unittest.TestCase):
         self.assertEqual(len(result.ambiguities), 0)
 
     def test_finishing_blow_instant(self) -> None:
-        """Finishing Blow: covered + uncovered → SpellAbility(INSTANT) + 1 unparsed."""
+        """Finishing Blow: both sentences covered since the round-7 batch
+        (B5a-destroy-equipped landed) → Seq(destroy, destroy-attached-
+        equipment) SpellAbility(INSTANT), nothing unparsed."""
         raw = _raw(
             "Finishing Blow",
             (
@@ -1726,14 +1832,16 @@ class TestEndToEndCompile(unittest.TestCase):
             mana_value=1,
         )
         result = compile_card(raw, self.reg)
-        # One spell ability from the covered sentence
         self.assertEqual(len(result.card.abilities), 1)
-        # One unparsed sentence (the uncovered one)
-        self.assertEqual(len(result.unparsed), 1)
-        self.assertEqual(
-            result.unparsed[0][0],
-            "Destroy all Equipment attached to that creature.",
-        )
+        self.assertEqual(len(result.unparsed), 0)
+        spell = result.card.abilities[0]
+        assert isinstance(spell, SpellAbility)
+        steps = spell.effect
+        assert isinstance(steps, Seq)
+        self.assertEqual(len(steps.steps), 2)
+        self.assertIsInstance(steps.steps[1], Atom)
+        assert isinstance(steps.steps[1], Atom)
+        self.assertIs(steps.steps[1].verb, Verb.DESTROY)
         self.assertEqual(len(result.rule_reminders), 0)
         self.assertEqual(len(result.ambiguities), 0)
 

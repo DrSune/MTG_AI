@@ -397,10 +397,10 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
             ),
         ),
         # R5-2: QPropField.COUNTER_COUNT event-referent coupling
-        (
-            "qprop_cc_source",
-            lambda: at.QProp(referent="source", field=at.QPropField.COUNTER_COUNT),
-        ),
+        # ("qprop_cc_source" removed by grammar round 7, R7-9b: the
+        # "source" referent is now LEGAL — Malefic Scythe's "for each soul
+        # counter on this Equipment"; r8 pins the relaxed behaviour. The
+        # non-source rejections below still hold.)
         (
             "qprop_cc_controller",
             lambda: at.QProp(referent="controller", field=at.QPropField.COUNTER_COUNT),

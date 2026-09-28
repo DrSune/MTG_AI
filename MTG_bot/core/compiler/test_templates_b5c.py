@@ -84,7 +84,11 @@ from MTG_bot.core.compiler.templates_b5c import TEMPLATES, UNCOVERED
 
 SHAPES: tuple[tuple[str, str, str], ...] = (
     ("Then if you control four or more lands, untap that land.", "UNCOV", ""),
-    ("Then it fights up to one target creature you don't control.", "UNCOV", ""),
+    (
+        "Then it fights up to one target creature you don't control.",
+        "COVERED",
+        "B5c-then-it-fights",
+    ),
     (
         "Then that creature deals damage equal to its power to target creature you don't control.",
         "UNCOV",
@@ -116,7 +120,7 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "B5c-remind-trample",
     ),
     ("Turn to Slag deals 5 damage to target creature.", "COVERED", "B5c-turn-to-slag"),
-    ("Untap that creature.", "UNCOV", ""),
+    ("Untap that creature.", "COVERED", "B5c-untap-that-creature"),
     ("Untap up to four lands.", "COVERED", "B5c-untap-lands"),
     (
         "Until end of turn, target creature gets +0/+2 and another target creature gets -2/-0.",
@@ -439,6 +443,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
 
 _EXPECTED_EFFECT = (
     "B5c-then-return-is",
+    "B5c-then-it-fights",
+    "B5c-untap-that-creature",
     "B5c-turn-to-slag",
     "B5c-untap-lands",
     "B5c-pt-swap",
@@ -800,8 +806,8 @@ def _find_atom(node: Any, pred: FAtomPred) -> Any:
 class TestB5cInventory(unittest.TestCase):
     """Verify the B5c template collection is well-formed."""
 
-    def test_74_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 74)
+    def test_76_templates(self) -> None:
+        self.assertEqual(len(TEMPLATES), 76)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -816,10 +822,10 @@ class TestB5cInventory(unittest.TestCase):
             self.assertEqual(t.priority, 100, f"{t.tid} has priority {t.priority}")
 
     def test_registry_accepts_all(self) -> None:
-        self.assertEqual(len(_REG), 74)
+        self.assertEqual(len(_REG), 76)
 
-    def test_uncovered_has_16_rows(self) -> None:
-        self.assertEqual(len(UNCOVERED), 16)
+    def test_uncovered_has_14_rows(self) -> None:
+        self.assertEqual(len(UNCOVERED), 14)
 
 
 # ---------------------------------------------------------------------------
@@ -841,17 +847,17 @@ class TestB5cShapeTable(unittest.TestCase):
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
         rr = sum(1 for s in SHAPES if s[1] == "RR")
-        self.assertEqual(covered, 75, f"COVERED count {covered} != 75")
-        self.assertEqual(uncov, 16, f"UNCOV count {uncov} != 16")
+        self.assertEqual(covered, 77, f"COVERED count {covered} != 77")
+        self.assertEqual(uncov, 14, f"UNCOV count {uncov} != 14")
         self.assertEqual(rr, 0, f"B5c has no rule-reminder shapes, got {rr}")
 
-    def test_covered_tids_valid_and_unique_74(self) -> None:
+    def test_covered_tids_valid_and_unique_76(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
             len(unique_tids),
-            74,
-            f"expected 74 unique tids, got {len(unique_tids)}",
+            76,
+            f"expected 76 unique tids, got {len(unique_tids)}",
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5c-"), f"bad tid: {tid}")
@@ -935,7 +941,7 @@ class TestB5cOutcomeKind(unittest.TestCase):
     def test_kind_table_is_complete(self) -> None:
         covered_tids = {t for _s, c, t in SHAPES if c == "COVERED"}
         self.assertEqual(set(EXPECTED_KIND_BY_TID), covered_tids)
-        self.assertEqual(len(EXPECTED_KIND_BY_TID), 74)
+        self.assertEqual(len(EXPECTED_KIND_BY_TID), 76)
 
     def test_all_kinds_match(self) -> None:
         for tid, expected in EXPECTED_KIND_BY_TID.items():
@@ -948,7 +954,7 @@ class TestB5cOutcomeKind(unittest.TestCase):
 
     def test_kind_counts(self) -> None:
         kinds = [k for k in EXPECTED_KIND_BY_TID.values()]
-        self.assertEqual(kinds.count("effect"), 23)
+        self.assertEqual(kinds.count("effect"), 25)
         self.assertEqual(kinds.count("keyword"), 5)
         self.assertEqual(kinds.count("static"), 1)
         self.assertEqual(kinds.count("activated"), 44)
@@ -1439,6 +1445,35 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertIs(dest.kind, ZoneKind.HAND)
         self.assertIs(dest.controller, ControllerRef.OWNER)
 
+    # -- grammar round-7 batch (doc 2026-09-28/03 §3 R7-A) ---------------
+
+    def test_untap_that_creature(self) -> None:
+        atom = _as_atom(_as_effect(_match_outcome("B5c-untap-that-creature")).effect)
+        self.assertIs(atom.verb, Verb.UNTAP)
+        target = _pairs(atom)["target"]
+        self.assertIsInstance(target, Selector)
+        # C2 convention: referent selectors pin CHOOSE + QConst(1) + neutral zone
+        self.assertIs(target.mode, SelectorMode.CHOOSE)
+        self.assertEqual(target.count, QConst(1))
+        self.assertEqual(target.referent, "target")
+        self.assertIs(target.zone.kind, ZoneKind.ANY)
+        self.assertEqual(
+            target.filter, FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+        )
+
+    def test_then_it_fights(self) -> None:
+        atom = _as_atom(_as_effect(_match_outcome("B5c-then-it-fights")).effect)
+        self.assertIs(atom.verb, Verb.FIGHT)
+        target = _pairs(atom)["target"]
+        self.assertIsInstance(target, Selector)
+        # C15: resolution-time "up to one" = CHOOSE + QConst(1) (0..1),
+        # never TARGET — the C-1 collapse fix.
+        self.assertIs(target.mode, SelectorMode.CHOOSE)
+        self.assertEqual(target.count, QConst(1))
+        self.assertIs(target.zone.kind, ZoneKind.BATTLEFIELD)
+        children = [c for c in target.filter.children if isinstance(c, (FAtom, FNot))]
+        self.assertEqual(len(children), 2)
+
 
 # ---------------------------------------------------------------------------
 # Test: Canonical Stability
@@ -1467,8 +1502,8 @@ class TestB5cCanonicalStability(unittest.TestCase):
             seen.add(tid)
         self.assertEqual(
             len(seen),
-            74,
-            f"only {len(seen)} unique tids tested, expected 74",
+            76,
+            f"only {len(seen)} unique tids tested, expected 76",
         )
 
 
@@ -1524,7 +1559,7 @@ class TestB5cJsonCrossCheck(unittest.TestCase):
             for k, pairs in self.json_data.items()
             if any(_REG.match(sent) for _c, sent in pairs)
         }
-        self.assertEqual(len(covered), 74)
+        self.assertEqual(len(covered), 76)
 
 
 if __name__ == "__main__":

@@ -2,9 +2,10 @@
 
 Covers all 90 shapes in ``/tmp/opencode/phase1_buckets/B5b.json``
 (91 distinct concrete sentences):
-- 52 template-covered rows over 51 shapes / 47 tids (44 single-shape tids,
-  3 multi-shape tids, plus one shape with two concrete rows)
-- 39 UNCOVERED (no template; 38 have no grammar construct, 1 is
+- 70 template-covered rows over 69 shapes / 62 tids (57 single-shape tids,
+  5 multi-shape tids, plus one shape with two concrete rows)
+- 21 UNCOVERED (no template; 20 have no grammar construct or are
+  deferred/queued (D14 reveal-until, E ingest artifact), 1 is
   compiler-built-in: "If you search your library this way, shuffle." —
   see test_compiler.py::TestContinuation::test_search_shuffle_*)
 - 0 rule-reminder pre-consumed
@@ -25,6 +26,8 @@ from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     Atom,
     CardDrawnEvent,
+    Choose,
+    Conditional,
     ControllerRef,
     CostDeltaIncreaseGeneric,
     CostModifier,
@@ -58,12 +61,14 @@ from MTG_bot.core.ability_tree import (
     Selector,
     SelectorMode,
     Seq,
+    SpellAbility,
     StaticAbility,
     TokenSpec,
     Verb,
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    ZonePosition,
     canonical_json,
 )
 from MTG_bot.core.compiler.compiler import compile_card
@@ -105,7 +110,11 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "B5b-gadrak-cant-attack-unless-artifacts",
     ),
     # shape 4
-    ("Gain control of target creature until end of turn.", "UNCOV", ""),
+    (
+        "Gain control of target creature until end of turn.",
+        "COVERED",
+        "B5b-gain-control-eot",
+    ),
     # shape 5
     (
         "Haste (This creature can attack and {T} as soon as it comes under your control.)",
@@ -161,9 +170,13 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "",
     ),
     # shape 14
-    ("If it's a creature card, put it into your hand.", "UNCOV", ""),
+    (
+        "If it's a creature card, put it into your hand.",
+        "COVERED",
+        "B5b-if-it-type-then",
+    ),
     # shape 15
-    ("If it's a creature or land card, draw a card.", "UNCOV", ""),
+    ("If it's a creature or land card, draw a card.", "COVERED", "B5b-if-it-type-then"),
     # shape 16
     (
         "If one or more +1/+1 counters would be put on a creature you control, that many plus one +1/+1 counters are put on that creature instead.",
@@ -185,8 +198,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 19
     (
         "If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-cast-elsewhere-instead",
     ),
     # shape 20
     (
@@ -235,21 +248,21 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "B5b-repl-draw-not-first",
     ),
     # shape 31
-    ("It gains haste until end of turn.", "UNCOV", ""),
+    ("It gains haste until end of turn.", "COVERED", "B5b-it-gains-kw-eot"),
     # shape 32
-    ("It gains haste.", "UNCOV", ""),
+    ("It gains haste.", "COVERED", "B5b-it-gains-haste"),
     # shape 33
     ('It gains haste."', "UNCOV", ""),
     # shape 34
-    ("It gains indestructible until end of turn.", "UNCOV", ""),
+    ("It gains indestructible until end of turn.", "COVERED", "B5b-it-gains-kw-eot"),
     # shape 35
     (
         "It gains protection from the color of your choice until end of turn.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-it-gains-protection-choice",
     ),
     # shape 36
-    ("It gains vigilance until end of turn.", "UNCOV", ""),
+    ("It gains vigilance until end of turn.", "COVERED", "B5b-it-gains-kw-eot"),
     # shape 37
     (
         "Its controller creates a 4/4 white Angel creature token with flying.",
@@ -287,7 +300,11 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "B5b-noncreature-cost-more",
     ),
     # shape 45
-    ("Otherwise, put it on the bottom of your library.", "UNCOV", ""),
+    (
+        "Otherwise, put it on the bottom of your library.",
+        "COVERED",
+        "B5b-otherwise-bottom",
+    ),
     # shape 46
     (
         "Permanents you control gain hexproof and indestructible until end of turn.",
@@ -323,15 +340,23 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "B5b-put-counter",
     ),
     # shape 53
-    ("Put one of them into your hand and the other into your graveyard.", "UNCOV", ""),
+    (
+        "Put one of them into your hand and the other into your graveyard.",
+        "COVERED",
+        "B5b-one-of-other",
+    ),
     # shape 54
     (
         "Put one of those cards into your hand and the rest on the bottom of your library in any order.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-one-of-rest-bottom",
     ),
     # shape 55
-    ("Put the rest on the bottom of your library in a random order.", "UNCOV", ""),
+    (
+        "Put the rest on the bottom of your library in a random order.",
+        "COVERED",
+        "B5b-rest-bottom-random",
+    ),
     # shape 56
     ("Reach (This creature can block creatures with flying.)", "COVERED", "B5b-reach"),
     # shape 57
@@ -381,8 +406,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 67
     (
         "Search target opponent's graveyard, hand, and library for any number of cards with that name and exile them.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-search-name-exile",
     ),
     # shape 68
     (
@@ -393,8 +418,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 69
     (
         "Search your library for up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-search-one-other-shuffle",
     ),
     # shape 70
     ("Shock deals 2 damage to any target.", "COVERED", "B5b-damage-any"),
@@ -466,9 +491,13 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "",
     ),
     # shape 86
-    ("That permanent loses indestructible until end of turn.", "UNCOV", ""),
+    (
+        "That permanent loses indestructible until end of turn.",
+        "COVERED",
+        "B5b-loses-kw-eot",
+    ),
     # shape 87
-    ("That player discards that card.", "UNCOV", ""),
+    ("That player discards that card.", "COVERED", "B5b-that-player-discards"),
     # shape 88
     (
         "That player puts that card onto the battlefield, then shuffles the rest into their library.",
@@ -478,8 +507,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 89
     (
         "That player shuffles, then creates a 2/2 black Zombie creature token for each card exiled from their hand this way.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-token-per-exiled-this-way",
     ),
     # shape 90
     (
@@ -644,8 +673,8 @@ def _find_shape(sent: str) -> tuple[str, str, str]:
 class TestTemplateInventory(unittest.TestCase):
     """Verify the B5b template collection is well-formed."""
 
-    def test_47_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 47)
+    def test_62_templates(self) -> None:
+        self.assertEqual(len(TEMPLATES), 62)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -661,7 +690,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 47)
+        self.assertEqual(len(reg), 62)
 
 
 # ---------------------------------------------------------------------------
@@ -682,14 +711,14 @@ class TestShapeTable(unittest.TestCase):
     def test_category_counts(self) -> None:
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
-        self.assertEqual(covered, 52, f"COVERED count {covered} != 52")
-        self.assertEqual(uncov, 39, f"UNCOV count {uncov} != 39")
+        self.assertEqual(covered, 70, f"COVERED count {covered} != 70")
+        self.assertEqual(uncov, 21, f"UNCOV count {uncov} != 21")
 
-    def test_covered_tids_valid_and_unique_47(self) -> None:
+    def test_covered_tids_valid_and_unique_62(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
-            len(unique_tids), 47, f"expected 47 unique tids, got {len(unique_tids)}"
+            len(unique_tids), 62, f"expected 62 unique tids, got {len(unique_tids)}"
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5b-"), f"bad tid: {tid}")
@@ -1567,7 +1596,7 @@ class TestCanonicalStability(unittest.TestCase):
                 f"canonical instability for {tid} ({sent[:40]})",
             )
             seen.add(tid)
-        self.assertEqual(len(seen), 47, f"only {len(seen)} unique tids tested")
+        self.assertEqual(len(seen), 62, f"only {len(seen)} unique tids tested")
 
 
 # ---------------------------------------------------------------------------
@@ -1795,3 +1824,250 @@ class TestB5bJsonCrossCheck(unittest.TestCase):
             for _card, sent in pairs:
                 json_sents.add(sent)
         self.assertEqual(json_sents, table_sents)
+
+
+# ---------------------------------------------------------------------------
+# Test: Grammar Round-7 batch (family-2 anaphora; doc 2026-09-28/03 §3 R7-A)
+# ---------------------------------------------------------------------------
+
+
+class TestRound7AnaphoraBatch(unittest.TestCase):
+    """Structural assertions for the round-7 anaphora templates (C15/C16)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.reg = _make_registry()
+
+    def _match_one(self, sent: str) -> SentenceOutcome:
+        matches = self.reg.match(sent)
+        self.assertEqual(len(matches), 1, f"expected 1 match: {sent!r}")
+        return matches[0].outcome
+
+    def test_it_gains_kw_eot(self) -> None:
+        """GRANT_ABILITY(target=result-referent, KeywordAbility, DurationEot)."""
+        outcome = self._match_one("It gains indestructible until end of turn.")
+        atom = _as_atom(_as_effect(outcome).effect)
+        self.assertEqual(atom.verb, Verb.GRANT_ABILITY)
+        p = _pairs_dict(atom)
+        sel = p["target"]
+        self.assertIsInstance(sel, Selector)
+        self.assertEqual(sel.referent, "result")
+        self.assertEqual(sel.mode, SelectorMode.CHOOSE)
+        self.assertEqual(sel.count, QConst(1))
+        ka = p["ability"]
+        self.assertIsInstance(ka, KeywordAbility)
+        self.assertEqual(ka.keyword, Keyword.INDESTRUCTIBLE)
+        self.assertEqual(p["duration"], DurationEot())
+
+    def test_it_gains_haste_no_duration(self) -> None:
+        outcome = self._match_one("It gains haste.")
+        atom = _as_atom(_as_effect(outcome).effect)
+        p = _pairs_dict(atom)
+        self.assertEqual(atom.verb, Verb.GRANT_ABILITY)
+        self.assertEqual(p["ability"].keyword, Keyword.HASTE)
+        self.assertNotIn("duration", p)
+
+    def test_it_gains_protection_choice_is_choose(self) -> None:
+        """C15: the color choice stays a Choose(1, 5 colored grants)."""
+        outcome = self._match_one(
+            "It gains protection from the color of your choice until end of turn."
+        )
+        choice = _as_effect(outcome).effect
+        assert isinstance(choice, Choose)
+        self.assertEqual(choice.count, QConst(1))
+        self.assertEqual(len(choice.options), 5)
+        colors: set[str] = set()
+        for opt in choice.options:
+            assert isinstance(opt, Atom)
+            p = _pairs_dict(opt)
+            self.assertEqual(opt.verb, Verb.GRANT_ABILITY)
+            self.assertEqual(p["target"].referent, "result")
+            ka = p["ability"]
+            self.assertEqual(ka.keyword, Keyword.PROTECTION)
+            (filt,) = ka.params
+            colors.add(filt.color)
+        self.assertEqual(colors, {"W", "U", "B", "R", "G"})
+
+    def test_that_player_discards(self) -> None:
+        outcome = self._match_one("That player discards that card.")
+        atom = _as_atom(_as_effect(outcome).effect)
+        p = _pairs_dict(atom)
+        self.assertEqual(atom.verb, Verb.DISCARD)
+        self.assertEqual(p["controller"], ControllerRef.TARGET_PLAYER)
+        self.assertEqual(p["cards"].referent, "result")
+
+    def test_if_it_creature_conditional(self) -> None:
+        outcome = self._match_one("If it's a creature card, put it into your hand.")
+        cond = _as_effect(outcome).effect
+        assert isinstance(cond, Conditional)
+        pred = cond.pred
+        assert isinstance(pred, FAtom)
+        self.assertIs(pred.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(pred.string_value, "Creature")
+        self.assertIsNone(cond.else_effect)
+        move = _as_atom(cond.then_effect)
+        self.assertEqual(move.verb, Verb.MOVE_ZONE)
+        p = _pairs_dict(move)
+        self.assertEqual(p["cards"].referent, "result")
+        self.assertEqual(p["destination"].kind, ZoneKind.HAND)
+
+    def test_if_it_creature_or_land_draw(self) -> None:
+        outcome = self._match_one("If it's a creature or land card, draw a card.")
+        cond = _as_effect(outcome).effect
+        assert isinstance(cond, Conditional)
+        self.assertIsInstance(cond.pred, FOr)
+        atom = _as_atom(cond.then_effect)
+        self.assertEqual(atom.verb, Verb.DRAW)
+
+    def test_otherwise_bottom(self) -> None:
+        outcome = self._match_one("Otherwise, put it on the bottom of your library.")
+        atom = _as_atom(_as_effect(outcome).effect)
+        p = _pairs_dict(atom)
+        self.assertEqual(atom.verb, Verb.MOVE_ZONE)
+        self.assertEqual(p["cards"].referent, "result")
+        self.assertEqual(p["destination"].position, ZonePosition.BOTTOM)
+
+    def test_search_name_exile(self) -> None:
+        outcome = self._match_one(
+            "Search target opponent's graveyard, hand, and library "
+            "for any number of cards with that name and exile them."
+        )
+        seq = _as_seq(_as_effect(outcome).effect)
+        search = _as_atom(seq.steps[0])
+        p = _pairs_dict(search)
+        self.assertEqual(search.verb, Verb.SEARCH)
+        sel = p["cards"]
+        self.assertEqual(sel.mode, SelectorMode.CHOOSE)
+        self.assertIsInstance(sel.count, QUnbounded)
+        self.assertIs(sel.filter.pred, FAtomPred.NAME_CHOSEN)
+        self.assertEqual(len(sel.zones), 2)
+        exile = _as_atom(seq.steps[1])
+        self.assertEqual(exile.verb, Verb.EXILE)
+        self.assertEqual(_pairs_dict(exile)["target"].referent, "result")
+
+    def test_token_per_exiled_this_way(self) -> None:
+        outcome = self._match_one(
+            "That player shuffles, then creates a 2/2 black Zombie creature "
+            "token for each card exiled from their hand this way."
+        )
+        seq = _as_seq(_as_effect(outcome).effect)
+        shuffle = _as_atom(seq.steps[0])
+        self.assertEqual(shuffle.verb, Verb.SHUFFLE)
+        create = _as_atom(seq.steps[1])
+        p = _pairs_dict(create)
+        self.assertEqual(create.verb, Verb.CREATE_TOKEN)
+        self.assertIsInstance(p["tokens"], TokenSpec)
+        prop = p["count"]
+        self.assertIsInstance(prop, QProp)
+        self.assertEqual(prop.field, QPropField.THIS_WAY_COUNT)
+        self.assertEqual(prop.referent, "event")
+
+    def test_loses_kw_eot(self) -> None:
+        outcome = self._match_one(
+            "That permanent loses indestructible until end of turn."
+        )
+        atom = _as_atom(_as_effect(outcome).effect)
+        p = _pairs_dict(atom)
+        self.assertEqual(atom.verb, Verb.LOSE_ABILITY)
+        self.assertEqual(p["target"].referent, "target")
+        self.assertEqual(p["ability"].keyword, Keyword.INDESTRUCTIBLE)
+        self.assertEqual(p["duration"], DurationEot())
+
+    def test_one_of_other(self) -> None:
+        outcome = self._match_one(
+            "Put one of them into your hand and the other into your graveyard."
+        )
+        seq = _as_seq(_as_effect(outcome).effect)
+        first, rest = (_as_atom(s) for s in seq.steps)
+        self.assertEqual(_pairs_dict(first)["cards"].mode, SelectorMode.ONE_OF)
+        self.assertEqual(_pairs_dict(rest)["cards"].mode, SelectorMode.REST)
+        self.assertEqual(_pairs_dict(first)["destination"].kind, ZoneKind.HAND)
+        self.assertEqual(_pairs_dict(rest)["destination"].kind, ZoneKind.GRAVEYARD)
+
+    def test_one_of_rest_bottom(self) -> None:
+        outcome = self._match_one(
+            "Put one of those cards into your hand and the rest on the "
+            "bottom of your library in any order."
+        )
+        seq = _as_seq(_as_effect(outcome).effect)
+        first, rest = (_as_atom(s) for s in seq.steps)
+        self.assertEqual(_pairs_dict(first)["cards"].mode, SelectorMode.ONE_OF)
+        self.assertEqual(_pairs_dict(rest)["cards"].mode, SelectorMode.REST)
+        self.assertEqual(_pairs_dict(rest)["destination"].position, ZonePosition.BOTTOM)
+
+    def test_rest_bottom_random(self) -> None:
+        outcome = self._match_one(
+            "Put the rest on the bottom of your library in a random order."
+        )
+        atom = _as_atom(_as_effect(outcome).effect)
+        p = _pairs_dict(atom)
+        self.assertEqual(p["cards"].mode, SelectorMode.REST)
+        self.assertEqual(p["destination"].position, ZonePosition.BOTTOM)
+
+    def test_cultivate_split_search(self) -> None:
+        outcome = self._match_one(
+            "Search your library for up to two basic land cards, reveal "
+            "those cards, put one onto the battlefield tapped and the "
+            "other into your hand, then shuffle."
+        )
+        seq = _as_seq(_as_effect(outcome).effect)
+        self.assertEqual(len(seq.steps), 5)
+        search = _as_atom(seq.steps[0])
+        sel = _pairs_dict(search)["cards"]
+        self.assertEqual(sel.count, QConst(2))  # C15: up-to stays CHOOSE
+        self.assertEqual(sel.mode, SelectorMode.CHOOSE)
+        to_bf = _as_atom(seq.steps[2])
+        self.assertEqual(_pairs_dict(to_bf)["cards"].mode, SelectorMode.ONE_OF)
+        self.assertTrue(_pairs_dict(to_bf)["tapped_on_enter"])
+        to_hand = _as_atom(seq.steps[3])
+        self.assertEqual(_pairs_dict(to_hand)["cards"].mode, SelectorMode.REST)
+        self.assertEqual(_as_atom(seq.steps[4]).verb, Verb.SHUFFLE)
+
+    def test_cast_elsewhere_instead(self) -> None:
+        outcome = self._match_one(
+            "If this spell was cast from anywhere other than your hand, "
+            "put each of those cards into your hand instead."
+        )
+        cond = _as_effect(outcome).effect
+        assert isinstance(cond, Conditional)
+        self.assertIsInstance(cond.pred, FNot)
+        move = _as_atom(cond.then_effect)
+        self.assertEqual(_pairs_dict(move)["cards"].referent, "result")
+
+    def test_gain_control_eot(self) -> None:
+        outcome = self._match_one("Gain control of target creature until end of turn.")
+        atom = _as_atom(_as_effect(outcome).effect)
+        p = _pairs_dict(atom)
+        self.assertEqual(atom.verb, Verb.GAIN_CONTROL)
+        self.assertEqual(p["target"].mode, SelectorMode.TARGET)
+        self.assertEqual(p["duration"], DurationEot())
+
+
+class TestRound7AnaphoraEndToEnd(unittest.TestCase):
+    """Full-card compiles for the round-7 batch sentences (merge paths)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.reg = _make_registry()
+
+    def test_garruk_otherwise_merges_into_else_effect(self) -> None:
+        """The Otherwise sentence attaches as the previous Conditional's
+        else_effect (R7-3 compiler merge; Garruk Savage Herald [−7] idiom
+        compiled as a plain spell sequence for the b5b registry)."""
+        raw = _raw(
+            "Garruk Reveal Stand-in",
+            (
+                "If it's a creature card, put it into your hand.",
+                "Otherwise, put it on the bottom of your library.",
+            ),
+            types=("Sorcery",),
+        )
+        result = compile_card(raw, self.reg)
+        self.assertEqual(len(result.unparsed), 0)
+        spell = [ab for ab in result.card.abilities if isinstance(ab, SpellAbility)]
+        self.assertEqual(len(spell), 1)
+        eff = spell[0].effect
+        assert isinstance(eff, Conditional)
+        self.assertIsNotNone(eff.else_effect)
+        move = _as_atom(eff.else_effect)
+        self.assertEqual(_pairs_dict(move)["cards"].referent, "result")

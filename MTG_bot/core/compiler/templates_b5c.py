@@ -1,15 +1,15 @@
-"""B5c bucket templates — 74 templates covering 75 of 90 B5c shapes.
+"""B5c bucket templates — 76 templates covering 77 of 90 B5c shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B5c.json`` (90 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (90 normalized keys = 74 covered + 16 uncovered; 91 concrete
-sentences = 75 covered + 16 uncovered; ``• You gain N life.`` has two
+Coverage (90 normalized keys = 76 covered + 14 uncovered; 91 concrete
+sentences = 77 covered + 14 uncovered; ``• You gain N life.`` has two
 concrete variants both covered by one template):
 
-- **74 covered shapes** (74 unique tids; the gain-life template covers two
+- **77 covered shapes** (76 unique tids; the gain-life template covers two
   concrete variants):
   keyword reminders (Trample, Vigilance, Vigilance+lifelink,
   Vigilance+protection, Vigilance+reach+trample), then-continuation
@@ -22,7 +22,7 @@ concrete variants both covered by one template):
   loyalty turn-scoped trigger grant (Basri [−1] — GRANT_ABILITY with
   DurationEot wrapping a TriggeredAbility, round-4 convention C3; "it" =
   the attacker via the event referent).
-- **16 uncovered shapes** — no grammar construct exists (anaphoric targets,
+- **14 uncovered shapes** — no grammar construct exists (anaphoric targets,
   conditional Then-continuations, cost reduction, turn-scoped
   triggers, emblems, coin-flip).  Recorded in UNCOVERED.
 
@@ -2098,8 +2098,78 @@ def _build_bullet_return_two_creatures_hand(m: re.Match[str]) -> SentenceOutcome
 
 
 # ---------------------------------------------------------------------------
-# TEMPLATES — 74 entries
+# TEMPLATES — 76 entries
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Grammar round-7 batch builders (doc 2026-09-28/03 §3 R7-A)
+# ---------------------------------------------------------------------------
+
+
+def _build_untap_that_creature(m: re.Match[str]) -> SentenceOutcome:
+    """``Untap that creature.`` (Traitorous Greed s2) — UNTAP whose
+    target is the spell's previously-targeted creature (R7-1): R4
+    ``referent="target"`` (the neutral-zone CHOOSE/QConst(1) convention
+    the B5b counter-unless-pays row established), so the anaphor binds
+    the s1 GAIN_CONTROL target today.  C16: no choice — forced."""
+    atom = Atom(
+        verb=Verb.UNTAP,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                        Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+                        referent="target",
+                    ),
+                ),
+            )
+        ),
+    )
+    return EffectOutcome(effect=atom)
+
+
+def _build_then_it_fights_up_to_one(m: re.Match[str]) -> SentenceOutcome:
+    """``Then it fights up to one target creature you don't control.``
+    (Primal Might s2) — Verb.FIGHT (R7-8/R7-9a; the "Then " prefix makes
+    this a continuation, merged after the +X/+X step).
+    C15: resolution-time "up to one" = CHOOSE + QConst(1) (0..1 open),
+    not TARGET — the C-1 collapse fix applies to new templates.
+    The attacker ("it") is the prior sentence's +X/+X object: FIGHT has
+    no attacker role (the r8 canonical documents the attacker as the
+    source object), so the anaphoric attacker binds the result register
+    executor-side; documented."""
+    atom = Atom(
+        verb=Verb.FIGHT,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAnd(
+                            children=(
+                                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                                FNot(
+                                    inner=FAtom(
+                                        pred=FAtomPred.CONTROLLER_IS,
+                                        who=ControllerRef.YOU,
+                                    )
+                                ),
+                            )
+                        ),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                    ),
+                ),
+            )
+        ),
+    )
+    return EffectOutcome(effect=atom)
+
 
 TEMPLATES: tuple[Template, ...] = (
     # --- MISC (13) ---
@@ -2837,6 +2907,25 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_bullet_return_two_creatures_hand,
     ),
+    # --- grammar round-7 batch (doc 2026-09-28/03 §3 R7-A) ---
+    Template(
+        tid="B5c-untap-that-creature",
+        name="untap that creature (target-referent untap)",
+        bucket="B5c",
+        pattern=re.compile(r"^Untap that creature\.$"),
+        priority=100,
+        build=_build_untap_that_creature,
+    ),
+    Template(
+        tid="B5c-then-it-fights",
+        name="then it fights up to one creature you don't control (FIGHT)",
+        bucket="B5c",
+        pattern=re.compile(
+            r"^Then it fights up to one target creature you don't control\.$"
+        ),
+        priority=100,
+        build=_build_then_it_fights_up_to_one,
+    ),
 )
 
 
@@ -2848,10 +2937,6 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         "Then if you control four or more lands, untap that land.",
         "No conditional Then-continuation with land-count condition",
-    ),
-    (
-        "Then it fights up to one target creature you don't control.",
-        "No FIGHT verb/anaphoric source in grammar",
     ),
     (
         "Then that creature deals damage equal to its power to target creature you don't control.",
@@ -2866,10 +2951,6 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
         "No turn-scoped untap prevention",
     ),
     (
-        "Untap that creature.",
-        "No anaphoric target resolution",
-    ),
-    (
         "Until end of turn, you may cast spells from your hand without paying their mana costs.",
         "No mana-cost waiver grant",
     ),
@@ -2882,23 +2963,23 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
         "Phase-in prevention (compiler built-in; merged into preceding loyalty activation)",
     ),
     (
-        '[\u2212N]: Until end of turn, creatures you control gain "You may have this creature assign its combat damage as though it weren\'t blocked."',
+        '[−N]: Until end of turn, creatures you control gain "You may have this creature assign its combat damage as though it weren\'t blocked."',
         "No embedded replacement ability text",
     ),
     (
-        "[\u2212N]: Whenever one or more nontoken creatures attack this turn, create that many N/N white Soldier creature tokens that are tapped and attacking.",
+        "[−N]: Whenever one or more nontoken creatures attack this turn, create that many N/N white Soldier creature tokens that are tapped and attacking.",
         "No triggered ability with attack-count token creation",
     ),
     (
-        '[\u2212N]: You get an emblem with "At the beginning of combat on your turn, create a N/N white Soldier creature token, then put a +N/+N counter on each creature you control."',
+        '[−N]: You get an emblem with "At the beginning of combat on your turn, create a N/N white Soldier creature token, then put a +N/+N counter on each creature you control."',
         "No emblem with embedded trigger",
     ),
     (
-        '[\u2212N]: You get an emblem with "At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control.',
+        '[−N]: You get an emblem with "At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control.',
         "No emblem with embedded triggered ability",
     ),
     (
-        '[\u2212N]: You get an emblem with "At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle."',
+        '[−N]: You get an emblem with "At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle."',
         "No emblem with embedded end-step search trigger",
     ),
     (

@@ -129,6 +129,13 @@ _CONTINUATION_PREFIXES: tuple[str, ...] = (
     "If that",
     "If you search your library this way",
     "Then ",
+    # Grammar round 7, R7-3: "Otherwise" attaches as the else_effect of
+    # the previous Conditional (_merge_otherwise, C13 fallback); "When
+    # you do" is registered but has no matching template yet — its event
+    # binding (Tolarian Kraken: antecedent "you may pay {1}") is queued
+    # (no clean existing event class; batch-phase concern).
+    "Otherwise",
+    "When you do",
 )
 
 # ---------------------------------------------------------------------------
@@ -687,6 +694,38 @@ def _merge_search_shuffle(prev_effect: Effect, shuffle: Effect) -> Effect:
     return Seq(steps=(prev_effect, shuffle))
 
 
+def _merge_otherwise(prev_effect: Effect, inner: Effect) -> Effect:
+    """Grammar round 7 (R7-3): "Otherwise, …" becomes the ``else_effect``
+    of the previous sentence's ``Conditional`` (Garruk, Savage Herald:
+    "If it's a creature card, put it into your hand. Otherwise, put it on
+    the bottom of your library.").
+
+    The Conditional is searched at the top level and as the LAST step of a
+    Seq (the "do X. If it's Y, do Z." single-sentence idiom). A
+    Conditional that already carries an else_effect is not overwritten.
+    C13 (mandate): when no attachable Conditional is found, fall back to
+    the EXISTING default continuation merge (sibling optional step) —
+    "Otherwise" without a preceding Conditional must never be a parse
+    failure.
+    """
+
+    def _attach(effect: Effect) -> Effect | None:
+        if isinstance(effect, Conditional):
+            if effect.else_effect is None:
+                return replace(effect, else_effect=inner)
+            return None
+        if isinstance(effect, Seq) and effect.steps:
+            new_last = _attach(effect.steps[-1])
+            if new_last is not None:
+                return Seq(steps=effect.steps[:-1] + (new_last,))
+        return None
+
+    attached = _attach(prev_effect)
+    if attached is not None:
+        return attached
+    return _append_optional_to_seq(prev_effect, inner)
+
+
 def _fold_meta_filter(effect: Effect, meta_filter: Filter) -> Effect:
     """Conjoin meta_filter onto every TARGET-mode Selector in effect.
 
@@ -883,11 +922,15 @@ def compile_card(
         #     OptionalEffect (mandatory only if the optional search ran).
         #   - phase-in prevention: a MANDATORY append to the previous effect
         #     (no OptionalEffect wrap — the effect always fires).
+        #   - "Otherwise" (grammar round 7, R7-3): else_effect of the last
+        #     Conditional, C13 fallback to the default merge.
         #   - default continuation: a sibling optional step.
         if _SEARCH_SHUFFLE_TAIL_RE.match(sentence):
             merge = _merge_search_shuffle
         elif _PHASE_IN_PREVENT_RE.match(sentence):
             merge = _append_mandatory_to_seq
+        elif sentence.strip().startswith("Otherwise"):
+            merge = _merge_otherwise
         else:
             merge = _append_optional_to_seq
 

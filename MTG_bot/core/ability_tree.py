@@ -187,6 +187,23 @@ class Verb(Enum):
     FLIP_COIN = (
         "FLIP_COIN"  # "flip a coin" (no roles; outcome gated by FAtomPred.FLIP_WON)
     )
+    # CHOOSE (grammar round 7): "You choose a noncreature, nonland card
+    # from it" (Duress, Kitesail) — the controller picks a set FROM the
+    # `target` selector's pool (the anaphoric "it" of the preceding
+    # sentence, bound via referent="result"); the choice is recorded as
+    # the ability's result for later anaphora (C12).
+    CHOOSE = "CHOOSE"
+    CHOOSE_NAME = "CHOOSE_NAME"  # "choose a name" (Runed Halo, Necromentia); read back by FAtomPred.NAME_CHOSEN
+    FIGHT = (
+        "FIGHT"  # "this creature fights another target creature" (Brash
+        # Taunter), "it fights up to one target creature you don't control"
+        # (Primal Might). Attacker = the source/IT referent, `target` = the
+        # fighter. Executor deferred per the MANDATE_BLOCK-orphan precedent.
+    )
+    LOSE_ABILITY = (
+        "LOSE_ABILITY"  # "that permanent loses indestructible" (Soul
+        # Sear) — mirrors GRANT_ABILITY's roles.
+    )
 
 
 class SelectorMode(Enum):
@@ -197,6 +214,18 @@ class SelectorMode(Enum):
     CHOOSE = "CHOOSE"  # up to `count` objects, chosen by a controller
     ALL = "ALL"  # every object in the zone matching the filter (count ignored)
     RANDOM = "RANDOM"  # exactly `count` objects, chosen at random
+    # ONE_OF / REST (grammar round 7, the split-selection pair): ONE_OF
+    # takes exactly one object out of the selected set (Waker of Waves'
+    # "put one of them in your hand", Cultivate's "put it onto the
+    # battlefield"); REST is everything left after the ONE_OF pick
+    # ("the rest into your graveyard/hand", See the Truth, Garruk's
+    # Harbinger, Cultivate) — count is ignored, mirroring ALL.
+    ONE_OF = (
+        "ONE_OF"  # exactly one of the selected set (needs a concrete count like TARGET)
+    )
+    REST = (
+        "REST"  # everything remaining after the ONE_OF pick (count ignored, like ALL)
+    )
 
 
 class ZoneKind(Enum):
@@ -242,8 +271,10 @@ class ControllerRef(Enum):
 
 class QPropField(Enum):
     """Which property QProp reads from its referent. The player-count fields
-    only make sense with the "controller" referent; AMOUNT and COUNTER_COUNT
-    only with "event" (validated in QProp.__post_init__)."""
+    only make sense with the "controller" referent; AMOUNT, THIS_WAY_COUNT
+    and THAT_MANY_COUNT only with "event"; COUNTER_COUNT with "event" or
+    "source" (grammar round 7: SOUL counters on the source Equipment,
+    Malefic Scythe) — all validated in QProp.__post_init__."""
 
     POWER = "POWER"
     TOUGHNESS = "TOUGHNESS"
@@ -253,7 +284,9 @@ class QPropField(Enum):
     CARDS_IN_LIBRARY = "CARDS_IN_LIBRARY"  # Peer into the Abyss
     CARDS_IN_GRAVEYARD = "CARDS_IN_GRAVEYARD"  # Liliana, Waker of the Dead [-3]
     AMOUNT = "AMOUNT"  # the triggering event's damage amount (Brash Taunter)
-    COUNTER_COUNT = "COUNTER_COUNT"  # the event's counter count (Conclave Mentor)
+    COUNTER_COUNT = "COUNTER_COUNT"  # the counter count of the event or the source (Conclave Mentor; grammar round 7: Malefic Scythe's SOUL counters on this Equipment)
+    THIS_WAY_COUNT = "THIS_WAY_COUNT"  # "for each creature tapped this way" (Siege Striker) / "for each card exiled this way" (Necromentia s3) — grammar round 7, referent "event"
+    THAT_MANY_COUNT = "THAT_MANY_COUNT"  # "discard up to two … draw that many" (Kinetic Augur) — the count chosen by the preceding up-to-X choice; grammar round 7, referent "event"
 
 
 class QAgg(Enum):
@@ -379,6 +412,17 @@ class FAtomPred(Enum):
         "ZONE_COUNT_GE"  # "<who> has >= count cards in their <zone>
         # matching inner_filter" (Thieves' Guild Enforcer; grammar round 6
         # — required who + zone + inner_filter + count)
+    )
+    IS_ATTACHED_TO = (
+        "IS_ATTACHED_TO"  # grammar round 7: the object is attached to the
+        # referent object ("Destroy target Equipment attached to that" —
+        # Turn to Slag; required referent slot from
+        # _QPROP_STR_REFERENTS, e.g. "source")
+    )
+    NAME_CHOSEN = (
+        "NAME_CHOSEN"  # grammar round 7: the object's name is the one
+        # picked by Verb.CHOOSE_NAME ("cards with that name" — Runed Halo
+        # s2, Necromentia s2). No slots (precedent: IS_TAPPED).
     )
 
 
@@ -523,7 +567,12 @@ class QCount:
             )
 
 
-_QPROP_STR_REFERENTS = ("source", "controller", "target", "event")
+# The closed anaphora referent vocabulary (C12: structured strings, never
+# English substrings). "result" (grammar round 7, R7-1): the object(s) the
+# previous sentence acted on — revealed / chosen / exiled / moved; the
+# anaphoric "it / them / that card" binding resolved by the compiler's
+# per-ability result register (C12: register is compiler state, not tree).
+_QPROP_STR_REFERENTS = ("source", "controller", "target", "event", "result")
 
 
 @dataclass(frozen=True)
@@ -531,7 +580,8 @@ class QProp:
     """A property of a referent.
 
     referent = Selector | "source" | "controller" | "target" | "event"
-    (the design's three referents plus the documented "event"). field is
+    | "result" (the design's three referents plus the documented "event"
+    and the round-7 "result"). field is
     validated against the referent: player-count fields need "controller",
     AMOUNT needs "event". With a Selector referent, `agg` collapses the
     (possibly many) selected objects; a string referent is singular, so agg
@@ -567,9 +617,23 @@ class QProp:
             raise ValueError(
                 f"QProp: {self.field.name} requires the 'controller' referent"
             )
-        event_fields = (QPropField.AMOUNT, QPropField.COUNTER_COUNT)
+        event_fields = (
+            QPropField.AMOUNT,
+            QPropField.THIS_WAY_COUNT,
+            QPropField.THAT_MANY_COUNT,
+        )
         if self.field in event_fields and self.referent != "event":
             raise ValueError(f"QProp: {self.field.name} requires the 'event' referent")
+        # COUNTER_COUNT (grammar round 7, R9b): the event's counter count
+        # (Conclave Mentor) OR the source permanent's counter count
+        # (Malefic Scythe's "for each soul counter on this Equipment").
+        if self.field is QPropField.COUNTER_COUNT and self.referent not in (
+            "event",
+            "source",
+        ):
+            raise ValueError(
+                "QProp: COUNTER_COUNT requires the 'event' or 'source' referent"
+            )
         if isinstance(self.referent, str) and self.agg is not QAgg.FIRST:
             raise ValueError(
                 "QProp: a singular referent cannot aggregate (agg must be FIRST)"
@@ -677,8 +741,9 @@ class Selector:
 
     ``referent`` (grammar round 4, object anaphora) binds the selector to
     an object already in scope instead of searching: one of
-    ``_QPROP_STR_REFERENTS`` — "source", "controller", "target", "event" —
-    the closed vocabulary shared with ``QProp``; "event" = the triggering
+    ``_QPROP_STR_REFERENTS`` — "source", "controller", "target", "event",
+    "result" (grammar round 7: the object(s) the previous sentence acted
+    on) — the closed vocabulary shared with ``QProp``; "event" = the triggering
     event's subject object (cast → the cast spell; damage_dealt → the
     damaged recipient; becomes_blocked → the blocker; declare_attackers
     → the attacker; targeting → the new target). When set, the selector
@@ -718,9 +783,11 @@ class Selector:
             isinstance(z, Zone) for z in self.zones
         ):
             raise ValueError("Selector: zones must be a tuple of Zone")
-        if self.mode in (SelectorMode.TARGET, SelectorMode.RANDOM) and isinstance(
-            self.count, QUnbounded
-        ):
+        if self.mode in (
+            SelectorMode.TARGET,
+            SelectorMode.RANDOM,
+            SelectorMode.ONE_OF,
+        ) and isinstance(self.count, QUnbounded):
             raise ValueError(
                 f"Selector: mode {self.mode.name} needs a concrete count, not QUnbounded"
             )
@@ -829,6 +896,11 @@ class FAtom:
                        "entered from / cast from this zone this turn")
        from_zone,   — Zones (MOVED_TO_ZONE_THIS_TURN — "a permanent was
        to_zone        put into your hand from the battlefield this turn")
+       referent     — a referent string from _QPROP_STR_REFERENTS
+                      (IS_ATTACHED_TO — grammar round 7: "attached to
+                      that/source"; same vocabulary as Selector.referent;
+                      omitted when None — byte-stable for pre-round-7
+                      trees, per the R4-4 zone-slot precedent)
     """
 
     pred: FAtomPred
@@ -843,6 +915,7 @@ class FAtom:
     zone: Zone | None = None
     from_zone: Zone | None = None
     to_zone: Zone | None = None
+    referent: str | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.pred, FAtomPred):
@@ -894,8 +967,10 @@ class FAtom:
                 f"FAtom: from_zone must be a Zone, got {type(self.from_zone).__name__}"
             )
         if self.to_zone is not None and not isinstance(self.to_zone, Zone):
+            raise ValueError(f"FAtom: to_zone must be a Zone, got {self.to_zone!r}")
+        if self.referent is not None and self.referent not in _QPROP_STR_REFERENTS:
             raise ValueError(
-                f"FAtom: to_zone must be a Zone, got {type(self.to_zone).__name__}"
+                f"FAtom: referent must be one of _QPROP_STR_REFERENTS, got {self.referent!r}"
             )
 
         required, allowed = _FATOM_RULES[self.pred]
@@ -911,6 +986,7 @@ class FAtom:
             "zone",
             "from_zone",
             "to_zone",
+            "referent",
         ):
             value = getattr(self, slot)
             unset = value is None or (slot == "colors" and value == ())
@@ -931,6 +1007,7 @@ class FAtom:
                     "zone",
                     "from_zone",
                     "to_zone",
+                    "referent",
                 )
             ):
                 raise ValueError(f"FAtom: {self.pred.name} requires slot {slot!r}")
@@ -1003,8 +1080,30 @@ class DurationWhileCondition:
             )
 
 
+@dataclass(frozen=True)
+class DurationUntilLeaves:
+    """Until the referenced permanent leaves the battlefield (Kitesail
+    Cabinet's "until this creature leaves the battlefield", Idol of
+    Endurance's exile window). ``source`` names the anchored object as a
+    referent string from ``_QPROP_STR_REFERENTS`` — default "source" =
+    the object that owns the ability (C12: structured referent, never an
+    English substring like "this creature")."""
+
+    source: str = "source"
+
+    def __post_init__(self) -> None:
+        if self.source not in _QPROP_STR_REFERENTS:
+            raise ValueError(
+                f"DurationUntilLeaves: source must be one of _QPROP_STR_REFERENTS, got {self.source!r}"
+            )
+
+
 Duration = (
-    DurationEot | DurationPermanent | DurationUntilNextTurn | DurationWhileCondition
+    DurationEot
+    | DurationPermanent
+    | DurationUntilNextTurn
+    | DurationWhileCondition
+    | DurationUntilLeaves
 )
 
 
@@ -2440,6 +2539,7 @@ _D_CLASSES = (
     DurationPermanent,
     DurationUntilNextTurn,
     DurationWhileCondition,
+    DurationUntilLeaves,
 )
 _COST_PART_CLASSES = (
     CostTap,
@@ -2607,6 +2707,17 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
         frozenset({"who", "zone", "inner_filter", "count"}),
         frozenset({"who", "zone", "inner_filter", "count"}),
     ),
+    # IS_ATTACHED_TO (grammar round 7, R7-1): attached to the referent
+    # object — required referent slot ("Destroy target Equipment attached
+    # to that", Turn to Slag). Vocabulary: _QPROP_STR_REFERENTS (C12).
+    FAtomPred.IS_ATTACHED_TO: (
+        frozenset({"referent"}),
+        frozenset({"referent"}),
+    ),
+    # NAME_CHOSEN (grammar round 7, R7-4): name equals the CHOOSE_NAME
+    # pick ("cards with that name", Runed Halo s2 / Necromentia s2). No
+    # slots (precedent: IS_TAPPED).
+    FAtomPred.NAME_CHOSEN: (frozenset(), frozenset()),
 }
 
 # Atom role -> allowed value types. "types" is a tuple of card-type strings
@@ -2640,6 +2751,10 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     "cost": (Cost,),  # PAY's cost role; CAST's optional extra-cost / waiver role
     "tapped_on_enter": (bool,),  # MOVE_ZONE/SEARCH: "put it on the battlefield tapped"
     "unless": (Cost,),  # COUNTER_SPELL's "unless its controller pays X" role
+    # name_filter (grammar round 7, R7-4): CHOOSE_NAME's name restriction
+    # ("choose a nonbasic card name", Necromentia); Filter-valued like
+    # GRANT_ABILITY's ability / PREVENT_EFFECT's condition roles.
+    "name_filter": _F_CLASSES,
 }
 
 # Verb -> {role: required?}. MODIFY_PT and SET_PT additionally require at
@@ -2703,7 +2818,10 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     Verb.REVEAL: {"controller": True, "count": True},
     Verb.LOOK_AT: {"controller": True, "count": True},
     Verb.ATTACH: {"equipment": True, "target": True},
-    Verb.GAIN_CONTROL: {"target": True, "controller": True},
+    # GAIN_CONTROL: duration (grammar round 7, R7-2) — "gain control of
+    # target creature until end of turn" (Traitorous), "…until this
+    # creature leaves the battlefield" pairs with DurationUntilLeaves.
+    Verb.GAIN_CONTROL: {"target": True, "controller": True, "duration": False},
     Verb.PREVENT_EFFECT: {
         "condition": True,
         "event": True,
@@ -2733,6 +2851,28 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     # FLIP_COIN: no roles — the coin is flipped; the outcome is read by
     # FAtomPred.FLIP_WON, never by an arg.
     Verb.FLIP_COIN: {},
+    # CHOOSE (grammar round 7, R7-1): "You choose a noncreature, nonland
+    # card from it" (Duress, Kitesail) — `target` is the pool chosen FROM
+    # (typically a referent="result" Selector over the previous
+    # sentence's zone); the pick records the ability's result register.
+    Verb.CHOOSE: {"target": True, "count": False, "duration": False},
+    # CHOOSE_NAME (grammar round 7, R7-4): "choose a name" (Runed Halo —
+    # no filter; Necromentia — "a nonbasic card name", name_filter). The
+    # pick is read back by FAtomPred.NAME_CHOSEN. Role decision: optional,
+    # mirroring the bare-vs-parametrized split of GRANT/ATTACH analogues
+    # (KeywordAbility params, PREVENT_EFFECT.condition) — the filter only
+    # narrows which names are legal picks.
+    Verb.CHOOSE_NAME: {"name_filter": False},
+    # FIGHT (grammar round 7, R7-8): "This creature fights another target
+    # creature" (Brash Taunter), "it fights up to one target creature you
+    # don't control" (Primal Might). The attacker is the source/IT
+    # referent, never a role. Executor deferred per the MANDATE_BLOCK /
+    # PHASE_IN orphan precedent (PC-6 unaffected).
+    Verb.FIGHT: {"target": True},
+    # LOSE_ABILITY (grammar round 7, R9a): "that permanent loses
+    # indestructible until end of turn" (Soul Sear) — mirrors
+    # GRANT_ABILITY's roles exactly.
+    Verb.LOSE_ABILITY: {"target": True, "ability": True, "duration": False},
 }
 
 # Keyword -> tuple of allowed param signatures; each signature is a tuple
@@ -2800,6 +2940,7 @@ _DATACLASSES: tuple[type, ...] = (
     DurationPermanent,
     DurationUntilNextTurn,
     DurationWhileCondition,
+    DurationUntilLeaves,
     ZoneChangeEvent,
     CastSpellEvent,
     DeclareAttackersEvent,
@@ -2905,11 +3046,15 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("zone", "opt:zone"),
         ("from_zone", "opt:zone"),
         ("to_zone", "opt:zone"),
+        ("referent", "opt:str"),
     ),
     "DurationEot": (),
     "DurationPermanent": (),
     "DurationUntilNextTurn": (),
     "DurationWhileCondition": (("filter", "filter"),),
+    # source (grammar round 7, R7-2): a referent string, serialized bare;
+    # vocabulary validated in __post_init__ (also on the from_dict path).
+    "DurationUntilLeaves": (("source", "str"),),
     "ZoneChangeEvent": (
         ("from_zone", "zone"),
         ("to_zone", "zone"),
@@ -3121,6 +3266,7 @@ _DURATION_TAGS = frozenset(
         "DurationPermanent",
         "DurationUntilNextTurn",
         "DurationWhileCondition",
+        "DurationUntilLeaves",
     }
 )
 _COST_PART_TAGS = frozenset(
@@ -3204,7 +3350,9 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     # zone/from_zone/to_zone (grammar round 4, R4-4): omit when None. Every
     # pre-round-4 FAtom serializes byte-identical because these three keys
     # are absent (the pre-existing null/[] slots still serialize as before).
-    "FAtom": frozenset({"zone", "from_zone", "to_zone"}),
+    # referent (grammar round 7, R7-1): same omission discipline — every
+    # pre-round-7 FAtom keeps its exact bytes.
+    "FAtom": frozenset({"zone", "from_zone", "to_zone", "referent"}),
     "DamageDealtEvent": frozenset({"source", "combat"}),
     "CostModifier": frozenset({"condition", "extra_deltas"}),
     "SpellAbility": frozenset({"effect", "additional_costs"}),

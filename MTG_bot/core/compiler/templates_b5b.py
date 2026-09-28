@@ -1,15 +1,16 @@
-"""B5b bucket templates — 47 templates covering 51 of 90 B5b shapes.
+"""B5b bucket templates — 62 templates covering 69 of 90 B5b shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B5b.json`` (90 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (90 = 51 template + 0 rule-reminder + 39 uncovered):
+Coverage (90 = 69 template + 0 rule-reminder + 21 uncovered):
 
-- **51 template-covered shapes** (47 templates: 44 single-shape tids +
-  3 multi-shape normalized tids — put-counter ×3, return-cards-hand ×2,
-  named-damage ×2; ``B5b-modpt-plus`` is one shape with two concrete rows):
+- **69 template-covered shapes** (62 templates: 57 single-shape tids +
+  5 multi-shape normalized tids — put-counter ×3, return-cards-hand ×2,
+  named-damage ×2, it-gains-kw-eot ×3, if-it-type-then ×2;
+  ``B5b-modpt-plus`` is one shape with two concrete rows):
   keyword rule-reminder sentences (Flash/Haste/Hexproof/Lifelink/Menace/
   Prowess/Reach), continuation effects (discard/draw/gain-life/gain-mana-
   value/modPT+keyword), token creation (Demon/Zombie), counter placement,
@@ -24,12 +25,20 @@ Coverage (90 = 51 template + 0 rule-reminder + 39 uncovered):
   restriction (Gadrak: StaticAbility.condition = FNot(CONTROLLER_COUNT_GE
   Artifact) over a PREVENT_EFFECT/DeclareAttackersEvent — C9/C10) and
   dynamic power definition (Kinetic Augur: SET_PT power-only via
-  QCount(GY instant-or-sorcery) — grammar round 6 R6-3).
+  QCount(GY instant-or-sorcery) — grammar round 6 R6-3), and the grammar
+  round-7 anaphora batch (doc 2026-09-28/03 §3 R7-A): result-referent
+  grants ("It gains …"), the Duress choose/discard chain, the Garruk
+  If-it's/Otherwise Conditional pair, Necromentia's choose-name →
+  search-by-name → per-exile-token chain, ONE_OF/REST split moves
+  (Waker of Waves, See the Truth, Garruk's Harbinger, Cultivate), the
+  cast-elsewhere Conditional, LOSE_ABILITY (Soul Sear) and
+  GAIN_CONTROL's new duration role (Traitorous Greed).
 - **0 rule-reminder shapes** — no fully-parenthesised sentences in B5b.
-- **39 uncovered shapes** — conditional triggers, anaphora,
-  coin-flip gates, fractional computation, modal continuations,
-  protection-from-color-choice, multi-zone search, keyword-loss, and
-  other constructs with no grammar equivalent.
+- **21 uncovered shapes** — Transmogrify's reveal-until dig (deferred
+  D14), coin-flip gates, fractional computation, "Its controller …"
+  controller-referent continuations, keyword-list params,
+  rounding/replacement trivia, and the ``It gains haste."`` ingest
+  artifact (class E — stray quote, queue-pinned).
   Recorded in the test file.
 
 Conventions (documented build decisions):
@@ -90,6 +99,7 @@ PC-3: every B5b concrete sentence fullmatches **at most one** template
 from __future__ import annotations
 
 import re
+from typing import Final
 
 from MTG_bot.core.ability_tree import (
     QX,
@@ -97,6 +107,8 @@ from MTG_bot.core.ability_tree import (
     Atom,
     AtomArgs,
     CardDrawnEvent,
+    Choose,
+    Conditional,
     ControllerRef,
     Cost,
     CostDeltaIncreaseGeneric,
@@ -109,9 +121,11 @@ from MTG_bot.core.ability_tree import (
     DamageDealtEvent,
     DeclareAttackersEvent,
     DurationEot,
+    Effect,
     FAnd,
     FAtom,
     FAtomPred,
+    Filter,
     FNot,
     FOr,
     Keyword,
@@ -138,6 +152,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    ZonePosition,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -1332,6 +1347,571 @@ def _build_set_pt_power_gy_count(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
+# Grammar round-7 batch builders (family-2 anaphora — doc 2026-09-28/03 §3)
+# ---------------------------------------------------------------------------
+
+_KW_GAIN: dict[str, Keyword] = {
+    "indestructible": Keyword.INDESTRUCTIBLE,
+    "haste": Keyword.HASTE,
+    "vigilance": Keyword.VIGILANCE,
+}
+
+_KW_LOSE: dict[str, Keyword] = {
+    "indestructible": Keyword.INDESTRUCTIBLE,
+}
+
+# C15 (doc 2026-09-28/05): "protection from the color of your choice" is
+# a controller decision — it is expanded into the game's five color options
+# as an explicit Choose node instead of defaulting one color (the C-3
+# colorless-conflation is exactly what C15 forbids in new templates).
+_COLORS_WUBRG: tuple[str, ...] = ("W", "U", "B", "R", "G")
+
+
+_UNIVERSAL: Final[Filter] = FAnd(children=())
+
+
+def _result_selector(filter: Filter | None = None) -> Selector:
+    """Grammar round 7 (R7-1): the anaphoric ``it`` / ``that card`` /
+    ``them`` — the object(s) the previous sentence acted on (revealed /
+    chosen / exiled / moved).  ``referent="result"`` (C12: the result
+    register is compiler state, never an English antecedent); the neutral
+    zone mirrors the r8 round-trip canonical selector."""
+    return Selector(
+        QConst(1),
+        SelectorMode.CHOOSE,
+        filter if filter is not None else _UNIVERSAL,
+        Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+        referent="result",
+    )
+
+
+def _looked_top_library(filter: Filter | None = None) -> Selector:
+    """The set the previous "Look at the top N cards" sentence exposed:
+    still on top of your library, so the zone is typed rather than a
+    result referent (r8 ONE_OF/REST canonical)."""
+    return Selector(
+        QConst(1),
+        SelectorMode.CHOOSE,
+        filter if filter is not None else _UNIVERSAL,
+        Zone(
+            kind=ZoneKind.LIBRARY,
+            controller=ControllerRef.YOU,
+            position=ZonePosition.TOP,
+        ),
+    )
+
+
+def _build_it_gains_kw_eot(m: re.Match[str]) -> SentenceOutcome:
+    """``It gains <kw> until end of turn.`` (Basri Ket, Seasoned
+    Hallowblade, Basri Devoted Paladin, Traitorous Greed) — GRANT_ABILITY
+    onto the result-referent object with the EOT duration (R7-1)."""
+    kw = _KW_GAIN[m.group("kw")]
+    atom = Atom(
+        verb=Verb.GRANT_ABILITY,
+        args=AtomArgs(
+            pairs=(
+                ("target", _result_selector()),
+                ("ability", KeywordAbility(keyword=kw)),
+                ("duration", DurationEot()),
+            )
+        ),
+    )
+    return EffectOutcome(effect=atom)
+
+
+def _build_it_gains_haste(m: re.Match[str]) -> SentenceOutcome:
+    """``It gains haste.`` (Liliana Waker emblem) — grant with NO
+    duration: the emblem's put-onto-battlefield continuation grants
+    permanently."""
+    atom = Atom(
+        verb=Verb.GRANT_ABILITY,
+        args=AtomArgs(
+            pairs=(
+                ("target", _result_selector()),
+                ("ability", KeywordAbility(keyword=Keyword.HASTE)),
+            )
+        ),
+    )
+    return EffectOutcome(effect=atom)
+
+
+def _build_it_gains_protection_choice(m: re.Match[str]) -> SentenceOutcome:
+    """``It gains protection from the color of your choice until end of
+    turn.`` (Feat of Resistance) — C15: the color is a controller
+    decision, so the grant is an explicit one-of-five Choose over
+    color-parameterized PROTECTION grants; nothing is defaulted."""
+    options = tuple(
+        Atom(
+            verb=Verb.GRANT_ABILITY,
+            args=AtomArgs(
+                pairs=(
+                    ("target", _result_selector()),
+                    (
+                        "ability",
+                        KeywordAbility(
+                            keyword=Keyword.PROTECTION,
+                            params=(FAtom(pred=FAtomPred.COLOR_HAS, color=color),),
+                        ),
+                    ),
+                    ("duration", DurationEot()),
+                )
+            ),
+        )
+        for color in _COLORS_WUBRG
+    )
+    return EffectOutcome(effect=Choose(count=QConst(1), options=options))
+
+
+def _build_that_player_discards_that_card(m: re.Match[str]) -> SentenceOutcome:
+    """``That player discards that card.`` (Duress s3) — the player is the
+    spell's targeted opponent (TARGET_PLAYER role); the card is the card
+    the previous CHOOSE picked off the revealed hand → referent="result"
+    (R7-1; antecedent ``B4-you-choose-from-it`` is in this batch)."""
+    atom = Atom(
+        verb=Verb.DISCARD,
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.TARGET_PLAYER),
+                ("cards", _result_selector()),
+            )
+        ),
+    )
+    return EffectOutcome(effect=atom)
+
+
+def _build_if_it_type_then(m: re.Match[str]) -> SentenceOutcome:
+    """``If it's a creature [or land] card, ...`` (Garruk Savage Herald
+    s2, Track Down s2) — Conditional whose subject is the previous
+    sentence's revealed card (result register; FAtom rules keep the
+    referent slot closed to IS_ATTACHED_TO, so the condition's subject is
+    the register by executor convention, and the MOVED card itself is the
+    referent="result" selector)."""
+    then = m.group("then")
+    if then == "draw a card":
+        if m.group("or_land") is None:
+            raise ValueError(
+                "B5b-if-it-type-then: bare-creature draw branch is not a"
+                " printed sentence shape (pattern over-matched)"
+            )
+        pred: Filter = FOr(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land"),
+            )
+        )
+        effect: Effect = Atom(
+            verb=Verb.DRAW,
+            args=AtomArgs(
+                pairs=(("controller", ControllerRef.YOU), ("amount", QConst(1)))
+            ),
+        )
+    else:
+        if m.group("or_land") is not None:
+            raise ValueError(
+                "B5b-if-it-type-then: or-land hand-move branch is not a"
+                " printed sentence shape (pattern over-matched)"
+            )
+        pred = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+        effect = Atom(
+            verb=Verb.MOVE_ZONE,
+            args=AtomArgs(
+                pairs=(
+                    ("cards", _result_selector()),
+                    ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
+                )
+            ),
+        )
+    return EffectOutcome(effect=Conditional(pred=pred, then_effect=effect))
+
+
+def _build_otherwise_bottom(m: re.Match[str]) -> SentenceOutcome:
+    """``Otherwise, put it on the bottom of your library.`` (Garruk
+    Savage Herald s3) — the compiler's ``_merge_otherwise`` attaches this
+    effect as the preceding Conditional's ``else_effect`` (R7-3); the
+    moved card is again the result referent."""
+    atom = Atom(
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                ("cards", _result_selector()),
+                (
+                    "destination",
+                    Zone(
+                        ZoneKind.LIBRARY,
+                        ControllerRef.YOU,
+                        position=ZonePosition.BOTTOM,
+                    ),
+                ),
+            )
+        ),
+    )
+    return EffectOutcome(effect=atom)
+
+
+def _build_search_name_exile(m: re.Match[str]) -> SentenceOutcome:
+    """``Search target opponent's graveyard, hand, and library for any
+    number of cards with that name and exile them.`` (Necromentia s2) —
+    the name filter is the CHOOSE_NAME read-back (R7-4); "any number" is
+    the unbounded CHOOSE quantity choice (C15: 0..∞ preserved, not a
+    defaulted count).  The found cards then leave via EXILE on the result
+    referent."""
+    search = Atom(
+        verb=Verb.SEARCH,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(
+                        QUnbounded(),
+                        SelectorMode.CHOOSE,
+                        FAtom(pred=FAtomPred.NAME_CHOSEN),
+                        Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER),
+                        zones=(
+                            Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER),
+                            Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER),
+                        ),
+                    ),
+                ),
+                ("destination", Zone(ZoneKind.EXILE, ControllerRef.TARGET_PLAYER)),
+                ("controller", ControllerRef.TARGET_PLAYER),
+            )
+        ),
+    )
+    exile = Atom(
+        verb=Verb.EXILE,
+        args=AtomArgs(pairs=(("target", _result_selector()),)),
+    )
+    return EffectOutcome(effect=Seq(steps=(search, exile)))
+
+
+def _build_shuffle_then_token_per_exiled(m: re.Match[str]) -> SentenceOutcome:
+    """``That player shuffles, then creates a P/T black Zombie creature
+    token for each card exiled from their hand this way.`` (Necromentia
+    s3) — SHUFFLE + CREATE_TOKEN whose count is the this-way exile tally
+    (R7-5 THIS_WAY_COUNT).
+    LOSSY: TokenSpec has no color field (known gap C-2), so "black" is
+    dropped; the creating player ("that player") has no CREATE_TOKEN
+    controller role, so the creator is implicit."""
+    token = TokenSpec(
+        name="Zombie",
+        type_line="Creature — Zombie",
+        types=("Creature",),
+        subtypes=("Zombie",),
+        power=QConst(int(m.group("p"))),
+        toughness=QConst(int(m.group("t"))),
+        keywords=(),
+        abilities=(),
+    )
+    shuffle = Atom(
+        verb=Verb.SHUFFLE,
+        args=AtomArgs(
+            pairs=(("zone", Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER)),)
+        ),
+    )
+    create = Atom(
+        verb=Verb.CREATE_TOKEN,
+        args=AtomArgs(
+            pairs=(
+                ("tokens", token),
+                (
+                    "count",
+                    QProp(referent="event", field=QPropField.THIS_WAY_COUNT),
+                ),
+            )
+        ),
+    )
+    return EffectOutcome(effect=Seq(steps=(shuffle, create)))
+
+
+def _build_that_permanent_loses_kw(m: re.Match[str]) -> SentenceOutcome:
+    """``That permanent loses <kw> until end of turn.`` (Soul Sear s2) —
+    Verb.LOSE_ABILITY mirrors GRANT_ABILITY's roles (R7-9a).
+    DECISION: "That permanent" is the spell's damaged target → R4
+    referent="target" (binds the s0 TARGET selector today), not the
+    round-7 result register — the deviation from the spec sketch is
+    deliberate and documented (target-vocabulary anaphora binds without
+    the register machinery)."""
+    kw = _KW_LOSE[m.group("kw")]
+    atom = Atom(
+        verb=Verb.LOSE_ABILITY,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAnd(children=()),
+                        Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+                        referent="target",
+                    ),
+                ),
+                ("ability", KeywordAbility(keyword=kw)),
+                ("duration", DurationEot()),
+            )
+        ),
+    )
+    return EffectOutcome(effect=atom)
+
+
+def _build_one_of_other(m: re.Match[str]) -> SentenceOutcome:
+    """``Put one of them into your hand and the other into your
+    graveyard.`` (Waker of Waves s3) — the ONE_OF/REST split pair
+    (R7-7): exactly one of the looked-at set to hand, everything
+    remaining ("the other", here exactly one) to the graveyard."""
+    to_hand = Atom(
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.ONE_OF,
+                        FAnd(children=()),
+                        _looked_top_library().zone,
+                    ),
+                ),
+                ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
+            )
+        ),
+    )
+    to_graveyard = Atom(
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.REST,
+                        FAnd(children=()),
+                        _looked_top_library().zone,
+                    ),
+                ),
+                ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+            )
+        ),
+    )
+    return EffectOutcome(effect=Seq(steps=(to_hand, to_graveyard)))
+
+
+def _build_one_of_rest_bottom(m: re.Match[str]) -> SentenceOutcome:
+    """``Put one of those cards into your hand and the rest on the bottom
+    of your library in any order.`` (See the Truth s2) — ONE_OF/REST
+    again; the destination order ("in any order") is controller-chosen
+    ordering with no ordering field in the grammar — dropped, documented."""
+    to_hand = Atom(
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.ONE_OF,
+                        FAnd(children=()),
+                        _looked_top_library().zone,
+                    ),
+                ),
+                ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
+            )
+        ),
+    )
+    to_bottom = Atom(
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.REST,
+                        FAnd(children=()),
+                        _looked_top_library().zone,
+                    ),
+                ),
+                (
+                    "destination",
+                    Zone(
+                        ZoneKind.LIBRARY,
+                        ControllerRef.YOU,
+                        position=ZonePosition.BOTTOM,
+                    ),
+                ),
+            )
+        ),
+    )
+    return EffectOutcome(effect=Seq(steps=(to_hand, to_bottom)))
+
+
+def _build_rest_bottom_random(m: re.Match[str]) -> SentenceOutcome:
+    """``Put the rest on the bottom of your library in a random order.``
+    (Garruk's Harbinger s3) — REST over the looked-at top cards.
+    LOSSY: "in a random order" — the destination has no ordering field
+    (SelectorMode.RANDOM would replace REST, not order it); dropped,
+    documented."""
+    atom = Atom(
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.REST,
+                        FAnd(children=()),
+                        _looked_top_library().zone,
+                    ),
+                ),
+                (
+                    "destination",
+                    Zone(
+                        ZoneKind.LIBRARY,
+                        ControllerRef.YOU,
+                        position=ZonePosition.BOTTOM,
+                    ),
+                ),
+            )
+        ),
+    )
+    return EffectOutcome(effect=atom)
+
+
+def _build_cultivate_search(m: re.Match[str]) -> SentenceOutcome:
+    """``Search your library for up to two basic land cards, reveal those
+    cards, put one onto the battlefield tapped and the other into your
+    hand, then shuffle.`` (Cultivate) — "up to two" is CHOOSE+QConst(2)
+    (C15: the 0/1/2 sub-choice stays open); the split is ONE_OF (BF,
+    tapped) + REST (hand); the inline "then shuffle" is the same
+    search-shuffle step ``_build_search_shuffle`` builds.
+    LOSSY: REVEAL counts the searched cards with an unbounded count — the
+    grammar cannot reference the found set (b2b's documented REVEAL
+    limitation)."""
+    search = Atom(
+        verb=Verb.SEARCH,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(
+                        QConst(2),
+                        SelectorMode.CHOOSE,
+                        FAtom(pred=FAtomPred.SUPERTYPE_EQ, string_value="Basic"),
+                        Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+                    ),
+                ),
+                ("destination", Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)),
+                ("controller", ControllerRef.YOU),
+            )
+        ),
+    )
+    reveal = Atom(
+        verb=Verb.REVEAL,
+        args=AtomArgs(
+            pairs=(("controller", ControllerRef.YOU), ("count", QUnbounded()))
+        ),
+    )
+    to_bf = Atom(
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.ONE_OF,
+                        FAtom(pred=FAtomPred.SUPERTYPE_EQ, string_value="Basic"),
+                        Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+                    ),
+                ),
+                ("destination", Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)),
+                ("tapped_on_enter", True),
+            )
+        ),
+    )
+    to_hand = Atom(
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.REST,
+                        FAtom(pred=FAtomPred.SUPERTYPE_EQ, string_value="Basic"),
+                        Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+                    ),
+                ),
+                ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
+            )
+        ),
+    )
+    shuffle = Atom(
+        verb=Verb.SHUFFLE,
+        args=AtomArgs(pairs=(("zone", Zone(ZoneKind.LIBRARY, ControllerRef.YOU)),)),
+    )
+    return EffectOutcome(effect=Seq(steps=(search, reveal, to_bf, to_hand, shuffle)))
+
+
+def _build_cast_elsewhere_instead(m: re.Match[str]) -> SentenceOutcome:
+    """``If this spell was cast from anywhere other than your hand, put
+    each of those cards into your hand instead.`` (See the Truth s3) —
+    Conditional on the cast-zone read-back (CAST_THIS_TURN_FROM, negated
+    for "anywhere other than your hand") moving the whole result set to
+    hand.
+    LOSSY: "instead" — the grammar has no branch-exclusion marker, so the
+    Conditional is a sibling step of the normal one-and-rest split
+    sequence rather than a replacement of it; documented (the R5
+    ReplacementAbility carrier is event-shaped, not cast-zone-shaped).
+    "Each of those cards" rides the C2 canonical referent selector —
+    referent selectors are pinned to CHOOSE/QConst(1)/neutral-zone, so the
+    register's plurality is applied per object executor-side."""
+    cond = FNot(
+        inner=FAtom(
+            pred=FAtomPred.CAST_THIS_TURN_FROM,
+            zone=Zone(ZoneKind.HAND, ControllerRef.YOU),
+            who=ControllerRef.YOU,
+        )
+    )
+    move = Atom(
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                ("cards", _result_selector()),
+                ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
+            )
+        ),
+    )
+    return EffectOutcome(effect=Conditional(pred=cond, then_effect=move))
+
+
+def _build_gain_control_eot(m: re.Match[str]) -> SentenceOutcome:
+    """``Gain control of target creature until end of turn.`` (Traitorous
+    Greed s1) — GAIN_CONTROL's optional duration role (R7-2,
+    ``_VERB_ROLES`` row extended by the grammar phase)."""
+    atom = Atom(
+        verb=Verb.GAIN_CONTROL,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.TARGET,
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                    ),
+                ),
+                ("controller", ControllerRef.YOU),
+                ("duration", DurationEot()),
+            )
+        ),
+    )
+    return EffectOutcome(effect=atom)
+
+
+# ---------------------------------------------------------------------------
 # Template registry
 # ---------------------------------------------------------------------------
 
@@ -1813,16 +2393,166 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_set_pt_power_gy_count,
     ),
+    # --- grammar round-7 batch (family-2 anaphora; doc 2026-09-28/03 §3) ---
+    Template(
+        tid="B5b-it-gains-kw-eot",
+        name="it gains <kw> until end of turn (result-referent grant)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^It gains (?P<kw>indestructible|haste|vigilance) "
+            r"until end of turn\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_it_gains_kw_eot,
+    ),
+    Template(
+        tid="B5b-it-gains-haste",
+        name="it gains haste (permanent result-referent grant)",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^It gains haste\.$"),
+        priority=_PRIORITY,
+        build=_build_it_gains_haste,
+    ),
+    Template(
+        tid="B5b-it-gains-protection-choice",
+        name="it gains protection from the color of your choice (Choose 1-of-5)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^It gains protection from the color of your choice "
+            r"until end of turn\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_it_gains_protection_choice,
+    ),
+    Template(
+        tid="B5b-that-player-discards",
+        name="that player discards that card (result-referent discard)",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^That player discards that card\.$"),
+        priority=_PRIORITY,
+        build=_build_that_player_discards_that_card,
+    ),
+    Template(
+        tid="B5b-if-it-type-then",
+        name="if it's a creature [or land] card, <then> (result Conditional)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^If it's a creature(?P<or_land> or land)? card, "
+            r"(?P<then>put it into your hand|draw a card)\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_if_it_type_then,
+    ),
+    Template(
+        tid="B5b-otherwise-bottom",
+        name="otherwise put it on the bottom of your library (else_effect)",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^Otherwise, put it on the bottom of your library\.$"),
+        priority=_PRIORITY,
+        build=_build_otherwise_bottom,
+    ),
+    Template(
+        tid="B5b-search-name-exile",
+        name="search target opponent's zones for any number with that name, exile",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Search target opponent's graveyard, hand, and library for "
+            r"any number of cards with that name and exile them\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_search_name_exile,
+    ),
+    Template(
+        tid="B5b-token-per-exiled-this-way",
+        name="that player shuffles, then creates a Zombie token per this-way exile",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^That player shuffles, then creates a (?P<p>\d+)/(?P<t>\d+) "
+            r"black Zombie creature token for each card exiled from their "
+            r"hand this way\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_shuffle_then_token_per_exiled,
+    ),
+    Template(
+        tid="B5b-loses-kw-eot",
+        name="that permanent loses <kw> until end of turn (LOSE_ABILITY)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^That permanent loses (?P<kw>indestructible) until end of turn\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_that_permanent_loses_kw,
+    ),
+    Template(
+        tid="B5b-one-of-other",
+        name="put one of them into your hand and the other into your graveyard",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Put one of them into your hand and the other into your "
+            r"graveyard\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_one_of_other,
+    ),
+    Template(
+        tid="B5b-one-of-rest-bottom",
+        name="put one of those cards into your hand and the rest on bottom",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Put one of those cards into your hand and the rest on the "
+            r"bottom of your library in any order\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_one_of_rest_bottom,
+    ),
+    Template(
+        tid="B5b-rest-bottom-random",
+        name="put the rest on the bottom of your library in a random order",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Put the rest on the bottom of your library in a random order\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_rest_bottom_random,
+    ),
+    Template(
+        tid="B5b-search-one-other-shuffle",
+        name="search up to two basic lands, one tapped to BF, other to hand, shuffle",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Search your library for up to two basic land cards, reveal "
+            r"those cards, put one onto the battlefield tapped and the other "
+            r"into your hand, then shuffle\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_cultivate_search,
+    ),
+    Template(
+        tid="B5b-cast-elsewhere-instead",
+        name="if cast from anywhere other than your hand, those cards to hand instead",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^If this spell was cast from anywhere other than your hand, "
+            r"put each of those cards into your hand instead\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_cast_elsewhere_instead,
+    ),
+    Template(
+        tid="B5b-gain-control-eot",
+        name="gain control of target creature until end of turn",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^Gain control of target creature until end of turn\.$"),
+        priority=_PRIORITY,
+        build=_build_gain_control_eot,
+    ),
 )
 
 UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         "Flying, first strike, lifelink, protection from Demons and from Dragons",
         "Composite keyword list with protection-from-subtypes",
-    ),
-    (
-        "Gain control of target creature until end of turn.",
-        "GAIN_CONTROL has no duration role - 'until end of turn' inexpressible",
     ),
     (
         "If a creature died this turn, create two N/N green Saproling creature tokens.",
@@ -1841,18 +2571,6 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
         "Conditional counter-and-gain-life with anaphoric 'it'",
     ),
     (
-        "If it's a creature card, put it into your hand.",
-        "Conditional zone-move with anaphoric 'it'",
-    ),
-    (
-        "If it's a creature or land card, draw a card.",
-        "Conditional draw with anaphoric 'it'",
-    ),
-    (
-        "If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead.",
-        "Conditional zone-move with anaphoric 'those cards'",
-    ),
-    (
         "If you search your library this way, shuffle.",
         "Conditional shuffle on library-search trigger",
     ),
@@ -1861,28 +2579,8 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
         "Conditional life-gain on coin-flip outcome",
     ),
     (
-        "It gains haste until end of turn.",
-        "Anaphoric 'It' keyword grant with duration",
-    ),
-    (
-        "It gains haste.",
-        "Anaphoric 'It' keyword grant without duration",
-    ),
-    (
         'It gains haste."',
         "Anaphoric 'It' keyword grant with trailing quote",
-    ),
-    (
-        "It gains indestructible until end of turn.",
-        "Anaphoric 'It' keyword grant (indestructible) with duration",
-    ),
-    (
-        "It gains protection from the color of your choice until end of turn.",
-        "Anaphoric 'It' protection-from-color-choice grant",
-    ),
-    (
-        "It gains vigilance until end of turn.",
-        "Anaphoric 'It' keyword grant (vigilance) with duration",
     ),
     (
         "Its controller creates a N/N white Angel creature token with flying.",
@@ -1897,10 +2595,6 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
         "Controller-referent life-loss with anaphoric 'Its'",
     ),
     (
-        "Otherwise, put it on the bottom of your library.",
-        "Anaphoric 'it' zone-move (conditional branch)",
-    ),
-    (
         "Play with the top card of your library revealed.",
         "No top-card-revealed-play-state grammar construct",
     ),
@@ -1909,32 +2603,12 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
         "Counter-placement with follow-up doubling (multi-step counter)",
     ),
     (
-        "Put one of them into your hand and the other into your graveyard.",
-        "Anaphoric 'them' split zone-move (hand + graveyard)",
-    ),
-    (
-        "Put one of those cards into your hand and the rest on the bottom of your library in any order.",
-        "Anaphoric 'those cards' split zone-move with bottom-shuffle",
-    ),
-    (
-        "Put the rest on the bottom of your library in a random order.",
-        "Anaphoric 'the rest' random-order bottom-shuffle",
-    ),
-    (
         "Reach, hexproof from blue",
         "Composite keyword with colored hexproof variant",
     ),
     (
         "Round up each time.",
         "Anaphoric 'each time' rounding instruction",
-    ),
-    (
-        "Search target opponent's graveyard, hand, and library for any number of cards with that name and exile them.",
-        "Multi-zone search-and-exile with name anaphora",
-    ),
-    (
-        "Search your library for up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle.",
-        "Complex tutor with reveal, split-zone, and shuffle",
     ),
     (
         "Spend this mana only to cast an instant or sorcery spell.",
@@ -1953,20 +2627,8 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
         "Anaphoric controller reveal-until-creature (search-until)",
     ),
     (
-        "That permanent loses indestructible until end of turn.",
-        "Anaphoric 'That permanent' keyword-loss with duration",
-    ),
-    (
-        "That player discards that card.",
-        "Anaphoric 'That player' / 'that card' discard (modal continuation)",
-    ),
-    (
         "That player puts that card onto the battlefield, then shuffles the rest into their library.",
         "Anaphoric zone-move with shuffle-remainder (modal continuation)",
-    ),
-    (
-        "That player shuffles, then creates a N/N black Zombie creature token for each card exiled from their hand this way.",
-        "Anaphoric shuffle + per-card token creation (modal continuation)",
     ),
     (
         "Then if an opponent controls more creatures than you, put a loyalty counter on Garruk.",
