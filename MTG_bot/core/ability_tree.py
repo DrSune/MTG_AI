@@ -108,6 +108,22 @@ Design decisions (each pinned by tests in test_ability_tree.py):
    dual conv). Every new field defaults to None and serializes by
    OMITTING the key, so all pre-round-5 trees keep byte-identical
    canonical JSON.
+- **grammar round 8 / phase 8-A (decision-surface vocabulary, KNOWLEDGE
+  2026-09-28/08)**, pinned by test_ability_tree_r9.py: ``QAtMost(n)``
+  (convention C17 — TARGET-mode "up to n" designation), ``TokenSpec``
+  trailing ``color`` / ``enters_tapped`` / ``enters_attacking`` optionals,
+  the AtomArgs ``color`` vocabulary widened with ``"ANY"`` ("mana of any
+  one color" — distinct from colourless ``"C"``), optional ``dealer`` /
+  ``recipient`` roles on DEAL_DAMAGE, ``FAtomPred.
+  IS_EXILED_WITH_SOURCE`` (no slots) and ``CONTROLLER_COUNT_GT`` (dual
+  ``inner_filter`` / ``right_inner_filter`` comparison; the new FAtom
+  filter slot is omit-when-None, byte-stable), ``Verb.GET_EMBLEM`` (no
+  roles; C19 — the emblem payload is the card-level attach, quoted text
+  never enters the IR) and ``Verb.ADD_LAND_PLAY`` (Azusa),
+  ``ThisTurnKind.NONCOMBAT_DAMAGE``, and ``QProp`` COUNTER_COUNT widened
+  to the "target" referent (Invigorating Surge). All items are additive;
+  no template opts in yet (phase 8-B flips), so all 305 goldens stay
+  byte-identical through 8-A.
 - **No orphan guarantee yet**: verbs are cited to pool cards in docstrings;
   orphans are MEASURED by PC-6 and pruned then — the vocabulary is the
   Phase-1 hypothesis, not the post-hoc truth.
@@ -129,6 +145,12 @@ from MTG_bot.core.identity import validate_oracle_id
 # ADD_MANA "color" atom role; ColorSets are always drawn from WUBRG.
 _COLORS = ("W", "U", "B", "R", "G")
 _COLORLESS = "C"
+# _ANY_COLOR (grammar round 8, R8-3): "mana of any one color" — the ADDER
+# picks one colour at resolution (Jeskai Ascendancy-style triggers, the
+# C-3 collapse repair). DISTINCT from _COLORLESS: "C" means colourless
+# mana, "ANY" means a choice among WUBRG. Existing templates keep "C"
+# until the 8-B fidelity flip.
+_ANY_COLOR = "ANY"
 
 
 # ---- Closed vocabularies (enums) ----
@@ -204,12 +226,29 @@ class Verb(Enum):
         "LOSE_ABILITY"  # "that permanent loses indestructible" (Soul
         # Sear) — mirrors GRANT_ABILITY's roles.
     )
+    # GET_EMBLEM (grammar round 8, R8-7): "you get an emblem with
+    # '…'" (Teferi, Master of Time [-X]; C19). A MARKER verb with NO
+    # roles: the emblem payload is the card-level emblem attach
+    # (compiler two-pass, compiler.py:1115) — the quoted emblem text
+    # NEVER enters the ability IR. Executor deferred per the MANDATE_
+    # ATTACK / FIGHT orphan precedent (PC-6 unaffected).
+    GET_EMBLEM = "GET_EMBLEM"
+    # ADD_LAND_PLAY (grammar round 8, R8-8): "You may play two additional
+    # lands on each of your turns" (Azusa, Lost but Seeking); "you may
+    # play one additional land each turn" (Uktabi Efreet). `count` = the
+    # additional plays, `duration` scopes the grant. Executor deferred
+    # per the FIGHT orphan precedent.
+    ADD_LAND_PLAY = "ADD_LAND_PLAY"
 
 
 class SelectorMode(Enum):
     """How a selector picks its objects (DESIGN_CARD_POOL: one Selector type
     used by targets, statics, counts, triggers, and search)."""
 
+    # TARGET = exactly `count` objects for a concrete count; with a
+    # QAtMost(n) count (grammar round 8, C17) it is the legal designation
+    # of "up to n targets": the player chooses 1..n, the effect resolves
+    # on 0..remaining (executor clamp).
     TARGET = "TARGET"  # exactly `count` objects, chosen by the effect
     CHOOSE = "CHOOSE"  # up to `count` objects, chosen by a controller
     ALL = "ALL"  # every object in the zone matching the filter (count ignored)
@@ -272,9 +311,11 @@ class ControllerRef(Enum):
 class QPropField(Enum):
     """Which property QProp reads from its referent. The player-count fields
     only make sense with the "controller" referent; AMOUNT, THIS_WAY_COUNT
-    and THAT_MANY_COUNT only with "event"; COUNTER_COUNT with "event" or
+    and THAT_MANY_COUNT only with "event"; COUNTER_COUNT with "event",
     "source" (grammar round 7: SOUL counters on the source Equipment,
-    Malefic Scythe) — all validated in QProp.__post_init__."""
+    Malefic Scythe) or "target" (grammar round 8, R8-11: counters on the
+    chosen target, Invigorating Surge) — all validated in
+    QProp.__post_init__."""
 
     POWER = "POWER"
     TOUGHNESS = "TOUGHNESS"
@@ -320,6 +361,11 @@ class ThisTurnKind(Enum):
 
     LIFE_GAINED = "LIFE_GAINED"
     CARDS_DRAWN = "CARDS_DRAWN"
+    # NONCOMBAT_DAMAGE (grammar round 8, R8-10): total noncombat damage
+    # dealt by the referent this turn — Chandra's Incinerator "{X}, where
+    # X is the total amount of noncombat damage dealt to your opponents
+    # this turn."
+    NONCOMBAT_DAMAGE = "NONCOMBAT_DAMAGE"
 
 
 class FAtomPred(Enum):
@@ -423,6 +469,20 @@ class FAtomPred(Enum):
         "NAME_CHOSEN"  # grammar round 7: the object's name is the one
         # picked by Verb.CHOOSE_NAME ("cards with that name" — Runed Halo
         # s2, Necromentia s2). No slots (precedent: IS_TAPPED).
+    )
+    IS_EXILED_WITH_SOURCE = (
+        "IS_EXILED_WITH_SOURCE"  # grammar round 8, R8-6: the card is in
+        # exile AND was exiled by the source object — "the exiled card"
+        # permission scoping (Horizon Scholar's "card exiled with ~",
+        # Idol of Endurance). No slots (precedent: IS_TAPPED); evaluated
+        # against the ability's source.
+    )
+    CONTROLLER_COUNT_GT = (
+        "CONTROLLER_COUNT_GT"  # grammar round 8, R8-9: the referent
+        # controller controls MORE objects matching inner_filter than
+        # matching right_inner_filter — Garruk's "you control more
+        # creatures than any opponent" split; dual-filter comparison,
+        # the second filter lives in the new right_inner_filter slot.
     )
 
 
@@ -626,13 +686,17 @@ class QProp:
             raise ValueError(f"QProp: {self.field.name} requires the 'event' referent")
         # COUNTER_COUNT (grammar round 7, R9b): the event's counter count
         # (Conclave Mentor) OR the source permanent's counter count
-        # (Malefic Scythe's "for each soul counter on this Equipment").
+        # (Malefic Scythe's "for each soul counter on this Equipment");
+        # widened to "target" in grammar round 8 (R8-11): "double that
+        # many counters" on a chosen counter-holder (Invigorating Surge).
         if self.field is QPropField.COUNTER_COUNT and self.referent not in (
             "event",
             "source",
+            "target",
         ):
             raise ValueError(
-                "QProp: COUNTER_COUNT requires the 'event' or 'source' referent"
+                "QProp: COUNTER_COUNT requires the 'event', 'source' or "
+                "'target' referent"
             )
         if isinstance(self.referent, str) and self.agg is not QAgg.FIRST:
             raise ValueError(
@@ -697,7 +761,31 @@ class QAtLeast:
             raise ValueError(f"QAtLeast: n must be >= 1, got {self.n}")
 
 
-Quantity = QConst | QX | QUnbounded | QCount | QProp | QBin | QThisTurn | QAtLeast
+@dataclass(frozen=True)
+class QAtMost:
+    """A quantity meaning "up to n" (n >= 1) — grammar round 8, R8-1,
+    convention C17 (KNOWLEDGE 2026-09-28/08). With a TARGET-mode Selector
+    this is the legal designation of "up to n targets": the player may
+    choose 1..n legal targets (it is still targeted — the legal-target
+    distribution C15 protects is preserved), and the effect resolves on
+    0..n of them (the executor clamps when targets leave). A resolution-
+    time "up to N" that is NOT targeted ("fights up to one target…",
+    "exile up to two cards this way") STAYS CHOOSE + QConst(N) per C17 —
+    QAtMost is only for the targeted designation. n = 0 is a no-op, so 0
+    and negatives are rejected (QAtLeast's validation style)."""
+
+    n: int
+
+    def __post_init__(self) -> None:
+        if isinstance(self.n, bool) or not isinstance(self.n, int):
+            raise ValueError(f"QAtMost: n must be an int, got {self.n!r}")
+        if self.n < 1:
+            raise ValueError(f"QAtMost: n must be >= 1, got {self.n}")
+
+
+Quantity = (
+    QConst | QX | QUnbounded | QCount | QProp | QBin | QThisTurn | QAtLeast | QAtMost
+)
 
 
 # ---- Zones and the selector ----
@@ -731,7 +819,8 @@ class Zone:
 @dataclass(frozen=True)
 class Selector:
     """The one selector type used by targets, statics, counts, triggers,
-    and search (DESIGN_CARD_POOL). count semantics by mode: TARGET exact,
+    and search (DESIGN_CARD_POOL). count semantics by mode: TARGET exact
+    (or 1..n designation / 0..remaining resolution with QAtMost, C17),
     CHOOSE up-to (QUnbounded = any), ALL ignores count, RANDOM exact.
     ``zones`` additively widens the effective zone set to {zone} ∪ zones
     (T3 round C): "target player or planeswalker" = PLAYER ∪ BATTLEFIELD,
@@ -901,6 +990,10 @@ class FAtom:
                       that/source"; same vocabulary as Selector.referent;
                       omitted when None — byte-stable for pre-round-7
                       trees, per the R4-4 zone-slot precedent)
+       right_inner_filter — a SECOND nested Filter (CONTROLLER_COUNT_GT —
+                      grammar round 8, R8-9: dual-filter comparison
+                      "controls more X than Y"); omitted when None —
+                      byte-stable for pre-round-8 trees
     """
 
     pred: FAtomPred
@@ -916,6 +1009,12 @@ class FAtom:
     from_zone: Zone | None = None
     to_zone: Zone | None = None
     referent: str | None = None
+    # right_inner_filter (grammar round 8, R8-9): the SECOND filter of a
+    # dual-filter comparison (CONTROLLER_COUNT_GT — "controls more
+    # creatures than you": inner_filter counts one side,
+    # right_inner_filter the other). Omit-when-None, byte-stable for
+    # pre-round-8 trees (the R4-4/R7-1 slot precedent).
+    right_inner_filter: Filter | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.pred, FAtomPred):
@@ -958,6 +1057,13 @@ class FAtom:
             raise ValueError(
                 f"FAtom: inner_filter must be a Filter, got {type(self.inner_filter).__name__}"
             )
+        if self.right_inner_filter is not None and not _is_filter(
+            self.right_inner_filter
+        ):
+            raise ValueError(
+                "FAtom: right_inner_filter must be a Filter, got "
+                f"{type(self.right_inner_filter).__name__}"
+            )
         if self.zone is not None and not isinstance(self.zone, Zone):
             raise ValueError(
                 f"FAtom: zone must be a Zone, got {type(self.zone).__name__}"
@@ -987,6 +1093,7 @@ class FAtom:
             "from_zone",
             "to_zone",
             "referent",
+            "right_inner_filter",
         ):
             value = getattr(self, slot)
             unset = value is None or (slot == "colors" and value == ())
@@ -1008,6 +1115,7 @@ class FAtom:
                     "from_zone",
                     "to_zone",
                     "referent",
+                    "right_inner_filter",
                 )
             ):
                 raise ValueError(f"FAtom: {self.pred.name} requires slot {slot!r}")
@@ -1562,6 +1670,16 @@ class TokenSpec:
     toughness: Quantity | None
     keywords: tuple[Keyword, ...]
     abilities: tuple[Ability, ...]
+    # color / enters_tapped / enters_attacking (grammar round 8, R8-2/R8-4):
+    # token color words ("Treasure" artifact tokens are colourless, a Basri
+    # Ket soldier is white), "put those tokens onto the battlefield tapped"
+    # and "…that's attacking" (Basri Ket [-2]). All three default to None —
+    # absent (unknown/unstated) — and serialize by OMITTING the key, so
+    # every pre-round-8 token golden stays byte-identical (dual
+    # registration: _SPECS opt-tags + _OMIT_IF_EMPTY row).
+    color: str | None = None
+    enters_tapped: bool | None = None
+    enters_attacking: bool | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.name, str) or not self.name.strip():
@@ -1589,6 +1707,16 @@ class TokenSpec:
                 raise ValueError(
                     f"TokenSpec: abilities must be Ability, got {type(ability).__name__}"
                 )
+        if self.color is not None and (
+            not isinstance(self.color, str) or not self.color.strip()
+        ):
+            raise ValueError(
+                f"TokenSpec: color must be a non-empty str, got {self.color!r}"
+            )
+        for flag in ("enters_tapped", "enters_attacking"):
+            value = getattr(self, flag)
+            if value is not None and not isinstance(value, bool):
+                raise ValueError(f"TokenSpec: {flag} must be a bool, got {value!r}")
 
 
 # ---- Costs ----
@@ -1905,9 +2033,12 @@ class AtomArgs:
                 raise ValueError(
                     "AtomArgs: role 'types' must be a tuple of card-type strings"
                 )
-            if role == "color" and value not in (*_COLORS, _COLORLESS):
+            # "ANY" (grammar round 8, R8-3): "mana of any one color" — a
+            # choice among WUBRG at resolution; distinct from "C"
+            # (colourless). The C-3 collapse repair; templates flip in 8-B.
+            if role == "color" and value not in (*_COLORS, _COLORLESS, _ANY_COLOR):
                 raise ValueError(
-                    f"AtomArgs: role 'color' must be one of WUBRG/C, got {value!r}"
+                    f"AtomArgs: role 'color' must be one of WUBRG/C/ANY, got {value!r}"
                 )
         object.__setattr__(self, "pairs", tuple(sorted(self.pairs, key=lambda p: p[0])))
 
@@ -2501,7 +2632,19 @@ class CardRecord:
 # they live after the classes they validate.
 # ---------------------------------------------------------------------------
 
-_Q_CLASSES = (QConst, QX, QUnbounded, QCount, QProp, QBin, QThisTurn, QAtLeast)
+# QAtMost (grammar round 8, R8-1) joins the Quantity guards so Selector
+# .count and Quantity-valued slots/roles accept it via _is_quantity.
+_Q_CLASSES = (
+    QConst,
+    QX,
+    QUnbounded,
+    QCount,
+    QProp,
+    QBin,
+    QThisTurn,
+    QAtLeast,
+    QAtMost,
+)
 _F_CLASSES = (FAnd, FOr, FNot, FAtom)
 _E_CLASSES = (Seq, Choose, OptionalEffect, Conditional, Repeat, EachPlayer, Atom)
 _A_CLASSES = (
@@ -2718,11 +2861,26 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     # pick ("cards with that name", Runed Halo s2 / Necromentia s2). No
     # slots (precedent: IS_TAPPED).
     FAtomPred.NAME_CHOSEN: (frozenset(), frozenset()),
+    # IS_EXILED_WITH_SOURCE (grammar round 8, R8-6): "the card exiled
+    # with ~" (Horizon Scholar, Idol of Endurance) — the card is in exile
+    # AND the ability's source exiled it. No slots (precedent: IS_TAPPED);
+    # evaluated against the source object.
+    FAtomPred.IS_EXILED_WITH_SOURCE: (frozenset(), frozenset()),
+    # CONTROLLER_COUNT_GT (grammar round 8, R8-9): dual-filter count
+    # comparison — "controls more creatures than you" (Garruk, Primal
+    # Hunter's rivals): inner_filter counts the referent controller's
+    # objects, right_inner_filter the comparison side's. Both slots are
+    # REQUIRED (the comparison has no one-sided reading).
+    FAtomPred.CONTROLLER_COUNT_GT: (
+        frozenset({"inner_filter", "right_inner_filter"}),
+        frozenset({"inner_filter", "right_inner_filter"}),
+    ),
 }
 
 # Atom role -> allowed value types. "types" is a tuple of card-type strings
-# (data); "color" is a WUBRG string plus colourless "C" (ADD_MANA "any
-# colour", the Treasure token).
+# (data); "color" is a WUBRG string plus colourless "C" and (grammar round
+# 8, R8-3) "ANY" = "mana of any one color" — a choice among WUBRG, distinct
+# from colourless "C" (validated in AtomArgs.__post_init__).
 _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     "target": (Selector,),
     "source": (Selector,),
@@ -2755,6 +2913,12 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     # ("choose a nonbasic card name", Necromentia); Filter-valued like
     # GRANT_ABILITY's ability / PREVENT_EFFECT's condition roles.
     "name_filter": _F_CLASSES,
+    # dealer / recipient (grammar round 8, R8-5): DEAL_DAMAGE's optional
+    # damage-surface roles — "you" as recipient ("damage to you", Nine
+    # Lives) or a player-identity Filter naming a side. Widened like
+    # "controller": a referent, a referent Selector, or a Filter.
+    "dealer": (ControllerRef, Selector) + _F_CLASSES,
+    "recipient": (ControllerRef, Selector) + _F_CLASSES,
 }
 
 # Verb -> {role: required?}. MODIFY_PT and SET_PT additionally require at
@@ -2764,7 +2928,18 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
 # plus TAP / UNTAP (a tap or untap is a temporary effect) and MANDATE_ATTACK
 # (a continuous "attacks each combat if able").
 _VERB_ROLES: dict[Verb, dict[str, bool]] = {
-    Verb.DEAL_DAMAGE: {"target": True, "amount": True},
+    # dealer / recipient (grammar round 8, R8-5): optional roles for the
+    # C-4 damage-surface rows — "damage THAT WOULD BE DEALT TO you"
+    # restrictions (Nine Lives) and explicit "to you" recipients. Both
+    # accept a ControllerRef, a referent Selector, or a Filter (the
+    # player-identity FAtom names a side of the comparison); the
+    # templates opt in during the 8-B fidelity flip.
+    Verb.DEAL_DAMAGE: {
+        "target": True,
+        "amount": True,
+        "dealer": False,
+        "recipient": False,
+    },
     Verb.DESTROY: {"target": True},
     Verb.EXILE: {"target": True},
     Verb.DRAW: {"controller": True, "amount": True},
@@ -2873,6 +3048,18 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     # indestructible until end of turn" (Soul Sear) — mirrors
     # GRANT_ABILITY's roles exactly.
     Verb.LOSE_ABILITY: {"target": True, "ability": True, "duration": False},
+    # GET_EMBLEM (grammar round 8, R8-7, C19): NO roles — mirroring the
+    # FLIP_COIN role-less row exactly. The verb is the marker "you get an
+    # emblem"; the emblem's own abilities are the payload via the
+    # card-level emblem attach (compiler.py two-pass). The quoted text
+    # NEVER enters the ability IR (no emblem_ref role: C19).
+    Verb.GET_EMBLEM: {},
+    # ADD_LAND_PLAY (grammar round 8, R8-8): "You may play two additional
+    # lands on each of your turns" (Azusa, Lost but Seeking). `count` =
+    # the number of additional plays, `duration` scopes the grant
+    # (DurationPermanent for "on each of your turns"). Executor deferred
+    # per the FIGHT / MANDATE_ATTACK orphan precedent.
+    Verb.ADD_LAND_PLAY: {"count": False, "duration": False},
 }
 
 # Keyword -> tuple of allowed param signatures; each signature is a tuple
@@ -2930,6 +3117,7 @@ _DATACLASSES: tuple[type, ...] = (
     QBin,
     QThisTurn,
     QAtLeast,
+    QAtMost,
     Zone,
     Selector,
     FAnd,
@@ -3015,6 +3203,7 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "QBin": (("op", "enum:QBinOp"), ("left", "quantity"), ("right", "quantity")),
     "QThisTurn": (("kind", "enum:ThisTurnKind"), ("referent", "enum:ControllerRef")),
     "QAtLeast": (("n", "int"),),
+    "QAtMost": (("n", "int"),),
     "Zone": (
         ("kind", "enum:ZoneKind"),
         ("controller", "enum:ControllerRef"),
@@ -3047,6 +3236,8 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("from_zone", "opt:zone"),
         ("to_zone", "opt:zone"),
         ("referent", "opt:str"),
+        # right_inner_filter (grammar round 8, R8-9): omit-when-None.
+        ("right_inner_filter", "opt:filter"),
     ),
     "DurationEot": (),
     "DurationPermanent": (),
@@ -3121,6 +3312,11 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("toughness", "opt:quantity"),
         ("keywords", "tup:enum:Keyword"),
         ("abilities", "tup:ability"),
+        # grammar round 8, R8-2/R8-4: trailing opt-in fields; omitted at
+        # the None default (_OMIT_IF_EMPTY row) — byte-stable.
+        ("color", "opt:str"),
+        ("enters_tapped", "opt:bool"),
+        ("enters_attacking", "opt:bool"),
     ),
     "CostTap": (("target", "opt:selector"),),
     "CostManaColor": (("color", "str"), ("amount", "quantity")),
@@ -3211,7 +3407,17 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
 }
 
 _QUANTITY_TAGS = frozenset(
-    {"QConst", "QX", "QUnbounded", "QCount", "QProp", "QBin", "QThisTurn", "QAtLeast"}
+    {
+        "QConst",
+        "QX",
+        "QUnbounded",
+        "QCount",
+        "QProp",
+        "QBin",
+        "QThisTurn",
+        "QAtLeast",
+        "QAtMost",
+    }
 )
 _FILTER_TAGS = frozenset({"FAnd", "FOr", "FNot", "FAtom"})
 _EFFECT_TAGS = frozenset(
@@ -3352,7 +3558,16 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     # are absent (the pre-existing null/[] slots still serialize as before).
     # referent (grammar round 7, R7-1): same omission discipline — every
     # pre-round-7 FAtom keeps its exact bytes.
-    "FAtom": frozenset({"zone", "from_zone", "to_zone", "referent"}),
+    # right_inner_filter (grammar round 8, R8-9): same discipline — every
+    # pre-round-8 FAtom keeps its exact bytes.
+    "FAtom": frozenset(
+        {"zone", "from_zone", "to_zone", "referent", "right_inner_filter"}
+    ),
+    # color/enters_tapped/enters_attacking (grammar round 8, R8-2/R8-4):
+    # TokenSpec had NO row before round 8 — without it, every existing
+    # token golden would byte-diff on regeneration (dual-registration
+    # rule, PITFALLS 2026-09-28; pinned in test_ability_tree_r9.py).
+    "TokenSpec": frozenset({"color", "enters_tapped", "enters_attacking"}),
     "DamageDealtEvent": frozenset({"source", "combat"}),
     "CostModifier": frozenset({"condition", "extra_deltas"}),
     "SpellAbility": frozenset({"effect", "additional_costs"}),

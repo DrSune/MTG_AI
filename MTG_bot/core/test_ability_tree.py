@@ -973,8 +973,11 @@ def test_atom_args_roundtrip_wraps_values() -> None:
 
 def test_verb_count_in_spec_range() -> None:
     # DESIGN_CARD_POOL: ~60 verbs planned; the M21-hypothesised subset must
-    # sit in the 30-45 band the rebuild pre-registered.
-    assert 30 <= len(at.Verb) <= 45
+    # sit in the 30-45 band the rebuild pre-registered. Grammar round 8
+    # (KNOWLEDGE 2026-09-28/08, R8-7/R8-8) added GET_EMBLEM + ADD_LAND_PLAY,
+    # taking the vocabulary to 46 — the ceiling widens to 50 (still below
+    # the ~60 plan) so the guard keeps its teeth.
+    assert 30 <= len(at.Verb) <= 50
 
 
 def test_keyword_enum_is_closed_pool_set() -> None:

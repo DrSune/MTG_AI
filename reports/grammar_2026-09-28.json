@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-09-28T18:33:44+02:00",
-  "git_head": "dfbaf1d3a575ce5fea57a686beadeec7b90bc5fd",
+  "generated": "2026-09-28T19:33:38+02:00",
+  "git_head": "5864a63221fe1053535e8764bd779a3bb32a32ca",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -107,18 +107,20 @@
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.215,
-        0.223,
-        0.214
+        0.214,
+        0.214,
+        0.223
       ]
     },
     "PC-6": {
       "name": "vocabulary_health",
       "orphan_verbs": {
-        "value": 1,
+        "value": 3,
         "target": "0",
         "pass": false,
         "verbs": [
+          "ADD_LAND_PLAY",
+          "GET_EMBLEM",
           "PHASE_IN"
         ]
       },
@@ -218,7 +220,7 @@
     "files": 305,
     "diffs": [],
     "stable": true,
-    "goldens": "refreshed",
+    "goldens": "verified",
     "baseline": "VCS-tracked (committed goldens; verify-only by default)"
   },
   "unparsed_queue": [
