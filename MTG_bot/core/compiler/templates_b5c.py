@@ -90,6 +90,7 @@ from MTG_bot.core.ability_tree import (
     PtDelta,
     PtDirection,
     QAgg,
+    QAtMost,
     QBin,
     QBinOp,
     QConst,
@@ -202,9 +203,14 @@ def _target_creature_or_planeswalker() -> Selector:
 
 
 def _up_to_one_target_creature() -> Selector:
+    """TARGET + QAtMost(1) — grammar round 8 / C17: "up to one target
+    creature" (loyalty counter / +A/+B-trample rows) keeps target mode
+    with a 1..N designation range; the interim CHOOSE encoding from the
+    R7 batches erased the legal-target decision (C15).
+    """
     return Selector(
-        QConst(1),
-        SelectorMode.CHOOSE,
+        QAtMost(1),
+        SelectorMode.TARGET,
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
         Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
@@ -344,9 +350,12 @@ def _hand_you_selector(count_qty) -> Selector:
 
 
 def _up_to_two_target_creatures() -> Selector:
+    """TARGET + QAtMost(2) — C17 (round 8): Volcanic Salvo's "each of up
+    to two target creatures and/or planeswalkers" designates 1..2 targets.
+    """
     return Selector(
-        QConst(2),
-        SelectorMode.CHOOSE,
+        QAtMost(2),
+        SelectorMode.TARGET,
         FOr(
             children=(
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
@@ -720,6 +729,9 @@ def _build_loyalty_put_counter(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_loyalty_return_creature(m: re.Match[str]) -> SentenceOutcome:
+    """[+N]: "Return up to one target creature card from your graveyard
+    to your hand" — TARGET + QAtMost(1) per C17 (round 8; the interim
+    CHOOSE shape is replaced)."""
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -727,8 +739,8 @@ def _build_loyalty_return_creature(m: re.Match[str]) -> SentenceOutcome:
                 (
                     "cards",
                     Selector(
-                        QConst(1),
-                        SelectorMode.CHOOSE,
+                        QAtMost(1),
+                        SelectorMode.TARGET,
                         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                         Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
                     ),
@@ -802,6 +814,8 @@ def _build_loyalty_pt_trample(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_loyalty_create_token(m: re.Match[str]) -> SentenceOutcome:
+    """Loyalty: "Create a P/T green Beast creature token" — color="G"
+    populated (round 8 / C-2 repair)."""
     atom = Atom(
         verb=Verb.CREATE_TOKEN,
         args=AtomArgs(
@@ -817,6 +831,7 @@ def _build_loyalty_create_token(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(3))),
                         keywords=(),
                         abilities=(),
+                        color="G",  # C-2 repair (round 8)
                     ),
                 ),
                 ("count", QConst(1)),
@@ -1760,6 +1775,8 @@ def _build_cost_sacrifice_search(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_cost_sacrifice_mana(m: re.Match[str]) -> SentenceOutcome:
+    """{T}, Sacrifice this token: "Add one mana of any color" —
+    color="ANY" (round 8 / R8-3 / C-3 repair)."""
     cost = Cost(
         parts=(
             CostTap(),
@@ -1776,7 +1793,7 @@ def _build_cost_sacrifice_mana(m: re.Match[str]) -> SentenceOutcome:
             pairs=(
                 ("controller", ControllerRef.YOU),
                 ("amount", QConst(1)),
-                ("color", "C"),
+                ("color", "ANY"),
             )
         ),
     )
@@ -1818,6 +1835,8 @@ def _build_bullet_counter_spell(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_bullet_create_token(m: re.Match[str]) -> SentenceOutcome:
+    """• "Create a P/T green Beast creature token" — color="G"
+    (round 8 / C-2 repair)."""
     atom = Atom(
         verb=Verb.CREATE_TOKEN,
         args=AtomArgs(
@@ -1833,6 +1852,7 @@ def _build_bullet_create_token(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(2))),
                         keywords=(),
                         abilities=(),
+                        color="G",  # C-2 repair (round 8)
                     ),
                 ),
                 ("count", QConst(1)),
@@ -2076,6 +2096,8 @@ def _build_bullet_return_nonland_hand(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_bullet_return_two_creatures_hand(m: re.Match[str]) -> SentenceOutcome:
+    """• "Return up to two target creatures to their owners' hands" —
+    TARGET + QAtMost(2) per C17 (round 8)."""
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -2083,8 +2105,8 @@ def _build_bullet_return_two_creatures_hand(m: re.Match[str]) -> SentenceOutcome
                 (
                     "cards",
                     Selector(
-                        QConst(2),
-                        SelectorMode.CHOOSE,
+                        QAtMost(2),
+                        SelectorMode.TARGET,
                         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                         Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
                     ),

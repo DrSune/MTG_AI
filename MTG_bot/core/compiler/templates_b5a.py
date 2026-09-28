@@ -43,10 +43,11 @@ Conventions (documented build decisions):
   Zone(BATTLEFIELD, ANY))``.
 - ``+N/+N`` prints as ``PtDelta(INCREASE, QConst(N))`` — a printed ``+0``
   stays ``QConst(0)`` (lossless w.r.t. oracle text, shape #42).
-- ``Add two mana of any one color`` → ``ADD_MANA(color="C")`` — lossy:
-  the grammar cannot distinguish "any one color" from colorless (shape #34).
-- Token colors (red / blue and red) are dropped: ``TokenSpec`` has no
-  color field (shapes #50/#51 — grammar gap).
+- ``Add two mana of any one color`` → ``ADD_MANA(color="ANY")`` (round 8 /
+  C-3 repair; colorless "{C}" rows keep ``"C"`` — shape #34).
+- Token colors (round 8 / C-2): the red Goblin Wizard populates
+  ``color="R"``; the blue-and-red Weird stays dropped — ``TokenSpec.color``
+  is a single-color ``str`` (bichrome needs a color-set field, R9).
 - ``Each player loses N life`` → ``LOSE_LIFE(controller=ANY)`` (shape #72).
 - ``Counter target spell`` → ``COUNTER_SPELL`` with ``Zone(STACK, ANY)``
   carrying the "spell" semantics (shape #49).
@@ -201,15 +202,15 @@ def _build_add_six(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_add_any_color(m: re.Match[str]) -> SentenceOutcome:
-    # LOSSY: "any one color" is encoded as colorless "C" (no grammar
-    # construct for "choose one color at resolution" on ADD_MANA).
+    # "any one color" = color="ANY" (grammar round 8, R8-3 / C-3 repair):
+    # the player picks a color at resolution; "C" stays colorless-only.
     atom = Atom(
         verb=Verb.ADD_MANA,
         args=AtomArgs(
             pairs=(
                 ("controller", ControllerRef.YOU),
                 ("amount", QConst(2)),
-                ("color", "C"),
+                ("color", "ANY"),
             )
         ),
     )
@@ -403,7 +404,11 @@ def _build_weird_token(m: re.Match[str]) -> SentenceOutcome:
                         subtypes=("Weird",),
                         power=x,
                         toughness=x,
-                        keywords=(),  # GAP: token color (blue and red) dropped
+                        # GAP (stays, 8-B skip): the Weird is blue AND red;
+                        # TokenSpec.color is a single-color str (C-2 scope),
+                        # so a bichrome token cannot be populated faithfully
+                        # without inventing a color-set format (R9 candidate).
+                        keywords=(),
                         abilities=(),
                     ),
                 ),
@@ -429,7 +434,8 @@ def _build_goblin_wizard_tokens(m: re.Match[str]) -> SentenceOutcome:
                         power=QConst(int(m.group(1))),
                         toughness=QConst(int(m.group(2))),
                         keywords=(Keyword.PROWESS,),
-                        abilities=(),  # GAP: token color (red) dropped
+                        abilities=(),
+                        color="R",  # C-2 repair (round 8): printed "red"
                     ),
                 ),
                 ("count", QConst(2)),

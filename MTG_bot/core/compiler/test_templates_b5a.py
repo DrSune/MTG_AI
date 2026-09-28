@@ -935,14 +935,14 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(p["color"], "R")
 
     def test_add_any_color(self) -> None:
-        """B5a-add-any-color: ADD_MANA amount=2 color='C' (lossy)."""
+        """B5a-add-any-color: ADD_MANA amount=2 color="ANY" (C-3 repair)."""
         outcome = self._match_outcome("B5a-add-any-color")
         eff = _as_effect(outcome)
         atom = _as_atom(eff.effect)
         self.assertEqual(atom.verb, Verb.ADD_MANA)
         p = _pairs_dict(atom)
         self.assertEqual(p["amount"], QConst(2))
-        self.assertEqual(p["color"], "C")
+        self.assertEqual(p["color"], "ANY")
 
     def test_attacking_pt(self) -> None:
         """B5a-attacking-pt: StaticAbility, MODIFY_PT, IS_ATTACKING in filter."""

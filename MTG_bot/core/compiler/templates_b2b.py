@@ -55,7 +55,7 @@ Conventions (documented build decisions):
 - ``any target`` is ``Selector(QConst(1), TARGET, universal filter, ANY zone)``.
 - ``X is the number of other attacking creatures`` is a ``QCount`` over a
   selector for other attacking creatures on the battlefield.
-- Token colors are dropped: ``TokenSpec`` has no color field.
+- Token color words populate ``TokenSpec.color`` (grammar round 8 / C-2).
 - ``REVEAL`` after ``SEARCH`` cannot reference the searched cards; it reveals
   an unbounded count of cards from the controller's perspective.
 - ``+N/+N`` on a token and counter can differ (e.g. +1/+1 counter, 2/2 token);
@@ -134,6 +134,7 @@ from MTG_bot.core.ability_tree import (
     PtDelta,
     PtDirection,
     QAgg,
+    QAtMost,
     QConst,
     QCount,
     QProp,
@@ -358,7 +359,7 @@ def _event_reference() -> Selector:
 
 
 def _bird_token(power: int, toughness: int) -> TokenSpec:
-    # GAP: token color omitted — TokenSpec has no color field.
+    # color="W" from the printed sentence (round 8 / C-2 repair).
     return TokenSpec(
         name="Bird",
         type_line="Creature — Bird",
@@ -368,11 +369,12 @@ def _bird_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(Keyword.FLYING,),
         abilities=(),
+        color="W",
     )
 
 
 def _knight_token(power: int, toughness: int) -> TokenSpec:
-    # GAP: token color omitted — TokenSpec has no color field.
+    # color="W" (round 8 / C-2 repair).
     return TokenSpec(
         name="Knight",
         type_line="Creature — Knight",
@@ -382,11 +384,12 @@ def _knight_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(Keyword.VIGILANCE,),
         abilities=(),
+        color="W",
     )
 
 
 def _saproling_token(power: int, toughness: int) -> TokenSpec:
-    # GAP: token color omitted — TokenSpec has no color field.
+    # color="G" (round 8 / C-2 repair).
     return TokenSpec(
         name="Saproling",
         type_line="Creature — Saproling",
@@ -396,11 +399,12 @@ def _saproling_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(),
         abilities=(),
+        color="G",
     )
 
 
 def _cat_token(power: int, toughness: int) -> TokenSpec:
-    # GAP: token color omitted — TokenSpec has no color field.
+    # color="G" (round 8 / C-2 repair — "green Cat").
     return TokenSpec(
         name="Cat",
         type_line="Creature — Cat",
@@ -410,6 +414,7 @@ def _cat_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(),
         abilities=(),
+        color="G",
     )
 
 
@@ -728,7 +733,9 @@ def _build_wildwood_scorge(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_falconer_adept(m: re.Match[str]) -> SentenceOutcome:
     """#28: create 1/1 white Bird with flying, tapped and attacking."""
-    # GAP: token color omitted; tapped/attacking token state omitted.
+    # color="W" populated (round 8 / C-2 repair).  GAP: "that's tapped and
+    # attacking" token state stays dropped in 8-B (TokenSpec.enters_tapped/
+    # enters_attacking rows are 8-C coverage work, not this flip pass).
     return _ability(
         _attack_event(),
         Atom(
@@ -1172,6 +1179,9 @@ def _cast_subtype_token_builder(trigger_subtype: str):
         p = int(m.group("p"))
         t = int(m.group("t"))
         tok = m.group("tok")
+        # printed color word = un-named capture group 3 (white|green) of both
+        # registrations — C-2 repair: populate TokenSpec.color (round 8).
+        col = "W" if m.group(3) == "white" else "G"
         return _ability(
             CastSpellEvent(
                 filter=FAnd(
@@ -1197,6 +1207,7 @@ def _cast_subtype_token_builder(trigger_subtype: str):
                                 toughness=QConst(t),
                                 keywords=(),
                                 abilities=(),
+                                color=col,
                             ),
                         ),
                         ("count", QConst(1)),
@@ -1629,10 +1640,13 @@ def _build_jeskai_elder(m: re.Match[str]) -> SentenceOutcome:
 
 def _noncombat_source_event() -> DamageDealtEvent:
     """DamageDealtEvent for "a source you control deals noncombat damage to
-    an opponent" (Incinerator / Pyreling).  Lossy: "to an opponent" is
-    dropped from the damaged-recipient filter (no opponent predicate);
-    "a source" is read as any source you control (CONTROLLER_IS, no type).
-    ``combat=False`` pins noncombat damage."""
+    an opponent" (Incinerator / Pyreling).  The dealer side is faithful via
+    the event ``source`` filter (CONTROLLER_IS YOU — the 8-A dealer/recipient
+    ATOM roles were re-checked in round 8-B: both rows' effect atoms act on
+    their own source, so no dealer/recipient role applies there; flipping
+    them would be cosmetic).  Remaining lossy: "to an opponent" stays
+    dropped from the damaged-recipient event filter (no player-identity
+    FAtomPred — R8 candidate).  ``combat=False`` pins noncombat damage."""
     return DamageDealtEvent(
         amount=QUnbounded(),
         filter=FAnd(children=()),
@@ -1834,8 +1848,10 @@ def _build_feline_sovereign(m: re.Match[str]) -> SentenceOutcome:
             FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
         )
     )
+    # "destroy up to one target artifact or enchantment" — TARGET +
+    # QAtMost(1) (grammar round 8, C17 targeted up-to).
     target = Selector(
-        QConst(1),
+        QAtMost(1),
         SelectorMode.TARGET,
         FAnd(
             children=(

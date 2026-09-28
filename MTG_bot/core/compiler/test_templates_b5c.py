@@ -53,6 +53,7 @@ from MTG_bot.core.ability_tree import (
     PtDirection,
     QAgg,
     QBinOp,
+    QAtMost,
     QConst,
     QCount,
     QProp,
@@ -1001,8 +1002,8 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertEqual(amount.value, 6)
         target = _pairs(atom)["target"]
         self.assertIsInstance(target, Selector)
-        self.assertIs(target.mode, SelectorMode.CHOOSE)
-        self.assertEqual(target.count, QConst(2))
+        self.assertIs(target.mode, SelectorMode.TARGET)  # C17 (round 8)
+        self.assertEqual(target.count, QAtMost(2))
         self.assertIsInstance(target.filter, FOr)
         names = {c.string_value for c in target.filter.children if isinstance(c, FAtom)}
         self.assertEqual(names, {"Creature", "Planeswalker"})
@@ -1445,8 +1446,8 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.MOVE_ZONE)
         d = _pairs(atom)
         cards = d["cards"]
-        self.assertIs(cards.mode, SelectorMode.CHOOSE)
-        self.assertEqual(cards.count, QConst(2))
+        self.assertIs(cards.mode, SelectorMode.TARGET)  # C17 (round 8)
+        self.assertEqual(cards.count, QAtMost(2))
         self.assertIsInstance(cards.filter, FAtom)
         self.assertEqual(_as_fatom(cards.filter).string_value, "Creature")
         self.assertIs(cards.zone.kind, ZoneKind.BATTLEFIELD)

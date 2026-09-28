@@ -50,6 +50,7 @@ from MTG_bot.core.ability_tree import (
     PtDelta,
     PtDirection,
     QAtLeast,
+    QAtMost,
     QBin,
     QBinOp,
     QConst,
@@ -937,7 +938,8 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(target.mode, SelectorMode.ALL)
 
     def test_put_counter_up_to_two(self) -> None:
-        """B5b-put-counter: each of up to two target creatures."""
+        """B5b-put-counter: each of up to two target creatures — TARGET +
+        QAtMost(2) (round 8 / C17 targeted designation 1..2)."""
         sent = "Put a +1/+1 counter on each of up to two target creatures."
         matches = self.reg.match(sent)
         self.assertEqual(len(matches), 1)
@@ -948,7 +950,8 @@ class TestStructuralAssertions(unittest.TestCase):
         p = _pairs_dict(atom)
         target = p["target"]
         self.assertIsInstance(target, Selector)
-        self.assertEqual(target.mode, SelectorMode.CHOOSE)
+        self.assertEqual(target.mode, SelectorMode.TARGET)
+        self.assertEqual(target.count, QAtMost(2))
 
     def test_put_counter_target_creature(self) -> None:
         """B5b-put-counter: target creature you control."""
@@ -1220,7 +1223,8 @@ class TestStructuralAssertions(unittest.TestCase):
     # -- Tap / Sacrifice / Reveal / Discard --
 
     def test_tap_2_target(self) -> None:
-        """B5b-tap-2-target: TAP, up to two target creatures."""
+        """B5b-tap-2-target: TAP, up to two target creatures — TARGET +
+        QAtMost(2) (round 8 / C17)."""
         outcome = self._match_outcome("B5b-tap-2-target")
         eff = _as_effect(outcome)
         atom = _as_atom(eff.effect)
@@ -1228,7 +1232,8 @@ class TestStructuralAssertions(unittest.TestCase):
         p = _pairs_dict(atom)
         target = p["target"]
         self.assertIsInstance(target, Selector)
-        self.assertEqual(target.mode, SelectorMode.CHOOSE)
+        self.assertEqual(target.mode, SelectorMode.TARGET)
+        self.assertEqual(target.count, QAtMost(2))
 
     def test_reveal_hand(self) -> None:
         """B5b-reveal-hand: REVEAL, TARGET_PLAYER, QUnbounded."""
@@ -1375,6 +1380,11 @@ class TestStructuralAssertions(unittest.TestCase):
         atom = _as_atom(ab.action)
         self.assertEqual(atom.verb, Verb.DEAL_DAMAGE)
         p = _pairs_dict(atom)
+        # dealer role = "a source you control" (round 8 / R8-5, C-4)
+        dealer = p["dealer"]
+        assert isinstance(dealer, FAtom)
+        self.assertIs(dealer.pred, FAtomPred.CONTROLLER_IS)
+        self.assertEqual(dealer.who, ControllerRef.YOU)
         target = p["target"]
         assert isinstance(target, Selector)
         self.assertEqual(target.referent, "event")
@@ -2142,9 +2152,10 @@ class TestRound7BTopUps(unittest.TestCase):
 
     def test_would_damage_incarnation_replacement(self) -> None:
         """Nine Lives: ReplacementAbility over DamageDealtEvent (source=None
-        = the printed universal 'a source'); action PUT_COUNTER(INCARNATION,
-        1) on the self enchantment (r5 convention: the replacement itself
-        carries the prevention, no PREVENT atom)."""
+        = the printed universal 'a source'; event filter names YOU — the
+        printed "to you" recipient, round 8 / C-4); action
+        PUT_COUNTER(INCARNATION, 1) on the self enchantment (r5 convention:
+        the replacement itself carries the prevention, no PREVENT atom)."""
         outcome = self._match_one(
             "If a source would deal damage to you, prevent that damage and "
             "put an incarnation counter on this enchantment."
@@ -2155,6 +2166,11 @@ class TestRound7BTopUps(unittest.TestCase):
         event = repl.event
         assert isinstance(event, DamageDealtEvent)
         self.assertIsNone(event.source)
+        # "to you" restored (round 8): damaged-object filter = YOU.
+        filt = event.filter
+        assert isinstance(filt, FAtom)
+        self.assertIs(filt.pred, FAtomPred.CONTROLLER_IS)
+        self.assertEqual(filt.who, ControllerRef.YOU)
         self.assertEqual(repl.condition, None)
         atom = _as_atom(repl.action)
         self.assertEqual(atom.verb, Verb.PUT_COUNTER)
@@ -2215,8 +2231,9 @@ class TestRound7BTopUps(unittest.TestCase):
         self.assertEqual(kws, {Keyword.DEATHTOUCH, Keyword.LIFELINK})
 
     def test_its_controller_tokens(self) -> None:
-        """Angel (4/4, flying) and Soldier (1/1) tokens; colour dropped
-        (C-2), creator implicit (Necromentia precedent)."""
+        """Angel (4/4, flying) and Soldier (1/1) tokens; colour="W"
+        faithful (round 8 / C-2 repair), creator still implicit
+        (Necromentia precedent)."""
         for sent, pt, flying in [
             (
                 "Its controller creates a 4/4 white Angel creature token with flying.",
@@ -2237,6 +2254,7 @@ class TestRound7BTopUps(unittest.TestCase):
             assert isinstance(spec, TokenSpec)
             self.assertEqual((spec.power, spec.toughness), pt)
             self.assertEqual(spec.keywords, (Keyword.FLYING,) if flying else ())
+            self.assertEqual(spec.color, "W")  # C-2 repair (round 8)
 
     def test_its_controller_loses_life(self) -> None:
         """Death Mage [−3] s2: LOSE_LIFE controller role = referent-target

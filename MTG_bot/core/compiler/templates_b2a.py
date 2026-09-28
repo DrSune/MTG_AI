@@ -30,15 +30,18 @@ Conventions (documented build decisions):
   enchantment`` self-referent targets are encoded as
   ``Selector(CHOOSE, QConst(1), FAtom(IS_SOURCE), zone)`` — a semantic
   self-reference, never a hardcoded card name.
-- ``up to one target ...`` uses ``SelectorMode.TARGET`` with ``QConst(1)``;
-  the word ``target`` drives target mode, while ``you may`` alone drives
-  ``OptionalEffect``.
+- ``up to N target(s) ...`` uses ``SelectorMode.TARGET`` with ``QAtMost(N)``
+  (grammar round 8 / convention C17: targeted "up to N" is a legal
+  designation of 1..N with 0..N resolution — resolution-time "up to" stays
+  CHOOSE); the word ``target`` drives target mode, while ``you may`` alone
+  drives ``OptionalEffect``.
 - ``another`` / ``other`` adds ``FNot(inner=FAtom(IS_SOURCE))``.
 - ``X is the number of Shrines you control`` is encoded as a ``QCount`` over
   ``NAME_EQ("Shrine")`` permanents you control.
-- Token colors are dropped: ``TokenSpec`` has no color field.
-- ``add X mana of any one color`` is encoded as ``ADD_MANA(color="C")`` —
-  lossy: the grammar cannot distinguish "any one color" from colorless.
+- Token color words populate ``TokenSpec.color`` (grammar round 8 / C-2;
+  ``Treasure`` artifact tokens stay colorless/None).
+- ``add X mana of any one color`` is encoded as ``ADD_MANA(color="ANY")``
+  (round 8 / C-3); concrete-color and colorless "{C}" rows keep their letter.
 - ``each opponent`` for life gain/loss uses ``ControllerRef.ALL_OPPONENTS``;
   for damage targets it uses a ``Selector`` over ``Zone(PLAYER, OPPONENT)``.
 
@@ -77,6 +80,7 @@ from MTG_bot.core.ability_tree import (
     PtDelta,
     PtDirection,
     QAgg,
+    QAtMost,
     QBin,
     QBinOp,
     QConst,
@@ -270,7 +274,7 @@ def _life_gained_this_turn_ge(threshold: int) -> FAtom:
 
 
 def _soldier_token(power: int, toughness: int) -> TokenSpec:
-    # GAP: token color omitted — TokenSpec has no color field.
+    # color="W" from the printed sentence (round 8 / C-2 repair).
     return TokenSpec(
         name="Soldier",
         type_line="Creature — Soldier",
@@ -280,11 +284,12 @@ def _soldier_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(),
         abilities=(),
+        color="W",
     )
 
 
 def _saproling_token(power: int, toughness: int) -> TokenSpec:
-    # GAP: token color omitted — TokenSpec has no color field.
+    # color="G" (round 8 / C-2 repair).
     return TokenSpec(
         name="Saproling",
         type_line="Creature — Saproling",
@@ -294,11 +299,12 @@ def _saproling_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(),
         abilities=(),
+        color="G",
     )
 
 
 def _knight_token(power: int, toughness: int) -> TokenSpec:
-    # GAP: token color omitted — TokenSpec has no color field.
+    # color="W" (round 8 / C-2 repair).
     return TokenSpec(
         name="Knight",
         type_line="Creature — Knight",
@@ -308,11 +314,12 @@ def _knight_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(Keyword.VIGILANCE,),
         abilities=(),
+        color="W",
     )
 
 
 def _griffin_token(power: int, toughness: int) -> TokenSpec:
-    # GAP: token color omitted — TokenSpec has no color field.
+    # color="W" (round 8 / C-2 repair).
     return TokenSpec(
         name="Griffin",
         type_line="Creature — Griffin",
@@ -322,6 +329,7 @@ def _griffin_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(Keyword.FLYING,),
         abilities=(),
+        color="W",
     )
 
 
@@ -608,7 +616,8 @@ def _build_garruk_emblem(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_sanctum_fruitful_harvest(m: re.Match[str]) -> SentenceOutcome:
-    # GAP: "any one color" is lossy — encoded as colorless mana.
+    # "mana of any one color" = color="ANY" (grammar round 8, R8-3 / C-3
+    # repair): the any-color CHOICE is distinct from colorless "C".
     return _ability(
         _first_main_event(),
         Atom(
@@ -617,7 +626,7 @@ def _build_sanctum_fruitful_harvest(m: re.Match[str]) -> SentenceOutcome:
                 pairs=(
                     ("controller", ControllerRef.YOU),
                     ("amount", _shrine_count()),
-                    ("color", "C"),
+                    ("color", "ANY"),
                 )
             ),
         ),
@@ -675,6 +684,10 @@ def _build_sanctum_calm_waters(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_barrin_etb(m: re.Match[str]) -> SentenceOutcome:
+    """Barrin ETB: "return up to one other target creature or planeswalker"
+    — TARGET + QAtMost(1) (grammar round 8, C17): a targeted "up to N" keeps
+    SelectorMode.TARGET (legal designation range 1..N stays a target
+    decision; resolution clamps to 0..remaining)."""
     return _ability(
         _etb_event(),
         Atom(
@@ -684,7 +697,7 @@ def _build_barrin_etb(m: re.Match[str]) -> SentenceOutcome:
                     (
                         "cards",
                         Selector(
-                            QConst(1),
+                            QAtMost(1),
                             SelectorMode.TARGET,
                             FAnd(
                                 children=(
@@ -1190,6 +1203,10 @@ def _build_carrion_grub(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_basris_acolyte(m: re.Match[str]) -> SentenceOutcome:
     counter_p, counter_t = _n(m, 1), _n(m, 2)
+    """ETB +1/+1 counters on each of up to two other target creatures you
+    control — TARGET + QAtMost(2) (grammar round 8, C17): the 1..N target
+    designation is the preserved controller decision; ``other`` adds the
+    FNot(IS_SOURCE) filter child."""
     if (counter_p, counter_t) != (1, 1):
         raise ValueError(
             f"B2a-basris-acolyte expects a +1/+1 counter, got +{counter_p}/+{counter_t}"
@@ -1203,7 +1220,8 @@ def _build_basris_acolyte(m: re.Match[str]) -> SentenceOutcome:
                     (
                         "target",
                         Selector(
-                            QConst(2),
+                            # C17 (round 8): targeted up-to-two = designation 1..2
+                            QAtMost(2),
                             SelectorMode.TARGET,
                             FAnd(
                                 children=(
@@ -1305,6 +1323,8 @@ def _build_shipwreck_dowser(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_roaming_ghostlight(m: re.Match[str]) -> SentenceOutcome:
+    """ETB: return up to one target non-Spirit creature — TARGET +
+    QAtMost(1) (grammar round 8, C17 targeted up-to)."""
     return _ability(
         _etb_event(),
         Atom(
@@ -1314,7 +1334,7 @@ def _build_roaming_ghostlight(m: re.Match[str]) -> SentenceOutcome:
                     (
                         "cards",
                         Selector(
-                            QConst(1),
+                            QAtMost(1),  # C17 (round 8): targeted up-to-one
                             SelectorMode.TARGET,
                             FAnd(
                                 children=(

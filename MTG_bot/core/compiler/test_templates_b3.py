@@ -406,12 +406,16 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertEqual(first.args.get("color"), "B")
         self.assertEqual(second.args.get("color"), "G")
 
-    def test_add_mana_any_color_uses_colorless_marker(self) -> None:
+    def test_add_mana_any_color_uses_any_marker(self) -> None:
+        """Round 8 / C-3: "any color" is the "ANY" choice marker, not "C".
+
+        Colorless rows (B3-add-mana-colorless, "{C}"+) still pin "C".
+        """
         ability = _ability(_single_match(self.reg, "{T}: Add one mana of any color."))
         atom = _atom(ability)
         self.assertIs(atom.verb, Verb.ADD_MANA)
         color = atom.args.get("color")
-        self.assertEqual(color, "C")
+        self.assertEqual(color, "ANY")
         self.assertEqual(_qconst(atom, "amount").value, 1)
 
     def test_deal_dmg_equal_power_to_player_or_planeswalker(self) -> None:

@@ -59,8 +59,8 @@ Conventions (documented build decisions):
 - ``+N/+N`` → ``PtDelta(INCREASE, QConst(N))``; ``-N/-N`` →
   ``PtDelta(DECREASE, QConst(N))``; ``+X/+X`` →
   ``PtDelta(INCREASE, QX())`` (shapes #25, #75, #77, #78, #79, #80).
-- Token colors (black) are dropped: ``TokenSpec`` has no color field
-  (shapes #21, #22 — grammar gap).
+- Token colors: the printed color word populates ``TokenSpec.color``
+  (shapes #21, #22 — round 8 / C-2 repair).
 - ``that creature's mana value`` → ``QProp("target", MANA_VALUE, FIRST)``
   — best-effort; the sacrificed creature has no clean grammar referent
   (shape #27).
@@ -135,6 +135,7 @@ from MTG_bot.core.ability_tree import (
     PtDirection,
     QAgg,
     QAtLeast,
+    QAtMost,
     QBin,
     QBinOp,
     QConst,
@@ -197,10 +198,17 @@ def _each_creature_you_control() -> Selector:
 
 
 def _up_to_two_target_creatures() -> Selector:
-    """Selector for ``up to two target creatures``."""
+    """Selector for ``up to two target creatures``.
+
+    Grammar round 8 / C17: targeted "up to N" is TARGET + QAtMost(N)
+    (designation 1..2; resolution 0..2) — CHOOSE-for-targeted erases the
+    legal-target distribution (C15), so this replaces the interim CHOOSE
+    convention from the R7 batches.  Used by "Put a +1/+1 counter on each
+    of up to two target creatures" and "Tap up to two target creatures".
+    """
     return Selector(
-        QConst(2),
-        SelectorMode.CHOOSE,
+        QAtMost(2),
+        SelectorMode.TARGET,
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
         Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
@@ -247,10 +255,14 @@ def _target_permanent_card_your_graveyard() -> Selector:
 
 
 def _up_to_two_target_creature_cards_your_graveyard() -> Selector:
-    """Selector for ``up to two target creature cards from your graveyard``."""
+    """Selector for ``up to two target creature cards from your graveyard``.
+
+    TARGET + QAtMost(2) per C17 (round 8) — targeted designation 1..2 from
+    the graveyard, same collapse repair as _up_to_two_target_creatures.
+    """
     return Selector(
-        QConst(2),
-        SelectorMode.CHOOSE,
+        QAtMost(2),
+        SelectorMode.TARGET,
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
         Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
     )
@@ -340,6 +352,7 @@ def _build_token_demon(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(2))),
                         keywords=(Keyword.FLYING,),
                         abilities=(),
+                        color="B",  # C-2 repair (round 8): printed "black"
                     ),
                 ),
                 ("count", QConst(1)),
@@ -365,6 +378,7 @@ def _build_token_zombie(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(2))),
                         keywords=(),
                         abilities=(),
+                        color="B",  # C-2 repair (round 8): printed "black"
                     ),
                 ),
                 ("count", QConst(1)),
@@ -1090,9 +1104,12 @@ def _build_repl_triple_damage(m: re.Match[str]) -> SentenceOutcome:
     permanent or player, it deals triple that damage to that permanent or
     player instead."
 
-    Lossy (verbatim): recipient "a permanent or player" → universal (no
-    player predicate); the replaced damage's source omitted (no source
-    role on DEAL_DAMAGE).
+    Lossy (verbatim): the EVENT recipient "a permanent or player" →
+    universal (no player predicate on the event filter).  Faithful since
+    round 8 (C-4 repair): the replacement DEAL_DAMAGE atom carries
+    dealer=FAtom(CONTROLLER_IS, YOU) — the printed "a source you control"
+    dealer side, the 8-A R8-5 dealer role vocabulary; "to that permanent
+    or player" rides the event-referent target selector as before.
     """
     return AbilityOutcome(
         ability=ReplacementAbility(
@@ -1106,6 +1123,11 @@ def _build_repl_triple_damage(m: re.Match[str]) -> SentenceOutcome:
                 verb=Verb.DEAL_DAMAGE,
                 args=AtomArgs(
                     pairs=(
+                        # dealer = "a source you control" (R8-5 role)
+                        (
+                            "dealer",
+                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                        ),
                         ("target", _event_referent()),
                         (
                             "amount",
@@ -1589,9 +1611,10 @@ def _build_shuffle_then_token_per_exiled(m: re.Match[str]) -> SentenceOutcome:
     token for each card exiled from their hand this way.`` (Necromentia
     s3) — SHUFFLE + CREATE_TOKEN whose count is the this-way exile tally
     (R7-5 THIS_WAY_COUNT).
-    LOSSY: TokenSpec has no color field (known gap C-2), so "black" is
-    dropped; the creating player ("that player") has no CREATE_TOKEN
-    controller role, so the creator is implicit."""
+    Faithful since round 8: TokenSpec.color="B" carries "black" (C-2
+    repair).  Remaining lossy (verbatim): the creating player ("that
+    player") has no CREATE_TOKEN controller role, so the creator is
+    implicit."""
     token = TokenSpec(
         name="Zombie",
         type_line="Creature — Zombie",
@@ -1601,6 +1624,7 @@ def _build_shuffle_then_token_per_exiled(m: re.Match[str]) -> SentenceOutcome:
         toughness=QConst(int(m.group("t"))),
         keywords=(),
         abilities=(),
+        color="B",  # C-2 repair (round 8)
     )
     shuffle = Atom(
         verb=Verb.SHUFFLE,
@@ -1960,9 +1984,8 @@ def _build_if_died_two_tokens(m: re.Match[str]) -> SentenceOutcome:
     the number regex, so the count is word-pinned ``QConst(2)`` (Gnarled
     Sage house idiom).  The sentence carries no continuation prefix, so
     the instant's effect fold appends it as the sibling step after s1
-    (already landed).  Lossy (verbatim, known gap C-2): TokenSpec has no
-    colour field — ``green`` dropped (R8-2 queue).  C16: none — fully
-    forced."""
+    (already landed).  Faithful since round 8: TokenSpec.color="G" carries
+    ``green`` (C-2 repair).  C16: none — fully forced."""
     token = TokenSpec(
         name="Saproling",
         type_line="Creature — Saproling",
@@ -1972,6 +1995,7 @@ def _build_if_died_two_tokens(m: re.Match[str]) -> SentenceOutcome:
         toughness=QConst(1),
         keywords=(),
         abilities=(),
+        color="G",  # C-2 repair (round 8)
     )
     return EffectOutcome(
         effect=Conditional(
@@ -1991,11 +2015,11 @@ def _build_would_damage_incarnation(m: re.Match[str]) -> SentenceOutcome:
     Goes On / Containment Priest / Conclave Mentor).
     ``source=None`` IS the printed universal ``a source`` — no narrowing
     (the mission's flagged lossy candidate stays faithful).
-    Lossy (verbatim): (1) ``to you`` is dropped from the damaged-recipient
-    filter — no player-identity FAtomPred exists to name "you" as the
-    damaged object (the b2b noncombat-damage rows drop the recipient the
-    same way; player-recipient predicate is an R8 grammar candidate);
-    (2) ``prevent that damage`` has no PREVENT atom inside the action —
+    Faithful since round 8 (C-4 damage-surface repair, R8-5 vocabulary):
+    the event filter — which names the DAMAGED object — carries
+    ``FAtom(CONTROLLER_IS, who=YOU)``, restoring the printed ``to you``
+    recipient (the player's controller is the player itself).
+    Remaining lossy (verbatim): ``prevent that damage`` has no PREVENT atom inside the action —
     PREVENT_EFFECT is the duration-scoped restriction verb (can't-be-
     blocked family), not a replacement step; per the landed r5 convention
     the replacement itself subsumes prevention (Containment Priest's
@@ -2006,7 +2030,9 @@ def _build_would_damage_incarnation(m: re.Match[str]) -> SentenceOutcome:
         ability=ReplacementAbility(
             event=DamageDealtEvent(
                 amount=QUnbounded(),
-                filter=FAnd(children=()),
+                # "to you" restored (round 8): the damaged-object filter
+                # names YOU via the C-4/R8-5 player-identity vocabulary.
+                filter=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             ),
             condition=None,
             action=Atom(
@@ -2124,10 +2150,11 @@ def _build_its_controller_token(m: re.Match[str]) -> SentenceOutcome:
     with a TARGET selector; the non-continuation s2 folds into the same
     SpellAbility Seq, so the antecedent is the ability's own target —
     executor-side referent binding per R4).
-    Lossy (verbatim): (1) TokenSpec has no colour field — ``white``
-    dropped (known gap C-2, R8-2 queue); (2) ``Its controller`` as the
-    CREATING player has no CREATE_TOKEN controller role — the creator is
-    implicit (the exact Necromentia s3 precedent documented in
+    Faithful since round 8: TokenSpec.color="W" carries ``white`` (C-2
+    repair — the row's pattern pins the word "white" for both Angel and
+    Soldier sentences).  Remaining lossy (verbatim): ``Its controller``
+    as the CREATING player has no CREATE_TOKEN controller role — the
+    creator is implicit (the exact Necromentia s3 precedent documented in
     B5b-token-per-exiled-this-way).
     C16: none — fully forced."""
     subtype = m.group("st")
@@ -2147,6 +2174,7 @@ def _build_its_controller_token(m: re.Match[str]) -> SentenceOutcome:
                             toughness=QConst(int(m.group("t"))),
                             keywords=(Keyword.FLYING,) if m.group("fly") else (),
                             abilities=(),
+                            color="W",  # C-2 repair (round 8)
                         ),
                     ),
                 )

@@ -50,6 +50,7 @@ from MTG_bot.core.ability_tree import (
     PtDelta,
     PtDirection,
     QAgg,
+    QAtMost,
     QBin,
     QBinOp,
     QConst,
@@ -1144,8 +1145,9 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertEqual(
             _find_atom(selector.filter, FAtomPred.NAME_EQ).string_value, "Shrine"
         )
-        # "any one color" is the colorless marker "C" (a plain str, not an enum).
-        self.assertEqual(atom.args.get("color"), "C")
+        # "any one color" = color-choice marker "ANY" (round 8 / C-3;
+        # plain str, not an enum).
+        self.assertEqual(atom.args.get("color"), "ANY")
         self.assertIs(atom.args.get("controller"), ControllerRef.YOU)
 
     def test_sanctum_stone_fangs_lose_and_gain_qcount_life(self) -> None:
@@ -1424,7 +1426,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(atom.args.get("counter_kind"), CounterKind.PLUS_1_PLUS_1)
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.TARGET)
-        self.assertEqual(target.count, QConst(2))
+        self.assertEqual(target.count, QAtMost(2))  # C17 (round 8)
         self.assertTrue(_contains_not(target.filter, FAtomPred.IS_SOURCE))
         self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
 
