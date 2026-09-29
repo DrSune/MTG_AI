@@ -1,13 +1,13 @@
-"""B2a bucket templates — 57 templates covering 59 of 64 B2a concrete rows.
+"""B2a bucket templates — 60 templates covering 60 of 64 B2a concrete rows.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B2a.json`` (62 normalized shape
 keys → ``[card, sentence]`` pairs; 66 card/sentence entries collapse to 64
 distinct concrete oracle sentences).  Templates fullmatch the **concrete**
 oracle sentence, never the normalized key.
 
-Coverage (64 concrete rows = 59 template-covered + 5 uncovered):
+Coverage (64 concrete rows = 60 template-covered + 4 uncovered):
 
-- **57 templates** cover 57 normalized keys and 59 concrete rows.  Two
+- **60 templates** cover 60 normalized keys and 60 concrete rows.  Two
   normalized keys map to two concrete rows each (``scry N`` and
   ``target creature gets +N/+0 until end of turn``), while two other
   normalized keys each collapse two cards into one concrete row
@@ -21,8 +21,10 @@ Coverage (64 concrete rows = 59 template-covered + 5 uncovered):
   condition + OptionalEffect PUT_COUNTER LOYALTY on a Liliana planeswalker),
   and Barrin s2 (TurnPhaseEvent END_TURN + MOVED_TO_ZONE_THIS_TURN condition
   battlefield→hand → DRAW 1).
-- **5 uncovered normalized keys** have no grammar construct and are recorded
-  in ``UNCOVERED``.
+- **2 uncovered normalized keys** have no grammar construct and are
+  recorded in ``UNCOVERED``.  The round-9-B batch landed the Pursued
+  Whale per-opponent token row (C23: quoted token text hand-built into
+  ``TokenSpec.abilities`` — never payload).
 
 Conventions (documented build decisions):
 
@@ -65,6 +67,7 @@ from MTG_bot.core.ability_tree import (
     CounterKind,
     CounterPlacedEvent,
     CreatureDiesEvent,
+    DeclareBlockersEvent,
     DurationEot,
     EachPlayer,
     FAnd,
@@ -91,6 +94,7 @@ from MTG_bot.core.ability_tree import (
     Selector,
     SelectorMode,
     Seq,
+    StaticAbility,
     TokenSpec,
     TriggeredAbility,
     TurnPhaseEvent,
@@ -1961,6 +1965,74 @@ def _build_idol_of_endurance_etb(m: re.Match[str]) -> SentenceOutcome:
     return _ability(_etb_event(), atom)
 
 
+def _build_pursued_whale_token(m: re.Match[str]) -> SentenceOutcome:
+    """``When this creature enters, each opponent creates a 1/1 red Pirate
+    creature token with "This token can't block" and "Creatures you control
+    attack each combat if able."`` (Pursued Whale) — grammar round 9-B row
+    4, **C23 binding**: the quoted token text NEVER enters the payload as
+    strings — the template pattern-locks the sentence while the builder
+    hand-builds the matching IR literals into ``TokenSpec.abilities`` (the
+    field ships EMPTY at every existing site; this is its first
+    production use):
+
+    - ``"This token can't block"`` → the b4 ``_build_cant_block`` shape
+      verbatim: StaticAbility(PREVENT_EFFECT(condition=IS_SOURCE,
+      event=DeclareBlockersEvent(IS_SOURCE))) — inside the token's own
+      ability the source IS the token.
+    - ``"Creatures you control attack each combat if able."`` → the r6
+      MANDATE_ATTACK row shape verbatim (b4 ``_build_mandate_attack_you``):
+      cards = creatures-you-control selector, controller=YOU — "you" reads
+      from the token's controller, the same relative-binding the EachPlayer
+      rebind convention already gives the creator (Goremand note).
+
+    EachPlayer(ref=ALL_OPPONENTS) carries "each opponent creates" (b2b
+    Keral precedent); CREATE_TOKEN has no creator role — the iterating
+    player owns the creation (exact Necromentia-s3 precedent).  C16: none
+    — every clause is forced (no may, no choice)."""
+    cant_block = Atom(
+        verb=Verb.PREVENT_EFFECT,
+        args=AtomArgs(
+            pairs=(
+                ("condition", FAtom(pred=FAtomPred.IS_SOURCE)),
+                ("event", DeclareBlockersEvent(FAtom(pred=FAtomPred.IS_SOURCE))),
+            )
+        ),
+    )
+    attack_if_able = Atom(
+        verb=Verb.MANDATE_ATTACK,
+        args=AtomArgs(
+            pairs=(
+                ("cards", _creatures_you_control()),
+                ("controller", ControllerRef.YOU),
+            )
+        ),
+    )
+    pirate = TokenSpec(
+        name="Pirate",
+        type_line="Creature — Pirate",
+        types=("Creature",),
+        subtypes=("Pirate",),
+        power=QConst(1),
+        toughness=QConst(1),
+        keywords=(),
+        abilities=(
+            StaticAbility(effect=cant_block),
+            StaticAbility(effect=attack_if_able),
+        ),
+        color="R",  # printed red in the sentence (C-2 repair convention)
+    )
+    return _ability(
+        _etb_event(),
+        EachPlayer(
+            ref=ControllerRef.ALL_OPPONENTS,
+            effect=Atom(
+                verb=Verb.CREATE_TOKEN,
+                args=AtomArgs(pairs=(("tokens", pirate), ("count", QConst(1)))),
+            ),
+        ),
+    )
+
+
 TEMPLATES: Final[tuple[Template, ...]] = (
     _template(
         "B2a-basri-ket-emblem",
@@ -2479,6 +2551,16 @@ TEMPLATES: Final[tuple[Template, ...]] = (
         ),
         _build_idol_of_endurance_etb,
     ),
+    _template(
+        "B2a-whale-opponent-pirate-tokens",
+        "Pursued Whale Opponent Pirate Tokens",
+        re.compile(
+            r"^When this creature enters, each opponent creates a 1/1 red "
+            r"Pirate creature token with \"This token can't block\" and "
+            r"\"Creatures you control attack each combat if able\.\"$"
+        ),
+        _build_pursued_whale_token,
+    ),
 )
 
 
@@ -2486,10 +2568,6 @@ UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
     (
         "When this creature enters, choose one —",
         "handled by the compiler's choose-opener built-in (ETB variant)",
-    ),
-    (
-        'When this creature enters, each opponent creates a N/N red Pirate creature token with "This token can\'t block" and "Creatures you control attack each combat if able."',
-        "Per-opponent token creation with nested token abilities.",
     ),
     (
         "When this creature enters, if you control two or more nonland, nontoken permanents with the same name as one another, create a N/N colorless Construct artifact creature token.",

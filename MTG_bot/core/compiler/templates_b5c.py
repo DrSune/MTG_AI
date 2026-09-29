@@ -1,18 +1,18 @@
-"""B5c bucket templates — 84 templates covering 86 of 90 B5c shapes.
+"""B5c bucket templates — 86 templates covering 88 of 90 B5c shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B5c.json`` (90 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (90 normalized keys = 86 covered + 4 uncovered; 91 concrete
-sentences = 87 covered + 4 uncovered; ``• You gain N life.`` has two
+Coverage (90 normalized keys = 88 covered + 2 uncovered; 91 concrete
+sentences = 89 covered + 2 uncovered; ``• You gain N life.`` has two
 concrete variants both covered by one template; the round-8-C emblem
 marker template covers three ``[−N]: You get an emblem with "…"``
 shapes — C19 keeps the quoted text out of the IR, the card-level
 emblem attach is the payload):
 
-- **86 covered shapes** (84 unique tids; the gain-life template covers two
+- **88 covered shapes** (86 unique tids; the gain-life template covers two
   concrete variants, the emblem marker covers three):
   keyword reminders (Trample, Vigilance, Vigilance+lifelink,
   Vigilance+protection, Vigilance+reach+trample), then-continuation
@@ -25,9 +25,11 @@ emblem attach is the payload):
   loyalty turn-scoped trigger grant (Basri [−1] — GRANT_ABILITY with
   DurationEot wrapping a TriggeredAbility, round-4 convention C3; "it" =
   the attacker via the event referent).
-- **4 uncovered shapes** — no grammar construct exists (untap-step
-  prevention, embedded replacement text, Subira's delayed trigger inside
-  an activation-cost grant).  Recorded in UNCOVERED.  Round-8-C landed
+- **2 uncovered shapes** — embedded replacement text, plus the phase-in
+  built-in note.  Round 9-B landed Frost Breath's untap-step prevention
+  (R9-4 step+DurationUntilNextStep) and Subira's delayed combat-damage
+  draw trigger (R9-5/C22 DelayedTrigger).  Recorded in UNCOVERED.
+  Round-8-C landed
   the emblem markers, Basri's attack-token grant, the Catalyst/HoF
   cast-play permissions (CAST cost-waiver idiom) and the Sanctum
   activation-cost reducer; the r7-B no-grammar top-ups (flip-cost,
@@ -85,8 +87,11 @@ from MTG_bot.core.ability_tree import (
     CostSacrifice,
     CostTap,
     CounterKind,
+    DamageDealtEvent,
     DeclareAttackersEvent,
+    DelayedTrigger,
     DurationEot,
+    DurationUntilNextStep,
     EtBState,
     FAnd,
     FAtom,
@@ -111,6 +116,8 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     Seq,
     StaticAbility,
+    Step,
+    TapStateEvent,
     TokenSpec,
     TriggeredAbility,
     Verb,
@@ -2510,6 +2517,104 @@ def _build_shrine_activation_cost_reduction(m: re.Match[str]) -> SentenceOutcome
     return AbilityOutcome(ability=modifier)
 
 
+def _build_those_no_untap_next(m: re.Match[str]) -> SentenceOutcome:
+    """``Those creatures don't untap during their controller's next untap
+    step.`` (Frost Breath s2) — grammar round 9-B row 12, closing the
+    Capture-Sphere "step scope dropped" lossy family with the R9-4 slots:
+    PREVENT_EFFECT over TapStateEvent(tapped=False — the untap attempt is
+    the NEW state being prevented; Capture Sphere mirror), anaphoric
+    "Those creatures" = s1's TARGET set via FAtom(IS_ANY_TARGET) on both
+    the condition and the event filter (Selfless Savior / Subira-s1
+    target-set convention; s1 is ``B5c-tap-up-to-two``'s TARGET QAtMost(2)
+    selector), step=Step.UNTAP (R9-4 role) and the NEXT-step lifetime via
+    DurationUntilNextStep(UNTAP, owner_scoped=True) — "THEIR controller's"
+    binds the step to each affected creature's controller, not the active
+    turn.
+
+    The row lands as an EffectOutcome: Frost is an instant, so the
+    compiler folds it into the SpellAbility(INSTANT) Seq beside the s1
+    tap atom — the prevention is a spell-resolved continuous effect (the
+    duration node carries it past resolution), never a stray StaticAbility.
+    C16: none — fully forced."""
+    targeted = FAtom(pred=FAtomPred.IS_ANY_TARGET)
+    atom = Atom(
+        verb=Verb.PREVENT_EFFECT,
+        args=AtomArgs(
+            pairs=(
+                ("condition", targeted),
+                ("duration", DurationUntilNextStep(step=Step.UNTAP, owner_scoped=True)),
+                ("event", TapStateEvent(tapped=False, filter=targeted)),
+                ("step", Step.UNTAP),
+            )
+        ),
+    )
+    return EffectOutcome(effect=atom)
+
+
+def _build_subira_delayed_draw(m: re.Match[str]) -> SentenceOutcome:
+    """``{1}{R}, {T}, Discard your hand: Until end of turn, whenever a
+    creature you control with power 2 or less deals combat damage to a
+    player, draw a card.`` (Subira s2) — grammar round 9-B row 13,
+    DelayedTrigger (R9-5, C22): the activation's effect IS the delayed
+    trigger registration — live DurationEot ("Until end of turn" REQUIRED
+    duration — a trigger without a lifetime window would just be a static
+    TriggeredAbility), event = DamageDealtEvent(amount=QUnbounded() — any
+    amount, the b2b convention), combat=True, source = FAnd(TYPE_EQ
+    Creature, CONTROLLER_IS YOU, POWER_LE N) (the dealer side rides the
+    R9-4-era ``source`` slot, b2b _noncombat_source_event idiom); the
+    trigger's effect is the DRAW atom.  "Discard your hand" cost:
+    CostDiscard over ALL cards in your hand (universal filter, the
+    b4 _all-cards shape).
+
+    LOSSY (verbatim, b2b-pinned): "to a player" stays dropped from the
+    damaged-recipient filter — no player-identity FAtomPred exists
+    (Incinerator/Pyreling R8 candidate, unchanged by R9).
+    C16: open — which qualifying creature to attack with; draw is forced
+    once the event fires."""
+    dealer = FAnd(
+        children=(
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            FAtom(pred=FAtomPred.POWER_LE, count=QConst(int(m.group("p")))),
+        )
+    )
+    cost = Cost(
+        parts=(
+            CostManaGeneric(QConst(int(m.group("n")))),
+            CostManaColor("R", QConst(1)),
+            CostTap(),
+            CostDiscard(
+                Selector(
+                    QUnbounded(),
+                    SelectorMode.ALL,
+                    FAnd(children=()),
+                    Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),
+                )
+            ),
+        )
+    )
+    draw = Atom(
+        verb=Verb.DRAW,
+        args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("amount", QConst(1)))),
+    )
+    return AbilityOutcome(
+        ability=ActivatedAbility(
+            cost=cost,
+            effect=DelayedTrigger(
+                duration=DurationEot(),
+                event=DamageDealtEvent(
+                    amount=QUnbounded(),
+                    filter=FAnd(children=()),
+                    source=dealer,
+                    combat=True,
+                ),
+                condition=None,
+                effect=draw,
+            ),
+        )
+    )
+
+
 TEMPLATES: tuple[Template, ...] = (
     # --- MISC (13) ---
     Template(
@@ -3351,18 +3456,38 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_shrine_activation_cost_reduction,
     ),
+    # --- grammar round-9-B coverage batch (doc 2026-09-28/11 §9-B rows 12-13) ---
+    Template(
+        tid="B5c-those-no-untap-next",
+        name="targeted creatures skip their controller's next untap step (R9-4 step+duration)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Those creatures don't untap during their controller's next "
+            r"untap step\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_those_no_untap_next,
+    ),
+    Template(
+        tid="B5c-cost-discard-hand-delayed-draw",
+        name="delayed combat-damage draw trigger (DelayedTrigger, R9-5/C22)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^\{(?P<n>\d+)\}\{R\}, \{T\}, Discard your hand: Until end of "
+            r"turn, whenever a creature you control with power (?P<p>\d+) or "
+            r"less deals combat damage to a player, draw a card\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_subira_delayed_draw,
+    ),
 )
 
 
 # ---------------------------------------------------------------------------
-# UNCOVERED — 11 normalized-key rows
+# UNCOVERED — 2 normalized-key rows
 # ---------------------------------------------------------------------------
 
 UNCOVERED: tuple[tuple[str, str], ...] = (
-    (
-        "Those creatures don't untap during their controller's next untap step.",
-        "No turn-scoped untap prevention",
-    ),
     (
         "Until the end of your next turn, they can't phase in.",
         "Phase-in prevention (compiler built-in; merged into preceding loyalty activation)",
@@ -3370,9 +3495,5 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         '[−N]: Until end of turn, creatures you control gain "You may have this creature assign its combat damage as though it weren\'t blocked."',
         "No embedded replacement ability text",
-    ),
-    (
-        "{N}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power N or less deals combat damage to a player, draw a card.",
-        "No turn-scoped combat-damage trigger grant (R9: delayed-trigger-in-duration — same family re-examined for Basri [−2] in 8-C, landed there via the round-4 C3 self-grant convention; Subira's activation-cost opener keeps the row open)",
     ),
 )

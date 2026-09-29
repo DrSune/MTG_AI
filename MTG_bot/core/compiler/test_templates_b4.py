@@ -19,6 +19,7 @@ from typing import Any
 from MTG_bot.core.ability_tree import (
     QX,
     ActivatedAbility,
+    ActivationWindow,
     Atom,
     ControllerRef,
     Cost,
@@ -56,6 +57,7 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     Seq,
     StaticAbility,
+    TargetingEvent,
     TriggeredAbility,
     Verb,
     Zone,
@@ -304,6 +306,19 @@ def _find_fnot(f: Filter) -> FNot:
 # ---------------------------------------------------------------------------
 
 EXPECTED_KIND: dict[str, tuple[str, str]] = {
+    "You may spend mana as though it were mana of any color.": (
+        "B4-spend-any-color",
+        "ability",
+    ),
+    "You may activate loyalty abilities of Teferi on any player's turn "
+    "any time you could cast an instant.": (
+        "B4-teferi-grant-activation",
+        "ability",
+    ),
+    "You can't choose an untapped creature as this spell's target as you cast it.": (
+        "B4-enthralling-target-choice",
+        "ability",
+    ),
     "You may cast them this turn.": (
         "B4-cast-them-this-turn",
         "ability",
@@ -313,8 +328,7 @@ EXPECTED_KIND: dict[str, tuple[str, str]] = {
         "B4-look-play-top-of-library",
         "ability",
     ),
-    "You may play that card until you exile another card with this "
-    "enchantment.": (
+    "You may play that card until you exile another card with this enchantment.": (
         "B4-play-that-card-until",
         "ability",
     ),
@@ -454,11 +468,11 @@ class TestB4Inventory(unittest.TestCase):
     def setUp(self) -> None:
         self.data = _load_b4()
 
-    def test_43_templates(self) -> None:
-        self.assertEqual(len(templates_b4.TEMPLATES), 43)
+    def test_46_templates(self) -> None:
+        self.assertEqual(len(templates_b4.TEMPLATES), 46)
 
-    def test_4_uncovered(self) -> None:
-        self.assertEqual(len(templates_b4.UNCOVERED), 4)
+    def test_1_uncovered(self) -> None:
+        self.assertEqual(len(templates_b4.UNCOVERED), 1)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in templates_b4.TEMPLATES]
@@ -474,7 +488,7 @@ class TestB4Inventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _registry()
-        self.assertEqual(len(reg), 43)
+        self.assertEqual(len(reg), 46)
 
     def test_every_template_matches_some_bucket_sentence(self) -> None:
         sentences = [
@@ -511,8 +525,8 @@ class TestB4Coverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 43)
-        self.assertEqual(matched_occurrences, 59)
+        self.assertEqual(covered_shapes, 46)
+        self.assertEqual(matched_occurrences, 62)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -529,7 +543,7 @@ class TestB4Coverage(unittest.TestCase):
                 self.assertEqual(self.reg.match(sentence), (), sentence)
 
     def test_expected_kind_table_is_consistent_with_bucket(self) -> None:
-        self.assertEqual(len(EXPECTED_KIND), 44)
+        self.assertEqual(len(EXPECTED_KIND), 47)
         for sentence in EXPECTED_KIND:
             for entries in self.data.values():
                 if sentence in [s for _card, s in entries]:
@@ -1360,6 +1374,76 @@ class TestB4Round7AnaphoraIr(unittest.TestCase):
         self.assertIsInstance(cards.count, QConst)
         self.assertIs(cards.zone.kind, ZoneKind.LIBRARY)
         self.assertIs(cards.zone.position, ZonePosition.TOP)
+
+
+class TestB4Round9B(unittest.TestCase):
+    """Round 9-B (doc 2026-09-28/11 §9-B rows 7-9): MANA_POLICY flooding,
+    GRANT_ACTIVATION Teferi window, Enthralling targeting legality."""
+
+    def setUp(self) -> None:
+        self.reg = _registry()
+
+    def test_spend_any_color(self) -> None:
+        """MANA_POLICY scope "ALL_YOURS" closed string (C21), under an
+        OptionalEffect (C15 may) inside a StaticAbility (permanent by
+        construction — MANA_POLICY has no duration role)."""
+        outcome = _single_match(
+            self.reg,
+            "You may spend mana as though it were mana of any color.",
+        ).outcome
+        static = _as_static(_as_ability(outcome).ability)
+        opt = _as_optional(static.effect)
+        atom = _as_atom(opt.inner)
+        self.assertIs(atom.verb, Verb.MANA_POLICY)
+        self.assertEqual(_pairs(atom), {"scope": "ALL_YOURS"})
+
+    def test_tefei_grant_activation(self) -> None:
+        """GRANT_ACTIVATION (R9-7): holder gate FAnd(Planeswalker,
+        NAME_CONTAINS Teferi); window = INSTANT verbatim from "any time you
+        could cast an instant" (NOT the r10 fixture's SORCERY example)."""
+        outcome = _single_match(
+            self.reg,
+            "You may activate loyalty abilities of Teferi on any player's "
+            "turn any time you could cast an instant.",
+        ).outcome
+        static = _as_static(_as_ability(outcome).ability)
+        opt = _as_optional(static.effect)
+        atom = _as_atom(opt.inner)
+        self.assertIs(atom.verb, Verb.GRANT_ACTIVATION)
+        holder = atom.args.get("filter")
+        assert isinstance(holder, FAnd)
+        type_a, name_a = holder.children
+        assert isinstance(type_a, FAtom) and isinstance(name_a, FAtom)
+        self.assertIs(type_a.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(type_a.string_value, "Planeswalker")
+        self.assertIs(name_a.pred, FAtomPred.NAME_CONTAINS)
+        self.assertEqual(name_a.string_value, "Teferi")
+        self.assertIs(atom.args.get("window"), ActivationWindow.INSTANT)
+
+    def test_enthralling_target_choice(self) -> None:
+        """PREVENT_EFFECT (C11-class): condition IS_ANY_TARGET spell-scope
+        (b3/Subira idiom), event TargetingEvent over FAnd(Creature,
+        IS_UNTAPPED)."""
+        outcome = _single_match(
+            self.reg,
+            "You can't choose an untapped creature as this spell's target "
+            "as you cast it.",
+        ).outcome
+        static = _as_static(_as_ability(outcome).ability)
+        atom = _as_atom(static.effect)
+        self.assertIs(atom.verb, Verb.PREVENT_EFFECT)
+        cond = atom.args.get("condition")
+        assert isinstance(cond, FAtom)
+        self.assertIs(cond.pred, FAtomPred.IS_ANY_TARGET)
+        event = atom.args.get("event")
+        assert isinstance(event, TargetingEvent)
+        filt = event.filter
+        assert isinstance(filt, FAnd)
+        type_a, untapped = filt.children
+        assert isinstance(type_a, FAtom) and isinstance(untapped, FAtom)
+        self.assertIs(type_a.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(type_a.string_value, "Creature")
+        self.assertIs(untapped.pred, FAtomPred.IS_UNTAPPED)
 
 
 if __name__ == "__main__":

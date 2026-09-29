@@ -108,6 +108,7 @@ from MTG_bot.core.ability_tree import (
     BecomesBlockedEvent,
     CardDrawnEvent,
     CastSpellEvent,
+    Choose,
     CombatDamageEvent,
     ControllerRef,
     Cost,
@@ -156,6 +157,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
+    EffectOutcome,
     RuleReminderOutcome,
     SentenceOutcome,
     Template,
@@ -2073,6 +2075,41 @@ def _build_blocks_flying_pump(m: re.Match[str]) -> SentenceOutcome:
     )
 
 
+def _build_kraken_do_tap_or_untap(m: re.Match[str]) -> SentenceOutcome:
+    """Round 9-B (R9-9, C24): Tolarian Kraken s2 "When you do, you may tap
+    or untap target creature." — the continuation parses as a standalone
+    EffectOutcome and the compiler's do-merge (:func:`_merge_do_continuation`,
+    compiler.py ~761) INJECTS it inside the antecedent ``OptionalEffect``
+    that pays {1} (s1, ``B2b-draw-pay``).  The final tree is
+    ``OptionalEffect(Seq(PAY {1}, OptionalEffect(Choose(1, tap|untap))))``.
+
+    C15 decision surface: BOTH decisions stay open — the s2 "you may" keeps
+    its OWN OptionalEffect layer nested under the payment decision (the
+    r9-A merge fixture pins exactly this shape; the merge adds no wrapper),
+    and "tap or untap" is the Choose one-of-two mode the Choose docstring
+    cites verbatim.  One TARGET creature selector is shared across both
+    options: the target is declared once, before the mode decision, so the
+    two atoms denote the same object (TARGET + QConst(1) — C17 exact-count
+    "target creature", not "up to")."""
+    target = Selector(
+        count=QConst(1),
+        mode=SelectorMode.TARGET,
+        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+        zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+    )
+    return EffectOutcome(
+        effect=OptionalEffect(
+            inner=Choose(
+                count=QConst(1),
+                options=(
+                    Atom(verb=Verb.TAP, args=AtomArgs(pairs=(("target", target),))),
+                    Atom(verb=Verb.UNTAP, args=AtomArgs(pairs=(("target", target),))),
+                ),
+            )
+        )
+    )
+
+
 # ---------------------------------------------------------------------------
 # Templates
 # ---------------------------------------------------------------------------
@@ -2569,6 +2606,12 @@ TEMPLATES: Final[tuple[Template, ...]] = (
         ),
         _build_blocks_flying_pump,
     ),
+    _template(
+        "B2b-do-tap-or-untap",
+        "Kraken Do Tap Or Untap",
+        _exact("When you do, you may tap or untap target creature."),
+        _build_kraken_do_tap_or_untap,
+    ),
 )
 
 
@@ -2577,10 +2620,6 @@ TEMPLATES: Final[tuple[Template, ...]] = (
 # ---------------------------------------------------------------------------
 
 UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
-    (
-        "When you do, you may tap or untap target creature.",
-        "Anaphoric 'When you do' has no expressible continuation trigger event. (8-C re-examined: the default continuation merge appends the tap/untap as an INDEPENDENT sibling Optional step, not gated on the antecedent 'you may pay {1}' — a C15 violation; no paid-cost predicate or payment event class exists. Kept withdrawn. R9 grammar item: do-continuation merge for optional PAY / PaidCostEvent.)",
-    ),
     (
         (
             "Whenever an opponent attacks with creatures, if two or more of those creatures "

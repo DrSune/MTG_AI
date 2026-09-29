@@ -1,13 +1,13 @@
-"""B4 bucket templates — 43 templates covering 43 of 47 B4 shapes.
+"""B4 bucket templates — 46 templates covering 46 of 47 B4 shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B4.json`` (47 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (47 = 43 template + 4 uncovered):
+Coverage (47 = 46 template + 1 uncovered):
 
-- **43 template-covered shapes**: static P/T grants (self, creatures you
+- **46 template-covered shapes**: static P/T grants (self, creatures you
   control, other creatures, opponents' creatures), static keyword grants
   (trample, lifelink, protection), PREVENT_EFFECT (can't block),
   PREVENT_EFFECT blocked-side (can't be blocked as long as drawn —
@@ -25,12 +25,13 @@ Coverage (47 = 43 template + 4 uncovered):
    ACTIVATED_ABILITY (cast from top of library, graveyard recast with
    additional cost), TUTOR (name-specific library/graveyard search for
    Basri / Liliana).
-- **4 uncovered shapes**: no grammar construct exists (targeting
-  restriction, copy-retarget anaphora, Teferi's loyalty-activation
-  permission, F-MANA mana-color flooding — owner-deferred R9).  The
-  round-8-C batch landed the cast-them-this-turn register hop, the
-  Radha two-permission sentence, Furious Rise's play-that-card, Azusa's
-  ADD_LAND_PLAY and the QThisTurn(NONCOMBAT_DAMAGE) cost reducer.
+- **1 uncovered shape**: copy-retarget anaphora ("new targets for the
+  copy").  The round-8-C batch landed the cast-them-this-turn register
+  hop, the Radha two-permission sentence, Furious Rise's play-that-card,
+  Azusa's ADD_LAND_PLAY and the QThisTurn(NONCOMBAT_DAMAGE) cost reducer;
+  the round-9-B batch (doc 2026-09-28/11) landed the Orrery MANA_POLICY
+  flooding permission, Teferi's GRANT_ACTIVATION instant-window permission
+  and the Enthralling targeting-legality PREVENT row (C11-class note).
   Recorded in UNCOVERED.
 
 Conventions:
@@ -56,6 +57,7 @@ import re
 from MTG_bot.core.ability_tree import (
     QX,
     ActivatedAbility,
+    ActivationWindow,
     Atom,
     AtomArgs,
     ControllerRef,
@@ -98,6 +100,7 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     Seq,
     StaticAbility,
+    TargetingEvent,
     ThisTurnKind,
     TriggeredAbility,
     Verb,
@@ -1279,6 +1282,89 @@ def _build_noncombat_damage_cost_modifier(m: re.Match[str]) -> SentenceOutcome:
     return AbilityOutcome(ability=modifier)
 
 
+def _build_spend_mana_any_color(m: re.Match[str]) -> SentenceOutcome:
+    """``You may spend mana as though it were mana of any color.``
+    (Chromatic Orrery) — grammar round 9-B row 7: Verb.MANA_POLICY (R9-3,
+    C21) with the closed scope string "ALL_YOURS" (the permanent
+    color-flooding permission, distinct from Vodalian's event-anchored
+    "THIS_MANA").  No filter role value — the permission covers every
+    spend.
+
+    DURATION NOTE (verbatim): MANA_POLICY carries no duration role; the
+    static's own permanence IS the DurationPermanent reading (the same
+    carrier judgement as the round-8-C CAST-waiver rows, which used the
+    OptionalEffect-inside-static shape).  OptionalEffect wrap keeps the
+    "may" decision open at each spend (C15 — the policy permits, the
+    controller decides per spend).  Executor deferred per the
+    ADD_LAND_PLAY orphan precedent (PC-6: verb consumed this round).
+    C16: open — whether/how each mana payment uses the flooding policy."""
+    atom = Atom(
+        verb=Verb.MANA_POLICY,
+        args=AtomArgs(pairs=(("scope", "ALL_YOURS"),)),
+    )
+    return AbilityOutcome(ability=StaticAbility(effect=OptionalEffect(inner=atom)))
+
+
+def _build_tefei_grant_activation(m: re.Match[str]) -> SentenceOutcome:
+    """``You may activate loyalty abilities of Teferi on any player's turn
+    any time you could cast an instant.`` (Teferi, Master of Time) —
+    grammar round 9-B row 8, closing the 8-C withdrawal: Verb.
+    GRANT_ACTIVATION (R9-7) with filter = FAnd(TYPE_EQ Planeswalker,
+    NAME_CONTAINS "Teferi") (the ability-holder gate) and window =
+    ActivationWindow.INSTANT — "any time you could cast an instant" names
+    the instant window EXACTLY (R9-1 vocabulary; NOT SORCERY — the r10
+    grammar fixture's SORCERY example is unrelated to this row's text).
+    OptionalEffect wrap per C15 ("you may"); executor deferred per the
+    GRANT_ABILITY-adjacent orphan precedent (PC-6: verb consumed this round).
+
+    C16: open — WHICH loyalty ability and WHEN inside the widened window."""
+    holder = FAnd(
+        children=(
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
+            FAtom(pred=FAtomPred.NAME_CONTAINS, string_value="Teferi"),
+        )
+    )
+    atom = Atom(
+        verb=Verb.GRANT_ACTIVATION,
+        args=AtomArgs(pairs=(("filter", holder), ("window", ActivationWindow.INSTANT))),
+    )
+    return AbilityOutcome(ability=StaticAbility(effect=OptionalEffect(inner=atom)))
+
+
+def _build_enthralling_target_choice(m: re.Match[str]) -> SentenceOutcome:
+    """``You can't choose an untapped creature as this spell's target as
+    you cast it.`` (Enthralling Hold) — grammar round 9-B row 9, C11-class
+    encoding: choice-restriction ≈ owner-scoped targeting PREVENTION.
+    PREVENT_EFFECT over TargetingEvent whose filter narrows the would-be
+    target (FAnd(TYPE_EQ Creature, IS_UNTAPPED)); the SPELL SCOPE rides
+    the condition slot as FAtom(IS_ANY_TARGET) — the b3/Subira precedent
+    that a spell-internal restriction binds to the spell's own target
+    set ("as you cast it" = the targeting event IS the spell's choice).
+    FIDELITY NOTE (C11-class): the grammar cannot distinguish choosing at
+    target-declaration from a prevention that fires on targeting itself —
+    on this pool the two coincide (the restriction only ever applies to
+    this spell's own choices); no targeting-legality node exists
+    (round-7 family, doc /11 §DEFER adjacent).
+
+    C16: none — a legality restriction, fully forced."""
+    untapped_creature = FAnd(
+        children=(
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+            FAtom(pred=FAtomPred.IS_UNTAPPED),
+        )
+    )
+    atom = Atom(
+        verb=Verb.PREVENT_EFFECT,
+        args=AtomArgs(
+            pairs=(
+                ("condition", FAtom(pred=FAtomPred.IS_ANY_TARGET)),
+                ("event", TargetingEvent(filter=untapped_creature)),
+            )
+        ),
+    )
+    return AbilityOutcome(ability=StaticAbility(effect=atom))
+
+
 TEMPLATES: tuple[Template, ...] = (
     Template(
         tid="B4-mandate-attack-you",
@@ -1694,23 +1780,44 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_noncombat_damage_cost_modifier,
     ),
+    # --- grammar round-9-B coverage batch (doc 2026-09-28/11 §9-B rows 7-9) ---
+    Template(
+        tid="B4-spend-any-color",
+        name="mana policy: spend mana as though any color (MANA_POLICY ALL_YOURS)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^You may spend mana as though it were mana of any color\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_spend_mana_any_color,
+    ),
+    Template(
+        tid="B4-teferi-grant-activation",
+        name="activation permission: Teferi loyalty abilities, instant window (GRANT_ACTIVATION)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^You may activate loyalty abilities of Teferi on any player's "
+            r"turn any time you could cast an instant\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_tefei_grant_activation,
+    ),
+    Template(
+        tid="B4-enthralling-target-choice",
+        name="targeting legality: no untapped creature choice (PREVENT over TargetingEvent, C11-class)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^You can't choose an untapped creature as this spell's target "
+            r"as you cast it\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_enthralling_target_choice,
+    ),
 )
 
 UNCOVERED: tuple[tuple[str, str], ...] = (
     (
-        "You can't choose an untapped creature as this spell's target as you cast it.",
-        "No targeting-restriction grammar construct (round-7 family: target legality)",
-    ),
-    (
-        "You may activate loyalty abilities of Teferi on any player's turn any time you could cast an instant.",
-        "No cross-card activated ability activation grammar (8-C re-examined: no ACTIVATE-permission verb exists — NAME_EQ('Teferi') would gate a permission node that cannot be built; R9 grammar item — loyalty-activation permission verb + activation-window widening)",
-    ),
-    (
         "You may choose new targets for the copy.",
         "No copy-targeting grammar construct",
-    ),
-    (
-        "You may spend mana as though it were mana of any color.",
-        "No mana-color-flooding grammar construct (F-MANA family, owner-deferred R9: MANA_POLICY verb)",
     ),
 )

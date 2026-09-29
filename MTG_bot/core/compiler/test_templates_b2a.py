@@ -35,6 +35,7 @@ from MTG_bot.core.ability_tree import (
     CounterKind,
     CounterPlacedEvent,
     CreatureDiesEvent,
+    DeclareBlockersEvent,
     DurationEot,
     EachPlayer,
     FAnd,
@@ -61,6 +62,7 @@ from MTG_bot.core.ability_tree import (
     Selector,
     SelectorMode,
     Seq,
+    StaticAbility,
     TokenSpec,
     TriggeredAbility,
     TurnPhaseEvent,
@@ -85,6 +87,10 @@ _B2A_PATH = Path("/tmp/opencode/phase1_buckets/B2a.json")
 # fullmatching each shape's first concrete sentence against the live registry and
 # asserting exactly one match; pin it so any template rename / re-shape is caught.
 EXPECTED: dict[str, tuple[str, str]] = {
+    'When this creature enters, each opponent creates a N/N red Pirate creature token with "This token can\'t block" and "Creatures you control attack each combat if able."': (
+        "B2a-whale-opponent-pirate-tokens",
+        "Pursued Whale Opponent Pirate Tokens",
+    ),
     "When this creature enters, discard up to two cards, then draw that many cards.": (
         "B2a-draw-that-many",
         "Kinetic Augur",
@@ -538,8 +544,8 @@ class TestB2aCoverage(unittest.TestCase):
         self.assertEqual(total, 66)
 
     def test_public_api_counts(self) -> None:
-        self.assertEqual(len(templates_b2a.TEMPLATES), 59)
-        self.assertEqual(len(templates_b2a.UNCOVERED), 3)
+        self.assertEqual(len(templates_b2a.TEMPLATES), 60)
+        self.assertEqual(len(templates_b2a.UNCOVERED), 2)
 
     def test_bucket_labels_b2a(self) -> None:
         for template in templates_b2a.TEMPLATES:
@@ -566,8 +572,8 @@ class TestB2aCoverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 59)
-        self.assertEqual(matched_occurrences, 63)
+        self.assertEqual(covered_shapes, 60)
+        self.assertEqual(matched_occurrences, 64)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -589,7 +595,7 @@ class TestB2aCoverage(unittest.TestCase):
             if any(self.reg.match(sentence) for _card, sentence in entries):
                 covered.add(shape_key)
         self.assertEqual(set(EXPECTED), covered)
-        self.assertEqual(len(EXPECTED), 59)
+        self.assertEqual(len(EXPECTED), 60)
 
     def test_expected_table_matches_registry(self) -> None:
         for shape_key, (tid, name) in EXPECTED.items():
@@ -1958,6 +1964,68 @@ class TestB2aRound7Batch(unittest.TestCase):
         self.assertIsInstance(target.count, QUnbounded)
         self.assertIs(target.zone.kind, ZoneKind.GRAVEYARD)
         self.assertIs(target.zone.controller, ControllerRef.YOU)
+
+
+# ---------------------------------------------------------------------------
+# Round 9-B — Pursued Whale per-opponent token with embedded abilities (C23)
+# ---------------------------------------------------------------------------
+
+
+class TestB2aRound9BWhaleToken(unittest.TestCase):
+    """9-B row 4: the quoted token text is hand-built STRUCTURED IR inside
+    TokenSpec.abilities — the quoted strings never ride as payload (C23),
+    and both quoted clauses mirror existing production shapes verbatim."""
+
+    SENTENCE = (
+        "When this creature enters, each opponent creates a 1/1 red Pirate "
+        'creature token with "This token can\'t block" and "Creatures you '
+        'control attack each combat if able."'
+    )
+
+    def setUp(self) -> None:
+        self.reg = _registry()
+
+    def test_whale_embedded_token_abilities(self) -> None:
+        m = _single_match(self.reg, self.SENTENCE)
+        self.assertEqual(m.template.tid, "B2a-whale-opponent-pirate-tokens")
+        ability = _ability(m)
+        each = ability.effect
+        assert isinstance(each, EachPlayer)
+        self.assertIs(each.ref, ControllerRef.ALL_OPPONENTS)
+        create = each.effect
+        assert isinstance(create, Atom)
+        self.assertIs(create.verb, Verb.CREATE_TOKEN)
+        pairs = dict(create.args.pairs)
+        self.assertEqual(pairs["count"], QConst(1))
+        token = pairs["tokens"]
+        assert isinstance(token, TokenSpec)
+        self.assertEqual(token.name, "Pirate")
+        self.assertEqual(token.power, QConst(1))
+        self.assertEqual(token.toughness, QConst(1))
+        self.assertEqual(token.color, "R")
+        self.assertEqual(token.subtypes, ("Pirate",))
+        # C23: structured nodes, not strings — two embedded statics
+        self.assertEqual(len(token.abilities), 2)
+        cant_block, mandate = token.abilities
+        assert isinstance(cant_block, StaticAbility) and isinstance(
+            mandate, StaticAbility
+        )
+        prevent = cant_block.effect
+        assert isinstance(prevent, Atom)
+        self.assertIs(prevent.verb, Verb.PREVENT_EFFECT)
+        p_pairs = dict(prevent.args.pairs)
+        self.assertEqual(p_pairs["condition"], FAtom(pred=FAtomPred.IS_SOURCE))
+        event = p_pairs["event"]
+        assert isinstance(event, DeclareBlockersEvent)
+        self.assertEqual(event.filter, FAtom(pred=FAtomPred.IS_SOURCE))
+        att = mandate.effect
+        assert isinstance(att, Atom)
+        self.assertIs(att.verb, Verb.MANDATE_ATTACK)
+        a_pairs = dict(att.args.pairs)
+        self.assertEqual(a_pairs["controller"], ControllerRef.YOU)
+        cards = a_pairs["cards"]
+        assert isinstance(cards, Selector)
+        self.assertIs(cards.mode, SelectorMode.ALL)
 
 
 if __name__ == "__main__":

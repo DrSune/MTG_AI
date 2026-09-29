@@ -3,7 +3,7 @@
 Covers all 90 shapes in ``/tmp/opencode/phase1_buckets/B5a.json``:
 - 60 template-covered (56 templates; B5a-land-add matches 5 basic-land shapes)
 - 23 rule-reminder pre-consumed by the compiler
-- 7 UNCOVERED (no expressible/attachable construct; recorded in UNCOVERED and pinned)
+- 5 UNCOVERED (no expressible/attachable construct; recorded in UNCOVERED and pinned)
 
 PC-3: every concrete sentence fullmatches at most one template.
 """
@@ -35,6 +35,7 @@ from MTG_bot.core.ability_tree import (
     DeclareAttackersEvent,
     DeclareBlockersEvent,
     DurationEot,
+    DurationWhileCondition,
     FAnd,
     FAtom,
     FAtomPred,
@@ -221,8 +222,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 32
     (
         "Activate only if you have at least 7 life more than your starting life total and only as a sorcery.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5a-speaker-gate",
     ),
     # shape 33
     ("Add six {R}.", "COVERED", "B5a-add-six-r"),
@@ -255,8 +256,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 39
     (
         "As long as you control a creature with power 4 or greater, this creature can attack as though it didn't have defender.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5a-aslong-attack-despite-defender",
     ),
     # shape 40
     (
@@ -614,7 +615,7 @@ class TestTemplateInventory(unittest.TestCase):
     """Verify the B5a template collection is well-formed."""
 
     def test_56_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 56)
+        self.assertEqual(len(TEMPLATES), 58)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -630,7 +631,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 56)
+        self.assertEqual(len(reg), 58)
 
 
 # ---------------------------------------------------------------------------
@@ -653,14 +654,14 @@ class TestShapeTable(unittest.TestCase):
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
         self.assertEqual(rr, 23, f"RR count {rr} != 23")
-        self.assertEqual(covered, 60, f"COVERED count {covered} != 60")
-        self.assertEqual(uncov, 7, f"UNCOV count {uncov} != 7")
+        self.assertEqual(covered, 62, f"COVERED count {covered} != 62")
+        self.assertEqual(uncov, 5, f"UNCOV count {uncov} != 5")
 
-    def test_covered_tids_valid_and_unique_56(self) -> None:
+    def test_covered_tids_valid_and_unique_58(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
-            len(unique_tids), 56, f"expected 56 unique tids, got {len(unique_tids)}"
+            len(unique_tids), 58, f"expected 58 unique tids, got {len(unique_tids)}"
         )
         # All tids start with B5a-
         for tid in unique_tids:
@@ -690,7 +691,7 @@ class TestUncovered(unittest.TestCase):
     """Verify the UNCOVERED attribute is well-formed and pinned to SHAPES."""
 
     def test_7_rows(self) -> None:
-        self.assertEqual(len(UNCOVERED), 7)
+        self.assertEqual(len(UNCOVERED), 5)
 
     def test_unique_sorted_keys(self) -> None:
         keys = [k for k, _ in UNCOVERED]
@@ -1783,7 +1784,7 @@ class TestCanonicalStability(unittest.TestCase):
                 f"canonical instability for {tid} ({sent[:40]})",
             )
             seen.add(tid)
-        self.assertEqual(len(seen), 56, f"only {len(seen)} unique tids tested")
+        self.assertEqual(len(seen), 58, f"only {len(seen)} unique tids tested")
 
 
 # ---------------------------------------------------------------------------
@@ -2051,3 +2052,106 @@ class TestB5aJsonCrossCheck(unittest.TestCase):
             f"only unmatched: {unmatched - uncov_keys}; "
             f"only in UNCOVERED: {uncov_keys - unmatched}",
         )
+
+
+# ---------------------------------------------------------------------------
+# Round 9-B structural pins (doc 2026-09-28/11 §9-B rows 1-3)
+# ---------------------------------------------------------------------------
+
+
+class TestB5aRound9BStructures(unittest.TestCase):
+    """9-B: Speaker gate (LIFE_LEAD_OVER_START_GE, R9-2) and Drowsing
+    defender-strip (LOSE_ABILITY + C9 condition, DurationWhileCondition)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.reg = _make_registry()
+
+    def _match_one(self, sent: str) -> SentenceOutcome:
+        matches = self.reg.match(sent)
+        self.assertEqual(len(matches), 1, f"expected 1 match: {sent!r}")
+        return matches[0].outcome
+
+    def test_speaker_gate_shape(self) -> None:
+        outcome = self._match_one(
+            "Activate only if you have at least 7 life more than your "
+            "starting life total and only as a sorcery."
+        )
+        assert isinstance(outcome, ActivationGateOutcome)
+        cond = outcome.condition
+        assert isinstance(cond, FAtom)
+        self.assertIs(cond.pred, FAtomPred.LIFE_LEAD_OVER_START_GE)
+        # bare-count rule row (R9-2): the threshold rides `count` verbatim
+        self.assertEqual(cond.count, QConst(7))
+        self.assertIsNone(cond.who)
+        self.assertIsNone(cond.inner_filter)
+
+    def test_speaker_gate_attaches_through_compile(self) -> None:
+        """E2E: the gate lands on the preceding {T}-Angel-token activation
+        (existing r3 attach plumbing); timing clause lossy — asserted absent
+        with the documented reason (no condition/timing fabrication)."""
+        raw = _raw(
+            "Speaker of the Heavens",
+            (
+                "{T}: Create a 4/4 white Angel creature token with flying.",
+                (
+                    "Activate only if you have at least 7 life more than "
+                    "your starting life total and only as a sorcery."
+                ),
+            ),
+            types=("Creature",),
+        )
+        from MTG_bot.core.compiler.coverage import build_full_registry
+
+        res = compile_card(raw, build_full_registry())
+        self.assertEqual([s for s, _ in res.unparsed], [])
+        activated = [
+            ab for ab in res.card.abilities if isinstance(ab, ActivatedAbility)
+        ]
+        self.assertEqual(len(activated), 1)
+        cond = activated[0].condition
+        assert isinstance(cond, FAtom)
+        self.assertIs(cond.pred, FAtomPred.LIFE_LEAD_OVER_START_GE)
+        self.assertEqual(cond.count, QConst(7))
+
+    def test_drowsing_defender_strip(self) -> None:
+        outcome = self._match_one(
+            "As long as you control a creature with power 4 or greater, "
+            "this creature can attack as though it didn't have defender."
+        )
+        ab_out = _as_ability(outcome)
+        ab = ab_out.ability
+        assert isinstance(ab, StaticAbility)
+        # C9: the as-long-as lives on the StaticAbility condition —
+        # CONTROLLER_COUNT_GE(1, Creature & POWER_GE 4), the Flying Gates
+        # idiom (count=1 = "a creature")
+        cond = ab.condition
+        assert isinstance(cond, FAtom)
+        self.assertIs(cond.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertEqual(cond.count, QConst(1))
+        inner = cond.inner_filter
+        assert isinstance(inner, FAnd)
+        type_a, power_ge = inner.children
+        assert isinstance(type_a, FAtom) and isinstance(power_ge, FAtom)
+        self.assertEqual(type_a.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(type_a.string_value, "Creature")
+        self.assertEqual(power_ge.pred, FAtomPred.POWER_GE)
+        self.assertEqual(power_ge.count, QConst(4))
+        # effect: LOSE_ABILITY strips DEFENDER from self, DurationWhileCondition
+        atom = _as_atom(ab.effect)
+        self.assertIs(atom.verb, Verb.LOSE_ABILITY)
+        pairs = _pairs_dict(atom)
+        ability = pairs["ability"]
+        assert isinstance(ability, KeywordAbility)
+        self.assertIs(ability.keyword, Keyword.DEFENDER)
+        target = pairs["target"]
+        assert isinstance(target, Selector)
+        self.assertEqual(target.filter, FAtom(pred=FAtomPred.IS_SOURCE))
+        self.assertIs(target.mode, SelectorMode.CHOOSE)
+        self.assertEqual(pairs["duration"], DurationWhileCondition(filter=cond))
+
+    def test_pc3_steward_tail_still_unmatched(self) -> None:
+        """WITHDRAWN row: the bare "Activate only as a sorcery." tail must
+        NOT match the Speaker gate (no partial-sentence fullmatch)."""
+        matches = self.reg.match("Activate only as a sorcery.")
+        self.assertEqual(len(matches), 0)

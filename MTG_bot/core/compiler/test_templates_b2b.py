@@ -11,8 +11,10 @@ that drive the registry end-to-end with concrete oracle sentences and assert
 the exact IR each template produces.
 
 Pinned bucket facts (measured against /tmp/opencode/phase1_buckets/B2b.json):
-62 shapes, 76 occurrences, 58 covered shapes, 72 matched occurrences, and the
-57 templates in ``templates_b2b.TEMPLATES`` (with 4 declared UNCOVERED shapes).
+62 shapes, 76 occurrences, 60 covered shapes, 74 matched occurrences, and the
+59 templates in ``templates_b2b.TEMPLATES`` (with 2 declared UNCOVERED
+shapes).  The 9-B batch added ``B2b-do-tap-or-untap`` (Tolarian Kraken s2,
+R9-9/C24 do-continuation merge).
 The bucket priority is 50 (NOT the 100 used by B1/B3/B4).
 """
 
@@ -27,6 +29,7 @@ from MTG_bot.core.ability_tree import (
     BecomesBlockedEvent,
     CardDrawnEvent,
     CastSpellEvent,
+    Choose,
     CombatDamageEvent,
     ControllerRef,
     Cost,
@@ -75,8 +78,10 @@ from MTG_bot.core.ability_tree import (
     fingerprint,
 )
 from MTG_bot.core.compiler import templates_b2b
+from MTG_bot.core.compiler.compiler import _merge_do_continuation
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
+    EffectOutcome,
     Match,
     RuleReminderOutcome,
     TemplateRegistry,
@@ -323,6 +328,10 @@ EXPECTED: dict[str, tuple[str, str]] = {
         "B2b-blocks-flying-pump",
         "Snarespinner",
     ),
+    "When you do, you may tap or untap target creature.": (
+        "B2b-do-tap-or-untap",
+        "Kraken Do Tap Or Untap",
+    ),
 }
 
 
@@ -352,6 +361,18 @@ def _single_match(reg: TemplateRegistry, sentence: str) -> Match:
         f"expected exactly one match for {sentence!r}, got {len(matches)}"
     )
     return matches[0]
+
+
+def _match_value(match: Match) -> object:
+    """The IR value of a match for hash/canonical tests — the ability for
+    AbilityOutcome templates (the B2b norm), the bare effect for
+    EffectOutcome continuations (the 9-B do-continuation row)."""
+    outcome = match.outcome
+    if isinstance(outcome, AbilityOutcome):
+        return outcome.ability
+    if isinstance(outcome, EffectOutcome):
+        return outcome.effect
+    raise AssertionError(f"unexpected outcome kind: {type(outcome).__name__}")
 
 
 def _ability(match: Match) -> TriggeredAbility:
@@ -513,8 +534,8 @@ class TestB2bCoverage(unittest.TestCase):
         self.assertEqual(total, 76)
 
     def test_public_api_counts(self) -> None:
-        self.assertEqual(len(templates_b2b.TEMPLATES), 58)
-        self.assertEqual(len(templates_b2b.UNCOVERED), 3)
+        self.assertEqual(len(templates_b2b.TEMPLATES), 59)
+        self.assertEqual(len(templates_b2b.UNCOVERED), 2)
 
     def test_bucket_labels_b2b(self) -> None:
         for template in templates_b2b.TEMPLATES:
@@ -540,8 +561,8 @@ class TestB2bCoverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 59)
-        self.assertEqual(matched_occurrences, 73)
+        self.assertEqual(covered_shapes, 60)
+        self.assertEqual(matched_occurrences, 74)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -563,7 +584,7 @@ class TestB2bCoverage(unittest.TestCase):
             if any(self.reg.match(sentence) for _card, sentence in entries):
                 covered.add(shape_key)
         self.assertEqual(set(EXPECTED), covered)
-        self.assertEqual(len(EXPECTED), 59)
+        self.assertEqual(len(EXPECTED), 60)
 
     def test_expected_table_matches_registry(self) -> None:
         for shape_key, (tid, name) in EXPECTED.items():
@@ -584,7 +605,7 @@ class TestB2bCoverage(unittest.TestCase):
                 matches = self.reg.match(sentence)
                 if not matches:
                     continue
-                canonicals = {canonical_json(_ability(match)) for match in matches}
+                canonicals = {canonical_json(_match_value(match)) for match in matches}
                 self.assertEqual(
                     len(canonicals),
                     1,
@@ -597,10 +618,10 @@ class TestB2bCoverage(unittest.TestCase):
                 matches = self.reg.match(sentence)
                 if not matches:
                     continue
-                first = fingerprint(_ability(matches[0]))
+                first = fingerprint(_match_value(matches[0]))
                 rematch = self.reg.match(sentence)
                 self.assertTrue(rematch, sentence)
-                second = fingerprint(_ability(rematch[0]))
+                second = fingerprint(_match_value(rematch[0]))
                 self.assertEqual(
                     first,
                     second,
@@ -2486,3 +2507,68 @@ class TestB2bRound7BTopUp(unittest.TestCase):
         assert isinstance(target, Selector)
         self.assertIs(target.mode, SelectorMode.CHOOSE)
         self.assertEqual(target.filter, FAtom(pred=FAtomPred.IS_SOURCE))
+
+
+# ---------------------------------------------------------------------------
+# Round 9-B — Tolarian Kraken "When you do" do-continuation (R9-9, C24)
+# ---------------------------------------------------------------------------
+
+
+class TestB2bRound9BDoContinuation(unittest.TestCase):
+    """R9-B: Tolarian Kraken s2 — the standalone continuation outcome is
+    EXACTLY what the compiler's R9-9 do-merge injects inside the s1
+    cost-paying OptionalEffect (doc 2026-09-28/11 §R9-9/§9-B row 5)."""
+
+    S1 = "Whenever you draw a card, you may pay {1}."
+    S2 = "When you do, you may tap or untap target creature."
+
+    def _creature_target(self) -> Selector:
+        return Selector(
+            count=QConst(1),
+            mode=SelectorMode.TARGET,
+            filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+            zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        )
+
+    def test_s2_structure_choose_one_of_two_under_may(self) -> None:
+        reg = _registry()
+        m = _single_match(reg, self.S2)
+        self.assertEqual(m.template.tid, "B2b-do-tap-or-untap")
+        outcome = m.outcome
+        assert isinstance(outcome, EffectOutcome)
+        outer = outcome.effect
+        # "you may" — the s2 Optional is its OWN layer (the merge adds none;
+        # the r9-A double-wrap pin test_ability_tree_r10 forbids a second)
+        assert isinstance(outer, OptionalEffect)
+        choice = outer.inner
+        assert isinstance(choice, Choose)
+        self.assertEqual(choice.count, QConst(1))
+        self.assertEqual(len(choice.options), 2)
+        target = self._creature_target()
+        tap, untap = choice.options
+        assert isinstance(tap, Atom) and isinstance(untap, Atom)
+        self.assertIs(tap.verb, Verb.TAP)
+        self.assertIs(untap.verb, Verb.UNTAP)
+        self.assertEqual(dict(tap.args.pairs), {"target": target})
+        self.assertEqual(dict(untap.args.pairs), {"target": target})
+
+    def test_pair_merge_final_tree(self) -> None:
+        """s1 OptionalEffect(PAY) + s2 continuation → INNER injection:
+        OptionalEffect(Seq(PAY, OptionalEffect(Choose(...)))) — never a
+        sibling optional (C24)."""
+        reg = _registry()
+        s1 = _single_match(reg, self.S1)
+        s2 = _single_match(reg, self.S2)
+        assert isinstance(s1.outcome, AbilityOutcome)
+        prior = _ability(s1).effect
+        assert isinstance(s2.outcome, EffectOutcome)
+        cont = s2.outcome.effect  # the raw standalone EffectOutcome payload
+        merged = _merge_do_continuation(prior, cont)
+        assert isinstance(prior, OptionalEffect)
+        pay = prior.inner  # Atom(PAY, Cost({1}))
+        expected = OptionalEffect(inner=Seq(steps=(pay, cont)))
+        self.assertEqual(merged, expected)
+        # the injection is INSIDE the payment optional, not beside it
+        self.assertIsInstance(merged, OptionalEffect)
+        assert isinstance(merged, OptionalEffect)
+        self.assertIsInstance(merged.inner, Seq)

@@ -440,3 +440,12 @@
   do not let executor and encoder read different shapes. (DESIGN_CARD_POOL.md)
 - **Re-ingest must not invalidate learned state.** Key everything on `scryfallOracleId`; golden
   files make re-ingest a visible diff, not a silent semantic change.
+
+- **Quoted Oracle text ends inside the closing quote.** "…if able."" — the embedded rule's
+  period sits BEFORE the closing quote, so a regex ending `\."\.$` never matches and the row
+  silently stays in the queue. Also: raw-string patterns keep every backslash — `\\.` means
+  literal-backslash-dot. Always fullmatch the concrete sentence pulled verbatim from the bucket
+  JSON before trusting a quoted-sentence template. (2026-09-29 r9-B, Pursued Whale.)
+- **unittest assertIsInstance does not narrow for pyright.** Test files in core/compiler are
+  pyright-clean at HEAD; use `assert isinstance(...)` before attribute access on union-typed
+  IR nodes in new test classes. (2026-09-29 r9-B.)

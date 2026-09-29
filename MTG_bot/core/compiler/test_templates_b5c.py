@@ -39,8 +39,11 @@ from MTG_bot.core.ability_tree import (
     CostSacrifice,
     CostTap,
     CounterKind,
+    DamageDealtEvent,
     DeclareAttackersEvent,
+    DelayedTrigger,
     DurationEot,
+    DurationUntilNextStep,
     EtBState,
     FAnd,
     FAtom,
@@ -63,9 +66,12 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     Seq,
     StaticAbility,
+    Step,
+    TapStateEvent,
     TokenSpec,
     TriggeredAbility,
     Verb,
+    Zone,
     ZoneKind,
     ZonePosition,
     canonical_json,
@@ -118,8 +124,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     ),
     (
         "Those creatures don't untap during their controller's next untap step.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5c-those-no-untap-next",
     ),
     (
         "Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)",
@@ -331,8 +337,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     ),
     (
         "{1}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power 2 or less deals combat damage to a player, draw a card.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5c-cost-discard-hand-delayed-draw",
     ),
     (
         "{1}{U}, Discard this card: Look at the top two cards of your library.",
@@ -565,6 +571,10 @@ for _t in (
 ):
     EXPECTED_KIND_BY_TID[_t] = "activated"
 EXPECTED_KIND_BY_TID["B5c-shrine-activation-cost"] = "ability:CostModifier"
+# grammar round 9-B: Frost s2 instant-folded PREVENT (effect) + Subira s2
+# delayed-draw activation (activated).
+EXPECTED_KIND_BY_TID["B5c-those-no-untap-next"] = "effect"
+EXPECTED_KIND_BY_TID["B5c-cost-discard-hand-delayed-draw"] = "activated"
 
 
 # Expected LoyaltyActivation delta per loyalty template.
@@ -831,8 +841,8 @@ def _find_atom(node: Any, pred: FAtomPred) -> Any:
 class TestB5cInventory(unittest.TestCase):
     """Verify the B5c template collection is well-formed."""
 
-    def test_84_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 84)
+    def test_86_templates(self) -> None:
+        self.assertEqual(len(TEMPLATES), 86)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -847,10 +857,10 @@ class TestB5cInventory(unittest.TestCase):
             self.assertEqual(t.priority, 100, f"{t.tid} has priority {t.priority}")
 
     def test_registry_accepts_all(self) -> None:
-        self.assertEqual(len(_REG), 84)
+        self.assertEqual(len(_REG), 86)
 
-    def test_uncovered_has_4_rows(self) -> None:
-        self.assertEqual(len(UNCOVERED), 4)
+    def test_uncovered_has_2_rows(self) -> None:
+        self.assertEqual(len(UNCOVERED), 2)
 
 
 # ---------------------------------------------------------------------------
@@ -872,17 +882,17 @@ class TestB5cShapeTable(unittest.TestCase):
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
         rr = sum(1 for s in SHAPES if s[1] == "RR")
-        self.assertEqual(covered, 87, f"COVERED count {covered} != 87")
-        self.assertEqual(uncov, 4, f"UNCOV count {uncov} != 4")
+        self.assertEqual(covered, 89, f"COVERED count {covered} != 89")
+        self.assertEqual(uncov, 2, f"UNCOV count {uncov} != 2")
         self.assertEqual(rr, 0, f"B5c has no rule-reminder shapes, got {rr}")
 
-    def test_covered_tids_valid_and_unique_84(self) -> None:
+    def test_covered_tids_valid_and_unique_86(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
             len(unique_tids),
-            84,
-            f"expected 84 unique tids, got {len(unique_tids)}",
+            86,
+            f"expected 86 unique tids, got {len(unique_tids)}",
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5c-"), f"bad tid: {tid}")
@@ -966,7 +976,7 @@ class TestB5cOutcomeKind(unittest.TestCase):
     def test_kind_table_is_complete(self) -> None:
         covered_tids = {t for _s, c, t in SHAPES if c == "COVERED"}
         self.assertEqual(set(EXPECTED_KIND_BY_TID), covered_tids)
-        self.assertEqual(len(EXPECTED_KIND_BY_TID), 84)
+        self.assertEqual(len(EXPECTED_KIND_BY_TID), 86)
 
     def test_all_kinds_match(self) -> None:
         for tid, expected in EXPECTED_KIND_BY_TID.items():
@@ -979,10 +989,10 @@ class TestB5cOutcomeKind(unittest.TestCase):
 
     def test_kind_counts(self) -> None:
         kinds = [k for k in EXPECTED_KIND_BY_TID.values()]
-        self.assertEqual(kinds.count("effect"), 27)
+        self.assertEqual(kinds.count("effect"), 28)
         self.assertEqual(kinds.count("keyword"), 5)
         self.assertEqual(kinds.count("static"), 1)
-        self.assertEqual(kinds.count("activated"), 49)
+        self.assertEqual(kinds.count("activated"), 50)
         self.assertEqual(kinds.count("ability:EtBState"), 1)
         self.assertEqual(kinds.count("ability:CostModifier"), 1)
 
@@ -1528,8 +1538,8 @@ class TestB5cCanonicalStability(unittest.TestCase):
             seen.add(tid)
         self.assertEqual(
             len(seen),
-            84,
-            f"only {len(seen)} unique tids tested, expected 84",
+            86,
+            f"only {len(seen)} unique tids tested, expected 86",
         )
 
 
@@ -1585,7 +1595,7 @@ class TestB5cJsonCrossCheck(unittest.TestCase):
             for k, pairs in self.json_data.items()
             if any(_REG.match(sent) for _c, sent in pairs)
         }
-        self.assertEqual(len(covered), 86)
+        self.assertEqual(len(covered), 88)
 
 
 class TestB5cRound7BTopUps(unittest.TestCase):
@@ -1649,3 +1659,85 @@ class TestB5cRound7BTopUps(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# ---------------------------------------------------------------------------
+# Round 9-B structural pins (doc 2026-09-28/11 §9-B rows 12-13)
+# ---------------------------------------------------------------------------
+
+
+class TestB5cRound9B(unittest.TestCase):
+    """9-B: Frost Breath s2 (R9-4 untap-step prevention, IS_ANY_TARGET
+    anaphora) and Subira s2 (R9-5/C22 DelayedTrigger)."""
+
+    def test_frost_s2_untap_prevention(self) -> None:
+        outcome = _match_outcome("B5c-those-no-untap-next")
+        atom = _as_atom(_as_effect(outcome).effect)
+        self.assertIs(atom.verb, Verb.PREVENT_EFFECT)
+        pairs = dict(atom.args.pairs)
+        cond = pairs["condition"]
+        assert isinstance(cond, FAtom)
+        self.assertIs(cond.pred, FAtomPred.IS_ANY_TARGET)
+        event = pairs["event"]
+        assert isinstance(event, TapStateEvent)
+        self.assertIs(event.tapped, False)
+        self.assertEqual(event.filter, cond)
+        self.assertIs(pairs["step"], Step.UNTAP)
+        dur = pairs["duration"]
+        assert isinstance(dur, DurationUntilNextStep)
+        self.assertIs(dur.step, Step.UNTAP)
+        self.assertTrue(dur.owner_scoped)  # "THEIR controller's" next untap
+
+    def test_frost_pair_are_bare_effects_for_the_instant_fold(self) -> None:
+        """s1 and s2 are BOTH plain EffectOutcomes, so the compiler's
+        instant assembly folds Seq(TAP, PREVENT) into the SpellAbility —
+        s2 must NOT ship as an AbilityOutcome(StaticAbility) (that would
+        bolt a stray static onto a one-shot instant)."""
+        # (s1 "Tap up to two target creatures." lives in another bucket's
+        # registry; the pair-level fold is verified by the pool PC-1 audit.)
+        outcome = _match_outcome("B5c-those-no-untap-next")
+        self.assertIsInstance(outcome, EffectOutcome)
+
+    def test_subira_s2_delayed_trigger(self) -> None:
+        outcome = _match_outcome("B5c-cost-discard-hand-delayed-draw")
+        ability = _activated_ability(outcome)
+        n, r, tap, discard = ability.cost.parts
+        assert isinstance(n, CostManaGeneric)
+        self.assertEqual(n.amount, QConst(1))
+        assert isinstance(r, CostManaColor)
+        self.assertEqual(r.color, "R")
+        assert isinstance(tap, CostTap)
+        assert isinstance(discard, CostDiscard)
+        hand = discard.target
+        assert isinstance(hand, Selector)
+        self.assertIs(hand.mode, SelectorMode.ALL)
+        self.assertIsInstance(hand.count, QUnbounded)
+        self.assertEqual(hand.zone, Zone(ZoneKind.HAND, ControllerRef.YOU))
+        dt = ability.effect
+        assert isinstance(dt, DelayedTrigger)
+        self.assertEqual(dt.duration, DurationEot())
+        self.assertIsNone(dt.condition)
+        event = dt.event
+        assert isinstance(event, DamageDealtEvent)
+        self.assertIsInstance(event.amount, QUnbounded)
+        self.assertIs(event.combat, True)
+        # LOSSY: damaged-recipient filter universal ("to a player" dropped,
+        # b2b R8-candidate precedent)
+        self.assertEqual(event.filter, FAnd(children=()))
+        dealer = event.source
+        assert isinstance(dealer, FAnd)
+        type_a, controller_a, power_a = dealer.children
+        assert isinstance(type_a, FAtom)
+        assert isinstance(controller_a, FAtom)
+        assert isinstance(power_a, FAtom)
+        self.assertEqual(type_a.string_value, "Creature")
+        self.assertIs(controller_a.pred, FAtomPred.CONTROLLER_IS)
+        self.assertIs(controller_a.who, ControllerRef.YOU)
+        self.assertIs(power_a.pred, FAtomPred.POWER_LE)
+        self.assertEqual(power_a.count, QConst(2))
+        draw = _as_atom(dt.effect)
+        self.assertIs(draw.verb, Verb.DRAW)
+        self.assertEqual(
+            dict(draw.args.pairs),
+            {"controller": ControllerRef.YOU, "amount": QConst(1)},
+        )

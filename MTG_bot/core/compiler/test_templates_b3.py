@@ -28,6 +28,7 @@ from MTG_bot.core.ability_tree import (
     QAgg,
     QConst,
     QCount,
+    QDistinctColorCount,
     QProp,
     QPropField,
     Selector,
@@ -129,8 +130,8 @@ class TestB3Coverage(unittest.TestCase):
         self.assertEqual(total, 55)
 
     def test_public_api_counts(self) -> None:
-        self.assertEqual(len(templates_b3.TEMPLATES), 29)
-        self.assertEqual(len(templates_b3.UNCOVERED), 1)
+        self.assertEqual(len(templates_b3.TEMPLATES), 30)
+        self.assertEqual(len(templates_b3.UNCOVERED), 0)
 
     def test_covered_shape_and_occurrence_counts(self) -> None:
         covered_shapes = 0
@@ -143,8 +144,8 @@ class TestB3Coverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 47)
-        self.assertEqual(matched_occurrences, 54)
+        self.assertEqual(covered_shapes, 48)
+        self.assertEqual(matched_occurrences, 55)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -528,6 +529,31 @@ class TestB3EffectStructure(unittest.TestCase):
         assert isinstance(power_pred.count, QConst)
         self.assertEqual(power_pred.count.value, 2)
         self.assertIsInstance(atom.args.get("duration"), DurationEot)
+
+    def test_draw_per_distinct_color(self) -> None:
+        """9-B row 6 (Chromatic Orrery): DRAW amount = QDistinctColorCount
+        over ALL permanents you control (R9-6; selector names the counted
+        population — IS_PERMANENT filter, BATTLEFIELD/YOU zone)."""
+        ability = _ability(
+            _single_match(
+                self.reg,
+                "{5}, {T}: Draw a card for each color among permanents you control.",
+            )
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.DRAW)
+        self.assertEqual(atom.args.get("controller"), ControllerRef.YOU)
+        amount = atom.args.get("amount")
+        assert isinstance(amount, QDistinctColorCount)
+        sel = amount.selector
+        self.assertIs(sel.mode, SelectorMode.ALL)
+        self.assertEqual(sel.filter, FAtom(pred=FAtomPred.IS_PERMANENT))
+        self.assertIs(sel.zone.kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(sel.zone.controller, ControllerRef.YOU)
+        # cost tokens parse through the shared _parse_cost ({5}, {T})
+        parts = ability.cost.parts
+        self.assertEqual(parts[0], CostManaGeneric(QConst(5)))
+        self.assertEqual(parts[1], CostTap())
 
 
 if __name__ == "__main__":

@@ -40,6 +40,7 @@ from MTG_bot.core.ability_tree import (
     QAgg,
     QConst,
     QCount,
+    QDistinctColorCount,
     QProp,
     QPropField,
     QUnbounded,
@@ -598,6 +599,41 @@ def _build_seq_draw_discard(m: re.Match[str]) -> AbilityOutcome:
         ),
     )
     effect = Seq(steps=(draw, discard))
+    return _build_activated(cost, effect)
+
+
+def _build_draw_per_distinct_color(m: re.Match[str]) -> AbilityOutcome:
+    """``{5}, {T}: Draw a card for each color among permanents you
+    control.`` (Chromatic Orrery) — grammar round 9-B row 6, QDistinctColorCount
+    (R9-6): the count collapses the SELECTED population to its distinct-color
+    colorimeter; the selector names the population — ALL permanents you
+    control (IS_PERMANENT over Zone(BATTLEFIELD, YOU), the lands-you-control
+    shape; the zone already scopes battlefield, the filter makes "permanent"
+    explicit per the b1 Enchant-permanent precedent).
+
+    C16: the activation itself; no inner choice — the count is board-derived."""
+    cost = _parse_cost(m)
+    effect = Atom(
+        verb=Verb.DRAW,
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                (
+                    "amount",
+                    QDistinctColorCount(
+                        Selector(
+                            count=QUnbounded(),
+                            mode=SelectorMode.ALL,
+                            filter=FAtom(pred=FAtomPred.IS_PERMANENT),
+                            zone=Zone(
+                                kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU
+                            ),
+                        )
+                    ),
+                ),
+            )
+        ),
+    )
     return _build_activated(cost, effect)
 
 
@@ -1180,15 +1216,21 @@ TEMPLATES: tuple[Template, ...] = (
         priority=100,
         build=_build_may_cast_exiled_creature,
     ),
+    Template(
+        tid="B3-draw-per-distinct-color",
+        name="draw a card per distinct color among permanents you control",
+        bucket="B3",
+        pattern=re.compile(
+            rf"^{_COST}\s*:\s*Draw a card for each color among permanents "
+            rf"you control\.$"
+        ),
+        priority=100,
+        build=_build_draw_per_distinct_color,
+    ),
 )
 
 # ---------------------------------------------------------------------------
 # UNCOVERED — shapes that cannot be expressed in the current grammar
 # ---------------------------------------------------------------------------
 
-UNCOVERED: tuple[tuple[str, str], ...] = (
-    (
-        "{N}, {T}: Draw a card for each color among permanents you control.",
-        "No quantity expression for distinct color count among permanents you control; QCount counts objects, not distinct color identities, and QProp has no distinct-color field.",
-    ),
-)
+UNCOVERED: tuple[tuple[str, str], ...] = ()

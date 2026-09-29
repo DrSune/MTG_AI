@@ -1,13 +1,13 @@
-"""B5a bucket templates — 56 templates covering 60 of 90 B5a shapes.
+"""B5a bucket templates — 58 templates covering 62 of 90 B5a shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B5a.json`` (90 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (90 = 60 template + 23 rule-reminder + 7 uncovered):
+Coverage (90 = 62 template + 23 rule-reminder + 5 uncovered):
 
-- **60 template-covered shapes** (56 templates; the basic-land
+- **62 template-covered shapes** (58 templates; the basic-land
   ``({T}: Add {C}.)`` family is one template for five shapes):
   basic-land tap abilities, ADD_MANA, static P/T grants, counter-spell,
   token creation, keyword rule-reminder sentences (Deathtouch/Defender/
@@ -27,11 +27,11 @@ Coverage (90 = 60 template + 23 rule-reminder + 7 uncovered):
 - **23 rule-reminder shapes** — fully parenthesised sentences consumed by
   the compiler's ``_is_rule_reminder`` before template matching (no
   template needed; verified in tests).
-- **7 uncovered shapes** — no expressible/attachable grammar construct
-  exists (sorcery-mode activation gates, library-top ability grant,
-  as-though defender override, name-choice, modal headers,
-  payment-failure condition, per-counter P/T, until-leaves exile).
-  Recorded in ``UNCOVERED`` below and pinned by tests.
+- **5 uncovered shapes** — no expressible/attachable grammar construct
+  exists (sorcery-window attach, library-top all-abilities grant, name-choice
+  modal headers, payment-failure condition). Round 9-B landed the Speaker
+  life-lead gate (timing clause lossy) and the Drowsing LOSE_ABILITY
+  defender-strip. Recorded in ``UNCOVERED`` below and pinned by tests.
 
 Conventions (documented build decisions):
 
@@ -82,6 +82,7 @@ from MTG_bot.core.ability_tree import (
     DeclareAttackersEvent,
     DeclareBlockersEvent,
     DurationEot,
+    DurationWhileCondition,
     FAnd,
     FAtom,
     FAtomPred,
@@ -1228,6 +1229,81 @@ def _build_destroy_attached_equipment(m: re.Match[str]) -> SentenceOutcome:
     return EffectOutcome(effect=atom)
 
 
+def _build_speaker_activation_gate(m: re.Match[str]) -> SentenceOutcome:
+    """``Activate only if you have at least N life more than your starting
+    life total and only as a sorcery.`` (Speaker of the Heavens) — grammar
+    round 9-B row 2: LIFE_LEAD_OVER_START_GE (R9-2, bare-count rule row —
+    the count slot carries QConst(N), no who/inner_filter) delivered as an
+    ActivationGateOutcome, the Caged Zombie plumbing: the compiler attaches
+    the condition to the nearest preceding unconditional ActivatedAbility
+    (the B3 ``{T}: Create a 4/4 white Angel token`` row).
+
+    C16: none — the gate is a legality condition, fully forced.
+
+    LOSSY (verbatim): "and only as a sorcery" — the ActivationWindow
+    vocabulary shipped in R9-1 but NO attach plumbing exists for a bare
+    gate sentence carrying timing (ActivationGateOutcome carries a condition
+    only; the compiler's gate-attach rewrites the condition slot). A
+    pattern-override of the s1 builder would create a second match on that
+    sentence (PC-3 hard gate), so the clause is DROPPED with this note —
+    R10: gate-outcome timing attachment (ActivationGateOutcome.timing).
+    """
+    return ActivationGateOutcome(
+        condition=FAtom(
+            pred=FAtomPred.LIFE_LEAD_OVER_START_GE,
+            count=QConst(int(m.group("n"))),
+        )
+    )
+
+
+def _build_aslong_attack_despite_defender(m: re.Match[str]) -> SentenceOutcome:
+    """``As long as you control a creature with power N or greater, this
+    creature can attack as though it didn't have defender.`` (Drowsing
+    Tyrannodon) — grammar round 9-B row 3, doc 2026-09-28/11 fidelity note:
+    StaticAbility carrying the as-long-as gate in ``condition`` (convention
+    C9 — never a duration approximation) over a LOSE_ABILITY atom that
+    strips Keyword.DEFENDER from self (``ability`` rides a KeywordAbility,
+    the Soul Sear precedent), scoped by DurationWhileCondition inside the
+    atom.
+
+    FIDELITY ARGUMENT (C11-class, doc /11): "can attack as though it didn't
+    have defender" is encoded as actually LOSING defender — the only
+    M21-relevant rules text of Defender is "This creature can't attack", so
+    the two effects coincide on this pool; no as-though layer machinery
+    exists (deferred family), and losing the keyword is the closest honest
+    encoding.
+
+    C16: none — fully forced (state gate + self-targeted keyword loss).
+    """
+    p = int(m.group("p"))
+    cond = FAtom(
+        pred=FAtomPred.CONTROLLER_COUNT_GE,
+        count=QConst(1),
+        inner_filter=FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.POWER_GE, count=QConst(p)),
+            )
+        ),
+    )
+    atom = Atom(
+        verb=Verb.LOSE_ABILITY,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    _self_selector(
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY)
+                    ),
+                ),
+                ("ability", KeywordAbility(keyword=Keyword.DEFENDER)),
+                ("duration", DurationWhileCondition(filter=cond)),
+            )
+        ),
+    )
+    return AbilityOutcome(ability=StaticAbility(effect=atom, condition=cond))
+
+
 # ---------------------------------------------------------------------------
 # TEMPLATES
 # ---------------------------------------------------------------------------
@@ -1886,6 +1962,29 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_destroy_attached_equipment,
     ),
+    Template(
+        tid="B5a-speaker-gate",
+        name="activation gate: life lead over start (LIFE_LEAD_OVER_START_GE)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Activate only if you have at least (?P<n>\d+) life more than "
+            r"your starting life total and only as a sorcery\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_speaker_activation_gate,
+    ),
+    Template(
+        tid="B5a-aslong-attack-despite-defender",
+        name="as-long-as power gate strips Defender (LOSE_ABILITY, C9)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^As long as you control a creature with power (?P<p>\d+) or "
+            r"greater, this creature can attack as though it didn't have "
+            r"defender\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_aslong_attack_despite_defender,
+    ),
 )
 
 # UNCOVERED — 7 normalized-key rows
@@ -1896,19 +1995,11 @@ TEMPLATES: tuple[Template, ...] = (
 UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
     (
         "Activate only as a sorcery.",
-        "activation gate: ActivatedAbility has no condition slot (sorcery-mode restriction unrepresentable)",
-    ),
-    (
-        "Activate only if you have at least N life more than your starting life total and only as a sorcery.",
-        "activation gate: ActivatedAbility has no condition slot (life-total comparison + sorcery mode)",
+        "WITHDRAWN 9-B (R10 item): the R9-1 ActivationWindow vocabulary exists but a bare gate sentence has no timing-attach path — ActivationGateOutcome carries a condition only and the compiler's gate-attach rewrites the condition slot; a higher-priority override of the s1 ability pattern would be a second match (PC-3). R10: gate-outcome timing attachment.",
     ),
     (
         "As long as the top card of your library is a Goblin card, this creature has all activated abilities of that card.",
-        "conditional static: StaticAbility has no condition slot (library-top)",
-    ),
-    (
-        "As long as you control a creature with power N or greater, this creature can attack as though it didn't have defender.",
-        'conditional static: StaticAbility has no condition slot (+ "as though" defence override unrepresentable)',
+        "ability-introspection family (R10): granting ALL activated abilities of a dynamically-referenced card needs a card→ability-set lookup; the conditional-static half shipped round 4 (StaticAbility.condition) and the library-top type predicate exists — only the dynamic ability-set grant is missing (Snoop, doc /11 §DEFER).",
     ),
     (
         "Choose one or more —",

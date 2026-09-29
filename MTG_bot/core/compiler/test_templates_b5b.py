@@ -39,6 +39,7 @@ from MTG_bot.core.ability_tree import (
     DamageDealtEvent,
     DeclareAttackersEvent,
     DurationEot,
+    DurationPermanent,
     FAnd,
     FAtom,
     FAtomPred,
@@ -47,6 +48,7 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     KeywordAbility,
     LifeGainedEvent,
+    OptionalEffect,
     PtDelta,
     PtDirection,
     QAtLeast,
@@ -318,7 +320,11 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "B5b-perm-hex-ind",
     ),
     # shape 47
-    ("Play with the top card of your library revealed.", "UNCOV", ""),
+    (
+        "Play with the top card of your library revealed.",
+        "COVERED",
+        "B5b-play-top-revealed",
+    ),
     # shape 48
     (
         "Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)",
@@ -436,7 +442,11 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "B5b-named-damage",
     ),
     # shape 72
-    ("Spend this mana only to cast an instant or sorcery spell.", "UNCOV", ""),
+    (
+        "Spend this mana only to cast an instant or sorcery spell.",
+        "COVERED",
+        "B5b-spend-this-mana-is-or-sorcery",
+    ),
     # shape 73
     (
         "Tap two untapped Spirits you control: Tap target creature you don't control.",
@@ -683,8 +693,8 @@ def _find_shape(sent: str) -> tuple[str, str, str]:
 class TestTemplateInventory(unittest.TestCase):
     """Verify the B5b template collection is well-formed."""
 
-    def test_75_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 75)
+    def test_77_templates(self) -> None:
+        self.assertEqual(len(TEMPLATES), 77)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -700,7 +710,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 75)
+        self.assertEqual(len(reg), 77)
 
 
 # ---------------------------------------------------------------------------
@@ -721,14 +731,14 @@ class TestShapeTable(unittest.TestCase):
     def test_category_counts(self) -> None:
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
-        self.assertEqual(covered, 85, f"COVERED count {covered} != 85")
-        self.assertEqual(uncov, 6, f"UNCOV count {uncov} != 6")
+        self.assertEqual(covered, 87, f"COVERED count {covered} != 87")
+        self.assertEqual(uncov, 4, f"UNCOV count {uncov} != 4")
 
-    def test_covered_tids_valid_and_unique_75(self) -> None:
+    def test_covered_tids_valid_and_unique_77(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
-            len(unique_tids), 75, f"expected 75 unique tids, got {len(unique_tids)}"
+            len(unique_tids), 77, f"expected 77 unique tids, got {len(unique_tids)}"
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5b-"), f"bad tid: {tid}")
@@ -1615,7 +1625,7 @@ class TestCanonicalStability(unittest.TestCase):
                 f"canonical instability for {tid} ({sent[:40]})",
             )
             seen.add(tid)
-        self.assertEqual(len(seen), 75, f"only {len(seen)} unique tids tested")
+        self.assertEqual(len(seen), 77, f"only {len(seen)} unique tids tested")
 
 
 # ---------------------------------------------------------------------------
@@ -2320,3 +2330,54 @@ class TestRound7BTopUps(unittest.TestCase):
         assert isinstance(eff, Seq)
         self.assertEqual(len(eff.steps), 2)
         self.assertEqual(_as_atom(eff.steps[1]).verb, Verb.CREATE_TOKEN)
+
+
+# ---------------------------------------------------------------------------
+# Round 9-B structural pins (doc 2026-09-28/11 §9-B rows 10-11)
+# ---------------------------------------------------------------------------
+
+
+class TestRound9BManaAndReveal(unittest.TestCase):
+    """9-B: Vodalian THIS_MANA restriction (C21) and Snoop continuous
+    REVEAL state (R9-8 duration role)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.reg = _make_registry()
+
+    def _match_one(self, sent: str) -> SentenceOutcome:
+        matches = self.reg.match(sent)
+        self.assertEqual(len(matches), 1, f"expected 1 match: {sent!r}")
+        return matches[0].outcome
+
+    def test_vodalian_this_mana(self) -> None:
+        outcome = self._match_one(
+            "Spend this mana only to cast an instant or sorcery spell."
+        )
+        ab = _as_ability(outcome).ability
+        static = _as_static(ab)
+        atom = _as_atom(static.effect)
+        self.assertIs(atom.verb, Verb.MANA_POLICY)
+        pairs = _pairs_dict(atom)
+        self.assertEqual(pairs["scope"], "THIS_MANA")
+        spell_types = pairs["filter"]
+        assert isinstance(spell_types, FOr)
+        instant, sorcery = spell_types.children
+        assert isinstance(instant, FAtom) and isinstance(sorcery, FAtom)
+        self.assertIs(instant.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(instant.string_value, "Instant")
+        self.assertEqual(sorcery.string_value, "Sorcery")
+        # restriction, not permission — NO OptionalEffect wrapper (C15)
+        self.assertNotIsInstance(static.effect, OptionalEffect)
+
+    def test_snoop_continuous_reveal(self) -> None:
+        outcome = self._match_one("Play with the top card of your library revealed.")
+        ab = _as_ability(outcome).ability
+        static = _as_static(ab)
+        atom = _as_atom(static.effect)
+        self.assertIs(atom.verb, Verb.REVEAL)
+        pairs = _pairs_dict(atom)
+        self.assertEqual(pairs["controller"], ControllerRef.YOU)
+        self.assertEqual(pairs["count"], QConst(1))
+        self.assertEqual(pairs["duration"], DurationPermanent())
+        # library-top target IMPLICIT (LOOK_AT convention: no zone role)

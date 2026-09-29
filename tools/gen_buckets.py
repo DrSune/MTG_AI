@@ -106,24 +106,31 @@ def main() -> None:
     # Pinned counts are re-measured every time the template modules change
     # (these drift as templates land; see KNOWLEDGE entries for each bump).
     assert len(b1_keys) == 15, f"B1 pattern keys={len(b1_keys)}"
-    assert len(b2a_keys) == 59, (
+    assert len(b2a_keys) == 60, (
         f"B2a pattern keys={len(b2a_keys)}"
-    )  # 2026-09-26: was 54 (2026-09-24); round-4 batch (6a267cd) added 3 b2a
+    )  # 2026-09-29 r9-B: Pursued Whale per-opponent Pirate-token row landed
+    # (C23, doc 2026-09-28/11): keys 59->60, UNCOVERED prune 3->2, bucket 62.
+    # 2026-09-26: was 54 (2026-09-24); round-4 batch (6a267cd) added 3 b2a
     # patterns: keys 54->57 while its UNCOVERED prune 8->5 kept the bucket at 62.
     # 2026-09-28 r7-batch: Kinetic Augur "that many" draw + Idol of Endurance
     # graveyard exile landed: keys 57->59, UNCOVERED prune 5->3, bucket 62.
-    assert len(b3_keys) == 47, (
+    assert len(b3_keys) == 48, (
         f"B3 pattern keys={len(b3_keys)}"
-    )  # 2026-09-28 r6-batch: was 44 (2026-09-24); Subira's blocked-side
+    )  # 2026-09-29 r9-B: Chromatic Orrery draw-per-distinct-color landed
+    # (QDistinctColorCount): keys 47->48, UNCOVERED prune 1->0, bucket 48.
+    # 2026-09-28 r6-batch: was 44 (2026-09-24); Subira's blocked-side
     # activation (R6-4) added 1 b3 pattern: keys 44->45 while its UNCOVERED
     # prune 4->3 kept the bucket at 48.
     # 2026-09-28 r7-batch: Brash Taunter FIGHT landed (R7-8 verb): keys
     # 45->46, UNCOVERED prune 3->2, bucket 48.
     # 2026-09-28 r8-C: Idol of Endurance IS_EXILED_WITH_SOURCE cast landed
     # (doc 2026-09-28/08): keys 46->47, UNCOVERED prune 2->1, bucket 48.
-    assert len(b4_keys) == 43, (
+    assert len(b4_keys) == 46, (
         f"B4 pattern keys={len(b4_keys)}"
-    )  # 2026-09-28 r6-batch: was 30 (2026-09-26); round-6 batch added 4 b4
+    )  # 2026-09-29 r9-B: Orrery ALL_YOURS MANA_POLICY + Teferi GRANT_ACTIVATION
+    # + Enthralling targeting PREVENT landed (doc 2026-09-28/11): keys 43->46,
+    # UNCOVERED prune 4->1, bucket 47.
+    # 2026-09-28 r6-batch: was 30 (2026-09-26); round-6 batch added 4 b4
     # patterns: keys 30->34 while its UNCOVERED prune 17->13 kept the bucket at 47.
     # 2026-09-28 r7-batch: CHOOSE pool + protection-chosen-name + per-tapped
     # this-way + reveal-one-from-among landed: keys 34->38, UNCOVERED prune
@@ -197,6 +204,10 @@ def main() -> None:
         buckets[bucket_of_key[key]].setdefault(key, []).append([card, sentence])
 
     # Pinned counts (keys / occurrences).
+    # 2026-09-29 r9-B batch (doc 2026-09-28/11 §9-B): 12 sentences landed via
+    # b2a/b2b/b3/b4/b5a/b5b/b5c templates; bucket membership never moves
+    # (pattern<->UNCOVERED pruning only), so all 8 JSONs regenerate
+    # byte-identical (cmp-verified) with the three pattern pins above moved.
     # 2026-09-28 r7-B batch (docs/KNOWLEDGE 2026-09-28/07): 11 templates landed
     # in templates_b2b/_b5b/_b5c; NONE of these modules feeds this partition
     # (B2b is derived trigger-minus-B2a; B5 thirds are coverage-independent), so

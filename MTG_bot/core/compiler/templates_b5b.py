@@ -127,6 +127,7 @@ from MTG_bot.core.ability_tree import (
     DamageDealtEvent,
     DeclareAttackersEvent,
     DurationEot,
+    DurationPermanent,
     Effect,
     FAnd,
     FAtom,
@@ -2463,6 +2464,56 @@ def _build_it_gains_haste_emblem_residue(m: re.Match[str]) -> SentenceOutcome:
     return RuleReminderOutcome(reason="emblem_text_payload_attached")
 
 
+def _build_spend_this_mana_is_or_sorcery(m: re.Match[str]) -> SentenceOutcome:
+    """``Spend this mana only to cast an instant or sorcery spell.``
+    (Vodalian Arcanist) — grammar round 9-B row 10, the C21 event-anchored
+    sibling of the b4 ALL_YOURS row: Verb.MANA_POLICY (R9-3) with scope
+    "THIS_MANA" (the policy binds the mana THIS ability adds — the card's
+    own ``{T}: Add {C}`` row — executor-side anchoring) and filter =
+    FOr(TYPE_EQ Instant, TYPE_EQ Sorcery) narrowing the permitted spend
+    to the two spell types.  No OptionalEffect — the sentence is a
+    restriction ("only to"), not a permission; no may to keep open (C15
+    silent here).  Executor deferred per the MANA_POLICY orphan precedent
+    (PC-6: verb consumed this round — in b4 — stays consumed here).
+
+    C16: none — fully forced restriction (which instant/sorcery to cast is
+    the player's casting decision, not this atom's)."""
+    instant_or_sorcery = FOr(
+        children=(
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Instant"),
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Sorcery"),
+        )
+    )
+    atom = Atom(
+        verb=Verb.MANA_POLICY,
+        args=AtomArgs(pairs=(("scope", "THIS_MANA"), ("filter", instant_or_sorcery))),
+    )
+    return AbilityOutcome(ability=StaticAbility(effect=atom))
+
+
+def _build_play_top_revealed(m: re.Match[str]) -> SentenceOutcome:
+    """``Play with the top card of your library revealed.`` (Conspicuous
+    Snoop) — grammar round 9-B row 11: the R9-8 REVEAL duration role makes
+    the continuous revealed state expressible: REVEAL (controller=YOU,
+    count=QConst(1), duration=DurationPermanent) as a StaticAbility — the
+    library-top target is IMPLICIT per the LOOK_AT convention (LOOK_AT has
+    no zone role — top-of-library, Radha/Sasaya precedent; REVEAL's roles
+    mirror it, the count names how many cards stay face-up).
+
+    C16: none — a continuous zone-state rule, fully forced."""
+    atom = Atom(
+        verb=Verb.REVEAL,
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                ("count", QConst(1)),
+                ("duration", DurationPermanent()),
+            )
+        ),
+    )
+    return AbilityOutcome(ability=StaticAbility(effect=atom))
+
+
 # ---------------------------------------------------------------------------
 # Template registry
 # ---------------------------------------------------------------------------
@@ -3233,6 +3284,25 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_it_gains_haste_emblem_residue,
     ),
+    # --- grammar round-9-B coverage batch (doc 2026-09-28/11 §9-B rows 10-11) ---
+    Template(
+        tid="B5b-spend-this-mana-is-or-sorcery",
+        name="mana policy: THIS_MANA anchored to instant/sorcery casts (MANA_POLICY, C21)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^Spend this mana only to cast an instant or sorcery spell\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_spend_this_mana_is_or_sorcery,
+    ),
+    Template(
+        tid="B5b-play-top-revealed",
+        name="continuous revealed top card (REVEAL + DurationPermanent, R9-8)",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^Play with the top card of your library revealed\.$"),
+        priority=_PRIORITY,
+        build=_build_play_top_revealed,
+    ),
 )
 
 UNCOVERED: tuple[tuple[str, str], ...] = (
@@ -3243,14 +3313,6 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         "If you search your library this way, shuffle.",
         "Conditional shuffle on library-search trigger",
-    ),
-    (
-        "Play with the top card of your library revealed.",
-        "No top-card-revealed-play-state grammar construct (8-C re-examined: REVEAL is an event verb (controller+count roles), no continuous zone-state marker exists; R9 grammar item — continuous revealed-zone-state)",
-    ),
-    (
-        "Spend this mana only to cast an instant or sorcery spell.",
-        "No mana-restriction grammar construct",
     ),
     (
         "That creature's controller reveals cards from the top of their library until they reveal a creature card.",
