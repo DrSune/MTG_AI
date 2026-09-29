@@ -1912,6 +1912,9 @@ class TestChooseOpener(unittest.TestCase):
                     event=ZoneChangeEvent(
                         from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
                         to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                        # R11-B: "When THIS creature enters" anchors on the
+                        # card itself (audit 09-29/04 P0-2).
+                        subject=FAtom(pred=FAtomPred.IS_SOURCE),
                     ),
                     condition=None,
                     effect=Choose(

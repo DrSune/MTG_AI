@@ -454,3 +454,14 @@
   the actual M21 oracle text in the corpus has **no such tail** and PC-1 hit the binding
   prediction exactly (301/305). Grep the real card JSON in `MTG_bot/core/golden/M21/` (or the
   ingest corpus) before attributing a coverage delta to a phantom shape. (2026-09-29 r10.)
+- **Legacy shared event-helpers silently default optional IR fields to None.** The r1-r2
+  `_etb_event()` helpers (b2a/b2b) built `ZoneChangeEvent` without `subject`, so 62 "When this
+  ~ enters" triggers meant "whenever ANYTHING enters" for ten rounds. When an optional IR field
+  has semantic weight (event subject, referent, controller), make it a REQUIRED parameter of the
+  shared helper — never rely on the dataclass default at call sites. Fixed R11-B by adding a
+  required `subject: Filter` + corpus guard test_etb_subject_guard.py (empty allow-list).
+  (2026-09-29 r11-B.)
+- **Bulk sed edits leave pyright LSP diagnostics stale.** After sed-updating 40 `_etb_event(),`
+  call sites, the edit-tool diagnostics kept reporting "Argument missing for parameter
+  'subject'" against already-fixed lines. Verify with runtime pytest / the pyright CLI, not the
+  cached edit-time diagnostics. (2026-09-29 r11-B.)

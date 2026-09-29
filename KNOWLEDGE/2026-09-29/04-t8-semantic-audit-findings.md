@@ -94,3 +94,40 @@ API NOTES (for future measurement scripts): `ingest_pool(path)` requires the JSO
 `measure_pool(pool_dict, registry, set)` — registry from `coverage.build_full_registry()` (NOT
 templates.py); report fields `sentences_matched`/`sentence_total`/`pc2_sentence_coverage`,
 `cards_zero_unparsed`/`entry_count`, `ambiguous_entries`; `QCount` count field is `.selector`.
+
+## ROUND-11-B RESULTS (executed 2026-09-29, HEAD baseline a24d03e, NOT committed)
+FIX LANDED (R11-2 ETB subject sweep). Inventory: 62 offending ETB-as-trigger ZoneChangeEvents
+(subject=None) across 62 cards, attributed to 41 construction sites = 40 template tids + 1
+compiler built-in. **Classification: ALL 40 templates + built-in are class A (own-ETB "When
+this/<name> enters" or "As this enters") ⇒ subject=FAtom(IS_SOURCE). Class B offenders: 0** —
+every generic-class ETB trigger in M21 was already correctly built with explicit filters
+(Garruk's Uprising s4, Terror of the Peaks, Watcher of the Spheres, Thieves' Guild Enforcer,
+Containment Priest replacement). Class C: none — corpus guard allow-list is EMPTY.
+
+Class A per module (cards): b2a 32 tids/36 cards (28 singles + basris-lieutenant, bone-pit-brute,
+etb-draw-one, scry-n = 2 each; incl. named tids barrin-etb, niambi-etb); b2b 8 tids/24 cards
+(alpine-houndmaster 1, etb-basic-land 1, etb-power-condition-draw 1, fierce-empath 1,
+named-card-search 3, teferis-tutelage 1, temple-etb-gain-life 11, temple-etb-scry 5);
+b5a 1/1 (etb-choose-name, Runed Halo); compiler `_choose_etb_event` 1/1 (Trufflesnout).
+Garruk's Uprising nuance: the probe's "1 legit-other" card is BOTH — its s4 trigger is the
+correct class-B exemplar AND its s1 ("When this enchantment enters, if you control a creature
+with power 4 or greater, draw a card.") was one of the 62 class-A offenders.
+
+Code: `_etb_event()` in templates_b2a.py + templates_b2b.py gained a REQUIRED `subject: Filter`
+parameter (docstring: never None; class-A sites pass IS_SOURCE, hypothetical class-B sites must
+pass the described filter) — 32 + 8 call sites updated; compiler.py `_choose_etb_event` and
+templates_b5a.py `_build_etb_choose_name` got subject=IS_SOURCE. Pattern strings untouched.
+1 test pin updated (test_compiler.py choose-opener shape); NEW
+MTG_bot/core/compiler/test_etb_subject_guard.py: compiles the whole pool, asserts no
+TriggeredAbility ETB ZoneChangeEvent has subject=None outside the (empty, self-checking)
+allow-list, plus a synthetic guard-of-the-guard test.
+
+GATES (all EXACT): core suite 1724 passed (1721 + 3 guard). PC-1 301/305 · PC-2 634/639
+(0.992175) · PC-3 0 — EXACT pre- AND post-refresh. PC-4: 62 diffs pre-refresh → write_goldens
+305 → 0 post. Golden audit vs /tmp/golden_pre_r11b_2026-09-29: 62/305 files changed, top-level
+diff keys ⊆ {abilities} in ALL 62 (0 violations), every changed card traces to the classified
+62-event inventory (0 orphans). pyright 0 errors on all 6 touched py files. Ruff delta 0
+(post-fix categories byte-identical to HEAD baseline: B5 1, I001 1, TRY004 7, UP035 1, UP037 1
+on the 5 pre-existing files; new guard file clean). Repo-wide 23 failed / 1751 passed /
+1 deselected / 2 xfailed — failure set byte-identical to clean-HEAD baseline (comm empty both
+directions vs /tmp/opencode/head_fails.txt). gen_buckets untouched.

@@ -340,10 +340,15 @@ def _wrap_choose_openers(
 
 
 def _choose_etb_event() -> ZoneChangeEvent:
-    """Zone-change event for the "When this creature enters" opener."""
+    """Zone-change event for the "When this creature enters" opener.
+
+    R11-B (audit 09-29/04 P0-2): the ``_CHOOSE_ETB_RE`` opener is
+    literally ``When this creature enters`` — the entering object is the
+    card itself, so the event subject anchors on IS_SOURCE."""
     return ZoneChangeEvent(
         from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
         to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+        subject=FAtom(pred=FAtomPred.IS_SOURCE),
     )
 
 

@@ -1162,3 +1162,10 @@ Python 3.12.3 (repo .venv), torch 2.14.0+cu130 importable, 20 cores, ~10 GB RAM 
 PC-1 301/305 · PC-2 634/639 (0.992175) · PC-3 0 — all EXACTLY unchanged vs pre-fix baseline.
 Golden re-baseline: 27/305 files changed, `abilities` key only (18 predicted + 9 R11-1 fallout).
 Full suite: 23 failed / 1748 passed / 1 deselected / 2 xfailed — identical failure set to clean HEAD (23 pre-existing).
+
+### Round-11-B ETB-subject sweep (2026-09-29, uncommitted; cmd: measure_pool + write/verify_goldens + full pytest, see KNOWLEDGE/2026-09-29/04 §ROUND-11-B RESULTS)
+PC-1 301/305 · PC-2 634/639 (0.992175) · PC-3 0 — EXACT pre- and post-refresh (IR-content-only fix).
+ETB triggers with subject=None: 62 → 0 (41 construction sites: 40 templates class A + 1 compiler built-in; class B/C offenders 0).
+Golden re-baseline: 62/305 files changed, `abilities` key only in all 62; PC-4 62 diffs → 0 after refresh.
+Core suite 1724 passed (1721 + 3 new guard tests in test_etb_subject_guard.py, allow-list empty).
+Repo-wide 23 failed / 1751 passed — failure set byte-identical to clean HEAD a24d03e.

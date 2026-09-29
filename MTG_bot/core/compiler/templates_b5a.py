@@ -1152,6 +1152,9 @@ def _build_etb_choose_name(m: re.Match[str]) -> SentenceOutcome:
             event=ZoneChangeEvent(
                 from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
                 to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                # R11-B (audit 09-29/04 P0-2): "As THIS enchantment enters"
+                # — the entering object is the card itself (class A).
+                subject=FAtom(pred=FAtomPred.IS_SOURCE),
             ),
             condition=None,
             effect=Atom(verb=Verb.CHOOSE_NAME, args=AtomArgs(pairs=())),

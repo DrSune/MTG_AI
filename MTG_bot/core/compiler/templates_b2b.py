@@ -312,11 +312,21 @@ def _any_target() -> Selector:
     )
 
 
-def _etb_event() -> ZoneChangeEvent:
-    """Zone-change event for ``When this ... enters``."""
+def _etb_event(subject: Filter) -> ZoneChangeEvent:
+    """Zone-change event for ``When this ... enters``.
+
+    R11-B (audit 09-29/04 P0-2): ``subject`` is the event's anchor object.
+    Every b2b pattern calling this reads ``When <this permanent> enters``
+    (class A), so call sites pass ``FAtom(pred=FAtomPred.IS_SOURCE)`` —
+    the trigger fires exactly when THIS permanent enters.  Generic
+    ``Whenever a creature ... enters`` builders in this module (e.g.
+    ``_build_garruks_uprising_power_enter``) build their own event with
+    the described-class filter; subject is never ``None``.
+    """
     return ZoneChangeEvent(
         from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
         to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+        subject=subject,
     )
 
 
@@ -428,7 +438,7 @@ def _cat_token(power: int, toughness: int) -> TokenSpec:
 def _build_alpine_houndmaster_etb(m: re.Match[str]) -> SentenceOutcome:
     """#5: search for named Alpine Watchdog and/or Igneous Cur, reveal, hand, shuffle."""
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         OptionalEffect(
             inner=Seq(
                 steps=(
@@ -493,7 +503,7 @@ def _build_fierce_empath_etb(m: re.Match[str]) -> SentenceOutcome:
     """#6: search for creature with mana value N+, reveal, hand, shuffle."""
     n = _n(m, 1)
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         OptionalEffect(
             inner=Seq(
                 steps=(
@@ -557,7 +567,7 @@ def _build_fierce_empath_etb(m: re.Match[str]) -> SentenceOutcome:
 def _build_teferis_tutelage_etb(m: re.Match[str]) -> SentenceOutcome:
     """#7: draw a card, then discard a card."""
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Seq(
             steps=(
                 Atom(
@@ -587,7 +597,7 @@ def _build_temple_etb_scry(m: re.Match[str]) -> SentenceOutcome:
     """#10: scry N when this land enters."""
     n = _n(m, 1)
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.SCRY,
             args=AtomArgs(
@@ -604,7 +614,7 @@ def _build_temple_etb_gain_life(m: re.Match[str]) -> SentenceOutcome:
     """#11: gain N life when this land enters."""
     n = _n(m, 1)
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.GAIN_LIFE,
             args=AtomArgs(
@@ -1000,7 +1010,7 @@ def _build_named_card_search_etb(m: re.Match[str]) -> SentenceOutcome:
         ),
     )
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         OptionalEffect(inner=Seq(steps=(search, reveal, move))),
     )
 
@@ -1408,7 +1418,7 @@ def _build_havoc_jester_sacrifice(m: re.Match[str]) -> SentenceOutcome:
 def _build_solemn_simulacrum_etb(m: re.Match[str]) -> SentenceOutcome:
     """#4: search for a basic land, put it onto the battlefield tapped, shuffle."""
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         OptionalEffect(
             inner=Seq(
                 steps=(
@@ -1465,7 +1475,7 @@ def _build_garruks_uprising_etb_condition(m: re.Match[str]) -> SentenceOutcome:
     """#8: ETB, if you control a creature with power N or greater, draw a card."""
     n = _n(m, 1)
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.DRAW,
             args=AtomArgs(

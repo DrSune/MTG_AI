@@ -235,11 +235,21 @@ def _opponent_players() -> Selector:
     )
 
 
-def _etb_event() -> ZoneChangeEvent:
-    """Zone-change event for ``When this ... enters``."""
+def _etb_event(subject: Filter) -> ZoneChangeEvent:
+    """Zone-change event for ``When this ... enters``.
+
+    R11-B (audit 09-29/04 P0-2): ``subject`` is the event's anchor object.
+    Every b2a pattern calling this reads ``When <this permanent> enters``
+    (class A), so call sites pass ``FAtom(pred=FAtomPred.IS_SOURCE)`` —
+    the trigger fires exactly when THIS permanent enters, not whenever any
+    object does.  A hypothetical generic ``When a <class> enters`` pattern
+    must pass the described FAtom/FAnd filter instead (the Garruk's
+    Uprising subject idiom in b2b); it must never pass ``None``.
+    """
     return ZoneChangeEvent(
         from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
         to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+        subject=subject,
     )
 
 
@@ -722,7 +732,7 @@ def _build_barrin_etb(m: re.Match[str]) -> SentenceOutcome:
     SelectorMode.TARGET (legal designation range 1..N stays a target
     decision; resolution clamps to 0..remaining)."""
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.MOVE_ZONE,
             args=AtomArgs(
@@ -761,7 +771,7 @@ def _build_barrin_etb(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_niambi_etb(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         OptionalEffect(
             inner=Atom(
                 verb=Verb.MOVE_ZONE,
@@ -834,7 +844,7 @@ def _build_nine_lives(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_setessan_training(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.DRAW,
             args=AtomArgs(
@@ -846,7 +856,7 @@ def _build_setessan_training(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_rousing_read(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Seq(
             steps=(
                 Atom(
@@ -882,7 +892,7 @@ def _build_rousing_read(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_capture_sphere(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.TAP,
             args=AtomArgs(
@@ -912,7 +922,7 @@ def _build_capture_sphere(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_faiths_fetters(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.GAIN_LIFE,
             args=AtomArgs(
@@ -927,7 +937,7 @@ def _build_faiths_fetters(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_meteorite(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.DEAL_DAMAGE,
             args=AtomArgs(
@@ -1080,7 +1090,7 @@ def _build_goblin_arsonist(m: re.Match[str]) -> SentenceOutcome:
 def _build_valorous_steed(m: re.Match[str]) -> SentenceOutcome:
     power, toughness = _n(m, 1), _n(m, 2)
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.CREATE_TOKEN,
             args=AtomArgs(
@@ -1095,7 +1105,7 @@ def _build_valorous_steed(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_massacre_wurm(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.MODIFY_PT,
             args=AtomArgs(
@@ -1118,7 +1128,7 @@ def _build_massacre_wurm(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_rambunctious_mutt(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.DESTROY,
             args=AtomArgs(
@@ -1159,7 +1169,7 @@ def _build_rambunctious_mutt(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_lilianas_standard_bearer(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.DRAW,
             args=AtomArgs(
@@ -1179,7 +1189,7 @@ def _build_lilianas_standard_bearer(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_etb_draw_one(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.DRAW,
             args=AtomArgs(
@@ -1191,7 +1201,7 @@ def _build_etb_draw_one(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_skeleton_archer(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.DEAL_DAMAGE,
             args=AtomArgs(
@@ -1206,7 +1216,7 @@ def _build_skeleton_archer(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_storm_caller(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.DEAL_DAMAGE,
             args=AtomArgs(
@@ -1221,7 +1231,7 @@ def _build_storm_caller(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_carrion_grub(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.MILL,
             args=AtomArgs(
@@ -1245,7 +1255,7 @@ def _build_basris_acolyte(m: re.Match[str]) -> SentenceOutcome:
             f"B2a-basris-acolyte expects a +1/+1 counter, got +{counter_p}/+{counter_t}"
         )
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.PUT_COUNTER,
             args=AtomArgs(
@@ -1288,7 +1298,7 @@ def _build_basris_lieutenant(m: re.Match[str]) -> SentenceOutcome:
             f"got +{counter_p}/+{counter_t}"
         )
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.PUT_COUNTER,
             args=AtomArgs(
@@ -1323,7 +1333,7 @@ def _build_basris_lieutenant(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_shipwreck_dowser(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.MOVE_ZONE,
             args=AtomArgs(
@@ -1359,7 +1369,7 @@ def _build_roaming_ghostlight(m: re.Match[str]) -> SentenceOutcome:
     """ETB: return up to one target non-Spirit creature — TARGET +
     QAtMost(1) (grammar round 8, C17 targeted up-to)."""
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.MOVE_ZONE,
             args=AtomArgs(
@@ -1395,7 +1405,7 @@ def _build_roaming_ghostlight(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_scry_n(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.SCRY,
             args=AtomArgs(
@@ -1410,7 +1420,7 @@ def _build_scry_n(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_gale_swooper(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.GRANT_ABILITY,
             args=AtomArgs(
@@ -1429,7 +1439,7 @@ def _build_gale_swooper(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_bone_pit_brute(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.MODIFY_PT,
             args=AtomArgs(
@@ -1452,7 +1462,7 @@ def _build_bone_pit_brute(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_kitesail_freebooter(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.REVEAL,
             args=AtomArgs(
@@ -1479,7 +1489,7 @@ def _build_aven_gagglemaster(m: re.Match[str]) -> SentenceOutcome:
         Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
     )
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.GAIN_LIFE,
             args=AtomArgs(
@@ -1501,7 +1511,7 @@ def _build_aven_gagglemaster(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_crypt_lurker(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         OptionalEffect(
             inner=Choose(
                 count=QConst(1),
@@ -1681,7 +1691,7 @@ def _build_goremand(m: re.Match[str]) -> SentenceOutcome:
     # player (T3 round I convention — see test_ability_tree_t3's
     # each_player_opp, whose MILL atom uses controller YOU).
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         EachPlayer(
             ref=ControllerRef.ALL_OPPONENTS,
             effect=Atom(
@@ -1718,7 +1728,7 @@ def _build_goremand(m: re.Match[str]) -> SentenceOutcome:
 def _build_turret_ogre(m: re.Match[str]) -> SentenceOutcome:
     threshold, damage = _n(m, 1), _n(m, 2)
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.DEAL_DAMAGE,
             args=AtomArgs(
@@ -1834,7 +1844,7 @@ def _build_archfiends_vessel(m: re.Match[str]) -> SentenceOutcome:
         )
     )
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.EXILE,
             args=AtomArgs(pairs=(("target", _self_selector()),)),
@@ -1954,7 +1964,7 @@ def _build_kinetic_augur_etb(m: re.Match[str]) -> SentenceOutcome:
             )
         ),
     )
-    return _ability(_etb_event(), Seq(steps=(discard, draw)))
+    return _ability(_etb_event(FAtom(pred=FAtomPred.IS_SOURCE)), Seq(steps=(discard, draw)))
 
 
 def _build_idol_of_endurance_etb(m: re.Match[str]) -> SentenceOutcome:
@@ -1991,7 +2001,7 @@ def _build_idol_of_endurance_etb(m: re.Match[str]) -> SentenceOutcome:
             )
         ),
     )
-    return _ability(_etb_event(), atom)
+    return _ability(_etb_event(FAtom(pred=FAtomPred.IS_SOURCE)), atom)
 
 
 def _build_pursued_whale_token(m: re.Match[str]) -> SentenceOutcome:
@@ -2051,7 +2061,7 @@ def _build_pursued_whale_token(m: re.Match[str]) -> SentenceOutcome:
         color="R",  # printed red in the sentence (C-2 repair convention)
     )
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         EachPlayer(
             ref=ControllerRef.ALL_OPPONENTS,
             effect=Atom(
@@ -2080,7 +2090,7 @@ def _build_chrome_replicator_etb(m: re.Match[str]) -> SentenceOutcome:
     C16: none — fully forced (no may, no choice, no targets)."""
     p, t = _n(m, 1), _n(m, 2)
     return _ability(
-        _etb_event(),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
             verb=Verb.CREATE_TOKEN,
             args=AtomArgs(
