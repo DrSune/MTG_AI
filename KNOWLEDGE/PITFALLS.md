@@ -465,3 +465,13 @@
   call sites, the edit-tool diagnostics kept reporting "Argument missing for parameter
   'subject'" against already-fixed lines. Verify with runtime pytest / the pyright CLI, not the
   cached edit-time diagnostics. (2026-09-29 r11-B.)
+- **MOVE_ZONE needs the `cards` role ARG even when objects ride in `bindings`.** Atom role
+  validation requires it; pass a placeholder `Selector(QConst(9), ALL, UNIV, ANY_ANY)` —
+  bindings win at runtime. (2026-09-29 r12b.)
+- **World counters key by `CounterKind.name`** (`"PLUS_1_PLUS_1"`, not `"+1/+1"`). (r12b.)
+- **`TemplateRegistry()` is EMPTY** — compile tests need `coverage.build_full_registry()`. (r12b.)
+- **One permanent = one compiled record.** A second, different-oracle `attach_card` on the same
+  handle raises `ValueError` (the `(handle, idx)` binding key would silently clobber otherwise);
+  tests must put a permanent's several triggers in ONE CardRecord. (r12b.)
+- **LifeGained triggers whose effect gains life self-feed** → instant 200-fire RuntimeError;
+  feed tests must use non-life effects (mill). (r12b.)

@@ -1169,3 +1169,7 @@ ETB triggers with subject=None: 62 → 0 (41 construction sites: 40 templates cl
 Golden re-baseline: 62/305 files changed, `abilities` key only in all 62; PC-4 62 diffs → 0 after refresh.
 Core suite 1724 passed (1721 + 3 new guard tests in test_etb_subject_guard.py, allow-list empty).
 Repo-wide 23 failed / 1751 passed — failure set byte-identical to clean HEAD a24d03e.
+
+### Round-12b trigger binding (2026-09-29, uncommitted; see KNOWLEDGE/2026-09-29/07-round12b-trigger-binding.md)
+Core suite **1788 passed / 0 failed** = 1772 (12a HEAD 2a2c96f) + **16 new** binding tests — cmd: `python -m pytest MTG_bot/core -q`.
+New: `executor/events.py` EventJournal (8 kinds, C18 dies was-snapshot) + `executor/binding.py` TriggerBinder (APNAP = frozen order_key seat-first; MAX_TRIGGER_FIRES=200 → RuntimeError; unsupported event kinds raise at BIND). pyright 0; ruff delta 0 (new files clean).

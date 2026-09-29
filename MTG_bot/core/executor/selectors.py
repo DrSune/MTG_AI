@@ -87,9 +87,14 @@ def controller_matches(
 ) -> bool:
     """Did ``actual`` (a player handle) satisfy a CONTROLLER_IS ``who`` slot?"""
     if isinstance(who, Selector):
-        raise NotImplementedError(
-            "executor: CONTROLLER_IS referent Selector needs the event register (12b)"
-        )
+        # 12b: a referent Selector (e.g. the event subject's controller) —
+        # resolve the bound object(s) and compare their player side.
+        candidates = resolve_selector(who, ctx)
+        players = [
+            c if c.namespace == "player" else ctx.world.controller_of(c)
+            for c in candidates
+        ]
+        return actual in players
     if who is ControllerRef.YOU:
         return actual == ctx.controller
     if who in (ControllerRef.OPPONENT, ControllerRef.ALL_OPPONENTS):
@@ -165,10 +170,19 @@ def resolve_selector(sel: Selector, ctx: ExecCtx) -> List[Handle]:
             if bound is None:
                 raise ValueError("executor: 'target' referent has no target binding")
             candidates = bound
+        elif sel.referent in ("event", "result"):
+            # 12b: the trigger firing bound the event/result subject.
+            bound = ctx.binding_handles(sel.referent)
+            if bound is None:
+                raise NotImplementedError(
+                    f"executor: selector referent {sel.referent!r} only "
+                    "resolves inside a trigger firing (no event register)"
+                )
+            candidates = bound
         else:
             raise NotImplementedError(
-                f"executor: selector referent {sel.referent!r} needs the "
-                "event/result register (12b)"
+                f"executor: selector referent {sel.referent!r} is not in the "
+                "closed C12 vocabulary"
             )
     else:
         candidates = list(enumerate_zone(ctx, sel.zone))

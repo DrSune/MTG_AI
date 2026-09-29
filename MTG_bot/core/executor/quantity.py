@@ -80,6 +80,11 @@ class ExecCtx:
     events: List[Tuple[object, ...]] = field(default_factory=list)
     rng: Callable[[str], random.Random] = _default_rng  # executor-owned seeds
     token_counts: Dict[str, int] = field(default_factory=dict)
+    # 12b event register: the triggering GameEvent (or None outside trigger
+    # context) and the damage amount it carried, so QProp("event", AMOUNT)
+    # and the event|result referents resolve inside a firing.
+    event: object = None
+    event_amount: int | None = None
 
     def take_decision(self, vocab: Tuple[str, ...], what: str) -> str:
         """Consume the next decision; raise if missing or out-of-vocab."""
@@ -185,8 +190,17 @@ def _referent_handle(referent: str, ctx: ExecCtx) -> Handle:
         if target is None:
             raise ValueError("executor: QProp 'target' referent has no target binding")
         return target
+    # 12b: the trigger firing bound the event subject / C18 result subject.
+    if referent in ("event", "result"):
+        bound = ctx.binding_one(referent)
+        if bound is None:
+            raise NotImplementedError(
+                f"executor: QProp referent {referent!r} only resolves inside a "
+                "trigger firing (no event register on this call)"
+            )
+        return bound
     raise NotImplementedError(
-        f"executor: QProp referent {referent!r} needs the event/result register (12b)"
+        f"executor: QProp referent {referent!r} is not in the closed C12 vocabulary"
     )
 
 
@@ -214,8 +228,16 @@ def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
         return len(ctx.world.players[handle].zone(kind).entries)
     if field is QPropField.COUNTER_COUNT:
         return sum(ctx.world.cards[handle].counters.values())
+    if field is QPropField.AMOUNT:
+        # The triggering event's damage amount (Brash Taunter) — 12b register.
+        if ctx.event_amount is None:
+            raise NotImplementedError(
+                "executor: QProp AMOUNT needs a triggering damage event "
+                "(fired from a DamageDealtEvent)"
+            )
+        return ctx.event_amount
     raise NotImplementedError(
-        f"executor: QProp field {field.name} not implemented (12b event register)"
+        f"executor: QProp field {field.name} not implemented (12c query surface)"
     )
 
 
@@ -295,6 +317,10 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         return (
             handle.namespace == "card" and world.zone_of(handle).kind == "battlefield"
         )
+    if pred is FAtomPred.IS_TOKEN:
+        # "nontoken creature that died" — printed token-ness (identity data,
+        # survives death; added for real 12b dies triggers).
+        return world.cards[handle].identity.is_token
     if pred is FAtomPred.TYPE_EQ or pred is FAtomPred.SUBTYPE_EQ:
         assert atom.string_value is not None
         return atom.string_value in _type_line_tokens(
