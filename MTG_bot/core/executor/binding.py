@@ -53,6 +53,7 @@ from MTG_bot.core.ability_tree import (
     CastSpellEvent,
     CombatDamageEvent,
     ControllerRef,
+    CounterKind,
     CounterPlacedEvent,
     CreatureDiesEvent,
     DamageDealtEvent,
@@ -251,6 +252,20 @@ class TriggerBinder:
         self.detach(handle)
         for idx, ability in triggers:
             self.attached[(handle, idx)] = ability
+        # 13a loyalty ledger: the frozen CardState has no loyalty field, so
+        # the printed CardIdentity.loyalty is seeded into the counters map
+        # (CounterKind.LOYALTY) at battlefield registration — the one path
+        # covering BOTH first attach and re-entry (the lifecycle re-registers
+        # through here). setdefault, so a mid-turn re-attach never overwrites
+        # a loyalty the game already changed.
+        state = self.executor.world.cards.get(handle)
+        if state is not None and state.identity.loyalty is not None:
+            try:
+                printed = int(state.identity.loyalty)
+            except ValueError:  # pragma: no cover - printed loyalty is numeric
+                printed = 0
+            if printed:
+                state.counters.setdefault(CounterKind.LOYALTY.name, printed)
         self.executor.layers.attach_source(handle, record)
         self.executor.replacements.attach_source(handle, record)
         return len(triggers)

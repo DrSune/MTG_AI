@@ -42,6 +42,11 @@ not-implemented and RAISE at dispatch; DelayedTrigger SCHEDULES into the
     active player's permanents except those a live prevention vetoes
     (Frost Breath freeze — survives exactly one untap tick), journalling
     every untap as a TapStateEvent, then expires the step-scoped durations.
+    13a gives the same skeleton a **phase clock** (``Executor.phase`` /
+    ``turn_open``, the honest sorcery-window gate), an **extra-turn queue**
+    (``advance_turn`` pops it before rotating, CR 500.7 stand-in), an
+    ``END_TURN`` request flag consumed by the op loop, a ``lost_players``
+    ledger and the CR 606.3 ``loyalty_clock`` the legality gate reads.
 
 Design mandates:
 
@@ -60,12 +65,20 @@ Design mandates:
     :class:`DurationLedger` dump + the 12a event log + the 12b journal and
     binder dumps (ruling 1: the ledger IS replayed state, since state.py
     stays frozen).
-  * ``SUPPORTED_VERBS_V1`` is the honest capability set — it is *not*
-    wired into ``compile_pool`` gating (that is 12e's job).
+  * ``SUPPORTED_VERBS_V1`` is the frozen round-12 capability **contract** —
+    the literal 24-verb set v1 goldens were measured against, pinned as a
+    version so a later round's handler cannot silently widen a v1 gate.
+    ``SUPPORTED_VERBS_V2`` is the honest **live** capability set, derived
+    from the dispatch table so the two can never drift. Neither is wired
+    into ``compile_pool`` gating (that is 12e's job).
 
-Verb.DRAW is deliberately outside v1 (the mission's scope list): the atom
-stays unsupported and raises, with the DRAW idiom of library->hand MOVE_ZONE
-handled by the verb that cards actually compile to.
+13a brought the library/turn verbs into the live set: ``DRAW`` (the atom the
+v1 scope list excluded — now a real handler over :meth:`GameWorld.draw`; the
+library->hand ``MOVE_ZONE`` idiom cards compile to stays equally valid),
+``SEARCH`` (the Cultivate compile), and the turn-flow four ``FLIP_COIN`` /
+``END_TURN`` / ``EXTRA_TURN`` / ``LOSE_GAME``, which mutate **executor-side**
+ledgers (the frozen :class:`GameWorld` carries no flip/turn/loss fields) and
+are therefore the only verbs needing an executor-backed context.
 """
 
 from __future__ import annotations
@@ -73,7 +86,6 @@ from __future__ import annotations
 import hashlib
 import random
 from collections.abc import Sequence
-from typing import Dict, List, Optional, Tuple
 
 from MTG_bot.core.ability_tree import (
     Atom,
@@ -85,6 +97,7 @@ from MTG_bot.core.ability_tree import (
     Phase,
     Seq,
     Step,
+    Verb,
 )
 from MTG_bot.core.compiler.compiler import PoolCompile
 from MTG_bot.core.executor.binding import MAX_TRIGGER_FIRES, TriggerBinder
@@ -110,6 +123,7 @@ from MTG_bot.core.executor.query import (
     TargetSlot,
     choose_options,
     legal_activations,
+    legal_search,
     legal_targets,
     optional_offer,
     rest_of,
@@ -125,17 +139,47 @@ from MTG_bot.core.executor.verbs import HANDLERS, run_atom, token_oracle_id
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import ZONE_BATTLEFIELD, GameWorld
 
-# The honest v1 capability set, derived from the dispatch table so the two
-# can never drift apart.
-SUPPORTED_VERBS_V1 = frozenset(HANDLERS)
+# The v1 capability CONTRACT — the round-12 24-verb set every v1 golden and
+# the round-12 cross-check were measured against.  Deliberately a literal
+# now, not a derivation: 13a grew the dispatch table (DRAW, SEARCH and the
+# turn-flow four), and a versioned contract must not widen just because a
+# later round shipped a handler.  ``SUPPORTED_VERBS_V2`` is the live set.
+SUPPORTED_VERBS_V1 = frozenset(
+    {
+        Verb.MOVE_ZONE,
+        Verb.EXILE,
+        Verb.SACRIFICE,
+        Verb.DESTROY,
+        Verb.DISCARD,
+        Verb.MILL,
+        Verb.GAIN_LIFE,
+        Verb.LOSE_LIFE,
+        Verb.DEAL_DAMAGE,
+        Verb.TAP,
+        Verb.UNTAP,
+        Verb.PUT_COUNTER,
+        Verb.REMOVE_COUNTER,
+        Verb.MODIFY_PT,
+        Verb.SET_PT,
+        Verb.CREATE_TOKEN,
+        Verb.ADD_MANA,
+        Verb.SCRY,
+        Verb.SHUFFLE,
+        Verb.LOOK_AT,
+        Verb.REVEAL,
+        Verb.GRANT_ABILITY,
+        Verb.LOSE_ABILITY,
+        Verb.PREVENT_EFFECT,
+    }
+)
 
 # The 12e capability set: exactly the verbs ``run_atom`` dispatches to a real
-# handler today (round-12 cross-check against all 48 corpus verbs).  This is
-# the same set as V1 — 12b/12d additions (GRANT_ABILITY, LOSE_ABILITY,
-# PREVENT_EFFECT) already entered ``HANDLERS``, and no further verb gained a
-# handler — so it is derived, not retyped.  The 25 non-dispatched verbs
-# (CAST, COUNTER_SPELL, PHASE_OUT/PHASE_IN, FIGHT, COPY, MANDATE_ATTACK,
-# MANDATE_BLOCK, DRAW, PAY, SEARCH, ATTACH, GAIN_CONTROL, GET_EMBLEM, ...)
+# handler today (round-12 cross-check against all 48 corpus verbs).  Derived,
+# never retyped: 12b/12d brought GRANT_ABILITY, LOSE_ABILITY and
+# PREVENT_EFFECT, and 13a brought the library/turn verbs (DRAW, SEARCH,
+# FLIP_COIN, END_TURN, EXTRA_TURN, LOSE_GAME).  The remaining non-dispatched
+# verbs (CAST, COUNTER_SPELL, PHASE_OUT/PHASE_IN, FIGHT, COPY,
+# MANDATE_ATTACK, MANDATE_BLOCK, PAY, ATTACH, GAIN_CONTROL, ...)
 # stay outside: event-node-only or out-of-contract internals (ruling 6),
 # flagged by ``compile_pool(supported_verbs=...)``, never faked.
 SUPPORTED_VERBS_V2 = frozenset(HANDLERS)
@@ -170,6 +214,7 @@ __all__ = [
     "build_payment_plan",
     "choose_options",
     "legal_activations",
+    "legal_search",
     "legal_targets",
     "optional_offer",
     "pay_costs",
@@ -200,6 +245,28 @@ class Executor:
         self.binder = TriggerBinder(self)
         self._op_seq = 0
         self._turn_started = False
+        # ------------------------------------------------------ 13a turn state
+        # The frozen GameWorld has no phase/turn-flow/loss fields, so the
+        # turn skeleton owns this ledger (ruling 1: replayed state lives on
+        # the executor, and every field below is in state_fingerprint).
+        # ``phase`` is the last phase marker recorded (None before the first
+        # begin_turn); ``turn_open`` is the "a turn is in progress" flag the
+        # legality gates read.
+        self.phase: str | None = None
+        self.turn_open = False
+        # CR 500.7 stand-in: EXTRA_TURN enqueues, advance_turn pops.
+        self.extra_turn_queue: list[Handle] = []
+        # LOSE_GAME ledger (the emptied-library CR 121.3 loss is the later
+        # state-check phase, not a verb).
+        self.lost_players: list[Handle] = []
+        # CR 606.3: handle -> turn of that permanent's last loyalty act.
+        self.loyalty_clock: dict[Handle, int] = {}
+        # FLIP_COIN's winner, read by the FLIP_WON conditional of a
+        # separate ability row (Tavern Swindler compiles to two).
+        self.last_flip_won_by: Handle | None = None
+        # END_TURN's deferred close (consumed by the op loop).
+        self.end_turn_requested = False
+        self._closing_turn = False
         # Public alias of the seeded factory (the binder builds ExecCtxs too).
         self.rng = self._rng
 
@@ -269,6 +336,7 @@ class Executor:
         start = len(self.events)
         self._run_effect(atom, ctx)
         self._settle(trigger_decisions)
+        self._consume_end_turn(trigger_decisions)
         return tuple(self.events[start:])
 
     def apply_effect(
@@ -301,6 +369,7 @@ class Executor:
         start = len(self.events)
         self._run_effect(effect, ctx)
         self._settle(trigger_decisions)
+        self._consume_end_turn(trigger_decisions)
         return tuple(self.events[start:])
 
     def _run_effect(self, effect: Effect, ctx: ExecCtx) -> None:
@@ -419,6 +488,26 @@ class Executor:
         self.layers.recompute()
         return fired
 
+    def _consume_end_turn(self, trigger_decisions: Sequence[str] = ()) -> None:
+        """13a: an END_TURN atom only SETS the request flag (mid-op state
+        must not change under the atoms still running); the close happens at
+        the op boundary through the ONE turn skeleton, so there is exactly
+        one end-of-turn path (markers, sweeps, delayed-trigger expiry). A
+        nested apply_effect (payment step, replacement action) consuming the
+        flag first is harmless — the flag is single-shot."""
+        if not self.end_turn_requested:
+            return
+        self.end_turn_requested = False
+        if self.turn_open and not self._closing_turn:
+            # Re-entrancy guard: a trigger fired BY the close may itself
+            # request END_TURN; the turn is already closing, so that request
+            # is consumed as a no-op rather than recursing.
+            self._closing_turn = True
+            try:
+                self.end_turn(trigger_decisions)
+            finally:
+                self._closing_turn = False
+
     def _while_eval(self, change: object, meta: object) -> bool:
         """The ledger WHILE evaluator: the condition (a state predicate,
         StaticAbility convention) judged against the recording anchor in
@@ -458,6 +547,11 @@ class Executor:
             self.world.turn += 1
         self._turn_started = True
         self.world.active_player = player
+        self.turn_open = True
+        # The UNTAP step has no grammar phase marker (Phase is the closed
+        # {UPKEEP, FIRST_MAIN, COMBAT, END_TURN} vocab), so the clock sits
+        # at UPKEEP across it — nothing can activate during a rule step.
+        self.phase = Phase.UPKEEP.name
         self.journal.begin_turn(player)
         self._untap_step(player)
         # UNTIL_NEXT_TURN expiry: the recorded owner's turn is beginning —
@@ -467,7 +561,9 @@ class Executor:
         self.layers.expire_until_next_turn(player)
         self.replacements.expire_until_next_turn(player)
         self.journal.record_turn_phase(Phase.UPKEEP.name)
+        self.phase = Phase.UPKEEP.name
         self.journal.record_turn_phase(Phase.FIRST_MAIN.name)
+        self.phase = Phase.FIRST_MAIN.name
         return self._settle(trigger_decisions)
 
     def _untap_step(self, player: Handle) -> int:
@@ -505,14 +601,25 @@ class Executor:
 
     def advance_turn(self, trigger_decisions: Sequence[str] = ()) -> int:
         """End the active turn (if one is open) and begin the next seat's
-        turn — the skeleton's round-robin. Returns the combined firings."""
+        turn — the skeleton's round-robin, EXCEPT that a pending EXTRA_TURN
+        entry is popped first (13a): "the next turn belongs to that player"
+        (CR 500.7). Nested grants from DIFFERENT players resolve in queue
+        order rather than the full CR 500.7 dependency graph — documented
+        simplification, no golden exercises it. Returns the combined
+        firings."""
         order = self.world.player_order
         if self.world.active_player is None or not self._turn_started:
             nxt = order[0]
         else:
-            idx = order.index(self.world.active_player)
-            nxt = order[(idx + 1) % len(order)]
-            self.end_turn(trigger_decisions)
+            if self.extra_turn_queue:
+                nxt = self.extra_turn_queue.pop(0)
+            else:
+                idx = order.index(self.world.active_player)
+                nxt = order[(idx + 1) % len(order)]
+            if self.turn_open:
+                # An END_TURN atom already closed the turn inside the op —
+                # never emit a second END_TURN marker for it.
+                self.end_turn(trigger_decisions)
         return self.begin_turn(nxt, trigger_decisions)
 
     def end_turn(self, trigger_decisions: Sequence[str] = ()) -> int:
@@ -521,6 +628,8 @@ class Executor:
         ledger entries, Eot-tagged LAYER records (12d: until-end-of-turn
         grants die here) and Eot-tagged PREVENTION records, and the
         turn-window delayed triggers (C22). Returns the firing count."""
+        self.phase = Phase.END_TURN.name
+        self.turn_open = False
         self.journal.record_turn_phase(Phase.END_TURN.name)
         fired = self._settle(trigger_decisions)
         self.ledger.sweep_at_eot()
@@ -552,6 +661,20 @@ class Executor:
         h.update(repr(self.binder.dump()).encode())
         h.update(repr(self.layers.dump()).encode())
         h.update(repr(self.replacements.dump()).encode())
+        # 13a: the turn ledger is replayed state too (same ruling).
+        h.update(
+            repr(
+                (
+                    self.phase,
+                    self.turn_open,
+                    tuple(self.extra_turn_queue),
+                    tuple(self.lost_players),
+                    tuple(sorted(self.loyalty_clock.items())),
+                    self.last_flip_won_by,
+                    self.end_turn_requested,
+                )
+            ).encode()
+        )
         return h.hexdigest()
 
     # Alias the module-level helpers that tests and callers reach through

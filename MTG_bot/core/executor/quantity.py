@@ -314,9 +314,11 @@ def eval_filter(filter_: Filter, handle: Handle, ctx: ExecCtx) -> bool:
     IS_UNTAPPED, IS_SOURCE, IS_PERMANENT, CONTROLLER_IS, HAS_COUNTER, and
     the boolean nodes FAnd/FOr/FNot. (The mission's "ZONE_IN" has no
     ``FAtomPred`` member in the frozen grammar; IS_PERMANENT is the
-    closed-grammar stand-in for "is on the battlefield".) Every other
-    predicate raises ``NotImplementedError`` naming itself: its completeness
-    is 12c's gate, and an unsupported pred is flagged, never guessed.
+    closed-grammar stand-in for "is on the battlefield".) 13a adds
+    SUPERTYPE_EQ (printed type-line words) and FLIP_WON (the executor's flip
+    ledger). Every other predicate raises ``NotImplementedError`` naming
+    itself: its completeness is 12c's gate, and an unsupported pred is
+    flagged, never guessed.
     """
     if isinstance(filter_, FAnd):
         return all(eval_filter(c, handle, ctx) for c in filter_.children)
@@ -354,7 +356,12 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # "nontoken creature that died" — printed token-ness (identity data,
         # survives death; added for real 12b dies triggers).
         return world.cards[handle].identity.is_token
-    if pred is FAtomPred.TYPE_EQ or pred is FAtomPred.SUBTYPE_EQ:
+    if pred in (FAtomPred.TYPE_EQ, FAtomPred.SUBTYPE_EQ, FAtomPred.SUPERTYPE_EQ):
+        # 13a: supertypes join the type-word match. The frozen identity has
+        # no ``supertypes`` field, but every supertype ("Basic", "Legend",
+        # "Snow") is PRINTED in the type line, so the data-only word test
+        # that TYPE_EQ/SUBTYPE_EQ already use is the honest reading (C12:
+        # no oracle text is parsed).
         assert atom.string_value is not None
         return atom.string_value in _type_line_tokens(
             world.cards[handle].identity.type_line
@@ -385,6 +392,21 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         from MTG_bot.core.executor.selectors import controller_matches
 
         return controller_matches(who, actual, ctx)
+    if pred is FAtomPred.FLIP_WON:
+        # 13a (Tavern Swindler compiles the flip and its winner-gate to two
+        # rows, so the predicate runs in a SEPARATE context from the
+        # FLIP_COIN atom): the answer is the executor's flip ledger. No
+        # ledger at all (a bare ExecCtx) or no flip recorded yet is flagged,
+        # never guessed as "lost" — the conditional has no antecedent.
+        if ctx.executor is None or ctx.executor.last_flip_won_by is None:
+            raise NotImplementedError(
+                "executor: FLIP_WON needs an executor flip ledger with a "
+                "recorded FLIP_COIN (bare ExecCtx / no flip yet)"
+            )
+        assert atom.who is not None
+        from MTG_bot.core.executor.selectors import controller_matches
+
+        return controller_matches(atom.who, ctx.executor.last_flip_won_by, ctx)
     raise NotImplementedError(
         f"executor: filter pred {pred.name} not implemented (12c query surface)"
     )

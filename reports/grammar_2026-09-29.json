@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-09-29T16:34:35+02:00",
-  "git_head": "f6b013481cdcb0b4e61ff26400bae036018c8b7d",
+  "generated": "2026-09-29T20:23:54+02:00",
+  "git_head": "c820fc9b076a7d586f9513ebf1f2ac7b48c2bded",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -101,15 +101,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.29,
+      "value": 0.249,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.257,
-        0.258,
-        0.29
+        0.238,
+        0.238,
+        0.249
       ]
     },
     "PC-6": {
@@ -258,7 +258,7 @@
   ],
   "unparsed_count": 5,
   "engine_support": {
-    "engine_supported_cards": 206,
+    "engine_supported_cards": 264,
     "of_total": 305,
     "supported_verbs": [
       "ADD_MANA",
@@ -266,11 +266,16 @@
       "DEAL_DAMAGE",
       "DESTROY",
       "DISCARD",
+      "DRAW",
+      "END_TURN",
       "EXILE",
+      "EXTRA_TURN",
+      "FLIP_COIN",
       "GAIN_LIFE",
       "GRANT_ABILITY",
       "LOOK_AT",
       "LOSE_ABILITY",
+      "LOSE_GAME",
       "LOSE_LIFE",
       "MILL",
       "MODIFY_PT",
@@ -281,6 +286,7 @@
       "REVEAL",
       "SACRIFICE",
       "SCRY",
+      "SEARCH",
       "SET_PT",
       "SHUFFLE",
       "TAP",
@@ -292,8 +298,7 @@
       "default_engine_supported": true,
       "gated_engine_supported": false,
       "offending_verbs": [
-        "CAST",
-        "DRAW"
+        "CAST"
       ]
     }
   }

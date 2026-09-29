@@ -26,8 +26,11 @@ Contract highlights:
   ``CostTap / CostManaColor / CostManaGeneric / CostManaHybrid / CostLife /
   CostSacrifice / CostDiscard / CostPutCounter / CostLoyalty``. (The
   mission's "CostExile" has no member in the frozen grammar — the closed
-  vocabulary wins; there is no exile-as-cost node.) ``CostLoyalty`` raises
-  a clean notimpl: the frozen :class:`CardState` carries no loyalty field.
+  vocabulary wins; there is no exile-as-cost node.) ``CostLoyalty`` is the
+  13a addition: the frozen :class:`CardState` has no loyalty field, so the
+  ledger rides on its ``counters`` map under ``CounterKind.LOYALTY.name``
+  (seeded from the printed :attr:`CardIdentity.loyalty` at binding,
+  :mod:`executor.binding`) and steps through the journalled counter verbs.
 
 Rules encoded, with citations:
 
@@ -85,6 +88,7 @@ from MTG_bot.core.ability_tree import (
     CostTap,
     CounterKind,
     FAnd,
+    Phase,
     QConst,
     Quantity,
     QUnbounded,
@@ -112,7 +116,7 @@ if TYPE_CHECKING:  # pragma: no cover - import cycle guard only
 MANA_KEYS = ("W", "U", "B", "R", "G", "C")
 
 # The payment fold's canonical step order (deterministic journal sequence).
-PAYMENT_ORDER = ("mana", "tap", "sacrifice", "discard", "counter", "life")
+PAYMENT_ORDER = ("mana", "tap", "sacrifice", "discard", "counter", "loyalty", "life")
 
 
 @dataclass(frozen=True)
@@ -133,6 +137,7 @@ class PaymentPlan:
     sacrifice: tuple[Handle, ...] = ()
     discard: tuple[Handle, ...] = ()
     counters: tuple[tuple[Handle, str, int], ...] = ()
+    loyalty: int = 0
     life: int = 0
 
     def is_empty(self) -> bool:
@@ -143,6 +148,7 @@ class PaymentPlan:
             or self.sacrifice
             or self.discard
             or self.counters
+            or self.loyalty
             or self.life
         )
 
@@ -187,6 +193,33 @@ def source_owner(world: GameWorld, ctx: ExecCtx) -> Handle:
     if ctx.source.namespace == "card" and ctx.source in world.cards:
         return world.controller_of(ctx.source)
     return ctx.controller
+
+
+def _loyalty_of(world: GameWorld, handle: Handle) -> int:
+    """The loyalty ledger value (13a): the ``"LOYALTY"`` counter, falling
+    back to the printed :attr:`CardIdentity.loyalty` only for a raw card
+    whose ledger has not been seeded yet (a card built straight into a
+    zone, before binding). 0 when the card has no loyalty at all (a non-
+    planeswalker paying a loyalty cost is illegal, and
+    :func:`build_payment_plan` flags it).
+
+    Note: the generic counter verb deletes a zeroed counter key.  A payment
+    that brings loyalty to exactly 0 therefore passes the resulting ledger
+    value to :func:`_loyalty_death_check` directly rather than rereading it
+    here.
+    """
+    state = world.cards.get(handle)
+    if state is None:
+        return 0
+    if "LOYALTY" in state.counters:
+        return state.counters["LOYALTY"]
+    printed = state.identity.loyalty
+    if printed is None:
+        return 0
+    try:
+        return int(printed)
+    except ValueError:  # pragma: no cover - printed loyalty is a numeral
+        return 0
 
 
 # ------------------------------------------------------- candidate search
@@ -290,6 +323,7 @@ def build_payment_plan(
     discard: list[Handle] = []
     counters: list[tuple[Handle, str, int]] = []
     life = 0
+    loyalty = 0
     remaining: dict[str, int] = dict(world.players[ctx.controller].mana_pool)
     spent: dict[str, int] = {}
     generic_need = 0
@@ -360,10 +394,18 @@ def build_payment_plan(
                 return None, f"cost:life:{payer.life}<{amount}"
             life += amount
         elif isinstance(part, CostLoyalty):
-            raise NotImplementedError(
-                "executor: CostLoyalty payment needs a loyalty field on the "
-                "frozen CardState (planeswalker loyalty activations are 12d+)"
+            # 13a: the loyalty ledger lives on the source's counters map
+            # (``"LOYALTY"``), seeded from the printed CardIdentity.loyalty
+            # at binding (binding.py). The source may be absent (a test
+            # calling build_payment_plan against a raw ctx), so the printed
+            # identity is the fallback.
+            delta = (
+                part.delta if isinstance(part.delta, int) else resolve(part.delta, ctx)
             )
+            have = _loyalty_of(world, ctx.source)
+            if delta < 0 and have < -delta:
+                return None, f"cost:loyalty:{have}<{-delta}"
+            loyalty += delta
         else:  # pragma: no cover - CostPart is a closed union
             raise NotImplementedError(
                 f"executor: cost part {type(part).__name__} not implemented"
@@ -399,6 +441,7 @@ def build_payment_plan(
         sacrifice=tuple(sorted(set(sacrifice))),
         discard=tuple(sorted(set(discard))),
         counters=tuple(sorted(counters)),
+        loyalty=loyalty,
         life=life,
     )
     return plan, None
@@ -472,6 +515,22 @@ def ability_playable(
             return "window:sorcery:not_own_turn"
         if not stack_empty:
             return "window:sorcery:stack_nonempty"
+        # 13a: the skeleton's phase clock (Executor.phase) is the honest
+        # sorcery-window gate — a sorcery-timed activation after the first
+        # main phase (the END_TURN marker of a mid-turn END_TURN atom) is
+        # out of window. ``phase is None`` / FIRST_MAIN = inside.
+        if executor.phase not in (None, Phase.FIRST_MAIN.name):
+            return "window:sorcery:phase"
+    # CR 606.3 (13a): one loyalty ability per permanent per turn. The
+    # executor's simplification: the clock is keyed on the permanent and
+    # the turn number, with NO turn-ownership gate layered on top (the
+    # corpus' loyalty cards are all "activate only as a sorcery", which the
+    # timing gate above already covers; a non-sorcery loyalty window would
+    # additionally need the active-seat check — untested debt, documented).
+    if any(isinstance(p, CostLoyalty) for p in ability.cost.parts) and (
+        executor.loyalty_clock.get(handle) == world.turn
+    ):
+        return "window:loyalty:once_per_turn"
     ctx = ctx_for(executor, source=handle, controller=seat)
     if ability.condition is not None:
         subject = condition_ctx_source if condition_ctx_source is not None else handle
@@ -499,6 +558,39 @@ def _binding_atom(verb: Verb, role: str, handles: Sequence[Handle], **extra) -> 
         Zone(ZoneKind.ANY, ControllerRef.ANY),
     )
     return Atom(verb=verb, args=AtomArgs(pairs=tuple(pairs.items())))
+
+
+def _loyalty_death_check(
+    executor: Executor,
+    source: Handle,
+    controller: Handle,
+    trigger_decisions: Sequence[str] = (),
+    loyalty_after: int | None = None,
+) -> None:
+    """CR 704.2 (13a): a planeswalker with 0 or less loyalty is put into its
+    owner's graveyard. The frozen world has no state-based-action pass, so
+    this is the one place the check is run — immediately after the loyalty
+    payment, which is the only legal way loyalty reaches 0 in the executor.
+    It fires the journalled ``DESTROY`` verb (dies triggers, graveyard) as
+    the documented stand-in for the SBZA's graveyard replacement; destroy
+    *replacement* effects (Rest in Peace) would see it as a destroy, a
+    corner the frozen corpus has no golden for."""
+    world = executor.world
+    state = world.cards.get(source)
+    if state is None or state.identity.loyalty is None:
+        return  # not a planeswalker — nothing to check
+    if world.zone_of(source).kind != ZONE_BATTLEFIELD:
+        return
+    have = _loyalty_of(world, source) if loyalty_after is None else loyalty_after
+    if have > 0:
+        return
+    executor.apply_effect(
+        _binding_atom(Verb.DESTROY, "target", [source]),
+        source=source,
+        controller=controller,
+        bindings={"target": [source]},
+        trigger_decisions=trigger_decisions,
+    )
 
 
 def pay_costs(
@@ -578,6 +670,33 @@ def pay_costs(
             bindings={"target": [handle]},
             trigger_decisions=trigger_decisions,
         )
+    if plan.loyalty:
+        # 13a: the loyalty ledger steps through the same journalled counter
+        # verbs (PUT/REMOVE with CounterKind.LOYALTY) so the +1/-0/-N rows
+        # are the ones the golden event stream already knows, then the
+        # zero-loyalty planeswalker death check (CR 704.2) fires its own
+        # journalled DESTROY.
+        loyalty_before = _loyalty_of(world, source)
+        executor.apply_effect(
+            _binding_atom(
+                Verb.PUT_COUNTER if plan.loyalty > 0 else Verb.REMOVE_COUNTER,
+                "target",
+                [source],
+                counter_kind=CounterKind.LOYALTY,
+                count=QConst(abs(plan.loyalty)),
+            ),
+            source=source,
+            controller=controller,
+            bindings={"target": [source]},
+            trigger_decisions=trigger_decisions,
+        )
+        _loyalty_death_check(
+            executor,
+            source,
+            controller,
+            trigger_decisions,
+            loyalty_before + plan.loyalty,
+        )
     if plan.life:
         executor.apply_effect(
             Atom(
@@ -644,6 +763,9 @@ def activate(
     if plan is None:  # pragma: no cover - ability_playable just checked
         raise ValueError(f"executor: illegal activation: {plan_reason}")
     pay_costs(executor, plan, source=handle, controller=seat)
+    if plan.loyalty:
+        # CR 606.3 once-per-turn clock (13a), keyed on the permanent.
+        executor.loyalty_clock[handle] = executor.world.turn
     bindings: dict[str, Binding] = {}
     chosen = sorted(targets)
     if chosen:

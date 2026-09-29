@@ -259,10 +259,19 @@ class TestLifeCost(LegalityCase):
         assert plan is not None
         self.assertEqual((plan.life, reason), (0, None))
 
-    def test_loyalty_cost_is_a_clean_flag(self):
+    def test_loyalty_cost_is_payable(self):
+        # AMENDED 2026-09-29 (round 13a): CostLoyalty left the clean-flag
+        # list. The ledger is the source's "LOYALTY" counter (printed
+        # CardIdentity.loyalty as fallback), so a loyalty cost is now a
+        # CR 606.3 resource check — and Alpha carries NO loyalty field, so
+        # its loyalty is 0: a -2 activation is short, a +1 is always
+        # payable (gaining loyalty has no upper bound, CR 606.3b).
         ctx = ctx_for(self.ex, source=self.alpha, controller=self.p0)
-        with self.assertRaises(NotImplementedError):
-            build_payment_plan(self.world, ctx, cost(CostLoyalty(-2)))
+        plan, reason = build_payment_plan(self.world, ctx, cost(CostLoyalty(-2)))
+        self.assertEqual((plan, reason), (None, "cost:loyalty:0<2"))
+        plan, reason = build_payment_plan(self.world, ctx, cost(CostLoyalty(1)))
+        assert plan is not None
+        self.assertEqual((plan.loyalty, reason), (1, None))
 
 
 class TestSelectorCosts(LegalityCase):

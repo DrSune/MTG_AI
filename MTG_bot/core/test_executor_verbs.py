@@ -759,14 +759,17 @@ class TestDispatchRaises(ExecutorCase):
         # "not implemented" raise become observable.
         # AMENDED 2026-09-29 (round 12d): GRANT_ABILITY left the raise list
         # — it (with LOSE_ABILITY/PREVENT_EFFECT) is a live layer verb now
-        # (test_executor_layers.py covers the behaviour). DRAW deliberately
-        # stays outside v1 (mission scope list).
+        # (test_executor_layers.py covers the behaviour).
+        # AMENDED 2026-09-29 (round 13a): DRAW and SEARCH left the raise
+        # list too — they gained real handlers, so probing them for a
+        # dispatch raise is no longer meaningful (their card-level
+        # behaviour is the 13b golden work). SUPPORTED_VERBS_V1 still
+        # pins them OUT: V1 is the frozen round-12 contract, V2 the live
+        # derived set.
         probes = {
-            Verb.DRAW: {"controller": ControllerRef.YOU, "amount": QConst(1)},
             Verb.CAST: {"source": target_sel()},
             Verb.FIGHT: {"target": target_sel()},
             Verb.PHASE_OUT: {"target": target_sel()},
-            Verb.SEARCH: {"cards": target_sel(), "destination": LIB_YOU},
             Verb.COUNTER_SPELL: {"target": target_sel()},
             Verb.GET_EMBLEM: {},
         }

@@ -99,6 +99,7 @@ __all__ = [
     "TargetSlot",
     "choose_options",
     "legal_activations",
+    "legal_search",
     "legal_targets",
     "optional_offer",
     "rest_of",
@@ -334,6 +335,34 @@ def legal_targets(
         min_count=min_count,
         max_count=max_count,
         forced=forced,
+    )
+
+
+def legal_search(
+    world: GameWorld,
+    executor: Executor,
+    node: Atom | Selector,
+    *,
+    seat: Handle,
+) -> tuple[Handle, ...]:
+    """The SEARCH offer surface (13a): the candidate set one SEARCH atom's
+    ``cards`` role may designate — the same enumeration
+    :func:`MTG_bot.core.executor.verbs._search_designation` resolves at
+    effect time, so the query and the handler can never disagree about what
+    was searchable (§8.3 identity). Handle-sorted (ruling 5), card-namespace
+    only. ``node`` is the SEARCH Atom or its ``cards`` Selector directly."""
+    from MTG_bot.core.executor.legality import enumerate_candidates
+
+    selector = node.args.get("cards") if isinstance(node, Atom) else node
+    if not isinstance(selector, Selector):
+        # ValueError, not TypeError: "no offerable search" is the domain
+        # answer this query surface gives for a malformed node.
+        raise ValueError(  # noqa: TRY004
+            f"legal_search: no cards selector on {node!r}"
+        )
+    ctx = ctx_for(executor, source=seat, controller=seat)
+    return tuple(
+        sorted(h for h in enumerate_candidates(selector, ctx) if h.namespace == "card")
     )
 
 

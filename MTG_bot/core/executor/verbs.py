@@ -274,9 +274,7 @@ def _pt_delta_value(quantity: object, ctx: ExecCtx) -> int:
     return resolve(quantity, ctx)
 
 
-def pt_atom_delta(
-    atom: Atom, ctx: ExecCtx
-) -> tuple[int, int, int | None, int | None]:
+def pt_atom_delta(atom: Atom, ctx: ExecCtx) -> tuple[int, int, int | None, int | None]:
     """One MODIFY_PT/SET_PT atom -> ``(power_delta, toughness_delta,
     power_set, toughness_set)`` — the shared extraction the 12a fold and
     12d's static-layer materialization both run through (one numeric
@@ -544,10 +542,169 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
             f"executor: continuous {atom.verb.name} (duration) is 12d"
         )
     player = role_player(ctx, atom)
-    n = amount(ctx, atom, "count")
     lib = ctx.world.players[player].zone(ZONE_LIBRARY)
-    seen = tuple(str(c) for c in reversed(lib.entries[-n:])) if n else ()
+    count_q = atom.args.get("count")
+    if isinstance(count_q, QUnbounded):
+        # 13a: QUnbounded is not number-resolvable, and here it means the
+        # ENTIRE zone — the Cultivate compile idiom (REVEAL with an
+        # unbounded count "counts" the searched library; the grammar's
+        # documented inability to reference the found set).
+        seen = tuple(str(c) for c in reversed(lib.entries))
+    else:
+        n = amount(ctx, atom, "count")
+        seen = tuple(str(c) for c in reversed(lib.entries[-n:])) if n else ()
     ctx.events.append((len(ctx.events), atom.verb.name, str(player), seen))
+
+
+# ------------------------------------------------------- 13a turn/library verbs
+
+
+def _v_draw(ctx: ExecCtx, atom: Atom) -> None:
+    """DRAW (13a): :meth:`GameWorld.draw` takes the top of the library
+    (last entry, zone order); an empty library no-ops (CR 121.2 — the draw
+    attempt itself is free; the loss is a state-check later). The journal
+    auto-detects the library->hand move and emits CARD_DRAWN with the
+    (drawer, ordinal) payload (events.py) — this row is the 12a-style
+    audit line, mirroring MILL/MOVE."""
+    player = role_player(ctx, atom, "controller")
+    count_q = atom.args.get("amount")
+    assert count_q is None or isinstance(count_q, Quantity)
+    n = 1 if count_q is None else resolve(count_q, ctx)
+    ctx.world.draw(player, n)
+    ctx.events.append((len(ctx.events), "DRAW", str(player), n))
+
+
+def _search_designation(atom: Atom, ctx: ExecCtx) -> list[Handle]:
+    """The SEARCH ``cards`` role designation — the shared enumeration the
+    handler runs and :func:`MTG_bot.core.executor.query.legal_search`
+    mirrors. Explicit bindings take precedence (the caller designated the
+    found cards — the e2e/Slate surface); otherwise the selector resolves
+    through the 12a machinery: CHOOSE = deterministic first-n-sorted
+    stand-in, RANDOM = seeded ctx.rng draw; an undesignated ONE_OF/TARGET
+    propagates the existing clean raise (never a guess)."""
+    cards = ctx.binding_handles("cards")
+    if cards is not None:
+        return cards
+    sel = atom.args.get("cards")
+    if not isinstance(sel, Selector):
+        # ValueError, not TypeError: the domain contract is "this atom has
+        # no designation" (mirrors the TARGET-selector raise in selectors).
+        raise ValueError(  # noqa: TRY004
+            "executor: SEARCH cards role has no binding"
+        )
+    return [h for h in resolve_selector(sel, ctx) if h.namespace == "card"]
+
+
+def _v_search(ctx: ExecCtx, atom: Atom) -> None:
+    """SEARCH (13a, the Cultivate compile idiom — see
+    ``compiler/templates_b5b.py::_build_cultivate_search``): designate the
+    found cards, then MOVE each from its current zone to the destination.
+    The compiler's documented debt is CARD-level divergence (the ONE_OF/
+    REST split re-searches the library in sibling atoms); per-ATOM
+    faithfulness is what this handler owns. The destination is role-based
+    (``zone_owner`` resolves the Zone's ControllerRef), ``tapped_on_enter``
+    is honored on battlefield entry, and every move gets its journal row."""
+    dest_ir = atom.args.get("destination")
+    assert isinstance(dest_ir, Zone)  # Atom validation guarantees it
+    dest_kind = ZONE_KIND_TO_STATE.get(dest_ir.kind)
+    if dest_kind is None:
+        raise NotImplementedError(
+            f"executor: SEARCH to {dest_ir.kind.name} is not a card zone (13a)"
+        )
+    tapped_on_enter = bool(atom.args.get("tapped_on_enter"))
+    cards = _search_designation(atom, ctx)
+    for card in cards:
+        owner = ctx.world.controller_of(card)
+        target_player = zone_owner(ctx, dest_ir, owner=owner)
+        src = ctx.world.zone_of(card)
+        zone = ctx.world.players[target_player].zone(dest_kind)
+        ctx.world.move_card(card, zone)
+        if tapped_on_enter and dest_kind == ZONE_BATTLEFIELD:
+            ctx.world.cards[card].tapped = True
+        ctx.events.append(
+            (len(ctx.events), "SEARCH", str(card), f"{src.kind}->{dest_kind}")
+        )
+
+
+def _executor_or_raise(ctx: ExecCtx, verb: str):
+    """13a turn-state verbs (FLIP_COIN/END_TURN/EXTRA_TURN/LOSE_GAME) mutate
+    EXECUTOR-side ledgers (the frozen state carries no flip/turn/loss
+    fields) — a bare unit-test ExecCtx has none."""
+    if ctx.executor is None:
+        raise ValueError(
+            f"executor: {verb} needs an executor-backed ExecCtx "
+            "(bare ExecCtx has no turn ledger)"
+        )
+    return ctx.executor
+
+
+def _v_flip_coin(ctx: ExecCtx, atom: Atom) -> None:
+    """FLIP_COIN (13a, Tavern Swindler): the flip is the ONLY randomness —
+    it flows through the executor-owned seeded ``ctx.rng`` (replay
+    identical). Heads -> ``ctx.controller`` wins; tails -> the FIRST
+    opponent wins (2-player simplification: the grammar's who-gates are
+    YOU/opponent pairs, and every corpus flip card is 2-player — a
+    multi-player tie-break order is untested debt). The winner lives on
+    the executor because the FLIP_WON conditional is a SEPARATE ability
+    row (two compiled rows per Tavern Swindler)."""
+    executor = _executor_or_raise(ctx, atom.verb.name)
+    rng = ctx.rng("FLIP_COIN")
+    heads = rng.random() < 0.5
+    if heads:
+        winner = ctx.controller
+    else:
+        opponents = sorted(p for p in ctx.world.player_order if p != ctx.controller)
+        winner = opponents[0] if opponents else ctx.controller
+    executor.last_flip_won_by = winner
+    ctx.events.append(
+        (
+            len(ctx.events),
+            "FLIP_COIN",
+            "HEADS" if heads else "TAILS",
+            str(winner),
+        )
+    )
+
+
+def _v_end_turn(ctx: ExecCtx, atom: Atom) -> None:
+    """END_TURN (13a, Discontinuity): the request flag is set here; the
+    actual close (marker + Eot sweeps) runs in the executor loop after the
+    current op's settle, so the turn still closes through the ONE turn
+    skeleton (:meth:`Executor.end_turn`) — no second end-of-turn path."""
+    executor = _executor_or_raise(ctx, atom.verb.name)
+    executor.end_turn_requested = True
+    # The clock moves ahead of the close: an activation attempted later in
+    # the SAME op is already out of the sorcery window (legality reads
+    # ``executor.phase``), and :meth:`Executor.end_turn` re-stamps it.
+    executor.phase = "END_TURN"
+    ctx.events.append((len(ctx.events), "END_TURN", str(ctx.controller)))
+
+
+def _v_extra_turn(ctx: ExecCtx, atom: Atom) -> None:
+    """EXTRA_TURN (13a, Teferi's -10 / Extra Turns): enqueue the controller
+    ``count`` times — :meth:`Executor.advance_turn` pops the queue before
+    rotating, which is exactly CR 500.7's "next turn belongs to that
+    player" for consecutive grants (documented simplification: nested
+    extra turns from DIFFERENT players resolve queue-order, not the full
+    CR 500.7 dependency ordering)."""
+    executor = _executor_or_raise(ctx, atom.verb.name)
+    count_q = atom.args.get("count")
+    assert count_q is None or isinstance(count_q, Quantity)
+    n = 1 if count_q is None else resolve(count_q, ctx)
+    for _ in range(n):
+        executor.extra_turn_queue.append(ctx.controller)
+    ctx.events.append((len(ctx.events), "EXTRA_TURN", str(ctx.controller), n))
+
+
+def _v_lose_game(ctx: ExecCtx, atom: Atom) -> None:
+    """LOSE_GAME (13a): the frozen GameWorld carries no per-player lost
+    flag (state.py is frozen) — so the loss lands on an EXECUTOR-side
+    ledger, a documented divergence from a state-side flag; game-over
+    evaluation (and the emptied library's CR 121.3 loss) is the later
+    state-check phase."""
+    executor = _executor_or_raise(ctx, atom.verb.name)
+    executor.lost_players.append(ctx.controller)
+    ctx.events.append((len(ctx.events), "LOSE_GAME", str(ctx.controller)))
 
 
 HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
@@ -577,6 +734,14 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.GRANT_ABILITY: _v_grant,
     Verb.LOSE_ABILITY: _v_lose,
     Verb.PREVENT_EFFECT: _v_prevent,
+    # 13a: the library/turn-flow verbs. SUPPORTED_VERBS_V1 stays the frozen
+    # round-12 24-set (a V1 *contract* pin); V2 is what this table derives.
+    Verb.DRAW: _v_draw,
+    Verb.SEARCH: _v_search,
+    Verb.FLIP_COIN: _v_flip_coin,
+    Verb.END_TURN: _v_end_turn,
+    Verb.EXTRA_TURN: _v_extra_turn,
+    Verb.LOSE_GAME: _v_lose_game,
 }
 
 
