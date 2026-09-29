@@ -496,3 +496,15 @@
   replays in ONE process get different ids from a module-level counter → different
   fingerprints. Fingerprint scenarios need explicit oids (or the counter reset per run);
   the ledger's own `record_id` is per-INSTANCE for the same reason.
+- **The frozen capability triangle trips on EVERY verb flip (2026-09-30):** adding a
+  HANDLERS entry breaks three pinned tests at once — the dispatch-raise probe dict in
+  `test_executor_verbs.py`, the V2 growth-set/count pin in `test_executor_library.py`,
+  and (if a filter pred was gained) the unsupported-condition probe in
+  `test_executor_legality.py`. Amend all three in the same round with dated AMENDED
+  notes; V1 (24) must NEVER move.
+- **Synthetic CardRecord constructor traps (2026-09-30):** fixtures writing their own
+  records hit `__post_init__` landmines — `loyalty` must be a POSITIVE INT and set
+  EXACTLY when "Planeswalker" in types; `emblem` is PW-only and must itself be an
+  `Emblem`-typed record with `is_token=True`; `types` non-empty; oracle ids validated
+  as hex uuids (synthetic ids with non-hex chars raise). TYPE_EQ/SUPERTYPE_EQ read the
+  IDENTITY's printed type_line, not the record's `types` — set both consistently.

@@ -834,11 +834,15 @@ class TestDispatchRaises(ExecutorCase):
         # interaction window — a counter-spell can never legally resolve
         # (the four corpus cards keep their loud dispatch raise, pinned
         # by test_counter_spell_still_raises in test_executor_stack.py).
+        # AMENDED 2026-09-30 (round 13c): GET_EMBLEM left the raise list —
+        # it is the emblems round's live handler (executor.get_emblem,
+        # covered in test_executor_permissions.py); GRANT_TYPE,
+        # GRANT_ACTIVATION and ADD_LAND_PLAY join GRANT_ABILITY's 12d
+        # precedent as layer verbs that were never probed here.
         probes = {
             Verb.FIGHT: {"target": target_sel()},
             Verb.PHASE_OUT: {"target": target_sel()},
             Verb.COUNTER_SPELL: {"target": target_sel()},
-            Verb.GET_EMBLEM: {},
         }
         for verb, roles in probes.items():  # DRAW deliberately outside v1
             with self.subTest(verb=verb.name):

@@ -328,9 +328,11 @@ def eval_filter(filter_: Filter, handle: Handle, ctx: ExecCtx) -> bool:
     ``FAtomPred`` member in the frozen grammar; IS_PERMANENT is the
     closed-grammar stand-in for "is on the battlefield".) 13a adds
     SUPERTYPE_EQ (printed type-line words) and FLIP_WON (the executor's flip
-    ledger). Every other predicate raises ``NotImplementedError`` naming
-    itself: its completeness is 12c's gate, and an unsupported pred is
-    flagged, never guessed.
+    ledger); 13c adds NAME_CONTAINS, IS_ATTACHED_TO_SOURCE (the executor
+    attachment table) and makes the TYPE_EQ family read the live
+    GRANT_TYPE overlay. Every other predicate raises
+    ``NotImplementedError`` naming itself: its completeness is 12c's gate,
+    and an unsupported pred is flagged, never guessed.
     """
     if isinstance(filter_, FAnd):
         return all(eval_filter(c, handle, ctx) for c in filter_.children)
@@ -373,11 +375,39 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # no ``supertypes`` field, but every supertype ("Basic", "Legend",
         # "Snow") is PRINTED in the type line, so the data-only word test
         # that TYPE_EQ/SUBTYPE_EQ already use is the honest reading (C12:
-        # no oracle text is parsed).
+        # no oracle text is parsed). 13c: live GRANT_TYPE layers UNION
+        # their overlay words in ("is a Knight in addition to its other
+        # types") — the layer registry is the single type oracle.
         assert atom.string_value is not None
-        return atom.string_value in _type_line_tokens(
-            world.cards[handle].identity.type_line
-        )
+        if handle not in world.cards:
+            return False
+        words = set(_type_line_tokens(world.cards[handle].identity.type_line))
+        if ctx.layers is not None:
+            words.update(ctx.layers.type_overlay(handle))
+        return atom.string_value in words
+    if pred is FAtomPred.NAME_CONTAINS:
+        # 13c (Teferi's "a Teferi planeswalker" shape gate): case-sensitive
+        # substring on the printed name — the grammar's NAME_EQ twin. The
+        # corpus gate word ("Teferi") is a proper noun matching the printed
+        # capitalization; NAME_CHOSEN's unanswered-question convention does
+        # not apply (this is pure identity data, no question to answer).
+        assert atom.string_value is not None
+        if handle not in world.cards:
+            return False
+        return atom.string_value in world.cards[handle].identity.name
+    if pred is FAtomPred.IS_ATTACHED_TO_SOURCE:
+        # 13c (Malefic Scythe's "equipped creature", Dub's compiled aura
+        # shape): the world has NO attachment state (the frozen CardState
+        # has no aura/equipment fields), so the answer is the EXECUTOR's
+        # attachment table — an AURA/EQUIPMENT -> HOST map maintained by
+        # ``executor.attach_aura`` and dropped on zone change. A bare
+        # ExecCtx has no table: flagged, never guessed.
+        if ctx.executor is None:
+            raise ValueError(
+                "executor: IS_ATTACHED_TO_SOURCE needs an executor-backed "
+                "ExecCtx (bare ExecCtx has no attachment table)"
+            )
+        return ctx.executor.attachments.get(ctx.source) == handle
     if pred is FAtomPred.NAME_EQ:
         assert atom.string_value is not None
         return world.cards[handle].identity.name == atom.string_value

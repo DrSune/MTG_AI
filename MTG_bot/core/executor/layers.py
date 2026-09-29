@@ -54,6 +54,7 @@ from typing import TYPE_CHECKING, NamedTuple
 from MTG_bot.core.ability_tree import (
     Ability,
     ActivatedAbility,
+    ActivationWindow,
     Atom,
     Duration,
     DurationUntilLeaves,
@@ -67,6 +68,8 @@ from MTG_bot.core.ability_tree import (
     FOr,
     Keyword,
     KeywordAbility,
+    OptionalEffect,
+    QConst,
     Selector,
     Seq,
     StaticAbility,
@@ -93,7 +96,16 @@ class GrantedAbility(NamedTuple):
 
 
 _PT_VERBS = frozenset({Verb.MODIFY_PT, Verb.SET_PT})
-_LAYER_PAYLOAD_VERBS = _PT_VERBS | {Verb.GRANT_ABILITY, Verb.LOSE_ABILITY}
+# 13c: GRANT_TYPE joins the static-payload vocab (Dub / Demonic Embrace /
+# Riddleform compile their type-grant as a StaticAbility or a triggered
+# GRANT_TYPE atom). It is NOT a _PT_VERB (no ledger materialization) — it is
+# carried by the generic "static" record and read through the derived
+# type-overlay map (:meth:`LayerRegistry.type_overlay`).
+_LAYER_PAYLOAD_VERBS = _PT_VERBS | {
+    Verb.GRANT_ABILITY,
+    Verb.LOSE_ABILITY,
+    Verb.GRANT_TYPE,
+}
 
 
 def _is_universal(filter_: Filter) -> bool:
@@ -120,13 +132,35 @@ def _lose_matches_ability(payload: object, node: object) -> bool:
     return repr(payload) == repr(node)
 
 
+def _validate_activation_grant(atom: Atom) -> None:
+    """13c GRANT_ACTIVATION shape contract (role table: filter REQUIRED,
+    window optional): the filter is the permanent-shape gate (Teferi's
+    compiled ``FAnd(TYPE_EQ Planeswalker, NAME_CONTAINS "Teferi")``) and
+    the window is the timing relaxation. The ONLY relaxation the grammar's
+    R9-7 comment and the corpus support is INSTANT ("activate … any time
+    you could cast an instant"); anything else is flagged, not guessed."""
+    filter_ = atom.args.get("filter")
+    if filter_ is None or not isinstance(filter_, (FAnd, FOr, FNot, FAtom)):
+        raise ValueError(f"executor: GRANT_ACTIVATION needs a Filter, got {filter_!r}")
+    window = atom.args.get("window")
+    if window is not None and window is not ActivationWindow.INSTANT:
+        raise NotImplementedError(
+            f"executor: GRANT_ACTIVATION window {window!r} has no consumer "
+            "(13c implements the INSTANT relaxation only)"
+        )
+
+
 @dataclass
 class LayerRecord:
     """One continuous effect's registry entry.
 
     ``kind`` — ``"keyword"`` (a card's own KeywordAbility node),
     ``"static"`` (a StaticAbility node, scope-resolved), ``"grant"`` /
-    ``"lose"`` (runtime GRANT_ABILITY / LOSE_ABILITY verbs, fixed targets).
+    ``"lose"`` (runtime GRANT_ABILITY / LOSE_ABILITY verbs, fixed targets),
+    ``"mana_policy"`` (13b spend permissions), and 13c's ``"type_grant"``
+    (runtime GRANT_TYPE), ``"activation_grant"`` (GRANT_ACTIVATION timing
+    permissions) / ``"land_play"`` (ADD_LAND_PLAY allowances — the last two
+    permission kinds are selector-less, like mana_policy).
     ``status`` — ``live`` | ``dormant`` (a condition currently false — the
     record survives, its effect does not apply) | ``expired`` (terminal; the
     record stays for the audit dump). ``ledger_ids`` maps each materialized
@@ -166,6 +200,10 @@ class LayerRegistry:
         # deterministic snapshot.
         self._keywords: dict[Handle, tuple[str, ...]] = {}
         self._granted: dict[Handle, tuple[GrantedAbility, ...]] = {}
+        # 13c: the type-grant overlay (GRANT_TYPE "is a Knight in addition
+        # to its other types") — rebuilt alongside the keyword/granted maps,
+        # read by the TYPE_EQ/SUBTYPE_EQ/SUPERTYPE_EQ filter evaluator.
+        self._types: dict[Handle, tuple[str, ...]] = {}
 
     # ------------------------------------------------------------ lifecycle
 
@@ -173,13 +211,22 @@ class LayerRegistry:
     def world(self):
         return self.executor.world
 
-    def attach_source(self, handle: Handle, record: CardRecord) -> int:
+    def attach_source(
+        self, handle: Handle, record: CardRecord, controller: Handle | None = None
+    ) -> int:
         """Battlefield attach: register the card's own KeywordAbility nodes
         and StaticAbility nodes as layers (idempotent — this detaches the
-        handle's old layers first, and the binder detaches on re-entry)."""
+        handle's old layers first, and the binder detaches on re-entry).
+
+        13c: ``controller`` lets an OFF-world record (an emblem's synthetic
+        handle, which is not in ``world.cards``) bind its statics to a
+        chosen anchor (the emblem's OWNER) instead of the battlefield
+        ``controller_of`` lookup — the synthetic handle has no world card to
+        resolve. ``None`` = the ordinary battlefield resolution."""
         self.detach_source(handle)
         count = 0
-        controller = self.world.controller_of(handle)
+        if controller is None:
+            controller = self.world.controller_of(handle)
         for kw in record.keywords:
             self._new("keyword", handle, controller, kw, (handle,))
             count += 1
@@ -188,7 +235,7 @@ class LayerRegistry:
                 self._new("keyword", handle, controller, node, (handle,))
                 count += 1
             elif isinstance(node, StaticAbility):
-                self._new_static(handle, node)
+                self._new_static(handle, node, controller=controller)
                 count += 1
         return count
 
@@ -258,7 +305,9 @@ class LayerRegistry:
         self.records.append(layer)
         return layer
 
-    def _new_static(self, handle: Handle, static: StaticAbility) -> LayerRecord:
+    def _new_static(
+        self, handle: Handle, static: StaticAbility, controller: Handle | None = None
+    ) -> LayerRecord:
         """Parse a StaticAbility node: a single Atom or a Seq of Atoms over
         the layer-capable verbs; anything else is flagged, not guessed.
 
@@ -270,8 +319,21 @@ class LayerRegistry:
         the generic path would die on its own assert. A mana-policy layer
         is a PERMISSION: no selector, no materialization, and its liveness
         is exactly the anchor permanent's (``_layer_live`` — source on the
-        battlefield, condition holding)."""
+        battlefield, condition holding).
+
+        13c adds two things: (1) the OPTIONAL-effect unwrap — Teferi's
+        controller-rule static compiles its GRANT_ACTIVATION payload inside
+        an ``OptionalEffect`` ("you may activate"), and the MAY belongs to
+        the USE side (the permission layer is unconditional once the
+        static is live), so the wrapper is stripped before payload parsing;
+        (2) the ``activation_grant`` branch for the same selector-less
+        permission shape (role table: filter/window — no ``target``).
+        ``controller`` overrides the battlefield anchor (emblem statics)."""
+        if controller is None:
+            controller = self.world.controller_of(handle)
         steps = static.effect
+        if isinstance(steps, OptionalEffect):  # 13c: the "you may" is the use
+            steps = steps.inner
         atoms: list[Atom] = []
         if isinstance(steps, Atom):
             atoms = [steps]
@@ -297,7 +359,22 @@ class LayerRegistry:
             return self._new(
                 "mana_policy",
                 handle,
-                self.world.controller_of(handle),
+                controller,
+                tuple(atoms),
+                condition=static.condition,
+            )
+        if any(atom.verb == Verb.GRANT_ACTIVATION for atom in atoms):
+            if any(atom.verb != Verb.GRANT_ACTIVATION for atom in atoms):
+                raise NotImplementedError(
+                    "executor: StaticAbility mixing GRANT_ACTIVATION with "
+                    "other payload verbs is not parseable (13c scope)"
+                )
+            for atom in atoms:
+                _validate_activation_grant(atom)
+            return self._new(
+                "activation_grant",
+                handle,
+                controller,
                 tuple(atoms),
                 condition=static.condition,
             )
@@ -312,7 +389,7 @@ class LayerRegistry:
         return self._new(
             "static",
             handle,
-            self.world.controller_of(handle),
+            controller,
             tuple(atoms),
             selector=selector,
             condition=static.condition,
@@ -334,7 +411,66 @@ class LayerRegistry:
         dispatch)."""
         return self._new("mana_policy", source, controller, (atom,), duration=duration)
 
-    # ------------------------------------------------------- mana-policy view
+    def register_type_grant(
+        self,
+        source: Handle,
+        controller: Handle,
+        targets: tuple[Handle, ...],
+        atom: Atom,
+        duration: Duration | None = None,
+    ) -> LayerRecord:
+        """13c: the RUNTIME-dispatched GRANT_TYPE atom (the handler path —
+        Riddleform's ETB trigger dispatches a fixed-target, EoT-bounded
+        ``"is a Sphinx in addition to its other types"``). It carries the
+        atom as a single-element payload tuple and a fixed ``targets`` set
+        (the designated set, NOT a re-resolved selector — a runtime grant
+        designates its objects once). The generic static path (:meth:
+        `_new_static`) covers the PRINTED Anthems-style GRANT_TYPE; this is
+        the trigger-dispatched sibling. :meth:`type_overlay` reads both."""
+        return self._new(
+            "type_grant", source, controller, (atom,), targets, duration=duration
+        )
+
+    def register_activation_grant(
+        self,
+        source: Handle,
+        controller: Handle,
+        atom: Atom,
+        duration: Duration | None = None,
+    ) -> LayerRecord:
+        """13c: the RUNTIME-dispatched GRANT_ACTIVATION permission (Teferi's
+        controller-rule static registers through :meth:`_new_static`; this
+        is the handler path for a granted/inline shape). Selector-less
+        permission layer, validated like the static branch."""
+        _validate_activation_grant(atom)
+        return self._new(
+            "activation_grant", source, controller, (atom,), duration=duration
+        )
+
+    def register_land_play(
+        self,
+        source: Handle,
+        controller: Handle,
+        count: int,
+        duration: Duration | None = None,
+    ) -> LayerRecord:
+        """13c: the ADD_LAND_PLAY permission (Azusa: "You may play two
+        additional lands on your turn"). A SELECTOR-LESS permission layer
+        (no target/materialization) whose only payload is the integer bonus
+        ``count``; :meth:`land_play_bonus` sums the live layers anchored to
+        a seat and the land gate (:func:`stack.land_playable`) folds that
+        sum into the CR 305.1 allowance. The payload tuple wraps the count
+        as ``QConst(count)`` so the canonical dump prints it as a Quantity
+        repr (audit-stable, not a bare int)."""
+        if count < 0:
+            raise ValueError(f"executor: ADD_LAND_PLAY count must be >= 0, got {count}")
+        return self._new(
+            "land_play",
+            source,
+            controller,
+            (QConst(count),),
+            duration=duration,
+        )
 
     def this_mana_filter(self, source: Handle) -> Filter | None:
         """The live THIS_MANA restriction governing ``source``'s mana (the
@@ -384,13 +520,23 @@ class LayerRegistry:
             events=[],
             rng=ex.rng,
             token_counts=ex.token_counts,
+            # 13c: static-target enumeration and permission filters read the
+            # ATTACHMENT table (IS_ATTACHED_TO_SOURCE) and the type overlay
+            # through these — state-free reads, replay-safe.
+            layers=self,
+            executor=ex,
         )
 
     def _layer_live(self, layer: LayerRecord) -> bool:
         if layer.status == "expired":
             return False
         world = self.world
-        if layer.source not in world.cards:
+        # 13c: an emblem's synthetic handle is replayed state on the
+        # EXECUTOR (emblems are not world cards), so its statics live
+        # while the emblem is granted.
+        if layer.source not in world.cards and (
+            layer.source not in self.executor.emblems.values()
+        ):
             return False
         if layer.condition is not None and not eval_filter(
             layer.condition, layer.source, self._ctx(layer.source, layer.controller)
@@ -585,6 +731,7 @@ class LayerRegistry:
             for handle, card in sorted(world.cards.items())
         }
         granted: dict[Handle, list[GrantedAbility]] = {}
+        types: dict[Handle, list[str]] = {}
 
         for layer in sorted(self.records, key=lambda l: l.seq):
             if layer.status != "live":
@@ -599,6 +746,16 @@ class LayerRegistry:
                     elif atom.verb == Verb.LOSE_ABILITY:
                         for target in targets:
                             self._apply_remove(keywords, granted, target, payload)
+                    elif atom.verb == Verb.GRANT_TYPE:
+                        # Printed static type-grant anthem (Dub, Demonic
+                        # Embrace): scope-resolved every recompute, so a
+                        # creature entering later is covered too.
+                        for target in targets:
+                            self._apply_type(types, target, atom)
+            elif layer.kind == "type_grant":
+                for atom in layer.atoms:
+                    for target in layer.targets:
+                        self._apply_type(types, target, atom)
             elif layer.kind == "lose":
                 for target in layer.targets:
                     self._apply_remove(keywords, granted, target, layer.payload)
@@ -612,6 +769,23 @@ class LayerRegistry:
         self._granted = {
             handle: tuple(group) for handle, group in granted.items() if group
         }
+        self._types = {
+            handle: tuple(sorted(set(words))) for handle, words in types.items()
+        }
+
+    @staticmethod
+    def _apply_type(types: dict[Handle, list[str]], target, atom: Atom) -> None:
+        """GRANT_TYPE payload: the ``types`` role is the tuple of type/subtype
+        words added ("Knight", "Demon", "Sphinx"). Union into the overlay —
+        "in addition to its other types" never REMOVES (the removal verb is
+        the future REMOVE_TYPE; the corpus has none)."""
+        words = atom.args.get("types")
+        if not isinstance(words, tuple):
+            raise TypeError(
+                f"executor: GRANT_TYPE types role must be a tuple, got {words!r}"
+            )
+        bucket = types.setdefault(target, [])
+        bucket.extend(words)
 
     @staticmethod
     def _apply_add(keywords, granted, target, payload, layer: LayerRecord) -> None:
@@ -663,6 +837,59 @@ class LayerRegistry:
             for g in self._granted.get(handle, ())
             if isinstance(g.node, ActivatedAbility)
         )
+
+    # --------------------------------------------------- 13c layer views
+
+    def type_overlay(self, handle: Handle) -> tuple[str, ...]:
+        """The extra type/subtype words a live GRANT_TYPE layer adds to
+        ``handle`` (empty when none) — the ORACLE the TYPE_EQ / SUBTYPE_EQ /
+        SUPERTYPE_EQ filter evaluator unions into the printed type line
+        ("is a Knight in addition to its other types")."""
+        return self._types.get(handle, ())
+
+    def instant_window_granted(self, handle: Handle) -> bool:
+        """13c (Teferi, Who Outcast Oversight): may ``handle``'s sorcery-timed
+        activations run at INSTANT speed right now? True when some live
+        GRANT_ACTIVATION layer's filter matches ``handle`` (the filter reads
+        the permanent's shape — Teferi's compiled TYPE_EQ Planeswalker +
+        NAME_CONTAINS "Teferi" gate). The filter is anchored at the LAYER's
+        source/controller, so a NAME_CHOSEN-bearing filter would see the
+        granting permanent's record — the corpus filter is shape-only."""
+        for layer in self.records:
+            if layer.kind != "activation_grant" or layer.status != "live":
+                continue
+            for atom in layer.atoms:
+                window = atom.args.get("window")
+                if window is not None and window is not ActivationWindow.INSTANT:
+                    continue  # non-instant windows have no consumer (validator)
+                filter_ = atom.args.get("filter")
+                assert isinstance(
+                    filter_, (FAnd, FOr, FNot, FAtom)
+                )  # validator: GRANT_ACTIVATION needs one
+                if eval_filter(
+                    filter_,
+                    handle,
+                    self._ctx(layer.source, layer.controller),
+                ):
+                    return True
+        return False
+
+    def land_play_bonus(self, controller: Handle) -> int:
+        """13c (Azusa, Lost but Seeking): the total additional lands the
+        seat's live ADD_LAND_PLAY permissions grant this turn. Summed over
+        live layers ANCHORED TO ``controller`` (the controller whose land
+        gate is relaxed — Azusa's "on your turn" is the permanent's
+        controller's turn, matching the mana-policy controller anchor)."""
+        total = 0
+        for layer in self.records:
+            if layer.kind != "land_play" or layer.status != "live":
+                continue
+            if layer.controller != controller:
+                continue
+            for payload in layer.atoms:
+                assert isinstance(payload, QConst)  # register_land_play wraps
+                total += payload.value
+        return total
 
     # ---------------------------------------------------------- determinism
 

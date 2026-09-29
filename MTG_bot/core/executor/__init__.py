@@ -89,6 +89,7 @@ from collections.abc import Sequence
 
 from MTG_bot.core.ability_tree import (
     Atom,
+    CardRecord,
     Choose,
     Conditional,
     DelayedTrigger,
@@ -318,6 +319,19 @@ class Executor:
         # CHOOSE_NAME's write-side (Runed Halo): source permanent -> the
         # chosen name, read back by the NAME_CHOSEN filter predicate.
         self.name_choices: dict[Handle, str] = {}
+        # ------------------------------------------------- 13c emblems + attachments
+        # Granted emblems are replayed state that is NOT world cards (an
+        # emblem never enters a zone): (owner, emblem oracle_id) -> the
+        # synthetic Handle("emblem", n) the binder bound its triggers to.
+        # The key doubles as the CR 113.7 idempotence gate: a second copy
+        # of the same emblem does nothing.
+        self.emblems: dict[tuple[Handle, str], Handle] = {}
+        self._emblem_seq = 0
+        # Attachment relation (auras/equipment): AURA handle -> HOST handle.
+        # The frozen CardState has no attachment field, so the table lives
+        # here; IS_ATTACHED_TO_SOURCE reads it and the binder drops every
+        # edge touching a handle that leaves the battlefield.
+        self.attachments: dict[Handle, Handle] = {}
         # Public alias of the seeded factory (the binder builds ExecCtxs too).
         self.rng = self._rng
 
@@ -720,6 +734,41 @@ class Executor:
         self.layers.recompute()
         return fired
 
+    # ---------------------------------------------------- 13c emblem / attach
+
+    def get_emblem(self, owner: Handle, emblem: CardRecord) -> Handle | None:
+        """Grant ``owner`` their emblem (CR 113.7). Returns the synthetic
+        handle, or ``None`` when the owner ALREADY has this emblem (a
+        second copy does nothing — the idempotence gate, visible as the
+        duplicate event row in the verb handler). The emblem is executor
+        replayed state, not a world card: its triggers bind to the owner
+        through the binder, its statics anchor to the owner in the layer
+        registry, and both are folded into the fingerprint."""
+        key = (owner, emblem.oracle_id)
+        if key in self.emblems:
+            return None
+        handle = Handle("emblem", self._emblem_seq)
+        self._emblem_seq += 1
+        self.emblems[key] = handle
+        self.binder.bind_emblem(handle, emblem, owner)
+        self.layers.recompute()  # emblem statics are live the moment it lands
+        return handle
+
+    def attach_aura(self, aura: Handle, host: Handle) -> None:
+        """Record that ``aura`` (equipment/aura permanent) is attached to
+        ``host`` — the API half of the IS_ATTACHED_TO_SOURCE oracle (the
+        corpus has no enchantment/equipment cast surface in v1, so
+        attachment is an explicit op, replayed and fingerprint-folded;
+        CR 303.4-style leave-detachment is automatic in the binder)."""
+        if aura not in self.world.cards or host not in self.world.cards:
+            raise ValueError(
+                f"attach_aura: both ends must be world cards ({aura}, {host})"
+            )
+        if aura == host:
+            raise ValueError(f"attach_aura: {aura} cannot attach to itself")
+        self.attachments[aura] = host
+        self.layers.recompute()  # "equipped creature" scopes re-read the table
+
     # ------------------------------------------------------------ replay id
 
     def state_fingerprint(self) -> str:
@@ -773,6 +822,25 @@ class Executor:
         h.update(
             repr(
                 tuple(sorted((str(s), n) for s, n in self.name_choices.items()))
+            ).encode()
+        )
+        # 13c: the emblems table (owner-keyed synthetic handles) and the
+        # attachment edges are replayed state under the same ruling — a
+        # replay that granted a different emblem set or missed an
+        # attachment MUST differ here.
+        h.update(
+            repr(
+                tuple(
+                    sorted(
+                        ((str(owner), oid), str(handle))
+                        for (owner, oid), handle in self.emblems.items()
+                    )
+                )
+            ).encode()
+        )
+        h.update(
+            repr(
+                tuple(sorted((str(a), str(h_)) for a, h_ in self.attachments.items()))
             ).encode()
         )
         return h.hexdigest()

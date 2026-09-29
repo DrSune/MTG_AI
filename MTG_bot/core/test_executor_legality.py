@@ -367,12 +367,16 @@ class TestConditionGate(LegalityCase):
         )
 
     def test_unsupported_condition_pred_raises(self):
-        # flag, never guess: a pred outside the v1 vocab crashes the probe
+        # flag, never guess: a pred outside the vocab crashes the probe.
+        # AMENDED 2026-09-30 (round 13c): NAME_CONTAINS left this probe —
+        # it is in-vocab now (the GRANT_ACTIVATION filter's "a Teferi
+        # planeswalker" gate evaluates it over the printed name). CMC_LE
+        # stays outside: no mana-value threshold is answered yet.
         self.attach(
             [
                 ability(
                     cost(),
-                    condition=FAtom(FAtomPred.NAME_CONTAINS, string_value="x"),
+                    condition=FAtom(FAtomPred.CMC_LE, count=QConst(4)),
                 )
             ]
         )

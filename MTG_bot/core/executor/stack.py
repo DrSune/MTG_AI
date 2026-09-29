@@ -212,8 +212,8 @@ def land_playable(executor: Executor, seat: Handle, handle: Handle) -> str | Non
     is open, the phase is the seat's first main (or not yet stamped — the
     test-skeleton convention from 13a), the stack is empty (v1 proxy:
     nothing can actually be on it mid-op, but the parked-frame API keeps
-    the gate honest), and the once-per-turn allowance (CR 305.1;
-    ``executor.extra_land_plays`` is the 13c ADD_LAND_PLAY hook, 0 here)."""
+    the gate honest), and the once-per-turn allowance (CR 305.1 widened by
+    ``executor.extra_land_plays`` + the live ADD_LAND_PLAY layer sum, 13c)."""
     world = executor.world
     if not is_land_card(world, handle):
         return "land:not_a_land"
@@ -228,7 +228,11 @@ def land_playable(executor: Executor, seat: Handle, handle: Handle) -> str | Non
     turn, plays = executor.land_ledger.get(seat, (world.turn, 0))
     if turn != world.turn:
         plays = 0
-    allowance = 1 + executor.extra_land_plays
+    allowance = (
+        1
+        + executor.extra_land_plays
+        + (executor.layers.land_play_bonus(seat) if executor.layers else 0)
+    )
     if plays >= allowance:
         return f"land:used_this_turn:{plays}>={allowance}"
     return None

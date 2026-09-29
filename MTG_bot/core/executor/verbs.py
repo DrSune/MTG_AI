@@ -26,16 +26,22 @@ from collections.abc import Callable
 
 from MTG_bot.core.ability_tree import (
     Ability,
+    ActivationWindow,
     Atom,
     Cost,
     CounterKind,
     Duration,
     DurationUntilLeaves,
     EventSpec,
+    FAnd,
+    FAtom,
     Filter,
+    FNot,
+    FOr,
     KeywordAbility,
     PtDelta,
     PtDirection,
+    QConst,
     Quantity,
     QUnbounded,
     Selector,
@@ -950,6 +956,149 @@ def _v_mana_policy(ctx: ExecCtx, atom: Atom) -> None:
     ctx.events.append((len(ctx.events), "MANA_POLICY", str(ctx.source), scope))
 
 
+def _v_get_emblem(ctx: ExecCtx, atom: Atom) -> None:
+    """GET_EMBLEM (13c, grammar round 8 R8-7): the emblem is a nested
+    ``CardRecord`` on the SOURCE's compiled record (the compiler links
+    owner -> emblem one-directionally), so the handler resolves the record
+    through the binder bridge and hands the emblem record to the binder's
+    emblem path (:meth:`binding.TriggerBinder.bind_emblem`) under a
+    synthetic executor-owned handle. The emblem is NOT a world card — it
+    never enters a zone; its triggers bind to the OWNER and its statics
+    anchor to the OWNER (the emblem's "you"). CR 113.7: getting a second
+    copy of the same emblem does nothing — the (owner, emblem oid) table is
+    the idempotence gate, recorded as a duplicate event, never a rebind."""
+    if atom.args.pairs:  # AtomArgs is never falsy — inspect the tuple
+        raise ValueError(
+            f"executor: GET_EMBLEM carries no roles (role table empty), got "
+            f"{sorted(str(k) for k, _ in atom.args.pairs)}"
+        )
+    executor = _executor_or_raise(ctx, atom.verb.name)
+    record = executor.binder.handle_record.get(ctx.source)
+    if record is None:
+        state = ctx.world.cards.get(ctx.source)
+        if state is not None:
+            record = executor.binder.records.get(state.identity.oracle_id)
+    if record is None:
+        raise ValueError(
+            f"executor: GET_EMBLEM source {ctx.source} has no compiled record "
+            "to carry an emblem (attach the permanent or register its oracle)"
+        )
+    if record.emblem is None:
+        raise ValueError(
+            f"executor: {record.name} carries no emblem record — the compiler "
+            "found no paired emblem card (orphan flag, not a guess)"
+        )
+    granted = executor.get_emblem(ctx.controller, record.emblem)
+    ctx.events.append(
+        (
+            len(ctx.events),
+            "GET_EMBLEM",
+            str(ctx.source),
+            record.emblem.oracle_id,
+            str(granted) if granted is not None else "duplicate",
+        )
+    )
+
+
+def _v_grant_type(ctx: ExecCtx, atom: Atom) -> None:
+    """GRANT_TYPE (13c, Riddleform's ETB — "is a Sphinx in addition to its
+    other types" until end of turn): register a fixed-target type-grant
+    layer over the designated set; :meth:`layers.LayerRegistry.type_overlay`
+    is what the TYPE_EQ family reads. The printed-StaticAbility anthems
+    (Dub, Demonic Embrace) take the generic static path in the registry;
+    this handler is the trigger-dispatched sibling, same map, same expiry
+    sweeps (duration_tag drives the EoT death)."""
+    duration = atom.args.get("duration")
+    assert duration is None or isinstance(duration, Duration)
+    words = atom.args.get("types")
+    if (
+        not isinstance(words, tuple)
+        or not words
+        or not all(isinstance(w, str) and w for w in words)
+    ):
+        raise ValueError(
+            f"executor: GRANT_TYPE types role must be a non-empty str tuple, "
+            f"got {words!r}"
+        )
+    layers = _layers_or_raise(ctx, atom.verb.name)
+    targets = tuple(role_handles(ctx, atom, "target"))
+    layers.register_type_grant(ctx.source, ctx.controller, targets, atom, duration)
+    ctx.events.append(
+        (
+            len(ctx.events),
+            atom.verb.name,
+            str(ctx.source),
+            words,
+            tuple(str(t) for t in targets),
+            duration_tag(duration),
+        )
+    )
+
+
+def _v_add_land_play(ctx: ExecCtx, atom: Atom) -> None:
+    """ADD_LAND_PLAY (13c, grammar round 8 R8-8, Azusa): register a
+    selector-less land-play PERMISSION layer; the land gate
+    (:func:`stack.land_playable`) folds the seat's live layer sum into the
+    CR 305.1 allowance. ``count`` is optional in the role table — omitted
+    reads as ONE additional land ("You may play an additional land").
+    Azusa compiles inside an OptionalEffect, so the "you may" is decided
+    BEFORE this atom runs (skip = no layer); repeat activations stack
+    cumulatively, which is the honest CR reading of a repeatable
+    free-cost ability (each activation grants +2 more)."""
+    duration = atom.args.get("duration")
+    assert duration is None or isinstance(duration, Duration)
+    layers = _layers_or_raise(ctx, atom.verb.name)
+    count_q = atom.args.get("count")
+    if count_q is None:
+        count_q = QConst(1)
+    assert isinstance(count_q, Quantity)
+    count = resolve(count_q, ctx)
+    layers.register_land_play(ctx.source, ctx.controller, count, duration)
+    ctx.events.append(
+        (
+            len(ctx.events),
+            atom.verb.name,
+            str(ctx.source),
+            count,
+            duration_tag(duration),
+        )
+    )
+
+
+def _v_grant_activation(ctx: ExecCtx, atom: Atom) -> None:
+    """GRANT_ACTIVATION (13c, grammar round 9 R9-7): the timing-permission
+    layer ("activate … any time you could cast an instant"). Teferi's
+    static registers the same kind through ``_new_static``; this handler is
+    the RUNTIME-dispatch sibling (granted/inline shape) — registered like
+    mana_policy (selector-less permission, recompute immediately so the
+    relaxation is live before the next legality query). The consumer is
+    :func:`legality.ability_playable`: a live grant whose filter matches the
+    permanent skips the SORCERY-timing block; every OTHER activation gate
+    (controller, loyalty once-per-turn, costs, conditions) is untouched —
+    the permission relaxes timing, never legitimacy."""
+    executor = _executor_or_raise(ctx, atom.verb.name)
+    filter_ = atom.args.get("filter")
+    if filter_ is None or not isinstance(filter_, (FAnd, FOr, FNot, FAtom)):
+        raise ValueError(f"executor: GRANT_ACTIVATION needs a Filter, got {filter_!r}")
+    window = atom.args.get("window")
+    if window is not None and window is not ActivationWindow.INSTANT:
+        raise NotImplementedError(
+            f"executor: GRANT_ACTIVATION window {window!r} has no consumer "
+            "(13c implements the INSTANT relaxation only)"
+        )
+    layers = executor.layers
+    layers.register_activation_grant(ctx.source, ctx.controller, atom)
+    layers.recompute()  # the permission must be LIVE before the next query
+    ctx.events.append(
+        (
+            len(ctx.events),
+            atom.verb.name,
+            str(ctx.source),
+            window.name if window is not None else "INSTANT",
+        )
+    )
+
+
 HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.MOVE_ZONE: _v_move_zone,
     Verb.EXILE: _v_exile,
@@ -996,6 +1145,13 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.CHOOSE: _v_choose,
     Verb.CHOOSE_NAME: _v_choose_name,
     Verb.MANA_POLICY: _v_mana_policy,
+    # 13c: the permission/effect verbs — emblem acquisition, static type
+    # grants, the additional-land allowance and the activation-window
+    # relaxation. SUPPORTED_VERBS_V2 derives from THIS table.
+    Verb.GET_EMBLEM: _v_get_emblem,
+    Verb.GRANT_TYPE: _v_grant_type,
+    Verb.ADD_LAND_PLAY: _v_add_land_play,
+    Verb.GRANT_ACTIVATION: _v_grant_activation,
 }
 
 

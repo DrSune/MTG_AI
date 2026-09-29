@@ -723,7 +723,18 @@ def ability_playable(
     if handle in world.cards and world.controller_of(handle) != seat:
         # CR 602.3: only the permanent's controller can activate it.
         return f"window:not_controller:{seat}"
-    if ability.timing is ActivationWindow.SORCERY:
+    if ability.timing is ActivationWindow.SORCERY and not (
+        executor.layers.instant_window_granted(handle)
+    ):
+        # 13c (Teferi, Who Outcast Oversight's controller-rule static): a
+        # live GRANT_ACTIVATION layer whose filter matches this permanent
+        # relaxes the SORCERY block to instant speed — EVERY gate below and
+        # above it (controller, loyalty clock, costs, conditions) stays.
+        # The grant is not seat-scoped at THIS layer: layers are global
+        # views, so an opponent's Teferi static is visible to their own
+        # activations exactly as printed ("You may activate ..." is written
+        # to the permanent's controller, and only the controller passes the
+        # not-controller gate above).
         if world.active_player != seat:
             return "window:sorcery:not_own_turn"
         if not stack_empty:

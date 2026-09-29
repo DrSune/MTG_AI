@@ -1,0 +1,314 @@
+{
+  "set": "M21",
+  "generated": "2026-09-30T00:43:01+02:00",
+  "git_head": "4cdfa8b6735a12ee0ffb00ace63a8604ee9172b7",
+  "python_version": "3.12.3",
+  "pinned_denominators": {
+    "entries": 305,
+    "sentences": 639,
+    "unique": 510
+  },
+  "pool_stats": {
+    "total": 305,
+    "with_text": 291,
+    "sentence_total": 639,
+    "sentence_unique": 510,
+    "keywords": {
+      "Battalion": 1,
+      "Deathtouch": 2,
+      "Defender": 4,
+      "Double strike": 1,
+      "Enchant": 10,
+      "Equip": 2,
+      "Fight": 2,
+      "First strike": 1,
+      "Flash": 7,
+      "Flying": 23,
+      "Haste": 3,
+      "Hexproof": 4,
+      "Hexproof from": 2,
+      "Indestructible": 1,
+      "Lifelink": 8,
+      "Menace": 1,
+      "Mill": 3,
+      "Protection": 3,
+      "Prowess": 6,
+      "Reach": 6,
+      "Scry": 12,
+      "Trample": 7,
+      "Treasure": 1,
+      "Vigilance": 9
+    },
+    "layouts": {
+      "emblem": 3,
+      "normal": 285,
+      "token": 17
+    },
+    "mana_value": {
+      "0": 44,
+      "1": 30,
+      "2": 63,
+      "3": 68,
+      "4": 43,
+      "5+": 57
+    },
+    "emblems": 3,
+    "emblem_owners": {
+      "56c1893f-1382-4a31-a28a-ea604677fcdb": [
+        "Liliana, Waker of the Dead"
+      ],
+      "8a908da7-b41c-4712-b7dc-8c6027875d36": [
+        "Garruk, Unleashed"
+      ],
+      "ab67e4ec-9392-4130-970f-6ad65656e5c1": [
+        "Basri Ket",
+        "Soldier"
+      ]
+    }
+  },
+  "pcs": {
+    "PC-1": {
+      "name": "card_coverage",
+      "cards_zero_unparsed": 301,
+      "denominator": 305,
+      "value": 0.986885,
+      "target": ">=0.90",
+      "stretch": ">=0.95",
+      "pass": true
+    },
+    "PC-2": {
+      "name": "sentence_coverage",
+      "sentences_matched": 634,
+      "denominator": 639,
+      "value": 0.992175,
+      "target": ">=0.95",
+      "stretch": ">=0.98",
+      "pass": true
+    },
+    "PC-3": {
+      "name": "ambiguity",
+      "value": 0,
+      "target": "0",
+      "pass": true,
+      "entries": []
+    },
+    "PC-4": {
+      "name": "golden_stability",
+      "value": 0,
+      "target": "0",
+      "pass": true,
+      "diffs": []
+    },
+    "PC-5": {
+      "name": "compile_latency_p99_ms_per_card",
+      "value": 0.24,
+      "target": "<50",
+      "stretch": "<20",
+      "pass": true,
+      "runs": 3,
+      "per_card_ms": [
+        0.231,
+        0.231,
+        0.24
+      ]
+    },
+    "PC-6": {
+      "name": "vocabulary_health",
+      "orphan_verbs": {
+        "value": 1,
+        "target": "0",
+        "pass": false,
+        "verbs": [
+          "PHASE_IN"
+        ]
+      },
+      "max_verb_share": {
+        "value": 0.093426,
+        "target": "<0.20",
+        "pass": true
+      },
+      "pass": false,
+      "atom_total": 578,
+      "max_share_verb": "DRAW",
+      "verb_histogram": {
+        "ADD_LAND_PLAY": 1,
+        "ADD_MANA": 49,
+        "ATTACH": 2,
+        "CAST": 9,
+        "CHOOSE": 2,
+        "CHOOSE_NAME": 2,
+        "COPY": 2,
+        "COUNTER_SPELL": 6,
+        "CREATE_TOKEN": 27,
+        "DAMAGE_ASSIGN_POLICY": 1,
+        "DEAL_DAMAGE": 31,
+        "DESTROY": 14,
+        "DISCARD": 17,
+        "DRAW": 54,
+        "END_TURN": 1,
+        "EXILE": 19,
+        "EXTRA_TURN": 1,
+        "FIGHT": 2,
+        "FLIP_COIN": 1,
+        "GAIN_CONTROL": 2,
+        "GAIN_LIFE": 33,
+        "GET_EMBLEM": 3,
+        "GRANT_ABILITY": 47,
+        "GRANT_ACTIVATION": 1,
+        "GRANT_TYPE": 3,
+        "LOOK_AT": 4,
+        "LOSE_ABILITY": 2,
+        "LOSE_GAME": 1,
+        "LOSE_LIFE": 12,
+        "MANA_POLICY": 2,
+        "MANDATE_ATTACK": 3,
+        "MANDATE_BLOCK": 1,
+        "MILL": 3,
+        "MODIFY_PT": 52,
+        "MOVE_ZONE": 35,
+        "PAY": 3,
+        "PHASE_OUT": 2,
+        "PREVENT_EFFECT": 14,
+        "PUT_COUNTER": 33,
+        "REMOVE_COUNTER": 1,
+        "REVEAL": 14,
+        "SACRIFICE": 4,
+        "SCRY": 12,
+        "SEARCH": 17,
+        "SET_PT": 4,
+        "SHUFFLE": 16,
+        "TAP": 8,
+        "UNTAP": 5
+      }
+    },
+    "PC-7": {
+      "name": "executor_coverage",
+      "status": "pending_executor",
+      "target": "25/25; >=0.70",
+      "pass": null,
+      "note": "core/executor.py ships in T6 — not stubbed by this harness"
+    },
+    "PC-8": {
+      "name": "targetable_card_fraction",
+      "targetable_entries": 98,
+      "denominator": 305,
+      "value": 0.321311,
+      "target": ">=0.40",
+      "stretch": ">=0.50",
+      "pass": false
+    },
+    "PC-9": {
+      "name": "determinism",
+      "value": true,
+      "target": "identical fingerprint multiset",
+      "pass": true
+    },
+    "PC-10": {
+      "name": "instrument_null_test",
+      "good_card_coverage": 1.0,
+      "bad_card_coverage": 0.0,
+      "bad_unparsed_sentence": "Nobody understands this.",
+      "target": "100% / 0% respectively, unparsed queue exact",
+      "pass": true
+    }
+  },
+  "failed_targets": [
+    "PC-6",
+    "PC-8"
+  ],
+  "golden": {
+    "dir": "/home/sune/Desktop/MTG_AI/MTG_bot/core/golden/M21",
+    "files": 305,
+    "diffs": [],
+    "stable": true,
+    "goldens": "verified",
+    "baseline": "VCS-tracked (committed goldens; verify-only by default)"
+  },
+  "unparsed_queue": [
+    {
+      "oracle_id": "4c1c3a0a-5782-4b7d-8b9c-61eea913166d",
+      "name": "Transmogrify",
+      "sentence": "That creature's controller reveals cards from the top of their library until they reveal a creature card.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "4c1c3a0a-5782-4b7d-8b9c-61eea913166d",
+      "name": "Transmogrify",
+      "sentence": "That player puts that card onto the battlefield, then shuffles the rest into their library.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "63f60dfc-2bc4-411f-ae53-504156fe0102",
+      "name": "Sanctum of All",
+      "sentence": "If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.",
+      "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "e0df8e2a-96d2-4e4d-b065-aa2e162abbfe",
+      "name": "Liliana, Waker of the Dead",
+      "sentence": "Each opponent who can't loses 3 life.",
+      "bucket_hint": "static"
+    },
+    {
+      "oracle_id": "f5d1bd3c-0e65-4999-a810-881b2389b40e",
+      "name": "Conspicuous Snoop",
+      "sentence": "As long as the top card of your library is a Goblin card, this creature has all activated abilities of that card.",
+      "bucket_hint": "spell-effect"
+    }
+  ],
+  "unparsed_count": 5,
+  "engine_support": {
+    "engine_supported_cards": 286,
+    "of_total": 305,
+    "supported_verbs": [
+      "ADD_LAND_PLAY",
+      "ADD_MANA",
+      "CAST",
+      "CHOOSE",
+      "CHOOSE_NAME",
+      "CREATE_TOKEN",
+      "DEAL_DAMAGE",
+      "DESTROY",
+      "DISCARD",
+      "DRAW",
+      "END_TURN",
+      "EXILE",
+      "EXTRA_TURN",
+      "FLIP_COIN",
+      "GAIN_LIFE",
+      "GET_EMBLEM",
+      "GRANT_ABILITY",
+      "GRANT_ACTIVATION",
+      "GRANT_TYPE",
+      "LOOK_AT",
+      "LOSE_ABILITY",
+      "LOSE_GAME",
+      "LOSE_LIFE",
+      "MANA_POLICY",
+      "MILL",
+      "MODIFY_PT",
+      "MOVE_ZONE",
+      "PAY",
+      "PREVENT_EFFECT",
+      "PUT_COUNTER",
+      "REMOVE_COUNTER",
+      "REVEAL",
+      "SACRIFICE",
+      "SCRY",
+      "SEARCH",
+      "SET_PT",
+      "SHUFFLE",
+      "TAP",
+      "UNTAP"
+    ],
+    "flip_proof": {
+      "card": "Cancel",
+      "spell_ability_only": true,
+      "default_engine_supported": true,
+      "gated_engine_supported": false,
+      "offending_verbs": [
+        "COUNTER_SPELL"
+      ]
+    }
+  }
+}

@@ -181,6 +181,11 @@ class TriggerBinder:
         self.records: dict[str, CardRecord] = {}
         self.attached: dict[tuple[Handle, int], TriggeredAbility] = {}
         self.handle_record: dict[Handle, CardRecord] = {}
+        # 13c: emblem synthetic handles -> their OWNER. Emblems are not
+        # world cards, so ``world.controller_of`` cannot answer "who is
+        # this trigger's you?" — this side-table does, and every trigger
+        # match path consults it through :meth:`_controller_of`.
+        self.emblem_owner: dict[Handle, Handle] = {}
         self.firings: dict[int, _Firing] = {}
         self.delayed: list[DelayedBinding] = []
         self._seen_journal_len = 0
@@ -191,6 +196,42 @@ class TriggerBinder:
     @property
     def world(self) -> GameWorld:
         return self.executor.world
+
+    def _controller_of(self, handle: Handle) -> Handle:
+        """The trigger controller: the world's battlefield controller, or
+        for an emblem's synthetic handle (never a world card — 13c) the
+        recorded OWNER. The emblem's "you" is its owner for every event
+        match (CR 113.7 the emblem is controlled by its owner)."""
+        owner = self.emblem_owner.get(handle)
+        if owner is not None:
+            return owner
+        return self.world.controller_of(handle)
+
+    def bind_emblem(self, handle: Handle, record: CardRecord, owner: Handle) -> int:
+        """13c: bind a granted emblem's ability nodes. The emblem record is
+        a token-shaped CardRecord (the compiler normalises emblem→token):
+        TriggeredAbility nodes bind at (handle, idx) with the OWNER as
+        controller (via :meth:`_controller_of`), StaticAbility nodes attach
+        to the layer registry ANCHORED TO THE OWNER (Liliana's emblem
+        grants haste to "creatures you control" — its ``you`` is the
+        owner), and the synthetic handle never touches world zones, the
+        loyalty seed, or the castable-card surfaces (:func:
+        `legality.legal_activations` iterates world cards, so it can never
+        see this handle)."""
+        triggers = []
+        for idx, ability in enumerate(record.abilities):
+            if isinstance(ability, TriggeredAbility):
+                self._check_event(ability.event, record.name)
+                triggers.append((idx, ability))
+        self.detach(handle)
+        self.records.setdefault(record.oracle_id, record)
+        self.handle_record[handle] = record
+        self.emblem_owner[handle] = owner
+        for idx, ability in triggers:
+            self.attached[(handle, idx)] = ability
+        self.executor.layers.attach_source(handle, record, controller=owner)
+        self.executor.replacements.attach_source(handle, record)
+        return len(triggers)
 
     def attach_card(self, handle: Handle, compiled: object) -> int:
         """Register the compiled record for the world card ``handle`` and
@@ -283,6 +324,18 @@ class TriggerBinder:
         keys = [key for key in self.attached if key[0] == handle]
         for key in keys:
             del self.attached[key]
+        # 13c: attachment is battlefield-to-battlefield (CR 303.4c/117.12 —
+        # when either side of an aura/equipment pair leaves, the attachment
+        # relationship ends). The executor's attachment table drops every
+        # edge touching the departing handle. (Emblems never detach: an
+        # emblem cannot leave the battlefield/ownership in the rules — no
+        # code path calls detach on an emblem handle.)
+        ex = self.executor
+        ex.attachments = {
+            aura: host
+            for aura, host in ex.attachments.items()
+            if aura != handle and host != handle
+        }
         self.executor.layers.detach_source(handle)
         self.executor.replacements.detach_source(handle)
         return len(keys)
@@ -324,11 +377,9 @@ class TriggerBinder:
                 self.attached.items(), key=lambda kv: (str(kv[0][0]), kv[0][1])
             ):
                 if self._match_node(
-                    ability.event, event, handle, self.world.controller_of(handle)
+                    ability.event, event, handle, self._controller_of(handle)
                 ):
-                    self._queue(
-                        handle, self.world.controller_of(handle), ability, event
-                    )
+                    self._queue(handle, self._controller_of(handle), ability, event)
             for entry in list(self.delayed):
                 if self._match_node(
                     entry.node.event, event, entry.source, entry.controller
@@ -701,4 +752,9 @@ class TriggerBinder:
             (d.seq, d.tag, str(d.source), str(d.controller), repr(d.node.event))
             for d in sorted(self.delayed, key=lambda d: d.seq)
         )
-        return (("attached", attached), ("delayed", delayed))
+        emblems = tuple(
+            sorted(
+                (str(handle), str(owner)) for handle, owner in self.emblem_owner.items()
+            )
+        )
+        return (("attached", attached), ("delayed", delayed), ("emblems", emblems))

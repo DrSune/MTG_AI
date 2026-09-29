@@ -667,6 +667,10 @@ class TestCapabilitySurface(unittest.TestCase):
         # side flip set (PAY, CAST, CHOOSE, CHOOSE_NAME, MANA_POLICY).
         # V1 stays the frozen round-12 contract (24); COUNTER_SPELL is
         # deliberately NOT in the growth: no interaction window in v1.
+        # AMENDED 2026-09-30 (round 13c): four more — the permissions
+        # flip set (GET_EMBLEM, GRANT_TYPE, GRANT_ACTIVATION,
+        # ADD_LAND_PLAY), 35 -> 39. PHASE_OUT (Teferi's co-verb) stays
+        # out: its handler is 13d's, not this round's.
         new = {
             Verb.DRAW,
             Verb.SEARCH,
@@ -679,11 +683,15 @@ class TestCapabilitySurface(unittest.TestCase):
             Verb.CHOOSE,
             Verb.CHOOSE_NAME,
             Verb.MANA_POLICY,
+            Verb.GET_EMBLEM,
+            Verb.GRANT_TYPE,
+            Verb.GRANT_ACTIVATION,
+            Verb.ADD_LAND_PLAY,
         }
         self.assertEqual(SUPPORTED_VERBS_V2 - SUPPORTED_VERBS_V1, new)
         self.assertNotIn(Verb.DRAW, SUPPORTED_VERBS_V1)  # the round-12 freeze
         self.assertEqual(len(SUPPORTED_VERBS_V1), 24)
-        self.assertEqual(len(SUPPORTED_VERBS_V2), 35)
+        self.assertEqual(len(SUPPORTED_VERBS_V2), 39)
 
     def test_turn_ledger_fields_in_state_fingerprint(self):
         reset_oracle_ids()
