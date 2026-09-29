@@ -25,8 +25,6 @@ from MTG_bot.core.ability_tree import (
     Filter,
     FNot,
     FOr,
-    Keyword,
-    KeywordAbility,
     OptionalEffect,
     PtDelta,
     PtDirection,
@@ -759,14 +757,14 @@ class TestDispatchRaises(ExecutorCase):
         # Atom.__post_init__ validates role presence, so each probe carries
         # its verb's required roles — only then does the dispatcher's
         # "not implemented" raise become observable.
+        # AMENDED 2026-09-29 (round 12d): GRANT_ABILITY left the raise list
+        # — it (with LOSE_ABILITY/PREVENT_EFFECT) is a live layer verb now
+        # (test_executor_layers.py covers the behaviour). DRAW deliberately
+        # stays outside v1 (mission scope list).
         probes = {
             Verb.DRAW: {"controller": ControllerRef.YOU, "amount": QConst(1)},
             Verb.CAST: {"source": target_sel()},
             Verb.FIGHT: {"target": target_sel()},
-            Verb.GRANT_ABILITY: {
-                "target": target_sel(),
-                "ability": KeywordAbility(Keyword.HASTE),
-            },
             Verb.PHASE_OUT: {"target": target_sel()},
             Verb.SEARCH: {"cards": target_sel(), "destination": LIB_YOU},
             Verb.COUNTER_SPELL: {"target": target_sel()},
@@ -781,7 +779,10 @@ class TestDispatchRaises(ExecutorCase):
                 self.assertIn(verb.name, str(cm.exception))
 
     def test_supported_set_is_exactly_the_table(self):
-        self.assertEqual(len(SUPPORTED_VERBS_V1), 21)
+        # AMENDED 2026-09-29 (round 12d): 21 -> 24 — GRANT_ABILITY,
+        # LOSE_ABILITY and PREVENT_EFFECT joined the honest capability set
+        # with the continuous-layers round.
+        self.assertEqual(len(SUPPORTED_VERBS_V1), 24)
         self.assertNotIn(Verb.DRAW, SUPPORTED_VERBS_V1)
 
     def test_execute_and_world_type_guards(self):
@@ -855,9 +856,13 @@ class TestApplyEffect(ExecutorCase):
         self.assertEqual(self.world.players[self.p0].mana_pool, {"W": 1})
 
     def test_unsupported_effect_nodes_raise(self):
+        # AMENDED 2026-09-29 (round 12d, plan /06 §12d): Choose now runtime-
+        # consumed (round 12c ruling) — the node dispatches through
+        # apply_effect consuming ONE decision token, the index of the
+        # chosen option-set in query.choose_options order (test below).
+        # The other unsupported stay: Repeat/EachPlayer keep raising.
         nodes = (
             Repeat(QConst(2), self.gain(1)),
-            Choose(QConst(1), (self.gain(1),)),
             EachPlayer(ControllerRef.ALL_OPPONENTS, self.gain(1)),
         )
         for node in nodes:
@@ -866,6 +871,25 @@ class TestApplyEffect(ExecutorCase):
                 self.assertRaises(NotImplementedError),
             ):
                 self.ex.apply_effect(node, source=self.alpha, controller=self.p0)
+
+    def test_choose_runtime_consumes_a_decision_12d(self):
+        # 12d pin: Choose(QConst(1), (A, B)) consumes str(index) and runs
+        # that option subtree — the query.choose_options ORDER contract
+        # (size-ascending, index-lex; the full multi-option enumeration is
+        # pinned in test_executor_layers.py).
+        self.ex.apply_effect(
+            Choose(QConst(1), (self.gain(1), self.gain(2))),
+            source=self.alpha,
+            controller=self.p0,
+            decisions=("1",),
+        )
+        self.assertEqual(self.world.players[self.p0].life, 22)
+        with self.assertRaises(ValueError):  # missing decision, C15
+            self.ex.apply_effect(
+                Choose(QConst(1), (self.gain(1), self.gain(2))),
+                source=self.alpha,
+                controller=self.p0,
+            )
 
 
 def scripted_run(seed):

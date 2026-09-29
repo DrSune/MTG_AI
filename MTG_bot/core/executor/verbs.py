@@ -22,24 +22,35 @@ designation machinery lives in :mod:`.selectors`.
 from __future__ import annotations
 
 import hashlib
-from typing import Callable, Dict, List
+from collections.abc import Callable
 
 from MTG_bot.core.ability_tree import (
+    Ability,
     Atom,
     CounterKind,
     Duration,
+    DurationUntilLeaves,
+    EventSpec,
+    Filter,
+    KeywordAbility,
     PtDelta,
     PtDirection,
     Quantity,
     QUnbounded,
     Selector,
+    Step,
     TokenSpec,
     Verb,
     Zone,
     ZoneKind,
 )
 from MTG_bot.core.executor.durations_min import duration_tag
-from MTG_bot.core.executor.quantity import ExecCtx, resolve
+from MTG_bot.core.executor.quantity import (
+    ExecCtx,
+    eval_filter,
+    referent_handle,
+    resolve,
+)
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     amount,
@@ -175,6 +186,28 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
     n = amount(ctx, atom, "amount")
     for target in role_handles(ctx, atom, "target"):
         if target.namespace == "player":
+            # 12d: C24 replacement-before-apply. A live ReplacementAbility
+            # (Nine Lives' compiled row is the canonical) CONSUMES the
+            # event: no life mutation happens (so the journal sees no
+            # damage at all), and the replacement's action runs as a
+            # nested journalled effect once this atom's boundary closes.
+            repl = (
+                ctx.replacements.replacement_for_player_damage(ctx, target)
+                if ctx.replacements is not None
+                else None
+            )
+            if repl is not None:
+                ctx.pending_replacements.append(repl)
+                ctx.events.append(
+                    (
+                        len(ctx.events),
+                        "DAMAGE_REPLACED",
+                        str(target),
+                        str(repl.source),
+                        n,
+                    )
+                )
+                continue
             p = ctx.world.players[target]
             p.life = max(0, p.life - n)
             ctx.events.append((len(ctx.events), "DAMAGE", str(target), p.life))
@@ -241,43 +274,60 @@ def _pt_delta_value(quantity: object, ctx: ExecCtx) -> int:
     return resolve(quantity, ctx)
 
 
+def pt_atom_delta(
+    atom: Atom, ctx: ExecCtx
+) -> tuple[int, int, int | None, int | None]:
+    """One MODIFY_PT/SET_PT atom -> ``(power_delta, toughness_delta,
+    power_set, toughness_set)`` — the shared extraction the 12a fold and
+    12d's static-layer materialization both run through (one numeric
+    semantics, no second parser)."""
+    power_role = atom.args.get("power")
+    tough_role = atom.args.get("toughness")
+    if atom.verb is Verb.MODIFY_PT:
+        p_delta = _pt_delta_value(power_role, ctx) if power_role is not None else 0
+        t_delta = _pt_delta_value(tough_role, ctx) if tough_role is not None else 0
+        return p_delta, t_delta, None, None
+    if isinstance(power_role, PtDelta) or isinstance(tough_role, PtDelta):
+        raise NotImplementedError(
+            "executor: SET_PT with a PtDelta (signed absolute) is undefined (12c)"
+        )
+    assert power_role is None or isinstance(power_role, Quantity)
+    assert tough_role is None or isinstance(tough_role, Quantity)
+    return (
+        0,
+        0,
+        None if power_role is None else resolve(power_role, ctx),
+        None if tough_role is None else resolve(tough_role, ctx),
+    )
+
+
 def _apply_pt(ctx: ExecCtx, atom: Atom, kind: str) -> None:
     duration = atom.args.get("duration")
     assert duration is None or isinstance(duration, Duration)
     tag = duration_tag(duration)
-    power_role = atom.args.get("power")
-    tough_role = atom.args.get("toughness")
+    # 12d: UNTIL_LEAVES resolves its C12 referent NOW (register boundary) —
+    # the ledger stores a Handle anchor, never a string to re-parse later.
+    leaves_anchor = None
+    if isinstance(duration, DurationUntilLeaves):
+        leaves_anchor = referent_handle(duration.source, ctx)
+    p_delta, t_delta, p_set, t_set = pt_atom_delta(atom, ctx)
     for card in role_handles(ctx, atom, "target"):
         identity = ctx.world.cards[card].identity
-        if kind == "delta":
-            p_delta = _pt_delta_value(power_role, ctx) if power_role is not None else 0
-            t_delta = _pt_delta_value(tough_role, ctx) if tough_role is not None else 0
-            change = ctx.ledger.record(
-                identity,
-                "delta",
-                card,
-                power_delta=p_delta,
-                toughness_delta=t_delta,
-                tag=tag,
-                clock=len(ctx.events),
-            )
-        else:
-            if isinstance(power_role, PtDelta) or isinstance(tough_role, PtDelta):
-                raise NotImplementedError(
-                    "executor: SET_PT with a PtDelta (signed absolute) is "
-                    "undefined (12c)"
-                )
-            assert power_role is None or isinstance(power_role, Quantity)
-            assert tough_role is None or isinstance(tough_role, Quantity)
-            change = ctx.ledger.record(
-                identity,
-                "set",
-                card,
-                power_set=None if power_role is None else resolve(power_role, ctx),
-                toughness_set=None if tough_role is None else resolve(tough_role, ctx),
-                tag=tag,
-                clock=len(ctx.events),
-            )
+        change = ctx.ledger.record(
+            identity,
+            kind,
+            card,
+            power_delta=p_delta,
+            toughness_delta=t_delta,
+            power_set=p_set,
+            toughness_set=t_set,
+            tag=tag,
+            clock=len(ctx.events),
+            duration=duration,
+            source=ctx.source,
+            controller=ctx.controller,
+            leaves_anchor=leaves_anchor,
+        )
         ctx.events.append(
             (
                 len(ctx.events),
@@ -296,6 +346,101 @@ def _v_modify_pt(ctx: ExecCtx, atom: Atom) -> None:
 
 def _v_set_pt(ctx: ExecCtx, atom: Atom) -> None:
     _apply_pt(ctx, atom, "set")
+
+
+# ------------------------------------------------------ 12d layer verbs
+
+
+def _ability_tag(ability: object) -> str:
+    """The audit label for a grant/lose payload row (the fingerprint never
+    depends on it for semantics — the full node reprs in the layer dump)."""
+    if isinstance(ability, KeywordAbility):
+        return f"keyword:{ability.keyword.name}"
+    return type(ability).__name__
+
+
+def _layers_or_raise(ctx: ExecCtx, verb: str):
+    if ctx.layers is None:
+        raise ValueError(
+            f"executor: {verb} needs an executor-backed ExecCtx "
+            "(bare ExecCtx has no layer registry)"
+        )
+    return ctx.layers
+
+
+def _v_grant_or_lose(ctx: ExecCtx, atom: Atom, lose: bool) -> None:
+    """GRANT_ABILITY / LOSE_ABILITY (the PC-6 #3 raise-list items, 12d):
+    register a layer over the designated targets; the Duration vocab
+    (incl. until-end-of-turn) is what ends it — layers never expire
+    silently."""
+    ability = atom.args.get("ability")
+    if not isinstance(ability, Ability):
+        raise ValueError(  # noqa: TRY004 — domain contract, see activate()
+            f"executor: {atom.verb.name} ability role needs an Ability node, "
+            f"got {type(ability).__name__}"
+        )
+    duration = atom.args.get("duration")
+    assert duration is None or isinstance(duration, Duration)
+    layers = _layers_or_raise(ctx, atom.verb.name)
+    targets = tuple(role_handles(ctx, atom, "target"))
+    if lose:
+        layers.register_lose(ctx.source, ctx.controller, targets, ability, duration)
+    else:
+        layers.register_grant(ctx.source, ctx.controller, targets, ability, duration)
+    ctx.events.append(
+        (
+            len(ctx.events),
+            atom.verb.name,
+            str(ctx.source),
+            _ability_tag(ability),
+            tuple(str(t) for t in targets),
+            duration_tag(duration),
+        )
+    )
+
+
+def _v_grant(ctx: ExecCtx, atom: Atom) -> None:
+    _v_grant_or_lose(ctx, atom, lose=False)
+
+
+def _v_lose(ctx: ExecCtx, atom: Atom) -> None:
+    _v_grant_or_lose(ctx, atom, lose=True)
+
+
+def _v_prevent(ctx: ExecCtx, atom: Atom) -> None:
+    """PREVENT_EFFECT (12d): a pre-application veto record. The condition's
+    affected set is materialized NOW from the designated targets (the
+    IS_ANY_TARGET anaphora is only decidable at this boundary); combat- and
+    mana-side prevents register + expose but have no consumer until the
+    combat/mana phases — the UNTAP step consumes the TapStateEvent family
+    (Frost Breath)."""
+    condition = atom.args.get("condition")
+    event = atom.args.get("event")
+    assert isinstance(condition, Filter) and isinstance(event, EventSpec)
+    step = atom.args.get("step")
+    assert step is None or isinstance(step, Step)
+    duration = atom.args.get("duration")
+    assert duration is None or isinstance(duration, Duration)
+    if atom.args.get("controller") is not None:
+        raise NotImplementedError("executor: PREVENT_EFFECT controller scoping is 12e")
+    if ctx.replacements is None:
+        raise ValueError("executor: PREVENT_EFFECT needs an executor-backed ExecCtx")
+    designated = ctx.binding_handles("target") or []
+    targets = tuple(h for h in designated if eval_filter(condition, h, ctx))
+    ctx.replacements.register_prevention(
+        ctx.source, ctx.controller, condition, event, step, duration, targets
+    )
+    ctx.events.append(
+        (
+            len(ctx.events),
+            atom.verb.name,
+            str(ctx.source),
+            type(event).__name__,
+            step.name if step is not None else None,
+            duration_tag(duration),
+            tuple(str(t) for t in targets),
+        )
+    )
 
 
 def token_oracle_id(name: str) -> str:
@@ -363,8 +508,8 @@ def _v_scry(ctx: ExecCtx, atom: Atom) -> None:
     lib = ctx.world.players[player].zone(ZONE_LIBRARY)
     n = min(n, len(lib.entries))
     top_down = list(reversed(lib.entries[-n:])) if n else []
-    bottoms: List[Handle] = []
-    tops: List[Handle] = []
+    bottoms: list[Handle] = []
+    tops: list[Handle] = []
     for card in top_down:  # decisions are consumed one per card, top first
         if ctx.take_decision(("top", "bottom"), "SCRY") == "top":
             tops.append(card)
@@ -405,7 +550,7 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
     ctx.events.append((len(ctx.events), atom.verb.name, str(player), seen))
 
 
-HANDLERS: Dict[Verb, Callable[[ExecCtx, Atom], None]] = {
+HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.MOVE_ZONE: _v_move_zone,
     Verb.EXILE: _v_exile,
     Verb.SACRIFICE: _to_graveyard,
@@ -427,6 +572,11 @@ HANDLERS: Dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.SHUFFLE: _v_shuffle,
     Verb.LOOK_AT: _look,
     Verb.REVEAL: _look,
+    # 12d: the continuous-layers verbs (PC-6 #3 raise-list items, now real)
+    # + the pre-application prevention record.
+    Verb.GRANT_ABILITY: _v_grant,
+    Verb.LOSE_ABILITY: _v_lose,
+    Verb.PREVENT_EFFECT: _v_prevent,
 }
 
 

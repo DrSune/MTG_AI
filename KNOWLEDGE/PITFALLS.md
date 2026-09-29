@@ -475,3 +475,24 @@
   tests must put a permanent's several triggers in ONE CardRecord. (r12b.)
 - **LifeGained triggers whose effect gains life self-feed** → instant 200-fire RuntimeError;
   feed tests must use non-life effects (mill). (r12b.)
+- **Ledger tombstones route through `_meta` (2026-09-29, 12d):** `DurationLedger.expire()`
+  marks dormant ONLY ids present in `_meta`; before 12d an Eot/Permanent-tagged entry had
+  no meta row, so `layers.detach_source` "expired" the layer while the materialized P/T
+  entry LEAKED live forever. Rule: `record()` stores a meta row for EVERY entry (fallback
+  `DurationMeta(tag, controller)`). Any future tombstone-style API must have a pinned
+  effective_pt-after-expiry test (test_executor_layers.TestStaticAnthem covers it).
+- **PREVENT_EFFECT has NO target role (2026-09-29):** grammar `_VERB_ROLES` = condition+event
+  required, controller/duration/step optional. The affected set = the ctx's designated
+  bindings ∩ IS_ANY_TARGET at cast time (`ctx.binding_handles("target")`), NOT an atom role.
+  An atom built with `target=` fails Atom validation.
+- **Replacement filters run in the REPLACEMENT's coordinates (2026-09-29):** the DEAL_DAMAGE
+  atom's ctx carries the DEALER's controller — evaluating a Nine-Lives-style "to you" filter
+  there is ALWAYS false. `replacement_for_player_damage` re-roots via
+  `dataclasses.replace(ctx, source=rec.source, controller=rec.controller)` first.
+- **Raw `world.move_to_zone` is invisible to triggers (rediscovered 2026-09-29):** the journal
+  only diffs at ATOM boundaries; a test that moves a permanent and calls `fire_triggers`
+  sees nothing — ride a MOVE_ZONE atom (the 12b enter() convention).
+- **Global oracle-id counters poison same-process replays (2026-09-29):** two Executor
+  replays in ONE process get different ids from a module-level counter → different
+  fingerprints. Fingerprint scenarios need explicit oids (or the counter reset per run);
+  the ledger's own `record_id` is per-INSTANCE for the same reason.

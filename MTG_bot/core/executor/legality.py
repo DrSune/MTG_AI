@@ -171,6 +171,12 @@ def ctx_for(
         events=[],
         rng=executor.rng,
         token_counts=executor.token_counts,
+        # 12d: the query/payment context sees the registries too (a paid
+        # tap-cost can trip a replacement; layer verbs fired from an
+        # activation effect reach them through the effect ctx).
+        layers=executor.layers,
+        replacements=executor.replacements,
+        executor=executor,
     )
 
 
@@ -424,17 +430,36 @@ def ability_playable(
        executor has no stack, so emptiness is an explicit parameter of the
        pre-casting query, per the grammar's C20 note.
     2. **condition** — ``ActivatedAbility.condition`` (a state predicate
-       over the source, the StaticAbility convention) judged against the
-       source handle; an unsupported pred raises (flag, never guess).
+        over the source, the StaticAbility convention) judged against the
+        source handle; an unsupported pred raises (flag, never guess).
     3. **cost** — :func:`build_payment_plan` (CR 117.3 resource
        arithmetic + the untapped check + CR 119.4 life floor).
+
+    12d — GRANTED abilities are addressed by NEGATIVE index: row ``-k-1``
+    is entry ``k`` of ``executor.layers.granted_activated(handle)`` (layer-
+    seq order, the canonical basis :func:`legal_activations` uses). The
+    CONTROLLER RULE: the source is the granted permanent and every
+    coordinate of the run (cost ``you``, effects, mana pool) belongs to
+    ``seat`` — the GRANTEE; a granted ability needs no compiled record for
+    the granted object (tokens activate what they were granted).
     """
-    record = executor.binder.handle_record.get(handle)
-    if record is None:
-        return f"bridge:no_record:{handle}"
-    if not 0 <= ability_idx < len(record.abilities):
-        raise ValueError(f"ability_playable: {handle} has no ability idx {ability_idx}")
-    ability = record.abilities[ability_idx]
+    if ability_idx < 0:
+        granted = executor.layers.granted_activated(handle)
+        idx = -ability_idx - 1
+        if idx >= len(granted):
+            raise ValueError(
+                f"ability_playable: {handle} has no granted ability idx {ability_idx}"
+            )
+        ability = granted[idx].node
+    else:
+        record = executor.binder.handle_record.get(handle)
+        if record is None:
+            return f"bridge:no_record:{handle}"
+        if not 0 <= ability_idx < len(record.abilities):
+            raise ValueError(
+                f"ability_playable: {handle} has no ability idx {ability_idx}"
+            )
+        ability = record.abilities[ability_idx]
     if not isinstance(ability, ActivatedAbility):
         return f"ability:not_activated:{type(ability).__name__}"
     if handle in world.cards and world.zone_of(handle).kind != ZONE_BATTLEFIELD:
@@ -599,8 +624,15 @@ def activate(
     )
     if reason is not None:
         raise ValueError(f"executor: illegal activation: {reason}")
-    record = executor.binder.handle_record[handle]
-    ability = record.abilities[ability_idx]
+    if ability_idx < 0:
+        # 12d granted row (see ability_playable's controller rule): the
+        # ability's SOURCE is the granted permanent and the effect runs in
+        # the GRANTEE's coordinates (``seat``) — source=handle below.
+        granted = executor.layers.granted_activated(handle)
+        ability = granted[-ability_idx - 1].node
+    else:
+        record = executor.binder.handle_record[handle]
+        ability = record.abilities[ability_idx]
     if not isinstance(ability, ActivatedAbility):  # pragma: no cover — checked
         # ValueError, not TypeError: "illegal activation" is the documented
         # domain contract of activate(), whatever the wrong input was.

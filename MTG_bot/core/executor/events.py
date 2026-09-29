@@ -145,6 +145,27 @@ class EventJournal:
 
     # ------------------------------------------------------------- emitting
 
+    @property
+    def clock(self) -> int:
+        """The journal's monotonic event clock (12d: the deterministic
+        timestamp the layer registry stamps onto materialized ledger
+        entries, so layer modifiers interleave with verb modifiers on one
+        timeline)."""
+        return self._clock
+
+    def emit(
+        self,
+        kind: str,
+        subject: Handle | None,
+        cause: Handle | None,
+        cause_verb: str,
+        data: tuple[object, ...] = (),
+    ) -> GameEvent:
+        """Public emit for turn-skeleton state changes (the 12d untap step:
+        not an Atom, but a rule-relevant TapStateEvent the journal must
+        carry for Triggers and the fingerprint)."""
+        return self._emit(kind, subject, cause, cause_verb, data)
+
     def _emit(
         self,
         kind: str,

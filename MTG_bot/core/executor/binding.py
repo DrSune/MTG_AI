@@ -108,13 +108,18 @@ _UNSUPPORTED_EVENTS: dict[type, str] = {
     CombatDamageEvent: "later phase (combat)",
     BecomesBlockedEvent: "later phase (combat)",
     LoyaltyActivatedEvent: "12c (loyalty activations)",
-    StepEvent: "12d (step-level turn skeleton)",
+    StepEvent: (
+        "12e (step-level subscription emitter; 12d's untap tick is an "
+        "executor step that emits TapState/phase events, not StepEvents)"
+    ),
     TargetingEvent: "12c (target designation)",
 }
 
 # Delayed-trigger window tags the end-of-turn sweep expires. ``UntilNextTurn``
 # piggybacks on the Eot sweep as a documented stand-in; the precise
-# next-turn-start expiry belongs to 12d's full Duration vocab.
+# next-turn-start expiry of the 12d Duration vocab applies to the LEDGER /
+# layer / prevention records — a DELAYED trigger keeps the turn-window
+# stand-in (delayed windows beyond the turn are 12e).
 _SWEEP_TAGS = ("Eot", "UntilNextTurn")
 
 # Any trigger node: attached TriggeredAbility or scheduled DelayedTrigger —
@@ -231,9 +236,13 @@ class TriggerBinder:
         return count
 
     def _register(self, handle: Handle, record: CardRecord) -> int:
-        """Bind the record's TriggeredAbility nodes at (handle, idx) —
-        check-then-commit: an unsupported event kind raises BEFORE the old
-        bindings are dropped (flag, never degrade into a silent unlink)."""
+        """Bind the record's TriggeredAbility nodes at (handle, idx), and
+        12d: register the record's CONTINUOUS half (KeywordAbility +
+        StaticAbility nodes → the layer registry; ReplacementAbility nodes
+        → the replacement registry) — one battlefield lifecycle for every
+        ability shape. Check-then-commit: an unsupported event kind raises
+        BEFORE the old bindings are dropped (flag, never degrade into a
+        silent unlink)."""
         triggers = []
         for idx, ability in enumerate(record.abilities):
             if isinstance(ability, TriggeredAbility):
@@ -242,14 +251,21 @@ class TriggerBinder:
         self.detach(handle)
         for idx, ability in triggers:
             self.attached[(handle, idx)] = ability
+        self.executor.layers.attach_source(handle, record)
+        self.executor.replacements.attach_source(handle, record)
         return len(triggers)
 
     def detach(self, handle: Handle) -> int:
         """Battlefield departure: drop the handle's live bindings (the
-        oracle-id record stays, ready for the re-entry re-registration)."""
+        oracle-id record stays, ready for the re-entry re-registration) —
+        and 12d: its continuous layers and replacement records expire with
+        it (their durations govern separately for records the permanent
+        GRANTED elsewhere)."""
         keys = [key for key in self.attached if key[0] == handle]
         for key in keys:
             del self.attached[key]
+        self.executor.layers.detach_source(handle)
+        self.executor.replacements.detach_source(handle)
         return len(keys)
 
     def _check_event(self, event: EventSpec, card_name: str) -> None:
@@ -558,6 +574,11 @@ class TriggerBinder:
             token_counts=ex.token_counts,
             event=event,
             event_amount=amount,
+            # 12d: trigger-fired GRANT/LOSE/PREVENT atoms and damage
+            # replacements reach the registries through the ctx.
+            layers=ex.layers,
+            replacements=ex.replacements,
+            executor=ex,
         )
 
     # ------------------------------------------------------ delayed (C22)
@@ -567,15 +588,17 @@ class TriggerBinder:
     ) -> None:
         """Register a DelayedTrigger effect node into the journal matcher.
         Only the turn-window tags sweep in 12b; a permanent-window or any
-        unimplemented duration RAISES (12d's vocab) — never a leak. The
-        scheduled EVENT kind gets the same unsupported-kind flag-don't-
-        degrade check as an attached trigger."""
+        longer duration RAISES (the 12d Duration vocab governs LEDGER,
+        layer and prevention records; delayed-trigger windows beyond the
+        turn are 12e) — never a leak. The scheduled EVENT kind gets the
+        same unsupported-kind flag-don't-degrade check as an attached
+        trigger."""
         self._check_event(node.event, "DelayedTrigger")
         tag = duration_tag(node.duration)
         if tag not in _SWEEP_TAGS:
             raise NotImplementedError(
-                f"executor: DelayedTrigger duration tag {tag!r} is 12d "
-                "(the full Duration vocab)"
+                f"executor: DelayedTrigger duration tag {tag!r} exceeds the "
+                "turn window (12e)"
             )
         self._seq += 1
         self.delayed.append(

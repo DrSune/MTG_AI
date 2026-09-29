@@ -165,8 +165,16 @@ class OptionChoice:
     the ascending tuple of option indices; the typed option effects are
     ``choose.options[i]`` — the same objects apply_effect dispatches
     (§8.3). Executing a choice = ``executor.apply_effect`` on the chosen
-    option subtree(s) directly (the Choose node's decision-channel wiring
-    is 12d; its enumeration is complete HERE — C15)."""
+    option subtree(s) directly, or (12d) dispatching the Choose NODE with
+    a decision token.
+
+    ORDER CONTRACT (12d-pinned): the runtime decision token for a Choose
+    is ``str(i)`` where ``i`` is the position of the chosen OptionChoice
+    in THIS module's enumeration order — size-ascending, index-lex
+    (:func:`choose_options`). ``choose_options`` is the single source of
+    both the Slate's OPTION slots and the executor's decision vocabulary;
+    the runtime dispatches exactly what the query enumerated (pinned in
+    test_executor_layers.py)."""
 
     choose: Choose
     option_idxs: tuple[int, ...]
@@ -188,6 +196,14 @@ def legal_activations(
     attached compiled record (the 12b oracle-id bridge) and keeps the
     :class:`ActivatedAbility` nodes whose gate triple
     (window/condition/cost — legality.ability_playable) is green.
+
+    12d: GRANTED activated abilities (round-12d GRANT_ABILITY layers) are
+    rows too — addressed by NEGATIVE index ``-k-1`` = entry ``k`` of
+    ``executor.layers.granted_activated(source)`` (layer-seq order), so a
+    Slate row can name a granted ability without a compiled record (the
+    granted object may be a token). The final row list is sorted on the
+    same documented ``order_key``: for one source, granted rows (-k)
+    precede printed rows (0+), each internally ascending.
 
     A cost kind the executor cannot check (CostLoyalty, QX amounts)
     RAISES through the scan — flag, don't degrade: a hole in the legality
@@ -215,6 +231,30 @@ def legal_activations(
                     source=handle, ability_idx=idx, ability=ability, payment=plan
                 )
             )
+    # 12d granted rows (see docstring): every battlefield permanent of the
+    # seat — compiled record or not (tokens activate what they're granted).
+    for handle in sorted(world.cards):
+        if world.controller_of(handle) != seat:
+            continue
+        if world.zone_of(handle).kind != "battlefield":
+            continue
+        for k, entry in enumerate(executor.layers.granted_activated(handle)):
+            idx = -k - 1
+            # granted_activated filters to ActivatedAbility; the isinstance
+            # re-checks the registry's -k-1 basis contract (see legality).
+            node = entry.node
+            assert isinstance(node, ActivatedAbility)
+            if ability_playable(world, executor, handle, idx, seat=seat) is not None:
+                continue
+            ctx = ctx_for(executor, source=handle, controller=seat)
+            plan, _ = build_payment_plan(world, ctx, node.cost)
+            assert plan is not None  # ability_playable just greenlit
+            options.append(
+                ActivationOption(
+                    source=handle, ability_idx=idx, ability=node, payment=plan
+                )
+            )
+    options.sort(key=lambda o: o.order_key())
     return options
 
 

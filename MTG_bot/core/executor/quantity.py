@@ -20,7 +20,15 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Tuple, Union
+
+if TYPE_CHECKING:  # pragma: no cover - typing-only, dodges runtime cycles
+    from MTG_bot.core.executor import Executor
+    from MTG_bot.core.executor.layers import LayerRegistry
+    from MTG_bot.core.executor.replacements import (
+        ReplacementRecord,
+        ReplacementRegistry,
+    )
 
 from MTG_bot.core.ability_tree import (
     QX,
@@ -85,6 +93,18 @@ class ExecCtx:
     # and the event|result referents resolve inside a firing.
     event: object = None
     event_amount: int | None = None
+    # 12d registries + the owning executor: the runtime layer verbs
+    # (GRANT/LOSE_ABILITY, PREVENT_EFFECT) and the damage-replacement
+    # interceptor reach them through the ctx; None only in bare unit-test
+    # contexts (the handlers raise a clean ValueError if invoked there).
+    layers: LayerRegistry | None = None  # executor.layers
+    replacements: ReplacementRegistry | None = None  # executor.replacements
+    executor: Executor | None = None  # nested replacement effects
+    # 12d: damage replacements consume the event and queue their ACTION;
+    # the action runs AFTER the consuming atom's journal boundary (one diff
+    # per mutation — no double-emitted events), by the executor's run_atom
+    # wrapper draining this list.
+    pending_replacements: list[ReplacementRecord] = field(default_factory=list)
 
     def take_decision(self, vocab: Tuple[str, ...], what: str) -> str:
         """Consume the next decision; raise if missing or out-of-vocab."""
@@ -178,6 +198,13 @@ def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
     raise NotImplementedError(
         f"executor: quantity {type(quantity).__name__} not implemented"
     )
+
+
+def referent_handle(referent: str, ctx: ExecCtx) -> Handle:
+    """Public alias of the closed C12 referent resolver (12d: the verbs
+    resolve a DurationUntilLeaves anchor through the SAME machinery the
+    QProps use — one referent semantics, no second parser)."""
+    return _referent_handle(referent, ctx)
 
 
 def _referent_handle(referent: str, ctx: ExecCtx) -> Handle:
@@ -309,6 +336,12 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
     world = ctx.world
     if pred is FAtomPred.IS_SOURCE:
         return handle == ctx.source
+    if pred is FAtomPred.IS_ANY_TARGET:
+        # 12d (Frost Breath s2 / Selfless Savior anaphora): the object is
+        # one of the ability's designated targets — the closed C12 reading,
+        # judged against the call's target bindings.
+        bound = ctx.binding_handles("target")
+        return bound is not None and handle in bound
     if pred is FAtomPred.IS_TAPPED:
         return world.cards[handle].tapped
     if pred is FAtomPred.IS_UNTAPPED:
