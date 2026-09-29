@@ -110,24 +110,31 @@ from MTG_bot.core.executor.events import (
 )
 from MTG_bot.core.executor.layers import GrantedAbility, LayerRecord, LayerRegistry
 from MTG_bot.core.executor.legality import (
+    ManaLedger,
     PaymentPlan,
     ability_playable,
     activate,
     build_payment_plan,
     pay_costs,
+    spell_castable,
+    spell_record,
 )
 from MTG_bot.core.executor.quantity import Binding, ExecCtx, eval_filter
 from MTG_bot.core.executor.query import (
     ActivationOption,
+    CastOption,
     OptionChoice,
     TargetSlot,
     choose_options,
     legal_activations,
+    legal_casts,
     legal_search,
     legal_targets,
     optional_offer,
     rest_of,
+    spell_target_slots,
     validate_target_selection,
+    verb_choose_options,
 )
 from MTG_bot.core.executor.replacements import (
     PreventionRecord,
@@ -135,6 +142,17 @@ from MTG_bot.core.executor.replacements import (
     ReplacementRegistry,
 )
 from MTG_bot.core.executor.selectors import resolve_selector
+from MTG_bot.core.executor.stack import (
+    SpellObject,
+    SpellStack,
+    cast,
+    cast_card,
+    is_land_card,
+    land_playable,
+    park,
+    play_land,
+    stack_zone,
+)
 from MTG_bot.core.executor.verbs import HANDLERS, run_atom, token_oracle_id
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import ZONE_BATTLEFIELD, GameWorld
@@ -192,6 +210,7 @@ __all__ = [
     "SUPPORTED_VERBS_V2",
     "ActivationOption",
     "Binding",
+    "CastOption",
     "DurationLedger",
     "Event",
     "EventJournal",
@@ -201,25 +220,40 @@ __all__ = [
     "GrantedAbility",
     "LayerRecord",
     "LayerRegistry",
+    "ManaLedger",
     "OptionChoice",
     "PaymentPlan",
     "PreventionRecord",
     "PtChange",
     "ReplacementRecord",
     "ReplacementRegistry",
+    "SpellObject",
+    "SpellStack",
     "TargetSlot",
     "TriggerBinder",
     "ability_playable",
     "activate",
     "build_payment_plan",
+    "cast",
+    "cast_card",
     "choose_options",
+    "is_land_card",
+    "land_playable",
     "legal_activations",
+    "legal_casts",
     "legal_search",
     "legal_targets",
     "optional_offer",
+    "park",
     "pay_costs",
+    "play_land",
     "rest_of",
+    "spell_castable",
+    "spell_record",
+    "spell_target_slots",
+    "stack_zone",
     "validate_target_selection",
+    "verb_choose_options",
 ]
 
 
@@ -267,6 +301,23 @@ class Executor:
         # END_TURN's deferred close (consumed by the op loop).
         self.end_turn_requested = False
         self._closing_turn = False
+        # ------------------------------------------------- 13b stack + mana
+        # The spell stack (LIFO frames, CR 405): no-interaction v1 pushes
+        # only during a cast, but the container, the ZONE_STACK parking and
+        # the fingerprint fold are permanent (risk-1: a future response
+        # window reads SpellObject frames, not a re-derived world).
+        self.stack = SpellStack()
+        # CR 305.1 once-per-turn land gate: seat -> (turn, plays);
+        # extra_land_plays is the 13c ADD_LAND_PLAY hook (Azusa), 0 today.
+        self.land_ledger: dict[Handle, tuple[int, int]] = {}
+        self.extra_land_plays = 0
+        # The segment mirror of the frozen mana pool (THIS_MANA
+        # restrictions; tags EMPTY everywhere in the 12a/12b corpus, which
+        # is what keeps their totals-path replay pins byte-identical).
+        self.mana_ledger = ManaLedger()
+        # CHOOSE_NAME's write-side (Runed Halo): source permanent -> the
+        # chosen name, read back by the NAME_CHOSEN filter predicate.
+        self.name_choices: dict[Handle, str] = {}
         # Public alias of the seeded factory (the binder builds ExecCtxs too).
         self.rng = self._rng
 
@@ -289,6 +340,7 @@ class Executor:
         controller: Handle,
         bindings: dict[str, Binding] | None,
         decisions: Sequence[str],
+        x_value: int | None = None,
     ) -> ExecCtx:
         if not isinstance(source, Handle) or not isinstance(controller, Handle):
             raise ValueError("Executor: source and controller must be Handles")
@@ -307,7 +359,33 @@ class Executor:
             layers=self.layers,
             replacements=self.replacements,
             executor=self,
+            x_value=x_value,
         )
+
+    def _cast_ctx(
+        self,
+        handle: Handle,
+        seat: Handle,
+        bindings: dict[str, Binding],
+        decisions: Sequence[str],
+        x: int | None,
+    ) -> ExecCtx:
+        """13b: the spell-resolution context — the ordinary effect context
+        with the cast's declared X bound (CR 601.2f: X was chosen with the
+        total cost; the effect's ``{X}`` readings resolve off it)."""
+        return self._ctx(
+            source=handle,
+            controller=seat,
+            bindings=bindings,
+            decisions=decisions,
+            x_value=x,
+        )
+
+    def mana_permission(self, seat: Handle) -> bool:
+        """ALL_YOURS for ``seat`` (Orrery's "you may spend mana as though
+        it were mana of any color") — the live layer query in one place so
+        plan-building never reaches into the registry directly."""
+        return self.layers.all_yours_live(seat)
 
     # ------------------------------------------------------------ execution
 
@@ -673,6 +751,28 @@ class Executor:
                     self.last_flip_won_by,
                     self.end_turn_requested,
                 )
+            ).encode()
+        )
+        # 13b: the STACK COMPLETENESS FOLD. state.py's fingerprint loop
+        # iterates PLAYER_ZONES and ZONE_STACK is NOT one of them (L48:
+        # "the stack is shared, so it is not in this list"), so a card
+        # parked on the stack is invisible to world.fingerprint() BY
+        # DESIGN — this fold is what closes that hole: two worlds
+        # differing only by a stack card MUST differ here (pinned by
+        # test_stack_visible_in_executor_fingerprint). The land ledger,
+        # mana segments and chosen names are executor-side replayed
+        # state under the same ruling.
+        h.update(repr(self.stack.dump()).encode())
+        h.update(
+            repr(
+                tuple(sorted((str(s), v) for s, v in self.land_ledger.items()))
+            ).encode()
+        )
+        h.update(repr(self.extra_land_plays).encode())
+        h.update(repr(self.mana_ledger.dump()).encode())
+        h.update(
+            repr(
+                tuple(sorted((str(s), n) for s, n in self.name_choices.items()))
             ).encode()
         )
         return h.hexdigest()

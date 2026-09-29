@@ -18,7 +18,6 @@ from MTG_bot.core.ability_tree import (
     AtomArgs,
     CardDrawnEvent,
     CardRecord,
-    CastSpellEvent,
     ControllerRef,
     CounterKind,
     CounterPlacedEvent,
@@ -600,8 +599,13 @@ class TestDelayedTrigger(BindingCase):
 
 class TestRaises(BindingCase):
     def test_combat_cast_targeting_step_event_nodes_raise_on_bind(self):
+        # AMENDED (13b): CastSpellEvent LEFT this list — the spell stack
+        # shipped, the journal emits CAST rows (executor.events.emit_cast),
+        # and binding.py._match_cast subscribes them (the cast-trigger
+        # corpus: Quirion Dryad, Mangara, Double Vision, Ghostly Pilferer,
+        # Spellgorger Weird, Riddleform, Rin and Seri — bound and fired in
+        # test_executor_stack.py). Combat/targeting/step raises stay.
         for event in (
-            CastSpellEvent(filter=UNIV),
             DeclareAttackersEvent(filter=UNIV),
             TargetingEvent(filter=UNIV),
             StepEvent(Phase.COMBAT, Step.DECLARE_ATTACKERS, ControllerRef.YOU),

@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-09-29T20:23:54+02:00",
-  "git_head": "c820fc9b076a7d586f9513ebf1f2ac7b48c2bded",
+  "generated": "2026-09-29T23:04:35+02:00",
+  "git_head": "9120e2d911c6dd6c78e4330cab29e18d8aa38f3b",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -101,15 +101,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.249,
+      "value": 0.262,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.238,
-        0.238,
-        0.249
+        0.235,
+        0.233,
+        0.262
       ]
     },
     "PC-6": {
@@ -258,10 +258,13 @@
   ],
   "unparsed_count": 5,
   "engine_support": {
-    "engine_supported_cards": 264,
+    "engine_supported_cards": 279,
     "of_total": 305,
     "supported_verbs": [
       "ADD_MANA",
+      "CAST",
+      "CHOOSE",
+      "CHOOSE_NAME",
       "CREATE_TOKEN",
       "DEAL_DAMAGE",
       "DESTROY",
@@ -277,9 +280,11 @@
       "LOSE_ABILITY",
       "LOSE_GAME",
       "LOSE_LIFE",
+      "MANA_POLICY",
       "MILL",
       "MODIFY_PT",
       "MOVE_ZONE",
+      "PAY",
       "PREVENT_EFFECT",
       "PUT_COUNTER",
       "REMOVE_COUNTER",
@@ -293,12 +298,12 @@
       "UNTAP"
     ],
     "flip_proof": {
-      "card": "Chandra, Flame's Catalyst",
-      "spell_ability_only": false,
+      "card": "Cancel",
+      "spell_ability_only": true,
       "default_engine_supported": true,
       "gated_engine_supported": false,
       "offending_verbs": [
-        "CAST"
+        "COUNTER_SPELL"
       ]
     }
   }

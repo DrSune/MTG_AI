@@ -71,6 +71,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
+    QX,
     ActivatedAbility,
     ActivationWindow,
     Atom,
@@ -88,12 +89,16 @@ from MTG_bot.core.ability_tree import (
     CostTap,
     CounterKind,
     FAnd,
+    Filter,
     Phase,
+    QBin,
     QConst,
     Quantity,
     QUnbounded,
     Selector,
     SelectorMode,
+    SpellAbility,
+    SpellKind,
     Verb,
     Zone,
     ZoneKind,
@@ -117,6 +122,123 @@ MANA_KEYS = ("W", "U", "B", "R", "G", "C")
 
 # The payment fold's canonical step order (deterministic journal sequence).
 PAYMENT_ORDER = ("mana", "tap", "sacrifice", "discard", "counter", "loyalty", "life")
+
+
+# ------------------------------------------------------------- mana segments
+
+
+@dataclass
+class ManaSegment:
+    """One ADD_MANA production in the 13b side-ledger: a colour key, an
+    amount, and the spend RESTRICTIONS carried as closed-grammar Filters
+    (``tags`` — Vodalian Arcanist's "Spend this mana only to cast instant
+    or sorcery spells" compiles to ``FOr(TYPE_EQ Instant, TYPE_EQ
+    Sorcery)``). EMPTY tags = ordinary mana: every totals-path computation
+    is exactly the 12a/12b arithmetic, which is what keeps the replay pins
+    byte-identical (risk-2 mitigation, doc /11)."""
+
+    color: str
+    amount: int
+    tags: tuple[Filter, ...] = ()  # spend-restriction Filters (R9-3 shape)
+
+
+class ManaLedger:
+    """The executor-side segment mirror of the frozen per-player mana pool.
+
+    WHY a mirror: ``PlayerState.mana_pool`` is a colour-keyed ``Dict[str,
+    int]`` totals map — it CANNOT express "this {C} came from Vodalian
+    Arcanist and may only buy instants". Redesigning the frozen pool would
+    churn every 12a/12b payment pin, so segments ride ALONGSIDE (ruling-1
+    executor state, folded into the replay fingerprint):
+
+    * ``add`` is called by the ADD_MANA handler next to the untouched pool
+      totals write (tags decided by the source's live THIS_MANA policy);
+    * :meth:`restricted_amounts` is the spend-validator's ONLY consult in
+      :func:`build_payment_plan` — tagged segments whose filters do not
+      match the payment's use (the spell being cast) are removed from the
+      usable totals, so a plan can never BE built on forbidden mana;
+    * :meth:`consume` settles the mirror after :func:`pay_costs` subtracts
+      the frozen totals, untagged-first (the mission-sanctioned canonical
+      order; the CR lets the payer choose, determinism pins the witness).
+
+    A pool written to directly (bare tests, non-ADD_MANA grants) is simply
+    UNTRACKED = unrestricted — documented mirror drift (the segment list
+    floors at empty; nothing crashes), honest because the corpus' mana all
+    arrives through ADD_MANA."""
+
+    def __init__(self) -> None:
+        self.segments: dict[Handle, list[ManaSegment]] = {}
+
+    def add(
+        self, player: Handle, color: str, amount: int, tags: tuple[Filter, ...] = ()
+    ) -> None:
+        if amount <= 0:
+            return
+        self.segments.setdefault(player, []).append(ManaSegment(color, amount, tags))
+
+    def has(self, player: Handle) -> bool:
+        return bool(self.segments.get(player))
+
+    @staticmethod
+    def _matches(seg: ManaSegment, use_ok) -> bool:
+        if not seg.tags:
+            return True
+        return use_ok is not None and all(use_ok(f) for f in seg.tags)
+
+    def restricted_amounts(
+        self,
+        player: Handle,
+        use_ok,  # Callable[[Filter], bool] | None — None = no use context
+    ) -> dict[str, int]:
+        """Amounts per colour key that the CURRENT payment may not touch:
+        tagged segments whose filters fail against the payment's use.
+        Empty dict (the ONLY pre-13b reality) leaves the plan arithmetic
+        byte-identical to the 12a/12b totals path."""
+        out: dict[str, int] = {}
+        for seg in self.segments.get(player, ()):
+            if seg.tags and not self._matches(seg, use_ok):
+                out[seg.color] = out.get(seg.color, 0) + seg.amount
+        return out
+
+    def consume(
+        self, player: Handle, mana: tuple[tuple[str, int], ...], use_ok
+    ) -> None:
+        """Mirror the :func:`pay_costs` subtraction: for each (key, amount)
+        draw untagged segments first, then filter-matching tagged ones;
+        non-matching tagged segments are NEVER touched (the plan could not
+        have used them, and a stale plan paying them must not silently
+        drain a restriction). Untracked pool mana floors the draw at the
+        available segments — mirror drift, documented, never a crash."""
+        segs = self.segments.get(player, [])
+        for key, amount in mana:
+            left = amount
+            # untagged first (canonical), then matching tagged, in order.
+            for pass_matches in (True, False):
+                for seg in segs:
+                    if left <= 0 or seg.color != key or seg.amount <= 0:
+                        continue
+                    tagged = bool(seg.tags)
+                    if tagged and (not pass_matches or not self._matches(seg, use_ok)):
+                        continue
+                    if not tagged and not pass_matches:
+                        continue
+                    take = min(seg.amount, left)
+                    seg.amount -= take
+                    left -= take
+        self.segments[player] = [s for s in segs if s.amount > 0]
+
+    def dump(self) -> tuple[tuple[object, ...], ...]:
+        """Canonical segment view for the fingerprint fold."""
+        return tuple(
+            (
+                str(player),
+                tuple(
+                    (s.color, s.amount, tuple(repr(t) for t in s.tags)) for s in segs
+                ),
+            )
+            for player, segs in sorted(self.segments.items(), key=lambda kv: str(kv[0]))
+            if segs
+        )
 
 
 @dataclass(frozen=True)
@@ -161,12 +283,14 @@ def ctx_for(
     source: Handle,
     controller: Handle,
     bindings: dict[str, Binding] | None = None,
+    x_value: int | None = None,
 ) -> ExecCtx:
     """An :class:`ExecCtx` sharing the executor's world, ledger, seeded rng
     factory and token counters — the activation context that closes the 12a
     OWNER-referent gap: OWNER reads resolve to the source's zone controller
     (:func:`enumerate_candidates`), which is exactly what an activation
-    context supplies (/06 §12c close-out list)."""
+    context supplies (/06 §12c close-out list). 13b: ``x_value`` carries
+    the cast's declared X (QX resolves; ``None`` keeps the 12c flag)."""
     return ExecCtx(
         world=executor.world,
         ledger=executor.ledger,
@@ -183,6 +307,7 @@ def ctx_for(
         layers=executor.layers,
         replacements=executor.replacements,
         executor=executor,
+        x_value=x_value,
     )
 
 
@@ -306,8 +431,30 @@ def _required_count(count: Quantity, ctx: ExecCtx) -> int:
 # ---------------------------------------------------------------- payment
 
 
+def _mana_use_ok(executor: Executor, ctx: ExecCtx, mana_use: Handle | None):
+    """The 13b spend-validator's filter judge: does a restriction Filter
+    accept this payment's use? The use subject is the SPELL being paid for
+    (Vodalian's compiled filter is a CastSpellEvent-shape ``TYPE_EQ``
+    reading over the spell card — the grammar R9-3 design). No use context
+    (an activation cost, a payment outside a cast) can demonstrate the
+    filter's subject, so a tagged segment is simply NOT available — the
+    conservative, rule-honest reading ("Spend this mana only to cast
+    instant or sorcery spells" cannot be demonstrated by an activation)."""
+    if mana_use is None:
+        return None
+
+    def use_ok(filter_: Filter) -> bool:
+        return eval_filter(filter_, mana_use, ctx)
+
+    return use_ok
+
+
 def build_payment_plan(
-    world: GameWorld, ctx: ExecCtx, cost: Cost
+    world: GameWorld,
+    ctx: ExecCtx,
+    cost: Cost,
+    *,
+    mana_use: Handle | None = None,
 ) -> tuple[PaymentPlan | None, str | None]:
     """Fold one :class:`Cost` against the world into the canonical
     :class:`PaymentPlan`, or a machine-readable reason string.
@@ -317,7 +464,18 @@ def build_payment_plan(
     kinds the executor must not guess (``CostLoyalty``: no loyalty field in
     the frozen state; ``QX`` amounts: the Slate's ``X_VALUE`` NUM field is
     a declaration the caller must supply — ``quantity.resolve`` flags it).
-    """
+
+    13b mana restrictions (only-when-tagged, risk-2): the plan arithmetic
+    runs on the RESTRICTION-ADJUSTED pool — an executor whose ManaLedger
+    has tagged segments removes from the usable totals every tagged amount
+    whose filter fails against ``mana_use`` (the spell being paid for;
+    :func:`_mana_use_ok`). With no segments/tags in play — every 12a/12b
+    corpus payment — the adjusted pool IS the pool and the arithmetic is
+    byte-identical. The OTHER policy axis, the ALL_YOURS permission
+    (Chromatic Orrery's "spend mana as though it were mana of any color"),
+    makes a coloured demand drawable from any colour key (own key first,
+    then :data:`MANA_KEYS` order — the canonical witness; the CR lets the
+    payer choose freely)."""
     tap: list[Handle] = []
     sacrifice: list[Handle] = []
     discard: list[Handle] = []
@@ -328,14 +486,53 @@ def build_payment_plan(
     spent: dict[str, int] = {}
     generic_need = 0
     hybrid_demands: list[tuple[tuple[str, str], int]] = []
+    all_yours = False
+    ex = ctx.executor
+    if ex is not None:
+        # The Orrery permission is a LIVE-LAYER query (independent of the
+        # segment mirror — a direct pool write has no segments but the
+        # permission still governs). The restriction shortfall is the
+        # mirror's alone: with no tagged segments the adjusted pool IS the
+        # frozen pool, byte-identical to the 12a/12b arithmetic.
+        all_yours = ex.mana_permission(ctx.controller)
+        if ex.mana_ledger.has(ctx.controller):
+            shortfall = ex.mana_ledger.restricted_amounts(
+                ctx.controller, _mana_use_ok(ex, ctx, mana_use)
+            )
+            for key, blocked in shortfall.items():
+                left = remaining.get(key, 0) - blocked
+                if left > 0:
+                    remaining[key] = left
+                else:
+                    remaining.pop(key, None)
 
     for part in cost.parts:
         if isinstance(part, CostManaColor):
             need = resolve(part.amount, ctx)
             have = remaining.get(part.color, 0) - spent.get(part.color, 0)
-            if have < need:
+            if have >= need:
+                spent[part.color] = spent.get(part.color, 0) + need
+            elif all_yours:
+                # Orrery permission: the shortfall draws from any other
+                # colour key, canonical MANA_KEYS order (own key already
+                # exhausted above; negative `have` contributes nothing).
+                short = need - max(have, 0)
+                if have > 0:
+                    spent[part.color] = spent.get(part.color, 0) + have
+                for key in MANA_KEYS:
+                    if short <= 0:
+                        break
+                    if key == part.color:
+                        continue
+                    avail = remaining.get(key, 0) - spent.get(key, 0)
+                    if avail > 0:
+                        take = min(avail, short)
+                        spent[key] = spent.get(key, 0) + take
+                        short -= take
+                if short > 0:
+                    return None, f"cost:mana:{part.color}:{need - have}<any"
+            else:
                 return None, f"cost:mana:{part.color}:{have}<{need}"
-            spent[part.color] = spent.get(part.color, 0) + need
         elif isinstance(part, CostManaGeneric):
             generic_need += resolve(part.amount, ctx)
         elif isinstance(part, CostManaHybrid):
@@ -399,6 +596,22 @@ def build_payment_plan(
             # at binding (binding.py). The source may be absent (a test
             # calling build_payment_plan against a raw ctx), so the printed
             # identity is the fallback.
+            # 13b QUIRK FIX (13a's pinned asymmetry): a loyalty cost is
+            # legal ONLY on a card with a loyalty identity — CR 606.1b
+            # "A loyalty ability can't be activated unless the permanent
+            # has loyalty" cuts BOTH signs, and the +1 side previously read
+            # "always payable" on a non-planeswalker (a crafted [−2]/[+1]
+            # cost on a plain creature now returns a reason for either
+            # sign; counters-seeded loyalty counts as a loyalty identity —
+            # a token that gained loyalty counters is the edge the CR
+            # actually allows).
+            src = world.cards.get(ctx.source)
+            if (
+                src is not None
+                and "LOYALTY" not in src.counters
+                and src.identity.loyalty is None
+            ):
+                return None, "cost:loyalty:not_planeswalker"
             delta = (
                 part.delta if isinstance(part.delta, int) else resolve(part.delta, ctx)
             )
@@ -542,6 +755,151 @@ def ability_playable(
     return None
 
 
+# ------------------------------------------------------- spell casting gate
+
+
+def spell_record(executor: Executor, handle: Handle):
+    """The compiled record for a card: the per-handle bridge when one was
+    attached (battlefield lifecycle), else the oracle-id registry — a hand
+    card is never ATTACHED (attachment is the battlefield lifecycle) yet
+    the pool's registry knows its IR, and the oracle bridge is the same
+    identity-checked mapping the binder itself uses (``records``). None
+    when the pool never registered the card (a token with no compiled
+    spec, a card from another set)."""
+    binder = executor.binder
+    record = binder.handle_record.get(handle)
+    if record is not None:
+        return record
+    state = executor.world.cards.get(handle)
+    if state is None:
+        return None
+    return binder.records.get(state.identity.oracle_id)
+
+
+def spell_cost(record, additional: tuple[Cost, ...] = ()) -> Cost:
+    """The spell's total printed cost: CardRecord.mana_cost (the frozen
+    grammar keeps the printed cost on the record, NOT on SpellAbility)
+    plus the "as an additional cost to cast" parts (T3 r2) — one Cost the
+    plan fold can walk in canonical part order."""
+    parts: list = []
+    if record.mana_cost is not None:
+        parts.extend(record.mana_cost.parts)
+    for cost in additional:
+        parts.extend(cost.parts)
+    return Cost(parts=tuple(parts))
+
+
+def _cost_has_x(cost: Cost) -> bool:
+    for part in cost.parts:
+        if isinstance(part, (CostManaColor, CostManaGeneric, CostManaHybrid)):
+            amount = part.amount
+            if isinstance(amount, QX):
+                return True
+            if isinstance(amount, QBin) and _qty_has_x(amount):
+                return True
+    return False
+
+
+def _qty_has_x(quantity: Quantity) -> bool:
+    if isinstance(quantity, QX):
+        return True
+    if isinstance(quantity, QBin):
+        return _qty_has_x(quantity.left) or _qty_has_x(quantity.right)
+    return False
+
+
+# SpellAbility windows: the frozen grammar gives SpellAbility NO timing
+# slot (its own docstring: "what casting the card does" — the timing is
+# the CARD CLASS, SpellKind), so the window folds from the kind:
+#   INSTANT     — any time its controller would have priority. The
+#                 executor has no priority state (API boundary, 12c
+#                 ruling): instants are ungated — INCLUDING on the
+#                 opponent's turn, which the test suite pins as the
+#                 documented permissive reading (an instant in hand is
+#                 always an option; a future phase/priority ledger may
+#                 narrow it, the cast() surface will not change).
+#   everything else (SORCERY/CREATURE/ENCHANTMENT/PLANESWALKER/LAND) —
+#                 the sorcery window: the caster's own turn, the first
+#                 main phase (13a's phase clock; None = not-yet-stamped
+#                 skeleton convention), and an EMPTY stack (v1: the
+#                 executor's own LIFO frames — nothing else can be on it
+#                 mid-op, but the parked-frame API keeps the gate real).
+_SORCERY_WINDOW_KINDS = frozenset(
+    {
+        SpellKind.SORCERY,
+        SpellKind.CREATURE,
+        SpellKind.ENCHANTMENT,
+        SpellKind.PLANESWALKER,
+        SpellKind.LAND,
+    }
+)
+
+
+def spell_window_reason(
+    executor: Executor, seat: Handle, kind: SpellKind
+) -> str | None:
+    """Why a spell of ``kind`` cannot be cast by ``seat`` RIGHT NOW (None
+    = the window holds). See the window table above."""
+    if kind not in _SORCERY_WINDOW_KINDS:
+        return None
+    world = executor.world
+    if world.active_player != seat:
+        return "window:not_your_turn"
+    if executor.phase not in (None, "FIRST_MAIN"):
+        return "window:phase"
+    if executor.stack.frames:
+        return "window:stack_nonempty"
+    return None
+
+
+def spell_castable(
+    executor: Executor,
+    seat: Handle,
+    handle: Handle,
+    *,
+    x: int | None = None,
+) -> tuple[str | None, SpellAbility | None, object, PaymentPlan | None]:
+    """The CAST legality fold — re-checkable from the API at any time
+    (§8.3: same answer as the one ``legal_casts`` gave, until the world
+    changes). Returns ``(reason, node, record, plan)``: exactly one of
+    ``reason`` / (node+plan) is set.
+
+    Gates, in CR order: the card sits in the caster's HAND (601.1 "cast
+    it from where it is" — v1 hand-only; the effect-side cast_from bypass
+    covers library/graveyard casts); its record carries a SpellAbility
+    (lands and unregistered cards have none); the kind's window holds;
+    then the 601.2f fold — printed cost + additional costs against the
+    pool, with ``x`` bound for QX (a declared-too-big X shrinks the pool
+    fold into an ordinary ``cost:mana`` SHORTAGE — an illegal-cast reason,
+    never a raise: X is enumerated at 0-floor by ``legal_casts``) and the
+    spell handle as the mana-USE subject (THIS_MANA restrictions read
+    their filter over the spell being cast)."""
+    world = executor.world
+    if handle not in world.cards:
+        return f"cast:unknown_card:{handle}", None, None, None
+    if world.zone_of(handle) != world.players[seat].zone("hand"):
+        return f"cast:not_in_hand:{handle}", None, None, None
+    record = spell_record(executor, handle)
+    if record is None:
+        return f"cast:no_record:{handle}", None, None, None
+    node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None)
+    if node is None:
+        return f"cast:not_a_spell:{handle}", None, None, None
+    window = spell_window_reason(executor, seat, node.kind)
+    if window is not None:
+        return window, None, None, None
+    cost = spell_cost(record, node.additional_costs)
+    if _cost_has_x(cost) and x is None:
+        # The declaration is the caller's; X=0 is legal (CR 107.1) — the
+        # SURFACE enumerates at 0, an explicit x reaches the fold.
+        x = 0
+    ctx = ctx_for(executor, source=handle, controller=seat, x_value=x)
+    plan, reason = build_payment_plan(world, ctx, cost, mana_use=handle)
+    if plan is None:
+        return reason, None, None, None
+    return None, node, record, plan
+
+
 # -------------------------------------------------------------- payment
 
 
@@ -600,6 +958,7 @@ def pay_costs(
     source: Handle,
     controller: Handle,
     trigger_decisions: Sequence[str] = (),
+    mana_use: Handle | None = None,
 ) -> None:
     """Execute a :class:`PaymentPlan` through the 12a journalled verbs in
     :data:`PAYMENT_ORDER` — taps, sacrifices, discards and counters fire
@@ -630,6 +989,17 @@ def pay_costs(
         executor.events.append(
             (len(executor.events), "PAY_MANA", str(controller), plan.mana)
         )
+        if executor.mana_ledger.has(controller):
+            # 13b: mirror the subtraction onto the segment side-ledger —
+            # untagged first, then filter-matching tagged segments; a
+            # restricted segment is NEVER touched unless the payment can
+            # demonstrate its use (see ManaLedger.consume). The totals
+            # subtraction above stays the frozen path; only the mirror
+            # moves here, so a tag-free world pays exactly as in 12a/12b.
+            ctx = ctx_for(executor, source=source, controller=controller)
+            executor.mana_ledger.consume(
+                controller, plan.mana, _mana_use_ok(executor, ctx, mana_use)
+            )
     if plan.tap:
         executor.apply_effect(
             _binding_atom(Verb.TAP, "target", plan.tap),

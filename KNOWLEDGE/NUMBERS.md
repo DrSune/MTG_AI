@@ -13,6 +13,57 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.262 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **279/305** (0.9148) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 35 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-09-29 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.272 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **279/305** (0.9148) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 35 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-09-29 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.241 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **279/305** (0.9148) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 35 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-09-29 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.249 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
@@ -1267,3 +1318,8 @@ New: `executor/legality.py` (ability_playable gates CR 602.3/C20/condition/CR 11
 ### Round-12d durations + layers + replacements (2026-09-29, uncommitted; see KNOWLEDGE/2026-09-29/09-round12d-durations-layers.md)
 Core suite **1876 passed / 0 failed** = 1837 (12c HEAD 3c443f7) + **39 new** (22 durations + 16 layers + 1 Choose-in-verbs pin) — cmd: `.venv/bin/python -m pytest MTG_bot/core -q`.
 `SUPPORTED_VERBS_V1` 21 → **24** (GRANT_ABILITY/LOSE_ABILITY/PREVENT_EFFECT live; DRAW stays out). pyright 0 errors scope (executor pkg + 3 test files, == HEAD 0); ruff repo 815 → **776** (all touched files ≤ HEAD; durations_min & verbs → 0). Compiled-card pins: Frost Breath (b5b+b5c Seq(TAP,PREVENT)) freeze = exactly ONE untap tick; Nine Lives (b5b+b2a) prevent+counter chain, 9th-counter exile trigger, detach ends protection.
+
+### Round-13b spell stack + cast feed (2026-09-29, uncommitted; see KNOWLEDGE/2026-09-29/12-round13b-spell-stack.md)
+Core suite **1948 passed / 0 failed** = 1906 (measured mid-session: all 13b executor edits, before the new test file) + **42 new** (`test_executor_stack.py`) — cmd: `.venv/bin/python -m pytest MTG_bot/core -q`.
+PC-7 engine_supported **264 → 279/305** (SUPPORTED_VERBS_V2 30 → **35**: +PAY/CAST/CHOOSE/CHOOSE_NAME/MANA_POLICY) — cmd: `.venv/bin/python tools/measure_grammar.py --with-engine-flags`. Flip set EXACTLY +15 (probe: gated `compile_pool` at 35 vs 30 verbs): CAST×6 (Chandra Flame's Catalyst, Chandra Heart of Fire, Conspicuous Snoop, Furious Rise, Idol of Endurance, Radha Heart of Keld) + PAY×3 (Tolarian Kraken, Liliana's Devotee, Ghostly Pilferer) + MANA_POLICY×2 (Chromatic Orrery, Vodalian Arcanist) + CHOOSE×2 (Duress, Kitesail Freebooter) + CHOOSE_NAME×2 (Necromentia, Runed Halo). Cancel/Lofty Denial/Miscast/Rewind (COUNTER_SPELL raise STAYS) + Demonic Embrace (CAST+GRANT_TYPE) verified still unsupported.
+Stack completeness: world fingerprint iterates PLAYER_ZONES (skips ZONE_STACK, state.py frozen) → `Executor.state_fingerprint` folds stack dump + land ledger + extra_land_plays + mana-segment dump + name_choices (pinned: same world, frame x=3 vs x=4 → different fingerprints). Loyalty CR 606.1b quirk fixed symmetric (both signs → `cost:loyalty:not_planeswalker`; 4 test pins amended with AMENDED notes). pyright 0 errors; ruff delta 0 (only pre-existing quantity.py 18 / selectors.py 12 remain).

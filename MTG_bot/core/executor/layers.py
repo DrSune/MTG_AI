@@ -61,7 +61,10 @@ from MTG_bot.core.ability_tree import (
     DurationUntilNextTurn,
     DurationWhileCondition,
     FAnd,
+    FAtom,
     Filter,
+    FNot,
+    FOr,
     Keyword,
     KeywordAbility,
     Selector,
@@ -257,7 +260,17 @@ class LayerRegistry:
 
     def _new_static(self, handle: Handle, static: StaticAbility) -> LayerRecord:
         """Parse a StaticAbility node: a single Atom or a Seq of Atoms over
-        the layer-capable verbs; anything else is flagged, not guessed."""
+        the layer-capable verbs; anything else is flagged, not guessed.
+
+        13b (R9-3 consumer): a MANA_POLICY-bearing static takes the
+        ``mana_policy`` branch — the corpus compiles BOTH spend-policy
+        shapes this way (Vodalian Arcanist's THIS_MANA, Chromatic Orrery's
+        ALL_YOURS), and neither carries the ``target`` selector the
+        PT/grant payloads require (their role table is scope/filter), so
+        the generic path would die on its own assert. A mana-policy layer
+        is a PERMISSION: no selector, no materialization, and its liveness
+        is exactly the anchor permanent's (``_layer_live`` — source on the
+        battlefield, condition holding)."""
         steps = static.effect
         atoms: list[Atom] = []
         if isinstance(steps, Atom):
@@ -275,6 +288,19 @@ class LayerRegistry:
                 "executor: StaticAbility payload "
                 f"{type(steps).__name__} is not layer-parseable (12e)"
             )
+        if any(atom.verb == Verb.MANA_POLICY for atom in atoms):
+            if any(atom.verb != Verb.MANA_POLICY for atom in atoms):
+                raise NotImplementedError(
+                    "executor: StaticAbility mixing MANA_POLICY with other "
+                    "payload verbs is not parseable (13b scope)"
+                )
+            return self._new(
+                "mana_policy",
+                handle,
+                self.world.controller_of(handle),
+                tuple(atoms),
+                condition=static.condition,
+            )
         for atom in atoms:
             if atom.verb not in _LAYER_PAYLOAD_VERBS:
                 raise NotImplementedError(
@@ -291,6 +317,58 @@ class LayerRegistry:
             selector=selector,
             condition=static.condition,
         )
+
+    def register_mana_policy(
+        self,
+        source: Handle,
+        controller: Handle,
+        atom: Atom,
+        duration: Duration | None = None,
+    ) -> LayerRecord:
+        """13b: the RUNTIME-dispatched MANA_POLICY atom (the handler path —
+        an atom executed as an effect, e.g. a future inline mana-ability
+        sequence). It joins the SAME record list as the static-attached
+        policies, so recompute, EoT/UNTIL_ expiry sweeps and detach all
+        treat it identically (a duration-scoped permission dies like any
+        other layer — corpus: Orrery/Vodalian arrive via attach, not
+        dispatch)."""
+        return self._new("mana_policy", source, controller, (atom,), duration=duration)
+
+    # ------------------------------------------------------- mana-policy view
+
+    def this_mana_filter(self, source: Handle) -> Filter | None:
+        """The live THIS_MANA restriction governing ``source``'s mana (the
+        permanent's own compiled Vodalian policy, or a runtime-dispatched
+        one anchored to it), else None. First-live-record order (a second
+        policy on the same permanent intersects the first in real MTG; the
+        corpus has exactly one)."""
+        for layer in sorted(self.records, key=lambda l: l.seq):
+            if layer.kind != "mana_policy" or layer.status != "live":
+                continue
+            if layer.source != source:
+                continue
+            for atom in layer.atoms:
+                if atom.args.get("scope") == "THIS_MANA":
+                    value = atom.args.get("filter")
+                    if value is None:
+                        return None
+                    assert isinstance(
+                        value, (FAnd, FOr, FNot, FAtom)
+                    )  # role table: Filter
+                    return value
+        return None
+
+    def all_yours_live(self, controller: Handle) -> bool:
+        """Is an ALL_YOURS permission (Orrery's "spend mana as though it
+        were mana of any color") currently live for ``controller``?"""
+        for layer in self.records:
+            if layer.kind != "mana_policy" or layer.status != "live":
+                continue
+            if layer.controller != controller:
+                continue
+            if any(atom.args.get("scope") == "ALL_YOURS" for atom in layer.atoms):
+                return True
+        return False
 
     # -------------------------------------------------------------- recompute
 

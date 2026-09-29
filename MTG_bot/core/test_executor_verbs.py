@@ -730,7 +730,39 @@ class TestQuantityAndFilters(ExecutorCase):
         self.assertEqual(self.world.zone_of(self.beta).kind, ZONE_EXILE)
         self.assertEqual(self.world.zone_of(self.gamma).kind, ZONE_EXILE)
 
-    def test_unsupported_pred_raises(self):
+    def test_color_preds_evaluate_now(self):
+        # AMENDED (round 13b): COLOR_HAS/COLOR_IN left the unsupported-pred
+        # list — the cast-trigger feed (Quirion Dryad's compiled "coloured
+        # spell" filter) needs them, and they are plain identity reads.
+        # COLOR_HAS = membership; COLOR_IN = NON-EMPTY SUBSET (grammar
+        # reading). NAME_CHOSEN is also live (executor_stack suite), and
+        # genuinely unsupported preds still raise (test below stays).
+        white = self.world.add_card(
+            CardIdentity(
+                oracle_id="0f000001-1111-2222-3333-444444444444",
+                name="White",
+                type_line="Creature",
+                power="1",
+                toughness="1",
+                cmc=1,
+                colors=("W",),
+            ),
+            self.p0,
+            ZONE_BATTLEFIELD,
+        )
+        red = self.world.add_card(
+            CardIdentity(
+                oracle_id="0f000002-1111-2222-3333-444444444444",
+                name="Red",
+                type_line="Creature",
+                power="1",
+                toughness="1",
+                cmc=1,
+                colors=("R",),
+            ),
+            self.p0,
+            ZONE_BATTLEFIELD,
+        )
         color_has = atom(
             Verb.DESTROY,
             target=Selector(
@@ -740,8 +772,37 @@ class TestQuantityAndFilters(ExecutorCase):
                 BF_ANY,
             ),
         )
+        self.ex.execute(color_has, source=self.alpha, controller=self.p0)
+        self.assertEqual(self.world.zone_of(white).kind, ZONE_GRAVEYARD)
+        self.assertEqual(self.world.zone_of(red).kind, ZONE_BATTLEFIELD)
+        # COLOR_IN: subset reading — {"R"} is inside (R, G), white is not.
+        color_in = atom(
+            Verb.DESTROY,
+            target=Selector(
+                QConst(1),
+                SelectorMode.ALL,
+                FAtom(FAtomPred.COLOR_IN, colors=("R", "G")),
+                BF_ANY,
+            ),
+        )
+        self.ex.execute(color_in, source=self.alpha, controller=self.p0)
+        self.assertEqual(self.world.zone_of(red).kind, ZONE_GRAVEYARD)
+
+    def test_unsupported_pred_still_raises(self):
+        # the flag side stays: a pred the executor truly cannot read still
+        # raises at dispatch (NAME_CHOSEN without a CHOOSE_NAME record is
+        # the same convention, pinned in test_executor_stack.py).
+        unreachable = atom(
+            Verb.DESTROY,
+            target=Selector(
+                QConst(1),
+                SelectorMode.ALL,
+                FAtom(FAtomPred.IS_ATTACKING),
+                BF_ANY,
+            ),
+        )
         with self.assertRaises(NotImplementedError):
-            self.ex.execute(color_has, source=self.alpha, controller=self.p0)
+            self.ex.execute(unreachable, source=self.alpha, controller=self.p0)
 
     def test_qx_raises(self):
         with self.assertRaises(NotImplementedError):
@@ -766,8 +827,14 @@ class TestDispatchRaises(ExecutorCase):
         # behaviour is the 13b golden work). SUPPORTED_VERBS_V1 still
         # pins them OUT: V1 is the frozen round-12 contract, V2 the live
         # derived set.
+        # AMENDED (round 13b): CAST left the raise list — it is the spell
+        # stack's effect-side handler (_v_cast -> stack.cast_card, covered
+        # in test_executor_stack.py); PAY/CHOOSE/CHOOSE_NAME/MANA_POLICY
+        # joined the same round. COUNTER_SPELL STAYS: v1 has no
+        # interaction window — a counter-spell can never legally resolve
+        # (the four corpus cards keep their loud dispatch raise, pinned
+        # by test_counter_spell_still_raises in test_executor_stack.py).
         probes = {
-            Verb.CAST: {"source": target_sel()},
             Verb.FIGHT: {"target": target_sel()},
             Verb.PHASE_OUT: {"target": target_sel()},
             Verb.COUNTER_SPELL: {"target": target_sel()},

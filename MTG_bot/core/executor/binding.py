@@ -79,6 +79,7 @@ from MTG_bot.core.compiler.compiler import PoolCompile
 from MTG_bot.core.executor.durations_min import duration_tag
 from MTG_bot.core.executor.events import (
     KIND_CARD_DRAWN,
+    KIND_CAST,
     KIND_COUNTER_PLACED,
     KIND_CREATURE_DIES,
     KIND_DAMAGE,
@@ -100,10 +101,13 @@ if TYPE_CHECKING:  # pragma: no cover - typing only, dodges the import cycle
 # instances (nested chains included). Exceeding it raises — we never spin.
 MAX_TRIGGER_FIRES = 200
 
-# EventSpec kinds with no emitter before the combat/cast/target phases.
-# Binding one RAISES — flag, don't degrade.
+# EventSpec kinds with no emitter before the combat/target phases.
+# Binding one RAISES — flag, don't degrade. 13b: CastSpellEvent LEFT this
+# table — the spell stack ships the CAST feed (journal.emit_cast at
+# 601.2h) and :meth:`TriggerBinder._match_cast` subscribes the node
+# (controller / ordinal / from_zone / from_zone_not / filter — the full
+# corpus surface, seven cards, tested in test_executor_stack.py).
 _UNSUPPORTED_EVENTS: dict[type, str] = {
-    CastSpellEvent: "outside 12b scope (casting is stack work, later phase)",
     DeclareAttackersEvent: "later phase (combat)",
     DeclareBlockersEvent: "later phase (combat)",
     CombatDamageEvent: "later phase (combat)",
@@ -406,7 +410,61 @@ class TriggerBinder:
             assert event.subject is not None  # the gaining player
             ctx = self._match_ctx(source, controller, event)
             return controller_matches(node.controller, event.subject, ctx)
+        if kind == KIND_CAST and isinstance(node, CastSpellEvent):
+            return self._match_cast(node, event, source, controller)
         return False  # no subscriber shape for this journalled kind
+
+    def _match_cast(
+        self, node: CastSpellEvent, event: GameEvent, source: Handle, controller: Handle
+    ) -> bool:
+        """13b: the CAST feed — CR 603.2's "whenever you cast" half. The
+        journalled tuple (``GameEvent.cast``) carries (caster, per-turn
+        ordinal, spell kind, from-zone, X): ``controller`` scopes whose
+        cast (OPPONENT = "an opponent casts" — Mangara, Ghostly Pilferer),
+        ``ordinal`` is the Nth cast by THAT caster this turn (journal-
+        counted, reset at begin_turn — "whenever you cast your second
+        spell", Double Vision's first-cast ordinal 1), and the zone pair
+        is mutually exclusive in the grammar (R4-3): ``from_zone`` must
+        equal the cast's source zone, ``from_zone_not`` EXCLUDES it
+        (Ghostly Pilferer: "from anywhere other than their hand" — a zone
+        whose controller ref scopes the caster, not the zone's owner: the
+        cast came from the caster's zones). The filter reads the SPELL
+        card (subject of the CAST row) — TYPE_EQ/SUBTYPE_EQ/COLOR_IN over
+        it, which is exactly Quirion Dryad's compiled "colored spell"
+        filter (COLOR_IN WUBR = non-empty subset, quantity.py 13b)."""
+        caster, ordinal, _kind, from_zone, _x = event.cast
+        ctx = self._match_ctx(source, controller, event)
+        if node.controller is not None and not controller_matches(
+            node.controller, caster, ctx
+        ):
+            return False
+        if node.ordinal is not None and node.ordinal != ordinal:
+            return False
+        if node.from_zone is not None and not self._cast_zone_matches(
+            node.from_zone, caster, from_zone, ctx
+        ):
+            return False
+        if node.from_zone_not is not None and self._cast_zone_matches(
+            node.from_zone_not, caster, from_zone, ctx
+        ):
+            return False
+        assert event.subject is not None  # the CAST row names the spell card
+        return eval_filter(node.filter, event.subject, ctx)
+
+    def _cast_zone_matches(
+        self, zone_ir: Zone, caster: Handle, from_zone: str | None, ctx: ExecCtx
+    ) -> bool:
+        """One CastSpellEvent zone endpoint vs the journalled source zone.
+        The zone KIND must equal the cast's origin zone, and the zone's
+        controller ref scopes the CASTER (grammar reading: "from your
+        graveyard" = the caster's graveyard — unlike ZoneChangeEvent,
+        whose endpoint scopes the zone's owner)."""
+        want = ZONE_KIND_TO_STATE.get(zone_ir.kind)
+        if want is None or from_zone is None or want != from_zone:
+            return False
+        if zone_ir.controller is ControllerRef.ANY:
+            return True
+        return controller_matches(zone_ir.controller, caster, ctx)
 
     def _match_ctx(
         self, source: Handle, controller: Handle, event: GameEvent

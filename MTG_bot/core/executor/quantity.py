@@ -100,6 +100,11 @@ class ExecCtx:
     layers: LayerRegistry | None = None  # executor.layers
     replacements: ReplacementRegistry | None = None  # executor.replacements
     executor: Executor | None = None  # nested replacement effects
+    # 13b: the cast's declared X (CR 601.2f — chosen with the total cost).
+    # None means UNDECLARED: resolving a QX raises exactly as before (12c's
+    # unbound flag), so every pre-13b path is byte-unchanged; cast() binds
+    # it from its x parameter, effect-side CASTs default it to 0.
+    x_value: int | None = None
     # 12d: damage replacements consume the event and queue their ACTION;
     # the action runs AFTER the consuming atom's journal boundary (one diff
     # per mutation — no double-emitted events), by the executor's run_atom
@@ -186,7 +191,14 @@ def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
     if isinstance(quantity, QProp):
         return _resolve_prop(quantity, ctx)
     if isinstance(quantity, QX):
-        raise NotImplementedError("executor: QX not implemented (12c cost context)")
+        # 13b: the X binding — declared by cast(x=...) via ExecCtx.x_value
+        # (CR 601.2f). Undeclared X stays the 12c flag, never a guess.
+        if ctx.x_value is None:
+            raise NotImplementedError(
+                "executor: QX has no declared X (cast(x=...) binds it; "
+                "12c cost-context flag)"
+            )
+        return ctx.x_value
     if isinstance(quantity, QUnbounded):
         raise NotImplementedError(
             "executor: QUnbounded not resolvable to a number (12c choice surface)"
@@ -369,6 +381,34 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
     if pred is FAtomPred.NAME_EQ:
         assert atom.string_value is not None
         return world.cards[handle].identity.name == atom.string_value
+    if pred in (FAtomPred.COLOR_IN, FAtomPred.COLOR_HAS):
+        # 13b (the cast-trigger feed reads these over SPELL cards): COLOR_IN
+        # is the grammar's SUBSET reading ("colours are a non-empty subset
+        # of the given set" — Quirion Dryad's compiled blue), COLOR_HAS the
+        # single-colour membership ("hexproof from black"). Identity data —
+        # works for a card in any zone, incl. the stack.
+        if handle.namespace != "card":
+            return False
+        card_colors = set(world.cards[handle].identity.colors)
+        if pred is FAtomPred.COLOR_HAS:
+            assert atom.color is not None
+            return atom.color in card_colors
+        assert atom.colors  # FAtom validation: COLOR_IN requires non-empty
+        return bool(card_colors) and card_colors <= set(atom.colors)
+    if pred is FAtomPred.NAME_CHOSEN:
+        # 13b (Runed Halo): the object's name is the one the SOURCE's
+        # CHOOSE_NAME atom recorded (grammar round 7's write/read pair).
+        # No record is an UNANSWERED question — flagged, never "False",
+        # the FLIP_WON convention.
+        ex = ctx.executor
+        if ex is None or ctx.source not in ex.name_choices:
+            raise NotImplementedError(
+                "executor: NAME_CHOSEN needs a CHOOSE_NAME record for the "
+                f"source {ctx.source} (no name chosen yet)"
+            )
+        if handle.namespace != "card":
+            return False
+        return world.cards[handle].identity.name == ex.name_choices[ctx.source]
     if pred is FAtomPred.POWER_LE or pred is FAtomPred.PT_LE:
         assert atom.count is not None
         threshold = resolve(atom.count, ctx)

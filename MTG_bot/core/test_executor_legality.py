@@ -259,19 +259,27 @@ class TestLifeCost(LegalityCase):
         assert plan is not None
         self.assertEqual((plan.life, reason), (0, None))
 
-    def test_loyalty_cost_is_payable(self):
-        # AMENDED 2026-09-29 (round 13a): CostLoyalty left the clean-flag
-        # list. The ledger is the source's "LOYALTY" counter (printed
-        # CardIdentity.loyalty as fallback), so a loyalty cost is now a
-        # CR 606.3 resource check — and Alpha carries NO loyalty field, so
-        # its loyalty is 0: a -2 activation is short, a +1 is always
-        # payable (gaining loyalty has no upper bound, CR 606.3b).
+    def test_loyalty_cost_requires_loyalty_identity(self):
+        # AMENDED (round 13b, quirk fix): 13a pinned "+1 on a non-PW is
+        # payable" — that asymmetry was wrong. CR 606.1b ("a loyalty
+        # ability can't be activated unless the permanent has loyalty")
+        # gates the SOURCE, not the sign: Alpha has no printed loyalty and
+        # no LOYALTY counters, so EITHER sign of a loyalty cost now
+        # returns the same reason. A seeded LOYALTY counter (or a printed
+        # CardIdentity.loyalty) restores the ordinary resource check —
+        # that's the token-with-loyalty edge the CR really allows.
         ctx = ctx_for(self.ex, source=self.alpha, controller=self.p0)
         plan, reason = build_payment_plan(self.world, ctx, cost(CostLoyalty(-2)))
-        self.assertEqual((plan, reason), (None, "cost:loyalty:0<2"))
+        self.assertEqual((plan, reason), (None, "cost:loyalty:not_planeswalker"))
         plan, reason = build_payment_plan(self.world, ctx, cost(CostLoyalty(1)))
+        self.assertEqual((plan, reason), (None, "cost:loyalty:not_planeswalker"))
+        # the edge: loyalty counters present -> ordinary CR 606.3 fold
+        self.world.cards[self.alpha].counters["LOYALTY"] = 3
+        plan, reason = build_payment_plan(self.world, ctx, cost(CostLoyalty(-2)))
         assert plan is not None
-        self.assertEqual((plan.loyalty, reason), (1, None))
+        self.assertEqual((plan.loyalty, reason), (-2, None))
+        plan, reason = build_payment_plan(self.world, ctx, cost(CostLoyalty(-5)))
+        self.assertEqual((plan, reason), (None, "cost:loyalty:3<5"))
 
 
 class TestSelectorCosts(LegalityCase):

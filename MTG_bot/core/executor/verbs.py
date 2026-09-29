@@ -27,6 +27,7 @@ from collections.abc import Callable
 from MTG_bot.core.ability_tree import (
     Ability,
     Atom,
+    Cost,
     CounterKind,
     Duration,
     DurationUntilLeaves,
@@ -45,6 +46,7 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
 )
 from MTG_bot.core.executor.durations_min import duration_tag
+from MTG_bot.core.executor.events import KIND_GAME_LOST
 from MTG_bot.core.executor.quantity import (
     ExecCtx,
     eval_filter,
@@ -498,6 +500,20 @@ def _v_add_mana(ctx: ExecCtx, atom: Atom) -> None:
     pool = ctx.world.players[player].mana_pool
     pool[color] = pool.get(color, 0) + n
     ctx.events.append((len(ctx.events), "ADD_MANA", str(player), color, n))
+    if ctx.executor is not None:
+        # 13b segment mirror (risk-2 design): the frozen totals write above
+        # is UNTOUCHED — the segment rides alongside, tagged by the
+        # source's live THIS_MANA policy (Vodalian Arcanist compiles its
+        # "spend this mana only to cast instant or sorcery spells" as a
+        # StaticAbility MANA_POLICY atom, so activating the SAME permanent
+        # is what marks its own mana; mana from elsewhere stays clean).
+        # Tags default EMPTY: every 12a/12b replay's plan arithmetic sees
+        # exactly the pool totals, which is what keeps those pins
+        # byte-identical.
+        policy = ctx.executor.layers.this_mana_filter(ctx.source)
+        ctx.executor.mana_ledger.add(
+            player, color, n, (policy,) if policy is not None else ()
+        )
 
 
 def _v_scry(ctx: ExecCtx, atom: Atom) -> None:
@@ -697,14 +713,241 @@ def _v_extra_turn(ctx: ExecCtx, atom: Atom) -> None:
 
 
 def _v_lose_game(ctx: ExecCtx, atom: Atom) -> None:
-    """LOSE_GAME (13a): the frozen GameWorld carries no per-player lost
-    flag (state.py is frozen) — so the loss lands on an EXECUTOR-side
-    ledger, a documented divergence from a state-side flag; game-over
-    evaluation (and the emptied library's CR 121.3 loss) is the later
-    state-check phase."""
+    """LOSE_GAME (13a; 13b audit-row fix): the frozen GameWorld carries no
+    per-player lost flag (state.py is frozen) — so the loss lands on an
+    EXECUTOR-side ledger, a documented divergence from a state-side flag;
+    game-over evaluation (and the emptied library's CR 121.3 loss) is the
+    later state-check phase. 13b quirk fix: the loss was ledger-only, a
+    world-invisible mutation the STRUCTURED journal never saw (the
+    fingerprint folded only the raw event-log row). It now also emits a
+    GAME_LOST GameEvent row — subject the player — so every subscriber
+    surface (dump, binder) sees the game end."""
     executor = _executor_or_raise(ctx, atom.verb.name)
     executor.lost_players.append(ctx.controller)
+    executor.journal.emit(
+        KIND_GAME_LOST, ctx.controller, None, "LOSE_GAME", ("LOSE_GAME",)
+    )
     ctx.events.append((len(ctx.events), "LOSE_GAME", str(ctx.controller)))
+
+
+# ------------------------------------------------- 13b: cast-side new verbs
+
+
+def _v_pay(ctx: ExecCtx, atom: Atom) -> None:
+    """PAY (13b; grammar round 7's "pay a cost as an effect" — "You may
+    pay {2}", the Kraken/Devotee/Pilferer compile idiom). The
+    OptionalEffect ancestor consumed the may-decision UPSTREAM
+    (:meth:`Executor._run_effect`, C15 tree order), so reaching this
+    handler IS the choice to pay; CR 117.3 then leaves no second choice —
+    a cost that cannot be paid RAISES (the offer surface
+    ``query.optional_offer`` narrows unactionable may-offers in advance).
+
+    Payer coordinate: ``ctx.controller`` — the ability's "you". The role
+    table gives PAY no payer role, and the corpus rows whose English
+    names a different player ("that player may pay") ride the same atom;
+    honouring the third-party payer is a documented coordinate gap for a
+    later round (the engine cannot silently pick a DIFFERENT payer than
+    the Slate planned around, so v1 pins the coordinate's own controller).
+
+    Mana restrictions are honoured through the ordinary fold: this is
+    :func:`legality.pay_costs` again, with no cast-use subject (effect
+    mana purchases may not consume THIS_MANA — the conservative reading).
+    Trigger settlement inside the nested payment consumes no decisions
+    (``trigger_decisions=()`` — the decision channel is owned by the
+    running effect, not its cost payment)."""
+    from MTG_bot.core.executor.legality import (
+        build_payment_plan,
+        ctx_for,
+        pay_costs,
+    )
+
+    executor = _executor_or_raise(ctx, atom.verb.name)
+    cost = atom.args.get("cost")
+    if not isinstance(cost, Cost):
+        raise TypeError(f"executor: PAY needs a Cost role, got {cost!r}")
+    plan, why = build_payment_plan(
+        ctx.world, ctx_for(executor, source=ctx.source, controller=ctx.controller), cost
+    )
+    if plan is None:
+        raise ValueError(f"executor: PAY cannot pay: {why}")
+    pay_costs(
+        executor,
+        plan,
+        source=ctx.source,
+        controller=ctx.controller,
+        trigger_decisions=(),
+    )
+    ctx.events.append((len(ctx.events), "PAY", str(ctx.controller), repr(cost)))
+
+
+def _v_cast(ctx: ExecCtx, atom: Atom) -> None:
+    """CAST (13b — THE finding this round chased): in this corpus the CAST
+    atom is NOT a permission ledger entry. All ten compiled rows are the
+    effect verb "cast the designated card" — OptionalEffect("you may
+    cast") wrapped, ``source`` a Selector designating the card(s) (the
+    'result' referent of a preceding exile/reveal, top-of-library, the
+    IS_SOURCE self-cast), and the OPTIONAL ``cost`` role carrying either an
+    EMPTY Cost (the corpus-wide cost-waiver idiom, "without paying its
+    mana cost", CR 498.2) or a real Cost (additional cost). The frozen
+    grammar comment says the same (ability_tree CAST role entry). So the
+    handler delegates to :func:`stack.cast_card`: designate, park, pay
+    (or not — empty Cost), push, resolve, put — and the CAST EVENT fires,
+    so "whenever you cast" triggers see effect-casts too (CR 601.2m).
+
+    Designation follows the 12a convention: bindings first (role
+    ``source``), else the Selector (CHOOSE-mode deterministic first-n
+    stand-in; the may-decision upstream already covered the whole atom).
+    A designated card WITHOUT a SpellAbility (a land, an unregistered
+    card) RAISES — the honest per-card flag, never a silent skip that
+    would fake a cast."""
+    from MTG_bot.core.executor.stack import cast_card
+
+    executor = _executor_or_raise(ctx, atom.verb.name)
+    cards = role_handles(ctx, atom, "source")
+    cost = atom.args.get("cost")  # None = the spell's own printed cost
+    if cost is not None and not isinstance(cost, Cost):
+        raise ValueError(f"executor: CAST cost role must be a Cost, got {cost!r}")
+    for card in cards:
+        cast_card(
+            executor,
+            ctx.controller,
+            card,
+            cost_override=cost,
+            trigger_decisions=(),
+            x=ctx.x_value if ctx.x_value is not None else 0,
+        )
+
+
+def _v_choose(ctx: ExecCtx, atom: Atom) -> None:
+    """CHOOSE (13b, grammar round 7's R7-1 — "You choose a noncreature,
+    nonland card from it", Duress/Kitesail): the PLAYER decision this atom
+    owns, consumed as an explicit index token into the Handle-sorted
+    candidate pool — the same ORDER contract 12d pinned for Choose NODES
+    (vocab ``str(i)`` over ``query.verb_choose_options`` order, §8.3
+    query/runtime identity). The pick lands in the ability's ``result``
+    register (the grammar's documented read-back: the follow-up atom's
+    ``referent='result'`` Selector reads it), Handle-sorted like every
+    designation (ruling 5).
+
+    An empty pool chooses NOTHING without consuming a decision (there is
+    no choice to make — the legal zero, and a caller-facing token would
+    pretend otherwise). Multi-pick rows (count != 1) stay the loud flag:
+    the corpus compiles count=1 only."""
+    from MTG_bot.core.executor.query import verb_choose_options
+
+    selector = atom.args.get("target")
+    if not isinstance(selector, Selector):
+        raise TypeError(f"executor: CHOOSE needs a target Selector, got {selector!r}")
+    count_role = atom.args.get("count")
+    if count_role is not None:
+        assert isinstance(count_role, Quantity)  # role table: count is a Quantity
+    want = 1 if count_role is None else resolve(count_role, ctx)
+    if want != 1:
+        raise NotImplementedError(
+            "executor: Verb.CHOOSE multi-pick is a later round (corpus is count=1 only)"
+        )
+    executor = _executor_or_raise(ctx, "CHOOSE")
+    rows = verb_choose_options(
+        executor,
+        atom,
+        source=ctx.source,
+        controller=ctx.controller,
+    )
+    if rows == ((),):
+        ctx.bindings["result"] = []
+        ctx.events.append((len(ctx.events), "CHOOSE", str(ctx.source)))
+        return
+    vocab = tuple(str(i) for i in range(len(rows)))
+    pick = ctx.take_decision(vocab, "CHOOSE")
+    chosen = rows[int(pick)]
+    if len(chosen) < want:
+        # the under-filled zero row picked when candidates ran out
+        ctx.bindings["result"] = list(chosen)
+        ctx.events.append((len(ctx.events), "CHOOSE", str(ctx.source)))
+        return
+    ctx.bindings["result"] = list(chosen)
+    ctx.events.append(
+        (len(ctx.events), "CHOOSE", str(ctx.source), tuple(str(h) for h in chosen))
+    )
+
+
+def _v_choose_name(ctx: ExecCtx, atom: Atom) -> None:
+    """CHOOSE_NAME (13b, grammar round 7's R7-4 — Runed Halo's ETB "choose
+    a card name"): the chosen name is RECORDED (executor.name_choices,
+    keyed by the source that wrote it) and read back by the NAME_CHOSEN
+    filter predicate — the grammar's closed write/read pair, implemented
+    in quantity._eval_atom. The corpus' full consumer is the PROTECTION
+    keyword param the static grants (combat-side): combat has no executor
+    yet, so per the 12d EXPOSED-ORACLE precedent (keyword_of for
+    block/attack legality), this handler + predicate make the choice real
+    and queryable NOW — the damage/block consumer joins combat, the flag
+    never fakes it.
+
+    C15 enumerability for a free-text name: the pick is a decision token
+    out of the enumerable candidate NAMES — the card names present in the
+    world (the engine's own knowledge boundary), narrowed by the optional
+    ``name_filter`` (Necromentia's "a nonbasic card name" reading over
+    those identities). Seeded-random fallback is NOT offered: the name is
+    a player decision, so the decision channel owns it (the C15
+    take_contract raises when a caller skips it — never hidden
+    randomness for a choice a player makes)."""
+    executor = _executor_or_raise(ctx, atom.verb.name)
+    name_filter = atom.args.get("name_filter")
+    if name_filter is not None:
+        assert isinstance(name_filter, Filter)  # role table: name_filter is a Filter
+    candidates: set[str] = set()
+    for handle, card in ctx.world.cards.items():
+        if card.identity.is_token:
+            continue
+        if name_filter is not None and not eval_filter(name_filter, handle, ctx):
+            continue
+        candidates.add(card.identity.name)
+    if not candidates:
+        raise ValueError(
+            "executor: CHOOSE_NAME has no enumerable candidates (empty world "
+            "or a name_filter nothing satisfies)"
+        )
+    ordered = sorted(candidates)
+    pick = ctx.take_decision(tuple(ordered), "CHOOSE_NAME")
+    executor.name_choices[ctx.source] = pick
+    ctx.events.append((len(ctx.events), "CHOOSE_NAME", str(ctx.source), pick))
+
+
+def _v_mana_policy(ctx: ExecCtx, atom: Atom) -> None:
+    """MANA_POLICY (13b, grammar round 9 R9-3's C21 spend-restriction
+    verbs — the LIVE CONSUMER this gate demanded): the CORPUS ships both
+    policies as StaticAbility atoms (Vodalian Arcanist's THIS_MANA on its
+    own {T}, Chromatic Orrery's ALL_YOURS), which attach-register through
+    :meth:`layers.LayerRegistry._new_static`; this handler covers the
+    RUNTIME-dispatch shape (an inline sequence or granted policy) by
+    registering the SAME layer kind, so recompute/expiry/detach treat
+    every policy identically.
+
+    The two consumers, concretely:
+      * THIS_MANA — ADD_MANA consults ``layers.this_mana_filter(source)``
+        and SEGMENTS its mana; :func:`legality.build_payment_plan` then
+        cannot even BUILD a plan that spends restricted segments on a use
+        their filter rejects (the spell being cast is the filter's
+        subject — Vodalian's compiled ``FOr(TYPE_EQ Instant, TYPE_EQ
+        Sorcery)`` reads over the spell card exactly like the grammar's
+        CastSpellEvent-shape note).
+      * ALL_YOURS — ``executor.mana_permission`` makes a coloured demand
+        drawable from any colour key (Orrery), plan-side only.
+    The layer carries no duration role (role table: scope/filter), so a
+    dispatched policy lives while its anchor does — permanent-static
+    semantics for a permanent-anchored atom."""
+    from MTG_bot.core.executor.layers import LayerRegistry  # cycle-free, cheap
+
+    executor = _executor_or_raise(ctx, atom.verb.name)
+    scope = atom.args.get("scope")
+    if scope not in ("THIS_MANA", "ALL_YOURS"):
+        raise ValueError(
+            f"executor: MANA_POLICY scope {scope!r} not in the closed pair"
+        )
+    layers: LayerRegistry = executor.layers
+    layers.register_mana_policy(ctx.source, ctx.controller, atom)
+    layers.recompute()  # the permission must be LIVE before the next plan
+    ctx.events.append((len(ctx.events), "MANA_POLICY", str(ctx.source), scope))
 
 
 HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
@@ -742,6 +985,17 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.END_TURN: _v_end_turn,
     Verb.EXTRA_TURN: _v_extra_turn,
     Verb.LOSE_GAME: _v_lose_game,
+    # 13b: the cast-side verbs — the gate-flip five (PAY, CAST, CHOOSE,
+    # CHOOSE_NAME, MANA_POLICY). SUPPORTED_VERBS_V2 derives from THIS
+    # table, so these entries are exactly what moves measure_grammar's
+    # engine-supported count; COUNTER_SPELL deliberately stays out (no
+    # interaction window in v1 — the four COUNTER_SPELL cards keep their
+    # loud dispatch raise, pinned by test_counter_spell_still_raises).
+    Verb.PAY: _v_pay,
+    Verb.CAST: _v_cast,
+    Verb.CHOOSE: _v_choose,
+    Verb.CHOOSE_NAME: _v_choose_name,
+    Verb.MANA_POLICY: _v_mana_policy,
 }
 
 

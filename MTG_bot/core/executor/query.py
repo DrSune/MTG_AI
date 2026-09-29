@@ -70,6 +70,7 @@ from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     Atom,
     Choose,
+    Cost,
     Effect,
     OptionalEffect,
     QAtLeast,
@@ -78,6 +79,9 @@ from MTG_bot.core.ability_tree import (
     QUnbounded,
     Selector,
     SelectorMode,
+    SpellAbility,
+    Verb,
+    ZoneKind,
     walk,
 )
 from MTG_bot.core.executor.legality import (
@@ -85,8 +89,9 @@ from MTG_bot.core.executor.legality import (
     ability_playable,
     build_payment_plan,
     ctx_for,
+    spell_castable,
 )
-from MTG_bot.core.executor.quantity import Binding, resolve
+from MTG_bot.core.executor.quantity import Binding, Quantity, resolve
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import GameWorld
 
@@ -95,15 +100,19 @@ if TYPE_CHECKING:  # pragma: no cover - import cycle guard only
 
 __all__ = [
     "ActivationOption",
+    "CastOption",
     "OptionChoice",
     "TargetSlot",
     "choose_options",
     "legal_activations",
+    "legal_casts",
     "legal_search",
     "legal_targets",
     "optional_offer",
     "rest_of",
+    "spell_target_slots",
     "validate_target_selection",
+    "verb_choose_options",
 ]
 
 # The two-way may-decision vocabulary, verbatim as ExecCtx.take_decision
@@ -472,6 +481,17 @@ def optional_offer(
             f"optional_offer: needs an OptionalEffect, got {type(effect).__name__}"
         )
     ctx = ctx_for(executor, source=source, controller=controller, bindings=bindings)
+    # 13b: a PAY atom is the other unactionable-action shape — "You may pay
+    # {2}" with an empty pool offers only skip (CR 117.3: no resources, no
+    # action), and _v_pay RAISES if a 'fire' decision ever reaches an
+    # unpaid cost, so the offer MUST narrow first (query/runtime identity).
+    for node in walk(effect.inner):
+        if isinstance(node, Atom) and node.verb is Verb.PAY:
+            pay_cost = node.args.get("cost")
+            if isinstance(pay_cost, Cost):
+                plan, _why = build_payment_plan(executor.world, ctx, pay_cost)
+                if plan is None:
+                    return MAY_VOCAB[1:]
     for node in walk(effect.inner):
         if not isinstance(node, Atom):
             continue
@@ -493,3 +513,215 @@ def optional_offer(
             if len(enumerate_candidates(value, ctx)) < want:
                 return MAY_VOCAB[1:]
     return MAY_VOCAB
+
+
+# ------------------------------------------------------------------ casting
+
+
+@dataclass(frozen=True)
+class CastOption:
+    """One row of the 13b ``CAST``/``PLAY_LAND`` decision surface — the
+    SAME object ``legal_casts`` enumerates and ``stack.cast``/
+    ``stack.play_land`` re-check (§8.3 identity: query answer and legality
+    oracle are one computation, never two that can disagree).
+
+    Two shapes share this row type because they share the Slate field
+    (§1.4's CAST decision covers the land drop — both are "put a card
+    from hand into play", and C15 demands BOTH be enumerable on one
+    surface, or the model sees a hidden action):
+
+    * spell row — ``land=False``: the :class:`SpellAbility` node (IR
+      identity, §8.3), the compiled 601.2f cost fold in ``payment``
+      (X enumerated at its documented 0-floor witness when the caller
+      passed no ``x``), and the handle;
+    * land row — ``land=True``: ``node=None, payment=None`` — a land has
+      no SpellAbility node and no cost (CR 305.1 special action), and
+      modelling it as ``payment=empty`` would pretend at a cost fold
+      that does not exist.
+
+    ``order_key`` is the bare Handle: rows sort Handle-first (ruling 5),
+    spells and lands interleaved by their card handle — the world's own
+    object order, stable across replays."""
+
+    handle: Handle
+    node: SpellAbility | None
+    land: bool
+    payment: PaymentPlan | None
+
+    def order_key(self) -> Handle:
+        return self.handle
+
+
+def legal_casts(
+    world: GameWorld, executor: Executor, seat: Handle, *, x: int | None = None
+) -> list[CastOption]:
+    """Every card ``seat`` may put into play from hand RIGHT NOW — spells
+    via :func:`legality.spell_castable` (window + cost fold), lands via
+    :func:`stack.land_playable` (the CR 305.1 special action, its own
+    option SHAPE on the same surface — C15: the land drop must not be a
+    hidden action). PURE: world read-only, no journal write, no rng —
+    pre-cast enumeration of the total cost (601.2f) is a QUERY, exactly
+    as ``legal_activations`` is; the cast itself RE-checks.
+
+    X handling (12c's X_VALUE field folded): with ``x=None`` a QX spell is
+    enumerated on the documented **X=0 witness** (a legal declaration, CR
+    107.1) so the row stays enumerable; pass ``x=k`` to ask "is it
+    castable declaring X=k" — the row's payment then folds {X}=k, and a
+    too-big k disappears the row (shortage reason, never a raise).
+
+    A cost the executor cannot check at all (e.g. a loyalty COST on a
+    spell) RAISES through the scan — the loud-half convention of
+    ``legal_activations``: a hole in the legality oracle must crash the
+    query, never silently shrink the option set."""
+    from MTG_bot.core.executor.stack import is_land_card, land_playable
+
+    rows: list[CastOption] = []
+    hand = world.players[seat].zone("hand").entries
+    for handle in sorted(hand):
+        if land_playable(executor, seat, handle) is None:
+            rows.append(CastOption(handle=handle, node=None, land=True, payment=None))
+            continue
+        if not is_land_card(world, handle):
+            reason, node, _record, plan = spell_castable(executor, seat, handle, x=x)
+            if reason is None and node is not None and plan is not None:
+                rows.append(
+                    CastOption(handle=handle, node=node, land=False, payment=plan)
+                )
+    rows.sort(key=CastOption.order_key)
+    return rows
+
+
+def spell_target_slots(
+    executor: Executor,
+    node: SpellAbility,
+    *,
+    spell_handle: Handle,
+    seat: Handle,
+) -> list[TargetSlot]:
+    """The TARGET-selection slots of a SPELL's effect tree: every
+    TARGET-mode Selector reachable under the SpellAbility's effect, as the
+    SAME per-slot :class:`TargetSlot` the activation surface returns
+    (§8.3 identity — one slot type, one validation oracle for every
+    ability in the game). Coordinates: ``source`` = the spell card itself
+    (601.2c designates about the spell), ``controller`` = the caster.
+
+    "Any target" widening (CR 109.5): a Zone(ANY) selection also names
+    PLAYERS — the frozen card-only enumeration cannot know a DEAL_DAMAGE
+    target may be a player, so for a universal-filtered ANY selector the
+    player seats join the candidate population (a NON-universal filter
+    cannot be evaluated against a player handle — the predicate would
+    crash on ``world.cards[player]`` — so those selectors stay
+    card-only, which is also the rules answer: "target creature" excludes
+    players anyway).
+
+    The corpus' "target opponent" (Duress) compiles to a TARGET_PLAYER
+    ControllerRef with NO Selector — there is nothing to build a slot
+    from; that designation rides the player-coordinate rule of
+    ``stack.cast`` (the grammar gap, documented there)."""
+    slots: list[TargetSlot] = []
+    seen: set[str] = set()
+    if node.effect is None:
+        return slots
+    for inner in walk(node.effect):
+        if not isinstance(inner, Atom):
+            continue
+        for _role, value in inner.args.pairs:
+            if not isinstance(value, Selector) or value.mode is not SelectorMode.TARGET:
+                continue
+            key = repr(value)
+            if key in seen:
+                continue
+            seen.add(key)
+            slot = legal_targets(
+                executor.world,
+                executor,
+                value,
+                source=spell_handle,
+                controller=seat,
+            )
+            widened = _widen_any_target(executor, value, slot)
+            if widened is not None:
+                slot = widened
+            slots.append(slot)
+    return slots
+
+
+def _is_universal(filter_: object) -> bool:
+    from MTG_bot.core.ability_tree import FAnd
+
+    return isinstance(filter_, FAnd) and len(filter_.children) == 0
+
+
+def _widen_any_target(
+    executor: Executor, selector: Selector, slot: TargetSlot
+) -> TargetSlot | None:
+    """Players join an ANY-zone universal-filter target (see
+    :func:`spell_target_slots`); None means "no widening applies"."""
+    zones = [selector.zone, *selector.zones]
+    if not any(z.kind is ZoneKind.ANY for z in zones):
+        return None
+    if not _is_universal(selector.filter):
+        return None
+    world = executor.world
+    players = {h for h in world.players}
+    if players & set(slot.candidates):
+        return None
+    candidates = tuple(sorted(set(slot.candidates) | players))
+    forced = slot.forced
+    if isinstance(selector.count, QConst):
+        forced = selector.count.value == len(candidates)
+    return TargetSlot(
+        selector=slot.selector,
+        candidates=candidates,
+        min_count=slot.min_count,
+        max_count=slot.max_count,
+        forced=forced,
+    )
+
+
+def verb_choose_options(
+    executor: Executor,
+    atom: Atom,
+    *,
+    source: Handle,
+    controller: Handle,
+) -> tuple[tuple[Handle, ...], ...]:
+    """The enumerable picks of a ``Verb.CHOOSE`` atom (Duress/Kitesail's
+    "You choose a card from it"): the candidate pool resolved through the
+    SAME machinery the runtime handler uses (§8.3 identity), one singleton
+    row per candidate in Handle order. The handler's decision vocabulary
+    is ``str(i)`` into THIS order — the same ORDER contract ``choose_
+    options`` pins for Choose NODES (12d), extended to the atom.
+
+    v1 scope is the corpus shape: a single pick (every compiled CHOOSE
+    atom carries ``count = QConst(1)``). An under-filled pool makes the
+    EMPTY row legal too (choosing nothing from fewer candidates than
+    demanded is the C17-clamp sibling); a MULTI-pick CHOOSE atom raises —
+    combination-order for its tokens is a later round, and the corpus has
+    zero rows needing it (flag, don't degrade)."""
+    from MTG_bot.core.executor.legality import enumerate_candidates
+
+    selector = atom.args.get("target")
+    if not isinstance(selector, Selector):
+        raise TypeError(f"verb_choose_options: no target selector on {atom!r}")
+    ctx = ctx_for(executor, source=source, controller=controller)
+    # enumerate_candidates, NOT resolve_selector: the CHOOSE-mode resolver
+    # applies its 12a deterministic-first-n stand-in (it returns the
+    # DESIGNATION), which would clamp the pool to one row before ANY
+    # choice exists. The query enumerates the filtered POPULATION; the
+    # handler then consumes the player's pick and writes it to 'result'.
+    pool = sorted(set(enumerate_candidates(selector, ctx)))
+    count_role = atom.args.get("count")
+    if count_role is not None:
+        assert isinstance(count_role, Quantity)  # role table: count is a Quantity
+    want = 1 if count_role is None else resolve(count_role, ctx)
+    if want != 1:
+        raise NotImplementedError(
+            "executor: Verb.CHOOSE multi-pick enumeration is a later round "
+            f"(count={count_role!r}); the corpus compiles count=1 only"
+        )
+    if not pool:
+        return ((),)
+    rows: list[tuple[Handle, ...]] = [(h,) for h in pool]
+    rows.append(())  # the legal under-filled zero (C17 clamp sibling)
+    return tuple(rows)

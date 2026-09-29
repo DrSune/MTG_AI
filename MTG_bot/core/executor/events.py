@@ -54,6 +54,13 @@ KIND_CARD_DRAWN = "CARD_DRAWN"
 KIND_DAMAGE = "DAMAGE"
 KIND_LIFE_GAINED = "LIFE_GAINED"
 KIND_TURN_PHASE = "TURN_PHASE"
+# 13b: the cast feed (CastSpellEvent triggers subscribe; the emitter is
+# stack.cast/cast_card, ordinals per controller per turn — the twin of the
+# draw ordinal) and the LOSE_GAME audit row (13a quirk fix: the loss was an
+# executor-ledger append ONLY, invisible to the structured journal — now it
+# is a GameEvent row, and the generic dump() folds it into the fingerprint).
+KIND_CAST = "CAST"
+KIND_GAME_LOST = "GAME_LOST"
 
 # state.py zone-kind strings used by the diff's rule checks.
 # (ZONE_KIND_TO_STATE — the IR->state map — lives in selectors.py.)
@@ -82,6 +89,9 @@ class GameEvent:
       * DAMAGE        — ``(amount,)``; subject may be a player handle.
       * LIFE_GAINED   — ``(amount,)``
       * TURN_PHASE    — ``(phase_name, active_player)``, subject None.
+      * CAST          — ``(caster, ordinal_this_turn, spell_kind,
+        from_zone, x_value)``, subject the spell card (13b).
+      * GAME_LOST     — ``(reason,)`` , subject the player (13b audit row).
     """
 
     clock: int
@@ -122,6 +132,12 @@ class GameEvent:
     def phase(self) -> tuple[str, Handle]:
         return cast("tuple[str, Handle]", self.data)
 
+    @property
+    def cast(self) -> tuple[Handle, int, str, str | None, int | None]:
+        """CAST payload: (caster, ordinal_this_turn, spell_kind,
+        from_zone, x_value) — the 13b cast feed."""
+        return cast("tuple[Handle, int, str, str | None, int | None]", self.data)
+
 
 @dataclass
 class _Snapshot:
@@ -141,6 +157,10 @@ class EventJournal:
         self.ledger = ledger
         self.events: list[GameEvent] = []
         self.draw_counts: dict[Handle, int] = {}
+        # 13b: per-controller per-turn cast ordinal (CastSpellEvent.ordinal
+        # — "your second spell each turn"), reset by begin_turn exactly
+        # like the draw ordinal.
+        self.cast_counts: dict[Handle, int] = {}
         self._clock = 0
 
     # ------------------------------------------------------------- emitting
@@ -187,9 +207,32 @@ class EventJournal:
         active = self.world.active_player
         return self._emit(KIND_TURN_PHASE, None, active, "TURN", (phase_name, active))
 
+    def emit_cast(
+        self,
+        spell: Handle,
+        caster: Handle,
+        spell_kind: str,
+        from_zone: str | None,
+        x_value: int | None,
+    ) -> GameEvent:
+        """The CAST row (13b): emitted by the casting pipeline at 601.2h —
+        after payment, before resolution — so "whenever you cast" triggers
+        queue ABOVE the spell (they resolve first, CR 603.2). The ordinal
+        is per-caster per-turn (the CastSpellEvent.ordinal vocabulary),
+        journalled IN the row so a replay re-derives the same ordinals."""
+        self.cast_counts[caster] = self.cast_counts.get(caster, 0) + 1
+        return self._emit(
+            KIND_CAST,
+            spell,
+            spell,
+            "CAST",
+            (caster, self.cast_counts[caster], spell_kind, from_zone, x_value),
+        )
+
     def begin_turn(self, player: Handle) -> None:
         """Reset per-turn event trackers for a new turn (12b skeleton)."""
         self.draw_counts = {}
+        self.cast_counts = {}  # 13b: the cast ordinal joins the reset
         del player  # the active-player bookkeeping lives on the world.
 
     # ------------------------------------------------------------- diffing

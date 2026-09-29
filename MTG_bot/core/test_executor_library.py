@@ -551,24 +551,25 @@ class TestLoyaltyLedger(LibraryCase):
 
         self.ex.attach_card(art, urn_cost(-1))
         self.assertNotIn(CounterKind.LOYALTY.name, self.world.cards[art].counters)
-        # A negative payment off an empty ledger is illegal:
+        # AMENDED (round 13b — the flip this pin invited): 13a's guard only
+        # fired for delta < 0 and it reported a SHORTAGE ("0<1") on a card
+        # with no loyalty identity at all. CR 606.1b gates the SOURCE, not
+        # the amount: an artifact with no printed loyalty and no LOYALTY
+        # counters cannot pay a loyalty cost of EITHER sign, and the reason
+        # names why — not_planeswalker, not a bogus 0<1 shortfall.
         self.assertEqual(
             ability_playable(self.world, self.ex, art, 0, seat=self.p0),
-            "cost:loyalty:0<1",
+            "cost:loyalty:not_planeswalker",
         )
-        # KNOWN MISMATCH (reported): legality.py's _loyalty_of docstring says
-        # "a non-planeswalker paying a loyalty cost is illegal", but the
-        # guard only fires for delta < 0.  A POSITIVE (put-a-counter) cost
-        # on a non-PW is currently payable and lands a LOYALTY counter on
-        # the artifact.  Pinned here so 13b flips this test on purpose.
+        # The +1 side (13a's KNOWN MISMATCH, payable and landing a LOYALTY
+        # counter on an artifact) is closed by the same symmetric guard.
         self.ex.attach_card(art, urn_cost(+1))
-        self.assertIsNone(ability_playable(self.world, self.ex, art, 0, seat=self.p0))
-        activate(self.ex, art, 0, seat=self.p0)
         self.assertEqual(
-            self.world.cards[art].counters.get(CounterKind.LOYALTY.name), 1
+            ability_playable(self.world, self.ex, art, 0, seat=self.p0),
+            "cost:loyalty:not_planeswalker",
         )
-        # the once-per-turn clock keys on ANY loyalty payment, positive too
-        self.assertEqual(self.ex.loyalty_clock, {art: self.world.turn})
+        self.assertNotIn("LOYALTY", self.world.cards[art].counters)
+        self.assertEqual(self.ex.loyalty_clock, {})  # no loyalty act, no clock entry
 
 
 # ------------------------------------------------------ SORCERY WINDOW
@@ -661,7 +662,11 @@ class TestReplayDeterminism(unittest.TestCase):
 
 
 class TestCapabilitySurface(unittest.TestCase):
-    def test_v2_derives_the_six_new_verbs_v1_stays_frozen(self):
+    def test_v2_derives_the_growth_set_v1_stays_frozen(self):
+        # AMENDED (round 13b): the derivation grew five more — the cast-
+        # side flip set (PAY, CAST, CHOOSE, CHOOSE_NAME, MANA_POLICY).
+        # V1 stays the frozen round-12 contract (24); COUNTER_SPELL is
+        # deliberately NOT in the growth: no interaction window in v1.
         new = {
             Verb.DRAW,
             Verb.SEARCH,
@@ -669,11 +674,16 @@ class TestCapabilitySurface(unittest.TestCase):
             Verb.END_TURN,
             Verb.EXTRA_TURN,
             Verb.LOSE_GAME,
+            Verb.PAY,
+            Verb.CAST,
+            Verb.CHOOSE,
+            Verb.CHOOSE_NAME,
+            Verb.MANA_POLICY,
         }
         self.assertEqual(SUPPORTED_VERBS_V2 - SUPPORTED_VERBS_V1, new)
         self.assertNotIn(Verb.DRAW, SUPPORTED_VERBS_V1)  # the round-12 freeze
         self.assertEqual(len(SUPPORTED_VERBS_V1), 24)
-        self.assertEqual(len(SUPPORTED_VERBS_V2), 30)
+        self.assertEqual(len(SUPPORTED_VERBS_V2), 35)
 
     def test_turn_ledger_fields_in_state_fingerprint(self):
         reset_oracle_ids()
