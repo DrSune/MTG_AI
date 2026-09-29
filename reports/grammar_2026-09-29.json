@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-09-29T04:31:50+02:00",
-  "git_head": "82434f1b1d2babc83205ae194692425cba473b31",
+  "generated": "2026-09-29T16:34:35+02:00",
+  "git_head": "f6b013481cdcb0b4e61ff26400bae036018c8b7d",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -101,15 +101,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.239,
+      "value": 0.29,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.232,
-        0.231,
-        0.239
+        0.257,
+        0.258,
+        0.29
       ]
     },
     "PC-6": {
@@ -123,16 +123,16 @@
         ]
       },
       "max_verb_share": {
-        "value": 0.093588,
+        "value": 0.093426,
         "target": "<0.20",
         "pass": true
       },
       "pass": false,
-      "atom_total": 577,
+      "atom_total": 578,
       "max_share_verb": "DRAW",
       "verb_histogram": {
         "ADD_LAND_PLAY": 1,
-        "ADD_MANA": 48,
+        "ADD_MANA": 49,
         "ATTACH": 2,
         "CAST": 9,
         "CHOOSE": 2,
@@ -256,5 +256,45 @@
       "bucket_hint": "spell-effect"
     }
   ],
-  "unparsed_count": 5
+  "unparsed_count": 5,
+  "engine_support": {
+    "engine_supported_cards": 206,
+    "of_total": 305,
+    "supported_verbs": [
+      "ADD_MANA",
+      "CREATE_TOKEN",
+      "DEAL_DAMAGE",
+      "DESTROY",
+      "DISCARD",
+      "EXILE",
+      "GAIN_LIFE",
+      "GRANT_ABILITY",
+      "LOOK_AT",
+      "LOSE_ABILITY",
+      "LOSE_LIFE",
+      "MILL",
+      "MODIFY_PT",
+      "MOVE_ZONE",
+      "PREVENT_EFFECT",
+      "PUT_COUNTER",
+      "REMOVE_COUNTER",
+      "REVEAL",
+      "SACRIFICE",
+      "SCRY",
+      "SET_PT",
+      "SHUFFLE",
+      "TAP",
+      "UNTAP"
+    ],
+    "flip_proof": {
+      "card": "Chandra, Flame's Catalyst",
+      "spell_ability_only": false,
+      "default_engine_supported": true,
+      "gated_engine_supported": false,
+      "offending_verbs": [
+        "CAST",
+        "DRAW"
+      ]
+    }
+  }
 }

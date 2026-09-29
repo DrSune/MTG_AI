@@ -129,11 +129,23 @@ from MTG_bot.core.state import ZONE_BATTLEFIELD, GameWorld
 # can never drift apart.
 SUPPORTED_VERBS_V1 = frozenset(HANDLERS)
 
+# The 12e capability set: exactly the verbs ``run_atom`` dispatches to a real
+# handler today (round-12 cross-check against all 48 corpus verbs).  This is
+# the same set as V1 — 12b/12d additions (GRANT_ABILITY, LOSE_ABILITY,
+# PREVENT_EFFECT) already entered ``HANDLERS``, and no further verb gained a
+# handler — so it is derived, not retyped.  The 25 non-dispatched verbs
+# (CAST, COUNTER_SPELL, PHASE_OUT/PHASE_IN, FIGHT, COPY, MANDATE_ATTACK,
+# MANDATE_BLOCK, DRAW, PAY, SEARCH, ATTACH, GAIN_CONTROL, GET_EMBLEM, ...)
+# stay outside: event-node-only or out-of-contract internals (ruling 6),
+# flagged by ``compile_pool(supported_verbs=...)``, never faked.
+SUPPORTED_VERBS_V2 = frozenset(HANDLERS)
+
 Event = tuple[object, ...]
 
 __all__ = [
     "MAX_TRIGGER_FIRES",
     "SUPPORTED_VERBS_V1",
+    "SUPPORTED_VERBS_V2",
     "ActivationOption",
     "Binding",
     "DurationLedger",

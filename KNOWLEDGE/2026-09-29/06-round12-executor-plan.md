@@ -53,3 +53,31 @@ Sequencing note (analyst amendment honored): Eot-min scheduler joins 12a (top ve
 ## Delegation map (context economy)
 12a/12c/12d → coder (128k) with pre-loaded state.py slice; 12b → ultra (binding/event semantics
 cross compiler+state); 12e → orchestrator-inline measure + tiny edit.
+
+## §12e FINAL (executed at f6b0134+12e, 2026-09-29)
+- SUPPORTED_VERBS_V2 defined in executor/__init__.py, derived `frozenset(HANDLERS)` (V1 kept —
+  test_executor_verbs imports it). Cross-checked all 48 corpus verbs: V2 == V1 == **24** verbs
+  (12d's GRANT_ABILITY/LOSE_ABILITY/PREVENT_EFFECT already entered HANDLERS; no verb gained a
+  handler since 12a). A verb is in V2 iff run_atom dispatches a real handler; the 25 enum-only
+  verbs stay out — CAST, COUNTER_SPELL, PHASE_OUT/PHASE_IN, FIGHT, COPY, MANDATE_ATTACK,
+  MANDATE_BLOCK, GET_EMBLEM (ruling-6 internals), plus DRAW, PAY, SEARCH, ATTACH, GAIN_CONTROL,
+  CHOOSE, CHOOSE_NAME, GRANT_TYPE, GRANT_ACTIVATION, ADD_LAND_PLAY, END_TURN, EXTRA_TURN,
+  FLIP_COIN, LOSE_GAME, MANA_POLICY, DAMAGE_ASSIGN_POLICY.
+- Fold citation (compiler.py): lines 1459-1472 — `supported_verbs is None` ⇒ engine_supported=True
+  (template stamp, L1460-1461); else AND-fold over walk(card): first Atom whose verb ∉ set ⇒
+  False (L1463-1467), written into LegalityFlags(engine_supported=…) (L1469-1472). No other
+  writer of engine_supported exists; templates never stamp False.
+- measure_grammar.py `--with-engine-flags`: second compile_pool pass gated on V2; report JSON
+  gains `"engine_support"` {engine_supported_cards, of_total, supported_verbs, flip_proof};
+  NUMBERS.md gains a PC-7 row; without the flag output is byte-identical.
+- Honest count: **engine_supported_cards = 206/305 (0.6754)**. Flip-offender shares over the 99
+  flipped entries: DRAW 49, SEARCH 16, CAST 7, COUNTER_SPELL 5, GET_EMBLEM 3, GRANT_TYPE 3,
+  MANDATE_ATTACK 3, PAY 3, FIGHT 2, MANA_POLICY 2, COPY 2, CHOOSE 2, GAIN_CONTROL 2, ATTACH 2,
+  CHOOSE_NAME 2, PHASE_OUT 2, singles ADD_LAND_PLAY/END_TURN/MANDATE_BLOCK/DAMAGE_ASSIGN_POLICY/
+  LOSE_GAME/FLIP_COIN/EXTRA_TURN/GRANT_ACTIVATION. Flip proof (fold load-bearing):
+  "Chandra, Flame's Catalyst" True→False via CAST+DRAW atoms. No SpellAbility-only card carries a
+  CAST atom in M21; spell-only flips come from DRAW/SEARCH/COUNTER_SPELL/CHOOSE idioms.
+- Gates at this commit: pytest MTG_bot/core 1876 passed; PC-1 301/305, PC-2 634/639, PC-3 0,
+  PC-4 0 diffs (goldens untouched, flag never refreshes); PC-6 (DRAW orphan) + PC-8 (0.3213)
+  FAIL at HEAD too — pre-existing, not 12e regressions. pyright 0 errors on both touched files;
+  ruff delta 0.

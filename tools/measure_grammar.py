@@ -7,6 +7,7 @@ summary table.
 
 Usage:
     python tools/measure_grammar.py [--set M21] [--runs 3] [--refresh-goldens]
+                                    [--with-engine-flags]
 
 Exit code: 0 when every evaluated pre-registered target passes, 1 when any
 target fails.  PC-7 is reported as ``pending_executor`` (deferred, not a
@@ -57,6 +58,62 @@ from MTG_bot.core.identity import CardIdentity
 
 # PC-10 planted unknown fragment (single sentence; no template matches it).
 PLANTED_UNPARSED = "Nobody understands this."
+
+
+# ---------------------------------------------------------------------------
+# 12e engine-support pass (only with --with-engine-flags)
+# ---------------------------------------------------------------------------
+
+
+def _engine_support(pool, registry) -> dict:
+    """Second compile_pool pass gated on the executor's real dispatch set.
+
+    ``legality.engine_supported`` is an AND-fold over every compiled Atom:
+    a card is engine-supported iff every atom verb is in
+    ``SUPPORTED_VERBS_V2`` (compiler.py lines 1459-1472; ``supported_verbs
+    is None`` short-circuits to the template's True stamp).  A card carrying
+    a CAST atom is recorded as proof the fold is load-bearing.
+    """
+    from MTG_bot.core.ability_tree import Atom, SpellAbility, walk
+    from MTG_bot.core.executor import SUPPORTED_VERBS_V2
+
+    gated = compile_pool(pool, registry, supported_verbs=set(SUPPORTED_VERBS_V2))
+    supported = 0
+    flip: dict | None = None
+    flip_rank = -1
+    for result in gated.results.values():
+        if result.legality.engine_supported:
+            supported += 1
+            continue
+        offenders = sorted(
+            {
+                node.verb.name
+                for node in walk(result.card)
+                if isinstance(node, Atom) and node.verb not in SUPPORTED_VERBS_V2
+            }
+        )
+        if not offenders:
+            continue
+        spell_only = bool(result.card.abilities) and all(
+            isinstance(a, SpellAbility) for a in result.card.abilities
+        )
+        # Prefer a card whose gap is a CAST atom, then a SpellAbility-only one.
+        rank = 2 * int("CAST" in offenders) + int(spell_only)
+        if rank > flip_rank:
+            flip_rank = rank
+            flip = {
+                "card": result.card.name,
+                "spell_ability_only": spell_only,
+                "default_engine_supported": True,
+                "gated_engine_supported": False,
+                "offending_verbs": offenders,
+            }
+    return {
+        "engine_supported_cards": supported,
+        "of_total": len(gated.results),
+        "supported_verbs": sorted(v.name for v in SUPPORTED_VERBS_V2),
+        "flip_proof": flip,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -180,6 +237,7 @@ def _append_numbers_md(
     golden_files: int,
     diffs: list[str],
     golden_mode: str,
+    engine: dict | None = None,
 ) -> None:
     """Insert a new dated section at the top of NUMBERS.md, above the
     newest existing section."""
@@ -197,6 +255,10 @@ def _append_numbers_md(
         f"| PC-9 determinism | **{'stable' if pcs['PC-9']['pass'] else 'UNSTABLE'}** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |",
         f"| PC-10 null_test | **{pcs['PC-10']['good_card_coverage']:.0%} / {pcs['PC-10']['bad_card_coverage']:.0%}**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — {'PASS' if pcs['PC-10']['pass'] else 'FAIL'} |",
     ]
+    if engine is not None:
+        rows.append(
+            f"| PC-7 engine_supported_cards | **{engine['engine_supported_cards']}/{engine['of_total']}** ({engine['engine_supported_cards'] / engine['of_total']:.4f}) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over {len(engine['supported_verbs'])} verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |"
+        )
     section = (
         f"## {date} (T5 — Phase-1 grammar measurement harness)\n\n"
         + "\n".join(rows)
@@ -220,6 +282,14 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="explicit re-baselining: (re)write every golden file before "
         "verify (default: verify-only against the committed baseline)",
+    )
+    parser.add_argument(
+        "--with-engine-flags",
+        action="store_true",
+        help="12e: run a second compile_pool pass gated on "
+        "SUPPORTED_VERBS_V2 and report the honest engine_supported card "
+        "count (adds an 'engine_support' field to the report JSON; "
+        "coverage/golden behavior is otherwise unchanged)",
     )
     args = parser.parse_args(argv)
     if args.runs < 3:
@@ -254,6 +324,7 @@ def main(argv: list[str] | None = None) -> int:
 
     latency = _latency_and_determinism(pool, registry, args.runs)
     pc10 = _pc10_null_test(registry)
+    engine = _engine_support(pool, registry) if args.with_engine_flags else None
 
     # -- per-PC target evaluation -------------------------------------------
     pcs: dict = {
@@ -370,6 +441,8 @@ def main(argv: list[str] | None = None) -> int:
         "unparsed_queue": [e.to_json() for e in report.unparsed_queue],
         "unparsed_count": report.unparsed_count,
     }
+    if engine is not None:
+        full_report["engine_support"] = engine
 
     reports_dir = REPO / "reports"
     reports_dir.mkdir(parents=True, exist_ok=True)
@@ -381,7 +454,9 @@ def main(argv: list[str] | None = None) -> int:
 
     # -- NUMBERS.md headline rows (top of file, above newest section) --------
     numbers_path = REPO / "KNOWLEDGE" / "NUMBERS.md"
-    _append_numbers_md(numbers_path, date, pcs, golden_files, golden_diffs, golden_mode)
+    _append_numbers_md(
+        numbers_path, date, pcs, golden_files, golden_diffs, golden_mode, engine
+    )
 
     # -- human summary --------------------------------------------------------
     print(
@@ -419,6 +494,19 @@ def main(argv: list[str] | None = None) -> int:
         f"{'PASS' if pcs['PC-6']['pass'] else 'FAIL'}"
     )
     print("PC-7 executor            pending_executor (T6) — deferred")
+    if engine is not None:
+        proof = engine.get("flip_proof") or {}
+        print(
+            f"PC-7 engine_supported    {engine['engine_supported_cards']}"
+            f"/{engine['of_total']} cards dispatch-ready "
+            f"({len(engine['supported_verbs'])} verbs in SUPPORTED_VERBS_V2)"
+        )
+        if proof:
+            print(
+                f"        flip-proof: {proof['card']} "
+                f"(spell_only={proof['spell_ability_only']}) "
+                f"True -> False via {proof['offending_verbs']}"
+            )
     print(
         f"PC-8 targetable          {pcs['PC-8']['value']:.4f}  "
         f"({pcs['PC-8']['targetable_entries']}/{pcs['PC-8']['denominator']})  "
