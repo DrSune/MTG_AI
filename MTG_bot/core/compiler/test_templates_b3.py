@@ -21,6 +21,7 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
+    FNot,
     Keyword,
     KeywordAbility,
     PtDelta,
@@ -36,6 +37,7 @@ from MTG_bot.core.ability_tree import (
     Seq,
     TokenSpec,
     Verb,
+    Zone,
     ZoneKind,
     canonical_json,
     fingerprint,
@@ -500,8 +502,9 @@ class TestB3EffectStructure(unittest.TestCase):
 
     def test_target_cant_be_blocked_r6(self) -> None:
         """Round-6 R6-4: {1} activation → PREVENT_EFFECT with the blocked
-        slot = FAnd(IS_ANY_TARGET, POWER_LE 2), condition = IS_ANY_TARGET,
-        universal blocker filter, DurationEot."""
+        slot = FAnd(IS_ANY_TARGET, POWER_LE 2, FNot(IS_SOURCE)), condition =
+        IS_ANY_TARGET, universal blocker filter, DurationEot.
+        R11-4c: "another target" excludes the ability's own source."""
         ability = _ability(
             _single_match(
                 self.reg,
@@ -521,14 +524,36 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertIsNone(event.subject)
         blocked = event.blocked
         assert isinstance(blocked, FAnd)
-        target_pred, power_pred = blocked.children
+        target_pred, power_pred, excl = blocked.children
         assert isinstance(target_pred, FAtom)
         assert isinstance(power_pred, FAtom)
         self.assertIs(target_pred.pred, FAtomPred.IS_ANY_TARGET)
         self.assertIs(power_pred.pred, FAtomPred.POWER_LE)
         assert isinstance(power_pred.count, QConst)
         self.assertEqual(power_pred.count.value, 2)
+        assert isinstance(excl, FNot)  # R11-4c: "another" = not the source
+        assert isinstance(excl.inner, FAtom)
+        self.assertIs(excl.inner.pred, FAtomPred.IS_SOURCE)
         self.assertIsInstance(atom.args.get("duration"), DurationEot)
+
+    def test_target_helper_zones_are_battlefield_r11(self) -> None:
+        """R11-3 sweep: TARGET-mode creature selectors must bind to the
+        battlefield — Zone(ANY, ANY) would let instants legally target
+        creature cards in graveyards/libraries.  _sel_any_target keeps
+        (ANY, ANY) by design (players/planeswalkers/cards are targetable
+        off the battlefield)."""
+        battlefield_any = Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
+        for helper in (
+            templates_b3._sel_target_creature,
+            templates_b3._sel_target_creature_flying,
+            templates_b3._sel_target_bird_cat_dog_goat_ox_snake,
+            templates_b3._sel_target_creature_with_plus1,
+        ):
+            sel = helper()
+            self.assertIs(sel.mode, SelectorMode.TARGET, helper.__name__)
+            self.assertEqual(sel.zone, battlefield_any, helper.__name__)
+        any_target = templates_b3._sel_any_target()
+        self.assertEqual(any_target.zone, Zone(ZoneKind.ANY, ControllerRef.ANY))
 
     def test_draw_per_distinct_color(self) -> None:
         """9-B row 6 (Chromatic Orrery): DRAW amount = QDistinctColorCount

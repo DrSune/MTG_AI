@@ -1988,10 +1988,24 @@ class TestRound7AnaphoraBatch(unittest.TestCase):
         p = _pairs_dict(create)
         self.assertEqual(create.verb, Verb.CREATE_TOKEN)
         self.assertIsInstance(p["tokens"], TokenSpec)
-        prop = p["count"]
-        self.assertIsInstance(prop, QProp)
-        self.assertEqual(prop.field, QPropField.THIS_WAY_COUNT)
-        self.assertEqual(prop.referent, "event")
+        # R11-4a: count = QCount over the target's exile zone, filtered to
+        # NAME_CHOSEN ∧ HAND→EXILE moves by the target this turn — NOT the
+        # old whole-search THIS_WAY_COUNT tally.
+        count = p["count"]
+        self.assertIsInstance(count, QCount)
+        sel = count.selector
+        self.assertIs(sel.mode, SelectorMode.ALL)
+        self.assertEqual(sel.zone, Zone(ZoneKind.EXILE, ControllerRef.TARGET_PLAYER))
+        name_f, move_f = sel.filter.children
+        self.assertIs(name_f.pred, FAtomPred.NAME_CHOSEN)
+        self.assertIs(move_f.pred, FAtomPred.MOVED_TO_ZONE_THIS_TURN)
+        self.assertEqual(
+            move_f.from_zone, Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER)
+        )
+        self.assertEqual(
+            move_f.to_zone, Zone(ZoneKind.EXILE, ControllerRef.TARGET_PLAYER)
+        )
+        self.assertIs(move_f.who, ControllerRef.TARGET_PLAYER)
 
     def test_loses_kw_eot(self) -> None:
         outcome = self._match_one(

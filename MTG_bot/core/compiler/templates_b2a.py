@@ -57,6 +57,7 @@ import re
 from typing import Final
 
 from MTG_bot.core.ability_tree import (
+    ActivatedAbility,
     Atom,
     AtomArgs,
     Choose,
@@ -64,6 +65,8 @@ from MTG_bot.core.ability_tree import (
     Cost,
     CostManaColor,
     CostManaGeneric,
+    CostSacrifice,
+    CostTap,
     CounterKind,
     CounterPlacedEvent,
     CreatureDiesEvent,
@@ -338,6 +341,13 @@ def _griffin_token(power: int, toughness: int) -> TokenSpec:
 
 
 def _treasure_token() -> TokenSpec:
+    """Treasure artifact token (Gadrak, the Crown-Scourge).
+
+    R11-4b (C23 literal-encode precedent, b2a ``_build_pursued_whale_token``):
+    the printed parenthetical "(Tap it, sacrifice it: Add one mana of any
+    color.)" is rules text, not a rule reminder — encode it as a real
+    ``ActivatedAbility`` in ``TokenSpec.abilities`` instead of dropping it.
+    ``ADD_MANA color="ANY"`` per R8-3/C-3 (b3 ``_build_add_mana_any``)."""
     return TokenSpec(
         name="Treasure",
         type_line="Artifact",
@@ -346,7 +356,26 @@ def _treasure_token() -> TokenSpec:
         power=None,
         toughness=None,
         keywords=(Keyword.TREASURE,),
-        abilities=(),
+        abilities=(
+            ActivatedAbility(
+                cost=Cost(
+                    parts=(
+                        CostTap(),
+                        CostSacrifice(target=_self_selector()),
+                    )
+                ),
+                effect=Atom(
+                    verb=Verb.ADD_MANA,
+                    args=AtomArgs(
+                        pairs=(
+                            ("controller", ControllerRef.YOU),
+                            ("amount", QConst(1)),
+                            ("color", "ANY"),
+                        )
+                    ),
+                ),
+            ),
+        ),
     )
 
 

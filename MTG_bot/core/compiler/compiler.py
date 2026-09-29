@@ -30,6 +30,7 @@ from MTG_bot.core.ability_tree import (
     Conditional,
     ControllerRef,
     Cost,
+    CostLoyalty,
     CostManaColor,
     CostManaGeneric,
     CostManaHybrid,
@@ -654,6 +655,39 @@ def _is_continuation(sentence: str) -> bool:
     return any(s.startswith(p) for p in _CONTINUATION_PREFIXES)
 
 
+# Grammar round 11 (R11-1): optionality of a continuation / trailing rules
+# sentence is decided by the presence of the word "may" in the sentence
+# itself.  "If you do, <do X>" is MANDATORY (the condition already gates it);
+# only "you may …" sentences earn an OptionalEffect wrap.
+_MAY_RE = re.compile(r"\bmay\b")
+
+
+def _loyalty_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
+    """Index of the tail-most loyalty ability if it is the LAST meaningful
+    processed entry, else None.
+
+    Grammar round 11 (R11-1, Basri Ket / Garruk, Savage Herald): planeswalker
+    trailing rules text (CR 113.6a — text printed under a loyalty bullet
+    belongs to that ability) arrives as a plain, non-continuation sentence
+    and was previously orphaned as a card-level SpellAbility.  If the nearest
+    meaningful processed entry is an ActivatedAbility whose cost carries a
+    CostLoyalty part, that ability is the sentence's true owner.
+    """
+    for j in range(len(processed) - 1, -1, -1):
+        prev = processed[j]
+        if prev is None or isinstance(prev, RuleReminderOutcome):
+            continue
+        if (
+            isinstance(prev, AbilityOutcome)
+            and isinstance(prev.ability, ActivatedAbility)
+            and prev.ability.cost is not None
+            and any(isinstance(p, CostLoyalty) for p in prev.ability.cost.parts)
+        ):
+            return j
+        return None
+    return None
+
+
 def _append_optional_to_seq(effect: Effect, inner: Effect) -> Effect:
     """Append ``OptionalEffect(inner)`` to ``effect``'s step sequence.
 
@@ -969,6 +1003,36 @@ def compile_card(
 
         sentence = raw.sentences[i]
         if not _is_continuation(sentence) and not _PHASE_IN_PREVENT_RE.match(sentence):
+            # Grammar round 11 (R11-1): plain text right after a loyalty
+            # bullet is that ability's trailing rules text, not a new card-
+            # level spell ability.  Merge it into the loyalty ability's
+            # effect (mandatory unless the sentence itself says "may").
+            # A sentence starting with "[" is another ability bullet —
+            # never a trailing sentence, even if it parsed to an effect.
+            loy_idx = (
+                None
+                if sentence.lstrip().startswith("[")
+                else _loyalty_trailing_idx(processed)
+            )
+            if loy_idx is not None:
+                slot = processed[loy_idx]
+                ab = slot.ability if isinstance(slot, AbilityOutcome) else None
+                if isinstance(ab, ActivatedAbility):
+                    merge = (
+                        _append_optional_to_seq
+                        if _MAY_RE.search(sentence)
+                        else _append_mandatory_to_seq
+                    )
+                    processed[loy_idx] = AbilityOutcome(
+                        ability=ActivatedAbility(
+                            cost=ab.cost,
+                            effect=merge(ab.effect, outcome.effect),
+                            condition=ab.condition,
+                            timing=ab.timing,
+                        )
+                    )
+                    # The trailing sentence is consumed — not appended.
+                    continue
             processed.append(outcome)
             processed_sentence_idx.append(i)
             continue
@@ -992,7 +1056,15 @@ def compile_card(
         elif sentence.strip().startswith("When you do"):
             merge = _merge_do_continuation
         else:
-            merge = _append_optional_to_seq
+            # Grammar round 11 (R11-1): a "may"-free continuation ("If you
+            # do, do X" / "Then do X") is MANDATORY given its antecedent —
+            # the phantom OptionalEffect wrap was a semantics bug (Scavenging
+            # Ooze, Fabled Passage).  Only "you may …" sentences stay optional.
+            merge = (
+                _append_optional_to_seq
+                if _MAY_RE.search(sentence)
+                else _append_mandatory_to_seq
+            )
 
         # --- continuation: find the previous meaningful entry in processed ---
         prev_idx: int | None = None
@@ -1078,8 +1150,15 @@ def compile_card(
             processed.append(outcome)
             processed_sentence_idx.append(i)
             continue
-        # A generic continuation becomes its own optional step.
-        processed.append(EffectOutcome(effect=OptionalEffect(outcome.effect)))
+        # A generic continuation becomes its own step — optional when the
+        # sentence carries "may" (R11-1) or when it is an orphaned
+        # search-shuffle (anaphoric condition can never hold — the
+        # never-fires wrap is the safe encoding, prior-round decision),
+        # else appended bare/mandatory.
+        effect = outcome.effect
+        if _MAY_RE.search(sentence) or _SEARCH_SHUFFLE_TAIL_RE.match(sentence):
+            effect = OptionalEffect(effect)
+        processed.append(EffectOutcome(effect=effect))
         processed_sentence_idx.append(i)
 
     # -- Collect keywords ---------------------------------------------------

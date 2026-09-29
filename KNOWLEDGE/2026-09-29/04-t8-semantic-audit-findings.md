@@ -54,3 +54,43 @@ Round-11 gate plan: 11-A (R11-1 compiler handler + R11-3 helpers + R11-4 cards; 
 EXACTLY unchanged + per-family golden-diff attribution. If a subject fix reveals a card was
 covered by a WRONG pattern (shouldn't have matched), coverage may legitimately move — explain,
 don't suppress.
+
+## ROUND-11-A RESULTS (executed 2026-09-29, HEAD baseline 3f95fba, NOT committed)
+FIXES LANDED:
+- R11-1 compiler.py: `_MAY_RE` may-gate — an attachable continuation without "may" merges
+  MANDATORY into the previous ability (was: phantom OptionalEffect wrap); "may" sentences and
+  the search-shuffle tail (`_SEARCH_SHUFFLE_TAIL_RE`, deliberate never-fires decision) keep the
+  wrap. New `_loyalty_trailing_idx`: a trailing "[+X]/[-X] ..." text sentence merges into the
+  nearest preceding loyalty ActivatedAbility (guarded: not "[…]" cost-prefixed sentences).
+- R11-3 templates_b3.py: `_sel_battlefield_creature_you_control`, `_sel_creature_target_opponent`
+  , `_sel_target_creature_you_control`, `_sel_your_creatures` zones ANY → BATTLEFIELD/ANY
+  (only `_sel_any_target` legitimately keeps ANY/ANY).
+- R11-4a templates_b5b.py Necromentia: `QProp(THIS_WAY_COUNT)` → scoped
+  `QCount(Selector(QUnbounded, ALL, FAnd(NAME_CHOSEN, MOVED_TO_ZONE_THIS_TURN[from=HAND,
+  to=EXILE, who=TARGET_PLAYER]), EXILE/TARGET_PLAYER))`.
+- R11-4b templates_b2a.py `_treasure_token`: printed "(Tap it, sacrifice it: Add one mana of
+  any color.)" now a real ActivatedAbility (CostTap+CostSacrifice(IS_SOURCE) →
+  Atom ADD_MANA ANY 1) in TokenSpec.abilities (C23 literal-encode precedent).
+- R11-4c templates_b3.py `_build_target_cant_be_blocked`: blocked filter FAnd now includes
+  FNot(IS_SOURCE) — a creature cannot "block itself" from the source's own block-declaration.
+
+GOLDEN RE-BASELINE: write_goldens → 305 written, verify_goldens → 0 diffs. **27 files changed**
+(18 predicted + 9 unanticipated), `abilities` key ONLY in every file (audit: 0 violations vs
+allowed ⊆ {abilities}). The 9 unanticipated are all the R11-1 signature (mandatory "If you do, X."
+tail losing its phantom OptionalEffect): Sanctum of Calm Waters (1cd1e3a8), Archfiend's Vessel
+(62c240ac), Mazemind Tome (800fb917), Niambi Esteemed Speaker (91c9dbd8), Liliana's Devotee
+(b3b8c7d0), Jeskai Elder (dfbd5ad1), Dire Fleet Warmonger (ee08435b), Crypt Lurker (f0cbf361),
+Ghostly Pilferer (fe168bf1). Pre-refresh snapshot: /tmp/golden_pre_r11a_2026-09-29.
+
+GATES (all EXACT, measured 2026-09-29 via
+`.venv/bin/python -c "measure_pool(ingest_pool(MTG_bot/data/M21.json), build_full_registry(), 'M21')"`):
+PC-1 301/305 ✓ · PC-2 634/639 (0.992175) ✓ · PC-3 0 ambiguous ✓ · full suite 23 failed /
+1748 passed / 1 deselected / 2 xfailed — failure set byte-identical to clean-HEAD baseline
+(`comm` empty both directions; /tmp/opencode/head_fails.txt) → zero new failures. ruff on the 8
+touched files: 14 TRY004 = HEAD baseline, delta 0 (one new I001 from added imports was --fix
+sorted in templates_b2a.py). pyright on all 8 touched files: 0 errors.
+
+API NOTES (for future measurement scripts): `ingest_pool(path)` requires the JSON path;
+`measure_pool(pool_dict, registry, set)` — registry from `coverage.build_full_registry()` (NOT
+templates.py); report fields `sentences_matched`/`sentence_total`/`pc2_sentence_coverage`,
+`cards_zero_unparsed`/`entry_count`, `ambiguous_entries`; `QCount` count field is `.selector`.

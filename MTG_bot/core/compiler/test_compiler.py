@@ -639,7 +639,8 @@ class TestContinuation(unittest.TestCase):
         ab = _spell(res.card.abilities[0])
         steps = _seq(ab.effect)
         self.assertEqual(steps.steps[0], _draw_atom(1))
-        self.assertEqual(steps.steps[1], OptionalEffect(_draw_atom(2)))
+        # R11-1: "If you do, …" without "may" merges MANDATORILY.
+        self.assertEqual(steps.steps[1], _draw_atom(2))
 
     def test_continuation_without_previous_effect(self) -> None:
         raw = _raw_card("I", 1, sentences=("If you do, draw another.",))
@@ -647,7 +648,9 @@ class TestContinuation(unittest.TestCase):
         _draw_templates(reg)
         res = compile_card(raw, reg)
         ab = _spell(res.card.abilities[0])
-        self.assertEqual(ab.effect, OptionalEffect(_draw_atom(2)))
+        # R11-1: orphaned may-free continuation is appended bare (mandatory),
+        # not phantom-wrapped in OptionalEffect.
+        self.assertEqual(ab.effect, _draw_atom(2))
 
     def test_continuation_skips_reminder_and_merges(self) -> None:
         raw = _raw_card(
@@ -663,7 +666,8 @@ class TestContinuation(unittest.TestCase):
         ab = _spell(res.card.abilities[0])
         steps = _seq(ab.effect)
         self.assertEqual(steps.steps[0], _draw_atom(1))
-        self.assertEqual(steps.steps[1], OptionalEffect(_draw_atom(2)))
+        # R11-1: "If you do, …" without "may" merges MANDATORILY.
+        self.assertEqual(steps.steps[1], _draw_atom(2))
 
     def test_merges_into_previous_ability(self) -> None:
         raw = _raw_card(
@@ -692,11 +696,106 @@ class TestContinuation(unittest.TestCase):
         # effect is left to fold.
         self.assertEqual(
             res.card.abilities,
-            (
-                StaticAbility(
-                    effect=Seq(steps=(_draw_atom(1), OptionalEffect(_draw_atom(2))))
+            (StaticAbility(effect=Seq(steps=(_draw_atom(1), _draw_atom(2)))),),
+        )
+
+    def test_may_continuation_stays_optional(self) -> None:
+        """R11-1: a continuation carrying "may" KEEPS the OptionalEffect wrap."""
+        raw = _raw_card(
+            "I",
+            1,
+            sentences=("Draw a card.", "If you do, you may draw another."),
+        )
+        reg = TemplateRegistry()
+        _draw_templates(reg)
+        reg.register(
+            _template(
+                "cont-may-draw",
+                r"^If you do, you may draw another\.$",
+                lambda m: EffectOutcome(effect=_draw_atom(2)),
+            )
+        )
+        res = compile_card(raw, reg)
+        ab = _spell(res.card.abilities[0])
+        steps = _seq(ab.effect)
+        self.assertEqual(steps.steps[1], OptionalEffect(_draw_atom(2)))
+
+    def test_loyalty_trailing_text_merges_mandatory(self) -> None:
+        """R11-1 (Basri Ket): plain text after a loyalty bullet is that
+        ability's trailing rules text — merged into its effect, NOT orphaned
+        as a card-level SpellAbility."""
+        raw = _raw_card(
+            "P",
+            1,
+            types=("Planeswalker", "Card"),
+            loyalty_raw="3",
+            sentences=("[+1]: Draw a card.", "You draw another card."),
+        )
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "loyalty-draw",
+                r"^\[\+1\]: Draw a card\.$",
+                lambda m: AbilityOutcome(
+                    ability=ActivatedAbility(
+                        cost=Cost(parts=(CostLoyalty(1),)),
+                        effect=_draw_atom(1),
+                    )
                 ),
-            ),
+            )
+        )
+        reg.register(
+            _template(
+                "draw2",
+                r"^You draw another card\.$",
+                lambda m: EffectOutcome(effect=_draw_atom(2)),
+            )
+        )
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        self.assertEqual(len(res.card.abilities), 1)
+        ab = res.card.abilities[0]
+        if not isinstance(ab, ActivatedAbility):
+            self.fail(f"expected ActivatedAbility, got {type(ab).__name__}")
+        self.assertEqual(ab.cost, Cost(parts=(CostLoyalty(1),)))
+        self.assertEqual(ab.effect, Seq(steps=(_draw_atom(1), _draw_atom(2))))
+
+    def test_loyalty_trailing_may_stays_optional(self) -> None:
+        """R11-1: a "may" trailing sentence keeps its optional wrap."""
+        raw = _raw_card(
+            "P",
+            1,
+            types=("Planeswalker", "Card"),
+            loyalty_raw="3",
+            sentences=("[+1]: Draw a card.", "You may draw another card."),
+        )
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "loyalty-draw",
+                r"^\[\+1\]: Draw a card\.$",
+                lambda m: AbilityOutcome(
+                    ability=ActivatedAbility(
+                        cost=Cost(parts=(CostLoyalty(1),)),
+                        effect=_draw_atom(1),
+                    )
+                ),
+            )
+        )
+        reg.register(
+            _template(
+                "may-draw2",
+                r"^You may draw another card\.$",
+                lambda m: EffectOutcome(effect=_draw_atom(2)),
+            )
+        )
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        ab = res.card.abilities[0]
+        if not isinstance(ab, ActivatedAbility):
+            self.fail(f"expected ActivatedAbility, got {type(ab).__name__}")
+        self.assertEqual(
+            ab.effect, Seq(steps=(_draw_atom(1), OptionalEffect(_draw_atom(2))))
         )
 
     def test_search_shuffle_injects_inside_optional_seq(self) -> None:
@@ -1328,7 +1427,8 @@ class TestAdditionalCost(unittest.TestCase):
         ab = _spell(res.card.abilities[0])
         steps = _seq(ab.effect)
         self.assertEqual(steps.steps[0], _destroy_atom())
-        self.assertEqual(steps.steps[1], OptionalEffect(_draw_atom(2)))
+        # R11-1: "If you do, …" without "may" merges MANDATORILY.
+        self.assertEqual(steps.steps[1], _draw_atom(2))
         self.assertEqual(ab.additional_costs, (_additional_cost_sacrifice(),))
 
     def test_creature_discard_additional_cost_no_effect(self) -> None:
@@ -1909,7 +2009,8 @@ class TestChooseOpener(unittest.TestCase):
             steps.steps[0],
             Choose(count=QConst(1), options=(_draw_atom(1), _destroy_atom())),
         )
-        self.assertEqual(steps.steps[1], OptionalEffect(_draw_atom(2)))
+        # R11-1: "If you do, …" without "may" merges MANDATORILY.
+        self.assertEqual(steps.steps[1], _draw_atom(2))
 
 
 _M21_PATH = Path(__file__).resolve().parents[2] / "data" / "M21.json"

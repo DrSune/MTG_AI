@@ -1157,3 +1157,8 @@ from legacy 7/397 · PC-9 determinism: identical fingerprints across runs · PC-
 ### Environment
 Python 3.12.3 (repo .venv), torch 2.14.0+cu130 importable, 20 cores, ~10 GB RAM headroom
 (121 GB total, vLLM pool resident — keep 5-10 GB buffer; max 2 concurrent subagents, serialize below 5 GB).
+
+### Round-11-A semantic fixes (2026-09-29, uncommitted; cmd: measure_pool + full pytest, see KNOWLEDGE/2026-09-29/04 §ROUND-11-A RESULTS)
+PC-1 301/305 · PC-2 634/639 (0.992175) · PC-3 0 — all EXACTLY unchanged vs pre-fix baseline.
+Golden re-baseline: 27/305 files changed, `abilities` key only (18 predicted + 9 R11-1 fallout).
+Full suite: 23 failed / 1748 passed / 1 deselected / 2 xfailed — identical failure set to clean HEAD (23 pre-existing).

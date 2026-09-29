@@ -1617,8 +1617,10 @@ def _build_search_name_exile(m: re.Match[str]) -> SentenceOutcome:
 def _build_shuffle_then_token_per_exiled(m: re.Match[str]) -> SentenceOutcome:
     """``That player shuffles, then creates a P/T black Zombie creature
     token for each card exiled from their hand this way.`` (Necromentia
-    s3) — SHUFFLE + CREATE_TOKEN whose count is the this-way exile tally
-    (R7-5 THIS_WAY_COUNT).
+    s3) — SHUFFLE + CREATE_TOKEN.  R11-4a: the count is a scoped
+    QCount(exiled cards named <chosen> that moved HAND→EXILE under the
+    target this turn), NOT the R7-5 THIS_WAY_COUNT tally (which counted
+    graveyard/hand/library exiles alike).
     Faithful since round 8: TokenSpec.color="B" carries "black" (C-2
     repair).  Remaining lossy (verbatim): the creating player ("that
     player") has no CREATE_TOKEN controller role, so the creator is
@@ -1640,15 +1642,33 @@ def _build_shuffle_then_token_per_exiled(m: re.Match[str]) -> SentenceOutcome:
             pairs=(("zone", Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER)),)
         ),
     )
+    # R11-4a: the count is "each card exiled FROM THEIR HAND this way" —
+    # cards in the target's exile zone that carry the chosen name AND moved
+    # hand→exile this turn under the target's control.  A bare
+    # QProp(THIS_WAY_COUNT) tallied the whole search (graveyard/hand/library
+    # combined), over-creating tokens for non-hand exiles.
+    hand_exiles = Selector(
+        QUnbounded(),
+        SelectorMode.ALL,
+        FAnd(
+            children=(
+                FAtom(pred=FAtomPred.NAME_CHOSEN),
+                FAtom(
+                    pred=FAtomPred.MOVED_TO_ZONE_THIS_TURN,
+                    from_zone=Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER),
+                    to_zone=Zone(ZoneKind.EXILE, ControllerRef.TARGET_PLAYER),
+                    who=ControllerRef.TARGET_PLAYER,
+                ),
+            )
+        ),
+        Zone(kind=ZoneKind.EXILE, controller=ControllerRef.TARGET_PLAYER),
+    )
     create = Atom(
         verb=Verb.CREATE_TOKEN,
         args=AtomArgs(
             pairs=(
                 ("tokens", token),
-                (
-                    "count",
-                    QProp(referent="event", field=QPropField.THIS_WAY_COUNT),
-                ),
+                ("count", QCount(hand_exiles)),
             )
         ),
     )

@@ -26,12 +26,15 @@ import unittest
 from pathlib import Path
 
 from MTG_bot.core.ability_tree import (
+    ActivatedAbility,
     Atom,
     Choose,
     ControllerRef,
     Cost,
     CostManaColor,
     CostManaGeneric,
+    CostSacrifice,
+    CostTap,
     CounterKind,
     CounterPlacedEvent,
     CreatureDiesEvent,
@@ -1087,6 +1090,32 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIsNone(token.toughness)
         self.assertEqual(token.keywords, (Keyword.TREASURE,))
         self.assertEqual(token.type_line, "Artifact")
+        # R11-4b (C23 literal encode): the printed parenthetical
+        # "(Tap it, sacrifice it: Add one mana of any color.)" is rules text
+        # — it must ride in TokenSpec.abilities, not be dropped as reminder.
+        self.assertEqual(len(token.abilities), 1)
+        sac = token.abilities[0]
+        assert isinstance(sac, ActivatedAbility)
+        self.assertEqual(
+            sac.cost,
+            Cost(
+                parts=(
+                    CostTap(),
+                    CostSacrifice(
+                        target=Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            FAtom(pred=FAtomPred.IS_SOURCE),
+                            Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                        )
+                    ),
+                )
+            ),
+        )
+        assert isinstance(sac.effect, Atom)
+        self.assertIs(sac.effect.verb, Verb.ADD_MANA)
+        self.assertEqual(sac.effect.args.get("amount"), QConst(1))
+        self.assertEqual(sac.effect.args.get("color"), "ANY")  # R8-3/C-3
 
     def test_sabertooth_put_counter_and_untap_seq(self) -> None:
         ability = _ability(

@@ -111,12 +111,17 @@ def _sel_self() -> Selector:
 
 
 def _sel_target_creature() -> Selector:
-    """Any target creature."""
+    """Any target creature.
+
+    R11-3: TARGET-mode creature selectors live on the battlefield — a Zone
+    (ANY, ANY) here would illegally let e.g. an instant target a creature
+    card in a graveyard or library.
+    """
     return Selector(
         count=QConst(1),
         mode=SelectorMode.TARGET,
         filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-        zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 
@@ -167,7 +172,8 @@ def _sel_target_creature_flying() -> Selector:
                 FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
             )
         ),
-        zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+        # R11-3: creatures can only be targeted on the battlefield.
+        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 
@@ -226,7 +232,8 @@ def _sel_target_bird_cat_dog_goat_ox_snake() -> Selector:
                 ),
             )
         ),
-        zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+        # R11-3: creatures can only be targeted on the battlefield.
+        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 
@@ -243,7 +250,8 @@ def _sel_target_creature_with_plus1() -> Selector:
                 ),
             )
         ),
-        zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+        # R11-3: creatures can only be targeted on the battlefield.
+        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 
@@ -807,11 +815,17 @@ def _build_target_cant_be_blocked(m: re.Match[str]) -> AbilityOutcome:
     and the ``blocked`` filter also carries the printed POWER_LE bound —
     IR-faithful superset of the decision-doc sketch (which omitted the
     power cap); "another target" is IS_ANY_TARGET per the Selfless Savior
-    precedent.  Duration: this turn = DurationEot.)"""
+    precedent.  Duration: this turn = DurationEot.
+
+    R11-4c: "another target creature" EXCLUDES the ability's source — the
+    blocked-side filter carries FNot(IS_SOURCE) so Subira herself can never
+    be the restricted creature (condition stays IS_ANY_TARGET: the prevent
+    still keys on the ability target)."""
     blocked = FAnd(
         children=(
             FAtom(pred=FAtomPred.IS_ANY_TARGET),
             FAtom(pred=FAtomPred.POWER_LE, count=QConst(int(m.group("pw")))),
+            FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
         )
     )
     effect = Atom(
