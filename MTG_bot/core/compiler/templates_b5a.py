@@ -68,6 +68,7 @@ from MTG_bot.core.ability_tree import (
     Atom,
     AtomArgs,
     ActivatedAbility,
+    ActivationWindow,
     ControllerRef,
     Cost,
     CostDeltaReduceGeneric,
@@ -354,6 +355,22 @@ def _counter_unless_atom(m: re.Match[str], target_filter: Filter) -> Atom:
             )
         ),
     )
+
+
+def _build_activate_only_sorcery(m: re.Match[str]) -> SentenceOutcome:
+    """``Activate only as a sorcery.`` (Liliana's Steward s2 tail — grammar
+    round 10 b5a row, R10-1): the BARE activation-timing gate. The outcome
+    carries ONLY the R9-1 ``window`` slot; the compiler's slot-disjoint
+    attach (C25) rewrites ``timing`` on the nearest preceding
+    ActivatedAbility whose timing is still free — Steward's s1
+    ``{T}, Sacrifice this creature:`` ability built by
+    B5c-cost-sacrifice-discard, across the sentence boundary. PC-3: the
+    anchor is disjoint from the Speaker compound-gate row (that pattern
+    requires its "if you have at least N life" clause).
+
+    C16: none — the gate is a legality restriction, fully forced; the
+    activation PAY decision lives in the attached s1 ability."""
+    return ActivationGateOutcome(window=ActivationWindow.SORCERY)
 
 
 def _build_counter_unless_sps(m: re.Match[str]) -> SentenceOutcome:
@@ -1985,18 +2002,22 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_aslong_attack_despite_defender,
     ),
+    Template(
+        tid="B5a-activate-sorcery-gate",
+        name="activation gate: bare sorcery-timing window (R10-1, C25)",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^Activate only as a sorcery\.$"),
+        priority=_PRIORITY,
+        build=_build_activate_only_sorcery,
+    ),
 )
 
-# UNCOVERED — 7 normalized-key rows
+# UNCOVERED — 4 normalized-key rows
 #
 # Each row is (shape_key, reason).  shape_key is the B5a.json normalized
 # key (digits → "N").  Sorted alphabetically by shape_key.  The T4 test
 # pins this set against the SHAPES table.
 UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
-    (
-        "Activate only as a sorcery.",
-        "WITHDRAWN 9-B (R10 item): the R9-1 ActivationWindow vocabulary exists but a bare gate sentence has no timing-attach path — ActivationGateOutcome carries a condition only and the compiler's gate-attach rewrites the condition slot; a higher-priority override of the s1 ability pattern would be a second match (PC-3). R10: gate-outcome timing attachment.",
-    ),
     (
         "As long as the top card of your library is a Goblin card, this creature has all activated abilities of that card.",
         "ability-introspection family (R10): granting ALL activated abilities of a dynamically-referenced card needs a card→ability-set lookup; the conditional-static half shipped round 4 (StaticAbility.condition) and the library-top type predicate exists — only the dynamic ability-set grant is missing (Snoop, doc /11 §DEFER).",

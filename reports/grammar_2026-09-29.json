@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-09-29T03:02:59+02:00",
-  "git_head": "6cac871bdb216d8efc3bd507d1156048382e894a",
+  "generated": "2026-09-29T04:31:50+02:00",
+  "git_head": "82434f1b1d2babc83205ae194692425cba473b31",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -69,18 +69,18 @@
   "pcs": {
     "PC-1": {
       "name": "card_coverage",
-      "cards_zero_unparsed": 297,
+      "cards_zero_unparsed": 301,
       "denominator": 305,
-      "value": 0.97377,
+      "value": 0.986885,
       "target": ">=0.90",
       "stretch": ">=0.95",
       "pass": true
     },
     "PC-2": {
       "name": "sentence_coverage",
-      "sentences_matched": 630,
+      "sentences_matched": 634,
       "denominator": 639,
-      "value": 0.985915,
+      "value": 0.992175,
       "target": ">=0.95",
       "stretch": ">=0.98",
       "pass": true
@@ -107,8 +107,8 @@
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.23,
-        0.229,
+        0.232,
+        0.231,
         0.239
       ]
     },
@@ -123,12 +123,12 @@
         ]
       },
       "max_verb_share": {
-        "value": 0.092496,
+        "value": 0.093588,
         "target": "<0.20",
         "pass": true
       },
       "pass": false,
-      "atom_total": 573,
+      "atom_total": 577,
       "max_share_verb": "DRAW",
       "verb_histogram": {
         "ADD_LAND_PLAY": 1,
@@ -139,11 +139,12 @@
         "CHOOSE_NAME": 2,
         "COPY": 2,
         "COUNTER_SPELL": 6,
-        "CREATE_TOKEN": 26,
+        "CREATE_TOKEN": 27,
+        "DAMAGE_ASSIGN_POLICY": 1,
         "DEAL_DAMAGE": 31,
         "DESTROY": 14,
         "DISCARD": 17,
-        "DRAW": 53,
+        "DRAW": 54,
         "END_TURN": 1,
         "EXILE": 19,
         "EXTRA_TURN": 1,
@@ -152,7 +153,7 @@
         "GAIN_CONTROL": 2,
         "GAIN_LIFE": 33,
         "GET_EMBLEM": 3,
-        "GRANT_ABILITY": 46,
+        "GRANT_ABILITY": 47,
         "GRANT_ACTIVATION": 1,
         "GRANT_TYPE": 3,
         "LOOK_AT": 4,
@@ -243,41 +244,17 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "cbcb6d9a-6ae5-4bcd-8013-2b657553764a",
-      "name": "Mangara, the Diplomat",
-      "sentence": "Whenever an opponent attacks with creatures, if two or more of those creatures are attacking you and/or planeswalkers you control, draw a card.",
-      "bucket_hint": "triggered"
-    },
-    {
-      "oracle_id": "cc1203cb-6758-4454-b78b-341930ff4da1",
-      "name": "Liliana's Steward",
-      "sentence": "Activate only as a sorcery.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "e0df8e2a-96d2-4e4d-b065-aa2e162abbfe",
       "name": "Liliana, Waker of the Dead",
       "sentence": "Each opponent who can't loses 3 life.",
       "bucket_hint": "static"
     },
     {
-      "oracle_id": "f379fa0b-e9fc-4307-a574-a0c95e5e7f72",
-      "name": "Chrome Replicator",
-      "sentence": "When this creature enters, if you control two or more nonland, nontoken permanents with the same name as one another, create a 4/4 colorless Construct artifact creature token.",
-      "bucket_hint": "triggered"
-    },
-    {
       "oracle_id": "f5d1bd3c-0e65-4999-a810-881b2389b40e",
       "name": "Conspicuous Snoop",
       "sentence": "As long as the top card of your library is a Goblin card, this creature has all activated abilities of that card.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "fc762e40-84c1-4762-82f7-a0fc4f6fd522",
-      "name": "Garruk, Savage Herald",
-      "sentence": "[−7]: Until end of turn, creatures you control gain \"You may have this creature assign its combat damage as though it weren't blocked.\"",
-      "bucket_hint": "spell-effect"
     }
   ],
-  "unparsed_count": 9
+  "unparsed_count": 5
 }

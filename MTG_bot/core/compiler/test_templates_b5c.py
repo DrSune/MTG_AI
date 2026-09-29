@@ -277,8 +277,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     ),
     (
         '[−7]: Until end of turn, creatures you control gain "You may have this creature assign its combat damage as though it weren\'t blocked."',
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5c-loyalty-assign-as-unblocked",
     ),
     (
         '[−7]: You get an emblem with "At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control.',
@@ -575,6 +575,8 @@ EXPECTED_KIND_BY_TID["B5c-shrine-activation-cost"] = "ability:CostModifier"
 # delayed-draw activation (activated).
 EXPECTED_KIND_BY_TID["B5c-those-no-untap-next"] = "effect"
 EXPECTED_KIND_BY_TID["B5c-cost-discard-hand-delayed-draw"] = "activated"
+# grammar round 10: Garruk, Savage Herald [−N] assign-as-unblocked grant.
+EXPECTED_KIND_BY_TID["B5c-loyalty-assign-as-unblocked"] = "activated"
 
 
 # Expected LoyaltyActivation delta per loyalty template.
@@ -605,6 +607,7 @@ EXPECTED_LOYALTY_DELTA: dict[str, int] = {
     "B5c-loyalty-top-owner-library": -3,
     "B5c-loyalty-may-cast-graveyard": -2,
     "B5c-loyalty-basri-attack-counter": -1,
+    "B5c-loyalty-assign-as-unblocked": -7,
 }
 
 # Expected ordered cost-part types per cost template.
@@ -841,8 +844,8 @@ def _find_atom(node: Any, pred: FAtomPred) -> Any:
 class TestB5cInventory(unittest.TestCase):
     """Verify the B5c template collection is well-formed."""
 
-    def test_86_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 86)
+    def test_87_templates(self) -> None:
+        self.assertEqual(len(TEMPLATES), 87)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -857,10 +860,10 @@ class TestB5cInventory(unittest.TestCase):
             self.assertEqual(t.priority, 100, f"{t.tid} has priority {t.priority}")
 
     def test_registry_accepts_all(self) -> None:
-        self.assertEqual(len(_REG), 86)
+        self.assertEqual(len(_REG), 87)
 
-    def test_uncovered_has_2_rows(self) -> None:
-        self.assertEqual(len(UNCOVERED), 2)
+    def test_uncovered_has_1_row(self) -> None:
+        self.assertEqual(len(UNCOVERED), 1)
 
 
 # ---------------------------------------------------------------------------
@@ -882,17 +885,17 @@ class TestB5cShapeTable(unittest.TestCase):
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
         rr = sum(1 for s in SHAPES if s[1] == "RR")
-        self.assertEqual(covered, 89, f"COVERED count {covered} != 89")
-        self.assertEqual(uncov, 2, f"UNCOV count {uncov} != 2")
+        self.assertEqual(covered, 90, f"COVERED count {covered} != 90")
+        self.assertEqual(uncov, 1, f"UNCOV count {uncov} != 1")
         self.assertEqual(rr, 0, f"B5c has no rule-reminder shapes, got {rr}")
 
-    def test_covered_tids_valid_and_unique_86(self) -> None:
+    def test_covered_tids_valid_and_unique_87(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
             len(unique_tids),
-            86,
-            f"expected 86 unique tids, got {len(unique_tids)}",
+            87,
+            f"expected 87 unique tids, got {len(unique_tids)}",
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5c-"), f"bad tid: {tid}")
@@ -976,7 +979,7 @@ class TestB5cOutcomeKind(unittest.TestCase):
     def test_kind_table_is_complete(self) -> None:
         covered_tids = {t for _s, c, t in SHAPES if c == "COVERED"}
         self.assertEqual(set(EXPECTED_KIND_BY_TID), covered_tids)
-        self.assertEqual(len(EXPECTED_KIND_BY_TID), 86)
+        self.assertEqual(len(EXPECTED_KIND_BY_TID), 87)
 
     def test_all_kinds_match(self) -> None:
         for tid, expected in EXPECTED_KIND_BY_TID.items():
@@ -992,7 +995,7 @@ class TestB5cOutcomeKind(unittest.TestCase):
         self.assertEqual(kinds.count("effect"), 28)
         self.assertEqual(kinds.count("keyword"), 5)
         self.assertEqual(kinds.count("static"), 1)
-        self.assertEqual(kinds.count("activated"), 50)
+        self.assertEqual(kinds.count("activated"), 51)
         self.assertEqual(kinds.count("ability:EtBState"), 1)
         self.assertEqual(kinds.count("ability:CostModifier"), 1)
 
@@ -1538,8 +1541,8 @@ class TestB5cCanonicalStability(unittest.TestCase):
             seen.add(tid)
         self.assertEqual(
             len(seen),
-            86,
-            f"only {len(seen)} unique tids tested, expected 86",
+            87,
+            f"only {len(seen)} unique tids tested, expected 87",
         )
 
 
@@ -1595,7 +1598,7 @@ class TestB5cJsonCrossCheck(unittest.TestCase):
             for k, pairs in self.json_data.items()
             if any(_REG.match(sent) for _c, sent in pairs)
         }
-        self.assertEqual(len(covered), 88)
+        self.assertEqual(len(covered), 89)
 
 
 class TestB5cRound7BTopUps(unittest.TestCase):
@@ -1741,3 +1744,50 @@ class TestB5cRound9B(unittest.TestCase):
             dict(draw.args.pairs),
             {"controller": ControllerRef.YOU, "amount": QConst(1)},
         )
+
+
+# ---------------------------------------------------------------------------
+# Round 10 structural pins (doc 2026-09-29/02 §phase-10-B row 4)
+# ---------------------------------------------------------------------------
+
+
+class TestB5cRound10Herald(unittest.TestCase):
+    """R10: Garruk, Savage Herald [−N] — the embedded quoted ability text
+    "You may have this creature assign its combat damage as though it
+    weren't blocked." lands as GRANT_ABILITY over creatures you control
+    of StaticAbility(OptionalEffect(Atom(DAMAGE_ASSIGN_POLICY,
+    scope=AS_UNBLOCKED))), DurationEot riding the GRANT (R10-4/C28)."""
+
+    def test_grant_structure(self) -> None:
+        outcome = _match_outcome("B5c-loyalty-assign-as-unblocked")
+        ability = _activated_ability(outcome)
+        (cost_part,) = ability.cost.parts
+        loyalty = _as_cost_loyalty(cost_part)
+        self.assertEqual(loyalty.delta, -7)
+        atom = _as_atom(ability.effect)
+        self.assertIs(atom.verb, Verb.GRANT_ABILITY)
+        pairs = _pairs(atom)
+        # target: ALL creatures you control on the battlefield
+        target = pairs["target"]
+        assert isinstance(target, Selector)
+        self.assertIs(target.mode, SelectorMode.ALL)
+        self.assertIsInstance(target.count, QUnbounded)
+        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
+        assert isinstance(target.filter, FAnd)
+        kind_a, controller_a = target.filter.children
+        assert isinstance(kind_a, FAtom) and isinstance(controller_a, FAtom)
+        self.assertEqual(kind_a.string_value, "Creature")
+        self.assertIs(controller_a.pred, FAtomPred.CONTROLLER_IS)
+        self.assertIs(controller_a.who, ControllerRef.YOU)
+        # granted ability: continuous static, "You may" as its OWN
+        # OptionalEffect layer outside the policy atom (C28)
+        granted = pairs["ability"]
+        assert isinstance(granted, StaticAbility)
+        self.assertIsNone(granted.condition)
+        optional = granted.effect
+        assert isinstance(optional, OptionalEffect)
+        policy = _as_atom(optional.inner)
+        self.assertIs(policy.verb, Verb.DAMAGE_ASSIGN_POLICY)
+        self.assertEqual(dict(policy.args.pairs), {"scope": "AS_UNBLOCKED"})
+        # duration rides the GRANT atom, not the granted static (Basri)
+        self.assertEqual(pairs["duration"], DurationEot())

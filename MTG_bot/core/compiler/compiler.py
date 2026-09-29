@@ -1133,8 +1133,8 @@ def compile_card(
     # card's ActivatedAbility rather than a sentence of their own.  Collected
     # from ``outcomes`` (strictly sentence-aligned) rather than ``processed``
     # (whose indices can drift after consumed continuations).
-    activation_gates: list[tuple[int, Filter]] = [
-        (i, outcome.condition)
+    activation_gates: list[tuple[int, ActivationGateOutcome]] = [
+        (i, outcome)
         for i, outcome in enumerate(outcomes)
         if isinstance(outcome, ActivationGateOutcome)
     ]
@@ -1282,31 +1282,40 @@ def compile_card(
             ]
 
     # -- Attach activation gates ---------------------------------------------
-    # Each "Activate only if ..." gate binds its condition to the nearest
-    # preceding unconditional ActivatedAbility (source sentence index).
-    # Gates are processed in sentence order; once an ability has received a
-    # condition it no longer qualifies, so N gates pair with the N
-    # preceding abilities in order.
-    for gate_src, gate_condition in activation_gates:
+    # Each gate binds its slots (window and/or condition) slot-disjointly
+    # (R10-1, C25) to the nearest preceding ActivatedAbility (source
+    # sentence index) whose targeted slot(s) are still free: a window slot
+    # requires ``timing is None`` (R9-1, C20), a condition slot requires
+    # ``condition is None``; a gate carrying BOTH (Speaker's compound)
+    # attaches both. Gates are processed in sentence order; once an
+    # ability's needed slot is filled it no longer qualifies for a later
+    # gate wanting that slot.
+    for gate_src, gate in activation_gates:
         candidates = [
             (src, j)
             for j, (ab, src) in enumerate(zip(abilities, ability_srcs))
             if src < gate_src
             and isinstance(ab, ActivatedAbility)
-            and ab.condition is None
+            and (gate.window is None or ab.timing is None)
+            and (gate.condition is None or ab.condition is None)
         ]
         if not candidates:
             raise StateCorruptionError(
                 "compile_card: activation-gate sentence matched but no "
-                "preceding unconditional ActivatedAbility exists to "
-                f"attach it to (gate: {raw.sentences[gate_src]!r})",
+                "preceding ActivatedAbility with the gate's target slot(s) "
+                f"free exists to attach it to (gate: {raw.sentences[gate_src]!r})",
                 context={
                     "oracle_id": raw.identity.oracle_id,
                     "name": raw.identity.name,
                 },
             )
         _, target = max(candidates)
-        abilities[target] = replace(abilities[target], condition=gate_condition)
+        updates = {}
+        if gate.window is not None:
+            updates["timing"] = gate.window
+        if gate.condition is not None:
+            updates["condition"] = gate.condition
+        abilities[target] = replace(abilities[target], **updates)
 
     # -- Build CardRecord ----------------------------------------------------
     card = CardRecord(

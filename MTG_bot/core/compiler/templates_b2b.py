@@ -2114,6 +2114,78 @@ def _build_kraken_do_tap_or_untap(m: re.Match[str]) -> SentenceOutcome:
 # Templates
 # ---------------------------------------------------------------------------
 
+
+def _you_or_your_planeswalkers() -> FOr:
+    """Filter matching the attacked-side object "you and/or planeswalkers
+    you control" (grammar round 10, R10-3, Mangara).  Limb 1 is the
+    defending player "you": CONTROLLER_IS who=YOU reads player-self
+    (the executor evaluates an object's controller against ``who``; a
+    player matches themself — the same self-controller reading the
+    DRAW/EXILE controller roles use).  Limb 2 is the explicit
+    planeswalker-you-control conjunct from the surface text; it is a
+    subset of limb 1 by that reading but kept as its own FOr branch so
+    the two surface limbs stay distinct in the tree (a future executor
+    may distinguish player-attacks from planeswalker-attacks)."""
+    return FOr(
+        children=(
+            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
+                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                )
+            ),
+        )
+    )
+
+
+def _build_mangara_attackers_draw(m: re.Match[str]) -> SentenceOutcome:
+    """``Whenever an opponent attacks with creatures, if two or more of
+    those creatures are attacking you and/or planeswalkers you control,
+    draw a card.`` (Mangara, the Diplomat — grammar round 10 b2b row,
+    R10-3).
+
+    Trigger anchor: DeclareAttackersEvent (b2b's own set-level anchor,
+    the "attacks with creatures" reading) with filter = opponent's
+    creatures (TYPE_EQ Creature + CONTROLLER_IS OPPONENT — per-opponent
+    declaration events) and the R10-3 ``attacked`` slot carrying
+    :func:`_you_or_your_planeswalkers` — the slot narrows the ATTACKED
+    object per attacker (twin of R6-4 blocked).  The "if" rides the
+    TriggeredAbility.condition slot with
+    ``ATTACK_AGAINST_COUNT_GE`` (inner_filter = the same attacked-side
+    composition, count=2): it counts the EVENT's declared attackers
+    whose attacked object passes the filter — set-level, reads the
+    declared-attackers record (LIFE_LEAD vocabulary-first precedent).
+
+    C16: none — fully forced (no may, no choice, no targets; the second
+    spell trigger of the card is a separate already-covered row)."""
+    return _ability(
+        DeclareAttackersEvent(
+            filter=FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
+                )
+            ),
+            attacked=_you_or_your_planeswalkers(),
+        ),
+        Atom(
+            verb=Verb.DRAW,
+            args=AtomArgs(
+                pairs=(
+                    ("controller", ControllerRef.YOU),
+                    ("amount", QConst(1)),
+                )
+            ),
+        ),
+        condition=FAtom(
+            pred=FAtomPred.ATTACK_AGAINST_COUNT_GE,
+            inner_filter=_you_or_your_planeswalkers(),
+            count=QConst(2),
+        ),
+    )
+
+
 TEMPLATES: Final[tuple[Template, ...]] = (
     _template(
         "B2b-alpine-houndmaster-etb",
@@ -2612,6 +2684,16 @@ TEMPLATES: Final[tuple[Template, ...]] = (
         _exact("When you do, you may tap or untap target creature."),
         _build_kraken_do_tap_or_untap,
     ),
+    _template(
+        "B2b-attackers-against-me-draw",
+        "Mangara, the Diplomat",
+        re.compile(
+            r"^Whenever an opponent attacks with creatures, if two or "
+            r"more of those creatures are attacking you and/or "
+            r"planeswalkers you control, draw a card\.$"
+        ),
+        _build_mangara_attackers_draw,
+    ),
 )
 
 
@@ -2620,13 +2702,6 @@ TEMPLATES: Final[tuple[Template, ...]] = (
 # ---------------------------------------------------------------------------
 
 UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
-    (
-        (
-            "Whenever an opponent attacks with creatures, if two or more of those creatures "
-            "are attacking you and/or planeswalkers you control, draw a card."
-        ),
-        "Set-level 'two or more of those creatures' condition not expressible.",
-    ),
     (
         "Whenever this creature attacks or blocks, choose one —",
         (

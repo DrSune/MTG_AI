@@ -1,9 +1,9 @@
 """Tests for B5a bucket templates (templates_b5a.py).
 
 Covers all 90 shapes in ``/tmp/opencode/phase1_buckets/B5a.json``:
-- 60 template-covered (56 templates; B5a-land-add matches 5 basic-land shapes)
+- 63 template-covered (59 templates; B5a-land-add matches 5 basic-land shapes)
 - 23 rule-reminder pre-consumed by the compiler
-- 5 UNCOVERED (no expressible/attachable construct; recorded in UNCOVERED and pinned)
+- 4 UNCOVERED (no expressible/attachable construct; recorded in UNCOVERED and pinned)
 
 PC-3: every concrete sentence fullmatches at most one template.
 """
@@ -19,6 +19,7 @@ from typing import Any
 
 from MTG_bot.core.ability_tree import (
     ActivatedAbility,
+    ActivationWindow,
     Atom,
     AtomArgs,
     ControllerRef,
@@ -79,6 +80,7 @@ from MTG_bot.core.compiler.templates import (
     TemplateRegistry,
 )
 from MTG_bot.core.compiler.templates_b5a import TEMPLATES, UNCOVERED
+from MTG_bot.core.compiler.templates_b5c import TEMPLATES as B5C_TEMPLATES
 from MTG_bot.core.identity import CardIdentity
 
 
@@ -206,7 +208,7 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 28
     ("({T}: Add {W}.)", "COVERED", "B5a-land-add"),
     # shape 29
-    ("Activate only as a sorcery.", "UNCOV", ""),
+    ("Activate only as a sorcery.", "COVERED", "B5a-activate-sorcery-gate"),
     # shape 30
     (
         "Activate only if a creature died this turn.",
@@ -615,7 +617,7 @@ class TestTemplateInventory(unittest.TestCase):
     """Verify the B5a template collection is well-formed."""
 
     def test_56_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 58)
+        self.assertEqual(len(TEMPLATES), 59)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -631,7 +633,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 58)
+        self.assertEqual(len(reg), 59)
 
 
 # ---------------------------------------------------------------------------
@@ -654,14 +656,14 @@ class TestShapeTable(unittest.TestCase):
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
         self.assertEqual(rr, 23, f"RR count {rr} != 23")
-        self.assertEqual(covered, 62, f"COVERED count {covered} != 62")
-        self.assertEqual(uncov, 5, f"UNCOV count {uncov} != 5")
+        self.assertEqual(covered, 63, f"COVERED count {covered} != 63")
+        self.assertEqual(uncov, 4, f"UNCOV count {uncov} != 4")
 
     def test_covered_tids_valid_and_unique_58(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
-            len(unique_tids), 58, f"expected 58 unique tids, got {len(unique_tids)}"
+            len(unique_tids), 59, f"expected 59 unique tids, got {len(unique_tids)}"
         )
         # All tids start with B5a-
         for tid in unique_tids:
@@ -691,7 +693,7 @@ class TestUncovered(unittest.TestCase):
     """Verify the UNCOVERED attribute is well-formed and pinned to SHAPES."""
 
     def test_7_rows(self) -> None:
-        self.assertEqual(len(UNCOVERED), 5)
+        self.assertEqual(len(UNCOVERED), 4)
 
     def test_unique_sorted_keys(self) -> None:
         keys = [k for k, _ in UNCOVERED]
@@ -1784,7 +1786,7 @@ class TestCanonicalStability(unittest.TestCase):
                 f"canonical instability for {tid} ({sent[:40]})",
             )
             seen.add(tid)
-        self.assertEqual(len(seen), 58, f"only {len(seen)} unique tids tested")
+        self.assertEqual(len(seen), 59, f"only {len(seen)} unique tids tested")
 
 
 # ---------------------------------------------------------------------------
@@ -1896,10 +1898,16 @@ class TestEndToEndCompile(unittest.TestCase):
         self.assertEqual(len(result.card.abilities), 0)
         self.assertEqual(len(result.unparsed), 0)
 
-    def test_seasoned_hallowblade_creature(self) -> None:
-        """Seasoned Hallowblade: covered + uncovered → ActivatedAbility + 1 unparsed."""
+    def test_sorcery_gate_attach_probe(self) -> None:
+        """Synthetic cross-bucket attach probe (round 10): a b5a discard
+        activation (B5a-discard-tap) + the B5a gate row tail attaches
+        timing=SORCERY to the s1 ActivatedAbility via the R10-1 C25 slot-
+        disjoint attach.  Purely synthetic sentences — the real M21 Seasoned
+        Hallowblade has no activation-window tail (earlier round-10 note
+        wrongly attributed one to it; the real pool instance of this shape
+        is Liliana's Steward, pinned by test_steward_e2e_cross_bucket_attach)."""
         raw = _raw(
-            "Seasoned Hallowblade",
+            "Sorcery-Gate Attach Probe",
             (
                 "Discard a card: Tap this creature.",
                 "Activate only as a sorcery.",
@@ -1913,12 +1921,12 @@ class TestEndToEndCompile(unittest.TestCase):
             toughness_raw="2",
         )
         result = compile_card(raw, self.reg)
-        # One activated ability from the covered sentence
+        # One activated ability, gate-attached, nothing unparsed
         self.assertEqual(len(result.card.abilities), 1)
-        self.assertIsInstance(result.card.abilities[0], ActivatedAbility)
-        # One unparsed (the speed restriction)
-        self.assertEqual(len(result.unparsed), 1)
-        self.assertEqual(result.unparsed[0][0], "Activate only as a sorcery.")
+        ab = result.card.abilities[0]
+        assert isinstance(ab, ActivatedAbility)
+        self.assertIs(ab.timing, ActivationWindow.SORCERY)
+        self.assertEqual(len(result.unparsed), 0)
         self.assertEqual(len(result.rule_reminders), 0)
 
     def test_cancel_counter_spell(self) -> None:
@@ -2150,8 +2158,71 @@ class TestB5aRound9BStructures(unittest.TestCase):
         self.assertIs(target.mode, SelectorMode.CHOOSE)
         self.assertEqual(pairs["duration"], DurationWhileCondition(filter=cond))
 
-    def test_pc3_steward_tail_still_unmatched(self) -> None:
-        """WITHDRAWN row: the bare "Activate only as a sorcery." tail must
-        NOT match the Speaker gate (no partial-sentence fullmatch)."""
+    def test_pc3_steward_tail_disjoint_from_speaker(self) -> None:
+        """Round 10 (R10-1): the bare "Activate only as a sorcery." tail
+        landed as B5a-activate-sorcery-gate and the Speaker compound gate
+        keeps its own anchor — each sentence matches EXACTLY one row."""
         matches = self.reg.match("Activate only as a sorcery.")
-        self.assertEqual(len(matches), 0)
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0].template.tid, "B5a-activate-sorcery-gate")
+        speaker = self.reg.match(
+            "Activate only if you have at least 7 life more than your "
+            "starting life total and only as a sorcery."
+        )
+        self.assertEqual(len(speaker), 1)
+        self.assertEqual(speaker[0].template.tid, "B5a-speaker-gate")
+
+
+# ---------------------------------------------------------------------------
+# Round-10 batch row (R10-1): bare activation-timing gate (Steward)
+# ---------------------------------------------------------------------------
+
+
+class TestB5aRound10Structures(unittest.TestCase):
+    """Round 10: B5a-activate-sorcery-gate — window-only gate outcome."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.reg = _make_registry()
+
+    def _match_one(self, sent: str) -> SentenceOutcome:
+        matches = self.reg.match(sent)
+        self.assertEqual(len(matches), 1, f"expected 1 match: {sent!r}")
+        return matches[0].outcome
+
+    def test_sorcery_gate_shape(self) -> None:
+        """B5a-activate-sorcery-gate: ActivationGateOutcome(window=SORCERY),
+        condition None — the compiler's C25 attach fills ``timing`` only
+        (C20), leaving the s1 condition slot untouched."""
+        outcome = self._match_one("Activate only as a sorcery.")
+        assert isinstance(outcome, ActivationGateOutcome)
+        self.assertIs(outcome.window, ActivationWindow.SORCERY)
+        self.assertIsNone(outcome.condition)
+
+    def test_steward_e2e_cross_bucket_attach(self) -> None:
+        """End-to-end Steward merge: s1 lands via the B5c sacrifice row,
+        the s2 gate tail via this bucket's row, and compile_card attaches
+        ``timing=SORCERY`` across the sentence AND bucket boundary."""
+        reg = _make_registry()
+        for t in B5C_TEMPLATES:
+            reg.register(t)
+        raw = _raw(
+            "Liliana's Steward",
+            (
+                "{T}, Sacrifice this creature: Target opponent discards a card.",
+                "Activate only as a sorcery.",
+            ),
+            types=("Creature",),
+            subtypes=("Human", "Soldier"),
+            colors=("B",),
+            power_raw="2",
+            toughness_raw="3",
+        )
+        result = compile_card(raw, reg)
+        self.assertEqual(len(result.unparsed), 0)
+        self.assertEqual(len(result.ambiguities), 0)
+        self.assertEqual(len(result.card.abilities), 1)
+        ab = result.card.abilities[0]
+        assert isinstance(ab, ActivatedAbility)
+        self.assertIs(ab.timing, ActivationWindow.SORCERY)
+        self.assertIsNone(ab.condition)

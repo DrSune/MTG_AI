@@ -12,9 +12,9 @@ registry end-to-end with concrete oracle sentences and assert the exact IR each
 template produces.
 
 Pinned bucket facts (measured against /tmp/opencode/phase1_buckets/B2a.json):
-62 shapes, 66 occurrences, 59 covered shapes, 63 matched occurrences, and the
-59 templates in ``templates_b2a.TEMPLATES`` (with 3 declared UNCOVERED shapes;
-the grammar round-7 batch landed Kinetic Augur and Idol of Endurance).
+62 shapes, 66 occurrences, 61 covered shapes, 65 matched occurrences, and the
+61 templates in ``templates_b2a.TEMPLATES`` (with 1 declared UNCOVERED shape;
+grammar round 10 landed the Chrome Replicator name-partition ETB row).
 The bucket priority is 50 (NOT the 100 used by B1/B3/B4): this is documented in
 ``templates_b2a`` and pinned here.
 """
@@ -324,6 +324,10 @@ EXPECTED: dict[str, tuple[str, str]] = {
         "B2a-barrin-end-step",
         "Barrin, Tolarian Archmage End Step",
     ),
+    "When this creature enters, if you control two or more nonland, nontoken permanents with the same name as one another, create a N/N colorless Construct artifact creature token.": (
+        "B2a-etb-same-name-token",
+        "Chrome Replicator",
+    ),
 }
 
 
@@ -544,8 +548,8 @@ class TestB2aCoverage(unittest.TestCase):
         self.assertEqual(total, 66)
 
     def test_public_api_counts(self) -> None:
-        self.assertEqual(len(templates_b2a.TEMPLATES), 60)
-        self.assertEqual(len(templates_b2a.UNCOVERED), 2)
+        self.assertEqual(len(templates_b2a.TEMPLATES), 61)
+        self.assertEqual(len(templates_b2a.UNCOVERED), 1)
 
     def test_bucket_labels_b2a(self) -> None:
         for template in templates_b2a.TEMPLATES:
@@ -572,8 +576,8 @@ class TestB2aCoverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 60)
-        self.assertEqual(matched_occurrences, 64)
+        self.assertEqual(covered_shapes, 61)
+        self.assertEqual(matched_occurrences, 65)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -595,7 +599,7 @@ class TestB2aCoverage(unittest.TestCase):
             if any(self.reg.match(sentence) for _card, sentence in entries):
                 covered.add(shape_key)
         self.assertEqual(set(EXPECTED), covered)
-        self.assertEqual(len(EXPECTED), 60)
+        self.assertEqual(len(EXPECTED), 61)
 
     def test_expected_table_matches_registry(self) -> None:
         for shape_key, (tid, name) in EXPECTED.items():
@@ -2026,6 +2030,57 @@ class TestB2aRound9BWhaleToken(unittest.TestCase):
         cards = a_pairs["cards"]
         assert isinstance(cards, Selector)
         self.assertIs(cards.mode, SelectorMode.ALL)
+
+
+class TestB2aRound10Chrome(unittest.TestCase):
+    """Round 10 row 2 (R10-2, C26): Chrome Replicator — the name-partition
+    count predicate replaces the retired "no pairwise name-equality
+    predicate" diagnosis; the executor groups by EXACT name."""
+
+    SENTENCE = (
+        "When this creature enters, if you control two or more nonland, "
+        "nontoken permanents with the same name as one another, create a "
+        "4/4 colorless Construct artifact creature token."
+    )
+
+    def setUp(self) -> None:
+        self.reg = _registry()
+
+    def test_chrome_structure(self) -> None:
+        m = _single_match(self.reg, self.SENTENCE)
+        self.assertEqual(m.template.tid, "B2a-etb-same-name-token")
+        ability = _ability(m)
+        # ETB event, house shape
+        event = ability.event
+        assert isinstance(event, ZoneChangeEvent)
+        self.assertEqual(event.to_zone.kind, ZoneKind.BATTLEFIELD)
+        # condition: NAME_PARTITION_COUNT_GE(inner=nonland & nontoken, 2)
+        cond = ability.condition
+        assert isinstance(cond, FAtom)
+        self.assertIs(cond.pred, FAtomPred.NAME_PARTITION_COUNT_GE)
+        self.assertEqual(cond.count, QConst(2))
+        inner = cond.inner_filter
+        assert isinstance(inner, FAnd)
+        not_land, not_token = inner.children
+        assert isinstance(not_land, FNot) and isinstance(not_token, FNot)
+        assert isinstance(not_land.inner, FAtom)
+        self.assertEqual(not_land.inner.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(not_land.inner.string_value, "Land")
+        assert isinstance(not_token.inner, FAtom)
+        self.assertEqual(not_token.inner.pred, FAtomPred.IS_TOKEN)
+        # effect: CREATE_TOKEN 4/4 colorless Construct artifact
+        create = _atom(ability)
+        self.assertIs(create.verb, Verb.CREATE_TOKEN)
+        pairs = dict(create.args.pairs)
+        self.assertEqual(pairs["count"], QConst(1))
+        token = pairs["tokens"]
+        assert isinstance(token, TokenSpec)
+        self.assertEqual(token.name, "Construct")
+        self.assertEqual(token.types, ("Artifact", "Creature"))
+        self.assertEqual(token.subtypes, ("Construct",))
+        self.assertEqual(token.power, QConst(4))
+        self.assertEqual(token.toughness, QConst(4))
+        self.assertIsNone(token.color)  # colorless = None (Treasure precedent)
 
 
 if __name__ == "__main__":

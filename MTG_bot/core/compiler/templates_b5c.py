@@ -2615,6 +2615,47 @@ def _build_subira_delayed_draw(m: re.Match[str]) -> SentenceOutcome:
     )
 
 
+def _build_herald_assign_as_unblocked(m: re.Match[str]) -> SentenceOutcome:
+    """``[−7]: Until end of turn, creatures you control gain "You may have
+    this creature assign its combat damage as though it weren't blocked."``
+    (Garruk, Savage Herald — grammar round 10 b5c row, R10-4/C28).
+
+    The quoted embedded ability text is a continuous static:
+    ``GRANT_ABILITY(target=creatures you control, ability=StaticAbility(
+    OptionalEffect(Atom(DAMAGE_ASSIGN_POLICY, scope=AS_UNBLOCKED))),
+    duration=DurationEot)`` — the C28 reading keeps the surface "You may"
+    OUTSIDE the atom (OptionalEffect layer, mirror of the MANA_POLICY
+    "may spend" reading) while ``DurationEot`` rides the GRANT itself
+    (Basri precedent: duration on the grant atom, not the granted
+    ability).  The policy verb's executor is deferred per the
+    MANA_POLICY / ADD_LAND_PLAY orphan precedent; the grammar side is
+    complete.
+
+    C16: open — the [−N] loyalty activation is the single decision
+    vertex (no inner may/target beyond the granted optional policy)."""
+    granted = StaticAbility(
+        effect=OptionalEffect(
+            inner=Atom(
+                verb=Verb.DAMAGE_ASSIGN_POLICY,
+                args=AtomArgs(pairs=(("scope", "AS_UNBLOCKED"),)),
+            )
+        )
+    )
+    return _loyalty_wrapper(
+        Atom(
+            verb=Verb.GRANT_ABILITY,
+            args=AtomArgs(
+                pairs=(
+                    ("target", _creatures_you_control()),
+                    ("ability", granted),
+                    ("duration", DurationEot()),
+                )
+            ),
+        ),
+        m,
+    )
+
+
 TEMPLATES: tuple[Template, ...] = (
     # --- MISC (13) ---
     Template(
@@ -3480,20 +3521,29 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_subira_delayed_draw,
     ),
+    # --- grammar round-10 coverage batch (doc 2026-09-29/02 §phase-10-B row 4) ---
+    Template(
+        tid="B5c-loyalty-assign-as-unblocked",
+        name="creatures you control may assign damage as though unblocked (R10-4/C28)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^\[(?P<loy>\+\d+|\u2212\d+)\]: Until end of turn, creatures "
+            r"you control gain \"You may have this creature assign its "
+            r"combat damage as though it weren't blocked\.\"$"
+        ),
+        priority=_PRIORITY,
+        build=_build_herald_assign_as_unblocked,
+    ),
 )
 
 
 # ---------------------------------------------------------------------------
-# UNCOVERED — 2 normalized-key rows
+# UNCOVERED — 1 normalized-key row
 # ---------------------------------------------------------------------------
 
 UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         "Until the end of your next turn, they can't phase in.",
         "Phase-in prevention (compiler built-in; merged into preceding loyalty activation)",
-    ),
-    (
-        '[−N]: Until end of turn, creatures you control gain "You may have this creature assign its combat damage as though it weren\'t blocked."',
-        "No embedded replacement ability text",
     ),
 )

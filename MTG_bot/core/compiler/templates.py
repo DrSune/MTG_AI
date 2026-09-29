@@ -24,6 +24,7 @@ from typing import Union
 
 from MTG_bot.core.ability_tree import (
     Ability,
+    ActivationWindow,
     Cost,
     Effect,
     Filter,
@@ -103,15 +104,28 @@ class AdditionalCostOutcome:
 
 @dataclass(frozen=True)
 class ActivationGateOutcome:
-    """An activation-gate sentence: "Activate only if <condition>."
+    """An activation-gate sentence: "Activate only if <condition>." or
+    "Activate only as a sorcery." (grammar round 10, R10-1).
 
     The gate carries no ability or effect of its own — the compiler
-    attaches ``condition`` to the nearest preceding unconditional
-    ``ActivatedAbility`` during assembly (StateCorruptionError if none
-    exists).
+    attaches its slots to the nearest preceding ``ActivatedAbility``
+    during assembly, slot-disjointly (convention C25): a ``window``
+    candidate must still have ``timing is None`` (R9-1, C20), a
+    ``condition`` candidate must still have ``condition is None``, and a
+    gate setting BOTH (Speaker's compound "only if … and only as a
+    sorcery") requires both slots free. StateCorruptionError when
+    nothing attachable remains. A both-None gate is a template bug and
+    is rejected here.
     """
 
-    condition: Filter
+    window: ActivationWindow | None = None
+    condition: Filter | None = None
+
+    def __post_init__(self) -> None:
+        if self.window is None and self.condition is None:
+            raise ValueError(
+                "ActivationGateOutcome: at least one of window/condition must be set"
+            )
 
 
 SentenceOutcome = Union[

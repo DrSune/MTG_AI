@@ -106,9 +106,11 @@ def main() -> None:
     # Pinned counts are re-measured every time the template modules change
     # (these drift as templates land; see KNOWLEDGE entries for each bump).
     assert len(b1_keys) == 15, f"B1 pattern keys={len(b1_keys)}"
-    assert len(b2a_keys) == 60, (
+    assert len(b2a_keys) == 61, (
         f"B2a pattern keys={len(b2a_keys)}"
-    )  # 2026-09-29 r9-B: Pursued Whale per-opponent Pirate-token row landed
+    )  # 2026-09-29 r10: Chrome Replicator same-name partition ETB landed
+    # (doc 2026-09-29/02): keys 60->61, UNCOVERED prune 2->1, bucket 62.
+    # 2026-09-29 r9-B: Pursued Whale per-opponent Pirate-token row landed
     # (C23, doc 2026-09-28/11): keys 59->60, UNCOVERED prune 3->2, bucket 62.
     # 2026-09-26: was 54 (2026-09-24); round-4 batch (6a267cd) added 3 b2a
     # patterns: keys 54->57 while its UNCOVERED prune 8->5 kept the bucket at 62.

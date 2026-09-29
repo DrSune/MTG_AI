@@ -449,3 +449,8 @@
 - **unittest assertIsInstance does not narrow for pyright.** Test files in core/compiler are
   pyright-clean at HEAD; use `assert isinstance(...)` before attribute access on union-typed
   IR nodes in new test classes. (2026-09-29 r9-B.)
+- **Verify the corpus text before declaring a measurement deviation.** Round-9 notes predicted
+  PC-1 would miss by 1 because Seasoned Hallowblade "carries an Activate-only-as-a-sorcery tail";
+  the actual M21 oracle text in the corpus has **no such tail** and PC-1 hit the binding
+  prediction exactly (301/305). Grep the real card JSON in `MTG_bot/core/golden/M21/` (or the
+  ingest corpus) before attributing a coverage delta to a phantom shape. (2026-09-29 r10.)

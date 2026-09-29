@@ -159,6 +159,14 @@ _ANY_COLOR = "ANY"
 # mana as though it were mana of any color"). Validated in
 # AtomArgs.__post_init__ like the "color" role.
 _MANA_POLICY_SCOPES = ("THIS_MANA", "ALL_YOURS")
+# _DAMAGE_ASSIGN_SCOPES (grammar round 10, R10-4, C28): the
+# DAMAGE_ASSIGN_POLICY "scope" role vocabulary — AS_UNBLOCKED is the
+# "assign its combat damage as though it weren't blocked" policy (Garruk,
+# Savage Herald's [−7]). MANA_POLICY twin: an AtomArgs-carried closed
+# vocabulary, NO _SPECS field. AtomArgs validates against the union of
+# all scope vocabularies; the per-verb vocabulary is enforced on the
+# enclosing Atom (_SCOPE_VOCAB_BY_VERB).
+_DAMAGE_ASSIGN_SCOPES = ("AS_UNBLOCKED",)
 
 
 # ---- Closed vocabularies (enums) ----
@@ -264,6 +272,16 @@ class Verb(Enum):
     # optional ActivationWindow the extra activation joins. Executor
     # deferred per the GRANT_ABILITY-adjacent orphan precedent.
     GRANT_ACTIVATION = "GRANT_ACTIVATION"
+    # DAMAGE_ASSIGN_POLICY (grammar round 10, R10-4, C28): combat-damage
+    # assignment-policy verbs — "You may have this creature assign its
+    # combat damage as though it weren't blocked." (Garruk, Savage Herald
+    # [−7], granted via GRANT_ABILITY over creatures you control).
+    # `scope` is the closed _DAMAGE_ASSIGN_SCOPES vocabulary; `filter`
+    # over narrows the affected damage dealers. The "You may" wording is
+    # preserved OUTSIDE the atom (C15/C28: the granted StaticAbility
+    # holds OptionalEffect(Atom(DAMAGE_ASSIGN_POLICY, ...))). Executor
+    # deferred per the MANA_POLICY / ADD_LAND_PLAY orphan precedent.
+    DAMAGE_ASSIGN_POLICY = "DAMAGE_ASSIGN_POLICY"
 
 
 class SelectorMode(Enum):
@@ -517,6 +535,25 @@ class FAtomPred(Enum):
         # class). The executor reads current-life minus starting-life;
         # the count slot carries the threshold Quantity from the text
         # (the PRED carries slots only — the number is template-side).
+    )
+    NAME_PARTITION_COUNT_GE = (
+        "NAME_PARTITION_COUNT_GE"  # grammar round 10, R10-2, C26: the
+        # maximum size of an EXACT-name group over the inner_filter-
+        # matched objects the referent controls is >= `count` — "if you
+        # control two or more nonland, nontoken permanents with the same
+        # name as one another" (Chrome Anchor's Replicator gate). The
+        # executor groups the matched objects by exact name and takes
+        # the largest group; the PRED carries slots only (inner_filter,
+        # count) — the threshold number is template-side.
+    )
+    ATTACK_AGAINST_COUNT_GE = (
+        "ATTACK_AGAINST_COUNT_GE"  # grammar round 10, R10-3: count the
+        # triggering event's subject attackers whose ATTACKED object
+        # passes inner_filter >= `count` — "if two or more of those
+        # creatures are attacking you and/or planeswalkers you control"
+        # (Mangara, the Diplomat). Reads the declared-attackers list off
+        # the DeclareAttackersEvent (LIFE_LEAD vocabulary-first
+        # precedent: the executor reads the game record).
     )
 
 
@@ -1044,7 +1081,9 @@ class FAtom:
       colors       — a WUBRG set (COLOR_IN)
       count        — Quantity threshold (CMC_LE/GE, PT_LE/GE, COLOR_COUNT_GE,
                       HAS_COUNTER, CONTROLLER_COUNT_GE/LE,
-                      LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE);
+                      LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE,
+                      NAME_PARTITION_COUNT_GE, ATTACK_AGAINST_COUNT_GE
+                      — grammar round 10);
                       a dynamic threshold (QProp/QBin/QCount) is as legal
                       as a literal
       counter_kind — CounterKind (HAS_COUNTER)
@@ -1057,7 +1096,9 @@ class FAtom:
                         grammar round 5;
                         you|opponent|target-player, or a referent Selector —
                         grammar round 4, object anaphora)
-       inner_filter — a nested Filter (CONTROLLER_COUNT_GE/LE)
+       inner_filter — a nested Filter (CONTROLLER_COUNT_GE/LE,
+                      NAME_PARTITION_COUNT_GE, ATTACK_AGAINST_COUNT_GE —
+                      grammar round 10)
        zone         — Zone (ENTERED_THIS_TURN_FROM / CAST_THIS_TURN_FROM —
                        "entered from / cast from this zone this turn")
        from_zone,   — Zones (MOVED_TO_ZONE_THIS_TURN — "a permanent was
@@ -1402,14 +1443,24 @@ class CastSpellEvent:
 
 @dataclass(frozen=True)
 class DeclareAttackersEvent:
-    """Attackers were declared (filter over the declared creature)."""
+    """Attackers were declared (filter over the declared creature).
+    ``attacked`` (grammar round 10, R10-3) narrows the ATTACKED-side
+    object per attacker — Mangara's "two or more of those creatures are
+    attacking you and/or planeswalkers you control"; omitted from the
+    tagged dict when None, so pre-round-10 trees keep byte-identical
+    canonical JSON."""
 
     filter: Filter
+    attacked: Filter | None = None
 
     def __post_init__(self) -> None:
         if not _is_filter(self.filter):
             raise ValueError(
                 f"DeclareAttackersEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+        if self.attacked is not None and not _is_filter(self.attacked):
+            raise ValueError(
+                f"DeclareAttackersEvent: attacked must be a Filter, got {type(self.attacked).__name__}"
             )
 
 
@@ -2102,6 +2153,16 @@ CostDelta = (
 
 # ---- Atom args and the Atom ----
 
+# _SCOPE_VOCAB_BY_VERB (grammar round 10, R10-4): the per-verb "scope"
+# role vocabulary. AtomArgs can only validate the union of all vocabu-
+# laries (it carries no verb); the enclosing Atom rejects a scope value
+# that belongs to a DIFFERENT verb's vocabulary here — e.g. a
+# MANA_POLICY atom may not carry AS_UNBLOCKED.
+_SCOPE_VOCAB_BY_VERB: dict[Verb, tuple[str, ...]] = {
+    Verb.MANA_POLICY: _MANA_POLICY_SCOPES,
+    Verb.DAMAGE_ASSIGN_POLICY: _DAMAGE_ASSIGN_SCOPES,
+}
+
 
 @dataclass(frozen=True)
 class AtomArgs:
@@ -2142,12 +2203,20 @@ class AtomArgs:
                 raise ValueError(
                     f"AtomArgs: role 'color' must be one of WUBRG/C/ANY, got {value!r}"
                 )
-            # scope (grammar round 9, R9-3, C21): MANA_POLICY's closed
-            # spend-restriction vocabulary; same vocab-check precedent as
-            # the "color" role above.
-            if role == "scope" and value not in _MANA_POLICY_SCOPES:
+            # scope (grammar round 9, R9-3, C21; widened round 10, R10-4):
+            # the closed per-verb scope vocabularies (MANA_POLICY's
+            # spend-restriction pair, DAMAGE_ASSIGN_POLICY's damage-
+            # assignment pair); same vocab-check precedent as the "color"
+            # role above. AtomArgs is verb-blind, so it validates against
+            # the UNION here; the enclosing Atom enforces the verb's own
+            # vocabulary (_SCOPE_VOCAB_BY_VERB).
+            if role == "scope" and value not in (
+                *_MANA_POLICY_SCOPES,
+                *_DAMAGE_ASSIGN_SCOPES,
+            ):
                 raise ValueError(
-                    f"AtomArgs: role 'scope' must be one of {_MANA_POLICY_SCOPES}, "
+                    f"AtomArgs: role 'scope' must be one of "
+                    f"{(*_MANA_POLICY_SCOPES, *_DAMAGE_ASSIGN_SCOPES)}, "
                     f"got {value!r}"
                 )
         object.__setattr__(self, "pairs", tuple(sorted(self.pairs, key=lambda p: p[0])))
@@ -2190,6 +2259,15 @@ class Atom:
         ):
             raise ValueError(
                 f"Atom: {self.verb.name} needs at least one of power/toughness"
+            )
+        # R10-4: per-verb scope vocabulary (AtomArgs validates the union
+        # only; a cross-verb scope like MANA_POLICY/AS_UNBLOCKED is caught
+        # here, at the verb's own level).
+        vocab = _SCOPE_VOCAB_BY_VERB.get(self.verb)
+        scope = roles.get("scope")
+        if vocab is not None and scope is not None and scope not in vocab:
+            raise ValueError(
+                f"Atom: {self.verb.name} scope must be one of {vocab}, got {scope!r}"
             )
 
 
@@ -3053,6 +3131,17 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     # (rule row {count}-only, the CARDS_DRAWN-style single-slot precedent;
     # no who slot: the predicate binds its subject player directly).
     FAtomPred.LIFE_LEAD_OVER_START_GE: (frozenset({"count"}), frozenset({"count"})),
+    # NAME_PARTITION_COUNT_GE / ATTACK_AGAINST_COUNT_GE (grammar round 10,
+    # R10-2/R10-3): inner_filter + count, twin of the CONTROLLER_COUNT_GE
+    # rule above — both slots required, no others.
+    FAtomPred.NAME_PARTITION_COUNT_GE: (
+        frozenset({"inner_filter", "count"}),
+        frozenset({"inner_filter", "count"}),
+    ),
+    FAtomPred.ATTACK_AGAINST_COUNT_GE: (
+        frozenset({"count", "inner_filter"}),
+        frozenset({"count", "inner_filter"}),
+    ),
 }
 
 # Atom role -> allowed value types. "types" is a tuple of card-type strings
@@ -3277,6 +3366,13 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     # window the extra activation joins. Executor deferred per the FIGHT /
     # ADD_LAND_PLAY orphan precedent.
     Verb.GRANT_ACTIVATION: {"filter": True, "window": False},
+    # DAMAGE_ASSIGN_POLICY (grammar round 10, R10-4, C28): combat-damage
+    # assignment policies — scope carries the closed _DAMAGE_ASSIGN_SCOPES
+    # vocabulary (AS_UNBLOCKED), filter optionally narrows the affected
+    # damage dealers. The "You may" vertex lives OUTSIDE the atom (C15:
+    # the granted StaticAbility holds OptionalEffect wrapping this Atom).
+    # Executor deferred per the MANA_POLICY orphan precedent.
+    Verb.DAMAGE_ASSIGN_POLICY: {"scope": True, "filter": False},
 }
 
 # Keyword -> tuple of allowed param signatures; each signature is a tuple
@@ -3488,7 +3584,12 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         # hand" — mutually exclusive with from_zone, omitted when None.
         ("from_zone_not", "opt:zone"),
     ),
-    "DeclareAttackersEvent": (("filter", "filter"),),
+    "DeclareAttackersEvent": (
+        ("filter", "filter"),
+        # attacked (grammar round 10, R10-3): narrows the attacked-side
+        # object; omitted when None.
+        ("attacked", "opt:filter"),
+    ),
     "DeclareBlockersEvent": (
         ("filter", "filter"),
         ("subject", "opt:filter"),
@@ -3799,6 +3900,8 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     "Selector": frozenset({"zones", "referent"}),
     "Zone": frozenset({"position"}),
     "ZoneChangeEvent": frozenset({"subject"}),
+    # attacked (grammar round 10, R10-3): omit when None — byte-stable.
+    "DeclareAttackersEvent": frozenset({"attacked"}),
     # subject (r3b) + blocked (grammar round 6, R6-4): omit when None.
     "DeclareBlockersEvent": frozenset({"subject", "blocked"}),
     # from_zone_not (grammar round 4): omit when None.

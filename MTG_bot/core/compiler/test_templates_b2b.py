@@ -11,10 +11,11 @@ that drive the registry end-to-end with concrete oracle sentences and assert
 the exact IR each template produces.
 
 Pinned bucket facts (measured against /tmp/opencode/phase1_buckets/B2b.json):
-62 shapes, 76 occurrences, 60 covered shapes, 74 matched occurrences, and the
-59 templates in ``templates_b2b.TEMPLATES`` (with 2 declared UNCOVERED
-shapes).  The 9-B batch added ``B2b-do-tap-or-untap`` (Tolarian Kraken s2,
-R9-9/C24 do-continuation merge).
+62 shapes, 76 occurrences, 61 covered shapes, 75 matched occurrences, and the
+60 templates in ``templates_b2b.TEMPLATES`` (with 1 declared UNCOVERED
+shape).  The 9-B batch added ``B2b-do-tap-or-untap`` (Tolarian Kraken s2,
+R9-9/C24 do-continuation merge).  The round-10 batch added
+``B2b-attackers-against-me-draw`` (Mangara, the Diplomat, R10-3).
 The bucket priority is 50 (NOT the 100 used by B1/B3/B4).
 """
 
@@ -332,6 +333,11 @@ EXPECTED: dict[str, tuple[str, str]] = {
         "B2b-do-tap-or-untap",
         "Kraken Do Tap Or Untap",
     ),
+    "Whenever an opponent attacks with creatures, if two or more of those "
+    "creatures are attacking you and/or planeswalkers you control, draw a card.": (
+        "B2b-attackers-against-me-draw",
+        "Mangara, the Diplomat",
+    ),
 }
 
 
@@ -534,8 +540,8 @@ class TestB2bCoverage(unittest.TestCase):
         self.assertEqual(total, 76)
 
     def test_public_api_counts(self) -> None:
-        self.assertEqual(len(templates_b2b.TEMPLATES), 59)
-        self.assertEqual(len(templates_b2b.UNCOVERED), 2)
+        self.assertEqual(len(templates_b2b.TEMPLATES), 60)
+        self.assertEqual(len(templates_b2b.UNCOVERED), 1)
 
     def test_bucket_labels_b2b(self) -> None:
         for template in templates_b2b.TEMPLATES:
@@ -561,8 +567,8 @@ class TestB2bCoverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 60)
-        self.assertEqual(matched_occurrences, 74)
+        self.assertEqual(covered_shapes, 61)
+        self.assertEqual(matched_occurrences, 75)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -584,7 +590,7 @@ class TestB2bCoverage(unittest.TestCase):
             if any(self.reg.match(sentence) for _card, sentence in entries):
                 covered.add(shape_key)
         self.assertEqual(set(EXPECTED), covered)
-        self.assertEqual(len(EXPECTED), 60)
+        self.assertEqual(len(EXPECTED), 61)
 
     def test_expected_table_matches_registry(self) -> None:
         for shape_key, (tid, name) in EXPECTED.items():
@@ -2572,3 +2578,70 @@ class TestB2bRound9BDoContinuation(unittest.TestCase):
         self.assertIsInstance(merged, OptionalEffect)
         assert isinstance(merged, OptionalEffect)
         self.assertIsInstance(merged.inner, Seq)
+
+
+# ---------------------------------------------------------------------------
+# Round 10 — Mangara, the Diplomat attackers-against-me draw (R10-3)
+# ---------------------------------------------------------------------------
+
+
+class TestB2bRound10Mangara(unittest.TestCase):
+    """R10: Mangara s1 — first production use of the R10-3
+    DeclareAttackersEvent.attacked slot (twin of R6-4 blocked) plus the
+    ATTACK_AGAINST_COUNT_GE condition predicate (doc 2026-09-29/02
+    §phase-10-B row 3)."""
+
+    S1 = (
+        "Whenever an opponent attacks with creatures, if two or more of "
+        "those creatures are attacking you and/or planeswalkers you "
+        "control, draw a card."
+    )
+
+    def test_mangara_structure(self) -> None:
+        reg = _registry()
+        m = _single_match(reg, self.S1)
+        self.assertEqual(m.template.tid, "B2b-attackers-against-me-draw")
+        ability = _ability(m)
+        # trigger: set-level DeclareAttackersEvent over the opponent's
+        # creatures (per-opponent declaration events)
+        event = ability.event
+        assert isinstance(event, DeclareAttackersEvent)
+        event_filter = event.filter
+        assert isinstance(event_filter, FAnd)
+        self.assertEqual(len(event_filter.children), 2)
+        kind, controller = event_filter.children
+        assert isinstance(kind, FAtom) and isinstance(controller, FAtom)
+        self.assertIs(kind.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(kind.string_value, "Creature")
+        self.assertIs(controller.pred, FAtomPred.CONTROLLER_IS)
+        self.assertIs(controller.who, ControllerRef.OPPONENT)
+        # attacked side (R10-3 slot): "you and/or planeswalkers you control"
+        expected_attacked = templates_b2b._you_or_your_planeswalkers()
+        attacked = event.attacked
+        assert isinstance(attacked, FOr)
+        self.assertEqual(attacked, expected_attacked)
+        self.assertEqual(len(attacked.children), 2)
+        you, walkers = attacked.children
+        assert isinstance(you, FAtom) and isinstance(walkers, FAnd)
+        self.assertIs(you.pred, FAtomPred.CONTROLLER_IS)
+        self.assertIs(you.who, ControllerRef.YOU)
+        pw_kind, pw_controller = walkers.children
+        assert isinstance(pw_kind, FAtom) and isinstance(pw_controller, FAtom)
+        self.assertIs(pw_kind.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(pw_kind.string_value, "Planeswalker")
+        self.assertIs(pw_controller.pred, FAtomPred.CONTROLLER_IS)
+        self.assertIs(pw_controller.who, ControllerRef.YOU)
+        # condition slot: "if two or more of those creatures ..." rides
+        # ATTACK_AGAINST_COUNT_GE with the same attacked-side composition
+        condition = ability.condition
+        assert isinstance(condition, FAtom)
+        self.assertIs(condition.pred, FAtomPred.ATTACK_AGAINST_COUNT_GE)
+        self.assertEqual(condition.count, QConst(2))
+        self.assertEqual(condition.inner_filter, expected_attacked)
+        # effect: forced DRAW one card by you
+        eff = _atom(ability)
+        self.assertIs(eff.verb, Verb.DRAW)
+        self.assertEqual(
+            dict(eff.args.pairs),
+            {"controller": ControllerRef.YOU, "amount": QConst(1)},
+        )

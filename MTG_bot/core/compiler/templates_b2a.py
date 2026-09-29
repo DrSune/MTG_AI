@@ -2033,6 +2033,59 @@ def _build_pursued_whale_token(m: re.Match[str]) -> SentenceOutcome:
     )
 
 
+def _build_chrome_replicator_etb(m: re.Match[str]) -> SentenceOutcome:
+    """``When this creature enters, if you control two or more nonland,
+    nontoken permanents with the same name as one another, create a 4/4
+    colorless Construct artifact creature token.`` (Chrome Replicator —
+    grammar round 10 b2a row, R10-2).
+
+    The "if" gate rides the TriggeredAbility.condition slot with the
+    R10-2 partition predicate ``NAME_PARTITION_COUNT_GE`` (C26): the
+    inner_filter is the nonland/nontoken pair (FNot TYPE_EQ Land + the
+    house FNot IS_TOKEN ``nontoken`` idiom), count=2 the threshold; the
+    executor groups the matched permanents by EXACT name and tests the
+    largest group — no pairwise name-equality vocabulary is needed (the
+    retired b2a UNCOVERED diagnosis).  Colorless token = ``color`` left
+    None, the Treasure precedent ("colorless/None", module docstring).
+
+    C16: none — fully forced (no may, no choice, no targets)."""
+    p, t = _n(m, 1), _n(m, 2)
+    return _ability(
+        _etb_event(),
+        Atom(
+            verb=Verb.CREATE_TOKEN,
+            args=AtomArgs(
+                pairs=(
+                    (
+                        "tokens",
+                        TokenSpec(
+                            name="Construct",
+                            type_line="Artifact Creature — Construct",
+                            types=("Artifact", "Creature"),
+                            subtypes=("Construct",),
+                            power=QConst(p),
+                            toughness=QConst(t),
+                            keywords=(),
+                            abilities=(),
+                        ),
+                    ),
+                    ("count", QConst(1)),
+                )
+            ),
+        ),
+        condition=FAtom(
+            pred=FAtomPred.NAME_PARTITION_COUNT_GE,
+            inner_filter=FAnd(
+                children=(
+                    FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land")),
+                    FNot(inner=FAtom(pred=FAtomPred.IS_TOKEN)),
+                )
+            ),
+            count=QConst(2),
+        ),
+    )
+
+
 TEMPLATES: Final[tuple[Template, ...]] = (
     _template(
         "B2a-basri-ket-emblem",
@@ -2561,6 +2614,17 @@ TEMPLATES: Final[tuple[Template, ...]] = (
         ),
         _build_pursued_whale_token,
     ),
+    _template(
+        "B2a-etb-same-name-token",
+        "Chrome Replicator",
+        re.compile(
+            r"^When this creature enters, if you control two or more "
+            r"nonland, nontoken permanents with the same name as one "
+            r"another, create a (\d+)/(\d+) colorless Construct artifact "
+            r"creature token\.$"
+        ),
+        _build_chrome_replicator_etb,
+    ),
 )
 
 
@@ -2568,9 +2632,5 @@ UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
     (
         "When this creature enters, choose one —",
         "handled by the compiler's choose-opener built-in (ETB variant)",
-    ),
-    (
-        "When this creature enters, if you control two or more nonland, nontoken permanents with the same name as one another, create a N/N colorless Construct artifact creature token.",
-        "No pairwise name-equality predicate.",
     ),
 )
