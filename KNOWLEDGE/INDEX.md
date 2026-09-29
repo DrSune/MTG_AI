@@ -71,3 +71,4 @@
 
 `tools/measure_grammar.py` → `reports/grammar_*.json` (raw, machine) → `NUMBERS.md` (headline, human, dated).
 A number not recorded in `NUMBERS.md` with a date and its producing command does not count as known.
+| `2026-09-29/04-t8-semantic-audit-findings.md` | T8 adversarial semantic audit of r6-r10 (~40 cards): 4 P0 classes + 2 P1 SILENT losses, ALL orchestrator-reconfirmed: orphan-continuation phantom-may/loyalty-misattach (compiler ~1081), **ETB subject=None on 62/66 triggers (any-permanent firing!)**, b3 target-creature helpers Zone(ANY,ANY), Necromentia count scoping; Gadrak Treasure dropped, Subira "another" lacks FNot(IS_SOURCE); golden schema probe notes. → round 11 correctness fixes (11-A targeted, 11-B ETB sweep; PC-1/2/3 must hold EXACT) |
