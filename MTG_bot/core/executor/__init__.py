@@ -18,6 +18,13 @@ EachPlayer are 12c and RAISE at dispatch; DelayedTrigger SCHEDULES into the
     public op — matched triggers resolve through the world's APNAP
     ``order_key``, in Handle-tie-broken order, until the queue empties
     (``MAX_TRIGGER_FIRES`` tripwire: a self-retriggering loop RAISES).
+    12c adds the decision half: :mod:`executor.legality` (activation
+    legality, the CR-checked cost fold, ``pay_costs`` through the
+    journalled verbs, the folded ``activate`` move) and
+    :mod:`executor.query` (the Slate-shaped query surface —
+    ``legal_activations``/``legal_targets``/``choose_options``/
+    ``optional_offer``, the C15/C17 enumerations; DESIGN_ACTION_SPACE
+    §1.3/§1.4/§5.5/§8.3).
 
 Design mandates:
 
@@ -63,7 +70,25 @@ from MTG_bot.core.compiler.compiler import PoolCompile
 from MTG_bot.core.executor.binding import MAX_TRIGGER_FIRES, TriggerBinder
 from MTG_bot.core.executor.durations_min import DurationLedger, PtChange
 from MTG_bot.core.executor.events import EventJournal, GameEvent
+from MTG_bot.core.executor.legality import (
+    PaymentPlan,
+    ability_playable,
+    activate,
+    build_payment_plan,
+    pay_costs,
+)
 from MTG_bot.core.executor.quantity import Binding, ExecCtx, eval_filter
+from MTG_bot.core.executor.query import (
+    ActivationOption,
+    OptionChoice,
+    TargetSlot,
+    choose_options,
+    legal_activations,
+    legal_targets,
+    optional_offer,
+    rest_of,
+    validate_target_selection,
+)
 from MTG_bot.core.executor.selectors import resolve_selector
 from MTG_bot.core.executor.verbs import HANDLERS, run_atom, token_oracle_id
 from MTG_bot.core.identity import Handle
@@ -78,14 +103,29 @@ Event = Tuple[object, ...]
 __all__ = [
     "MAX_TRIGGER_FIRES",
     "SUPPORTED_VERBS_V1",
+    "ActivationOption",
+    "Binding",
     "DurationLedger",
     "Event",
     "EventJournal",
     "ExecCtx",
     "Executor",
     "GameEvent",
+    "OptionChoice",
+    "PaymentPlan",
     "PtChange",
+    "TargetSlot",
     "TriggerBinder",
+    "ability_playable",
+    "activate",
+    "build_payment_plan",
+    "choose_options",
+    "legal_activations",
+    "legal_targets",
+    "optional_offer",
+    "pay_costs",
+    "rest_of",
+    "validate_target_selection",
 ]
 
 

@@ -1,0 +1,426 @@
+"""The model-facing QUERY SURFACE (round 12c, /06 §12c).
+
+The Slate contract of `docs/DESIGN_ACTION_SPACE.md`, served on the executor
+side: **one engine call per decision** (§1.4), returning typed references
+to the SAME IR objects the executor consumes — §8.3 builder/executor
+identity: no DTO layer, no prose anywhere in an option (V_role tags from
+§1.2 are type tags on slots, never payload strings), every candidate list
+canonical Handle-sorted (§5.5, ruling 5).
+
+Role mapping (V_role §1.2 → this module), for the verbs in the §1.3 field
+schedule:
+
+* ``ACTIVATE`` — :func:`legal_activations` produces the candidate rows of
+  the ``ABILITY:PTR`` field; each row's payment is the folded
+  :class:`~MTG_bot.core.executor.legality.PaymentPlan` covering the
+  ``COST_TARGET:PTR*`` + ``PAYMENT:PTR*`` slots (§1.3: mana payment folds
+  into the move, CR 601.2g).
+* ``TARGET:PTR x n`` — :func:`legal_targets` returns ONE per-slot
+  :class:`TargetSlot` (candidates + legal cardinality), never a
+  cross-slot product (explosion guard); whole-selection legality is
+  :func:`validate_target_selection`. ``forced`` is §1.4's field-level
+  auto-fill (exactly one legal filler).
+* ``MODE:PTR*`` / ``OPTION:PTR*`` / RESOLVE_CHOICE's ``CHOICE_SLOT`` —
+  :func:`choose_options` enumerates every legal option SET of a
+  :class:`~MTG_bot.core.ability_tree.Choose` node (C15: every decision is
+  enumerable; a missed option is a contract violation).
+* the may-offer (``OptionalEffect``) — :func:`optional_offer` returns the
+  two-way decision tokens exactly as the 12b/12a decision channel consumes
+  them (``"fire"``/``"skip"``), narrowed to one when firing is not
+  actionable (a cost-bearing may with nothing to pay it with).
+* ``ONE_OF`` / ``REST`` (the split-selection pair, SelectorMode docstring)
+  — :func:`legal_targets` reports ``ONE_OF`` as an exactly-one slot over
+  the partition population, and the deterministic remainder with
+  :func:`rest_of` (:class:`TargetSlot` marks ``REST`` forced — the engine
+  takes everything left).
+
+C-contract pins encoded here:
+
+* **C17** — ``TARGET`` + :class:`QAtMost` is a legal *designation* range
+  ``1..n`` (still targeted; min 1), resolving to ``0..remaining``;
+  ``CHOOSE`` + up-to (and ``Choose`` + ``QAtMost``) is a resolution-time
+  enumeration that DOES include the empty selection (``0..n``). The two
+  zero-cards sit in different phases and the tests pin both.
+* **C15** — completeness of enumeration: may = both options when
+  actionable, Choose = every legal option set, QAtMost = every legal
+  cardinality, ONE_OF/REST = the partition.
+* **§5.5** — option/selection enumeration order is canonical: sizes
+  ascending, then index-lex (a bijection from set to sequence).
+
+The 12a NotImplemented-map closures delivered here (in-scope per /06 §12c):
+ONE_OF/REST partition enumeration, OWNER referent (the activation context
+supplies the owner — see legality.source_owner), CHOOSE-mode candidate
+enumeration, and Zone(ANY) population — all WITHOUT touching the
+resolution-time raises in selectors.py, which stay honest: an UNDESIGNATED
+ONE_OF/TARGET at resolution is an illegal world, not a guess. The Choose
+NODE's dispatch (executor.apply_effect) still raises — that pin is 12a
+contract; the chosen option is executed by dispatching the returned
+option subtree directly (docs below), which is what a Slate answer
+unfolds to anyway.
+"""
+
+from __future__ import annotations
+
+import itertools
+from collections.abc import Sequence
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+from MTG_bot.core.ability_tree import (
+    ActivatedAbility,
+    Atom,
+    Choose,
+    Effect,
+    OptionalEffect,
+    QAtLeast,
+    QAtMost,
+    QConst,
+    QUnbounded,
+    Selector,
+    SelectorMode,
+    walk,
+)
+from MTG_bot.core.executor.legality import (
+    PaymentPlan,
+    ability_playable,
+    build_payment_plan,
+    ctx_for,
+)
+from MTG_bot.core.executor.quantity import Binding, resolve
+from MTG_bot.core.identity import Handle
+from MTG_bot.core.state import GameWorld
+
+if TYPE_CHECKING:  # pragma: no cover - import cycle guard only
+    from MTG_bot.core.executor import Executor
+
+__all__ = [
+    "ActivationOption",
+    "OptionChoice",
+    "TargetSlot",
+    "choose_options",
+    "legal_activations",
+    "legal_targets",
+    "optional_offer",
+    "rest_of",
+    "validate_target_selection",
+]
+
+# The two-way may-decision vocabulary, verbatim as ExecCtx.take_decision
+# consumes it (binding.py may-offers, 12b fire order).
+MAY_VOCAB: tuple[str, str] = ("fire", "skip")
+
+
+@dataclass(frozen=True)
+class ActivationOption:
+    """One candidate row of the ``ACTIVATE`` Slate (§1.4: a row of
+    ``Slate.handles`` + its ``roles_ok`` type mask): the world Handle, the
+    ability's index in the attached compiled record (the ``ABILITY:PTR``
+    target), the typed IR object itself (§8.3), and the folded payment.
+    Target/COST_TARGET slots are queried per slot (legal_targets) — an
+    option never stores a cross-slot product."""
+
+    source: Handle
+    ability_idx: int
+    ability: ActivatedAbility
+    payment: PaymentPlan
+
+    def order_key(self) -> tuple[Handle, int]:
+        return (self.source, self.ability_idx)
+
+
+@dataclass(frozen=True)
+class TargetSlot:
+    """The per-slot answer for one ``TARGET:PTR x n`` field (§1.3): the
+    Selector IR (identity), the Handle-sorted candidate population, the
+    legal cardinality range, and §1.4's ``forced`` flag (exactly one legal
+    filler — the auto-resolve lever).
+
+    Cardinality semantics (C17, Selector docstring):
+
+    * ``TARGET`` + ``QConst(n)``   — exactly n (min = max = n);
+    * ``TARGET`` + ``QAtMost(n)``  — DESIGNATION is 1..n (min 1: it is
+      still targeted; C17), resolution clamps 0..remaining later;
+    * ``TARGET`` + ``QAtLeast(n)`` — n..candidates ("one or more");
+    * ``CHOOSE`` (up-to)           — 0..min(n, candidates): a resolution-
+      time choice, so the EMPTY selection is legal (contrast the C17 pin
+      above — the tests pin both zeros);
+    * ``ALL``                      — the whole population, forced;
+    * ``RANDOM``                   — engine-side: forced for the player
+      (the seeded rng picks at resolution, never a model decision);
+    * ``ONE_OF``                   — exactly 1 of the partition population;
+    * ``REST``                     — the remainder: forced (engine takes
+      everything the ONE_OF pick left — :func:`rest_of`)."""
+
+    selector: Selector
+    candidates: tuple[Handle, ...]
+    min_count: int
+    max_count: int
+    forced: bool
+
+
+@dataclass(frozen=True)
+class OptionChoice:
+    """One legal OPTION-set of a ``Choose`` node (§1.3 ``OPTION:PTR*`` /
+    RESOLVE_CHOICE ``CHOICE_OPTION:PTR``): the Choose IR (identity) and
+    the ascending tuple of option indices; the typed option effects are
+    ``choose.options[i]`` — the same objects apply_effect dispatches
+    (§8.3). Executing a choice = ``executor.apply_effect`` on the chosen
+    option subtree(s) directly (the Choose node's decision-channel wiring
+    is 12d; its enumeration is complete HERE — C15)."""
+
+    choose: Choose
+    option_idxs: tuple[int, ...]
+
+    @property
+    def options(self) -> tuple[Effect, ...]:
+        return tuple(self.choose.options[i] for i in self.option_idxs)
+
+
+# ------------------------------------------------------------ activations
+
+
+def legal_activations(
+    world: GameWorld, executor: Executor, seat: Handle
+) -> list[ActivationOption]:
+    """Every activation available to ``seat`` right now, Handle-sorted by
+    (source, ability_idx) (§5.5; ruling 5) — the ``ACTIVATE`` field's
+    candidate rows. Scans ``seat``'s battlefield permanents that carry an
+    attached compiled record (the 12b oracle-id bridge) and keeps the
+    :class:`ActivatedAbility` nodes whose gate triple
+    (window/condition/cost — legality.ability_playable) is green.
+
+    A cost kind the executor cannot check (CostLoyalty, QX amounts)
+    RAISES through the scan — flag, don't degrade: a hole in the legality
+    oracle must crash the query, never silently shrink the option set
+    (the mask oracle's bugs are silent, §8; this is the loud half)."""
+    options: list[ActivationOption] = []
+    for handle in sorted(executor.binder.handle_record):
+        if handle not in world.cards:
+            continue
+        if world.controller_of(handle) != seat:
+            continue
+        if world.zone_of(handle).kind != "battlefield":
+            continue
+        record = executor.binder.handle_record[handle]
+        for idx, ability in enumerate(record.abilities):
+            if not isinstance(ability, ActivatedAbility):
+                continue
+            if ability_playable(world, executor, handle, idx, seat=seat) is not None:
+                continue
+            ctx = ctx_for(executor, source=handle, controller=seat)
+            plan, _ = build_payment_plan(world, ctx, ability.cost)
+            assert plan is not None  # ability_playable just greenlit
+            options.append(
+                ActivationOption(
+                    source=handle, ability_idx=idx, ability=ability, payment=plan
+                )
+            )
+    return options
+
+
+# --------------------------------------------------------------- targets
+
+
+def legal_targets(
+    world: GameWorld,
+    executor: Executor,
+    selector: Selector,
+    *,
+    source: Handle,
+    controller: Handle,
+    bindings: dict[str, Binding] | None = None,
+) -> TargetSlot:
+    """The per-slot candidate list + legal cardinality for one Selector
+    (§1.3 ``TARGET:PTR x n``). See :class:`TargetSlot` for the per-mode
+    range table (C17's declaration-1..n vs resolution-0..n live here)."""
+    from MTG_bot.core.executor.legality import enumerate_candidates
+
+    ctx = ctx_for(executor, source=source, controller=controller, bindings=bindings)
+    candidates = tuple(enumerate_candidates(selector, ctx))
+    n = len(candidates)
+    mode = selector.mode
+    forced = False
+    if mode is SelectorMode.ALL:
+        min_count, max_count, forced = n, n, True
+    elif mode is SelectorMode.RANDOM:
+        want = (
+            n
+            if isinstance(selector.count, QUnbounded)
+            else resolve(selector.count, ctx)
+        )
+        min_count = max_count = min(want, n)
+        forced = True  # the seeded rng designates, not the model
+    elif mode is SelectorMode.ONE_OF:
+        min_count, max_count = 1, min(1, n)  # n=0 → infeasible (max<min)
+        forced = n == 1
+    elif mode is SelectorMode.REST:
+        # The remainder after the ONE_OF pick: count ignored (like ALL),
+        # engine-side complement — see rest_of().
+        min_count, max_count, forced = n, n, True
+    elif mode is SelectorMode.TARGET:
+        count = selector.count
+        if isinstance(count, QAtMost):
+            # C17: the DESIGNATION range is 1..n — an empty population
+            # leaves the slot infeasible (min 1 > max 0), which is the
+            # whole point of the pin: 0 is NOT a legal TARGET declaration.
+            min_count = 1
+            max_count = min(count.n, n)
+        elif isinstance(count, QAtLeast):
+            min_count, max_count = count.n, n
+        elif isinstance(count, QConst):
+            # exact designation: min = max = k even past the population —
+            # an under-populated TARGET slot is simply infeasible (any
+            # selection fails validation); resolution clamping is QAtMost
+            # territory only.
+            min_count = max_count = count.value
+            forced = count.value == n  # unique filler = whole population
+        else:
+            want = resolve(count, ctx)  # QX raises cleanly (X_VALUE)
+            min_count = max_count = want
+            forced = want == n
+    else:  # CHOOSE — up-to, resolution-time, the EMPTY set is legal
+        count = selector.count
+        if isinstance(count, QUnbounded):
+            min_count, max_count = 0, n
+        elif isinstance(count, QAtLeast):
+            min_count, max_count = count.n, n
+        else:
+            want = resolve(count, ctx)
+            min_count, max_count = 0, min(want, n)
+        forced = max_count == 0  # nothing offerable: no decode step (§1.4)
+    return TargetSlot(
+        selector=selector,
+        candidates=candidates,
+        min_count=min_count,
+        max_count=max_count,
+        forced=forced,
+    )
+
+
+def validate_target_selection(slot: TargetSlot, chosen: Sequence[Handle]) -> str | None:
+    """Whole-legality of one selection against its slot: no duplicates,
+    every handle from the candidate population, cardinality inside the
+    slot's C17/legal range, and the list in canonical Handle-sort (§5.5 —
+    the canonicalisation is a bijection, so an unsorted emission is a
+    different token for the same set: illegal at the Slate). ``None`` when
+    legal, else the machine reason."""
+    seq = list(chosen)
+    if len(set(seq)) != len(seq):
+        return "selection:duplicate_handles"  # checked BEFORE sort order:
+    # a repeated handle is also a sort violation, and the duplicate reason
+    # is the informative one (ruling 5: handles are strictly ordered).
+    if any(seq[i] >= seq[i + 1] for i in range(len(seq) - 1)):
+        return "selection:not_canonically_sorted"
+    population = set(slot.candidates)
+    for handle in seq:
+        if handle not in population:
+            return f"selection:off_population:{handle}"
+    if len(seq) < slot.min_count:
+        return f"selection:count_below_min:{len(seq)}<{slot.min_count}"
+    if len(seq) > slot.max_count:
+        return f"selection:count_above_max:{len(seq)}>{slot.max_count}"
+    return None
+
+
+def rest_of(slot: TargetSlot, one_of_pick: Handle) -> tuple[Handle, ...]:
+    """The REST partition of a ONE_OF/REST split, given the pick — the
+    deterministic complement (§5.5-sorted), i.e. everything the exactly-1
+    choice left ("put one of them in your hand, the rest into your
+    graveyard")."""
+    return tuple(h for h in slot.candidates if h != one_of_pick)
+
+
+# --------------------------------------------------------------- options
+
+
+def _choice_bounds(choose: Choose, ctx) -> tuple[int, int]:
+    count = choose.count
+    k_options = len(choose.options)
+    if isinstance(count, QAtMost):
+        return 0, min(count.n, k_options)  # CHOOSE-side up-to: 0 allowed
+    if isinstance(count, QAtLeast):
+        return min(count.n, k_options), k_options
+    if isinstance(count, QUnbounded):
+        return 0, k_options
+    want = resolve(count, ctx)  # QConst path; QX raises cleanly (X_VALUE)
+    return min(want, k_options), min(want, k_options)
+
+
+def choose_options(
+    executor: Executor,
+    choose: Choose,
+    *,
+    source: Handle,
+    controller: Handle,
+    bindings: dict[str, Binding] | None = None,
+) -> list[OptionChoice]:
+    """EVERY legal option SET of a ``Choose`` node (C15 completeness; the
+    ``OPTION:PTR*`` / ``CHOICE_OPTION`` slots of §1.3): all k-subsets for
+    k in the node's legal range, canonicalised size-ascending then
+    index-lex (§5.5 bijection). ``Choose`` + ``QAtMost`` includes the EMPTY
+    set (resolution-time CHOOSE semantics — the option-set counterpart of
+    the C17 resolution clamp); ``QConst(1)`` gives exactly the n printed
+    options ('Choose one — A; B' → 2).
+
+    An EMPTY-set choice consumes the skip path: dispatching zero option
+    subtrees IS the no-op the rules call 'chose nothing'."""
+    ctx = ctx_for(executor, source=source, controller=controller, bindings=bindings)
+    lo, hi = _choice_bounds(choose, ctx)
+    out: list[OptionChoice] = []
+    for k in range(lo, hi + 1):
+        for combo in itertools.combinations(range(len(choose.options)), k):
+            out.append(OptionChoice(choose=choose, option_idxs=combo))
+    return out
+
+
+def optional_offer(
+    executor: Executor,
+    effect: OptionalEffect,
+    *,
+    source: Handle,
+    controller: Handle,
+    bindings: dict[str, Binding] | None = None,
+) -> tuple[str, ...]:
+    """The two-way may-offer as decision tokens — ``("fire", "skip")``
+    when firing is actionable, narrowed to ``("skip",)`` when the inner
+    action CANNOT be performed (a 'you may discard a card' with an empty
+    hand: CR 117.3 — no resources, no action; the offer stays enumerable,
+    just one-way that turn). Consumed by the 12a decision channel in tree
+    order (C15), the same vocab binding.py's may-offers drain (§fire/skip).
+
+    Actionability is deliberately narrow: only exact-count selector roles
+    (TARGET/CHOOSE/RANDOM with a concrete count) gate the offer — a
+    mandatory-count action with too few candidates. ALL-mode and pure
+    numeric actions are always actionable (doing an empty ALL is a legal
+    no-op, e.g. scrying with a bare library)."""
+    from MTG_bot.core.executor.legality import enumerate_candidates
+
+    if not isinstance(effect, OptionalEffect):
+        # ValueError per the executor's validation convention (see
+        # apply_effect's tree-shape gate): a wrong SHAPE into a query is a
+        # contract misuse, surfaced loudly, not a silent empty offer.
+        raise ValueError(  # noqa: TRY004
+            f"optional_offer: needs an OptionalEffect, got {type(effect).__name__}"
+        )
+    ctx = ctx_for(executor, source=source, controller=controller, bindings=bindings)
+    for node in walk(effect.inner):
+        if not isinstance(node, Atom):
+            continue
+        for role in ("cards", "target"):
+            value = node.args.get(role)
+            if not isinstance(value, Selector):
+                continue
+            if value.mode not in (
+                SelectorMode.TARGET,
+                SelectorMode.CHOOSE,
+                SelectorMode.RANDOM,
+            ):
+                continue  # ALL / ONE_OF / REST: no exact-count gate here
+            if isinstance(value.count, QUnbounded):
+                continue
+            want = resolve(value.count, ctx)
+            if want <= 0:
+                continue
+            if len(enumerate_candidates(value, ctx)) < want:
+                return MAY_VOCAB[1:]
+    return MAY_VOCAB

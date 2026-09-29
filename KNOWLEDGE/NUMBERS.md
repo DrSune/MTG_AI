@@ -1173,3 +1173,7 @@ Repo-wide 23 failed / 1751 passed — failure set byte-identical to clean HEAD a
 ### Round-12b trigger binding (2026-09-29, uncommitted; see KNOWLEDGE/2026-09-29/07-round12b-trigger-binding.md)
 Core suite **1788 passed / 0 failed** = 1772 (12a HEAD 2a2c96f) + **16 new** binding tests — cmd: `python -m pytest MTG_bot/core -q`.
 New: `executor/events.py` EventJournal (8 kinds, C18 dies was-snapshot) + `executor/binding.py` TriggerBinder (APNAP = frozen order_key seat-first; MAX_TRIGGER_FIRES=200 → RuntimeError; unsupported event kinds raise at BIND). pyright 0; ruff delta 0 (new files clean).
+
+### Round-12c legality + query surface (2026-09-29, uncommitted; see KNOWLEDGE/2026-09-29/08-round12c-legality-query.md)
+Full suite **1864 passed / 23 failed** = 1815 (12b HEAD f08e490) + **49 new** (24 legality + 25 query); 23 == HEAD failure set byte-identical (strategic_brain/full_system legacy) — cmd: `python -m pytest MTG_bot -q` + stash baseline diff.
+New: `executor/legality.py` (ability_playable gates CR 602.3/C20/condition/CR 117.3 costs; mana fold W-U-B-R-G-C keys; CR 119.4 life floor — pay-to-exactly-0 LEGAL; pay_costs through journalled verbs; folded activate) + `executor/query.py` (legal_activations / legal_targets+validate / choose_options / optional_offer / ONE_OF-REST rest_of — §5.5 Handle-sort, C17 two zeros pinned, C15 completeness). pyright 0 errors (5 scope files); ruff new files 0, __init__ delta 0 (21==21).
