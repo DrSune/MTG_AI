@@ -35,14 +35,14 @@ Contracts honoured:
     arming a trigger that could never fire. Unsupported damage scopes
     (source filter, combat damage) raise at bind time too.
 
-May-offers: an ``OptionalEffect`` in a trigger effect consumes the drain's
-``decisions`` (``"fire"``/``"skip"``, C15) in APNAP fire order — the 12b
-stand-in for 12c's Slate, pinned deterministic by the replay test.
+May-offers: an ``OptionalEffect`` in a trigger effect answers through the
+executor's vocabulary-addressed decision stream (14b, B-4 ruling): the ask
+carries its own (vocab, what) key, so firings the drain itself arms are
+answerable — pinned deterministic by the replay test.
 """
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -520,7 +520,7 @@ class TriggerBinder:
     def _match_ctx(
         self, source: Handle, controller: Handle, event: GameEvent
     ) -> ExecCtx:
-        return self._ctx(source, controller, event, decisions=())
+        return self._ctx(source, controller, event)
 
     def _match_zone_change(
         self,
@@ -618,14 +618,16 @@ class TriggerBinder:
 
     # -------------------------------------------------------------- fire
 
-    def fire_all(self, decisions: Sequence[str] = ()) -> int:
+    def fire_all(self) -> int:
         """Drain the world's trigger queue: APNAP order_key, then
         ``str(source)`` then bind-seq (Handle-sort within a seat, ruling 5).
         Every firing runs through the 12a effect runner, whose journalled
         events queue the next batch; loop until empty or the tripwire
-        raises. ``decisions`` is consumed across the whole drain in fire
-        order (C15): each may-offer takes the next ``fire``/``skip``."""
-        cursor = 0
+        raises. 14b (B-4 ruling): the drain consumes NO positional stream
+        — every demand a firing makes reaches the executor's
+        vocabulary-addressed decision channel (per-(vocab, what) FIFO /
+        ask-time provider), so a trigger the op itself armed mid-drain is
+        answerable exactly like one that was already pending."""
         fired = 0
         while self.world.triggers:
             if fired >= MAX_TRIGGER_FIRES:
@@ -638,7 +640,7 @@ class TriggerBinder:
             payload = self.firings.pop(instance.clock, None)
             if payload is None:  # pragma: no cover - instances only via _queue
                 continue
-            cursor += self._fire(payload, decisions, cursor)
+            self._fire(payload)
             fired += 1
             self.on_events()  # the firing's own events queue the next batch
         return fired
@@ -657,27 +659,25 @@ class TriggerBinder:
         self.world.triggers.remove(chosen)
         return chosen
 
-    def _fire(self, payload: _Firing, decisions: Sequence[str], cursor: int) -> int:
-        """One trigger resolution: the condition gate, then the effect (its
-        may-offers consume decisions here). Returns decisions consumed."""
+    def _fire(self, payload: _Firing) -> None:
+        """One trigger resolution: the condition gate, then the effect.
+        May-offers ask the executor's decision stream (14b, B-4)."""
         event = payload.event
-        ctx = self._ctx(payload.source, payload.controller, event, decisions[cursor:])
+        ctx = self._ctx(payload.source, payload.controller, event)
         node = payload.node
         if node.condition is not None:
             subject = event.subject if event.subject is not None else payload.source
             if not eval_filter(node.condition, subject, ctx):
-                return ctx.decision_idx
+                return
         # The 12a shared effect runner — the SAME dispatch execute() uses,
         # journalled at its Atom boundaries by the Executor.
         self.executor._run_effect(node.effect, ctx)
-        return ctx.decision_idx
 
     def _ctx(
         self,
         source: Handle,
         controller: Handle,
         event: GameEvent,
-        decisions: Sequence[str],
     ) -> ExecCtx:
         ex = self.executor
         bindings: dict[str, Handle] = {}
@@ -692,7 +692,8 @@ class TriggerBinder:
             controller=controller,
             source=source,
             bindings=dict(bindings),
-            decisions=tuple(decisions),
+            decisions=(),  # 14b: firings answer through ex.decisions
+            stream=ex.decisions,
             events=ex.events,
             rng=ex.rng,
             token_counts=ex.token_counts,

@@ -657,6 +657,10 @@ class TestRaises(BindingCase):
 
 class TestMayAndDeterminism(BindingCase):
     def test_may_offer_consumes_decisions_in_fire_order(self):
+        """AMENDED 14b (B-4 rebuild): the positional trigger_decisions
+        stream is DELETED; may-offers answer through the executor's
+        vocabulary-addressed stream — the two firings ask under their own
+        source's key, so each answers per key, in ask order."""
         first = self.world.add_card(card_id("E1", "1", "1"), self.p0, ZONE_HAND)
         second = self.world.add_card(card_id("E2", "1", "1"), self.p0, ZONE_HAND)
         for e in (first, second):
@@ -664,12 +668,13 @@ class TestMayAndDeterminism(BindingCase):
                 e, self.record_for(e, [etb_trigger(OptionalEffect(gain(2)))])
             )
         both = sorted([first, second])
+        self.ex.decisions.push(("fire", "skip"), f"may:{both[0]}", "fire")
+        self.ex.decisions.push(("fire", "skip"), f"may:{both[1]}", "skip")
         self.ex.execute(
             enter(BF_YOU),
             source=both[0],
             controller=self.p0,
             bindings={"cards": both},
-            trigger_decisions=("fire", "skip"),  # first fires, second skips
         )
         self.assertEqual(self.life(self.p0), 22)
 

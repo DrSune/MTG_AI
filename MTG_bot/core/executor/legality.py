@@ -308,6 +308,7 @@ def ctx_for(
         replacements=executor.replacements,
         executor=executor,
         x_value=x_value,
+        stream=executor.decisions,
     )
 
 
@@ -951,7 +952,6 @@ def _loyalty_death_check(
     executor: Executor,
     source: Handle,
     controller: Handle,
-    trigger_decisions: Sequence[str] = (),
     loyalty_after: int | None = None,
 ) -> None:
     """CR 704.2 (13a): a planeswalker with 0 or less loyalty is put into its
@@ -976,7 +976,6 @@ def _loyalty_death_check(
         source=source,
         controller=controller,
         bindings={"target": [source]},
-        trigger_decisions=trigger_decisions,
     )
 
 
@@ -986,7 +985,6 @@ def pay_costs(
     *,
     source: Handle,
     controller: Handle,
-    trigger_decisions: Sequence[str] = (),
     mana_use: Handle | None = None,
 ) -> None:
     """Execute a :class:`PaymentPlan` through the 12a journalled verbs in
@@ -1035,7 +1033,6 @@ def pay_costs(
             source=source,
             controller=controller,
             bindings={"target": list(plan.tap)},
-            trigger_decisions=trigger_decisions,
         )
     if plan.sacrifice:
         executor.apply_effect(
@@ -1043,7 +1040,6 @@ def pay_costs(
             source=source,
             controller=controller,
             bindings={"target": list(plan.sacrifice)},
-            trigger_decisions=trigger_decisions,
         )
     if plan.discard:
         executor.apply_effect(
@@ -1053,7 +1049,6 @@ def pay_costs(
             source=source,
             controller=controller,
             bindings={"cards": list(plan.discard)},
-            trigger_decisions=trigger_decisions,
         )
     for handle, kind_name, count in plan.counters:
         executor.apply_effect(
@@ -1067,7 +1062,6 @@ def pay_costs(
             source=source,
             controller=controller,
             bindings={"target": [handle]},
-            trigger_decisions=trigger_decisions,
         )
     if plan.loyalty:
         # 13a: the loyalty ledger steps through the same journalled counter
@@ -1087,13 +1081,11 @@ def pay_costs(
             source=source,
             controller=controller,
             bindings={"target": [source]},
-            trigger_decisions=trigger_decisions,
         )
         _loyalty_death_check(
             executor,
             source,
             controller,
-            trigger_decisions,
             loyalty_before + plan.loyalty,
         )
     if plan.life:
@@ -1109,7 +1101,6 @@ def pay_costs(
             ),
             source=source,
             controller=controller,
-            trigger_decisions=trigger_decisions,
         )
 
 
@@ -1121,7 +1112,6 @@ def activate(
     seat: Handle,
     targets: Sequence[Handle] = (),
     decisions: Sequence[str] = (),
-    trigger_decisions: Sequence[str] = (),
     stack_empty: bool = True,
 ) -> tuple:
     """The folded ``ACTIVATE`` move (§1.3: legality, payment, effect — one
@@ -1177,5 +1167,4 @@ def activate(
         controller=seat,
         bindings=bindings,
         decisions=decisions,
-        trigger_decisions=trigger_decisions,
     )

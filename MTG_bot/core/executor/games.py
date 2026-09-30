@@ -26,15 +26,18 @@ executor can actually put into play (a land, or a card carrying a
 **The policy** (:class:`RandomPolicy`). It plays through the *query surface*:
 :func:`legal_casts` for the land drop and the spells,
 :func:`legal_activations` for activations, :func:`spell_target_slots` /
-:func:`legal_targets` with :func:`validate_target_selection` for targets, and
-:func:`optional_offer` / :func:`choose_options` / :func:`verb_choose_options`
-for every decision inside an effect tree. That makes the C15 contract
-load-bearing: if a game of random play ever needs a decision the query surface
-cannot enumerate, the harness would have to invent one — and it raises instead,
-which is the finding. What the policy additionally reads is IR *shape* (to
-know how many decisions the tree will ask for, in what order — the runtime
-takes one flat positional ``decisions`` tuple) and the pending-trigger queue
-(no query exposes "what is about to fire"); both are documented at their sites.
+:func:`legal_targets` with :func:`validate_target_selection` for targets
+(including the 14b synthesized TARGET_PLAYER coordinate slot — the opponent
+population the ENGINE's own rule requires, so no CR-rule mirror lives
+here anymore). Effect decisions never pre-enumerate anything (14b, B-4
+rebuild): the policy registers its seeded uniform choice as the executor's
+ask-time :attr:`~MTG_bot.core.executor.decisions.DecisionStream.provider`,
+and the engine hands it the exact vocabulary at the exact moment of demand
+— the same enumeration the query surface exposes, delivered where it is
+needed. That is the C15 contract strengthened, not weakened: the policy's
+vocabulary is the engine's own at the ask site, a may-offer arrives
+already narrowed by the query oracle (CR 117.3), and a demand with no
+answer still raises — which is the finding.
 
 Batch style, no priority simulation: ``begin_turn`` (which now draws, CR 504.5-c
 — this harness found that missing) then up to :data:`MAX_ACTS_PER_STEP` acts in
@@ -79,17 +82,12 @@ from MTG_bot.core.ability_tree import (
     Atom,
     AtomArgs,
     CardRecord,
-    Choose,
-    Conditional,
     ControllerRef,
-    DelayedTrigger,
     Effect,
-    OptionalEffect,
     QConst,
     Quantity,
     Selector,
     SelectorMode,
-    Seq,
     SpellAbility,
     Verb,
     Zone,
@@ -100,22 +98,16 @@ from MTG_bot.core.compiler.compiler import PoolCompile, compile_pool
 from MTG_bot.core.compiler.coverage import build_full_registry
 from MTG_bot.core.compiler.ingest import ingest_pool
 from MTG_bot.core.executor import SUPPORTED_VERBS_V2, Executor, activate
-from MTG_bot.core.executor.legality import ctx_for
-from MTG_bot.core.executor.quantity import eval_filter, resolve
 from MTG_bot.core.executor.query import (
     ActivationOption,
     CastOption,
     TargetSlot,
-    choose_options,
     legal_activations,
     legal_casts,
     legal_targets,
-    optional_offer,
     spell_target_slots,
     validate_target_selection,
-    verb_choose_options,
 )
-from MTG_bot.core.executor.selectors import role_player
 from MTG_bot.core.executor.stack import cast, play_land
 from MTG_bot.core.identity import CardIdentity, Handle
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_LIBRARY, GameWorld
@@ -138,16 +130,9 @@ CAST_P = 0.7  # cast a spell the query says is payable
 ACTIVATE_P = 0.4  # run a non-mana activation
 PASS_P = 0.15  # walk away from the batch (beginner's luck)
 
-# The two CR-fixed decision vocabularies the query surface does NOT enumerate:
-# SCRY's per-card placement and ADD_MANA's any-colour pick. They are static
-# sets, not state-dependent populations, so mirroring the literal is not an
-# engine read — but the mirror is still a contract the harness should not have
-# to keep (/03 row B-5).
-SCRY_VOCAB = ("top", "bottom")
-MANA_COLOR_VOCAB = ("W", "U", "B", "R", "G", "C")
-# The fire/skip tail on every trigger stream, for the demand an op's OWN
-# queued triggers create mid-drain: see RandomPolicy.trigger_decisions.
-TRIGGER_TAIL = 24
+# The 14b rebuild deleted the two mirrored CR vocabularies (SCRY top/bottom,
+# ADD_MANA any-colour) and the fire/skip trigger tail: the decision channel
+# now hands the policy the exact vocabulary at the ask (/03 rows B-4/B-5).
 
 _BASICS = ("Plains", "Island", "Swamp", "Mountain", "Forest")
 
@@ -409,209 +394,23 @@ class RandomPolicy:
     def coin(self) -> bool:
         return self.rng.random() < 0.5
 
-    # -- decisions
-    def effect_decisions(
-        self,
-        executor: Executor,
-        effect: Effect | None,
-        *,
-        source: Handle,
-        controller: Handle,
-        bindings: dict[str, Any] | None = None,
-        x_value: int | None = None,
-    ) -> tuple[str, ...]:
-        """The decision stream an effect tree will consume, built by walking
-        the tree in the order the runtime walks it.
+    # -- decisions (14b, B-4 rebuild)
+    def answer(self, vocab: tuple[str, ...], what: str) -> str:
+        """The ask-time decision provider registered on the executor's
+        :class:`DecisionStream` (the B-4 ruling's zero-prediction lane).
 
-        Why the walk exists: :meth:`Executor.apply_effect` takes ONE flat
-        ``decisions`` tuple and consumes it positionally, so a caller must know
-        which decision comes next. The walk mirrors ``_run_effect`` exactly —
-        it descends only into the branch that actually runs, because a skipped
-        ``OptionalEffect`` consumes nothing downstream of it, and an untaken
-        ``Conditional`` branch must not contribute tokens either.
-
-        Every *vocabulary* still comes from the query surface
-        (:func:`optional_offer`, :func:`choose_options`,
-        :func:`verb_choose_options`); only SCRY and any-colour ADD_MANA use a
-        mirrored CR literal (:data:`SCRY_VOCAB`, :data:`MANA_COLOR_VOCAB`). An
-        effect node the executor has not implemented raises the SAME
-        ``NotImplementedError`` the runtime would raise — the harness mirrors
-        the gate, it never pre-empts a crash with a guess.
-
-        Two honest limits, both in /03: a ``Conditional`` predicate that reads
-        the binder's trigger-event context (``event_amount``) can evaluate
-        differently here, and a decision demanded by a trigger that this op
-        *queues* cannot be enumerated before the op starts (only the fire/skip
-        tail of :meth:`trigger_decisions` covers it)."""
-        if effect is None:  # an effect-less SpellAbility carrier (T3 r3)
-            return ()
-        out: list[str] = []
-        ctx = ctx_for(
-            executor,
-            source=source,
-            controller=controller,
-            bindings=bindings,
-            x_value=x_value,
-        )
-
-        def descend(node: Effect) -> None:
-            if isinstance(node, Atom):
-                out.extend(self._atom_decisions(executor, node, ctx))
-            elif isinstance(node, Seq):
-                for step in node.steps:
-                    descend(step)
-            elif isinstance(node, OptionalEffect):
-                offer = optional_offer(
-                    executor,
-                    node,
-                    source=source,
-                    controller=controller,
-                    bindings=bindings,
-                )
-                pick = offer[0] if len(offer) == 1 else self.choose(offer)
-                out.append(pick)
-                if pick == "fire":
-                    descend(node.inner)
-            elif isinstance(node, Conditional):
-                if eval_filter(node.pred, source, ctx):
-                    descend(node.then_effect)
-                elif node.else_effect is not None:
-                    descend(node.else_effect)
-            elif isinstance(node, Choose):
-                opts = choose_options(
-                    executor,
-                    node,
-                    source=source,
-                    controller=controller,
-                    bindings=bindings,
-                )
-                idx = self.rng.randrange(len(opts))
-                out.append(str(idx))  # the 12d ORDER contract
-                for option_idx in opts[idx].option_idxs:
-                    descend(node.options[option_idx])
-            elif isinstance(node, DelayedTrigger):
-                return  # scheduled into the binder; no decision at schedule time
-            else:
-                raise NotImplementedError(
-                    f"executor: effect {type(node).__name__} not implemented (12e)"
-                )
-
-        descend(effect)
-        return tuple(out)
-
-    def _atom_decisions(
-        self, executor: Executor, atom: Atom, ctx: Any
-    ) -> tuple[str, ...]:
-        verb = atom.verb
-        if verb is Verb.ADD_MANA:
-            color = atom.args.get("color")
-            if color is None or color == "ANY":
-                return (self.choose(MANA_COLOR_VOCAB),)
-            return ()
-        if verb is Verb.SCRY:
-            # One decision per card actually scried, top first (verbs._v_scry);
-            # a library shorter than the scry is clamped there, so clamp here.
-            player = self._actor(atom, ctx)
-            size = len(executor.world.players[player].zone(ZONE_LIBRARY).entries)
-            count = atom.args.get("count")
-            want = (
-                size
-                if not isinstance(count, Quantity)
-                else min(resolve(count, ctx), size)
-            )
-            return tuple(self.choose(SCRY_VOCAB) for _ in range(max(want, 0)))
-        if verb is Verb.CHOOSE:
-            rows = verb_choose_options(
-                executor,
-                atom,
-                source=ctx.source,
-                controller=ctx.controller,
-                bindings=ctx.bindings,
-            )
-            return (str(self.rng.randrange(len(rows))),)
-        if verb is Verb.CHOOSE_NAME:
-            names = sorted(
-                {
-                    card.identity.name
-                    for card in executor.world.cards.values()
-                    if not card.identity.is_token
-                }
-            )
-            if not names:  # the handler's own raise shape; keep it loud
-                raise ValueError("CHOOSE_NAME has no enumerable candidates")
-            return (self.choose(names),)
-        return ()
-
-    @staticmethod
-    def _actor(atom: Atom, ctx: Any) -> Handle:
-        try:
-            return role_player(ctx, atom, "controller")
-        except NotImplementedError:  # a referent-selector scry: the controller
-            return ctx.controller
-
-    def trigger_decisions(self, executor: Executor) -> tuple[str, ...]:
-        """The stream for a trigger drain: the pending firings first, in the
-        binder's documented ``_pop_next`` order, gated by the trigger condition
-        exactly as ``_fire`` gates it; then a random fire/skip tail.
-
-        The tail is the honest answer to a structural hole (/03 row B-4). The
-        executor drains triggers *inside* every public op, so an op's own
-        queued triggers can demand a decision the policy could not enumerate
-        before the op began — and no query surface exposes 'what is about to
-        fire'. A may-offer in such a trigger is served by the tail (fire/skip
-        are the only tokens always in vocabulary); a SCRY / Choose /
-        CHOOSE_NAME demanded mid-drain raises, and that crash is the finding.
-        Pending-firing demand is the one part the harness can enumerate: the
-        queue is public world state and the choice values still come from the
-        query surface."""
-        binder = executor.binder
-        pending = sorted(
-            executor.world.triggers,
-            key=lambda instance: (
-                instance.controller_seat,
-                instance.clock,
-                str(instance.source),
-                binder.firings[instance.clock].seq
-                if instance.clock in binder.firings
-                else -1,
-            ),
-        )
-        out: list[str] = []
-        for instance in pending:
-            payload = binder.firings.get(instance.clock)
-            if payload is None:  # pragma: no cover - queue rows carry payloads
-                continue
-            bindings: dict[str, Any] = {}
-            subject = payload.event.subject
-            if subject is not None:
-                bindings["event"] = subject
-                if payload.event.kind == "CREATURE_DIES":
-                    bindings["result"] = subject  # C18 was-snapshot, as _ctx does
-            ability = payload.node
-            if ability.condition is not None:
-                gate = ctx_for(
-                    executor,
-                    source=payload.source,
-                    controller=payload.controller,
-                    bindings=bindings,
-                )
-                if not eval_filter(
-                    ability.condition,
-                    subject if subject is not None else payload.source,
-                    gate,
-                ):
-                    continue
-            out.extend(
-                self.effect_decisions(
-                    executor,
-                    ability.effect,
-                    source=payload.source,
-                    controller=payload.controller,
-                    bindings=bindings,
-                )
-            )
-        out.extend("fire" if self.coin() else "skip" for _ in range(TRIGGER_TAIL))
-        return tuple(out)
+        The engine hands the EXACT vocabulary at the exact demand site —
+        may-offers arrive already narrowed by the query oracle (CR 117.3,
+        ``query.optional_offer`` is the ask vocabulary now), scry arrives
+        ``('top','bottom')``, any-colour mana arrives the colour vocab —
+        so the policy draws uniformly from the enumeration it is GIVEN
+        and mirrors no vocabulary of its own (the four 14a mirrors are
+        deleted: /03 row B-5 closed). A non-member answer would raise in
+        the stream; exhaustion raises too (C15: no default, the tripwire
+        stands). Determinism: this consumes only ``self.rng``, and the
+        engine asks in a deterministic order, so one seed still identifies
+        the whole decision history (the replay pin relies on that)."""
+        return self.rng.choice(list(vocab))
 
     # -- targets
     def select_targets(self, slots: list[TargetSlot]) -> tuple[Handle, ...] | None:
@@ -676,12 +475,7 @@ class RandomPolicy:
     def play_land(self, game: Game, seat: Handle, row: CastOption) -> None:
         name = game.name_of(row.handle)
         game.attempted = f"land:{name}"
-        play_land(
-            game.executor,
-            seat,
-            row.handle,
-            trigger_decisions=self.trigger_decisions(game.executor),
-        )
+        play_land(game.executor, seat, row.handle)
         self._log(game, "land", name)
 
     def play_cast(self, game: Game, seat: Handle, row: CastOption) -> None:
@@ -704,38 +498,13 @@ class RandomPolicy:
         if targets is None:
             game.infeasible_skips += 1
             return
-        if not slots and targets == () and self._names_a_player(node.effect):
-            # B-8: a "target opponent" spell (Duress, Cancel, Kitesail
-            # Freebooter, Peer into the Abyss) compiles to a
-            # ControllerRef.TARGET_PLAYER coordinate with NO Selector, so the slot
-            # query correctly answers "no slots" and the policy has nothing to
-            # designate — and resolution then raises in players_for_ref because the
-            # binding was never made. Designating it is a CR-fixed rule rather than
-            # a choice in a 2-player game (an opponent seat of the caster, exactly
-            # what ``stack._validate_spell_targets`` re-checks, and that check stays
-            # the oracle: a wrong pick still raises). Mirroring a static rule is the
-            # same category as :data:`SCRY_VOCAB`; the gap the ledger asks the
-            # ENGINE to close is a query that exposes it.
-            targets = tuple(
-                sorted(other for other in executor.world.player_order if other != seat)
-            )
+        # B-8/B-5 CLOSED 14b: "target opponent" now rides the SYNTHESIZED
+        # coordinate slot of the query (engine CR population), so the
+        # opponent-seat mirror and the _names_a_player IR probe are gone —
+        # the designation above came from the slot like any other.
+        if any(slot.synthetic for slot in slots):
             game.player_target_designations += 1
-        decisions = self.effect_decisions(
-            executor,
-            node.effect,
-            source=row.handle,
-            controller=seat,
-            bindings=self._cast_bindings(targets),
-            x_value=None,
-        )
-        cast(
-            executor,
-            seat,
-            row.handle,
-            targets=tuple(targets),
-            decisions=decisions,
-            trigger_decisions=self.trigger_decisions(executor),
-        )
+        cast(executor, seat, row.handle, targets=tuple(targets))
         self._log(game, "cast", name, f"{len(targets)}t")
 
     def play_activation(
@@ -762,54 +531,14 @@ class RandomPolicy:
         if targets is None:
             game.infeasible_skips += 1
             return
-        decisions = self.effect_decisions(
-            executor,
-            option.ability.effect,
-            source=option.source,
-            controller=seat,
-            # the same mirror for activations (stack.py:497 writes this binding)
-            bindings=self._cast_bindings(targets),
-        )
         activate(
             executor,
             option.source,
             option.ability_idx,
             seat=seat,
             targets=tuple(targets),
-            decisions=decisions,
-            trigger_decisions=self.trigger_decisions(executor),
         )
         self._log(game, "act", name, f"#{option.ability_idx}")
-
-    @staticmethod
-    def _cast_bindings(targets: tuple[Handle, ...]) -> dict[str, Any] | None:
-        """The binding dict the cast is about to install — ``stack.cast`` writes
-        ``bindings["target"] = sorted(targets)`` (stack.py:386) before running the
-        effect, so a pre-cast enumeration of a target-scoped pool (Duress's
-        'You choose a card from it' = Zone(HAND, TARGET_PLAYER)) has to see the
-        same thing or it enumerates a different population than the runtime
-        will. Mirroring the engine's own write, not inventing one."""
-        chosen = sorted(targets)
-        return {"target": chosen} if chosen else None
-
-    @staticmethod
-    def _names_a_player(effect: Effect | None) -> bool:
-        """Does this tree read the TARGET_PLAYER coordinate channel? (Both the
-        bare-ControllerRef shape and a Zone whose controller is TARGET_PLAYER.)"""
-        if effect is None:
-            return False
-        for node in walk(effect):
-            if not isinstance(node, Atom):
-                continue
-            for _role, value in node.args.pairs:
-                if value is ControllerRef.TARGET_PLAYER:
-                    return True
-                if (
-                    isinstance(value, Zone)
-                    and value.controller is ControllerRef.TARGET_PLAYER
-                ):
-                    return True
-        return False
 
     @staticmethod
     def _target_selectors(effect: Effect | None) -> tuple[Selector, ...]:
@@ -1128,7 +857,12 @@ def _play(game: Game, policy: RandomPolicy, order: list[Handle], turn_cap: int) 
     seat is the ENGINE's choice, read back off ``active_player``, not ours)."""
     executor = game.executor
     world = executor.world
-    executor.begin_turn(order[0], trigger_decisions=policy.trigger_decisions(executor))
+    # 14b (B-4): the policy IS the executor's decision answerer — the
+    # engine asks with the exact vocabulary at every demand site. The
+    # registration lives HERE so every driver (play_game and --repro)
+    # gets it.
+    executor.decisions.provider = policy.answer
+    executor.begin_turn(order[0])
     game.note_draw_step(order[0])
     while True:
         seat = world.active_player
@@ -1142,12 +876,12 @@ def _play(game: Game, policy: RandomPolicy, order: list[Handle], turn_cap: int) 
         if game.turns >= turn_cap:
             game.reason = f"turn cap {turn_cap} reached (no loser)"
             return
-        executor.end_turn(trigger_decisions=policy.trigger_decisions(executor))
+        executor.end_turn()
         late = game.over_reason()  # an end-of-turn sweep can be what kills a seat
         if late is not None:
             game.reason = late
             return
-        executor.advance_turn(trigger_decisions=policy.trigger_decisions(executor))
+        executor.advance_turn()
         nxt = world.active_player
         assert nxt is not None
         game.note_draw_step(nxt)

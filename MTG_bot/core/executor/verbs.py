@@ -51,6 +51,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
 )
+from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.durations_min import duration_tag
 from MTG_bot.core.executor.events import KIND_GAME_LOST
 from MTG_bot.core.executor.quantity import (
@@ -498,7 +499,7 @@ def _v_add_mana(ctx: ExecCtx, atom: Atom) -> None:
     n = amount(ctx, atom, "amount")
     color = atom.args.get("color")
     if color is None or color == "ANY":
-        color = ctx.take_decision(_COLORS_VOCAB, "ADD_MANA any-colour")
+        color = ctx.take_decision(_COLORS_VOCAB, f"mana:{ctx.source}")
     elif isinstance(color, str) and color in _COLORS_VOCAB:
         pass
     else:
@@ -530,8 +531,11 @@ def _v_scry(ctx: ExecCtx, atom: Atom) -> None:
     top_down = list(reversed(lib.entries[-n:])) if n else []
     bottoms: list[Handle] = []
     tops: list[Handle] = []
+    # 14b site tag: owner + count (the /03 B-4 table). The per-card asks
+    # share the key; the stream's FIFO serves them in ask order.
+    what = f"scry:{player}:{n}"
     for card in top_down:  # decisions are consumed one per card, top first
-        if ctx.take_decision(("top", "bottom"), "SCRY") == "top":
+        if ctx.take_decision(("top", "bottom"), what) == "top":
             tops.append(card)
         else:
             bottoms.append(card)
@@ -781,7 +785,6 @@ def _v_pay(ctx: ExecCtx, atom: Atom) -> None:
         plan,
         source=ctx.source,
         controller=ctx.controller,
-        trigger_decisions=(),
     )
     ctx.events.append((len(ctx.events), "PAY", str(ctx.controller), repr(cost)))
 
@@ -819,7 +822,6 @@ def _v_cast(ctx: ExecCtx, atom: Atom) -> None:
             ctx.controller,
             card,
             cost_override=cost,
-            trigger_decisions=(),
             x=ctx.x_value if ctx.x_value is not None else 0,
         )
 
@@ -867,7 +869,7 @@ def _v_choose(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append((len(ctx.events), "CHOOSE", str(ctx.source)))
         return
     vocab = tuple(str(i) for i in range(len(rows)))
-    pick = ctx.take_decision(vocab, "CHOOSE")
+    pick = ctx.take_decision(vocab, f"choose:{ctx.source}:{site_digest(tuple(rows))}")
     chosen = rows[int(pick)]
     if len(chosen) < want:
         # the under-filled zero row picked when candidates ran out
@@ -917,7 +919,7 @@ def _v_choose_name(ctx: ExecCtx, atom: Atom) -> None:
             "or a name_filter nothing satisfies)"
         )
     ordered = sorted(candidates)
-    pick = ctx.take_decision(tuple(ordered), "CHOOSE_NAME")
+    pick = ctx.take_decision(tuple(ordered), f"name:{ctx.source}")
     executor.name_choices[ctx.source] = pick
     ctx.events.append((len(ctx.events), "CHOOSE_NAME", str(ctx.source), pick))
 

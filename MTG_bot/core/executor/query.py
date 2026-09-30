@@ -70,8 +70,10 @@ from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     Atom,
     Choose,
+    ControllerRef,
     Cost,
     Effect,
+    FAnd,
     OptionalEffect,
     QAtLeast,
     QAtMost,
@@ -81,6 +83,7 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     SpellAbility,
     Verb,
+    Zone,
     ZoneKind,
     walk,
 )
@@ -166,6 +169,11 @@ class TargetSlot:
     min_count: int
     max_count: int
     forced: bool
+    #: 14b (B-5/B-8): True for the SYNTHESIZED player-coordinate slot of a
+    #: "target opponent" TARGET_PLAYER ControllerRef (no compiled Selector
+    #: exists — the grammar gap). The candidate population (opponent seats)
+    #: comes from the ENGINE's own CR rule, so no caller mirrors it.
+    synthetic: bool = False
 
 
 @dataclass(frozen=True)
@@ -615,17 +623,27 @@ def spell_target_slots(
     players anyway).
 
     The corpus' "target opponent" (Duress) compiles to a TARGET_PLAYER
-    ControllerRef with NO Selector — there is nothing to build a slot
-    from; that designation rides the player-coordinate rule of
-    ``stack.cast`` (the grammar gap, documented there)."""
+    ControllerRef with NO Selector. 14b (B-8/B-5 fix): that coordinate now
+    gets a SYNTHESIZED slot — the opponent-seat population comes from the
+    ENGINE's own player rule (exactly the one
+    ``stack._validate_spell_targets`` re-checks, which stays the oracle),
+    so a caller designates from a QUERY instead of mirroring the CR rule
+    (/03 row B-5 mirror #4, deleted)."""
     slots: list[TargetSlot] = []
     seen: set[str] = set()
     if node.effect is None:
         return slots
+    reads_target_player = False
     for inner in walk(node.effect):
         if not isinstance(inner, Atom):
             continue
         for _role, value in inner.args.pairs:
+            if (
+                value is ControllerRef.TARGET_PLAYER
+                or isinstance(value, Zone)
+                and value.controller is ControllerRef.TARGET_PLAYER
+            ):
+                reads_target_player = True
             if not isinstance(value, Selector) or value.mode is not SelectorMode.TARGET:
                 continue
             key = repr(value)
@@ -643,6 +661,27 @@ def spell_target_slots(
             if widened is not None:
                 slot = widened
             slots.append(slot)
+    if reads_target_player:
+        # 14b (B-8/B-5): the TARGET_PLAYER coordinate's designation slot —
+        # the CR population the runtime REQUIRES (an opponent seat of the
+        # caster, the same rule _validate_spell_targets re-checks), now
+        # answered by the query so no caller mirrors the rule.
+        opponents = tuple(sorted(h for h in executor.world.player_order if h != seat))
+        slots.append(
+            TargetSlot(
+                selector=Selector(
+                    count=QConst(1),
+                    mode=SelectorMode.TARGET,
+                    filter=FAnd(()),
+                    zone=Zone(ZoneKind.PLAYER, ControllerRef.TARGET_PLAYER),
+                ),
+                candidates=opponents,
+                min_count=1,
+                max_count=1,
+                forced=len(opponents) == 1,
+                synthetic=True,
+            )
+        )
     return slots
 
 

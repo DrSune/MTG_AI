@@ -159,3 +159,42 @@ raise usually happens before the act is logged. Determinism is pinned by
 Owner ruling on B-4's channel shape (blocks everything else); B-11 compiler fix + audited
 re-baseline; B-1 castability; then re-run at 100 seeds — PC-7 stops being a verb-dispatch proxy
 and becomes a game-survival number.
+
+---
+
+## 14b-2 STATUS UPDATE (2026-09-30, decision-channel rebuild)
+
+- **B-4 · FIXED.** The channel is now vocabulary-addressed: `ExecCtx.take_decision(vocab, what)`
+  resolves (1) the explicit per-op pool, (2) a per-`(vocab, what)` FIFO primed through
+  `executor.decisions.push`, (3) an ask-time `provider` — module `executor/decisions.py`
+  (`DecisionStream`). Trigger firings carry the stream, so a demand from a trigger the op itself
+  armed (check-land ETB scry) is answered with ZERO prediction. `trigger_decisions` is DELETED
+  from every public op, `_settle`, `fire_triggers`, `begin/end/advance_turn`, the legality
+  wrappers and `binding.fire_all`'s cursor machinery. Proof: `CrashLedgerTest.
+  test_b4_scry_armed_by_the_land_drop_itself_is_answered` (scripted + replay-fingerprint pinned)
+  and the 10-seed rerun (scry-rejection class gone entirely).
+- **B-5 · FIXED.** All four mirrors deleted from `games.py`: SCRY_VOCAB, MANA_COLOR_VOCAB, the
+  `str(i)` CHOOSE walk (`effect_decisions`/`_atom_decisions`, plus the `_cast_bindings` mirror of
+  `stack.cast`'s binding write), and the opponent-seat rule — the last one closed ENGINE-side:
+  `spell_target_slots` now synthesizes a `TargetSlot(synthetic=True)` for a tree that reads
+  `ControllerRef.TARGET_PLAYER` (candidates = opponent seats, the engine's own CR population;
+  `_validate_spell_targets` stays the oracle). The policy registers
+  `executor.decisions.provider = policy.answer` and mirrors nothing.
+- **B-8 · CLOSED** by the same synthesized slot (designate from the query; mirrored-rule test
+  replaced by `test_b8_target_player_coordinate_rides_the_synthesized_slot`).
+- Runtime may-asks use the QUERY's narrowed `optional_offer` vocab (CR 117.3 query/runtime
+  identity at the ASK: an unpayable `fire` is not even a legal answer anymore — amended
+  `test_executor_stack.py::test_fire_on_unpayable_raises`, raise moves one station upstream).
+
+### New crash classes (the 14b rerun; the wall moved, the games run 2–7× deeper)
+
+| class | frame | 10-seed counts (all/engine/castable) | status |
+|---|---|---|---|
+| **B-13 ONE_OF/REST designation = 12c target prompt** | selectors.py resolve_selector | 3 / 2 / 3 | OPEN, dominant headwall; pinned `test_new_rest_one_of_designation_is_the_12c_gap` |
+| **B-7 CONTROLLER_COUNT_GE** (pre-existing, now reachable) | quantity.py _eval_atom | 3 / 2 / 2 | OPEN; pinned DIRECTLY (seed-path pin superseded) |
+| **B-14 QX undeclared X on cast** (Primal Might) | quantity.py resolve | 2 / 0 / 0 | OPEN; pinned `test_qx_undeclared_x_raises_loud_on_cast` |
+| **B-15 TARGET selector with no designation** | selectors.py resolve_selector | 1 / 1 / 0 | OPEN, un-attributed; repro via `--repro` seeds (all:4, engine:8) |
+| **B-16 `zone_of(player:0)` KeyError** (a player handle reaches a card-zone read) | state.py zone_of | 0 / 1 / 0 | OPEN; engine seed 2 |
+| **B-9 result referent outside a trigger** (Hallowblade residual) | selectors.py | 0 / 1 / 2 | OPEN as of 14b-1, still kills |
+| **B-17 FLIP_WON needs a recorded FLIP_COIN** (Tavern Swindler second row, bare ctx) | quantity.py | 0 / 0 / 2 | OPEN |
+| **B-18 DISCARD a card not in hand** (Bad Deal cost-plan staleness) | verbs.py _v_discard | 0 / 0 / 1 | OPEN |

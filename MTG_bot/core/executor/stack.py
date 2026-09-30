@@ -299,7 +299,6 @@ def cast(
     mode_choices: tuple[int, ...] = (),
     targets: tuple[Handle, ...] = (),
     decisions: tuple[str, ...] = (),
-    trigger_decisions: tuple[str, ...] = (),
 ) -> SpellObject:
     """The folded CR 601.2 → 601.4 move (the ``CAST`` decision of the
     Slate's field schedule — legality, declaration, payment, resolution,
@@ -363,7 +362,6 @@ def cast(
         plan,
         source=handle,
         controller=seat,
-        trigger_decisions=trigger_decisions,
         mana_use=handle,
     )
     park(executor, seat, handle)
@@ -371,7 +369,7 @@ def cast(
     executor.stack.push(frame)
     assert executor.stack.top() is frame  # LIFO: this cast is the top frame
     executor.journal.emit_cast(handle, seat, node.kind.name, "hand", x)
-    executor._settle(trigger_decisions)  # cast triggers resolve first
+    executor._settle()  # cast triggers resolve first
 
     # 7: resolution. The effect runs WITHOUT an intervening settle — the
     # spell leaves the stack and the PUT happens before anything its
@@ -405,8 +403,8 @@ def cast(
     executor.journal.record_atom(
         before_put, handle, "CAST", list(executor.events[start_put:])
     )
-    executor._settle(trigger_decisions)
-    executor._consume_end_turn(trigger_decisions)
+    executor._settle()
+    executor._consume_end_turn()
     return frame
 
 
@@ -417,7 +415,6 @@ def cast_card(
     *,
     cost_override: Cost | None,
     targets: tuple[Handle, ...] = (),
-    trigger_decisions: tuple[str, ...] = (),
     x: int | None = 0,
 ) -> bool:
     """The effect-side CAST verb's engine (``verbs._v_cast``): cast a
@@ -482,14 +479,13 @@ def cast_card(
             plan,
             source=handle,
             controller=caster,
-            trigger_decisions=trigger_decisions,
             mana_use=handle,
         )
     park(executor, caster, handle)
     executor.journal.record_atom(before, handle, "CAST", list(executor.events[start:]))
     executor.stack.push(frame)
     executor.journal.emit_cast(handle, caster, node.kind.name, frame.from_zone, x)
-    executor._settle(trigger_decisions)
+    executor._settle()
     popped = executor.stack.pop()
     assert popped is frame
     bindings: dict[str, Binding] = {}
@@ -512,7 +508,7 @@ def cast_card(
     executor.journal.record_atom(
         before_put, handle, "CAST", list(executor.events[start_put:])
     )
-    executor._settle(trigger_decisions)
+    executor._settle()
     return True
 
 
@@ -522,7 +518,6 @@ def play_land(
     handle: Handle,
     *,
     tapped: bool = False,
-    trigger_decisions: tuple[str, ...] = (),
 ) -> None:
     """The ``PLAY_LAND`` move (CR 305.1, folded one-call like activate/
     cast): re-check :func:`land_playable`, move hand → battlefield (a
@@ -554,4 +549,4 @@ def play_land(
     if turn != world.turn:
         plays = 0
     executor.land_ledger[seat] = (world.turn, plays + 1)
-    executor._settle(trigger_decisions)
+    executor._settle()

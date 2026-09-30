@@ -51,6 +51,7 @@ from MTG_bot.core.ability_tree import (
     Quantity,
     QUnbounded,
 )
+from MTG_bot.core.executor.decisions import DecisionStream
 from MTG_bot.core.executor.durations_min import DurationLedger
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
@@ -73,9 +74,11 @@ class ExecCtx:
     """Everything one effect-resolution needs: the world, the executor's
     ledger, the ability's coordinates, and the explicit decision channel.
 
-    ``decisions`` is consumed strictly in order via :meth:`take_decision`
-    (C15: every decision is enumerable and explicit — the executor holds no
-    hidden randomness and no hidden choice).
+    ``decisions`` is the explicit per-op POOL consumed in ask order via
+    :meth:`take_decision`; the 14b ``stream`` adds the vocabulary-addressed
+    lanes that need no pre-enumeration (B-4). C15 throughout: every
+    decision is enumerable and explicit — the executor holds no hidden
+    randomness and no hidden choice.
     """
 
     world: GameWorld
@@ -85,6 +88,9 @@ class ExecCtx:
     bindings: Dict[str, Binding]
     decisions: Sequence[str]
     decision_idx: int = 0
+    # 14b: the executor's vocabulary-addressed stream (B-4 channel). None
+    # only in bare unit-test contexts that pass their own decisions pool.
+    stream: DecisionStream | None = None
     events: List[Tuple[object, ...]] = field(default_factory=list)
     rng: Callable[[str], random.Random] = _default_rng  # executor-owned seeds
     token_counts: Dict[str, int] = field(default_factory=dict)
@@ -112,17 +118,36 @@ class ExecCtx:
     pending_replacements: list[ReplacementRecord] = field(default_factory=list)
 
     def take_decision(self, vocab: Tuple[str, ...], what: str) -> str:
-        """Consume the next decision; raise if missing or out-of-vocab."""
-        if self.decision_idx >= len(self.decisions):
-            raise ValueError(
-                f"executor: {what} needs a decision from {vocab}, "
-                f"got only {len(self.decisions)} supplied"
-            )
-        choice = self.decisions[self.decision_idx]
-        self.decision_idx += 1
-        if choice not in vocab:
-            raise ValueError(f"executor: {what} decision {choice!r} not in {vocab}")
-        return choice
+        """Consume the next decision for THIS demand site; raise when no
+        lane can answer (C15: never a default).
+
+        14b lanes, in order (the /03 B-4 ruling, doc ``decisions.py``):
+
+        1. the explicit per-op POOL (``decisions=`` kwarg, ask order) —
+           a KNOWN-tree pre-supply, byte-identical to the 12a-14a
+           positional behaviour and still vocabulary-validated,
+        2. the executor's :class:`~MTG_bot.core.executor.decisions.
+        DecisionStream` FIFO primed under this exact ``(vocab, what)``
+           key — the enumeration-free lane: an answer queued by the
+           policy is picked up whenever the demand arrives, including
+           from a trigger the running op itself armed (B-4),
+        3. the stream's ask-time PROVIDER — the engine hands the exact
+           vocabulary to the external answerer at the moment of demand.
+        """
+        if self.decision_idx < len(self.decisions):
+            choice = self.decisions[self.decision_idx]
+            self.decision_idx += 1
+            if choice not in vocab:
+                raise ValueError(f"executor: {what} decision {choice!r} not in {vocab}")
+            if self.stream is not None:
+                self.stream.ask_log.append((what, choice))
+            return choice
+        if self.stream is not None:
+            return self.stream.take(vocab, what)
+        raise ValueError(
+            f"executor: {what} needs a decision from {vocab}, "
+            f"got only {len(self.decisions)} supplied"
+        )
 
     def binding_handles(self, role: str) -> Optional[List[Handle]]:
         """The caller-supplied handles for a role, Handle-sorted (ruling 5)."""

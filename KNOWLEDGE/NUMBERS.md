@@ -13,6 +13,38 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.238 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-09-30 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.24 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-09-30 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.239 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
@@ -1436,3 +1468,8 @@ Core suite **1986 passed / 0 failed** = 1971 (13c) + **15 new** (`test_executor_
 29/30 games ended in an exception. Kill census: **B-4 22/30** (`take_decision` "SCRY decision … not in ('top','bottom')" — the positional trigger-decision channel, P0 DESIGN, owner ruling requested); B-7 3/30 (CONTROLLER_COUNT_GE raises from the QUERY, Fabled Passage); B-9/B-11 3/30 (`result`/`event` referent + TARGET_PLAYER outside a trigger = the ETB-effect-split-across-abilities compiler bug, 3/3 confirmed: Kitesail Freebooter, Garruk's Harbinger, Siege Striker); B-2 1/30 pre-fix, 0 post-fix.
 **3 executor fixes** (repro-first, tests green): F-1 `begin_turn` had NO turn draw (CR 504.5) → journalled `_TURN_DRAW` (1 existing test amended); F-2 `legality._zone_handles` Zone(STACK) raise was round-12-stale (13b grew a stack) → now answers (Unsubstantiate's BATTLEFIELD+STACK selector made `legal_casts` and `spell_target_slots` disagree); F-3 `_v_choose` dropped `ctx.bindings` when calling its own query → `verb_choose_options` gained an additive `bindings=` (Duress family now casts + the designated opponent discards).
 PC-1 **301/305 (0.9869)**, PC-2 **634/639 (0.9922)**, PC-3 **0**, PC-4 **0 diffs / 305 files** — cmd: `.venv/bin/python tools/measure_grammar.py --set M21` — **EXACT through 11 consecutive phases**; grammar/goldens/state.py untouched. PC-6 (1 orphan) / PC-8 (0.3213) unchanged pre-existing FAILs. pyright **0 errors** (executor pkg + 2 test files); ruff delta **0** (games.py + test_executor_games.py clean on the ALL ruleset; `__init__` 4 == HEAD).
+
+### Round-14b-2 decision-channel rebuild — PC-7 rerun (2026-09-30, uncommitted; see KNOWLEDGE/2026-09-30/05-round14b-2-decision-channel.md)
+
+**PC-7 game survival (10 seeds, cap 60, deck-pairs 1409, post-B-4/B-5)** — cmd: `.venv/bin/python -m MTG_bot.core.executor.games --seeds 10 --pool {all,engine,castable}`:
+survival all **1/10** mean 28.7 max 60 (was 0/10, 9.0, 44); engine **3/10** mean 38.8 max 60×3 (was 1/10, 17.4, 60); castable 0/10 mean 14.0 max 34 (was 0/10, 2.0, 8). coverage fired: all 34, engine 39, castable 33 cards. B-4 scry-rejection class gone from all pools; 30-seed trigger (engine ≥5/10) not met. Core suite **1996** (`pytest MTG_bot/core -q`), PC-1 301/305 · PC-2 634/639 · PC-3 0 · PC-4 0 diffs (`tools/measure_grammar.py`), engine_supported 286 pinned, pyright 0, ruff delta 0 (34=34).

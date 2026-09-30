@@ -54,10 +54,11 @@ Design mandates:
     raises ``NotImplementedError`` at dispatch, naming the node; the
     executor never guesses a silent no-op (LOOK_AT/REVEAL are recorded,
     legitimate no-ops).
-  * **explicit decisions** — enumerable choices (may-fire, scry top/bottom,
-    any-colour mana) arrive as the ``decisions`` sequence and are consumed
-    strictly in order (C15). A trigger drain consumes its OWN
-    ``trigger_decisions`` across the drain in APNAP fire order.
+  * **explicit decisions** — every controller decision is answered
+    externally (C15): an explicit per-op ``decisions`` pool for a KNOWN
+    tree, or the 14b vocabulary-addressed stream (per-(vocab, what) FIFO
+    / ask-time provider, :mod:`executor.decisions`) which needs no
+    pre-enumeration of what an op will arm (B-4 ruling). Exhaustion raises.
   * **executor-owned randomness** — the only randomness is a
     :class:`random.Random` seeded from ``sha256(master_seed:op_seq:tag)``;
     two executors fed the same ops replay byte-identically (P12). The
@@ -105,6 +106,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.compiler.compiler import PoolCompile
 from MTG_bot.core.executor.binding import MAX_TRIGGER_FIRES, TriggerBinder
+from MTG_bot.core.executor.decisions import DecisionStream, site_digest
 from MTG_bot.core.executor.durations import DurationLedger, PtChange
 from MTG_bot.core.executor.events import (
     KIND_TAP_STATE,
@@ -348,6 +350,12 @@ class Executor:
         self.attachments: dict[Handle, Handle] = {}
         # Public alias of the seeded factory (the binder builds ExecCtxs too).
         self.rng = self._rng
+        # 14b: the vocabulary-addressed decision channel (B-4 ruling). One
+        # stream per executor/replay: FIFO priming, ask-time provider and
+        # the ask log ride EVERY context the executor builds — effect ops,
+        # trigger firings, payments, replacement actions — which is what
+        # lets a policy answer a demand a running op armed mid-drain.
+        self.decisions = DecisionStream()
 
     # ------------------------------------------------------------------ rng
 
@@ -388,6 +396,7 @@ class Executor:
             replacements=self.replacements,
             executor=self,
             x_value=x_value,
+            stream=self.decisions,
         )
 
     def _cast_ctx(
@@ -425,12 +434,14 @@ class Executor:
         controller: Handle,
         bindings: dict[str, Binding] | None = None,
         decisions: Sequence[str] = (),
-        trigger_decisions: Sequence[str] = (),
     ) -> tuple[Event, ...]:
         """Run one Atom; returns the 12a events this call appended.
         Unsupported verbs raise ``NotImplementedError`` at dispatch. The
         atom's world changes are journalled; any trigger the change arms
-        drains afterwards (APNAP), consuming ``trigger_decisions``."""
+        drains afterwards (APNAP). Trigger-drain decisions arrive through
+        the executor's vocabulary-addressed stream (14b, B-4) — the old
+        positional ``trigger_decisions`` kwarg is deleted: it could not
+        carry demands the op itself armed."""
         if not isinstance(atom, Atom):
             raise ValueError(
                 f"Executor: execute needs an Atom, got {type(atom).__name__}"
@@ -441,8 +452,8 @@ class Executor:
         )
         start = len(self.events)
         self._run_effect(atom, ctx)
-        self._settle(trigger_decisions)
-        self._consume_end_turn(trigger_decisions)
+        self._settle()
+        self._consume_end_turn()
         return tuple(self.events[start:])
 
     def apply_effect(
@@ -453,15 +464,16 @@ class Executor:
         controller: Handle,
         bindings: dict[str, Binding] | None = None,
         decisions: Sequence[str] = (),
-        trigger_decisions: Sequence[str] = (),
     ) -> tuple[Event, ...]:
-        """Run an Effect tree; one decision channel spans the whole tree so
-        nested choices consume ``decisions`` in tree order (C15). Seq,
-        OptionalEffect (``'fire'``/``'skip'``), Conditional (pred judged
-        against the *source* handle), Choose (12d: ONE decision token =
-        the index of the chosen option-set in ``query.choose_options``
-        order) and DelayedTrigger (scheduled, C22) are wired;
-        Repeat/EachPlayer raise as unimplemented nodes (12e)."""
+        """Run an Effect tree; the per-op pool ``decisions`` covers the
+        KNOWN tree in ask order, and every demand it cannot serve reaches
+        the executor's vocabulary-addressed stream (14b). OptionalEffect
+        asks the query-narrowed offer vocab (``fire``/``skip``), Seq runs
+        its steps, Conditional judges the pred against the *source*
+        handle, Choose (12d: ONE decision token = the index of the chosen
+        option-set in ``query.choose_options`` order) and DelayedTrigger
+        (scheduled, C22) are wired; Repeat/EachPlayer raise as
+        unimplemented nodes (12e)."""
         if not isinstance(
             effect, (Atom, Seq, OptionalEffect, Conditional, DelayedTrigger, Choose)
         ):
@@ -474,8 +486,8 @@ class Executor:
         )
         start = len(self.events)
         self._run_effect(effect, ctx)
-        self._settle(trigger_decisions)
-        self._consume_end_turn(trigger_decisions)
+        self._settle()
+        self._consume_end_turn()
         return tuple(self.events[start:])
 
     def _run_effect(self, effect: Effect, ctx: ExecCtx) -> None:
@@ -512,7 +524,20 @@ class Executor:
             for step in effect.steps:
                 self._run_effect(step, ctx)
         elif isinstance(effect, OptionalEffect):
-            if ctx.take_decision(("fire", "skip"), "OptionalEffect") == "fire":
+            # 14b (B-5, query/runtime identity): the ASK vocabulary is the
+            # query surface's own narrowed optional_offer — the policy gets
+            # exactly what a query would answer ("may pay {2}" with an empty
+            # pool offers only skip, CR 117.3, so a provider can never
+            # answer fire where firing is illegal). The site tag keys the
+            # answer to THIS ability's offer (B-4 vocabulary addressing).
+            offer = optional_offer(
+                self,
+                effect,
+                source=ctx.source,
+                controller=ctx.controller,
+                bindings=ctx.bindings,
+            )
+            if ctx.take_decision(offer, f"may:{ctx.source}") == "fire":
                 self._run_effect(effect.inner, ctx)
         elif isinstance(effect, Conditional):
             if eval_filter(effect.pred, ctx.source, ctx):
@@ -533,7 +558,10 @@ class Executor:
                 bindings=ctx.bindings,
             )
             vocab = tuple(str(i) for i in range(len(opts)))
-            pick = ctx.take_decision(vocab, "Choose")
+            pick = ctx.take_decision(
+                vocab,
+                f"choose:{ctx.source}:{site_digest(tuple(o.option_idxs for o in opts))}",
+            )
             for idx in opts[int(pick)].option_idxs:
                 self._run_effect(effect.options[idx], ctx)
         elif isinstance(effect, DelayedTrigger):
@@ -573,14 +601,15 @@ class Executor:
         card already on the battlefield."""
         return self.binder.attach_pool(pool)
 
-    def fire_triggers(self, decisions: Sequence[str] = ()) -> int:
-        """Drain the pending trigger queue (APNAP, Handle-tie-broken);
-        ``decisions`` are consumed in fire order (may-offers). Returns the
-        number of firings."""
+    def fire_triggers(self) -> int:
+        """Drain the pending trigger queue (APNAP, Handle-tie-broken).
+        Decisions arrive through the executor's stream (14b): may-offers
+        hit the vocabulary-addressed lanes, nothing positional is consumed.
+        Returns the number of firings."""
         self.binder.on_events()
-        return self.binder.fire_all(decisions)
+        return self.binder.fire_all()
 
-    def _settle(self, trigger_decisions: Sequence[str] = ()) -> int:
+    def _settle(self) -> int:
         """Match the journal's new events and drain — the end of every
         public op. With nothing attached this is a no-op (12a behaviour).
         12d: the settle tail is also the recompute point — WHILE-condition
@@ -589,12 +618,12 @@ class Executor:
         the keyword / granted-ability oracles. All of it is pure function
         of the journal's final state, so replays are byte-identical."""
         self.binder.on_events()
-        fired = self.binder.fire_all(trigger_decisions)
+        fired = self.binder.fire_all()
         self.ledger.settle_while(self._while_eval)
         self.layers.recompute()
         return fired
 
-    def _consume_end_turn(self, trigger_decisions: Sequence[str] = ()) -> None:
+    def _consume_end_turn(self) -> None:
         """13a: an END_TURN atom only SETS the request flag (mid-op state
         must not change under the atoms still running); the close happens at
         the op boundary through the ONE turn skeleton, so there is exactly
@@ -610,7 +639,7 @@ class Executor:
             # is consumed as a no-op rather than recursing.
             self._closing_turn = True
             try:
-                self.end_turn(trigger_decisions)
+                self.end_turn()
             finally:
                 self._closing_turn = False
 
@@ -643,7 +672,7 @@ class Executor:
     # world directly and journalls one TapStateEvent per untap, so
     # "whenever a creature untaps" triggers and the fingerprint see it.
 
-    def begin_turn(self, player: Handle, trigger_decisions: Sequence[str] = ()) -> int:
+    def begin_turn(self, player: Handle) -> int:
         """Begin ``player``'s turn: active rotation, turn clock, the UNTAP
         step (12d), UPKEEP and FIRST_MAIN markers, per-turn event trackers
         reset; drains triggers. Returns the firing count."""
@@ -675,7 +704,7 @@ class Executor:
         self._turn_draw(player)
         self.journal.record_turn_phase(Phase.FIRST_MAIN.name)
         self.phase = Phase.FIRST_MAIN.name
-        return self._settle(trigger_decisions)
+        return self._settle()
 
     def _turn_draw(self, player: Handle) -> None:
         """The CR 504.5-c draw step of the active player (14a).
@@ -737,7 +766,7 @@ class Executor:
         self.ledger.expire_at_step(Step.UNTAP, player, controller_of)
         return untapped
 
-    def advance_turn(self, trigger_decisions: Sequence[str] = ()) -> int:
+    def advance_turn(self) -> int:
         """End the active turn (if one is open) and begin the next seat's
         turn — the skeleton's round-robin, EXCEPT that a pending EXTRA_TURN
         entry is popped first (13a): "the next turn belongs to that player"
@@ -757,10 +786,10 @@ class Executor:
             if self.turn_open:
                 # An END_TURN atom already closed the turn inside the op —
                 # never emit a second END_TURN marker for it.
-                self.end_turn(trigger_decisions)
-        return self.begin_turn(nxt, trigger_decisions)
+                self.end_turn()
+        return self.begin_turn(nxt)
 
-    def end_turn(self, trigger_decisions: Sequence[str] = ()) -> int:
+    def end_turn(self) -> int:
         """END_TURN marker FIRST (end-step triggers see the pre-expiry
         state), trigger drain, THEN the end-of-turn expiry sweep: Eot
         ledger entries, Eot-tagged LAYER records (12d: until-end-of-turn
@@ -769,7 +798,7 @@ class Executor:
         self.phase = Phase.END_TURN.name
         self.turn_open = False
         self.journal.record_turn_phase(Phase.END_TURN.name)
-        fired = self._settle(trigger_decisions)
+        fired = self._settle()
         self.ledger.sweep_at_eot()
         self.layers.sweep_at_eot()
         self.replacements.sweep_at_eot()

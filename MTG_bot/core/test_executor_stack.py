@@ -801,6 +801,11 @@ class TestPayVerb(StackCase):
         self.assertNotIn("G", self.world.players[self.p0].mana_pool)  # paid
 
     def test_fire_on_unpayable_raises(self):
+        """AMENDED 14b (B-5 query/runtime identity): the runtime now ASKS
+        with the query-narrowed offer vocab, so an unpayable 'fire' is
+        rejected AT THE DECISION CHANNEL ('fire' is not in the vocabulary
+        at all) instead of reaching _v_pay. Same loud ValueError, one
+        station earlier — the illegal decision can no longer be made."""
         src = self.world.add_card(card_id("Urns2", "1", "1"), self.p0, ZONE_BATTLEFIELD)
         with self.assertRaises(ValueError) as cm:
             self.ex.apply_effect(
@@ -809,7 +814,8 @@ class TestPayVerb(StackCase):
                 controller=self.p0,
                 decisions=("fire",),
             )
-        self.assertIn("PAY cannot pay", str(cm.exception))
+        self.assertIn("not in", str(cm.exception))
+        self.assertIn("skip", str(cm.exception))
 
 
 class TestChooseVerb(StackCase):
