@@ -322,6 +322,17 @@ def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
                 "(fired from a DamageDealtEvent)"
             )
         return ctx.event_amount
+    if field is QPropField.THIS_WAY_COUNT:
+        # 16b (Siege Striker's attack trigger: "+1/+1 for each creature
+        # tapped this way"): the count of creatures the SAME effect
+        # execution's last TAP atom tapped — the per-resolution register
+        # the 14e anaphora uses (fresh bindings dict per effect run), so
+        # an Optional-wrapped tap that DECLINED leaves the register
+        # absent and the magnitude 0, CR-correct with the answer given.
+        # (Handle argument unused: "this way" counts an action, not a
+        # permanent's property.)
+        reg = ctx.bindings.get("tapped_this_way")
+        return len(reg) if isinstance(reg, (list, tuple)) else 0
     raise NotImplementedError(
         f"executor: QProp field {field.name} not implemented (12c query surface)"
     )
@@ -564,13 +575,21 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         return world.cards[handle].counters.get(atom.counter_kind.name, 0) >= threshold
     if pred is FAtomPred.CONTROLLER_IS:
         who = atom.who
-        if handle.namespace != "card":
-            return False
-        actual = world.controller_of(handle)
         if who is None:
             return False
         from MTG_bot.core.executor.selectors import controller_matches
 
+        if handle.namespace != "card":
+            # 16b: a PLAYER handle answers for ITSELF — the 16b attacked-
+            # side filters ("two or more ... attacking YOU and/or
+            # planeswalkers you control", Mangara R10-3) read CONTROLLER_IS
+            # YOU off the attack record, whose object is a seat for
+            # player-attacks. A player controls themself: the same
+            # coordinate oracle the players_for_ref channels use.
+            if handle.namespace == "player":
+                return controller_matches(who, handle, ctx)
+            return False
+        actual = world.controller_of(handle)
         return controller_matches(who, actual, ctx)
     if pred is FAtomPred.FLIP_WON:
         # 13a (Tavern Swindler compiles the flip and its winner-gate to two
@@ -774,6 +793,42 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             and e.cause == ctx.source
             for e in jrn.events
         )
+    if pred is FAtomPred.IS_ATTACKING:
+        # 16b (CR 506.4): the executor's live attack record — the attacker
+        # set the COMBAT skeleton fills at declaration and clears at end
+        # of combat. Tide Skimmer's "you attack with two or more" gate and
+        # the templates' IS_ATTACKING selectors read exactly this state.
+        if ctx.executor is None:
+            raise NotImplementedError(
+                "executor: filter pred IS_ATTACKING reads the executor's "
+                "attack record (bare ExecCtx)"
+            )
+        return handle in ctx.executor.attackers
+    if pred is FAtomPred.ATTACK_AGAINST_COUNT_GE:
+        # 16b (grammar round 10, R10-3 — Mangara, the Diplomat): count the
+        # CURRENT attacker set whose ATTACKED object passes inner_filter.
+        # The pred reads the executor's attack record (the R10-3 "game
+        # record" reading), evaluated in the firing ability's coordinates:
+        # CONTROLLER_IS YOU = "attacking you", the Planeswalker child
+        # short-circuits behind it in v1 (all attackers attack the
+        # defending player — planeswalker attacking is 16c).
+        if ctx.executor is None:
+            raise NotImplementedError(
+                "executor: filter pred ATTACK_AGAINST_COUNT_GE reads the "
+                "executor's attack record (bare ExecCtx)"
+            )
+        assert atom.count is not None and atom.inner_filter is not None
+        threshold = resolve(atom.count, ctx)
+        counted = 0
+        for attacker in ctx.executor.attackers:
+            attacked = ctx.executor.attacked.get(attacker)
+            if attacked is None:
+                continue
+            if eval_filter(atom.inner_filter, attacked, ctx):
+                counted += 1
+                if counted >= threshold:
+                    return True
+        return counted >= threshold
     raise NotImplementedError(
         f"executor: filter pred {pred.name} not implemented (12c query surface)"
     )

@@ -358,6 +358,12 @@ def _set_tapped(ctx: ExecCtx, atom: Atom, tapped: bool) -> None:
     for card in cards:
         ctx.world.cards[card].tapped = tapped
         ctx.events.append((len(ctx.events), atom.verb.name, str(card), int(tapped)))
+    if tapped:
+        # 16b: "for each creature tapped THIS WAY" (Siege Striker) reads
+        # this register — the last TAP atom of the same effect execution
+        # (fresh ctx per resolution, the 14e pattern; a skipped Optional
+        # tap leaves it absent -> magnitude 0).
+        ctx.bindings["tapped_this_way"] = list(cards)
     # 14e (B-9): the object of the last ACTION is the closed anaphora's
     # antecedent ("Tap target creature: it gains X" / Traitorous Greed's
     # "Untap that creature. It gains haste"). The ``result`` register was
@@ -620,6 +626,17 @@ def _v_create_token(ctx: ExecCtx, atom: Atom) -> None:
         handle = ctx.world.add_card(identity, ctx.controller, ZONE_BATTLEFIELD)
         if spec.enters_tapped:
             ctx.world.cards[handle].tapped = True
+        if spec.enters_attacking:
+            # 16b (CR 508.1i — "put those creatures onto the battlefield
+            # attacking", Falconer Adept's Bird, Basri Ket's [-2] Soldier):
+            # a token created DURING the declare-attackers window joins the
+            # attack record (and its DeclareAttackers journal row) without
+            # any legality pass — it was never declared, it ENTERS
+            # attacking. Created outside the window (an ETB in a main
+            # phase) the flag is inert: there is no attack to join.
+            ex = ctx.executor
+            if ex is not None and ex.declaring:
+                ex.join_attack(handle)
         seq = ctx.token_counts.get(spec.name, 0)
         ctx.token_counts[spec.name] = seq + 1
         ctx.events.append(
@@ -1250,6 +1267,34 @@ def _v_grant_activation(ctx: ExecCtx, atom: Atom) -> None:
     )
 
 
+def _v_mandate_attack(ctx: ExecCtx, atom: Atom) -> None:
+    """MANDATE_ATTACK (16b, CR 508.1 consumer): record every selected
+    creature as "attacks each combat if able" on the executor's mandates
+    ledger. The STATIC shape (Furor of the Bitten, the Pursued Whale
+    Pirate token) registers a selector-bearing "mandate" LAYER through
+    :meth:`layers.LayerRegistry._new_static` and is resolved at each
+    declare; this handler covers the DISPATCH shape — Pursued Whale's
+    ETB trigger carries the compiler-hoisted token rule line as a
+    MANDATE_ATTACK atom. Declare-legality CONSUMES both: a mandated
+    creature's binary ask narrows to ATTACK-only (C15 honest narrowing —
+    the policy is never offered an answer that breaks the rule) and the
+    assembled set is whole-set-checked. A ledger entry whose creature
+    left the battlefield goes inert (the declare filter re-reads zone +
+    controller every combat)."""
+    if ctx.executor is None:
+        raise ValueError(f"executor: {atom.verb.name} needs an executor-backed ExecCtx")
+    cards = role_handles(ctx, atom, "cards")
+    ctx.executor.mandates.update(cards)
+    ctx.events.append(
+        (
+            len(ctx.events),
+            atom.verb.name,
+            str(ctx.source),
+            tuple(sorted(str(c) for c in cards)),
+        )
+    )
+
+
 HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.MOVE_ZONE: _v_move_zone,
     Verb.EXILE: _v_exile,
@@ -1306,6 +1351,11 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     # 16a: the damage-exchange orphan verb (CR 701.12). SUPPORTED_VERBS_V2
     # derives from THIS table — 39 -> 40, the library pin is amended dated.
     Verb.FIGHT: _v_fight,
+    # 16b: the attack-mandate rule line (CR 508.1 "attacks if able").
+    # SUPPORTED_VERBS_V2 derives from THIS table — 40 -> 41, the library
+    # pin is amended dated (carriers: Furor of the Bitten, Pursued Whale,
+    # the Pirate token).
+    Verb.MANDATE_ATTACK: _v_mandate_attack,
 }
 
 

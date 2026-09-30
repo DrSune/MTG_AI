@@ -49,7 +49,7 @@ consumer has a tested oracle.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple, cast
 
 from MTG_bot.core.ability_tree import (
     Ability,
@@ -160,7 +160,10 @@ class LayerRecord:
     ``"mana_policy"`` (13b spend permissions), and 13c's ``"type_grant"``
     (runtime GRANT_TYPE), ``"activation_grant"`` (GRANT_ACTIVATION timing
     permissions) / ``"land_play"`` (ADD_LAND_PLAY allowances — the last two
-    permission kinds are selector-less, like mana_policy).
+    permission kinds are selector-less, like mana_policy), and 16b's
+    ``"mandate"`` (MANDATE_ATTACK static rules — "attacks each combat if
+    able"; selector-bearing like the generic static, read at every
+    declare-attackers by the legality surface).
     ``status`` — ``live`` | ``dormant`` (a condition currently false — the
     record survives, its effect does not apply) | ``expired`` (terminal; the
     record stays for the audit dump). ``ledger_ids`` maps each materialized
@@ -235,8 +238,7 @@ class LayerRegistry:
                 self._new("keyword", handle, controller, node, (handle,))
                 count += 1
             elif isinstance(node, StaticAbility):
-                self._new_static(handle, node, controller=controller)
-                count += 1
+                count += len(self._new_static(handle, node, controller=controller))
         return count
 
     def detach_source(self, handle: Handle) -> int:
@@ -307,7 +309,11 @@ class LayerRegistry:
 
     def _new_static(
         self, handle: Handle, static: StaticAbility, controller: Handle | None = None
-    ) -> LayerRecord:
+    ) -> list[LayerRecord]:
+        # 16b: returns the layer records this static registers — a plain
+        # static one, a split mandate static its mandate layer(s) plus the
+        # PT/grant layer, a pure-mandate static (the Pirate token) only the
+        # mandate layer.
         """Parse a StaticAbility node: a single Atom or a Seq of Atoms over
         the layer-capable verbs; anything else is flagged, not guessed.
 
@@ -350,19 +356,45 @@ class LayerRegistry:
                 "executor: StaticAbility payload "
                 f"{type(steps).__name__} is not layer-parseable (12e)"
             )
+        # 16b (MANDATE_ATTACK, CR 508.1 "attacks each combat if able"): the
+        # mandate is a RULE, not a layer payload — Furor of the Bitten
+        # compiles the enchanted creature's "+2/+2 AND attacks if able" as
+        # one static, so the mandate atoms are SPLIT OUT and registered as
+        # "mandate" permission layers (selector-bearing, liveness exactly
+        # like any static record — Furor leaving ends the mandate with it);
+        # the remaining atoms take the ordinary layer path below.
+        mandates = [atom for atom in atoms if atom.verb is Verb.MANDATE_ATTACK]
+        rest = [atom for atom in atoms if atom.verb is not Verb.MANDATE_ATTACK]
+        records: list[LayerRecord] = [
+            self._new(
+                "mandate",
+                handle,
+                controller,
+                (mandate,),
+                selector=cast(Selector, mandate.args.get("cards")),
+                condition=static.condition,
+            )
+            for mandate in mandates
+        ]
+        if not rest:
+            return records
+        atoms = rest
         if any(atom.verb == Verb.MANA_POLICY for atom in atoms):
             if any(atom.verb != Verb.MANA_POLICY for atom in atoms):
                 raise NotImplementedError(
                     "executor: StaticAbility mixing MANA_POLICY with other "
                     "payload verbs is not parseable (13b scope)"
                 )
-            return self._new(
-                "mana_policy",
-                handle,
-                controller,
-                tuple(atoms),
-                condition=static.condition,
+            records.append(
+                self._new(
+                    "mana_policy",
+                    handle,
+                    controller,
+                    tuple(atoms),
+                    condition=static.condition,
+                )
             )
+            return records
         if any(atom.verb == Verb.GRANT_ACTIVATION for atom in atoms):
             if any(atom.verb != Verb.GRANT_ACTIVATION for atom in atoms):
                 raise NotImplementedError(
@@ -371,13 +403,16 @@ class LayerRegistry:
                 )
             for atom in atoms:
                 _validate_activation_grant(atom)
-            return self._new(
-                "activation_grant",
-                handle,
-                controller,
-                tuple(atoms),
-                condition=static.condition,
+            records.append(
+                self._new(
+                    "activation_grant",
+                    handle,
+                    controller,
+                    tuple(atoms),
+                    condition=static.condition,
+                )
             )
+            return records
         for atom in atoms:
             if atom.verb not in _LAYER_PAYLOAD_VERBS:
                 raise NotImplementedError(
@@ -386,14 +421,17 @@ class LayerRegistry:
                 )
         selector = atoms[0].args.get("target")
         assert isinstance(selector, Selector)  # role table: target is required
-        return self._new(
-            "static",
-            handle,
-            controller,
-            tuple(atoms),
-            selector=selector,
-            condition=static.condition,
+        records.append(
+            self._new(
+                "static",
+                handle,
+                controller,
+                tuple(atoms),
+                selector=selector,
+                condition=static.condition,
+            )
         )
+        return records
 
     def register_mana_policy(
         self,
@@ -876,6 +914,18 @@ class LayerRegistry:
                 ):
                     return True
         return False
+
+    def live_mandate_layers(self) -> list[LayerRecord]:
+        """16b (MANDATE_ATTACK statics): every LIVE mandate layer record.
+        NOT keyed by the anchor controller — the rule's subject set comes
+        from resolving each layer's own ``cards`` selector (an aura's
+        "enchanted creature attacks if able" binds that creature's
+        CONTROLLER, which may be an opponent of the aura's controller)."""
+        return [
+            layer
+            for layer in self.records
+            if layer.kind == "mandate" and layer.status == "live"
+        ]
 
     def land_play_bonus(self, controller: Handle) -> int:
         """13c (Azusa, Lost but Seeking): the total additional lands the

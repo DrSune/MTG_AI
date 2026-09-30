@@ -23,9 +23,22 @@ Pack vocabulary (all keys required as noted):
               [, "amount": int]},
              {"op": "cast", "real": name, "x": int?, "targets": [key...],
               "decisions": [str...]},
-             {"op": "end_turn"}]
+             {"op": "end_turn"} | {"op": "advance_turn"},
+             {"op": "enter", "key": k}      hand -> battlefield (journalled:
+                                            the sickness clock sees it),
+             {"op": "enchant", "aura": k, "host": k}   the 13c attach edge,
+             {"op": "combat", "seat": 0|1, "attack": {key: bool},
+              "may": {key: bool}}           the whole COMBAT phase; the
+                                            ask provider answers ONLY from
+                                            these maps (C15 narrowing is
+                                            the engine's, and recorded)]
   expect  : {"life": {"0": int...}, "zone": {key: zone...},
-             "damage": {key: int...}}  — damage is the 16a mark ledger
+             "damage": {key: int...},      — damage is the 16a mark ledger
+             "attackers": {key: bool},     — the DECLARE_ATTACKERS rows,
+             "asks": {key: "ATTACK,DECLINE"},  — vocab per attack site,
+             "not_asked": [key...],        — creatures never asked
+             "tapped": {key: bool},
+             "hand": {"0": int}}
 """
 
 from __future__ import annotations
@@ -58,6 +71,7 @@ from MTG_bot.core.state import (
     ZONE_EXILE,
     ZONE_GRAVEYARD,
     ZONE_HAND,
+    ZONE_LIBRARY,
     GameWorld,
 )
 
@@ -132,9 +146,28 @@ class ScenarioRunner:
         for seat, colors in pack.get("mana", {}).items():
             for color, n in colors.items():
                 self.world.players[self.seats[int(seat)]].mana_pool[color] = n
-        self.ex.turn_open = True
-        self.ex.phase = "FIRST_MAIN"
-        self.world.active_player = self.p0
+        # 16b: the clock opens for REAL (begin_turn: draw, markers,
+        # ledger) — a faked turn desynced world.turn and the sickness
+        # clock against advance_turn. The old fakes turn_open/phase
+        # manually, which every combat pack now outgrows.
+        self.ex.begin_turn(self.p0)
+        # 16b: the combat rig — asks the engine actually made, and
+        # libraries deep enough for real begin_turn/advance_turn draws.
+        self.asks_seen: list[tuple[str, tuple[str, ...]]] = []
+        for seat_idx in (0, 1):
+            for i in range(6):
+                self.world.add_card(
+                    CardIdentity(
+                        oracle_id=f"9f00000{i}-0000-0000-0000-00000000000{seat_idx}",
+                        name=f"Library {i}",
+                        type_line="Creature",
+                        power="1",
+                        toughness="1",
+                        cmc=1,
+                    ),
+                    self.seats[seat_idx],
+                    ZONE_LIBRARY,
+                )
 
     def run_step(self, step: dict) -> None:
         op = step["op"]
@@ -163,8 +196,64 @@ class ScenarioRunner:
             )
         elif op == "end_turn":
             self.ex.end_turn()
+        elif op == "advance_turn":
+            self.ex.advance_turn()
+        elif op == "enter":
+            handle = self.handles[step["key"]]
+            self.ex.execute(
+                _atom(
+                    Verb.MOVE_ZONE,
+                    cards=Selector(
+                        QConst(1),
+                        SelectorMode.TARGET,
+                        UNIV,
+                        Zone(ZoneKind.HAND, ControllerRef.YOU),
+                    ),
+                    destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                    tapped_on_enter=bool(step.get("tapped", False)),
+                ),
+                source=handle,
+                controller=self.world.controller_of(handle),
+                bindings={"cards": handle},
+            )
+        elif op == "enchant":
+            self.ex.attachments[self.handles[step["aura"]]] = self.handles[
+                step["host"]
+            ]
+        elif op == "combat":
+            self._combat(step)
         else:
             raise PackError(f"unknown op {op!r}")
+
+    def _combat(self, step: dict) -> None:
+        """Run the whole COMBAT phase answering the engine's asks from the
+        pack's answer maps ONLY. Site tags carry handles (attack:<card>:
+        <turn>, may:<card>); a DECLINE the engine does not offer (a C15
+        narrowed mandate) is no answer at all — the provider then takes
+        the first legal word, which is exactly ATTACK."""
+        answers: dict[str, str] = {}
+        for key, go in step.get("attack", {}).items():
+            answers[f"attack:{self.handles[key]}"] = "ATTACK" if go else "DECLINE"
+        for key, go in step.get("may", {}).items():
+            answers[f"may:{self.handles[key]}"] = "fire" if go else "skip"
+
+        def answer(vocab, what):
+            self.asks_seen.append((what, tuple(vocab)))
+            # Handle strings carry a colon ("card:5"), so a site tag is
+            # FOUR segments; match the answer keys as longest prefixes.
+            got = next(
+                (v for k, v in answers.items() if what == k or what.startswith(k + ":")),
+                None,
+            )
+            if got is None:
+                got = "skip" if what.startswith("may:") else "DECLINE"
+            return got if got in vocab else vocab[0]
+
+        self.ex.decisions.provider = answer
+        try:
+            self.ex.combat_step(self.seats[int(step.get("seat", 0))])
+        finally:
+            self.ex.decisions.provider = None
 
     def check(self) -> list[str]:
         fails = []
@@ -186,6 +275,49 @@ class ScenarioRunner:
                 k: n for k, n in self.pack.get("expect", {}).get("damage", {}).items()
             }
             fails.append(f"damage marks: expected {exp}, got {got}")
+        expect = self.pack.get("expect", {})
+        # 16b: the attack record is read from the JOURNAL (DECLARE_ATTACKERS
+        # rows of the LAST declare group — journalled truth, not the
+        # executor's post-clear memory).
+        if "attackers" in expect:
+            declares = [
+                e for e in self.ex.journal.events if e.kind == "DECLARE_ATTACKERS"
+            ]
+            group = declares[-1].declare_group if declares else -1
+            declared = {e.subject for e in declares if e.declare_group == group}
+            by_handle = {h: k for k, h in self.handles.items()}
+            got_set = {by_handle.get(h, str(h)) for h in declared}
+            for key, on in expect["attackers"].items():
+                if (key in got_set) != bool(on):
+                    fails.append(
+                        f"attackers[{key}]: expected {on}, got {key in got_set}"
+                    )
+        if "asks" in expect:
+            for key, vocab in expect["asks"].items():
+                handle = self.handles[key]
+                seen = [
+                    v
+                    for w, v in self.asks_seen
+                    if w.startswith(f"attack:{handle}:")
+                ]
+                if len(seen) != 1:
+                    fails.append(
+                        f"asks[{key}]: expected exactly 1 ask, got {len(seen)}"
+                    )
+                elif ",".join(seen[0]) != vocab:
+                    fails.append(f"asks[{key}]: expected {vocab!r}, got {seen[0]!r}")
+        for key in expect.get("not_asked", []):
+            handle = self.handles[key]
+            if any(w.startswith(f"attack:{handle}:") for w, _ in self.asks_seen):
+                fails.append(f"not_asked[{key}]: the engine asked anyway")
+        for key, tapped in expect.get("tapped", {}).items():
+            got = self.world.cards[self.handles[key]].tapped
+            if got != bool(tapped):
+                fails.append(f"tapped[{key}]: expected {tapped}, got {got}")
+        for seat, size in expect.get("hand", {}).items():
+            got = len(self.world.players[self.seats[int(seat)]].zone(ZONE_HAND).entries)
+            if got != size:
+                fails.append(f"hand[{seat}]: expected {size}, got {got}")
         return fails
 
 
@@ -198,7 +330,7 @@ def run_pack(path: Path, supply) -> list[str]:
     for step in pack["steps"]:
         try:
             runner.run_step(step)
-        except Exception as e:  # noqa: BLE001 — a crash IS the failure the pack hunts
+        except Exception as e:
             return [f"step {step}: {type(e).__name__}: {e}"]
     return runner.check()
 

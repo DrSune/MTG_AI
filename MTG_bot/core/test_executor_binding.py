@@ -23,7 +23,9 @@ from MTG_bot.core.ability_tree import (
     CounterPlacedEvent,
     CreatureDiesEvent,
     DamageDealtEvent,
+    CombatDamageEvent,
     DeclareAttackersEvent,
+    DeclareBlockersEvent,
     DelayedTrigger,
     DurationEot,
     DurationUntilNextTurn,
@@ -604,9 +606,15 @@ class TestRaises(BindingCase):
         # and binding.py._match_cast subscribes them (the cast-trigger
         # corpus: Quirion Dryad, Mangara, Double Vision, Ghostly Pilferer,
         # Spellgorger Weird, Riddleform, Rin and Seri — bound and fired in
-        # test_executor_stack.py). Combat/targeting/step raises stay.
+        # test_executor_stack.py).
+        # AMENDED 2026-10-01 (round 16b): DeclareAttackersEvent +
+        # CombatDamageEvent LEFT this list too — the COMBAT skeleton ships
+        # both feeds (DECLARE_ATTACKERS / COMBAT_DAMAGE journal rows,
+        # binder matchers in binding.py) and bind CLEAN (checked below).
+        # DeclareBlockersEvent / BecomesBlockedEvent STAY: blockers are
+        # 16c. Targeting/step raises stay.
         for event in (
-            DeclareAttackersEvent(filter=UNIV),
+            DeclareBlockersEvent(filter=UNIV),
             TargetingEvent(filter=UNIV),
             StepEvent(Phase.COMBAT, Step.DECLARE_ATTACKERS, ControllerRef.YOU),
         ):
@@ -615,6 +623,17 @@ class TestRaises(BindingCase):
                 self.assertRaises(NotImplementedError),
             ):
                 self.attach_trigger(self.watch, event, gain(1))
+        # 16b: the two combat feeds that LEFT the table bind clean now.
+        self.assertEqual(
+            self.attach_trigger(
+                self.watch, DeclareAttackersEvent(filter=UNIV), gain(1)
+            ),
+            1,
+        )
+        self.assertEqual(
+            self.attach_trigger(self.watch, CombatDamageEvent(filter=UNIV), gain(1)),
+            1,
+        )
 
     def test_damage_source_and_combat_scopes_raise(self):
         with self.assertRaises(NotImplementedError):

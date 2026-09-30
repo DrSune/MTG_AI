@@ -944,6 +944,10 @@ class Game:
     # silent: ``multi_target_skips`` is a measured coverage ceiling.
     unsupported_rows: set[tuple[object, ...]] = field(default_factory=set)
     reason: str = ""
+    # 16b: seats whose life crossed 0 DURING a COMBAT phase (combat
+    # deaths, reported separately from executor crashes - the meaning of
+    # a "survived" game shifted the moment games could die by fighting).
+    combat_losses: int = 0
     # The act in flight when the world raised: the completed-act digest cannot
     # name the card at fault, because the raise usually happens BEFORE the act
     # is logged (during target enumeration, or inside the op itself).
@@ -1072,6 +1076,7 @@ class GameOutcome:
     multi_target_skips: int = 0
     infeasible_skips: int = 0
     player_target_designations: int = 0
+    combat_losses: int = 0  # 16b: life-crossed-0 during a COMBAT phase
     digest: list[str] = field(default_factory=list)
     battlefield_names: set[str] = field(default_factory=set)
     fired_names: set[str] = field(default_factory=set)
@@ -1088,6 +1093,7 @@ class GameOutcome:
             "reason": self.reason,
             "acts": self.acts,
             "fired": len(self.fired_names),
+            "combat_losses": self.combat_losses,
             "coverage_error": self.coverage_error,
             "fingerprint": self.fingerprint,
             "crash": None
@@ -1177,6 +1183,7 @@ def play_game(
     outcome.multi_target_skips = game.multi_target_skips
     outcome.infeasible_skips = game.infeasible_skips
     outcome.player_target_designations = game.player_target_designations
+    outcome.combat_losses = game.combat_losses
     outcome.survived = game.turns >= turn_cap
     if recorder is not None:
         path = Path(trace_path)  # type: ignore[arg-type]
@@ -1204,6 +1211,18 @@ def _play(game: Game, policy: RandomPolicy, order: list[Handle], turn_cap: int) 
         seat = world.active_player
         assert seat is not None  # begin_turn/advance_turn always set it
         policy.take_acts(game, seat)
+        if executor.turn_open:
+            # 16b: the COMBAT phase rides between the main phase and the
+            # end step - guarded on turn_open because an END_TURN atom
+            # played during take_acts already closed the turn (no combat
+            # after the end of the turn, CR). The life deltas across the
+            # phase are counted separately (combat deaths vs crashes is
+            # the semantic shift the engine numbers report).
+            before = {s: world.players[s].life for s in world.player_order}
+            executor.combat_step(seat)
+            for s, life in before.items():
+                if life > 0 and world.players[s].life <= 0:
+                    game.combat_losses += 1
         game.turns = world.turn
         reason = game.over_reason()
         if reason is not None:
@@ -1373,6 +1392,10 @@ def summarise(
         "player_target_designations": sum(
             game.player_target_designations for game in outcomes
         ),
+        # 16b: combat deaths counted SEPARATELY from crashes - a game
+        # ending early because a seat was FIGHTED to 0 is a semantics
+        # outcome, not an engine defect.
+        "combat_losses": sum(game.combat_losses for game in outcomes),
         "coverage_fired": len(fired),
         "coverage_fired_of_pool_pct": round(
             100.0 * len(fired & pool_names) / max(len(pool_names), 1), 1
@@ -1433,6 +1456,10 @@ def format_table(stats: dict[str, Any]) -> str:
         survival,
         coverage,
         skips,
+        (
+            f"combat: deaths-by-combat-damage={stats['combat_losses']} "
+            "(reported apart from crashes)"
+        ),
         f"endings: {stats['reasons']}",
         f"crash classes: {len(stats['crashes'])} over {stats['crash_games']} games",
     ]

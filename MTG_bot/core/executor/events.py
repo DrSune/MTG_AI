@@ -62,6 +62,16 @@ KIND_TURN_PHASE = "TURN_PHASE"
 # is a GameEvent row, and the generic dump() folds it into the fingerprint).
 KIND_CAST = "CAST"
 KIND_GAME_LOST = "GAME_LOST"
+# 16b: the combat feeds. DECLARE_ATTACKERS carries ONE row per declared
+# attacker (subject = the attacker; the grammar's DeclareAttackersEvent
+# filter is subject-scoped) — the shared data[0] declare-group id lets the
+# binder queue one trigger instance per ABILITY per declaration (CR 603.2:
+# "Whenever you attack with two or more..." triggers once on the whole
+# declare action, once per creature for IS_SOURCE filters).
+# COMBAT_DAMAGE carries one row per creature that dealt combat damage
+# (subject = the dealer — CombatDamageEvent's filter reads the dealer).
+KIND_DECLARE_ATTACKERS = "DECLARE_ATTACKERS"
+KIND_COMBAT_DAMAGE = "COMBAT_DAMAGE"
 
 # state.py zone-kind strings used by the diff's rule checks.
 # (ZONE_KIND_TO_STATE — the IR->state map — lives in selectors.py.)
@@ -93,6 +103,10 @@ class GameEvent:
       * CAST          — ``(caster, ordinal_this_turn, spell_kind,
         from_zone, x_value)``, subject the spell card (13b).
       * GAME_LOST     — ``(reason,)`` , subject the player (13b audit row).
+      * DECLARE_ATTACKERS — ``(declare_group,)``, subject the declared
+        attacker; one row per attacker, group shared per declaration (16b).
+      * COMBAT_DAMAGE — ``(amount, recipient)``, subject the dealing
+        creature (16b, the CombatDamageEvent feed).
     """
 
     clock: int
@@ -138,6 +152,18 @@ class GameEvent:
         """CAST payload: (caster, ordinal_this_turn, spell_kind,
         from_zone, x_value) — the 13b cast feed."""
         return cast("tuple[Handle, int, str, str | None, int | None]", self.data)
+
+    @property
+    def declare_group(self) -> int:
+        """DECLARE_ATTACKERS payload: the declaration-group id shared by
+        every attacker row of one declare-attackers action (16b)."""
+        return cast(int, self.data[0])
+
+    @property
+    def combat_damage(self) -> tuple[int, Handle]:
+        """COMBAT_DAMAGE payload: (amount, recipient) — the 16b feed the
+        CombatDamageEvent triggers subscribe to."""
+        return cast("tuple[int, Handle]", self.data)
 
 
 @dataclass

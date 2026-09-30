@@ -1,0 +1,44 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "striker",
+      "zone": "battlefield",
+      "controller": 0,
+      "real": "Siege Striker"
+    },
+    {
+      "key": "grog",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Grog",
+      "power": 2,
+      "toughness": 2
+    }
+  ],
+  "steps": [
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "striker": true,
+        "grog": true
+      },
+      "may": {
+        "striker": false
+      }
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 16
+    },
+    "attackers": {
+      "striker": true,
+      "grog": true
+    }
+  }
+}

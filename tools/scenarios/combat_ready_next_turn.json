@@ -1,0 +1,57 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "zhalafir",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Historian of Zhalfir"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "zhalafir"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "zhalafir": true
+      }
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "zhalafir": true
+      }
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 17
+    },
+    "attackers": {
+      "zhalafir": true
+    },
+    "tapped": {
+      "zhalafir": true
+    }
+  }
+}

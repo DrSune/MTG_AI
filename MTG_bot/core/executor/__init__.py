@@ -100,19 +100,26 @@ from MTG_bot.core.ability_tree import (
     DelayedTrigger,
     EachPlayer,
     Effect,
+    FAnd,
     Keyword,
     OptionalEffect,
     Phase,
     QConst,
+    Selector,
+    SelectorMode,
     Seq,
     Step,
     Verb,
+    Zone,
+    ZoneKind,
 )
 from MTG_bot.core.compiler.compiler import PoolCompile
 from MTG_bot.core.executor.binding import MAX_TRIGGER_FIRES, TriggerBinder
 from MTG_bot.core.executor.decisions import DecisionStream, site_digest
 from MTG_bot.core.executor.durations import DurationLedger, PtChange
 from MTG_bot.core.executor.events import (
+    KIND_COMBAT_DAMAGE,
+    KIND_DECLARE_ATTACKERS,
     KIND_TAP_STATE,
     KIND_ZONE_CHANGE,
     EventJournal,
@@ -125,6 +132,8 @@ from MTG_bot.core.executor.legality import (
     ability_playable,
     activate,
     build_payment_plan,
+    legal_attackers,
+    mandated_attackers,
     pay_costs,
     spell_castable,
     spell_record,
@@ -225,6 +234,31 @@ _TURN_DRAW = Atom(
     verb=Verb.DRAW,
     args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("amount", QConst(1)))),
 )
+
+# 16b: the player-side target of one combat-damage atom — the same
+# PLAYER-zone TARGET Selector shape the player-damage tests use
+# (test_executor_verbs L200); the dealer rides ctx.source (the journal's
+# cause column), the recipient is the bound handle (14c B-16: a bound
+# handle outranks the selector — a PLAYER handle bound to a PLAYER-zone
+# selector is returned as-is).
+_PLAYER_TARGET = Selector(
+    QConst(1),
+    SelectorMode.TARGET,
+    FAnd(children=()),
+    Zone(ZoneKind.PLAYER, ControllerRef.ANY),
+)
+
+
+def _combat_damage_atom(amount: int) -> Atom:
+    """One DEAL_DAMAGE atom of ``amount`` to the bound player target.
+    A builder, not a constant: the amount is per-dealer, the target is
+    the standing node, and the frozen-Atom discipline keeps every atom
+    of one damage step byte-identical across replays."""
+    return Atom(
+        verb=Verb.DEAL_DAMAGE,
+        args=AtomArgs(pairs=(("amount", QConst(amount)), ("target", _PLAYER_TARGET))),
+    )
+
 
 __all__ = [
     "MAX_TRIGGER_FIRES",
@@ -358,6 +392,21 @@ class Executor:
         # here; IS_ATTACHED_TO_SOURCE reads it and the binder drops every
         # edge touching a handle that leaves the battlefield.
         self.attachments: dict[Handle, Handle] = {}
+        # --------------------------------------------------- 16b combat state
+        # The frozen GameWorld has no combat fields, so the attack record
+        # is executor-side replayed state (ruling 1, folded into
+        # state_fingerprint): the current attackers in declaration order,
+        # each one's ATTACKED object (v1: the defending player — blocker
+        # and planeswalker assignment are 16c), the phase's defending seat,
+        # and the declare-window flag the enters-attacking token path
+        # reads (CR 508.1i). ``mandates`` is the DISPATCHED MANDATE_ATTACK
+        # ledger (the static shape lives as layers' "mandate" records).
+        self.attackers: list[Handle] = []
+        self.attacked: dict[Handle, Handle] = {}
+        self.defending_player: Handle | None = None
+        self.declaring = False
+        self._declare_group = 0
+        self.mandates: set[Handle] = set()
         # Public alias of the seeded factory (the binder builds ExecCtxs too).
         self.rng = self._rng
         # 14b: the vocabulary-addressed decision channel (B-4 ruling). One
@@ -787,10 +836,12 @@ class Executor:
     # ------------------------------------------------- 12b/12d: turn skeleton
     #
     # The MINIMAL executor-owned turn: active rotation + world.turn clock +
-    # the UNTAP STEP (12d) + phase markers. No combat/main phases (later
-    # phases) — the markers the frozen grammar actually has triggers for:
-    # UPKEEP + FIRST_MAIN at the beginning of a turn, END_TURN at the end
-    # of one. The untap step is a RULE step, not an Atom: it mutates the
+    # the UNTAP STEP (12d) + phase markers. 16b adds the COMBAT phase
+    # (:meth:`Executor.combat_step`, driven between the main-phase acts
+    # and end_turn by the harness); the markers the frozen grammar has
+    # triggers for: UPKEEP + FIRST_MAIN + COMBAT at the beginning of a
+    # turn's work, END_TURN at the end of one. The untap step is a
+    # RULE step, not an Atom: it mutates the
     # world directly and journalls one TapStateEvent per untap, so
     # "whenever a creature untaps" triggers and the fingerprint see it.
 
@@ -887,6 +938,226 @@ class Executor:
         self.layers.expire_at_step(Step.UNTAP, player, controller_of)
         self.ledger.expire_at_step(Step.UNTAP, player, controller_of)
         return untapped
+
+    # ------------------------------------------------- 16b: the COMBAT phase
+    #
+    # FIRST_MAIN -> COMBAT -> SECOND_MAIN -> END. R16-1 (doc /11): the
+    # phase runs UNINTERRUPTED - no opponent response window (our instants
+    # are own-turn-only by construction, so nothing illegal is claimed);
+    # the CR 704.3 honesty is the SBA sweep at every settle point between
+    # the damage steps and the phase hand-off. Blockers are 16c: v1 asks
+    # no blocking question, every declared attacker is UNBLOCKED and deals
+    # its damage to the defending PLAYER (trample, damage-order, blocked-
+    # side consumers, planeswalker attacks all ride on the blocker ask).
+    # v1 limits, documented per the R16-1 mandate: no chain spells, no
+    # flash responses, no blockers.
+
+    def combat_step(self, seat: Handle) -> int:
+        """Run the active player's whole COMBAT phase (CR 506-511 v1):
+        the beginning-of-combat marker (the Phase.COMBAT cards fire), the
+        declare-attackers step (one binary ask per legal creature, whole-
+        set validated, mandates narrowing the vocab), the combat damage
+        step(s) with the first/double-strike split, and the end of
+        combat. Returns the trigger-firing count. A creature with no
+        legal declaration is never asked (it cannot attack); a mandatory
+        attacker's ask is ATTACK-only (C15 - the policy is never offered
+        an illegal answer)."""
+        world = self.world
+        if not self.turn_open:
+            raise ValueError(f"combat_step: no turn is open ({seat})")
+        if world.active_player != seat:
+            raise ValueError(f"combat_step: {seat} is not the active player")
+        opponents = [p for p in world.player_order if p != seat]
+        if not opponents:
+            raise ValueError(f"combat_step: {seat} has no defending player")
+        self.defending_player = opponents[0]
+        fired = 0
+        # Beginning of combat (TurnPhaseEvent COMBAT - the BINDING 16b
+        # feed: Battle-Rattle Shaman, Dire Fleet Warmonger, Adherent of
+        # Hope, the Basri Ket / Liliana Waker emblems).
+        self.journal.record_turn_phase(Phase.COMBAT.name)
+        self.phase = Phase.COMBAT.name
+        fired += self._settle()
+        # Declare attackers (CR 508.1). The declare window stays open
+        # across the post-declare settle so enters-attacking tokens the
+        # attack triggers create JOIN the attack (CR 508.1i).
+        self._op_seq += 1
+        self._declare_group = self._op_seq
+        self.declaring = True
+        try:
+            self._declare_attackers(seat)
+            fired += self._settle()
+        finally:
+            self.declaring = False
+        # Declare blockers: SKIPPED - 16c (see the section header).
+        fired += self._combat_damage(seat)
+        # End of combat: the settle is the R16-1 SBA pass; the attack
+        # record closes with the phase (CR 506.4 - nothing "is attacking"
+        # once combat ended, and IS_ATTACKING reads exactly that).
+        fired += self._settle()
+        self.attackers = []
+        self.attacked = {}
+        self.defending_player = None
+        # The frozen grammar's Phase vocab has no SECOND_MAIN member, so
+        # the marker is executor-clock-only: the legality gates read the
+        # phase string and correctly stop offering FIRST_MAIN activations.
+        self.phase = "SECOND_MAIN"
+        return fired
+
+    def _declare_attackers(self, seat: Handle) -> None:
+        """The CR 508.1 binary asks + the whole-set check, then the
+        declaration commit: tap everything that declared except the
+        vigilance carriers (CR 702.53a), journalled as TapState rows
+        BEFORE the declare rows (a "becomes tapped" trigger sits UNDER
+        the attack triggers, CR 508.1m), then one DECLARE_ATTACKERS row
+        per attacker - shared declare-group id, the binder's CR 603.2
+        dedup key. Tapped creatures are legal attackers (tapping to
+        declare is not a cost); sickness reads the journal (legality.py).
+        """
+        world = self.world
+        candidates = legal_attackers(self, seat)
+        mandated = mandated_attackers(self, seat) & set(candidates)
+        chosen: list[Handle] = []
+        for card in candidates:
+            vocab = ("ATTACK",) if card in mandated else ("ATTACK", "DECLINE")
+            ctx = self._ctx(source=card, controller=seat, bindings=None, decisions=())
+            if ctx.take_decision(vocab, f"attack:{card}:{world.turn}") == "ATTACK":
+                chosen.append(card)
+        # Whole-set validation of the ASSEMBLED set. The asks mutate no
+        # state, so re-deriving legality is a re-check and the mandate
+        # inclusion was narrowed at the ask - either failure here is an
+        # engine invariant violation, not a policy error to repair.
+        legal_now = set(legal_attackers(self, seat))
+        if not set(chosen) <= legal_now:
+            raise RuntimeError(
+                f"executor: declare-attackers set check failed for {seat} - "
+                f"{[str(c) for c in chosen if c not in legal_now]} are not "
+                "legal attackers"
+            )
+        if not mandated <= set(chosen):
+            raise RuntimeError(
+                f"executor: MANDATE_ATTACK violated - "
+                f"{[str(c) for c in sorted(mandated - set(chosen))]} had to "
+                "attack (asks were narrowed, this cannot happen)"
+            )
+        if not chosen:
+            return
+        defender = self.defending_player
+        assert defender is not None  # combat_step opens the phase with one
+        for card in chosen:
+            self.attackers.append(card)
+            self.attacked[card] = defender
+            if self.layers.keyword_of(card, Keyword.VIGILANCE):
+                continue
+            world.cards[card].tapped = True
+            self.journal.emit(KIND_TAP_STATE, card, None, "ATTACK_STEP", (True,))
+        for card in chosen:
+            self.journal.emit(
+                KIND_DECLARE_ATTACKERS,
+                card,
+                None,
+                "ATTACK_STEP",
+                (self._declare_group,),
+            )
+
+    def join_attack(self, creature: Handle) -> None:
+        """CR 508.1i - a creature PUT ONTO THE BATTLEFIELD ATTACKING
+        (Falconer Adept's Bird, Basri Ket's [-2] Soldier) joins the open
+        attack record with its own declare row, no legality pass (it was
+        never declared). Outside the declare window the verb path never
+        calls this."""
+        if self.defending_player is None or creature in self.attackers:
+            return
+        self.attackers.append(creature)
+        self.attacked[creature] = self.defending_player
+        self.journal.emit(
+            KIND_DECLARE_ATTACKERS,
+            creature,
+            None,
+            "ATTACK_STEP",
+            (self._declare_group,),
+        )
+
+    def _live_attackers(self, seat: Handle) -> list[Handle]:
+        """The attack record minus anything that left or changed sides -
+        SBA-swept attackers simply stop existing for the next step."""
+        world = self.world
+        return [
+            card
+            for card in self.attackers
+            if card in world.cards
+            and world.zone_of(card).kind == ZONE_BATTLEFIELD
+            and world.controller_of(card) == seat
+        ]
+
+    def _combat_damage(self, seat: Handle) -> int:
+        """CR 702.7/702.8 first-strike / double-strike split. If anything
+        attacking has first or double strike there is a FIRST COMBAT
+        DAMAGE STEP for the FS union DS carriers, then the settle's SBA
+        sweep (a killer first strike buries its victim before the normal
+        step), then the NORMAL step for the non-FS attackers plus the
+        surviving DS carriers. Every damage atom is the 16a DEAL_DAMAGE
+        funnel - the C24 replacement site intercepts (Nine Lives reads
+        combat damage exactly like any other), marks ride the ledger,
+        lethality is the settle's SBA. v1: all damage is to the defending
+        player (there are no blockers to assign to)."""
+        first = {
+            h
+            for h in self._live_attackers(seat)
+            if self.layers.keyword_of(h, Keyword.FIRST_STRIKE)
+        }
+        doubled = {
+            h
+            for h in self._live_attackers(seat)
+            if self.layers.keyword_of(h, Keyword.DOUBLE_STRIKE)
+        }
+        fired = 0
+        if first or doubled:
+            fired += self._damage_wave(seat, sorted(first | doubled))
+        normal = [
+            h for h in self._live_attackers(seat) if h not in first or h in doubled
+        ]
+        fired += self._damage_wave(seat, sorted(normal))
+        return fired
+
+    def _damage_wave(self, seat: Handle, dealers: list[Handle]) -> int:
+        """One combat-damage substep: every dealer's damage lands inside
+        ONE op boundary (simultaneous, CR 506/510 - no trigger can inter-
+        vene between two attackers), each dealer's atom journalled under
+        ITS OWN cause (16a attribution fix: foe-side damage no longer
+        blames one card), each damage-bearing dealer emits its
+        COMBAT_DAMAGE row (CR 120.7: a 0-power attacker deals no damage
+        at all - no life change, no DAMAGE row, no CombatDamageEvent),
+        and the settle after the wave is the step's SBA + trigger drain."""
+        defender = self.defending_player
+        assert defender is not None
+        strikes: list[tuple[Handle, int]] = []
+        for dealer in dealers:
+            identity = self.world.cards[dealer].identity
+            power, _toughness = self.ledger.effective_pt(identity, dealer)
+            if not power:
+                # 0 (or an unmaterialized *): CR 120.7 - not dealt at all.
+                continue
+            strikes.append((dealer, power))
+        if not strikes:
+            return 0
+        self._op_seq += 1
+        for dealer, power in strikes:
+            ctx = self._ctx(
+                source=dealer,
+                controller=seat,
+                bindings={"target": defender},
+                decisions=(),
+            )
+            self._run_effect(_combat_damage_atom(power), ctx)
+            self.journal.emit(
+                KIND_COMBAT_DAMAGE,
+                dealer,
+                dealer,
+                "COMBAT_DAMAGE",
+                (power, defender),
+            )
+        return self._settle()
 
     def advance_turn(self) -> int:
         """End the active turn (if one is open) and begin the next seat's
@@ -988,6 +1259,22 @@ class Executor:
         h.update(repr(self.replacements.dump()).encode())
         # 16a: damage marks are replayed state too (ruling 1, CR 120.6).
         h.update(repr(sorted(self.damage.items())).encode())
+        # 16b: the attack record + the dispatched mandate ledger are
+        # replayed state under the same ruling — a replay that attacked
+        # with a different set, or lost an "attacks if able" rule, MUST
+        # differ here.
+        h.update(
+            repr(
+                (
+                    tuple(str(a) for a in self.attackers),
+                    tuple(sorted((str(k), str(v)) for k, v in self.attacked.items())),
+                    str(self.defending_player),
+                    self.declaring,
+                    self._declare_group,
+                    tuple(sorted(map(str, self.mandates))),
+                )
+            ).encode()
+        )
         # 13a: the turn ledger is replayed state too (same ruling).
         h.update(
             repr(

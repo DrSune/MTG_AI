@@ -1,0 +1,62 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "furor",
+      "zone": "battlefield",
+      "controller": 0,
+      "real": "Furor of the Bitten"
+    },
+    {
+      "key": "host",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Host",
+      "power": 3,
+      "toughness": 3
+    },
+    {
+      "key": "other",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Other",
+      "power": 3,
+      "toughness": 3
+    }
+  ],
+  "steps": [
+    {
+      "op": "enchant",
+      "aura": "furor",
+      "host": "host"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "host": false,
+        "other": false
+      }
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 15
+    },
+    "attackers": {
+      "host": true,
+      "other": false
+    },
+    "asks": {
+      "host": "ATTACK",
+      "other": "ATTACK,DECLINE"
+    },
+    "tapped": {
+      "host": true,
+      "other": false
+    }
+  }
+}

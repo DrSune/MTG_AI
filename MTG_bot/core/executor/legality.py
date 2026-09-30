@@ -89,7 +89,10 @@ from MTG_bot.core.ability_tree import (
     CostTap,
     CounterKind,
     FAnd,
+    FAtom,
+    FAtomPred,
     Filter,
+    Keyword,
     Phase,
     QBin,
     QConst,
@@ -1148,7 +1151,7 @@ def activate(
     if not isinstance(ability, ActivatedAbility):  # pragma: no cover — checked
         # ValueError, not TypeError: "illegal activation" is the documented
         # domain contract of activate(), whatever the wrong input was.
-        raise ValueError(  # noqa: TRY004
+        raise ValueError(
             "executor: illegal activation: ability:not_activated"
         )
     ctx = ctx_for(executor, source=handle, controller=seat)
@@ -1172,3 +1175,128 @@ def activate(
         bindings=bindings,
         decisions=decisions,
     )
+
+
+# ------------------------------------------------------- 16b: attack legality
+# The CR 508.1 declare-attackers surface. The COMBAT skeleton asks one
+# binary question per CREATURE (v1 = no blocker-side decisions, doc /11
+# §16c); this module is the honest candidate list the ask is built from —
+# the policy is NEVER offered a DECLINE it cannot legally answer (C15),
+# and the assembled set is whole-set-checked before anything taps.
+_IS_CREATURE = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+
+from MTG_bot.core.executor.events import (
+    KIND_TURN_PHASE,
+    KIND_ZONE_CHANGE,
+)
+
+
+def _controlled_since_turn_start(executor: Executor, creature: Handle) -> bool:
+    """CR 302.6 (summoning sickness): has ``creature`` been under control
+    continuously since the start of the current turn?
+
+    The answer is a JOURNAL read, never a mirror-table: the turn's UPKEEP
+    marker (the same anchor :meth:`EventJournal.turn_window` uses) opens
+    the turn; a ZONE_CHANGE row ENTERING the battlefield after that marker
+    — first arrival, a blink return, a graveyard replay — means the
+    permanent is not yet ready. No rows after the marker = continuous
+    presence since the turn began (setup creatures carry no rows at all
+    and read ready, which is the correct pre-game-control reading). A
+    control-change path would need its own marker row; the only one in
+    the corpus is the unimplemented GAIN_CONTROL verb (16e)."""
+    events = executor.journal.events
+    start = -1
+    for i in range(len(events) - 1, -1, -1):
+        row = events[i]
+        if row.kind == KIND_TURN_PHASE and row.data[0] == Phase.UPKEEP.name:
+            start = i
+            break
+    for row in events[start + 1 :]:
+        if (
+            row.kind == KIND_ZONE_CHANGE
+            and row.subject == creature
+            and row.zone_move[1] == ZONE_BATTLEFIELD
+        ):
+            return False
+    return True
+
+
+def attack_blocked_reason(
+    executor: Executor, seat: Handle, creature: Handle
+) -> str | None:
+    """Why ``creature`` may not attack for ``seat`` right now, or ``None``
+    when the declaration is legal. Encoded restrictions (CR 508.1 pre-
+    check): creature-ness (the LIVE type line — GRANT_TYPE overlay aware),
+    controller, DEFENDER (CR 702.4a — no "can attack as though it didn't"
+    carrier in the corpus), and summoning sickness (CR 302.6) unless the
+    creature has HASTE (CR 702.10a). TAPPED creatures are legal attackers
+    (tapping to declare is not a cost — CR 508.1c skips VIGILANCE creatures
+    and re-taps nothing). Card-text "can't attack" restrictions (the
+    PREVENT/DeclareAttackersEvent consumer) are 16c."""
+    world = executor.world
+    if world.zone_of(creature).kind != ZONE_BATTLEFIELD:
+        return "not on the battlefield"
+    if world.controller_of(creature) != seat:
+        return "not controlled by the declaring player"
+    ctx = executor._ctx(
+        source=creature, controller=seat, bindings=None, decisions=()
+    )
+    if not eval_filter(_IS_CREATURE, creature, ctx):
+        return "not a creature"
+    if executor.layers.keyword_of(creature, Keyword.DEFENDER):
+        return "defender (CR 702.4a)"
+    if not executor.layers.keyword_of(creature, Keyword.HASTE) and not (
+        _controlled_since_turn_start(executor, creature)
+    ):
+        return "summoning sickness (CR 302.6) without haste"
+    return None
+
+
+def legal_attackers(executor: Executor, seat: Handle) -> tuple[Handle, ...]:
+    """The Handle-sorted candidate set the declare-attackers asks are
+    enumerated from (ruling 5 canonical order)."""
+    world = executor.world
+    return tuple(
+        card
+        for card in sorted(world.cards)
+        if world.controller_of(card) == seat
+        and world.zone_of(card).kind == ZONE_BATTLEFIELD
+        and attack_blocked_reason(executor, seat, card) is None
+    )
+
+
+def mandated_attackers(executor: Executor, seat: Handle) -> frozenset[Handle]:
+    """Creatures ``seat`` controls that MUST attack this combat if able
+    (CR 508.1 "attacks each combat if able"), from BOTH carrier shapes:
+    the dispatched mandates ledger (MANDATE_ATTACK verb — Pursued Whale's
+    hoisted token rule line) and the LIVE mandate layers (the static
+    shape — Furor of the Bitten, the Pirate token), whose ``cards``
+    selectors resolve in the layer anchor's coordinates exactly like a
+    continuous-effect scope. A mandated creature that is ILLEGAL
+    (defender, sickness) simply never reaches the set — "if able"."""
+    world = executor.world
+    mandated: set[Handle] = set()
+    for handle in executor.mandates:
+        if (
+            handle in world.cards
+            and world.zone_of(handle).kind == ZONE_BATTLEFIELD
+            and world.controller_of(handle) == seat
+        ):
+            mandated.add(handle)
+    for layer in executor.layers.live_mandate_layers():
+        selector = layer.atoms[0].args.get("cards")
+        assert isinstance(selector, Selector)  # role table: cards required
+        ctx = executor._ctx(
+            source=layer.source,
+            controller=layer.controller,
+            bindings=None,
+            decisions=(),
+        )
+        for handle in enumerate_candidates(selector, ctx):
+            if (
+                handle in world.cards
+                and world.zone_of(handle).kind == ZONE_BATTLEFIELD
+                and world.controller_of(handle) == seat
+            ):
+                mandated.add(handle)
+    return frozenset(mandated)

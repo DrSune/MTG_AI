@@ -82,9 +82,11 @@ from MTG_bot.core.executor.durations_min import duration_tag
 from MTG_bot.core.executor.events import (
     KIND_CARD_DRAWN,
     KIND_CAST,
+    KIND_COMBAT_DAMAGE,
     KIND_COUNTER_PLACED,
     KIND_CREATURE_DIES,
     KIND_DAMAGE,
+    KIND_DECLARE_ATTACKERS,
     KIND_LIFE_GAINED,
     KIND_TAP_STATE,
     KIND_TURN_PHASE,
@@ -109,11 +111,15 @@ MAX_TRIGGER_FIRES = 200
 # 601.2h) and :meth:`TriggerBinder._match_cast` subscribes the node
 # (controller / ordinal / from_zone / from_zone_not / filter — the full
 # corpus surface, seven cards, tested in test_executor_stack.py).
+# 16b: DeclareAttackersEvent and CombatDamageEvent LEFT this table — the
+# COMBAT skeleton ships both feeds (journal DECLARE_ATTACKERS rows per
+# declared attacker, group-deduped per ability; COMBAT_DAMAGE rows per
+# dealing creature) and :meth:`TriggerBinder._match_node` subscribes them.
+# DeclareBlockersEvent / BecomesBlockedEvent STAY: blockers, damage
+# assignment and the blocked-side consumers are 16c (doc /11 §16c).
 _UNSUPPORTED_EVENTS: dict[type, str] = {
-    DeclareAttackersEvent: "later phase (combat)",
-    DeclareBlockersEvent: "later phase (combat)",
-    CombatDamageEvent: "later phase (combat)",
-    BecomesBlockedEvent: "later phase (combat)",
+    DeclareBlockersEvent: "16c (blockers)",
+    BecomesBlockedEvent: "16c (blockers)",
     LoyaltyActivatedEvent: "12c (loyalty activations)",
     StepEvent: (
         "12e (step-level subscription emitter; 12d's untap tick is an "
@@ -203,6 +209,12 @@ class TriggerBinder:
         self.delayed: list[DelayedBinding] = []
         self._seen_journal_len = 0
         self._seq = 0
+        # 16b CR 603.2 dedup: (source, node-id, declare-group) for every
+        # DeclareAttackersEvent queue already made. The journal carries ONE
+        # row per declared attacker (the grammar's filter is subject-
+        # scoped), but a triggered ability triggers ONCE on the whole
+        # declare action — the shared group id collapses the row fan-out.
+        self._declare_queued: set[tuple[Handle, int, int]] = set()
 
     # ------------------------------------------------------------ attach
 
@@ -422,6 +434,18 @@ class TriggerBinder:
         node: _AnyTrigger,
         event: GameEvent,
     ) -> None:
+        if event.kind == KIND_DECLARE_ATTACKERS and isinstance(
+            node.event, DeclareAttackersEvent
+        ):
+            # CR 603.2 once-per-declaration (16b): the per-attacker row
+            # fan-out must queue ONE instance per ability per declare
+            # group — Tide Skimmer's "attack with two or more" fires once,
+            # a per-creature IS_SOURCE filter still fires once (its own
+            # row), and two identical creatures are different sources.
+            key = (source, id(node), event.declare_group)
+            if key in self._declare_queued:
+                return
+            self._declare_queued.add(key)
         self._seq += 1
         instance = self.world.queue_trigger(
             source, controller, f"{event.kind}#{self._seq}"
@@ -468,6 +492,26 @@ class TriggerBinder:
                 return False
             ctx = self._match_ctx(source, controller, event)
             return controller_matches(node.controller, active, ctx)
+        if kind == KIND_DECLARE_ATTACKERS and isinstance(node, DeclareAttackersEvent):
+            # 16b: the attack feed. The filter reads the DECLARED creature
+            # (IS_SOURCE = "whenever this creature attacks"); the optional
+            # ``attacked`` filter (R10-3) reads the attacker's ATTACKED
+            # object off the executor's attack record — v1: every attacker
+            # attacks the defending player (planeswalker attacks are 16c).
+            assert event.subject is not None  # the row names the attacker
+            ctx = self._match_ctx(source, controller, event)
+            if node.attacked is not None:
+                attacked = self.executor.attacked.get(event.subject)
+                if attacked is None or not eval_filter(node.attacked, attacked, ctx):
+                    return False
+            return eval_filter(node.filter, event.subject, ctx)
+        if kind == KIND_COMBAT_DAMAGE and isinstance(node, CombatDamageEvent):
+            # 16b: the combat-damage feed — filter over the DEALING
+            # creature (Jeskai Elder's / Feline Sovereign's "deals combat
+            # damage"; 0-power attackers never emit the row, CR 120.7).
+            assert event.subject is not None  # the row names the dealer
+            ctx = self._match_ctx(source, controller, event)
+            return eval_filter(node.filter, event.subject, ctx)
         if kind == KIND_DAMAGE and isinstance(node, DamageDealtEvent):
             return self._match_damage(node, event, source, controller)
         if kind == KIND_LIFE_GAINED and isinstance(node, LifeGainedEvent):

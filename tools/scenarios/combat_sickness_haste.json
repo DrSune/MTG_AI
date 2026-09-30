@@ -1,0 +1,53 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "hound",
+      "zone": "battlefield",
+      "controller": 0,
+      "real": "Bolt Hound"
+    },
+    {
+      "key": "zhalafir",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Historian of Zhalfir"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "zhalafir"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "hound": true,
+        "zhalafir": true
+      }
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 18
+    },
+    "attackers": {
+      "hound": true,
+      "zhalafir": false
+    },
+    "asks": {
+      "hound": "ATTACK,DECLINE"
+    },
+    "not_asked": [
+      "zhalafir"
+    ],
+    "tapped": {
+      "hound": true,
+      "zhalafir": false
+    }
+  }
+}

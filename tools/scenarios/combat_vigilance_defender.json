@@ -1,0 +1,46 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "watchdog",
+      "zone": "battlefield",
+      "controller": 0,
+      "real": "Alpine Watchdog"
+    },
+    {
+      "key": "wall",
+      "zone": "battlefield",
+      "controller": 1,
+      "real": "Wall of Runes"
+    }
+  ],
+  "steps": [
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "watchdog": true
+      }
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 18
+    },
+    "attackers": {
+      "watchdog": true
+    },
+    "asks": {
+      "watchdog": "ATTACK,DECLINE"
+    },
+    "not_asked": [
+      "wall"
+    ],
+    "tapped": {
+      "watchdog": false
+    }
+  }
+}

@@ -796,12 +796,30 @@ class TestQuantityAndFilters(ExecutorCase):
         # the flag side stays: a pred the executor truly cannot read still
         # raises at dispatch (NAME_CHOSEN without a CHOOSE_NAME record is
         # the same convention, pinned in test_executor_stack.py).
-        unreachable = atom(
+        # AMENDED (round 16b): IS_ATTACKING is NO LONGER in this class —
+        # the COMBAT skeleton answers it from the attack record (pinned
+        # below and in test_executor_combat.py). IS_BLOCKING takes the
+        # flag torch: blockers are 16c.
+        answers_attacking = atom(
             Verb.DESTROY,
             target=Selector(
                 QConst(1),
                 SelectorMode.ALL,
                 FAtom(FAtomPred.IS_ATTACKING),
+                BF_ANY,
+            ),
+        )
+        # outside combat nothing is attacking: the pred READS False, the
+        # ALL-selector resolves empty, DESTROY finds no target (empty
+        # target sets are a legal no-op row — no raise anywhere).
+        self.ex.execute(answers_attacking, source=self.alpha, controller=self.p0)
+        self.assertEqual(self.world.zone_of(self.alpha).kind, ZONE_BATTLEFIELD)
+        unreachable = atom(
+            Verb.DESTROY,
+            target=Selector(
+                QConst(1),
+                SelectorMode.ALL,
+                FAtom(FAtomPred.IS_BLOCKING),
                 BF_ANY,
             ),
         )

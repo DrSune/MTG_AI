@@ -684,6 +684,12 @@ class TestCapabilitySurface(unittest.TestCase):
         # orphan verb FIGHT (CR 701.12), 39 -> 40.  Brash Taunter's
         # activation and Primal Might's fight row both dispatch through
         # HANDLERS[Verb.FIGHT] now; nothing else left the frozen V1 set.
+        # AMENDED (round 16b): one more — the attack-mandate rule verb
+        # MANDATE_ATTACK (CR 508.1 "attacks each combat if able"), 40 ->
+        # 41.  The gate picked up EXACTLY its three carriers (probe: gated
+        # compile at 41 vs 40): Furor of the Bitten, Pursued Whale and
+        # the Pirate token; zero losses, deckable set UNCHANGED (none of
+        # the three is SpellAbility-playable, NUMBERS 2026-10-01).
         new = {
             Verb.DRAW,
             Verb.SEARCH,
@@ -701,11 +707,12 @@ class TestCapabilitySurface(unittest.TestCase):
             Verb.GRANT_ACTIVATION,
             Verb.ADD_LAND_PLAY,
             Verb.FIGHT,
+            Verb.MANDATE_ATTACK,
         }
         self.assertEqual(SUPPORTED_VERBS_V2 - SUPPORTED_VERBS_V1, new)
         self.assertNotIn(Verb.DRAW, SUPPORTED_VERBS_V1)  # the round-12 freeze
         self.assertEqual(len(SUPPORTED_VERBS_V1), 24)
-        self.assertEqual(len(SUPPORTED_VERBS_V2), 40)
+        self.assertEqual(len(SUPPORTED_VERBS_V2), 41)
 
     def test_turn_ledger_fields_in_state_fingerprint(self):
         reset_oracle_ids()
