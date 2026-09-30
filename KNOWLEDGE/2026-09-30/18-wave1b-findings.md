@@ -146,3 +146,23 @@ suspects 0/13 with the exact strings above; full scenarios dir **55/55**
 (21 pre-existing + 13 batch A + 21 batch B); `pytest MTG_bot/core -q`
 **2081 passed**; PC-1 0.9869 (301/305), PC-2 0.9922 (634/639), PC-3 0, PC-4
 0 diffs (305 files) — all baseline; PC-6/PC-8 FAILs pre-date this round.
+
+---
+## STATUS flip — round 18a (2026-10-01, doc 19): 8 packs repatriated green
+
+First engine move since 16e. Fixed + moved to `tools/scenarios/` (now
+63/63): **crypt_lurker_skip** (if-do Conditional(MAY_DONE), CR 611.1),
+**alpine_houndmaster** (rebuilt — the constructor `begin_turn` draw had
+eaten the pack premise; now answers the previously-STOLEN `'fire'` with an
+exact post-shuffle lane pin), **chandras_firemaw**, **garruks_warsteed**,
+**garruks_uprising** (template threshold/count conflation, not a silent
+pred path — eval was faithful to a wrong compile), **scry_bottom_temple**
+(CR 701.1 whole-library regroup), **turret_ogre** (CR 603.4 set-level
+"another" via CONTROLLER_COUNT_GE count 1), **teferis_wavecaster** (B-9
+offer collapse was the optional_offer pre-gating of the search-fed
+referent tail, not a cast-site gap — 'fire' now resolves through the 14e
+result register). Suspects remaining: **23**, all fail-only with their
+documented loud strings (Zone(ANY), TARGET-designation family,
+ZONE_COUNT_GE, QX…). Deviation recorded in doc 19: golden movers were 9
+lines, not just turret — the if-do gate has no IR to consume without the
+compiler merge; audit set-equal before regeneration.

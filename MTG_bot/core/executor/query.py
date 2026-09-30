@@ -480,10 +480,27 @@ def optional_offer(
     order (C15), the same vocab binding.py's may-offers drain (§fire/skip).
 
     Actionability is deliberately narrow: only exact-count selector roles
-    (TARGET/CHOOSE/RANDOM with a concrete count) gate the offer — a
-    mandatory-count action with too few candidates. ALL-mode and pure
-    numeric actions are always actionable (doing an empty ALL is a legal
-    no-op, e.g. scrying with a bare library)."""
+    (TARGET/CHOOSE/RANDOM with a concrete count) gate the offer — an action
+    with NO candidate at all. r18a widened two over-filters that erased
+    legal branches (CR 117.3 only ever removes an action there are no
+    resources/candidates for — a merely-undersupplied search keeps its
+    branch: the runtime CHOOSE resolves what exists, the C17 clamp, and a
+    search for "a card named X and/or a card named Y" is satisfiable at
+    one hit):
+
+    * a gate compares candidates to ZERO, never to the wanted count — the
+      old ``len(candidates) < want`` narrowed Alpine Houndmaster's
+      may-offer (two wanted, one in the library) to ``("skip",)`` while
+      the runtime CHOOSE would have honestly taken the one (C15 theft);
+    * a MOVE_ZONE tail after a SEARCH in the same effect (the 13a
+      re-search compile idiom — Fabled Passage/Chandra's Firemaw/Garruk's
+      Warsteed/Teferi's Wavecaster) is NOT gated against the
+      pre-execution world: its candidates are PRODUCED mid-effect by the
+      search (the result register the 14e seam writes), so pre-execution
+      they are legitimately empty. The SEARCH selector's own population
+      still gates above it. ALL-mode and pure numeric actions stay always
+      actionable (doing an empty ALL is a legal no-op, e.g. scrying with
+      a bare library)."""
     from MTG_bot.core.executor.legality import enumerate_candidates
 
     if not isinstance(effect, OptionalEffect):
@@ -505,9 +522,17 @@ def optional_offer(
                 plan, _why = build_payment_plan(executor.world, ctx, pay_cost)
                 if plan is None:
                     return MAY_VOCAB[1:]
+    search_seen = False
     for node in walk(effect.inner):
         if not isinstance(node, Atom):
             continue
+        # r18a: the 13a re-search tail — a MOVE_ZONE after a SEARCH (in
+        # walk order, the same effect) reads the found cards (result
+        # register / top-of-library stand-in); pre-execution there is
+        # nothing to enumerate and that is NOT inactionability.
+        tail_of_search = node.verb is Verb.MOVE_ZONE and search_seen
+        if node.verb is Verb.SEARCH:
+            search_seen = True
         for role in ("cards", "target"):
             value = node.args.get(role)
             if not isinstance(value, Selector):
@@ -520,10 +545,12 @@ def optional_offer(
                 continue  # ALL / ONE_OF / REST: no exact-count gate here
             if isinstance(value.count, QUnbounded):
                 continue
+            if tail_of_search or value.referent in ("event", "result"):
+                continue  # produced mid-effect: not a pre-execution gate
             want = resolve(value.count, ctx)
             if want <= 0:
                 continue
-            if len(enumerate_candidates(value, ctx)) < want:
+            if len(enumerate_candidates(value, ctx)) == 0:
                 return MAY_VOCAB[1:]
     return MAY_VOCAB
 

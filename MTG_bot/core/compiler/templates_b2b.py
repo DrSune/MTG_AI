@@ -1472,7 +1472,16 @@ def _build_solemn_simulacrum_etb(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_garruks_uprising_etb_condition(m: re.Match[str]) -> SentenceOutcome:
-    """#8: ETB, if you control a creature with power N or greater, draw a card."""
+    """#8: ETB, if you control a creature with power N or greater, draw a card.
+
+    r18a (B-8, wave-1b): the printed indefinite article "a creature" means
+    ONE or more (Historian Teferi's "a Teferi planeswalker" precedent below
+    — the same count=1 shape). The old call passed the power THRESHOLD as
+    the required COUNT — ``CONTROLLER_COUNT_GE`` then demanded N matching
+    creatures, so the sibling-drawing gate silently evaluated FALSE with a
+    single 4/4 on the battlefield (printed promise erased, no ask, no
+    error). The power threshold lives ONLY in the inner POWER_GE filter.
+    """
     n = _n(m, 1)
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
@@ -1485,7 +1494,7 @@ def _build_garruks_uprising_etb_condition(m: re.Match[str]) -> SentenceOutcome:
                 )
             ),
         ),
-        condition=_you_control_at_least(_creature_power_ge_filter(n), n),
+        condition=_you_control_at_least(_creature_power_ge_filter(n), 1),
     )
 
 

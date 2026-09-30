@@ -839,9 +839,20 @@ class TestB2aTriggerEvents(unittest.TestCase):
         assert isinstance(event, ZoneChangeEvent)
         self.assertEqual(event.to_zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
         condition = ability.condition
-        assert isinstance(condition, FAnd)
-        self.assertEqual(_find_atom(condition, FAtomPred.POWER_GE).count, QConst(4))
-        self.assertTrue(_contains_not(condition, FAtomPred.IS_SOURCE))
+        # AMENDED r18a (B-3, CR 603.4): the "if" clause is an EXISTENCE count
+        # over the battlefield — CONTROLLER_COUNT_GE count 1 with the power
+        # filter and FNot(IS_SOURCE) INSIDE (per-candidate). The old bare-FAnd
+        # shape was judged against ctx.source (the trigger's own permanent),
+        # where FNot(IS_SOURCE) is self-contradictory — the printed branch
+        # could never fire (wave-1b silent-false B-3).
+        assert isinstance(condition, FAtom)
+        self.assertIs(condition.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertEqual(condition.count, QConst(1))
+        assert isinstance(condition.inner_filter, FAnd)
+        self.assertEqual(
+            _find_atom(condition.inner_filter, FAtomPred.POWER_GE).count, QConst(4)
+        )
+        self.assertTrue(_contains_not(condition.inner_filter, FAtomPred.IS_SOURCE))
 
     def test_griffin_aerie_is_end_step_with_life_gained_ge(self) -> None:
         ability = _ability(

@@ -500,7 +500,11 @@ class TestManaScryShuffleLook(ExecutorCase):
             decisions=("bottom", "top"),
         )
         lib = self.world.players[self.p0].zone(ZONE_LIBRARY).entries
-        self.assertEqual(lib, self.libs[:2] + [self.libs[3], self.libs[2]])
+        # AMENDED r18a (CR 701.1): a bottomed card goes UNDER the whole
+        # library — the unviewed remainder keeps its order and the tops
+        # land above it. The old pin froze the window-internal regroup
+        # that made every scry-1 "bottom" an exact no-op (wave-1b B-10).
+        self.assertEqual(lib, [self.libs[3]] + self.libs[:2] + [self.libs[2]])
 
     def test_scry_clamps_and_requires_decisions(self):
         with self.assertRaises(ValueError):

@@ -1041,7 +1041,12 @@ class TestB2bTriggerEvents(unittest.TestCase):
         cond = ability.condition
         assert isinstance(cond, FAtom)
         self.assertIs(cond.pred, FAtomPred.CONTROLLER_COUNT_GE)
-        self.assertEqual(cond.count, QConst(4))
+        # AMENDED r18a (B-8): printed "a creature with power 4 or greater"
+        # means ONE or more — the old pin froze the power THRESHOLD in the
+        # count slot too, so the gate demanded four 4-power creatures and
+        # silently false-fired with a single 4/4 (Historian Teferi's
+        # count=1 precedent is the same shape now).
+        self.assertEqual(cond.count, QConst(1))
         assert isinstance(cond.inner_filter, FAnd)
         self._assert_has_type_eq_creature(cond.inner_filter)
         power = _find_atom(cond.inner_filter, FAtomPred.POWER_GE)

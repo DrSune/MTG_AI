@@ -917,6 +917,51 @@ def _merge_do_continuation(prev_effect: Effect, continuation: Effect) -> Effect:
     return _append_optional_to_seq(prev_effect, continuation)
 
 
+def _ends_with_optional(effect: Effect) -> bool:
+    """r18a: does the continuation SEAM end in an ``OptionalEffect`` — the
+    may-action a printed "If you do" anaphorically refers to (CR 611.1)?
+    True for a bare optional and for a Seq whose last step is one (through
+    nested Seqs); False means the antecedent was mandatory — the tail's
+    condition already rode the mandatory action, keep today's append."""
+    if isinstance(effect, OptionalEffect):
+        return True
+    if isinstance(effect, Seq) and effect.steps:
+        return _ends_with_optional(effect.steps[-1])
+    return False
+
+
+def _merge_if_do_continuation(
+    prev_effect: Effect, continuation: Effect, sentence: str
+) -> Effect:
+    """r18a (CR 611.1): "you may X. If you do, Y" — Y runs ONLY when the
+    optional X actually executed.
+
+    Round-11 (R11-1) made may-free continuations MANDATORY appends — right
+    against the phantom second ask, but it left "If you do" tails running
+    as free riders when the player answered ``skip`` (the wave-1b ledger's
+    crypt_lurker_skip class: skip Crypt Lurker's sacrifice and the draw
+    still landed). The correct gate is the may-decision's OUTCOME, so the
+    tail joins the sequence as ``Conditional(MAY_DONE, Y)`` — the executor
+    answers MAY_DONE from the 14b channel's logged may-offer (consumes the
+    outcome, never re-asks). A "may"-bearing tail ("If you do, you may Z")
+    keeps its own inner optional INSIDE the gate. A non-optional seam
+    (mandatory antecedent, e.g. Archfiend's Vessel's condition-gated exile,
+    Mazemind Tome's counter-ability) keeps today's plain append: its "if
+    you do" is the mandatory action the sequence already performed.
+    """
+    if _ends_with_optional(prev_effect):
+        inner = continuation
+        if _MAY_RE.search(sentence) and not isinstance(inner, OptionalEffect):
+            inner = OptionalEffect(inner=inner)
+        gated = Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=inner)
+        return _append_mandatory_to_seq(prev_effect, gated)
+    return (
+        _append_optional_to_seq(prev_effect, continuation)
+        if _MAY_RE.search(sentence)
+        else _append_mandatory_to_seq(prev_effect, continuation)
+    )
+
+
 def _fold_meta_filter(effect: Effect, meta_filter: Filter) -> Effect:
     """Conjoin meta_filter onto every TARGET-mode Selector in effect.
 
@@ -1213,6 +1258,9 @@ def compile_card(
         #     Conditional, C13 fallback to the default merge.
         #   - "When you do" (grammar round 9, R9-9, C24): inside the prior
         #     cost-paying OptionalEffect, C13 fallback to the default merge.
+        #   - "If you do" (r18a, CR 611.1): gated on the may-offer's OUTCOME
+        #     (Conditional(MAY_DONE, tail)) when the seam ends in an
+        #     OptionalEffect; else the default merge.
         #   - default continuation: a sibling optional step.
         if _SEARCH_SHUFFLE_TAIL_RE.match(sentence):
             merge = _merge_search_shuffle
@@ -1222,6 +1270,14 @@ def compile_card(
             merge = _merge_otherwise
         elif sentence.strip().startswith("When you do"):
             merge = _merge_do_continuation
+        elif sentence.strip().startswith(("If you do,", "If you do so,")):
+
+            def _if_do_merge(
+                prev_effect: Effect, continuation: Effect, _s: str = sentence
+            ) -> Effect:  # default-arg binds the sentence NOW (no late closure)
+                return _merge_if_do_continuation(prev_effect, continuation, _s)
+
+            merge = _if_do_merge
         else:
             # Grammar round 11 (R11-1): a "may"-free continuation ("If you
             # do, do X" / "Then do X") is MANDATORY given its antecedent —

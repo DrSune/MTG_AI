@@ -1,0 +1,36 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "o1",
+   "real": "Turret Ogre",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "o2",
+   "real": "Turret Ogre",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "o1"
+  },
+  {
+   "op": "enter",
+   "key": "o2"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  }
+ }
+}

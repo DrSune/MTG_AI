@@ -1,0 +1,43 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "u",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Garruk's Uprising"
+  },
+  {
+   "key": "big",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Stomper",
+   "power": 4,
+   "toughness": 4,
+   "type": "Creature"
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "u"
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ }
+}

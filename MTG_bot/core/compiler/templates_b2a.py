@@ -1726,6 +1726,25 @@ def _build_goremand(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_turret_ogre(m: re.Match[str]) -> SentenceOutcome:
+    """ETB, if you control ANOTHER creature with power N+, deal D to each
+    opponent.
+
+    r18a (B-3, CR 603.4): the intervening "if" clause is an EXISTENCE claim
+    over the battlefield population — "you control another creature with
+    power N or greater" holds when ONE battlefield creature matching the
+    filter (excluding the ability's own source) is under your control. The
+    old compile placed the bare population filter as the condition, which
+    the trigger gate judges against a single handle: ``ctx.source`` — the
+    ability's own permanent. ``FNot(IS_SOURCE)`` evaluated there is
+    self-contradictory and ``POWER_GE`` reads the source's own P/T, so the
+    printed branch could NEVER fire (wave-1b B-3: silent-false in ANY
+    world). The condition is now the established set-level idiom the b2b
+    Uprising/Historian rows use: ``CONTROLLER_COUNT_GE`` counts the
+    controller's battlefield permanents through the inner filter — with
+    ``FNot(IS_SOURCE)`` INSIDE the per-candidate evaluation, where
+    "another" means exactly that (the b2b "Subira another-lacks" audit
+    family, 11-B). Same count-1 shape as Historian Teferi.
+    """
     threshold, damage = _n(m, 1), _n(m, 2)
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
@@ -1738,13 +1757,17 @@ def _build_turret_ogre(m: re.Match[str]) -> SentenceOutcome:
                 )
             ),
         ),
-        condition=FAnd(
-            children=(
-                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                FAtom(pred=FAtomPred.POWER_GE, count=QConst(threshold)),
-                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
-            )
+        condition=FAtom(
+            pred=FAtomPred.CONTROLLER_COUNT_GE,
+            inner_filter=FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                    FAtom(pred=FAtomPred.POWER_GE, count=QConst(threshold)),
+                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                    FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
+                )
+            ),
+            count=QConst(1),
         ),
     )
 
@@ -1964,7 +1987,9 @@ def _build_kinetic_augur_etb(m: re.Match[str]) -> SentenceOutcome:
             )
         ),
     )
-    return _ability(_etb_event(FAtom(pred=FAtomPred.IS_SOURCE)), Seq(steps=(discard, draw)))
+    return _ability(
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)), Seq(steps=(discard, draw))
+    )
 
 
 def _build_idol_of_endurance_etb(m: re.Match[str]) -> SentenceOutcome:

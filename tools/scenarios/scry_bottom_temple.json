@@ -1,0 +1,35 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t",
+   "real": "Temple of Malady",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "t",
+   "decisions": [
+    "bottom"
+   ]
+  }
+ ],
+ "expect": {
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Library 5"
+   ]
+  }
+ }
+}

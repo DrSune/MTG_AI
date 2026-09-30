@@ -116,10 +116,21 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         # count clamp apply to the CHOOSE/draw idioms only; a partition
         # atom moves exactly what its Selector resolves.
         partition = sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST)
+        # r18a: the idiom is "move THE top n of your library to hand" —
+        # an UNFILTERED, referent-less selector. A filtered CHOOSE on a
+        # library zone is the 13a SEARCH tail (the named card already in
+        # hand by the SEARCH atom; the tail stands for "put IT into your
+        # hand" — Chandra's Firemaw / Garruk's Warsteed / Teferi's
+        # Wavecaster): its population is the filter's answer, resolved
+        # below, never the blind top-n draw that hoovered an unrelated
+        # library card into hand (wave-1b firemaw over-draw).
+        universal = isinstance(sel.filter, FAnd) and not sel.filter.children
         if (
             not partition
             and dest_kind == ZONE_HAND
             and sel.zone.kind is ZoneKind.LIBRARY
+            and sel.referent is None
+            and universal
         ):
             owner = zone_owner(ctx, dest_ir, owner=ctx.controller)
             lib = ctx.world.players[owner].zone(ZONE_LIBRARY)
@@ -739,7 +750,13 @@ def _v_scry(ctx: ExecCtx, atom: Atom) -> None:
             bottoms.append(card)
     # Canonical within-group order (the rules let the scryer order each
     # group freely; we pin Handle-ascending, ascending = toward the top).
-    lib.entries = lib.entries[: len(lib.entries) - n] + sorted(bottoms) + sorted(tops)
+    # r18a (CR 701.1): a card put on the BOTTOM goes under the WHOLE
+    # library — the unviewed remainder keeps its order (order-preservation
+    # for the rest) and the tops land above it. The old regroup stayed
+    # INSIDE the viewed window, making every scry-1 "bottom" an exact
+    # no-op (the wave-1b B-10 deviation: Temple of Malady's printed
+    # bottom-branch, Stormwing Entity's bottom branch).
+    lib.entries = sorted(bottoms) + lib.entries[: len(lib.entries) - n] + sorted(tops)
     ctx.events.append((len(ctx.events), "SCRY", str(player), n))
 
 

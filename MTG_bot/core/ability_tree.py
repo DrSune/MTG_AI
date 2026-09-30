@@ -460,6 +460,13 @@ class FAtomPred(Enum):
         "CARDS_DRAWN_THIS_TURN_GE"  # "if an opponent drew N or more cards this turn"
     )
     FLIP_WON = "FLIP_WON"  # "if you win the flip" (required who; Tavern Swindler)
+    MAY_DONE = (
+        "MAY_DONE"  # r18a CR 611.1: the "If you do, X" tail of a MAY sentence —
+        # X executes only when the optional action actually executed. Handle-
+        # free like FLIP_WON; answered from the 14b decision channel's logged
+        # may-offer outcome (asked 'fire' at this ability's site). No slots
+        # (precedent: TARGETS_SOURCE); never re-asks.
+    )
     INSTANT_OR_SORCERY_CAST_THIS_TURN = (
         "INSTANT_OR_SORCERY_CAST_THIS_TURN"  # "if you've cast an instant or
         # sorcery spell this turn" (Stormwing Entity; turn-scoped cast tracking;
@@ -3049,6 +3056,10 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     # TARGETS_SOURCE: "spells your opponents cast that target this creature"
     # — the spell targets the source object. No slots (precedent: IS_SOURCE).
     FAtomPred.TARGETS_SOURCE: (frozenset(), frozenset()),
+    # MAY_DONE (r18a, CR 611.1): the "If you do, X" tail of a MAY sentence.
+    # Handle-free like FLIP_WON; the executor answers it from the 14b
+    # decision channel's logged may-offer outcome. No slots.
+    FAtomPred.MAY_DONE: (frozenset(), frozenset()),
     # ENTERED_THIS_TURN_FROM: "if it entered from your graveyard this turn"
     # (Archfiend's Vessel). The zone slot names the source zone of the
     # entry. Precedent: the zone slots on CastSpellEvent.from_zone.

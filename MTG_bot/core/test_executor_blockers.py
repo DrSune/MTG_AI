@@ -291,17 +291,22 @@ class TestAssignment(BlockerCase):
         self.assertEqual(self.damage_plan(blocker), ((2, dino),))
 
     def test_trample_excess_ask_opens_only_above_total_lethal(self):
-        # Dire Fleet Warmonger carries +2/+0 while attacking ALONE (a
-        # live static) - 5 total against a 0/3 wall: 3 lethal, the 2
-        # excess are ASKED (default answer 0 -> the player takes them)
+        # AMENDED r18a (CR 611.1): Dire Fleet Warmonger's combat trigger is
+        # "you may sacrifice another creature. If you do, +2/+2 and trample"
+        # — with nothing to sacrifice the offer is skip-only and the tail
+        # is now GATED on that answer. The old pin froze the free-rider bug
+        # (the +2/+2 landed WITHOUT the sacrifice, manufacturing 2 excess
+        # trample damage out of a skipped optional). Honest 3/3 trample at
+        # a 0/3 wall: 3 is exactly lethal, the excess ask stays SHUT and
+        # the player takes nothing.
         dino = self.real("Dire Fleet Warmonger", self.p0)  # 3/3 trample
         wall = self.synth("Wall", 0, 3, self.p1)
         self.begin()
         self.answers[f"block:{wall}"] = str(dino)
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
-        self.assertEqual(self.damage_plan(dino), ((3, wall), (2, self.p1)))
-        self.assertEqual(self.world.players[self.p1].life, 18)
+        self.assertEqual(self.damage_plan(dino), ((3, wall),))
+        self.assertEqual(self.world.players[self.p1].life, 20)
         self.assertEqual(self.world.zone_of(wall).kind, ZONE_GRAVEYARD)
 
     def test_deathtouch_grant_buries_the_bigger_blocker(self):

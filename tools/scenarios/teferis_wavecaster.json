@@ -1,0 +1,43 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Teferi's Wavecaster",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "tva",
+   "real": "Teferi, Timeless Voyager",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "pla",
+   "real": "Plains",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "w",
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tva": "hand"
+  },
+  "hand": {
+   "0": 2
+  }
+ }
+}

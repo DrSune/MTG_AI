@@ -607,6 +607,33 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         from MTG_bot.core.executor.selectors import controller_matches
 
         return controller_matches(atom.who, ctx.executor.last_flip_won_by, ctx)
+    if pred is FAtomPred.MAY_DONE:
+        # r18a (CR 611.1): "do X. If you do, Y" — Y executes iff the OPTIONAL
+        # X actually executed. The answer is the 14b decision channel's own
+        # audit row: the may-offer at THIS ability's site (``may:<source>``,
+        # the tag Executor._run_effect asks with) was answered 'fire'. The
+        # guard CONSUMES the logged outcome (DecisionStream.ask_log ==
+        # ``answered()``) — it never re-asks (the question was answered once,
+        # tree order, C15). Handle-free like FLIP_WON: the same answer for
+        # every candidate the filter gates. No record at the site is an
+        # UNANSWERED QUESTION — flagged, never guessed False (the FLIP_WON /
+        # NAME_CHOSEN convention), because a MAY_DONE Conditional only ever
+        # rides the seam directly after its own may-offer.
+        ex = ctx.executor
+        if ex is None:
+            raise NotImplementedError(
+                "executor: MAY_DONE needs the executor's decision channel "
+                "(bare ExecCtx has no may-offer log)"
+            )
+        site = f"may:{ctx.source}"
+        for what, answer in reversed(ex.decisions.ask_log):
+            if what == site:
+                return answer == "fire"
+        raise NotImplementedError(
+            f"executor: MAY_DONE has no may-offer record for {site} — the "
+            "conditional has no antecedent (unanswered question, flagged "
+            "never False)"
+        )
     if pred is FAtomPred.CONTROLLER_COUNT_GE:
         # 14d (B-7): "you control four or more <inner>" (Gadrak's attack
         # gate; the Fabled Passage "Then if you control four or more lands,

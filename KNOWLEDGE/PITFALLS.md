@@ -625,3 +625,10 @@
   `FAnd(..., FNot(IS_SOURCE))` is evaluated against `ctx.source` (the
   triggering permanent itself) → constantly false; trigger never queues and
   nothing errors. Turret Ogre is unfireable in any world.
+
+- **Pack-author trap (r18a): the scenario harness constructor's opening
+  `begin_turn` draws the LAST-listed library card.** A pack whose premise
+  is "the library holds exactly one named card" has that card drawn before
+  step 1 — the world then looks like an engine that mutated before a
+  may-ask. Add a decoy card listed AFTER the target so the draw eats it,
+  and pin lanes knowing the pop-last rule.

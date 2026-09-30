@@ -1,0 +1,57 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "h",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Alpine Houndmaster"
+  },
+  {
+   "key": "wd",
+   "zone": "library",
+   "controller": 0,
+   "real": "Alpine Watchdog"
+  },
+  {
+   "key": "bait",
+   "zone": "library",
+   "controller": 0,
+   "name": "Decoy",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature"
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "h",
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "wd": "hand",
+   "h": "battlefield"
+  },
+  "hand": {
+   "0": 2
+  },
+  "library": {
+   "0": [
+    "Library 5",
+    "Library 0",
+    "Library 3",
+    "Library 4",
+    "Library 1",
+    "Library 2"
+   ]
+  }
+ }
+}
