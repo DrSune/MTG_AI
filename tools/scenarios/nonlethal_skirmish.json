@@ -1,0 +1,18 @@
+{
+  "name": "nonlethal_skirmish",
+  "note": "16a proof 3 (the CR 120/514.2 half): a 1/2 fights a 1/1 — both marks land inside ONE atom boundary (fight is simultaneous, CR 701.12b), the settle SBA buries ONLY the 1/1 while the 1/2 stands at exactly 1 marked (the old instant-lethal shortcut is gone), and the cleanup step sweeps the survivor's ledger clean. (A 1/1 vs 1/1 trade is a MUTUAL kill — the equal-P/T version lives in test_executor_damage_sba.py.)",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "hale", "name": "Haleuard", "power": "1", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+    {"key": "grib", "name": "Grib", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "fight", "source": "hale", "target": "grib"},
+    {"op": "end_turn"}
+  ],
+  "expect": {
+    "life": {"0": 20, "1": 20},
+    "zone": {"hale": "battlefield", "grib": "graveyard"},
+    "damage": {}
+  }
+}

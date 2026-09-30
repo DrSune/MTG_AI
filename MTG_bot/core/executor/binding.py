@@ -62,6 +62,8 @@ from MTG_bot.core.ability_tree import (
     DelayedTrigger,
     EventSpec,
     FAnd,
+    FAtom,
+    FAtomPred,
     Filter,
     LifeGainedEvent,
     LoyaltyActivatedEvent,
@@ -135,6 +137,17 @@ _AnyTrigger = TriggeredAbility | DelayedTrigger
 def _is_universal(filter_: Filter) -> bool:
     """The grammar's universal filter: an empty conjunction (``FAnd(())``)."""
     return isinstance(filter_, FAnd) and len(filter_.children) == 0
+
+
+def _is_subject_identity(filter_: Filter) -> bool:
+    """16a (Brash Taunter): the bare IS_SOURCE identity pred alone. It is
+    DEFINED for any handle (handle == ctx.source, no card data read), and a
+    PLAYER subject can never be a card ability's source — so over a player
+    damage subject it is honestly FALSE, not undefined (the echo's own
+    player-damage row must not re-arm the "is dealt damage" trigger). The
+    raise stays for every other filter: its preds read card data a player
+    handle does not carry."""
+    return isinstance(filter_, FAtom) and filter_.pred is FAtomPred.IS_SOURCE
 
 
 def _compile_bridge(compiled: object) -> CardRecord:
@@ -607,12 +620,14 @@ class TriggerBinder:
         subject = event.subject
         ctx = self._match_ctx(source, controller, event)
         if subject is not None and subject.namespace == "player":
-            if not _is_universal(node.filter):
-                raise NotImplementedError(
-                    "executor: DamageDealtEvent filter over a player subject "
-                    "is 12c's query surface"
-                )
-            return True
+            if _is_universal(node.filter):
+                return True
+            if _is_subject_identity(node.filter):
+                return False  # 16a: a player is never the source CARD (Brash)
+            raise NotImplementedError(
+                "executor: DamageDealtEvent filter over a player subject "
+                "is 12c's query surface"
+            )
         assert subject is not None  # a damage event always names its subject
         return eval_filter(node.filter, subject, ctx)
 
@@ -685,6 +700,14 @@ class TriggerBinder:
             bindings["event"] = event.subject
             if event.kind == KIND_CREATURE_DIES:
                 bindings["result"] = event.subject  # C18 was-snapshot subject
+        if event.kind == KIND_DAMAGE and event.cause is not None:
+            # 16a (Brash Taunter): the frozen IR compiles the echo's
+            # "it deals that much damage to any target" as TARGET_PLAYER,
+            # which reads bindings["target"]. In a DAMAGE firing the
+            # designation the frozen comment names IS the dealer — bind
+            # it, so TARGET_PLAYER means "the controller of the source of
+            # that damage" instead of the 12c prompt raise.
+            bindings["target"] = event.cause
         amount = event.amount if event.kind == KIND_DAMAGE else None
         return ExecCtx(
             world=ex.world,

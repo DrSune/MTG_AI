@@ -100,6 +100,7 @@ from MTG_bot.core.ability_tree import (
     DelayedTrigger,
     EachPlayer,
     Effect,
+    Keyword,
     OptionalEffect,
     Phase,
     QConst,
@@ -164,7 +165,7 @@ from MTG_bot.core.executor.stack import (
 )
 from MTG_bot.core.executor.verbs import HANDLERS, run_atom, token_oracle_id
 from MTG_bot.core.identity import Handle
-from MTG_bot.core.state import ZONE_BATTLEFIELD, GameWorld
+from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, GameWorld
 
 # The v1 capability CONTRACT — the round-12 24-verb set every v1 golden and
 # the round-12 cross-check were measured against.  Deliberately a literal
@@ -204,8 +205,9 @@ SUPPORTED_VERBS_V1 = frozenset(
 # handler today (round-12 cross-check against all 48 corpus verbs).  Derived,
 # never retyped: 12b/12d brought GRANT_ABILITY, LOSE_ABILITY and
 # PREVENT_EFFECT, and 13a brought the library/turn verbs (DRAW, SEARCH,
-# FLIP_COIN, END_TURN, EXTRA_TURN, LOSE_GAME).  The remaining non-dispatched
-# verbs (CAST, COUNTER_SPELL, PHASE_OUT/PHASE_IN, FIGHT, COPY,
+# FLIP_COIN, END_TURN, EXTRA_TURN, LOSE_GAME), and 16a brought FIGHT
+# (CR 701.12, the damage-exchange orphan verb).  The remaining non-dispatched
+# verbs (CAST, COUNTER_SPELL, PHASE_OUT/PHASE_IN, COPY,
 # MANDATE_ATTACK, MANDATE_BLOCK, PAY, ATTACH, GAIN_CONTROL, ...)
 # stay outside: event-node-only or out-of-contract internals (ruling 6),
 # flagged by ``compile_pool(supported_verbs=...)``, never faked.
@@ -291,6 +293,11 @@ class Executor:
         self.ledger = DurationLedger()
         self.events: list[Event] = []
         self.token_counts: dict[str, int] = {}
+        # 16a (CR 120.6): damage MARKED on cards. The frozen GameWorld has
+        # no damage field, so the marks are executor-side replayed state
+        # (ruling 1: folded into state_fingerprint, removed at the cleanup
+        # step and when the permanent leaves the battlefield).
+        self.damage: dict[Handle, int] = {}
         self.journal = EventJournal(world, self.ledger)
         # 12d registries (built BEFORE the binder: the binder's lifecycle
         # hooks reach them during attach).
@@ -636,6 +643,7 @@ class Executor:
             self.ledger.expire_leaves(anchor)
             self.layers.expire_leaves(anchor)
             self.replacements.expire_leaves(anchor)
+            self.damage.pop(anchor, None)  # 16a: CR 120.6, marks leave with it
 
     # -------------------------------------------------------- 12b: triggers
 
@@ -658,6 +666,68 @@ class Executor:
         self.binder.on_events()
         return self.binder.fire_all()
 
+    # ------------------------------------ 16a: damage marks + state checks
+
+    def mark_damage(self, card: Handle, n: int) -> None:
+        """Mark ``n`` damage on a card (CR 120.4). The mark STAYS — marked
+        until the permanent leaves the battlefield (CR 120.6) or the cleanup
+        step removes it (CR 514.2); destruction is the state-based check
+        below, never the dealing of the damage itself."""
+        if n <= 0:
+            return
+        self.damage[card] = self.damage.get(card, 0) + n
+
+    def _lethal_creatures(self) -> list[Handle]:
+        """CR 704.5a + 704.3 read over the battlefield (Handle-sorted,
+        ruling 5): a creature marked with damage >= its LIVE toughness dies
+        unless it has indestructible (CR 702.12b); toughness <= 0 kills even
+        an indestructible creature. A permanent with no toughness (lands,
+        non-creature artifacts) is not a creature-side death at all."""
+        dying: list[Handle] = []
+        for player in self.world.player_order:
+            for card in self.world.players[player].zone(ZONE_BATTLEFIELD).entries:
+                identity = self.world.cards[card].identity
+                _power, toughness = self.ledger.effective_pt(identity, card)
+                if toughness is None:
+                    continue
+                if toughness <= 0:
+                    dying.append(card)
+                elif self.damage.get(card, 0) >= toughness and not (
+                    self.layers.keyword_of(card, Keyword.INDESTRUCTIBLE)
+                ):
+                    dying.append(card)
+        return sorted(dying)
+
+    def _state_checks(self) -> int:
+        """The 16a state-based action sweep (CR 704.3: repeat until the
+        table is stable), run at every settle point — the end of each
+        public op. Lethal creatures die when the thing that hurt them
+        finishes, not inside the damage atom (the 12a instant-lethal
+        stand-in is retired). Each kill batch is journalled as its OWN atom
+        boundary (cause ``None``: an SBA has no card behind it, coverage
+        credits none) so dies-triggers see the C18 was-PT snapshot, then
+        those firings drain before the next scan."""
+        fired = 0
+        while True:
+            self.layers.recompute()  # live keywords/toughness must be current
+            dying = self._lethal_creatures()
+            if not dying:
+                return fired
+            before = self.journal.snapshot()
+            start = len(self.events)
+            for card in dying:
+                self.damage.pop(card, None)
+                self.world.move_to_zone(
+                    card, self.world.controller_of(card), ZONE_GRAVEYARD
+                )
+                self.events.append((len(self.events), "STATE_CHECK", str(card), "DIES"))
+            new_events = self.journal.record_atom(
+                before, None, "STATE_CHECK", self.events[start:]
+            )
+            self._on_zone_changes(new_events)
+            self.binder.on_events()
+            fired += self.binder.fire_all()
+
     def _settle(self) -> int:
         """Match the journal's new events and drain — the end of every
         public op. With nothing attached this is a no-op (12a behaviour).
@@ -668,6 +738,9 @@ class Executor:
         of the journal's final state, so replays are byte-identical."""
         self.binder.on_events()
         fired = self.binder.fire_all()
+        # 16a: the state-based lethal-damage check sits at the settle point
+        # (CR 704.3), so execute / apply_effect / end_turn all drain it.
+        fired += self._state_checks()
         self.ledger.settle_while(self._while_eval)
         self.layers.recompute()
         return fired
@@ -851,6 +924,7 @@ class Executor:
         self.ledger.sweep_at_eot()
         self.layers.sweep_at_eot()
         self.replacements.sweep_at_eot()
+        self.damage.clear()  # 16a: CR 514.2 — cleanup removes marked damage
         self.binder.expire_delayed()
         # Rebuild the oracles after the sweep — a granted keyword that
         # expired at end of turn must not survive into next turn's
@@ -912,6 +986,8 @@ class Executor:
         h.update(repr(self.binder.dump()).encode())
         h.update(repr(self.layers.dump()).encode())
         h.update(repr(self.replacements.dump()).encode())
+        # 16a: damage marks are replayed state too (ruling 1, CR 120.6).
+        h.update(repr(sorted(self.damage.items())).encode())
         # 13a: the turn ledger is replayed state too (same ruling).
         h.update(
             repr(

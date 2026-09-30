@@ -164,11 +164,15 @@ class DeckSupplyTest(unittest.TestCase):
             meta = self.supply.metas[oid]
             self.assertTrue(meta.engine_supported and meta.playable, meta.name)
 
-    def test_engine_count_is_the_gated_286(self) -> None:
+    def test_engine_count_is_the_gated_288(self) -> None:
         # The honest 12e number, from the SUPPORTED_VERBS_V2-gated pass: an
         # ungated compile stamps every card supported (NUMBERS.md 2026-09-30),
         # so a harness that skipped the second pass would report 305.
-        self.assertEqual(len(self.supply.engine_ids), 286)
+        # AMENDED 2026-09-30 (round 16a): 286 -> 288 — FIGHT joined the
+        # dispatched set, and the gate picked up exactly its two FIGHT
+        # carriers (Brash Taunter, Primal Might), zero losses. Verified by
+        # diffing the gated compile with and without Verb.FIGHT.
+        self.assertEqual(len(self.supply.engine_ids), 288)
 
 
 class ReplayDeterminismTest(unittest.TestCase):
@@ -664,17 +668,22 @@ class CrashLedgerTest(unittest.TestCase):
             executor.apply_effect(tap_one_of, source=a, controller=p0)
         self.assertIn("needs a decision", str(cm.exception))
 
-    def test_qx_undeclared_x_raises_loud_on_cast(self) -> None:
+    def test_qx_undeclared_x_resolves_the_whole_cast(self) -> None:
         """AMENDED 14c (QX CLOSED at cast): CR 601.2f declares X WITH the
         total cost, so when the caller passes no x the legality fold's
         documented X=0 witness (CR 107.1) is the DECLARATION — the frame's
         x_value and the effect's QX read it (the 13b wiring gap: a QX in
         an effect quantity instead of the cost stayed unbound and died at
-        quantity.resolve). Primal Might now gets past the QX raise and
-        falls to the NEXT open class: Verb.FIGHT has no handler at all
-        (unimplemented-verb ledger family, B-3/B-10 neighbours). The
-        unbound raise itself is untouched OUTSIDE a cast (ctx.x_value
-        None in any other context still flags — pinned by 13b's suite)."""
+        quantity.resolve).
+        AMENDED 2026-09-30 (round 16a): FIGHT joined HANDLERS, so Primal
+        Might has no unimplemented class left and the X=0 cast RESOLVES
+        end to end — the pin flips from "got PAST the QX raise" to the
+        full resolution: spell to graveyard, the QX=0 witness deal leaves
+        NO damage mark (mark_damage ignores n<=0), the ally survives, and
+        the FIGHT's CHOOSE over an empty opponent population fights
+        nobody (C17). The unbound raise itself is untouched OUTSIDE a
+        cast (ctx.x_value None in any other context still flags — pinned
+        by 13b's suite)."""
         supply = get_supply("all")
         record = _record_named(supply, "Primal Might")
         reset_oracle_ids()
@@ -692,9 +701,10 @@ class CrashLedgerTest(unittest.TestCase):
         world.active_player = p0
         executor.turn_open = True
         executor.phase = "FIRST_MAIN"
-        with self.assertRaises(NotImplementedError) as cm:
-            cast(executor, p0, spell, targets=(creature,), decisions=())
-        self.assertIn("FIGHT", str(cm.exception))  # got PAST the QX raise
+        cast(executor, p0, spell, targets=(creature,), decisions=())  # no raise
+        self.assertEqual(world.zone_of(spell).kind, ZONE_GRAVEYARD)
+        self.assertEqual(world.zone_of(creature).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(executor.damage, {})  # QX witness X=0 deals nothing
 
     def test_stats_report_shape(self) -> None:
         stats = run_games(2, "castable", SMOKE_DECK_PAIRS, turn_cap=4)

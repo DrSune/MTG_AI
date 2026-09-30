@@ -273,6 +273,18 @@ def resolve_selector(sel: Selector, ctx: ExecCtx) -> List[Handle]:
                 "executor: TARGET selector has no designation "
                 "(pass bindings={'target': ...})"
             )
+        if sel.zone.kind is ZoneKind.PLAYER:
+            # 16a: a CARD designation on a PLAYER-side designation means
+            # its controller — players_for_ref's TARGET_PLAYER rule (the
+            # zone-enumeration face) mirrored onto the designation face,
+            # so the two agree. The canonical case is Brash Taunter's
+            # compiled echo: the DAMAGE trigger binds the journal cause
+            # (a card) under "target", and "target opponent" means THAT
+            # card's player — never the card itself.
+            bound = [
+                h if h.namespace == "player" else ctx.world.controller_of(h)
+                for h in bound
+            ]
         legal = set(candidates)
         return sorted(h for h in bound if h in legal)
     if sel.mode is SelectorMode.ONE_OF:
@@ -328,7 +340,13 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> List[Handle]:
     bound = ctx.binding_handles(role)
     value = atom.args.get(role)
     anaphoric = isinstance(value, Selector) and value.referent is not None
-    if bound is not None and not anaphoric:
+    # 16a: a PLAYER-side Selector resolves through its own zone (the
+    # TARGET_PLAYER/controller conversion above) — a designation binding
+    # carrying a CARD must not be handed to a player verb raw, or Brash
+    # Taunter's echo would mark the damage source instead of its player.
+    # Same shape as the B-16 anaphoric exemption: the Selector knows best.
+    player_side = isinstance(value, Selector) and value.zone.kind is (ZoneKind.PLAYER)
+    if bound is not None and not anaphoric and not player_side:
         return bound
     if isinstance(value, Selector):
         return sorted(resolve_selector(value, ctx))

@@ -13,6 +13,39 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.287 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **288/305** (0.9443) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 40 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-09-30 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.246 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-09-30 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.294 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
@@ -1635,3 +1668,14 @@ Core **2013** (`pytest MTG_bot/core -q`; +6 pins, 3 frozen AMENDED), PC-1 301/30
 **Engine 30 seeds: 26/30 → 29/30 (96.7%), mean 60.0t, 3843 acts, cov 58 = 21.7%, 0 crashes** — the only non-survivor is a natural draw-from-empty LOSS (seed 0, turn 59). PC-7 v1 CONVERGED: the engine pool plays to the cap with zero exceptions; remaining wall = SCOPE (flagged-verb family 18 deckable, arc-3 combat UNREACHED, B-1 castability 192 non-land deckable without SpellAbility).
 Closed this round: **B-9 fully** (Chandra #4 cross-resolution residual → B4-row fidelity emits `IS_EXILED_WITH_SOURCE` population, [+1]-row shape), **B-20 EachPlayer** (controller rotation, pool-cursor forwarding, documented CR 800.2 seat-order), **B-21 KEYWORD_HAS** (live `keyword_of` oracle, one branch all positions, bare-ctx loud), **B-22 static-anthem outlier** (Waker of Waves, family's lone raw-EffectOutcome row → StaticAbility; playable_engine 86→85, the 14e ruled precedent).
 Core **2022** (`pytest MTG_bot/core -q`; +9 pins, 3 frozen AMENDED), PC-1 301/305 · PC-2 634/639 · PC-3 0 · PC-4 0 diffs EXACT, engine_supported **286/305 EXACT**; goldens moved ONLY via the two audited inventories (diff == {Chandra, Waker}, keys={abilities}); pyright 0 (edited scope; repo 524→524), ruff delta 0, replay determinism green; the three 14e crash seeds (castable 5/7/9, engine 23) replay crash-free to the cap.
+
+### Round-16a marked damage + SBA + FIGHT — arc-3 breached (2026-09-30, uncommitted; see KNOWLEDGE/2026-09-30/12-round16a-marked-damage-sba-fight.md)
+
+**Engine counts + survival** — cmd: `.venv/bin/python -m MTG_bot.core.executor.games --seeds {10,30} --pool engine --out …` (deck-pairs 1409, cap 60):
+deckable 267→**269**, engine_supported 286→**288** (gained = exactly Brash Taunter + Primal Might, FIGHT dispatch — `_gated` flip pin), playable_engine 85→**86**.
+engine10: 9/10 survived, mean 59.6t, 1277 acts, cov 40, **0 crashes**; two runs byte-identical except the `argv` echo (determinism holds).
+**Engine 30 seeds: 29/30 (96.7%), mean 59.87t, 3917 acts, cov 53 = 19.7%, 0 crashes** — FIGHT fired in real games; the 14f "arc-3 combat UNREACHED" wall is breached with zero regression.
+all10: crash set UNCHANGED — sole crash = `NotImplementedError: GAIN_CONTROL` (verbs.py:1316, seed 2, Enthralling Hold) = documented 16e boundary.
+Validation packs: `.venv/bin/python tools/run_scenarios.py` → **3/3 PASS** (brash_echo, primal_might_fight, nonlethal_skirmish).
+Trace catalog: pre-change compare 10/10 seeds diverging (first divergence ~entry 4, PLAY_LAND index shift = deal-shift cascade from deckable 267→269 at fixed deck-pairs seed 1409); `repin` → **5641 entries / 10 games** (was 5504); post-repin compare **0 diverging of 10**.
+Core **2034** passed + 5 subtests (`pytest MTG_bot/core -q`, +12 `test_executor_damage_sba.py`), PC-1 301/305 · PC-2 634/639 · PC-3 0 · PC-4 0 EXACT (executor-only change, goldens never moved), pyright 0 (edited scope), ruff delta 0 (selectors.py keeps HEAD's 12 legacy errors).

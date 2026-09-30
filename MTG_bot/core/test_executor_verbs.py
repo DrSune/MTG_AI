@@ -843,8 +843,10 @@ class TestDispatchRaises(ExecutorCase):
         # covered in test_executor_permissions.py); GRANT_TYPE,
         # GRANT_ACTIVATION and ADD_LAND_PLAY join GRANT_ABILITY's 12d
         # precedent as layer verbs that were never probed here.
+        # AMENDED 2026-09-30 (round 16a): FIGHT left the raise list — it is
+        # the damage-exchange round's live handler (HANDLERS[Verb.FIGHT],
+        # covered by the 16a marked-damage/fight tests).
         probes = {
-            Verb.FIGHT: {"target": target_sel()},
             Verb.PHASE_OUT: {"target": target_sel()},
             Verb.COUNTER_SPELL: {"target": target_sel()},
         }

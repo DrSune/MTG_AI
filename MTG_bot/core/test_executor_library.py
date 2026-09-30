@@ -680,6 +680,10 @@ class TestCapabilitySurface(unittest.TestCase):
         # flip set (GET_EMBLEM, GRANT_TYPE, GRANT_ACTIVATION,
         # ADD_LAND_PLAY), 35 -> 39. PHASE_OUT (Teferi's co-verb) stays
         # out: its handler is 13d's, not this round's.
+        # AMENDED 2026-09-30 (round 16a): one more — the damage-exchange
+        # orphan verb FIGHT (CR 701.12), 39 -> 40.  Brash Taunter's
+        # activation and Primal Might's fight row both dispatch through
+        # HANDLERS[Verb.FIGHT] now; nothing else left the frozen V1 set.
         new = {
             Verb.DRAW,
             Verb.SEARCH,
@@ -696,11 +700,12 @@ class TestCapabilitySurface(unittest.TestCase):
             Verb.GRANT_TYPE,
             Verb.GRANT_ACTIVATION,
             Verb.ADD_LAND_PLAY,
+            Verb.FIGHT,
         }
         self.assertEqual(SUPPORTED_VERBS_V2 - SUPPORTED_VERBS_V1, new)
         self.assertNotIn(Verb.DRAW, SUPPORTED_VERBS_V1)  # the round-12 freeze
         self.assertEqual(len(SUPPORTED_VERBS_V1), 24)
-        self.assertEqual(len(SUPPORTED_VERBS_V2), 39)
+        self.assertEqual(len(SUPPORTED_VERBS_V2), 40)
 
     def test_turn_ledger_fields_in_state_fingerprint(self):
         reset_oracle_ids()

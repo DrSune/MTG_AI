@@ -1,0 +1,17 @@
+{
+  "name": "brash_echo",
+  "note": "16a proof 1 (CR 701.12b + compiled echo, through the REAL Brash Taunter, M21 #133): the dump's Brash is printed Indestructible with 'dealt damage -> that much to target opponent' and a {2}{R}{T} fight (verified against live Scryfall — the dump is faithful). A 3/3 FIGHTS it: the echo trigger's TARGET_PLAYER designation is the journal cause (the rager), whose CONTROLLER eats the 3 (the role_handles PLAYER-side fix, selectors.py), Brash stays standing at 3 marked (CR 702.12b — the SBA sweep must not bury it), and rager survives at 1 marked (1 < 3).",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "brash", "real": "Brash Taunter", "zone": "battlefield", "controller": 0},
+    {"key": "rager", "name": "Rager", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "fight", "source": "rager", "target": "brash"}
+  ],
+  "expect": {
+    "life": {"0": 20, "1": 17},
+    "zone": {"brash": "battlefield", "rager": "battlefield"},
+    "damage": {"brash": 3, "rager": 1}
+  }
+}

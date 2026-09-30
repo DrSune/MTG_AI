@@ -542,3 +542,18 @@
 - **`ZONE_KIND_TO_STATE` has no STACK** — `legal_targets` answers Zone(STACK) (14a F-2)
   but RUNTIME `enumerate_zone` still KeyErrors on it (B-19). Query-fixed ≠ runtime-fixed;
   check both sides when a zone becomes reachable.
+- **Card text ground truth = the dump + live Scryfall, never memory (16a).** M21 Brash
+  Taunter IS printed Indestructible and its echo names "target opponent"; the "1/1 dies to
+  any mark, echoes to the source's controller" belief was an M11-era card remembered as M21
+  and cost a whole debugging arc. Check `MTG_bot/data/<SET>.json` AND scryfall.com before
+  declaring a card's behavior a bug.
+- **PLAYER-zone TARGET selectors must not take a bound CARD handle (16a).** `role_handles`
+  binding-first hands the trigger's `event.cause` (a card) to a `ZoneKind.PLAYER` Selector,
+  so "deals damage to target opponent" marks the damage-source CREATURE instead of its
+  controller. Fix shape: `player_side` exemption in `role_handles` + `controller_of`
+  conversion in the TARGET branch of `resolve_selector`. Mirror of 14c B-16 (player handle
+  reaching `controller_of`): bindings may win only WITHOUT a zone-type change (card→player).
+- **Marked damage changes the deal, not just the kill.** Enabling FIGHT added 2 cards to
+  the deckable set at a fixed deck-pairs seed → the sampled card multiset shifted → every
+  engine10 trajectory diverged at ~entry 4 (a PLAY_LAND index). Expect to repin the trace
+  catalog whenever the deckable/engine-supported SET (not just behavior) changes.

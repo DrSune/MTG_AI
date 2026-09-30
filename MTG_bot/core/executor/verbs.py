@@ -268,12 +268,85 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
             p.life = max(0, p.life - n)
             ctx.events.append((len(ctx.events), "DAMAGE", str(target), p.life))
             continue
-        _, toughness = ctx.effective_pt(target)  # ledger-aware PT
-        if toughness is not None and n >= toughness:
-            _move_to(ctx, target, ctx.world.controller_of(target), ZONE_GRAVEYARD)
-            ctx.events.append((len(ctx.events), "DAMAGE_LETHAL", str(target), n))
-        else:
-            ctx.events.append((len(ctx.events), "DAMAGE", str(target), n))
+        # 16a (CR 120.4/120.6): damage is MARKED, never instant-lethal. The
+        # mark rides the executor's damage ledger and the settle tail's
+        # state-based check (CR 704.5a) does the destroying — so two
+        # creatures trading non-lethal blows both survive, and a lethal
+        # exchange is a simultaneous double kill. The DAMAGE tuple keeps
+        # feeding the journal's KIND_DAMAGE row (events.py), so "is dealt
+        # damage" triggers (Brash Taunter) are unchanged.
+        _deal_damage_to_card(ctx, target, n)
+
+
+def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
+    """One card-side damage application: mark it, journal it, decide nothing."""
+    if ctx.executor is None:
+        raise ValueError(
+            "executor: card damage needs an executor-backed ExecCtx "
+            "(bare ExecCtx has no damage ledger)"
+        )
+    ctx.executor.mark_damage(target, n)
+    ctx.events.append((len(ctx.events), "DAMAGE", str(target), n))
+
+
+def _fight_attacker(ctx: ExecCtx) -> Handle:
+    """The compiled FIGHT atom carries NO attacker role (the orphan-verb
+    precedent, ability_tree R7-8): the attacker is the ability's SOURCE
+    when that source is a battlefield permanent (Brash Taunter's
+    {2}{R}{T} — "this creature fights"), else the PRECEDING atom's
+    result register (Primal Might's "it also fights" anaphora, the
+    compiler's documented executor-side binding — _apply_pt writes it)."""
+    if (
+        ctx.source.namespace == "card"
+        and ctx.source in ctx.world.cards
+        and ctx.world.zone_of(ctx.source).kind == ZONE_BATTLEFIELD
+    ):
+        return ctx.source
+    result = ctx.binding_handles("result")
+    if result:
+        return result[0]
+    raise NotImplementedError(
+        f"executor: FIGHT has no attacker — {ctx.source} is not a battlefield "
+        "permanent and no preceding atom wrote the result register"
+    )
+
+
+def _v_fight(ctx: ExecCtx, atom: Atom) -> None:
+    """16a (CR 701.12b): "This creature fights another target creature" —
+    each deals damage equal to its POWER to the other, simultaneously, and
+    it is NOT combat damage (so no "whenever blocks/hits" reading; plain
+    damage triggers do see it, CR 701.12e). Simultaneity is what the
+    marked-damage ledger buys for free: both marks land inside this ONE
+    atom boundary and the settle SBA resolves the exchange — a mutual kill
+    kills both, a non-lethal trade leaves both standing.
+
+    A CHOOSE/ONE_OF/RANDOM designation is resolved by the ATOM ITSELF
+    (C-1/C-15: a resolution-time decision — the B-16 binding-first rule
+    exists so a spell designation never hijacks an ANAPHORIC selector;
+    here the hijack runs the other way: Primal Might's spell-level
+    "target" IS its own +X/+X creature, and feeding it back would turn
+    "fights ANOTHER creature" into a self-punch). TARGET mode keeps the
+    ordinary designation path (Brash's activation designated the foe)."""
+    attacker = _fight_attacker(ctx)
+    sel = atom.args.get("target")
+    if isinstance(sel, Selector) and sel.mode in (
+        SelectorMode.CHOOSE,
+        SelectorMode.ONE_OF,
+        SelectorMode.RANDOM,
+    ):
+        foes = sorted(resolve_selector(sel, ctx))
+    else:
+        foes = role_handles(ctx, atom, "target")
+    if not foes:
+        # C17 clamp: nothing legal to fight — the fight simply is not.
+        ctx.events.append((len(ctx.events), "FIGHT", str(attacker), None))
+        return
+    foe = foes[0]  # the compiled FIGHT surface designates exactly one
+    ctx.events.append((len(ctx.events), "FIGHT", str(attacker), str(foe)))
+    for a, b in ((attacker, foe), (foe, attacker)):
+        power, _toughness = ctx.effective_pt(a)
+        if power and power > 0:
+            _deal_damage_to_card(ctx, b, power)
 
 
 def _set_tapped(ctx: ExecCtx, atom: Atom, tapped: bool) -> None:
@@ -378,7 +451,8 @@ def _apply_pt(ctx: ExecCtx, atom: Atom, kind: str) -> None:
     if isinstance(duration, DurationUntilLeaves):
         leaves_anchor = referent_handle(duration.source, ctx)
     p_delta, t_delta, p_set, t_set = pt_atom_delta(atom, ctx)
-    for card in role_handles(ctx, atom, "target"):
+    cards = role_handles(ctx, atom, "target")
+    for card in cards:
         identity = ctx.world.cards[card].identity
         change = ctx.ledger.record(
             identity,
@@ -405,6 +479,11 @@ def _apply_pt(ctx: ExecCtx, atom: Atom, kind: str) -> None:
                 change.was_toughness,
             )
         )
+    # 16a (B-9 producer, FIGHT anaphora): "Target creature gets +X/+X. It
+    # also fights another target creature" (Primal Might) — the fight
+    # attacker is THIS atom's object, so the PT verbs write the register
+    # the same way TAP/PUT_COUNTER do.
+    ctx.bindings["result"] = list(cards)
 
 
 def _v_modify_pt(ctx: ExecCtx, atom: Atom) -> None:
@@ -1224,6 +1303,9 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.GRANT_TYPE: _v_grant_type,
     Verb.ADD_LAND_PLAY: _v_add_land_play,
     Verb.GRANT_ACTIVATION: _v_grant_activation,
+    # 16a: the damage-exchange orphan verb (CR 701.12). SUPPORTED_VERBS_V2
+    # derives from THIS table — 39 -> 40, the library pin is amended dated.
+    Verb.FIGHT: _v_fight,
 }
 
 
