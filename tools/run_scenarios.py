@@ -27,16 +27,33 @@ Pack vocabulary (all keys required as noted):
              {"op": "enter", "key": k}      hand -> battlefield (journalled:
                                             the sickness clock sees it),
              {"op": "enchant", "aura": k, "host": k}   the 13c attach edge,
+             {"op": "loyalty", "key": k, "set": n}    seed the loyalty ledger,
+             {"op": "activate", "key": k, "idx": i,   the folded ACTIVATE
+              "seat": 0|1, "targets": [k...],         move (legality+pay+run),
+              "decisions": [str...]},
              {"op": "combat", "seat": 0|1, "attack": {key: bool},
-              "may": {key: bool}}           the whole COMBAT phase; the
+              "may": {key: bool},
+              "block": {blockerKey: attackerKey|null}, 16c per-blocker pick
+              "order": {attackerKey: [slot...]},        16c order asks
+              "trample": {attackerKey: [amount...]},    16c excess asks
+              "policy": {attackerKey: "UNBLOCKED"|
+                                  "AS_BLOCKED"}}        16c Herald policy
+                                            the whole COMBAT phase; the
                                             ask provider answers ONLY from
                                             these maps (C15 narrowing is
-                                            the engine's, and recorded)]
+                                            the engine's, and recorded;
+                                            an unspecified block is NONE)]
   expect  : {"life": {"0": int...}, "zone": {key: zone...},
              "damage": {key: int...},      — damage is the 16a mark ledger
              "attackers": {key: bool},     — the DECLARE_ATTACKERS rows,
+             "blocked": {key: [blockerKey...]} — the DECLARE_BLOCKERS rows
+                                        of the last group (16c),
              "asks": {key: "ATTACK,DECLINE"},  — vocab per attack site,
-             "not_asked": [key...],        — creatures never asked
+             "block_asks": {key: "a,b,NONE"},— vocab per 16c block site,
+             "policy_asks": {key: "..."},    — vocab per policy ask,
+             "not_asked": [key...],        — creatures never asked,
+             "not_asked_to_block": [key],  — never offered a block ask,
+             "tokens": {Name: n},          — battlefield token records
              "tapped": {key: bool},
              "hand": {"0": int}}
 """
@@ -217,9 +234,24 @@ class ScenarioRunner:
                 bindings={"cards": handle},
             )
         elif op == "enchant":
-            self.ex.attachments[self.handles[step["aura"]]] = self.handles[
-                step["host"]
-            ]
+            self.ex.attachments[self.handles[step["aura"]]] = self.handles[step["host"]]
+        elif op == "loyalty":
+            # harness ledger write: seed the CR 606.3 loyalty counter so a
+            # minus ability with a big cost (Herald's -7) is payable.
+            handle = self.handles[step["key"]]
+            self.world.cards[handle].counters["LOYALTY"] = int(step["set"])
+        elif op == "activate":
+            from MTG_bot.core.executor.legality import activate
+
+            activate(
+                self.ex,
+                self.handles[step["key"]],
+                int(step.get("idx", 0)),
+                seat=self.seats[int(step.get("seat", 0))],
+                targets=tuple(self.handles[k] for k in step.get("targets", ())),
+                decisions=tuple(step.get("decisions", ())),
+            )
+            self.ex.fire_triggers()
         elif op == "combat":
             self._combat(step)
         else:
@@ -230,23 +262,58 @@ class ScenarioRunner:
         pack's answer maps ONLY. Site tags carry handles (attack:<card>:
         <turn>, may:<card>); a DECLINE the engine does not offer (a C15
         narrowed mandate) is no answer at all — the provider then takes
-        the first legal word, which is exactly ATTACK."""
+        the first legal word, which is exactly ATTACK.
+        16c lanes: ``block`` maps a blocker key to the attacker key it
+        picks (or "NONE"); ``order`` maps an attacker key to the list of
+        positional picks its ordering asks consume in slot order;
+        ``trample`` maps an attacker key to the list of excess amounts its
+        recipient asks consume in order (the player takes the rest);
+        ``policy`` maps an attacker key to AS_BLOCKED/UNBLOCKED. An un-
+        specified block defaults to NONE (the pre-16c combat packs stay
+        byte-identical), and an answer the narrowed vocabulary does not
+        carry is never forced."""
         answers: dict[str, str] = {}
+        queues: dict[str, list[str]] = {}
         for key, go in step.get("attack", {}).items():
             answers[f"attack:{self.handles[key]}"] = "ATTACK" if go else "DECLINE"
         for key, go in step.get("may", {}).items():
             answers[f"may:{self.handles[key]}"] = "fire" if go else "skip"
+        for key, go in step.get("block", {}).items():
+            word = "NONE" if go is None else str(self.handles[go])
+            answers[f"block:{self.handles[key]}"] = word
+        for key, picks in step.get("order", {}).items():
+            queues[f"order:{self.handles[key]}"] = [str(p) for p in picks]
+        for key, amounts in step.get("trample", {}).items():
+            queues[f"trample:{self.handles[key]}"] = [str(a) for a in amounts]
+        for key, word in step.get("policy", {}).items():
+            answers[f"policy:{self.handles[key]}"] = word
 
         def answer(vocab, what):
             self.asks_seen.append((what, tuple(vocab)))
             # Handle strings carry a colon ("card:5"), so a site tag is
             # FOUR segments; match the answer keys as longest prefixes.
             got = next(
-                (v for k, v in answers.items() if what == k or what.startswith(k + ":")),
+                (
+                    v
+                    for k, v in answers.items()
+                    if what == k or what.startswith(k + ":")
+                ),
                 None,
             )
             if got is None:
-                got = "skip" if what.startswith("may:") else "DECLINE"
+                for k, q in queues.items():
+                    if what == k or what.startswith(k + ":"):
+                        got = q.pop(0) if q else vocab[0]
+                        break
+            if got is None:
+                if what.startswith("may:"):
+                    got = "skip"
+                elif what.startswith("block:"):
+                    got = "NONE"
+                elif what.startswith(("order:", "trample:")):
+                    got = "0"
+                else:
+                    got = "DECLINE"
             return got if got in vocab else vocab[0]
 
         self.ex.decisions.provider = answer
@@ -292,24 +359,78 @@ class ScenarioRunner:
                     fails.append(
                         f"attackers[{key}]: expected {on}, got {key in got_set}"
                     )
-        if "asks" in expect:
-            for key, vocab in expect["asks"].items():
+        # 16c: the block record is read from the JOURNAL too — the
+        # DECLARE_BLOCKERS rows of the LAST declare group (subject = the
+        # blocker, data[0] = the attacker it blocked).
+        if "blocked" in expect:
+            rows = [e for e in self.ex.journal.events if e.kind == "DECLARE_BLOCKERS"]
+            group = rows[-1].declare_blockers[1] if rows else -1
+            pairs = [
+                (e.subject, e.declare_blockers[0])
+                for e in rows
+                if e.declare_blockers[1] == group
+            ]
+            by_handle = {h: k for k, h in self.handles.items()}
+            got_map: dict[str, list[str]] = {}
+            for blocker, attacker in pairs:
+                got_map.setdefault(by_handle.get(attacker, str(attacker)), []).append(
+                    by_handle.get(blocker, str(blocker))
+                )
+            for key, want in expect["blocked"].items():
+                want_list = sorted(want or [])
+                got_list = sorted(got_map.get(key, []))
+                if want_list != got_list:
+                    fails.append(
+                        f"blocked[{key}]: expected {want_list}, got {got_list}"
+                    )
+        for lane, prefix in (
+            ("asks", "attack"),
+            ("block_asks", "block"),  # 16c per-blocker declaration asks
+            ("policy_asks", "policy"),  # 16c Herald assignment policies
+        ):
+            for key, vocab in expect.get(lane, {}).items():
                 handle = self.handles[key]
                 seen = [
-                    v
-                    for w, v in self.asks_seen
-                    if w.startswith(f"attack:{handle}:")
+                    v for w, v in self.asks_seen if w.startswith(f"{prefix}:{handle}:")
                 ]
                 if len(seen) != 1:
                     fails.append(
-                        f"asks[{key}]: expected exactly 1 ask, got {len(seen)}"
+                        f"{lane}[{key}]: expected exactly 1 ask, got {len(seen)}"
                     )
-                elif ",".join(seen[0]) != vocab:
-                    fails.append(f"asks[{key}]: expected {vocab!r}, got {seen[0]!r}")
-        for key in expect.get("not_asked", []):
-            handle = self.handles[key]
-            if any(w.startswith(f"attack:{handle}:") for w, _ in self.asks_seen):
-                fails.append(f"not_asked[{key}]: the engine asked anyway")
+                else:
+                    # a vocabulary pin may name PACK KEYS in angle brackets
+                    # ("<ogre>,NONE") - the engine's words are handles, and
+                    # handles are deterministic per pack card order
+                    want = vocab
+                    for k, h in self.handles.items():
+                        want = want.replace(f"<{k}>", str(h))
+                    if ",".join(seen[0]) != want:
+                        fails.append(
+                            f"{lane}[{key}]: expected {want!r}, got {seen[0]!r}"
+                        )
+        for lane, prefix in (
+            ("not_asked", "attack"),
+            ("not_asked_to_block", "block"),
+        ):
+            for key in expect.get(lane, []):
+                handle = self.handles[key]
+                if any(w.startswith(f"{prefix}:{handle}:") for w, _ in self.asks_seen):
+                    fails.append(f"{lane}[{key}]: the engine asked anyway")
+        if "tokens" in expect:  # 16c: battlefield TOKEN records by name
+            from collections import Counter
+
+            got: Counter = Counter()
+            for handle, card in self.world.cards.items():
+                if self.world.zone_of(handle).kind != "battlefield":
+                    continue
+                rec = self.ex.binder.handle_record.get(handle)
+                if rec is not None and getattr(rec, "is_token", False):
+                    got[card.identity.name] += 1
+            for name, n in expect["tokens"].items():
+                if got.get(name, 0) != int(n):
+                    fails.append(
+                        f"tokens[{name}]: expected {n}, got {got.get(name, 0)}"
+                    )
         for key, tapped in expect.get("tapped", {}).items():
             got = self.world.cards[self.handles[key]].tapped
             if got != bool(tapped):

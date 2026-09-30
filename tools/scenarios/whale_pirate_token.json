@@ -1,0 +1,77 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "whale",
+      "real": "Pursued Whale",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "body",
+      "real": "Walking Corpse",
+      "zone": "hand",
+      "controller": 1
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "whale"
+    },
+    {
+      "op": "enter",
+      "key": "body"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "whale": true
+      }
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 1,
+      "attack": {
+        "body": true
+      }
+    },
+    {
+      "op": "end_turn"
+    }
+  ],
+  "expect": {
+    "tokens": {
+      "Pirate": 1
+    },
+    "life": {
+      "1": 12,
+      "0": 17
+    },
+    "zone": {
+      "whale": "battlefield"
+    }
+  }
+}

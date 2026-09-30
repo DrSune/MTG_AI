@@ -1,0 +1,75 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "ogre",
+      "real": "Onakke Ogre",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "wall",
+      "real": "Warded Battlements",
+      "zone": "hand",
+      "controller": 1
+    },
+    {
+      "key": "corpse",
+      "real": "Walking Corpse",
+      "zone": "hand",
+      "controller": 1
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "ogre"
+    },
+    {
+      "op": "enter",
+      "key": "wall"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "enter",
+      "key": "corpse",
+      "tapped": true
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "ogre": true
+      }
+    }
+  ],
+  "expect": {
+    "not_asked_to_block": [
+      "wall",
+      "corpse"
+    ],
+    "blocked": {
+      "ogre": []
+    },
+    "life": {
+      "1": 16
+    },
+    "zone": {
+      "wall": "battlefield"
+    }
+  }
+}

@@ -16,14 +16,15 @@ import unittest
 from MTG_bot.core.ability_tree import (
     Atom,
     AtomArgs,
+    BecomesBlockedEvent,
     CardDrawnEvent,
     CardRecord,
+    CombatDamageEvent,
     ControllerRef,
     CounterKind,
     CounterPlacedEvent,
     CreatureDiesEvent,
     DamageDealtEvent,
-    CombatDamageEvent,
     DeclareAttackersEvent,
     DeclareBlockersEvent,
     DelayedTrigger,
@@ -611,10 +612,11 @@ class TestRaises(BindingCase):
         # CombatDamageEvent LEFT this list too — the COMBAT skeleton ships
         # both feeds (DECLARE_ATTACKERS / COMBAT_DAMAGE journal rows,
         # binder matchers in binding.py) and bind CLEAN (checked below).
-        # DeclareBlockersEvent / BecomesBlockedEvent STAY: blockers are
-        # 16c. Targeting/step raises stay.
+        # AMENDED 2026-10-02 (round 16c): DeclareBlockersEvent +
+        # BecomesBlockedEvent LEFT this list too — the blocker step ships
+        # the feed (DECLARE_BLOCKERS pair rows, binder matchers) and both
+        # bind CLEAN (checked below). Targeting/step raises stay.
         for event in (
-            DeclareBlockersEvent(filter=UNIV),
             TargetingEvent(filter=UNIV),
             StepEvent(Phase.COMBAT, Step.DECLARE_ATTACKERS, ControllerRef.YOU),
         ):
@@ -634,16 +636,40 @@ class TestRaises(BindingCase):
             self.attach_trigger(self.watch, CombatDamageEvent(filter=UNIV), gain(1)),
             1,
         )
+        # 16c: the block feed binds clean (the matcher semantics — filter/
+        # SUBJECT over the blocker, blocked over the attacker, the anchored
+        # BecomesBlockedEvent reading — are pinned in test_executor_blockers).
+        self.assertEqual(
+            self.attach_trigger(
+                self.watch, DeclareBlockersEvent(filter=UNIV), gain(1)
+            ),
+            1,
+        )
+        self.assertEqual(
+            self.attach_trigger(
+                self.watch, BecomesBlockedEvent(filter=UNIV), gain(1)
+            ),
+            1,
+        )
 
-    def test_damage_source_and_combat_scopes_raise(self):
-        with self.assertRaises(NotImplementedError):
+    def test_damage_source_and_combat_scopes_bind(self):
+        # AMENDED 2026-10-02 (round 16c): the scope fields are CONSUMED by
+        # _match_damage (dealer=cause filter, combat flag on the DAMAGE
+        # row), so the pre-16c bind-time raise is retired — Harbinger/
+        # Subira/Pyreling/Incinerator shapes bind and scope-filter (the
+        # firing semantics are pinned in test_executor_blockers).
+        self.assertEqual(
             self.attach_trigger(
                 self.watch, DamageDealtEvent(QConst(1), UNIV, source=UNIV), gain(1)
-            )
-        with self.assertRaises(NotImplementedError):
+            ),
+            1,
+        )
+        self.assertEqual(
             self.attach_trigger(
                 self.watch, DamageDealtEvent(QConst(1), UNIV, combat=True), gain(1)
-            )
+            ),
+            1,
+        )
         # The plain scope-less damage event BINDS fine (flag, don't over-flag).
         self.assertEqual(
             self.attach_trigger(self.watch, DamageDealtEvent(QConst(1), UNIV), gain(1)),

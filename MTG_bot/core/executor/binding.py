@@ -87,6 +87,7 @@ from MTG_bot.core.executor.events import (
     KIND_CREATURE_DIES,
     KIND_DAMAGE,
     KIND_DECLARE_ATTACKERS,
+    KIND_DECLARE_BLOCKERS,
     KIND_LIFE_GAINED,
     KIND_TAP_STATE,
     KIND_TURN_PHASE,
@@ -115,11 +116,11 @@ MAX_TRIGGER_FIRES = 200
 # COMBAT skeleton ships both feeds (journal DECLARE_ATTACKERS rows per
 # declared attacker, group-deduped per ability; COMBAT_DAMAGE rows per
 # dealing creature) and :meth:`TriggerBinder._match_node` subscribes them.
-# DeclareBlockersEvent / BecomesBlockedEvent STAY: blockers, damage
-# assignment and the blocked-side consumers are 16c (doc /11 §16c).
+# 16c: DeclareBlockersEvent and BecomesBlockedEvent LEFT this table too —
+# the blocker step ships the feed (journal DECLARE_BLOCKERS rows, one per
+# declaration PAIR: subject = the blocker, data = (attacker, group)) and
+# :meth:`TriggerBinder._match_node` subscribes both node kinds.
 _UNSUPPORTED_EVENTS: dict[type, str] = {
-    DeclareBlockersEvent: "16c (blockers)",
-    BecomesBlockedEvent: "16c (blockers)",
     LoyaltyActivatedEvent: "12c (loyalty activations)",
     StepEvent: (
         "12e (step-level subscription emitter; 12d's untap tick is an "
@@ -254,9 +255,29 @@ class TriggerBinder:
         self.emblem_owner[handle] = owner
         for idx, ability in triggers:
             self.attached[(handle, idx)] = ability
-        self.executor.layers.attach_source(handle, record, controller=owner)
+        # 16c: same attach order as _register (replacements first - its
+        # idempotence sweep must not expire the layers' static prevents).
         self.executor.replacements.attach_source(handle, record)
+        self.executor.layers.attach_source(handle, record, controller=owner)
         return len(triggers)
+
+    def register_token(self, handle: Handle, record: CardRecord) -> None:
+        """16c (the token half of the /13 binder gap): file the token's
+        synthesized record under its synthetic oracle id and attach it to
+        the HANDLE, so the battlefield ZONE_CHANGE row's lifecycle regis-
+        tration (the SAME :meth:`_lifecycle` path a printed permanent uses)
+        finds a record and binds the token's rule lines — the Pursued
+        Whale Pirate's "can't block" prevention and the mandate layer its
+        "creatures you control attack if able" static becomes, anchored to
+        the token's CONTROLLER. Pure registration: the world card already
+        exists (CREATE_TOKEN put it there); no zones, no loyalty seed."""
+        if handle not in self.world.cards:
+            raise ValueError(f"register_token: unknown world card {handle}")
+        for ability in record.abilities:
+            if isinstance(ability, TriggeredAbility):
+                self._check_event(ability.event, record.name)
+        self.records.setdefault(record.oracle_id, record)
+        self.handle_record[handle] = record
 
     def attach_card(self, handle: Handle, compiled: object) -> int:
         """Register the compiled record for the world card ``handle`` and
@@ -336,8 +357,14 @@ class TriggerBinder:
                 printed = 0
             if printed:
                 state.counters.setdefault(CounterKind.LOYALTY.name, printed)
-        self.executor.layers.attach_source(handle, record)
+        # 16c ORDER MATTERS: replacements.attach_source opens with its own
+        # detach_source sweep (its idempotence rule), which would expire
+        # the PreventionRecords that layers.attach_source registers for a
+        # static PREVENT_EFFECT carrier (the Pursued Whale token's "can't
+        # block"). Attach replacements FIRST, layers LAST, so the static
+        # preventions are the final word for a freshly attached permanent.
         self.executor.replacements.attach_source(handle, record)
+        self.executor.layers.attach_source(handle, record)
         return len(triggers)
 
     def detach(self, handle: Handle) -> int:
@@ -373,15 +400,12 @@ class TriggerBinder:
                 f"{_UNSUPPORTED_EVENTS[kind]}"
             )
         if isinstance(event, DamageDealtEvent):
-            if event.source is not None:
-                raise NotImplementedError(
-                    f"executor: {card_name} DamageDealtEvent source filter is "
-                    "later phase (C-4 damage-source surface)"
-                )
-            if event.combat is True:
-                raise NotImplementedError(
-                    f"executor: {card_name} combat-damage scope is later phase (combat)"
-                )
+            # 16c: the source filter and the combat scope are CONSUMED at
+            # match time (the DAMAGE row's dealer/cause and the combat
+            # flag), so a scoped node like Garruk's Harbinger's or Subira's
+            # delayed tail binds clean — the pre-16c bind-time raise is
+            # retired with its consumers.
+            return
 
     # ------------------------------------------------------------ matching
 
@@ -512,6 +536,37 @@ class TriggerBinder:
             assert event.subject is not None  # the row names the dealer
             ctx = self._match_ctx(source, controller, event)
             return eval_filter(node.filter, event.subject, ctx)
+        if kind == KIND_DECLARE_BLOCKERS and isinstance(
+            node, (DeclareBlockersEvent, BecomesBlockedEvent)
+        ):
+            # 16c: the block feed, ONE row per declaration pair (subject =
+            # the BLOCKER, data = (attacker, group)). A DeclareBlockers-
+            # Event node reads filter/SUBJECT over the blocker and the
+            # BLOCKED slot over the attacker (Snarespinner's "blocks a
+            # creature with flying", Elder Gargaroth's "attacks or blocks",
+            # the Pirate/Shacklegeist prevention shapes share these slots).
+            # A BecomesBlockedEvent node is anchored: the blocked partici-
+            # pant must BE the trigger's source (Gloom Sower "whenever
+            # THIS creature becomes blocked by a creature") — the grammar
+            # gives the node no subject field of its own, the event name
+            # carries the anchor.
+            assert event.subject is not None  # the row names the blocker
+            ctx = self._match_ctx(source, controller, event)
+            blocker = event.subject
+            attacker, _group = event.declare_blockers
+            if isinstance(node, DeclareBlockersEvent):
+                if node.subject is not None and not eval_filter(
+                    node.subject, blocker, ctx
+                ):
+                    return False
+                if node.blocked is not None and not eval_filter(
+                    node.blocked, attacker, ctx
+                ):
+                    return False
+                return eval_filter(node.filter, blocker, ctx)
+            if attacker != source:
+                return False
+            return eval_filter(node.filter, blocker, ctx)
         if kind == KIND_DAMAGE and isinstance(node, DamageDealtEvent):
             return self._match_damage(node, event, source, controller)
         if kind == KIND_LIFE_GAINED and isinstance(node, LifeGainedEvent):
@@ -663,6 +718,18 @@ class TriggerBinder:
     ) -> bool:
         subject = event.subject
         ctx = self._match_ctx(source, controller, event)
+        # 16c: the node's SCOPE fields are consumed (Garruk's Harbinger's
+        # "deals combat damage to a player" and Subira's delayed tail both
+        # compile ``combat: true`` + a ``source`` filter over the DEALER;
+        # pre-16c the matcher ignored them and the trigger fired on ANY
+        # damage event). The DAMAGE row carries the dealer as ``cause``
+        # and the combat flag as the optional second data element.
+        if node.combat is not None and event.is_combat != node.combat:
+            return False
+        if node.source is not None:
+            dealer = event.cause
+            if dealer is None or not eval_filter(node.source, dealer, ctx):
+                return False
         if subject is not None and subject.namespace == "player":
             if _is_universal(node.filter):
                 return True

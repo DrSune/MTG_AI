@@ -61,6 +61,7 @@ from MTG_bot.core.ability_tree import (
     DurationUntilNextStep,
     DurationUntilNextTurn,
     DurationWhileCondition,
+    EventSpec,
     FAnd,
     FAtom,
     Filter,
@@ -363,8 +364,28 @@ class LayerRegistry:
         # "mandate" permission layers (selector-bearing, liveness exactly
         # like any static record — Furor leaving ends the mandate with it);
         # the remaining atoms take the ordinary layer path below.
+        # 16c: MANDATE_BLOCK (Canopy Stalker "must be blocked if able",
+        # CR 509.1h) splits the same way into "mandate_block" layers, and
+        # PREVENT_EFFECT atoms (the PREVENTION static family — Tome Anima
+        # "can't be blocked", Pirate "can't block", Shacklegeist "can block
+        # only creatures with flying", Faith's Fetters' two-part attack/
+        # block veto) route to the REPLACEMENT registry as lifetime Preven-
+        # tionRecords — the same record shape the activated prevents
+        # register (Subira, Ghostly Pilferer), consumed by the block/attack
+        # legality. The StaticAbility.condition (Tome Anima's "as long as
+        # you've drawn two or more") becomes the record's condition, judged
+        # LIVE at every consult (the draw clock can flip mid-combat); the
+        # atom's own ``condition`` argument mirrors an event slot in every
+        # corpus prevention shape (the _dbe_both idiom) and stays carried.
         mandates = [atom for atom in atoms if atom.verb is Verb.MANDATE_ATTACK]
-        rest = [atom for atom in atoms if atom.verb is not Verb.MANDATE_ATTACK]
+        mandates_block = [atom for atom in atoms if atom.verb is Verb.MANDATE_BLOCK]
+        prevents = [atom for atom in atoms if atom.verb is Verb.PREVENT_EFFECT]
+        rest = [
+            atom
+            for atom in atoms
+            if atom.verb
+            not in (Verb.MANDATE_ATTACK, Verb.MANDATE_BLOCK, Verb.PREVENT_EFFECT)
+        ]
         records: list[LayerRecord] = [
             self._new(
                 "mandate",
@@ -376,6 +397,29 @@ class LayerRegistry:
             )
             for mandate in mandates
         ]
+        records += [
+            self._new(
+                "mandate_block",
+                handle,
+                controller,
+                (mandate,),
+                selector=cast(Selector, mandate.args.get("cards")),
+                condition=static.condition,
+            )
+            for mandate in mandates_block
+        ]
+        for atom in prevents:
+            event = atom.args.get("event")
+            step = atom.args.get("step")
+            self.executor.replacements.register_prevention(
+                handle,
+                controller,
+                static.condition,
+                cast(EventSpec, event),
+                cast("Step | None", step),
+                None,
+                (),
+            )
         if not rest:
             return records
         atoms = rest
@@ -926,6 +970,84 @@ class LayerRegistry:
             for layer in self.records
             if layer.kind == "mandate" and layer.status == "live"
         ]
+
+    def live_mandate_block_layers(self) -> list[LayerRecord]:
+        """16c (MANDATE_BLOCK statics, Canopy Stalker CR 509.1h): every
+        LIVE ``"mandate_block"`` layer, same anchor rule as the attack
+        side (the selector resolves in the layer's own coordinates)."""
+        return [
+            layer
+            for layer in self.records
+            if layer.kind == "mandate_block" and layer.status == "live"
+        ]
+
+    # ------------------------------------------------ 16c policy + quality
+
+    def policy_as_unblocked(self, handle: Handle) -> bool:
+        """16c (Garruk, Savage Herald's −7): does ``handle`` currently
+        carry the granted ``DAMAGE_ASSIGN_POLICY`` scope ``AS_UNBLOCKED``
+        — "you may have this creature assign its combat damage as though
+        it weren't turned in"? The corpus carrier is the runtime
+        GRANT_ABILITY row (the granted map is rebuilt live by recompute,
+        so expiry/leaves liveness is exact); the walk unwraps the
+        OptionalEffect ("you may" is the DAMAGE-STEP ask, not a layer
+        gate) and the Seq."""
+
+        def carries(node: object) -> bool:
+            effect = getattr(node, "effect", None)
+            stack: list[object] = [effect] if effect is not None else []
+            while stack:
+                step = stack.pop()
+                if isinstance(step, Atom):
+                    if step.verb is Verb.DAMAGE_ASSIGN_POLICY and (
+                        step.args.get("scope") == "AS_UNBLOCKED"
+                    ):
+                        return True
+                elif isinstance(step, Seq):
+                    stack.extend(step.steps)
+                elif isinstance(step, OptionalEffect):
+                    stack.append(step.inner)
+            return False
+
+        return any(carries(g.node) for g in self._granted.get(handle, ())) or any(
+            layer.kind == "policy"
+            and layer.status == "live"
+            and (layer.source == handle or handle in layer.targets)
+            and any(
+                atom.verb is Verb.DAMAGE_ASSIGN_POLICY
+                and atom.args.get("scope") == "AS_UNBLOCKED"
+                for atom in layer.atoms
+            )
+            for layer in self.records
+        )
+
+    def protections_of(self, handle: Handle) -> tuple[Filter, ...]:
+        """16c (CR 702.16c): the live PROTECTION quality filters on
+        ``handle`` — printed KeywordAbility rows and granted rows alike
+        (Baneslayer Angel's "protection from red and from black" compiles
+        as one PROTECTION keyword whose params carry the quality filters;
+        the pair-legality consumer evaluates each against the OTHER side
+        of the combat pair — "can't be blocked by [quality]")."""
+
+        def params_of(node: object) -> tuple[Filter, ...]:
+            if not isinstance(node, KeywordAbility):
+                return ()
+            if _keyword_name(node.keyword) != _keyword_name(Keyword.PROTECTION):
+                return ()
+            return tuple(
+                p for p in node.params if isinstance(p, (FAnd, FOr, FNot, FAtom))
+            )
+
+        found: list[Filter] = []
+        for layer in self.records:
+            if layer.status != "live" or layer.kind not in ("keyword", "grant"):
+                continue
+            if handle not in layer.targets:
+                continue
+            found.extend(params_of(layer.payload))
+        for granted in self._granted.get(handle, ()):
+            found.extend(params_of(granted.node))
+        return tuple(found)
 
     def land_play_bonus(self, controller: Handle) -> int:
         """13c (Azusa, Lost but Seeking): the total additional lands the

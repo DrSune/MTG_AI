@@ -120,6 +120,7 @@ from MTG_bot.core.executor.durations import DurationLedger, PtChange
 from MTG_bot.core.executor.events import (
     KIND_COMBAT_DAMAGE,
     KIND_DECLARE_ATTACKERS,
+    KIND_DECLARE_BLOCKERS,
     KIND_TAP_STATE,
     KIND_ZONE_CHANGE,
     EventJournal,
@@ -131,9 +132,12 @@ from MTG_bot.core.executor.legality import (
     PaymentPlan,
     ability_playable,
     activate,
+    block_pair_blocked_reason,
+    blocker_askable,
     build_payment_plan,
     legal_attackers,
     mandated_attackers,
+    mandated_to_be_blocked,
     pay_costs,
     spell_castable,
     spell_record,
@@ -248,15 +252,30 @@ _PLAYER_TARGET = Selector(
     Zone(ZoneKind.PLAYER, ControllerRef.ANY),
 )
 
+# 16c: the CARD lane of the combat-damage atom. A player-zone selector is
+# deliberately BLIND to a binding (the 16a Brash rule in role_handles), so
+# a blocker recipient must be announced through a battlefield-zone TARGET
+# selector — binding-first — or the wave would keep landing on the
+# defending player no matter what was assigned.
+_CARD_TARGET = Selector(
+    QConst(1),
+    SelectorMode.TARGET,
+    FAnd(children=()),
+    Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+)
 
-def _combat_damage_atom(amount: int) -> Atom:
-    """One DEAL_DAMAGE atom of ``amount`` to the bound player target.
-    A builder, not a constant: the amount is per-dealer, the target is
-    the standing node, and the frozen-Atom discipline keeps every atom
-    of one damage step byte-identical across replays."""
+
+def _combat_damage_atom(amount: int, recipient: object) -> Atom:
+    """One DEAL_DAMAGE atom of ``amount`` to the announced recipient. A
+    builder, not a constant: the amount is per-dealer, the RECIPIENT picks
+    the lane (16c — blockers take their announced share, the attacked
+    object takes the rest; pre-16c every combat atom was the unblocked
+    player shape), and the frozen-Atom discipline keeps every atom of one
+    damage step byte-identical across replays."""
+    target = _PLAYER_TARGET if str(recipient).startswith("player:") else _CARD_TARGET
     return Atom(
         verb=Verb.DEAL_DAMAGE,
-        args=AtomArgs(pairs=(("amount", QConst(amount)), ("target", _PLAYER_TARGET))),
+        args=AtomArgs(pairs=(("amount", QConst(amount)), ("target", target))),
     )
 
 
@@ -407,6 +426,29 @@ class Executor:
         self.declaring = False
         self._declare_group = 0
         self.mandates: set[Handle] = set()
+        # -------------------------------------------------- 16c block state
+        # ``blocked_by``: attacker -> the creatures blocking it, in DECLARE
+        # order (CR 509.1b: one attacker per blocker, so a handle appears in
+        # exactly one list; multiple blockers per attacker ARE legal — the
+        # assignment order is asked per attacker, CR 510.1). Cleared with
+        # the attack record at end of combat; replayed state (ruling 1).
+        self.blocked_by: dict[Handle, list[Handle]] = {}
+        # DISPATCHED MANDATE_BLOCK ledger (the static shape rides layers'
+        # "mandate_block" records; Canopy Stalker's rule line).
+        self.mandate_block: set[Handle] = set()
+        # DISPATCHED DAMAGE_ASSIGN_POLICY scopes (GRANT_ABILITY-carried
+        # statics read through layers.policy_as_unblocked; the dispatch
+        # shape records the scope word here keyed by its source).
+        self.damage_policies: dict[Handle, str] = {}
+        # The combat-damage wave flag: set for the atom boundaries inside
+        # one combat-damage substep so record_atom marks the DAMAGE rows
+        # (amount, True) — the DamageDealtEvent ``combat`` scope (16c,
+        # Garruk's Harbinger / Subira's delayed trigger).
+        self._combat_wave_open = False
+        # Deathtouch marks (CR 702.2b): a creature carrying ANY damage
+        # marked by a deathtouch source dies at the state check even below
+        # lethal; the flag rides the ledger beside the amount.
+        self.damage_deathtouch: set[Handle] = set()
         # Public alias of the seeded factory (the binder builds ExecCtxs too).
         self.rng = self._rng
         # 14b: the vocabulary-addressed decision channel (B-4 ruling). One
@@ -574,7 +616,11 @@ class Executor:
             start = len(self.events)
             run_atom(effect, ctx)
             new_events = self.journal.record_atom(
-                before, ctx.source, effect.verb.name, self.events[start:]
+                before,
+                ctx.source,
+                effect.verb.name,
+                self.events[start:],
+                combat=self._combat_wave_open,
             )
             # 12d hook 1: the UNTIL_LEAVES zone interceptor. Every zone
             # change the journal just saw gets its anchor checked — a
@@ -693,6 +739,16 @@ class Executor:
             self.layers.expire_leaves(anchor)
             self.replacements.expire_leaves(anchor)
             self.damage.pop(anchor, None)  # 16a: CR 120.6, marks leave with it
+            self.damage_deathtouch.discard(anchor)  # 16c: the flag rides along
+            # 16c: a departing permanent leaves no trace in the block record
+            # (a dead blocker stops blocking, a dead attacker forgets).
+            self.blocked_by.pop(anchor, None)
+            for blockers in self.blocked_by.values():
+                if anchor in blockers:
+                    blockers.remove(anchor)
+            self.mandates.discard(anchor)
+            self.mandate_block.discard(anchor)
+            self.damage_policies.pop(anchor, None)
 
     # -------------------------------------------------------- 12b: triggers
 
@@ -717,14 +773,18 @@ class Executor:
 
     # ------------------------------------ 16a: damage marks + state checks
 
-    def mark_damage(self, card: Handle, n: int) -> None:
+    def mark_damage(self, card: Handle, n: int, deathtouch: bool = False) -> None:
         """Mark ``n`` damage on a card (CR 120.4). The mark STAYS — marked
         until the permanent leaves the battlefield (CR 120.6) or the cleanup
         step removes it (CR 514.2); destruction is the state-based check
-        below, never the dealing of the damage itself."""
+        below, never the dealing of the damage itself. 16c: ``deathtouch``
+        (CR 702.2b) — damage from a deathtouch source is LETHAL damage no
+        matter the amount, so the flag rides the ledger for the SBA."""
         if n <= 0:
             return
         self.damage[card] = self.damage.get(card, 0) + n
+        if deathtouch:
+            self.damage_deathtouch.add(card)
 
     def _lethal_creatures(self) -> list[Handle]:
         """CR 704.5a + 704.3 read over the battlefield (Handle-sorted,
@@ -739,10 +799,13 @@ class Executor:
                 _power, toughness = self.ledger.effective_pt(identity, card)
                 if toughness is None:
                     continue
-                if toughness <= 0:
-                    dying.append(card)
-                elif self.damage.get(card, 0) >= toughness and not (
-                    self.layers.keyword_of(card, Keyword.INDESTRUCTIBLE)
+                if (
+                    toughness <= 0
+                    or (
+                        self.damage.get(card, 0) >= toughness
+                        or card in self.damage_deathtouch  # 16c CR 702.2b
+                    )
+                    and not (self.layers.keyword_of(card, Keyword.INDESTRUCTIBLE))
                 ):
                     dying.append(card)
         return sorted(dying)
@@ -766,6 +829,7 @@ class Executor:
             start = len(self.events)
             for card in dying:
                 self.damage.pop(card, None)
+                self.damage_deathtouch.discard(card)
                 self.world.move_to_zone(
                     card, self.world.controller_of(card), ZONE_GRAVEYARD
                 )
@@ -945,20 +1009,25 @@ class Executor:
     # phase runs UNINTERRUPTED - no opponent response window (our instants
     # are own-turn-only by construction, so nothing illegal is claimed);
     # the CR 704.3 honesty is the SBA sweep at every settle point between
-    # the damage steps and the phase hand-off. Blockers are 16c: v1 asks
-    # no blocking question, every declared attacker is UNBLOCKED and deals
-    # its damage to the defending PLAYER (trample, damage-order, blocked-
-    # side consumers, planeswalker attacks all ride on the blocker ask).
+    # the damage steps and the phase hand-off. 16c ships the blocker step
+    # (CR 509), the damage-assignment asks (CR 510), TRAMPLE, DEATHTOUCH
+    # and the Herald AS_UNBLOCKED policy; the remaining documented v1
+    # limit: planeswalker attack assignment (players only — the binary
+    # attack ask names no attacked object and no corpus card needs a PW
+    # attack, doc 14).
     # v1 limits, documented per the R16-1 mandate: no chain spells, no
-    # flash responses, no blockers.
+    # flash responses.
 
     def combat_step(self, seat: Handle) -> int:
         """Run the active player's whole COMBAT phase (CR 506-511 v1):
         the beginning-of-combat marker (the Phase.COMBAT cards fire), the
         declare-attackers step (one binary ask per legal creature, whole-
-        set validated, mandates narrowing the vocab), the combat damage
-        step(s) with the first/double-strike split, and the end of
-        combat. Returns the trigger-firing count. A creature with no
+        set validated, mandates narrowing the vocab), the declare-blockers
+        step (CR 509: one ask per defending creature, candidates = the
+        attackers it may legally block plus NONE, CR 509.1a untapped-only,
+        whole-assignment validated), the combat damage step(s) with the
+        first/double-strike split and the CR 510 assignment asks, and the
+        end of combat. Returns the trigger-firing count. A creature with no
         legal declaration is never asked (it cannot attack); a mandatory
         attacker's ask is ATTACK-only (C15 - the policy is never offered
         an illegal answer)."""
@@ -989,7 +1058,15 @@ class Executor:
             fired += self._settle()
         finally:
             self.declaring = False
-        # Declare blockers: SKIPPED - 16c (see the section header).
+        # Declare blockers (CR 509, 16c) - after the attack-trigger drain
+        # (CR 508.3: the triggers resolve BEFORE the blocking player gets
+        # the declaration duty), before any damage step.
+        fired += self._declare_blockers(seat)
+        # CR 509.4: the declare-blockers turn-based action ends, both
+        # players get passes, and the BLOCK triggers (Snarespinner's
+        # "blocks a creature with flying" pump, Gloom Sower's life swap,
+        # Elder Gargaroth's choice) resolve BEFORE the combat damage step.
+        fired += self._settle()
         fired += self._combat_damage(seat)
         # End of combat: the settle is the R16-1 SBA pass; the attack
         # record closes with the phase (CR 506.4 - nothing "is attacking"
@@ -997,6 +1074,7 @@ class Executor:
         fired += self._settle()
         self.attackers = []
         self.attacked = {}
+        self.blocked_by = {}
         self.defending_player = None
         # The frozen grammar's Phase vocab has no SECOND_MAIN member, so
         # the marker is executor-clock-only: the legality gates read the
@@ -1060,6 +1138,137 @@ class Executor:
                 (self._declare_group,),
             )
 
+    # ------------------------------------------------ 16c: declare blockers
+
+    def _declare_blockers(self, seat: Handle) -> int:
+        """CR 509 v1 (16c). ONE ask per defending creature that could legal-
+        ly block at least one attacker, Handle-sorted (C16), site
+        ``block:<card>:<turn>``: the vocabulary is the attackers that perma-
+        nent may block (CR 509.1a untapped-only, CR 509.1b one attacker per
+        blocker, reach/menace/protection and the PREVENT_EFFECT restrictions
+        — Tome Anima "can't be blocked", Pirate "can't block", Shacklegeist
+        "can block only creatures with flying", Subira's activated target)
+        plus the NONE option. The NONE word is DROPPED only when dropping
+        it keeps the assembled assignment CR-legal (a must-be-blocked
+        attacker this blocker may take — Canopy Stalker, CR 509.1h; or the
+        last unasked blocker in front of a menace attacker stuck at one
+        blocker, CR 702.113) — never when the answer would merely be
+        inadvisable (C15). Tapped/defender creatures are never asked; a
+        creature legal against nothing is never asked. Each committed pair
+        emits one DECLARE_BLOCKERS row (subject = the blocker — the
+        DeclareBlockersEvent feed: filter/subject read the blocker, blocked
+        reads the attacker; BecomesBlockedEvent answers the same rows for
+        the blocked-side source). The settle after the step drains the
+        block triggers (Elder Gargaroth's choice, Snarespinner's +2/+0)
+        before any damage step (CR 509.4)."""
+        world = self.world
+        defender = self.defending_player
+        attackers = self._live_attackers(seat)
+        if defender is None or not attackers:
+            return 0
+        assigned: dict[Handle, list[Handle]] = {}
+        candidates = sorted(
+            card
+            for card in world.players[defender].zone(ZONE_BATTLEFIELD).entries
+            if blocker_askable(self, card, attackers)
+        )
+        if not candidates:
+            return 0
+        mandated = mandated_to_be_blocked(self) & set(attackers)
+        by_word = {str(a): a for a in attackers}
+        asked: set[Handle] = set()
+        for position, blocker in enumerate(candidates):
+            remaining_after = len(candidates) - position - 1
+            legal = [
+                attacker
+                for attacker in attackers
+                if block_pair_blocked_reason(self, blocker, attacker) is None
+                and (
+                    not self.layers.keyword_of(attacker, Keyword.MENACE)
+                    or len(assigned.get(attacker, ())) >= 1
+                    or remaining_after >= 1
+                )
+            ]
+            forced = [
+                attacker
+                for attacker in legal
+                if attacker in mandated and not assigned.get(attacker)
+            ]
+            if forced:
+                vocab = tuple(str(a) for a in forced)
+            else:
+                words = [str(a) for a in legal]
+                repair = any(
+                    self.layers.keyword_of(attacker, Keyword.MENACE)
+                    and len(assigned.get(attacker, ())) == 1
+                    for attacker in attackers
+                )
+                if not (repair and remaining_after == 0):
+                    words.append("NONE")
+                if not words:
+                    raise RuntimeError(
+                        f"executor: blocker ask for {blocker} narrowed to "
+                        "nothing - the menace/must-block narrowing left an "
+                        "unrepairable assignment (engine invariant)"
+                    )
+                vocab = tuple(words)
+            if not legal and "NONE" not in vocab:
+                raise RuntimeError(
+                    f"executor: blocker ask for {blocker} forces an illegal "
+                    f"pair {vocab} (engine invariant)"
+                )
+            asked.add(blocker)
+            ctx = self._ctx(
+                source=blocker, controller=defender, bindings=None, decisions=()
+            )
+            answer = ctx.take_decision(vocab, f"block:{blocker}:{world.turn}")
+            if answer == "NONE":
+                continue
+            attacker = by_word[answer]
+            reason = block_pair_blocked_reason(self, blocker, attacker)
+            if reason is not None:
+                raise RuntimeError(
+                    f"executor: declare-blockers committed an illegal pair "
+                    f"{blocker} -> {attacker}: {reason} (asks mutate no state, "
+                    "so this is an engine bug, not a policy answer)"
+                )
+            assigned.setdefault(attacker, []).append(blocker)
+        # Whole-assignment validation (asks mutate nothing, so re-deriving
+        # legality is a re-check; a violation is an engine invariant breach).
+        for attacker, blockers in assigned.items():
+            if self.layers.keyword_of(attacker, Keyword.MENACE) and len(blockers) < 2:
+                raise RuntimeError(
+                    f"executor: menace attacker {attacker} was blocked by "
+                    f"exactly one creature {[str(b) for b in blockers]} "
+                    "(CR 702.113 — the ask narrowing should have prevented "
+                    "this)"
+                )
+        for attacker in mandated:
+            if assigned.get(attacker):
+                continue
+            assignable = {
+                card
+                for card in asked
+                if block_pair_blocked_reason(self, card, attacker) is None
+            }
+            if assignable - {b for bs in assigned.values() for b in bs}:
+                raise RuntimeError(
+                    f"executor: MANDATE_BLOCK violated - {attacker} had to be "
+                    "blocked and an unassigned legal blocker existed"
+                )
+        fired = 0
+        for attacker in sorted(assigned):
+            for blocker in assigned[attacker]:
+                self.blocked_by.setdefault(attacker, []).append(blocker)
+                self.journal.emit(
+                    KIND_DECLARE_BLOCKERS,
+                    blocker,
+                    None,
+                    "BLOCK_STEP",
+                    (attacker, self._declare_group),
+                )
+        return fired
+
     def join_attack(self, creature: Handle) -> None:
         """CR 508.1i - a creature PUT ONTO THE BATTLEFIELD ATTACKING
         (Falconer Adept's Bird, Basri Ket's [-2] Soldier) joins the open
@@ -1092,70 +1301,260 @@ class Executor:
 
     def _combat_damage(self, seat: Handle) -> int:
         """CR 702.7/702.8 first-strike / double-strike split. If anything
-        attacking has first or double strike there is a FIRST COMBAT
-        DAMAGE STEP for the FS union DS carriers, then the settle's SBA
-        sweep (a killer first strike buries its victim before the normal
-        step), then the NORMAL step for the non-FS attackers plus the
-        surviving DS carriers. Every damage atom is the 16a DEAL_DAMAGE
-        funnel - the C24 replacement site intercepts (Nine Lives reads
-        combat damage exactly like any other), marks ride the ledger,
-        lethality is the settle's SBA. v1: all damage is to the defending
-        player (there are no blockers to assign to)."""
-        first = {
-            h
-            for h in self._live_attackers(seat)
-            if self.layers.keyword_of(h, Keyword.FIRST_STRIKE)
-        }
+        ATTACKING OR BLOCKING has first or double strike there is a FIRST
+        COMBAT DAMAGE STEP for the FS union DS carriers, then the settle's
+        SBA sweep (a killer first strike buries its victim before the
+        normal step), then the NORMAL step for the non-FS dealers plus the
+        surviving DS carriers. 16c: the dealer set is BOTH SIDES of the
+        attack (CR 510.1a — blockers assign to the attacker they blocked,
+        in the same simultaneous step; the 16b attacker-only wave is
+        superseded). Every damage atom is the 16a DEAL_DAMAGE funnel -
+        the C24 replacement site intercepts (Nine Lives reads combat damage
+        exactly like any other), marks ride the ledger, lethality is the
+        settle's SBA. Each dealer's assignment obeys CR 510 (below) -
+        blockers first up to lethal, TRAMPLE excess by asked partition,
+        the Herald policy able to route it past blockers as though
+        unblocked."""
+        dealers = self._combat_dealers()
+
+        def live(items: list[Handle]) -> list[Handle]:
+            return [
+                h
+                for h in items
+                if h in self.world.cards
+                and self.world.zone_of(h).kind == ZONE_BATTLEFIELD
+            ]
+
+        first = {h for h in dealers if self.layers.keyword_of(h, Keyword.FIRST_STRIKE)}
         doubled = {
-            h
-            for h in self._live_attackers(seat)
-            if self.layers.keyword_of(h, Keyword.DOUBLE_STRIKE)
+            h for h in dealers if self.layers.keyword_of(h, Keyword.DOUBLE_STRIKE)
         }
         fired = 0
         if first or doubled:
             fired += self._damage_wave(seat, sorted(first | doubled))
-        normal = [
-            h for h in self._live_attackers(seat) if h not in first or h in doubled
-        ]
+            dealers = live(dealers)  # a first-strike kill removes the dealer
+        normal = [h for h in dealers if h not in first or h in doubled]
         fired += self._damage_wave(seat, sorted(normal))
         return fired
 
+    def _combat_dealers(self) -> list[Handle]:
+        """Everyone assigning combat damage: the live attackers plus every
+        live blocker (a creature blocks exactly one attacker, CR 509.1b,
+        so its recipient is determined; a multi-blocker pile contributes
+        each blocker once)."""
+        out = set(self.attackers)
+        for blockers in self.blocked_by.values():
+            out.update(blockers)
+        return sorted(
+            h
+            for h in out
+            if h in self.world.cards and self.world.zone_of(h).kind == ZONE_BATTLEFIELD
+        )
+
+    def _assign_damage(
+        self, dealer: Handle, power: int, controller: Handle
+    ) -> tuple[tuple[int, Handle], ...]:
+        """CR 510.1 v1 (16c): one dealer's legal assignment announcement.
+
+        * UNBLOCKED: everything to the ATTACKED object (v1: the defending
+          player — planeswalker attacking is the documented players-only
+          boundary, doc 14).
+        * Herald policy (Garruk, Savage Herald's −7 grant, AS_UNBLOCKED):
+          "you may have this creature assign its combat damage as though it
+          weren't blocked" — an ASK (the "may"), site
+          ``policy:<card>:<turn>``, vocabulary AS_BLOCKED/UNBLOCKED. The
+          creature REMAINS blocked (the block triggers already fired and
+          stand; CR 506.5a-style blocked status is untouched) — the policy
+          only reroutes the ASSIGNMENT.
+        * Multiple blockers: the ORDER is asked per attacker (site
+          ``order:<card>:<turn>``) as a POSITIONAL pick from the Handle-
+          sorted remaining candidates at each slot — the exact decision
+          surface of the permutation index, with a ≤n-word vocabulary at
+          every ask (a literal 6-permutation cap would raise inside live
+          games at the 4th blocker: the gate demands zero crashes).
+        * LETHAL per blocker is toughness-minus-marked (CR 704.2, the
+          marked ledger keeps the first-strike step's scars) or 1 from a
+          DEATHTOUCH dealer (CR 702.2b).
+        * TRAMPLE (CR 702.9): once every blocker is covered lethal, the
+          excess is asked RECIPIENT BY RECIPIENT in order — each blocker
+          gets ``trample:<card>:<slot>:<turn>`` from 0..remaining, the
+          defending player takes the rest (the composition space of the
+          announcement, enumerated with ≤(excess+1)-word vocabularies).
+        * Without trample the whole damage must hit the blockers: greedy
+          lethal-first in order, the final survivor soaking any excess.
+        """
+        world = self.world
+        defender = self.defending_player
+        assert defender is not None  # combat_step opens the phase with one
+        if dealer not in self.attackers:
+            # 16c blocker-side dealer: a blocker assigns to the ONE attacker
+            # it blocked (CR 510.1a). If that attacker has already left
+            # combat (a first-strike kill), the blocker deals NOTHING -
+            # there is no trample-style carryover for a blocker whose
+            # prey is gone (CR 510.1, absent an attacking-object reading).
+            blocked = next(
+                (a for a, bs in self.blocked_by.items() if dealer in bs), None
+            )
+            if (
+                blocked is None
+                or blocked not in world.cards
+                or world.zone_of(blocked).kind != ZONE_BATTLEFIELD
+            ):
+                return ()
+            return ((power, blocked),)
+        attacked = self.attacked.get(dealer, defender)
+        blockers = [
+            b
+            for b in self.blocked_by.get(dealer, [])
+            if b in world.cards and world.zone_of(b).kind == ZONE_BATTLEFIELD
+        ]
+        if not blockers:
+            return ((power, attacked),)
+        as_unblocked = (
+            self.layers.policy_as_unblocked(dealer)
+            or self.damage_policies.get(dealer) == "AS_UNBLOCKED"
+        )
+        if as_unblocked:
+            ctx = self._ctx(
+                source=dealer,
+                controller=controller,
+                bindings=None,
+                decisions=(),
+            )
+            if (
+                ctx.take_decision(
+                    ("AS_BLOCKED", "UNBLOCKED"), f"policy:{dealer}:{world.turn}"
+                )
+                == "UNBLOCKED"
+            ):
+                return ((power, attacked),)
+        ordered = list(blockers)
+        if len(ordered) > 1:
+            picked: list[Handle] = []
+            remaining = sorted(ordered)
+            for slot in range(len(ordered)):
+                vocab = tuple(str(i) for i in range(len(remaining)))
+                ctx = self._ctx(
+                    source=dealer,
+                    controller=controller,
+                    bindings=None,
+                    decisions=(),
+                )
+                answer = ctx.take_decision(vocab, f"order:{dealer}:{slot}:{world.turn}")
+                chosen = remaining[int(answer)]
+                picked.append(chosen)
+                remaining.remove(chosen)
+            ordered = picked
+        deathtouch = self.layers.keyword_of(dealer, Keyword.DEATHTOUCH)
+
+        def lethal_of(b: Handle) -> int:
+            if deathtouch:
+                return 1  # CR 702.2b: any nonzero damage from the source
+            _p, toughness = self.ledger.effective_pt(world.cards[b].identity, b)
+            return max(1, (toughness or 1) - self.damage.get(b, 0))
+
+        if not self.layers.keyword_of(dealer, Keyword.TRAMPLE):
+            plan: list[tuple[int, Handle]] = []
+            left = power
+            for b in ordered:
+                share = min(lethal_of(b), left)
+                if share:
+                    plan.append((share, b))
+                left -= share
+                if left == 0:
+                    break
+            if left:  # no trample: the last blocker absorbs the excess
+                plan[-1] = (plan[-1][0] + left, plan[-1][1])
+            return tuple(plan)
+        needs = [lethal_of(b) for b in ordered]
+        covered = sum(needs)
+        if power <= covered:  # not enough to reach lethal everywhere: greedy
+            plan = []
+            left = power
+            for b, need in zip(ordered, needs):
+                share = min(need, left)
+                if share:
+                    plan.append((share, b))
+                left -= share
+            return tuple(plan)
+        plan = [(need, b) for b, need in zip(ordered, needs) if need]
+        excess = power - covered
+        for slot, b in enumerate(ordered):
+            if excess == 0:
+                break
+            vocab = tuple(str(v) for v in range(excess + 1))
+            ctx = self._ctx(
+                source=dealer, controller=controller, bindings=None, decisions=()
+            )
+            give = int(
+                ctx.take_decision(vocab, f"trample:{dealer}:{slot}:{world.turn}")
+            )
+            if give:
+                # MERGE into the blocker's lethal entry (never a duplicate
+                # recipient row - one announcement line per receiver)
+                for i, (a, h) in enumerate(plan):
+                    if h == b:
+                        plan[i] = (a + give, b)
+                        break
+                else:
+                    plan.append((give, b))
+                excess -= give
+        if excess:
+            plan.append((excess, attacked))
+        # CR 510.1: damage assignment is simultaneous within the step; the
+        # canonical row order keeps the journal deterministic.
+        return tuple(sorted(plan, key=lambda p: (p[1].namespace, p[1].index)))
+
     def _damage_wave(self, seat: Handle, dealers: list[Handle]) -> int:
-        """One combat-damage substep: every dealer's damage lands inside
-        ONE op boundary (simultaneous, CR 506/510 - no trigger can inter-
-        vene between two attackers), each dealer's atom journalled under
-        ITS OWN cause (16a attribution fix: foe-side damage no longer
-        blames one card), each damage-bearing dealer emits its
-        COMBAT_DAMAGE row (CR 120.7: a 0-power attacker deals no damage
-        at all - no life change, no DAMAGE row, no CombatDamageEvent),
-        and the settle after the wave is the step's SBA + trigger drain."""
+        """One combat-damage substep: EVERY dealer's legal assignment is
+        announced first (CR 510.1: all announcements, then all damage —
+        nothing a later dealer's ask could read has mutated yet), then the
+        atoms run inside ONE op boundary (simultaneous, CR 506/510 — no
+        trigger can intervene between two attackers), each dealer's atoms
+        journalled under ITS OWN cause (16a attribution fix), each damage-
+        bearing dealer emits ONE COMBAT_DAMAGE row carrying the whole as-
+        signment (CR 603.2: one "deals combat damage" event per dealer,
+        however it splits), and the settle after the wave is the step's SBA
+        + trigger drain. CR 120.7: a 0-power attacker deals no damage at
+        all — no life change, no DAMAGE row, no CombatDamageEvent."""
         defender = self.defending_player
         assert defender is not None
-        strikes: list[tuple[Handle, int]] = []
+        strikes: list[tuple[Handle, tuple[tuple[int, Handle], ...]]] = []
         for dealer in dealers:
             identity = self.world.cards[dealer].identity
             power, _toughness = self.ledger.effective_pt(identity, dealer)
             if not power:
                 # 0 (or an unmaterialized *): CR 120.7 - not dealt at all.
                 continue
-            strikes.append((dealer, power))
+            plan = self._assign_damage(dealer, power, self.world.controller_of(dealer))
+            if not plan:
+                # 16c: a blocker whose attacker left combat deals nothing -
+                # no damage, no COMBAT_DAMAGE event (CR 120.7's reading).
+                continue
+            strikes.append((dealer, plan))
         if not strikes:
             return 0
         self._op_seq += 1
-        for dealer, power in strikes:
-            ctx = self._ctx(
-                source=dealer,
-                controller=seat,
-                bindings={"target": defender},
-                decisions=(),
-            )
-            self._run_effect(_combat_damage_atom(power), ctx)
+        self._combat_wave_open = True
+        try:
+            for dealer, plan in strikes:
+                for amount, recipient in plan:
+                    ctx = self._ctx(
+                        source=dealer,
+                        controller=self.world.controller_of(dealer),
+                        bindings={"target": recipient},
+                        decisions=(),
+                    )
+                    self._run_effect(_combat_damage_atom(amount, recipient), ctx)
+        finally:
+            self._combat_wave_open = False
+        for dealer, plan in strikes:
             self.journal.emit(
                 KIND_COMBAT_DAMAGE,
                 dealer,
                 dealer,
                 "COMBAT_DAMAGE",
-                (power, defender),
+                (plan,),
             )
         return self._settle()
 
@@ -1196,6 +1595,7 @@ class Executor:
         self.layers.sweep_at_eot()
         self.replacements.sweep_at_eot()
         self.damage.clear()  # 16a: CR 514.2 — cleanup removes marked damage
+        self.damage_deathtouch.clear()  # 16c: the deathtouch flag rides along
         self.binder.expire_delayed()
         # Rebuild the oracles after the sweep — a granted keyword that
         # expired at end of turn must not survive into next turn's
@@ -1259,6 +1659,8 @@ class Executor:
         h.update(repr(self.replacements.dump()).encode())
         # 16a: damage marks are replayed state too (ruling 1, CR 120.6).
         h.update(repr(sorted(self.damage.items())).encode())
+        # 16c: the deathtouch flag rides the same fold (CR 702.2b kills).
+        h.update(repr(sorted(map(str, self.damage_deathtouch))).encode())
         # 16b: the attack record + the dispatched mandate ledger are
         # replayed state under the same ruling — a replay that attacked
         # with a different set, or lost an "attacks if able" rule, MUST
@@ -1272,6 +1674,17 @@ class Executor:
                     self.declaring,
                     self._declare_group,
                     tuple(sorted(map(str, self.mandates))),
+                    # 16c: the block record, the must-block ledger and the
+                    # dispatched damage-assignment policies are the same
+                    # kind of replayed combat state.
+                    tuple(
+                        sorted(
+                            (str(k), tuple(str(b) for b in bs))
+                            for k, bs in self.blocked_by.items()
+                        )
+                    ),
+                    tuple(sorted(map(str, self.mandate_block))),
+                    tuple(sorted((str(k), v) for k, v in self.damage_policies.items())),
                 )
             ).encode()
         )

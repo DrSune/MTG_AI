@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-09-30T13:56:24+02:00",
-  "git_head": "ad88fefa22b87c0ad695f8daa36518077882a064",
+  "generated": "2026-09-30T17:22:33+02:00",
+  "git_head": "428cf56b67256982a3358fb25c02109e2693c6cd",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -101,15 +101,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.282,
+      "value": 0.262,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.259,
-        0.261,
-        0.282
+        0.239,
+        0.237,
+        0.262
       ]
     },
     "PC-6": {
@@ -258,7 +258,7 @@
   ],
   "unparsed_count": 5,
   "engine_support": {
-    "engine_supported_cards": 291,
+    "engine_supported_cards": 293,
     "of_total": 305,
     "supported_verbs": [
       "ADD_LAND_PLAY",
@@ -267,6 +267,7 @@
       "CHOOSE",
       "CHOOSE_NAME",
       "CREATE_TOKEN",
+      "DAMAGE_ASSIGN_POLICY",
       "DEAL_DAMAGE",
       "DESTROY",
       "DISCARD",
@@ -287,6 +288,7 @@
       "LOSE_LIFE",
       "MANA_POLICY",
       "MANDATE_ATTACK",
+      "MANDATE_BLOCK",
       "MILL",
       "MODIFY_PT",
       "MOVE_ZONE",

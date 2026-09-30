@@ -311,14 +311,104 @@ class ReplacementRegistry:
         return False
 
     def combat_preventions(self) -> tuple[PreventionRecord, ...]:
-        """EXPOSED-BUT-UNUSED: the live attack/block/combat prevents (Faith's
-        Fetters / Capture Sphere family). Combat legality (post-12e) is the
-        consumer; the records exist, dump, and are predicate-tested today."""
+        """The LIVE attack/block/combat prevents (Faith's Fetters / Capture
+        Sphere family). 16c: the consumers are live — the CR 508/509 de-
+        claration legality in legality.py calls the two pair consults
+        below; the dump stays for the audit trail."""
         return tuple(
             rec
             for rec in self.preventions
             if rec.status != "expired" and isinstance(rec.event, _COMBAT_EVENTS)
         )
+
+    # ------------------------------------------- 16c: declaration consumers
+
+    def _rec_ctx(self, rec, attacker: Handle) -> ExecCtx:
+        """The consult context in the RECORD's own coordinates (the con-
+        troller rule the replacement/prevention filters follow): source =
+        the preventing permanent, controller = its controller, and the
+        materialized designated set bound as ``target`` so an IS_ANY_TAR-
+        GET slot reads the cast that opened the window (Subira) instead of
+        a long-gone resolution."""
+        return self.executor._ctx(
+            source=rec.source,
+            controller=rec.controller,
+            bindings={"target": list(rec.targets)},
+            decisions=(),
+        )
+
+    def _pair_vetoed(self, rec, subject: Handle, other: Handle) -> bool:
+        """One prevention record vs one declaration pair, judged in the
+        record's coordinates. ``rec.condition`` is judged over the DECLAR-
+        ATION'S OWN SIDE of the pair it restricts — the static carrier's
+        condition is a state gate (Tome Anima's draw clock, subject-inde-
+        pendent) and the runtime carrier's mirrors its event slot (GP/
+        Subira's IS_SOURCE/IS_ANY_TARGET both name the BLOCKED side, so
+        the block consult passes the attacker as ``subject``; the attack
+        consult passes the attacker, which IS its own side). Then the
+        event node's own slots: block records filter/subject over the
+        BLOCKER and blocked over the ATTACKER; attack records filter over
+        the ATTACKER (an ``attacked`` slot has no corpus carrier — the
+        raise, never a silent ignore)."""
+        if rec.status == "expired" or not self._source_alive(rec.source):
+            return False
+        ctx = self._rec_ctx(rec, subject)
+        if isinstance(rec.duration, DurationWhileCondition) and not eval_filter(
+            rec.duration.filter, rec.source, ctx
+        ):
+            return False
+        if rec.condition is not None and not eval_filter(rec.condition, subject, ctx):
+            return False
+        event = rec.event
+        if isinstance(event, DeclareBlockersEvent):
+            blocker, blocked = subject, other
+            if not eval_filter(event.filter, blocker, ctx):
+                return False
+            if event.subject is not None and not eval_filter(
+                event.subject, blocker, ctx
+            ):
+                return False
+            # the blocked slot must MATCH the attacker side (IS_SOURCE for
+            # "can't be blocked" carriers, FNot(FLYING) for the block-only
+            # restriction family - a matching slot vetoes the pair)
+            return event.blocked is None or eval_filter(event.blocked, blocked, ctx)
+        if isinstance(event, DeclareAttackersEvent):
+            if event.attacked is not None:
+                raise NotImplementedError(
+                    "executor: DeclareAttackersEvent 'attacked' slot on a "
+                    "prevention record has no consumer (no corpus carrier)"
+                )
+            return eval_filter(event.filter, subject, ctx)
+        return False
+
+    def prevents_block_declaration(self, blocker: Handle, attacker: Handle) -> bool:
+        """16c (CR 509 legality): does a live PREVENT_EFFECT veto the pair
+        ``blocker`` blocking ``attacker``? Static carriers (Tome Anima "can't
+        be blocked as long as...", Pirate token "can't block", Shacklegeist
+        "can block only creatures with flying", Faith's Fetters' block half)
+        and runtime carriers (Ghostly Pilferer's activated discard, Subira's
+        "{1}: another target creature can't be blocked") ride the SAME
+        PreventionRecord shape; the pair slots decide."""
+        for rec in sorted(self.preventions, key=lambda r: r.seq):
+            event = rec.event
+            if not isinstance(event, DeclareBlockersEvent):
+                continue
+            if self._pair_vetoed(rec, blocker, attacker):
+                return True
+        return False
+
+    def prevents_attack_declaration(self, attacker: Handle) -> bool:
+        """16c (CR 508.1 legality): does a live PREVENT_EFFECT veto
+        ``attacker``'s attack declaration (Faith's Fetters' "enchanted
+        permanent can't attack" — the aura edge runs through the attach-
+        ment oracle the filter reads)?"""
+        for rec in sorted(self.preventions, key=lambda r: r.seq):
+            event = rec.event
+            if not isinstance(event, DeclareAttackersEvent):
+                continue
+            if self._pair_vetoed(rec, attacker, attacker):
+                return True
+        return False
 
     # ------------------------------------------------------------ expiry API
 

@@ -1,0 +1,83 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "sower",
+      "real": "Gloom Sower",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "w1",
+      "real": "Walking Corpse",
+      "zone": "hand",
+      "controller": 1
+    },
+    {
+      "key": "w2",
+      "real": "Walking Corpse",
+      "zone": "hand",
+      "controller": 1
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "sower"
+    },
+    {
+      "op": "enter",
+      "key": "w1"
+    },
+    {
+      "op": "enter",
+      "key": "w2"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "sower": true
+      },
+      "block": {
+        "w1": "sower",
+        "w2": "sower"
+      }
+    }
+  ],
+  "expect": {
+    "blocked": {
+      "sower": [
+        "w1",
+        "w2"
+      ]
+    },
+    "life": {
+      "0": 24,
+      "1": 16
+    },
+    "zone": {
+      "sower": "battlefield",
+      "w1": "graveyard",
+      "w2": "graveyard"
+    },
+    "damage": {
+      "sower": 4
+    }
+  }
+}

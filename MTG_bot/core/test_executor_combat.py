@@ -316,8 +316,12 @@ class TestDamageSteps(CombatCase):
         self.ex.combat_step(self.p0)
         self.assertEqual(self.world.players[self.p1].life, 20 - (2 + 3))
         rows = self.rows("COMBAT_DAMAGE")
-        self.assertEqual([r.amount for r in rows], sorted([r.amount for r in rows]))
-        self.assertEqual(sorted(r.amount for r in rows), [2, 3])
+        # 16c note: the COMBAT_DAMAGE row now carries the dealer's whole
+        # assignment ((amount, recipient) pairs); these dealers are un-
+        # blocked so each row is the single-pair case.
+        amounts = [a for r in rows for a, _recip in r.combat_damage[0]]
+        self.assertEqual(amounts, sorted(amounts))
+        self.assertEqual(sorted(amounts), [2, 3])
 
 
 class TestTriggerFeeds(CombatCase):

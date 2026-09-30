@@ -557,3 +557,27 @@
   the deckable set at a fixed deck-pairs seed → the sampled card multiset shifted → every
   engine10 trajectory diverged at ~entry 4 (a PLAY_LAND index). Expect to repin the trace
   catalog whenever the deckable/engine-supported SET (not just behavior) changes.
+
+## 2026-09-30 round-16c traps
+- **attach-order wipe**: `binder._register`/`bind_emblem` must call
+  `replacements.attach_source` BEFORE `layers.attach_source` — the former
+  opens with a detach sweep of its own source and expired the static
+  PREVENT_EFFECT records the layers register (Whale tokens blocked again).
+- **player-zone TARGET selectors are binding-blind** (the 16a Brash rule
+  cuts both ways): a PLAYER-zone atom target keeps hitting the player no
+  matter the binding — combat damage to a BLOCKER needs a BATTLEFIELD-zone
+  TARGET selector (binding-first). Announce-vs-execute mismatch was
+  invisible in 16b because every recipient WAS the player.
+- **never-asked ≠ asked-with-NONE**: zero legal pairs → never asked
+  (blocker_askable); menace with one blocker → asked with exactly
+  ("NONE",). Both are C15-honest; pins must not conflate them.
+- **protections_of must pass `node.keyword` to `_keyword_name`** — passing
+  the KeywordAbility node stringifies to repr noise (silent no-veto).
+- **Bone Pit Brute blocks the PACK lane, not the unit lane**: its ETB TARGET
+  trigger has no designation lane (TargetingEvent 12c placeholder — the
+  family PC-8 measures); packs crash honestly on enter, unit tests
+  add_card-before-attach so no ETB line exists. Doc 14 gap list.
+- **pack creature combat needs the turn dance** (sickness): enter on turn 1
+  cannot attack until its controller's next turn — end/adv/end/adv before
+  the first combat step; a tapped-on-enter test creature must ENTER tapped
+  during the OPPONENT's own turn (untap steps erase earlier taps).

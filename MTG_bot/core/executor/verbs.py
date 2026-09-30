@@ -28,6 +28,7 @@ from MTG_bot.core.ability_tree import (
     Ability,
     ActivationWindow,
     Atom,
+    CardRecord,
     Cost,
     CounterKind,
     Duration,
@@ -38,6 +39,7 @@ from MTG_bot.core.ability_tree import (
     Filter,
     FNot,
     FOr,
+    Keyword,
     KeywordAbility,
     PtDelta,
     PtDirection,
@@ -279,13 +281,18 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
 
 
 def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
-    """One card-side damage application: mark it, journal it, decide nothing."""
+    """One card-side damage application: mark it, journal it, decide nothing.
+    16c (CR 702.2b): when the SOURCE carries DEATHTOUCH the mark is flagged
+    lethal-in-itself, so the state check buries a 3/3 under one point of
+    Fetid Imp venom (the keyword is read through the layer registry, so a
+    granted deathtouch counts and a lost one stops counting)."""
     if ctx.executor is None:
         raise ValueError(
             "executor: card damage needs an executor-backed ExecCtx "
             "(bare ExecCtx has no damage ledger)"
         )
-    ctx.executor.mark_damage(target, n)
+    deathtouch = ctx.executor.layers.keyword_of(ctx.source, Keyword.DEATHTOUCH)
+    ctx.executor.mark_damage(target, n, deathtouch=deathtouch)
     ctx.events.append((len(ctx.events), "DAMAGE", str(target), n))
 
 
@@ -613,8 +620,9 @@ def _v_create_token(ctx: ExecCtx, atom: Atom) -> None:
     for _ in range(n):
         power = None if spec.power is None else resolve(spec.power, ctx)
         toughness = None if spec.toughness is None else resolve(spec.toughness, ctx)
+        oracle_id = token_oracle_id(spec.name)
         identity = CardIdentity(
-            oracle_id=token_oracle_id(spec.name),
+            oracle_id=oracle_id,
             name=spec.name,
             type_line=spec.type_line,
             colors=(spec.color,) if spec.color else (),
@@ -624,6 +632,39 @@ def _v_create_token(ctx: ExecCtx, atom: Atom) -> None:
             is_token=True,
         )
         handle = ctx.world.add_card(identity, ctx.controller, ZONE_BATTLEFIELD)
+        # 16c (the token-record binder registration — the /13 named gap):
+        # the token's own rule lines ("This token can't block", "Creatures
+        # you control attack each combat if able" — the Pursued Whale
+        # Pirate) are STATIC/TRIGGERED ability nodes on the TokenSpec. The
+        # binder needs a record under the token's synthetic oracle id BEFORE
+        # the battlefield row is journalled (record_atom's diff runs after
+        # this atom), so the ZONE_CHANGE lifecycle finds it and registers
+        # the statics (prevention registry + mandate layers) and binds any
+        # trigger exactly like a printed permanent. The CardRecord is syn-
+        # thesized from the spec (the same shape the compiler builds a token
+        # record into); a name-seen spec is registered once.
+        if ctx.executor is not None and spec.abilities:
+            record = ctx.executor.binder.records.get(oracle_id)
+            if record is None:
+                record = CardRecord(
+                    oracle_id=oracle_id,
+                    name=spec.name,
+                    type_line=spec.type_line,
+                    types=spec.types,
+                    subtypes=spec.subtypes,
+                    supertypes=(),
+                    colors=(spec.color,) if spec.color else (),
+                    color_identity=frozenset({spec.color} if spec.color else set()),
+                    mana_cost=None,
+                    mana_value=0,
+                    power=spec.power,
+                    toughness=spec.toughness,
+                    loyalty=None,
+                    keywords=tuple(KeywordAbility(keyword=k) for k in spec.keywords),
+                    abilities=spec.abilities,
+                    is_token=True,
+                )
+            ctx.executor.binder.register_token(handle, record)
         if spec.enters_tapped:
             ctx.world.cards[handle].tapped = True
         if spec.enters_attacking:
@@ -1295,6 +1336,52 @@ def _v_mandate_attack(ctx: ExecCtx, atom: Atom) -> None:
     )
 
 
+def _v_mandate_block(ctx: ExecCtx, atom: Atom) -> None:
+    """MANDATE_BLOCK (16c, CR 509.1h "must be blocked if able"): the mirror
+    of :func:`_v_mandate_attack` on the declaring-blockers side. Canopy
+    Stalker's rule line is the carrier (the STATIC shape registers a
+    selector-bearing ``"mandate_block"`` layer through layers._new_static;
+    this handler covers the dispatch shape). The block-ask loop CONSUMES
+    both: an unassigned mandated attacker narrows a blocker's vocabulary
+    onto itself (C15 honest narrowing), and the whole-assignment check re-
+    derives the greedy guarantee (doc 14)."""
+    if ctx.executor is None:
+        raise ValueError(f"executor: {atom.verb.name} needs an executor-backed ExecCtx")
+    cards = role_handles(ctx, atom, "cards")
+    ctx.executor.mandate_block.update(cards)
+    ctx.events.append(
+        (
+            len(ctx.events),
+            atom.verb.name,
+            str(ctx.source),
+            tuple(sorted(str(c) for c in cards)),
+        )
+    )
+
+
+def _v_damage_assign_policy(ctx: ExecCtx, atom: Atom) -> None:
+    """DAMAGE_ASSIGN_POLICY (16c): a combat-damage ASSIGNMENT rule keyed to
+    its source. The corpus carrier is the granted-ability shape — Garruk,
+    Savage Herald's [-7] hands every creature you control a until-EOT
+    StaticAbility carrying ``AS_UNBLOCKED`` ("you may have this creature
+    assign its combat damage as though it weren't turned in"), which rides
+    the layer registry and is read by :meth:`layers.policy_as_unblocked`.
+    This handler covers the DISPATCH shape: the scope word is recorded on
+    the executor keyed by the ability's source (the damage step consumes
+    ledger ∪ layers), so a directly-dispatched policy atom behaves exactly
+    like its granted twin. The scope vocabulary is checked, never guessed."""
+    if ctx.executor is None:
+        raise ValueError(f"executor: {atom.verb.name} needs an executor-backed ExecCtx")
+    scope = atom.args.get("scope")
+    if scope != "AS_UNBLOCKED":
+        raise NotImplementedError(
+            f"executor: DAMAGE_ASSIGN_POLICY scope {scope!r} has no consumer "
+            "(16c ships AS_UNBLOCKED only — the grammar's closed scope vocab)"
+        )
+    ctx.executor.damage_policies[ctx.source] = str(scope)
+    ctx.events.append((len(ctx.events), atom.verb.name, str(ctx.source), str(scope)))
+
+
 HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.MOVE_ZONE: _v_move_zone,
     Verb.EXILE: _v_exile,
@@ -1356,6 +1443,8 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     # pin is amended dated (carriers: Furor of the Bitten, Pursued Whale,
     # the Pirate token).
     Verb.MANDATE_ATTACK: _v_mandate_attack,
+    Verb.MANDATE_BLOCK: _v_mandate_block,
+    Verb.DAMAGE_ASSIGN_POLICY: _v_damage_assign_policy,
 }
 
 

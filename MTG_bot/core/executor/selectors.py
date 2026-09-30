@@ -20,8 +20,6 @@ takes min(count, candidates)); C12 referents are the closed strings.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
 from MTG_bot.core.ability_tree import (
     Atom,
     ControllerRef,
@@ -46,7 +44,7 @@ from MTG_bot.core.state import (
 )
 
 # ZoneKind enum member -> the state.py zone-kind string.
-ZONE_KIND_TO_STATE: Dict[ZoneKind, str] = {
+ZONE_KIND_TO_STATE: dict[ZoneKind, str] = {
     ZoneKind.LIBRARY: ZONE_LIBRARY,
     ZoneKind.HAND: ZONE_HAND,
     ZoneKind.BATTLEFIELD: ZONE_BATTLEFIELD,
@@ -56,12 +54,12 @@ ZONE_KIND_TO_STATE: Dict[ZoneKind, str] = {
 }
 
 
-def _opponents(ctx: ExecCtx) -> List[Handle]:
+def _opponents(ctx: ExecCtx) -> list[Handle]:
     controller = ctx.controller
     return [p for p in ctx.world.player_order if p != controller]
 
 
-def players_for_ref(ref: ControllerRef, ctx: ExecCtx) -> List[Handle]:
+def players_for_ref(ref: ControllerRef, ctx: ExecCtx) -> list[Handle]:
     """The player seats a ControllerRef denotes, in seat order."""
     if ref is ControllerRef.YOU:
         return [ctx.controller]
@@ -102,14 +100,14 @@ def controller_matches(
         return actual != ctx.controller
     if who is ControllerRef.TARGET_PLAYER:
         bound = ctx.binding_one("target")
-        expected: Optional[Handle] = bound
+        expected: Handle | None = bound
         if bound is not None and bound.namespace == "card":
             expected = ctx.world.controller_of(bound)
         return expected is not None and actual == expected
     return who is ControllerRef.ANY
 
 
-def zone_owner(ctx: ExecCtx, zone_ir: Zone, owner: Optional[Handle]) -> Handle:
+def zone_owner(ctx: ExecCtx, zone_ir: Zone, owner: Handle | None) -> Handle:
     """The single player who owns a destination/movement zone IR."""
     ref = zone_ir.controller
     if ref is ControllerRef.OWNER:
@@ -125,7 +123,7 @@ def zone_owner(ctx: ExecCtx, zone_ir: Zone, owner: Optional[Handle]) -> Handle:
     )
 
 
-def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> List[Handle]:
+def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
     """The handles in one Zone IR, in **zone order** (order-preserving)."""
     kind = zone_ir.kind
     if kind is ZoneKind.PLAYER:
@@ -171,7 +169,7 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> List[Handle]:
             "executor: OWNER in selector enumeration needs per-candidate "
             "owner scoping (12b)"
         )
-    handles: List[Handle] = []
+    handles: list[Handle] = []
     for player in players_for_ref(ref, ctx):
         entries = ctx.world.players[player].zone(state_kind).entries
         position = zone_ir.position
@@ -184,7 +182,7 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> List[Handle]:
     return handles
 
 
-def resolve_selector(sel: Selector, ctx: ExecCtx) -> List[Handle]:
+def resolve_selector(sel: Selector, ctx: ExecCtx) -> list[Handle]:
     """A Selector IR -> concrete handles.
 
     ALL returns the filtered population in zone order; CHOOSE resolves the
@@ -325,7 +323,7 @@ def resolve_selector(sel: Selector, ctx: ExecCtx) -> List[Handle]:
 # ---------------------------------------------------------------- role readers
 
 
-def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> List[Handle]:
+def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
     """The handles a target/cards/equipment role acts on, Handle-sorted.
 
     Bindings take precedence (the caller designated them) EXCEPT for an
@@ -367,16 +365,40 @@ def role_player(ctx: ExecCtx, atom: Atom, role: str = "controller") -> Handle:
     )
 
 
-def role_players(ctx: ExecCtx, atom: Atom, role: str = "controller") -> List[Handle]:
-    bound = ctx.binding_handles(role)
-    if bound is not None:
-        return bound
+def role_players(ctx: ExecCtx, atom: Atom, role: str = "controller") -> list[Handle]:
+    """The PLAYERS a life/draw-style role acts on. Three lanes, in the same
+    precedence order the card-side :func:`role_handles` uses: a Selector
+    value resolves ITSELF when it is anaphoric (its own referent — 16c's
+    Gloom Sower compiles "that creature's controller" as a referent=event
+    selector whose resolution is a CREATURE, folded to ``controller_of``;
+    a player handle passes through); a reference-less binding keeps its
+    precedence (the 12a designation convention); a bare ControllerRef is
+    the ordinary YOU/EACH_PLAYER lane."""
     value = atom.args.get(role)
-    if isinstance(value, ControllerRef):
+    bound = ctx.binding_handles(role)
+    handles: list[Handle] | None = None
+    if isinstance(value, Selector):
+        anaphoric = value.referent is not None
+        if bound is not None and not anaphoric:
+            handles = bound
+        else:
+            handles = sorted(resolve_selector(value, ctx))
+    elif bound is not None:
+        handles = bound
+    elif isinstance(value, ControllerRef):
         return players_for_ref(value, ctx)
-    raise NotImplementedError(
-        f"executor: {atom.verb.name} {role!r} referent-selector players are 12b's"
-    )
+    else:
+        raise NotImplementedError(
+            f"executor: {atom.verb.name} {role!r} referent-selector players are 12b's"
+        )
+    world = ctx.world
+    players: set[Handle] = set()
+    for handle in handles:
+        if handle.namespace == "player":
+            players.add(handle)
+        elif handle in world.cards:
+            players.add(world.controller_of(handle))
+    return sorted(players)
 
 
 def amount(ctx: ExecCtx, atom: Atom, role: str) -> int:

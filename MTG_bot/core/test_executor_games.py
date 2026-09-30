@@ -164,7 +164,7 @@ class DeckSupplyTest(unittest.TestCase):
             meta = self.supply.metas[oid]
             self.assertTrue(meta.engine_supported and meta.playable, meta.name)
 
-    def test_engine_count_is_the_gated_291(self) -> None:
+    def test_engine_count_is_the_gated_293(self) -> None:
         # The honest 12e number, from the SUPPORTED_VERBS_V2-gated pass: an
         # ungated compile stamps every card supported (NUMBERS.md 2026-09-30),
         # so a harness that skipped the second pass would report 305.
@@ -178,7 +178,11 @@ class DeckSupplyTest(unittest.TestCase):
         # re-run, NUMBERS 2026-10-01). The DECKABLE set is unchanged: none
         # of the three is put-into-playable, so the engine decks themselves
         # are untouched by the flip; the "all" pool now CARRIES them.
-        self.assertEqual(len(self.supply.engine_ids), 291)
+        # AMENDED 2026-10-02 (round 16c): 291 -> 293 — MANDATE_BLOCK and
+        # DAMAGE_ASSIGN_POLICY joined, and the with/without gate diff (run
+        # again 16c) picked up exactly their two carriers (Canopy Stalker,
+        # Garruk Savage Herald), zero losses, deckable unchanged again.
+        self.assertEqual(len(self.supply.engine_ids), 293)
 
 
 class ReplayDeterminismTest(unittest.TestCase):

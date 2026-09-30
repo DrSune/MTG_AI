@@ -708,11 +708,15 @@ class TestCapabilitySurface(unittest.TestCase):
             Verb.ADD_LAND_PLAY,
             Verb.FIGHT,
             Verb.MANDATE_ATTACK,
+            # 16c: the blocker side of the combat capability — the must-
+            # block mandate, and the Herald's assignment policy verb.
+            Verb.MANDATE_BLOCK,
+            Verb.DAMAGE_ASSIGN_POLICY,
         }
         self.assertEqual(SUPPORTED_VERBS_V2 - SUPPORTED_VERBS_V1, new)
         self.assertNotIn(Verb.DRAW, SUPPORTED_VERBS_V1)  # the round-12 freeze
         self.assertEqual(len(SUPPORTED_VERBS_V1), 24)
-        self.assertEqual(len(SUPPORTED_VERBS_V2), 41)
+        self.assertEqual(len(SUPPORTED_VERBS_V2), 43)
 
     def test_turn_ledger_fields_in_state_fingerprint(self):
         reset_oracle_ids()

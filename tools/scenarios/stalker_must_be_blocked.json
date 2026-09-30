@@ -1,0 +1,82 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "corpse",
+      "real": "Walking Corpse",
+      "zone": "hand",
+      "controller": 1
+    },
+    {
+      "key": "stalker",
+      "real": "Canopy Stalker",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "ogre",
+      "real": "Onakke Ogre",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "corpse"
+    },
+    {
+      "op": "enter",
+      "key": "stalker"
+    },
+    {
+      "op": "enter",
+      "key": "ogre"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "stalker": true,
+        "ogre": true
+      },
+      "block": {
+        "corpse": "stalker"
+      }
+    }
+  ],
+  "expect": {
+    "block_asks": {
+      "corpse": "<stalker>"
+    },
+    "blocked": {
+      "stalker": [
+        "corpse"
+      ],
+      "ogre": []
+    },
+    "life": {
+      "1": 16
+    },
+    "zone": {
+      "corpse": "graveyard",
+      "stalker": "graveyard",
+      "ogre": "battlefield"
+    }
+  }
+}

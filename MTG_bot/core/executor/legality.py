@@ -1151,9 +1151,7 @@ def activate(
     if not isinstance(ability, ActivatedAbility):  # pragma: no cover — checked
         # ValueError, not TypeError: "illegal activation" is the documented
         # domain contract of activate(), whatever the wrong input was.
-        raise ValueError(
-            "executor: illegal activation: ability:not_activated"
-        )
+        raise ValueError("executor: illegal activation: ability:not_activated")
     ctx = ctx_for(executor, source=handle, controller=seat)
     plan, plan_reason = build_payment_plan(executor.world, ctx, ability.cost)
     if plan is None:  # pragma: no cover - ability_playable just checked
@@ -1228,19 +1226,18 @@ def attack_blocked_reason(
     when the declaration is legal. Encoded restrictions (CR 508.1 pre-
     check): creature-ness (the LIVE type line — GRANT_TYPE overlay aware),
     controller, DEFENDER (CR 702.4a — no "can attack as though it didn't"
-    carrier in the corpus), and summoning sickness (CR 302.6) unless the
-    creature has HASTE (CR 702.10a). TAPPED creatures are legal attackers
+    carrier in the corpus), summoning sickness (CR 302.6) unless the
+    creature has HASTE (CR 702.10a), and the PREVENT_EFFECT attack veto
+    (16c — Faith's Fetters' "enchanted permanent can't attack", consumed
+    through the prevention registry). TAPPED creatures are legal attackers
     (tapping to declare is not a cost — CR 508.1c skips VIGILANCE creatures
-    and re-taps nothing). Card-text "can't attack" restrictions (the
-    PREVENT/DeclareAttackersEvent consumer) are 16c."""
+    and re-taps nothing)."""
     world = executor.world
     if world.zone_of(creature).kind != ZONE_BATTLEFIELD:
         return "not on the battlefield"
     if world.controller_of(creature) != seat:
         return "not controlled by the declaring player"
-    ctx = executor._ctx(
-        source=creature, controller=seat, bindings=None, decisions=()
-    )
+    ctx = executor._ctx(source=creature, controller=seat, bindings=None, decisions=())
     if not eval_filter(_IS_CREATURE, creature, ctx):
         return "not a creature"
     if executor.layers.keyword_of(creature, Keyword.DEFENDER):
@@ -1249,6 +1246,8 @@ def attack_blocked_reason(
         _controlled_since_turn_start(executor, creature)
     ):
         return "summoning sickness (CR 302.6) without haste"
+    if executor.replacements.prevents_attack_declaration(creature):
+        return "attack prevented (PREVENT_EFFECT, CR 508.1A)"
     return None
 
 
@@ -1298,5 +1297,134 @@ def mandated_attackers(executor: Executor, seat: Handle) -> frozenset[Handle]:
                 and world.zone_of(handle).kind == ZONE_BATTLEFIELD
                 and world.controller_of(handle) == seat
             ):
+                mandated.add(handle)
+    return frozenset(mandated)
+
+
+# ------------------------------------------------------- 16c: block legality
+# The CR 509 declare-blockers surface, mirrored on the attack side: the ask
+# vocabulary is the honest candidate list — a blocker is never offered an
+# attacker it cannot legally block, and NONE is dropped by the ASK LOOP in
+# the executor only when dropping it keeps the assembled assignment CR-
+# legal (must-be-blocked, menace repair). CR 509.1a: only UNTAPPED creatures
+# block (unlike attacking, where tap is legal); CR 509.1b: exactly one
+# attacker per blocker; multiple blockers per attacker ARE legal, which is
+# what the CR 510 order/trample asks in the damage step consume.
+
+
+def block_pair_blocked_reason(
+    executor: Executor, blocker: Handle, attacker: Handle
+) -> str | None:
+    """Why ``blocker`` may not block ``attacker`` right now, or ``None``.
+    Static per-pair legality — the assignment-dependent MENACE count rule
+    (CR 702.113 "except by two or more creatures", Bone Pit Brute) is a
+    property of the WHOLE assignment, so the ask loop applies it beside
+    this reason, never buried inside it. Consumers:
+      * DEFENDER keyword (CR 702.4a) and creature-ness (only creatures
+        block);
+      * REACH (CR 509.1b): a flying attacker is unblockable without reach
+        (Snarespinner, Elder Gargaroth carry it for themselves);
+      * PROTECTION (CR 702.16c): either side's live protection filter
+        matching the OTHER side vetoes the pair (Baneslayer Angel's
+        "protection from red and from black");
+      * the PREVENT_EFFECT block veto (16c): Tome Anima / Ghostly Pilferer
+        "can't be blocked" (blocked-side slots), Pirate "can't block" and
+        Shacklegeist "can block only creatures with flying" (blocker-side
+        slots), Subira's activated "another target creature can't be
+        blocked" (IS_ANY_TARGET materialized onto the record)."""
+    world = executor.world
+    if world.zone_of(blocker).kind != ZONE_BATTLEFIELD:
+        return "not on the battlefield"
+    if world.zone_of(attacker).kind != ZONE_BATTLEFIELD:
+        return "attacker not on the battlefield"
+    ctx_blocker = executor._ctx(
+        source=blocker,
+        controller=world.controller_of(blocker),
+        bindings=None,
+        decisions=(),
+    )
+    if not eval_filter(_IS_CREATURE, blocker, ctx_blocker):
+        return "not a creature (CR 509.1)"
+    if world.cards[blocker].tapped:
+        return "tapped (CR 509.1a)"
+    if executor.layers.keyword_of(blocker, Keyword.DEFENDER):
+        return "defender (CR 702.4a)"
+    # CR 702.7b: a flyer is blocked only by a creature with FLYING or REACH
+    if executor.layers.keyword_of(attacker, Keyword.FLYING) and not (
+        executor.layers.keyword_of(blocker, Keyword.REACH)
+        or executor.layers.keyword_of(blocker, Keyword.FLYING)
+    ):
+        return "flying attacker, neither flying nor reach (CR 509.1b)"
+    ctx_attacker = executor._ctx(
+        source=attacker,
+        controller=world.controller_of(attacker),
+        bindings=None,
+        decisions=(),
+    )
+    for quality in executor.layers.protections_of(attacker):
+        if eval_filter(quality, blocker, ctx_attacker):
+            return "attacker's protection (CR 702.16c)"
+    for quality in executor.layers.protections_of(blocker):
+        if eval_filter(quality, attacker, ctx_blocker):
+            return "blocker's protection (CR 702.16c)"
+    if executor.replacements.prevents_block_declaration(blocker, attacker):
+        return "block prevented (PREVENT_EFFECT)"
+    return None
+
+
+def blocker_askable(
+    executor: Executor, blocker: Handle, attackers: Sequence[Handle]
+) -> bool:
+    """Pre-filter for the block-ask candidate list: could ``blocker`` have
+    ANY legal declaration against the current attackers? Creature-ness,
+    tap state and DEFENDER are attacker-independent; the pair vetoes are
+    checked against each attacker. A blocker legal against nothing is
+    never asked (no decision exists); tapped and defender creatures fall
+    out here — the "tapped creatures cannot block" face of CR 509.1a."""
+    world = executor.world
+    if world.zone_of(blocker).kind != ZONE_BATTLEFIELD:
+        return False
+    ctx_blocker = executor._ctx(
+        source=blocker,
+        controller=world.controller_of(blocker),
+        bindings=None,
+        decisions=(),
+    )
+    if not eval_filter(_IS_CREATURE, blocker, ctx_blocker):
+        return False
+    if world.cards[blocker].tapped:
+        return False
+    if executor.layers.keyword_of(blocker, Keyword.DEFENDER):
+        return False
+    return any(
+        block_pair_blocked_reason(executor, blocker, attacker) is None
+        for attacker in attackers
+    )
+
+
+def mandated_to_be_blocked(executor: Executor) -> frozenset[Handle]:
+    """Attackers that MUST be blocked if able (CR 509.1h — Canopy Stalker),
+    from both carrier shapes like the attack side: the DISPATCHED
+    MANDATE_BLOCK ledger and the LIVE ``"mandate_block"`` layers (selector
+    resolved in the layer anchor's coordinates). The ask loop narrows a
+    blocker's vocabulary onto an unassigned mandated attacker it may
+    legally take; the whole-assignment check re-derives the greedy
+    guarantee (doc 14)."""
+    world = executor.world
+    mandated: set[Handle] = set()
+    for handle in executor.mandate_block:
+        if handle in world.cards and world.zone_of(handle).kind == ZONE_BATTLEFIELD:
+            mandated.add(handle)
+    for layer in executor.layers.live_mandate_block_layers():
+        selector = layer.atoms[0].args.get("cards")
+        assert isinstance(selector, Selector)  # role table: cards required
+        ctx = executor._ctx(
+            source=layer.source,
+            controller=layer.controller,
+            bindings=None,
+            decisions=(),
+        )
+        for handle in enumerate_candidates(selector, ctx):
+            if handle in world.cards and world.zone_of(handle).kind == ZONE_BATTLEFIELD:
                 mandated.add(handle)
     return frozenset(mandated)

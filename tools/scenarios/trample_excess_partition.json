@@ -1,0 +1,74 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "dino",
+      "real": "Colossal Dreadmaw",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "corpse",
+      "real": "Walking Corpse",
+      "zone": "hand",
+      "controller": 1
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "dino"
+    },
+    {
+      "op": "enter",
+      "key": "corpse"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "dino": true
+      },
+      "block": {
+        "corpse": "dino"
+      },
+      "trample": {
+        "dino": [
+          1
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "blocked": {
+      "dino": [
+        "corpse"
+      ]
+    },
+    "life": {
+      "1": 17
+    },
+    "damage": {
+      "dino": 2
+    },
+    "zone": {
+      "corpse": "graveyard",
+      "dino": "battlefield"
+    }
+  }
+}

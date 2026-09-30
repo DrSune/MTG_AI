@@ -1,0 +1,94 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "herald",
+      "real": "Garruk, Savage Herald",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "corpse",
+      "real": "Walking Corpse",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "guard",
+      "real": "Walking Corpse",
+      "zone": "hand",
+      "controller": 1
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "herald"
+    },
+    {
+      "op": "enter",
+      "key": "corpse",
+      "tapped": true
+    },
+    {
+      "op": "enter",
+      "key": "guard"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "loyalty",
+      "key": "herald",
+      "set": 7
+    },
+    {
+      "op": "activate",
+      "key": "herald",
+      "idx": 2,
+      "seat": 0
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "corpse": true
+      },
+      "block": {
+        "guard": "corpse"
+      },
+      "policy": {
+        "corpse": "UNBLOCKED"
+      }
+    }
+  ],
+  "expect": {
+    "policy_asks": {
+      "corpse": "AS_BLOCKED,UNBLOCKED"
+    },
+    "blocked": {
+      "corpse": [
+        "guard"
+      ]
+    },
+    "life": {
+      "1": 18
+    },
+    "zone": {
+      "corpse": "graveyard",
+      "guard": "battlefield"
+    }
+  }
+}

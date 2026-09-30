@@ -69,8 +69,18 @@ KIND_GAME_LOST = "GAME_LOST"
 # "Whenever you attack with two or more..." triggers once on the whole
 # declare action, once per creature for IS_SOURCE filters).
 # COMBAT_DAMAGE carries one row per creature that dealt combat damage
-# (subject = the dealer — CombatDamageEvent's filter reads the dealer).
+# (subject = the dealer — CombatDamageEvent's filter reads the dealer);
+# 16c: the row carries the WHOLE legal assignment ((amount, recipient)
+# pairs) so one "deals combat damage" event stays ONE event however the
+# damage splits across blockers and player.
+# 16c: DECLARE_BLOCKERS carries ONE row per block declaration PAIR
+# (subject = the BLOCKER, data = (attacker, declare-group)) — the
+# DeclareBlockersEvent feed: ``filter``/``subject`` read the blocker,
+# ``blocked`` reads the attacker; the same rows answer BecomesBlockedEvent
+# (whose blocked-side participant must be the trigger's source, the
+# grammar's anchored reading — Gloom Sower).
 KIND_DECLARE_ATTACKERS = "DECLARE_ATTACKERS"
+KIND_DECLARE_BLOCKERS = "DECLARE_BLOCKERS"
 KIND_COMBAT_DAMAGE = "COMBAT_DAMAGE"
 
 # state.py zone-kind strings used by the diff's rule checks.
@@ -97,7 +107,9 @@ class GameEvent:
       * COUNTER_PLACED— ``(counter_kind_name, n)``
       * TAP_STATE     — ``(tapped_bool,)``
       * CARD_DRAWN    — ``(drawer, ordinal_this_turn)``
-      * DAMAGE        — ``(amount,)``; subject may be a player handle.
+      * DAMAGE        — ``(amount,)`` or ``(amount, True)`` when the damage
+        is COMBAT damage (16c, the DamageDealtEvent ``combat`` scope);
+        subject may be a player handle.
       * LIFE_GAINED   — ``(amount,)``
       * TURN_PHASE    — ``(phase_name, active_player)``, subject None.
       * CAST          — ``(caster, ordinal_this_turn, spell_kind,
@@ -105,8 +117,14 @@ class GameEvent:
       * GAME_LOST     — ``(reason,)`` , subject the player (13b audit row).
       * DECLARE_ATTACKERS — ``(declare_group,)``, subject the declared
         attacker; one row per attacker, group shared per declaration (16b).
-      * COMBAT_DAMAGE — ``(amount, recipient)``, subject the dealing
-        creature (16b, the CombatDamageEvent feed).
+      * DECLARE_BLOCKERS — ``(attacker, declare_group)``, subject the
+        BLOCKING creature (16c, the DeclareBlockersEvent /
+        BecomesBlockedEvent feed).
+      * COMBAT_DAMAGE — ``(assignments,)`` where ``assignments`` is the
+        dealer's canonical ``((amount, recipient), ...)`` tuple — 16b
+        carried the single ``(amount, recipient)`` pair (no blockers);
+        16c keeps ONE row per dealer however the assignment splits
+        (the CombatDamageEvent feed).
     """
 
     clock: int
@@ -144,6 +162,14 @@ class GameEvent:
         return cast(int, self.data[0])
 
     @property
+    def is_combat(self) -> bool:
+        """DAMAGE rows only (16c): the optional second data element marks
+        COMBAT damage (CR 609.2 — the DamageDealtEvent ``combat`` scope);
+        pre-16c rows and plain DEAL_DAMAGE rows stay a 1-tuple and read
+        False."""
+        return len(self.data) > 1 and bool(self.data[1])
+
+    @property
     def phase(self) -> tuple[str, Handle]:
         return cast("tuple[str, Handle]", self.data)
 
@@ -160,10 +186,17 @@ class GameEvent:
         return cast(int, self.data[0])
 
     @property
-    def combat_damage(self) -> tuple[int, Handle]:
-        """COMBAT_DAMAGE payload: (amount, recipient) — the 16b feed the
-        CombatDamageEvent triggers subscribe to."""
-        return cast("tuple[int, Handle]", self.data)
+    def declare_blockers(self) -> tuple[Handle, int]:
+        """DECLARE_BLOCKERS payload: (blocked attacker, declare-group id)
+        with the row's SUBJECT as the blocking creature (16c)."""
+        return cast("tuple[Handle, int]", self.data)
+
+    @property
+    def combat_damage(self) -> tuple[tuple[tuple[int, Handle], ...]]:
+        """COMBAT_DAMAGE payload: the dealer's canonical assignment tuple
+        ``((amount, recipient), ...)`` wrapped so the row stays ONE event
+        per dealer (16c; 16b's single-pair shape is the 1-element case)."""
+        return cast("tuple[tuple[tuple[int, Handle], ...]]", self.data)
 
 
 @dataclass
@@ -305,6 +338,7 @@ class EventJournal:
         cause: Handle | None,
         cause_verb: str,
         new_12a_tuples: list[tuple[object, ...]],
+        combat: bool = False,
     ) -> list[GameEvent]:
         """Diff the world against ``before`` and emit every triggered-rule
         event the atom caused. Returns the newly appended events."""
@@ -387,7 +421,11 @@ class EventJournal:
                 )
             elif cause_verb == "DEAL_DAMAGE":
                 self._emit(
-                    KIND_DAMAGE, player, cause, cause_verb, (was_life - now_life,)
+                    KIND_DAMAGE,
+                    player,
+                    cause,
+                    cause_verb,
+                    (was_life - now_life, True) if combat else (was_life - now_life,),
                 )
 
         # --- non-lethal card damage leaves no state trace: the 12a handler
@@ -396,7 +434,13 @@ class EventJournal:
             if entry[1] in ("DAMAGE", "DAMAGE_LETHAL"):
                 subject = parse_handle_tag(str(entry[2]))
                 if subject.namespace == "card":
-                    self._emit(KIND_DAMAGE, subject, cause, cause_verb, (entry[3],))
+                    self._emit(
+                        KIND_DAMAGE,
+                        subject,
+                        cause,
+                        cause_verb,
+                        (entry[3], True) if combat else (entry[3],),
+                    )
 
         return self.events[start:]
 

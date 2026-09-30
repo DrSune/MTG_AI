@@ -19,8 +19,9 @@ Conventions honoured:
 from __future__ import annotations
 
 import random
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:  # pragma: no cover - typing-only, dodges runtime cycles
     from MTG_bot.core.executor import Executor
@@ -66,7 +67,7 @@ from MTG_bot.core.state import (
     GameWorld,
 )
 
-Binding = Union[Handle, List[Handle]]
+Binding = Union[Handle, list[Handle]]
 
 
 def _default_rng(tag: str) -> random.Random:  # pragma: no cover - replaced
@@ -90,15 +91,15 @@ class ExecCtx:
     ledger: DurationLedger
     controller: Handle
     source: Handle
-    bindings: Dict[str, Binding]
+    bindings: dict[str, Binding]
     decisions: Sequence[str]
     decision_idx: int = 0
     # 14b: the executor's vocabulary-addressed stream (B-4 channel). None
     # only in bare unit-test contexts that pass their own decisions pool.
     stream: DecisionStream | None = None
-    events: List[Tuple[object, ...]] = field(default_factory=list)
+    events: list[tuple[object, ...]] = field(default_factory=list)
     rng: Callable[[str], random.Random] = _default_rng  # executor-owned seeds
-    token_counts: Dict[str, int] = field(default_factory=dict)
+    token_counts: dict[str, int] = field(default_factory=dict)
     # 12b event register: the triggering GameEvent (or None outside trigger
     # context) and the damage amount it carried, so QProp("event", AMOUNT)
     # and the event|result referents resolve inside a firing.
@@ -139,7 +140,7 @@ class ExecCtx:
     # wrapper draining this list.
     pending_replacements: list[ReplacementRecord] = field(default_factory=list)
 
-    def take_decision(self, vocab: Tuple[str, ...], what: str) -> str:
+    def take_decision(self, vocab: tuple[str, ...], what: str) -> str:
         """Consume the next decision for THIS demand site; raise when no
         lane can answer (C15: never a default).
 
@@ -171,7 +172,7 @@ class ExecCtx:
             f"got only {len(self.decisions)} supplied"
         )
 
-    def binding_handles(self, role: str) -> Optional[List[Handle]]:
+    def binding_handles(self, role: str) -> list[Handle] | None:
         """The caller-supplied handles for a role, Handle-sorted (ruling 5)."""
         value = self.bindings.get(role)
         if value is None:
@@ -179,11 +180,11 @@ class ExecCtx:
         handles = [value] if isinstance(value, Handle) else list(value)
         return sorted(handles)
 
-    def binding_one(self, role: str) -> Optional[Handle]:
+    def binding_one(self, role: str) -> Handle | None:
         handles = self.binding_handles(role)
         return handles[0] if handles else None
 
-    def effective_pt(self, card: Handle) -> Tuple[Optional[int], Optional[int]]:
+    def effective_pt(self, card: Handle) -> tuple[int | None, int | None]:
         identity = self.world.cards[card].identity
         return self.ledger.effective_pt(identity, card)
 
@@ -367,7 +368,7 @@ def _resolve_prop(prop: QProp, ctx: ExecCtx) -> int:
 _TYPE_LINE_SEPARATORS = ("//", "/", ",")
 
 
-def _type_line_tokens(identity_text: str) -> List[str]:
+def _type_line_tokens(identity_text: str) -> list[str]:
     """Split a printed type line into its type/subtype words, keeping the
     subtype group's card names intact (data-only, C12: no oracle text is
     parsed anywhere)."""
@@ -804,6 +805,19 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 "attack record (bare ExecCtx)"
             )
         return handle in ctx.executor.attackers
+    if pred is FAtomPred.IS_BLOCKING:
+        # 16c (CR 506.4): the executor's live block record — a handle IS
+        # blocking while it stands in some attacker's blocker list (the
+        # record clears with the attack record at end of combat). No M21
+        # card reads this pred; the closed grammar vocab answers it rather
+        # than raising, because the state EXISTS from 16c on (the attack
+        # sibling's precedent).
+        if ctx.executor is None:
+            raise NotImplementedError(
+                "executor: filter pred IS_BLOCKING reads the executor's "
+                "block record (bare ExecCtx)"
+            )
+        return any(handle in blockers for blockers in ctx.executor.blocked_by.values())
     if pred is FAtomPred.ATTACK_AGAINST_COUNT_GE:
         # 16b (grammar round 10, R10-3 — Mangara, the Diplomat): count the
         # CURRENT attacker set whose ATTACKED object passes inner_filter.
@@ -829,6 +843,35 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 if counted >= threshold:
                     return True
         return counted >= threshold
+    if pred is FAtomPred.CARDS_DRAWN_THIS_TURN_GE:
+        # 16c (the draw-clock family — Tome Anima's "can't be blocked as
+        # long as you've drawn two or more cards this turn" static gate,
+        # consumed live at every block-pair consult): count the journal's
+        # CARD_DRAWN rows of the turn window (subject = the card drawn,
+        # data[0] = the drawing player) against WHO's seat. Journal-backed
+        # like the 14d history family — the journal IS state.
+        from MTG_bot.core.executor.events import KIND_CARD_DRAWN
+        from MTG_bot.core.executor.selectors import players_for_ref
+
+        assert atom.count is not None
+        threshold = resolve(atom.count, ctx)
+        drawners: set[Handle] | None = None
+        if atom.who is not None:
+            if not isinstance(atom.who, ControllerRef):
+                raise NotImplementedError(
+                    "executor: CARDS_DRAWN_THIS_TURN_GE with a Selector seat "
+                    "has no consumer (the corpus carries ControllerRef)"
+                )
+            drawners = set(players_for_ref(atom.who, ctx))
+        drawn = 0
+        for row in _turn_rows(ctx, pred.name):
+            if row.kind != KIND_CARD_DRAWN:
+                continue
+            if drawners is None or row.draw[0] in drawners:
+                drawn += 1
+                if drawn >= threshold:
+                    return True
+        return drawn >= threshold
     raise NotImplementedError(
         f"executor: filter pred {pred.name} not implemented (12c query surface)"
     )

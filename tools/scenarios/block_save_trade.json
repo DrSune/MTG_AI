@@ -1,0 +1,70 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "ogre",
+      "real": "Onakke Ogre",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "corpse",
+      "real": "Walking Corpse",
+      "zone": "hand",
+      "controller": 1
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "ogre"
+    },
+    {
+      "op": "enter",
+      "key": "corpse"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "ogre": true
+      },
+      "block": {
+        "corpse": "ogre"
+      }
+    }
+  ],
+  "expect": {
+    "block_asks": {
+      "corpse": "<ogre>,NONE"
+    },
+    "blocked": {
+      "ogre": [
+        "corpse"
+      ]
+    },
+    "life": {
+      "0": 20,
+      "1": 20
+    },
+    "zone": {
+      "ogre": "graveyard",
+      "corpse": "graveyard"
+    }
+  }
+}
