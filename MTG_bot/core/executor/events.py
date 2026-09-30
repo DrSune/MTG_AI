@@ -34,6 +34,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import cast
 
+from MTG_bot.core.ability_tree import Phase
 from MTG_bot.core.executor.durations_min import DurationLedger
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
@@ -234,6 +235,27 @@ class EventJournal:
         self.draw_counts = {}
         self.cast_counts = {}  # 13b: the cast ordinal joins the reset
         del player  # the active-player bookkeeping lives on the world.
+
+    def turn_window(self) -> list[GameEvent]:
+        """The "this turn" slice for the journal-backed filter predicates
+        (14d, B-7): every event AFTER the most recent begin-turn UPKEEP
+        marker. ``begin_turn`` emits that marker after its trackers reset,
+        so the window is exactly the turn the reset opened — the previous
+        turn's rows (and its END_TURN marker) are out, and the UNTAP
+        step's TapState rows sit BEFORE the marker by 12d's ordering (no
+        turn-history predicate reads untaps, and the CR-correct clock
+        position is what the marker discipline preserves). With no marker
+        yet — a journal before any ``begin_turn`` — the whole log is the
+        window: the honest whole-history reading of a turn-less test
+        world, never a silent empty answer. Deterministic and
+        fingerprinted: the journal IS state (14d purity note — a query
+        reading history is no less pure than one reading zone lists)."""
+        events = self.events
+        for i in range(len(events) - 1, -1, -1):
+            e = events[i]
+            if e.kind == KIND_TURN_PHASE and e.data[0] == Phase.UPKEEP.name:
+                return events[i + 1 :]
+        return list(events)
 
     # ------------------------------------------------------------- diffing
 

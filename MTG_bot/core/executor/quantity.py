@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Tupl
 
 if TYPE_CHECKING:  # pragma: no cover - typing-only, dodges runtime cycles
     from MTG_bot.core.executor import Executor
+    from MTG_bot.core.executor.events import EventJournal
     from MTG_bot.core.executor.layers import LayerRegistry
     from MTG_bot.core.executor.replacements import (
         ReplacementRecord,
@@ -32,6 +33,7 @@ if TYPE_CHECKING:  # pragma: no cover - typing-only, dodges runtime cycles
 
 from MTG_bot.core.ability_tree import (
     QX,
+    ControllerRef,
     FAnd,
     FAtom,
     FAtomPred,
@@ -53,8 +55,11 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor.decisions import DecisionStream
 from MTG_bot.core.executor.durations_min import DurationLedger
+from MTG_bot.core.executor.events import GameEvent
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
+    ZONE_BATTLEFIELD,
+    ZONE_EXILE,
     ZONE_GRAVEYARD,
     ZONE_HAND,
     ZONE_LIBRARY,
@@ -106,6 +111,16 @@ class ExecCtx:
     layers: LayerRegistry | None = None  # executor.layers
     replacements: ReplacementRegistry | None = None  # executor.replacements
     executor: Executor | None = None  # nested replacement effects
+    # 14d (B-7): the executor's structured event journal, bound at EVERY
+    # ExecCtx construction site — the effect runtime AND the query/legality
+    # paths (13a's FLIP_WON "bare-ctx" lesson: a predicate the query must
+    # answer cannot live off a register the query does not carry). The
+    # journal-is-state ruling (doc 09-30/07): a pure query is a DETERMINISTIC
+    # read, not an amnesiac one — the history preds read the same journalled
+    # rows the fingerprint dumps (12b dump()), so replay stays byte-identical.
+    # None only in bare unit-test contexts; the history-backed preds then
+    # raise naming themselves (flag, never guess).
+    journal: EventJournal | None = None
     # 13b: the cast's declared X (CR 601.2f — chosen with the total cost).
     # None means UNDECLARED: resolving a QX raises exactly as before (12c's
     # unbound flag), so every pre-13b path is byte-unchanged; cast() binds
@@ -362,7 +377,14 @@ def eval_filter(filter_: Filter, handle: Handle, ctx: ExecCtx) -> bool:
     SUPERTYPE_EQ (printed type-line words) and FLIP_WON (the executor's flip
     ledger); 13c adds NAME_CONTAINS, IS_ATTACHED_TO_SOURCE (the executor
     attachment table) and makes the TYPE_EQ family read the live
-    GRANT_TYPE overlay. Every other predicate raises
+    GRANT_TYPE overlay. 14d (B-7) adds the query-legal families that were
+    the games' dominant headwall: the world count CONTROLLER_COUNT_GE, and
+    the JOURNAL-BACKED history preds MOVED_TO_ZONE_THIS_TURN,
+    ENTERED_THIS_TURN_FROM, CAST_THIS_TURN_FROM, DIED_THIS_TURN (C18 row)
+    and IS_EXILED_WITH_SOURCE — answered from the executor's journalled
+    rows at EVERY eval entry point (runtime, legality, query, layer,
+    trigger gate), because the journal is state (purity = determinism,
+    not amnesia; doc 09-30/07). Every other predicate raises
     ``NotImplementedError`` naming itself: its completeness is 12c's gate,
     and an unsupported pred is flagged, never guessed.
     """
@@ -509,6 +531,207 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         from MTG_bot.core.executor.selectors import controller_matches
 
         return controller_matches(atom.who, ctx.executor.last_flip_won_by, ctx)
+    if pred is FAtomPred.CONTROLLER_COUNT_GE:
+        # 14d (B-7): "you control four or more <inner>" (Gadrak's attack
+        # gate; the Fabled Passage "Then if you control four or more lands,
+        # untap that land." tail). A WORLD count, not history: the same
+        # battlefield population the CONTROLLER_IS reading defines, under
+        # ctx.controller (the vocab has no who slot — YOU is the ability
+        # controller). Handle-free like FLIP_WON: the same answer for every
+        # candidate the filter gates, and it judges a sacrificed source
+        # correctly (Fabled Passage is already in the graveyard here).
+        assert atom.count is not None
+        threshold = resolve(atom.count, ctx)
+        counted = 0
+        for card in sorted(world.cards):
+            if (
+                world.zone_of(card).kind == ZONE_BATTLEFIELD
+                and world.controller_of(card) == ctx.controller
+                and (
+                    atom.inner_filter is None
+                    or eval_filter(atom.inner_filter, card, ctx)
+                )
+            ):
+                counted += 1
+                if counted >= threshold:
+                    return True
+        return counted >= threshold
+    if pred is FAtomPred.MOVED_TO_ZONE_THIS_TURN:
+        # 14d (B-7): the journal-history family. Necromentia's "-1/-0… for
+        # each card exiled from their hand this way" counts per CANDIDATE
+        # (the QCount Selector filters the exile population card by card);
+        # Barrin's end-step gate ("if a permanent was put into your hand
+        # from the battlefield this turn") is about SOME permanent. The two
+        # honest readings are discriminated by the handle itself: a card
+        # that currently sits in the pred's DESTINATION zone answers for
+        # itself; anything else (the gate's source anchor) is existential.
+        # ZONE_CHANGE rows carry the zone OWNERS in their owner columns
+        # (the 12b snapshot keys zones by player), so both endpoints answer.
+        from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
+        from MTG_bot.core.executor.selectors import (
+            ZONE_KIND_TO_STATE,
+            controller_matches,
+            players_for_ref,
+        )
+
+        assert (
+            atom.from_zone is not None
+            and atom.to_zone is not None
+            and atom.who is not None
+        )
+        who = atom.who  # local bind: the closure reads the narrowed type
+        if any(
+            z.controller is ControllerRef.OWNER for z in (atom.from_zone, atom.to_zone)
+        ):
+            raise NotImplementedError(
+                "executor: MOVED_TO_ZONE_THIS_TURN OWNER zone slots need "
+                "original-owner history (no corpus use — flagged, not guessed)"
+            )
+        to_state = ZONE_KIND_TO_STATE[atom.to_zone.kind]
+        from_state = ZONE_KIND_TO_STATE[atom.from_zone.kind]
+        dest_players = players_for_ref(atom.to_zone.controller, ctx)
+        src_players = players_for_ref(atom.from_zone.controller, ctx)
+
+        def _moved_row(e: GameEvent) -> bool:
+            frm, to, owner_before, owner_after = e.zone_move
+            return (
+                to == to_state
+                and frm == from_state
+                and owner_after in dest_players
+                and owner_before in src_players
+                and controller_matches(who, owner_after, ctx)
+            )
+
+        rows = [
+            e
+            for e in _turn_rows(ctx, pred.name)
+            if e.kind == KIND_ZONE_CHANGE and _moved_row(e)
+        ]
+        in_destination = (
+            handle.namespace == "card"
+            and handle in world.cards
+            and world.zone_of(handle).kind == to_state
+            and world.controller_of(handle) in dest_players
+        )
+        if in_destination:
+            return any(e.subject == handle for e in rows)
+        return any(e.subject is not None for e in rows)
+    if pred is FAtomPred.ENTERED_THIS_TURN_FROM:
+        # 14d (B-7): the ETB-entry twin the Archfiend's Vessel gate compiles
+        # beside CAST_THIS_TURN_FROM ("if it entered from your graveyard or
+        # you cast it from your graveyard") — FOr judges BOTH children, so
+        # the family ships together or the gate still raises. Handle-scoped
+        # by the grammar's own reading ("it entered"): THIS object entered
+        # the battlefield from that zone this turn.
+        from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
+        from MTG_bot.core.executor.selectors import (
+            ZONE_KIND_TO_STATE,
+            players_for_ref,
+        )
+
+        assert atom.zone is not None
+        if atom.zone.controller is ControllerRef.OWNER:
+            raise NotImplementedError(
+                "executor: ENTERED_THIS_TURN_FROM OWNER zone slots need "
+                "original-owner history (no corpus use — flagged, not guessed)"
+            )
+        from_state = ZONE_KIND_TO_STATE[atom.zone.kind]
+        owners = players_for_ref(atom.zone.controller, ctx)
+        for e in _turn_rows(ctx, pred.name):
+            if e.kind != KIND_ZONE_CHANGE or e.subject != handle:
+                continue
+            frm, to, owner_before, _after = e.zone_move
+            if to == ZONE_BATTLEFIELD and frm == from_state and owner_before in owners:
+                return True
+        return False
+    if pred is FAtomPred.CAST_THIS_TURN_FROM:
+        # 14d (B-7): "you cast it from your graveyard" (Archfiend's Vessel),
+        # "if this spell was cast from anywhere other than your hand" (See
+        # the Truth's FNot twin). Handle-scoped over the 13b CAST rows,
+        # whose payload carries (caster, ordinal, spell_kind, from_zone,
+        # x_value) — the from_zone column makes the origin readable after
+        # the spell has moved on.
+        from MTG_bot.core.executor.events import KIND_CAST
+        from MTG_bot.core.executor.selectors import (
+            ZONE_KIND_TO_STATE,
+            controller_matches,
+        )
+
+        assert atom.zone is not None and atom.who is not None
+        from_state = ZONE_KIND_TO_STATE[atom.zone.kind]
+        for e in _turn_rows(ctx, pred.name):
+            if e.kind != KIND_CAST or e.subject != handle:
+                continue
+            caster, _ordinal, _kind, row_from, _x = e.cast
+            if row_from != from_state:
+                continue
+            if not controller_matches(atom.who, caster, ctx):
+                continue
+            if atom.zone.controller is ControllerRef.OWNER:
+                # "from its owner's zone": the caster is the owner-side
+                # witness (a spell sits in its caster's stack seat).
+                if handle not in world.cards or caster != world.controller_of(handle):
+                    continue
+            elif not controller_matches(atom.zone.controller, caster, ctx):
+                continue
+            return True
+        return False
+    if pred is FAtomPred.DIED_THIS_TURN:
+        # 14d (B-7): the C18 row. CREATURE_DIES carries the was-snapshot
+        # (type line + effective P/T AT EVENT TIME), which is exactly how a
+        # "nontoken creature that died this turn" count answers after the
+        # world has moved the card (Gadrak's end-step Treasures — 9 goldens
+        # compile the pred). The snapshot's own consumers are this row
+        # lookup and the binder's event matcher (12b): the frozen FAtomPred
+        # vocabulary has no WAS_* member (verified — the evidence brief's
+        # "WAS_TYPE" guess does not exist in the grammar), and C12 forbids
+        # inventing one off English substrings.
+        from MTG_bot.core.executor.events import KIND_CREATURE_DIES
+
+        return any(
+            e.kind == KIND_CREATURE_DIES and e.subject == handle
+            for e in _turn_rows(ctx, pred.name)
+        )
+    if pred is FAtomPred.IS_EXILED_WITH_SOURCE:
+        # 14d (B-7): "cards exiled with ~" (Idol of Endurance, Chandra,
+        # Heart of Fire; the Necromentia name-exile station's sibling).
+        # WORLD half: the card is in exile NOW. HISTORY half: the source
+        # CAUSED the exile — the 12b diff-inspect writes the acting
+        # ability's source into the cause column, so "exiled with this
+        # artifact" is a cause read, not a heuristic. NOT turn-windowed:
+        # an exile-with persists across turns (the world half prunes what
+        # has since moved on).
+        from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
+
+        jrn = ctx.journal
+        if jrn is None:
+            raise NotImplementedError(
+                "executor: filter pred IS_EXILED_WITH_SOURCE reads the "
+                "journalled exile history (this ExecCtx has no journal)"
+            )
+        if handle not in world.cards or world.zone_of(handle).kind != ZONE_EXILE:
+            return False
+        return any(
+            e.kind == KIND_ZONE_CHANGE
+            and e.subject == handle
+            and e.zone_move[1] == ZONE_EXILE
+            and e.cause == ctx.source
+            for e in jrn.events
+        )
     raise NotImplementedError(
         f"executor: filter pred {pred.name} not implemented (12c query surface)"
     )
+
+
+def _turn_rows(ctx: ExecCtx, pred_name: str) -> list[GameEvent]:
+    """The current turn's journal rows a history predicate answers against
+    (14d, B-7). No journal on the ctx means no answer: the raise names the
+    predicate (the FLIP_WON/NAME_CHOSEN convention — an unanswered question
+    is flagged, never a guessed False)."""
+    jrn = ctx.journal
+    if jrn is None:
+        raise NotImplementedError(
+            f"executor: filter pred {pred_name} reads the journalled turn "
+            "history (this ExecCtx has no journal)"
+        )
+    return jrn.turn_window()

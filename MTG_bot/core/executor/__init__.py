@@ -397,6 +397,10 @@ class Executor:
             executor=self,
             x_value=x_value,
             stream=self.decisions,
+            # 14d (B-7): the journal rides on every effect context too (the
+            # history preds answer identically from a query ctx or a firing
+            # ctx — §8.3 query/runtime identity over the SAME rows).
+            journal=self.journal,
         )
 
     def _cast_ctx(

@@ -704,6 +704,9 @@ class TriggerBinder:
             layers=ex.layers,
             replacements=ex.replacements,
             executor=ex,
+            # 14d (B-7): the firing ctx reads the SAME journal the matcher
+            # is draining (history preds at a trigger's condition gate).
+            journal=ex.journal,
         )
 
     # ------------------------------------------------------ delayed (C22)

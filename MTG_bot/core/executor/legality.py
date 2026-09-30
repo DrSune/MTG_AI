@@ -309,6 +309,10 @@ def ctx_for(
         executor=executor,
         x_value=x_value,
         stream=executor.decisions,
+        # 14d (B-7): the journal binds into the QUERY context as well —
+        # journal-aware eval at every entry point. Purity holds: the journal
+        # is state, the read is deterministic and fingerprinted (12b dump).
+        journal=executor.journal,
     )
 
 

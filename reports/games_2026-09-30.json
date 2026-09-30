@@ -5,23 +5,24 @@
  "playable_engine": 88,
  "n_games": 10,
  "turn_cap": 60,
- "survived": 0,
- "survival_pct": 0.0,
- "mean_turns": 14.0,
- "max_turns": 34,
- "total_acts": 382,
+ "survived": 1,
+ "survival_pct": 10.0,
+ "mean_turns": 30.6,
+ "max_turns": 60,
+ "total_acts": 907,
  "multi_target_skips": 3,
- "infeasible_skips": 57,
- "player_target_designations": 1,
- "coverage_fired": 33,
- "coverage_fired_of_pool_pct": 37.5,
- "coverage_fired_of_engine_pct": 12.4,
- "coverage_battlefield": 22,
+ "infeasible_skips": 116,
+ "player_target_designations": 5,
+ "coverage_fired": 43,
+ "coverage_fired_of_pool_pct": 48.9,
+ "coverage_fired_of_engine_pct": 16.1,
+ "coverage_battlefield": 25,
  "fired_of_engine": [
   "Animal Sanctuary",
   "Bad Deal",
   "Bloodfell Caves",
   "Blossoming Sands",
+  "Crash Through",
   "Cultivate",
   "Dismal Backwater",
   "Fabled Passage",
@@ -31,14 +32,20 @@
   "Island",
   "Jungle Hollow",
   "Life Goes On",
+  "Mind Rot",
   "Mountain",
+  "Necromentia",
   "Opt",
   "Peer into the Abyss",
   "Plains",
   "Radiant Fountain",
   "Rain of Revelation",
+  "Read the Tides",
+  "Rugged Highlands",
   "Scoured Barrens",
+  "Secure the Scene",
   "See the Truth",
+  "Sparkhunter Masticore",
   "Swamp",
   "Swiftwater Cliffs",
   "Temple of Epiphany",
@@ -49,51 +56,26 @@
   "Thornwood Falls",
   "Thrill of Possibility",
   "Tranquil Cove",
+  "Turn to Slag",
+  "Unsubstantiate",
+  "Volcanic Salvo",
   "Waker of Waves",
   "Wind-Scarred Crag"
  ],
- "crash_games": 10,
+ "crash_games": 7,
  "crashes": [
   {
    "exc": "NotImplementedError",
-   "message": "executor: SelectorMode.REST designation is 12c's target prompt",
-   "frame": "selectors.py:211 in resolve_selector",
+   "message": "executor: selector referent 'result' only resolves inside a trigger firing (no event register)",
+   "frame": "selectors.py:219 in resolve_selector",
    "count": 3,
    "seeds": [
-    1,
-    5,
-    6
-   ],
-   "cards": [
-    "T21.act:Wind-Scarred Crag(#2)",
-    "T6.end",
-    "T7.end",
-    "T7.land:Temple of Mystery",
-    "T8.act:Temple of Mystery(#2)",
-    "cast:Cultivate",
-    "cast:See the Truth",
-    "cast:Waker of Waves"
-   ],
-   "attempted": "cast:See the Truth",
-   "recent_acts": [
-    "land:Temple of Triumph",
-    "land:Temple of Mystery",
-    "act:Temple of Mystery(#2)"
-   ],
-   "stack": [],
-   "repro": "python -m MTG_bot.core.executor.games --pool castable --deck-pairs-seed 1409 --turns 60 --repro 1"
-  },
-  {
-   "exc": "NotImplementedError",
-   "message": "executor: selector referent 'result' only resolves inside a trigger firing (no event register)",
-   "frame": "selectors.py:177 in resolve_selector",
-   "count": 2,
-   "seeds": [
     0,
+    1,
     8
    ],
    "cards": [
-    "T10.act:Animal Sanctuary(#0)",
+    "T12.act:Temple of Triumph(#2)",
     "T35.act:Radiant Fountain(#1)",
     "T35.act:Temple of Mystery(#2)",
     "T35.act:Tranquil Cove(#2)",
@@ -114,16 +96,17 @@
   {
    "exc": "NotImplementedError",
    "message": "executor: FLIP_WON needs an executor flip ledger with a recorded FLIP_COIN (bare ExecCtx / no flip yet)",
-   "frame": "quantity.py:497 in _eval_atom",
-   "count": 2,
+   "frame": "quantity.py:526 in _eval_atom",
+   "count": 3,
    "seeds": [
+    2,
     3,
     7
    ],
    "cards": [
-    "T11.act:Temple of Epiphany(#2)",
-    "T11.end",
-    "T12.act:Island(#0)",
+    "T47.act:Scoured Barrens(#2)",
+    "T47.act:Wind-Scarred Crag(#2)",
+    "T47.cast:Secure the Scene(1t)",
     "T9.act:Bloodfell Caves(#2)",
     "T9.act:Island(#0)",
     "T9.cast:Rain of Revelation(0t)",
@@ -132,69 +115,42 @@
    ],
    "attempted": "cast:Tavern Swindler",
    "recent_acts": [
-    "act:Temple of Epiphany(#2)",
-    "act:Mountain(#0)",
-    "act:Island(#0)"
-   ],
-   "stack": [],
-   "repro": "python -m MTG_bot.core.executor.games --pool castable --deck-pairs-seed 1409 --turns 60 --repro 3"
-  },
-  {
-   "exc": "NotImplementedError",
-   "message": "executor: filter pred CONTROLLER_COUNT_GE not implemented (12c query surface)",
-   "frame": "quantity.py:505 in _eval_atom",
-   "count": 2,
-   "seeds": [
-    4,
-    9
-   ],
-   "cards": [
-    "T3.end",
-    "T4.act:Temple of Malady(#2)",
-    "T4.end",
-    "T4.land:Fabled Passage",
-    "T5.act:Swamp(#0)",
-    "T5.act:Temple of Mystery(#2)",
-    "T5.land:Temple of Mystery",
-    "act:Fabled Passage#0"
-   ],
-   "attempted": "act:Fabled Passage#0",
-   "recent_acts": [
-    "act:Island(#0)",
-    "land:Fabled Passage",
-    "act:Temple of Malady(#2)"
-   ],
-   "stack": [],
-   "repro": "python -m MTG_bot.core.executor.games --pool castable --deck-pairs-seed 1409 --turns 60 --repro 4"
-  },
-  {
-   "exc": "ValueError",
-   "message": "executor: DISCARD card card:15 is not in player:1's hand",
-   "frame": "verbs.py:160 in _v_discard",
-   "count": 1,
-   "seeds": [
-    2
-   ],
-   "cards": [
-    "T31.act:Jungle Hollow(#2)",
-    "T31.act:Radiant Fountain(#1)",
-    "T31.act:Temple of Epiphany(#2)",
-    "T31.act:Wind-Scarred Crag(#2)",
-    "cast:Bad Deal"
-   ],
-   "attempted": "cast:Bad Deal",
-   "recent_acts": [
-    "act:Radiant Fountain(#1)",
-    "act:Temple of Epiphany(#2)",
-    "act:Jungle Hollow(#2)"
+    "cast:Secure the Scene(1t)",
+    "act:Scoured Barrens(#2)",
+    "act:Plains(#0)"
    ],
    "stack": [],
    "repro": "python -m MTG_bot.core.executor.games --pool castable --deck-pairs-seed 1409 --turns 60 --repro 2"
+  },
+  {
+   "exc": "NotImplementedError",
+   "message": "executor: filter pred POWER_GE not implemented (12c query surface)",
+   "frame": "quantity.py:721 in _eval_atom",
+   "count": 1,
+   "seeds": [
+    4
+   ],
+   "cards": [
+    "T31.end",
+    "T32.act:Plains(#0)",
+    "T32.act:Temple of Malady(#2)",
+    "T32.cast:Cultivate(0t)",
+    "cast:Legion's Judgment"
+   ],
+   "attempted": "cast:Legion's Judgment",
+   "recent_acts": [
+    "act:Temple of Malady(#2)",
+    "cast:Cultivate(0t)",
+    "act:Plains(#0)"
+   ],
+   "stack": [],
+   "repro": "python -m MTG_bot.core.executor.games --pool castable --deck-pairs-seed 1409 --turns 60 --repro 4"
   }
  ],
  "reasons": {
-  "crash:NotImplementedError": 9,
-  "crash:ValueError": 1
+  "crash:NotImplementedError": 7,
+  "game over: player:0": 2,
+  "turn cap 60 reached": 1
  },
  "rows": [
   {
@@ -210,7 +166,7 @@
    "crash": {
     "exc": "NotImplementedError",
     "message": "executor: selector referent 'result' only resolves inside a trigger firing (no event register)",
-    "frame": "selectors.py:177 in resolve_selector",
+    "frame": "selectors.py:219 in resolve_selector",
     "turn": 34,
     "attempted": "cast:Seasoned Hallowblade",
     "recent_acts": [
@@ -225,22 +181,22 @@
   {
    "seed": 1,
    "pool": "castable",
-   "turns": 7,
+   "turns": 11,
    "survived": false,
    "reason": "crash:NotImplementedError",
-   "acts": 10,
-   "fired": 4,
+   "acts": 21,
+   "fired": 8,
    "coverage_error": "",
-   "fingerprint": "548f0a44d6111eddbf871b97544f0ff49fea00a08750e872f2a3724d7990f197",
+   "fingerprint": "093a12ba63789acca657f5ea3273f274cf1e516f50222f295f1a9b3c50903f1d",
    "crash": {
     "exc": "NotImplementedError",
-    "message": "executor: SelectorMode.REST designation is 12c's target prompt",
-    "frame": "selectors.py:211 in resolve_selector",
-    "turn": 7,
-    "attempted": "cast:See the Truth",
+    "message": "executor: selector referent 'result' only resolves inside a trigger firing (no event register)",
+    "frame": "selectors.py:219 in resolve_selector",
+    "turn": 11,
+    "attempted": "cast:Seasoned Hallowblade",
     "recent_acts": [
-     "land:Temple of Triumph",
-     "land:Temple of Mystery",
+     "act:Mountain(#0)",
+     "act:Temple of Triumph(#2)",
      "act:Temple of Mystery(#2)"
     ],
     "stack": [],
@@ -250,23 +206,23 @@
   {
    "seed": 2,
    "pool": "castable",
-   "turns": 30,
+   "turns": 46,
    "survived": false,
-   "reason": "crash:ValueError",
-   "acts": 110,
-   "fired": 15,
+   "reason": "crash:NotImplementedError",
+   "acts": 176,
+   "fired": 23,
    "coverage_error": "",
-   "fingerprint": "d3ffd429be0acbd0f1620a5bba4e600bd71ecd7595ca5c5a54d1a215aab2e616",
+   "fingerprint": "338b4c40462d14d8294b850bc4f5a0b4f75eba33bf9cedc53e7257ae9024007d",
    "crash": {
-    "exc": "ValueError",
-    "message": "executor: DISCARD card card:15 is not in player:1's hand",
-    "frame": "verbs.py:160 in _v_discard",
-    "turn": 30,
-    "attempted": "cast:Bad Deal",
+    "exc": "NotImplementedError",
+    "message": "executor: FLIP_WON needs an executor flip ledger with a recorded FLIP_COIN (bare ExecCtx / no flip yet)",
+    "frame": "quantity.py:526 in _eval_atom",
+    "turn": 46,
+    "attempted": "cast:Tavern Swindler",
     "recent_acts": [
-     "act:Radiant Fountain(#1)",
-     "act:Temple of Epiphany(#2)",
-     "act:Jungle Hollow(#2)"
+     "cast:Secure the Scene(1t)",
+     "act:Scoured Barrens(#2)",
+     "act:Plains(#0)"
     ],
     "stack": [],
     "repro": "python -m MTG_bot.core.executor.games --pool castable --deck-pairs-seed 1409 --turns 60 --repro 2"
@@ -285,7 +241,7 @@
    "crash": {
     "exc": "NotImplementedError",
     "message": "executor: FLIP_WON needs an executor flip ledger with a recorded FLIP_COIN (bare ExecCtx / no flip yet)",
-    "frame": "quantity.py:497 in _eval_atom",
+    "frame": "quantity.py:526 in _eval_atom",
     "turn": 11,
     "attempted": "cast:Tavern Swindler",
     "recent_acts": [
@@ -300,23 +256,23 @@
   {
    "seed": 4,
    "pool": "castable",
-   "turns": 3,
+   "turns": 31,
    "survived": false,
    "reason": "crash:NotImplementedError",
-   "acts": 8,
-   "fired": 4,
+   "acts": 66,
+   "fired": 16,
    "coverage_error": "",
-   "fingerprint": "54cb9a60e00eda4feac245bcb231771c675d11be864bce4d4f07e8cd6a134ab7",
+   "fingerprint": "bafd5c8e2d559b5dc83d659ab76d8975b98048c7a02c7d3d0b60388d71777ecd",
    "crash": {
     "exc": "NotImplementedError",
-    "message": "executor: filter pred CONTROLLER_COUNT_GE not implemented (12c query surface)",
-    "frame": "quantity.py:505 in _eval_atom",
-    "turn": 3,
-    "attempted": "act:Fabled Passage#0",
+    "message": "executor: filter pred POWER_GE not implemented (12c query surface)",
+    "frame": "quantity.py:721 in _eval_atom",
+    "turn": 31,
+    "attempted": "cast:Legion's Judgment",
     "recent_acts": [
-     "act:Island(#0)",
-     "land:Fabled Passage",
-     "act:Temple of Malady(#2)"
+     "act:Temple of Malady(#2)",
+     "cast:Cultivate(0t)",
+     "act:Plains(#0)"
     ],
     "stack": [],
     "repro": "python -m MTG_bot.core.executor.games --pool castable --deck-pairs-seed 1409 --turns 60 --repro 4"
@@ -325,52 +281,26 @@
   {
    "seed": 5,
    "pool": "castable",
-   "turns": 20,
+   "turns": 45,
    "survived": false,
-   "reason": "crash:NotImplementedError",
-   "acts": 58,
-   "fired": 11,
+   "reason": "game over: player:0(draw from empty library (CR 121.3))",
+   "acts": 133,
+   "fired": 23,
    "coverage_error": "",
-   "fingerprint": "6000654fefec203bf7cea44b8b57d8d6138938ccda124c32204b52a0ea82b010",
-   "crash": {
-    "exc": "NotImplementedError",
-    "message": "executor: SelectorMode.REST designation is 12c's target prompt",
-    "frame": "selectors.py:211 in resolve_selector",
-    "turn": 20,
-    "attempted": "cast:Waker of Waves",
-    "recent_acts": [
-     "act:Wind-Scarred Crag(#2)",
-     "act:Jungle Hollow(#2)",
-     "act:Plains(#0)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool castable --deck-pairs-seed 1409 --turns 60 --repro 5"
-   }
+   "fingerprint": "ee933fe4fab4863b1c33964d1b7eb6cc59d5472fe5cfd4887c9b58e8b1ab5b88",
+   "crash": null
   },
   {
    "seed": 6,
    "pool": "castable",
-   "turns": 14,
+   "turns": 51,
    "survived": false,
-   "reason": "crash:NotImplementedError",
-   "acts": 33,
-   "fired": 9,
+   "reason": "game over: player:0(draw from empty library (CR 121.3))",
+   "acts": 163,
+   "fired": 24,
    "coverage_error": "",
-   "fingerprint": "fb0405afb98a5c9183d0c95722df38fd94ff3348398920165c829e0957e565bd",
-   "crash": {
-    "exc": "NotImplementedError",
-    "message": "executor: SelectorMode.ONE_OF designation is 12c's target prompt",
-    "frame": "selectors.py:211 in resolve_selector",
-    "turn": 14,
-    "attempted": "cast:Cultivate",
-    "recent_acts": [
-     "act:Forest(#0)",
-     "act:Wind-Scarred Crag(#2)",
-     "act:Radiant Fountain(#1)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool castable --deck-pairs-seed 1409 --turns 60 --repro 6"
-   }
+   "fingerprint": "7329c7989fecebf1e672a0d140e5c6e8758b5321f2fc56d09239c1a6d922f105",
+   "crash": null
   },
   {
    "seed": 7,
@@ -385,7 +315,7 @@
    "crash": {
     "exc": "NotImplementedError",
     "message": "executor: FLIP_WON needs an executor flip ledger with a recorded FLIP_COIN (bare ExecCtx / no flip yet)",
-    "frame": "quantity.py:497 in _eval_atom",
+    "frame": "quantity.py:526 in _eval_atom",
     "turn": 8,
     "attempted": "cast:Tavern Swindler",
     "recent_acts": [
@@ -410,7 +340,7 @@
    "crash": {
     "exc": "NotImplementedError",
     "message": "executor: selector referent 'result' only resolves inside a trigger firing (no event register)",
-    "frame": "selectors.py:177 in resolve_selector",
+    "frame": "selectors.py:219 in resolve_selector",
     "turn": 9,
     "attempted": "cast:Seasoned Hallowblade",
     "recent_acts": [
@@ -425,31 +355,18 @@
   {
    "seed": 9,
    "pool": "castable",
-   "turns": 4,
-   "survived": false,
-   "reason": "crash:NotImplementedError",
-   "acts": 8,
-   "fired": 3,
+   "turns": 60,
+   "survived": true,
+   "reason": "turn cap 60 reached (no loser)",
+   "acts": 193,
+   "fired": 19,
    "coverage_error": "",
-   "fingerprint": "b98c2a01ef60538a02a2e316c02e1a774dd5f421fcd479297c9e4ad74fa632b1",
-   "crash": {
-    "exc": "NotImplementedError",
-    "message": "executor: filter pred CONTROLLER_COUNT_GE not implemented (12c query surface)",
-    "frame": "quantity.py:505 in _eval_atom",
-    "turn": 4,
-    "attempted": "act:Fabled Passage#0",
-    "recent_acts": [
-     "land:Temple of Mystery",
-     "act:Temple of Mystery(#2)",
-     "act:Swamp(#0)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool castable --deck-pairs-seed 1409 --turns 60 --repro 9"
-   }
+   "fingerprint": "d40a8d11441122f7e2891b351de30cc06ff4ea987eaeb8c9c5d6883e6e2acd0f",
+   "crash": null
   }
  ],
  "pool_compile_seconds": 0.19,
- "wall_seconds": 1.21,
+ "wall_seconds": 2.78,
  "argv": [
   "--seeds",
   "10",

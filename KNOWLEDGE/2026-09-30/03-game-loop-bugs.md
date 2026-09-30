@@ -237,3 +237,26 @@ outside firing **3** (unchanged, open); B-17 **3** (design-level above); new cla
 Gate: core **2001 passed** (+5 pins vs 1996), PC-1 0.9869 / PC-2 0.9922 / PC-3 0 /
 PC-4 0-diff EXACT (grammar untouched), pyright 0, ruff delta 0 (executor statistics
 byte-identical to stock).
+
+---
+
+## Round 14d close-out (same day) — the B-7 journal family + B-19 close; PC-7 v1.2 = 60%
+
+**STATUS FLIPS (supersede the 14c rows; details + design note in /07):**
+
+| class | status after 14d | fix | pinned |
+|---|---|---|---|
+| **B-7 filter-pred family** | **FIXED (as demanded by games)** | `ExecCtx.journal` bound at EVERY ctx site (executor/query/legality/binder/layers — "journal-is-state": purity = determinism, not amnesia; doc /07); CONTROLLER_COUNT_GE (world count), MOVED_TO_ZONE_THIS_TURN (handle-scoped vs gate-existential, discriminated by the handle sitting in the destination zone), ENTERED_THIS_TURN_FROM, CAST_THIS_TURN_FROM (13b CAST rows), DIED_THIS_TURN (C18 rows — NO WAS_* pred exists in the frozen vocab, verified), IS_EXILED_WITH_SOURCE (world half + whole-journal cause read). Bare ctx still raises naming the pred (no half-preds); TURN_OF/ZONE_COUNT_GE/WAS_CAST/etc. stay loud (games never demanded them). **NEW faces of the same raise: POWER_GE (2), CMC_LE (1)** — world-evaluable twins, next round's small fix | `test_b7_controller_count_ge…` (AMENDED green), `test_new_moved_to_zone…` (AMENDED: answers False on empty history; FLIP_WON leg unchanged), `Round14dJournalTest` ×4 positive + bare-ctx pin |
+| **B-19 Zone(STACK) runtime** | **FIXED** | `enumerate_zone` STACK branch enumerates parked frames via `stack.stack_zone` (F-2's source, §8.3 identity; TOP = top frame; OWNER keeps the honest 12b raise) | `test_new_zone_stack_runtime_enumeration_raises` (AMENDED green: park→MOVE_ZONE→hand) + OWNER/empty legs |
+| **B-17 activation tail** | **OPEN — SCOPE-STOP per ruling** | Inventory (305-card sweep, /tmp/opencode/inventory_r14d_b17.py): Tavern Swindler + Waker of Waves clean tails WOULD fix; **Seasoned Hallowblade ruling-collision** (printed "Discard a card: Tap…It gains indestructible…" IS an activation tail, but capturing it is forbidden by the 14c ruling and does NOT fix it — the GRANT reads the `result` referent = B-9); **Chandra [−9] "Add six {R}." boundary-ambiguous** (the empty-cost OPT(CAST) permission idiom breaks the r11 loyalty chain — the specified matcher mis-captures it). STOP condition fired (ambiguity + collision): compiler/goldens/PC UNTOUCHED, raise pins stand. Next: adjudicate (b)-style exempt-idiom matcher + Hallowblade jointly with B-9 | eval-side raise pins unchanged (2 engine30, 3 castable10) |
+
+**14d re-measure (same recipe):** all 2→**8/10** (52.6t, cov46); engine 6→**7/10** (53.5t,
+cov46); castable 0→**1/10** (30.6t, cov43); **engine 30 seeds 10/30→18/30 (60.0%),
+mean 48.5t, cov 60 cards, 3004 acts**. PC-7 v1.1→**v1.2 60.0%**. Crash recount
+(10-pools 22→**11**; engine30 11): B-7-family + B-19 GONE; wall now **B-9 result-referent
+at cast — 8/11 engine30, new face `cast:Feat of Resistance`** + Hallowblade kin;
+B-17 2; POWER_GE/CMC_LE 2+1; FIGHT 1.
+
+Gates: core **2007** (+6 pins, 3 frozen AMENDED), PC-1/2/3/4 EXACT (goldens never
+moved), pyright 0 (edited scope; repo delta 0 = 524→524), ruff delta 0, replay
+determinism green.

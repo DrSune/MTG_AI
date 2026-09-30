@@ -77,7 +77,7 @@ from MTG_bot.core.executor.games import (
     run_games,
 )
 from MTG_bot.core.executor.legality import ctx_for
-from MTG_bot.core.executor.quantity import eval_filter
+from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
 from MTG_bot.core.executor.query import (
     legal_targets,
     optional_offer,
@@ -371,13 +371,12 @@ class CrashLedgerTest(unittest.TestCase):
             self.assertNotIn("SCRY decision", crash["message"])
 
     def test_b7_controller_count_ge_filter_raises_from_the_query(self) -> None:
-        """B-7 OPEN. Fabled Passage's land-swap reads 'if you control more
-        lands' — CONTROLLER_COUNT_GE is unimplemented in the predicate
-        evaluator, reached through the query/activation path for a card the
-        engine flags as supported, so asking the question costs a raise.
-        AMENDED 14b (was: seed-pinned through a policy path): pinned DIRECTLY
-        on the card's own Conditional predicate — deterministic,
-        path-independent, and it raises through the SAME evaluator."""
+        """B-7 CONTAINER — FIXED 14d (was: the query raised for an
+        engine-supported card). AMENDED 14d (was: assertRaises on the same
+        direct path; the row text below kept as history). The world-count
+        version of CONTROLLER_COUNT_GE answers at the SAME query entry
+        point (ctx_for now carries the journal, and this pred is pure
+        world-state): 3 lands < 4 is False, and the 4th land flips it."""
         supply = get_supply("all")
         record = _record_named(supply, "Fabled Passage")
         pred = next(
@@ -397,9 +396,22 @@ class CrashLedgerTest(unittest.TestCase):
         executor.attach_pool(supply.pool)
         permanent = world.add_card(identity_of(record), p0, ZONE_BATTLEFIELD)
         ctx = ctx_for(executor, source=permanent, controller=p0)
-        with self.assertRaises(NotImplementedError) as cm:
-            eval_filter(pred, permanent, ctx)
-        self.assertIn("CONTROLLER_COUNT_GE", str(cm.exception))
+        self.assertFalse(eval_filter(pred, permanent, ctx))  # 1 land (itself)
+        for i in range(2):
+            world.add_card(
+                CardIdentity(
+                    oracle_id=_oid(400 + i), name=f"Plot {i}", type_line="Land"
+                ),
+                p0,
+                ZONE_BATTLEFIELD,
+            )
+        self.assertFalse(eval_filter(pred, permanent, ctx))  # 3 lands < 4
+        world.add_card(
+            CardIdentity(oracle_id=_oid(403), name="Plot 4", type_line="Land"),
+            p0,
+            ZONE_BATTLEFIELD,
+        )
+        self.assertTrue(eval_filter(pred, permanent, ctx))  # 4 lands >= 4
 
     def test_b8_target_player_coordinate_rides_the_synthesized_slot(self) -> None:
         """B-8/B-5 CLOSED 14b. 'target opponent' compiles to a
@@ -813,13 +825,14 @@ class Round14cFixTest(unittest.TestCase):
         self.assertEqual(world.players[p1].zone(ZONE_HAND).entries, [])
 
     def test_new_moved_to_zone_this_turn_pred_stays_unimplemented(self) -> None:
-        """NEW class pin (surfaces once B-16 closes): Necromentia's
-        CREATE_TOKEN count filters MOVED_TO_ZONE_THIS_TURN, which the
-        closed filter vocabulary does not implement — loud, never guessed
-        (the B-7 predicate-completeness family). CAST_THIS_TURN_FROM
-        (Juggernaut's kin, castable pool) is the same family's next
-        member; FLIP_WON with NO recorded flip (B-17, the misplaced
-        conditional tail) answers through the SAME raise shape."""
+        """B-7 FAMILY — FIXED 14d. AMENDED 14d (was: both history preds
+        RAISED through the ctx_for path — the dominant games class, 13/22
+        crashes). The journal now rides every ExecCtx (query included), so
+        the preds ANSWER: with no matching journalled row this turn the
+        honest answer is False (the history is a record, and an empty
+        record is an answer — unlike FLIP_WON's no-antecedent raise, which
+        stands below unchanged). Positive legs live in
+        Round14dJournalTest (real moves/casts make the same preds True)."""
         world, executor = self._world()
         p0 = world.player_order[0]
         card = world.add_card(
@@ -848,39 +861,343 @@ class Round14cFixTest(unittest.TestCase):
             ),
         )
         for pred, filt in cases:
-            with self.assertRaises(NotImplementedError) as cm:
-                eval_filter(filt, card, ctx)
-            self.assertIn(pred.name, str(cm.exception))
+            self.assertFalse(eval_filter(filt, card, ctx))  # no row = no move
         with self.assertRaises(NotImplementedError) as cm:
             eval_filter(FAtom(FAtomPred.FLIP_WON, who=ControllerRef.YOU), card, ctx)
         self.assertIn("FLIP_WON", str(cm.exception))  # B-17, no flip yet
 
-    def test_new_zone_stack_runtime_enumeration_raises(self) -> None:
-        """NEW class pin (14c, the B-2 runtime twin): B-2 closed the QUERY
-        side (legal_targets reads the stack frames), but RUNTIME
-        enumeration of Zone(STACK) has no ZONE_KIND_TO_STATE entry, so an
-        Unsubstantiate-shape MOVE_ZONE dies with a bare KeyError (not even
-        a NotImplementedError). Loud by accident, pinned deliberately —
-        the runtime stack enumeration is the next round's small fix."""
+    def test_b7_history_preds_stay_loud_on_a_bare_ctx(self) -> None:
+        """The no-half-preds rule: a context that carries NO journal cannot
+        answer a history predicate, and must raise naming the pred (the
+        FLIP_WON / NAME_CHOSEN convention). Only the 14d family is answered
+        here; the untouched members of the vocab still raise."""
         world, executor = self._world()
         p0 = world.player_order[0]
-        with self.assertRaises(KeyError) as cm:
+        card = world.add_card(
+            CardIdentity(oracle_id=_oid(96), name="Bare", type_line="Creature"),
+            p0,
+            ZONE_EXILE,
+        )
+        bare = ExecCtx(
+            world=world,
+            ledger=executor.ledger,
+            controller=p0,
+            source=p0,
+            bindings={},
+            decisions=(),
+        )
+        self.assertIsNone(bare.journal)
+        for filt in (
+            FAtom(FAtomPred.DIED_THIS_TURN),
+            FAtom(
+                FAtomPred.MOVED_TO_ZONE_THIS_TURN,
+                who=ControllerRef.YOU,
+                from_zone=Zone(ZoneKind.HAND, ControllerRef.YOU),
+                to_zone=Zone(ZoneKind.EXILE, ControllerRef.YOU),
+            ),
+            FAtom(
+                FAtomPred.CAST_THIS_TURN_FROM,
+                who=ControllerRef.YOU,
+                zone=Zone(ZoneKind.HAND, ControllerRef.YOU),
+            ),
+            FAtom(
+                FAtomPred.ENTERED_THIS_TURN_FROM,
+                zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+            ),
+            FAtom(FAtomPred.IS_EXILED_WITH_SOURCE),
+        ):
+            with self.assertRaises(NotImplementedError) as cm:
+                eval_filter(filt, card, bare)
+            self.assertIn(filt.pred.name, str(cm.exception))
+        # a vocab member 14d did NOT implement (games never demanded it)
+        with self.assertRaises(NotImplementedError) as cm:
+            eval_filter(FAtom(FAtomPred.TURN_OF, who=ControllerRef.YOU), card, bare)
+        self.assertIn("TURN_OF", str(cm.exception))
+
+    def test_new_zone_stack_runtime_enumeration_raises(self) -> None:
+        """B-19 — FIXED 14d. AMENDED 14d (was: an Unsubstantiate-shape
+        MOVE_ZONE over Zone(STACK) died with a bare KeyError, B-2's runtime
+        twin). Runtime enumeration now reads the parked frames through
+        stack.stack_zone (the SAME source legal_targets has read since the
+        14a F-2 fix), so the spell returns to its owner's hand."""
+        world, executor = self._world()
+        p0 = world.player_order[0]
+        spell = world.add_card(
+            CardIdentity(oracle_id=_oid(97), name="Counterspell", type_line="Instant"),
+            p0,
+            ZONE_HAND,
+        )
+        park(executor, p0, spell)
+        self.assertEqual(world.zone_of(spell).kind, "stack")
+        executor.apply_effect(
+            _atom(
+                Verb.MOVE_ZONE,
+                cards=Selector(
+                    QConst(1),
+                    SelectorMode.TARGET,
+                    UNIV,
+                    Zone(ZoneKind.STACK, ControllerRef.ANY),
+                ),
+                destination=Zone(ZoneKind.HAND, ControllerRef.OWNER),
+            ),
+            source=p0,
+            controller=p0,
+            bindings={"target": [spell]},
+        )
+        self.assertEqual(world.zone_of(spell).kind, ZONE_HAND)
+
+    def test_b19_stack_enumeration_owner_scope_stays_loud(self) -> None:
+        """The honest half of the B-19 fix: OWNER-scoped STACK enumeration
+        keeps the 12b selector raise (every zone carries that flag at
+        runtime), and an empty designation over the stack resolves to
+        nothing, not a crash."""
+        world, executor = self._world()
+        p0 = world.player_order[0]
+        with self.assertRaises(NotImplementedError) as cm:
             executor.apply_effect(
                 _atom(
                     Verb.MOVE_ZONE,
                     cards=Selector(
                         QConst(1),
-                        SelectorMode.TARGET,
+                        SelectorMode.ALL,
                         UNIV,
-                        Zone(ZoneKind.STACK, ControllerRef.ANY),
+                        Zone(ZoneKind.STACK, ControllerRef.OWNER),
                     ),
-                    destination=Zone(ZoneKind.HAND, ControllerRef.OWNER),
+                    destination=Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
                 ),
                 source=p0,
                 controller=p0,
-                bindings={"target": []},
             )
-        self.assertIn("STACK", str(cm.exception))
+        self.assertIn("OWNER in selector enumeration", str(cm.exception))
+        executor.apply_effect(  # empty designation: no-op, never a KeyError
+            _atom(
+                Verb.MOVE_ZONE,
+                cards=Selector(
+                    QConst(1),
+                    SelectorMode.TARGET,
+                    UNIV,
+                    Zone(ZoneKind.STACK, ControllerRef.ANY),
+                ),
+                destination=Zone(ZoneKind.HAND, ControllerRef.OWNER),
+            ),
+            source=p0,
+            controller=p0,
+            bindings={"target": []},
+        )
+
+
+class Round14dJournalTest(unittest.TestCase):
+    """Round-14d B-7 close-out pins: one POSITIVE green test per
+    journal-backed predicate the games actually hit (the ledger's 13/22
+    dominant class), driven by REAL journalled atoms — plus the C18-row
+    dies test and the cross-turn exile-with persistence. The turn window
+    is begin_turn's UPKEEP marker (events.py turn_window)."""
+
+    def _world(self, seed: int = 7) -> tuple[GameWorld, Executor]:
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=seed)
+        return world, Executor(world)
+
+    def test_moved_to_zone_handle_and_gate_readings(self) -> None:
+        """MOVED_TO_ZONE_THIS_TURN (Necromentia's count + Barrin's gate):
+        a real hand->exile atom makes the CANDIDATE leg true for the card
+        that moved (a second exiled card is not), the gate leg existential
+        for a battlefield anchor, and both legs false once the turn
+        window turns over (advance_turn)."""
+        world, executor = self._world()
+        p0 = world.player_order[0]
+        executor.begin_turn(p0)
+        mover = world.add_card(
+            CardIdentity(oracle_id=_oid(90), name="Purged", type_line="Creature"),
+            p0,
+            ZONE_HAND,
+        )
+        other = world.add_card(
+            CardIdentity(oracle_id=_oid(91), name="Already", type_line="Creature"),
+            p0,
+            ZONE_EXILE,
+        )
+        anchor = world.add_card(
+            CardIdentity(oracle_id=_oid(92), name="Barrin", type_line="Creature"),
+            p0,
+            ZONE_BATTLEFIELD,
+        )
+        executor.apply_effect(
+            _atom(
+                Verb.EXILE,
+                target=Selector(
+                    QConst(1),
+                    SelectorMode.TARGET,
+                    UNIV,
+                    Zone(ZoneKind.HAND, ControllerRef.YOU),
+                ),
+            ),
+            source=p0,
+            controller=p0,
+            bindings={"target": mover},
+        )
+        self.assertEqual(world.zone_of(mover).kind, ZONE_EXILE)
+        pred = FAtom(
+            FAtomPred.MOVED_TO_ZONE_THIS_TURN,
+            who=ControllerRef.YOU,
+            from_zone=Zone(ZoneKind.HAND, ControllerRef.YOU),
+            to_zone=Zone(ZoneKind.EXILE, ControllerRef.YOU),
+        )
+        ctx = ctx_for(executor, source=p0, controller=p0)
+        self.assertTrue(eval_filter(pred, mover, ctx))  # handle leg: it moved
+        self.assertFalse(eval_filter(pred, other, ctx))  # exiled, but not so
+        self.assertTrue(eval_filter(pred, anchor, ctx))  # gate: A move happened
+        executor.advance_turn()  # the window turns over with the UPKEEP marker
+        self.assertFalse(eval_filter(pred, mover, ctx))
+        self.assertFalse(eval_filter(pred, anchor, ctx))
+
+    def test_cast_this_turn_from_reads_the_cast_row(self) -> None:
+        """CAST_THIS_TURN_FROM (See the Truth / Archfiend's Vessel): the
+        13b CAST row's (caster, from_zone) columns answer the handle-
+        scoped pred — from HAND yes, from the GRAVEYARD no, and the same
+        row makes See-the-Truth's FNot(HAND) shape read False."""
+        world, executor = self._world()
+        p0, p1 = world.player_order
+        executor.begin_turn(p0)
+        spell = world.add_card(
+            CardIdentity(oracle_id=_oid(93), name="Truthish", type_line="Sorcery"),
+            p0,
+            ZONE_HAND,
+        )
+        # the cast feed's own emitter — the same row stack.cast writes at
+        # 601.2h (unit-scoped to the predicate, pipeline-shaped data).
+        world.move_card(spell, world.players[p0].zone(ZONE_GRAVEYARD))
+        executor.journal.emit_cast(spell, p0, "sorcery", ZONE_HAND, None)
+        ctx = ctx_for(executor, source=spell, controller=p0)
+        from_hand = FAtom(
+            FAtomPred.CAST_THIS_TURN_FROM,
+            who=ControllerRef.YOU,
+            zone=Zone(ZoneKind.HAND, ControllerRef.YOU),
+        )
+        from_graveyard = FAtom(
+            FAtomPred.CAST_THIS_TURN_FROM,
+            who=ControllerRef.YOU,
+            zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+        )
+        self.assertTrue(eval_filter(from_hand, spell, ctx))
+        self.assertFalse(eval_filter(from_graveyard, spell, ctx))
+        self.assertFalse(
+            eval_filter(
+                from_hand, spell, ctx_for(executor, source=spell, controller=p1)
+            )
+        )  # not YOUR cast
+
+    def test_entered_and_died_this_turn_handle_scoped(self) -> None:
+        """ENTERED_THIS_TURN_FROM (Archfiend's Vessel's FOr twin) and
+        DIED_THIS_TURN (Gadrak's Treasure count, C18 row): real MOVE_ZONE
+        atoms journalled by the executor make each pred true for the
+        card that moved/died and false for a card that merely sits in the
+        same zone."""
+        world, executor = self._world()
+        p0 = world.player_order[0]
+        executor.begin_turn(p0)
+        risen = world.add_card(
+            CardIdentity(oracle_id=_oid(94), name="Risen", type_line="Creature"),
+            p0,
+            ZONE_GRAVEYARD,
+        )
+        sitter = world.add_card(
+            CardIdentity(oracle_id=_oid(95), name="Sitter", type_line="Creature"),
+            p0,
+            ZONE_GRAVEYARD,
+        )
+        executor.apply_effect(
+            _atom(
+                Verb.MOVE_ZONE,
+                cards=Selector(
+                    QConst(1),
+                    SelectorMode.TARGET,
+                    UNIV,
+                    Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                ),
+                destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+            ),
+            source=p0,
+            controller=p0,
+            bindings={"target": [risen]},
+        )
+        entered = FAtom(
+            FAtomPred.ENTERED_THIS_TURN_FROM,
+            zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+        )
+        died = FAtom(FAtomPred.DIED_THIS_TURN)
+        ctx = ctx_for(executor, source=p0, controller=p0)
+        self.assertTrue(eval_filter(entered, risen, ctx))
+        self.assertFalse(eval_filter(entered, sitter, ctx))
+        self.assertFalse(eval_filter(died, risen, ctx))
+        # now let it die (battlefield -> graveyard): the C18 row appears
+        executor.apply_effect(
+            _atom(
+                Verb.MOVE_ZONE,
+                cards=Selector(
+                    QConst(1),
+                    SelectorMode.TARGET,
+                    UNIV,
+                    Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                ),
+                destination=Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+            ),
+            source=p0,
+            controller=p0,
+            bindings={"target": [risen]},
+        )
+        self.assertTrue(eval_filter(died, risen, ctx))
+        self.assertFalse(eval_filter(died, sitter, ctx))
+
+    def test_is_exiled_with_source_scoped_to_the_cause(self) -> None:
+        """IS_EXILED_WITH_SOURCE (Idol of Endurance / Chandra, Heart of
+        Fire; Necromentia's name-exile station's sibling): the WORLD half
+        (in exile now) plus the HISTORY half (the SOURCE caused the
+        exile — the 12b cause column). Another source says no, and the
+        relationship PERSISTS across turns (it is not windowed)."""
+        world, executor = self._world()
+        p0 = world.player_order[0]
+        executor.begin_turn(p0)
+        idol = world.add_card(
+            CardIdentity(oracle_id=_oid(96), name="Idol", type_line="Artifact"),
+            p0,
+            ZONE_BATTLEFIELD,
+        )
+        rival = world.add_card(
+            CardIdentity(oracle_id=_oid(97), name="Rival", type_line="Artifact"),
+            p0,
+            ZONE_BATTLEFIELD,
+        )
+        purged = world.add_card(
+            CardIdentity(oracle_id=_oid(98), name="Purged", type_line="Creature"),
+            p0,
+            ZONE_HAND,
+        )
+        executor.apply_effect(
+            _atom(
+                Verb.EXILE,
+                target=Selector(
+                    QConst(1),
+                    SelectorMode.TARGET,
+                    UNIV,
+                    Zone(ZoneKind.HAND, ControllerRef.YOU),
+                ),
+            ),
+            source=idol,
+            controller=p0,
+            bindings={"target": purged},
+        )
+        pred = FAtom(FAtomPred.IS_EXILED_WITH_SOURCE)
+        self.assertTrue(
+            eval_filter(pred, purged, ctx_for(executor, source=idol, controller=p0))
+        )
+        self.assertFalse(
+            eval_filter(pred, purged, ctx_for(executor, source=rival, controller=p0))
+        )
+        executor.advance_turn()  # exile-with persists across turns
+        self.assertTrue(
+            eval_filter(pred, purged, ctx_for(executor, source=idol, controller=p0))
+        )
 
 
 def _oid(n: int) -> str:

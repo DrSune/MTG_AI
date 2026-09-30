@@ -525,6 +525,9 @@ class LayerRegistry:
             # through these — state-free reads, replay-safe.
             layers=self,
             executor=ex,
+            # 14d (B-7): static-target/permission filters read the journal
+            # through this ctx too (journal-aware eval at ALL entry points).
+            journal=ex.journal,
         )
 
     def _layer_live(self, layer: LayerRecord) -> bool:

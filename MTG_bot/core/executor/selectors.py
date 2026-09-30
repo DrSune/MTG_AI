@@ -134,8 +134,38 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> List[Handle]:
         raise NotImplementedError(
             "executor: Zone(ANY) enumeration is 12c's query surface"
         )
-    state_kind = ZONE_KIND_TO_STATE[kind]
     ref = zone_ir.controller
+    if kind is ZoneKind.STACK:
+        # 14d (B-19): B-2's RUNTIME twin. ZONE_KIND_TO_STATE has no STACK
+        # entry (the frozen state.py has no stack zone kind), so the old
+        # bare KeyError(ZoneKind.STACK) is replaced by F-2's fix shape:
+        # enumerate each seat's parked frames through
+        # :func:`stack.stack_zone` (the per-player ZONE_STACK slot created
+        # on first use — the SAME source the query side reads since 14a,
+        # keeping §8.3 query/runtime enumeration identity). TOP = the last
+        # entry = the top frame (LIFO order-preserving, the stack's own
+        # convention). OWNER stays the existing 12b selector raise — the
+        # honest flag every zone carries at runtime (the QUERY side
+        # answers OWNER via source_owner, legality.py F-2).
+        if ref is ControllerRef.OWNER:
+            raise NotImplementedError(
+                "executor: OWNER in selector enumeration needs per-candidate "
+                "owner scoping (12b)"
+            )
+        from MTG_bot.core.executor.stack import stack_zone
+
+        stack_handles: list[Handle] = []
+        for player in players_for_ref(ref, ctx):
+            entries = stack_zone(ctx.world, player).entries
+            position = zone_ir.position
+            if position is ZonePosition.TOP:
+                stack_handles.extend(entries[-1:])  # top frame = last entry
+            elif position is ZonePosition.BOTTOM:
+                stack_handles.extend(entries[:1])  # bottom frame = first
+            else:
+                stack_handles.extend(entries)
+        return stack_handles
+    state_kind = ZONE_KIND_TO_STATE[kind]
     if ref is ControllerRef.OWNER:
         raise NotImplementedError(
             "executor: OWNER in selector enumeration needs per-candidate "
