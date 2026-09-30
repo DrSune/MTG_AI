@@ -290,14 +290,30 @@ class CrashLedgerTest(unittest.TestCase):
         self.assertIn("Fabled Passage", crash["attempted"])
 
     def test_b9_result_referent_only_resolves_inside_a_trigger(self) -> None:
-        """B-9 OPEN. Seasoned Hallowblade's own effect reads the ``result``
-        referent, which resolves only inside a trigger firing, so CASTING the
-        card raises out of resolution with no event register to read."""
-        outcome = play_game(7, "castable", SMOKE_DECK_PAIRS, turn_cap=8)
-        crash = outcome.crash
-        assert crash is not None
-        self.assertEqual(crash["exc"], "NotImplementedError")
-        self.assertIn("referent", crash["message"])
+        """B-9 RESIDUAL. Round-14b fixed the B-11 root cause (trigger-tail
+        sentences now compile INTO the trigger, so Siege Striker's and
+        Kitesail Freebooter's effect text resolves where the event register
+        exists). The residual is Seasoned Hallowblade: it has NO trigger —
+        a static-ish effect is parked on its SpellAbility and reads the
+        ``result`` referent, which resolves only inside a trigger firing, so
+        CASTING the card still raises out of resolution with no event
+        register to read (pinned directly, not via a seed policy path)."""
+        supply = get_supply("all")
+        record = _record_named(supply, "Seasoned Hallowblade")
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=3)
+        p0 = world.player_order[0]
+        executor = Executor(world)
+        executor.attach_pool(supply.pool)
+        spell = world.add_card(identity_of(record), p0, ZONE_HAND)
+        world.players[p0].mana_pool["W"] = 1
+        world.players[p0].mana_pool["C"] = 2
+        world.active_player = p0
+        executor.turn_open = True
+        executor.phase = "FIRST_MAIN"
+        with self.assertRaises(NotImplementedError) as cm:
+            cast(executor, p0, spell, targets=(), decisions=())
+        self.assertIn("referent", str(cm.exception))
 
     def test_b8_player_target_spells_are_castable_via_the_mirrored_rule(self) -> None:
         """B-8: 'target opponent' compiles to a ControllerRef.TARGET_PLAYER

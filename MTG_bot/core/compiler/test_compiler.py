@@ -21,6 +21,7 @@ from MTG_bot.core.ability_tree import (
     Atom,
     AtomArgs,
     Choose,
+    Conditional,
     ControllerRef,
     Cost,
     CostDiscard,
@@ -1027,6 +1028,270 @@ class TestContinuation(unittest.TestCase):
         self.assertEqual(res.unparsed, ())
         ab = _spell(res.card.abilities[0])
         self.assertEqual(ab.effect, _phase_in_atom())
+
+
+# ---------------------------------------------------------------------------
+# Trigger-tailing (grammar round 14b, B-11)
+# ---------------------------------------------------------------------------
+
+
+def _etb_event() -> ZoneChangeEvent:
+    """Synthetic "When this creature enters" event (R11-B subject anchor)."""
+    return ZoneChangeEvent(
+        from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
+        to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+        subject=FAtom(pred=FAtomPred.IS_SOURCE),
+    )
+
+
+class TestTriggerTrailing(unittest.TestCase):
+    """Round 14b (B-11, Kitesail Freebooter / Garruk's Harbinger / Siege
+    Striker): plain sentences printed under a triggered ability continue
+    THAT ability's effect — they used to be orphaned onto the card-level
+    SpellAbility and ran at CAST time. Boundary discipline mirrors the
+    R11-1 loyalty tail (:func:`compiler._loyalty_trailing_idx`): only
+    unparsed slots and rule reminders are skipped; an independently-matched
+    sentence (any other outcome) is a group boundary."""
+
+    @staticmethod
+    def _etb_trigger_reg(
+        tail_effects: dict[str, Effect],
+        trigger_effect: Effect | None = None,
+    ) -> TemplateRegistry:
+        """Registry: one ETB trigger (default effect DRAW 1) plus one
+        template per supplied bare tail sentence → its effect."""
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "etb-draw",
+                r"^When this creature enters, draw a card\.$",
+                lambda m: AbilityOutcome(
+                    ability=TriggeredAbility(
+                        event=_etb_event(),
+                        condition=None,
+                        effect=trigger_effect
+                        if trigger_effect is not None
+                        else _draw_atom(1),
+                    )
+                ),
+            )
+        )
+        for n, (sentence, effect) in enumerate(tail_effects.items()):
+            reg.register(
+                _template(
+                    f"tail-{n}",
+                    rf"^{re.escape(sentence)}$",
+                    lambda m, e=effect: EffectOutcome(effect=e),
+                )
+            )
+        return reg
+
+    def test_etb_three_sentences_all_owned_by_trigger(self) -> None:
+        """Kitesail Freebooter shape: trigger + two bare tails → ONE
+        TriggeredAbility whose Seq owns all three atoms; no SpellAbility."""
+        raw = _raw_card(
+            "C",
+            1,
+            types=("Creature",),
+            power_raw="1",
+            toughness_raw="1",
+            sentences=(
+                "When this creature enters, draw a card.",
+                "You draw another card.",
+                "It draws a third card.",
+            ),
+        )
+        reg = self._etb_trigger_reg(
+            {
+                "You draw another card.": _draw_atom(2),
+                "It draws a third card.": _draw_atom(3),
+            }
+        )
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        self.assertEqual(
+            res.card.abilities,
+            (
+                TriggeredAbility(
+                    event=_etb_event(),
+                    condition=None,
+                    effect=Seq(steps=(_draw_atom(1), _draw_atom(2), _draw_atom(3))),
+                ),
+            ),
+        )
+
+    def test_cast_trigger_tail(self) -> None:
+        """ "When you cast" variant on an instant: the bare tail joins the
+        trigger, so nothing is left to fold into a cast-time SpellAbility."""
+        raw = _raw_card(
+            "I",
+            1,
+            sentences=(
+                "When this creature enters, draw a card.",
+                "You draw another card.",
+            ),
+        )
+        reg = self._etb_trigger_reg({"You draw another card.": _draw_atom(2)})
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        self.assertEqual(len(res.card.abilities), 1)
+        ab = res.card.abilities[0]
+        assert isinstance(ab, TriggeredAbility)
+        self.assertEqual(_seq(ab.effect).steps, (_draw_atom(1), _draw_atom(2)))
+        self.assertFalse(any(isinstance(a, SpellAbility) for a in res.card.abilities))
+
+    def test_may_tail_wraps_optional_once(self) -> None:
+        """R11-1 may-rule: a "may" tail sentence earns an OptionalEffect
+        wrap; a bare tail stays mandatory (Garruk's Harbinger shape)."""
+        raw = _raw_card(
+            "C",
+            1,
+            types=("Creature",),
+            power_raw="1",
+            toughness_raw="1",
+            sentences=(
+                "When this creature enters, draw a card.",
+                "You may draw another card.",
+                "It draws a third card.",
+            ),
+        )
+        reg = self._etb_trigger_reg(
+            {
+                "You may draw another card.": _draw_atom(2),
+                "It draws a third card.": _draw_atom(3),
+            }
+        )
+        res = compile_card(raw, reg)
+        ab = res.card.abilities[0]
+        assert isinstance(ab, TriggeredAbility)
+        self.assertEqual(
+            _seq(ab.effect).steps,
+            (_draw_atom(1), OptionalEffect(_draw_atom(2)), _draw_atom(3)),
+        )
+
+    def test_may_tail_already_optional_not_double_wrapped(self) -> None:
+        """May-rule de-duplication: a "may" tail whose template ALREADY
+        produces the OptionalEffect must not gain a phantom second wrap."""
+        raw = _raw_card(
+            "C",
+            1,
+            types=("Creature",),
+            power_raw="1",
+            toughness_raw="1",
+            sentences=(
+                "When this creature enters, draw a card.",
+                "You may draw another card.",
+            ),
+        )
+        reg = self._etb_trigger_reg(
+            {"You may draw another card.": OptionalEffect(_draw_atom(2))}
+        )
+        res = compile_card(raw, reg)
+        ab = res.card.abilities[0]
+        assert isinstance(ab, TriggeredAbility)
+        self.assertEqual(
+            _seq(ab.effect).steps,
+            (_draw_atom(1), OptionalEffect(_draw_atom(2))),
+        )
+
+    def test_otherwise_after_trigger_merges_inside_trigger(self) -> None:
+        """Prefix continuations keep their merge paths INSIDE the trigger
+        effect: "Otherwise, …" becomes the else_effect of the trigger's own
+        Conditional, not a card-level sibling."""
+        pred = FAtom(pred=FAtomPred.IS_SOURCE)
+        raw = _raw_card(
+            "C",
+            1,
+            types=("Creature",),
+            power_raw="1",
+            toughness_raw="1",
+            sentences=(
+                "When this creature enters, draw a card.",
+                "Otherwise, draw another card.",
+            ),
+        )
+        reg = self._etb_trigger_reg(
+            {"Otherwise, draw another card.": _draw_atom(2)},
+            trigger_effect=Conditional(pred=pred, then_effect=_draw_atom(1)),
+        )
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        self.assertEqual(
+            res.card.abilities,
+            (
+                TriggeredAbility(
+                    event=_etb_event(),
+                    condition=None,
+                    effect=Conditional(
+                        pred=pred,
+                        then_effect=_draw_atom(1),
+                        else_effect=_draw_atom(2),
+                    ),
+                ),
+            ),
+        )
+
+    def test_independently_matched_sentence_breaks_the_chain(self) -> None:
+        """Negative: an activated-ability sentence after the trigger is its
+        own ability (never captured), and it is a GROUP BOUNDARY — a bare
+        tail after the activated bullet is NOT pulled back into the trigger;
+        it stays card-level (mirror of _loyalty_trailing_idx discipline)."""
+        raw = _raw_card(
+            "C",
+            1,
+            types=("Creature",),
+            power_raw="1",
+            toughness_raw="1",
+            sentences=(
+                "When this creature enters, draw a card.",
+                "Tap this creature: Draw two cards.",
+                "You draw another card.",
+            ),
+        )
+        reg = self._etb_trigger_reg({"You draw another card.": _draw_atom(3)})
+        reg.register(
+            _template(
+                "tap-draw2",
+                r"^Tap this creature: Draw two cards\.$",
+                lambda m: AbilityOutcome(
+                    ability=ActivatedAbility(
+                        cost=Cost(parts=(CostTap(),)),
+                        effect=_draw_atom(2),
+                    )
+                ),
+            )
+        )
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        trigger, activated, spell = res.card.abilities
+        assert isinstance(trigger, TriggeredAbility)
+        assert isinstance(activated, ActivatedAbility)
+        # The trigger owns ONLY its own sentence.
+        self.assertEqual(trigger.effect, _draw_atom(1))
+        # The post-activated bare tail landed card-level, not in the trigger.
+        self.assertEqual(_spell(spell).effect, _draw_atom(3))
+
+    def test_bullet_sentence_never_captured(self) -> None:
+        """Negative: a sentence starting with "[" is another ability bullet —
+        never a trailing sentence, even when it parses to a bare effect."""
+        raw = _raw_card(
+            "C",
+            1,
+            types=("Creature",),
+            power_raw="1",
+            toughness_raw="1",
+            sentences=(
+                "When this creature enters, draw a card.",
+                "[X]: You draw another card.",
+            ),
+        )
+        reg = self._etb_trigger_reg({"[X]: You draw another card.": _draw_atom(2)})
+        res = compile_card(raw, reg)
+        self.assertEqual(len(res.card.abilities), 2)
+        trigger, spell = res.card.abilities
+        assert isinstance(trigger, TriggeredAbility)
+        self.assertEqual(trigger.effect, _draw_atom(1))
+        self.assertEqual(_spell(spell).effect, _draw_atom(2))
 
 
 # ---------------------------------------------------------------------------

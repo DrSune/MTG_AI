@@ -75,7 +75,14 @@ mirror vocabularies (it also retires B-5). Do NOT "fix" it with an engine-side d
 exhaustion: `_v_choose_name` already refuses a seeded-random fallback, and a hidden default is the
 exact thing C15/C16 forbid. **Owner ruling needed.**
 
-**B-11 · P0 · COMPILER · a trigger's effect is decomposed across two abilities.** The trigger keeps
+**B-11 · P0 · COMPILER · a trigger's effect is decomposed across two abilities.** **FIXED
+2026-09-30 (round 14b)** — trigger-tailing mechanism in `compiler.py`
+(`_trigger_trailing_idx` + capture branch, mirroring `_loyalty_trailing_idx`'s
+boundary discipline); full-corpus sweep: 4 cards captured (the 3 below + Liliana,
+Waker of the Dead Emblem "It gains haste."), goldens re-baselined audited
+(5 files moved: 4 keys={abilities} + Liliana, Waker of the Dead keys={emblem}
+transitive attach only), PC-1/2/3/4 EXACT; results in /04. Row text kept as filed.
+The trigger keeps
 its FIRST sentence and the rest of the same sentence is attached to the card's **SpellAbility**, so
 the remainder runs at CAST time. Confirmed 3/3 on the cards that show the signature (all 6
 creatures carrying a cast-time effect were checked):
@@ -99,6 +106,13 @@ enumerate_candidates`, so *asking* about **Fabled Passage**'s land-swap costs a
 `NotImplementedError` (1/10 in every pool; seed-pinned). Grammar/legality work, not harness.
 
 **B-9 · P1 · C2 referents have no resolution context outside a trigger firing.**
+**RESIDUATED 2026-09-30 (round 14b, after B-11)** — the two B-11-rooted instances are
+gone: Siege Striker's engine-seed-6 cast crash (`QProp referent 'event'`) and the
+castable-pool referent class no longer reproduce in the 10-seed reruns; Kitesail's
+cast-time `TARGET_PLAYER needs a bound target` (all pool seed 2) also vanished with
+B-11. The residual is Seasoned Hallowblade — no trigger at all; a static-ish
+GRANT_ABILITY sits on its SpellAbility and reads `result` (pinned directly in
+`test_executor_games.py::CrashLedgerTest`; still OPEN).
 `_referent_handle`/`resolve_selector` raise for `event`/`result` on a *cast* (Siege Striker,
 Seasoned Hallowblade). Root cause for two of the three cards is B-11; the residual is a static-ish
 effect parked on a SpellAbility (Hallowblade has no trigger at all) — triage after B-11.

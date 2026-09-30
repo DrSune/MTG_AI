@@ -693,6 +693,35 @@ def _loyalty_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
     return None
 
 
+def _trigger_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
+    """Index of the tail-most TriggeredAbility if it is the LAST meaningful
+    processed entry, else None.
+
+    Round 14b (B-11, Kitesail Freebooter / Garruk's Harbinger / Siege
+    Striker): a triggered ability's text continues across sentence
+    boundaries — plain sentences printed under a trigger run when the
+    trigger resolves, not when the card is cast, but they arrived as bare
+    EffectOutcomes and were previously orphaned onto the card-level
+    SpellAbility (cast time).  If the nearest meaningful processed entry is
+    a TriggeredAbility, that ability is the sentence's true owner.  Mirrors
+    the boundary discipline of :func:`_loyalty_trailing_idx` (R11-1): only
+    unparsed slots and rule reminders are skipped — any other outcome
+    (another ability, a keyword, a gate, a meta outcome) is a group
+    boundary and breaks the chain.  A sentence starting with "[" is another
+    ability bullet — never a trailing sentence.
+    """
+    for j in range(len(processed) - 1, -1, -1):
+        prev = processed[j]
+        if prev is None or isinstance(prev, RuleReminderOutcome):
+            continue
+        if isinstance(prev, AbilityOutcome) and isinstance(
+            prev.ability, TriggeredAbility
+        ):
+            return j
+        return None
+    return None
+
+
 def _append_optional_to_seq(effect: Effect, inner: Effect) -> Effect:
     """Append ``OptionalEffect(inner)`` to ``effect``'s step sequence.
 
@@ -1034,6 +1063,39 @@ def compile_card(
                             effect=merge(ab.effect, outcome.effect),
                             condition=ab.condition,
                             timing=ab.timing,
+                        )
+                    )
+                    # The trailing sentence is consumed — not appended.
+                    continue
+            # Grammar round 14b (B-11): plain text right after a triggered
+            # ability is that ability's effect continuing, not a card-level
+            # spell ability — append it to the trigger's effect (mandatory
+            # unless the sentence itself says "may", R11-1 may-rule).
+            trig_idx = (
+                None
+                if sentence.lstrip().startswith("[")
+                else _trigger_trailing_idx(processed)
+            )
+            if trig_idx is not None:
+                slot = processed[trig_idx]
+                tab = slot.ability if isinstance(slot, AbilityOutcome) else None
+                if isinstance(tab, TriggeredAbility):
+                    # R11-1 may-rule, de-duplicated: a "may" sentence whose
+                    # template ALREADY produced an OptionalEffect (Garruk's
+                    # Harbinger "You may reveal … and put it into your hand")
+                    # must not gain a phantom second wrap — the step is
+                    # optional exactly once.
+                    merge = (
+                        _append_optional_to_seq
+                        if _MAY_RE.search(sentence)
+                        and not isinstance(outcome.effect, OptionalEffect)
+                        else _append_mandatory_to_seq
+                    )
+                    processed[trig_idx] = AbilityOutcome(
+                        ability=TriggeredAbility(
+                            event=tab.event,
+                            condition=tab.condition,
+                            effect=merge(tab.effect, outcome.effect),
                         )
                     )
                     # The trailing sentence is consumed — not appended.

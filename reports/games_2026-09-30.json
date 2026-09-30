@@ -1,0 +1,389 @@
+{
+ "pool_mode": "all",
+ "deckable": 285,
+ "engine_supported": 286,
+ "playable_engine": 88,
+ "n_games": 10,
+ "turn_cap": 60,
+ "survived": 0,
+ "survival_pct": 0.0,
+ "mean_turns": 9.1,
+ "max_turns": 44,
+ "total_acts": 96,
+ "multi_target_skips": 0,
+ "infeasible_skips": 12,
+ "player_target_designations": 0,
+ "coverage_fired": 15,
+ "coverage_fired_of_pool_pct": 5.3,
+ "coverage_fired_of_engine_pct": 5.6,
+ "coverage_battlefield": 20,
+ "fired_of_engine": [
+  "Animal Sanctuary",
+  "Blossoming Sands",
+  "Dismal Backwater",
+  "Forest",
+  "Island",
+  "Mountain",
+  "Radiant Fountain",
+  "Rugged Highlands",
+  "Scoured Barrens",
+  "Sparkhunter Masticore",
+  "Swamp",
+  "Swiftwater Cliffs",
+  "Thornwood Falls",
+  "Tranquil Cove",
+  "Wind-Scarred Crag"
+ ],
+ "crash_games": 10,
+ "crashes": [
+  {
+   "exc": "ValueError",
+   "message": "executor: SCRY decision 'skip' not in ('top', 'bottom')",
+   "frame": "quantity.py:124 in take_decision",
+   "count": 7,
+   "seeds": [
+    0,
+    3,
+    4,
+    6,
+    7,
+    8,
+    9
+   ],
+   "cards": [
+    "T5.land:Island",
+    "T6.act:Tranquil Cove(#2)",
+    "T6.end",
+    "T9.end",
+    "land:Temple of Epiphany",
+    "land:Temple of Mystery",
+    "land:Temple of Silence",
+    "land:Temple of Triumph"
+   ],
+   "attempted": "land:Temple of Silence",
+   "recent_acts": [
+    "act:Swamp(#0)",
+    "land:Tranquil Cove",
+    "act:Tranquil Cove(#2)"
+   ],
+   "stack": [],
+   "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 0"
+  },
+  {
+   "exc": "NotImplementedError",
+   "message": "executor: filter pred CONTROLLER_COUNT_GE not implemented (12c query surface)",
+   "frame": "quantity.py:480 in _eval_atom",
+   "count": 2,
+   "seeds": [
+    1,
+    5
+   ],
+   "cards": [
+    "T2.land:Fabled Passage",
+    "T3.act:Dismal Backwater(#2)",
+    "T3.end",
+    "T4.end",
+    "T4.land:Fabled Passage",
+    "T5.act:Tranquil Cove(#2)",
+    "T5.end",
+    "act:Fabled Passage#0"
+   ],
+   "attempted": "act:Fabled Passage#0",
+   "recent_acts": [
+    "act:Tranquil Cove(#2)",
+    "land:Fabled Passage",
+    "act:Tranquil Cove(#2)"
+   ],
+   "stack": [],
+   "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 1"
+  },
+  {
+   "exc": "NotImplementedError",
+   "message": "executor: QX has no declared X (cast(x=...) binds it; 12c cost-context flag)",
+   "frame": "quantity.py:197 in resolve",
+   "count": 1,
+   "seeds": [
+    2
+   ],
+   "cards": [
+    "T10.act:Blossoming Sands(#2)",
+    "T10.act:Mountain(#0)",
+    "T10.act:Wind-Scarred Crag(#2)",
+    "T10.cast:Sparkhunter Masticore(0t)",
+    "cast:Primal Might"
+   ],
+   "attempted": "cast:Primal Might",
+   "recent_acts": [
+    "act:Blossoming Sands(#2)",
+    "act:Wind-Scarred Crag(#2)",
+    "cast:Sparkhunter Masticore(0t)"
+   ],
+   "stack": [],
+   "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 2"
+  }
+ ],
+ "reasons": {
+  "crash:ValueError": 7,
+  "crash:NotImplementedError": 3
+ },
+ "rows": [
+  {
+   "seed": 0,
+   "pool": "all",
+   "turns": 6,
+   "survived": false,
+   "reason": "crash:ValueError",
+   "acts": 7,
+   "fired": 2,
+   "coverage_error": "",
+   "fingerprint": "d98dcb67031223e35e39a415e1dc34bd576eadbf058a9c26ea5afc46268dde0b",
+   "crash": {
+    "exc": "ValueError",
+    "message": "executor: SCRY decision 'skip' not in ('top', 'bottom')",
+    "frame": "quantity.py:124 in take_decision",
+    "turn": 6,
+    "attempted": "land:Temple of Silence",
+    "recent_acts": [
+     "act:Swamp(#0)",
+     "land:Tranquil Cove",
+     "act:Tranquil Cove(#2)"
+    ],
+    "stack": [],
+    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 0"
+   }
+  },
+  {
+   "seed": 1,
+   "pool": "all",
+   "turns": 5,
+   "survived": false,
+   "reason": "crash:NotImplementedError",
+   "acts": 5,
+   "fired": 1,
+   "coverage_error": "",
+   "fingerprint": "a4fca9429d20265103dc3620aa2dc168c87b9d445b394e1a0d3aefd55a121e8c",
+   "crash": {
+    "exc": "NotImplementedError",
+    "message": "executor: filter pred CONTROLLER_COUNT_GE not implemented (12c query surface)",
+    "frame": "quantity.py:480 in _eval_atom",
+    "turn": 5,
+    "attempted": "act:Fabled Passage#0",
+    "recent_acts": [
+     "act:Tranquil Cove(#2)",
+     "land:Fabled Passage",
+     "act:Tranquil Cove(#2)"
+    ],
+    "stack": [],
+    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 1"
+   }
+  },
+  {
+   "seed": 2,
+   "pool": "all",
+   "turns": 9,
+   "survived": false,
+   "reason": "crash:NotImplementedError",
+   "acts": 12,
+   "fired": 5,
+   "coverage_error": "",
+   "fingerprint": "4cfbaaab0340efd58e8554428e52312c1ae88689b94271d57d4f85739cf84500",
+   "crash": {
+    "exc": "NotImplementedError",
+    "message": "executor: QX has no declared X (cast(x=...) binds it; 12c cost-context flag)",
+    "frame": "quantity.py:197 in resolve",
+    "turn": 9,
+    "attempted": "cast:Primal Might",
+    "recent_acts": [
+     "act:Blossoming Sands(#2)",
+     "act:Wind-Scarred Crag(#2)",
+     "cast:Sparkhunter Masticore(0t)"
+    ],
+    "stack": [],
+    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 2"
+   }
+  },
+  {
+   "seed": 3,
+   "pool": "all",
+   "turns": 4,
+   "survived": false,
+   "reason": "crash:ValueError",
+   "acts": 6,
+   "fired": 1,
+   "coverage_error": "",
+   "fingerprint": "6d19c7e36488d5a3cf7f294d0a8ef90d208a96433e79d0960bb673137f9cb0c7",
+   "crash": {
+    "exc": "ValueError",
+    "message": "executor: SCRY decision 'fire' not in ('top', 'bottom')",
+    "frame": "quantity.py:124 in take_decision",
+    "turn": 4,
+    "attempted": "land:Temple of Mystery",
+    "recent_acts": [
+     "act:Mountain(#0)",
+     "land:Forest",
+     "act:Mountain(#0)"
+    ],
+    "stack": [],
+    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 3"
+   }
+  },
+  {
+   "seed": 4,
+   "pool": "all",
+   "turns": 2,
+   "survived": false,
+   "reason": "crash:ValueError",
+   "acts": 4,
+   "fired": 2,
+   "coverage_error": "",
+   "fingerprint": "27e655592f929538b288c02de14be3aa71f8ed6267c2113aaeef922d1484b579",
+   "crash": {
+    "exc": "ValueError",
+    "message": "executor: SCRY decision 'fire' not in ('top', 'bottom')",
+    "frame": "quantity.py:124 in take_decision",
+    "turn": 2,
+    "attempted": "land:Temple of Epiphany",
+    "recent_acts": [
+     "act:Mountain(#0)",
+     "land:Scoured Barrens",
+     "act:Scoured Barrens(#2)"
+    ],
+    "stack": [],
+    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 4"
+   }
+  },
+  {
+   "seed": 5,
+   "pool": "all",
+   "turns": 3,
+   "survived": false,
+   "reason": "crash:NotImplementedError",
+   "acts": 4,
+   "fired": 1,
+   "coverage_error": "",
+   "fingerprint": "e4e10bd788eb532c1bdb84f8d1fa17a4d7c2519d65025d5baf6c4dfc4e143990",
+   "crash": {
+    "exc": "NotImplementedError",
+    "message": "executor: filter pred CONTROLLER_COUNT_GE not implemented (12c query surface)",
+    "frame": "quantity.py:480 in _eval_atom",
+    "turn": 3,
+    "attempted": "act:Fabled Passage#0",
+    "recent_acts": [
+     "act:Dismal Backwater(#2)",
+     "land:Fabled Passage",
+     "act:Dismal Backwater(#2)"
+    ],
+    "stack": [],
+    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 5"
+   }
+  },
+  {
+   "seed": 6,
+   "pool": "all",
+   "turns": 44,
+   "survived": false,
+   "reason": "crash:ValueError",
+   "acts": 36,
+   "fired": 4,
+   "coverage_error": "",
+   "fingerprint": "232feec0362dba42857b0cf19ca058a149cf1f11739cc912474275f842a9f2d5",
+   "crash": {
+    "exc": "ValueError",
+    "message": "executor: SCRY decision 'fire' not in ('top', 'bottom')",
+    "frame": "quantity.py:124 in take_decision",
+    "turn": 44,
+    "attempted": "land:Temple of Triumph",
+    "recent_acts": [
+     "act:Thornwood Falls(#2)",
+     "act:Swamp(#0)",
+     "act:Radiant Fountain(#1)"
+    ],
+    "stack": [],
+    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 6"
+   }
+  },
+  {
+   "seed": 7,
+   "pool": "all",
+   "turns": 2,
+   "survived": false,
+   "reason": "crash:ValueError",
+   "acts": 3,
+   "fired": 2,
+   "coverage_error": "",
+   "fingerprint": "501fcf5fe30c59ba01ce835efa49d63a0c8f610db07e2a03ed0b216dd468b986",
+   "crash": {
+    "exc": "ValueError",
+    "message": "executor: SCRY decision 'skip' not in ('top', 'bottom')",
+    "frame": "quantity.py:124 in take_decision",
+    "turn": 2,
+    "attempted": "land:Temple of Silence",
+    "recent_acts": [
+     "land:Swiftwater Cliffs",
+     "act:Swiftwater Cliffs(#2)",
+     "land:Radiant Fountain"
+    ],
+    "stack": [],
+    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 7"
+   }
+  },
+  {
+   "seed": 8,
+   "pool": "all",
+   "turns": 10,
+   "survived": false,
+   "reason": "crash:ValueError",
+   "acts": 13,
+   "fired": 4,
+   "coverage_error": "",
+   "fingerprint": "3dc8defcd091bfc3b78db4ab827c01ac530383edffbbc51cae69fd9b7ab32236",
+   "crash": {
+    "exc": "ValueError",
+    "message": "executor: SCRY decision 'fire' not in ('top', 'bottom')",
+    "frame": "quantity.py:124 in take_decision",
+    "turn": 10,
+    "attempted": "land:Temple of Triumph",
+    "recent_acts": [
+     "act:Animal Sanctuary(#0)",
+     "act:Animal Sanctuary(#0)",
+     "act:Forest(#0)"
+    ],
+    "stack": [],
+    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 8"
+   }
+  },
+  {
+   "seed": 9,
+   "pool": "all",
+   "turns": 6,
+   "survived": false,
+   "reason": "crash:ValueError",
+   "acts": 6,
+   "fired": 2,
+   "coverage_error": "",
+   "fingerprint": "69c518dc32eb3782b75846c4079fe5fce3683cb03d948fd7b1e6e134004931e2",
+   "crash": {
+    "exc": "ValueError",
+    "message": "executor: SCRY decision 'fire' not in ('top', 'bottom')",
+    "frame": "quantity.py:124 in take_decision",
+    "turn": 6,
+    "attempted": "land:Temple of Epiphany",
+    "recent_acts": [
+     "act:Mountain(#0)",
+     "land:Swamp",
+     "land:Island"
+    ],
+    "stack": [],
+    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 9"
+   }
+  }
+ ],
+ "pool_compile_seconds": 0.19,
+ "wall_seconds": 0.51,
+ "argv": [
+  "--seeds",
+  "10",
+  "--pool",
+  "all"
+ ]
+}
