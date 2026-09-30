@@ -13,6 +13,39 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.278 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **286/305** (0.9377) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 39 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-09-30 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.239 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-09-30 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.234 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
@@ -1537,3 +1570,12 @@ Core **2001** (`pytest MTG_bot/core -q`), PC-1 301/305 · PC-2 634/639 · PC-3 0
 **Engine 30 seeds: 10/30 → 18/30 (60.0%), mean 48.5t, 3004 acts, 60 cards fired = 22.5% of the 267 playable-engine (convention of 14c's 19.1%).**
 Crash census 10-pools 22→11; engine30 11: B-7-family (13/22) + B-19 (2/22) GONE. Wall = B-9 `result`-referent-at-cast 8/11 (new face: Feat of Resistance) + B-17 FLIP_WON 2 (SCOPE-STOP, inventory in /07 + ledger) + POWER_GE/CMC_LE 3 + FIGHT 1.
 Core **2007** (`pytest MTG_bot/core -q`), PC-1 301/305 · PC-2 634/639 · PC-3 0 · PC-4 0 diffs (`tools/measure_grammar.py --set M21`) EXACT — goldens untouched (B-17 STOP), pyright 0 (edited scope; repo 524→524), ruff delta 0, replay determinism green.
+
+### Round-14e result-register + tail-capture + world-preds — PC-7 v1.3 (2026-09-30, uncommitted; see KNOWLEDGE/2026-09-30/08-round14e-result-register-and-tail-capture.md)
+
+**PC-7 game survival** — cmd: `.venv/bin/python -m MTG_bot.core.executor.games --seeds 10 --pool {all,engine,castable}` + `--seeds 30 --pool engine` (deck-pairs 1409, cap 60):
+10-seed: all 8→**9/10** (mean 55.1, cov 45, 1027 acts, 1 crash FIGHT); engine 7→**9/10** (59.9, cov 48, 1212 acts, **0 crashes** — first natural game-overs); castable 1→**5/10** (53.6, cov 57, 1637 acts, 3 crashes: EachPlayer×2 Goremand, KEYWORD_HAS×1 Run Afoul).
+**Engine 30 seeds: 18/30 → 26/30 (86.7%), mean 58.6t, 3753 acts, 61 cards fired = 22.8% of the 267 dealt (playable_engine 88→86: Swindler+Hallowblade moved to B-1 by capture).**
+Engine30 wall 11→3 crashes, ONE class: B-9 residual **Chandra, Heart of Fire #4** — the B4 permission row's `referent='result'` is a CROSS-resolution anaphora (fix = B4-template fidelity emitting `IS_EXILED_WITH_SOURCE`, golden-moving class, own audit — deliberately not forced). Engine pool is NOT flagged-verb/combat-bound: combat (arc-3) UNREACHED at mean 58.6/60t; flagged deaths live in `all` (FIGHT) and `castable` (12e EachPlayer node + KEYWORD_HAS pred — new census faces).
+Closed this round: **B-9** producer register (SEARCH/CHOOSE + TAP/UNTAP/PUT_COUNTER/MOVE_ZONE write `ctx.bindings["result"]` per effect execution; unset read still loud); **B-17** activation-tail capture with the empty-cost OPT(CAST) permission idiom EXEMPTED as a transparent boundary (3 captures Swindler/Hallowblade/Waker, golden audit diff==inventory set-equal, keys={abilities}); **POWER_GE/CMC_LE** world/identity preds (token mv 0 = the QProp convention, QX-capable).
+Core **2013** (`pytest MTG_bot/core -q`; +6 pins, 3 frozen AMENDED), PC-1 301/305 · PC-2 634/639 · PC-3 0 · PC-4 0 diffs (`tools/measure_grammar.py --set M21`) EXACT — goldens moved ONLY via the audited capture; engine_supported **286/305** EXACT; pyright 0 (edited scope; repo 524→524), ruff delta 0, replay determinism green.

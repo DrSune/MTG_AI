@@ -144,6 +144,13 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append(
             (len(ctx.events), "MOVE", str(card), f"{src.kind}->{dest_kind}")
         )
+    # 14e (B-9) producer: the MOVED cards are the register ("…put it onto
+    # the battlefield…. It gains haste" — the Liliana, Waker of the Dead
+    # emblem tail 14b-1 attached; inside a firing the seed was the event
+    # subject, but the ACTION's object is the honest antecedent). The
+    # top-n draw-idiom early-returns above write nothing: no object was
+    # chosen, and an unset register stays a loud read.
+    ctx.bindings["result"] = list(cards)
 
 
 def _v_exile(ctx: ExecCtx, atom: Atom) -> None:
@@ -274,9 +281,17 @@ def _set_tapped(ctx: ExecCtx, atom: Atom, tapped: bool) -> None:
         raise NotImplementedError(
             "executor: duration-tagged TAP/UNTAP is 12d (the ledger vocab)"
         )
-    for card in role_handles(ctx, atom, "target"):
+    cards = role_handles(ctx, atom, "target")
+    for card in cards:
         ctx.world.cards[card].tapped = tapped
         ctx.events.append((len(ctx.events), atom.verb.name, str(card), int(tapped)))
+    # 14e (B-9): the object of the last ACTION is the closed anaphora's
+    # antecedent ("Tap target creature: it gains X" / Traitorous Greed's
+    # "Untap that creature. It gains haste"). The ``result`` register was
+    # the trigger firing's alone; producers now write it INSIDE any effect
+    # execution (per-resolution: the ctx's bindings dict is fresh per
+    # execute/apply_effect/cast_ctx — 14c SEARCH/CHOOSE set the pattern).
+    ctx.bindings["result"] = list(cards)
 
 
 def _v_tap(ctx: ExecCtx, atom: Atom) -> None:
@@ -291,10 +306,15 @@ def _v_put_counter(ctx: ExecCtx, atom: Atom) -> None:
     kind = atom.args.get("counter_kind")
     assert isinstance(kind, CounterKind)
     n = amount(ctx, atom, "count")
-    for card in role_handles(ctx, atom, "target"):
+    cards = role_handles(ctx, atom, "target")
+    for card in cards:
         counters = ctx.world.cards[card].counters
         counters[kind.name] = counters.get(kind.name, 0) + n
         ctx.events.append((len(ctx.events), "PUT_COUNTER", str(card), kind.name, n))
+    # 14e (B-9) producer: "Put a +1/+1 counter on target creature…. It gains
+    # X" (Feat of Resistance at CAST resolution — the 14d headwall's dominant
+    # face; Basri's two loyalty +2s). See _set_tapped's note.
+    ctx.bindings["result"] = list(cards)
 
 
 def _v_remove_counter(ctx: ExecCtx, atom: Atom) -> None:

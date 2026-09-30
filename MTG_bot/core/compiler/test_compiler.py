@@ -1233,9 +1233,15 @@ class TestTriggerTrailing(unittest.TestCase):
 
     def test_independently_matched_sentence_breaks_the_chain(self) -> None:
         """Negative: an activated-ability sentence after the trigger is its
-        own ability (never captured), and it is a GROUP BOUNDARY — a bare
-        tail after the activated bullet is NOT pulled back into the trigger;
-        it stays card-level (mirror of _loyalty_trailing_idx discipline)."""
+        own ability (never captured by the TRIGGER), and it is a GROUP
+        BOUNDARY — the bare tail is NOT pulled back into the trigger
+        (mirror of _loyalty_trailing_idx discipline).
+
+        AMENDED 14e (B-17): the tail's NEW owner is the activation itself
+        (activation-tailing capture); the pre-14e reading parked it
+        card-level on the SpellAbility (Swindler/Waker/Hallowblade — the
+        ruled miscompile). Boundary half unchanged: the trigger still owns
+        ONLY its own sentence."""
         raw = _raw_card(
             "C",
             1,
@@ -1263,13 +1269,13 @@ class TestTriggerTrailing(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        trigger, activated, spell = res.card.abilities
+        trigger, activated = res.card.abilities  # 14e: no SpellAbility left
         assert isinstance(trigger, TriggeredAbility)
         assert isinstance(activated, ActivatedAbility)
-        # The trigger owns ONLY its own sentence.
+        # The trigger owns ONLY its own sentence (boundary half, intact).
         self.assertEqual(trigger.effect, _draw_atom(1))
-        # The post-activated bare tail landed card-level, not in the trigger.
-        self.assertEqual(_spell(spell).effect, _draw_atom(3))
+        # 14e (B-17): the post-activated bare tail is the ACTIVATION's tail.
+        self.assertEqual(activated.effect, Seq(steps=(_draw_atom(2), _draw_atom(3))))
 
     def test_bullet_sentence_never_captured(self) -> None:
         """Negative: a sentence starting with "[" is another ability bullet —
@@ -1291,6 +1297,177 @@ class TestTriggerTrailing(unittest.TestCase):
         trigger, spell = res.card.abilities
         assert isinstance(trigger, TriggeredAbility)
         self.assertEqual(trigger.effect, _draw_atom(1))
+        self.assertEqual(_spell(spell).effect, _draw_atom(2))
+
+
+# ---------------------------------------------------------------------------
+# Round 14e (B-17): activation-tail capture, OPT(CAST)-permission exemption
+# ---------------------------------------------------------------------------
+
+
+def _cast_permission_effect() -> Effect:
+    """The B4-cast-them-this-turn permission idiom's compiled shape: an
+    empty-cost ActivatedAbility whose whole effect is OPT(CAST, cost=empty).
+    (Chandra, Heart of Fire's "You may cast them this turn.")"""
+    return OptionalEffect(
+        inner=Atom(
+            verb=Verb.CAST,
+            args=AtomArgs(
+                pairs=(
+                    ("cost", Cost(parts=())),
+                    (
+                        "source",
+                        Selector(
+                            count=QUnbounded(),
+                            mode=SelectorMode.CHOOSE,
+                            filter=FAnd(()),
+                            zone=Zone(
+                                kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU
+                            ),
+                        ),
+                    ),
+                )
+            ),
+        )
+    )
+
+
+class TestActivationTrailing(unittest.TestCase):
+    """Round 14e (B-17, Tavern Swindler / Waker of Waves / Seasoned
+    Hallowblade): plain sentences printed under a PLAIN activated ability
+    are that ability's ACTIVATION tail — they used to be orphaned onto the
+    card-level SpellAbility and ran at CAST time (Swindler's flip gate
+    raised FLIP_WON there, Hallowblade's GRANT raised the B-9 ``result``
+    referent). Boundary discipline mirrors the trigger/loyalty tail; the
+    empty-cost OPT(CAST) permission row is an EXEMPT (transparent) boundary
+    and loyalty-costed abilities stay owned by the R11-1 loyalty chain."""
+
+    @staticmethod
+    def _reg(
+        activation: ActivatedAbility,
+        tail_effects: dict[str, Effect],
+        *,
+        permission_sentence: str | None = None,
+        permission: ActivatedAbility | None = None,
+        loyalty: bool = False,
+    ) -> TemplateRegistry:
+        reg = TemplateRegistry()
+        opener = "Activation opener." if not loyalty else "[+1]: Activation opener."
+        reg.register(
+            _template(
+                "activation",
+                rf"^{re.escape(opener)}$",
+                lambda m, a=activation: AbilityOutcome(ability=a),
+            )
+        )
+        if permission is not None and permission_sentence is not None:
+            reg.register(
+                _template(
+                    "permission",
+                    rf"^{re.escape(permission_sentence)}$",
+                    lambda m, p=permission: AbilityOutcome(ability=p),
+                )
+            )
+        for n, (sentence, effect) in enumerate(tail_effects.items()):
+            reg.register(
+                _template(
+                    f"tail-{n}",
+                    rf"^{re.escape(sentence)}$",
+                    lambda m, e=effect: EffectOutcome(effect=e),
+                )
+            )
+        return reg
+
+    def test_plain_activation_owns_its_tail(self) -> None:
+        """Swindler shape: {T}: Draw a card. / You draw another card. ->
+        ONE ActivatedAbility Seq, no SpellAbility tail."""
+        raw = _raw_card(
+            "S",
+            71,
+            types=("Creature",),
+            power_raw="1",
+            toughness_raw="1",
+            sentences=("Activation opener.", "You draw another card."),
+        )
+        reg = self._reg(
+            ActivatedAbility(cost=Cost(parts=(CostTap(),)), effect=_draw_atom(1)),
+            {"You draw another card.": _draw_atom(2)},
+        )
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        (activated,) = res.card.abilities
+        assert isinstance(activated, ActivatedAbility)
+        self.assertEqual(activated.effect, Seq(steps=(_draw_atom(1), _draw_atom(2))))
+
+    def test_permission_row_is_transparent_boundary(self) -> None:
+        """The exemption: activation / OPT(CAST) permission / bare tail ->
+        the tail skips the permission row and joins the ACTIVATION (a
+        permission is never an action's owner)."""
+        raw = _raw_card(
+            "P",
+            72,
+            types=("Creature",),
+            power_raw="1",
+            toughness_raw="1",
+            sentences=(
+                "Activation opener.",
+                "You may cast them this turn.",
+                "You draw another card.",
+            ),
+        )
+        reg = self._reg(
+            ActivatedAbility(cost=Cost(parts=(CostTap(),)), effect=_draw_atom(1)),
+            {"You draw another card.": _draw_atom(2)},
+            permission_sentence="You may cast them this turn.",
+            permission=ActivatedAbility(
+                cost=Cost(parts=()), effect=_cast_permission_effect()
+            ),
+        )
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        activation, permission = res.card.abilities
+        assert isinstance(activation, ActivatedAbility)
+        assert isinstance(permission, ActivatedAbility)
+        # The activation owns the tail…
+        self.assertEqual(activation.effect, Seq(steps=(_draw_atom(1), _draw_atom(2))))
+        # …and the permission row is untouched, still alone its OPT(CAST).
+        self.assertEqual(permission.effect, _cast_permission_effect())
+
+    def test_loyalty_tail_never_routes_through_this_mechanism(self) -> None:
+        """Chandra boundary, synthetic: loyalty bullet / permission row /
+        bare tail. The loyalty chain and the loyalty EXCLUSION keep the
+        tail out of the permission row; it lands card-level exactly as
+        before 14e (golden-stable status quo for Chandra's ADD_MANA)."""
+        raw = _raw_card(
+            "C",
+            73,
+            types=("Planeswalker",),
+            loyalty_raw="3",
+            sentences=(
+                "[+1]: Activation opener.",
+                "You may cast them this turn.",
+                "You draw another card.",
+            ),
+        )
+        reg = self._reg(
+            ActivatedAbility(cost=Cost(parts=(CostLoyalty(1),)), effect=_draw_atom(1)),
+            {"You draw another card.": _draw_atom(2)},
+            permission_sentence="You may cast them this turn.",
+            permission=ActivatedAbility(
+                cost=Cost(parts=()), effect=_cast_permission_effect()
+            ),
+            loyalty=True,
+        )
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        ability_names = [type(a).__name__ for a in res.card.abilities]
+        assert ability_names.count("ActivatedAbility") == 2
+        act, perm = (a for a in res.card.abilities if isinstance(a, ActivatedAbility))
+        assert isinstance(act, ActivatedAbility) and isinstance(perm, ActivatedAbility)
+        # Neither ability grew: the tail stayed card-level (SpellAbility).
+        self.assertEqual(act.effect, _draw_atom(1))
+        self.assertEqual(perm.effect, _cast_permission_effect())
+        spell = next(a for a in res.card.abilities if isinstance(a, SpellAbility))
         self.assertEqual(_spell(spell).effect, _draw_atom(2))
 
 

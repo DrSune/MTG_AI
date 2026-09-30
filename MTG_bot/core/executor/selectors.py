@@ -213,12 +213,24 @@ def resolve_selector(sel: Selector, ctx: ExecCtx) -> List[Handle]:
                 raise ValueError("executor: 'target' referent has no target binding")
             candidates = bound
         elif sel.referent in ("event", "result"):
-            # 12b: the trigger firing bound the event/result subject.
+            # 12b: the trigger firing binds event/result to the event
+            # subject. 14e (B-9): the ``result`` register is additionally a
+            # PRODUCER slot inside any one effect execution — SEARCH/CHOOSE
+            # since 14c, and the object-action verbs (TAP/UNTAP/PUT_COUNTER/
+            # MOVE_ZONE) since the cast-resolution faces (Feat of Resistance,
+            # the captured Hallowblade tail) demanded it; the register is per
+            # resolution, because every ExecCtx gets a fresh bindings dict
+            # (Executor._ctx) and one execution's writes never leak into the
+            # next. ``event`` remains firing-only: outside a firing no
+            # producer has an event to write. An unset read RAISES naming the
+            # referent — a missing antecedent is flagged, never a guessed
+            # empty population.
             bound = ctx.binding_handles(sel.referent)
             if bound is None:
                 raise NotImplementedError(
-                    f"executor: selector referent {sel.referent!r} only "
-                    "resolves inside a trigger firing (no event register)"
+                    f"executor: selector referent {sel.referent!r} has no "
+                    "register — no trigger firing bound one and no producer "
+                    "atom wrote one in this execution"
                 )
             candidates = bound
         else:

@@ -722,6 +722,73 @@ def _trigger_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
     return None
 
 
+def _is_cast_permission_row(slot: _OutcomeSlot) -> bool:
+    """The documented empty-cost OPT(CAST) PERMISSION idiom (template B4
+    "cast/play them this turn"; Chandra, Heart of Fire's "You may cast them
+    this turn.", grammar round 8-C / round 14 history).
+
+    The template compiles such a sentence into a free-cost ActivatedAbility
+    whose whole effect is ``OptionalEffect(Atom(CAST, cost=Cost()))`` — the
+    permission itself, not an action with consequences. It is EXEMPT from
+    activation-tail ownership (r14e adjudication): a rules sentence printed
+    under the loyalty bullet it follows stays owned by that bullet, so the
+    tail matcher must see through the permission row instead of mis-capturing
+    the loyalty tail ("Add six {R}.") as the permission's own.
+    """
+    if not isinstance(slot, AbilityOutcome) or not isinstance(
+        slot.ability, ActivatedAbility
+    ):
+        return False
+    ab = slot.ability
+    if ab.cost is not None and ab.cost.parts:
+        return False
+    return (
+        isinstance(ab.effect, OptionalEffect)
+        and isinstance(ab.effect.inner, Atom)
+        and ab.effect.inner.verb is Verb.CAST
+        and ab.effect.inner.args.get("cost") == Cost(parts=())
+    )
+
+
+def _activation_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
+    """Index of the tail-most plain activated ability if it is the LAST
+    meaningful processed entry, else None.
+
+    Round 14e (B-17, Tavern Swindler / Waker of Waves / Seasoned
+    Hallowblade): sentences printed under an ACTIVATED ability run when
+    that ability resolves, not when the card is cast — but they arrived as
+    bare EffectOutcomes and were orphaned onto the card-level SpellAbility
+    (the B-11 tail split one mechanism deeper; Swindler's
+    "If you win the flip, you gain 6 life." raised FLIP_WON at cast,
+    Hallowblade's "It gains indestructible until end of turn." raised the
+    ``result`` referent, B-9).  Boundary discipline mirrors
+    :func:`_loyalty_trailing_idx` / :func:`_trigger_trailing_idx`: only
+    unparsed slots and rule reminders are skipped — any other outcome is a
+    group boundary and breaks the chain.  Loyalty-costed abilities return
+    None (their tails belong to the R11-1 loyalty chain, never this
+    mechanism); the empty-cost OPT(CAST) permission row is EXEMPT — the
+    scan sees through it (r14e adjudication, see
+    :func:`_is_cast_permission_row`).
+    """
+    for j in range(len(processed) - 1, -1, -1):
+        prev = processed[j]
+        if prev is None or isinstance(prev, RuleReminderOutcome):
+            continue
+        if _is_cast_permission_row(prev):
+            continue  # documented permission row: transparent boundary
+        if isinstance(prev, AbilityOutcome) and isinstance(
+            prev.ability, ActivatedAbility
+        ):
+            cost = prev.ability.cost
+            if cost is not None and any(isinstance(p, CostLoyalty) for p in cost.parts):
+                return None  # loyalty chain owns its own tails (R11-1)
+            if prev.ability.effect is None:
+                return None  # pure cost carrier: nothing to append to
+            return j
+        return None
+    return None
+
+
 def _append_optional_to_seq(effect: Effect, inner: Effect) -> Effect:
     """Append ``OptionalEffect(inner)`` to ``effect``'s step sequence.
 
@@ -1096,6 +1163,39 @@ def compile_card(
                             event=tab.event,
                             condition=tab.condition,
                             effect=merge(tab.effect, outcome.effect),
+                        )
+                    )
+                    # The trailing sentence is consumed — not appended.
+                    continue
+            # Round 14e (B-17, Tavern Swindler / Waker of Waves / Seasoned
+            # Hallowblade): plain text right after a plain activated ability
+            # is that ability's activation tail — it runs when the ability
+            # resolves, not when the card is cast.  Same may-rule and the
+            # same de-dup guard as the trigger tail above; the empty-cost
+            # OPT(CAST) permission row is transparent to the ownership scan
+            # and loyalty abilities stay R11-1-owned (see
+            # :func:`_activation_trailing_idx`).
+            act_idx = (
+                None
+                if sentence.lstrip().startswith("[")
+                else _activation_trailing_idx(processed)
+            )
+            if act_idx is not None:
+                slot = processed[act_idx]
+                aab = slot.ability if isinstance(slot, AbilityOutcome) else None
+                if isinstance(aab, ActivatedAbility):
+                    merge = (
+                        _append_optional_to_seq
+                        if _MAY_RE.search(sentence)
+                        and not isinstance(outcome.effect, OptionalEffect)
+                        else _append_mandatory_to_seq
+                    )
+                    processed[act_idx] = AbilityOutcome(
+                        ability=ActivatedAbility(
+                            cost=aab.cost,
+                            effect=merge(aab.effect, outcome.effect),
+                            condition=aab.condition,
+                            timing=aab.timing,
                         )
                     )
                     # The trailing sentence is consumed — not appended.

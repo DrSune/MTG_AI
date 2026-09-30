@@ -370,13 +370,15 @@ class TestConditionGate(LegalityCase):
         # flag, never guess: a pred outside the vocab crashes the probe.
         # AMENDED 2026-09-30 (round 13c): NAME_CONTAINS left this probe —
         # it is in-vocab now (the GRANT_ACTIVATION filter's "a Teferi
-        # planeswalker" gate evaluates it over the printed name). CMC_LE
-        # stays outside: no mana-value threshold is answered yet.
+        # planeswalker" gate evaluates it over the printed name).
+        # AMENDED 2026-09-30 (round 14e): CMC_LE left this probe too — the
+        # identity-mana-value read is answered now (Eliminate/Idol/Ugin).
+        # CMC_GE (its GE twin) is still unimplemented and keeps the probe.
         self.attach(
             [
                 ability(
                     cost(),
-                    condition=FAtom(FAtomPred.CMC_LE, count=QConst(4)),
+                    condition=FAtom(FAtomPred.CMC_GE, count=QConst(4)),
                 )
             ]
         )

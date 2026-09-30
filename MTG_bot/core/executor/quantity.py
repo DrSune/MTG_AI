@@ -384,7 +384,10 @@ def eval_filter(filter_: Filter, handle: Handle, ctx: ExecCtx) -> bool:
     and IS_EXILED_WITH_SOURCE — answered from the executor's journalled
     rows at EVERY eval entry point (runtime, legality, query, layer,
     trigger gate), because the journal is state (purity = determinism,
-    not amnesia; doc 09-30/07). Every other predicate raises
+    not amnesia; doc 09-30/07). 14e adds the WORLD-evaluable twins the 14d
+    wall named: POWER_GE (the live-P/T family — Legion's Judgment line) and
+    CMC_LE (the identity-mana-value family — Eliminate/Idol/Ugin, QX-capable
+    off the cast's declared X). Every other predicate raises
     ``NotImplementedError`` naming itself: its completeness is 12c's gate,
     and an unsupported pred is flagged, never guessed.
     """
@@ -502,6 +505,33 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         if pred is FAtomPred.POWER_LE:
             return power <= threshold
         return toughness is not None and power <= threshold and toughness <= threshold
+    if pred is FAtomPred.POWER_GE:
+        # 14e: the GE twin of POWER_LE the games demanded (Legion's Judgment
+        # "destroy target creature with power 4 or greater"; Turret Ogre's /
+        # Drowsing Tyrannodon's gates, 2-3 crashes in every 14d pool). The
+        # SAME live-P/T read as POWER_LE — layers folded — so a buffed
+        # creature crosses the threshold honestly. A card with no power
+        # (land, instant) is not "a creature with power 4 or greater":
+        # characteristic absent, pred False, the POWER_LE convention.
+        assert atom.count is not None
+        threshold = resolve(atom.count, ctx)
+        power, _toughness = ctx.effective_pt(handle)
+        if power is None:
+            return False
+        return power >= threshold
+    if pred is FAtomPred.CMC_LE:
+        # 14e: "converted mana cost X or less" (Eliminate's target filter,
+        # Idol of Endurance, Ugin's QX twin — QX rides the cast's declared X
+        # like every other quantity, 14c CR 601.2f). IDENTITY data, read
+        # exactly the way the QProp CMC/MANA_VALUE field already reads it
+        # (``_prop_value``: a missing cmc — synthetic tokens — is mana
+        # value 0, the CR truth for tokens and the executor's established
+        # convention; not an invention of this pred).
+        assert atom.count is not None
+        threshold = resolve(atom.count, ctx)
+        if handle.namespace != "card":
+            return False
+        return (world.cards[handle].identity.cmc or 0) <= threshold
     if pred is FAtomPred.HAS_COUNTER:
         assert atom.count is not None and atom.counter_kind is not None
         threshold = resolve(atom.count, ctx)

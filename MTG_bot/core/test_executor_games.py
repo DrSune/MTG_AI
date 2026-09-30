@@ -36,6 +36,7 @@ import unittest
 from collections import Counter
 
 from MTG_bot.core.ability_tree import (
+    QX,
     ActivatedAbility,
     Atom,
     AtomArgs,
@@ -49,6 +50,7 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
+    Keyword,
     OptionalEffect,
     QConst,
     Repeat,
@@ -76,7 +78,7 @@ from MTG_bot.core.executor.games import (
     play_game,
     run_games,
 )
-from MTG_bot.core.executor.legality import ctx_for
+from MTG_bot.core.executor.legality import activate, ctx_for
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
 from MTG_bot.core.executor.query import (
     legal_targets,
@@ -462,28 +464,76 @@ class CrashLedgerTest(unittest.TestCase):
             "the designated opponent is the one that discarded",
         )
 
-    def test_b9_result_referent_only_resolves_inside_a_trigger(self) -> None:
-        """B-9 RESIDUAL, still OPEN after the 14b rebuild (unchanged from
-        14a): Seasoned Hallowblade has NO trigger — a static-ish effect is
-        parked on its SpellAbility and reads the ``result`` referent, which
-        resolves only inside a trigger firing, so CASTING the card still
-        raises out of resolution with no event register to read."""
+    def test_b9_result_referent_resolves_from_resolution_producers(self) -> None:
+        """B-9 CLOSED 14e (was: cast-time atoms reading the ``result``
+        referent raised — the register existed only inside a trigger firing;
+        8/11 of the 14d engine-30 wall, dominant face Feat of Resistance).
+        The producer-write design: the register is the ctx's ``result``
+        binding slot, written by the object-action verbs (SEARCH/CHOOSE
+        since 14c, TAP/UNTAP/PUT_COUNTER/MOVE_ZONE since 14e) INSIDE one
+        effect execution, and per-resolution because every ExecCtx carries
+        a fresh bindings dict. AMENDED (was: assertRaises on the Seasoned
+        Hallowblade cast).
+
+        (a) Feat of Resistance resolves at CAST: PUT_COUNTER writes the
+            designated creature, the color Choose asks, GRANT reads it.
+        (b) Seasoned Hallowblade's tail is the activation's (B-17 capture):
+            paying DISCARD runs Seq(TAP; GRANT) — the blade turns
+            indestructible. Casting it now raises the B-1 ``not_a_spell``
+            flag (capture moved the crash, per the ruling: the accidental
+            SpellAbility node is gone).
+        (c) A read with NO producer in its own execution still RAISES
+            (flag, never guess) — and the write never leaked out of the
+            activation that made it (per-resolution, not card-global)."""
         supply = get_supply("all")
-        record = _record_named(supply, "Seasoned Hallowblade")
+        # (a) the cast-resolution face
+        record = _record_named(supply, "Feat of Resistance")
         reset_oracle_ids()
         world = GameWorld(num_players=2, start_life=20, master_seed=3)
-        p0 = world.player_order[0]
+        p0, _p1 = world.player_order
         executor = Executor(world)
         executor.attach_pool(supply.pool)
         spell = world.add_card(identity_of(record), p0, ZONE_HAND)
+        critter = world.add_card(card_id("Feat Target"), p0, ZONE_BATTLEFIELD)
         world.players[p0].mana_pool["W"] = 1
-        world.players[p0].mana_pool["C"] = 2
+        world.players[p0].mana_pool["C"] = 1
         world.active_player = p0
         executor.turn_open = True
         executor.phase = "FIRST_MAIN"
+        cast(executor, p0, spell, targets=(critter,), decisions=("0",))
+        self.assertEqual(world.cards[critter].counters.get("PLUS_1_PLUS_1"), 1)
+        self.assertTrue(
+            executor.layers.keyword_of(critter, Keyword.PROTECTION),
+            "the GRANT read the PUT_COUNTER target from the result register",
+        )
+        # (b) the captured activation tail
+        blade_rec = _record_named(supply, "Seasoned Hallowblade")
+        blade = world.add_card(identity_of(blade_rec), p0, ZONE_BATTLEFIELD)
+        executor.binder.attach_card(blade, blade_rec)
+        world.add_card(card_id("Blade Bait"), p0, ZONE_HAND)
+        activate(executor, blade, 0, seat=p0)
+        self.assertTrue(world.cards[blade].tapped)
+        self.assertTrue(
+            executor.layers.keyword_of(blade, Keyword.INDESTRUCTIBLE),
+            "TAP wrote the register; the tail's GRANT read the blade itself",
+        )
+        # (c) the same GRANT step in a FRESH execution raises: no producer
+        # ran there — per-resolution scope, and the flag convention intact.
+        tail = blade_rec.abilities[0]
+        assert isinstance(tail, ActivatedAbility) and isinstance(tail.effect, Seq)
+        grant = tail.effect.steps[1]
         with self.assertRaises(NotImplementedError) as cm:
-            cast(executor, p0, spell, targets=(), decisions=())
-        self.assertIn("referent", str(cm.exception))
+            executor.apply_effect(grant, source=blade, controller=p0)
+        self.assertIn("producer", str(cm.exception))
+        # …and the cast is the B-1 not_a_spell flag, not the B-9 referent
+        # raise (the crash moved to the ledger's castability row).
+        hand_spell = world.add_card(identity_of(blade_rec), p0, ZONE_HAND)
+        world.active_player = p0
+        executor.turn_open = True
+        executor.phase = "FIRST_MAIN"
+        with self.assertRaises(ValueError) as cm:
+            cast(executor, p0, hand_spell, targets=(), decisions=())
+        self.assertIn("not_a_spell", str(cm.exception))
 
     def test_new_rest_one_of_designation_is_the_12c_gap(self) -> None:
         """AMENDED 14c (B-13 FIXED): the split-selection pair designates
@@ -1198,6 +1248,74 @@ class Round14dJournalTest(unittest.TestCase):
         self.assertTrue(
             eval_filter(pred, purged, ctx_for(executor, source=idol, controller=p0))
         )
+
+
+class Round14eWorldPredTest(unittest.TestCase):
+    """Round 14e: the WORLD-evaluated preds the 14d wall named — POWER_GE
+    (Legion's Judgment "power 4 or greater" family) and CMC_LE (Eliminate /
+    Idol of Endurance / Ugin's mana-value thresholds). Pure world/identity
+    reads, answered at EVERY eval entry point with no journal (the raise
+    they replace was 3/11 engine30, 2/11 of the 10-pools)."""
+
+    def _setup(self) -> tuple[GameWorld, Executor]:
+        supply = get_supply("all")
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=3)
+        executor = Executor(world)
+        executor.attach_pool(supply.pool)
+        return world, executor
+
+    def test_power_ge_reads_live_power(self) -> None:
+        world, executor = self._setup()
+        p0 = world.player_order[0]
+        anchor = world.add_card(card_id("Judge"), p0, ZONE_BATTLEFIELD)
+        ctx = ctx_for(executor, source=anchor, controller=p0)
+        pred = FAtom(pred=FAtomPred.POWER_GE, count=QConst(4))
+        giant = world.add_card(
+            card_id("Giant", power="4", toughness="4"), p0, ZONE_BATTLEFIELD
+        )
+        cat = world.add_card(
+            card_id("Cat", power="1", toughness="1"), p0, ZONE_BATTLEFIELD
+        )
+        plot = world.add_card(card_id("Plot", type_line="Land"), p0, ZONE_BATTLEFIELD)
+        self.assertTrue(eval_filter(pred, giant, ctx))  # 4 >= 4
+        self.assertFalse(eval_filter(pred, cat, ctx))  # 1 < 4
+        # no power is not "power 4 or greater" — the POWER_LE convention.
+        self.assertFalse(eval_filter(pred, plot, ctx))
+
+    def test_cmc_le_reads_identity_mana_value(self) -> None:
+        world, executor = self._setup()
+        p0 = world.player_order[0]
+        anchor = world.add_card(card_id("Eliminator"), p0, ZONE_BATTLEFIELD)
+        ctx = ctx_for(executor, source=anchor, controller=p0)
+        pred = FAtom(pred=FAtomPred.CMC_LE, count=QConst(3))
+        cheap = world.add_card(card_id("Cheap", cmc=3), p0, ZONE_BATTLEFIELD)
+        big = world.add_card(card_id("Big", cmc=6), p0, ZONE_BATTLEFIELD)
+        # A synthetic token identity carries no cmc: mana value 0, the
+        # quantity._prop_value convention the QProp CMC field already uses.
+        token = world.add_card(
+            CardIdentity(oracle_id=_oid(501), name="Sparkie", type_line="Creature"),
+            p0,
+            ZONE_BATTLEFIELD,
+        )
+        self.assertTrue(eval_filter(pred, cheap, ctx))  # 3 <= 3
+        self.assertFalse(eval_filter(pred, big, ctx))  # 6 > 3
+        self.assertTrue(eval_filter(pred, token, ctx))  # cmc None == 0 <= 3
+        self.assertFalse(
+            eval_filter(pred, world.player_order[1], ctx)
+        )  # non-card handle: no mana value
+
+    def test_cmc_le_qx_outside_a_cast_stays_loud(self) -> None:
+        # Ugin/Idol compile the threshold with {X}: QX rides the CAST's
+        # declared value (14c CR 601.2f); unbound outside a cast it keeps
+        # raising naming the quantity — no guessed zero for a filter pred.
+        world, executor = self._setup()
+        p0 = world.player_order[0]
+        anchor = world.add_card(card_id("Anchor"), p0, ZONE_BATTLEFIELD)
+        ctx = ctx_for(executor, source=anchor, controller=p0)
+        critter = world.add_card(card_id("Critter", cmc=2), p0, ZONE_BATTLEFIELD)
+        with self.assertRaises(NotImplementedError):
+            eval_filter(FAtom(pred=FAtomPred.CMC_LE, count=QX()), critter, ctx)
 
 
 def _oid(n: int) -> str:

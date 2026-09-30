@@ -384,20 +384,26 @@ class TestFlipCoin(LibraryCase):
             eval_filter(FLIP_WON_YOU, self.p0, bare)  # no executor at all
 
     def test_tavern_swindler_e2e_flip_then_conditional_gain(self):
-        """Two compiled ability rows, two separate apply_effect calls: the
-        GAIN_LIFE row fires iff FLIP_WON(who=YOU) matches the ledger."""
+        """AMENDED 2026-09-30 (round 14e, B-17): the golden is ONE ability
+        row now — the activation owns the flip AND its winner-gate tail
+        (Seq(FLIP_COIN; IF(FLIP_WON)→GAIN_LIFE)); the 13a two-row split
+        (tail parked on a card-level SpellAbility, raising at cast) was the
+        ruled miscompile. The whole activation runs in ONE apply_effect; the
+        gate is still judged off the executor's flip ledger."""
         rec = golden("Tavern Swindler")["abilities"]
-        flip = from_dict("Atom", rec[0]["effect"])
-        cond = from_dict("Conditional", rec[1]["effect"])
+        self.assertEqual(
+            [a["tag"] for a in rec], ["ActivatedAbility"]
+        )  # the SpellAbility row is GONE (capture)
+        whole = from_dict("Seq", rec[0]["effect"])
+        cond = whole.steps[1]  # IF(FLIP_WON) → GAIN_LIFE
         seed = next(s for s in range(60) if _flip_outcome(s)[1])  # a HEADS seed
         reset_oracle_ids()
         world = GameWorld(num_players=2, start_life=20, master_seed=seed)
         p0, p1 = world.player_order[0], world.player_order[1]
         ex = Executor(world)
-        ex.execute(flip, source=p0, controller=p0)  # heads for this seed
+        ex.apply_effect(whole, source=p0, controller=p0)  # heads for this seed
         self.assertIs(ex.last_flip_won_by, p0)
-        ex.apply_effect(cond, source=p0, controller=p0)
-        self.assertEqual(world.players[p0].life, 26)  # +6: YOU won
+        self.assertEqual(world.players[p0].life, 26)  # +6: YOU won, in-game
         ex.apply_effect(cond, source=p0, controller=p1)
         self.assertEqual(world.players[p1].life, 20)  # YOU(p1) did not win
 

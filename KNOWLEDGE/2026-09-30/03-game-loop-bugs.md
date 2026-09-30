@@ -260,3 +260,28 @@ B-17 2; POWER_GE/CMC_LE 2+1; FIGHT 1.
 Gates: core **2007** (+6 pins, 3 frozen AMENDED), PC-1/2/3/4 EXACT (goldens never
 moved), pyright 0 (edited scope; repo delta 0 = 524→524), ruff delta 0, replay
 determinism green.
+
+---
+
+## Round 14e close-out (same day) — B-9 producer register, B-17 capture (exemption), POWER_GE/CMC_LE; PC-7 v1.3 = 86.7%
+
+**STATUS FLIPS (supersede the 14d rows; design + audit in /08):**
+
+| class | status after 14e | fix | pinned |
+|---|---|---|---|
+| **B-9 result-referent at cast** | **CLOSED for the in-execution anaphora — ONE residual face named** | The register = `ctx.bindings["result"]`, written by PRODUCER atoms inside one effect execution: SEARCH/CHOOSE (14c) + **TAP/UNTAP/PUT_COUNTER/MOVE_ZONE (14e)**; scope per resolution (fresh bindings dict per ctx); unset read still RAISES (message rewritten — the old "only inside a trigger firing" became false). `event` stays firing-only. RESIDUAL: **Chandra, Heart of Fire #4** — the B4 permission row's `referent='result'` is a CROSS-resolution anaphora ("cast them" = cards exiled by the [−9]'s resolution); fix = B4-template fidelity emitting the 14d `IS_EXILED_WITH_SOURCE` filter (golden-moving fidelity class, own audit — deliberately not forced here) | `CrashLedgerTest.test_b9_result_referent_resolves_from_resolution_producers` (AMENDED green: Feat cast resolves, Hallowblade activation grants, unset read raises, cast = B-1 not_a_spell) |
+| **B-17 activation tail** | **CLOSED (capture landed per adjudication)** | compiler `_activation_trailing_idx` + `_is_cast_permission_row` EXEMPTION (the empty-cost OPT(CAST) permission idiom is a TRANSPARENT boundary: never an owner, chain sees through it; loyalty abilities stay R11-1-owned). Inventory-first sweep: **3 captures** (Swindler Seq(FLIP_COIN; IF(FLIP_WON)→GAIN_LIFE), Hallowblade Seq(TAP; GRANT(result)), Waker Seq(LOOK_AT; Seq(MOVE ONE_OF; MOVE REST))); Chandra = 1 transparent skip, NOT captured ("Add six {R}." status quo). Golden audit: pre-snapshot /tmp/golden_pre_r14e_2026-09-30, diff == inventory set-equal, keys={abilities}, PC EXACT. Swindler+Hallowblade lose the accidental SpellAbility → B-1 set (playable_engine 88→86 — the crash MOVED, per ruling); no new ambiguity → no STOP re-fire | `TestActivationTrailing` ×3 (tail ownership / permission transparency / loyalty boundary); library Swindler e2e AMENDED (ONE activation: flip→gate→+6 in-engine); compiler chain-test AMENDED (boundary half holds, ownership half flips) |
+| **POWER_GE / CMC_LE** | **CLOSED** | world/identity preds in `_eval_atom`: POWER_GE on the LIVE `effective_pt` (layers folded, absent-power=False convention); CMC_LE = `identity.cmc or 0` (the QProp CMC field's own convention — token mv 0), QX-capable off the declared X | `Round14eWorldPredTest` ×3; legality probe AMENDED (CMC_GE keeps the loud-pred probe now that CMC_LE answers) |
+| **new faces (census, no fix this round)** | OPEN, named | **KEYWORD_HAS** (Run Afoul "target creature with flying" — world-evaluable via layers, the same small-fix family, next round); **EachPlayer node** (Goremand — 12e node vocab); **Waker's static −1/−0 MODIFY_PT on its SpellAbility** (pre-existing static-family miscompile visible before/after capture, T8-era family) | ledger rows (crash counts in /08 table) |
+
+**14e re-measure (same recipe):** all 8→**9/10** (55.1t, cov45, 1 crash=FIGHT); engine
+7→**9/10** (59.9t, cov48, **0 crashes**, first natural "game over" endings appear);
+castable 1→**5/10** (53.6t, cov57, 3 crashes: EachPlayer 2, KEYWORD_HAS 1); **engine 30
+seeds 18/30→26/30 (86.7%), mean 58.6t, cov 61 = 22.8%, 3753 acts**. PC-7 v1.2→**v1.3**.
+Engine-30 wall = ONLY the Chandra cross-resolution permission face (3/30) — plainly NOT
+flagged-verb/combat-only: combat (arc-3) remains UNREACHED at mean 58.6/60t, the flagged
+deaths live in `all` (FIGHT) and `castable` stays honestly crash-heavy.
+
+Gates: core **2013** (+6 pins, 3 frozen AMENDED), PC-1/2/3/4 **EXACT** (goldens moved ONLY
+via the capture audit), engine_supported 286 EXACT, pyright 0 (repo 524→524), ruff delta 0,
+replay determinism green.
