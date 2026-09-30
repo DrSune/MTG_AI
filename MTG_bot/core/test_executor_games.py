@@ -46,13 +46,17 @@ from MTG_bot.core.ability_tree import (
     ControllerRef,
     Cost,
     CostManaGeneric,
+    DurationEot,
+    EachPlayer,
     Effect,
     FAnd,
     FAtom,
     FAtomPred,
     Keyword,
+    KeywordAbility,
     OptionalEffect,
     QConst,
+    QUnbounded,
     Repeat,
     Selector,
     SelectorMode,
@@ -62,6 +66,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    ZonePosition,
     walk,
 )
 from MTG_bot.core.executor import Executor
@@ -85,6 +90,7 @@ from MTG_bot.core.executor.query import (
     optional_offer,
     spell_target_slots,
 )
+from MTG_bot.core.executor.selectors import resolve_selector
 from MTG_bot.core.executor.stack import cast, park, play_land
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
@@ -1316,6 +1322,231 @@ class Round14eWorldPredTest(unittest.TestCase):
         critter = world.add_card(card_id("Critter", cmc=2), p0, ZONE_BATTLEFIELD)
         with self.assertRaises(NotImplementedError):
             eval_filter(FAtom(pred=FAtomPred.CMC_LE, count=QX()), critter, ctx)
+
+
+class Round14fSurfaceTest(unittest.TestCase):
+    """Round 14f: the three surfaces the 14e census named honestly —
+    KEYWORD_HAS (the LIVE keyword oracle: printed ∪ granted − lost, the
+    same registry combat legality calls), EachPlayer (per-player
+    sub-executions with the CONTROLLER rotated — the templates compile the
+    inner effect YOU-relative), and the Chandra permission row's
+    CROSS-resolution population read (14e's residual: the compiled row
+    now emits the IS_EXILED_WITH_SOURCE population, so a LATER activation
+    answers from the journal, not the dead per-resolution register)."""
+
+    def _world(self) -> tuple[GameWorld, Executor]:
+        supply = get_supply("all")
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=5)
+        executor = Executor(world)
+        executor.attach_pool(supply.pool)
+        return world, executor
+
+    # ------------------------------------------------------------- KEYWORD_HAS
+
+    def test_keyword_has_filter_uses_the_live_oracle(self) -> None:
+        world, executor = self._world()
+        p0, p1 = world.player_order
+        anchor = world.add_card(card_id("Afoul Anchor"), p0, ZONE_BATTLEFIELD)
+        ctx = ctx_for(executor, source=anchor, controller=p0)
+        pred = FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING)
+        angel = world.add_card(
+            CardIdentity(
+                oracle_id=_oid(601),
+                name="Printed Angel",
+                type_line="Creature",
+                keywords=("FLYING",),
+            ),
+            p0,
+            ZONE_BATTLEFIELD,
+        )
+        bat = world.add_card(card_id("Grounded Bat"), p0, ZONE_BATTLEFIELD)
+        # Registry projections rebuild at op boundaries (the settle point);
+        # this test seeds the world outside ops, so fold once — the same
+        # recompute verbs.py's live-permission refresh performs.
+        executor.layers.recompute()
+        self.assertTrue(eval_filter(pred, angel, ctx))  # printed
+        self.assertFalse(eval_filter(pred, bat, ctx))  # absent characteristic
+        # a player seat has no keywords (Run Afoul's CHOOSE pool over
+        # BATTLEFIELD never admits one)
+        self.assertFalse(eval_filter(pred, p1, ctx))
+        # LIVE reading: a granted keyword flips membership — a printed-only
+        # guess would be silently wrong here.
+        executor.apply_effect(
+            _atom(
+                Verb.GRANT_ABILITY,
+                target=Selector(
+                    QConst(1),
+                    SelectorMode.TARGET,
+                    FAnd(()),
+                    Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                ),
+                ability=KeywordAbility(keyword=Keyword.FLYING),
+                duration=DurationEot(),
+            ),
+            source=anchor,
+            controller=p0,
+            bindings={"target": [bat]},
+        )
+        self.assertTrue(eval_filter(pred, bat, ctx))
+
+    def test_keyword_has_bare_ctx_stays_loud(self) -> None:
+        # The no-half-preds rule (14d convention): a context with no layer
+        # registry raises naming the pred — never a printed-only guess.
+        world, executor = self._world()
+        p0 = world.player_order[0]
+        creature = world.add_card(card_id("Bare Bat"), p0, ZONE_BATTLEFIELD)
+        bare = ExecCtx(
+            world=world,
+            ledger=executor.ledger,
+            controller=p0,
+            source=p0,
+            bindings={},
+            decisions=(),
+        )
+        self.assertIsNone(bare.layers)
+        with self.assertRaises(NotImplementedError) as cm:
+            eval_filter(
+                FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+                creature,
+                bare,
+            )
+        self.assertIn("KEYWORD_HAS", str(cm.exception))
+
+    # ------------------------------------------------------------ EachPlayer
+
+    def test_each_player_rotates_the_controller(self) -> None:
+        # YOU-relative inner effect: the ROTATION is the rebinding. The
+        # opponent draws, the controller does not.
+        world, executor = self._world()
+        p0, p1 = world.player_order
+        anchor = world.add_card(card_id("Goremand Anchor"), p0, ZONE_BATTLEFIELD)
+        # Both seats hold library cards: a draw is only countable if a
+        # BROKEN rotation drawing to the controller would also be visible.
+        world.add_card(card_id("P0 Top"), p0, ZONE_LIBRARY)
+        world.add_card(card_id("P1 Top"), p1, ZONE_LIBRARY)
+        hands = (
+            len(world.players[p0].zone(ZONE_HAND).entries),
+            len(world.players[p1].zone(ZONE_HAND).entries),
+        )
+        executor.apply_effect(
+            EachPlayer(
+                ref=ControllerRef.ALL_OPPONENTS,
+                effect=_atom(Verb.DRAW, controller=ControllerRef.YOU, amount=QConst(1)),
+            ),
+            source=anchor,
+            controller=p0,
+        )
+        self.assertEqual(
+            len(world.players[p0].zone(ZONE_HAND).entries), hands[0]
+        )  # YOU was NOT the controller here
+        self.assertEqual(len(world.players[p1].zone(ZONE_HAND).entries), hands[1] + 1)
+
+    def test_each_player_forwards_the_decision_pool(self) -> None:
+        # The per-op positional supply rides across the sub-contexts:
+        # ref=ANY asks once per seat (seat order), one pool answers every
+        # station in ask order — byte-identical to single-context
+        # consumption, and the cursor write-back keeps later asks aligned.
+        world, executor = self._world()
+        p0, p1 = world.player_order
+        anchor = world.add_card(card_id("Guildgate Anchor"), p0, ZONE_BATTLEFIELD)
+        executor.apply_effect(
+            EachPlayer(
+                ref=ControllerRef.ANY,
+                effect=OptionalEffect(
+                    _atom(
+                        Verb.GAIN_LIFE,
+                        controller=ControllerRef.YOU,
+                        amount=QConst(1),
+                    )
+                ),
+            ),
+            source=anchor,
+            controller=p0,
+            decisions=("fire", "fire"),
+        )
+        self.assertEqual(world.players[p0].life, 21)
+        self.assertEqual(world.players[p1].life, 21)
+
+    def test_goremand_face_each_opponent_sacrifices_theirs(self) -> None:
+        # The REAL compiled node (the 14e castable-pool repro's own tree):
+        # each opponent's creature dies, the controller's survives.
+        supply = get_supply("all")
+        record = _record_named(supply, "Goremand")
+        each = None
+        for ability in record.abilities:
+            if isinstance(ability, TriggeredAbility) and isinstance(
+                ability.effect, EachPlayer
+            ):
+                each = ability.effect
+        self.assertIsNotNone(each, "Goremand's ETB must compile an EachPlayer")
+        assert each is not None  # pyright narrowing for the live run below
+        world, executor = self._world()
+        p0, p1 = world.player_order
+        mine = world.add_card(card_id("My Cat"), p0, ZONE_BATTLEFIELD)
+        theirs = world.add_card(card_id("Their Wolf"), p1, ZONE_BATTLEFIELD)
+        anchor = world.add_card(card_id("Goremand ETB"), p0, ZONE_BATTLEFIELD)
+        executor.apply_effect(each, source=anchor, controller=p0)
+        self.assertEqual(world.zone_of(theirs).kind, ZONE_GRAVEYARD)
+        self.assertEqual(world.zone_of(mine).kind, ZONE_BATTLEFIELD)
+
+    # ---------------------------------------- Chandra cross-resolution read
+
+    def test_chandra_permission_population_answers_from_the_journal(self) -> None:
+        # 14e's residual at the exact seam: a card exiled by the source in
+        # an EARLIER resolution is in the permission's population when a
+        # FRESH execution (fresh bindings dict, NO result register — the
+        # situation a later activation is in) resolves the compiled row's
+        # Selector. Before the fidelity fix this raised "no producer atom
+        # wrote one in this execution".
+        world, executor = self._world()
+        p0, _p1 = world.player_order
+        chandra = world.add_card(
+            card_id("Chandra, Heart of Fire"), p0, ZONE_BATTLEFIELD
+        )
+        exiled = world.add_card(card_id("Kiln Spawn"), p0, ZONE_LIBRARY)
+        top = world.players[p0].zone(ZONE_LIBRARY).entries[-1]
+        self.assertEqual(top, exiled)
+        executor.apply_effect(
+            _atom(
+                Verb.EXILE,
+                target=Selector(
+                    QConst(1),
+                    SelectorMode.CHOOSE,
+                    FAnd(()),
+                    Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),
+                ),
+            ),
+            source=chandra,
+            controller=p0,
+        )
+        self.assertEqual(world.zone_of(top).kind, ZONE_EXILE)
+        selector = Selector(
+            QUnbounded(),
+            SelectorMode.CHOOSE,
+            FAtom(pred=FAtomPred.IS_EXILED_WITH_SOURCE),
+            Zone(ZoneKind.EXILE, ControllerRef.YOU),
+        )  # the shape the B4-cast-them row now compiles
+        ctx = ctx_for(executor, source=chandra, controller=p0)
+        self.assertEqual(resolve_selector(selector, ctx), [top])
+        # and the read is CAUSE-scoped: another source's exiles are not it
+        other = world.add_card(card_id("Idol of Endurance"), p0, ZONE_BATTLEFIELD)
+        rival = world.add_card(card_id("Rival Card"), p0, ZONE_LIBRARY)
+        executor.apply_effect(
+            _atom(
+                Verb.EXILE,
+                target=Selector(
+                    QConst(1),
+                    SelectorMode.CHOOSE,
+                    FAnd(()),
+                    Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),
+                ),
+            ),
+            source=other,
+            controller=p0,
+        )
+        self.assertEqual(world.zone_of(rival).kind, ZONE_EXILE)
+        self.assertEqual(resolve_selector(selector, ctx), [top])
 
 
 def _oid(n: int) -> str:

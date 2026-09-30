@@ -5,8 +5,10 @@
 Atom, :meth:`Executor.apply_effect` for an Effect tree (Seq /
 OptionalEffect / Conditional — the decision-bearing nodes; Choose consumes
 its decision at runtime from 12d (index into ``query.choose_options``'
-ORDER contract — see that docstring); Repeat/EachPlayer remain
-not-implemented and RAISE at dispatch; DelayedTrigger SCHEDULES into the
+ORDER contract — see that docstring); EachPlayer runs per-player
+sub-executions with the CONTROLLER rotated (14f; the templates compile the
+inner effect YOU-relative); Repeat remains not-implemented and RAISES at
+dispatch; DelayedTrigger SCHEDULES into the
 12b binder, C22). 12b adds the living-ability half:
 
   * :meth:`Executor.attach_card` / :meth:`Executor.attach_pool` — compiled
@@ -96,6 +98,7 @@ from MTG_bot.core.ability_tree import (
     Conditional,
     ControllerRef,
     DelayedTrigger,
+    EachPlayer,
     Effect,
     OptionalEffect,
     Phase,
@@ -147,7 +150,7 @@ from MTG_bot.core.executor.replacements import (
     ReplacementRecord,
     ReplacementRegistry,
 )
-from MTG_bot.core.executor.selectors import resolve_selector
+from MTG_bot.core.executor.selectors import players_for_ref, resolve_selector
 from MTG_bot.core.executor.stack import (
     SpellObject,
     SpellStack,
@@ -475,11 +478,22 @@ class Executor:
         asks the query-narrowed offer vocab (``fire``/``skip``), Seq runs
         its steps, Conditional judges the pred against the *source*
         handle, Choose (12d: ONE decision token = the index of the chosen
-        option-set in ``query.choose_options`` order) and DelayedTrigger
-        (scheduled, C22) are wired; Repeat/EachPlayer raise as
-        unimplemented nodes (12e)."""
+        option-set in ``query.choose_options`` order), EachPlayer (14f:
+        one sub-execution per denoted player, controller rotated — the
+        inner effect is compiled YOU-relative, so the rotation IS the
+        rebinding) and DelayedTrigger (scheduled, C22) are wired; Repeat
+        raises as an unimplemented node (12e)."""
         if not isinstance(
-            effect, (Atom, Seq, OptionalEffect, Conditional, DelayedTrigger, Choose)
+            effect,
+            (
+                Atom,
+                Seq,
+                OptionalEffect,
+                Conditional,
+                DelayedTrigger,
+                Choose,
+                EachPlayer,
+            ),
         ):
             raise NotImplementedError(
                 f"executor: effect {type(effect).__name__} not implemented (12e)"
@@ -568,6 +582,37 @@ class Executor:
             )
             for idx in opts[int(pick)].option_idxs:
                 self._run_effect(effect.options[idx], ctx)
+        elif isinstance(effect, EachPlayer):
+            # 14f (B-20): "each opponent …" (Goremand's ETB sacrifice,
+            # Keral Keep Disciples' damage, Pursued Whale's tokens, Thieves'
+            # Guild Enforcer's mills — the four corpus faces, ALL_OPPONENTS).
+            # One sub-execution per denoted player with the CONTROLLER
+            # rotated: the templates compile the inner effect YOU-relative
+            # (b2a/b2b ruling — Goremand's SACRIFICE filter CONTROLLER_IS
+            # YOU, MILL's controller role, Zone(PLAYER,YOU)), so rotation
+            # IS the rebinding; the spell's designations stay visible
+            # (bindings carried, never rewritten). Iteration order is
+            # players_for_ref's seat order; CR 800.2 runs each-player
+            # effects APN-first — in the duel the two coincide, and the
+            # seat-order reading is the documented convention (doc
+            # 09-30/09), never a silent rule. The per-op decision POOL
+            # cursor rides across the sub-contexts (one positional supply
+            # answers every station in ask order, byte-identical to the
+            # single-context consumption the 12a-era pins use) and is
+            # written back; the vocabulary-addressed stream lanes are
+            # executor-owned and need no forwarding. Each inner atom
+            # journals its own boundary under the stable source.
+            for player in players_for_ref(effect.ref, ctx):
+                inner = self._ctx(
+                    source=ctx.source,
+                    controller=player,
+                    bindings=ctx.bindings,
+                    decisions=ctx.decisions,
+                    x_value=ctx.x_value,
+                )
+                inner.decision_idx = ctx.decision_idx
+                self._run_effect(effect.effect, inner)
+                ctx.decision_idx = inner.decision_idx
         elif isinstance(effect, DelayedTrigger):
             # C22: schedule into the journal matcher (12b), expire at Eot.
             self.binder.schedule_delayed(effect, ctx.source, ctx.controller)

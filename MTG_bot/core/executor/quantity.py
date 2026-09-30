@@ -387,7 +387,10 @@ def eval_filter(filter_: Filter, handle: Handle, ctx: ExecCtx) -> bool:
     not amnesia; doc 09-30/07). 14e adds the WORLD-evaluable twins the 14d
     wall named: POWER_GE (the live-P/T family — Legion's Judgment line) and
     CMC_LE (the identity-mana-value family — Eliminate/Idol/Ugin, QX-capable
-    off the cast's declared X). Every other predicate raises
+    off     the cast's declared X). 14f adds KEYWORD_HAS (the live-keyword oracle:
+    printed ∪ granted − lost through the layer registry — Run Afoul's
+    target filter, Portcullis Vine's cost gate, the Tide Skimmer family).
+    Every other predicate raises
     ``NotImplementedError`` naming itself: its completeness is 12c's gate,
     and an unsupported pred is flagged, never guessed.
     """
@@ -532,6 +535,29 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         if handle.namespace != "card":
             return False
         return (world.cards[handle].identity.cmc or 0) <= threshold
+    if pred is FAtomPred.KEYWORD_HAS:
+        # 14f (B-21): "with <keyword>" introspection — the games demanded
+        # it from BOTH surfaces the frozen grammar places it in: a selector
+        # filter (Run Afoul's "sacrifices a creature of their choice with
+        # flying" CHOOSE pool) and gate positions (Tide Skimmer / Snarespinner
+        # trigger filters+conditions, Portcullis Vine's cost-target gate,
+        # Lofty Denial's / Watcher of the Spheres' cost-modifier conditions).
+        # The answer is the LAYER REGISTRY's live keyword oracle — printed
+        # identity keywords ∪ live grants − live losses, rebuilt at every
+        # settle (the 12d anthem oracle combat legality already calls). A
+        # bare ExecCtx has no registry: flagged, never a printed-only guess
+        # that would silently miss a granted or stripped keyword (the
+        # IS_ATTACHED_TO_SOURCE convention). A handle outside the card set
+        # (a player seat) has no keywords — characteristic absent, False.
+        assert atom.keyword is not None
+        if handle.namespace != "card" or handle not in world.cards:
+            return False
+        if ctx.layers is None:
+            raise NotImplementedError(
+                "executor: filter pred KEYWORD_HAS needs the layer "
+                "registry for the live keyword oracle (bare ExecCtx has none)"
+            )
+        return ctx.layers.keyword_of(handle, atom.keyword)
     if pred is FAtomPred.HAS_COUNTER:
         assert atom.count is not None and atom.counter_kind is not None
         threshold = resolve(atom.count, ctx)

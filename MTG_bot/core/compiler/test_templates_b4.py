@@ -371,9 +371,12 @@ EXPECTED_KIND: dict[str, tuple[str, str]] = {
     ),
     "Creatures you control get +1/+1.": ("B4-modify-pt-static-you", "ability"),
     "Creatures you control have trample.": ("B4-grant-kw-static-you", "ability"),
+    # AMENDED 2026-09-30 (round 14f): the static row joins its five sibling
+    # statics as an ABILITY (raw EffectOutcome was the family's outlier;
+    # on a creature it folded into the SpellAbility and ran once at cast).
     "Creatures your opponents control get -1/-0.": (
         "B4-modify-pt-static-opponents",
-        "effect",
+        "ability",
     ),
     "Other Cats you control get +1/+1 and have protection from Dogs.": (
         "B4-modify-pt-protect-other-cats",
@@ -706,12 +709,17 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertNotIn("duration", _pairs(atom))
 
     def test_modify_pt_static_opponents(self) -> None:
-        outcome = _as_effect(
+        # AMENDED 2026-09-30 (round 14f): this row was the family's lone
+        # outlier emitting a raw EffectOutcome, which the assembly folded
+        # into the CREATURE's SpellAbility to run ONCE at cast (Waker of
+        # Waves, B-11-family static miscompile). The family shape is
+        # StaticAbility (all five sibling rows); the atom is unchanged.
+        outcome = _as_ability(
             _single_match(
                 self.reg, "Creatures your opponents control get -1/-0."
             ).outcome
         )
-        atom = _as_atom(outcome.effect)
+        atom = _as_atom(_as_static(outcome.ability).effect)
         self.assertIs(atom.verb, Verb.MODIFY_PT)
         power = _pt_delta(atom, "power")
         toughness = _pt_delta(atom, "toughness")

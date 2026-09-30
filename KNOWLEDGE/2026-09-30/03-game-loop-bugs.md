@@ -285,3 +285,32 @@ deaths live in `all` (FIGHT) and `castable` stays honestly crash-heavy.
 Gates: core **2013** (+6 pins, 3 frozen AMENDED), PC-1/2/3/4 **EXACT** (goldens moved ONLY
 via the capture audit), engine_supported 286 EXACT, pyright 0 (repo 524→524), ruff delta 0,
 replay determinism green.
+
+---
+
+## Round 14f close-out (same day) — the final four classes; PC-7 v1 CONVERGED at 96.7%
+
+**STATUS FLIPS (supersede the 14e rows; design + audits in /09):**
+
+| class | status after 14f | fix | pinned |
+|---|---|---|---|
+| **B-9 cross-resolution residual (Chandra #4)** | **CLOSED — ledger row fully closed** | `B4-cast-them-this-turn` fidelity: the permission compiles the `IS_EXILED_WITH_SOURCE` population (CHOOSE+QUnbounded+Zone(EXILE,YOU) — Chandra's own [+1] row's shape, Idol b3 twin), never the per-resolution register; source-scoped union edge documented (the pred's frozen reading) | `TestRound14fFidelity` (row shape + corpus scope = {Chandra}); seam pin: a FRESH resolution answers the exiled-with population, other sources' exiles stay out (cause-scoped) |
+| **B-20 EachPlayer (new label; 12e "unimplemented node")** | **CLOSED** | per-player sub-execution, CONTROLLER rotated (the templates compile the inner effect YOU-relative — rotation IS the rebinding); bindings carried; positional pool cursor forwarded + written back; seat-order iteration = documented CR 800.2 simplification (coincides in the duel); Repeat stays loud | `Round14fSurfaceTest` ×3 (rotation, pool forwarding, real Goremand tree sacrifices ONLY the opponent's creature) + `test_unsupported_effect_nodes_raise` AMENDED (Repeat-only leg; EachPlayer leg flips green) |
+| **B-21 KEYWORD_HAS (new label; 14e census face)** | **CLOSED** | `_eval_atom` branch reads the LIVE keyword oracle `layers.keyword_of` (printed ∪ grants − losses, rebuilt per settle); bare ctx raises naming the pred (no printed-only guess — the IS_ATTACHED_TO_SOURCE convention); one branch answers every vocabulary position (selector filters, trigger/event filters, cost gates, cost-modifier conditions — inventory) | `Round14fSurfaceTest` grant-flips-membership + bare-ctx pin |
+| **B-22 static-anthem outlier (B-11 family, T8-era)** | **CLOSED (bounded, audited)** | inventory = **1 card** (Waker of Waves; the broad hits are DurationEot instants — legitimate); `_build_modify_pt_static_opponents` was the family's lone raw-EffectOutcome row → StaticAbility wrapper (the five siblings' shape; layers.attach_card consumes it as the live-anthem layer). Waker loses the accidental SpellAbility → B-1 set, `playable_engine 86→85` — the 14e Swindler/Hallowblade precedent; NO new ambiguity, no STOP re-fire | `TestRound14fFidelity` (Waker abilities == [StaticAbility, ActivatedAbility], capture intact; scope = {Waker}); `test_modify_pt_static_opponents` + EXPECTED_KIND AMENDED (kind flip) |
+
+**14f re-measure (same recipe):** all 9/10 (55.1t, cov43, 1 crash=FIGHT,
+all-pool by construction); engine 9/10 (59.9t, cov44, **0 crashes**);
+castable 5→**8/10** (57.4t, cov48, **0 crashes**, 2 natural draw-losses);
+**engine 30 seeds 26/30→29/30 (96.7%), mean 60.0t, cov 58 = 21.7%, 3843
+acts, 0 crashes** — the only non-survivor is a natural CR-121.3
+draw-from-empty LOSS (seed 0). **PC-7 v1 CONVERGED**: the engine pool
+plays to the cap with zero exceptions; the remaining wall is the SCOPE
+line (flagged-verb family + arc-3 combat UNREACHED + B-1 castability),
+detailed in /09.
+
+Gates: core **2022** (+9 pins, 3 AMENDED), PC-1/2/3/4 **EXACT**, engine
+286 EXACT, goldens moved ONLY via the two audited inventories
+(diff=={Chandra, Waker}, keys={abilities}), pyright 0 (repo 524→524),
+ruff delta 0, replay determinism green, the three 14e crash seeds replay
+crash-free to the cap.

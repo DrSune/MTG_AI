@@ -934,21 +934,26 @@ class TestApplyEffect(ExecutorCase):
         self.assertEqual(self.world.players[self.p0].mana_pool, {"W": 1})
 
     def test_unsupported_effect_nodes_raise(self):
-        # AMENDED 2026-09-29 (round 12d, plan /06 §12d): Choose now runtime-
-        # consumed (round 12c ruling) — the node dispatches through
-        # apply_effect consuming ONE decision token, the index of the
-        # chosen option-set in query.choose_options order (test below).
-        # The other unsupported stay: Repeat/EachPlayer keep raising.
-        nodes = (
-            Repeat(QConst(2), self.gain(1)),
+        # AMENDED 2026-09-30 (round 14f): EachPlayer is WIRED — one
+        # sub-execution per denoted player with the CONTROLLER rotated
+        # (the templates compile the inner effect YOU-relative, so the
+        # rotation IS the rebinding; the Goremand/Keral/Whale/Thieves'
+        # Guild corpus faces run in Round14fSurfaceTest). Repeat stays
+        # unimplemented and loud. (Earlier amendment, 12d: Choose became
+        # runtime-consumed — pinned separately below.)
+        with self.assertRaises(NotImplementedError):
+            self.ex.apply_effect(
+                Repeat(QConst(2), self.gain(1)),
+                source=self.alpha,
+                controller=self.p0,
+            )
+        self.ex.apply_effect(
             EachPlayer(ControllerRef.ALL_OPPONENTS, self.gain(1)),
+            source=self.alpha,
+            controller=self.p0,
         )
-        for node in nodes:
-            with (
-                self.subTest(node=type(node).__name__),
-                self.assertRaises(NotImplementedError),
-            ):
-                self.ex.apply_effect(node, source=self.alpha, controller=self.p0)
+        self.assertEqual(self.world.players[self.p1].life, 21)  # YOU rotated
+        self.assertEqual(self.world.players[self.p0].life, 20)  # never fired
 
     def test_choose_runtime_consumes_a_decision_12d(self):
         # 12d pin: Choose(QConst(1), (A, B)) consumes str(index) and runs

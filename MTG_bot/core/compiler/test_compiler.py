@@ -1476,6 +1476,94 @@ class TestActivationTrailing(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 
+class TestRound14fFidelity(unittest.TestCase):
+    """Round 14f: the two audited compiler fidelities. (1) The
+    B4-cast-them-this-turn permission row's anaphor CROSSes resolutions
+    (the [−9]'s exile ran in its own execution; the permission activates
+    later), so it compiles the executor's exiled-with POPULATION — the
+    14d ``IS_EXILED_WITH_SOURCE`` pred, Chandra's own [+1] row's shape —
+    never the per-resolution ``result`` register 14e closed (the residual
+    it named). (2) A bare static anthem sentence is an ABILITY: the
+    opponents-debuff row was the lone outlier emitting a raw
+    EffectOutcome, which folded into the creature's SpellAbility and ran
+    ONCE at cast (Waker of Waves). The StaticAbility wrapper is the
+    family's established shape (the five sibling rows) and the card then
+    carries no SpellAbility — the same B-1 move the 14e capture ruled for
+    Swindler/Hallowblade."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.pool = ingest_pool(_M21_PATH)
+        cls.reg = build_full_registry()
+        cls.pc = compile_pool(cls.pool, cls.reg)
+
+    def test_cast_them_row_compiles_the_exiled_with_population(self) -> None:
+        raw = _raw_card(
+            "Permission Fixture",
+            791,
+            sentences=("You may cast them this turn.",),
+        )
+        res = compile_card(raw, self.reg)
+        self.assertEqual(res.unparsed, ())
+        (ability,) = res.card.abilities
+        assert isinstance(ability, ActivatedAbility)
+        self.assertEqual(ability.cost, Cost())  # the empty-cost permission
+        assert isinstance(ability.effect, OptionalEffect)
+        cast_atom = ability.effect.inner
+        assert isinstance(cast_atom, Atom)
+        self.assertIs(cast_atom.verb, Verb.CAST)
+        selector = cast_atom.args.get("source")
+        assert isinstance(selector, Selector)
+        self.assertIsNone(selector.referent)  # NO register hop anymore
+        self.assertIsInstance(selector.count, QUnbounded)  # plural "them"
+        self.assertIs(selector.mode, SelectorMode.CHOOSE)
+        self.assertEqual(selector.zone.kind, ZoneKind.EXILE)
+        self.assertIs(selector.zone.controller, ControllerRef.YOU)
+        self.assertEqual(selector.filter, FAtom(pred=FAtomPred.IS_EXILED_WITH_SOURCE))
+
+    def test_corpus_scope_of_the_two_rows(self) -> None:
+        # The audit's set-equality premise: each fidelity touches EXACTLY
+        # the named card in the 305.
+        cast_them = {
+            self.pool[oid].identity.name
+            for oid in self.pool
+            if "You may cast them this turn."
+            in (self.pool[oid].identity.oracle_text or "")
+        }
+        static_opp = {
+            self.pool[oid].identity.name
+            for oid in self.pool
+            if re.search(
+                r"Creatures your opponents control get -\d+/-\d+\.",
+                self.pool[oid].identity.oracle_text or "",
+            )
+        }
+        self.assertEqual(cast_them, {"Chandra, Heart of Fire"})
+        self.assertEqual(static_opp, {"Waker of Waves"})
+
+    def test_waker_static_lives_on_a_static_ability(self) -> None:
+        (waker,) = [
+            res.card
+            for res in self.pc.results.values()
+            if res.card.name == "Waker of Waves"
+        ]
+        kinds = [type(a).__name__ for a in waker.abilities]
+        self.assertEqual(kinds, ["StaticAbility", "ActivatedAbility"])
+        static = waker.abilities[0]
+        assert isinstance(static, StaticAbility)
+        atom = static.effect
+        assert isinstance(atom, Atom)
+        self.assertIs(atom.verb, Verb.MODIFY_PT)
+        self.assertIsNone(atom.args.get("duration"))  # continuous, not timed
+        # no SpellAbility node: the miscompile is GONE (card joins the B-1
+        # not-castable set, 14e precedent — measured in the re-run).
+        self.assertFalse(any(isinstance(a, SpellAbility) for a in waker.abilities))
+        # the 14e activation capture is untouched by the re-wrap
+        activation = waker.abilities[1]
+        assert isinstance(activation, ActivatedAbility)
+        self.assertIsInstance(activation.effect, Seq)
+
+
 class TestMetaFilter(unittest.TestCase):
     def test_enchant_filter_conjoined_into_target(self) -> None:
         meta = FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="creature")

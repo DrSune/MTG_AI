@@ -340,6 +340,18 @@ def _build_grant_kw_static_you(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_modify_pt_static_opponents(m: re.Match[str]) -> SentenceOutcome:
+    """14f FIDELITY FIX (doc 09-30/09, B-11-family static miscompile):
+    a bare static anthem sentence is an ABILITY, not a card-level
+    EffectOutcome — this row was the one outlier of its family (static-you,
+    grant-kw-static-you, other-cats, other-dogs, other-creatures all wrap
+    ``StaticAbility``), so on a creature card the bare atom folded into
+    the SpellAbility and ran ONCE at cast (Waker of Waves' −1/−0: a
+    one-shot cast-time debuff instead of a continuous effect).  The
+    StaticAbility wrapper is the executor's live-anthem path (layers
+    attach + scope-resolved recompute, 12d); the card then carries no
+    cast effect (creature SpellAbility nodes only fold EffectOutcomes —
+    the card joins the B-1 not-castable set exactly as the 14e capture
+    moved Swindler/Hallowblade, ruled precedent)."""
     p, t = int(m.group("p")), int(m.group("t"))
     atom = Atom(
         verb=Verb.MODIFY_PT,
@@ -351,7 +363,7 @@ def _build_modify_pt_static_opponents(m: re.Match[str]) -> SentenceOutcome:
             )
         ),
     )
-    return EffectOutcome(effect=atom)
+    return AbilityOutcome(ability=StaticAbility(atom))
 
 
 def _build_modify_pt_protect_other_cats(m: re.Match[str]) -> SentenceOutcome:
@@ -1119,27 +1131,46 @@ def _build_cast_them_this_turn(m: re.Match[str]) -> SentenceOutcome:
     the anaphoric follow-on to "…exile them, then shuffle").
 
     Permission idiom (B4-cast-goblin-top-library): empty-cost
-    ActivatedAbility + OptionalEffect(CAST).  "them" = the cards the [−9]
-    search exiled — the result register (R7-1/R7-5, C12 structured
-    referent).  C2 pins the referent selector to CHOOSE + QConst(1) +
-    the neutral zone (Selector.__post_init__ validates), so the register
-    selector carries QConst(1) like every landed referent row (See the
-    Truth's cast-elsewhere row for the same plural anaphor); casting more
-    than one exiled card is an executor-side reading of the register,
-    not a count the IR may vary (documented, not defaulted).  Mana
-    waiver via the CAST atom's cost role = Cost(parts=()) (the
-    established empty-cost waiver reading, see the b3 UNCOVERED note).
+    ActivatedAbility + OptionalEffect(CAST).  14f FIDELITY FIX (doc
+    09-30/09): "them" was compiled as the ``referent='result'`` register —
+    anaphora that crosses resolutions (the exile ran in the [−9]'s effect
+    execution; the permission activates later, when the per-resolution
+    register is gone, 14e's residual).  The executor already models the
+    exact printed relation — "cards exiled [by this permanent]" — as
+    ``FAtomPred.IS_EXILED_WITH_SOURCE`` (R8-6; world half: in exile NOW,
+    history half: journalled cause = this ability's source), and Chandra's
+    OWN [+1] play-permission row compiles that filter.  "them" is the
+    plural of the same population: CHOOSE + QUnbounded + Zone(EXILE, YOU),
+    the [+1] row's shape down to the filter (the C2 referent-selector pin
+    is not in play — this is no referent selector).  Mana waiver via the
+    CAST atom's cost role = Cost(parts=()) (the established empty-cost
+    waiver reading, see the b3 UNCOVERED note).
+    Documented fidelity edge (shared with the [+1] row's golden — the
+    pred's frozen reading is SOURCE-scoped, not row-scoped): both of
+    Chandra's exiles carry the same permanent as journalled cause, so the
+    two permissions read the union of her exiled-with population.  The
+    grammar has no per-ability exile group; the union is the pred's
+    established semantics, not an invention of this row.
     Lossy (C11 class, verbatim): "this turn" — CAST has no duration role
     (R9 grammar item: CAST duration role).
     Assembly note: the [−9]'s third sentence; the empty-cost
     ActivatedAbility assembles as a sibling node (r7-B deviation-2
-    class — the register hop is executor-side association).
-    C16: open — whether to cast, which of the exiled cards."""
+    class — the population hop is the executor's journal read).
+    C16: open — whether to cast; WHICH cards is the executor-side
+    CHOOSE-QUnbounded reading (all candidates, the [+1] row's twin)."""
     atom = Atom(
         verb=Verb.CAST,
         args=AtomArgs(
             pairs=(
-                ("source", _result_register_selector(QConst(1))),
+                (
+                    "source",
+                    Selector(
+                        QUnbounded(),
+                        SelectorMode.CHOOSE,
+                        FAtom(pred=FAtomPred.IS_EXILED_WITH_SOURCE),
+                        Zone(kind=ZoneKind.EXILE, controller=ControllerRef.YOU),
+                    ),
+                ),
                 ("cost", Cost(parts=())),
             )
         ),
