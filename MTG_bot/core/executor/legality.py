@@ -354,18 +354,36 @@ def _zone_handles(ctx: ExecCtx, zone: Zone) -> list[Handle]:
     """Candidate enumeration for the QUERY surface — the map that closes
     the 12a raises this phase owns (/06 §12c): ``Zone(ANY)`` becomes every
     player zone in seat × :data:`PLAYER_ZONES` order, and an ``OWNER``
-    controller ref becomes the activation owner's zone. Zone(STACK) still
-    raises: the frozen state has no stack and the queue shapes are OUT.
+    controller ref becomes the activation owner's zone.
+
+    14a: Zone(STACK) USED to raise here ("the frozen state has no stack and
+    the queue shapes are OUT") — that was round-12 truth and 13b made it
+    stale: the executor has a stack now, journalled as each seat's
+    ``ZONE_STACK`` slot by :func:`stack.stack_zone` with ``SpellStack`` frames
+    on top. Answering instead of raising is load-bearing, not cosmetic: a card
+    whose TARGET selector names the stack (M21 Unsubstantiate prints
+    ``BATTLEFIELD + STACK``) was unreachable through the query surface by a
+    route that looked legal — :func:`legal_casts` folded its cost and called it
+    castable, then :func:`spell_target_slots` raised on the very next question
+    (games harness /03 row B-2). The stack stays OUT of :data:`PLAYER_ZONES`,
+    so ``Zone(ANY)`` keeps its 12a meaning and only an explicit STACK zone
+    reaches these entries.
 
     The 12a :func:`~MTG_bot.core.executor.selectors.enumerate_zone` is
     reused for everything else, so effect-time resolution and query-time
     enumeration share one zone-order convention (§8.3 identity)."""
     world = ctx.world
     if zone.kind is ZoneKind.STACK:
-        raise NotImplementedError(
-            "executor: Zone(STACK) enumeration needs the stack (queue "
-            "shapes are OUT of round 12)"
-        )
+        from MTG_bot.core.executor.selectors import players_for_ref
+        from MTG_bot.core.executor.stack import stack_zone
+
+        if zone.controller is ControllerRef.OWNER:
+            return list(stack_zone(world, source_owner(world, ctx)).entries)
+        return [
+            handle
+            for seat in players_for_ref(zone.controller, ctx)
+            for handle in stack_zone(world, seat).entries
+        ]
     owner = source_owner(world, ctx)
     if zone.controller is ControllerRef.OWNER:
         if zone.kind is ZoneKind.PLAYER:

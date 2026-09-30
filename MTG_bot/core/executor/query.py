@@ -685,6 +685,7 @@ def verb_choose_options(
     *,
     source: Handle,
     controller: Handle,
+    bindings: dict[str, Binding] | None = None,
 ) -> tuple[tuple[Handle, ...], ...]:
     """The enumerable picks of a ``Verb.CHOOSE`` atom (Duress/Kitesail's
     "You choose a card from it"): the candidate pool resolved through the
@@ -704,7 +705,13 @@ def verb_choose_options(
     selector = atom.args.get("target")
     if not isinstance(selector, Selector):
         raise TypeError(f"verb_choose_options: no target selector on {atom!r}")
-    ctx = ctx_for(executor, source=source, controller=controller)
+    # 14a B-8a: the caller's bindings ride along. Without them a CHOOSE atom
+    # whose pool is scoped to the spell's target — Duress's "You choose a card
+    # from it" reads Zone(HAND, TARGET_PLAYER) — rebuilt a context with no
+    # target and raised 'TARGET_PLAYER needs a bound target' INSIDE the runtime
+    # handler that was holding the binding. Defaulting to None keeps every
+    # pre-14a caller byte-identical.
+    ctx = ctx_for(executor, source=source, controller=controller, bindings=bindings)
     # enumerate_candidates, NOT resolve_selector: the CHOOSE-mode resolver
     # applies its 12a deterministic-first-n stand-in (it returns the
     # DESIGNATION), which would clamp the pool to one row before ANY

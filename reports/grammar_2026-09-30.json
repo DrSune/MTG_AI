@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-09-30T00:43:01+02:00",
-  "git_head": "4cdfa8b6735a12ee0ffb00ace63a8604ee9172b7",
+  "generated": "2026-09-30T02:18:38+02:00",
+  "git_head": "535edeb927e9a1fb5b1b127f080380ed1a5c0bad",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -101,15 +101,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.24,
+      "value": 0.242,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.231,
-        0.231,
-        0.24
+        0.233,
+        0.234,
+        0.242
       ]
     },
     "PC-6": {
@@ -256,59 +256,5 @@
       "bucket_hint": "spell-effect"
     }
   ],
-  "unparsed_count": 5,
-  "engine_support": {
-    "engine_supported_cards": 286,
-    "of_total": 305,
-    "supported_verbs": [
-      "ADD_LAND_PLAY",
-      "ADD_MANA",
-      "CAST",
-      "CHOOSE",
-      "CHOOSE_NAME",
-      "CREATE_TOKEN",
-      "DEAL_DAMAGE",
-      "DESTROY",
-      "DISCARD",
-      "DRAW",
-      "END_TURN",
-      "EXILE",
-      "EXTRA_TURN",
-      "FLIP_COIN",
-      "GAIN_LIFE",
-      "GET_EMBLEM",
-      "GRANT_ABILITY",
-      "GRANT_ACTIVATION",
-      "GRANT_TYPE",
-      "LOOK_AT",
-      "LOSE_ABILITY",
-      "LOSE_GAME",
-      "LOSE_LIFE",
-      "MANA_POLICY",
-      "MILL",
-      "MODIFY_PT",
-      "MOVE_ZONE",
-      "PAY",
-      "PREVENT_EFFECT",
-      "PUT_COUNTER",
-      "REMOVE_COUNTER",
-      "REVEAL",
-      "SACRIFICE",
-      "SCRY",
-      "SEARCH",
-      "SET_PT",
-      "SHUFFLE",
-      "TAP",
-      "UNTAP"
-    ],
-    "flip_proof": {
-      "card": "Cancel",
-      "spell_ability_only": true,
-      "default_engine_supported": true,
-      "gated_engine_supported": false,
-      "offending_verbs": [
-        "COUNTER_SPELL"
-      ]
-    }
-  }
+  "unparsed_count": 5
 }

@@ -710,7 +710,16 @@ class TestMayAndDeterminism(BindingCase):
         ex.end_turn()
         # Chain fired: ETB drew, the draw trigger milled, the direct draw
         # drew again and milled again.
-        self.assertEqual(len(world.players[p0].zone(ZONE_HAND).entries), 2)
+        # AMENDED 14a (2026-09-30): the turn skeleton gained its DRAW step
+        # (CR 504.5-c, `Executor._turn_draw`) — begin_turn now draws for the
+        # active seat, so the chain runs ONE MORE draw at its head: 3 cards
+        # end in hand. The library is 5 deep and the feed is now 3 draws + 3
+        # mill attempts, so the third mill finds an empty library (CR 121.2
+        # no-op through _v_mill) and the graveyard stays 2 deep. Pre-14a this
+        # pinned 2/2 because the skeleton had NO draw step at all (the games
+        # harness found it: without a per-turn draw a real game stalls). The
+        # chain's SHAPE is unchanged — one extra link at the head.
+        self.assertEqual(len(world.players[p0].zone(ZONE_HAND).entries), 3)
         self.assertEqual(len(world.players[p0].zone(ZONE_GRAVEYARD).entries), 2)
         return ex.state_fingerprint()
 

@@ -89,13 +89,16 @@ from collections.abc import Sequence
 
 from MTG_bot.core.ability_tree import (
     Atom,
+    AtomArgs,
     CardRecord,
     Choose,
     Conditional,
+    ControllerRef,
     DelayedTrigger,
     Effect,
     OptionalEffect,
     Phase,
+    QConst,
     Seq,
     Step,
     Verb,
@@ -204,6 +207,17 @@ SUPPORTED_VERBS_V1 = frozenset(
 SUPPORTED_VERBS_V2 = frozenset(HANDLERS)
 
 Event = tuple[object, ...]
+
+# 14a: the CR 504.5-c turn draw, as the IR node the turn skeleton runs for the
+# active player. A module-level constant because ``Atom`` is frozen — one
+# node shared by every turn, never re-constructed, so the DRAW atom is
+# byte-identical across replays. ``ControllerRef.YOU`` resolves through
+# :func:`selectors.role_player` to the context's controller, which the
+# skeleton sets to the active seat (:meth:`Executor._turn_draw`).
+_TURN_DRAW = Atom(
+    verb=Verb.DRAW,
+    args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("amount", QConst(1)))),
+)
 
 __all__ = [
     "MAX_TRIGGER_FIRES",
@@ -654,9 +668,41 @@ class Executor:
         self.replacements.expire_until_next_turn(player)
         self.journal.record_turn_phase(Phase.UPKEEP.name)
         self.phase = Phase.UPKEEP.name
+        # 14a: the DRAW step (CR 504.5-c), journalled INSIDE the skeleton so
+        # 'whenever you draw' triggers and the fingerprint see it, and AFTER
+        # the UPKEEP marker so beginning-of-upkeep triggers keep their CR
+        # ordering ahead of draw triggers.
+        self._turn_draw(player)
         self.journal.record_turn_phase(Phase.FIRST_MAIN.name)
         self.phase = Phase.FIRST_MAIN.name
         return self._settle(trigger_decisions)
+
+    def _turn_draw(self, player: Handle) -> None:
+        """The CR 504.5-c draw step of the active player (14a).
+
+        The frozen grammar has no phase-marker draw — the DRAW *verb* is the
+        corpus idiom (`library -> hand`), so the skeleton runs the shared
+        :data:`_TURN_DRAW` atom inline through the same journalled path a
+        card's own draw uses: the DRAW handler calls
+        :meth:`GameWorld.draw` and the journal auto-detects the
+        library->hand move as a MOVE_ZONE atom boundary.
+
+        Two deliberate omissions, both the skeleton's existing discipline:
+        no nested ``_settle`` (the turn has exactly ONE settle, the one at
+        the tail of :meth:`begin_turn`, and a draw-armed trigger already
+        drains there in clock order behind the UPKEEP marker) and no nested
+        ``_consume_end_turn`` (an END_TURN requested by such a trigger
+        closes at the next op boundary, never mid-skeleton). An empty
+        library no-ops here (CR 121.2 through ``_v_draw``); CR 121.3's
+        'draw from empty = loss' is a STATE CHECK, not a verb (13a ruling),
+        and belongs to the caller's loss scan, not to this step.
+
+        ``source`` is the seat: no permanent drew this card, and the
+        journal's cause column records the seat, which is what
+        a 'you drew' trigger's APNAP controller already is."""
+        self._op_seq += 1
+        ctx = self._ctx(source=player, controller=player, bindings=None, decisions=())
+        self._run_effect(_TURN_DRAW, ctx)
 
     def _untap_step(self, player: Handle) -> int:
         """The 12d untap step. Every tapped permanent the ACTIVE player

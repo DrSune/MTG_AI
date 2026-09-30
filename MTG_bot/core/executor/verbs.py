@@ -858,6 +858,9 @@ def _v_choose(ctx: ExecCtx, atom: Atom) -> None:
         atom,
         source=ctx.source,
         controller=ctx.controller,
+        # B-8a: forward the live bindings — the pool this atom enumerates can
+        # be scoped to them (Zone(HAND, TARGET_PLAYER) on Duress).
+        bindings=ctx.bindings,
     )
     if rows == ((),):
         ctx.bindings["result"] = []

@@ -508,3 +508,23 @@
   `Emblem`-typed record with `is_token=True`; `types` non-empty; oracle ids validated
   as hex uuids (synthetic ids with non-hex chars raise). TYPE_EQ/SUPERTYPE_EQ read the
   IDENTITY's printed type_line, not the record's `types` — set both consistently.
+
+- **Game-harness traps (2026-09-30, round 14a):**
+  - **The engine-supported count only exists in the GATED compile.** `compile_pool(raw, reg)`
+    stamps `engine_supported=True` on all 305; 286 appears only when you pass
+    `supported_verbs=set(SUPPORTED_VERBS_V2)`. Any tool that wants the honest number must do the
+    gated pass (NUMBERS 2026-09-30).
+  - **A raise usually happens BEFORE the act is logged**, so "last three acts" cannot name the
+    culprit card. Record the act you are ABOUT to attempt (`game.attempted`) and put it in the
+    crash row — that field is what identified Kitesail Freebooter and Fabled Passage in one grep.
+  - **`test_executor_binding.card_id()` defaults `type_line="Creature"`.** A filter that excludes
+    creatures (Duress's noncreature-nonland choice) then enumerates an EMPTY pool, the CHOOSE atom
+    takes the no-decision path, and the test passes while measuring nothing. Set the type line.
+  - **A `Verb.CHOOSE` atom with no candidates consumes NO decision** (`rows == ((),)` → binds an
+    empty `result`), so a hand-crafted cast that "should" have chosen something can silently
+    choose nothing with `decisions=()`.
+  - **`Zone(ANY)` does NOT include the stack** (13b kept `ZONE_STACK` out of `PLAYER_ZONES`), so
+    only an explicit `Zone(STACK)` selector reaches stack entries — and since 14a F-2, that query
+    ANSWERS instead of raising.
+  - **Policy filters must be counted, not raised-through.** Surfacing a policy-side skip (a >1
+    TARGET-selector spell) as an exception made it look like an engine crash class in the census.

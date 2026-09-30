@@ -1,0 +1,374 @@
+"""Round-14a test suite: the random-policy full-M21 game harness, and the
+repro pin for every crash the first 30 games produced.
+
+Two jobs.
+
+1. The harness must be trustworthy before any PC-7 number written from it
+   means anything: one seed must replay to the SAME world fingerprint (the
+   mission's "pinned replay test seed S game state fingerprints equal across
+   two runs"), the deck builder must obey its own documented composition rules,
+   and the policy's decision stream must come from the query surface — which is
+   testable by making the query surface NARROW and checking the policy follows
+   (:class:`DecisionSurfaceTest`). That is the C15 contract as an assertion, not
+   as a comment about it.
+
+2. Every crash class the 14a smoke run produced gets a test here, seed-pinned
+   through the real seed -> deck -> policy derivation, asserting the CURRENT
+   behaviour, with an ``AMENDED`` marker on the line that flips when the engine
+   fixes it. These tests are the executable half of
+   ``KNOWLEDGE/2026-09-30/03-game-loop-bugs.md``, which names them per row.
+
+   * B-2 (Zone(STACK) target query) is FIXED here, so its test asserts the
+     fixed answer and the marker is a history note, not a TODO.
+   * B-4 (the mid-drain trigger decision channel) is OPEN and is why PC-7
+     survival is 0%: no query enumerates the triggers an op is about to arm, so
+     a positional ``trigger_decisions`` stream cannot be built for them.
+   * B-7 (CONTROLLER_COUNT_GE), B-8 (TARGET_PLAYER designation) and B-9 (the
+     ``result``/``event`` referents outside a trigger firing) are the other
+     measured ceilings. B-8 has a documented CR-rule workaround on the policy
+     side, so its test asserts the workaround works AND names the query it
+     stands in for.
+"""
+
+from __future__ import annotations
+
+import unittest
+from collections import Counter
+
+from MTG_bot.core.ability_tree import (
+    Atom,
+    AtomArgs,
+    CardRecord,
+    Choose,
+    ControllerRef,
+    Cost,
+    CostManaGeneric,
+    Effect,
+    FAnd,
+    OptionalEffect,
+    QConst,
+    Repeat,
+    Selector,
+    SelectorMode,
+    SpellAbility,
+    Verb,
+    Zone,
+    ZoneKind,
+)
+from MTG_bot.core.executor import Executor
+from MTG_bot.core.executor.games import (
+    DECK_SIZE,
+    MAX_COPIES,
+    MIN_MANA_SOURCES,
+    RandomPolicy,
+    Supply,
+    build_deck,
+    deal_decks,
+    get_supply,
+    identity_of,
+    play_game,
+    run_games,
+)
+from MTG_bot.core.executor.query import legal_targets, optional_offer
+from MTG_bot.core.executor.stack import cast, park
+from MTG_bot.core.identity import CardIdentity
+from MTG_bot.core.state import ZONE_HAND, GameWorld
+from MTG_bot.core.test_executor_binding import card_id, reset_oracle_ids
+
+UNIV = FAnd(())
+SMOKE_DECK_PAIRS = 1409  # the CLI default: the tests run the shipped recipe
+
+
+def _atom(verb: Verb, **roles: object) -> Atom:
+    return Atom(verb=verb, args=AtomArgs(pairs=tuple(roles.items())))
+
+
+def _target_sel() -> Selector:
+    return Selector(
+        count=QConst(1),
+        mode=SelectorMode.TARGET,
+        filter=UNIV,
+        zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+    )
+
+
+def _spell_effect(record: CardRecord) -> Effect | None:
+    for ability in record.abilities:
+        if isinstance(ability, SpellAbility):
+            return ability.effect
+    raise AssertionError(f"{record.name} has no SpellAbility node")
+
+
+def _record_named(supply: Supply, name: str) -> CardRecord:
+    for oid, meta in supply.metas.items():
+        if meta.name == name:
+            return supply.pool.results[oid].card
+    raise AssertionError(f"{name!r} is not in the compiled pool")
+
+
+class DeckSupplyTest(unittest.TestCase):
+    """The deck builder obeys the composition rules the report cites."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.supply = get_supply("castable")
+
+    def test_deck_is_60_deterministic_and_mana_floored(self) -> None:
+        deck = build_deck(11, self.supply)
+        self.assertEqual(len(deck), DECK_SIZE)
+        self.assertGreaterEqual(
+            sum(1 for oid in deck if self.supply.metas[oid].mana_capable),
+            MIN_MANA_SOURCES,
+            "a deck without a mana base measures the shuffle, not the engine",
+        )
+        self.assertLessEqual(max(Counter(deck).values()), MAX_COPIES)
+        self.assertEqual(build_deck(11, self.supply), deck)
+        self.assertNotEqual(build_deck(12, self.supply), deck)
+
+    def test_deck_pairs_derive_from_the_game_seed(self) -> None:
+        self.assertEqual(
+            deal_decks(9, SMOKE_DECK_PAIRS, self.supply),
+            deal_decks(9, SMOKE_DECK_PAIRS, self.supply),
+        )
+
+    def test_castable_pool_only_deals_playable_engine_cards(self) -> None:
+        for oid in self.supply.deckable:
+            meta = self.supply.metas[oid]
+            self.assertTrue(meta.engine_supported and meta.playable, meta.name)
+
+    def test_engine_count_is_the_gated_286(self) -> None:
+        # The honest 12e number, from the SUPPORTED_VERBS_V2-gated pass: an
+        # ungated compile stamps every card supported (NUMBERS.md 2026-09-30),
+        # so a harness that skipped the second pass would report 305.
+        self.assertEqual(len(self.supply.engine_ids), 286)
+
+
+class ReplayDeterminismTest(unittest.TestCase):
+    """The mission's replay gate, as a test."""
+
+    def test_one_seed_two_runs_identical_fingerprint(self) -> None:
+        first = play_game(3, "castable", SMOKE_DECK_PAIRS, turn_cap=8)
+        second = play_game(3, "castable", SMOKE_DECK_PAIRS, turn_cap=8)
+        self.assertTrue(first.fingerprint)
+        self.assertEqual(first.fingerprint, second.fingerprint)
+        self.assertEqual(first.digest, second.digest)
+        self.assertEqual((first.turns, first.acts), (second.turns, second.acts))
+        self.assertEqual(first.fired_names, second.fired_names)
+        self.assertEqual(first.reason, second.reason)
+
+    def test_different_seeds_diverge(self) -> None:
+        self.assertNotEqual(
+            play_game(3, "castable", SMOKE_DECK_PAIRS, turn_cap=8).fingerprint,
+            play_game(4, "castable", SMOKE_DECK_PAIRS, turn_cap=8).fingerprint,
+        )
+
+
+class DecisionSurfaceTest(unittest.TestCase):
+    """C15, tested: the policy's decision VOCABULARIES come from the query."""
+
+    def setUp(self) -> None:
+        reset_oracle_ids()
+        self.world = GameWorld(num_players=2, start_life=20, master_seed=1)
+        self.p0 = self.world.player_order[0]
+        self.executor = Executor(self.world)
+        self.source = self.world.add_card(card_id("Anchor"), self.p0, ZONE_HAND)
+        self.policy = RandomPolicy(0)
+
+    def decide(self, effect: Effect | None) -> tuple[str, ...]:
+        return self.policy.effect_decisions(
+            self.executor, effect, source=self.source, controller=self.p0
+        )
+
+    def test_may_offer_narrowing_is_read_not_coined(self) -> None:
+        # "You may pay {2}" with an empty pool: query.py narrows the offer to
+        # skip (CR 117.3) and _v_pay RAISES if an unpaid 'fire' reaches it. A
+        # policy that coined its own coin would crash the game here; a policy
+        # that reads the offer cannot, and its answer cannot drift with the
+        # random stream.
+        effect = OptionalEffect(
+            _atom(Verb.PAY, cost=Cost(parts=(CostManaGeneric(QConst(2)),)))
+        )
+        self.assertEqual(
+            optional_offer(
+                self.executor, effect, source=self.source, controller=self.p0
+            ),
+            ("skip",),
+        )
+        for _ in range(8):
+            self.assertEqual(self.decide(effect), ("skip",))
+
+    def test_choose_decision_is_a_valid_option_index(self) -> None:
+        effect = Choose(
+            count=QConst(1),
+            options=(
+                _atom(Verb.TAP, target=_target_sel()),
+                _atom(Verb.DRAW, controller=ControllerRef.YOU, amount=QConst(1)),
+            ),
+        )
+        decision = self.decide(effect)
+        self.assertEqual(len(decision), 1)
+        self.assertIn(decision[0], ("0", "1", "2", "3"))
+
+    def test_unimplemented_node_mirrors_the_engine_raise(self) -> None:
+        # Repeat is real IR and unimplemented (12e). The harness mirrors
+        # apply_effect's gate instead of inventing a decision for it, so the
+        # crash it reports is the SAME class the engine would have raised.
+        with self.assertRaises(NotImplementedError):
+            self.decide(
+                Repeat(
+                    count=QConst(2),
+                    inner=_atom(
+                        Verb.DRAW, controller=ControllerRef.YOU, amount=QConst(1)
+                    ),
+                )
+            )
+
+
+class CrashLedgerTest(unittest.TestCase):
+    """One test per crash class the first 30 games produced."""
+
+    def test_b2_stack_zone_targets_are_enumerable(self) -> None:
+        """B-2 FIXED 14a. AMENDED (was ``assertRaises(NotImplementedError)``,
+        'Zone(STACK) enumeration needs the stack'): that raise was round-12
+        truth and 13b made it stale. The M21 consumer is Unsubstantiate's
+        BATTLEFIELD + STACK target selector, which made legal_casts call the
+        spell castable and spell_target_slots raise on the next question."""
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, master_seed=2)
+        p0 = world.player_order[0]
+        executor = Executor(world)
+        spell = world.add_card(
+            CardIdentity(
+                oracle_id=_oid(201), name="Unsubstantiate", type_line="Instant"
+            ),
+            p0,
+            ZONE_HAND,
+        )
+        park(executor, p0, spell)
+        slot = legal_targets(
+            world,
+            executor,
+            Selector(
+                count=QConst(1),
+                mode=SelectorMode.TARGET,
+                filter=UNIV,
+                zone=Zone(ZoneKind.STACK, ControllerRef.ANY),
+            ),
+            source=spell,
+            controller=p0,
+        )
+        self.assertEqual(slot.candidates, (spell,))
+
+    def test_b4_scry_decision_inside_the_drain_is_not_enumerable(self) -> None:
+        """B-4 OPEN — the PC-7 blocker. The M21 check-land cycle ("When X enters
+        the battlefield, scry 1") arms a trigger DURING the land-drop op, and
+        that op's ``trigger_decisions`` had to exist BEFORE the op ran. Nothing
+        in the query surface answers 'which triggers will this op arm', so the
+        positional stream cannot be built: the fire/skip tail the policy may
+        legally supply is out-of-vocabulary for a scry. AMENDED when the
+        decision channel stops being positional (the /03 row proposes a
+        vocabulary-at-the-decision-site channel)."""
+        outcome = play_game(0, "all", SMOKE_DECK_PAIRS, turn_cap=8)
+        crash = outcome.crash
+        self.assertIsNotNone(crash)
+        assert crash is not None
+        self.assertEqual(crash["exc"], "ValueError")
+        self.assertIn("SCRY decision", crash["message"])
+        self.assertIn("take_decision", crash["frame"])
+        self.assertTrue(crash["repro"].startswith("python -m"))
+
+    def test_b7_controller_count_ge_filter_raises_from_the_query(self) -> None:
+        """B-7 OPEN. Fabled Passage's land-swap reads 'if you control more
+        lands' — CONTROLLER_COUNT_GE is unimplemented in the predicate
+        evaluator, and it is reached through the QUERY for a card the engine
+        flags as supported, so asking the question costs a raise."""
+        outcome = play_game(3, "castable", SMOKE_DECK_PAIRS, turn_cap=8)
+        crash = outcome.crash
+        assert crash is not None
+        self.assertEqual(crash["exc"], "NotImplementedError")
+        self.assertIn("CONTROLLER_COUNT_GE", crash["message"])
+        self.assertIn("Fabled Passage", crash["attempted"])
+
+    def test_b9_result_referent_only_resolves_inside_a_trigger(self) -> None:
+        """B-9 OPEN. Seasoned Hallowblade's own effect reads the ``result``
+        referent, which resolves only inside a trigger firing, so CASTING the
+        card raises out of resolution with no event register to read."""
+        outcome = play_game(7, "castable", SMOKE_DECK_PAIRS, turn_cap=8)
+        crash = outcome.crash
+        assert crash is not None
+        self.assertEqual(crash["exc"], "NotImplementedError")
+        self.assertIn("referent", crash["message"])
+
+    def test_b8_player_target_spells_are_castable_via_the_mirrored_rule(self) -> None:
+        """B-8: 'target opponent' compiles to a ControllerRef.TARGET_PLAYER
+        coordinate with NO selector, so the slot query rightly answers 'no
+        slots' and there is nothing for the policy to designate — resolution
+        then raises in players_for_ref. Designating an opponent seat is a
+        CR-fixed rule in a 2-player game (exactly what
+        ``stack._validate_spell_targets`` re-checks, and that check stays the
+        oracle). This test pins the workaround working AND that the card really
+        is the no-slot shape; the ledger row asks the ENGINE for the query that
+        should expose it instead."""
+        supply = get_supply("all")
+        record = _record_named(supply, "Duress")
+        effect = _spell_effect(record)
+        self.assertIsNotNone(effect)
+        self.assertTrue(RandomPolicy._names_a_player(effect))
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=3)
+        p0, p1 = world.player_order
+        executor = Executor(world)
+        executor.attach_pool(supply.pool)
+        spell = world.add_card(identity_of(record), p0, ZONE_HAND)
+        # Duress keeps creatures OUT of the choice pool, so the victim has to be
+        # a noncreature nonland card or the CHOOSE pool is empty and the test
+        # measures nothing.
+        world.add_card(
+            CardIdentity(
+                oracle_id=_oid(202), name="Victim", type_line="Artifact", cmc=1
+            ),
+            p1,
+            ZONE_HAND,
+        )
+        for key in ("U", "B"):
+            world.players[p0].mana_pool[key] = 1
+        world.active_player = p0  # the window gate reads the world, not the op
+        executor.turn_open = True
+        executor.phase = "FIRST_MAIN"
+        cast(
+            executor,
+            p0,
+            spell,
+            targets=tuple(sorted(other for other in world.player_order if other != p0)),
+            decisions=("0",),  # the CHOOSE atom's pick, index into the row order
+        )
+        self.assertEqual(
+            len(world.players[p1].zone(ZONE_HAND).entries),
+            0,
+            "the designated opponent is the one that discarded",
+        )
+
+    def test_stats_report_shape(self) -> None:
+        stats = run_games(2, "castable", SMOKE_DECK_PAIRS, turn_cap=4)
+        for key in (
+            "survival_pct",
+            "mean_turns",
+            "coverage_fired",
+            "coverage_fired_of_engine_pct",
+            "crashes",
+            "rows",
+            "engine_supported",
+            "player_target_designations",
+        ):
+            self.assertIn(key, stats)
+        self.assertEqual(stats["n_games"], 2)
+        for crash in stats["crashes"]:
+            self.assertTrue({"exc", "frame", "seeds", "repro"} <= set(crash))
+
+
+def _oid(n: int) -> str:
+    return f"{n:08x}-1111-2222-3333-444444444444"
+
+
+if __name__ == "__main__":
+    unittest.main()
