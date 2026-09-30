@@ -26,7 +26,13 @@ Pack vocabulary (all keys required as noted):
              {"op": "end_turn"} | {"op": "advance_turn"},
              {"op": "enter", "key": k}      hand -> battlefield (journalled:
                                             the sickness clock sees it),
-             {"op": "enchant", "aura": k, "host": k}   the 13c attach edge,
+             {"op": "enchant", "aura": k, "host": k}   the 13c attach edge
+                                            (16e: restores a battlefield-
+                                             declared aura the setup CR
+                                             704.5q sweep already buried,
+                                             then attaches via the real
+                                             API — journalled re-entry
+                                             RE-REGISTERS its static),
              {"op": "loyalty", "key": k, "set": n}    seed the loyalty ledger,
              {"op": "activate", "key": k, "idx": i,   the folded ACTIVATE
               "seat": 0|1, "targets": [k...],         move (legality+pay+run),
@@ -234,7 +240,24 @@ class ScenarioRunner:
                 bindings={"cards": handle},
             )
         elif op == "enchant":
-            self.ex.attachments[self.handles[step["aura"]]] = self.handles[step["host"]]
+            # 16e: a pack that DECLARES an aura on the battlefield meets the
+            # CR 704.5q unattached-aura SBA at setup (begin_turn's settle):
+            # the sweep graves the aura and terminal-expires its static
+            # layer, so the old raw-dict write attached a graveyard ghost.
+            # Restore the aura through the world, journal the move so the
+            # binder lifecycle RE-REGISTERS the static (attach_source mints
+            # fresh layer records), then attach via the canonical API.
+            aura = self.handles[step["aura"]]
+            host = self.handles[step["host"]]
+            before = self.ex.journal.snapshot()
+            if self.world.zone_of(aura).kind != ZONE_BATTLEFIELD:
+                self.world.move_to_zone(
+                    aura, self.world.controller_of(aura), ZONE_BATTLEFIELD
+                )
+            self.ex.attach_aura(aura, host)  # attachments table + recompute
+            self.ex.journal.record_atom(before, None, "ATTACH", [])
+            self.ex.binder.on_events()  # GY->BF re-entry re-registers
+            self.ex.layers.recompute()
         elif op == "loyalty":
             # harness ledger write: seed the CR 606.3 loyalty counter so a
             # minus ability with a big cost (Herald's -7) is payable.

@@ -59,6 +59,16 @@ def _opponents(ctx: ExecCtx) -> list[Handle]:
     return [p for p in ctx.world.player_order if p != controller]
 
 
+def controller_of(ctx: ExecCtx, handle: Handle) -> Handle:
+    """The EFFECTIVE controller of a card (16e): the executor's GAIN_CONTROL
+    overlay wins over the zone-owner read. A bare ExecCtx (no executor) has
+    no overlay, so pre-16e bare-ctx paths read the owner byte-identically."""
+    ex = ctx.executor
+    if ex is None:
+        return ctx.world.controller_of(handle)
+    return ex.controller_of(handle)
+
+
 def players_for_ref(ref: ControllerRef, ctx: ExecCtx) -> list[Handle]:
     """The player seats a ControllerRef denotes, in seat order."""
     if ref is ControllerRef.YOU:
@@ -75,7 +85,7 @@ def players_for_ref(ref: ControllerRef, ctx: ExecCtx) -> list[Handle]:
             )
         if bound.namespace == "player":
             return [bound]
-        return [ctx.world.controller_of(bound)]
+        return [controller_of(ctx, bound)]
     raise NotImplementedError(
         f"executor: ControllerRef.{ref.name} has no player-side meaning here"
     )
@@ -90,7 +100,7 @@ def controller_matches(
         # resolve the bound object(s) and compare their player side.
         candidates = resolve_selector(who, ctx)
         players = [
-            c if c.namespace == "player" else ctx.world.controller_of(c)
+            c if c.namespace == "player" else controller_of(ctx, c)
             for c in candidates
         ]
         return actual in players
@@ -102,7 +112,7 @@ def controller_matches(
         bound = ctx.binding_one("target")
         expected: Handle | None = bound
         if bound is not None and bound.namespace == "card":
-            expected = ctx.world.controller_of(bound)
+            expected = controller_of(ctx, bound)
         return expected is not None and actual == expected
     return who is ControllerRef.ANY
 
@@ -280,7 +290,7 @@ def resolve_selector(sel: Selector, ctx: ExecCtx) -> list[Handle]:
             # (a card) under "target", and "target opponent" means THAT
             # card's player — never the card itself.
             bound = [
-                h if h.namespace == "player" else ctx.world.controller_of(h)
+                h if h.namespace == "player" else controller_of(ctx, h)
                 for h in bound
             ]
         legal = set(candidates)
@@ -397,7 +407,7 @@ def role_players(ctx: ExecCtx, atom: Atom, role: str = "controller") -> list[Han
         if handle.namespace == "player":
             players.add(handle)
         elif handle in world.cards:
-            players.add(world.controller_of(handle))
+            players.add(controller_of(ctx, handle))
     return sorted(players)
 
 

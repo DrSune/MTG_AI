@@ -77,6 +77,8 @@ from MTG_bot.core.ability_tree import (
     Cost,
     Effect,
     FAnd,
+    FAtom,
+    FAtomPred,
     OptionalEffect,
     QAtLeast,
     QAtMost,
@@ -234,7 +236,7 @@ def legal_activations(
     for handle in sorted(executor.binder.handle_record):
         if handle not in world.cards:
             continue
-        if world.controller_of(handle) != seat:
+        if executor.controller_of(handle) != seat:  # 16e overlay-aware
             continue
         if world.zone_of(handle).kind != "battlefield":
             continue
@@ -255,7 +257,7 @@ def legal_activations(
     # 12d granted rows (see docstring): every battlefield permanent of the
     # seat — compiled record or not (tokens activate what they're granted).
     for handle in sorted(world.cards):
-        if world.controller_of(handle) != seat:
+        if executor.controller_of(handle) != seat:  # 16e overlay-aware
             continue
         if world.zone_of(handle).kind != "battlefield":
             continue
@@ -664,6 +666,16 @@ def spell_target_slots(
             if widened is not None:
                 slot = widened
             slots.append(slot)
+    if not slots and not reads_target_player:
+        # 16e (CR 702.5a): an AURA spell carries no TARGET-mode selector
+        # (its effect reads IS_ATTACHED_TO_SOURCE, not a designation) —
+        # yet the cast REQUIRES an enchant target (CR 601.2c). The slot is
+        # synthesized from the aura's own tree: the enchantment filter is
+        # the co-located selector's filter minus the IS_ATTACHED_TO_SOURCE
+        # atom, falling back to "any permanent you could put an aura on".
+        aura = aura_enchant_slot(executor, node, spell_handle=spell_handle, seat=seat)
+        if aura is not None:
+            slots.append(aura)
     if reads_target_player:
         # 14b (B-8/B-5): the TARGET_PLAYER coordinate's designation slot —
         # the CR population the runtime REQUIRES (an opponent seat of the
@@ -718,6 +730,98 @@ def _widen_any_target(
         min_count=slot.min_count,
         max_count=slot.max_count,
         forced=forced,
+    )
+
+
+def is_aura_spell(world: GameWorld, handle: Handle) -> bool:
+    """16e: the ENCHANT keyword (CR 702.5) is the aura marker — every
+    compiled aura in the corpus carries it (Enthralling Hold golden), and
+    no non-aura does (equipment carry EQUIP, not ENCHANT)."""
+    state = world.cards.get(handle)
+    if state is None:
+        return False
+    # identity.keywords are the KEYWORD-ENUM NAMES as plain strings (the
+    # one conversion is games.identity_of); the layers oracle reads them
+    # the same way.
+    return "ENCHANT" in state.identity.keywords
+
+
+def _strip_attached(filter_: object) -> FAnd | None:
+    """Split a selector filter around the IS_ATTACHED_TO_SOURCE atom: None
+    means "this filter says nothing about being attached to the source";
+    otherwise the returned FAnd is what an ENCHANTABLE candidate must
+    satisfy (the enchantment filter, minus the self-reference the aura
+    cannot check before it is attached). v1 shape: the atom sits at the
+    top level or inside a top-level FAnd (the compiled aura idiom); any
+    deeper nesting falls back to the unrestricted permanent population."""
+    if isinstance(filter_, FAtom):
+        return FAnd(()) if filter_.pred is FAtomPred.IS_ATTACHED_TO_SOURCE else None
+    if isinstance(filter_, FAnd):
+        keep = [
+            c
+            for c in filter_.children
+            if not (isinstance(c, FAtom) and c.pred is FAtomPred.IS_ATTACHED_TO_SOURCE)
+        ]
+        if len(keep) == len(filter_.children):
+            return None
+        return FAnd(tuple(keep))
+    return None
+
+
+def aura_enchant_slot(
+    executor: Executor,
+    node: SpellAbility,
+    *,
+    spell_handle: Handle,
+    seat: Handle,
+) -> TargetSlot | None:
+    """The synthesized exactly-1 ENCHANT slot of an aura spell (16e), or
+    None for a non-aura. The host population comes from the aura's own
+    effect tree: the first selector whose filter co-names
+    IS_ATTACHED_TO_SOURCE contributes its remaining filter (Enthralling
+    Hold: TYPE_EQ Creature); with no such selector the corpus fallback is
+    any permanent on the battlefield. The aura itself is never a
+    candidate (CR 702.5c "another object")."""
+    world = executor.world
+    if not is_aura_spell(world, spell_handle):
+        return None
+    enchant_filter: FAnd | None = None
+    if node.effect is not None:
+        for inner in walk(node.effect):
+            if not isinstance(inner, Atom):
+                continue
+            for _role, value in inner.args.pairs:
+                if not isinstance(value, Selector):
+                    continue
+                stripped = _strip_attached(value.filter)
+                if stripped is not None and (
+                    enchant_filter is None or len(stripped.children) > 0
+                ):
+                    enchant_filter = stripped
+                    break
+            if enchant_filter is not None and len(enchant_filter.children) > 0:
+                break
+    selector = Selector(
+        count=QConst(1),
+        mode=SelectorMode.TARGET,
+        filter=enchant_filter if enchant_filter is not None else FAnd(()),
+        zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+    )
+    slot = legal_targets(
+        world,
+        executor,
+        selector,
+        source=spell_handle,
+        controller=seat,
+    )
+    candidates = tuple(h for h in slot.candidates if h != spell_handle)
+    return TargetSlot(
+        selector=selector,
+        candidates=candidates,
+        min_count=1,
+        max_count=1,
+        forced=len(candidates) == 1,
+        synthetic=True,
     )
 
 

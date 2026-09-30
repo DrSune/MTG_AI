@@ -411,6 +411,25 @@ class Executor:
         # here; IS_ATTACHED_TO_SOURCE reads it and the binder drops every
         # edge touching a handle that leaves the battlefield.
         self.attachments: dict[Handle, Handle] = {}
+        # -------------------------------------------------- 16e control overlay
+        # GAIN_CONTROL (CR 611, 110.2): the frozen GameWorld derives
+        # controller_of from the ZONE OWNER and R16-4 DENIED the additive
+        # hook there, so control changes are executor-side replayed state
+        # (ruling 1: folded into state_fingerprint). ``control_entries`` is
+        # the source of truth — one row per live GAIN_CONTROL application
+        # (seq, creature, controller, expiry tag, anchor, turn gained);
+        # ``control_overlay`` is the DERIVED effective-controller map the
+        # executor read sites consult (later entries win, CR 613.2
+        # timestamps), and ``control_gained_turn`` the CR 302.6 sickness
+        # clock (control-based, not ownership-based). A creature with no
+        # entry reads its zone owner, which is why the empty overlay keeps
+        # every pre-16e replay byte-identical.
+        self.control_entries: list[
+            tuple[int, Handle, Handle, str, Handle | None, int]
+        ] = []
+        self._control_seq = 0
+        self.control_overlay: dict[Handle, Handle] = {}
+        self.control_gained_turn: dict[Handle, int] = {}
         # --------------------------------------------------- 16b combat state
         # The frozen GameWorld has no combat fields, so the attack record
         # is executor-side replayed state (ruling 1, folded into
@@ -749,6 +768,11 @@ class Executor:
             self.mandates.discard(anchor)
             self.mandate_block.discard(anchor)
             self.damage_policies.pop(anchor, None)
+            # 16e: a departing permanent drops every control entry keyed on
+            # it — as CREATURE (the stolen card itself) or as ANCHOR (the
+            # aura/source whose leaving ends the effect, CR 611.3's duration
+            # reading for Enthralling Hold's missing Duration node).
+            self._expire_control(creature=anchor, anchor=anchor)
 
     # -------------------------------------------------------- 12b: triggers
 
@@ -810,6 +834,32 @@ class Executor:
                     dying.append(card)
         return sorted(dying)
 
+    def _unattached_auras(self) -> list[Handle]:
+        """CR 704.5q (16e): an Aura on the battlefield that isn't attached
+        is put into its owner's graveyard. Attachment state is the
+        executor's one ``attachments`` table (the IS_ATTACHED_TO_SOURCE
+        oracle); the binder drops edges whose host left, so a MISSING edge
+        is the unattached read. Detection is the ENCHANT keyword on the
+        printed identity (the aura marker — equipment carry EQUIP and are
+        NOT swept: an unattached Equipment legally stays on the
+        battlefield, CR 301.5). The graveyard lands in the last
+        controller's zone: the frozen world has no owner axis, the same
+        documented stand-in the planeswalker-loyalty check uses."""
+        world = self.world
+        out: list[Handle] = []
+        for player in world.player_order:
+            for card in world.players[player].zone(ZONE_BATTLEFIELD).entries:
+                if "ENCHANT" not in world.cards[card].identity.keywords:
+                    continue
+                host = self.attachments.get(card)
+                if (
+                    host is None
+                    or host not in world.cards
+                    or world.zone_of(host).kind != ZONE_BATTLEFIELD
+                ):
+                    out.append(card)
+        return sorted(out)
+
     def _state_checks(self) -> int:
         """The 16a state-based action sweep (CR 704.3: repeat until the
         table is stable), run at every settle point — the end of each
@@ -823,7 +873,8 @@ class Executor:
         while True:
             self.layers.recompute()  # live keywords/toughness must be current
             dying = self._lethal_creatures()
-            if not dying:
+            unattached = self._unattached_auras()  # 16e CR 704.5q
+            if not dying and not unattached:
                 return fired
             before = self.journal.snapshot()
             start = len(self.events)
@@ -834,6 +885,16 @@ class Executor:
                     card, self.world.controller_of(card), ZONE_GRAVEYARD
                 )
                 self.events.append((len(self.events), "STATE_CHECK", str(card), "DIES"))
+            for card in unattached:
+                if card not in self.world.cards:
+                    continue  # an aura killed in this same batch
+                self.attachments.pop(card, None)
+                self.world.move_to_zone(
+                    card, self.world.controller_of(card), ZONE_GRAVEYARD
+                )
+                self.events.append(
+                    (len(self.events), "STATE_CHECK", str(card), "UNATTACHED")
+                )
             new_events = self.journal.record_atom(
                 before, None, "STATE_CHECK", self.events[start:]
             )
@@ -990,14 +1051,14 @@ class Executor:
                 continue
             if world.zone_of(card).kind != ZONE_BATTLEFIELD:
                 continue
-            if world.controller_of(card) != player:
+            if self.controller_of(card) != player:  # 16e overlay-aware
                 continue
             if self.replacements.prevents_untap(card):
                 continue
             state.tapped = False
             self.journal.emit(KIND_TAP_STATE, card, None, "UNTAP_STEP", (False,))
             untapped += 1
-        controller_of = world.controller_of
+        controller_of = self.controller_of
         self.replacements.expire_at_step(Step.UNTAP, player, controller_of)
         self.layers.expire_at_step(Step.UNTAP, player, controller_of)
         self.ledger.expire_at_step(Step.UNTAP, player, controller_of)
@@ -1169,8 +1230,10 @@ class Executor:
         assigned: dict[Handle, list[Handle]] = {}
         candidates = sorted(
             card
-            for card in world.players[defender].zone(ZONE_BATTLEFIELD).entries
-            if blocker_askable(self, card, attackers)
+            for card in sorted(world.cards)
+            if self.controller_of(card) == defender
+            and world.zone_of(card).kind == ZONE_BATTLEFIELD
+            and blocker_askable(self, card, attackers)
         )
         if not candidates:
             return 0
@@ -1296,7 +1359,7 @@ class Executor:
             for card in self.attackers
             if card in world.cards
             and world.zone_of(card).kind == ZONE_BATTLEFIELD
-            and world.controller_of(card) == seat
+            and self.controller_of(card) == seat
         ]
 
     def _combat_damage(self, seat: Handle) -> int:
@@ -1526,7 +1589,7 @@ class Executor:
             if not power:
                 # 0 (or an unmaterialized *): CR 120.7 - not dealt at all.
                 continue
-            plan = self._assign_damage(dealer, power, self.world.controller_of(dealer))
+            plan = self._assign_damage(dealer, power, self.controller_of(dealer))
             if not plan:
                 # 16c: a blocker whose attacker left combat deals nothing -
                 # no damage, no COMBAT_DAMAGE event (CR 120.7's reading).
@@ -1541,7 +1604,7 @@ class Executor:
                 for amount, recipient in plan:
                     ctx = self._ctx(
                         source=dealer,
-                        controller=self.world.controller_of(dealer),
+                        controller=self.controller_of(dealer),
                         bindings={"target": recipient},
                         decisions=(),
                     )
@@ -1594,6 +1657,7 @@ class Executor:
         self.ledger.sweep_at_eot()
         self.layers.sweep_at_eot()
         self.replacements.sweep_at_eot()
+        self._expire_control(eot=True)  # 16e: Traitorous Greed's DurationEot
         self.damage.clear()  # 16a: CR 514.2 — cleanup removes marked damage
         self.damage_deathtouch.clear()  # 16c: the deathtouch flag rides along
         self.binder.expire_delayed()
@@ -1637,6 +1701,106 @@ class Executor:
             raise ValueError(f"attach_aura: {aura} cannot attach to itself")
         self.attachments[aura] = host
         self.layers.recompute()  # "equipped creature" scopes re-read the table
+
+    # -------------------------------------------------- 16e control overlay
+
+    def controller_of(self, handle: Handle) -> Handle:
+        """The EFFECTIVE controller of a card (16e): the GAIN_CONTROL
+        overlay wins over the zone-owner read. OWNER-semantic call sites
+        (graveyard/exile destination, owner-of-source, library to search)
+        keep reading ``world.controller_of`` — a stolen permanent still
+        dies to its owner's graveyard (CR 400.7e)."""
+        override = self.control_overlay.get(handle)
+        return override if override is not None else self.world.controller_of(handle)
+
+    def gain_control(
+        self,
+        creature: Handle,
+        controller: Handle,
+        tag: str,
+        anchor: Handle | None = None,
+    ) -> bool:
+        """Record one GAIN_CONTROL application (the verb handler's write
+        side). ``tag`` is the duration_tag vocabulary: "Eot" rows sweep at
+        end_turn, "Permanent"/"Anchor" rows ride until their ``anchor``
+        permanent (or the creature itself) leaves the battlefield. Returns
+        whether the EFFECTIVE controller actually changed (the handler's
+        journal row and the CR 506.4a combat removal key on it)."""
+        self.control_entries.append(
+            (
+                self._control_seq,
+                creature,
+                controller,
+                tag,
+                anchor,
+                self.world.turn,
+            )
+        )
+        self._control_seq += 1
+        return self._recompute_control()
+
+    def _expire_control(
+        self,
+        *,
+        creature: Handle | None = None,
+        anchor: Handle | None = None,
+        eot: bool = False,
+    ) -> bool:
+        """Drop matching entries and re-derive (leave expiry + EoT sweep).
+        Returns whether any effective controller changed."""
+        before = len(self.control_entries)
+        self.control_entries = [
+            entry
+            for entry in self.control_entries
+            if not (
+                (creature is not None and entry[1] == creature)
+                or (anchor is not None and entry[4] == anchor)
+                or (eot and entry[3] == "Eot")
+            )
+        ]
+        return (
+            self._recompute_control() if len(self.control_entries) != before else False
+        )
+
+    def _recompute_control(self) -> bool:
+        """Rebuild the derived overlay and sickness clock from the live
+        entries; report whether ANY effective controller changed. CR 506.4a:
+        a permanent changing controllers during combat is removed from
+        combat — attackers, attacked record, and every block edge. The
+        sickness clock takes the EARLIEST live turn under the winning
+        controller (two stacked entries for the same controller never
+        re-inflict summoning sickness)."""
+        prev = self.control_overlay
+        overlay: dict[Handle, Handle] = {}
+        gained: dict[Handle, int] = {}
+        for _seq, creature, controller, _tag, _anchor, turn in self.control_entries:
+            if overlay.get(creature) == controller:
+                gained[creature] = min(gained[creature], turn)
+            else:
+                gained[creature] = turn
+            overlay[creature] = controller
+        self.control_overlay = overlay
+        changed = [
+            c
+            for c in sorted(set(prev) | set(overlay), key=str)
+            if prev.get(c) != overlay.get(c)
+        ]
+        # CR 302.6: every CHANGE of effective controller starts a fresh
+        # continuous-control period NOW (a returned owner is a new period
+        # too — the journal ZONE_CHANGE path cannot see control changes,
+        # so the marker dict carries both directions).
+        for creature in changed:
+            gained[creature] = self.world.turn
+        self.control_gained_turn = gained
+        for creature in changed:
+            if creature in self.attackers:
+                self.attackers.remove(creature)
+            self.attacked.pop(creature, None)
+            self.blocked_by.pop(creature, None)
+            for blockers in self.blocked_by.values():
+                if creature in blockers:
+                    blockers.remove(creature)
+        return bool(changed)
 
     # ------------------------------------------------------------ replay id
 
@@ -1741,6 +1905,31 @@ class Executor:
         h.update(
             repr(
                 tuple(sorted((str(a), str(h_)) for a, h_ in self.attachments.items()))
+            ).encode()
+        )
+        # 16e: the control overlay (derived) rides the fingerprint beside
+        # the entries that produce it (seq + gained-turn make the fold
+        # order-independent and expiry-sensitive).
+        h.update(
+            repr(
+                tuple(sorted((str(a), str(c)) for a, c in self.control_overlay.items()))
+            ).encode()
+        )
+        h.update(
+            repr(
+                tuple(
+                    (
+                        seq,
+                        str(creature),
+                        str(controller),
+                        tag,
+                        str(anchor),
+                        turn,
+                    )
+                    for seq, creature, controller, tag, anchor, turn in (
+                        self.control_entries
+                    )
+                )
             ).encode()
         )
         return h.hexdigest()

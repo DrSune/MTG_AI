@@ -230,7 +230,7 @@ class LayerRegistry:
         self.detach_source(handle)
         count = 0
         if controller is None:
-            controller = self.world.controller_of(handle)
+            controller = self.executor.controller_of(handle)  # 16e overlay
         for kw in record.keywords:
             self._new("keyword", handle, controller, kw, (handle,))
             count += 1
@@ -337,7 +337,7 @@ class LayerRegistry:
         permission shape (role table: filter/window — no ``target``).
         ``controller`` overrides the battlefield anchor (emblem statics)."""
         if controller is None:
-            controller = self.world.controller_of(handle)
+            controller = self.executor.controller_of(handle)  # 16e overlay
         steps = static.effect
         if isinstance(steps, OptionalEffect):  # 13c: the "you may" is the use
             steps = steps.inner

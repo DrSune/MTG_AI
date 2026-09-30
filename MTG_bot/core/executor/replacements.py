@@ -154,7 +154,7 @@ class ReplacementRegistry:
                         condition=node.condition,
                         status="live",
                         source=handle,
-                        controller=self.world.controller_of(handle),
+                        controller=self.executor.controller_of(handle),  # 16e
                         event=node.event,
                         action=node.action,
                     )

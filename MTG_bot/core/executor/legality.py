@@ -746,7 +746,7 @@ def ability_playable(
         return f"ability:not_activated:{type(ability).__name__}"
     if handle in world.cards and world.zone_of(handle).kind != ZONE_BATTLEFIELD:
         return f"window:not_on_battlefield:{handle}"
-    if handle in world.cards and world.controller_of(handle) != seat:
+    if handle in world.cards and executor.controller_of(handle) != seat:
         # CR 602.3: only the permanent's controller can activate it.
         return f"window:not_controller:{seat}"
     if ability.timing is ActivationWindow.SORCERY and not (
@@ -934,6 +934,15 @@ def spell_castable(
     plan, reason = build_payment_plan(world, ctx, cost, mana_use=handle)
     if plan is None:
         return reason, None, None, None
+    from MTG_bot.core.executor.query import aura_enchant_slot
+
+    aura_slot = aura_enchant_slot(executor, node, spell_handle=handle, seat=seat)
+    if aura_slot is not None and not aura_slot.candidates:
+        # 16e (CR 601.2e): an aura with nothing it could enchant is
+        # UNCASTABLE — the synthesized ENCHANT slot's population is
+        # the oracle, and an empty one disappears the legal_casts row
+        # instead of letting a floating aura resolve into a no-op.
+        return f"cast:aura_no_legal_target:{handle}", None, None, None
     return None, node, record, plan
 
 
@@ -1199,9 +1208,12 @@ def _controlled_since_turn_start(executor: Executor, creature: Handle) -> bool:
     — first arrival, a blink return, a graveyard replay — means the
     permanent is not yet ready. No rows after the marker = continuous
     presence since the turn began (setup creatures carry no rows at all
-    and read ready, which is the correct pre-game-control reading). A
-    control-change path would need its own marker row; the only one in
-    the corpus is the unimplemented GAIN_CONTROL verb (16e)."""
+    and read ready, which is the correct pre-game-control reading). 16e:
+    a CONTROL change is not a zone change — the overlay's gained-turn
+    marker is the second half of this oracle (CR 302.6 is control-based,
+    not ownership-based), and a returned owner is a fresh period too."""
+    if creature in executor.control_gained_turn:
+        return executor.control_gained_turn[creature] < executor.world.turn
     events = executor.journal.events
     start = -1
     for i in range(len(events) - 1, -1, -1):
@@ -1235,7 +1247,7 @@ def attack_blocked_reason(
     world = executor.world
     if world.zone_of(creature).kind != ZONE_BATTLEFIELD:
         return "not on the battlefield"
-    if world.controller_of(creature) != seat:
+    if executor.controller_of(creature) != seat:
         return "not controlled by the declaring player"
     ctx = executor._ctx(source=creature, controller=seat, bindings=None, decisions=())
     if not eval_filter(_IS_CREATURE, creature, ctx):
@@ -1258,7 +1270,7 @@ def legal_attackers(executor: Executor, seat: Handle) -> tuple[Handle, ...]:
     return tuple(
         card
         for card in sorted(world.cards)
-        if world.controller_of(card) == seat
+        if executor.controller_of(card) == seat
         and world.zone_of(card).kind == ZONE_BATTLEFIELD
         and attack_blocked_reason(executor, seat, card) is None
     )
@@ -1279,7 +1291,7 @@ def mandated_attackers(executor: Executor, seat: Handle) -> frozenset[Handle]:
         if (
             handle in world.cards
             and world.zone_of(handle).kind == ZONE_BATTLEFIELD
-            and world.controller_of(handle) == seat
+            and executor.controller_of(handle) == seat
         ):
             mandated.add(handle)
     for layer in executor.layers.live_mandate_layers():
@@ -1295,7 +1307,7 @@ def mandated_attackers(executor: Executor, seat: Handle) -> frozenset[Handle]:
             if (
                 handle in world.cards
                 and world.zone_of(handle).kind == ZONE_BATTLEFIELD
-                and world.controller_of(handle) == seat
+                and executor.controller_of(handle) == seat
             ):
                 mandated.add(handle)
     return frozenset(mandated)
@@ -1339,7 +1351,7 @@ def block_pair_blocked_reason(
         return "attacker not on the battlefield"
     ctx_blocker = executor._ctx(
         source=blocker,
-        controller=world.controller_of(blocker),
+        controller=executor.controller_of(blocker),
         bindings=None,
         decisions=(),
     )
@@ -1357,7 +1369,7 @@ def block_pair_blocked_reason(
         return "flying attacker, neither flying nor reach (CR 509.1b)"
     ctx_attacker = executor._ctx(
         source=attacker,
-        controller=world.controller_of(attacker),
+        controller=executor.controller_of(attacker),
         bindings=None,
         decisions=(),
     )
@@ -1386,7 +1398,7 @@ def blocker_askable(
         return False
     ctx_blocker = executor._ctx(
         source=blocker,
-        controller=world.controller_of(blocker),
+        controller=executor.controller_of(blocker),
         bindings=None,
         decisions=(),
     )

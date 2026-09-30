@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-09-30T17:22:33+02:00",
-  "git_head": "428cf56b67256982a3358fb25c02109e2693c6cd",
+  "generated": "2026-09-30T19:20:02+02:00",
+  "git_head": "0e03a997f30206429d08562dade39eece461580e",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -101,15 +101,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.262,
+      "value": 0.24,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.239,
-        0.237,
-        0.262
+        0.233,
+        0.231,
+        0.24
       ]
     },
     "PC-6": {
@@ -258,11 +258,12 @@
   ],
   "unparsed_count": 5,
   "engine_support": {
-    "engine_supported_cards": 293,
+    "engine_supported_cards": 297,
     "of_total": 305,
     "supported_verbs": [
       "ADD_LAND_PLAY",
       "ADD_MANA",
+      "ATTACH",
       "CAST",
       "CHOOSE",
       "CHOOSE_NAME",
@@ -277,6 +278,7 @@
       "EXTRA_TURN",
       "FIGHT",
       "FLIP_COIN",
+      "GAIN_CONTROL",
       "GAIN_LIFE",
       "GET_EMBLEM",
       "GRANT_ABILITY",

@@ -581,3 +581,16 @@
   cannot attack until its controller's next turn — end/adv/end/adv before
   the first combat step; a tapped-on-enter test creature must ENTER tapped
   during the OPPONENT's own turn (untap steps erase earlier taps).
+- **expired layer records are corpses, never patients** (16e): `layers.recompute()`
+  SKIPS `status == "expired"` — a terminally-expired static NEVER revives from a
+  recompute or a raw `attachments` write. Revival = a JOURNALLED ZONE_CHANGE into
+  the battlefield (`binder._lifecycle` re-entry → `attach_source` mints FRESH
+  records). Consequence for packs: a battlefield-DECLARED aura is swept by the
+  setup CR 704.5q SBA (begin_turn's settle) BEFORE any step runs — a harness must
+  move the aura back through the world + journal, then attach via the API
+  (`run_scenarios.py` enchant op).
+- **`binding.detach` attachment drop is DEPARTURES-ONLY** (16e): `_register`'s
+  idempotent refresh runs detach on an ARRIVING handle; dropping attachment
+  edges there erases the aura edge the cast just wrote and the same settle's
+  CR 704.5q sweep graves the resolved aura (false unattached read). Pass
+  `leaving=False` for attach-side refreshes.

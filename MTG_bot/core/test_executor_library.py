@@ -712,11 +712,15 @@ class TestCapabilitySurface(unittest.TestCase):
             # block mandate, and the Herald's assignment policy verb.
             Verb.MANDATE_BLOCK,
             Verb.DAMAGE_ASSIGN_POLICY,
+            # 16e: the control overlay (Traitorous Greed, Enthralling Hold)
+            # and the equip/aura attachment verb on the attachments table.
+            Verb.GAIN_CONTROL,
+            Verb.ATTACH,
         }
         self.assertEqual(SUPPORTED_VERBS_V2 - SUPPORTED_VERBS_V1, new)
         self.assertNotIn(Verb.DRAW, SUPPORTED_VERBS_V1)  # the round-12 freeze
         self.assertEqual(len(SUPPORTED_VERBS_V1), 24)
-        self.assertEqual(len(SUPPORTED_VERBS_V2), 43)
+        self.assertEqual(len(SUPPORTED_VERBS_V2), 45)
 
     def test_turn_ledger_fields_in_state_fingerprint(self):
         reset_oracle_ids()

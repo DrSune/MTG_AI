@@ -29,6 +29,7 @@ from MTG_bot.core.ability_tree import (
     ActivationWindow,
     Atom,
     CardRecord,
+    ControllerRef,
     Cost,
     CounterKind,
     Duration,
@@ -1382,6 +1383,82 @@ def _v_damage_assign_policy(ctx: ExecCtx, atom: Atom) -> None:
     ctx.events.append((len(ctx.events), atom.verb.name, str(ctx.source), str(scope)))
 
 
+# ------------------------------------------------------ 16e control verbs
+
+
+def _v_gain_control(ctx: ExecCtx, atom: Atom) -> None:
+    """GAIN_CONTROL (16e, CR 611): write the executor's control overlay —
+    the frozen world derives controller_of from the ZONE OWNER and R16-4
+    ruled the overlay LIVES HERE, consulted at every controller-semantic
+    executor read site. Carriers: Traitorous Greed (DurationEot, TARGET
+    selector) and Enthralling Hold (no Duration node — the continuous
+    effect of an aura ends when the aura stops existing, so a durationless
+    row is anchored to the SOURCE, and CR 704.5q's unattached-aura check
+    is what physically ends it). ``UntilLeaves`` pairs its C12 referent
+    anchor exactly like :func:`_apply_pt`. The controller slot is the
+    STRICT YOU of the corpus (CR 611.2a "you gain control"); any other
+    ControllerRef RAISES — flag, never guess. When the effective
+    controller actually changes mid-combat the creature leaves combat
+    (CR 506.4a, applied inside :meth:`Executor.gain_control`)."""
+    if ctx.executor is None:
+        raise ValueError(f"executor: {atom.verb.name} needs an executor-backed ExecCtx")
+    ctrl = atom.args.get("controller")
+    if ctrl is not None and ctrl is not ControllerRef.YOU:
+        raise NotImplementedError(
+            f"executor: GAIN_CONTROL controller {ctrl!r} has no meaning "
+            "in this runtime (corpus vocabulary is YOU)"
+        )
+    duration = atom.args.get("duration")
+    assert duration is None or isinstance(duration, Duration)
+    tag = duration_tag(duration)
+    anchor: Handle | None = ctx.source  # durationless = the aura's continuous effect
+    if isinstance(duration, DurationUntilLeaves):
+        anchor = referent_handle(duration.source, ctx)
+    gained: list[Handle] = []
+    for card in role_handles(ctx, atom, "target"):
+        if ctx.executor.gain_control(card, ctx.controller, tag, anchor):
+            gained.append(card)
+    if gained:
+        ctx.executor.layers.recompute()  # "you control" scopes re-anchor NOW
+    ctx.events.append(
+        (
+            len(ctx.events),
+            atom.verb.name,
+            str(ctx.source),
+            tuple(sorted(str(c) for c in gained)),
+            tag,
+        )
+    )
+
+
+def _v_attach(ctx: ExecCtx, atom: Atom) -> None:
+    """ATTACH (16e, CR 701.4 "Equip {W}" / aura enqueue): move one
+    attachment edge on the executor's attachments table — the SAME table
+    IS_ATTACHED_TO_SOURCE and the "equipped creature" layer scopes read,
+    so an equip re-anchor is a replay-folded op, not a mirror. Both ends
+    are validated on the battlefield (the equip activation gate already
+    narrowed equipment=source / target="creature you control"; the raise
+    is the bare-ctx and hand-driven-op guard). Re-attaching an equipment
+    overwrites its edge (one host per attachment, CR 301.5); an aura cast
+    attaches through the STACK's aura step, not this verb."""
+    if ctx.executor is None:
+        raise ValueError(f"executor: {atom.verb.name} needs an executor-backed ExecCtx")
+    equipment = role_handles(ctx, atom, "equipment")
+    hosts = role_handles(ctx, atom, "target")
+    if len(equipment) != 1 or len(hosts) != 1:
+        raise ValueError(
+            f"executor: ATTACH needs exactly one equipment and one host, got "
+            f"{len(equipment)}/{len(hosts)}"
+        )
+    equipment, host = equipment[0], hosts[0]
+    world = ctx.world
+    for handle in (equipment, host):
+        if handle not in world.cards or world.zone_of(handle).kind != ZONE_BATTLEFIELD:
+            raise ValueError(f"executor: ATTACH ends must be battlefields ({handle})")
+    ctx.executor.attach_aura(equipment, host)
+    ctx.events.append((len(ctx.events), atom.verb.name, str(equipment), str(host)))
+
+
 HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.MOVE_ZONE: _v_move_zone,
     Verb.EXILE: _v_exile,
@@ -1445,6 +1522,11 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.MANDATE_ATTACK: _v_mandate_attack,
     Verb.MANDATE_BLOCK: _v_mandate_block,
     Verb.DAMAGE_ASSIGN_POLICY: _v_damage_assign_policy,
+    # 16e: the control/attachment verbs (Traitorous Greed, Enthralling Hold,
+    # the Equip carriers). SUPPORTED_VERBS_V2 derives from THIS table —
+    # 43 -> 45, the library pin is amended dated.
+    Verb.GAIN_CONTROL: _v_gain_control,
+    Verb.ATTACH: _v_attach,
 }
 
 

@@ -262,9 +262,13 @@ def _validate_spell_targets(
         validate_target_selection,
     )
 
-    if not targets:
-        return  # targetless spell — the common case
     slots = spell_target_slots(executor, node, spell_handle=handle, seat=seat)
+    if not targets and not slots:
+        return  # targetless spell — the common case
+    # 16e: a spell WITH a slot (TARGET selector or the synthesized aura
+    # ENCHANT slot) designated nothing falls through to the validator
+    # (count_below_min) — never a silent targetless resolution (the
+    # Enthralling Hold no-op hole this phase closes).
     if not slots:
         # TARGET_PLAYER-only designation (Duress shape): every entry must
         # be a player the caster's opponents include.
@@ -397,7 +401,20 @@ def cast(
     if chosen:
         bindings["target"] = chosen
     ctx = executor._cast_ctx(handle, seat, bindings, decisions, x)
-    if node.effect is not None:  # effect-less castable creatures (T3 r3)
+    from MTG_bot.core.executor.query import is_aura_spell
+
+    # 16e (CR 303.4a/608.2a): an aura enters the battlefield ATTACHED, and
+    # its resolution effect runs AFTER the edge exists — the corpus aura
+    # effect (Enthralling Hold's GAIN_CONTROL) READS IS_ATTACHED_TO_SOURCE,
+    # so attach-then-effect is not cosmetic: effect-first would resolve it
+    # against nothing.
+    aura = is_aura_spell(world, handle)
+    if aura and not chosen:
+        raise ValueError(
+            "executor: cast: an aura resolution needs its enchant target "
+            "(_validate_spell_targets should have refused the cast first)"
+        )
+    if not aura and node.effect is not None:  # effect-less castable creatures (T3 r3)
         executor._run_effect(node.effect, ctx)
     before_put = executor.journal.snapshot()
     start_put = len(executor.events)
@@ -414,9 +431,16 @@ def cast(
         registered = executor.binder.records.get(world.cards[handle].identity.oracle_id)
         if registered is not None:
             executor.binder.attach_card(handle, registered)
+        if aura:
+            executor.attach_aura(handle, chosen[0])
+            executor.events.append(
+                (len(executor.events), "ATTACH", str(handle), str(chosen[0]))
+            )
     executor.journal.record_atom(
         before_put, handle, "CAST", list(executor.events[start_put:])
     )
+    if aura and node.effect is not None:
+        executor._run_effect(node.effect, ctx)
     executor._settle()
     executor._consume_end_turn()
     return frame
@@ -503,10 +527,16 @@ def cast_card(
     popped = executor.stack.pop()
     assert popped is frame
     bindings: dict[str, Binding] = {}
-    if targets:
-        bindings["target"] = sorted(targets)
+    chosen = sorted(targets)
+    if chosen:
+        bindings["target"] = chosen
     ctx = executor._cast_ctx(handle, caster, bindings, (), x)
-    if node.effect is not None:
+    from MTG_bot.core.executor.query import is_aura_spell
+
+    aura = is_aura_spell(world, handle)
+    if aura and not chosen:
+        raise ValueError("executor: CAST: an aura cast needs its enchant target")
+    if not aura and node.effect is not None:
         executor._run_effect(node.effect, ctx)
     before_put = executor.journal.snapshot()
     start_put = len(executor.events)
@@ -519,9 +549,16 @@ def cast_card(
         registered = executor.binder.records.get(world.cards[handle].identity.oracle_id)
         if registered is not None:
             executor.binder.attach_card(handle, registered)
+        if aura:
+            executor.attach_aura(handle, chosen[0])
+            executor.events.append(
+                (len(executor.events), "ATTACH", str(handle), str(chosen[0]))
+            )
     executor.journal.record_atom(
         before_put, handle, "CAST", list(executor.events[start_put:])
     )
+    if aura and node.effect is not None:
+        executor._run_effect(node.effect, ctx)
     executor._settle()
     return True
 

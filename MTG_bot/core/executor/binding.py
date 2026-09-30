@@ -231,7 +231,8 @@ class TriggerBinder:
         owner = self.emblem_owner.get(handle)
         if owner is not None:
             return owner
-        return self.world.controller_of(handle)
+        # 16e: triggers ride the CURRENT controller (CR 603.7b).
+        return self.executor.controller_of(handle)
 
     def bind_emblem(self, handle: Handle, record: CardRecord, owner: Handle) -> int:
         """13c: bind a granted emblem's ability nodes. The emblem record is
@@ -249,7 +250,7 @@ class TriggerBinder:
             if isinstance(ability, TriggeredAbility):
                 self._check_event(ability.event, record.name)
                 triggers.append((idx, ability))
-        self.detach(handle)
+        self.detach(handle, leaving=False)
         self.records.setdefault(record.oracle_id, record)
         self.handle_record[handle] = record
         self.emblem_owner[handle] = owner
@@ -340,7 +341,7 @@ class TriggerBinder:
             if isinstance(ability, TriggeredAbility):
                 self._check_event(ability.event, record.name)
                 triggers.append((idx, ability))
-        self.detach(handle)
+        self.detach(handle, leaving=False)
         for idx, ability in triggers:
             self.attached[(handle, idx)] = ability
         # 13a loyalty ledger: the frozen CardState has no loyalty field, so
@@ -367,15 +368,27 @@ class TriggerBinder:
         self.executor.layers.attach_source(handle, record)
         return len(triggers)
 
-    def detach(self, handle: Handle) -> int:
+    def detach(self, handle: Handle, *, leaving: bool = True) -> int:
         """Battlefield departure: drop the handle's live bindings (the
         oracle-id record stays, ready for the re-entry re-registration) —
         and 12d: its continuous layers and replacement records expire with
         it (their durations govern separately for records the permanent
-        GRANTED elsewhere)."""
+        GRANTED elsewhere).
+
+        16e: ``leaving=False`` is the ATTACH-side idempotent refresh
+        (attach_card/_register clear-then-rebind a handle that is
+        ARRIVING, not departing). For a trigger-less permanent — an aura
+        with only a StaticAbility — that refresh runs from _lifecycle AFTER
+        the cast already attached its aura edge, and the 13c departure
+        sweep below would erase it, feeding the CR 704.5q SBA a false
+        unattached read. The attachment drop belongs to DEPARTURES only."""
         keys = [key for key in self.attached if key[0] == handle]
         for key in keys:
             del self.attached[key]
+        if not leaving:
+            self.executor.layers.detach_source(handle)
+            self.executor.replacements.detach_source(handle)
+            return len(keys)
         # 13c: attachment is battlefield-to-battlefield (CR 303.4c/117.12 —
         # when either side of an aura/equipment pair leaves, the attachment
         # relationship ends). The executor's attachment table drops every

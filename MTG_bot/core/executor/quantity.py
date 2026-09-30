@@ -578,7 +578,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         who = atom.who
         if who is None:
             return False
-        from MTG_bot.core.executor.selectors import controller_matches
+        from MTG_bot.core.executor.selectors import controller_matches, controller_of
 
         if handle.namespace != "card":
             # 16b: a PLAYER handle answers for ITSELF — the 16b attacked-
@@ -590,7 +590,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             if handle.namespace == "player":
                 return controller_matches(who, handle, ctx)
             return False
-        actual = world.controller_of(handle)
+        actual = controller_of(ctx, handle)
         return controller_matches(who, actual, ctx)
     if pred is FAtomPred.FLIP_WON:
         # 13a (Tavern Swindler compiles the flip and its winner-gate to two
@@ -618,11 +618,13 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # correctly (Fabled Passage is already in the graveyard here).
         assert atom.count is not None
         threshold = resolve(atom.count, ctx)
+        from MTG_bot.core.executor.selectors import controller_of
+
         counted = 0
         for card in sorted(world.cards):
             if (
                 world.zone_of(card).kind == ZONE_BATTLEFIELD
-                and world.controller_of(card) == ctx.controller
+                and controller_of(ctx, card) == ctx.controller
                 and (
                     atom.inner_filter is None
                     or eval_filter(atom.inner_filter, card, ctx)

@@ -83,16 +83,17 @@ from MTG_bot.core.executor.games import (
     play_game,
     run_games,
 )
-from MTG_bot.core.executor.legality import activate, ctx_for
+from MTG_bot.core.executor.legality import activate, ctx_for, spell_castable
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
 from MTG_bot.core.executor.query import (
+    is_aura_spell,
     legal_targets,
     optional_offer,
     spell_target_slots,
 )
 from MTG_bot.core.executor.selectors import resolve_selector
 from MTG_bot.core.executor.stack import cast, park, play_land
-from MTG_bot.core.identity import CardIdentity
+from MTG_bot.core.identity import CardIdentity, Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
     ZONE_EXILE,
@@ -182,7 +183,14 @@ class DeckSupplyTest(unittest.TestCase):
         # DAMAGE_ASSIGN_POLICY joined, and the with/without gate diff (run
         # again 16c) picked up exactly their two carriers (Canopy Stalker,
         # Garruk Savage Herald), zero losses, deckable unchanged again.
-        self.assertEqual(len(self.supply.engine_ids), 293)
+        # AMENDED 2026-10-02 (round 16e): 293 -> 297 — GAIN_CONTROL and
+        # ATTACH joined; the with/without gate diff (run again 16e) picked
+        # up EXACTLY the four control/attachment carriers (Traitorous
+        # Greed, Enthralling Hold, Short Sword, Malefic Scythe), zero
+        # losses. Deckable unchanged: none of the four is a creature, so
+        # the engine decks are untouched — the two sorceries ride the
+        # castable lane, the equipment the activation lane.
+        self.assertEqual(len(self.supply.engine_ids), 297)
 
 
 class ReplayDeterminismTest(unittest.TestCase):
@@ -1567,6 +1575,111 @@ class Round14fSurfaceTest(unittest.TestCase):
         )
         self.assertEqual(world.zone_of(rival).kind, ZONE_EXILE)
         self.assertEqual(resolve_selector(selector, ctx), [top])
+
+
+class Round16eControlTest(unittest.TestCase):
+    """Round-16e control-overlay + aura lifecycle pins (the smoke that
+    proved the pipeline, now permanent): one-turn steal, enchant-the-
+    creature cast ordering (CR 303.4a/608.2a), the no-legal-target cast
+    gate (CR 601.2e), the aura-death control return, and the unattached-
+    aura state check (CR 704.5q). Ledger: KNOWLEDGE/2026-09-30/15-*.md."""
+
+    def _world(self, seed: int = 7) -> tuple[GameWorld, Executor]:
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=seed)
+        return world, Executor(world)
+
+    def _arm(self, world: GameWorld, executor: Executor, p0: Handle) -> None:
+        for key in ("W", "U", "B", "R", "G", "C"):
+            world.players[p0].mana_pool[key] = 20
+        world.active_player = p0
+        executor.turn_open = True
+        executor.phase = "FIRST_MAIN"
+
+    def test_traitorous_greed_steals_until_end_of_turn(self) -> None:
+        # GAIN_CONTROL with DurationEot: the overlay routes control, the
+        # EoT expiry hands it back. The real compiled tree's ADD_MANA
+        # (color ANY) is the only primed-decision consumer — both CHOOSE
+        # atoms auto-force off the single-target designation.
+        supply = get_supply("all")
+        record = _record_named(supply, "Traitorous Greed")
+        world, executor = self._world()
+        executor.attach_pool(supply.pool)
+        p0, p1 = world.player_order
+        victim = world.add_card(
+            CardIdentity(oracle_id=_oid(301), name="Victim", type_line="Creature"),
+            p1,
+            ZONE_BATTLEFIELD,
+        )
+        spell = world.add_card(identity_of(record), p0, ZONE_HAND)
+        self._arm(world, executor, p0)
+        cast(executor, p0, spell, targets=(victim,), decisions=("C",))
+        self.assertEqual(executor.controller_of(victim), p0)
+        executor.end_turn()
+        self.assertEqual(executor.controller_of(victim), p1)
+
+    def test_enthralling_hold_gate_attach_and_death_return(self) -> None:
+        # The synthesized Enchant slot: no battlefield creature -> the
+        # legal_casts row disappears (CR 601.2e); with one -> cast puts
+        # the aura onto the battlefield ATTACHED (CR 303.4a) before the
+        # effect runs, the GAIN_CONTROL static steals the creature, and
+        # killing the aura drops the attachment edge and returns control.
+        supply = get_supply("all")
+        record = _record_named(supply, "Enthralling Hold")
+        world, executor = self._world(9)
+        executor.attach_pool(supply.pool)
+        p0, p1 = world.player_order
+        aura = world.add_card(identity_of(record), p0, ZONE_HAND)
+        self._arm(world, executor, p0)
+        self.assertTrue(is_aura_spell(world, aura))
+        # ENCHANT is an identity keyword and the cast gate is loud:
+        reason, *_ = spell_castable(executor, p0, aura)
+        self.assertIsNotNone(reason)
+        assert reason is not None  # pyright narrowing for the live run below
+        self.assertIn("aura_no_legal_target", reason)
+        victim = world.add_card(
+            CardIdentity(oracle_id=_oid(302), name="Victim", type_line="Creature"),
+            p1,
+            ZONE_BATTLEFIELD,
+        )
+        cast(executor, p0, aura, targets=(victim,))
+        self.assertEqual(world.zone_of(aura).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(executor.attachments.get(aura), victim)
+        self.assertEqual(executor.controller_of(victim), p0)
+        # DESTROY the aura (a placeholder TARGET node fed by bindings —
+        # the verb's own death pipeline, not another spell):
+        executor.apply_effect(
+            _atom(
+                Verb.DESTROY,
+                target=Selector(
+                    QConst(1),
+                    SelectorMode.TARGET,
+                    FAnd(()),
+                    Zone(ZoneKind.ANY, ControllerRef.ANY),
+                ),
+            ),
+            source=victim,
+            controller=p1,
+            bindings={"target": [aura]},
+        )
+        self.assertEqual(world.zone_of(aura).kind, ZONE_GRAVEYARD)
+        self.assertIsNone(executor.attachments.get(aura))
+        self.assertEqual(executor.controller_of(victim), p1)
+
+    def test_unattached_aura_state_check_graveyard(self) -> None:
+        # CR 704.5q: an aura on the battlefield not attached to anything
+        # (its host left from under it, or it was somehow put there
+        # floating) is put into its owner's graveyard by the next state
+        # check batch. Equipment carry EQUIP, not ENCHANT, so they are
+        # NOT swept — only is_aura_spell cards are.
+        supply = get_supply("all")
+        record = _record_named(supply, "Enthralling Hold")
+        world, executor = self._world(13)
+        executor.attach_pool(supply.pool)
+        p0, _p1 = world.player_order
+        aura = world.add_card(identity_of(record), p0, ZONE_BATTLEFIELD)
+        executor._settle()
+        self.assertEqual(world.zone_of(aura).kind, ZONE_GRAVEYARD)
 
 
 def _oid(n: int) -> str:
