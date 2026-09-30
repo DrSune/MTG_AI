@@ -248,8 +248,11 @@ class TestSearchUnit(LibraryCase):
     def test_search_without_designation_or_selector_raises(self):
         with self.assertRaises(ValueError):
             self._do(atom(Verb.SEARCH, destination=BF_YOU))
-        # ONE_OF with no binding is never guessed (the existing clean raise)
-        with self.assertRaises(NotImplementedError):
+        # AMENDED 14c (B-13): ONE_OF SEARCH is no longer an unsupported
+        # mode — it asks the decision channel (Handle-sorted candidate
+        # vocabulary); with no lane able to answer the ask exhausts to a
+        # loud ValueError, never a guessed pick.
+        with self.assertRaises(ValueError):
             self._do(search_atom(mode=SelectorMode.ONE_OF, count=1))
 
     def test_cultivate_e2e_per_step_bindings(self):

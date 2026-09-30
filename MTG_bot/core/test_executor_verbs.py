@@ -604,11 +604,15 @@ class TestSelectors(ExecutorCase):
             )
 
     def test_unsupported_modes_and_referents_raise(self):
+        # AMENDED 14c (B-13): ONE_OF is no longer "unsupported" — it asks
+        # the vocabulary-addressed channel, and an ask NO lane can answer
+        # raises ValueError (never a default). The closed referents
+        # outside a firing stay NotImplementedError.
         one_of = atom(
             Verb.DESTROY,
             target=Selector(QConst(1), SelectorMode.ONE_OF, CREATURE, BF_ANY),
         )
-        with self.assertRaises(NotImplementedError):
+        with self.assertRaises(ValueError):
             self.ex.execute(one_of, source=self.alpha, controller=self.p0)
         result_ref = atom(
             Verb.DESTROY,

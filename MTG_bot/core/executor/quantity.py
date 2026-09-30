@@ -111,6 +111,13 @@ class ExecCtx:
     # unbound flag), so every pre-13b path is byte-unchanged; cast() binds
     # it from its x parameter, effect-side CASTs default it to 0.
     x_value: int | None = None
+    # 14c (B-13): the most recent ONE_OF pick made in THIS resolution — the
+    # partition anchor the sibling REST atom subtracts ("put one of them
+    # in your hand, the rest into your graveyard"). The re-search idiom
+    # usually makes the subtraction a no-op (the picked card already left
+    # the zone); it matters for a same-zone split. Seq order pairs the
+    # nearest preceding ONE_OF with its REST.
+    one_of_pick: Handle | None = None
     # 12d: damage replacements consume the event and queue their ACTION;
     # the action runs AFTER the consuming atom's journal boundary (one diff
     # per mutation — no double-emitted events), by the executor's run_atom

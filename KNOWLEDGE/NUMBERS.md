@@ -13,6 +13,22 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.24 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-09-30 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.238 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
@@ -1473,3 +1489,11 @@ PC-1 **301/305 (0.9869)**, PC-2 **634/639 (0.9922)**, PC-3 **0**, PC-4 **0 diffs
 
 **PC-7 game survival (10 seeds, cap 60, deck-pairs 1409, post-B-4/B-5)** — cmd: `.venv/bin/python -m MTG_bot.core.executor.games --seeds 10 --pool {all,engine,castable}`:
 survival all **1/10** mean 28.7 max 60 (was 0/10, 9.0, 44); engine **3/10** mean 38.8 max 60×3 (was 1/10, 17.4, 60); castable 0/10 mean 14.0 max 34 (was 0/10, 2.0, 8). coverage fired: all 34, engine 39, castable 33 cards. B-4 scry-rejection class gone from all pools; 30-seed trigger (engine ≥5/10) not met. Core suite **1996** (`pytest MTG_bot/core -q`), PC-1 301/305 · PC-2 634/639 · PC-3 0 · PC-4 0 diffs (`tools/measure_grammar.py`), engine_supported 286 pinned, pyright 0, ruff delta 0 (34=34).
+
+### Round-14c six-class close-out (2026-09-30, uncommitted; see KNOWLEDGE/2026-09-30/06-round14c-six-classes.md)
+
+**PC-7 v1.1 (14c)** — cmd: `.venv/bin/python -m MTG_bot.core.executor.games --seeds 10 --pool {all,engine,castable}` + `--seeds 30 --pool engine`:
+10-seed: all **2/10** (was 1/10) mean 35.9 max 60 cov41; engine **6/10** (was 3/10) mean 46.2 max 60×4 cov44; castable 0/10 (was 0/10) mean 18.3 (was 14.0) cov39.
+**Engine 30 seeds: 10/30 survived (33.3%), mean 34.9t, 2021 acts, 51 cards fired = 19.1% of engine_supported=286.**
+Crash census 10-pools (22): B-7-family preds 13 (CONTROLLER_COUNT_GE 6, CAST_THIS_TURN_FROM 4, MOVED_TO_ZONE_THIS_TURN 6 — frames quantity.py:512), B-9 3, B-17 3, B-19 STACK-KeyError 2, FIGHT-no-handler 1. Classes FIXED this round: B-13, B-14/QX-at-cast, B-15, B-16, B-18; B-17 = design-level (golden miscompiles; frozen scope).
+Core **2001** (`pytest MTG_bot/core -q`), PC-1 301/305 · PC-2 634/639 · PC-3 0 · PC-4 0 diffs (`tools/measure_grammar.py --set M21`) EXACT, pyright 0, ruff delta 0 (34=34 executor stats).

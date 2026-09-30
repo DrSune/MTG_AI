@@ -33,6 +33,7 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
     ZonePosition,
 )
+from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
@@ -159,8 +160,19 @@ def resolve_selector(sel: Selector, ctx: ExecCtx) -> List[Handle]:
     ALL returns the filtered population in zone order; CHOOSE resolves the
     deterministic 12a stand-in for the 12c choice prompt (first ``count``
     of the Handle-sorted candidates; ``QUnbounded`` takes all); RANDOM
-    draws through the executor-owned seeded Random. TARGET designation is
-    the caller's bindings, not this function's (12c owns prompting).
+    draws through the executor-owned seeded Random; TARGET designation is
+    the spell's/ability's designation binding under ``"target"`` (14c,
+    B-15 — CR 601.2c designates the targets once and every "target" in
+    the effect means THAT designation, whatever role the Selector sits
+    in; UNDESIGNATED stays the loud raise); ONE_OF (14c, B-13) asks the
+    vocabulary-addressed decision channel with the Handle-sorted
+    candidate list as the exact vocabulary — the enumerate-then-answer
+    shape the query surface already serves via ``legal_targets`` — and
+    REST takes the deterministic complement of this resolution's ONE_OF
+    pick (``query.rest_of``'s runtime twin; the re-search compile idiom
+    makes the subtraction usually a no-op). C15: an ONE_OF ask no lane
+    can answer RAISES (never a default); an empty ONE_OF population
+    chooses nothing (C17 clamp).
     """
     if sel.referent is not None:
         if sel.referent in ("source", "controller"):
@@ -204,10 +216,53 @@ def resolve_selector(sel: Selector, ctx: ExecCtx) -> List[Handle]:
         rng.shuffle(sampled)  # seeded: replay-identical, never wall-clock
         return sorted(sampled[:count])
     if sel.mode is SelectorMode.TARGET:
-        raise ValueError(
-            "executor: TARGET selector has no designation "
-            "(pass bindings={'target': ...})"
-        )
+        # 14c (B-15): CR 601.2c designates the targets ONCE per spell and
+        # every TARGET-mode Selector in the effect means THAT designation,
+        # whatever role it sits in (Read the Tides' and Rise Again's
+        # MOVE_ZONE carries it under ``cards``). The designation arrives
+        # as the spell's/ability's ``target`` binding; the ones that no
+        # longer pass this Selector's filter left the zone mid-resolution
+        # and drop out (CR 603.3's mode/targets rule, applied per handle).
+        # UNDESIGNATED stays the loud raise — an unbound designation is
+        # still never guessed.
+        bound = ctx.binding_handles("target")
+        if bound is None:
+            raise ValueError(
+                "executor: TARGET selector has no designation "
+                "(pass bindings={'target': ...})"
+            )
+        legal = set(candidates)
+        return sorted(h for h in bound if h in legal)
+    if sel.mode is SelectorMode.ONE_OF:
+        # 14c (B-13): the partition choice, asked as C15 prescribes —
+        # enumerate from the engine's own populations, then answer. The
+        # vocabulary is EXACTLY the Handle-sorted candidate list (no
+        # prose); the query surface's ``legal_targets`` ONE_OF slot is
+        # the same population on the ask side. Forced (no ask) when only
+        # one filler is legal; an empty population chooses NOTHING (C17
+        # clamp — there is nothing to pick, and no decision to consume);
+        # an exhaustion raise means no lane answered — never a default.
+        ordered = sorted(candidates)
+        if not ordered:
+            return []
+        if len(ordered) == 1:
+            ctx.one_of_pick = ordered[0]  # §1.4 auto-fill: one legal answer
+            return ordered
+        vocab = tuple(str(h) for h in ordered)
+        answer = ctx.take_decision(vocab, f"one_of:{ctx.source}:{site_digest(vocab)}")
+        pick = next(h for h in ordered if str(h) == answer)
+        ctx.one_of_pick = pick
+        return [pick]
+    if sel.mode is SelectorMode.REST:
+        # 14c (B-13): the deterministic complement — ``query.rest_of`` at
+        # runtime, no ask (the engine takes what the ONE_OF left). Under
+        # the re-search compile idiom the ONE_OF's atom already MOVED its
+        # pick out of the zone, so the re-enumeration here already lacks
+        # it; the subtraction covers the same-zone split.
+        ordered = sorted(candidates)
+        if ctx.one_of_pick is not None:
+            ordered = [h for h in ordered if h != ctx.one_of_pick]
+        return ordered
     raise NotImplementedError(
         f"executor: SelectorMode.{sel.mode.name} designation is 12c's target prompt"
     )
@@ -219,15 +274,24 @@ def resolve_selector(sel: Selector, ctx: ExecCtx) -> List[Handle]:
 def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> List[Handle]:
     """The handles a target/cards/equipment role acts on, Handle-sorted.
 
-    Bindings take precedence (the caller designated them); a selector role
-    falls back to :func:`resolve_selector` for the non-prompting modes.
+    Bindings take precedence (the caller designated them) EXCEPT for an
+    ANAPHORIC Selector — one carrying its own ``referent`` (14c, B-16):
+    "the cards the preceding atom found" is a reference the atom resolves
+    itself, and a spell-level designation sharing the role NAME must not
+    hijack it (Necromentia's EXILE-``target`` grabbed the designated
+    OPPONENT under that binding and fed a player handle to ``controller_
+    of``). A referent-less Selector stays binding-first (the 12a
+    designation convention, ``_binding_atom`` payments included).
     """
     bound = ctx.binding_handles(role)
-    if bound is not None:
-        return bound
     value = atom.args.get(role)
+    anaphoric = isinstance(value, Selector) and value.referent is not None
+    if bound is not None and not anaphoric:
+        return bound
     if isinstance(value, Selector):
         return sorted(resolve_selector(value, ctx))
+    if bound is not None:
+        return bound
     raise ValueError(f"executor: {atom.verb.name} role {role!r} has no binding")
 
 

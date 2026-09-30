@@ -45,6 +45,7 @@ from MTG_bot.core.ability_tree import (
     Quantity,
     QUnbounded,
     Selector,
+    SelectorMode,
     Step,
     TokenSpec,
     Verb,
@@ -107,7 +108,16 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         if not isinstance(sel, Selector):
             raise ValueError("executor: MOVE_ZONE cards role has no binding")
         n = 0 if isinstance(sel.count, QUnbounded) else resolve(sel.count, ctx)
-        if dest_kind == ZONE_HAND and sel.zone.kind is ZoneKind.LIBRARY:
+        # 14c (B-13): the ONE_OF/REST partition modes SELECT specific
+        # cards (the pick / its complement) — the top-n draw idiom and the
+        # count clamp apply to the CHOOSE/draw idioms only; a partition
+        # atom moves exactly what its Selector resolves.
+        partition = sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST)
+        if (
+            not partition
+            and dest_kind == ZONE_HAND
+            and sel.zone.kind is ZoneKind.LIBRARY
+        ):
             owner = zone_owner(ctx, dest_ir, owner=ctx.controller)
             lib = ctx.world.players[owner].zone(ZONE_LIBRARY)
             n = min(n, len(lib.entries))
@@ -122,7 +132,7 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                     )
             return
         pool = [h for h in resolve_selector(sel, ctx) if h.namespace == "card"]
-        cards = pool[:n] if n else pool
+        cards = pool if partition else (pool[:n] if n else pool)
     for card in cards:
         owner = ctx.world.controller_of(card)
         target_player = zone_owner(ctx, dest_ir, owner=owner)
@@ -153,7 +163,37 @@ def _v_discard(ctx: ExecCtx, atom: Atom) -> None:
         sel = atom.args.get("cards")
         if not isinstance(sel, Selector):
             raise ValueError("executor: DISCARD cards role has no binding")
-        cards = resolve_selector(sel, ctx)
+        if (
+            sel.referent is not None
+            or sel.mode is SelectorMode.TARGET
+            or sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST)
+        ):
+            # designation / anaphora / partition paths all self-resolve
+            # (the 13b 'result' register, the B-15 designation, the B-13
+            # channel ask) — the hand scoping below is only for the raw
+            # engine-side CHOOSE/RANDOM/ALL stand-ins.
+            cards = resolve_selector(sel, ctx)
+        else:
+            # 14c (B-18): CR 701.8a — a discard moves cards from the
+            # ACTOR'S OWN hand, so the selection pool is the actor's LIVE
+            # hand re-read at take time, filtered through the Selector.
+            # Bad Deal's compiled zone is Zone(HAND, ANY) (the documented
+            # card-level divergence: the discarding player lives in the
+            # ``controller`` role) and the raw Selector population spans
+            # both hands — the Handle-sorted CHOOSE/RANDOM stand-ins were
+            # picking the OTHER player's cards, and the not-in-hand raise
+            # ended the game. C17 clamp: fewer cards than the ceiling in
+            # hand simply discards fewer.
+            live = list(ctx.world.players[player].zone(ZONE_HAND).entries)
+            pool = sorted(h for h in live if eval_filter(sel.filter, h, ctx))
+            if sel.mode is SelectorMode.RANDOM:
+                rng = ctx.rng("RANDOM")
+                rng.shuffle(pool)  # seeded: replay-identical
+            cards = (
+                pool
+                if isinstance(sel.count, QUnbounded)
+                else pool[: resolve(sel.count, ctx)]
+            )
     hand = ctx.world.players[player].zone(ZONE_HAND).entries
     for card in sorted(cards):
         if card not in hand:
@@ -606,8 +646,9 @@ def _search_designation(atom: Atom, ctx: ExecCtx) -> list[Handle]:
     mirrors. Explicit bindings take precedence (the caller designated the
     found cards — the e2e/Slate surface); otherwise the selector resolves
     through the 12a machinery: CHOOSE = deterministic first-n-sorted
-    stand-in, RANDOM = seeded ctx.rng draw; an undesignated ONE_OF/TARGET
-    propagates the existing clean raise (never a guess)."""
+    stand-in, RANDOM = seeded ctx.rng draw, ONE_OF = the 14c channel ask
+    (Handle-sorted candidate vocabulary; exhaustion stays loud); TARGET
+    reads the spell's designation (B-15) or raises."""
     cards = ctx.binding_handles("cards")
     if cards is not None:
         return cards
@@ -650,6 +691,12 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append(
             (len(ctx.events), "SEARCH", str(card), f"{src.kind}->{dest_kind}")
         )
+    # 14c (B-16 lineage): the found cards land in the ability's ``result``
+    # register — the same 13b read-back convention the CHOOSE atom pins
+    # ("the follow-up atom's referent='result' Selector reads it"). The
+    # compiler emits that referent after SEARCH (Necromentia's EXILE);
+    # without this write the anaphora died B-9-style outside a firing.
+    ctx.bindings["result"] = list(cards)
 
 
 def _executor_or_raise(ctx: ExecCtx, verb: str):

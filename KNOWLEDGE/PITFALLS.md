@@ -528,3 +528,17 @@
     ANSWERS instead of raising.
   - **Policy filters must be counted, not raised-through.** Surfacing a policy-side skip (a >1
     TARGET-selector spell) as an exception made it look like an engine crash class in the census.
+- **Role bindings vs in-tree anaphora**: `role_handles` giving bindings precedence over a
+  `referent`-carrying Selector lets a spell's `target` designation HIJACK "the cards the
+  previous atom found" (14c B-16, Necromentia: a player handle reached `controller_of` →
+  KeyError). Bindings win only over referent-less Selectors; `_v_search` writes `result`.
+- **Actor-scoped selection**: DISCARD-like verbs whose compiled Selector zone is broader
+  than the actor's zone (Bad Deal's `Zone(HAND, ANY)`) must RE-READ the actor's live zone
+  as the pool at take time (CR 701.8a) — the old "staleness" guess was wrong; the pool
+  was live, it was just TWO players' hands and sorted order picked the caster's.
+- **X is declared at cast**: `spell_castable`'s X=0 witness must flow into
+  `SpellObject.x_value`/`ctx.x_value` (CR 601.2f/107.1), or cost-side legality passes
+  while effect-side QX dies "undeclared" (14c QX/Primal Might).
+- **`ZONE_KIND_TO_STATE` has no STACK** — `legal_targets` answers Zone(STACK) (14a F-2)
+  but RUNTIME `enumerate_zone` still KeyErrors on it (B-19). Query-fixed ≠ runtime-fixed;
+  check both sides when a zone becomes reachable.

@@ -50,13 +50,16 @@ C-contract pins encoded here:
 The 12a NotImplemented-map closures delivered here (in-scope per /06 §12c):
 ONE_OF/REST partition enumeration, OWNER referent (the activation context
 supplies the owner — see legality.source_owner), CHOOSE-mode candidate
-enumeration, and Zone(ANY) population — all WITHOUT touching the
-resolution-time raises in selectors.py, which stay honest: an UNDESIGNATED
-ONE_OF/TARGET at resolution is an illegal world, not a guess. The Choose
-NODE's dispatch (executor.apply_effect) still raises — that pin is 12a
-contract; the chosen option is executed by dispatching the returned
-option subtree directly (docs below), which is what a Slate answer
-unfolds to anyway.
+enumeration, and Zone(ANY) population. AMENDED 14c (B-13/B-15): the
+resolution side now consumes THESE enumerations rather than re-deriving
+them — ONE_OF asks the vocabulary-addressed channel with the Handle-sorted
+candidate list (``selectors.resolve_selector``), TARGET reads the spell's
+designation, REST takes the deterministic complement — and the raises
+stay honest exactly where the world is illegal: an ONE_OF ask no lane can
+answer, or an UNdesignated TARGET, is never guessed. The Choose NODE's
+dispatch has been wired since 12d (the ORDER contract below); the option
+subtree it dispatches is the same enumeration :func:`choose_options`
+returns, which is what a Slate answer unfolds to anyway.
 """
 
 from __future__ import annotations

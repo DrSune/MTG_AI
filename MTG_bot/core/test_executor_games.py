@@ -54,6 +54,7 @@ from MTG_bot.core.ability_tree import (
     Repeat,
     Selector,
     SelectorMode,
+    Seq,
     SpellAbility,
     TriggeredAbility,
     Verb,
@@ -84,7 +85,14 @@ from MTG_bot.core.executor.query import (
 )
 from MTG_bot.core.executor.stack import cast, park, play_land
 from MTG_bot.core.identity import CardIdentity
-from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_HAND, ZONE_LIBRARY, GameWorld
+from MTG_bot.core.state import (
+    ZONE_BATTLEFIELD,
+    ZONE_EXILE,
+    ZONE_GRAVEYARD,
+    ZONE_HAND,
+    ZONE_LIBRARY,
+    GameWorld,
+)
 from MTG_bot.core.test_executor_binding import card_id, reset_oracle_ids
 
 UNIV = FAnd(())
@@ -466,45 +474,139 @@ class CrashLedgerTest(unittest.TestCase):
         self.assertIn("referent", str(cm.exception))
 
     def test_new_rest_one_of_designation_is_the_12c_gap(self) -> None:
-        """NEW crash class, 14b rerun's dominant headwall (8/27 crashes):
-        the split-selection pair ONE_OF/REST designates at resolution
-        through the 12c target prompt the executor has no channel for —
-        Cultivate's / See the Truth's 'put one of them' family, previously
-        UNREACHABLE behind the B-4 scry wall. Loud NotImplementedError,
-        documented ceiling, pinned directly."""
-        for mode in (SelectorMode.ONE_OF, SelectorMode.REST):
-            reset_oracle_ids()
-            world = GameWorld(num_players=2, start_life=20, master_seed=7)
-            p0 = world.player_order[0]
-            executor = Executor(world)
-            host = world.add_card(
-                CardIdentity(oracle_id=_oid(204), name="Host", type_line="Creature"),
+        """AMENDED 14c (B-13 FIXED): the split-selection pair designates
+        through the vocabulary-addressed decision channel — the 12c prompt
+        the 14b streams finally serve. ONE_OF asks with the Handle-sorted
+        candidate list as the EXACT vocabulary (C15: enumerate-then-answer,
+        no prose); an answer no lane can give RAISES loudly (never a
+        default); REST is the deterministic complement — no ask (query.
+        rest_of's runtime twin)."""
+        # (a) one candidate: forced, no decision consumed (exactly-one
+        #     legal filler auto-fills, /06 §1.4).
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=7)
+        p0 = world.player_order[0]
+        executor = Executor(world)
+        host = world.add_card(
+            CardIdentity(oracle_id=_oid(204), name="Host", type_line="Creature"),
+            p0,
+            ZONE_BATTLEFIELD,
+        )
+        asked: list[tuple[tuple[str, ...], str]] = []
+        executor.decisions.provider = lambda vocab, what: (
+            asked.append((vocab, what)) or vocab[0]
+        )
+        tap_one_of = _atom(
+            Verb.TAP,
+            target=Selector(
+                count=QConst(1),
+                mode=SelectorMode.ONE_OF,
+                filter=UNIV,
+                zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+            ),
+        )
+        executor.apply_effect(tap_one_of, source=host, controller=p0)
+        self.assertEqual(asked, [])  # forced — no ask happened
+        self.assertTrue(world.cards[host].tapped)
+        # (b) two candidates: the ask vocabulary is the Handle-sorted
+        #     candidate list, and the answered handle alone gets tapped.
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=7)
+        p0 = world.player_order[0]
+        executor = Executor(world)
+        first = world.add_card(
+            CardIdentity(oracle_id=_oid(204), name="First", type_line="Creature"),
+            p0,
+            ZONE_BATTLEFIELD,
+        )
+        second = world.add_card(
+            CardIdentity(oracle_id=_oid(205), name="Second", type_line="Creature"),
+            p0,
+            ZONE_BATTLEFIELD,
+        )
+        asked = []
+        executor.decisions.provider = lambda vocab, what: (
+            asked.append((vocab, what)) or vocab[-1]  # pick the LAST one
+        )
+        executor.apply_effect(tap_one_of, source=first, controller=p0)
+        self.assertEqual(len(asked), 1)
+        self.assertEqual(asked[0][0], tuple(sorted(str(h) for h in (first, second))))
+        self.assertTrue(world.cards[second].tapped)
+        self.assertFalse(world.cards[first].tapped)
+        # (c) REST: the complement of this resolution's ONE_OF pick —
+        # paired inside ONE Seq (the Cultivate shape; the pairing is
+        # ctx-scoped). TAP asks (provider picks the LAST candidate), then
+        # UNTAP-REST must leave the PICKED card alone: if the complement
+        # failed, the picked card would come back untapped.
+        bf = Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=7)
+        p0 = world.player_order[0]
+        executor = Executor(world)
+        for i in (204, 205, 206):
+            world.add_card(
+                CardIdentity(oracle_id=_oid(i), name=f"C{i}", type_line="Creature"),
                 p0,
                 ZONE_BATTLEFIELD,
             )
-            with self.assertRaises(NotImplementedError) as cm:
-                executor.apply_effect(
+        asked = []
+        executor.decisions.provider = lambda vocab, what: (
+            asked.append((vocab, what)) or vocab[-1]
+        )
+        executor.apply_effect(
+            Seq(
+                steps=(
                     _atom(
                         Verb.TAP,
-                        target=Selector(
-                            count=QConst(1),
-                            mode=mode,
-                            filter=UNIV,
-                            zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
-                        ),
+                        target=Selector(QConst(1), SelectorMode.ONE_OF, UNIV, bf),
                     ),
-                    source=host,
-                    controller=p0,
+                    _atom(
+                        Verb.UNTAP,
+                        target=Selector(QConst(1), SelectorMode.REST, UNIV, bf),
+                    ),
                 )
-            self.assertIn("12c's target prompt", str(cm.exception))
+            ),
+            source=world.players[p0].zone(ZONE_BATTLEFIELD).entries[0],
+            controller=p0,
+        )
+        self.assertEqual(len(asked), 1)  # REST never asks (forced complement)
+        entries = world.players[p0].zone(ZONE_BATTLEFIELD).entries
+        picked = max(entries)  # vocab[-1] = Handle-last
+        # The TAP tapped ONLY the pick; the UNTAP-REST tapped nothing else
+        # (they started untapped, a no-op) AND MUST HAVE LEFT THE PICK
+        # ALONE — if the complement failed, the pick would sit untapped.
+        self.assertTrue(world.cards[picked].tapped)
+        self.assertFalse(any(world.cards[h].tapped for h in entries if h != picked))
+        # (d) exhaustion stays loud: ONE_OF with a real choice and no lane.
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=7)
+        p0 = world.player_order[0]
+        executor = Executor(world)
+        a = world.add_card(
+            CardIdentity(oracle_id=_oid(204), name="A", type_line="Creature"),
+            p0,
+            ZONE_BATTLEFIELD,
+        )
+        world.add_card(
+            CardIdentity(oracle_id=_oid(205), name="B", type_line="Creature"),
+            p0,
+            ZONE_BATTLEFIELD,
+        )
+        with self.assertRaises(ValueError) as cm:
+            executor.apply_effect(tap_one_of, source=a, controller=p0)
+        self.assertIn("needs a decision", str(cm.exception))
 
     def test_qx_undeclared_x_raises_loud_on_cast(self) -> None:
-        """NEW crash class (the 14b rerun's headwall, /05 doc): Primal Might
-        casts with UNDECLARED X — the harness passes no x, the pool pays
-        the QX cost anyway, and resolution raises QX-unbound deep in the
-        effect. Loud and correct per 13b's rule (QX raises when
-        undeclared), but it kills the game; ledger row + harness-side
-        defer is the honest status."""
+        """AMENDED 14c (QX CLOSED at cast): CR 601.2f declares X WITH the
+        total cost, so when the caller passes no x the legality fold's
+        documented X=0 witness (CR 107.1) is the DECLARATION — the frame's
+        x_value and the effect's QX read it (the 13b wiring gap: a QX in
+        an effect quantity instead of the cost stayed unbound and died at
+        quantity.resolve). Primal Might now gets past the QX raise and
+        falls to the NEXT open class: Verb.FIGHT has no handler at all
+        (unimplemented-verb ledger family, B-3/B-10 neighbours). The
+        unbound raise itself is untouched OUTSIDE a cast (ctx.x_value
+        None in any other context still flags — pinned by 13b's suite)."""
         supply = get_supply("all")
         record = _record_named(supply, "Primal Might")
         reset_oracle_ids()
@@ -513,13 +615,18 @@ class CrashLedgerTest(unittest.TestCase):
         executor = Executor(world)
         executor.attach_pool(supply.pool)
         spell = world.add_card(identity_of(record), p0, ZONE_HAND)
+        creature = world.add_card(
+            CardIdentity(oracle_id=_oid(210), name="Ally", type_line="Creature"),
+            p0,
+            ZONE_BATTLEFIELD,
+        )
         world.players[p0].mana_pool["G"] = 3
         world.active_player = p0
         executor.turn_open = True
         executor.phase = "FIRST_MAIN"
-        with self.assertRaises(Exception) as cm:
-            cast(executor, p0, spell, targets=(), decisions=())
-        self.assertIn("X", str(cm.exception))
+        with self.assertRaises(NotImplementedError) as cm:
+            cast(executor, p0, spell, targets=(creature,), decisions=())
+        self.assertIn("FIGHT", str(cm.exception))  # got PAST the QX raise
 
     def test_stats_report_shape(self) -> None:
         stats = run_games(2, "castable", SMOKE_DECK_PAIRS, turn_cap=4)
@@ -537,6 +644,243 @@ class CrashLedgerTest(unittest.TestCase):
         self.assertEqual(stats["n_games"], 2)
         for crash in stats["crashes"]:
             self.assertTrue({"exc", "frame", "seeds", "repro"} <= set(crash))
+
+
+class Round14cFixTest(unittest.TestCase):
+    """Round-14c close-out pins: one green test per crash class the round
+    fixed, written against the exact crash shape the ledger row records
+    (KNOWLEDGE/2026-09-30/03-game-loop-bugs.md B-15/B-16/B-18 + QX)."""
+
+    def _world(self, seed: int = 7) -> tuple[GameWorld, Executor]:
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=seed)
+        return world, Executor(world)
+
+    def test_b15_cards_role_target_designation_flows(self) -> None:
+        """B-15 FIXED (Rise Again / Read the Tides): the TARGET-mode
+        Selector riding in a non-``target`` ROLE resolves through the
+        spell's designation (CR 601.2c — one designation, every "target"
+        means it); UNdesignated keeps the loud raise."""
+        supply = get_supply("all")
+        record = _record_named(supply, "Rise Again")
+        world, executor = self._world()
+        executor.attach_pool(supply.pool)
+        spell = world.add_card(identity_of(record), world.player_order[0], ZONE_HAND)
+        p0, _p1 = world.player_order
+        recruit = world.add_card(
+            CardIdentity(oracle_id=_oid(77), name="Recruit", type_line="Creature"),
+            p0,
+            ZONE_GRAVEYARD,
+        )
+        for key in ("W", "U", "B", "R", "G", "C"):
+            world.players[p0].mana_pool[key] = 20
+        world.active_player = p0
+        executor.turn_open = True
+        executor.phase = "FIRST_MAIN"
+        cast(executor, p0, spell, targets=(recruit,))
+        self.assertEqual(world.zone_of(recruit).kind, ZONE_BATTLEFIELD)
+        # UNDESIGNATED stays loud (the 12c raise is untouched):
+        _world2, executor2 = self._world(8)
+        executor2.attach_pool(supply.pool)
+        with self.assertRaises(ValueError) as cm:
+            executor2.apply_effect(
+                _atom(
+                    Verb.MOVE_ZONE,
+                    cards=Selector(
+                        QConst(1),
+                        SelectorMode.TARGET,
+                        FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
+                        Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                    ),
+                    destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                ),
+                source=p0,
+                controller=p0,
+            )
+        self.assertIn("TARGET selector has no designation", str(cm.exception))
+
+    def test_b16_target_binding_does_not_clobber_referent_selector(self) -> None:
+        """B-16 FIXED (Necromentia): an ANAPHORIC Selector (referent set)
+        resolves itself — the spell-level ``target`` designation (the
+        designated OPPONENT) no longer hijacks the role and feeds a player
+        handle to controller_of (KeyError 'unknown card player:0'). The
+        SEARCH atom also lands its found cards in the ``result`` register
+        (the 13b CHOOSE read-back convention Necromentia's EXILE reads)."""
+        world, executor = self._world()
+        p0, p1 = world.player_order
+        card = world.add_card(
+            CardIdentity(oracle_id=_oid(88), name="Found", type_line="Creature"),
+            p0,
+            ZONE_GRAVEYARD,
+        )
+        executor.apply_effect(
+            _atom(
+                Verb.EXILE,
+                target=Selector(
+                    QConst(1),
+                    SelectorMode.CHOOSE,
+                    UNIV,
+                    Zone(ZoneKind.ANY, ControllerRef.ANY),
+                    referent="result",
+                ),
+            ),
+            source=p0,
+            controller=p0,
+            bindings={"target": [p1], "result": [card]},
+        )
+        self.assertEqual(world.zone_of(card).kind, ZONE_EXILE)
+        # SEARCH writes the register: search-then-referent in one Seq, no
+        # binding for 'cards' (the Necromentia compile idiom).
+        world, executor = self._world(9)
+        p0 = world.player_order[0]
+        land = world.add_card(
+            CardIdentity(oracle_id=_oid(89), name="Swamp", type_line="Basic Land"),
+            p0,
+            ZONE_LIBRARY,
+        )
+        executor.apply_effect(
+            Seq(
+                steps=(
+                    _atom(
+                        Verb.SEARCH,
+                        cards=Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            UNIV,
+                            Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+                        ),
+                        destination=Zone(ZoneKind.EXILE, ControllerRef.YOU),
+                    ),
+                    _atom(
+                        Verb.EXILE,
+                        target=Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            UNIV,
+                            Zone(ZoneKind.ANY, ControllerRef.ANY),
+                            referent="result",
+                        ),
+                    ),
+                )
+            ),
+            source=p0,
+            controller=p0,
+        )
+        self.assertEqual(world.zone_of(land).kind, ZONE_EXILE)
+
+    def test_b18_discard_scoped_to_the_actors_live_hand(self) -> None:
+        """B-18 FIXED (Bad Deal): the DISCARD selection pool is the ACTOR'S
+        own hand re-read at take time (CR 701.8a). Bad Deal's compiled
+        Zone(HAND, ANY) spans both hands and the Handle-sorted stand-in
+        used to grab the CASTER'S low handles — the not-in-hand raise
+        ended the game. Caster's hand now stays intact."""
+        world, executor = self._world()
+        p0, p1 = world.player_order
+        # caster's card FIRST (lowest handle — exactly what the old
+        # sorted stand-in reached for), then the actor's two.
+        mine = world.add_card(
+            CardIdentity(oracle_id=_oid(90), name="Mine", type_line="Creature"),
+            p0,
+            ZONE_HAND,
+        )
+        theirs = [
+            world.add_card(
+                CardIdentity(
+                    oracle_id=_oid(91 + i), name=f"Theirs{i}", type_line="Creature"
+                ),
+                p1,
+                ZONE_HAND,
+            )
+            for i in range(2)
+        ]
+        executor.execute(
+            _atom(
+                Verb.DISCARD,
+                controller=ControllerRef.OPPONENT,
+                cards=Selector(
+                    QConst(2),
+                    SelectorMode.CHOOSE,
+                    UNIV,
+                    Zone(ZoneKind.HAND, ControllerRef.ANY),
+                ),
+            ),
+            source=mine,
+            controller=p0,
+        )
+        self.assertEqual(world.zone_of(mine).kind, ZONE_HAND)
+        for card in theirs:
+            self.assertEqual(world.zone_of(card).kind, ZONE_GRAVEYARD)
+        self.assertEqual(world.players[p1].zone(ZONE_HAND).entries, [])
+
+    def test_new_moved_to_zone_this_turn_pred_stays_unimplemented(self) -> None:
+        """NEW class pin (surfaces once B-16 closes): Necromentia's
+        CREATE_TOKEN count filters MOVED_TO_ZONE_THIS_TURN, which the
+        closed filter vocabulary does not implement — loud, never guessed
+        (the B-7 predicate-completeness family). CAST_THIS_TURN_FROM
+        (Juggernaut's kin, castable pool) is the same family's next
+        member; FLIP_WON with NO recorded flip (B-17, the misplaced
+        conditional tail) answers through the SAME raise shape."""
+        world, executor = self._world()
+        p0 = world.player_order[0]
+        card = world.add_card(
+            CardIdentity(oracle_id=_oid(95), name="Ledger", type_line="Creature"),
+            p0,
+            ZONE_EXILE,
+        )
+        ctx = ctx_for(executor, source=p0, controller=p0)
+        cases = (
+            (
+                FAtomPred.MOVED_TO_ZONE_THIS_TURN,
+                FAtom(
+                    FAtomPred.MOVED_TO_ZONE_THIS_TURN,
+                    who=ControllerRef.YOU,
+                    from_zone=Zone(ZoneKind.HAND, ControllerRef.YOU),
+                    to_zone=Zone(ZoneKind.EXILE, ControllerRef.YOU),
+                ),
+            ),
+            (
+                FAtomPred.CAST_THIS_TURN_FROM,
+                FAtom(
+                    FAtomPred.CAST_THIS_TURN_FROM,
+                    who=ControllerRef.YOU,
+                    zone=Zone(ZoneKind.HAND, ControllerRef.YOU),
+                ),
+            ),
+        )
+        for pred, filt in cases:
+            with self.assertRaises(NotImplementedError) as cm:
+                eval_filter(filt, card, ctx)
+            self.assertIn(pred.name, str(cm.exception))
+        with self.assertRaises(NotImplementedError) as cm:
+            eval_filter(FAtom(FAtomPred.FLIP_WON, who=ControllerRef.YOU), card, ctx)
+        self.assertIn("FLIP_WON", str(cm.exception))  # B-17, no flip yet
+
+    def test_new_zone_stack_runtime_enumeration_raises(self) -> None:
+        """NEW class pin (14c, the B-2 runtime twin): B-2 closed the QUERY
+        side (legal_targets reads the stack frames), but RUNTIME
+        enumeration of Zone(STACK) has no ZONE_KIND_TO_STATE entry, so an
+        Unsubstantiate-shape MOVE_ZONE dies with a bare KeyError (not even
+        a NotImplementedError). Loud by accident, pinned deliberately —
+        the runtime stack enumeration is the next round's small fix."""
+        world, executor = self._world()
+        p0 = world.player_order[0]
+        with self.assertRaises(KeyError) as cm:
+            executor.apply_effect(
+                _atom(
+                    Verb.MOVE_ZONE,
+                    cards=Selector(
+                        QConst(1),
+                        SelectorMode.TARGET,
+                        UNIV,
+                        Zone(ZoneKind.STACK, ControllerRef.ANY),
+                    ),
+                    destination=Zone(ZoneKind.HAND, ControllerRef.OWNER),
+                ),
+                source=p0,
+                controller=p0,
+                bindings={"target": []},
+            )
+        self.assertIn("STACK", str(cm.exception))
 
 
 def _oid(n: int) -> str:

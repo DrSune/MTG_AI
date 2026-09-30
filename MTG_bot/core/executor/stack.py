@@ -336,6 +336,20 @@ def cast(
     if reason is not None or node is None or plan is None:
         raise ValueError(f"executor: illegal cast: {reason}")
 
+    # 14c (QX, /11 B-14 follow-up): CR 601.2f chooses X WITH the total
+    # cost, so the X the legality fold paid (the documented X=0 floor,
+    # CR 107.1, when the caller passed no x) MUST be the X the effect
+    # reads — the 13b wiring only ever bound the caller's x, leaving
+    # x_value None and killing Primal Might deep in resolution when a QX
+    # sat in an effect quantity instead of the cost. An explicit x still
+    # wins; a spell without X keeps x_value None (the 12c unbound flag
+    # outside casting is untouched).
+    if x is None:
+        from MTG_bot.core.executor.legality import _cost_has_x, spell_cost
+
+        if _cost_has_x(spell_cost(_record, node.additional_costs)):
+            x = 0
+
     # 2-3: declaration.
     _validate_spell_targets(executor, seat, handle, node, targets)
 

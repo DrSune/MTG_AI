@@ -198,3 +198,42 @@ and becomes a game-survival number.
 | **B-9 result referent outside a trigger** (Hallowblade residual) | selectors.py | 0 / 1 / 2 | OPEN as of 14b-1, still kills |
 | **B-17 FLIP_WON needs a recorded FLIP_COIN** (Tavern Swindler second row, bare ctx) | quantity.py | 0 / 0 / 2 | OPEN |
 | **B-18 DISCARD a card not in hand** (Bad Deal cost-plan staleness) | verbs.py _v_discard | 0 / 0 / 1 | OPEN |
+
+---
+
+## Round 14c close-out (same day) — six classes closed, the wall moved to the B-7 family
+
+All six round-14c targets were root-caused against the compiled IR + live probes BEFORE
+fixing; the statuses below SUPERSEDE the 14b-2 table rows (which stay as history).
+Evidence files: `/tmp/opencode/c14c_{all,engine,castable}.json|.log`,
+`/tmp/opencode/c14c_engine30.json`.
+
+| class | status after 14c | fix / ruling | pinned |
+|---|---|---|---|
+| **B-13 ONE_OF/REST** | **FIXED** | ONE_OF asks the decision channel with the Handle-sorted candidate list as the EXACT vocabulary (C15 enumerate-then-answer; 1 candidate forced, 0 candidates = C17 nothing, exhaustion = loud ValueError); REST = deterministic complement of `ctx.one_of_pick`, no ask. MOVE_ZONE partition guard (no draw-idiom, no count clamp) | `test_new_rest_one_of_designation_is_the_12c_gap` (AMENDED green) + verbs/library ONE_OF pins amended |
+| **B-14/QX effect-side** | **FIXED at cast** | CR 601.2f: X is declared WITH the total cost — `cast()` re-folds the legality X=0 witness (CR 107.1) and binds `x_value`, so effect-side QX reads the SAME declared X. Unbound OUTSIDE a cast still raises (13b pins untouched); direct `cast(x=None)` on a X-spell now resolves at 0, not crashes | `test_qx_undeclared_x_raises_loud_on_cast` (AMENDED: falls past QX to the NEXT class, `verb FIGHT not implemented`) |
+| **B-15 TARGET-in-`cards`-role** | **FIXED** | TARGET-mode Selector reads the spell's `target` designation (CR 601.2c one designation) ∩ still-legal population, whatever role it sits in; UNdesignated stays loud | `test_b15_cards_role_target_designation_flows` (Rise Again golden, both legs) |
+| **B-16 zone_of(player) KeyError** | **FIXED** | `role_handles`: bindings no longer HIJACK an anaphoric Selector (`referent` set) — Necromentia's EXILE re-read its own SEARCH result instead of the designated opponent; `_v_search` now writes the 13b `result` register | `test_b16_target_binding_does_not_clobber_referent_selector` |
+| **B-17 FLIP_WON at cast** | **OPEN — design level** | Scryfall-verified Tavern Swindler = "{T}, Pay 3 life: Flip a coin. If you win the flip, you gain 6 life" — NO cast effect exists; the golden attaches the ACTIVATED tail to the SpellAbility (the B-11-family tail split, one card deeper). A correct executor fix is IMPOSSIBLE (the tree is wrong; fixing = compiler/golden re-baseline = frozen scope). The 13a raise (no inference on a missing flip) stands | eval-side raise pins unchanged |
+| **B-18 DISCARD not-in-hand** | **FIXED** | probe-proved NOT staleness: compiled Zone(HAND, ANY) spans BOTH hands and the sorted CHOOSE stand-in took the CASTER'S cards. `_v_discard` re-scopes to the actor's LIVE hand at take time (CR 701.8a); referent/TARGET/partition selectors keep self-resolving | `test_b18_discard_scoped_to_the_actors_live_hand` (+ old `TestBadDeal` still green) |
+
+**14c re-measure (same recipe: 10 seeds × 3 pools, deck-pairs 1409):**
+all 1/10 28.7t cov34 → **2/10 35.9t cov41 (15.4%)**; engine 3/10 38.8t cov39 →
+**6/10 46.2t cov44 (16.5%)**; castable 0/10 14.0t → **0/10 18.3t cov39**.
+Engine pool 6/10 ≥ 5/10 ⇒ **PC-7 v1.1 30-seed run: 10/30 (33.3%), mean 34.9t,
+cov 51 cards = 19.1% of engine_supported=286, 2021 actions.**
+
+**Crash map after the fix (10-seed pools, 22 crashes):** B-7-family filter predicates
+**13** (CONTROLLER_COUNT_GE 3/3/0 + CAST_THIS_TURN_FROM 0/0/4 + MOVED_TO_ZONE_THIS_TURN
+6/0/0 — all `quantity.py:512` "filter pred … not implemented"); B-9 result-referent
+outside firing **3** (unchanged, open); B-17 **3** (design-level above); new class **2**.
+
+| NEW class | frame | counts | status |
+|---|---|---|---|
+| **B-19 Zone(STACK) RUNTIME enumeration KeyError** (B-2's runtime twin: query side fixed 14a, `ZONE_KIND_TO_STATE` has no STACK entry so Unsubstantiate-shape MOVE_ZONE dies on a bare `KeyError(ZoneKind.STACK)`) | selectors.py enumerate_zone:137 | all 1, castable 1, engine30 2 | OPEN — small honest fix next round (enumerate parked stack frames, same source as `legal_targets` STACK); pinned `test_new_zone_stack_runtime_enumeration_raises` |
+| **B-7 family growth**: MOVED_TO_ZONE_THIS_TURN (Necromentia CREATE_TOKEN — reachable since B-16 closed) and CAST_THIS_TURN_FROM join CONTROLLER_COUNT_GE as the now-DOMINANT class (13/22) | quantity.py _eval_atom | 6/3/4 | OPEN (journal-backed preds = 12c query surface work); pinned `test_new_moved_to_zone_this_turn_pred_stays_unimplemented` |
+| Verb **FIGHT** has no handler (Primal Might's next station once QX closed) | verbs.py run_atom | all 1 | ledger only (unimplemented-verb family) |
+
+Gate: core **2001 passed** (+5 pins vs 1996), PC-1 0.9869 / PC-2 0.9922 / PC-3 0 /
+PC-4 0-diff EXACT (grammar untouched), pyright 0, ruff delta 0 (executor statistics
+byte-identical to stock).
