@@ -1,0 +1,31 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "bs",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Blossoming Sands"
+    }
+  ],
+  "steps": [
+    {
+      "op": "play",
+      "key": "bs"
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 21
+    },
+    "zone": {
+      "bs": "battlefield"
+    },
+    "tapped": {
+      "bs": true
+    }
+  }
+}

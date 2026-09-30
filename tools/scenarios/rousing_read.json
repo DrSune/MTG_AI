@@ -1,0 +1,66 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "a",
+   "real": "Rousing Read",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "host",
+   "name": "Host",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enchant",
+   "aura": "a",
+   "host": "host"
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "a": "battlefield"
+  },
+  "hand": {
+   "0": 1
+  },
+  "graveyard": {
+   "0": [
+    "Library 4"
+   ]
+  },
+  "library": {
+   "0": [
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "battlefield_pt": {
+   "Host": [
+    3,
+    3
+   ]
+  },
+  "battlefield_keywords": {
+   "Host": [
+    "FLYING"
+   ]
+  }
+ },
+ "notes": "Printed: 'When ~ enters, draw two cards, then discard a card. Enchanted creature gets +1/+1 and has flying.' The enchant op queues the ETB; the following end_turn drains the trigger queue (runner behaviour). Draws Library 5+4, discards handle-first Library 4 -> hand 1; host 2/2 -> 3/3 with FLYING."
+}

@@ -1,0 +1,66 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "c",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Crypt Lurker"
+    },
+    {
+      "key": "s1",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Sac Victim",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature"
+    },
+    {
+      "key": "dc1",
+      "zone": "hand",
+      "controller": 0,
+      "name": "Discardable",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "c",
+      "decisions": [
+        "fire",
+        "1"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "dc1": "graveyard",
+      "s1": "battlefield",
+      "c": "battlefield"
+    },
+    "hand": {
+      "0": 1
+    },
+    "graveyard": {
+      "0": [
+        "Discardable"
+      ]
+    },
+    "library": {
+      "0": [
+        "Library 4",
+        "Library 3",
+        "Library 2",
+        "Library 1",
+        "Library 0"
+      ]
+    }
+  }
+}

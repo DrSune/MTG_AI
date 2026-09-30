@@ -1,0 +1,55 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "g",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Goremand"
+    },
+    {
+      "key": "o1",
+      "zone": "battlefield",
+      "controller": 1,
+      "name": "Prey One",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature"
+    },
+    {
+      "key": "p2",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Prey Two",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "g"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "g": "battlefield",
+      "o1": "graveyard",
+      "p2": "battlefield"
+    },
+    "life": {
+      "0": 20,
+      "1": 20
+    },
+    "battlefield_keywords": {
+      "Goremand": [
+        "FLYING",
+        "TRAMPLE"
+      ]
+    }
+  }
+}

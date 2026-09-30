@@ -1,0 +1,36 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "br",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Barrin, Tolarian Archmage"
+    },
+    {
+      "key": "d",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Dummy",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "br"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "d": "hand"
+    }
+  },
+  "status": "suspect",
+  "finding": "PRINTED: 'return up to one other target creature or planeswalker to its owner's hand.' ENGINE: raises ValueError 'TARGET selector has no designation' (same family)."
+}

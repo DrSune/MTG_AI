@@ -1,0 +1,37 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t",
+   "real": "Temple of Malady",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "t",
+   "decisions": [
+    "bottom"
+   ]
+  }
+ ],
+ "expect": {
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Library 5"
+   ]
+  }
+ },
+ "status": "suspect",
+ "finding": "SUSPECT (deviation) 18-wave1b-B-10: printed 'scry 1 (To scry 1, look at the top card of your library, then you may put that card on the BOTTOM of your library.)' _v_scry regroups ONLY inside the viewed window (lib[:len-n] + sorted(bottoms) + sorted(tops)): scry-1 'bottom' is an EXACT no-op \u2014 the card never reaches the library bottom. FAIL: expected [L4,L3,L2,L1,L0,L5] got unchanged. Family: all 4 temples + Stormwing Entity (scry 2 'bottom','top' -> L5 lands under L4, not at the bottom)."
+}

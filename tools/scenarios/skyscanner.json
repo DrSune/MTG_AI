@@ -1,0 +1,49 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Skyscanner",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "s"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "s": "battlefield"
+  },
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "battlefield_pt": {
+   "Skyscanner": [
+    1,
+    1
+   ]
+  },
+  "battlefield_keywords": {
+   "Skyscanner": [
+    "FLYING"
+   ]
+  }
+ },
+ "notes": "Printed: 'Flying. When ~ enters, draw a card.' Exactly one draw (Library 5); 1/1 Bird with FLYING on battlefield."
+}

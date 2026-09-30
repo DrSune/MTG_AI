@@ -1,0 +1,40 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Valorous Steed",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "s"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "s": "battlefield"
+  },
+  "tokens": {
+   "Knight": 1
+  },
+  "battlefield_pt": {
+   "Knight": [
+    2,
+    2
+   ]
+  },
+  "battlefield_keywords": {
+   "Knight": [
+    "VIGILANCE"
+   ]
+  }
+ },
+ "notes": "Printed: 'Vigilance. When ~ enters, create a 2/2 white Knight creature token with vigilance.' One Knight token record, 2/2, VIGILANCE."
+}

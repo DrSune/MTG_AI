@@ -1,0 +1,45 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Stormwing Entity",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "s",
+   "decisions": [
+    "top",
+    "top"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "s": "battlefield"
+  },
+  "library": {
+   "0": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "battlefield_keywords": {
+   "Stormwing Entity": [
+    "FLYING"
+   ]
+  }
+ },
+ "notes": "Printed: 'Flying. When ~ enters, scry 2.' Two scry asks (vocab ('top','bottom'), top-card first); both 'top' -> library order is an exact no-op. The 'bottom' printed parenthetical is a separate engine deviation (see suspects/scry_bottom_temple.json)."
+}

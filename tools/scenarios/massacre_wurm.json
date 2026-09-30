@@ -1,0 +1,40 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "w",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Massacre Wurm"
+    },
+    {
+      "key": "sc",
+      "zone": "battlefield",
+      "controller": 1,
+      "name": "Prey",
+      "power": 3,
+      "toughness": 3,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "w"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "w": "battlefield"
+    },
+    "power": {
+      "sc": 1
+    },
+    "toughness": {
+      "sc": 1
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Watcher of the Spheres",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c",
+   "real": "Walking Corpse",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "w"
+  },
+  {
+   "op": "enter",
+   "key": "c"
+  }
+ ],
+ "expect": {
+  "battlefield_pt": {
+   "Watcher of the Spheres": [
+    2,
+    2
+   ]
+  }
+ },
+ "notes": "Negative gate: a real NON-flying creature (Walking Corpse) entering must NOT trigger the flying-only buff. Watcher stays 2/2."
+}

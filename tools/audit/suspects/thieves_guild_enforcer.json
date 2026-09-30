@@ -1,0 +1,23 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "e",
+   "real": "Thieves' Guild Enforcer",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "e"
+  }
+ ],
+ "expect": {},
+ "status": "suspect",
+ "finding": "SUSPECT 18-wave1b-B-7: printed 'Whenever ~ or another Rogue enters ~, each opponent mills two cards.' Own-enter raises 'filter pred ZONE_COUNT_GE not implemented' (the 'as long as an opponent has 8+ cards in graveyard' static's count filter is 12c query surface)."
+}

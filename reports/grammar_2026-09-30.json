@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-09-30T20:48:04+02:00",
-  "git_head": "e1795d64c2ec8cbf4610427814b47feba1145e88",
+  "generated": "2026-09-30T23:19:46+02:00",
+  "git_head": "3c25e1a23c636180b590983e895c9f1f625464c9",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -101,15 +101,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.237,
+      "value": 0.243,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.23,
-        0.229,
-        0.237
+        0.236,
+        0.235,
+        0.243
       ]
     },
     "PC-6": {
@@ -256,65 +256,5 @@
       "bucket_hint": "spell-effect"
     }
   ],
-  "unparsed_count": 5,
-  "engine_support": {
-    "engine_supported_cards": 297,
-    "of_total": 305,
-    "supported_verbs": [
-      "ADD_LAND_PLAY",
-      "ADD_MANA",
-      "ATTACH",
-      "CAST",
-      "CHOOSE",
-      "CHOOSE_NAME",
-      "CREATE_TOKEN",
-      "DAMAGE_ASSIGN_POLICY",
-      "DEAL_DAMAGE",
-      "DESTROY",
-      "DISCARD",
-      "DRAW",
-      "END_TURN",
-      "EXILE",
-      "EXTRA_TURN",
-      "FIGHT",
-      "FLIP_COIN",
-      "GAIN_CONTROL",
-      "GAIN_LIFE",
-      "GET_EMBLEM",
-      "GRANT_ABILITY",
-      "GRANT_ACTIVATION",
-      "GRANT_TYPE",
-      "LOOK_AT",
-      "LOSE_ABILITY",
-      "LOSE_GAME",
-      "LOSE_LIFE",
-      "MANA_POLICY",
-      "MANDATE_ATTACK",
-      "MANDATE_BLOCK",
-      "MILL",
-      "MODIFY_PT",
-      "MOVE_ZONE",
-      "PAY",
-      "PREVENT_EFFECT",
-      "PUT_COUNTER",
-      "REMOVE_COUNTER",
-      "REVEAL",
-      "SACRIFICE",
-      "SCRY",
-      "SEARCH",
-      "SET_PT",
-      "SHUFFLE",
-      "TAP",
-      "UNTAP"
-    ],
-    "flip_proof": {
-      "card": "Cancel",
-      "spell_ability_only": true,
-      "default_engine_supported": true,
-      "gated_engine_supported": false,
-      "offending_verbs": [
-        "COUNTER_SPELL"
-      ]
-    }
-  }
+  "unparsed_count": 5
 }

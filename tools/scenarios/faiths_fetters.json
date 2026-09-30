@@ -1,0 +1,31 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "ff",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Faith's Fetters"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "ff",
+      "decisions": [
+        "skip"
+      ]
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 24
+    },
+    "zone": {
+      "ff": "graveyard"
+    }
+  }
+}

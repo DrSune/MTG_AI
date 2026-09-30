@@ -1,0 +1,39 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "cs",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Capture Sphere"
+    },
+    {
+      "key": "host",
+      "zone": "battlefield",
+      "controller": 1,
+      "name": "Host Beast",
+      "power": 4,
+      "toughness": 4,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "cs"
+    }
+  ],
+  "expect": {
+    "tapped": {
+      "host": true
+    },
+    "zone": {
+      "cs": "battlefield"
+    }
+  },
+  "status": "suspect",
+  "finding": "PRINTED: 'When this Aura enters, tap enchanted creature.' ENGINE (harness+compile gap): permanent cast lane is dead (cast op raises cast:not_a_spell - records lack SpellAbility) and the enchant op journals no entry MOVE_ZONE, so the aura ETB never sees a host; entering unattached, SBA 704.5q buries the Aura and the host stays untapped."
+}

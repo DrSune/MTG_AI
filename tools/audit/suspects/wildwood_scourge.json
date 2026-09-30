@@ -1,0 +1,29 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Wildwood Scourge",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "s"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "s": {
+    "PLUS_1_PLUS_1": 2
+   }
+  }
+ },
+ "status": "suspect",
+ "finding": "SUSPECT 18-wave1b-B-8: printed '~ enters with X +1/+1 counters on it.' enter raises 'QX has no declared X (cast(x=...) binds it; 12c cost-context flag)'; the cast route answers 'illegal cast: cast:not_a_spell:card:0' for this creature. X is unbindable for a journaled ETB."
+}

@@ -1,0 +1,49 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "k",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Kinetic Augur"
+    },
+    {
+      "key": "z1",
+      "zone": "hand",
+      "controller": 0,
+      "name": "Zap One",
+      "power": 1,
+      "toughness": 1,
+      "type": "Instant"
+    },
+    {
+      "key": "z2",
+      "zone": "hand",
+      "controller": 0,
+      "name": "Zap Two",
+      "power": 1,
+      "toughness": 1,
+      "type": "Instant"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "k"
+    }
+  ],
+  "expect": {
+    "hand": {
+      "0": 2
+    },
+    "zone": {
+      "z1": "hand",
+      "z2": "hand"
+    }
+  },
+  "status": "suspect",
+  "finding": "PRINTED: 'discard up to two cards, then draw that many cards' + 'power is equal to the number of instant and sorcery cards in your graveyard.' ENGINE: both discards EXECUTE, then raises NotImplementedError 'QProp field THAT_MANY_COUNT not implemented' - the rebound draw never happens (hand ends 0); the static power is also uncompiled (effective power None)."
+}

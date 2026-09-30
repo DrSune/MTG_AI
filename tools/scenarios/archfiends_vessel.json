@@ -1,0 +1,39 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "v",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Archfiend's Vessel"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "v"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "v": "battlefield"
+    },
+    "power": {
+      "v": 1
+    },
+    "toughness": {
+      "v": 1
+    },
+    "tokens": {
+      "Demon": 0
+    },
+    "battlefield_keywords": {
+      "Archfiend's Vessel": [
+        "LIFELINK"
+      ]
+    }
+  }
+}

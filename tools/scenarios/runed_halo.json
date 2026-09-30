@@ -1,0 +1,38 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "h",
+   "real": "Runed Halo",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "cow",
+   "name": "Cow",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "h",
+   "decisions": [
+    "Cow"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "h": "battlefield"
+  }
+ },
+ "notes": "Printed: 'As ~ enters, choose a card name. You have protection from the chosen card name.' CHOOSE_NAME ask vocab = names present in the world ('Cow' offered, decision consumed, recorded in executor.name_choices). The protection MODIFIER has no expect lane on the runner -> thin pack: zone assertion only (documented limitation, not a failure)."
+}

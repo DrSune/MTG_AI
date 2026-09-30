@@ -1,0 +1,38 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "lt",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Basri's Lieutenant"
+    },
+    {
+      "key": "d",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Dummy",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "lt"
+    }
+  ],
+  "expect": {
+    "counters": {
+      "d": {
+        "+1/+1": 1
+      }
+    }
+  },
+  "status": "suspect",
+  "finding": "PRINTED: 'put a +1/+1 counter on target creature you control.' ENGINE: raises ValueError 'TARGET selector has no designation' (same family)."
+}

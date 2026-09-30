@@ -1,0 +1,32 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t",
+   "real": "Swiftwater Cliffs",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "play",
+   "key": "t"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "t": "battlefield"
+  },
+  "life": {
+   "0": 21
+  },
+  "tapped": {
+   "t": true
+  }
+ },
+ "notes": "Printed: 'Swiftwater Cliffs enters tapped. When it enters, you gain 1 life.' REAL land drop via the play op (CR 305.1): tapped=True, life 20 -> 21, no asks."
+}

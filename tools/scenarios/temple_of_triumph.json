@@ -1,0 +1,42 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t",
+   "real": "Temple of Triumph",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "t",
+   "decisions": [
+    "top"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "t": "battlefield"
+  },
+  "tapped": {
+   "t": true
+  },
+  "library": {
+   "0": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ },
+ "notes": "Printed: 'Temple of Triumph enters tapped. When it enters, scry 1.' Entered via journaled enter op: tapped=True, scry ask vocab ('top','bottom'), 'top' -> exact no-op on the 6-card library. 'bottom' branch deviates from print -> suspect scry_bottom_temple.json."
+}

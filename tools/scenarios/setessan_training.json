@@ -1,0 +1,62 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "a",
+   "real": "Setessan Training",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "host",
+   "name": "Host",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enchant",
+   "aura": "a",
+   "host": "host"
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "a": "battlefield"
+  },
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "battlefield_pt": {
+   "Host": [
+    3,
+    2
+   ]
+  },
+  "battlefield_keywords": {
+   "Host": [
+    "TRAMPLE"
+   ]
+  }
+ },
+ "notes": "Printed: 'When ~ enters, draw a card. Enchanted creature gets +1/+0 and has trample.' end_turn drains the queued ETB: exactly one draw (Library 5); host 2/2 -> 3/2 with TRAMPLE."
+}

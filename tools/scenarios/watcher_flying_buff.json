@@ -1,0 +1,39 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Watcher of the Spheres",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s",
+   "real": "Skyscanner",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "w"
+  },
+  {
+   "op": "enter",
+   "key": "s"
+  }
+ ],
+ "expect": {
+  "battlefield_pt": {
+   "Watcher of the Spheres": [
+    3,
+    3
+   ]
+  }
+ },
+ "notes": "Printed: 'Whenever another creature with flying enters under your control, ~ gets +1/+1 until end of turn.' Real flyer (Skyscanner) enters: 2/2 -> 3/3. Asserted before end_turn (duration still open)."
+}

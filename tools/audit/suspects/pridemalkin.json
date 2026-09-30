@@ -1,0 +1,41 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "p",
+   "real": "Pridemalkin",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sheep",
+   "name": "Sheep",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "p",
+   "decisions": [
+    "zz"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "sheep": {
+    "PLUS_1_PLUS_1": 1
+   }
+  }
+ },
+ "status": "suspect",
+ "finding": "SUSPECT 18-wave1b-B-5: printed 'put a +1/+1 counter on target creature you control'. TARGET-lane ETB raises ValueError 'TARGET selector has no designation' \u2014 the runner offers no designation channel for trigger targets."
+}

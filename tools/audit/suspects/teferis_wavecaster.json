@@ -1,0 +1,45 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Teferi's Wavecaster",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "tva",
+   "real": "Teferi, Timeless Voyager",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "pla",
+   "real": "Plains",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "w",
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tva": "hand"
+  },
+  "hand": {
+   "0": 2
+  }
+ },
+ "status": "suspect",
+ "finding": "SUSPECT 18-wave1b-B-9: printed 'you may search your library and/or graveyard for a card named Teferi, Timeless Voyager, reveal it, put it into your hand.' begin_turn draw eats pla; the Voyager SITS in the library; the may offer still collapses to ('skip',) and 'fire' cannot be served. Root cause: optional_offer's actionability gate evaluates EVERY exact-count selector of the sequence against the pre-execution world \u2014 MOVE_ZONE shows want=1/have=0 because its candidates are PRODUCED by the preceding SEARCH's result register (the 13a-documented CARD-level divergence). Same via a graveyard-resident Voyager. FAIL: zone[tva] expected hand got library."
+}

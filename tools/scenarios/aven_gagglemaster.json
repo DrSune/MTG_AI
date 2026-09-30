@@ -1,0 +1,39 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "a",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Aven Gagglemaster"
+    },
+    {
+      "key": "f",
+      "zone": "battlefield",
+      "controller": 0,
+      "real": "Baneslayer Angel"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "a"
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 24
+    },
+    "zone": {
+      "a": "battlefield"
+    },
+    "battlefield_keywords": {
+      "Aven Gagglemaster": [
+        "FLYING"
+      ]
+    }
+  }
+}

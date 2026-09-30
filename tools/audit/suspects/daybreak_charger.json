@@ -1,0 +1,39 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "dc",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Daybreak Charger"
+    },
+    {
+      "key": "d",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Dummy",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "dc"
+    }
+  ],
+  "expect": {
+    "power": {
+      "d": 4
+    },
+    "zone": {
+      "dc": "battlefield"
+    }
+  },
+  "status": "suspect",
+  "finding": "PRINTED: 'target creature gets +2/+0 until end of turn.' ENGINE: raises ValueError 'TARGET selector has no designation (pass bindings={target: ...})' - trigger TARGET selectors are never designated (bindings['target'] is only set on DAMAGE firings)."
+}

@@ -1,0 +1,33 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t",
+   "real": "Terror of the Peaks",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c",
+   "real": "Walking Corpse",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "t"
+  },
+  {
+   "op": "enter",
+   "key": "c"
+  }
+ ],
+ "expect": {},
+ "status": "suspect",
+ "finding": "SUSPECT 18-wave1b-B-2: printed 'Whenever another creature enters ~, Terror deals damage equal to that creature's power to any target.' Second real creature enters -> same Zone(ANY) crash as B-1 (IR: target Selector(1, TARGET, Zone(ANY, ANY))). No world configuration can resolve the printed effect."
+}

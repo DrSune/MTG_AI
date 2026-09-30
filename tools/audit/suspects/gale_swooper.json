@@ -1,0 +1,38 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "gs",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Gale Swooper"
+    },
+    {
+      "key": "d",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Dummy",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "gs"
+    }
+  ],
+  "expect": {
+    "battlefield_keywords": {
+      "Dummy": [
+        "FLYING"
+      ]
+    }
+  },
+  "status": "suspect",
+  "finding": "PRINTED: 'target creature gains flying until end of turn.' ENGINE: raises ValueError 'TARGET selector has no designation' (same family)."
+}

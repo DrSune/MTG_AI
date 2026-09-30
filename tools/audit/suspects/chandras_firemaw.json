@@ -1,0 +1,39 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "f",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Chandra's Firemaw"
+    },
+    {
+      "key": "cat",
+      "zone": "graveyard",
+      "controller": 0,
+      "real": "Chandra, Flame's Catalyst"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "f",
+      "decisions": [
+        "fire"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "cat": "hand"
+    },
+    "hand": {
+      "0": 1
+    }
+  },
+  "status": "suspect",
+  "finding": "PRINTED: 'you may search your library and/or graveyard for a card named Chandra, Flame's Catalyst ... put it into your hand.' ENGINE: with the named card IN the graveyard the may-ask vocab is narrowed to ('skip',) only, the supplied 'fire' falls back to 'skip', and the card stays in the graveyard."
+}

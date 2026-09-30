@@ -1,0 +1,36 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "bb",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Bone Pit Brute"
+    },
+    {
+      "key": "d",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Dummy",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "bb"
+    }
+  ],
+  "expect": {
+    "power": {
+      "d": 6
+    }
+  },
+  "status": "suspect",
+  "finding": "PRINTED: 'target creature gets +4/+0 until end of turn.' ENGINE: raises ValueError 'TARGET selector has no designation' (same trigger-target designation gap family as Daybreak Charger)."
+}

@@ -1,0 +1,48 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "r",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Chrome Replicator"
+    },
+    {
+      "key": "t1",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Loden Twin",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature"
+    },
+    {
+      "key": "t2",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Loden Twin",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "r"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "r": "battlefield"
+    },
+    "tokens": {
+      "Construct": 1
+    }
+  },
+  "status": "suspect",
+  "finding": "PRINTED: 'if you control two or more nonland, nontoken permanents with the same name as one another, create a 4/4 Construct token.' ENGINE: raises NotImplementedError 'filter pred NAME_PARTITION_COUNT_GE not implemented (12c query surface)' - the same-name partition count predicate is missing."
+}

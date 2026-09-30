@@ -1,0 +1,31 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "db",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Dismal Backwater"
+    }
+  ],
+  "steps": [
+    {
+      "op": "play",
+      "key": "db"
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 21
+    },
+    "zone": {
+      "db": "battlefield"
+    },
+    "tapped": {
+      "db": true
+    }
+  }
+}

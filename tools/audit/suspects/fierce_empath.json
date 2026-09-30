@@ -1,0 +1,30 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "f",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Fierce Empath"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "f"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "f": "battlefield"
+    },
+    "hand": {
+      "0": 0
+    }
+  },
+  "status": "suspect",
+  "finding": "PRINTED: 'you may search your library for a creature card with mana value 6 or greater...' ENGINE: raises NotImplementedError 'executor: filter pred CMC_GE not implemented (12c query surface)' - the library-search filter predicate is not implemented, so the trigger crashes instead of finding nothing."
+}

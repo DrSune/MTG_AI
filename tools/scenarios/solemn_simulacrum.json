@@ -1,0 +1,73 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s1",
+   "real": "Solemn Simulacrum",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Solemn Simulacrum",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "plA",
+   "real": "Plains",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "plB",
+   "real": "Plains",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "s1",
+   "decisions": [
+    "skip"
+   ]
+  },
+  {
+   "op": "enter",
+   "key": "s2",
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "s1": "battlefield",
+   "s2": "battlefield",
+   "plA": "battlefield",
+   "plB": "hand"
+  },
+  "tapped": {
+   "plA": true
+  },
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ]
+  }
+ },
+ "notes": "Printed: 'you may search your library for a basic land card, put that card onto the battlefield tapped, then shuffle.' begin_turn draw eats last-added plB (hand 1); s1 skips (may declined, nothing moves); s2 fires: plA found -> battlefield TAPPED, library shuffled to exactly the 6 fake cards (set asserted, order wildcarded). Both may branches."
+}

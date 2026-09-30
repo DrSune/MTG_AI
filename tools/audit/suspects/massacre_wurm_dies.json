@@ -1,0 +1,49 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "w",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Massacre Wurm"
+    },
+    {
+      "key": "sc",
+      "zone": "battlefield",
+      "controller": 1,
+      "name": "Prey",
+      "power": 3,
+      "toughness": 3,
+      "type": "Creature"
+    },
+    {
+      "key": "tk",
+      "zone": "battlefield",
+      "controller": 1,
+      "name": "Fodder",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "w"
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 18
+    },
+    "zone": {
+      "tk": "graveyard",
+      "sc": "battlefield"
+    }
+  },
+  "status": "suspect",
+  "finding": "PRINTED: 'Whenever a creature an opponent controls dies, that player loses 2 life.' ENGINE: the dies firing raises ValueError 'TARGET_PLAYER needs a bound target (12c target prompt)' - the dying creature's controller is never designated; the -2/-2 ETB itself works (see massacre_wurm pass pack)."
+}

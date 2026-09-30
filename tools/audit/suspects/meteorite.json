@@ -1,0 +1,36 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "m",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Meteorite"
+    },
+    {
+      "key": "d",
+      "zone": "battlefield",
+      "controller": 1,
+      "name": "Hostile",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "m"
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 18
+    }
+  },
+  "status": "suspect",
+  "finding": "PRINTED: 'it deals 2 damage to any target.' ENGINE: raises NotImplementedError \"Zone(ANY) enumeration is 12c's query surface\" - the any-target zone enumeration (creature/player/planeswalker union) is unimplemented."
+}

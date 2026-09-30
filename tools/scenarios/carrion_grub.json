@@ -1,0 +1,45 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "g",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Carrion Grub"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "g"
+    }
+  ],
+  "expect": {
+    "graveyard": {
+      "0": [
+        "Library 5",
+        "Library 4",
+        "Library 3",
+        "Library 2"
+      ]
+    },
+    "library": {
+      "0": [
+        "Library 1",
+        "Library 0"
+      ]
+    },
+    "zone": {
+      "g": "battlefield"
+    },
+    "power": {
+      "g": 1
+    },
+    "toughness": {
+      "g": 5
+    }
+  }
+}

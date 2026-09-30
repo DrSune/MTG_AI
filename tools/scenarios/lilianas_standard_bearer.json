@@ -1,0 +1,67 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "b",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Liliana's Standard Bearer"
+    },
+    {
+      "key": "src",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Deleter",
+      "power": 3,
+      "toughness": 3,
+      "type": "Creature"
+    },
+    {
+      "key": "vit",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Victim",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "deal_damage",
+      "source": "src",
+      "target": "vit",
+      "amount": 3
+    },
+    {
+      "op": "enter",
+      "key": "b"
+    }
+  ],
+  "expect": {
+    "hand": {
+      "0": 1
+    },
+    "library": {
+      "0": [
+        "Library 4",
+        "Library 3",
+        "Library 2",
+        "Library 1",
+        "Library 0"
+      ]
+    },
+    "graveyard": {
+      "0": [
+        "Victim"
+      ]
+    },
+    "zone": {
+      "b": "battlefield",
+      "vit": "graveyard"
+    }
+  }
+}

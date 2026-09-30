@@ -1,0 +1,52 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "i",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Idol of Endurance"
+    },
+    {
+      "key": "c3",
+      "zone": "graveyard",
+      "controller": 0,
+      "name": "Small Creature",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature",
+      "cmc": 2
+    },
+    {
+      "key": "c6",
+      "zone": "graveyard",
+      "controller": 0,
+      "name": "Big Creature",
+      "power": 5,
+      "toughness": 5,
+      "type": "Creature",
+      "cmc": 6
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "i"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "i": "battlefield",
+      "c3": "exile",
+      "c6": "graveyard"
+    },
+    "graveyard": {
+      "0": [
+        "Big Creature"
+      ]
+    }
+  }
+}

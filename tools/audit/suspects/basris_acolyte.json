@@ -1,0 +1,50 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "ac",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Basri's Acolyte"
+    },
+    {
+      "key": "d1",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Dummy One",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature"
+    },
+    {
+      "key": "d2",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Dummy Two",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "ac"
+    }
+  ],
+  "expect": {
+    "counters": {
+      "d1": {
+        "+1/+1": 1
+      },
+      "d2": {
+        "+1/+1": 1
+      }
+    }
+  },
+  "status": "suspect",
+  "finding": "PRINTED: 'put a +1/+1 counter on each of up to two other target creatures you control.' ENGINE: raises ValueError 'TARGET selector has no designation' - multi-target (up to two) selectors also have no designation channel."
+}

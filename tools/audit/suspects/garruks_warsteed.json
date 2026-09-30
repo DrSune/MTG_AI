@@ -1,0 +1,39 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "w",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Garruk's Warsteed"
+    },
+    {
+      "key": "hg",
+      "zone": "graveyard",
+      "controller": 0,
+      "real": "Garruk, Savage Herald"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "w",
+      "decisions": [
+        "fire"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "hg": "hand"
+    },
+    "hand": {
+      "0": 1
+    }
+  },
+  "status": "suspect",
+  "finding": "Same C15 narrowing as Chandra's Firemaw: named card sits in graveyard, may-ask vocab narrowed to ('skip',), 'fire' falls back, Herald never leaves the graveyard. Printed promise: search library AND/OR graveyard."
+}

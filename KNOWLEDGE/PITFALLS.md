@@ -603,3 +603,25 @@
   orchestrator: grep-verify any knowledge-doc claim that blames OUR records for phantom content
   (17a doc falsely attributed the vision phantom to the round-16 close-out + falsely said "engine
   untouched" while carrying the EtBState engine hook — both repaired same day).
+- **Scenario-pack constructor draw (2026-09-30, round 17b batch B)**:
+  `ScenarioRunner.__init__` runs `begin_turn(p0)` BEFORE appending the six
+  synthetic "Library 0..5" cards. If the pack's own library is non-empty the
+  constructor draws ONE card, popping the LAST-listed card — silently
+  deleting a probe subject (Wavecaster's hidden Voyager). With an empty pack
+  library the lane reads top-first Library 5..0.
+- **May-offer static gate vs result register (2026-09-30, round 17b B-9)**:
+  `optional_offer` (executor/query.py:508-527) requires EVERY exact-count
+  CHOOSE/TARGET/RANDOM selector in `effect.inner` to have candidates in the
+  PRE-EXECUTION world. Effects whose tail selector candidates are produced
+  mid-effect by an earlier SEARCH (search-then-move pattern) fail the gate
+  and the ask collapses to `('skip',)` — a "may" printed branch that can
+  never fire, with no error raised.
+- **Decision-vocab silent fallback (2026-09-30, round 17b)**: a decision word
+  not in an ask's vocabulary falls back to `vocab[0]`; a narrowed `('skip',)`
+  swallows a requested `'fire'` with zero diagnostics. Assert the ask vocab
+  when a may-branch seems dead.
+- **Self-negating IS_SOURCE in ETB-if (2026-09-30, round 17b B-3)**: a
+  condition like "another creature you control with power ≥ N" compiled as
+  `FAnd(..., FNot(IS_SOURCE))` is evaluated against `ctx.source` (the
+  triggering permanent itself) → constantly false; trigger never queues and
+  nothing errors. Turret Ogre is unfireable in any world.
