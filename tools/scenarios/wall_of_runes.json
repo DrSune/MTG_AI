@@ -1,0 +1,38 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "wr",
+      "real": "Wall of Runes",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "wr",
+      "decisions": ["top"]
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 20
+    },
+    "zone": {
+      "wr": "battlefield"
+    },
+    "tapped": {
+      "wr": false
+    },
+    "library": {
+      "0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]
+    },
+    "battlefield_keywords": {
+      "Wall of Runes": ["DEFENDER"]
+    }
+  }
+}

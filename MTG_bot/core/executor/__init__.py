@@ -99,6 +99,7 @@ from MTG_bot.core.ability_tree import (
     ControllerRef,
     DelayedTrigger,
     EachPlayer,
+    EtBState,
     Effect,
     FAnd,
     Keyword,
@@ -752,6 +753,15 @@ class Executor:
                 continue
             from_state = event.zone_move[0]
             if from_state != ZONE_BATTLEFIELD:
+                if event.zone_move[1] == ZONE_BATTLEFIELD:
+                    # 17a: the symmetric ENTER branch — the compiled
+                    # EtBState node ("enters the battlefield tapped",
+                    # "enters with a soul counter") finally gets its
+                    # consumer. CR 614.1c: the entered state is stamped
+                    # as the permanent enters, BEFORE its ETB triggers
+                    # go on the stack (the settle order below already
+                    # matches: this runs, then binder drains).
+                    self._apply_etb_state(event.subject)
                 continue
             anchor = event.subject
             self.ledger.expire_leaves(anchor)
@@ -773,6 +783,30 @@ class Executor:
             # aura/source whose leaving ends the effect, CR 611.3's duration
             # reading for Enthralling Hold's missing Duration node).
             self._expire_control(creature=anchor, anchor=anchor)
+
+    def _apply_etb_state(self, card: Handle) -> None:
+        """Stamp the compiled EtBState node on a permanent the journal
+        just saw ENTER the battlefield: the tapped flag and any initial
+        counters (CR 614.1c — part of the entering state, not a trigger,
+        so no TAP event is emitted and nothing is re-journalled; the
+        move's own journal row already carries the entry). A card whose
+        record is not registered has no declared entered state."""
+        record = self.binder.records.get(self.world.cards[card].identity.oracle_id)
+        if record is None:
+            return
+        for node in record.abilities:
+            if not isinstance(node, EtBState):
+                continue
+            if node.tapped:
+                self.world.cards[card].tapped = True
+            for kind, quantity in node.initial_counters:
+                if not isinstance(quantity, QConst):
+                    raise NotImplementedError(
+                        "executor: EtBState dynamic initial counters are "
+                        "12c query surface"
+                    )
+                counters = self.world.cards[card].counters
+                counters[kind.name] = counters.get(kind.name, 0) + quantity.value
 
     # -------------------------------------------------------- 12b: triggers
 

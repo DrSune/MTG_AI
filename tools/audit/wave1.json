@@ -1,0 +1,829 @@
+{
+  "cards": {
+    "Alpine Houndmaster": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/88939cb3-5f61-4857-95cb-9446c6c1f1aa.jpg",
+      "mechanics": [
+        "REVEAL",
+        "SEARCH",
+        "SHUFFLE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "88939cb3-5f61-4857-95cb-9446c6c1f1aa",
+      "printed_text": "When this creature enters, you may search your library for a card named Alpine Watchdog and/or a card named Igneous Cur, reveal them, put them into your hand, then shuffle.\nWhenever this creature attacks, it gets +X/+0 until end of turn, where X is the number of other attacking creatures.",
+      "subject_narrowed": true
+    },
+    "Archfiend's Vessel": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/62c240ac-f2dd-4e39-9e82-50307efa833e.jpg",
+      "mechanics": [
+        "CREATE_TOKEN",
+        "EXILE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "62c240ac-f2dd-4e39-9e82-50307efa833e",
+      "printed_text": "Lifelink (Damage dealt by this creature also causes you to gain that much life.)\nWhen this creature enters, if it entered from your graveyard or you cast it from your graveyard, exile it. If you do, create a 5/5 black Demon creature token with flying.",
+      "subject_narrowed": true
+    },
+    "Aven Gagglemaster": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/8c601628-b1ed-467b-ba92-8572343147f8.jpg",
+      "mechanics": [
+        "GAIN_LIFE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "8c601628-b1ed-467b-ba92-8572343147f8",
+      "printed_text": "Flying\nWhen this creature enters, you gain 2 life for each creature you control with flying.",
+      "subject_narrowed": true
+    },
+    "Barrin, Tolarian Archmage": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/f98f7cb7-90ca-41e7-9f1d-8054931ecf0e.jpg",
+      "mechanics": [
+        "MOVE_ZONE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "f98f7cb7-90ca-41e7-9f1d-8054931ecf0e",
+      "printed_text": "When Barrin enters, return up to one other target creature or planeswalker to its owner's hand.\nAt the beginning of your end step, if a permanent was put into your hand from the battlefield this turn, draw a card.",
+      "subject_narrowed": true
+    },
+    "Basri's Acolyte": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/92c824da-2351-43bd-9fa0-d09709ad8205.jpg",
+      "mechanics": [
+        "PUT_COUNTER"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "92c824da-2351-43bd-9fa0-d09709ad8205",
+      "printed_text": "Lifelink (Damage dealt by this creature also causes you to gain that much life.)\nWhen this creature enters, put a +1/+1 counter on each of up to two other target creatures you control.",
+      "subject_narrowed": true
+    },
+    "Basri's Lieutenant": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/57d0c688-6206-4c83-9fcb-27fd29e2a9ed.jpg",
+      "mechanics": [
+        "PUT_COUNTER"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "57d0c688-6206-4c83-9fcb-27fd29e2a9ed",
+      "printed_text": "Vigilance, protection from multicolored\nWhen this creature enters, put a +1/+1 counter on target creature you control.\nWhenever this creature or another creature you control dies, if it had a +1/+1 counter on it, create a 2/2 white Knight creature token with vigilance.",
+      "subject_narrowed": true
+    },
+    "Bloodfell Caves": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/64e29bfc-9313-4e8c-808c-bc27f6b018a6.jpg",
+      "mechanics": [
+        "GAIN_LIFE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "64e29bfc-9313-4e8c-808c-bc27f6b018a6",
+      "printed_text": "This land enters tapped.\nWhen this land enters, you gain 1 life.\n{T}: Add {B} or {R}.",
+      "subject_narrowed": true
+    },
+    "Blossoming Sands": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/45429b2c-be3b-4b2e-9bab-a059ccbda8cd.jpg",
+      "mechanics": [
+        "GAIN_LIFE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "45429b2c-be3b-4b2e-9bab-a059ccbda8cd",
+      "printed_text": "This land enters tapped.\nWhen this land enters, you gain 1 life.\n{T}: Add {G} or {W}.",
+      "subject_narrowed": true
+    },
+    "Bone Pit Brute": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/6de38910-8d0d-4fac-b9db-c80ffd1850ea.jpg",
+      "mechanics": [
+        "MODIFY_PT"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "6de38910-8d0d-4fac-b9db-c80ffd1850ea",
+      "printed_text": "Menace (This creature can't be blocked except by two or more creatures.)\nWhen this creature enters, target creature gets +4/+0 until end of turn.",
+      "subject_narrowed": true
+    },
+    "Capture Sphere": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/2dc59566-10cb-468a-b6a2-17d6c0186e6d.jpg",
+      "mechanics": [
+        "TAP"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "2dc59566-10cb-468a-b6a2-17d6c0186e6d",
+      "printed_text": "Flash (You may cast this spell any time you could cast an instant.)\nEnchant creature\nWhen this Aura enters, tap enchanted creature.\nEnchanted creature doesn't untap during its controller's untap step.",
+      "subject_narrowed": true
+    },
+    "Carrion Grub": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/c54b375d-a456-4886-96f2-8dc7a0024a5b.jpg",
+      "mechanics": [
+        "MILL"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "c54b375d-a456-4886-96f2-8dc7a0024a5b",
+      "printed_text": "This creature gets +X/+0, where X is the greatest power among creature cards in your graveyard.\nWhen this creature enters, mill four cards. (Put the top four cards of your library into your graveyard.)",
+      "subject_narrowed": true
+    },
+    "Chandra's Firemaw": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/53b17c51-a216-484f-80df-3904284df0ea.jpg",
+      "mechanics": [
+        "MOVE_ZONE",
+        "REVEAL",
+        "SEARCH",
+        "SHUFFLE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "53b17c51-a216-484f-80df-3904284df0ea",
+      "printed_text": "Haste\nWhen this creature enters, you may search your library and/or graveyard for a card named Chandra, Flame's Catalyst, reveal it, and put it into your hand. If you search your library this way, shuffle.",
+      "subject_narrowed": true
+    },
+    "Chrome Replicator": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/f379fa0b-e9fc-4307-a574-a0c95e5e7f72.jpg",
+      "mechanics": [
+        "CREATE_TOKEN"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "f379fa0b-e9fc-4307-a574-a0c95e5e7f72",
+      "printed_text": "When this creature enters, if you control two or more nonland, nontoken permanents with the same name as one another, create a 4/4 colorless Construct artifact creature token.",
+      "subject_narrowed": true
+    },
+    "Crypt Lurker": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/f0cbf361-d7dc-4556-a654-71c08785095a.jpg",
+      "mechanics": [
+        "DISCARD",
+        "DRAW",
+        "SACRIFICE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "f0cbf361-d7dc-4556-a654-71c08785095a",
+      "printed_text": "When this creature enters, you may sacrifice a creature or discard a creature card. If you do, draw a card.",
+      "subject_narrowed": true
+    },
+    "Daybreak Charger": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/d3de6b36-c631-4b52-b16b-0749a347d73d.jpg",
+      "mechanics": [
+        "MODIFY_PT"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "d3de6b36-c631-4b52-b16b-0749a347d73d",
+      "printed_text": "When this creature enters, target creature gets +2/+0 until end of turn.",
+      "subject_narrowed": true
+    },
+    "Dismal Backwater": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/865a2194-fca0-446e-aae3-ca475cd66e00.jpg",
+      "mechanics": [
+        "GAIN_LIFE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "865a2194-fca0-446e-aae3-ca475cd66e00",
+      "printed_text": "This land enters tapped.\nWhen this land enters, you gain 1 life.\n{T}: Add {U} or {B}.",
+      "subject_narrowed": true
+    },
+    "Faith's Fetters": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/2b2d76f5-4c9b-49dc-b202-68095e2d9b29.jpg",
+      "mechanics": [
+        "GAIN_LIFE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "2b2d76f5-4c9b-49dc-b202-68095e2d9b29",
+      "printed_text": "Enchant permanent\nWhen this Aura enters, you gain 4 life.\nEnchanted permanent can't attack or block, and its activated abilities can't be activated unless they're mana abilities.",
+      "subject_narrowed": true
+    },
+    "Fierce Empath": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/5104053a-d394-4b00-82a4-60fd9f051a6e.jpg",
+      "mechanics": [
+        "REVEAL",
+        "SEARCH",
+        "SHUFFLE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "5104053a-d394-4b00-82a4-60fd9f051a6e",
+      "printed_text": "When this creature enters, you may search your library for a creature card with mana value 6 or greater, reveal it, put it into your hand, then shuffle.",
+      "subject_narrowed": true
+    },
+    "Gale Swooper": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/1758e102-22da-4cb3-98d5-76f7501d026d.jpg",
+      "mechanics": [
+        "GRANT_ABILITY"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "1758e102-22da-4cb3-98d5-76f7501d026d",
+      "printed_text": "Flying\nWhen this creature enters, target creature gains flying until end of turn.",
+      "subject_narrowed": true
+    },
+    "Garruk's Uprising": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/3127ae9b-a7a7-43ec-89d7-688f8445b33d.jpg",
+      "mechanics": [
+        "DRAW"
+      ],
+      "n_etb_triggers": 2,
+      "oracle_id": "3127ae9b-a7a7-43ec-89d7-688f8445b33d",
+      "printed_text": "When this enchantment enters, if you control a creature with power 4 or greater, draw a card.\nCreatures you control have trample. (Each of those creatures can deal excess combat damage to the player or planeswalker it's attacking.)\nWhenever a creature you control with power 4 or greater enters, draw a card.",
+      "subject_narrowed": true
+    },
+    "Garruk's Warsteed": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/d4911e00-eed1-4c8c-8779-8a3f9406ead7.jpg",
+      "mechanics": [
+        "MOVE_ZONE",
+        "REVEAL",
+        "SEARCH",
+        "SHUFFLE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "d4911e00-eed1-4c8c-8779-8a3f9406ead7",
+      "printed_text": "Vigilance\nWhen this creature enters, you may search your library and/or graveyard for a card named Garruk, Savage Herald, reveal it, and put it into your hand. If you search your library this way, shuffle.",
+      "subject_narrowed": true
+    },
+    "Goremand": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/0f80f061-6304-4c7b-ab53-f406385e39df.jpg",
+      "mechanics": [
+        "SACRIFICE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "0f80f061-6304-4c7b-ab53-f406385e39df",
+      "printed_text": "As an additional cost to cast this spell, sacrifice a creature.\nFlying\nTrample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)\nWhen this creature enters, each opponent sacrifices a creature.",
+      "subject_narrowed": true
+    },
+    "Idol of Endurance": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/6b946317-8a66-41b7-b902-308784d69b90.jpg",
+      "mechanics": [
+        "EXILE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "6b946317-8a66-41b7-b902-308784d69b90",
+      "printed_text": "When this artifact enters, exile all creature cards with mana value 3 or less from your graveyard until this artifact leaves the battlefield.\n{1}{W}, {T}: Until end of turn, you may cast a creature spell from among cards exiled with this artifact without paying its mana cost.",
+      "subject_narrowed": true
+    },
+    "Jungle Hollow": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/6de714e1-446d-4fb9-9e3d-bcd3ec6af9ca.jpg",
+      "mechanics": [
+        "GAIN_LIFE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "6de714e1-446d-4fb9-9e3d-bcd3ec6af9ca",
+      "printed_text": "This land enters tapped.\nWhen this land enters, you gain 1 life.\n{T}: Add {B} or {G}.",
+      "subject_narrowed": true
+    },
+    "Kinetic Augur": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/98e0b1a8-902d-4285-b13c-e63f2e1692f1.jpg",
+      "mechanics": [
+        "DISCARD",
+        "DRAW"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "98e0b1a8-902d-4285-b13c-e63f2e1692f1",
+      "printed_text": "Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)\nKinetic Augur's power is equal to the number of instant and sorcery cards in your graveyard.\nWhen this creature enters, discard up to two cards, then draw that many cards.",
+      "subject_narrowed": true
+    },
+    "Kitesail Freebooter": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/8aa1bbc9-b047-4d68-93f4-728e40dafc5e.jpg",
+      "mechanics": [
+        "CHOOSE",
+        "EXILE",
+        "REVEAL"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "8aa1bbc9-b047-4d68-93f4-728e40dafc5e",
+      "printed_text": "Flying\nWhen this creature enters, target opponent reveals their hand. You choose a noncreature, nonland card from it. Exile that card until this creature leaves the battlefield.",
+      "subject_narrowed": true
+    },
+    "Liliana's Standard Bearer": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/7b600c0e-5ad2-48a2-a147-346ca78c8629.jpg",
+      "mechanics": [
+        "DRAW"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "7b600c0e-5ad2-48a2-a147-346ca78c8629",
+      "printed_text": "Flash\nWhen this creature enters, draw X cards, where X is the number of creatures that died under your control this turn.",
+      "subject_narrowed": true
+    },
+    "Llanowar Visionary": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/f75ed312-3a23-4624-80c5-03980aa22d0b.jpg",
+      "mechanics": [
+        "DRAW"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "f75ed312-3a23-4624-80c5-03980aa22d0b",
+      "printed_text": "When this creature enters, draw a card.\n{T}: Add {G}.",
+      "subject_narrowed": true
+    },
+    "Massacre Wurm": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/93cf50cf-0ecc-4d3e-abea-778c1ebacec4.jpg",
+      "mechanics": [
+        "MODIFY_PT"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "93cf50cf-0ecc-4d3e-abea-778c1ebacec4",
+      "printed_text": "When this creature enters, creatures your opponents control get -2/-2 until end of turn.\nWhenever a creature an opponent controls dies, that player loses 2 life.",
+      "subject_narrowed": true
+    },
+    "Meteorite": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/0c3c3bcc-d485-4a01-92fe-8bf29c0fc926.jpg",
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "0c3c3bcc-d485-4a01-92fe-8bf29c0fc926",
+      "printed_text": "When this artifact enters, it deals 2 damage to any target.\n{T}: Add one mana of any color.",
+      "subject_narrowed": true
+    },
+    "Niambi, Esteemed Speaker": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/91c9dbd8-a8d8-4a4e-8408-3ad92e974d11.jpg",
+      "mechanics": [
+        "GAIN_LIFE",
+        "MOVE_ZONE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "91c9dbd8-a8d8-4a4e-8408-3ad92e974d11",
+      "printed_text": "Flash\nWhen Niambi enters, you may return another target creature you control to its owner's hand. If you do, you gain life equal to that creature's mana value.\n{1}{W}{U}, {T}, Discard a legendary card: Draw two cards.",
+      "subject_narrowed": true
+    },
+    "Pridemalkin": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/f9672b63-415a-448b-a3da-140df63a0f0c.jpg",
+      "mechanics": [
+        "PUT_COUNTER"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "f9672b63-415a-448b-a3da-140df63a0f0c",
+      "printed_text": "When this creature enters, put a +1/+1 counter on target creature you control.\nEach creature you control with a +1/+1 counter on it has trample. (It can deal excess combat damage to the player or planeswalker it's attacking.)",
+      "subject_narrowed": true
+    },
+    "Pursued Whale": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/6de2d53c-06e3-4c56-a5cf-c9cb2db42527.jpg",
+      "mechanics": [
+        "CREATE_TOKEN",
+        "MANDATE_ATTACK",
+        "PREVENT_EFFECT"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "6de2d53c-06e3-4c56-a5cf-c9cb2db42527",
+      "printed_text": "When this creature enters, each opponent creates a 1/1 red Pirate creature token with \"This token can't block\" and \"Creatures you control attack each combat if able.\"\nSpells your opponents cast that target this creature cost {3} more to cast.",
+      "subject_narrowed": true
+    },
+    "Radiant Fountain": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/6db442e5-fbcc-4456-a4c5-bea1aee3fc8e.jpg",
+      "mechanics": [
+        "GAIN_LIFE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "6db442e5-fbcc-4456-a4c5-bea1aee3fc8e",
+      "printed_text": "When this land enters, you gain 2 life.\n{T}: Add {C}.",
+      "subject_narrowed": true
+    },
+    "Rambunctious Mutt": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/48a53d6e-0320-4b9c-b692-6d0fc00e46cc.jpg",
+      "mechanics": [
+        "DESTROY"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "48a53d6e-0320-4b9c-b692-6d0fc00e46cc",
+      "printed_text": "When this creature enters, destroy target artifact or enchantment an opponent controls.",
+      "subject_narrowed": true
+    },
+    "Roaming Ghostlight": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/0d5eb0b9-9b08-4d26-b141-a9d612a680a6.jpg",
+      "mechanics": [
+        "MOVE_ZONE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "0d5eb0b9-9b08-4d26-b141-a9d612a680a6",
+      "printed_text": "Flying\nWhen this creature enters, return up to one target non-Spirit creature to its owner's hand.",
+      "subject_narrowed": true
+    },
+    "Rousing Read": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/306549ad-84c7-4983-840b-9663799e9f40.jpg",
+      "mechanics": [
+        "DISCARD",
+        "DRAW"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "306549ad-84c7-4983-840b-9663799e9f40",
+      "printed_text": "Enchant creature\nWhen this Aura enters, draw two cards, then discard a card.\nEnchanted creature gets +1/+1 and has flying.",
+      "subject_narrowed": true
+    },
+    "Rugged Highlands": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/6c922206-6e68-4dcd-9559-88da1074f2c4.jpg",
+      "mechanics": [
+        "GAIN_LIFE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "6c922206-6e68-4dcd-9559-88da1074f2c4",
+      "printed_text": "This land enters tapped.\nWhen this land enters, you gain 1 life.\n{T}: Add {R} or {G}.",
+      "subject_narrowed": true
+    },
+    "Runed Halo": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/14cefb15-d833-4c70-80c9-f2d34b6c846b.jpg",
+      "mechanics": [
+        "CHOOSE_NAME"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "14cefb15-d833-4c70-80c9-f2d34b6c846b",
+      "printed_text": "As this enchantment enters, choose a card name.\nYou have protection from the chosen card name. (You can't be targeted, dealt damage, or enchanted by anything with that name.)",
+      "subject_narrowed": true
+    },
+    "Scoured Barrens": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/d37f858e-03c8-4594-9b92-cd03699a1591.jpg",
+      "mechanics": [
+        "GAIN_LIFE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "d37f858e-03c8-4594-9b92-cd03699a1591",
+      "printed_text": "This land enters tapped.\nWhen this land enters, you gain 1 life.\n{T}: Add {W} or {B}.",
+      "subject_narrowed": true
+    },
+    "Setessan Training": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/3ff3b9c4-80ec-44d9-99ec-6fea3a86468b.jpg",
+      "mechanics": [
+        "DRAW"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "3ff3b9c4-80ec-44d9-99ec-6fea3a86468b",
+      "printed_text": "Enchant creature you control\nWhen this Aura enters, draw a card.\nEnchanted creature gets +1/+0 and has trample. (It can deal excess combat damage to the player or planeswalker it's attacking.)",
+      "subject_narrowed": true
+    },
+    "Shipwreck Dowser": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/dc3073fc-dc23-426e-b867-fee5dd99fe25.jpg",
+      "mechanics": [
+        "MOVE_ZONE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "dc3073fc-dc23-426e-b867-fee5dd99fe25",
+      "printed_text": "Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)\nWhen this creature enters, return target instant or sorcery card from your graveyard to your hand.",
+      "subject_narrowed": true
+    },
+    "Skeleton Archer": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/3792763c-7aa0-4055-b8a1-3257e0443ef1.jpg",
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "3792763c-7aa0-4055-b8a1-3257e0443ef1",
+      "printed_text": "When this creature enters, it deals 1 damage to any target.",
+      "subject_narrowed": true
+    },
+    "Skyscanner": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/974f788a-039f-4310-a2fe-16b14a1e2d35.jpg",
+      "mechanics": [
+        "DRAW"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "974f788a-039f-4310-a2fe-16b14a1e2d35",
+      "printed_text": "Flying\nWhen this creature enters, draw a card.",
+      "subject_narrowed": true
+    },
+    "Solemn Simulacrum": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/00c0543c-2a1f-4425-8283-4062d74a1637.jpg",
+      "mechanics": [
+        "SEARCH",
+        "SHUFFLE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "00c0543c-2a1f-4425-8283-4062d74a1637",
+      "printed_text": "When this creature enters, you may search your library for a basic land card, put that card onto the battlefield tapped, then shuffle.\nWhen this creature dies, you may draw a card.",
+      "subject_narrowed": true
+    },
+    "Storm Caller": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/5c946cc0-5d90-4970-acf8-b14eff177cbc.jpg",
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "5c946cc0-5d90-4970-acf8-b14eff177cbc",
+      "printed_text": "When this creature enters, it deals 2 damage to each opponent.",
+      "subject_narrowed": true
+    },
+    "Stormwing Entity": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/ea43fd04-e9fa-42fb-ba20-22dcc21c6c43.jpg",
+      "mechanics": [
+        "SCRY"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "ea43fd04-e9fa-42fb-ba20-22dcc21c6c43",
+      "printed_text": "This spell costs {2}{U} less to cast if you've cast an instant or sorcery spell this turn.\nFlying\nProwess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)\nWhen this creature enters, scry 2.",
+      "subject_narrowed": true
+    },
+    "Swiftwater Cliffs": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/2f4ad084-2062-44c0-9975-15f100204531.jpg",
+      "mechanics": [
+        "GAIN_LIFE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "2f4ad084-2062-44c0-9975-15f100204531",
+      "printed_text": "This land enters tapped.\nWhen this land enters, you gain 1 life.\n{T}: Add {U} or {R}.",
+      "subject_narrowed": true
+    },
+    "Teferi's Tutelage": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/c6b94e03-61c0-4077-b3da-a70795e97278.jpg",
+      "mechanics": [
+        "DISCARD",
+        "DRAW"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "c6b94e03-61c0-4077-b3da-a70795e97278",
+      "printed_text": "When this enchantment enters, draw a card, then discard a card.\nWhenever you draw a card, target opponent mills two cards. (They put the top two cards of their library into their graveyard.)",
+      "subject_narrowed": true
+    },
+    "Teferi's Wavecaster": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/b3f6e68e-9490-4719-8d2e-d1ec22a96132.jpg",
+      "mechanics": [
+        "MOVE_ZONE",
+        "REVEAL",
+        "SEARCH",
+        "SHUFFLE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "b3f6e68e-9490-4719-8d2e-d1ec22a96132",
+      "printed_text": "Flash\nWhen this creature enters, you may search your library and/or graveyard for a card named Teferi, Timeless Voyager, reveal it, and put it into your hand. If you search your library this way, shuffle.",
+      "subject_narrowed": true
+    },
+    "Temple of Epiphany": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/79f94050-d850-41ca-b1db-5ae0cf743f0a.jpg",
+      "mechanics": [
+        "SCRY"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "79f94050-d850-41ca-b1db-5ae0cf743f0a",
+      "printed_text": "This land enters tapped.\nWhen this land enters, scry 1. (Look at the top card of your library. You may put that card on the bottom.)\n{T}: Add {U} or {R}.",
+      "subject_narrowed": true
+    },
+    "Temple of Malady": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/dc55421f-dee8-4263-9df0-2365df5f14bb.jpg",
+      "mechanics": [
+        "SCRY"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "dc55421f-dee8-4263-9df0-2365df5f14bb",
+      "printed_text": "This land enters tapped.\nWhen this land enters, scry 1. (Look at the top card of your library. You may put that card on the bottom.)\n{T}: Add {B} or {G}.",
+      "subject_narrowed": true
+    },
+    "Temple of Mystery": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/7e26f0b7-20e6-46d5-8130-d98c14d6aa29.jpg",
+      "mechanics": [
+        "SCRY"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "7e26f0b7-20e6-46d5-8130-d98c14d6aa29",
+      "printed_text": "This land enters tapped.\nWhen this land enters, scry 1. (Look at the top card of your library. You may put that card on the bottom.)\n{T}: Add {G} or {U}.",
+      "subject_narrowed": true
+    },
+    "Temple of Silence": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/e6e6fce8-0f6a-4b84-865e-d4e4a4182f9f.jpg",
+      "mechanics": [
+        "SCRY"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "e6e6fce8-0f6a-4b84-865e-d4e4a4182f9f",
+      "printed_text": "This land enters tapped.\nWhen this land enters, scry 1. (Look at the top card of your library. You may put that card on the bottom.)\n{T}: Add {W} or {B}.",
+      "subject_narrowed": true
+    },
+    "Temple of Triumph": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/6f0d94d9-64bb-4175-83bc-301e8f79f54f.jpg",
+      "mechanics": [
+        "SCRY"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "6f0d94d9-64bb-4175-83bc-301e8f79f54f",
+      "printed_text": "This land enters tapped.\nWhen this land enters, scry 1. (Look at the top card of your library. You may put that card on the bottom.)\n{T}: Add {R} or {W}.",
+      "subject_narrowed": true
+    },
+    "Terror of the Peaks": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/f8e17f4f-080d-4bba-bd05-ca27e94ccecc.jpg",
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "f8e17f4f-080d-4bba-bd05-ca27e94ccecc",
+      "printed_text": "Flying\nSpells your opponents cast that target this creature cost an additional 3 life to cast.\nWhenever another creature you control enters, this creature deals damage equal to that creature's power to any target.",
+      "subject_narrowed": true
+    },
+    "Thieves' Guild Enforcer": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/84c0db59-255d-41af-a3d4-3f3548f1195f.jpg",
+      "mechanics": [
+        "MILL"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "84c0db59-255d-41af-a3d4-3f3548f1195f",
+      "printed_text": "Flash\nWhenever this creature or another Rogue you control enters, each opponent mills two cards.\nAs long as an opponent has eight or more cards in their graveyard, this creature gets +2/+1 and has deathtouch.",
+      "subject_narrowed": true
+    },
+    "Thornwood Falls": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/ec96cde2-f1e6-495c-94e2-3e8ae79e556c.jpg",
+      "mechanics": [
+        "GAIN_LIFE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "ec96cde2-f1e6-495c-94e2-3e8ae79e556c",
+      "printed_text": "This land enters tapped.\nWhen this land enters, you gain 1 life.\n{T}: Add {G} or {U}.",
+      "subject_narrowed": true
+    },
+    "Tranquil Cove": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/5d641bf6-0f93-4189-8dc1-ec7ea446dade.jpg",
+      "mechanics": [
+        "GAIN_LIFE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "5d641bf6-0f93-4189-8dc1-ec7ea446dade",
+      "printed_text": "This land enters tapped.\nWhen this land enters, you gain 1 life.\n{T}: Add {W} or {U}.",
+      "subject_narrowed": true
+    },
+    "Trufflesnout": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/8a15841a-dcb6-454a-b865-43a067f42b4e.jpg",
+      "mechanics": [
+        "GAIN_LIFE",
+        "PUT_COUNTER"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "8a15841a-dcb6-454a-b865-43a067f42b4e",
+      "printed_text": "When this creature enters, choose one \u2014\n\u2022 Put a +1/+1 counter on this creature.\n\u2022 You gain 4 life.",
+      "subject_narrowed": true
+    },
+    "Turret Ogre": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/fb4a044b-f25d-47ff-b272-754e577ce50a.jpg",
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "fb4a044b-f25d-47ff-b272-754e577ce50a",
+      "printed_text": "Reach (This creature can block creatures with flying.)\nWhen this creature enters, if you control another creature with power 4 or greater, this creature deals 2 damage to each opponent.",
+      "subject_narrowed": true
+    },
+    "Valorous Steed": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/4b5f30a6-b0fb-4dcb-85d5-1db1bba73737.jpg",
+      "mechanics": [
+        "CREATE_TOKEN"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "4b5f30a6-b0fb-4dcb-85d5-1db1bba73737",
+      "printed_text": "Vigilance (Attacking doesn't cause this creature to tap.)\nWhen this creature enters, create a 2/2 white Knight creature token with vigilance.",
+      "subject_narrowed": true
+    },
+    "Wall of Runes": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/35dfe1c7-48ab-436f-9a6e-44835ea01cf9.jpg",
+      "mechanics": [
+        "SCRY"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "35dfe1c7-48ab-436f-9a6e-44835ea01cf9",
+      "printed_text": "Defender (This creature can't attack.)\nWhen this creature enters, scry 1. (Look at the top card of your library. You may put that card on the bottom.)",
+      "subject_narrowed": true
+    },
+    "Watcher of the Spheres": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/d43463d2-4395-4616-acc3-c4f80ebe3242.jpg",
+      "mechanics": [
+        "MODIFY_PT"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "d43463d2-4395-4616-acc3-c4f80ebe3242",
+      "printed_text": "Flying\nCreature spells with flying you cast cost {1} less to cast.\nWhenever another creature you control with flying enters, this creature gets +1/+1 until end of turn.",
+      "subject_narrowed": true
+    },
+    "Wildwood Scourge": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/b9dec104-c636-4770-a7fc-7a3331face15.jpg",
+      "mechanics": [
+        "PUT_COUNTER"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "b9dec104-c636-4770-a7fc-7a3331face15",
+      "printed_text": "This creature enters with X +1/+1 counters on it.\nWhenever one or more +1/+1 counters are put on another non-Hydra creature you control, put a +1/+1 counter on this creature.",
+      "subject_narrowed": true
+    },
+    "Wind-Scarred Crag": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/b0af0c54-2a59-4075-8543-d41ff20c4c87.jpg",
+      "mechanics": [
+        "GAIN_LIFE"
+      ],
+      "n_etb_triggers": 1,
+      "oracle_id": "b0af0c54-2a59-4075-8543-d41ff20c4c87",
+      "printed_text": "This land enters tapped.\nWhen this land enters, you gain 1 life.\n{T}: Add {R} or {W}.",
+      "subject_narrowed": true
+    }
+  },
+  "meta": {
+    "built_by": "tools/audit/wave_builder.py",
+    "family": "ETB (ZoneChangeEvent to BATTLEFIELD)",
+    "n_cards": 66,
+    "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
+    "wave": "wave1"
+  }
+}

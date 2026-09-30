@@ -15,7 +15,8 @@ key and observed-vs-expected — nothing else.
 
 Pack vocabulary (all keys required as noted):
   world   : {"life": int, "seed": int}
-  cards   : [{"key": str, "zone": "hand"|"battlefield", "controller": 0|1,
+  cards   : [{"key": str, "zone": "hand"|"battlefield"|"library"|"graveyard"
+                    |"exile", "controller": 0|1,
               "real": "<pool card name>"  OR
               "name"/"power"/"toughness"/"type" (synthetic)}]
   mana    : {"0": {"G": 5}, ...}            optional, per seat index
@@ -26,6 +27,14 @@ Pack vocabulary (all keys required as noted):
              {"op": "end_turn"} | {"op": "advance_turn"},
              {"op": "enter", "key": k}      hand -> battlefield (journalled:
                                             the sickness clock sees it),
+             {"op": "play", "key": k}       17a: the REAL land drop (CR
+                                            305.1, legality + once-per-
+                                            turn + EtBState entry hook),
+             {"op": "enter"|"enchant"|"play", ...,
+              "decisions": [str...]}         17a: ordered words the step's
+                                            asks consume (scry, modes,
+                                            may-offers); never forces a
+                                            word the vocabulary lacks,
              {"op": "enchant", "aura": k, "host": k}   the 13c attach edge
                                             (16e: restores a battlefield-
                                              declared aura the setup CR
@@ -61,7 +70,12 @@ Pack vocabulary (all keys required as noted):
              "not_asked_to_block": [key],  — never offered a block ask,
              "tokens": {Name: n},          — battlefield token records
              "tapped": {key: bool},
-             "hand": {"0": int}}
+             "hand": {"0": int},
+             "counters": {key: {"KIND": n}},  17a: the counter table,
+             "power": {key: int},             17a: ledger effective_pt,
+             "toughness": {key: int},         17a: (base->timestamp fold),
+             "library": {"0": [names...TOP-first]},   17a: exact order,
+             "graveyard": {"0": [names...]}}          17a: exact bag
 """
 
 from __future__ import annotations
@@ -78,6 +92,7 @@ sys.path.insert(0, str(REPO))
 from MTG_bot.core.ability_tree import (
     ControllerRef,
     FAnd,
+    Keyword,
     QConst,
     Selector,
     SelectorMode,
@@ -87,7 +102,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.games import get_supply, identity_of
-from MTG_bot.core.executor.stack import cast
+from MTG_bot.core.executor.stack import cast, play_land
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -103,6 +118,7 @@ ZONE_OF_NAME = {
     "hand": ZONE_HAND,
     "graveyard": ZONE_GRAVEYARD,
     "exile": ZONE_EXILE,
+    "library": ZONE_LIBRARY,  # 17a: search/tutor assertions
 }
 UNIV = FAnd(())
 
@@ -193,6 +209,28 @@ class ScenarioRunner:
                 )
 
     def run_step(self, step: dict) -> None:
+        if step.get("decisions") and step["op"] != "combat":
+            # 17a: the decision channel — a non-combat step (an ETB that
+            # scrys, a mode choice, a may-offer) carries the ordered words
+            # its asks consume, IN ARRIVAL ORDER. A word the vocabulary
+            # does not carry is never forced: the provider takes the
+            # engine's own first legal word (C15 narrowing respected).
+            queue = list(step["decisions"])
+
+            def prov(vocab, what):
+                self.asks_seen.append((what, tuple(vocab)))
+                got = queue.pop(0) if queue else vocab[0]
+                return got if got in vocab else vocab[0]
+
+            self.ex.decisions.provider = prov
+            try:
+                self._dispatch(step)
+            finally:
+                self.ex.decisions.provider = None
+            return
+        self._dispatch(step)
+
+    def _dispatch(self, step: dict) -> None:
         op = step["op"]
         if op in ("deal_damage", "fight"):
             verb = Verb.DEAL_DAMAGE if op == "deal_damage" else Verb.FIGHT
@@ -221,6 +259,16 @@ class ScenarioRunner:
             self.ex.end_turn()
         elif op == "advance_turn":
             self.ex.advance_turn()
+        elif op == "play":
+            # 17a: the REAL land drop (CR 305.1) — legality re-check,
+            # once-per-turn ledger, and the journal's entry hook that
+            # stamps the compiled EtBState (the M21 checklands and
+            # temples enter TAPPED; asserting the printed promise).
+            play_land(
+                self.ex,
+                self.seats[int(step.get("seat", 0))],
+                self.handles[step["key"]],
+            )
         elif op == "enter":
             handle = self.handles[step["key"]]
             self.ex.execute(
@@ -446,6 +494,13 @@ class ScenarioRunner:
             for handle, card in self.world.cards.items():
                 if self.world.zone_of(handle).kind != "battlefield":
                     continue
+                # 17a: token-ness is read from the IDENTITY first — the
+                # executor only mints a handle_record for tokens that
+                # carry compiled abilities (a bare 2/2 Knight has none),
+                # so the record-only read missed real tokens.
+                if getattr(card.identity, "is_token", False):
+                    got[card.identity.name] += 1
+                    continue
                 rec = self.ex.binder.handle_record.get(handle)
                 if rec is not None and getattr(rec, "is_token", False):
                     got[card.identity.name] += 1
@@ -462,6 +517,85 @@ class ScenarioRunner:
             got = len(self.world.players[self.seats[int(seat)]].zone(ZONE_HAND).entries)
             if got != size:
                 fails.append(f"hand[{seat}]: expected {size}, got {got}")
+        # 17a lanes ------------------------------------------------------------
+        for key, kinds in expect.get("counters", {}).items():
+            got = dict(self.world.cards[self.handles[key]].counters)
+            if got != dict(kinds):
+                fails.append(f"counters[{key}]: expected {dict(kinds)}, got {got}")
+        for lane in ("power", "toughness"):
+            idx = 0 if lane == "power" else 1
+            for key, want in expect.get(lane, {}).items():
+                handle = self.handles[key]
+                p, t = self.ex.ledger.effective_pt(
+                    self.world.cards[handle].identity, handle
+                )
+                got_pt = (p, t)[idx]
+                if got_pt != want:
+                    fails.append(f"{lane}[{key}]: expected {want}, got {got_pt}")
+        # 17a: battlefield assertions addressed by NAME — creatures and
+        # tokens that ARRIVED from an engine effect (a Knight token, a
+        # searched land) have no pack key, but their name is printed.
+        for lane in ("battlefield_pt", "battlefield_keywords"):
+            for name, want in expect.get(lane, {}).items():
+                found = [
+                    h
+                    for h, c in self.world.cards.items()
+                    if c.identity.name == name
+                    and self.world.zone_of(h).kind == ZONE_BATTLEFIELD
+                ]
+                if len(found) != 1:
+                    fails.append(
+                        f"{lane}[{name}]: expected 1 on battlefield, got {len(found)}"
+                    )
+                    continue
+                handle = found[0]
+                if lane == "battlefield_pt":
+                    p, t = self.ex.ledger.effective_pt(
+                        self.world.cards[handle].identity, handle
+                    )
+                    if [p, t] != list(want):
+                        fails.append(
+                            f"{lane}[{name}]: expected {list(want)}, got {[p, t]}"
+                        )
+                else:
+                    got_kw = sorted(
+                        k.name
+                        for k in (
+                            Keyword.FLYING,
+                            Keyword.DEFENDER,
+                            Keyword.VIGILANCE,
+                            Keyword.HASTE,
+                            Keyword.REACH,
+                            Keyword.TRAMPLE,
+                            Keyword.DEATHTOUCH,
+                            Keyword.LIFELINK,
+                            Keyword.FIRST_STRIKE,
+                            Keyword.DOUBLE_STRIKE,
+                        )
+                        if self.ex.layers.keyword_of(handle, k)
+                    )
+                    if got_kw != sorted(want):
+                        fails.append(
+                            f"{lane}[{name}]: expected {sorted(want)}, got {got_kw}"
+                        )
+        for lane, zk in (("library", ZONE_LIBRARY), ("graveyard", ZONE_GRAVEYARD)):
+            for seat, names in expect.get(lane, {}).items():
+                zone = self.world.players[self.seats[int(seat)]].zone(zk)
+                order = [self.world.cards[h].identity.name for h in zone.entries]
+                if lane == "library":
+                    order = list(reversed(order))  # TOP first (draw pops last)
+                    # 17a: a "*" entry matches ANY name at that position —
+                    # the slot order a mandated shuffle leaves unknown
+                    # (CR 701.21: the SET is still exactly asserted).
+                    ok = len(order) == len(names) and all(
+                        w == "*" or w == g for w, g in zip(names, order)
+                    )
+                    if not ok:
+                        fails.append(f"library[{seat}]: expected {names}, got {order}")
+                elif sorted(order) != sorted(names):
+                    fails.append(
+                        f"graveyard[{seat}]: expected {sorted(names)}, got {sorted(order)}"
+                    )
         return fails
 
 

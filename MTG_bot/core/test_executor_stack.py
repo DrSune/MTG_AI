@@ -38,6 +38,8 @@ from MTG_bot.core.ability_tree import (
     CostManaColor,
     CostManaGeneric,
     CostTap,
+    CounterKind,
+    EtBState,
     FAtom,
     FAtomPred,
     FOr,
@@ -547,6 +549,67 @@ class TestLandDrop(StackCase):
         reason = land_playable(self.ex, self.p0, third)
         assert reason is not None
         self.assertIn("used_this_turn", reason)
+
+    def test_etb_state_tapped_land_enters_tapped(self):
+        # 17a regression pin: the compiled EtBState node ("enters the
+        # battlefield tapped" — every M21 checkland and temple) is
+        # consumed by the journal's battlefield-ENTRY hook, so the real
+        # land drop stamps it. A plain land without the node stays
+        # untapped, and the stamp is NOT a tap event (CR 614.1c: an
+        # entered state never "becomes tapped").
+        rec = spell_rec(
+            "Checkland",
+            SpellKind.SORCERY,
+            type_line="Land",
+            types=("Land",),
+            extra_abilities=(EtBState(tapped=True),),
+        )
+        land = self.world.add_card(
+            CardIdentity(
+                oracle_id=rec.oracle_id,
+                name="Checkland",
+                type_line="Land",
+                cmc=0,
+            ),
+            self.p0,
+            ZONE_HAND,
+        )
+        self.ex.attach_card(land, rec)
+        play_land(self.ex, self.p0, land)
+        self.assertTrue(self.world.cards[land].tapped)
+        self.assertFalse(self.world.cards[self.plains].tapped)
+        # the entry journalled the MOVE, never a tap-toggle row
+        tap_rows = [
+            e
+            for e in self.ex.journal.events
+            if e.kind == "TAP_STATE" and e.subject == land
+        ]
+        self.assertEqual(tap_rows, [])
+
+    def test_etb_state_initial_counters_land(self):
+        # "enters with a soul counter" (Equipment idiom, templates_b5c)
+        # lands on the permanent as it enters, through the same hook.
+        rec = spell_rec(
+            "Haunted Gear",
+            SpellKind.SORCERY,
+            type_line="Land",
+            types=("Land",),
+            extra_abilities=(
+                EtBState(initial_counters=((CounterKind.SOUL, QConst(1)),)),
+            ),
+        )
+        gear = self.world.add_card(
+            CardIdentity(
+                oracle_id=rec.oracle_id, name="Haunted Gear", type_line="Land", cmc=0
+            ),
+            self.p0,
+            ZONE_HAND,
+        )
+        self.ex.attach_card(gear, rec)
+        self.ex.extra_land_plays = 1
+        play_land(self.ex, self.p0, self.plains)
+        play_land(self.ex, self.p0, gear)
+        self.assertEqual(self.world.cards[gear].counters.get("SOUL"), 1)
 
     def test_legal_casts_row_shapes(self):
         shock = self.shock()

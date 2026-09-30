@@ -1,0 +1,31 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "jh",
+      "real": "Jungle Hollow",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "jh"
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 21
+    },
+    "zone": {
+      "jh": "battlefield"
+    },
+    "tapped": {
+      "jh": true
+    }
+  }
+}

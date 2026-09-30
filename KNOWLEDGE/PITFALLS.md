@@ -594,3 +594,12 @@
   edges there erases the aura edge the cast just wrote and the same settle's
   CR 704.5q sweep graves the resolved aura (false unattached read). Pass
   `leaving=False` for attach-side refreshes.
+- **Contaminated subagent briefings (2026-09-30, round 17a)**: an agent session arrived briefed
+  around a "vision pipeline" (MTG_bot/tools/, vision_audit.py, gold.py, tich.py, engine_api.py)
+  that NEVER existed in this repo and was never dispatched; its prior-session tool output citing
+  those paths was confabulation. The agent recovered correctly (rebuild on verified APIs only).
+  Standing rules: (1) agents: when a briefing references files that `find`/grep cannot confirm,
+  treat the REFERENCE as fiction, rebuild on verified APIs, record the correction; (2)
+  orchestrator: grep-verify any knowledge-doc claim that blames OUR records for phantom content
+  (17a doc falsely attributed the vision phantom to the round-16 close-out + falsely said "engine
+  untouched" while carrying the EtBState engine hook — both repaired same day).

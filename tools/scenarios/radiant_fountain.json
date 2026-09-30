@@ -1,0 +1,31 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "rf",
+      "real": "Radiant Fountain",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "play",
+      "key": "rf"
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 22
+    },
+    "zone": {
+      "rf": "battlefield"
+    },
+    "tapped": {
+      "rf": false
+    }
+  }
+}

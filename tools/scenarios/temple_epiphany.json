@@ -1,0 +1,35 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "te",
+      "real": "Temple of Epiphany",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "te",
+      "decisions": ["top"]
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 20
+    },
+    "zone": {
+      "te": "battlefield"
+    },
+    "tapped": {
+      "te": true
+    },
+    "library": {
+      "0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]
+    }
+  }
+}

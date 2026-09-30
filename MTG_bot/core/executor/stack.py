@@ -575,9 +575,10 @@ def play_land(
     special action — no stack, no cost, not an event anyone can respond
     to, which is precisely why it IS safe in v1), journal the ETB, stamp
     the once-per-turn ledger, and settle so land ETB triggers fire.
-    ``tapped`` mirrors the "enters tapped" idiom for lands that must
-    (the corpus' lands all enter untapped — the flag is for crafted
-    tests of the movement path)."""
+    ``tapped`` is the rig's explicit override; a land whose compiled
+    record declares an EtBState (the M21 checklands and temples "enter
+    the battlefield tapped") gets that state from the journal's entry
+    hook instead — the flag is not how the corpus' entered state ships."""
     world = executor.world
     reason = land_playable(executor, seat, handle)
     if reason is not None:
@@ -593,9 +594,13 @@ def play_land(
     registered = executor.binder.records.get(world.cards[handle].identity.oracle_id)
     if registered is not None:
         executor.binder.attach_card(handle, registered)
-    executor.journal.record_atom(
+    entered = executor.journal.record_atom(
         before, handle, "PLAY_LAND", list(executor.events[start:])
     )
+    # 17a: the land's entry runs the SAME zone-change hooks as every other
+    # battlefield entry — the compiled EtBState node (checklands, temples:
+    # "enters the battlefield tapped") is stamped here.
+    executor._on_zone_changes(entered)
     turn, plays = executor.land_ledger.get(seat, (world.turn, 0))
     if turn != world.turn:
         plays = 0

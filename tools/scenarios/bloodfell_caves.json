@@ -1,0 +1,31 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "bf",
+      "real": "Bloodfell Caves",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "play",
+      "key": "bf"
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 21
+    },
+    "zone": {
+      "bf": "battlefield"
+    },
+    "tapped": {
+      "bf": true
+    }
+  }
+}

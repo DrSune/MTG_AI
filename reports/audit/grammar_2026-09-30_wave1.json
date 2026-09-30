@@ -1,0 +1,283 @@
+{
+  "date": "2026-09-30",
+  "game_replay": {
+    "n_wave_in_game": 29,
+    "pool": "engine",
+    "seed": 7,
+    "trace": "/home/sune/Desktop/MTG_AI/reports/audit/game_engine_s7.json",
+    "turns": 60,
+    "wave_in_game": [
+      "Aven Gagglemaster",
+      "Basri's Acolyte",
+      "Basri's Lieutenant",
+      "Blossoming Sands",
+      "Bone Pit Brute",
+      "Chandra's Firemaw",
+      "Chrome Replicator",
+      "Crypt Lurker",
+      "Daybreak Charger",
+      "Dismal Backwater",
+      "Faith's Fetters",
+      "Gale Swooper",
+      "Idol of Endurance",
+      "Kitesail Freebooter",
+      "Llanowar Visionary",
+      "Radiant Fountain",
+      "Rugged Highlands",
+      "Scoured Barrens",
+      "Skeleton Archer",
+      "Solemn Simulacrum",
+      "Storm Caller",
+      "Swiftwater Cliffs",
+      "Temple of Epiphany",
+      "Temple of Mystery",
+      "Temple of Silence",
+      "Temple of Triumph",
+      "Tranquil Cove",
+      "Trufflesnout",
+      "Wildwood Scourge"
+    ]
+  },
+  "ir": {
+    "checked": 66,
+    "mismatches": []
+  },
+  "n_wave_cards": 66,
+  "replay": {
+    "covered": {
+      "Bloodfell Caves": "bloodfell_caves.json",
+      "Jungle Hollow": "jungle_hollow.json",
+      "Pursued Whale": "whale_pirate_token.json",
+      "Radiant Fountain": "radiant_fountain.json",
+      "Temple of Epiphany": "temple_epiphany.json",
+      "Wall of Runes": "combat_vigilance_defender.json"
+    },
+    "gaps": [
+      "Alpine Houndmaster",
+      "Archfiend's Vessel",
+      "Aven Gagglemaster",
+      "Barrin, Tolarian Archmage",
+      "Basri's Acolyte",
+      "Basri's Lieutenant",
+      "Blossoming Sands",
+      "Bone Pit Brute",
+      "Capture Sphere",
+      "Carrion Grub",
+      "Chandra's Firemaw",
+      "Chrome Replicator",
+      "Crypt Lurker",
+      "Daybreak Charger",
+      "Dismal Backwater",
+      "Faith's Fetters",
+      "Fierce Empath",
+      "Gale Swooper",
+      "Garruk's Uprising",
+      "Garruk's Warsteed",
+      "Goremand",
+      "Idol of Endurance",
+      "Kinetic Augur",
+      "Kitesail Freebooter",
+      "Liliana's Standard Bearer",
+      "Llanowar Visionary",
+      "Massacre Wurm",
+      "Meteorite",
+      "Niambi, Esteemed Speaker",
+      "Pridemalkin",
+      "Rambunctious Mutt",
+      "Roaming Ghostlight",
+      "Rousing Read",
+      "Rugged Highlands",
+      "Runed Halo",
+      "Scoured Barrens",
+      "Setessan Training",
+      "Shipwreck Dowser",
+      "Skeleton Archer",
+      "Skyscanner",
+      "Solemn Simulacrum",
+      "Storm Caller",
+      "Stormwing Entity",
+      "Swiftwater Cliffs",
+      "Teferi's Tutelage",
+      "Teferi's Wavecaster",
+      "Temple of Malady",
+      "Temple of Mystery",
+      "Temple of Silence",
+      "Temple of Triumph",
+      "Terror of the Peaks",
+      "Thieves' Guild Enforcer",
+      "Thornwood Falls",
+      "Tranquil Cove",
+      "Trufflesnout",
+      "Turret Ogre",
+      "Valorous Steed",
+      "Watcher of the Spheres",
+      "Wildwood Scourge",
+      "Wind-Scarred Crag"
+    ],
+    "n_wave_packs_run": 7,
+    "packs": [
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "block_defender_and_tapped.json",
+        "run": true,
+        "wave_cards": []
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "block_save_trade.json",
+        "run": true,
+        "wave_cards": []
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "bloodfell_caves.json",
+        "run": true,
+        "wave_cards": [
+          "Bloodfell Caves"
+        ]
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "brash_echo.json",
+        "run": true,
+        "wave_cards": []
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "combat_attack_trigger_bird.json",
+        "run": true,
+        "wave_cards": []
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "combat_double_strike.json",
+        "run": true,
+        "wave_cards": []
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "combat_mandate_furor.json",
+        "run": true,
+        "wave_cards": []
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "combat_ready_next_turn.json",
+        "run": true,
+        "wave_cards": []
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "combat_sickness_haste.json",
+        "run": true,
+        "wave_cards": []
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "combat_vigilance_defender.json",
+        "run": true,
+        "wave_cards": [
+          "Wall of Runes"
+        ]
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "gloom_sower_blocked_swap.json",
+        "run": true,
+        "wave_cards": []
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "herald_assigns_unblocked.json",
+        "run": true,
+        "wave_cards": []
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "jungle_hollow.json",
+        "run": true,
+        "wave_cards": [
+          "Jungle Hollow"
+        ]
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "nonlethal_skirmish.json",
+        "run": true,
+        "wave_cards": []
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "primal_might_fight.json",
+        "run": true,
+        "wave_cards": []
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "radiant_fountain.json",
+        "run": true,
+        "wave_cards": [
+          "Radiant Fountain"
+        ]
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "stalker_must_be_blocked.json",
+        "run": true,
+        "wave_cards": []
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "temple_epiphany.json",
+        "run": true,
+        "wave_cards": [
+          "Temple of Epiphany"
+        ]
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "trample_excess_partition.json",
+        "run": true,
+        "wave_cards": []
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "wall_of_runes.json",
+        "run": true,
+        "wave_cards": [
+          "Wall of Runes"
+        ]
+      },
+      {
+        "errors": [],
+        "ok": true,
+        "pack": "whale_pirate_token.json",
+        "run": true,
+        "wave_cards": [
+          "Pursued Whale"
+        ]
+      }
+    ]
+  },
+  "wave": "wave1"
+}
