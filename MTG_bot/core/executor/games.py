@@ -110,7 +110,12 @@ from MTG_bot.core.executor.query import (
 )
 from MTG_bot.core.executor.stack import cast, play_land
 from MTG_bot.core.identity import CardIdentity, Handle
-from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_LIBRARY, GameWorld
+from MTG_bot.core.state import (
+    ZONE_BATTLEFIELD,
+    ZONE_HAND,
+    ZONE_LIBRARY,
+    GameWorld,
+)
 
 REPO = Path(__file__).resolve().parents[3]
 SET_CODE = "M21"
@@ -477,6 +482,8 @@ class RandomPolicy:
         game.attempted = f"land:{name}"
         play_land(game.executor, seat, row.handle)
         self._log(game, "land", name)
+        if game.trace is not None:
+            game.trace.record_action(seat, "land-drop", name, row.handle, ())
 
     def play_cast(self, game: Game, seat: Handle, row: CastOption) -> None:
         executor = game.executor
@@ -506,6 +513,10 @@ class RandomPolicy:
             game.player_target_designations += 1
         cast(executor, seat, row.handle, targets=tuple(targets))
         self._log(game, "cast", name, f"{len(targets)}t")
+        if game.trace is not None:
+            game.trace.record_action(
+                seat, "cast", name, row.handle, tuple(targets), f"{len(targets)}t"
+            )
 
     def play_activation(
         self, game: Game, seat: Handle, option: ActivationOption
@@ -539,6 +550,15 @@ class RandomPolicy:
             targets=tuple(targets),
         )
         self._log(game, "act", name, f"#{option.ability_idx}")
+        if game.trace is not None:
+            game.trace.record_action(
+                seat,
+                "activate",
+                name,
+                option.source,
+                tuple(targets),
+                f"#{option.ability_idx}",
+            )
 
     @staticmethod
     def _target_selectors(effect: Effect | None) -> tuple[Selector, ...]:
@@ -575,6 +595,8 @@ class RandomPolicy:
         world = executor.world
         self.turn = world.turn
         self.seat_index = world.player_order.index(seat)
+        if game.trace is not None:
+            game.trace.record_turn(seat)
         for _ in range(self.max_acts):
             if game.over_reason() is not None:
                 return
@@ -616,6 +638,291 @@ class RandomPolicy:
         game.digest.append(f"T{self.turn}.{act.digest()}")
 
 
+# ------------------------------------------------------------------- tracing
+def _card_view(world: GameWorld, handle: Handle) -> dict[str, Any]:
+    """The viewer-facing view of one card instance: identity + the per-
+    instance vector (tapped, counters) + printed P/T. Serialization ONLY —
+    no engine reads this, so it can never move a replay."""
+    card = world.cards[handle]
+    ident = card.identity
+    pt = None
+    if ident.power is not None or ident.toughness is not None:
+        pt = f"{ident.power or '*'}/{ident.toughness or '*'}"
+    return {
+        "handle": str(handle),
+        "name": ident.name,
+        "oracle_id": ident.oracle_id,
+        "type_line": ident.type_line,
+        "tapped": bool(card.tapped),
+        "pt": pt,
+        "counters": dict(card.counters),
+    }
+
+
+def world_snapshot(executor: Executor) -> dict[str, Any]:
+    """The full-state snapshot folded into every action entry.
+
+    THE SAME DUMPS the :meth:`Executor.state_fingerprint` hashes, written
+    out as JSON instead of into a sha256: per-player zones (hand REVEALED —
+    this is an audit tool), battlefield views, life, the stack frames
+    bottom→top, and the replayed-state ledgers. Full snapshots land only
+    on action entries, which bounds a 60-turn game file at well under the
+    5 MB budget.
+    """
+    world = executor.world
+    players: list[dict[str, Any]] = []
+    for seat in world.player_order:
+        player = world.players[seat]
+        bf = [_card_view(world, h) for h in player.zone(ZONE_BATTLEFIELD).entries]
+        hand = [_card_view(world, h) for h in player.zone(ZONE_HAND).entries]
+        players.append(
+            {
+                "seat": player.seat,
+                "handle": str(seat),
+                "name": player.name,
+                "life": player.life,
+                "mana": {str(k): v for k, v in player.mana_pool.items()},
+                "battlefield": bf,
+                "hand": hand,
+                "library": len(player.zone(ZONE_LIBRARY).entries),
+                "graveyard": [
+                    c["name"]
+                    for c in (
+                        _card_view(world, h) for h in player.zone("graveyard").entries
+                    )
+                ],
+                "exile": [
+                    c["name"]
+                    for c in (
+                        _card_view(world, h) for h in player.zone("exile").entries
+                    )
+                ],
+                "command": len(player.zone("command").entries),
+            }
+        )
+    stack = [
+        {
+            "handle": str(f.handle),
+            "name": world.cards[f.handle].identity.name
+            if f.handle in world.cards
+            else str(f.handle),
+            "controller": str(f.controller),
+            "kind": f.spell_kind,
+            "x": f.x_value,
+            "targets": [game_name(world, h) for h in f.declared_targets],
+            "modes": list(f.mode_choices),
+        }
+        for f in executor.stack.frames
+    ]
+    return {
+        "turn": world.turn,
+        "phase": executor.phase,
+        "active": str(world.active_player) if world.active_player else None,
+        "players": players,
+        "stack": stack,
+        "ledger": [repr(row) for row in executor.ledger.dump()],
+        "stack_dump": [repr(row) for row in executor.stack.dump()],
+        "land_plays": {str(seat): list(v) for seat, v in executor.land_ledger.items()},
+    }
+
+
+def game_name(world: GameWorld, handle: object) -> str:
+    """Human-readable name for a handle string or Handle (viewer labels)."""
+    if isinstance(handle, str) and ":" in handle:
+        namespace, _, index = handle.partition(":")
+        if namespace == "card":
+            try:
+                parsed = Handle("card", int(index))
+            except ValueError:  # pragma: no cover - dump() writes ns:int
+                return handle
+            card = world.cards.get(parsed)
+            if card is not None:
+                return f"{card.identity.name} ({handle})"
+    return str(handle)
+
+
+class TraceRecorder:
+    """Ordered per-game trace export for the replay viewer (additive only:
+    every hook is a list append on a completed action — no engine read is
+    reordered and no rng stream is touched, so the fingerprint of a traced
+    game equals the fingerprint of the untraced one).
+
+    Entries merge, in order: (a) policy action starts, (b) decision asks
+    captured at the ask-time provider (with the EXACT vocabulary the engine
+    asked with — the candidate list), (c) journal event rows, plus a full
+    state snapshot after every action.
+    """
+
+    def __init__(
+        self,
+        supply: Supply,
+        decks: tuple[tuple[str, ...], ...],
+        turn_cap: int,
+    ) -> None:
+        self.supply = supply
+        self.decks = decks
+        self.turn_cap = turn_cap
+        self.game: Game | None = None
+        self.entries: list[dict[str, Any]] = []
+        self.libraries: dict[str, list[dict[str, str]]] = {}
+        self._pending: list[dict[str, Any]] = []
+        self._journal_pos = 0
+        self._ask_pos = 0
+
+    # -- installation ----------------------------------------------------
+    def attach(self, game: Game) -> None:
+        self.game = game
+        self._journal_pos = len(game.executor.journal.dump())
+        self._ask_pos = len(game.executor.decisions.ask_log)
+
+    def wrap(self, answer: Any) -> Any:
+        """Provider-lane recorder: logs (vocab, what, answer) at the ask.
+
+        Pool/FIFO-lane asks never reach a provider; they are caught by the
+        ask_log diff in :meth:`_decision_lanes_check` instead (none occur
+        on this harness's path, but the count check makes that measured,
+        not assumed)."""
+
+        def provider(vocab: tuple[str, ...], what: str) -> str:
+            out = answer(vocab, what)
+            self._pending.append(
+                {
+                    "type": "decision",
+                    "vocab": list(vocab),
+                    "what": what,
+                    "candidates": list(vocab),
+                    "answer": out,
+                }
+            )
+            return out
+
+        return provider
+
+    # -- capture sites ----------------------------------------------------
+    def note_library(self, world: GameWorld, seat: Handle) -> None:
+        """Library order at game start, per seat (post-shuffle, pre-draw)."""
+        self.libraries[str(seat)] = [
+            {
+                "handle": str(h),
+                "name": world.cards[h].identity.name,
+                "oracle_id": world.cards[h].identity.oracle_id,
+            }
+            for h in world.players[seat].zone(ZONE_LIBRARY).entries
+        ]
+
+    def record_turn(self, seat: Handle) -> None:
+        assert self.game is not None
+        world = self.game.world
+        self.entries.append(
+            {
+                "type": "turn",
+                "turn": world.turn,
+                "seat": world.player_order.index(seat),
+                "phase": self.game.executor.phase,
+            }
+        )
+
+    def record_action(
+        self,
+        actor: Handle,
+        kind: str,
+        card: str,
+        handle: Handle,
+        targets: tuple[Handle, ...],
+        detail: str = "",
+    ) -> None:
+        assert self.game is not None
+        game = self.game
+        world = game.world
+        ident = world.cards[handle].identity if handle in world.cards else None
+        self.entries.append(
+            {
+                "type": "action",
+                "turn": world.turn,
+                "phase": game.executor.phase,
+                "seat": world.player_order.index(actor),
+                "kind": kind,
+                "card": card,
+                "handle": str(handle),
+                "oracle_id": ident.oracle_id if ident else None,
+                "targets": [str(t) for t in targets],
+                "target_names": [game_name(world, t) for t in targets],
+                "detail": detail,
+            }
+        )
+        self._drain_lanes()
+        entry = self.entries[-1]
+        entry["snapshot"] = world_snapshot(game.executor)
+
+    # -- between-entry merge ----------------------------------------------
+    def _drain_lanes(self) -> None:
+        assert self.game is not None
+        game = self.game
+        world = game.world
+        self.entries.extend(self._pending)
+        self._pending = []
+        rows = game.executor.journal.dump()
+        for clock, kind, subject, cause, verb, data in rows[self._journal_pos :]:
+            self.entries.append(
+                {
+                    "type": "event",
+                    "clock": clock,
+                    "kind": kind,
+                    "subject": game_name(world, subject),
+                    "cause": game_name(world, cause),
+                    "verb": verb,
+                    "data": data,
+                }
+            )
+        self._journal_pos = len(rows)
+        self._ask_pos = len(game.executor.decisions.ask_log)
+
+    def finalise(self, outcome: GameOutcome) -> dict[str, Any]:
+        """Flush trailing lanes and assemble the whole game document."""
+        assert self.game is not None
+        game = self.game
+        self._drain_lanes()
+        decklists = []
+        for i, deck in enumerate(self.decks):
+            counts: dict[str, int] = {}
+            for oid in deck:
+                counts[oid] = counts.get(oid, 0) + 1
+            decklists.append(
+                {
+                    "player": i,
+                    "cards": [
+                        {
+                            "name": self.supply.metas[oid].name,
+                            "oracle_id": oid,
+                            "count": n,
+                        }
+                        for oid, n in sorted(
+                            counts.items(), key=lambda kv: self.supply.metas[kv[0]].name
+                        )
+                    ],
+                }
+            )
+        return {
+            "seed": game.seed,
+            "pool": game.pool_mode,
+            "turn_cap": self.turn_cap,
+            "determinism": "fully seeded: deck deal, shuffle (engine verb), "
+            "policy rng and the ask-time decision provider all derive from "
+            "this one seed — replaying the seed replays every decision",
+            "decklists": decklists,
+            "libraries": self.libraries,
+            "outcome": {
+                "reason": outcome.reason,
+                "survived": outcome.survived,
+                "turns": outcome.turns,
+                "acts": outcome.acts,
+                "fingerprint": outcome.fingerprint,
+            },
+            "final_snapshot": world_snapshot(game.executor),
+            "entries": self.entries,
+        }
+
+
 # ---------------------------------------------------------------- game runner
 @dataclass
 class Game:
@@ -641,6 +948,9 @@ class Game:
     # name the card at fault, because the raise usually happens BEFORE the act
     # is logged (during target enumeration, or inside the op itself).
     attempted: str = ""
+    # 14g: optional trace recorder (export-only; None keeps every historical
+    # game byte-identical — the hooks below are guarded on this field).
+    trace: TraceRecorder | None = None
 
     @property
     def world(self) -> GameWorld:
@@ -688,7 +998,12 @@ class Game:
         return "draw from empty library (CR 121.3)"
 
 
-def _setup_game(seed: int, supply: Supply, decks: tuple[tuple[str, ...], ...]) -> Game:
+def _setup_game(
+    seed: int,
+    supply: Supply,
+    decks: tuple[tuple[str, ...], ...],
+    trace: TraceRecorder | None = None,
+) -> Game:
     world = GameWorld(num_players=2, start_life=20, master_seed=seed)
     executor = Executor(world)
     executor.attach_pool(
@@ -696,6 +1011,8 @@ def _setup_game(seed: int, supply: Supply, decks: tuple[tuple[str, ...], ...]) -
     )  # oracle-id bridge: everything later attaches by it
     for seat, deck in zip(world.player_order, decks, strict=True):
         shuffled_library(executor, seat, deck)
+        if trace is not None:
+            trace.note_library(world, seat)  # pre-draw order, engine shuffle
         # Pre-game setup (CR 103.4) goes straight through GameWorld.draw: no
         # permanent is on the battlefield to miss a CARD_DRAWN event, and the
         # DRAW verb is a game action the skeleton now owns.
@@ -809,6 +1126,7 @@ def play_game(
     turn_cap: int = TURN_CAP,
     supply: Supply | None = None,
     raise_on_crash: bool = False,
+    trace_path: Path | str | None = None,
 ) -> GameOutcome:
     """One seeded game.
 
@@ -820,7 +1138,13 @@ def play_game(
     """
     supply = supply or get_supply(pool_mode)
     decks = deal_decks(seed, deck_pairs_seed, supply)
-    game = _setup_game(seed, supply, decks)
+    # 14g trace: created BEFORE setup so it can note the pre-draw library
+    # order; attach() right after so journal/ask baselines start at zero.
+    recorder = TraceRecorder(supply, decks, turn_cap) if trace_path else None
+    game = _setup_game(seed, supply, decks, trace=recorder)
+    if recorder is not None:
+        recorder.attach(game)
+        game.trace = recorder
     outcome = GameOutcome(
         seed=seed,
         pool_mode=pool_mode,
@@ -828,6 +1152,12 @@ def play_game(
         deck_b=_deck_label(decks[1], supply),
     )
     policy = RandomPolicy(seed)
+    if recorder is not None:
+        # _play registers ``policy.answer`` as the ask-time provider;
+        # masking the instance attribute with the recorder's wrapper lets
+        # the trace capture (vocab, what, answer) at every ask WITHOUT
+        # changing what answer() does (the wrapper is transparent).
+        policy.answer = recorder.wrap(policy.answer)
     order = game.world.player_order
     repro = repro_command(seed, pool_mode, deck_pairs_seed, turn_cap)
     try:
@@ -848,6 +1178,12 @@ def play_game(
     outcome.infeasible_skips = game.infeasible_skips
     outcome.player_target_designations = game.player_target_designations
     outcome.survived = game.turns >= turn_cap
+    if recorder is not None:
+        path = Path(trace_path)  # type: ignore[arg-type]
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            json.dumps(recorder.finalise(outcome), default=str), encoding="utf-8"
+        )
     return outcome
 
 
@@ -948,6 +1284,7 @@ def run_games(
     deck_pairs_seed: int = 1409,
     turn_cap: int = TURN_CAP,
     supply: Supply | None = None,
+    trace_dir: Path | str | None = None,
 ) -> dict[str, Any]:
     """The PC-7 v1 measurement: ``n_seeds`` games on one pool.
 
@@ -957,8 +1294,20 @@ def run_games(
     against the 286 engine-supported set. ``crashes`` collapses by exception +
     frame, so fifty seeds with one root cause become one ledger row."""
     supply = supply or get_supply(pool_mode)
+    trace_root = Path(trace_dir) if trace_dir else None
+    if trace_root is not None:
+        trace_root.mkdir(parents=True, exist_ok=True)
     outcomes = [
-        play_game(seed, pool_mode, deck_pairs_seed, turn_cap, supply=supply)
+        play_game(
+            seed,
+            pool_mode,
+            deck_pairs_seed,
+            turn_cap,
+            supply=supply,
+            trace_path=None
+            if trace_root is None
+            else trace_root / f"game_{pool_mode}_s{seed}.json",
+        )
         for seed in range(n_seeds)
     ]
     return summarise(outcomes, supply, turn_cap)
@@ -1111,6 +1460,13 @@ def main(argv: list[str] | None = None) -> int:
         help="replay one seed and let the crash raise",
     )
     parser.add_argument("--out", default=None, help="report JSON path")
+    parser.add_argument(
+        "--trace",
+        default=None,
+        metavar="DIR",
+        help="write a per-game replay trace JSON (game_<pool>_s<seed>.json) "
+        "into DIR — full snapshots after every action, for the viewer",
+    )
     args = parser.parse_args(argv)
 
     if args.repro is not None:
@@ -1124,7 +1480,13 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     started = time.perf_counter()
-    stats = run_games(args.seeds, args.pool, args.deck_pairs_seed, args.turns)
+    stats = run_games(
+        args.seeds,
+        args.pool,
+        args.deck_pairs_seed,
+        args.turns,
+        trace_dir=args.trace,
+    )
     stats["wall_seconds"] = round(time.perf_counter() - started, 2)
     print(format_table(stats))
 
