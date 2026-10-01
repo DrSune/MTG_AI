@@ -5,6 +5,51 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-10-01 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.241 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **297/305** (0.9738) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 45 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-10-01 (r19b — wave-2 fix-B gates)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| scenario suite | **140/140** | `.venv/bin/python tools/run_scenarios.py` | 131 at fix-A close + 9 wave-2b promotions (turn_to_slag, sparkhunter_masticore, thrill_of_possibility, scorching_dragonfire, discontinuity, sanguine_indulgence, volcanic_salvo, track_down, see_the_truth) |
+| core unit tests | **2152 passed + 4 subtests, 0 failed** | `.venv/bin/python -m pytest MTG_bot/core -q` | 2134 baseline + 18 new `test_executor_r19b.py` |
+| suspects ledger | **13 remain** (12 FAIL + 1 PASS) | `.venv/bin/python tools/run_scenarios.py --dir tools/audit/suspects` | 9 fixed+promoted this batch; 4 STOP (secure_the_scene, tampering_no_block, transmogrify, capture_sphere); 9 DEFER-19c cast-lane |
+| trace divergence | **0/10 seeds** | `.venv/bin/python tools/traces/catalog.py compare` | after r19b repin (3 seeds diverged pre-repin, all attributed: 2× Discontinuity END_TURN-exile digest, 1× bottom-put reorder surfacing at a later draw) |
+| PC-1…PC-4 | **301/305 · 634/639 · 0 · 0** | `.venv/bin/python tools/measure_grammar.py --with-engine-flags` | byte-identical to T5/fix-A rows (compiler untouched); PC-6/PC-8 pre-existing FAILs unchanged |
+| pyright (touched files) | **0 errors** | `pyright MTG_bot/core/executor/{__init__,legality,quantity,replacements,selectors,stack,verbs}.py MTG_bot/core/test_executor_r19b.py` | executor fix surface clean |
+
+## 2026-10-01 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.241 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **297/305** (0.9738) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 45 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
 ## 2026-10-01 (r19a — wave-2 fix-A gates)
 
 | Number | Value | Command | Notes |

@@ -24,6 +24,9 @@ from MTG_bot.core.ability_tree import (
     Atom,
     ControllerRef,
     FAnd,
+    FAtom,
+    FNot,
+    FOr,
     Quantity,
     QUnbounded,
     Selector,
@@ -243,6 +246,7 @@ def resolve_selector(sel: Selector, ctx: ExecCtx) -> list[Handle]:
     can answer RAISES (never a default); an empty ONE_OF population
     chooses nothing (C17 clamp).
     """
+    partition_window: list[Handle] | None = None
     if sel.referent is not None:
         if sel.referent in ("source", "controller"):
             candidates = [ctx.source if sel.referent == "source" else ctx.controller]
@@ -281,6 +285,33 @@ def resolve_selector(sel: Selector, ctx: ExecCtx) -> list[Handle]:
         candidates = list(enumerate_zone(ctx, sel.zone))
         for extra in sel.zones:
             candidates.extend(enumerate_zone(ctx, extra))
+        if (
+            sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST)
+            and sel.zone.kind is ZoneKind.LIBRARY
+            and sel.zone.position is ZonePosition.TOP
+        ):
+            # r19b (See the Truth): "Look at the top three…. Put ONE OF
+            # THOSE cards into your hand" — the partition population is the
+            # LOOKED-AT window, not the zone's single top card (TOP
+            # enumeration answers one, which made the ONE_OF ask auto-fire
+            # and the REST re-search hoover the whole pile). The ONE_OF
+            # stashes its windowed candidates in ctx.one_of_window (the
+            # sibling REST's anchor — run_atom closes the raw window at the
+            # ONE_OF atom's completion, before REST resolves). Cards that
+            # left the library between the look and the partition drop out;
+            # the Selector's filter still applies below.
+            win = ctx.look_window or (
+                ctx.one_of_window if sel.mode is SelectorMode.REST else ()
+            )
+            if win:
+                for player in players_for_ref(sel.zone.controller, ctx):
+                    live = set(ctx.world.players[player].zone(ZONE_LIBRARY).entries)
+                    partition_window = [h for h in win if h in live]
+                    break
+                if partition_window is not None:
+                    candidates = list(partition_window)
+    if partition_window is not None and sel.mode is SelectorMode.ONE_OF:
+        ctx.one_of_window = tuple(partition_window)
     candidates = [h for h in candidates if eval_filter(sel.filter, h, ctx)]
     if sel.mode is SelectorMode.ALL:
         return candidates  # zone order — designated order-preserving slot
@@ -369,6 +400,22 @@ def resolve_selector(sel: Selector, ctx: ExecCtx) -> list[Handle]:
     )
 
 
+def _filter_has_referent(filter_: object) -> bool:
+    """r19b (Turn to Slag): True when a Filter tree carries its own object
+    anaphora — an ``FAtom.referent`` (the closed _QPROP_STR_REFERENTS
+    strings) the atom resolves itself. role_handles' population exemption
+    keys on exactly this: an ALL selector whose filter says "attached to
+    TARGET" denotes a population computed from the designation, not the
+    designation itself."""
+    if isinstance(filter_, FAtom):
+        return filter_.referent is not None
+    if isinstance(filter_, (FAnd, FOr)):
+        return any(_filter_has_referent(c) for c in filter_.children)
+    if isinstance(filter_, FNot):
+        return _filter_has_referent(filter_.inner)
+    return False
+
+
 # ---------------------------------------------------------------- role readers
 
 
@@ -383,6 +430,22 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
     OPPONENT under that binding and fed a player handle to ``controller_
     of``). A referent-less Selector stays binding-first (the 12a
     designation convention, ``_binding_atom`` payments included).
+
+    r19b (Turn to Slag): a THIRD self-resolving shape — an ALL-mode
+    Selector whose FILTER carries its own referent anaphora (IS_ATTACHED_
+    TO's "attached to target") denotes a population the atom resolves
+    itself, and the spell's designation under a shared role name must not
+    hijack it. Turn to Slag's DESTROY carries ``ALL BATTLEFIELD
+    (Equipment AND attached to target)`` under the ``target`` role;
+    binding-first made it destroy the DESIGNATED creature (which survives
+    the 5 damage) and leave the attached Equipment standing — the exact
+    silent-semantics shape. The exemption stays NARROW: a referent-less
+    ALL Selector keeps binding-first, because the engine's own unit-test
+    idiom (and the 12a ``_binding_atom`` payments) drives designation
+    effects as ``all_bf()`` + a binding (test_detach_on_leave's EXILE);
+    a bare ALL population with no anaphora has nothing to resolve
+    against, so it is NOT evidence of population intent. TARGET mode
+    remains the designation lane (CR 601.2c, B-15).
     """
     bound = ctx.binding_handles(role)
     value = atom.args.get(role)
@@ -393,7 +456,14 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
     # Taunter's echo would mark the damage source instead of its player.
     # Same shape as the B-16 anaphoric exemption: the Selector knows best.
     player_side = isinstance(value, Selector) and value.zone.kind is (ZoneKind.PLAYER)
-    if bound is not None and not anaphoric and not player_side:
+    # r19b: an ALL-mode Selector with referent-anaphora in its filter
+    # denotes its own resolved population (Turn to Slag above).
+    population = (
+        isinstance(value, Selector)
+        and value.mode is SelectorMode.ALL
+        and _filter_has_referent(value.filter)
+    )
+    if bound is not None and not anaphoric and not player_side and not population:
         return bound
     if isinstance(value, Selector):
         return sorted(resolve_selector(value, ctx))

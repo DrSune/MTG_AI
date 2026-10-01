@@ -993,10 +993,15 @@ class Round14cFixTest(unittest.TestCase):
             with self.assertRaises(NotImplementedError) as cm:
                 eval_filter(filt, card, bare)
             self.assertIn(filt.pred.name, str(cm.exception))
-        # a vocab member 14d did NOT implement (games never demanded it)
+        # a vocab member STILL unimplemented (games never demanded it).
+        # r19b AMENDMENT: TURN_OF moved out of this role — Discontinuity's
+        # cost window made the grammar demand it, and it answers from the
+        # active-seat column (no journal), so a bare ctx cannot keep it
+        # loud; its regression lives in test_executor_r19b. TARGETS_SOURCE
+        # is the same-shaped honest raise (no slot, no implementation).
         with self.assertRaises(NotImplementedError) as cm:
-            eval_filter(FAtom(FAtomPred.TURN_OF, who=ControllerRef.YOU), card, bare)
-        self.assertIn("TURN_OF", str(cm.exception))
+            eval_filter(FAtom(FAtomPred.TARGETS_SOURCE), card, bare)
+        self.assertIn("TARGETS_SOURCE", str(cm.exception))
 
     def test_new_zone_stack_runtime_enumeration_raises(self) -> None:
         """B-19 — FIXED 14d. AMENDED 14d (was: an Unsubstantiate-shape

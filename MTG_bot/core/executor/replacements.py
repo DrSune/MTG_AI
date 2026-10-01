@@ -50,6 +50,7 @@ from MTG_bot.core.ability_tree import (
     BecomesBlockedEvent,
     CombatDamageEvent,
     ControllerRef,
+    CreatureDiesEvent,
     DamageDealtEvent,
     DeclareAttackersEvent,
     DeclareBlockersEvent,
@@ -106,6 +107,14 @@ class ReplacementRecord:
     duration: Duration | None = None
     condition: Filter | None = None
     status: str = "live"  # live | dormant | expired
+    # r19b (Scorching Dragonfire): the cast's designation snapshot, taken
+    # when a SPELL-sourced (Eot) record registers. The record outlives the
+    # resolution's ExecCtx, but its event filter (IS_ANY_TARGET "that
+    # creature") still MEANS the designation — the PreventionRecord
+    # ``_rec_ctx`` convention, extended to the replacement lane so the
+    # dies window stays scoped to the object the spell named (CR 614.1:
+    # the replacement applies to the event it was set up for).
+    designated: tuple[Handle, ...] = ()
 
 
 @dataclass
@@ -178,7 +187,11 @@ class ReplacementRegistry:
         return expired
 
     def register_ephemeral_replacements(
-        self, source: Handle, controller: Handle, record: CardRecord
+        self,
+        source: Handle,
+        controller: Handle,
+        record: CardRecord,
+        designated: tuple[Handle, ...] = (),
     ) -> int:
         """r19a (Life Goes On): a RESOLVING INSTANT/SORCERY's ReplacementAbility
         nodes. A spell never attaches (it hits the graveyard), so the
@@ -204,6 +217,9 @@ class ReplacementRegistry:
                         controller=controller,
                         event=node.event,
                         action=node.action,
+                        designated=designated,  # r19b Scorching: the cast's
+                        # designation rides the record — the dies window must
+                        # stay scoped to the object the spell named (CR 614.1)
                     )
                 )
                 count += 1
@@ -361,6 +377,45 @@ class ReplacementRegistry:
                 continue
             rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
             if not self._condition_holds(rec, player, rec_ctx):
+                continue
+            return rec
+        return None
+
+    def replacement_for_death(
+        self, card: Handle, replaced_seq: frozenset[int] = frozenset()
+    ) -> ReplacementRecord | None:
+        """r19b (Scorching Dragonfire): the state-check interceptor for a
+        CREATURE-DIES event — the die lane mirrors the damage/life hooks
+        (C24 replacement-before-apply): the SBA loop consults this BEFORE
+        moving the creature to the graveyard, and a match consumes the
+        death (no graveyard move, no CREATURE_DIES journal row — see the
+        documented v1 gap in __init__.py's state-check drain).
+
+        CONTROLLER RULE as in the other lanes: every predicate is judged
+        in the RECORD's coordinates (the ``_rec_ctx`` convention). The
+        spell-sourced record's anaphora ("that creature" — IS_ANY_TARGET)
+        reads the designation snapshot the record carries, and the dead
+        card is bound as ``event`` so the replacement's ACTION (EXILE
+        referent=event) resolves. A Permanent-sourced record must still be
+        on the battlefield; the Eot half is exempt (the spell has
+        resolved). The CR 614.4a chain guard rides ``replaced_seq``."""
+        for rec in sorted(self.replacements, key=lambda r: r.seq):
+            event = rec.event
+            if not isinstance(event, CreatureDiesEvent):
+                continue
+            if rec.status != "live" or rec.seq in replaced_seq:
+                continue
+            if rec.tag == "Permanent" and not self._source_alive(rec.source):
+                continue
+            rec_ctx = self.executor._ctx(
+                source=rec.source,
+                controller=rec.controller,
+                bindings={"target": list(rec.designated), "event": [card]},
+                decisions=(),
+            )
+            if not eval_filter(event.filter, card, rec_ctx):
+                continue
+            if not self._condition_holds(rec, card, rec_ctx):
                 continue
             return rec
         return None

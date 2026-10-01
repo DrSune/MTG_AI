@@ -595,7 +595,8 @@ class Executor:
         the executor's vocabulary-addressed stream (14b). OptionalEffect
         asks the query-narrowed offer vocab (``fire``/``skip``), Seq runs
         its steps, Conditional judges the pred against the *source*
-        handle, Choose (12d: ONE decision token = the index of the chosen
+        handle (r19b: or the previous sentence's revealed card when a
+        look window is open), Choose (12d: ONE decision token = the index of the chosen
         option-set in ``query.choose_options`` order), EachPlayer (14f:
         one sub-execution per denoted player, controller rotated — the
         inner effect is compiled YOU-relative, so the rotation IS the
@@ -706,7 +707,16 @@ class Executor:
             if ctx.take_decision(offer, f"may:{ctx.source}") == "fire":
                 self._run_effect(effect.inner, ctx)
         elif isinstance(effect, Conditional):
-            if eval_filter(effect.pred, ctx.source, ctx):
+            # r19b (Track Down): the compiler's sentence convention
+            # (templates_b5b _build_if_it_type_then: "Conditional whose
+            # subject is the previous sentence's revealed card") — when the
+            # preceding atom was a LOOK_AT/REVEAL, the pred judges the
+            # revealed card, not the ability source (whose types could
+            # never match "is a creature or land" and silently killed the
+            # DRAW tail). run_atom cleared the window on every other verb,
+            # so every bare Conditional keeps the ctx.source subject.
+            subj = ctx.look_window[0] if ctx.look_window else ctx.source
+            if eval_filter(effect.pred, subj, ctx):
                 self._run_effect(effect.then_effect, ctx)
             elif effect.else_effect is not None:
                 self._run_effect(effect.else_effect, ctx)
@@ -940,7 +950,26 @@ class Executor:
                 return fired
             before = self.journal.snapshot()
             start = len(self.events)
+            # r19b (Scorching Dragonfire): dies-window replacements consult
+            # BEFORE the graveyard move (C24 replacement-before-apply, the
+            # die-lane twin of the damage/life hooks in verbs.py). A matched
+            # death is NOT moved — the record's ACTION (the exile) runs as
+            # its own journalled atom in this iteration's drain below.
+            # v1 GAP (documented): the consumed death emits no
+            # BATTLEFIELD->GRAVEYARD diff, so events.py's KIND_CREATURE_DIES
+            # never fires for a replaced death — dies-triggers stay silent
+            # for it (the real CR 614.8 reading differs; no corpus card's
+            # scenario depends on the pair yet, so this stays a flagged
+            # stand-in, never a fake CREATURE_DIES row).
+            replaced: list[tuple[Handle, ReplacementRecord]] = []
             for card in dying:
+                repl = self.replacements.replacement_for_death(card)
+                if repl is not None:
+                    replaced.append((card, repl))
+                    self.events.append(
+                        (len(self.events), "STATE_CHECK", str(card), "DIES_REPLACED")
+                    )
+                    continue
                 self.damage.pop(card, None)
                 self.damage_deathtouch.discard(card)
                 self.world.move_to_zone(
@@ -961,6 +990,21 @@ class Executor:
                 before, None, "STATE_CHECK", self.events[start:]
             )
             self._on_zone_changes(new_events)
+            # r19b: drain the consumed deaths — each replacement's ACTION is
+            # its OWN atom boundary (the _run_effect damage-lane pattern),
+            # with the CR 614.4a guard on the inner ctx and the dead card
+            # bound as the ``event`` referent its selector reads. The drain
+            # runs BEFORE the trigger drain so no firing sees a limbo
+            # creature still marked lethal on the battlefield.
+            for card, repl in replaced:
+                inner = self._ctx(
+                    source=repl.source,
+                    controller=repl.controller,
+                    bindings={"event": [card]},
+                    decisions=(),
+                )
+                inner.replaced_seq = frozenset({repl.seq})
+                self._run_effect(repl.action, inner)
             self.binder.on_events()
             fired += self.binder.fire_all()
 

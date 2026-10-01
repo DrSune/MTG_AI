@@ -26,9 +26,9 @@
    "real": "Track Down",
    "key": "sp",
    "decisions": [
-    "0",
-    "0",
-    "0"
+    "bottom",
+    "top",
+    "top"
    ]
   }
  ],

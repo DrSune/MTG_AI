@@ -135,6 +135,12 @@ class ExecCtx:
     # the zone); it matters for a same-zone split. Seq order pairs the
     # nearest preceding ONE_OF with its REST.
     one_of_pick: Handle | None = None
+    # r19b (See the Truth): the windowed candidate list a library-TOP
+    # ONE_OF partition resolved from — the sibling REST atom's population
+    # after run_atom has closed the raw look window at the ONE_OF atom's
+    # completion. Same lifetime and pairing rule as one_of_pick (Seq order
+    # pairs a REST with its nearest preceding ONE_OF).
+    one_of_window: tuple[Handle, ...] = ()
     # 12d: damage replacements consume the event and queue their ACTION;
     # the action runs AFTER the consuming atom's journal boundary (one diff
     # per mutation — no double-emitted events), by the executor's run_atom
@@ -151,6 +157,17 @@ class ExecCtx:
     # the Seq walker's pre-scan so the SEARCH atom knows its found cards
     # must stay put for the partition atoms to re-find.
     search_partition: bool = False
+    # r19b (Track Down / See the Truth): the cards LOOK_AT/REVEAL showed
+    # THIS resolution, top-first — the compiler's documented register
+    # convention for the following sentence (templates_b5b
+    # _build_if_it_type_then: "Conditional whose subject is the previous
+    # sentence's revealed card"). run_atom clears it before every verb that
+    # is not a look verb, so it survives exactly one sentence: the
+    # Conditional's subject rule and the library-TOP partition selectors
+    # ("put ONE OF [the looked-at cards] into your hand") read it, and a
+    # bare Conditional after any other atom keeps the old ctx.source
+    # subject, byte-unchanged. Empty (the default) everywhere else.
+    look_window: tuple[Handle, ...] = ()
 
     def take_decision(self, vocab: tuple[str, ...], what: str) -> str:
         """Consume the next decision for THIS demand site; raise when no
@@ -529,6 +546,54 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 "ExecCtx (bare ExecCtx has no attachment table)"
             )
         return ctx.executor.attachments.get(ctx.source) == handle
+    if pred is FAtomPred.IS_ATTACHED_TO:
+        # r19b (Turn to Slag, grammar round 7's R7-1): "attached to the
+        # REFERENT object" — the same attachment-table answer as
+        # IS_ATTACHED_TO_SOURCE, but the host arrives through the closed
+        # _QPROP_STR_REFERENTS anaphora instead of the hardcoded source.
+        # Direction of the lookup: ``table[the object] == host`` — the
+        # attachment is the KEY, the host the VALUE, which is exactly how
+        # attach_aura WRITES the table (attachments[aura] = host) and how
+        # the leave-detach sweep reads it (attachments.pop(card)). NOTE
+        # the 13c SOURCE twin above asks the mirrored shape
+        # (table[source] == handle); empirically the locked lanes
+        # (test_detach_on_leave, the aura-scope enumerate_candidates at
+        # legality.py:445) each require their own orientation, so this
+        # pred follows the WRITE direction — verified against the real
+        # attach edge (Turn to Slag) without touching the twin.
+        # The resolution mirrors
+        # resolve_selector's referent lane (selectors.py): source and
+        # controller are coordinates, "target" is the one designation
+        # (CR 601.2c), anything else is a binding under that name. A
+        # missing/ambiguous referent and a bare ExecCtx are flagged,
+        # never guessed (flag-not-degrade).
+        if ctx.executor is None:
+            raise ValueError(
+                "executor: IS_ATTACHED_TO needs an executor-backed "
+                "ExecCtx (bare ExecCtx has no attachment table)"
+            )
+        referent = atom.referent
+        if referent == "source":
+            host = ctx.source
+        elif referent == "controller":
+            host = ctx.controller
+        elif referent == "target":
+            bound = ctx.binding_handles("target")
+            if bound is None or len(bound) != 1:
+                raise ValueError(
+                    "executor: IS_ATTACHED_TO referent 'target' needs "
+                    f"exactly one designation, got {bound!r}"
+                )
+            host = bound[0]
+        else:
+            bound = ctx.binding_handles(referent or "")
+            if bound is None or len(bound) != 1:
+                raise ValueError(
+                    f"executor: IS_ATTACHED_TO referent {referent!r} has "
+                    "no single binding"
+                )
+            host = bound[0]
+        return ctx.executor.attachments.get(handle) == host
     if pred is FAtomPred.NAME_EQ:
         assert atom.string_value is not None
         return world.cards[handle].identity.name == atom.string_value
@@ -1059,6 +1124,76 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 if drawn >= threshold:
                     return True
         return drawn >= threshold
+    if pred is FAtomPred.LIFE_GAINED_THIS_TURN_GE:
+        # r19b (Sanguine Indulgence's CostModifier condition): the draw-
+        # clock twin over the 16c LIFE_GAINED rows — subject is the gaining
+        # player, payload the amount, journalled by the event-diff layer
+        # for EVERY life gain (verbs need not know the pred exists). The
+        # comparison is a SUM ("gained N or more life"), not a row count:
+        # two separate 2-life gains satisfy a threshold of 3.
+        from MTG_bot.core.executor.events import KIND_LIFE_GAINED
+        from MTG_bot.core.executor.selectors import players_for_ref
+
+        assert atom.count is not None
+        threshold = resolve(atom.count, ctx)
+        gainers: set[Handle] | None = None
+        if atom.who is not None:
+            if not isinstance(atom.who, ControllerRef):
+                raise NotImplementedError(
+                    "executor: LIFE_GAINED_THIS_TURN_GE with a Selector seat "
+                    "has no consumer (the corpus carries ControllerRef)"
+                )
+            gainers = set(players_for_ref(atom.who, ctx))
+        gained = 0
+        for row in _turn_rows(ctx, pred.name):
+            if row.kind != KIND_LIFE_GAINED:
+                continue
+            if gainers is None or row.subject in gainers:
+                gained += row.amount
+                if gained >= threshold:
+                    return True
+        return gained >= threshold
+    if pred is FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN:
+        # r19b (Stormwing Entity's CostModifier condition): scan the 13b
+        # CAST feed — payload column 3 carries the frozen SpellKind NAME
+        # (stack.emit_cast passes ``node.kind.name``), so the instant-or-
+        # sorcery family test is a row filter; WHO scopes the caster seat
+        # like the 14d history family.
+        from MTG_bot.core.executor.events import KIND_CAST
+        from MTG_bot.core.executor.selectors import controller_matches
+
+        assert atom.who is not None
+        if not isinstance(atom.who, ControllerRef):
+            raise NotImplementedError(
+                "executor: INSTANT_OR_SORCERY_CAST_THIS_TURN with a Selector "
+                "seat has no consumer (the corpus carries ControllerRef)"
+            )
+        for row in _turn_rows(ctx, pred.name):
+            if row.kind != KIND_CAST:
+                continue
+            caster, _ordinal, kind, _from, _x = row.cast
+            if kind in ("INSTANT", "SORCERY") and controller_matches(
+                atom.who, caster, ctx
+            ):
+                return True
+        return False
+    if pred is FAtomPred.TURN_OF:
+        # r19b (Discontinuity's your-turn cost window): the active-seat
+        # column answers directly — no journal read. WHO maps through the
+        # canonical controller_matches (YOU = my seat is active; OPPONENT
+        # = an opponent's seat is, which is how a "During your turn" gate
+        # reads False from the opponent's coordinates).
+        from MTG_bot.core.executor.selectors import controller_matches
+
+        assert atom.who is not None
+        if not isinstance(atom.who, ControllerRef):
+            raise NotImplementedError(
+                "executor: TURN_OF with a Selector seat has no consumer "
+                "(the corpus carries ControllerRef)"
+            )
+        if world.active_player is None:
+            return False
+        return controller_matches(atom.who, world.active_player, ctx)
     raise NotImplementedError(
         f"executor: filter pred {pred.name} not implemented (12c query surface)"
     )

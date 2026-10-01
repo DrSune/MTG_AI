@@ -61,6 +61,7 @@ from MTG_bot.core.executor.quantity import Binding
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
+    ZONE_EXILE,
     ZONE_GRAVEYARD,
     ZONE_STACK,
     GameWorld,
@@ -422,14 +423,27 @@ def cast(
         # effect runs lets the spell replace its own event. Eot-expired.
         registered = executor.binder.records.get(world.cards[handle].identity.oracle_id)
         if registered is not None:
+            # r19b (Scorching Dragonfire): the designation snapshot rides
+            # the record — the dies window outlives this ExecCtx, but its
+            # anaphora ("that creature") still MEANS this cast's targets.
             executor.replacements.register_ephemeral_replacements(
-                handle, seat, registered
+                handle, seat, registered, designated=tuple(chosen)
             )
     if not aura and node.effect is not None:  # effect-less castable creatures (T3 r3)
         executor._run_effect(node.effect, ctx)
     before_put = executor.journal.snapshot()
     start_put = len(executor.events)
     dest = ZONE_GRAVEYARD if node.kind not in _PERMANENT_KINDS else ZONE_BATTLEFIELD
+    if dest == ZONE_GRAVEYARD and executor.end_turn_requested:
+        # r19b (Discontinuity, CR 716.4a's self-exile clause): the grammar
+        # compiles "Take an extra turn after this one. Exile Discontinuity"
+        # as the single Atom(END_TURN) — the card-named exile has no slot
+        # of its own, so the extra-turn REQUEST itself is the witness:
+        # _v_end_turn (verbs.py) is the only setter of the flag, it fires
+        # from THIS spell's effect step just above, and the flag is not
+        # consumed until the op closes (_consume_end_turn), so no other
+        # spell's graveyard move can be re-routed by this branch.
+        dest = ZONE_EXILE
     world.move_to_zone(handle, seat, dest)
     executor.events.append(
         (len(executor.events), "SPELL_PUT", str(handle), f"stack->{dest}")

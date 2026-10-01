@@ -54,6 +54,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    ZonePosition,
 )
 from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.durations_min import duration_tag
@@ -147,12 +148,22 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
             return
         pool = [h for h in resolve_selector(sel, ctx) if h.namespace == "card"]
         cards = pool if partition else (pool[:n] if n else pool)
-    for card in cards:
+    # r19b (See the Truth): a destination Zone.position == BOTTOM means the
+    # cards land at the BOTTOM of the pile — move_card appends (top for a
+    # library / end of order) and no-ops on a same-zone move, so the
+    # bottom-put is completed here: each card is re-inserted at index 0,
+    # iterating Handle-DESCENDING so the final bottom run reads ascending
+    # (mirrors the scry canonical rule — doc-18a's sorted(bottoms)).
+    bottom_dest = dest_ir.position is ZonePosition.BOTTOM
+    for card in sorted(cards, reverse=True) if bottom_dest else cards:
         owner = ctx.world.controller_of(card)
         target_player = zone_owner(ctx, dest_ir, owner=owner)
         src = ctx.world.zone_of(card)
         zone = ctx.world.players[target_player].zone(dest_kind)
         ctx.world.move_card(card, zone)
+        if bottom_dest:
+            zone.entries.remove(card)
+            zone.entries.insert(0, card)
         if tapped_on_enter and dest_kind == ZONE_BATTLEFIELD:
             ctx.world.cards[card].tapped = True
         ctx.events.append(
@@ -823,10 +834,15 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
         # ENTIRE zone — the Cultivate compile idiom (REVEAL with an
         # unbounded count "counts" the searched library; the grammar's
         # documented inability to reference the found set).
-        seen = tuple(str(c) for c in reversed(lib.entries))
+        seen_cards = list(reversed(lib.entries))
     else:
         n = amount(ctx, atom, "count")
-        seen = tuple(str(c) for c in reversed(lib.entries[-n:])) if n else ()
+        seen_cards = list(reversed(lib.entries[-n:])) if n else []
+    # r19b: the look window — the handles shown, top-first, for the NEXT
+    # sentence (Conditional subject / library-TOP partition candidates).
+    # The event record stays the str view, byte-identical to pre-19b.
+    ctx.look_window = tuple(seen_cards)
+    seen = tuple(str(c) for c in seen_cards)
     ctx.events.append((len(ctx.events), atom.verb.name, str(player), seen))
 
 
@@ -1598,4 +1614,11 @@ def run_atom(atom: Atom, ctx: ExecCtx) -> None:
     handler = HANDLERS.get(atom.verb)
     if handler is None:
         raise NotImplementedError(f"executor: verb {atom.verb.name} not implemented")
+    # r19b: the look window is ONE sentence wide — a non-look verb runs
+    # with the window OPEN (it may consume it: the library-TOP partition
+    # idiom) and CLOSES it on completion, so a later Conditional after any
+    # other atom keeps the old ctx.source subject and a stale library
+    # window can never leak forward. A look verb keeps/refreshes it.
     handler(ctx, atom)
+    if atom.verb not in (Verb.LOOK_AT, Verb.REVEAL):
+        ctx.look_window = ()

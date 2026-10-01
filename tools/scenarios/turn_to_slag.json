@@ -56,6 +56,9 @@
    "sp": "graveyard",
    "v1": "battlefield",
    "eq": "graveyard"
+  },
+  "damage": {
+   "v1": 5
   }
  },
  "status": "suspect",

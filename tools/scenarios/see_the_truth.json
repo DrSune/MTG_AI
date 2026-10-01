@@ -24,7 +24,10 @@
   {
    "op": "cast",
    "real": "See the Truth",
-   "key": "sp"
+   "key": "sp",
+   "decisions": [
+    "card:6"
+   ]
   }
  ],
  "expect": {

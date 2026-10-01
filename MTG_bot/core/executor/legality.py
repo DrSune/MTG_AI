@@ -78,12 +78,18 @@ from MTG_bot.core.ability_tree import (
     AtomArgs,
     ControllerRef,
     Cost,
+    CostDeltaIncreaseGeneric,
+    CostDeltaIncreaseLife,
+    CostDeltaReduceGeneric,
+    CostDeltaReduceMana,
+    CostDeltaWaiveMana,
     CostDiscard,
     CostLife,
     CostLoyalty,
     CostManaColor,
     CostManaGeneric,
     CostManaHybrid,
+    CostModifier,
     CostPutCounter,
     CostSacrifice,
     CostTap,
@@ -412,6 +418,7 @@ def _zone_handles(ctx: ExecCtx, zone: Zone) -> list[Handle]:
 # Local mirror of selectors.ZONE_KIND_TO_STATE (kept lazy-cycle-free; the
 # enum is frozen so the table cannot drift silently — a test pins it).
 from MTG_bot.core.executor.selectors import ZONE_KIND_TO_STATE as _STATE_KIND
+from MTG_bot.core.executor.selectors import controller_matches
 
 
 def enumerate_candidates(sel: Selector, ctx: ExecCtx) -> list[Handle]:
@@ -532,9 +539,99 @@ def build_payment_plan(
                 else:
                     remaining.pop(key, None)
 
+    # r19b (CR 601.2f): continuous :class:`CostModifier` nodes fold into
+    # the total cost BEFORE the payment arithmetic — Discontinuity's
+    # your-turn {2}{U} window, Sanguine Indulgence's gained-3 discount,
+    # Stormwing Entity's cast-triggered {2}{U}, Volcanic Salvo's SUM(POWER)
+    # fold. The scan is SPELL-LANE only (``mana_use`` is the spell being
+    # cast and IS the cost's source): activation lanes and bare PAY atoms
+    # have no total-cost step (CR 112.6b abilities pay their printed
+    # cost), so with no spell in play the arithmetic below is byte-
+    # identical to the pre-r19b plan. Modifiers are read from the casting
+    # spell's OWN record plus every battlefield permanent's record (both
+    # armies — Watcher of the Spheres discounts through the permanent's
+    # controller, not the spell's owner); each modifier's filter, payer
+    # scope and condition judge the CASTING SPELL in the MODIFIER CARD's
+    # coordinates, exactly like a static trigger's filter reads the world
+    # from its source's seat. Deltas sum additively, increases first and
+    # reductions second (CR 601.2f's order), every component clamped at
+    # zero — a discount never spills across colour or kind. Amounts
+    # resolve in the modifier's coordinates, which is what Volcanic
+    # Salvo's QProp (total power of ITS controller's creatures) requires.
+    # ``CostDeltaWaiveMana`` is skipped by design, not by oversight: the
+    # waiver is a PERMISSION the caster MAY take ("you may cast … without
+    # paying its mana cost"), and paying the printed cost is always a
+    # legal play the fold may conservatively plan.
+    color_add: dict[str, int] = {}
+    color_cut: dict[str, int] = {}
+    generic_add = 0
+    generic_cut = 0
+    extra_life = 0
+    if (
+        ex is not None
+        and mana_use is not None
+        and mana_use == ctx.source
+        and mana_use.namespace == "card"
+    ):
+        mod_hosts: list[Handle] = [mana_use]
+        for seat in world.player_order:
+            mod_hosts.extend(sorted(world.players[seat].zone(ZONE_BATTLEFIELD).entries))
+        for host in mod_hosts:
+            rec = ex.binder.handle_record.get(host)
+            if rec is None:
+                continue
+            mods = [n for n in rec.abilities if isinstance(n, CostModifier)]
+            if not mods:
+                continue
+            if host == mana_use:
+                mod_ctx = ctx  # the spell judges itself in its own seat
+            else:
+                mod_ctx = ex._ctx(
+                    source=host,
+                    controller=world.controller_of(host),
+                    bindings=dict(ctx.bindings),
+                    decisions=(),
+                    x_value=ctx.x_value,
+                )
+            for mod in mods:
+                if not eval_filter(mod.filter, mana_use, mod_ctx):
+                    continue
+                if not controller_matches(mod.controller_ref, ctx.controller, mod_ctx):
+                    continue
+                if mod.condition is not None and not eval_filter(
+                    mod.condition, mana_use, mod_ctx
+                ):
+                    continue
+                for delta in (mod.delta, *mod.extra_deltas):
+                    if isinstance(delta, CostDeltaReduceGeneric):
+                        generic_cut += resolve(delta.amount, mod_ctx)
+                    elif isinstance(delta, CostDeltaIncreaseGeneric):
+                        generic_add += resolve(delta.amount, mod_ctx)
+                    elif isinstance(delta, CostDeltaReduceMana):
+                        color_cut[delta.color] = color_cut.get(
+                            delta.color, 0
+                        ) + resolve(delta.amount, mod_ctx)
+                    elif isinstance(delta, CostDeltaIncreaseLife):
+                        extra_life += resolve(delta.amount, mod_ctx)
+                    elif isinstance(delta, CostDeltaWaiveMana):
+                        continue
+                    else:  # pragma: no cover - CostDelta is a closed union
+                        raise NotImplementedError(
+                            f"executor: cost delta {type(delta).__name__} "
+                            "not implemented"
+                        )
+
     for part in cost.parts:
         if isinstance(part, CostManaColor):
-            need = resolve(part.amount, ctx)
+            # r19b: the folded symbol window applies before the colour
+            # search — additive symbols first, the consumed share of the
+            # discount is DEPLETED here (min-clamped), so a {U} discount
+            # can never leak into a second symbol or another colour.
+            need = resolve(part.amount, ctx) + color_add.get(part.color, 0)
+            if color_cut.get(part.color, 0):
+                take = min(color_cut[part.color], need)
+                need -= take
+                color_cut[part.color] -= take
             have = remaining.get(part.color, 0) - spent.get(part.color, 0)
             if have >= need:
                 spent[part.color] = spent.get(part.color, 0) + need
@@ -591,6 +688,16 @@ def build_payment_plan(
             sacrifice.extend(cands[:need])
         elif isinstance(part, CostDiscard):
             cands = enumerate_candidates(part.target, ctx)
+            # r19b (Thrill of Possibility / Sparkhunter Masticore): the
+            # cast fold runs the plan while the spell is STILL in hand
+            # (stack.py pays, then parks), so the spell is a raw hand
+            # candidate — the Handle-sorted cands[:need] silently spent
+            # the cast on itself (Thrill's lowest handle). CR 601.2h
+            # forbids an object paying its own cast cost; the exclusion
+            # is lane-agnostic (every lane's ``source`` is the object
+            # owning the cost — the same reading CostTap's no-target
+            # "source itself" branch takes).
+            cands = [h for h in cands if h != ctx.source]
             need = _required_count(part.target.count, ctx)
             if len(cands) < need:
                 return None, (
@@ -662,6 +769,18 @@ def build_payment_plan(
             if chosen is None:
                 return None, f"cost:mana_hybrid:{colors}:{count} unpayable"
             spent[chosen] = spent.get(chosen, 0) + 1
+    # r19b: the folded window lands on the generic symbol after the loop
+    # (additions first, reductions second, CR 601.2f) — clamped at zero,
+    # so an over-reduction is WASTED, never a credit or a colour spill.
+    if generic_add or generic_cut:
+        generic_need = max(0, generic_need + generic_add - generic_cut)
+    if extra_life:
+        # CR 118.1b: added life is part of the total cost the payer must
+        # afford; re-run the CR 119.4 solvency test on the COMBINED bill
+        # (the in-loop CostLife branch only saw the printed part).
+        life += extra_life
+        if world.players[ctx.controller].life < life:
+            return None, f"cost:life:{world.players[ctx.controller].life}<{life}"
     # Generic mana draws from any remaining key in canonical order.
     if generic_need:
         pool_left = sum(remaining.get(k, 0) - spent.get(k, 0) for k in MANA_KEYS)
