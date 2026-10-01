@@ -3,7 +3,7 @@
   "life": 20,
   "seed": 7
  },
- "notes": "wave5a trigger/replacement cohort | printed: whenever you SACRIFICE a permanent, 1 damage to any target. Real driver: Hobblefiend's activated sacrifice cost (the fodder designation pre-binds through targets); the Jester trigger's designation answer comes from the decisions queue.",
+ "notes": "wave5a trigger/replacement cohort | printed: whenever you SACRIFICE a permanent, 1 damage to any target. Real driver: Hobblefiend's activated sacrifice cost. r22a: WHO the cost sacrifices is a vocabulary ask (sacrifice:<seat>:<source>, pool = your creatures, CR 701.14a) answered FIRST, then the Jester trigger's designation ask answers SECOND — the decisions queue runs in ask order: fod dies, beast burns. The targets field stays the folded move's effect-side designation feed.",
  "mana": {
   "0": {
    "C": 2
@@ -58,9 +58,10 @@
    "targets": [
     "fod"
    ],
-   "decisions": [
-    "beast"
-   ]
+    "decisions": [
+     "fod",
+     "beast"
+    ]
   }
  ],
  "expect": {

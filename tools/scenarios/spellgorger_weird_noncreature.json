@@ -11,7 +11,7 @@
   "steps": [
     { "op": "cast", "key": "sh", "targets": ["me"] },
     { "op": "cast", "key": "tg", "targets": ["me"] },
-    { "op": "cast", "key": "gor", "decisions": ["me"] }
+    { "op": "cast", "key": "gor", "decisions": ["w", "me"] }
   ],
   "expect": {
     "counters": { "w": { "PLUS_1_PLUS_1": 2 } },

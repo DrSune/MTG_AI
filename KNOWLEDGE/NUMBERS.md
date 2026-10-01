@@ -5,6 +5,34 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-10-02 (wave-5 fix batch A / r22a — own-dies law, sacrifice-vocab, designation gate)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| scenarios | **278/278** (274 + 4 promotions; havoc_jester + spellgorger re-scripted, asserts byte-unchanged) | `.venv/bin/python tools/run_scenarios.py` | own-dies law + sac-victim ask channel |
+| suspects | **1/21** fail-only as expected | `.venv/bin/python tools/run_scenarios.py --dir tools/audit/suspects` | conclave_mentor now fails ONLY the CounterPlacedEvent leg (22b) |
+| suite | **2249 passed + 3 subtests, 0 failed** (2239 + 10 new r22a pins) | `pytest MTG_bot/core -q` | pyright Δ0 (6 pre-existing), ruff Δ0 (2 pre-existing) |
+| CR 701.14a | sacrifice pool **controller-filtered** — was ANY-controller (opponent creatures sacrificable) | pinned: `test_executor_r22a.SacrificeVocabulary` | latent since bridge; masked by lowest-handle witness |
+| traces | **0/10 diverge — NO repin** | `.venv/bin/python tools/traces/catalog.py compare` | fixes never fire on the 10 trace seeds |
+| games | **0 crash classes / 100 seeds**; 86 survived, mean 57.69 turns | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all` | baseline band 85/57.4 — unchanged |
+| PC invariants | PC-1 301/305 · PC-2 634/639 · PC-3 0 · PC-4 0 **EXACT** | `.venv/bin/python tools/measure_grammar.py` | engine edits compile-neutral; see 2026-10-02 T5 section |
+
+## 2026-10-02 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.242 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
 ## 2026-10-01 (T5 — Phase-1 grammar measurement harness)
 
 | Number | Value | Command | Notes |

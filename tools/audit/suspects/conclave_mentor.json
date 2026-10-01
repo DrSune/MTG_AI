@@ -78,6 +78,6 @@
    "men": "graveyard"
   }
  },
- "status": "suspect",
- "finding": "silent (conclave_mentor). TWO gaps. (1) CounterPlacedEvent REPLACEMENT consumer missing: ReplacementRegistry hooks player-damage/life/death/zone-change only; CounterPlacedEvent has a TRIGGER feed (binding.py:718) but no replacement hook. Expected: Basri Ket +1 on Wolf under Conclave Mentor = TWO counters. Observed: {'PLUS_1_PLUS_1': 1}. (2) Mentor's dies->gain-life-equal-power is the SYSTEMATIC own-dies-trigger gap (see deathbloom_thallid). Expected life 22, observed 20."
+  "status": "suspect",
+  "finding": "silent (conclave_mentor). ONE gap remains after the r22a own-dies fix (binding.py CREATURE_DIES detach deferral): lane B (Mentor's dies -> gain life equal to power) now passes — life 22, graveyard asserted. (1) CounterPlacedEvent REPLACEMENT consumer still missing: ReplacementRegistry hooks player-damage/life/death/zone-change only; CounterPlacedEvent has a TRIGGER feed (binding.py:718) but no replacement hook. Expected: Basri Ket +1 on Wolf under Conclave Mentor = TWO counters. Observed: {'PLUS_1_PLUS_1': 1}. Wave 22b scope."
 }

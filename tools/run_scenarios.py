@@ -382,6 +382,13 @@ class ScenarioRunner:
             queues[f"trample:{self.handles[key]}"] = [str(a) for a in amounts]
         for key, word in step.get("policy", {}).items():
             answers[f"policy:{self.handles[key]}"] = word
+        # r22a: a combat step may also carry a generic ``decisions``
+        # script — the ordered words for asks the answer maps do not
+        # cover (a dies-trigger's TARGET designation now asks, since the
+        # own-dies fix). Popped ONLY for sites no map/queue claims, so
+        # the pre-existing combat packs (no decisions field) stay
+        # byte-identical.
+        script = list(step.get("decisions", ()))
 
         def answer(vocab, what):
             self.asks_seen.append((what, tuple(vocab)))
@@ -400,6 +407,10 @@ class ScenarioRunner:
                     if what == k or what.startswith(k + ":"):
                         got = q.pop(0) if q else vocab[0]
                         break
+            if got is None and script:
+                got = script.pop(0)
+                if got in self.handles:
+                    got = str(self.handles[got])
             if got is None:
                 if what.startswith("may:"):
                     got = "skip"
@@ -637,6 +648,10 @@ def run_pack(path: Path, supply) -> list[str]:
         runner = ScenarioRunner(pack, supply)
     except PackError as e:
         return [f"setup: {e}"]
+    except Exception as e:  # noqa: BLE001 — r22a: audit-dir robustness
+        # a pool/attach
+        # failure is that pack's result, not a crash of the whole sweep.
+        return [f"setup: {type(e).__name__}: {e}"]
     for step in pack["steps"]:
         try:
             runner.run_step(step)

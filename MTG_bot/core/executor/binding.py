@@ -287,6 +287,18 @@ class TriggerBinder:
         # CR 603.2 declare-dedup (which keys on id(node)) stable across the
         # rows of one declaration, and dies with the handle's detach.
         self._kw_nodes: dict[tuple[str, Handle], TriggeredAbility] = {}
+        # r22a (the self-dies law, /21 wave5a findings): a battlefield
+        # departure normally detaches the leaver's triggers on the
+        # ZONE_CHANGE journal row — but events.py:record_atom journals the
+        # card's CREATURE_DIES row IMMEDIATELY after that row (same diff
+        # iteration), and the dying permanent's own "when this dies"
+        # trigger must still be attached when the dies row is matched. A
+        # ZONE_CHANGE(bf→non-bf) whose very next journalled row is that
+        # card's CREATURE_DIES parks its handle here; :meth:`_lifecycle`
+        # runs the deferred detach at the dies row, after the match pass
+        # queued the firing. Non-death departures (bounce/exile/hand) have
+        # no dies row and detach on the spot, exactly as before.
+        self._pending_dies_detach: set[Handle] = set()
 
     # ------------------------------------------------------------ attach
 
@@ -564,8 +576,29 @@ class TriggerBinder:
                 ):
                     self._queue(entry.source, entry.controller, entry.node, event)
             self._lifecycle(event, attach=False)
+        # r22a defensive flush: record_atom always journalled the pair, so
+        # a pending handle should never outlive the pass. If a hand-built
+        # journal row (a test, or a future verb) ever splits the ZC/CD
+        # twins across drains, the invariant "a departed permanent is
+        # detached by the end of the pass" still holds.
+        for handle in sorted(self._pending_dies_detach):
+            self.detach(handle)
+        self._pending_dies_detach.clear()
 
     def _lifecycle(self, event: GameEvent, attach: bool) -> None:
+        if event.kind == KIND_CREATURE_DIES and not attach:
+            # r22a: the dies row was MATCHED above with the leaver still
+            # attached (the ZONE_CHANGE row deferred its detach here), so
+            # the dead card's own "when this dies" trigger queued its
+            # firing. The departure now runs — still BEFORE any
+            # resolution: firings drain in a later settle round, and
+            # detach_lki is read at RESOLUTION time (quantity.py), so
+            # the r20c LKI lane is untouched by the deferral.
+            handle = event.subject
+            if handle is not None and handle in self._pending_dies_detach:
+                self._pending_dies_detach.discard(handle)
+                self.detach(handle)
+            return
         if event.kind != KIND_ZONE_CHANGE or event.subject is None:
             return
         from_state, to_state = event.data[0], event.data[1]
@@ -578,7 +611,26 @@ class TriggerBinder:
                 ):
                     self._register(handle, record)
         elif from_state == ZONE_BATTLEFIELD and to_state != ZONE_BATTLEFIELD:
-            self.detach(handle)
+            # r22a: record_atom journalled this card's CREATURE_DIES row
+            # immediately after this row (same diff iteration) — defer the
+            # detach to it so the IS_SOURCE dies trigger is still attached
+            # when its own event is matched. Any other departure (bounce,
+            # exile, hand, or a graveyard move with no dies twin) detaches
+            # on the spot, exactly as before.
+            events = self.executor.journal.events
+            nxt = (
+                events[self._seen_journal_len]
+                if self._seen_journal_len < len(events)
+                else None
+            )
+            if (
+                nxt is not None
+                and nxt.kind == KIND_CREATURE_DIES
+                and nxt.subject == handle
+            ):
+                self._pending_dies_detach.add(handle)
+            else:
+                self.detach(handle)
 
     def _queue(
         self,
@@ -1056,7 +1108,11 @@ class TriggerBinder:
         # binds here; anything else the effect reads as target/TARGET_PLAYER
         # gets a real designation ask through the 14b channel.
         if ctx.bindings.get("target") is None:
-            if event.kind == KIND_CREATURE_DIES and event.subject is not None:
+            if (
+                event.kind == KIND_CREATURE_DIES
+                and event.subject is not None
+                and not self._trigger_designates_target(node)
+            ):
                 # 16a's twin: in a DIES firing the antecedent the frozen IR
                 # compiles to TARGET_PLAYER IS the dead creature — players
                 # _for_ref folds a card designation to its controller, so
@@ -1064,12 +1120,39 @@ class TriggerBinder:
                 # (the event's OWN filter scoped it to an opponent's creature
                 # when the card text says so). The event object is the
                 # honest antecedent, exactly the DAMAGE dealer ruling.
+                # r22a (Pitchburn Devils / Goblin Arsonist): the anaphora
+                # pre-bind is only the dead creature when the effect reads
+                # the anaphora. A printed "…to ANY target" carries a real
+                # TARGET Selector slot — CR 603.1 designates it through the
+                # 18b channel, and the pre-bind must never swallow the ask.
                 ctx.bindings["target"] = event.subject
             else:
                 self._designate(node, ctx)
         # The 12a shared effect runner — the SAME dispatch execute() uses,
         # journalled at its Atom boundaries by the Executor.
         self.executor._run_effect(node.effect, ctx)
+
+    @staticmethod
+    def _trigger_designates_target(node: _AnyTrigger) -> bool:
+        """r22a: does this trigger's effect carry a real TARGET designation
+        slot — a TARGET-mode Selector with no referent? Mirrors the
+        Selector collector in :meth:`_designate` (walk enters Optional-
+        /SeqEffect wrappers, so Goblin Arsonist's may-wrapped damage is
+        seen). A node that only reads the TARGET_PLAYER anaphora (Massacre
+        Wurm's "that player") answers False and keeps the 16a/18b dies
+        pre-bind in :meth:`_fire`; a printed "…to ANY target" (Pitchburn
+        Devils) answers True and routes to the designation ask."""
+        for inner in walk(node.effect):
+            if not isinstance(inner, Atom):
+                continue
+            for _role, value in inner.args.pairs:
+                if (
+                    isinstance(value, Selector)
+                    and value.mode is SelectorMode.TARGET
+                    and value.referent is None
+                ):
+                    return True
+        return False
 
     def _designate(self, node: _AnyTrigger, ctx: ExecCtx) -> None:
         """The 18b designation channel (CR 603.1, first PC-8 lift).

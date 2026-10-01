@@ -1,0 +1,53 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "wave5a cohort | printed: when this dies, you MAY have it deal 1 damage to ANY target. Combat death to a blocker; the dies trigger DESIGNATES FIRST (r22a own-dies fix: the leaver's own CREATURE_DIES row now reaches the binder; TARGET-mode trigger effects ask, no event-subject pre-bind), the combat script answers the designation, the may is taken via the combat answer map.",
+ "cards": [
+  {
+   "key": "ar",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Goblin Arsonist"
+  },
+  {
+   "key": "wall",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Wall",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5"
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "ar": true
+   },
+   "block": {
+    "wall": "ar"
+   },
+   "may": {
+    "ar": true
+   },
+   "decisions": [
+    "player:1"
+   ]
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ar": "graveyard"
+  },
+  "life": {
+   "1": 19
+  }
+ }
+}

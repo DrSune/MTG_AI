@@ -1,0 +1,52 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv",
+   "real": "Pitchburn Devils",
+   "controller": 0,
+   "zone": "battlefield"
+  },
+  {
+   "key": "bt",
+   "name": "Beater",
+   "controller": 0,
+   "power": "5",
+   "toughness": "5",
+   "type": "Creature",
+   "zone": "battlefield"
+  },
+  {
+   "key": "v",
+   "name": "Victim",
+   "controller": 1,
+   "power": "5",
+   "toughness": "5",
+   "type": "Creature",
+   "zone": "battlefield"
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "bt",
+   "target": "dv",
+   "amount": 5,
+   "decisions": [
+    "v"
+   ]
+  }
+ ],
+ "expect": {
+  "damage": {
+   "v": 3
+  },
+  "zone": {
+   "dv": "graveyard"
+  }
+ },
+ "notes": "Printed: 'When this creature dies, it deals 3 damage to any target.' The Beater's 5 damage kills the Devils; the dies trigger should ask for a target and leave 3 marks on the Victim."
+}

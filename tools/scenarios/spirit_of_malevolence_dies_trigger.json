@@ -40,7 +40,5 @@
    "dv": "graveyard"
   }
  },
- "notes": "Printed: 'When this creature dies, each opponent loses 1 life and you gain 1 life.'",
- "status": "suspect",
- "finding": "SILENT: life stays 20/20 after the Spirit dies (zone lane confirms the death). Same self-dies law as wave5b_pitchburn_devils_dies_trigger: binding.py detaches IS_SOURCE triggers on the ZONE_CHANGE row, which is journalled before the CREATURE_DIES row, so the dies effect can never observe its own death. Two packs, one engine defect."
+ "notes": "Printed: 'When this creature dies, each opponent loses 1 life and you gain 1 life.'"
 }

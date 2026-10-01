@@ -112,6 +112,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
 )
+from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.quantity import Binding, ExecCtx, eval_filter, resolve
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
@@ -271,6 +272,17 @@ class PaymentPlan:
     counters: tuple[tuple[Handle, str, int], ...] = ()
     loyalty: int = 0
     life: int = 0
+    # r22a (sacrifice-cost vocabulary, /21 wave5a findings): the FULL
+    # Handle-sorted candidate pool of every CostSacrifice segment, with
+    # that segment's need — the raw decision space the frozen
+    # ``cands[:need]`` witness above silently collapsed to its lowest
+    # Handles. The plan stays the canonical payable WITNESS (legality
+    # probes must never ask, §C15); :func:`pay_costs` re-opens the choice
+    # through the 14b vocabulary channel when a segment really offers a
+    # choice (len(pool) > need) and keeps the forced witness pick when it
+    # does not. Hand-built plans (tests) carry the default () and pay
+    # exactly as before.
+    sacrifice_options: tuple[tuple[tuple[Handle, ...], int], ...] = ()
 
     def is_empty(self) -> bool:
         """True for a free activation (empty Cost parts — legal MTG)."""
@@ -513,6 +525,7 @@ def build_payment_plan(
     payer choose freely)."""
     tap: list[Handle] = []
     sacrifice: list[Handle] = []
+    sacrifice_options: list[tuple[tuple[Handle, ...], int]] = []
     discard: list[Handle] = []
     counters: list[tuple[Handle, str, int]] = []
     life = 0
@@ -702,12 +715,31 @@ def build_payment_plan(
                     )
                 tap.extend(cands[:need])
         elif isinstance(part, CostSacrifice):
-            cands = enumerate_candidates(part.target, ctx)
+            # r22a (CR 701.14a): a sacrifice acts on a permanent YOU
+            # control. The bridge compiles "sacrifice another creature"
+            # with a controller=ANY battlefield zone (the filter only
+            # says Creature AND NOT is-source), so the raw enumeration
+            # carries the OPPONENT'S creatures — the frozen
+            # cands[:need] witness never exposed the hole (your lowest
+            # handle always won), but the r22a vocabulary would OFFER
+            # an illegal answer. The controller clause is a property of
+            # the sacrifice verb, not of the card, so it is enforced
+            # HERE, lane-agnostic, before the pool is recorded.
+            cands = [
+                h
+                for h in enumerate_candidates(part.target, ctx)
+                if world.controller_of(h) == ctx.controller
+            ]
             need = _required_count(part.target.count, ctx)
             if len(cands) < need:
                 return None, (
                     f"cost:sacrifice:insufficient_candidates:{len(cands)}<{need}"
                 )
+            # r22a: the witness keeps the canonical cands[:need] pick (a
+            # probe must never ask), but the FULL pool rides along on the
+            # plan — pay_costs re-opens the choice through the 14b
+            # vocabulary channel when this segment really offers one.
+            sacrifice_options.append((tuple(cands), need))
             sacrifice.extend(cands[:need])
         elif isinstance(part, CostDiscard):
             cands = enumerate_candidates(part.target, ctx)
@@ -836,6 +868,7 @@ def build_payment_plan(
         counters=tuple(sorted(counters)),
         loyalty=loyalty,
         life=life,
+        sacrifice_options=tuple(sacrifice_options),
     )
     return plan, None
 
@@ -1247,11 +1280,43 @@ def pay_costs(
             bindings={"target": list(plan.tap)},
         )
     if plan.sacrifice:
+        # r22a (the sacrifice-cost vocabulary law): WHO dies is the
+        # controller's decision, not an accident of Handle order. When a
+        # segment's recorded pool really offers a choice (len(pool) >
+        # need), the victims go through the 14b vocabulary channel — the
+        # same lane the trigger designation and the ONE_OF choose use
+        # (ask key sacrifice:<seat>:<source>:<digest>, vocabulary = the
+        # Handle strings). A forced segment (len(pool) == need — every
+        # IS_SOURCE self-sac, the sole-creature floor) keeps the plan's
+        # witness pick byte-identically: §1.4 forced auto-fill, no ask.
+        # A hand-built plan (default () options — every pre-r22a test)
+        # pays exactly the frozen path.
+        victims = plan.sacrifice
+        if plan.sacrifice_options:
+            ctx = ctx_for(executor, source=source, controller=controller)
+            chosen: list[Handle] = []
+            for pool, need in plan.sacrifice_options:
+                remaining = [h for h in pool if h not in chosen]
+                if len(remaining) <= need:
+                    chosen.extend(remaining[:need])
+                    continue
+                picks: list[Handle] = []
+                for _pick in range(need):
+                    vocab = tuple(str(h) for h in sorted(remaining))
+                    answer = ctx.take_decision(
+                        vocab,
+                        f"sacrifice:{controller}:{source}:{site_digest(vocab)}",
+                    )
+                    pick = next(h for h in remaining if str(h) == answer)
+                    picks.append(pick)
+                    remaining.remove(pick)
+                chosen.extend(picks)
+            victims = tuple(sorted(chosen))
         executor.apply_effect(
-            _binding_atom(Verb.SACRIFICE, "target", plan.sacrifice),
+            _binding_atom(Verb.SACRIFICE, "target", victims),
             source=source,
             controller=controller,
-            bindings={"target": list(plan.sacrifice)},
+            bindings={"target": list(victims)},
         )
     if plan.discard:
         executor.apply_effect(

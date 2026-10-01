@@ -43,7 +43,5 @@
   "zone": {
    "th": "graveyard"
   }
- },
- "status": "suspect",
- "finding": "silent (deathbloom_thallid). SYSTEMATIC 'own dies trigger never fires': events.py:389-429 journals KIND_ZONE_CHANGE BEFORE KIND_CREATURE_DIES in the same diff loop; binding.on_events _lifecycle(attach=False) DETACHES the leaver at the ZONE_CHANGE row, so the dead card's own trigger is unregistered when its dies row is matched (verified: attached [(card:0,0)] before combat, [] after; journal CREATURE_DIES rows==1; fire_all()==0). Expected: Deathbloom Thallid dies -> 1/1 Saproling token. Observed: zone graveyard, tokens 0, no queue entry."
+ }
 }
