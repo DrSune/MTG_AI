@@ -1,0 +1,869 @@
+{
+  "cards": {
+    "Alchemist's Gift": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/4e698713-6203-44f2-b438-1b26b951536d.jpg",
+      "mechanics": [
+        "GRANT_ABILITY",
+        "MODIFY_PT"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "4e698713-6203-44f2-b438-1b26b951536d",
+      "printed_text": "Target creature gets +1/+1 and gains your choice of deathtouch or lifelink until end of turn. (Any amount of damage a creature with deathtouch deals to a creature is enough to destroy it. Damage dealt by a creature with lifelink also causes its controller to gain that much life.)"
+    },
+    "Angelic Ascension": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/5a898412-5b1e-4217-ac78-5b4099ed8e16.jpg",
+      "mechanics": [
+        "CREATE_TOKEN",
+        "EXILE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "5a898412-5b1e-4217-ac78-5b4099ed8e16",
+      "printed_text": "Exile target creature or planeswalker. Its controller creates a 4/4 white Angel creature token with flying."
+    },
+    "Bad Deal": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/47258c3e-b4a7-466d-9464-3924f75d9293.jpg",
+      "mechanics": [
+        "DISCARD",
+        "DRAW",
+        "LOSE_LIFE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "47258c3e-b4a7-466d-9464-3924f75d9293",
+      "printed_text": "You draw two cards and each opponent discards two cards. Each player loses 2 life."
+    },
+    "Basri's Aegis": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/9825dab8-ca1a-44ea-b1d7-77c66f00351f.jpg",
+      "mechanics": [
+        "PUT_COUNTER"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "9825dab8-ca1a-44ea-b1d7-77c66f00351f",
+      "printed_text": "Put a +1/+1 counter on each of up to two target creatures. You may search your library and/or graveyard for a card named Basri, Devoted Paladin, reveal it, and put it into your hand. If you search your library this way, shuffle."
+    },
+    "Basri's Solidarity": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/68281e06-64e3-490b-8691-8f4169614ec0.jpg",
+      "mechanics": [
+        "PUT_COUNTER"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "68281e06-64e3-490b-8691-8f4169614ec0",
+      "printed_text": "Put a +1/+1 counter on each creature you control."
+    },
+    "Burn Bright": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/ed14c7fa-632c-47ee-9db0-8c492771121a.jpg",
+      "mechanics": [
+        "MODIFY_PT"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "ed14c7fa-632c-47ee-9db0-8c492771121a",
+      "printed_text": "Creatures you control get +2/+0 until end of turn."
+    },
+    "Capture Sphere": {
+      "carry_over": true,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/2dc59566-10cb-468a-b6a2-17d6c0186e6d.jpg",
+      "mechanics": [],
+      "n_spell_abilities": 0,
+      "oracle_id": "2dc59566-10cb-468a-b6a2-17d6c0186e6d",
+      "printed_text": "Flash (You may cast this spell any time you could cast an instant.)\nEnchant creature\nWhen this Aura enters, tap enchanted creature.\nEnchanted creature doesn't untap during its controller's untap step."
+    },
+    "Chandra, Heart of Fire": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/58ad45fc-b625-4484-8d49-ebc42db9040a.jpg",
+      "mechanics": [
+        "ADD_MANA"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "58ad45fc-b625-4484-8d49-ebc42db9040a",
+      "printed_text": "[+1]: Discard your hand, then exile the top three cards of your library. Until end of turn, you may play cards exiled this way.\n[+1]: Chandra deals 2 damage to any target.\n[\u22129]: Search your graveyard and library for any number of red instant and/or sorcery cards, exile them, then shuffle. You may cast them this turn. Add six {R}."
+    },
+    "Crash Through": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/41c15160-ee8c-42e3-bc6c-593b8c8ae335.jpg",
+      "mechanics": [
+        "DRAW",
+        "GRANT_ABILITY"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "41c15160-ee8c-42e3-bc6c-593b8c8ae335",
+      "printed_text": "Creatures you control gain trample until end of turn. (Each of those creatures can deal excess combat damage to the player or planeswalker it's attacking.)\nDraw a card."
+    },
+    "Cultivate": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/8b755881-a72d-4e21-a369-d2924eb4585a.jpg",
+      "mechanics": [
+        "MOVE_ZONE",
+        "REVEAL",
+        "SEARCH",
+        "SHUFFLE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "8b755881-a72d-4e21-a369-d2924eb4585a",
+      "printed_text": "Search your library for up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle."
+    },
+    "Defiant Strike": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/f8c2d9c5-6fe6-4698-9972-83cdd625d94b.jpg",
+      "mechanics": [
+        "DRAW",
+        "MODIFY_PT"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "f8c2d9c5-6fe6-4698-9972-83cdd625d94b",
+      "printed_text": "Target creature gets +1/+0 until end of turn.\nDraw a card."
+    },
+    "Destructive Tampering": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/e6ae536a-95c0-495d-98b8-200b3564dd79.jpg",
+      "mechanics": [
+        "DESTROY",
+        "MODIFY_PT"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "e6ae536a-95c0-495d-98b8-200b3564dd79",
+      "printed_text": "Choose one \u2014\n\u2022 Destroy target artifact.\n\u2022 Creatures without flying can't block this turn."
+    },
+    "Discontinuity": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/5cfd73ab-8509-4e4b-9704-68d8dad3b301.jpg",
+      "mechanics": [
+        "END_TURN"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "5cfd73ab-8509-4e4b-9704-68d8dad3b301",
+      "printed_text": "During your turn, this spell costs {2}{U}{U} less to cast.\nEnd the turn. (Exile all spells and abilities from the stack, including this card. The player whose turn it is discards down to their maximum hand size. Damage wears off, and \"this turn\" and \"until end of turn\" effects end.)"
+    },
+    "Duress": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/33d405ea-7a9a-4970-b70f-9c05d90dd6f0.jpg",
+      "mechanics": [
+        "CHOOSE",
+        "DISCARD",
+        "REVEAL"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "33d405ea-7a9a-4970-b70f-9c05d90dd6f0",
+      "printed_text": "Target opponent reveals their hand. You choose a noncreature, nonland card from it. That player discards that card."
+    },
+    "Eliminate": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/cf307f81-488c-4df5-8b08-ba46e3e7f3d9.jpg",
+      "mechanics": [
+        "DESTROY"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "cf307f81-488c-4df5-8b08-ba46e3e7f3d9",
+      "printed_text": "Destroy target creature or planeswalker with mana value 3 or less."
+    },
+    "Enthralling Hold": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/2f94cb83-1f48-4293-b219-67830c074aeb.jpg",
+      "mechanics": [
+        "GAIN_CONTROL"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "2f94cb83-1f48-4293-b219-67830c074aeb",
+      "printed_text": "Enchant creature\nYou can't choose an untapped creature as this spell's target as you cast it.\nYou control enchanted creature."
+    },
+    "Experimental Overload": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/7851e4c8-020c-4a3d-88ed-0c97609cdfed.jpg",
+      "mechanics": [
+        "CREATE_TOKEN",
+        "EXILE",
+        "MOVE_ZONE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "7851e4c8-020c-4a3d-88ed-0c97609cdfed",
+      "printed_text": "Create an X/X blue and red Weird creature token, where X is the number of instant and sorcery cards in your graveyard. Then you may return an instant or sorcery card from your graveyard to your hand. Exile Experimental Overload."
+    },
+    "Feat of Resistance": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/2038f505-7b03-4c63-bc44-c5139729dd05.jpg",
+      "mechanics": [
+        "GRANT_ABILITY",
+        "PUT_COUNTER"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "2038f505-7b03-4c63-bc44-c5139729dd05",
+      "printed_text": "Put a +1/+1 counter on target creature you control. It gains protection from the color of your choice until end of turn. (It can't be blocked, targeted, dealt damage, enchanted, or equipped by anything of that color.)"
+    },
+    "Finishing Blow": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/3c8a6c58-f4af-4809-af86-a931313fa71e.jpg",
+      "mechanics": [
+        "DESTROY"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "3c8a6c58-f4af-4809-af86-a931313fa71e",
+      "printed_text": "Destroy target creature or planeswalker."
+    },
+    "Frantic Inventory": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/a7865331-4c53-46db-b2d7-7e5cb21b6b9d.jpg",
+      "mechanics": [
+        "DRAW"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "a7865331-4c53-46db-b2d7-7e5cb21b6b9d",
+      "printed_text": "Draw a card, then draw cards equal to the number of cards named Frantic Inventory in your graveyard."
+    },
+    "Frost Breath": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/382097b3-f753-493c-bde4-101c0538feb4.jpg",
+      "mechanics": [
+        "PREVENT_EFFECT",
+        "TAP"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "382097b3-f753-493c-bde4-101c0538feb4",
+      "printed_text": "Tap up to two target creatures. Those creatures don't untap during their controller's next untap step."
+    },
+    "Fungal Rebirth": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/b917f39a-3176-47ad-afda-08d09b873c02.jpg",
+      "mechanics": [
+        "CREATE_TOKEN",
+        "MOVE_ZONE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "b917f39a-3176-47ad-afda-08d09b873c02",
+      "printed_text": "Return target permanent card from your graveyard to your hand. If a creature died this turn, create two 1/1 green Saproling creature tokens."
+    },
+    "Goblin Wizardry": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/f621dcaa-c500-4a17-a65a-60d9b5516a3b.jpg",
+      "mechanics": [
+        "CREATE_TOKEN"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "f621dcaa-c500-4a17-a65a-60d9b5516a3b",
+      "printed_text": "Create two 1/1 red Goblin Wizard creature tokens with prowess. (Whenever you cast a noncreature spell, they get +1/+1 until end of turn.)"
+    },
+    "Goremand": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/0f80f061-6304-4c7b-ab53-f406385e39df.jpg",
+      "mechanics": [],
+      "n_spell_abilities": 1,
+      "oracle_id": "0f80f061-6304-4c7b-ab53-f406385e39df",
+      "printed_text": "As an additional cost to cast this spell, sacrifice a creature.\nFlying\nTrample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)\nWhen this creature enters, each opponent sacrifices a creature."
+    },
+    "Grasp of Darkness": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/494c819d-7d73-432b-8c96-4cb9dcd31094.jpg",
+      "mechanics": [
+        "MODIFY_PT"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "494c819d-7d73-432b-8c96-4cb9dcd31094",
+      "printed_text": "Target creature gets -4/-4 until end of turn."
+    },
+    "Grim Tutor": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/e62f8d69-a559-4f13-a5c9-5fb750b4af2c.jpg",
+      "mechanics": [
+        "LOSE_LIFE",
+        "SEARCH",
+        "SHUFFLE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "e62f8d69-a559-4f13-a5c9-5fb750b4af2c",
+      "printed_text": "Search your library for a card, put that card into your hand, then shuffle. You lose 3 life."
+    },
+    "Heroic Intervention": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/24882fa2-3fe9-4c1b-aa3d-0e6488b9db27.jpg",
+      "mechanics": [
+        "GRANT_ABILITY"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "24882fa2-3fe9-4c1b-aa3d-0e6488b9db27",
+      "printed_text": "Permanents you control gain hexproof and indestructible until end of turn."
+    },
+    "Hunter's Edge": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/7b428e94-8428-455f-b555-f648fcdd2127.jpg",
+      "mechanics": [
+        "DEAL_DAMAGE",
+        "PUT_COUNTER"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "7b428e94-8428-455f-b555-f648fcdd2127",
+      "printed_text": "Put a +1/+1 counter on target creature you control. Then that creature deals damage equal to its power to target creature you don't control."
+    },
+    "Invigorating Surge": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/5daac63a-1534-4194-8cb7-506508e364f4.jpg",
+      "mechanics": [
+        "PUT_COUNTER"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "5daac63a-1534-4194-8cb7-506508e364f4",
+      "printed_text": "Put a +1/+1 counter on target creature you control, then double the number of +1/+1 counters on that creature."
+    },
+    "Legion's Judgment": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/dce4d65f-cb91-48a2-a2a7-013e73dfb667.jpg",
+      "mechanics": [
+        "DESTROY"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "dce4d65f-cb91-48a2-a2a7-013e73dfb667",
+      "printed_text": "Destroy target creature with power 4 or greater."
+    },
+    "Life Goes On": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/15d2176b-ab3d-4738-bcbc-bcebf891d16e.jpg",
+      "mechanics": [
+        "GAIN_LIFE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "15d2176b-ab3d-4738-bcbc-bcebf891d16e",
+      "printed_text": "You gain 4 life. If a creature died this turn, you gain 8 life instead."
+    },
+    "Liliana's Scorn": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/2359db1c-6029-4748-9f09-d57bb0ae92e9.jpg",
+      "mechanics": [
+        "DESTROY"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "2359db1c-6029-4748-9f09-d57bb0ae92e9",
+      "printed_text": "Destroy target creature. You may search your library and/or graveyard for a card named Liliana, Death Mage, reveal it, and put it into your hand. If you search your library this way, shuffle."
+    },
+    "Mind Rot": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/ad44cf74-b717-48fb-9fa2-77512024d76a.jpg",
+      "mechanics": [
+        "DISCARD"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "ad44cf74-b717-48fb-9fa2-77512024d76a",
+      "printed_text": "Target player discards two cards."
+    },
+    "Necromentia": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/92acbbeb-f82b-413b-b243-f7a012f5400c.jpg",
+      "mechanics": [
+        "CHOOSE_NAME",
+        "CREATE_TOKEN",
+        "EXILE",
+        "SEARCH",
+        "SHUFFLE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "92acbbeb-f82b-413b-b243-f7a012f5400c",
+      "printed_text": "Choose a card name other than a basic land card name. Search target opponent's graveyard, hand, and library for any number of cards with that name and exile them. That player shuffles, then creates a 2/2 black Zombie creature token for each card exiled from their hand this way."
+    },
+    "Opt": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/713332c1-5bd8-400f-bfff-c1ca0697a043.jpg",
+      "mechanics": [
+        "DRAW",
+        "SCRY"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "713332c1-5bd8-400f-bfff-c1ca0697a043",
+      "printed_text": "Scry 1. (Look at the top card of your library. You may put that card on the bottom.)\nDraw a card."
+    },
+    "Peer into the Abyss": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/21fa2442-6eac-4dce-a9cc-76f0053fdb8f.jpg",
+      "mechanics": [
+        "DRAW"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "21fa2442-6eac-4dce-a9cc-76f0053fdb8f",
+      "printed_text": "Target player draws cards equal to half the number of cards in their library and loses half their life. Round up each time."
+    },
+    "Pestilent Haze": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/b24d1540-ed8b-4df3-abfe-1b8492a58388.jpg",
+      "mechanics": [
+        "MODIFY_PT",
+        "REMOVE_COUNTER"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "b24d1540-ed8b-4df3-abfe-1b8492a58388",
+      "printed_text": "Choose one \u2014\n\u2022 All creatures get -2/-2 until end of turn.\n\u2022 Remove two loyalty counters from each planeswalker."
+    },
+    "Primal Might": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/58d7b8b3-ac47-4805-8259-4ba8e70d7dc3.jpg",
+      "mechanics": [
+        "FIGHT",
+        "MODIFY_PT"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "58d7b8b3-ac47-4805-8259-4ba8e70d7dc3",
+      "printed_text": "Target creature you control gets +X/+X until end of turn. Then it fights up to one target creature you don't control. (Each deals damage equal to its power to the other.)"
+    },
+    "Rain of Revelation": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/7d5dfa6b-f685-4925-b93a-ae5815a3c0a7.jpg",
+      "mechanics": [
+        "DISCARD",
+        "DRAW"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "7d5dfa6b-f685-4925-b93a-ae5815a3c0a7",
+      "printed_text": "Draw three cards, then discard a card."
+    },
+    "Ranger's Guile": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/694cb93a-bcc5-44b0-a76c-19ae4a4e5e0f.jpg",
+      "mechanics": [
+        "GRANT_ABILITY",
+        "MODIFY_PT"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "694cb93a-bcc5-44b0-a76c-19ae4a4e5e0f",
+      "printed_text": "Target creature you control gets +1/+1 and gains hexproof until end of turn. (It can't be the target of spells or abilities your opponents control.)"
+    },
+    "Read the Tides": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/e5c4ed40-5069-4606-81f2-59dcfa1345bd.jpg",
+      "mechanics": [
+        "DRAW",
+        "MOVE_ZONE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "e5c4ed40-5069-4606-81f2-59dcfa1345bd",
+      "printed_text": "Choose one \u2014\n\u2022 Draw three cards.\n\u2022 Return up to two target creatures to their owners' hands."
+    },
+    "Return to Nature": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/777b8ec4-a783-4297-96b7-4f200d0eb734.jpg",
+      "mechanics": [
+        "DESTROY",
+        "EXILE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "777b8ec4-a783-4297-96b7-4f200d0eb734",
+      "printed_text": "Choose one \u2014\n\u2022 Destroy target artifact.\n\u2022 Destroy target enchantment.\n\u2022 Exile target card from a graveyard."
+    },
+    "Revitalize": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/b1385b03-cb4b-4812-857f-7421f1df39af.jpg",
+      "mechanics": [
+        "DRAW",
+        "GAIN_LIFE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "b1385b03-cb4b-4812-857f-7421f1df39af",
+      "printed_text": "You gain 3 life.\nDraw a card."
+    },
+    "Rise Again": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/4600e968-fe3a-446a-a306-bd10e6763e0d.jpg",
+      "mechanics": [
+        "MOVE_ZONE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "4600e968-fe3a-446a-a306-bd10e6763e0d",
+      "printed_text": "Return target creature card from your graveyard to the battlefield."
+    },
+    "Rookie Mistake": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/e51680d1-3e6c-4d1b-9705-36f73d7328cf.jpg",
+      "mechanics": [
+        "MODIFY_PT"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "e51680d1-3e6c-4d1b-9705-36f73d7328cf",
+      "printed_text": "Until end of turn, target creature gets +0/+2 and another target creature gets -2/-0."
+    },
+    "Run Afoul": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/5462cb38-7cd7-46e8-a273-35d0d1af45b4.jpg",
+      "mechanics": [
+        "SACRIFICE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "5462cb38-7cd7-46e8-a273-35d0d1af45b4",
+      "printed_text": "Target opponent sacrifices a creature of their choice with flying."
+    },
+    "Sanguine Indulgence": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/010ec11a-0484-486d-b7c0-de65593bf457.jpg",
+      "mechanics": [
+        "MOVE_ZONE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "010ec11a-0484-486d-b7c0-de65593bf457",
+      "printed_text": "This spell costs {3} less to cast if you've gained 3 or more life this turn.\nReturn up to two target creature cards from your graveyard to your hand."
+    },
+    "Scorching Dragonfire": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/d14f313c-fea6-49c4-8197-5b74ee584a6b.jpg",
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "d14f313c-fea6-49c4-8197-5b74ee584a6b",
+      "printed_text": "Scorching Dragonfire deals 3 damage to target creature or planeswalker. If that creature or planeswalker would die this turn, exile it instead."
+    },
+    "Secure the Scene": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/d6a9746c-eba5-4735-aec1-e70edba2c686.jpg",
+      "mechanics": [
+        "CREATE_TOKEN",
+        "EXILE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "d6a9746c-eba5-4735-aec1-e70edba2c686",
+      "printed_text": "Exile target nonland permanent. Its controller creates a 1/1 white Soldier creature token."
+    },
+    "See the Truth": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/b23c1f40-291d-43b3-971d-97ded8b367cb.jpg",
+      "mechanics": [
+        "LOOK_AT",
+        "MOVE_ZONE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "b23c1f40-291d-43b3-971d-97ded8b367cb",
+      "printed_text": "Look at the top three cards of your library. Put one of those cards into your hand and the rest on the bottom of your library in any order. If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead."
+    },
+    "Shock": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/a9d288b8-cdc1-4e55-a0c9-d6edfc95e65d.jpg",
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "a9d288b8-cdc1-4e55-a0c9-d6edfc95e65d",
+      "printed_text": "Shock deals 2 damage to any target."
+    },
+    "Soul Sear": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/1ef73b3b-ab4a-494b-b969-dcde995cee34.jpg",
+      "mechanics": [
+        "DEAL_DAMAGE",
+        "LOSE_ABILITY"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "1ef73b3b-ab4a-494b-b969-dcde995cee34",
+      "printed_text": "Soul Sear deals 5 damage to target creature or planeswalker. That permanent loses indestructible until end of turn."
+    },
+    "Sparkhunter Masticore": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/1306c72f-fc6b-470b-a95e-0364e0e30ac7.jpg",
+      "mechanics": [],
+      "n_spell_abilities": 1,
+      "oracle_id": "1306c72f-fc6b-470b-a95e-0364e0e30ac7",
+      "printed_text": "As an additional cost to cast this spell, discard a card.\nProtection from planeswalkers\n{1}: This creature deals 1 damage to target planeswalker.\n{3}: This creature gains indestructible until end of turn."
+    },
+    "Sure Strike": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/fb694e7e-f66e-4958-b6ed-aa74bc9ac43e.jpg",
+      "mechanics": [
+        "GRANT_ABILITY",
+        "MODIFY_PT"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "fb694e7e-f66e-4958-b6ed-aa74bc9ac43e",
+      "printed_text": "Target creature gets +3/+0 and gains first strike until end of turn. (It deals combat damage before creatures without first strike.)"
+    },
+    "Swift Response": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/5820d760-8ed7-4abf-a959-c06ed86a3730.jpg",
+      "mechanics": [
+        "DESTROY"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "5820d760-8ed7-4abf-a959-c06ed86a3730",
+      "printed_text": "Destroy target tapped creature."
+    },
+    "Thrill of Possibility": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/1cb0610b-a731-42c2-b93f-0a29f63cebf4.jpg",
+      "mechanics": [
+        "DRAW"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "1cb0610b-a731-42c2-b93f-0a29f63cebf4",
+      "printed_text": "As an additional cost to cast this spell, discard a card.\nDraw two cards."
+    },
+    "Titanic Growth": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/61e09dd9-7870-48c2-9177-d6abc3162692.jpg",
+      "mechanics": [
+        "MODIFY_PT"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "61e09dd9-7870-48c2-9177-d6abc3162692",
+      "printed_text": "Target creature gets +4/+4 until end of turn."
+    },
+    "Track Down": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/8f28b65b-4b73-4080-9cdc-d236ad99f39c.jpg",
+      "mechanics": [
+        "DRAW",
+        "REVEAL",
+        "SCRY"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "8f28b65b-4b73-4080-9cdc-d236ad99f39c",
+      "printed_text": "Scry 3, then reveal the top card of your library. If it's a creature or land card, draw a card. (To scry 3, look at the top three cards of your library, then put any number of them on the bottom and the rest on top in any order.)"
+    },
+    "Traitorous Greed": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/344cdec9-60b3-42ec-a3d5-41ee1d4f7c6c.jpg",
+      "mechanics": [
+        "ADD_MANA",
+        "GAIN_CONTROL",
+        "GRANT_ABILITY",
+        "UNTAP"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "344cdec9-60b3-42ec-a3d5-41ee1d4f7c6c",
+      "printed_text": "Gain control of target creature until end of turn. Untap that creature. It gains haste until end of turn. Add two mana of any one color. (The creature can attack and {T} this turn.)"
+    },
+    "Transmogrify": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/4c1c3a0a-5782-4b7d-8b9c-61eea913166d.jpg",
+      "mechanics": [
+        "EXILE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "4c1c3a0a-5782-4b7d-8b9c-61eea913166d",
+      "printed_text": "Exile target creature. That creature's controller reveals cards from the top of their library until they reveal a creature card. That player puts that card onto the battlefield, then shuffles the rest into their library."
+    },
+    "Turn to Slag": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/4339f621-8502-4433-a37a-654591ca1b43.jpg",
+      "mechanics": [
+        "DEAL_DAMAGE",
+        "DESTROY"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "4339f621-8502-4433-a37a-654591ca1b43",
+      "printed_text": "Turn to Slag deals 5 damage to target creature. Destroy all Equipment attached to that creature."
+    },
+    "Unleash Fury": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/4eaa100c-f1ef-4a2b-9370-5dad7f3a95f2.jpg",
+      "mechanics": [
+        "SET_PT"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "4eaa100c-f1ef-4a2b-9370-5dad7f3a95f2",
+      "printed_text": "Double the power of target creature until end of turn."
+    },
+    "Unsubstantiate": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/c387f46f-ad91-4964-8dc6-acefe537fe3c.jpg",
+      "mechanics": [
+        "MOVE_ZONE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "c387f46f-ad91-4964-8dc6-acefe537fe3c",
+      "printed_text": "Return target spell or creature to its owner's hand."
+    },
+    "Village Rites": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/365548fb-5acc-4a8a-b20b-26d28b7d029f.jpg",
+      "mechanics": [
+        "DRAW"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "365548fb-5acc-4a8a-b20b-26d28b7d029f",
+      "printed_text": "As an additional cost to cast this spell, sacrifice a creature.\nDraw two cards."
+    },
+    "Volcanic Geyser": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/846a4f9c-d955-403f-8a08-5c7c3d32e180.jpg",
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "846a4f9c-d955-403f-8a08-5c7c3d32e180",
+      "printed_text": "Volcanic Geyser deals X damage to any target."
+    },
+    "Volcanic Salvo": {
+      "carry_over": false,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/9c2fd3a3-96f2-4e84-85a9-77698c2f83aa.jpg",
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_spell_abilities": 1,
+      "oracle_id": "9c2fd3a3-96f2-4e84-85a9-77698c2f83aa",
+      "printed_text": "This spell costs {X} less to cast, where X is the total power of creatures you control.\nVolcanic Salvo deals 6 damage to each of up to two target creatures and/or planeswalkers."
+    },
+    "Wildwood Scourge": {
+      "carry_over": true,
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/b9dec104-c636-4770-a7fc-7a3331face15.jpg",
+      "mechanics": [],
+      "n_spell_abilities": 0,
+      "oracle_id": "b9dec104-c636-4770-a7fc-7a3331face15",
+      "printed_text": "This creature enters with X +1/+1 counters on it.\nWhenever one or more +1/+1 counters are put on another non-Hydra creature you control, put a +1/+1 counter on this creature."
+    }
+  },
+  "meta": {
+    "built_by": "tools/audit/wave_builder.py",
+    "excluded_by_flag": {
+      "Cancel": [
+        "COUNTER_SPELL"
+      ],
+      "Lofty Denial": [
+        "COUNTER_SPELL"
+      ],
+      "Miscast": [
+        "COUNTER_SPELL"
+      ],
+      "Rewind": [
+        "COUNTER_SPELL"
+      ],
+      "Sublime Epiphany": [
+        "COPY",
+        "COUNTER_SPELL"
+      ]
+    },
+    "family": "SPELL-resolution (SpellAbility nodes), engine-supported gate, cast-lane carry-overs appended",
+    "n_cards": 67,
+    "n_carry_over": 2,
+    "n_gate_excluded": 5,
+    "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
+    "wave": "wave2"
+  }
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Wave-1 target map: the golden-compiled IR of the ETB family (17a).
+"""Wave target maps: golden-compiled IR cohorts (wave 1 = ETB, 17a; wave 2 = SPELL-resolution).
 
 There is no vision model in this repo (the round-16 close-out note's
 "vision pipeline" never landed — verified 2026-09-30). The audited
@@ -16,10 +16,22 @@ so ``wave1.json`` is a measurement, and ``--lint`` re-measures and
 diffs against the frozen file: a golden edit that changes the ETB
 family, the verb set, or engine support flips lint to red.
 
+Wave 2 (loop step 1, 2026-10-01) is the SPELL-resolution cohort: every
+non-token card whose compiled IR carries a :class:`SpellAbility` node
+(cast/resolve path). Same derive-from-IR rule as wave 1 — no hand-list —
+and the same engine-supported gate: a spell card whose flag is False
+because of unsupported atoms *inside* its effect is EXCLUDED until those
+atoms are fixed (recorded in ``meta.excluded_by_flag`` with the verb
+reasons). The two wave-1 cast-lane suspects (Capture Sphere, Wildwood
+Scourge) carry NO SpellAbility node at all — that absence is the suspect
+itself — so they are appended as explicit ``carry_over`` rows.
+
 Usage::
 
-    .venv/bin/python tools/audit/wave_builder.py            # write wave1.json
-    .venv/bin/python tools/audit/wave_builder.py --lint     # re-derive, diff
+    .venv/bin/python tools/audit/wave_builder.py              # write wave1.json
+    .venv/bin/python tools/audit/wave_builder.py --lint       # re-derive, diff
+    .venv/bin/python tools/audit/wave_builder.py --wave2      # write wave2.json
+    .venv/bin/python tools/audit/wave_builder.py --wave2 --lint
 
 Exit code 0 = wave file current (lint) / written (build).
 """
@@ -34,7 +46,13 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
-from MTG_bot.core.ability_tree import Atom, TriggeredAbility, ZoneChangeEvent, walk
+from MTG_bot.core.ability_tree import (
+    Atom,
+    SpellAbility,
+    TriggeredAbility,
+    ZoneChangeEvent,
+    walk,
+)
 from MTG_bot.core.compiler.compiler import compile_pool
 from MTG_bot.core.compiler.coverage import build_full_registry
 from MTG_bot.core.compiler.ingest import ingest_pool
@@ -43,6 +61,12 @@ from MTG_bot.core.executor import SUPPORTED_VERBS_V2
 DATA = REPO / "MTG_bot" / "data" / "M21.json"
 ASSETS = REPO / "MTG_bot" / "assets" / "card_images"
 DEFAULT_OUT = Path(__file__).resolve().parent / "wave1.json"
+DEFAULT_OUT2 = Path(__file__).resolve().parent / "wave2.json"
+
+#: Wave-1 cast-lane suspects: verified 2026-10-01 to carry NO SpellAbility
+#: node in the compiled IR (their cast path is the machinery gap under
+#: audit), so they never enter the natural cohort — appended as marked rows.
+CARRY_OVER = ("Capture Sphere", "Wildwood Scourge")
 
 
 def is_battlefield(zone) -> bool:
@@ -78,12 +102,62 @@ def printed_texts() -> dict[str, str]:
     return out
 
 
-def derive_wave() -> dict:
+def _compile_state() -> tuple:
+    """The real compile chain, shared by every wave: ``ingest_pool`` +
+    ``build_full_registry`` + ``compile_pool`` (untargeted and gated),
+    exactly what ``games.compile_supply`` runs."""
     raw = ingest_pool(DATA)
     registry = build_full_registry()
     pool = compile_pool(raw, registry)
     gated = compile_pool(raw, registry, supported_verbs=set(SUPPORTED_VERBS_V2))
-    texts = printed_texts()
+    return pool, gated, printed_texts()
+
+
+def spell_abilities(record) -> list[SpellAbility]:
+    """The wave-2 family map: the card's own cast/resolve effect nodes
+    (SpellAbility), read out of the compiled record — never a substring."""
+    return [n for n in walk(record) if isinstance(n, SpellAbility)]
+
+
+def unsupported_verbs(record) -> list[str]:
+    """Atom verb names on the whole card that the engine cannot execute —
+    the honest reason a card fails the ``engine_supported`` gate."""
+    return sorted(
+        {
+            node.verb.name
+            for node in walk(record)
+            if isinstance(node, Atom) and node.verb not in SUPPORTED_VERBS_V2
+        }
+    )
+
+
+def _row(
+    _record,
+    oid: str,
+    gated,
+    texts: dict[str, str],
+    *,
+    verbs: list[str],
+    n_spells: int,
+    carry_over: bool,
+) -> dict:
+    """One frozen row — same core schema as wave 1 (oracle_id / mechanics
+    verbs / gated engine support / art path / printed text), wave-2 fields
+    named for what they count."""
+    return {
+        "oracle_id": oid,
+        "mechanics": verbs,
+        "n_spell_abilities": n_spells,
+        "carry_over": carry_over,
+        "engine_supported": bool(gated.results[oid].legality.engine_supported),
+        "image": str(ASSETS / f"{oid}.jpg"),
+        "has_image": (ASSETS / f"{oid}.jpg").exists(),
+        "printed_text": texts.get(oid, ""),
+    }
+
+
+def derive_wave() -> dict:
+    pool, gated, texts = _compile_state()
     cards: dict[str, dict] = {}
     for oid, res in pool.results.items():
         record = res.card
@@ -119,17 +193,93 @@ def derive_wave() -> dict:
     }
 
 
+def derive_wave2() -> dict:
+    """Wave 2 = engine-supported ∩ SpellAbility, plus the two cast-lane
+    carry-over suspects. Spell cards excluded by the gate are recorded in
+    ``meta.excluded_by_flag`` (name -> unsupported verb names) so the
+    frozen file itself carries the honest exclusion evidence."""
+    pool, gated, texts = _compile_state()
+    cards: dict[str, dict] = {}
+    excluded: dict[str, list[str]] = {}
+    by_name: dict[str, str] = {}
+    for oid, res in pool.results.items():
+        record = res.card
+        if record.is_token or oid in pool.emblems:
+            continue
+        by_name.setdefault(record.name, oid)
+        spells = spell_abilities(record)
+        if not spells:
+            continue
+        if not gated.results[oid].legality.engine_supported:
+            excluded[record.name] = unsupported_verbs(record)
+            continue
+        verbs = sorted(
+            {
+                v.verb.name
+                for s in spells
+                if s.effect is not None
+                for v in walk(s.effect)
+                if isinstance(v, Atom)
+            }
+        )
+        cards[record.name] = _row(
+            record,
+            oid,
+            gated,
+            texts,
+            verbs=verbs,
+            n_spells=len(spells),
+            carry_over=False,
+        )
+    carry = 0
+    for name in CARRY_OVER:
+        if name in cards:  # honest: only append if the cohort missed it
+            continue
+        oid = by_name[name]
+        cards[name] = _row(
+            pool.results[oid].card,
+            oid,
+            gated,
+            texts,
+            verbs=[],
+            n_spells=0,
+            carry_over=True,
+        )
+        carry += 1
+    return {
+        "meta": {
+            "wave": "wave2",
+            "family": (
+                "SPELL-resolution (SpellAbility nodes), "
+                "engine-supported gate, cast-lane carry-overs appended"
+            ),
+            "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
+            "built_by": "tools/audit/wave_builder.py",
+            "n_cards": len(cards),
+            "n_gate_excluded": len(excluded),
+            "n_carry_over": carry,
+            "excluded_by_flag": dict(sorted(excluded.items())),
+        },
+        "cards": dict(sorted(cards.items())),
+    }
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
-    ap.add_argument("--out", default=str(DEFAULT_OUT))
+    ap.add_argument(
+        "--wave2", action="store_true", help="SPELL cohort instead of wave 1"
+    )
+    ap.add_argument("--out", default=None)
     ap.add_argument("--lint", action="store_true", help="re-derive and diff vs disk")
     args = ap.parse_args(argv)
 
-    wave = derive_wave()
+    derive = derive_wave2 if args.wave2 else derive_wave
+    out = Path(args.out) if args.out else (DEFAULT_OUT2 if args.wave2 else DEFAULT_OUT)
+    wave = derive()
     text = json.dumps(wave, indent=2, sort_keys=True) + "\n"
 
     if args.lint:
-        disk = Path(args.out).read_text(encoding="utf-8")
+        disk = out.read_text(encoding="utf-8")
         if disk == text:
             print(f"lint OK: {wave['meta']['n_cards']} cards, IR current")
             return 0
@@ -147,9 +297,9 @@ def main(argv=None) -> int:
         )
         return 1
 
-    Path(args.out).write_text(text, encoding="utf-8")
+    out.write_text(text, encoding="utf-8")
     print(
-        f"wrote {args.out}: {wave['meta']['n_cards']} ETB cards "
+        f"wrote {out}: {wave['meta']['n_cards']} {wave['meta']['wave']} cards "
         f"({sum(c['engine_supported'] for c in wave['cards'].values())} "
         f"engine-supported, {sum(c['has_image'] for c in wave['cards'].values())} "
         f"with art)"

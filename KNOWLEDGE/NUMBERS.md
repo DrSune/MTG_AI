@@ -5,6 +5,12 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-10-01 (wave-2 derivation — loop step 1)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| wave2 cohort (r17 loop step 1) | **67 rows** = 70 SpellAbility cards − 5 gate-excluded + 2 carry-over; 67/67 engine-supported & with art | `.venv/bin/python tools/audit/wave_builder.py --wave2 && … --wave2 --lint` | 5 excluded all COUNTER_SPELL-caused (Cancel, Lofty Denial, Miscast, Rewind, Sublime Epiphany +COPY); carry-overs Capture Sphere + Wildwood Scourge verified zero SpellAbility nodes; wave-1 lint still green; core 2112+4 unchanged |
+
 ## 2026-10-01 (round 18b — designation channel; supersedes 18a pack/core rows)
 
 | Number | Value | Command | Notes |

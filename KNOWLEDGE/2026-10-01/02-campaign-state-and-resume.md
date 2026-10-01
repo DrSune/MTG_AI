@@ -42,6 +42,13 @@ tapped state, stack, micro-decision log with candidates).
 - PC-8 real move needs compiler-side TARGET-selector work (executor designation changed zero IR
   bytes — honest note in 10-01/01).
 
+## Wave-2 derivation (loop step 1, 2026-10-01 · `wave_builder.py --wave2`)
+- Cohort rule: any non-token card with a compiled **SpellAbility** node, gated engine-supported exactly as wave 1 (derive-from-IR, zero hand-list). 70 SpellAbility cards found → **65 gate-clean + 2 carry-over = 67 rows** frozen in `tools/audit/wave2.json`; `--wave2 --lint` green, wave-1 `--lint` still green (byte-identical).
+- **Excluded-by-flag 5**: Cancel / Lofty Denial / Miscast / Rewind (each sole-cause COUNTER_SPELL) + Sublime Epiphany (COPY+COUNTER_SPELL) — recorded with reasons in `meta.excluded_by_flag`; re-admit when those atoms land.
+- **Carry-over suspects verified OUT of the natural cohort**: Capture Sphere + Wildwood Scourge compile with **zero SpellAbility nodes** (the cast-lane gap is the suspect itself); appended as explicit `carry_over: true` rows, both whole-card engine_supported=True, art present.
+- Verb histogram (67-row cohort, mechanics ∩ spell effects): DRAW 12 · MODIFY_PT 11 · MOVE_ZONE 8 · DESTROY 8 · GRANT_ABILITY 7 · DEAL_DAMAGE 7 (then CREATE_TOKEN 6, EXILE 6, PUT_COUNTER 5, DISCARD 4).
+- Command: `.venv/bin/python tools/audit/wave_builder.py --wave2 [--lint]` · gates: pytest core 2112+4subtests unchanged (builder tools-only), pyright 0, ruff Δ0 on builder. Pack authoring = next task (loop step 2).
+
 ## Session numbers so far (all NUMBERS-backed)
 Combat arc: engine 288→297/305, all-pool crashes 1→0, suite 2022→2112, packs 3→84, catalog 5504
 →re-pinned 4× always 0-unexplained. Viewer live at reports/replays/ (s7 pre-combat · s19/s24 first
