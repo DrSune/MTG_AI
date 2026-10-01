@@ -1,0 +1,53 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Return to Nature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ar",
+   "name": "Dummy Orb",
+   "power": "1",
+   "toughness": "1",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Return to Nature",
+   "key": "sp",
+   "decisions": [
+    "0"
+   ],
+   "targets": [
+    "ar"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard",
+   "ar": "graveyard"
+  }
+ },
+ "status": "suspect",
+ "finding": "WAVE2B (2026-10-01) re-run: printed 'Choose one \u2014 Destroy target artifact / Destroy target enchantment / Exile target card from a graveyard.' The compiled spell carries THREE TARGET selectors; the cast raises 'NotImplementedError: a spell with more than one TARGET selector needs per-slot designation (arc 3)' regardless of targets/decisions/board. Multi-slot designation is unimplemented; no mode of this card is castable from a pack."
+}

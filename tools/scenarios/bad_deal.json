@@ -1,0 +1,67 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "bd",
+      "real": "Bad Deal",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "c1",
+      "name": "Chaff",
+      "zone": "hand",
+      "controller": 1
+    },
+    {
+      "key": "c2",
+      "name": "Trash",
+      "zone": "hand",
+      "controller": 1
+    },
+    {
+      "key": "c3",
+      "name": "Junk",
+      "zone": "hand",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "B": 6
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Bad Deal",
+      "key": "bd",
+      "decisions": [
+        "c1",
+        "c2"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "bd": "graveyard"
+    },
+    "hand": {
+      "0": 2,
+      "1": 1
+    },
+    "graveyard": {
+      "1": [
+        "Chaff",
+        "Trash"
+      ]
+    },
+    "life": {
+      "0": 18,
+      "1": 18
+    }
+  }
+}

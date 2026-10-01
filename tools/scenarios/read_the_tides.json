@@ -1,0 +1,72 @@
+{
+ "name": "read_the_tides",
+ "note": "wave2b: printed 'Choose one' BOTH modes. Mode '0' Draw three: hand lane +3. Mode '1' Return up to two target creatures: the designated opposing creature lands in ITS OWNER's hand. UNION-TARGET QUIRK (logged in wave2b findings, effect-faithful so not a suspect): the compiled spell carries the union target slot (up to two creatures, min 1) BEFORE mode selection, so the draw mode is only castable with a designated extra target \u2014 the pack designates the Flyer for both casts; mode '0' leaves it home (zone assert pins it).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s1",
+   "real": "Read the Tides",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Read the Tides",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "fly",
+   "real": "Skyscanner",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Read the Tides",
+   "key": "s1",
+   "targets": [
+    "fly"
+   ],
+   "decisions": [
+    "0"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Read the Tides",
+   "key": "s2",
+   "targets": [
+    "fly"
+   ],
+   "decisions": [
+    "1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "s1": "graveyard",
+   "s2": "graveyard",
+   "fly": "hand"
+  },
+  "hand": {
+   "0": 3,
+   "1": 1
+  }
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Thrill of Possibility",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "fuel",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Thrill of Possibility",
+   "key": "sp"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard",
+   "fuel": "graveyard"
+  },
+  "hand": {
+   "0": 2
+  }
+ },
+ "status": "suspect",
+ "finding": "WAVE2B (2026-10-01) re-run: printed 'As an additional cost to cast this spell, discard a card. Draw two cards.' The draw fires, the DISCARD never does: the second hand card stays home (hand reads 3 net, expected 2 with the fuel in the graveyard). Identical additional-cost-drop as Sparkhunter Masticore \u2014 same printed template, same silent no-op, contrasted against the working Village Rites sacrifice cost."
+}

@@ -1,0 +1,52 @@
+{
+ "name": "unleash_fury",
+ "note": "wave2b: printed 'double the power' \u2014 a 3/3 becomes 6/3; toughness untouched.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Unleash Fury",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "g",
+   "name": "Grub",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Unleash Fury",
+   "key": "sp",
+   "targets": [
+    "g"
+   ]
+  }
+ ],
+ "expect": {
+  "power": {
+   "g": 6
+  },
+  "toughness": {
+   "g": 3
+  }
+ }
+}

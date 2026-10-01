@@ -1,0 +1,66 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Rookie Mistake",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "Sturdy Steed",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "Sturdy Mule",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Rookie Mistake",
+   "key": "sp",
+   "targets": [
+    "a",
+    "b"
+   ]
+  }
+ ],
+ "expect": {
+  "battlefield_pt": {
+   "Sturdy Steed": [
+    3,
+    5
+   ],
+   "Sturdy Mule": [
+    1,
+    3
+   ]
+  }
+ },
+ "status": "suspect",
+ "finding": "WAVE2B (2026-10-01) re-run: printed 'target creature gets +0/+2 and another target creature gets -2/-0' \u2014 TWO TARGET selectors on one instant: the cast raises 'NotImplementedError: a spell with more than one TARGET selector needs per-slot designation (arc 3)'. Same multi-slot gap as Return to Nature; nothing about the promise is testable."
+}

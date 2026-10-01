@@ -1,0 +1,44 @@
+{
+ "name": "revitalize",
+ "note": "wave2b: printed 'You gain 3 life. Draw a card.' both clauses hold \u2014 life lane 23, hand lane counts the drawn card.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Revitalize",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Revitalize",
+   "key": "sp"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 23,
+   "1": 20
+  },
+  "zone": {
+   "sp": "graveyard"
+  },
+  "hand": {
+   "0": 1
+  }
+ }
+}

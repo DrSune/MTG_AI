@@ -1,0 +1,55 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "ls",
+      "real": "Liliana's Scorn",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "victim",
+      "name": "Doomed Beast",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    },
+    {
+      "key": "mage",
+      "name": "Liliana, Death Mage",
+      "type": "Creature",
+      "zone": "library",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "B": 6
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Liliana's Scorn",
+      "key": "ls",
+      "targets": [
+        "victim"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "ls": "graveyard",
+      "victim": "graveyard",
+      "mage": "hand"
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

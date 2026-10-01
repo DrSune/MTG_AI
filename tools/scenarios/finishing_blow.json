@@ -1,0 +1,47 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "fb",
+      "real": "Finishing Blow",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "giant",
+      "name": "Giant",
+      "power": 5,
+      "toughness": 5,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "B": 5
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Finishing Blow",
+      "key": "fb",
+      "targets": [
+        "giant"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "fb": "graveyard",
+      "giant": "graveyard"
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

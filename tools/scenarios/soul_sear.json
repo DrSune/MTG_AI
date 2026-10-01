@@ -1,0 +1,51 @@
+{
+ "name": "soul_sear",
+ "note": "wave2b: printed 'deals 5 damage to target creature or planeswalker. That permanent loses indestructible until end of turn' \u2014 the pool's REAL Brash Taunter (1/1, printed INDESTRUCTIBLE) is seared dead: the loss window covers the lethal damage and it hits the graveyard (without the clause an indestructible permanent would shrug 5 damage off). INCIDENTAL (logged, not asserted-away): the dump's Brash carries its compiled damage-echo trigger \u2014 p0 loses the extra 5 life (15).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Soul Sear",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bt",
+   "real": "Brash Taunter",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Soul Sear",
+   "key": "sp",
+   "targets": [
+    "bt"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 15,
+   "1": 20
+  },
+  "zone": {
+   "sp": "graveyard",
+   "bt": "graveyard"
+  }
+ }
+}

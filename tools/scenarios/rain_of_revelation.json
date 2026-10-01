@@ -1,0 +1,40 @@
+{
+ "name": "rain_of_revelation",
+ "note": "wave2b: printed 'Draw three cards, then discard a card' \u2014 net +2 cards in hand (the deterministic stand-in discards one of the drawn three; the count lane pins the NET, which is the printed promise).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Rain of Revelation",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Rain of Revelation",
+   "key": "sp"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard"
+  },
+  "hand": {
+   "0": 2
+  }
+ }
+}

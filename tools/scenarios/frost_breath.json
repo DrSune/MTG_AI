@@ -1,0 +1,63 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "fb",
+      "real": "Frost Breath",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "one",
+      "name": "Frost One",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    },
+    {
+      "key": "two",
+      "name": "Frost Two",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "U": 3
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Frost Breath",
+      "key": "fb",
+      "targets": [
+        "one",
+        "two"
+      ]
+    },
+    {
+      "op": "advance_turn"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "fb": "graveyard"
+    },
+    "tapped": {
+      "one": true,
+      "two": true
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

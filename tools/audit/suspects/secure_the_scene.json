@@ -1,0 +1,53 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Secure the Scene",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ar",
+   "name": "Gear Hauler",
+   "power": "2",
+   "toughness": "2",
+   "type": "Artifact Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Secure the Scene",
+   "key": "sp",
+   "targets": [
+    "ar"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard",
+   "ar": "exile"
+  },
+  "tokens": {
+   "Soldier": 1
+  }
+ },
+ "status": "suspect",
+ "finding": "WAVE2B (2026-10-01) re-run: printed 'Exile target nonland permanent. ITS CONTROLLER creates a 1/1 white Soldier creature token.' The exile lands in the OWNER's exile zone correctly, but the Soldier token enters under the SPELL'S CASTER: the compiled CREATE_TOKEN atom carries only the tokens role (no controller role at all), and verbs.py:655 _v_create_token mints the handle at ctx.controller unconditionally \u2014 there is no role lane for the anaphoric 'its controller'. The harness tokens lane counts tokens by NAME without a controller dimension, so the expressible half above passes while the printed controller promise is broken for every opponent-controlled target."
+}

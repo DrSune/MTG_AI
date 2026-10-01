@@ -1,0 +1,62 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "hi",
+      "real": "Heroic Intervention",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "guard",
+      "name": "Guard",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "mug",
+      "name": "Mug",
+      "power": 9,
+      "toughness": 9,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "G": 2
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Heroic Intervention",
+      "key": "hi"
+    },
+    {
+      "op": "deal_damage",
+      "source": "mug",
+      "target": "guard",
+      "amount": 5
+    }
+  ],
+  "expect": {
+    "zone": {
+      "hi": "graveyard",
+      "guard": "battlefield"
+    },
+    "damage": {
+      "guard": 5
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

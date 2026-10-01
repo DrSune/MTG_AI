@@ -1,0 +1,57 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "lj",
+      "real": "Legion's Judgment",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "menace",
+      "name": "Menace",
+      "power": 4,
+      "toughness": 4,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    },
+    {
+      "key": "runt",
+      "name": "Runt",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "W": 3
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Legion's Judgment",
+      "key": "lj",
+      "targets": [
+        "menace"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "lj": "graveyard",
+      "menace": "graveyard",
+      "runt": "battlefield"
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

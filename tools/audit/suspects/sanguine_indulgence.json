@@ -1,0 +1,79 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "rv",
+   "real": "Revitalize",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sg",
+   "real": "Sanguine Indulgence",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c1",
+   "name": "Grave Ram",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "c2",
+   "name": "Grave Elk",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Revitalize",
+   "key": "rv"
+  },
+  {
+   "op": "cast",
+   "real": "Sanguine Indulgence",
+   "key": "sg",
+   "targets": [
+    "c1",
+    "c2"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 23
+  },
+  "zone": {
+   "rv": "graveyard",
+   "sg": "graveyard",
+   "c1": "hand",
+   "c2": "hand"
+  },
+  "hand": {
+   "0": 3
+  }
+ },
+ "status": "suspect",
+ "finding": "WAVE2B (2026-10-01) re-run: printed 'This spell costs {3} less to cast if you've gained 3 or more life this turn.' The pack GAINS 3 life first (real Revitalize), then casts the Indulgence from a pool that covers the discounted cost {B}: the cast raises 'cost:mana_generic:0<3' \u2014 the conditional reduction is not implemented, the full generic {3} is demanded although the printed promise made the spell free of it. The return-two-creature-cards effect cannot be reached at all."
+}

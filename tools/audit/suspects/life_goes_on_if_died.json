@@ -1,0 +1,52 @@
+{
+  "status": "suspect",
+  "finding": "PRINTED: \"You gain 4 life. If a creature died this turn, you gain 8 life instead.\" ENGINE(observed): with a creature dead earlier this turn, life gained is still 4: \"life[0]: expected 28, got 24\". The died-this-turn condition never consults the death ledger (or compiles constant-false). Plain branch is green in life_goes_on.json. Silent divergence.",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "lgo",
+      "real": "Life Goes On",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "lamb",
+      "name": "Lamb",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "G": 1
+    }
+  },
+  "steps": [
+    {
+      "op": "deal_damage",
+      "source": "lamb",
+      "target": "lamb",
+      "amount": 1
+    },
+    {
+      "op": "cast",
+      "real": "Life Goes On",
+      "key": "lgo"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "lgo": "graveyard",
+      "lamb": "graveyard"
+    },
+    "life": {
+      "0": 28
+    }
+  }
+}

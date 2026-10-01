@@ -1,0 +1,93 @@
+{
+ "name": "pestilent_haze",
+ "note": "wave2b: printed 'Choose one' BOTH modes. Mode '0' (-2/-2 all creatures): the own and opposing 1/1s both die. Mode '1' (remove two loyalty counters from EACH planeswalker): the seeded loyalty ledger reads 4-2=2.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s1",
+   "real": "Pestilent Haze",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Pestilent Haze",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "Mild Mite",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "theirs",
+   "name": "Bad Borer",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "pw",
+   "name": "Dummy Walker",
+   "type": "Planeswalker",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "pw",
+   "set": 4
+  },
+  {
+   "op": "cast",
+   "real": "Pestilent Haze",
+   "key": "s1",
+   "decisions": [
+    "0"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Pestilent Haze",
+   "key": "s2",
+   "decisions": [
+    "1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "s1": "graveyard",
+   "s2": "graveyard",
+   "mine": "graveyard",
+   "theirs": "graveyard",
+   "pw": "battlefield"
+  },
+  "counters": {
+   "pw": {
+    "LOYALTY": 2
+   }
+  }
+ }
+}

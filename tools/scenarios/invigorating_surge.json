@@ -1,0 +1,51 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "is",
+      "real": "Invigorating Surge",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "beast",
+      "name": "Surge Beast",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "G": 3
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Invigorating Surge",
+      "key": "is",
+      "targets": [
+        "beast"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "is": "graveyard"
+    },
+    "counters": {
+      "beast": {
+        "PLUS_1_PLUS_1": 2
+      }
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

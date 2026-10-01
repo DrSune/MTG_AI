@@ -1,0 +1,52 @@
+{
+ "name": "rangers_guile",
+ "note": "wave2b: printed '+1/+1 and gains hexproof' \u2014 the +1/+1 is the assertable half via the PT lane. HEXPROOF NOTE: the harness has no opponent-cast-denial probe surface (illegal target raises, there is no expect-raise lane), so the hexproof clause is logged in the wave2b findings, not watered away.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Ranger's Guile",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "g",
+   "name": "Squire",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Ranger's Guile",
+   "key": "sp",
+   "targets": [
+    "g"
+   ]
+  }
+ ],
+ "expect": {
+  "battlefield_pt": {
+   "Squire": [
+    2,
+    2
+   ]
+  }
+ }
+}

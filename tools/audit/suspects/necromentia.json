@@ -1,0 +1,47 @@
+{
+  "status": "suspect",
+  "finding": "PRINTED: \"Choose a card name other than a basic land card name. Search target opponent's graveyard, hand, and library for any number of cards with that name and exile them. That player shuffles, then creates a 2/2 black Zombie creature token for each card exiled from their hand this way.\" ENGINE(observed): cast with the name decision (decisions [\"Doom\"]) still raises \"executor: cast: illegal target selection: selection:count_below_min:0<1\" \u2014 TARGET opponent designation is unsatisfiable (same gap as Duress/Mind Rot). Loud.",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "nc",
+      "real": "Necromentia",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "doom",
+      "name": "Doom",
+      "type": "Instant",
+      "zone": "graveyard",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "B": 6
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Necromentia",
+      "key": "nc",
+      "decisions": [
+        "Doom"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "nc": "graveyard",
+      "doom": "exile"
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "gd",
+      "real": "Grasp of Darkness",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "runt",
+      "name": "Runt",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "B": 2
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Grasp of Darkness",
+      "key": "gd",
+      "targets": [
+        "runt"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "gd": "graveyard",
+      "runt": "graveyard"
+    },
+    "life": {
+      "0": 20,
+      "1": 20
+    }
+  }
+}

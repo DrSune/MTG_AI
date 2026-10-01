@@ -1,0 +1,64 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "gor",
+      "real": "Goremand",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "feed",
+      "name": "Sacrifice Fodder",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "foe",
+      "name": "Enemy Beast",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "B": 6
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Goremand",
+      "key": "gor",
+      "decisions": [
+        "feed"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "gor": "battlefield",
+      "feed": "graveyard",
+      "foe": "graveyard"
+    },
+    "battlefield_keywords": {
+      "Goremand": [
+        "FLYING",
+        "TRAMPLE"
+      ]
+    },
+    "life": {
+      "0": 20,
+      "1": 20
+    }
+  }
+}

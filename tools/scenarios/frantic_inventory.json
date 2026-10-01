@@ -1,0 +1,44 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "fi",
+      "real": "Frantic Inventory",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "fi_gy",
+      "real": "Frantic Inventory",
+      "zone": "graveyard",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "U": 2
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Frantic Inventory",
+      "key": "fi"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "fi": "graveyard",
+      "fi_gy": "graveyard"
+    },
+    "hand": {
+      "0": 2
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

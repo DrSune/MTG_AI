@@ -1,0 +1,54 @@
+{
+ "name": "run_afoul",
+ "note": "wave2b: printed 'target opponent sacrifices a creature of their choice with flying' \u2014 the REAL Skyscanner (1/1 flyer) is the only flying resident and the engine's pick lands on IT; the ground 3/3 survives.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Run Afoul",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "fly",
+   "real": "Skyscanner",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "ground",
+   "name": "Boulder Ram",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Run Afoul",
+   "key": "sp"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard",
+   "fly": "graveyard",
+   "ground": "battlefield"
+  }
+ }
+}

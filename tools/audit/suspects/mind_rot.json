@@ -1,0 +1,61 @@
+{
+  "status": "suspect",
+  "finding": "PRINTED: \"Target player discards two cards.\" ENGINE(observed): same TARGET_PLAYER designation gap as Duress \u2014 cast raises \"ValueError: executor: cast: illegal target selection: selection:count_below_min:0<1\" (stack.py:244). Dead on arrival. Loud.",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "mr",
+      "real": "Mind Rot",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "c1",
+      "name": "Chaff",
+      "zone": "hand",
+      "controller": 1
+    },
+    {
+      "key": "c2",
+      "name": "Trash",
+      "zone": "hand",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "B": 3
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Mind Rot",
+      "key": "mr",
+      "decisions": [
+        "c1",
+        "c2"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "mr": "graveyard"
+    },
+    "hand": {
+      "1": 0
+    },
+    "graveyard": {
+      "1": [
+        "Chaff",
+        "Trash"
+      ]
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

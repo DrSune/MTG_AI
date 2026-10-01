@@ -1,0 +1,78 @@
+{
+  "status": "suspect",
+  "finding": "PRINTED: \"Search your library for up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle.\" ENGINE(observed): both searched lands enter the battlefield untapped \u2014 \"zone[pl]: expected hand, got battlefield\" and \"tapped[fo]: expected True, got False\". The compiled SEARCH destination is hardcoded BATTLEFIELD for both results; no ONE_OF ask is generated and no tapped stamp is applied. Silent divergence: lands arrive, in the wrong zone/state.",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "cv",
+      "real": "Cultivate",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "fo",
+      "name": "Forest",
+      "type": "Basic Land",
+      "zone": "library",
+      "controller": 0
+    },
+    {
+      "key": "pl",
+      "name": "Plains",
+      "type": "Basic Land",
+      "zone": "library",
+      "controller": 0
+    },
+    {
+      "key": "g1",
+      "name": "Gemthing",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "library",
+      "controller": 0
+    },
+    {
+      "key": "j1",
+      "name": "Top Junk",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "library",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "G": 3
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Cultivate",
+      "key": "cv",
+      "decisions": [
+        "Forest",
+        "Plains",
+        "Forest"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "cv": "graveyard",
+      "fo": "battlefield",
+      "pl": "hand"
+    },
+    "tapped": {
+      "fo": true
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

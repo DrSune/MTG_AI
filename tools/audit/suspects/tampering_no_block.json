@@ -1,0 +1,81 @@
+{
+  "status": "suspect",
+  "finding": "PRINTED: \"Choose one \u2014 Destroy target artifact; or Creatures without flying can't block this turn.\" ENGINE(observed): branch 1 is only selectable if an artifact is ALSO designated (creature-only cast raises \"count_below_min:0<1\" \u2014 branch choice entangled with the artifact target), and the no-block clause is dead: the non-flying blocker is offered the block ask \"block:card:3:1 => (card:2, NONE)\", and the forced block registers \u2014 \"blocked[atk]: expected [], got [wall]\", \"life[1]: expected 18, got 20\". Rusty Cog surviving proves branch 1 was chosen; the promise is not enforced. Branch 0 (destroy artifact) is green: tampering_destroy_artifact.json.",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "tb",
+      "real": "Destructive Tampering",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "cog",
+      "name": "Rusty Cog",
+      "type": "Artifact",
+      "zone": "battlefield",
+      "controller": 1
+    },
+    {
+      "key": "atk",
+      "name": "Ram",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "wall",
+      "name": "Grunt",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "R": 8
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Destructive Tampering",
+      "key": "tb",
+      "targets": [
+        "cog"
+      ],
+      "decisions": [
+        "1"
+      ]
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "atk": true
+      },
+      "block": {
+        "wall": "atk"
+      }
+    }
+  ],
+  "expect": {
+    "zone": {
+      "tb": "graveyard",
+      "cog": "battlefield"
+    },
+    "blocked": {
+      "atk": false
+    },
+    "life": {
+      "1": 18
+    }
+  }
+}

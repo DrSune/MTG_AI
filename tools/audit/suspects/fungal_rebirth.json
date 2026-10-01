@@ -1,0 +1,77 @@
+{
+  "status": "suspect",
+  "finding": "PRINTED: \"Return target permanent card from your graveyard to your hand. If a creature died this turn, create two 1/1 green Saproling creature tokens.\" ENGINE(observed): targeting the graveyard Trufflesnout raises \"executor: cast: illegal target selection: selection:off_population:card:1\" \u2014 the IS_PERMANENT predicate (quantity.py:457) is zone_of(h)==\"battlefield\", so a card IN a graveyard can never satisfy \"permanent card\" where the printed text requires it. Loud.",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "fr",
+      "real": "Fungal Rebirth",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "spare",
+      "name": "Spare Parts",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "graveyard",
+      "controller": 0
+    },
+    {
+      "key": "lamb",
+      "name": "Dead Lamb",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "killer",
+      "name": "Killer",
+      "power": 3,
+      "toughness": 3,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "G": 3
+    }
+  },
+  "steps": [
+    {
+      "op": "deal_damage",
+      "source": "killer",
+      "target": "lamb",
+      "amount": 1
+    },
+    {
+      "op": "cast",
+      "real": "Fungal Rebirth",
+      "key": "fr",
+      "targets": [
+        "spare"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "fr": "graveyard",
+      "spare": "hand",
+      "lamb": "graveyard"
+    },
+    "tokens": {
+      "Saproling": 2
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

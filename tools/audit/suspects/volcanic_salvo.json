@@ -1,0 +1,70 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Volcanic Salvo",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "p1",
+   "name": "Ember Imp",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "c1",
+   "name": "Cinder Beast",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "c2",
+   "name": "Cinder Drake",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Volcanic Salvo",
+   "key": "sp",
+   "targets": [
+    "c1",
+    "c2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard",
+   "c1": "graveyard",
+   "c2": "graveyard"
+  }
+ },
+ "status": "suspect",
+ "finding": "WAVE2B (2026-10-01) re-run: printed 'This spell costs {X} less to cast, where X is the total power of creatures you control.' The Salvo compiles at generic 10 + {R}{R}; with a 2-power creature resident (and even with more) the cast raises 'cost:mana_generic:8<10' \u2014 the {X}-reduction clause is not implemented, the pool sees no discount. The damage tail is unreachable from any affordable pool."
+}

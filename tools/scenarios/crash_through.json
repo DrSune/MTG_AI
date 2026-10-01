@@ -1,0 +1,61 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "ct",
+      "real": "Crash Through",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "bull",
+      "name": "Bull",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "foebull",
+      "name": "Foe Bull",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "R": 1
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Crash Through",
+      "key": "ct"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "ct": "graveyard"
+    },
+    "hand": {
+      "0": 1
+    },
+    "battlefield_keywords": {
+      "Bull": [
+        "TRAMPLE"
+      ],
+      "Foe Bull": []
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

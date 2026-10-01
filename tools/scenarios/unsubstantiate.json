@@ -1,0 +1,54 @@
+{
+ "name": "unsubstantiate",
+ "note": "wave2b: printed 'return target spell or creature to its owner's hand' \u2014 an opposing battlefield creature lands in ITS OWNER's hand (seat 1), not the caster's.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Unsubstantiate",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c",
+   "name": "Omen Cat",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Unsubstantiate",
+   "key": "sp",
+   "targets": [
+    "c"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard",
+   "c": "hand"
+  },
+  "hand": {
+   "0": 0,
+   "1": 1
+  }
+ }
+}

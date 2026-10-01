@@ -1,0 +1,49 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "opt",
+      "real": "Opt",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "U": 5
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Opt",
+      "key": "opt",
+      "decisions": [
+        "bottom"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "opt": "graveyard"
+    },
+    "hand": {
+      "0": 1
+    },
+    "library": {
+      "0": [
+        "Library 3",
+        "Library 2",
+        "Library 1",
+        "Library 0",
+        "Library 5"
+      ]
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

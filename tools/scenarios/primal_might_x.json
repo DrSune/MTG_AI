@@ -1,0 +1,70 @@
+{
+ "name": "primal_might_x",
+ "note": "wave2b (the PT closure the arc-16 pack left open): cast for x=2 the printed '+X/+X' is ASSERTED \u2014 the buffed Squire's ledger PT reads 3/3 through the fight exchange (it carries 1 damage but 3 toughness keeps it breathing), the 1/1 Pup dies to the 3 power.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "might",
+   "real": "Primal Might",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sq",
+   "name": "Squire",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "pup",
+   "name": "Pup",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Primal Might",
+   "key": "might",
+   "x": 2,
+   "targets": [
+    "sq"
+   ]
+  }
+ ],
+ "expect": {
+  "battlefield_pt": {
+   "Squire": [
+    3,
+    3
+   ]
+  },
+  "damage": {
+   "sq": 1
+  },
+  "zone": {
+   "might": "graveyard",
+   "sq": "battlefield",
+   "pup": "graveyard"
+  }
+ }
+}

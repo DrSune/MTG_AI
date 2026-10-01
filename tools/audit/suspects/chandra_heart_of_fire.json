@@ -1,0 +1,41 @@
+{
+  "status": "suspect",
+  "finding": "PRINTED: planeswalker enters with 5 loyalty counters; -9 ends \"Add six {R}.\" ENGINE(observed): \"counters[ch]: expected {LOYALTY: 5}, got {}\" \u2014 an entering planeswalker is never seeded with LOYALTY counters. Mana economy also diverges (probe dump, no mana-pool lane to pack): seed {\"R\": 5}, cost {3}{R}{R} paid exactly -> pool after cast is {\"R\": 6}, i.e. +6 R of spillover from the compiled -9 ADD_MANA.",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "ch",
+      "real": "Chandra, Heart of Fire",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "R": 5
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Chandra, Heart of Fire",
+      "key": "ch"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "ch": "battlefield"
+    },
+    "counters": {
+      "ch": {
+        "LOYALTY": 5
+      }
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

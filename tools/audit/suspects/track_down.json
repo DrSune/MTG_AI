@@ -1,0 +1,45 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Track Down",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Track Down",
+   "key": "sp",
+   "decisions": [
+    "0",
+    "0",
+    "0"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard"
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "status": "suspect",
+ "finding": "WAVE2B (2026-10-01) re-run: printed 'Scry 3, then reveal the top card of your library. If it's a CREATURE or land card, draw a card.' The seat-0 library top is 'Library 5', a printed Creature (synthetic library cards carry type_line Creature) \u2014 after the Scry the conditional DRAW silently never fires: hand stays 0. The Scry 3 lane itself works; the reveal + type-check + draw tail is dead."
+}

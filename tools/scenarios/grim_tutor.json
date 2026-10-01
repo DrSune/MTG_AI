@@ -1,0 +1,56 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "gt",
+      "real": "Grim Tutor",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "cardinal",
+      "name": "Cardinal",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "library",
+      "controller": 0
+    },
+    {
+      "key": "j1",
+      "name": "Top Junk",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "library",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "B": 3
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Grim Tutor",
+      "key": "gt",
+      "decisions": [
+        "Cardinal"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "gt": "graveyard",
+      "cardinal": "hand"
+    },
+    "life": {
+      "0": 17
+    }
+  }
+}

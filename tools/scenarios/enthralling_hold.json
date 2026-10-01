@@ -1,0 +1,65 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "eh",
+      "real": "Enthralling Hold",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "thrall",
+      "name": "Thralldom",
+      "power": 3,
+      "toughness": 3,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1,
+      "tapped": true
+    }
+  ],
+  "mana": {
+    "0": {
+      "U": 5
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Enthralling Hold",
+      "key": "eh",
+      "targets": [
+        "thrall"
+      ]
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "thrall": true
+      }
+    }
+  ],
+  "expect": {
+    "zone": {
+      "eh": "battlefield",
+      "thrall": "battlefield"
+    },
+    "attackers": {
+      "thrall": true
+    },
+    "life": {
+      "0": 20,
+      "1": 17
+    }
+  }
+}

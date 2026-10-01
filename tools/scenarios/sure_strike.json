@@ -1,0 +1,57 @@
+{
+ "name": "sure_strike",
+ "note": "wave2b: printed '+3/+0 and gains first strike' \u2014 PT lane 4/1 AND the keyword lane carries FIRST_STRIKE.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Sure Strike",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "g",
+   "name": "Squire",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Sure Strike",
+   "key": "sp",
+   "targets": [
+    "g"
+   ]
+  }
+ ],
+ "expect": {
+  "battlefield_pt": {
+   "Squire": [
+    4,
+    1
+   ]
+  },
+  "battlefield_keywords": {
+   "Squire": [
+    "FIRST_STRIKE"
+   ]
+  }
+ }
+}

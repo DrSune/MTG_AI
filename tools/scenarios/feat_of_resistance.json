@@ -1,0 +1,54 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "fr",
+      "real": "Feat of Resistance",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "def",
+      "name": "Defender One",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "W": 2
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Feat of Resistance",
+      "key": "fr",
+      "targets": [
+        "def"
+      ],
+      "decisions": [
+        "0"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "fr": "graveyard"
+    },
+    "counters": {
+      "def": {
+        "PLUS_1_PLUS_1": 1
+      }
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

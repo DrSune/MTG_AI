@@ -1,0 +1,50 @@
+{
+ "name": "village_rites",
+ "note": "wave2b: printed 'As an additional cost to cast this spell, sacrifice a creature. Draw two cards.' \u2014 with exactly ONE own creature the sacrifice is forced, the victim hits the graveyard, and the hand lane reads 2 (the spell itself cast away, two cards drawn). THIS sac/discard lane WORKS, the contrast that pins Sparkhunter Masticore / Thrill of Possibility's silent discard no-ops as suspects.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Village Rites",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "g",
+   "name": "Tithe Lamb",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Village Rites",
+   "key": "sp"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard",
+   "g": "graveyard"
+  },
+  "hand": {
+   "0": 2
+  }
+ }
+}

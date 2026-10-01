@@ -1,0 +1,61 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "aa",
+      "real": "Angelic Ascension",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "threat",
+      "name": "Threat",
+      "power": 4,
+      "toughness": 4,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "W": 2
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Angelic Ascension",
+      "key": "aa",
+      "targets": [
+        "threat"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "aa": "graveyard",
+      "threat": "exile"
+    },
+    "tokens": {
+      "Angel": 1
+    },
+    "battlefield_keywords": {
+      "Angel": [
+        "FLYING"
+      ]
+    },
+    "battlefield_pt": {
+      "Angel": [
+        4,
+        4
+      ]
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

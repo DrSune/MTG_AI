@@ -1,0 +1,51 @@
+{
+ "name": "volcanic_geyser",
+ "note": "wave2b: printed 'deals X damage to any target' \u2014 cast for x=5 (cost {X}{R}): a 4/4 takes EXACTLY 5 and dies. The x-binding rides the cast op (CR 601.2f). Damage marks vanish with the corpse (harness convention); the graveyard lane carries the lethality proof.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Volcanic Geyser",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "g",
+   "name": "Boulder Ram",
+   "power": "4",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Volcanic Geyser",
+   "key": "sp",
+   "x": 5,
+   "targets": [
+    "g"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard",
+   "g": "graveyard"
+  }
+ }
+}

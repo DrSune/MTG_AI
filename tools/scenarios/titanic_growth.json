@@ -1,0 +1,56 @@
+{
+ "name": "titanic_growth",
+ "note": "wave2b: printed '+4/+4 until end of turn' on a 1/1 \u2014 the ledger PT reads 5/5 and survives.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Titanic Growth",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "g",
+   "name": "Squire",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Titanic Growth",
+   "key": "sp",
+   "targets": [
+    "g"
+   ]
+  }
+ ],
+ "expect": {
+  "battlefield_pt": {
+   "Squire": [
+    5,
+    5
+   ]
+  },
+  "zone": {
+   "sp": "graveyard",
+   "g": "battlefield"
+  }
+ }
+}

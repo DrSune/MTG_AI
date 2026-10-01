@@ -1,0 +1,59 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "ta",
+      "real": "Destructive Tampering",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "cog",
+      "name": "Rusty Cog",
+      "type": "Artifact",
+      "zone": "battlefield",
+      "controller": 1
+    },
+    {
+      "key": "fly",
+      "name": "Sky Beast",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature",
+      "keywords": "FLYING",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "R": 8
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Destructive Tampering",
+      "key": "ta",
+      "targets": [
+        "cog"
+      ],
+      "decisions": [
+        "0"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "ta": "graveyard",
+      "cog": "graveyard",
+      "fly": "battlefield"
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

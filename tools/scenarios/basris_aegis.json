@@ -1,0 +1,72 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "ba",
+      "real": "Basri's Aegis",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "c1",
+      "name": "Guard One",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "c2",
+      "name": "Guard Two",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "pal",
+      "name": "Basri, Devoted Paladin",
+      "type": "Creature",
+      "zone": "library",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "W": 4
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Basri's Aegis",
+      "key": "ba",
+      "targets": [
+        "c1",
+        "c2"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "ba": "graveyard",
+      "pal": "hand"
+    },
+    "counters": {
+      "c1": {
+        "PLUS_1_PLUS_1": 1
+      },
+      "c2": {
+        "PLUS_1_PLUS_1": 1
+      }
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

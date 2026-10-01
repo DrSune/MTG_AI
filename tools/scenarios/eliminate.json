@@ -1,0 +1,59 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "el",
+      "real": "Eliminate",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "tiny",
+      "name": "Tiny",
+      "power": 3,
+      "toughness": 3,
+      "type": "Creature",
+      "cmc": 2,
+      "zone": "battlefield",
+      "controller": 1
+    },
+    {
+      "key": "big",
+      "name": "Big",
+      "power": 5,
+      "toughness": 5,
+      "type": "Creature",
+      "cmc": 5,
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "B": 2
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Eliminate",
+      "key": "el",
+      "targets": [
+        "tiny"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "el": "graveyard",
+      "tiny": "graveyard",
+      "big": "battlefield"
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

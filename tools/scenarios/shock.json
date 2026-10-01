@@ -1,0 +1,54 @@
+{
+ "name": "shock",
+ "note": "wave2b: printed promise 'deals 2 damage to any target' \u2014 cast the REAL Shock at an opposing 2/2: the damage kills it (2>=2 toughness), Spell goes to its graveyard. Damage marks vanish with the corpse (harness convention), so the graveyard lane carries the lethality proof.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "g",
+   "name": "Rager",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "sp",
+   "targets": [
+    "g"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "sp": "graveyard",
+   "g": "graveyard"
+  }
+ }
+}

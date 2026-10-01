@@ -1,0 +1,65 @@
+{
+ "name": "swift_response",
+ "note": "wave2b: printed 'destroy target TAPPED creature' \u2014 the sleep Ox enters tapped (the enter op's tapped flag) and dies; the awake 2/2 is untouched.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Swift Response",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ox",
+   "name": "Sleepy Ox",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "awake",
+   "name": "Alert Pup",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "ox",
+   "tapped": true
+  },
+  {
+   "op": "cast",
+   "real": "Swift Response",
+   "key": "sp",
+   "targets": [
+    "ox"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard",
+   "ox": "graveyard",
+   "awake": "battlefield"
+  }
+ }
+}

@@ -1,0 +1,59 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "bb",
+      "real": "Burn Bright",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "mycrit",
+      "name": "My Critter",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "theircrit",
+      "name": "Their Critter",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "R": 3
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Burn Bright",
+      "key": "bb"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "bb": "graveyard"
+    },
+    "power": {
+      "mycrit": 3,
+      "theircrit": 2
+    },
+    "toughness": {
+      "mycrit": 1
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

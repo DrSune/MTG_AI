@@ -1,0 +1,34 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "lgo",
+      "real": "Life Goes On",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "G": 1
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Life Goes On",
+      "key": "lgo"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "lgo": "graveyard"
+    },
+    "life": {
+      "0": 24
+    }
+  }
+}

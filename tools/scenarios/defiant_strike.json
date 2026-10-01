@@ -1,0 +1,55 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "ds",
+      "real": "Defiant Strike",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "soldier",
+      "name": "Soldier",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "W": 2
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Defiant Strike",
+      "key": "ds",
+      "targets": [
+        "soldier"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "ds": "graveyard"
+    },
+    "power": {
+      "soldier": 2
+    },
+    "toughness": {
+      "soldier": 1
+    },
+    "hand": {
+      "0": 1
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

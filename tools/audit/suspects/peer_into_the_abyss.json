@@ -1,0 +1,41 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Peer into the Abyss",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Peer into the Abyss",
+   "key": "sp"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 10
+  },
+  "hand": {
+   "1": 3
+  }
+ },
+ "status": "suspect",
+ "finding": "WAVE2B (2026-10-01) re-run: printed 'Target player draws cards equal to half the number of cards in their library and loses half their life. Round up each time.' The spell carries a TARGET_PLAYER slot; a pack cast op cannot designate a PLAYER through cast targets (harness resolves targets via the pack-key handle map and validates against spell_target_slots), and with zero designations the cast raises 'selection:count_below_min:0<1'. The enter-op 'player:1' decision lane (meteorite precedent) does not apply to a cast. Target-player designation on the cast lane is the missing harness/API surface."
+}

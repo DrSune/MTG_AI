@@ -1,0 +1,92 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "ag",
+      "real": "Alchemist's Gift",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "ag2",
+      "real": "Alchemist's Gift",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "knife",
+      "name": "Knife Hand",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "leech",
+      "name": "Leech Biter",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "B": 2
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Alchemist's Gift",
+      "key": "ag",
+      "targets": [
+        "knife"
+      ],
+      "decisions": [
+        "0"
+      ]
+    },
+    {
+      "op": "cast",
+      "real": "Alchemist's Gift",
+      "key": "ag2",
+      "targets": [
+        "leech"
+      ],
+      "decisions": [
+        "1"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "ag": "graveyard",
+      "ag2": "graveyard"
+    },
+    "battlefield_keywords": {
+      "Knife Hand": [
+        "DEATHTOUCH"
+      ],
+      "Leech Biter": [
+        "LIFELINK"
+      ]
+    },
+    "power": {
+      "knife": 2,
+      "leech": 2
+    },
+    "toughness": {
+      "knife": 2,
+      "leech": 2
+    },
+    "life": {
+      "0": 20
+    }
+  }
+}

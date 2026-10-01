@@ -1,0 +1,83 @@
+{
+ "name": "traitorous_greed",
+ "note": "wave2b: printed 'Gain control of target creature until end of turn. Untap that creature. It gains haste until end of turn. Add two mana of any one color.' \u2014 the two-mana ask is answered 'R' (ONE decision word answers the any-one-color pair). MANA PROOF BY CHAIN: the pool is seeded EXACTLY {R:4} (the Greed's own {R}{3} cost), so the follow-up Shock only pays because the Greed added the 2 red; the Shock's 2 damage kills the opposing flyer. HASTE rides the keyword lane; the untap the printed text promises is asserted in the tapped lane.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "gr",
+   "real": "Traitorous Greed",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sk",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Turncoat Ogre",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "bird",
+   "real": "Skyscanner",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Traitorous Greed",
+   "key": "gr",
+   "targets": [
+    "ogre"
+   ],
+   "decisions": [
+    "R"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "sk",
+   "targets": [
+    "bird"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "gr": "graveyard",
+   "sk": "graveyard",
+   "bird": "graveyard",
+   "ogre": "battlefield"
+  },
+  "tapped": {
+   "ogre": false
+  },
+  "battlefield_keywords": {
+   "Turncoat Ogre": [
+    "HASTE"
+   ]
+  }
+ }
+}
