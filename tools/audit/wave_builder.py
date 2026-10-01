@@ -26,12 +26,27 @@ reasons). The two wave-1 cast-lane suspects (Capture Sphere, Wildwood
 Scourge) carry NO SpellAbility node at all — that absence is the suspect
 itself — so they are appended as explicit ``carry_over`` rows.
 
+Wave 3 (loop step 1, 2026-10-01) is the STATIC/KEYWORD cohort: every
+non-token card carrying a TOP-LEVEL :class:`StaticAbility` node in
+``record.abilities`` or a :class:`KeywordAbility` node in
+``record.keywords`` (the continuous-effect / keyword layer — never a
+spell, trigger, or activation effect; statics *granted* by those lanes
+are nested and already counted by waves 1-2). Same derive-from-IR rule
+and gate; a static card whose flag is False is excluded with the
+unsupported verbs its static nodes hit (``meta.excluded_by_flag``).
+Because this wave targets cards NOT yet exercised, every card whose name
+appears as a ``real`` entry in ``tools/scenarios/*.json`` (the 148 green
+packs) or ``tools/audit/suspects/*.json`` is EXCLUDED by name; the count
+lands in ``meta.excluded_count``. No carry-over semantics apply.
+
 Usage::
 
     .venv/bin/python tools/audit/wave_builder.py              # write wave1.json
     .venv/bin/python tools/audit/wave_builder.py --lint       # re-derive, diff
     .venv/bin/python tools/audit/wave_builder.py --wave2      # write wave2.json
     .venv/bin/python tools/audit/wave_builder.py --wave2 --lint
+    .venv/bin/python tools/audit/wave_builder.py --wave3      # write wave3.json
+    .venv/bin/python tools/audit/wave_builder.py --wave3 --lint
 
 Exit code 0 = wave file current (lint) / written (build).
 """
@@ -48,7 +63,9 @@ sys.path.insert(0, str(REPO))
 
 from MTG_bot.core.ability_tree import (
     Atom,
+    KeywordAbility,
     SpellAbility,
+    StaticAbility,
     TriggeredAbility,
     ZoneChangeEvent,
     walk,
@@ -62,6 +79,12 @@ DATA = REPO / "MTG_bot" / "data" / "M21.json"
 ASSETS = REPO / "MTG_bot" / "assets" / "card_images"
 DEFAULT_OUT = Path(__file__).resolve().parent / "wave1.json"
 DEFAULT_OUT2 = Path(__file__).resolve().parent / "wave2.json"
+DEFAULT_OUT3 = Path(__file__).resolve().parent / "wave3.json"
+
+#: Wave-3 name-exclusion sources: every green scenario pack (148) and every
+#: suspect file; a card counts as covered if its name appears as a ``real``
+#: entry in any of them (subject or support role alike — it was exercised).
+COVERED_GLOBS = ("tools/scenarios/*.json", "tools/audit/suspects/*.json")
 
 #: Wave-1 cast-lane suspects: verified 2026-10-01 to carry NO SpellAbility
 #: node in the compiled IR (their cast path is the machinery gap under
@@ -264,17 +287,139 @@ def derive_wave2() -> dict:
     }
 
 
+def static_nodes(record) -> list:
+    """The wave-3 family map: TOP-LEVEL static-layer nodes — StaticAbility
+    (continuous effects) in ``abilities`` plus KeywordAbility (keywords) in
+    ``keywords``. Nested statics (granted from spell/trigger lanes) are not
+    counted here; they belong to the waves 1-2 cohort."""
+    return [
+        *[a for a in record.abilities if isinstance(a, StaticAbility)],
+        *[k for k in record.keywords if isinstance(k, KeywordAbility)],
+    ]
+
+
+def static_unsupported_verbs(record) -> list[str]:
+    """Atom verb names INSIDE the card's static nodes that the engine
+    cannot execute — the honest flag reason for a wave-3 exclusion."""
+    return sorted(
+        {
+            node.verb.name
+            for a in static_nodes(record)
+            for node in walk(a)
+            if isinstance(node, Atom) and node.verb not in SUPPORTED_VERBS_V2
+        }
+    )
+
+
+def static_mechanics(record) -> list[str]:
+    """Wave-3 mechanics: atom verbs inside StaticAbility payloads UNION the
+    keyword names of KeywordAbility nodes — the static layer's verb
+    families, read out of the IR."""
+    verbs = {
+        node.verb.name
+        for a in record.abilities
+        if isinstance(a, StaticAbility)
+        for node in walk(a.effect)
+        if isinstance(node, Atom)
+    }
+    verbs |= {k.keyword.name for k in record.keywords if isinstance(k, KeywordAbility)}
+    return sorted(verbs)
+
+
+def covered_names() -> set[str]:
+    """Names exercised by existing material: every ``real`` card entry in
+    every green scenario pack and every suspect file."""
+    names: set[str] = set()
+    for pattern in COVERED_GLOBS:
+        for path in sorted(REPO.glob(pattern)):
+            board = json.loads(path.read_text(encoding="utf-8"))
+            names |= {
+                c["real"]
+                for c in board.get("cards", [])
+                if isinstance(c, dict) and "real" in c
+            }
+    return names
+
+
+def derive_wave3() -> dict:
+    """Wave 3 = static/keyword layer, engine-supported gate, minus every
+    card already exercised by a green pack or suspect (excluded by NAME —
+    ``meta.excluded_count``). Coverage arithmetic: n_static_cards =
+    n_covered_excluded + n_gate_excluded + n_cards. No carry-over rows."""
+    pool, gated, texts = _compile_state()
+    covered = covered_names()
+    cards: dict[str, dict] = {}
+    excluded: dict[str, list[str]] = {}
+    n_static_cards = 0
+    n_covered = 0
+    for oid, res in pool.results.items():
+        record = res.card
+        if record.is_token or oid in pool.emblems:
+            continue
+        statics = static_nodes(record)
+        if not statics:
+            continue
+        n_static_cards += 1
+        if not gated.results[oid].legality.engine_supported:
+            reasons = static_unsupported_verbs(record)
+            excluded[record.name] = reasons or unsupported_verbs(record)
+            continue
+        if record.name in covered:
+            n_covered += 1
+            continue
+        cards[record.name] = {
+            "oracle_id": oid,
+            "mechanics": static_mechanics(record),
+            "n_static_abilities": len(statics),
+            "engine_supported": bool(gated.results[oid].legality.engine_supported),
+            "image": str(ASSETS / f"{oid}.jpg"),
+            "has_image": (ASSETS / f"{oid}.jpg").exists(),
+            "printed_text": texts.get(oid, ""),
+        }
+    return {
+        "meta": {
+            "wave": "wave3",
+            "family": (
+                "STATIC/keyword layer (top-level StaticAbility + "
+                "KeywordAbility nodes), engine-supported gate, "
+                "pack/suspect-covered names excluded"
+            ),
+            "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
+            "built_by": "tools/audit/wave_builder.py",
+            "n_static_cards": n_static_cards,
+            "excluded_count": n_covered,
+            "n_gate_excluded": len(excluded),
+            "excluded_by_flag": dict(sorted(excluded.items())),
+            "coverage": (
+                f"{n_static_cards} static-family cards = {n_covered} already "
+                f"covered (name) + {len(excluded)} gate-flagged + "
+                f"{len(cards)} wave-3 cohort"
+            ),
+            "n_cards": len(cards),
+        },
+        "cards": dict(sorted(cards.items())),
+    }
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
     ap.add_argument(
         "--wave2", action="store_true", help="SPELL cohort instead of wave 1"
     )
+    ap.add_argument(
+        "--wave3", action="store_true", help="STATIC/keyword cohort instead of wave 1"
+    )
     ap.add_argument("--out", default=None)
     ap.add_argument("--lint", action="store_true", help="re-derive and diff vs disk")
     args = ap.parse_args(argv)
 
-    derive = derive_wave2 if args.wave2 else derive_wave
-    out = Path(args.out) if args.out else (DEFAULT_OUT2 if args.wave2 else DEFAULT_OUT)
+    if args.wave3:
+        derive, default_out = derive_wave3, DEFAULT_OUT3
+    elif args.wave2:
+        derive, default_out = derive_wave2, DEFAULT_OUT2
+    else:
+        derive, default_out = derive_wave, DEFAULT_OUT
+    out = Path(args.out) if args.out else default_out
     wave = derive()
     text = json.dumps(wave, indent=2, sort_keys=True) + "\n"
 

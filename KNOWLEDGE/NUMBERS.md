@@ -2220,3 +2220,13 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | PC gate | PC-1 **301/305** · PC-2 **634/639** · PC-3 **0** · PC-4 **0**; engine **297/305, V2 45** UNCHANGED | `.venv/bin/python tools/measure_grammar.py --with-engine-flags` | EXACT vs T5/fix-A/fix-B; PC-6/PC-8 standing FAILs unchanged |
 | catalog | repin **6144 entries/10 games**, post **0/10 diverge** | `tools/traces/catalog.py repin && … compare` | seed-8 diff attributed to RandomPolicy's uniform choose over the +alias CHOOSE vocab (games.py:383-403) |
 | pyright / ruff | **0 new** (6 pre-existing Counter errors in run_scenarios.py); ruff **Δ0** | `pyright` / `ruff check` | 2 lints introduced mid-batch (UP037, I001) auto-fixed + re-greened |
+
+## 2026-10-01 (wave-3 derivation — static/keyword cohort)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| wave-3 cohort | **55 cards** (all engine-supported, all with art) | `.venv/bin/python tools/audit/wave_builder.py --wave3 [--lint]` | top-level StaticAbility+KeywordAbility nodes, derive-from-IR |
+| coverage arithmetic | **100 = 44 + 1 + 55** | same | 100 static-family cards = 44 pack/suspect-covered (name) + 1 gate-flagged + 55 cohort |
+| gate-flagged | **1**: Teferi, Master of Time — **PHASE_OUT** | `meta.excluded_by_flag` | static nodes themselves verb-clean (GRANT_ACTIVATION is supported); whole-card gate fails on PHASE_OUT elsewhere |
+| top-5 verb families | MODIFY_PT **13** · FLYING **9** · GRANT_ABILITY **8** · LIFELINK **5** · REACH **5** | mechanics ∩ static nodes in wave3.json | 25 distinct verbs over the 55-row cohort |
+| gates | wave1+wave2+wave3 lint **OK byte-identical**; core suite **2168 + 4 subtests** unchanged; pyright **0**; ruff **Δ0** | `.venv/bin/python tools/audit/wave_builder.py --lint` / `--wave2 --lint` / `--wave3 --lint` · `pytest MTG_bot/core -q` · `pyright tools/audit/wave_builder.py` | tools-only change; MTG_bot/** untouched |

@@ -1,0 +1,652 @@
+{
+  "cards": {
+    "Anointed Chorister": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/61859443-e298-41c7-a179-6e6554de91c9.jpg",
+      "mechanics": [
+        "LIFELINK"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "61859443-e298-41c7-a179-6e6554de91c9",
+      "printed_text": "Lifelink (Damage dealt by this creature also causes you to gain that much life.)\n{4}{W}: This creature gets +3/+3 until end of turn."
+    },
+    "Blood Glutton": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/065b8e5e-874e-4de3-9f12-41e4b1604561.jpg",
+      "mechanics": [
+        "LIFELINK"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "065b8e5e-874e-4de3-9f12-41e4b1604561",
+      "printed_text": "Lifelink (Damage dealt by this creature also causes you to gain that much life.)"
+    },
+    "Chandra's Incinerator": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/515cee6a-a2e1-4eeb-8e1d-293724313b14.jpg",
+      "mechanics": [
+        "TRAMPLE"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "515cee6a-a2e1-4eeb-8e1d-293724313b14",
+      "printed_text": "This spell costs {X} less to cast, where X is the total amount of noncombat damage dealt to your opponents this turn.\nTrample\nWhenever a source you control deals noncombat damage to an opponent, this creature deals that much damage to target creature or planeswalker that player controls."
+    },
+    "Chromatic Orrery": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/95c3976c-33f3-490b-bfd3-7f1af2fe0416.jpg",
+      "mechanics": [
+        "MANA_POLICY"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "95c3976c-33f3-490b-bfd3-7f1af2fe0416",
+      "printed_text": "You may spend mana as though it were mana of any color.\n{T}: Add {C}{C}{C}{C}{C}.\n{5}, {T}: Draw a card for each color among permanents you control."
+    },
+    "Concordia Pegasus": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/93c35f9e-3346-4269-b1af-df9f216bfd7a.jpg",
+      "mechanics": [
+        "FLYING"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "93c35f9e-3346-4269-b1af-df9f216bfd7a",
+      "printed_text": "Flying"
+    },
+    "Conspicuous Snoop": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/f5d1bd3c-0e65-4999-a810-881b2389b40e.jpg",
+      "mechanics": [
+        "REVEAL"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "f5d1bd3c-0e65-4999-a810-881b2389b40e",
+      "printed_text": "Play with the top card of your library revealed.\nYou may cast Goblin spells from the top of your library.\nAs long as the top card of your library is a Goblin card, this creature has all activated abilities of that card."
+    },
+    "Containment Priest": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/8a76a9b9-3127-45fe-b20f-a8f643276281.jpg",
+      "mechanics": [
+        "FLASH"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "8a76a9b9-3127-45fe-b20f-a8f643276281",
+      "printed_text": "Flash\nIf a nontoken creature would enter and it wasn't cast, exile it instead."
+    },
+    "Demonic Embrace": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/d185c829-ef12-403a-a071-7520a0293d4a.jpg",
+      "mechanics": [
+        "ENCHANT",
+        "GRANT_ABILITY",
+        "GRANT_TYPE",
+        "MODIFY_PT"
+      ],
+      "n_static_abilities": 2,
+      "oracle_id": "d185c829-ef12-403a-a071-7520a0293d4a",
+      "printed_text": "Enchant creature\nEnchanted creature gets +3/+1, has flying, and is a Demon in addition to its other types.\nYou may cast this card from your graveyard by paying 3 life and discarding a card in addition to paying its other costs."
+    },
+    "Drowsing Tyrannodon": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/ee811356-ef6a-4972-b827-32c2d329b3c3.jpg",
+      "mechanics": [
+        "DEFENDER",
+        "LOSE_ABILITY"
+      ],
+      "n_static_abilities": 2,
+      "oracle_id": "ee811356-ef6a-4972-b827-32c2d329b3c3",
+      "printed_text": "Defender (This creature can't attack.)\nAs long as you control a creature with power 4 or greater, this creature can attack as though it didn't have defender."
+    },
+    "Dub": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/e3ca6b70-01d2-44e9-937a-a2d50bbf9d10.jpg",
+      "mechanics": [
+        "ENCHANT",
+        "GRANT_ABILITY",
+        "GRANT_TYPE",
+        "MODIFY_PT"
+      ],
+      "n_static_abilities": 2,
+      "oracle_id": "e3ca6b70-01d2-44e9-937a-a2d50bbf9d10",
+      "printed_text": "Enchant creature\nEnchanted creature gets +2/+2, has first strike, and is a Knight in addition to its other types. (It deals combat damage before creatures without first strike.)"
+    },
+    "Elder Gargaroth": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/397b9dcf-690a-4a58-8637-bb9baab7cc2f.jpg",
+      "mechanics": [
+        "REACH",
+        "TRAMPLE",
+        "VIGILANCE"
+      ],
+      "n_static_abilities": 3,
+      "oracle_id": "397b9dcf-690a-4a58-8637-bb9baab7cc2f",
+      "printed_text": "Vigilance, reach, trample\nWhenever this creature attacks or blocks, choose one \u2014\n\u2022 Create a 3/3 green Beast creature token.\n\u2022 You gain 3 life.\n\u2022 Draw a card."
+    },
+    "Feline Sovereign": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/05f0feb6-6783-49fd-acf6-68b44aaff846.jpg",
+      "mechanics": [
+        "GRANT_ABILITY",
+        "MODIFY_PT"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "05f0feb6-6783-49fd-acf6-68b44aaff846",
+      "printed_text": "Other Cats you control get +1/+1 and have protection from Dogs.\nWhenever one or more Cats you control deal combat damage to a player, destroy up to one target artifact or enchantment that player controls."
+    },
+    "Fetid Imp": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/cdb68656-633d-436e-ad56-0fdb4814bd19.jpg",
+      "mechanics": [
+        "FLYING"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "cdb68656-633d-436e-ad56-0fdb4814bd19",
+      "printed_text": "Flying\n{B}: This creature gains deathtouch until end of turn. (Any amount of damage it deals to a creature is enough to destroy it.)"
+    },
+    "Gadrak, the Crown-Scourge": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/42d7ec93-0943-43e2-9b65-b7edc3349410.jpg",
+      "mechanics": [
+        "FLYING",
+        "PREVENT_EFFECT",
+        "TREASURE"
+      ],
+      "n_static_abilities": 3,
+      "oracle_id": "42d7ec93-0943-43e2-9b65-b7edc3349410",
+      "printed_text": "Flying\nGadrak can't attack unless you control four or more artifacts.\nAt the beginning of your end step, create a Treasure token for each nontoken creature that died this turn. (It's an artifact with \"{T}, Sacrifice this token: Add one mana of any color.\")"
+    },
+    "Garruk's Harbinger": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/2dbe384b-71c4-43f9-be35-ba2894021b85.jpg",
+      "mechanics": [
+        "HEXPROOF"
+      ],
+      "n_static_abilities": 2,
+      "oracle_id": "2dbe384b-71c4-43f9-be35-ba2894021b85",
+      "printed_text": "Hexproof from black\nWhenever this creature deals combat damage to a player or planeswalker, look at that many cards from the top of your library. You may reveal a creature card or Garruk planeswalker card from among them and put it into your hand. Put the rest on the bottom of your library in a random order."
+    },
+    "Glorious Anthem": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/e3886fe8-9b76-4613-8891-4ec74657c087.jpg",
+      "mechanics": [
+        "MODIFY_PT"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "e3886fe8-9b76-4613-8891-4ec74657c087",
+      "printed_text": "Creatures you control get +1/+1."
+    },
+    "Gnarled Sage": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/c36d7c2b-204f-432e-b8e2-ffb3ffb49231.jpg",
+      "mechanics": [
+        "GRANT_ABILITY",
+        "MODIFY_PT",
+        "REACH"
+      ],
+      "n_static_abilities": 2,
+      "oracle_id": "c36d7c2b-204f-432e-b8e2-ffb3ffb49231",
+      "printed_text": "Reach (This creature can block creatures with flying.)\nAs long as you've drawn two or more cards this turn, this creature gets +0/+2 and has vigilance. (Attacking doesn't cause it to tap.)"
+    },
+    "Heartfire Immolator": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/1e414a4f-6e76-4cbe-9c69-d52852cd5bc0.jpg",
+      "mechanics": [
+        "PROWESS"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "1e414a4f-6e76-4cbe-9c69-d52852cd5bc0",
+      "printed_text": "Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)\n{R}, Sacrifice this creature: It deals damage equal to its power to target creature or planeswalker."
+    },
+    "Hellkite Punisher": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/c3ea33f4-17ac-41a4-8320-361b6f8aba0d.jpg",
+      "mechanics": [
+        "FLYING"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "c3ea33f4-17ac-41a4-8320-361b6f8aba0d",
+      "printed_text": "Flying\n{R}: This creature gets +1/+0 until end of turn."
+    },
+    "Hobblefiend": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/f2b284cd-fa12-4ba1-b297-80105bb48fde.jpg",
+      "mechanics": [
+        "TRAMPLE"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "f2b284cd-fa12-4ba1-b297-80105bb48fde",
+      "printed_text": "Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)\n{1}, Sacrifice another creature: Put a +1/+1 counter on this creature."
+    },
+    "Hooded Blightfang": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/342eb666-838c-43d0-bf52-2f704f2a80e3.jpg",
+      "mechanics": [
+        "DEATHTOUCH"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "342eb666-838c-43d0-bf52-2f704f2a80e3",
+      "printed_text": "Deathtouch\nWhenever a creature you control with deathtouch attacks, each opponent loses 1 life and you gain 1 life.\nWhenever a creature you control with deathtouch deals damage to a planeswalker, destroy that planeswalker."
+    },
+    "Indulging Patrician": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/189131b7-ed59-4750-a4ed-453e4497a5c8.jpg",
+      "mechanics": [
+        "FLYING",
+        "LIFELINK"
+      ],
+      "n_static_abilities": 2,
+      "oracle_id": "189131b7-ed59-4750-a4ed-453e4497a5c8",
+      "printed_text": "Flying\nLifelink (Damage dealt by this creature also causes you to gain that much life.)\nAt the beginning of your end step, if you gained 3 or more life this turn, each opponent loses 3 life."
+    },
+    "Infernal Scarring": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/3fc640dd-6292-4d36-82fb-bd366bc00bd3.jpg",
+      "mechanics": [
+        "DRAW",
+        "ENCHANT",
+        "GRANT_ABILITY",
+        "MODIFY_PT"
+      ],
+      "n_static_abilities": 2,
+      "oracle_id": "3fc640dd-6292-4d36-82fb-bd366bc00bd3",
+      "printed_text": "Enchant creature\nEnchanted creature gets +2/+0 and has \"When this creature dies, draw a card.\""
+    },
+    "Jeskai Elder": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/dfbd5ad1-0f68-4219-95c4-98f674f321be.jpg",
+      "mechanics": [
+        "PROWESS"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "dfbd5ad1-0f68-4219-95c4-98f674f321be",
+      "printed_text": "Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)\nWhenever this creature deals combat damage to a player, you may draw a card. If you do, discard a card."
+    },
+    "Kaervek, the Spiteful": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/b338d879-189d-4b74-9d63-42920fdb9855.jpg",
+      "mechanics": [
+        "MODIFY_PT"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "b338d879-189d-4b74-9d63-42920fdb9855",
+      "printed_text": "Other creatures get -1/-1."
+    },
+    "Light of Promise": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/64c54c9f-0550-41e2-a44a-5892a199f670.jpg",
+      "mechanics": [
+        "ENCHANT",
+        "GRANT_ABILITY",
+        "PUT_COUNTER"
+      ],
+      "n_static_abilities": 2,
+      "oracle_id": "64c54c9f-0550-41e2-a44a-5892a199f670",
+      "printed_text": "Enchant creature\nEnchanted creature has \"Whenever you gain life, put that many +1/+1 counters on this creature.\""
+    },
+    "Liliana's Devotee": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/b3b8c7d0-46b9-4519-808a-154e503a58b6.jpg",
+      "mechanics": [
+        "MODIFY_PT"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "b3b8c7d0-46b9-4519-808a-154e503a58b6",
+      "printed_text": "Zombies you control get +1/+0.\nAt the beginning of your end step, if a creature died this turn, you may pay {1}{B}. If you do, create a 2/2 black Zombie creature token."
+    },
+    "Makeshift Battalion": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/8b6e2feb-9e8f-4912-ada0-1614502d9813.jpg",
+      "mechanics": [
+        "BATTALION"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "8b6e2feb-9e8f-4912-ada0-1614502d9813",
+      "printed_text": "Battalion \u2014 Whenever this creature and at least two other creatures attack, put a +1/+1 counter on this creature."
+    },
+    "Malefic Scythe": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/0b4925d7-e2bb-4b74-a538-80fe759799ad.jpg",
+      "mechanics": [
+        "EQUIP",
+        "MODIFY_PT"
+      ],
+      "n_static_abilities": 2,
+      "oracle_id": "0b4925d7-e2bb-4b74-a538-80fe759799ad",
+      "printed_text": "This Equipment enters with a soul counter on it.\nEquipped creature gets +1/+1 for each soul counter on this Equipment.\nWhenever equipped creature dies, put a soul counter on this Equipment.\nEquip {1} ({1}: Attach to target creature you control. Equip only as a sorcery.)"
+    },
+    "Mangara, the Diplomat": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/cbcb6d9a-6ae5-4bcd-8013-2b657553764a.jpg",
+      "mechanics": [
+        "LIFELINK"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "cbcb6d9a-6ae5-4bcd-8013-2b657553764a",
+      "printed_text": "Lifelink\nWhenever an opponent attacks with creatures, if two or more of those creatures are attacking you and/or planeswalkers you control, draw a card.\nWhenever an opponent casts their second spell each turn, draw a card."
+    },
+    "Masked Blackguard": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/8ccd20c7-b7fc-4ab1-a98b-3bbcc2079339.jpg",
+      "mechanics": [
+        "FLASH"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "8ccd20c7-b7fc-4ab1-a98b-3bbcc2079339",
+      "printed_text": "Flash (You may cast this spell any time you could cast an instant.)\n{2}{B}: This creature gets +1/+1 until end of turn."
+    },
+    "Mistral Singer": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/863a5ddb-2d66-4a07-bafc-38290776d5c0.jpg",
+      "mechanics": [
+        "FLYING",
+        "PROWESS"
+      ],
+      "n_static_abilities": 2,
+      "oracle_id": "863a5ddb-2d66-4a07-bafc-38290776d5c0",
+      "printed_text": "Flying\nProwess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)"
+    },
+    "Nine Lives": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/236e1f57-7ef5-455a-82a6-8ff6b85d8849.jpg",
+      "mechanics": [
+        "HEXPROOF"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "236e1f57-7ef5-455a-82a6-8ff6b85d8849",
+      "printed_text": "Hexproof\nIf a source would deal damage to you, prevent that damage and put an incarnation counter on this enchantment.\nWhen there are nine or more incarnation counters on this enchantment, exile it.\nWhen this enchantment leaves the battlefield, you lose the game."
+    },
+    "Ornery Dilophosaur": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/8291bc2e-ef58-4bd4-b261-b587142bbb1c.jpg",
+      "mechanics": [
+        "DEATHTOUCH"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "8291bc2e-ef58-4bd4-b261-b587142bbb1c",
+      "printed_text": "Deathtouch (Any amount of damage this deals to a creature is enough to destroy it.)\nWhenever this creature attacks, if you control a creature with power 4 or greater, this creature gets +2/+2 until end of turn."
+    },
+    "Pack Leader": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/3701ed34-a97c-4d7b-a15a-4faec02ef24b.jpg",
+      "mechanics": [
+        "MODIFY_PT"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "3701ed34-a97c-4d7b-a15a-4faec02ef24b",
+      "printed_text": "Other Dogs you control get +1/+1.\nWhenever this creature attacks, prevent all combat damage that would be dealt this turn to Dogs you control."
+    },
+    "Portcullis Vine": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/a217f386-11b5-48f0-b173-3b0700ba295f.jpg",
+      "mechanics": [
+        "DEFENDER"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "a217f386-11b5-48f0-b173-3b0700ba295f",
+      "printed_text": "Defender (This creature can't attack.)\n{2}, {T}, Sacrifice a creature with defender: Draw a card."
+    },
+    "Predatory Wurm": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/99ed6e18-7f14-4ea8-baee-ad6c081388ff.jpg",
+      "mechanics": [
+        "MODIFY_PT",
+        "VIGILANCE"
+      ],
+      "n_static_abilities": 2,
+      "oracle_id": "99ed6e18-7f14-4ea8-baee-ad6c081388ff",
+      "printed_text": "Vigilance (Attacking doesn't cause this creature to tap.)\nThis creature gets +2/+2 as long as you control a Garruk planeswalker."
+    },
+    "Radha, Heart of Keld": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/927fb139-0493-48be-8cc4-2c7d854d6a55.jpg",
+      "mechanics": [
+        "GRANT_ABILITY"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "927fb139-0493-48be-8cc4-2c7d854d6a55",
+      "printed_text": "During your turn, Radha has first strike.\nYou may look at the top card of your library any time, and you may play lands from the top of your library.\n{4}{R}{G}: Radha gets +X/+X until end of turn, where X is the number of lands you control."
+    },
+    "Rin and Seri, Inseparable": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/28c46eb7-bdfc-44b9-b7e9-b073260851f0.jpg",
+      "mechanics": [
+        "GAIN_LIFE"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "28c46eb7-bdfc-44b9-b7e9-b073260851f0",
+      "printed_text": "Whenever you cast a Dog spell, create a 1/1 green Cat creature token.\nWhenever you cast a Cat spell, create a 1/1 white Dog creature token.\n{R}{G}{W}, {T}: Rin and Seri deals damage to any target equal to the number of Dogs you control. You gain life equal to the number of Cats you control."
+    },
+    "Shacklegeist": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/7a1e4880-9abb-4018-84bd-91b5ec702c51.jpg",
+      "mechanics": [
+        "FLYING",
+        "PREVENT_EFFECT"
+      ],
+      "n_static_abilities": 2,
+      "oracle_id": "7a1e4880-9abb-4018-84bd-91b5ec702c51",
+      "printed_text": "Flying\nThis creature can block only creatures with flying.\nTap two untapped Spirits you control: Tap target creature you don't control."
+    },
+    "Short Sword": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/e842a4e5-ea0b-43ae-9ed8-93e30f4e7b8a.jpg",
+      "mechanics": [
+        "EQUIP",
+        "MODIFY_PT"
+      ],
+      "n_static_abilities": 2,
+      "oracle_id": "e842a4e5-ea0b-43ae-9ed8-93e30f4e7b8a",
+      "printed_text": "Equipped creature gets +1/+1.\nEquip {1} ({1}: Attach to target creature you control. Equip only as a sorcery.)"
+    },
+    "Sigiled Contender": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/84ec7820-6608-459c-b172-80e8e3750cf4.jpg",
+      "mechanics": [
+        "GRANT_ABILITY"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "84ec7820-6608-459c-b172-80e8e3750cf4",
+      "printed_text": "This creature has lifelink as long as it has a +1/+1 counter on it. (Damage dealt by this creature also causes you to gain that much life.)"
+    },
+    "Skyway Sniper": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/8d907825-25f9-4b25-9fac-e0a207ed1797.jpg",
+      "mechanics": [
+        "REACH"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "8d907825-25f9-4b25-9fac-e0a207ed1797",
+      "printed_text": "Reach (This creature can block creatures with flying.)\n{2}{G}: This creature deals 1 damage to target creature with flying."
+    },
+    "Snarespinner": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/0f63de7b-03f2-49ad-b217-88fe9c50d68a.jpg",
+      "mechanics": [
+        "REACH"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "0f63de7b-03f2-49ad-b217-88fe9c50d68a",
+      "printed_text": "Reach\nWhenever this creature blocks a creature with flying, this creature gets +2/+0 until end of turn."
+    },
+    "Speaker of the Heavens": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/e4bacf1b-0a45-4c73-857d-dffadb7e6fa5.jpg",
+      "mechanics": [
+        "LIFELINK",
+        "VIGILANCE"
+      ],
+      "n_static_abilities": 2,
+      "oracle_id": "e4bacf1b-0a45-4c73-857d-dffadb7e6fa5",
+      "printed_text": "Vigilance, lifelink (Attacking doesn't cause this creature to tap. Damage dealt by this creature also causes you to gain that much life.)\n{T}: Create a 4/4 white Angel creature token with flying. Activate only if you have at least 7 life more than your starting life total and only as a sorcery."
+    },
+    "Spined Megalodon": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/3a124fe5-f525-43e5-9746-501c68a98330.jpg",
+      "mechanics": [
+        "HEXPROOF"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "3a124fe5-f525-43e5-9746-501c68a98330",
+      "printed_text": "Hexproof (This creature can't be the target of spells or abilities your opponents control.)\nWhenever this creature attacks, scry 1. (Look at the top card of your library. You may put that card on the bottom.)"
+    },
+    "Sporeweb Weaver": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/2e7c3881-6fa6-4fd2-ae86-9e3a0fcecdbd.jpg",
+      "mechanics": [
+        "HEXPROOF",
+        "REACH"
+      ],
+      "n_static_abilities": 3,
+      "oracle_id": "2e7c3881-6fa6-4fd2-ae86-9e3a0fcecdbd",
+      "printed_text": "Reach, hexproof from blue\nWhenever this creature is dealt damage, you gain 1 life and create a 1/1 green Saproling creature token."
+    },
+    "Subira, Tulzidi Caravanner": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/9e2e3272-d4e1-4329-b1d2-f393b3511b82.jpg",
+      "mechanics": [
+        "HASTE"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "9e2e3272-d4e1-4329-b1d2-f393b3511b82",
+      "printed_text": "Haste\n{1}: Another target creature with power 2 or less can't be blocked this turn.\n{1}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power 2 or less deals combat damage to a player, draw a card."
+    },
+    "Tide Skimmer": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/8d83dfb3-5662-4109-b465-bf5f257e58a5.jpg",
+      "mechanics": [
+        "FLYING"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "8d83dfb3-5662-4109-b465-bf5f257e58a5",
+      "printed_text": "Flying\nWhenever you attack with two or more creatures with flying, draw a card."
+    },
+    "Tome Anima": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/e4a68bb3-5a79-4764-8223-acddd16fb660.jpg",
+      "mechanics": [
+        "PREVENT_EFFECT"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "e4a68bb3-5a79-4764-8223-acddd16fb660",
+      "printed_text": "This creature can't be blocked as long as you've drawn two or more cards this turn."
+    },
+    "Vodalian Arcanist": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/1d07856b-d9ef-418c-bd06-3888dbcaddf4.jpg",
+      "mechanics": [
+        "MANA_POLICY"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "1d07856b-d9ef-418c-bd06-3888dbcaddf4",
+      "printed_text": "{T}: Add {C}. Spend this mana only to cast an instant or sorcery spell."
+    },
+    "Vryn Wingmare": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/c7c241f2-d3cc-4032-a9da-149de73c2539.jpg",
+      "mechanics": [
+        "FLYING"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "c7c241f2-d3cc-4032-a9da-149de73c2539",
+      "printed_text": "Flying\nNoncreature spells cost {1} more to cast."
+    },
+    "Waker of Waves": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/3a19a959-ea83-404b-89f7-e5dbf4cb7995.jpg",
+      "mechanics": [
+        "MODIFY_PT"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "3a19a959-ea83-404b-89f7-e5dbf4cb7995",
+      "printed_text": "Creatures your opponents control get -1/-0.\n{1}{U}, Discard this card: Look at the top two cards of your library. Put one of them into your hand and the other into your graveyard."
+    },
+    "Warden of the Woods": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/c8c6924e-9af8-4212-be28-b0b4eaa4c7d8.jpg",
+      "mechanics": [
+        "VIGILANCE"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "c8c6924e-9af8-4212-be28-b0b4eaa4c7d8",
+      "printed_text": "Vigilance (Attacking doesn't cause this creature to tap.)\nWhenever this creature becomes the target of a spell or ability an opponent controls, you may draw two cards."
+    },
+    "Wildwood Patrol": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/4fb9c040-c684-4ba8-970e-58313af5584a.jpg",
+      "mechanics": [
+        "TRAMPLE"
+      ],
+      "n_static_abilities": 1,
+      "oracle_id": "4fb9c040-c684-4ba8-970e-58313af5584a",
+      "printed_text": "Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)"
+    }
+  },
+  "meta": {
+    "built_by": "tools/audit/wave_builder.py",
+    "coverage": "100 static-family cards = 44 already covered (name) + 1 gate-flagged + 55 wave-3 cohort",
+    "excluded_by_flag": {
+      "Teferi, Master of Time": [
+        "PHASE_OUT"
+      ]
+    },
+    "excluded_count": 44,
+    "family": "STATIC/keyword layer (top-level StaticAbility + KeywordAbility nodes), engine-supported gate, pack/suspect-covered names excluded",
+    "n_cards": 55,
+    "n_gate_excluded": 1,
+    "n_static_cards": 100,
+    "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
+    "wave": "wave3"
+  }
+}
