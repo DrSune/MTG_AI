@@ -117,6 +117,7 @@ from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
     PLAYER_ZONES,
     ZONE_BATTLEFIELD,
+    ZONE_HAND,
     GameWorld,
 )
 
@@ -697,7 +698,19 @@ def build_payment_plan(
             # is lane-agnostic (every lane's ``source`` is the object
             # owning the cost — the same reading CostTap's no-target
             # "source itself" branch takes).
-            cands = [h for h in cands if h != ctx.source]
+            # r20c (Waker of Waves) carve-back: the exclusion is for an
+            # object paying its own CAST cost. When the selector's filter
+            # itself demands IS_SOURCE ("Discard this card:" activations,
+            # cycling family), the source is the ONLY legal candidate —
+            # excluding it would make a printed cost unsatisfiable. The
+            # self-referential filter is the IR proof that this is the
+            # printed self-cost, not a Thrill-shape "discard a card".
+            from MTG_bot.core.executor.selectors import (
+                _filter_is_self_referential,
+            )
+
+            if not _filter_is_self_referential(part.target.filter):
+                cands = [h for h in cands if h != ctx.source]
             need = _required_count(part.target.count, ctx)
             if len(cands) < need:
                 return None, (
@@ -808,6 +821,26 @@ def build_payment_plan(
 # ------------------------------------------------------------- legality
 
 
+def _ability_discards_its_source(ability: ActivatedAbility) -> bool:
+    """r20c (Waker of Waves): True when an activation cost contains
+    ``CostDiscard`` over a HAND-zone selector whose filter demands
+    ``IS_SOURCE`` — the printed "Discard this card:" activation. Such an
+    ability is LEGAL from the hand (the card is the ability's object while
+    it sits there, cf. cycling CR 702.29a); the battlefield window gate in
+    :func:`ability_playable` opens exactly for this cost shape and nothing
+    else. Detection is IR-driven (self-referential filter + HAND zone),
+    never card-name driven."""
+    from MTG_bot.core.executor.selectors import _filter_is_self_referential
+
+    return any(
+        isinstance(part, CostDiscard)
+        and part.target is not None
+        and part.target.zone.kind is ZoneKind.HAND
+        and _filter_is_self_referential(part.target.filter)
+        for part in ability.cost.parts
+    )
+
+
 def ability_playable(
     world: GameWorld,
     executor: Executor,
@@ -853,7 +886,12 @@ def ability_playable(
             )
         ability = granted[idx].node
     else:
-        record = executor.binder.handle_record.get(handle)
+        # r20c (Waker of Waves): spell_record first tries the battlefield
+        # bridge, then the oracle-id registry — a hand card is never
+        # ATTACHED (attachment is the battlefield lifecycle) but its
+        # compiled IR is the same record, the same lookup spell_castable
+        # already uses for hand casting.
+        record = spell_record(executor, handle)
         if record is None:
             return f"bridge:no_record:{handle}"
         if not 0 <= ability_idx < len(record.abilities):
@@ -863,7 +901,21 @@ def ability_playable(
         ability = record.abilities[ability_idx]
     if not isinstance(ability, ActivatedAbility):
         return f"ability:not_activated:{type(ability).__name__}"
-    if handle in world.cards and world.zone_of(handle).kind != ZONE_BATTLEFIELD:
+    # r20c (Waker of Waves): the one printed hand-activation shape — an
+    # ability whose own cost is "Discard this card" (cycling CR 702.29a
+    # family). The card is the ability's object while in hand, so the
+    # window opens; every other activation from anywhere but the
+    # battlefield stays the loud reason (CR 602.3 a player can activate
+    # only abilities of permanents they control, plus the printed hand
+    # exceptions).
+    if (
+        handle in world.cards
+        and world.zone_of(handle).kind != ZONE_BATTLEFIELD
+        and (
+            world.zone_of(handle).kind != ZONE_HAND
+            or not _ability_discards_its_source(ability)
+        )
+    ):
         return f"window:not_on_battlefield:{handle}"
     if handle in world.cards and executor.controller_of(handle) != seat:
         # CR 602.3: only the permanent's controller can activate it.
@@ -1274,7 +1326,11 @@ def activate(
         granted = executor.layers.granted_activated(handle)
         ability = granted[-ability_idx - 1].node
     else:
-        record = executor.binder.handle_record[handle]
+        # r20c (Waker of Waves): same oracle-registry fallback as
+        # ability_playable — a hand activation has no bridge record.
+        record = spell_record(executor, handle)
+        if record is None:  # pragma: no cover - ability_playable just checked
+            raise ValueError(f"executor: illegal activation: bridge:no_record:{handle}")
         ability = record.abilities[ability_idx]
     if not isinstance(ability, ActivatedAbility):  # pragma: no cover — checked
         # ValueError, not TypeError: "illegal activation" is the documented

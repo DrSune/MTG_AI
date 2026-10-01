@@ -73,7 +73,5 @@
   "hand": {
    "0": 3
   }
- },
- "status": "suspect",
- "finding": "WAVE2B (2026-10-01) re-run: printed 'This spell costs {3} less to cast if you've gained 3 or more life this turn.' The pack GAINS 3 life first (real Revitalize), then casts the Indulgence from a pool that covers the discounted cost {B}: the cast raises 'cost:mana_generic:0<3' \u2014 the conditional reduction is not implemented, the full generic {3} is demanded although the printed promise made the spell free of it. The return-two-creature-cards effect cannot be reached at all."
+ }
 }

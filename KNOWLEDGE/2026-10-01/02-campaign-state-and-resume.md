@@ -78,3 +78,8 @@ combat deaths · s37 control-steal · + per-wave showcases).
 ## Addendum — wave 2 CLOSED (2026-10-01)
 Full loop executed; see /08-wave2-closeout.md. Packs 148, suite 2168, suspects 5 (all
 compiler-limited STOPs, routed). Resume point now: wave-3 derivation (statics/keywords).
+
+## Addendum — wave 3 CLOSED (2026-10-01)
+Full loop; see /14-wave3-closeout.md. Packs 204, suite 2213, ledger 8 (compiler backlog, incl.
+creature-spell-node systemic question). Promotion law hardened (MOVE+STRIP, one dir per card).
+Resume point now: wave-4 derivation (mana/activation cohort).

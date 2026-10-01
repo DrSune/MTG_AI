@@ -1,0 +1,43 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Speaker of the Heavens",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "life",
+   "seat": 0,
+   "set": 27
+  },
+  {
+   "op": "activate",
+   "key": "s",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "T": 0
+  }
+ },
+ "expect": {
+  "tokens": {
+   "Angel": 1
+  },
+  "battlefield_keywords": {
+   "Angel": [
+    "FLYING"
+   ]
+  }
+ },
+ "notes": "Printed (M21 oracle): '{T}: Create a 4/4 white Angel creature token with flying. Activate only if you have at least 7 life more than your starting life total and only as a sorcery.' The life lane raises seat 0 to 27 (lead 7 >= 7), the {T} Angel gate opens, the token lands on the ledger lanes. The local printed_text row is corrupt (flagged separately) -- the gate here is the compiled IR."
+}

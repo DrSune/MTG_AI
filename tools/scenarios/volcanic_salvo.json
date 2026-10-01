@@ -64,7 +64,5 @@
    "c1": "graveyard",
    "c2": "graveyard"
   }
- },
- "status": "suspect",
- "finding": "WAVE2B (2026-10-01) re-run: printed 'This spell costs {X} less to cast, where X is the total power of creatures you control.' The Salvo compiles at generic 10 + {R}{R}; with a 2-power creature resident (and even with more) the cast raises 'cost:mana_generic:8<10' \u2014 the {X}-reduction clause is not implemented, the pool sees no discount. The damage tail is unreachable from any affordable pool."
+ }
 }

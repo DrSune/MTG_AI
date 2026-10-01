@@ -25,6 +25,7 @@ from MTG_bot.core.ability_tree import (
     ControllerRef,
     FAnd,
     FAtom,
+    FAtomPred,
     FNot,
     FOr,
     Quantity,
@@ -416,6 +417,27 @@ def _filter_has_referent(filter_: object) -> bool:
     return False
 
 
+def _filter_is_self_referential(filter_: object) -> bool:
+    """r20c (Hobblefiend): True when a Filter tree carries an ``IS_SOURCE``
+    atom — the closed "the source itself / this permanent / it" anaphora.
+    A CHOOSE-mode selector filtered on IS_SOURCE is the effect's OWN
+    self-designation (CR 602.2c "it" reads the ability's source), and the
+    activation's cost-side TARGET pick (Hobblefiend's
+    "Sacrifice another creature" binds under the shared role name
+    ``target``) must never satisfy it — cost designation (601.2b payment)
+    and effect designation (601.2c targets) are separate slots. Same
+    shape as :func:`_filter_has_referent`, keyed on the pred instead of a
+    ``referent`` field because the compiler spells self-reference as the
+    IS_SOURCE predicate, not an anaphoric referent."""
+    if isinstance(filter_, FAtom):
+        return filter_.pred is FAtomPred.IS_SOURCE
+    if isinstance(filter_, (FAnd, FOr)):
+        return any(_filter_is_self_referential(c) for c in filter_.children)
+    if isinstance(filter_, FNot):
+        return _filter_is_self_referential(filter_.inner)
+    return False
+
+
 # ---------------------------------------------------------------- role readers
 
 
@@ -480,7 +502,26 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
         and value.mode is SelectorMode.ALL
         and _filter_has_referent(value.filter)
     )
-    if bound is not None and not anaphoric and not player_side and not population:
+    # r20c (Hobblefiend): a CHOOSE-mode selector filtered on IS_SOURCE is
+    # the effect's OWN self-designation ("it"/"this creature" = CR 602.2c
+    # reads the ability's source); the activation's cost-side TARGET pick
+    # shares the role NAME ``target`` (build_payment_plan spends the
+    # Sacrifice through the same journalled verb) and must not hijack it.
+    # TARGET mode stays the designation lane (CR 601.2c) — a real effect
+    # target never compiles as IS_SOURCE, so the exemption is inert for
+    # every designation-driven pack.
+    self_ref = (
+        isinstance(value, Selector)
+        and value.mode is SelectorMode.CHOOSE
+        and _filter_is_self_referential(value.filter)
+    )
+    if (
+        bound is not None
+        and not anaphoric
+        and not player_side
+        and not population
+        and not self_ref
+    ):
         return bound
     if isinstance(value, Selector):
         return sorted(resolve_selector(value, ctx))

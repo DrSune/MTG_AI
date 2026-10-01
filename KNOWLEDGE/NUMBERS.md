@@ -13,6 +13,40 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.246 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **297/305** (0.9738) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 45 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-10-01 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.246 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **297/305** (0.9738) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 45 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-10-01 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.271 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
@@ -2288,3 +2322,15 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | traces | 9/10 diverge (pure TARGETING insertions @ designation) → **repin 6162 entries → 0/10** | `tools/traces/catalog.py repin && … compare` | reconcile evidence: first diff per seed = TARGETING row above CAST row |
 | games | **0 crash classes / 100 seeds**; 85 survived, mean 57.4 turns | `python -m MTG_bot.core.executor.games --seeds 100 --pool all` | identical to r20a baseline |
 | lint/type | pyright **0 errors** · ruff **Δ0 vs HEAD** | `pyright MTG_bot/core/executor …` · `ruff check` vs HEAD worktree | 4 self-introduced lint items fixed |
+
+## 2026-10-01 (wave-3 fix batch C / r20c — cast/cost/attach lanes, batch close)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| r20c batch | **4/6 suspects fixed & promoted; 2 compiler-STOPs** (hobblefiend/self-designation, scythe/LKI, waker/hand-activation, speaker/life-lead; ornery count-misread + creature-SpellAbility-gap → backlog) | `.venv/bin/python tools/run_scenarios.py --dir tools/scenarios` | see 13-wave3-fix-c.md |
+| runner gate | **204/204** (200 baseline + 4) | `tools/run_scenarios.py --dir tools/scenarios` | suspects retained as audit trail |
+| suite gate | **2213 passed** (2196 + 17 new), 0 failed | `.venv/bin/python -m pytest MTG_bot/core -q` | `test_executor_r20c.py` new; probe rotated to CONTROLLER_COUNT_GT |
+| grammar gate | PC-1 **301/305** · PC-2 **634/639** · PC-3 0 · PC-4 **exact (0 diffs)** | `tools/measure_grammar.py --with-engine-flags` | detach_lki/starting_life fingerprint-excluded |
+| traces | **0/10 diverge — NO repin** (first batch-closed campaign-wide) | `tools/traces/catalog.py compare` | fixes never fire on the 10 trace seeds |
+| games | **0 crash classes / 100 seeds** (83 caps, 17 game-overs) | `python -m MTG_bot.core.executor.games --seeds 100 --pool all` | |
+| lint/type | pyright **6 == HEAD baseline 6** (pre-existing Counter noise) · ruff **Δ0 vs HEAD** | `pyright …` · `ruff check --no-cache` vs HEAD worktree | 1 self-introduced SIM102 fixed |

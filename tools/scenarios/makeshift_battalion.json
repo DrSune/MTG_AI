@@ -1,6 +1,4 @@
 {
- "status": "suspect",
- "finding": "PRINTED: 'Battalion - Whenever this creature and at least two other creatures attack, put a +1/+1 counter on this creature.' ENGINE(observed): three attackers go through and 6 damage lands (life lane green) but counters = {} (expected PLUS_1_PLUS_1: 1). ROOT CAUSE: Keyword.BATTALION (params QConst(2)) compiles as a bare KeywordAbility, but the executor has ZERO references to BATTALION (grep over MTG_bot/core/executor/) - no attack-group trigger is ever registered; the compile also carries GAP \"keyword 'Battalion': requires params not available from identity alone\".",
  "world": {
   "life": 20,
   "seed": 7

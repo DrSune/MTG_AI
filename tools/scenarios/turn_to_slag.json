@@ -60,7 +60,5 @@
   "damage": {
    "v1": 5
   }
- },
- "status": "suspect",
- "finding": "WAVE2B (2026-10-01) re-run: printed 'deals 5 damage to target creature. Destroy all Equipment attached to that creature.' TWO layered gaps. (1) selectors.py:396 role_handles: the DESTROY atom's own ALL-selector carries no top-level referent, so the SPELL-LEVEL designation binding takes precedence \u2014 DESTROY never resolves its selector and instead destroys the DESIGNATED CREATURE: a 6/6 that survives the 5 damage dies to its own Turn to Slag (probe-verified). (2) Even had the selector resolved, the executor implements only IS_ATTACHED_TO_SOURCE (quantity.py:490); the compiled plain IS_ATTACHED_TO (referent=target, grammar round 7, motivated by this very card in test_ability_tree_r8) has no evaluator and would raise. The Equipment Dummy Blade, attached through the real attach edge, is never destroyed."
+ }
 }

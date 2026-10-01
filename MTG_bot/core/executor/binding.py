@@ -467,6 +467,13 @@ class TriggerBinder:
         # emblem cannot leave the battlefield/ownership in the rules — no
         # code path calls detach on an emblem handle.)
         ex = self.executor
+        # r20c (Malefic Scythe): LKI capture BEFORE the prune — the edges
+        # this sweep kills are the departing host's attachment truth for
+        # the CREATURE_DIES row that follows the ZONE_CHANGE row in the
+        # same journal batch (see Executor.detach_lki).
+        ex.detach_lki[handle] = tuple(
+            sorted(a for a, host in ex.attachments.items() if host == handle)
+        )
         ex.attachments = {
             aura: host
             for aura, host in ex.attachments.items()

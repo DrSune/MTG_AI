@@ -326,6 +326,15 @@ class ScenarioRunner:
             # minus ability with a big cost (Herald's -7) is payable.
             handle = self.handles[step["key"]]
             self.world.cards[handle].counters["LOYALTY"] = int(step["set"])
+        elif op == "life":
+            # r20c (Speaker of the Heavens) harness ledger write (same
+            # convention as the loyalty seed): set a seat's life directly.
+            # The LIFE_LEAD_OVER_START_GE lane reads current life minus the
+            # executor's starting-life snapshot, so this is the honest
+            # setup for a "gained N since the start" scenario without
+            # dragging a whole healing spell into the pack.
+            seat = self.seats[int(step["seat"])]
+            self.world.players[seat].life = int(step["set"])
         elif op == "activate":
             from MTG_bot.core.executor.legality import activate
 

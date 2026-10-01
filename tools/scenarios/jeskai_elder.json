@@ -1,6 +1,4 @@
 {
- "status": "suspect",
- "finding": "PRINTED: Prowess. ENGINE(observed): after two Opt casts power/toughness stay 1/2 (expected 3/3). ROOT CAUSE: Keyword.PROWESS has no executor handler (zero grep hits in MTG_bot/core/executor/) - the noncreature-spell cast trigger is dead. Same gap as Heartfire Immolator; the combat-damage may-draw clause is a separate trigger-cohort card.",
  "world": {
   "life": 20,
   "seed": 7

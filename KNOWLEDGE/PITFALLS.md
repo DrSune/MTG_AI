@@ -709,3 +709,10 @@
   raises `nothing is primed` unless `ex.decisions.provider` (or
   `decisions.push(vocab, what, …)`) answers — the scenario harness proves the
   pattern (run_scenarios.py:232).
+
+- IS_ATTACHED_TO_SOURCE direction (r20c): the filter SUBJECT being evaluated is the HOST creature,
+  `ctx.source` is the aura/equipment — the lookup is `attachments[source] == handle`, and after a
+  host's departure the answer comes from `executor.detach_lki[host]` (LKI snapshot taken inside
+  `binder.detach(leaving=True)` before the prune), never while the host is on the battlefield.
+- Atom role pairs use the grammar's printed role names: PUT_COUNTER's amount role is `count`
+  (not `amount`) — a wrong key raises `missing required roles` at Atom construction (r20c).

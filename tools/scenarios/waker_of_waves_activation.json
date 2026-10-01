@@ -1,0 +1,46 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Waker of Waves",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "Blub",
+   "power": 3,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "w",
+   "idx": 1,
+   "seat": 0,
+   "decisions": [
+    "card:6"
+   ]
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 1,
+   "U": 1
+  }
+ },
+ "expect": {
+  "zone": {
+   "w": "graveyard"
+  }
+ },
+ "notes": "repro: activate the printed from-hand discard ability."
+}

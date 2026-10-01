@@ -1,6 +1,4 @@
 {
- "status": "suspect",
- "finding": "PRINTED: 'Enchant creature. Enchanted creature gets +2/+0 and has \"When this creature dies, draw a card.\"' ENGINE(observed): the +2/+0 attacks for 4 (life lane green) and the aura correctly buries with the host (graveyard bag green), but the GRANTED death trigger never draws - hand stays 0 (expected 2). The GrantedAbility (TriggeredAbility/CreatureDiesEvent) is verifiably registered on the host via layers.granted_abilities(host) before death; the trigger drain never consults granted triggered abilities (no granted-row matching in the trigger-firing path).",
  "world": {
   "life": 20,
   "seed": 7

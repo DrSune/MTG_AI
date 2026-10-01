@@ -44,7 +44,5 @@
    "sp": "graveyard",
    "g": "exile"
   }
- },
- "status": "suspect",
- "finding": "WAVE2B (2026-10-01) re-run: printed 'deals 3 damage to target creature or planeswalker. If that creature or planeswalker WOULD DIE this turn, exile it instead.' The 3 damage lands and the lethal replacement is silent: the Fledgling buries itself in the graveyard like any un-replaced kill. The replacement-effect clause is absent from the compiled card (no REPLACEMENT registration on the cast's resolution)."
+ }
 }

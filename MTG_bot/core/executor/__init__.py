@@ -416,6 +416,29 @@ class Executor:
         # here; IS_ATTACHED_TO_SOURCE reads it and the binder drops every
         # edge touching a handle that leaves the battlefield.
         self.attachments: dict[Handle, Handle] = {}
+        # r20c (Malefic Scythe): LAST-KNOWN-INFORMATION snapshot of the
+        # attachment relation at a HOST's battlefield departure — HOST ->
+        # sorted auras/equipment that were attached to it. The journal
+        # writes ZONE_CHANGE before CREATURE_DIES in the same diff sweep,
+        # so by the time a dies-trigger's IS_ATTACHED_TO_SOURCE filter is
+        # judged the live table is already pruned; the LKI row is that
+        # object's own departure-time truth (CR 400.7's information-
+        # timestamp doctrine). Replaced wholesale per sweep keyed on the
+        # departing host — a re-entry/dying captures fresh truth. Derived
+        # state replayed from the same detaches, so it is NOT part of the
+        # replay fingerprint (pin-stable).
+        self.detach_lki: dict[Handle, tuple[Handle, ...]] = {}
+        # r20c (Speaker of the Heavens): the game's STARTING life per seat,
+        # snapshotted at executor construction — the fact the frozen world
+        # takes as a ``start_life`` parameter but never stores. LIFE_LEAD_-
+        # OVER_START_GE reads current minus this (the journal cannot
+        # reconstruct the lead: a non-damage life loss leaves no row). The
+        # replay rebuilds the world at the same start_life
+        # (games.py:1017), so the snapshot is replay-identical and stays
+        # OUT of the replay fingerprint.
+        self.starting_life: dict[Handle, int] = {
+            p: world.players[p].life for p in world.player_order
+        }
         # -------------------------------------------------- 16e control overlay
         # GAIN_CONTROL (CR 611, 110.2): the frozen GameWorld derives
         # controller_of from the ZONE OWNER and R16-4 DENIED the additive

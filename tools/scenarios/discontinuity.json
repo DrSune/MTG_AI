@@ -1,67 +1,65 @@
 {
-  "status": "suspect",
-  "finding": "PRINTED: \"During your turn, this spell costs {2}{U}{U} less to cast. End the turn. (Exile all spells and abilities from the stack, including this card...)\" ENGINE(observed): the end-turn machinery works (Defiant Strike buff reverts, power/toughness back to 1/1, life 20) but \"zone[dc]: expected exile, got graveyard\" \u2014 the spell buries itself instead of the printed \"including this card\" exile. Cost reduction never applies: seed U:3 raises \"executor: illegal cast: cost:mana_generic:0<3\"; seed U:5 raises \"cost:mana_generic:2<3\"; full generic cost is charged. Green run used loose seed U:7/W:1.",
-  "world": {
-    "life": 20,
-    "seed": 7
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dc",
+   "real": "Discontinuity",
+   "zone": "hand",
+   "controller": 0
   },
-  "cards": [
-    {
-      "key": "dc",
-      "real": "Discontinuity",
-      "zone": "hand",
-      "controller": 0
-    },
-    {
-      "key": "ds",
-      "real": "Defiant Strike",
-      "zone": "hand",
-      "controller": 0
-    },
-    {
-      "key": "run",
-      "name": "Runner",
-      "power": 1,
-      "toughness": 1,
-      "type": "Creature",
-      "zone": "battlefield",
-      "controller": 0
-    }
-  ],
-  "mana": {
-    "0": {
-      "U": 7,
-      "W": 1
-    }
+  {
+   "key": "ds",
+   "real": "Defiant Strike",
+   "zone": "hand",
+   "controller": 0
   },
-  "steps": [
-    {
-      "op": "cast",
-      "real": "Defiant Strike",
-      "key": "ds",
-      "targets": [
-        "run"
-      ]
-    },
-    {
-      "op": "cast",
-      "real": "Discontinuity",
-      "key": "dc"
-    }
-  ],
-  "expect": {
-    "zone": {
-      "dc": "exile",
-      "ds": "graveyard"
-    },
-    "power": {
-      "run": 1
-    },
-    "toughness": {
-      "run": 1
-    },
-    "life": {
-      "0": 20
-    }
+  {
+   "key": "run",
+   "name": "Runner",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
   }
+ ],
+ "mana": {
+  "0": {
+   "U": 7,
+   "W": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Defiant Strike",
+   "key": "ds",
+   "targets": [
+    "run"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Discontinuity",
+   "key": "dc"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "dc": "exile",
+   "ds": "graveyard"
+  },
+  "power": {
+   "run": 1
+  },
+  "toughness": {
+   "run": 1
+  },
+  "life": {
+   "0": 20
+  }
+ }
 }

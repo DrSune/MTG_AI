@@ -1,0 +1,83 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "scythe",
+   "real": "Malefic Scythe",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "Bearer",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "brute",
+   "name": "Brute",
+   "power": 5,
+   "toughness": 5,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "scythe"
+  },
+  {
+   "op": "activate",
+   "key": "scythe",
+   "idx": 3,
+   "seat": 0,
+   "targets": [
+    "a"
+   ]
+  },
+  {
+   "op": "deal_damage",
+   "source": "brute",
+   "target": "a",
+   "amount": 3
+  },
+  {
+   "op": "activate",
+   "key": "scythe",
+   "idx": 3,
+   "seat": 0,
+   "targets": [
+    "brute"
+   ]
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 4
+  }
+ },
+ "expect": {
+  "counters": {
+   "scythe": {
+    "SOUL": 2
+   }
+  },
+  "zone": {
+   "a": "graveyard",
+   "scythe": "battlefield",
+   "brute": "battlefield"
+  },
+  "power": {
+   "brute": 7
+  }
+ },
+ "notes": "Enters with 1 soul counter; equip {1} (activate idx 3) attaches via the real ATTACH verb; equipped Bearer (1/1+1/+1) dies to 3 damage -> soul counter -> scythe holds 2; re-equipped Brute reads 5+2=7 power (the for-each-counter static scales)."
+}

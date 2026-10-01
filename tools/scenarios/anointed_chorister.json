@@ -1,6 +1,4 @@
 {
- "status": "suspect",
- "finding": "PRINTED: Lifelink; '{4}{W}: This creature gets +3/+3 until end of turn.' ENGINE(observed): 4 damage dealt to a creature changes NO life (life[0] stays 20, expected 21) - the life lane is the ONLY divergence; the activation and the keyword lane (LIFELINK reads green through layers.keyword_of) all pass. ROOT CAUSE: the DEAL_DAMAGE / life-gain execution path never consults LIFELINK - grep for LIFELINK over MTG_bot/core/executor/ is EMPTY. The keyword is compiled and layered but has no runtime teeth.",
  "world": {
   "life": 20,
   "seed": 7

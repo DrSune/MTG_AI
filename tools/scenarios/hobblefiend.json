@@ -1,0 +1,66 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "h",
+   "real": "Hobblefiend",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "fodder",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "h"
+  },
+  {
+   "op": "enter",
+   "key": "fodder"
+  },
+  {
+   "op": "activate",
+   "key": "h",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "fodder"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "h": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "power": {
+   "h": 3
+  },
+  "toughness": {
+   "h": 2
+  },
+  "zone": {
+   "fodder": "graveyard"
+  },
+  "battlefield_keywords": {
+   "Hobblefiend": [
+    "TRAMPLE"
+   ]
+  }
+ },
+ "notes": "Printed: Trample; '{1}, Sacrifice another creature: Put a +1/+1 counter on this creature.' The sac cost (fodder designated) buries Walking Corpse, {1} pays from the seeded pool, and the counter lands: 2/1 -> 3/2 on the ledger lanes with TRAMPLE printed on the keyword lane."
+}

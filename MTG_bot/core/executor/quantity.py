@@ -588,7 +588,19 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 "executor: IS_ATTACHED_TO_SOURCE needs an executor-backed "
                 "ExecCtx (bare ExecCtx has no attachment table)"
             )
-        return ctx.executor.attachments.get(ctx.source) == handle
+        if ctx.executor.attachments.get(ctx.source) == handle:
+            return True
+        # r20c (Malefic Scythe): the ZONE_CHANGE row lands before the
+        # CREATURE_DIES row of the same diff sweep, and the binder's
+        # leave-detach has already pruned the live table when a dies-
+        # trigger's filter is judged. Once the judged object has LEFT the
+        # battlefield, the live table can no longer speak for it — the
+        # object's own departure-time snapshot (executor.detach_lki) is
+        # its last known information (CR 400.7 doctrine). On the
+        # battlefield the live table stays the only word.
+        if handle in world.cards and world.zone_of(handle).kind == ZONE_BATTLEFIELD:
+            return False
+        return ctx.source in ctx.executor.detach_lki.get(handle, ())
     if pred is FAtomPred.IS_ATTACHED_TO:
         # r19b (Turn to Slag, grammar round 7's R7-1): "attached to the
         # REFERENT object" — the same attachment-table answer as
@@ -1186,6 +1198,29 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 if drawn >= threshold:
                     return True
         return drawn >= threshold
+    if pred is FAtomPred.LIFE_LEAD_OVER_START_GE:
+        # r20c (Speaker of the Heavens, grammar round 9 R9-2): "you have at
+        # least N life more than your starting life total" — the rule text
+        # reads CURRENT life minus the player's START, so this is a ledger
+        # read, not a LIFE_GAINED journal sum: a non-damage life loss
+        # (CR 118.12 payment) leaves no journal row (events.py emits gains
+        # and damage losses only), so a gains-sum would OVERSTATE the lead.
+        # The start is the executor's construction-time snapshot (the same
+        # start_life the world was built with; replay rebuilds the world at
+        # that value, games.py:1017). Bare-count atom: WHO is implicitly
+        # YOU — the ability's controller (the gate never carries a seat).
+        from MTG_bot.core.executor.selectors import players_for_ref
+
+        assert atom.count is not None
+        if ctx.executor is None:
+            raise ValueError(
+                "executor: LIFE_LEAD_OVER_START_GE needs an executor-backed "
+                "ExecCtx (the starting-life ledger lives on the executor)"
+            )
+        threshold = resolve(atom.count, ctx)
+        player = players_for_ref(ControllerRef.YOU, ctx)[0]
+        lead = world.players[player].life - ctx.executor.starting_life[player]
+        return lead >= threshold
     if pred is FAtomPred.LIFE_GAINED_THIS_TURN_GE:
         # r19b (Sanguine Indulgence's CostModifier condition): the draw-
         # clock twin over the 16c LIFE_GAINED rows — subject is the gaining

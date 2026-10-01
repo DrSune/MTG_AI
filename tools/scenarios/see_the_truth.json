@@ -46,7 +46,5 @@
     "Library 3"
    ]
   }
- },
- "status": "suspect",
- "finding": "WAVE2B (2026-10-01) re-run: printed 'Look at the top three cards of your library. Put one of those cards into your hand and the REST ON THE BOTTOM of your library in any order.' The engine auto-keeps the top card (no ONE_OF ask is ever posed \u2014 the choose-a-card question never arrives) and stacks the other two back ON TOP of the library: the library lane reads Library 4,3 above Library 2,1,0 instead of under it. Both the choice prompt and the bottom-put are divergent."
+ }
 }

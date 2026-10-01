@@ -41,7 +41,5 @@
    "sp": "battlefield",
    "fuel": "graveyard"
   }
- },
- "status": "suspect",
- "finding": "WAVE2B (2026-10-01) re-run: printed 'As an additional cost to cast this spell, discard a card.' With a discardable card in hand (a real Shock, decision word supplied) the cast succeeds but the hand is UNTOUCHED \u2014 no discard cost is collected; Shock sits in hand after Masticore resolves. The Village Rites sacrifice lane proves the additional-cost channel itself works, so the discard-cost clause is dropped at compile/execution for this card. (Its {1}: damage-PW activation is separately shadowed by the free ride.)"
+ }
 }

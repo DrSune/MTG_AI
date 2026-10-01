@@ -375,13 +375,24 @@ class TestConditionGate(LegalityCase):
         # identity-mana-value read is answered now (Eliminate/Idol/Ugin).
         # AMENDED 2026-10-01 (round 18b): CMC_GE left this probe — its
         # identity read is answered now (Fierce Empath's CMC-6-or-greater
-        # search filter, the CMC_LE twin). LIFE_LEAD_OVER_START_GE (the
-        # R9-2 net-life gate) is still unimplemented and keeps the probe.
+        # search filter, the CMC_LE twin).
+        # AMENDED 2026-10-01 (round 20c): LIFE_LEAD_OVER_START_GE left this
+        # probe — the R9-2 net-life gate is answered now (Speaker of the
+        # Heavens' activation gate: current life minus the executor's
+        # starting-life snapshot). CONTROLLER_COUNT_GT (the R8-9 dual-
+        # filter comparison, Garruk's "you control more creatures than any
+        # opponent" split) is still unimplemented and keeps the probe.
         self.attach(
             [
                 ability(
                     cost(),
-                    condition=FAtom(FAtomPred.LIFE_LEAD_OVER_START_GE, count=QConst(4)),
+                    condition=FAtom(
+                        FAtomPred.CONTROLLER_COUNT_GT,
+                        inner_filter=FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
+                        right_inner_filter=FAtom(
+                            FAtomPred.TYPE_EQ, string_value="Creature"
+                        ),
+                    ),
                 )
             ]
         )
