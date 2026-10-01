@@ -49,6 +49,27 @@ tapped state, stack, micro-decision log with candidates).
 - Verb histogram (67-row cohort, mechanics ∩ spell effects): DRAW 12 · MODIFY_PT 11 · MOVE_ZONE 8 · DESTROY 8 · GRANT_ABILITY 7 · DEAL_DAMAGE 7 (then CREATE_TOKEN 6, EXILE 6, PUT_COUNTER 5, DISCARD 4).
 - Command: `.venv/bin/python tools/audit/wave_builder.py --wave2 [--lint]` · gates: pytest core 2112+4subtests unchanged (builder tools-only), pyright 0, ruff Δ0 on builder. Pack authoring = next task (loop step 2).
 
+## Addendum — stale-briefing re-dispatch caught by ground truth (2026-10-01, 13a re-issue probe)
+
+A delegation arrived re-issuing **round-13 phase 13a** (DRAW/SEARCH/FLIP_COIN/END_TURN/EXTRA_TURN/
+LOSE_GAME + loyalty + phase tick) as pending work at "HEAD f50e335, suite 1876, engine 206→+58".
+Ground truth: **13a shipped 2026-09-29 in 9120e2d** (+58 EXACT as the /11 plan predicted; the 58
+CONTAINING cards were exactly the 58 sole-offender flips), and 13b/13c/14/16/17/18 are all com-
+mitted above it — the briefing was the pre-compaction round-13 plan re-dispatched (the resume
+protocol's own warning: "once a briefing itself was phantom-contaminated — PITFALLS 09-30" fired a
+second time, caught by verifying against code/git before any edit). All 13a deliverables verified
+present: `_v_draw…_v_lose_game` (verbs.py HANDLERS), CostLoyalty branch + CR 606.3 clock (legality
+.py 619/774/1170), attach-time loyalty seed (binding.py 358-367), Executor.phase tick, and the CR
+121.2→121.3 empty-library loss VERDICT (games.py harness-side loser scan, since 14a). No code was
+written. Independent re-measure at HEAD f50e335 confirms the campaign record:
+`.venv/bin/python tools/measure_grammar.py --with-engine-flags` → **engine 297/305 · V2 45 verbs,
+PC-1 301/305 · PC-2 634/639 · PC-3 0 · PC-4 0 EXACT**; `pytest MTG_bot/core -q` → **2112 + 4 sub-
+tests, 0 failed** (4.85 s). Working tree after re-measure: only the tool's own NUMBERS row +
+reports/grammar_2026-10-01.json. Next action stays loop step 2: **wave-2 pack authoring** (67 rows
+frozen in tools/audit/wave2.json), engine frozen. NOTE for the orchestrator: commit f50e335 carries
+the *wrong message* — it says "round-13 binding plan" but commits the wave-2 resume note + builder;
+the real 13a plan doc is c820fc9.
+
 ## Session numbers so far (all NUMBERS-backed)
 Combat arc: engine 288→297/305, all-pool crashes 1→0, suite 2022→2112, packs 3→84, catalog 5504
 →re-pinned 4× always 0-unexplained. Viewer live at reports/replays/ (s7 pre-combat · s19/s24 first
