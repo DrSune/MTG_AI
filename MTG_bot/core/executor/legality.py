@@ -1143,8 +1143,11 @@ def _loyalty_death_check(
 ) -> None:
     """CR 704.2 (13a): a planeswalker with 0 or less loyalty is put into its
     owner's graveyard. The frozen world has no state-based-action pass, so
-    this is the one place the check is run — immediately after the loyalty
-    payment, which is the only legal way loyalty reaches 0 in the executor.
+    the check is run in exactly two places: immediately after the loyalty
+    payment (this call — the generic counter verb deletes a zeroed key, so
+    the ledger cannot be reread here), and since r21a in the settle sweep
+    for the DAMAGE path (CR 120.4d decrement → ``_zero_loyalty_walkers``
+    in __init__.py).
     It fires the journalled ``DESTROY`` verb (dies triggers, graveyard) as
     the documented stand-in for the SBZA's graveyard replacement; destroy
     *replacement* effects (Rest in Peace) would see it as a destroy, a

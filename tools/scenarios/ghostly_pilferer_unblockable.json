@@ -1,11 +1,9 @@
 {
- "status": "suspect",
  "world": {
   "life": 20,
   "seed": 7
  },
- "finding": "PRINTED: 'Discard a card: This creature can't be blocked this turn.' ENGINE(observed): the discard COST resolves (Silk -> graveyard, hand empties), but the PREVENT_EFFECT 'can't be blocked' clause is silently dropped: the blocking ask is still offered to the opponent ('block vocab = (card:0, NONE)'), the Wall's forced block registers \u2014 'blocked[pilf]: expected [], got [wall]' \u2014 and Ghostly Pilferer takes 1 and dies instead of dealing 3 (life stays 20). The activated ability costs a card and delivers nothing.",
- "notes": "Pilferer's two other printed abilities are triggers (untapped-pay-draw, cast-from-not-hand draw) \u2014 this card has exactly one activated ability and it is the broken one.",
+ "notes": "Pilferer's two other printed abilities are triggers (untapped-pay-draw, cast-from-not-hand draw) — this card has exactly one activated ability and it is the broken one. FIX(21a): engine fix landed — replacements._pair_vetoed evaluates the prevention effect's condition over BOTH sides of a blocker pair in the DeclareBlockers branch (attack branch keeps subject-side evaluation); the block-replacement now vetoes the Wall's block and pilferer deals 3.",
  "cards": [
   {
    "key": "pilf",

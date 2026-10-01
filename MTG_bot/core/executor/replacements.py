@@ -594,16 +594,21 @@ class ReplacementRegistry:
     def _pair_vetoed(self, rec, subject: Handle, other: Handle) -> bool:
         """One prevention record vs one declaration pair, judged in the
         record's coordinates. ``rec.condition`` is judged over the DECLAR-
-        ATION'S OWN SIDE of the pair it restricts — the static carrier's
-        condition is a state gate (Tome Anima's draw clock, subject-inde-
-        pendent) and the runtime carrier's mirrors its event slot (GP/
-        Subira's IS_SOURCE/IS_ANY_TARGET both name the BLOCKED side, so
-        the block consult passes the attacker as ``subject``; the attack
-        consult passes the attacker, which IS its own side). Then the
-        event node's own slots: block records filter/subject over the
-        BLOCKER and blocked over the ATTACKER; attack records filter over
-        the ATTACKER (an ``attacked`` slot has no corpus carrier — the
-        raise, never a silent ignore)."""
+        ATION'S OWN SIDE of the pair it restricts; the block consult judges
+        it over BOTH sides, the attack consult over the attacker (its own
+        side). Both-sides is the r21a reading of the corpus inventory: the
+        static carriers register their static's state gate (Tome Anima's
+        draw clock, subject-independent) or NOTHING at all (Fetters/
+        Shacklegeist carry the restriction in the event slots), Subira's
+        IS_ANY_TARGET is designation-bound, and the only subject-naming
+        block condition is Ghostly Pilferer's IS_SOURCE, which names the
+        BLOCKED side — a future "this creature can't block" activation
+        would name the BLOCKER side, and either reading passes here while
+        neither false-vetoes (the blocker/blocked slot filters still gate
+        the pair). Then the event node's own slots: block records filter/
+        subject over the BLOCKER and blocked over the ATTACKER; attack
+        records filter over the ATTACKER (an ``attacked`` slot has no
+        corpus carrier — the raise, never a silent ignore)."""
         if rec.status == "expired" or not self._source_alive(rec.source):
             return False
         ctx = self._rec_ctx(rec, subject)
@@ -611,11 +616,14 @@ class ReplacementRegistry:
             rec.duration.filter, rec.source, ctx
         ):
             return False
-        if rec.condition is not None and not eval_filter(rec.condition, subject, ctx):
-            return False
         event = rec.event
         if isinstance(event, DeclareBlockersEvent):
             blocker, blocked = subject, other
+            if rec.condition is not None and not (
+                eval_filter(rec.condition, blocker, ctx)
+                or eval_filter(rec.condition, blocked, ctx)
+            ):
+                return False
             if not eval_filter(event.filter, blocker, ctx):
                 return False
             if event.subject is not None and not eval_filter(
@@ -632,6 +640,10 @@ class ReplacementRegistry:
                     "executor: DeclareAttackersEvent 'attacked' slot on a "
                     "prevention record has no consumer (no corpus carrier)"
                 )
+            if rec.condition is not None and not eval_filter(
+                rec.condition, subject, ctx
+            ):
+                return False
             return eval_filter(event.filter, subject, ctx)
         return False
 

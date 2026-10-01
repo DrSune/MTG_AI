@@ -420,6 +420,22 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
                 )
             )
             return
+    # r21a (CR 120.4d): damage dealt to a PLANESWALKER removes that many
+    # loyalty counters — the walker lane never MARKS damage (there is no
+    # toughness read for it; the zero-loyalty state check in the settle
+    # sweep does the burying), and prevention above has already vetoed the
+    # whole mark when a DamageDealtEvent record matches. The DAMAGE row and
+    # lifelink ride the dealt amount exactly like the creature lane.
+    state = ctx.world.cards.get(target)
+    if state is not None and state.identity.loyalty is not None:
+        counters = state.counters
+        have = counters.get("LOYALTY")
+        if have is None:  # unseeded ledger: the printed loyalty (13a twin)
+            have = int(str(state.identity.loyalty))
+        counters["LOYALTY"] = max(0, have - n)
+        ctx.events.append((len(ctx.events), "DAMAGE", str(target), n))
+        _lifelink_gain(ctx, n)
+        return
     deathtouch = ctx.executor.layers.keyword_of(ctx.source, Keyword.DEATHTOUCH)
     ctx.executor.mark_damage(target, n, deathtouch=deathtouch)
     ctx.events.append((len(ctx.events), "DAMAGE", str(target), n))

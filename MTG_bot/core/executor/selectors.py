@@ -494,7 +494,18 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
     # carrying a CARD must not be handed to a player verb raw, or Brash
     # Taunter's echo would mark the damage source instead of its player.
     # Same shape as the B-16 anaphoric exemption: the Selector knows best.
-    player_side = isinstance(value, Selector) and value.zone.kind is (ZoneKind.PLAYER)
+    # r21a (Chandra's Magmutt / Leafkin Avenger): the exemption is for
+    # PURE player selectors. The compiled "target player or planeswalker"
+    # shape is Zone(PLAYER) with zones=(BATTLEFIELD,) — a CARD handle
+    # (the walker) is a LEGAL designation there (enumerate_candidates
+    # unions both zones), and self-resolving that selector through the
+    # primary PLAYER zone alone silently re-pointed the printed damage at
+    # the player. A designation the player actually made stands.
+    player_side = (
+        isinstance(value, Selector)
+        and value.zone.kind is ZoneKind.PLAYER
+        and not value.zones
+    )
     # r19b: an ALL-mode Selector with referent-anaphora in its filter
     # denotes its own resolved population (Turn to Slag above).
     population = (

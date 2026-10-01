@@ -1,0 +1,46 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Seed pays the full {7}{R} once; the repro isolates the effect half. FIX(21a): printed Leafkin Avenger has power 4 and the pw target (Basri, Devoted Paladin, printed loyalty 4) takes 4 damage -> loyalty 0 -> CR 704.5h puts it into its owner's graveyard, so the author's surviving {LOYALTY: 3} contradicted printed math. Engine side this batch: role_handles designation for PLAYER-or-PW selectors, CR 120.4d loyalty damage, zero-loyalty state check (LOYALTY counter key dropped on burial -> asserted empty).",
+ "mana": {
+  "0": {
+   "C": 7,
+   "R": 1
+  }
+ },
+ "cards": [
+  {
+   "key": "leaf",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Leafkin Avenger"
+  },
+  {
+   "key": "pw",
+   "zone": "battlefield",
+   "controller": 1,
+   "real": "Basri, Devoted Paladin"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "leaf",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "pw"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "pw": "graveyard"
+  },
+  "counters": {
+   "pw": {}
+  }
+ }
+}

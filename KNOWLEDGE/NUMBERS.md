@@ -13,6 +13,23 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.243 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **297/305** (0.9738) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 45 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-10-01 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.246 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
@@ -2357,3 +2374,13 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | wave-4a packs | **17 green promoted** (222 -> **239**, all green) | `.venv/bin/python tools/run_scenarios.py` -> `239/239 packs passed` | 5 cards suspect-only (Caged Zombie, Magmutt, Epitaph Golem, Furious Rise, Ghostly Pilferer) |
 | wave-4a suspects | **11 files / 10 cards**, 0/11 fail-only as designed | `tools/run_scenarios.py --dir tools/audit/suspects` | loud: THAT_MANY_COUNT (Basri Ket −2), CONTROLLER_COUNT_GT (Garruk −2), 'result' register (Furious Rise phantom activation), condition:false (Caged Zombie); silent: +1/+1 counter has no INDESTRUCTIBLE (Basri Ket +1), searched land enters UNTAPPED <4 lands (Fabled Passage), Chaff draw-through not BOTTOM (Epitaph Golem), loyalty never decremented (Magmutt/Leafkin bolt), can't-be-blocked never applied (Ghostly Pilferer), no opponent-life-loss clause (Waker +1), CREATURE_DIES row not consulted (Caged Zombie) |
 | gates | scenarios **239/239**; pytest **2213 passed + 3 subtests** (engine frozen, unchanged) | `tools/run_scenarios.py` / `pytest MTG_bot/core -q` | 2026-10-01 |
+
+## 2026-10-01 (wave-4 fix-a r21a — planeswalker damage / prevention-condition sides / zero-loyalty SBA)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| r21a suspects dispositioned | **4 FIXED+promoted, 1 STOP** (liliana +1: golden e0df8e2a ability[0] is a single DISCARD atom — can't-discard life clause never compiled) | tools/audit/suspects/ + file 18 | 21 -> **17 suspect files** |
+| packs | **239 -> 243 green** (+4 promotions: Ghostly Pilferer, Magmutt, Leafkin bolt [corrected to walker-death truth], Basri Ket +1 [LOYALTY 4, INDESTRUCTIBLE]) | `.venv/bin/python tools/run_scenarios.py` -> `243/243 packs passed` | 2026-10-01 |
+| suite | **2222 passed + 3 subtests, 0 failed** (2213 + 9 new r21a) | `pytest MTG_bot/core -q` | new MTG_bot/core/test_executor_r21a.py |
+| PC line | **PC-1 301/305 · PC-2 634/639 · PC-3 0 · PC-4 0** (unchanged) | `tools/measure_grammar.py --with-engine-flags` | 2026-10-01 |
+| traces | seeds 3+7 diverged by design (STATE_CHECK walker-death rows) -> repinned; compare **0/10**; games **100/100, 0 crash classes** | `tools/traces/catalog.py repin` / `build --seeds 100 --pool all --catalog /tmp` | outcome classes unchanged |

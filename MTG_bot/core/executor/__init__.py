@@ -1007,6 +1007,26 @@ class Executor:
                     out.append(card)
         return sorted(out)
 
+    def _zero_loyalty_walkers(self) -> list[Handle]:
+        """r21a (CR 704.5h): planeswalkers on the battlefield with 0 or
+        less loyalty. Damage is the SECOND path to zero next to the pay-
+        ment path (which still runs its own immediate check in legality,
+        because the generic counter verb deletes a zeroed key); a missing
+        ledger key therefore reads the printed loyalty, never 0 — the
+        13a ``_loyalty_of`` twin."""
+        from MTG_bot.core.executor.legality import _loyalty_of
+
+        world = self.world
+        out: list[Handle] = []
+        for player in world.player_order:
+            for card in world.players[player].zone(ZONE_BATTLEFIELD).entries:
+                state = world.cards.get(card)
+                if state is None or state.identity.loyalty is None:
+                    continue
+                if _loyalty_of(world, card) <= 0:
+                    out.append(card)
+        return sorted(out)
+
     def _state_checks(self) -> int:
         """The 16a state-based action sweep (CR 704.3: repeat until the
         table is stable), run at every settle point — the end of each
@@ -1015,13 +1035,17 @@ class Executor:
         stand-in is retired). Each kill batch is journalled as its OWN atom
         boundary (cause ``None``: an SBA has no card behind it, coverage
         credits none) so dies-triggers see the C18 was-PT snapshot, then
-        those firings drain before the next scan."""
+        those firings drain before the next scan. r21a: the sweep is also
+        the zero-loyalty planeswalker lane (CR 704.5h) — damage-driven
+        walkers are buried here, the same graveyard-move SBA reading the
+        frozen-world stand-in already uses for the other lanes."""
         fired = 0
         while True:
             self.layers.recompute()  # live keywords/toughness must be current
             dying = self._lethal_creatures()
             unattached = self._unattached_auras()  # 16e CR 704.5q
-            if not dying and not unattached:
+            walkers = self._zero_loyalty_walkers()  # r21a CR 704.5h
+            if not dying and not unattached and not walkers:
                 return fired
             before = self.journal.snapshot()
             start = len(self.events)
@@ -1060,6 +1084,22 @@ class Executor:
                 )
                 self.events.append(
                     (len(self.events), "STATE_CHECK", str(card), "UNATTACHED")
+                )
+            for card in walkers:
+                if card not in self.world.cards:
+                    continue  # a walker killed in this same batch
+                # r21a: the zeroed LOYALTY key is DELETED on the way out
+                # (generic-counter-verb convention): the battlefield re-
+                # entry seeds via setdefault (binding.py 13a), and a stale
+                # 0 would ride the re-entry into an instant second death.
+                self.world.cards[card].counters.pop("LOYALTY", None)
+                self.damage.pop(card, None)
+                self.damage_deathtouch.discard(card)
+                self.world.move_to_zone(
+                    card, self.world.controller_of(card), ZONE_GRAVEYARD
+                )
+                self.events.append(
+                    (len(self.events), "STATE_CHECK", str(card), "ZERO_LOYALTY")
                 )
             new_events = self.journal.record_atom(
                 before, None, "STATE_CHECK", self.events[start:]

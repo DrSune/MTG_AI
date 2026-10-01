@@ -1,0 +1,42 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "PW handle binding works for zone PLAYER-or-PW selectors; the damage verb just drops the loyalty decrement. FIX(21a): engine fixes landed — verbs._deal_damage_to_card CR 120.4d loyalty decrement branch, selectors.role_handles designation for PLAYER-or-PW selectors (pure TARGET_PLAYER selectors keep their old self-resolve). Basri, Devoted Paladin printed loyalty 4 -> 1 damage -> 3.",
+ "cards": [
+  {
+   "key": "mutt",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Chandra's Magmutt"
+  },
+  {
+   "key": "pw",
+   "zone": "battlefield",
+   "controller": 1,
+   "real": "Basri, Devoted Paladin"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "mutt",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "pw"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "pw": {
+    "LOYALTY": 3
+   }
+  },
+  "tapped": {
+   "mutt": true
+  }
+ }
+}

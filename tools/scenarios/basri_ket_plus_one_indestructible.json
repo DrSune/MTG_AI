@@ -1,0 +1,53 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "PRINTED: '[+1]: Target up to one creature. Put a +1/+1 counter on it. It gains indestructible until end of turn.' FIX(21a): expected LOYALTY 5 was an author misprint (Basri Ket printed starting loyalty is 3, dump-confirmed -> +1 stamps 4); the keyword clause was never compiled away — the harness keyword vocab simply omitted INDESTRUCTIBLE, now added (report-only, widened for this card).",
+ "cards": [
+  {
+   "key": "basri",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Basri Ket"
+  },
+  {
+   "key": "wolf",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Wolf",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "wolf"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "wolf": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "basri": {
+    "LOYALTY": 4
+   }
+  },
+  "power": {
+   "wolf": 3
+  },
+  "battlefield_keywords": {
+   "Wolf": [
+    "INDESTRUCTIBLE"
+   ]
+  }
+ }
+}

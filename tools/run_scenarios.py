@@ -599,6 +599,10 @@ class ScenarioRunner:
                             Keyword.LIFELINK,
                             Keyword.FIRST_STRIKE,
                             Keyword.DOUBLE_STRIKE,
+                            # r21a: INDESTRUCTIBLE added (Basri Ket +1 grant);
+                            # no existing green pack asserts it, vocab is
+                            # report-only so widening is additive.
+                            Keyword.INDESTRUCTIBLE,
                         )
                         if self.ex.layers.keyword_of(handle, k)
                     )

@@ -4,8 +4,8 @@
   "life": 20,
   "seed": 7
  },
- "finding": "PRINTED: '[+1]: Each player discards a card. Each opponent who can't loses 3 life.' ENGINE(observed): my discard clause resolves (hand card 'mine' -> graveyard), but the opponent \u2014 EMPTY hand, cannot discard \u2014 does not lose the life: 'life[1]: expected 17, got 20'. The 'who can't loses 3 life' replacement branch is compiled away; the ability costs loyalty for a half-clause.",
- "notes": "The -3 X/X half is green in liliana_waker_of_the_dead.json.",
+  "finding": "PRINTED: '[+1]: Each player discards a card. Each opponent who can't loses 3 life.' ENGINE(observed): my discard clause resolves (hand card 'mine' -> graveyard), but the opponent \u2014 EMPTY hand, cannot discard \u2014 does not lose the life: 'life[1]: expected 17, got 20'. The 'who can't loses 3 life' replacement branch is compiled away; the ability costs loyalty for a half-clause.",
+  "notes": "The -3 X/X half is green in liliana_waker_of_the_dead.json. ROOT CAUSE(21a verified): compiler gap, not engine. golden/M21/e0df8e2a-96d2-4e4d-b065-aa2e162abbfe.json ability[0] (+1) compiles to a SINGLE DISCARD atom (CHOOSE 1 card, any HAND, +1 loyalty cost) \u2014 the second sentence has no step, no LOSS_OF_LIFE verb, no can't-discard condition anywhere in the IR, so the engine never receives the clause. IR/goldens are FROZEN this batch -> STOP precedent peer_into_the_abyss (/07); needs a compiler pass for 'each ... who can't <do this>. Each such ... <consequence>' anaphoric clauses.",
  "cards": [
   {
    "key": "wk",
