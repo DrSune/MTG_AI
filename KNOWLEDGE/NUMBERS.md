@@ -13,6 +13,22 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.271 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-10-01 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.242 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
@@ -2248,3 +2264,15 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | runner gate | **186/186** (164 baseline + 22 new) | `.venv/bin/python tools/run_scenarios.py` | zero regressions |
 | suite gate | **2168 + 4 subtests** unchanged | `.venv/bin/python -m pytest MTG_bot/core -q` | engine frozen, untouched |
 | creature cast gap | **163/165** creature goldens lack SpellAbility | golden-pool scan (`abilities` node tags) | `cast:not_a_spell` = systematic silent lane-gap |
+
+## 2026-10-01 (wave-3 fix batch A / r20a — dead keywords given runtime teeth)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| r20a batch | **10/10 suspect packs green & promoted** (LIFELINK·PROWESS·BATTALION·granted-drain·prevention) | `.venv/bin/python tools/run_scenarios.py` | engine editing authorized; see 11-wave3-fix-a.md |
+| runner gate | **196/196** (186 baseline + 10) | `tools/run_scenarios.py` | zero regressions |
+| suite gate | **2182 + 4 subtests** (2168 + 14 new) | `.venv/bin/python -m pytest MTG_bot/core -q` | `test_executor_r20a.py` new |
+| grammar gate | PC-1 **301/305** · PC-2 **634/639** · PC-3 0 · PC-4 **exact-unchanged** | `tools/measure_grammar.py` | PC-6/PC-8 pre-existing fails; PC-7 deferred |
+| traces | **10/10 seeds IDENTICAL — 0 diverging, no repin** | `tools/traces/catalog.py compare` | new drains never fire in sim corpus |
+| games | **0 crash classes / 100 seeds**; 85 survived, mean 57.4 turns | `python -m MTG_bot.core.executor.games --seeds 100 --pool all` | `reports/games_2026-10-01.json` |
+| lint/type | pyright **0** · ruff **Δ0 vs HEAD** (all 5 changed files) | `pyright <files>` · `ruff check --stdin-filename …` | one self-introduced I001 fixed |

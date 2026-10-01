@@ -688,3 +688,12 @@
   printed-truth answer was always 3/3. When an engine fix reddens a GREEN
   pack, re-derive the expectation from the printed card before believing
   either side; correct the pack to printed truth, never revert the fix.
+- **Veto rows live in the Event ledger, not the journal (2026-10-01, r20a)**:
+  `DAMAGE_PREVENTED` (and other replacement-created rows) land in `ex.events`;
+  `ex.journal.events` is diff-derived and never carries them. Assert against
+  `ex.events` or a firing veto looks like a silent no-fire.
+- **Linting HEAD copies needs the project config (2026-10-01, r20a)**:
+  `ruff check /tmp/head_foo.py` silently applies ruff's *default* rule set
+  (no isort/I001 etc.) and reports a false-clean baseline. Use
+  `ruff check --stdin-filename <project/path.py> - < /tmp/head_foo.py` so
+  pyproject rules bind and Δ-vs-HEAD is honest.

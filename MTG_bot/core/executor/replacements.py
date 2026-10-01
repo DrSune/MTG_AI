@@ -343,6 +343,54 @@ class ReplacementRegistry:
             return rec
         return None
 
+    def prevented_card_damage(
+        self, ctx: ExecCtx, victim: Handle, combat: bool
+    ) -> PreventionRecord | None:
+        """r20a (Pack Leader): the prevention-before-apply interceptor for
+        damage a CARD would be dealt. The PREVENT_EFFECT lane carried the
+        untap / block-declaration / attack-declaration consumers but never
+        a DAMAGE consumer, so a compiled DamageDealtEvent prevention (Pack
+        Leader's "prevent all combat damage ... Dogs" half) was compile-
+        but-never-apply. combat-scope mirrors the binding-side
+        DamageDealtEvent matcher (16c): ``combat=True`` matches combat
+        damage only, ``False`` only the rest, ``None`` anything. QUnbounded
+        amount prevents ALL; the first-N cap flags (never guesses).
+        CONTROLLER RULE as in the damage hook: every predicate is judged
+        in the record's own coordinates (source=the preventing object,
+        controller=its controller)."""
+        for rec in sorted(self.preventions, key=lambda r: r.seq):
+            if rec.status != "live":
+                continue
+            event = rec.event
+            if not isinstance(event, DamageDealtEvent):
+                continue
+            if event.source is not None:
+                raise NotImplementedError(
+                    "executor: damage-prevention source filter is later "
+                    "phase (C-4 damage surface)"
+                )
+            if event.combat is not None and event.combat != combat:
+                continue
+            if event.amount is not None and not isinstance(event.amount, QUnbounded):
+                raise NotImplementedError(
+                    "executor: bounded damage-prevention caps ('the first "
+                    "N') are modeled as counters + triggers, not guessed "
+                    "here (12e)"
+                )
+            if rec.targets and victim not in rec.targets:
+                continue
+            if not self._source_alive(rec.source):
+                continue
+            rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
+            if event.filter is not None and not eval_filter(
+                event.filter, victim, rec_ctx
+            ):
+                continue
+            if not self._condition_holds(rec, victim, rec_ctx):
+                continue
+            return rec
+        return None
+
     def replacement_for_life_gained(
         self, ctx: ExecCtx, player: Handle
     ) -> ReplacementRecord | None:

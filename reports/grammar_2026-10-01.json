@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-10-01T09:53:02+02:00",
-  "git_head": "8b4b6b91e8632770216b36814d6daea83e8b3faf",
+  "generated": "2026-10-01T13:59:45+02:00",
+  "git_head": "79dae9968c1f652a62515d7407b5e8b583803fb9",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -101,15 +101,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.242,
+      "value": 0.271,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.234,
-        0.233,
-        0.242
+        0.248,
+        0.244,
+        0.271
       ]
     },
     "PC-6": {
@@ -256,65 +256,5 @@
       "bucket_hint": "spell-effect"
     }
   ],
-  "unparsed_count": 5,
-  "engine_support": {
-    "engine_supported_cards": 297,
-    "of_total": 305,
-    "supported_verbs": [
-      "ADD_LAND_PLAY",
-      "ADD_MANA",
-      "ATTACH",
-      "CAST",
-      "CHOOSE",
-      "CHOOSE_NAME",
-      "CREATE_TOKEN",
-      "DAMAGE_ASSIGN_POLICY",
-      "DEAL_DAMAGE",
-      "DESTROY",
-      "DISCARD",
-      "DRAW",
-      "END_TURN",
-      "EXILE",
-      "EXTRA_TURN",
-      "FIGHT",
-      "FLIP_COIN",
-      "GAIN_CONTROL",
-      "GAIN_LIFE",
-      "GET_EMBLEM",
-      "GRANT_ABILITY",
-      "GRANT_ACTIVATION",
-      "GRANT_TYPE",
-      "LOOK_AT",
-      "LOSE_ABILITY",
-      "LOSE_GAME",
-      "LOSE_LIFE",
-      "MANA_POLICY",
-      "MANDATE_ATTACK",
-      "MANDATE_BLOCK",
-      "MILL",
-      "MODIFY_PT",
-      "MOVE_ZONE",
-      "PAY",
-      "PREVENT_EFFECT",
-      "PUT_COUNTER",
-      "REMOVE_COUNTER",
-      "REVEAL",
-      "SACRIFICE",
-      "SCRY",
-      "SEARCH",
-      "SET_PT",
-      "SHUFFLE",
-      "TAP",
-      "UNTAP"
-    ],
-    "flip_proof": {
-      "card": "Cancel",
-      "spell_ability_only": true,
-      "default_engine_supported": true,
-      "gated_engine_supported": false,
-      "offending_verbs": [
-        "COUNTER_SPELL"
-      ]
-    }
-  }
+  "unparsed_count": 5
 }

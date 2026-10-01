@@ -910,6 +910,18 @@ class LayerRegistry:
     def keywords(self, handle: Handle) -> tuple[str, ...]:
         return self._keywords.get(handle, ())
 
+    def holders(self, keyword) -> tuple[Handle, ...]:
+        """Every card currently carrying the keyword (printed ∪ granted,
+        minus live losses), Handle-sorted. ``keyword_of`` answers one
+        handle; the r20a keyword-trigger drain needs the POPULATION —
+        the same oracle, inverted."""
+        name = _keyword_name(keyword)
+        return tuple(
+            handle
+            for handle in sorted(self._keywords)
+            if name in self._keywords[handle]
+        )
+
     def granted_abilities(self, handle: Handle) -> tuple[GrantedAbility, ...]:
         """Every live granted ability on ``handle``, layer-seq ordered (the
         canonical negative-index basis legality's ``legal_activations``

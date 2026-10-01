@@ -48,6 +48,7 @@ from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
     Atom,
+    AtomArgs,
     BecomesBlockedEvent,
     CardDrawnEvent,
     CardRecord,
@@ -61,13 +62,18 @@ from MTG_bot.core.ability_tree import (
     DeclareAttackersEvent,
     DeclareBlockersEvent,
     DelayedTrigger,
+    DurationEot,
     EventSpec,
     FAnd,
     FAtom,
     FAtomPred,
     Filter,
+    FNot,
+    Keyword,
     LifeGainedEvent,
     LoyaltyActivatedEvent,
+    PtDelta,
+    PtDirection,
     QAtMost,
     QConst,
     SacrificeEvent,
@@ -78,6 +84,7 @@ from MTG_bot.core.ability_tree import (
     TargetingEvent,
     TriggeredAbility,
     TurnPhaseEvent,
+    Verb,
     Zone,
     ZoneChangeEvent,
     ZoneKind,
@@ -227,6 +234,11 @@ class TriggerBinder:
         # scoped), but a triggered ability triggers ONCE on the whole
         # declare action — the shared group id collapses the row fan-out.
         self._declare_queued: set[tuple[Handle, int, int]] = set()
+        # r20a (wave-3): cached synthetic keyword-trigger nodes, keyed
+        # (family, holder). ONE node object per (family, handle) keeps the
+        # CR 603.2 declare-dedup (which keys on id(node)) stable across the
+        # rows of one declaration, and dies with the handle's detach.
+        self._kw_nodes: dict[tuple[str, Handle], TriggeredAbility] = {}
 
     # ------------------------------------------------------------ attach
 
@@ -453,6 +465,44 @@ class TriggerBinder:
                     ability.event, event, handle, self._controller_of(handle)
                 ):
                     self._queue(handle, self._controller_of(handle), ability, event)
+            # r20a (wave-3): GRANTED triggers. A StaticAbility GRANT_ABILITY
+            # layer parks its TriggeredAbility row in the layer registry —
+            # the ``attached`` map above only walks the card's PRINTED rows,
+            # so Light of Promise's granted life trigger and Infernal
+            # Scarring's granted dies-draw were compile-but-never-drain.
+            # No battlefield gate, mirroring the attached loop's lifecycle:
+            # the dies row must still see the grant while the aura is on.
+            # Determinism: Handle order, then the registry's layer-seq order.
+            layers = self.executor.layers
+            for host in sorted(self.world.cards):
+                ctrl = self._controller_of(host)
+                for granted in layers.granted_abilities(host):
+                    node = granted.node
+                    if isinstance(node, TriggeredAbility) and self._match_node(
+                        node.event, event, host, ctrl
+                    ):
+                        self._queue(host, ctrl, node, event)
+            # r20a: KEYWORD triggers (PROWESS / BATTALION). The compiler
+            # folds printed keywords into CardRecord.keywords with NO
+            # ability row (Blood Glutton compiles with an EMPTY abilities
+            # tuple), so the engine constructs the canonical node itself —
+            # EPHEMERAL IR construction: the frozen serialised IR and the
+            # goldens on disk are untouched. Order: family, then the
+            # registry's Handle-sorted holder list.
+            for family in ("PROWESS", "BATTALION"):
+                for host in layers.holders(Keyword[family]):
+                    if (
+                        host not in self.world.cards
+                        or self.world.zone_of(host).kind != ZONE_BATTLEFIELD
+                    ):
+                        continue
+                    node = self._keyword_node(family, host)
+                    ctrl = self._controller_of(host)
+                    if not self._match_node(node.event, event, host, ctrl):
+                        continue
+                    if family == "BATTALION" and self._group_size(event) < 3:
+                        continue  # CR 508.2: a group of at least three
+                    self._queue(host, ctrl, node, event)
             for entry in list(self.delayed):
                 if self._match_node(
                     entry.node.event, event, entry.source, entry.controller
@@ -500,6 +550,90 @@ class TriggerBinder:
         )
         self.firings[instance.clock] = _Firing(
             source=source, controller=controller, node=node, event=event, seq=self._seq
+        )
+
+    def _keyword_node(self, family: str, handle: Handle) -> TriggeredAbility:
+        """r20a: the canonical compiled-shape node for a printed keyword
+        trigger, built ONCE per (family, holder) and cached — the cache
+        keeps ``id(node)`` stable for the CR 603.2 declare-dedup. The
+        shapes mirror the frozen-IR precedent (Quirion Dryad's compiled
+        cast-trigger is exactly prowess minus the type exclusion):
+        PROWESS  — "whenever you cast a noncreature spell" → +1/+1 until
+        end of turn (PtDelta lanes, DurationEot sweep);
+        BATTALION — "whenever this creature attacks alone-or-not" gated
+        at the queue site on the CR 508.2 group-of-three → a +1/+1
+        counter (the Dryad's PUT_COUNTER shape)."""
+        key = (family, handle)
+        node = self._kw_nodes.get(key)
+        if node is not None:
+            return node
+        target = Selector(
+            count=QConst(1),
+            mode=SelectorMode.CHOOSE,
+            filter=FAtom(pred=FAtomPred.IS_SOURCE),
+            zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        )
+        if family == "PROWESS":
+            node = TriggeredAbility(
+                event=CastSpellEvent(
+                    filter=FNot(
+                        inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+                    ),
+                    controller=ControllerRef.YOU,
+                ),
+                condition=None,
+                effect=Atom(
+                    verb=Verb.MODIFY_PT,
+                    args=AtomArgs(
+                        pairs=(
+                            (
+                                "power",
+                                PtDelta(
+                                    direction=PtDirection.INCREASE,
+                                    magnitude=QConst(1),
+                                ),
+                            ),
+                            (
+                                "toughness",
+                                PtDelta(
+                                    direction=PtDirection.INCREASE,
+                                    magnitude=QConst(1),
+                                ),
+                            ),
+                            ("duration", DurationEot()),
+                            ("target", target),
+                        )
+                    ),
+                ),
+            )
+        else:  # BATTALION
+            node = TriggeredAbility(
+                event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
+                condition=None,
+                effect=Atom(
+                    verb=Verb.PUT_COUNTER,
+                    args=AtomArgs(
+                        pairs=(
+                            ("count", QConst(1)),
+                            ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                            ("target", target),
+                        )
+                    ),
+                ),
+            )
+        self._kw_nodes[key] = node
+        return node
+
+    def _group_size(self, event: GameEvent) -> int:
+        """CR 508.2 population for the BATTALION gate: how many attackers
+        share this DECLARE_ATTACKERS row's declaration group. The declare
+        step journalled EVERY row inside one atom boundary, so the whole
+        declaration is already in the journal when the drain first sees
+        any row of it — a pure journal read, no executor side-state."""
+        return sum(
+            1
+            for other in self.executor.journal.events
+            if other.kind == KIND_DECLARE_ATTACKERS and other.data == event.data
         )
 
     def _match_node(
@@ -1014,7 +1148,10 @@ class TriggerBinder:
             # it, so TARGET_PLAYER means "the controller of the source of
             # that damage" instead of the 12c prompt raise.
             bindings["target"] = event.cause
-        amount = event.amount if event.kind == KIND_DAMAGE else None
+        amount = event.amount if event.kind in (KIND_DAMAGE, KIND_LIFE_GAINED) else None
+        # r20a (Light of Promise): a LIFE_GAINED row's data[0] IS the amount
+        # gained, so QProp(referent='event', field=AMOUNT) resolves inside a
+        # life-gained firing exactly as it does inside a damage firing.
         return ExecCtx(
             world=ex.world,
             ledger=ex.ledger,

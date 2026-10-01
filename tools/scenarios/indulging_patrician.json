@@ -1,0 +1,63 @@
+{
+  "status": "suspect",
+  "finding": "PRINTED: Flying, Lifelink; 'At the beginning of your end step, if you gained 3 or more life this turn, each opponent loses 3 life.' ENGINE(observed): life[0] stays 20 (lifelink gap - see Blood Glutton finding) and the end-step burn never sees its threshold (life[1] stays 20, expected 17). PRIMARY ROOT CAUSE: dead LIFELINK keyword (no executor handler); the end-step trigger itself is unexercisable until any life-gain source works.",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "i",
+      "real": "Indulging Patrician",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "g",
+      "real": "Blood Glutton",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "v",
+      "name": "Warden",
+      "power": "1",
+      "toughness": "5",
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "i"
+    },
+    {
+      "op": "enter",
+      "key": "g"
+    },
+    {
+      "op": "deal_damage",
+      "source": "g",
+      "target": "v",
+      "amount": 4
+    },
+    {
+      "op": "end_turn"
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 24,
+      "1": 17
+    },
+    "battlefield_keywords": {
+      "Indulging Patrician": [
+        "FLYING",
+        "LIFELINK"
+      ]
+    }
+  },
+  "notes": "Printed: Flying, Lifelink; 'At the beginning of your end step, if you gained 3 or more life this turn, each opponent loses 3 life.' Lifelink gains exactly 4 (20->24), crossing the threshold; end_turn runs the end step and the Patrician burns the opponent for 3 (20->17). Keyword lanes pin FLYING+LIFELINK on the Patrician itself."
+}

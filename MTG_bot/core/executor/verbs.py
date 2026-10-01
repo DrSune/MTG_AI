@@ -23,11 +23,13 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Callable
+from dataclasses import replace
 
 from MTG_bot.core.ability_tree import (
     Ability,
     ActivationWindow,
     Atom,
+    AtomArgs,
     CardRecord,
     ControllerRef,
     Cost,
@@ -284,6 +286,33 @@ def _v_gain_life(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append((len(ctx.events), "GAIN_LIFE", str(player), n))
 
 
+def _lifelink_gain(ctx: ExecCtx, n: int) -> None:
+    """r20a (CR 603.4): LIFELINK — "if this source deals damage, its
+    controller gains that much life." The keyword is read through the
+    layer registry (the deathtouch precedent, :func:`_deal_damage_to_card`),
+    so a granted lifelink counts and a lost one stops counting. The gain
+    is routed through the GAIN_LIFE VERB lane rather than a direct life
+    bump: that keeps the C24 life-replacement interceptor honest AND
+    journalled, so the KIND_LIFE_GAINED rows that Light of Promise's
+    granted trigger and Indulging Patrician's LIFE_GAINED_THIS_TURN_GE
+    threshold read are real life-gain events, not invisible arithmetic.
+    The gain belongs to the SOURCE's controller — in the record's own
+    coordinates, the CONTROLLER RULE again."""
+    if n <= 0:
+        return
+    if ctx.executor is None or ctx.layers is None:
+        return
+    if ctx.source.namespace != "card":
+        return
+    if not ctx.layers.keyword_of(ctx.source, Keyword.LIFELINK):
+        return
+    atom = Atom(
+        verb=Verb.GAIN_LIFE,
+        args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("amount", QConst(n)))),
+    )
+    _v_gain_life(replace(ctx, controller=ctx.executor.controller_of(ctx.source)), atom)
+
+
 def _v_lose_life(ctx: ExecCtx, atom: Atom) -> None:
     n = amount(ctx, atom, "amount")
     for player in sorted(role_players(ctx, atom)):
@@ -325,6 +354,7 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
             p = ctx.world.players[target]
             p.life = max(0, p.life - n)
             ctx.events.append((len(ctx.events), "DAMAGE", str(target), p.life))
+            _lifelink_gain(ctx, n)  # r20a: lifelink reads ANY damage dealt
             continue
         # 16a (CR 120.4/120.6): damage is MARKED, never instant-lethal. The
         # mark rides the executor's damage ledger and the settle tail's
@@ -347,9 +377,33 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
             "executor: card damage needs an executor-backed ExecCtx "
             "(bare ExecCtx has no damage ledger)"
         )
+    # r20a (Pack Leader): prevention-before-apply for card damage. A live
+    # DamageDealtEvent PreventionRecord (the PREVENT_EFFECT lane's first
+    # damage consumer) vetoes the WHOLE mark (QUnbounded = "all"); the
+    # vetoed event leaves NO DAMAGE row, so "whenever dealt damage"
+    # triggers correctly never see it. The combat flag rides the same
+    # executor signal the journal's is_combat half reads.
+    if ctx.replacements is not None:
+        rec = ctx.replacements.prevented_card_damage(
+            ctx,
+            target,
+            combat=bool(getattr(ctx.executor, "_combat_wave_open", False)),
+        )
+        if rec is not None:
+            ctx.events.append(
+                (
+                    len(ctx.events),
+                    "DAMAGE_PREVENTED",
+                    str(target),
+                    str(rec.source),
+                    n,
+                )
+            )
+            return
     deathtouch = ctx.executor.layers.keyword_of(ctx.source, Keyword.DEATHTOUCH)
     ctx.executor.mark_damage(target, n, deathtouch=deathtouch)
     ctx.events.append((len(ctx.events), "DAMAGE", str(target), n))
+    _lifelink_gain(ctx, n)  # r20a: after the mark, on the dealt amount
 
 
 def _fight_attacker(ctx: ExecCtx) -> Handle:

@@ -1,0 +1,47 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Mistral Singer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "o",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "cast",
+   "key": "o",
+   "real": "Opt",
+   "controller": 0,
+   "decisions": [
+    "top"
+   ]
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 1
+  }
+ },
+ "expect": {
+  "power": {
+   "s": 3
+  },
+  "toughness": {
+   "s": 3
+  }
+ },
+ "status": "suspect",
+ "notes": "repro: cast the noncreature Opt; Prowess promised the Singer reads 3/3.",
+ "finding": "PRINTED: 'Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)' ENGINE(observed): the golden compiles Prowess as a bare KeywordAbility node (verbs FLYING/PROWESS), with NO TriggeredAbility behind it, and the executor has ZERO PROWESS handlers (grep). After the Opt cast the Singer still reads 2/2 (power lane expected 3). SILENT dead keyword \u2014 SAME FAMILY as wave3a's heartfire_immolator / jeskai_elder PROWESS suspects; Mistral Singer adds the third instance. The card's other half (Flying + Opt resolution) is shipped green in tools/scenarios/mistral_singer.json. WAVE3B 2026-10-01."
+}
