@@ -61,6 +61,16 @@ Usage::
     .venv/bin/python tools/audit/wave_builder.py --wave3 --lint
     .venv/bin/python tools/audit/wave_builder.py --wave4      # write wave4.json
     .venv/bin/python tools/audit/wave_builder.py --wave4 --lint
+    .venv/bin/python tools/audit/wave_builder.py --coverage
+
+Coverage census (2026-10-01): the corpus-level adjudication question —
+does EVERY one of the 305 golden cards have a pack, a suspect, or at
+least a documented family-less profile? Unlike the wave cohorts the
+census excludes nothing (token and emblem records count as normal
+cards), classifies each card pack / suspect / uncovered by name against
+``tools/scenarios/*.json`` and ``tools/audit/suspects/*.json``, and
+profiles every uncovered card with its full IR node-type signature so
+the wave-5 question can be answered from ``coverage.json`` alone.
 
 Closed waves: a frozen cohort whose every card has since been promoted
 into ``tools/scenarios/*.json`` or ``tools/audit/suspects/*.json`` carries
@@ -85,6 +95,7 @@ sys.path.insert(0, str(REPO))
 from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     Atom,
+    CostPart,
     KeywordAbility,
     SpellAbility,
     StaticAbility,
@@ -103,6 +114,7 @@ DEFAULT_OUT = Path(__file__).resolve().parent / "wave1.json"
 DEFAULT_OUT2 = Path(__file__).resolve().parent / "wave2.json"
 DEFAULT_OUT3 = Path(__file__).resolve().parent / "wave3.json"
 DEFAULT_OUT4 = Path(__file__).resolve().parent / "wave4.json"
+DEFAULT_COVERAGE = Path(__file__).resolve().parent / "coverage.json"
 
 #: Wave-3 name-exclusion sources: every green scenario pack (148) and every
 #: suspect file; a card counts as covered if its name appears as a ``real``
@@ -349,18 +361,36 @@ def static_mechanics(record) -> list[str]:
     return sorted(verbs)
 
 
+def _real_names_from(pattern: str) -> set[str]:
+    """Names appearing as a ``real`` entry in every JSON file matching
+    `pattern` (subject or support role alike — the card was exercised)."""
+    names: set[str] = set()
+    for path in sorted(REPO.glob(pattern)):
+        board = json.loads(path.read_text(encoding="utf-8"))
+        names |= {
+            c["real"]
+            for c in board.get("cards", [])
+            if isinstance(c, dict) and "real" in c
+        }
+    return names
+
+
+def pack_names() -> set[str]:
+    """Names exercised as ``real`` entries in the green scenario packs."""
+    return _real_names_from(COVERED_GLOBS[0])
+
+
+def suspect_names() -> set[str]:
+    """Names carried as ``real`` entries in the open suspect files."""
+    return _real_names_from(COVERED_GLOBS[1])
+
+
 def covered_names() -> set[str]:
     """Names exercised by existing material: every ``real`` card entry in
     every green scenario pack and every suspect file."""
     names: set[str] = set()
     for pattern in COVERED_GLOBS:
-        for path in sorted(REPO.glob(pattern)):
-            board = json.loads(path.read_text(encoding="utf-8"))
-            names |= {
-                c["real"]
-                for c in board.get("cards", [])
-                if isinstance(c, dict) and "real" in c
-            }
+        names |= _real_names_from(pattern)
     return names
 
 
@@ -520,6 +550,146 @@ def derive_wave4() -> dict:
     }
 
 
+def families_of(record) -> list[str]:
+    """Which of the four audited families the card belongs to, decided by
+    the waves' own node-detection helpers (never a substring): etb =
+    :func:`etb_triggers`, spell = :func:`spell_abilities`, static =
+    :func:`static_nodes`, activated = :func:`activated_abilities`."""
+    fams: list[str] = []
+    if etb_triggers(record):
+        fams.append("etb")
+    if spell_abilities(record):
+        fams.append("spell")
+    if static_nodes(record):
+        fams.append("static")
+    if activated_abilities(record):
+        fams.append("activated")
+    return fams
+
+
+def cost_node_classes(record) -> list[str]:
+    """Cost-part class names (CostTap, CostManaColor, CostLoyalty, …)
+    inside the card's own ability/keyword nodes — the activation-cost
+    profile; the printed casting cost is profiled separately."""
+    return sorted(
+        {
+            type(n).__name__
+            for a in (*record.abilities, *record.keywords)
+            for n in walk(a)
+            if isinstance(n, CostPart)
+        }
+    )
+
+
+def mana_cost_node_classes(record) -> list[str]:
+    """Cost-part class names of the card's printed casting cost."""
+    if record.mana_cost is None:
+        return []
+    return sorted(
+        {type(n).__name__ for n in walk(record.mana_cost) if isinstance(n, CostPart)}
+    )
+
+
+def derive_coverage() -> dict:
+    """Corpus adjudication census: does EVERY one of the 305 golden cards
+    have a pack, a suspect, or at least a documented family-less profile?
+    Unlike the wave cohorts this EXCLUDES NOTHING — token and emblem
+    records count as normal cards (a name shared by a card and its token,
+    e.g. "Cat", is censused per oracle_id). Status precedence pack >
+    suspect; membership in both is recorded per card and counted in
+    ``meta.n_pack_and_suspect``. Every UNCOVERED card carries its full IR
+    node-type profile (top-level ability node classes, keyword names,
+    activation cost nodes, casting-cost nodes) and its gated
+    ``engine_supported`` flag — the evidence for whether a wave 5 family
+    actually remains."""
+    pool, gated, _texts = _compile_state()
+    packs = pack_names()
+    suspects = suspect_names()
+    cards: dict[str, dict] = {}
+    for oid, res in pool.results.items():
+        record = res.card
+        in_pack = record.name in packs
+        in_suspect = record.name in suspects
+        status = "pack" if in_pack else "suspect" if in_suspect else "uncovered"
+        entry: dict = {
+            "name": record.name,
+            "families": families_of(record),
+            "status": status,
+            "in_pack": in_pack,
+            "in_suspect": in_suspect,
+            "engine_supported": bool(gated.results[oid].legality.engine_supported),
+        }
+        if status == "uncovered":
+            entry["profile"] = {
+                "ability_node_classes": sorted(
+                    {type(a).__name__ for a in record.abilities}
+                ),
+                "keywords": sorted(
+                    {
+                        k.keyword.name
+                        for k in record.keywords
+                        if isinstance(k, KeywordAbility)
+                    }
+                ),
+                "cost_nodes": cost_node_classes(record),
+                "mana_cost_nodes": mana_cost_node_classes(record),
+            }
+        cards[oid] = entry
+
+    uncovered = [c for c in cards.values() if c["status"] == "uncovered"]
+    grouped: dict[str, list[str]] = {}
+    for c in sorted(uncovered, key=lambda c: c["name"]):
+        sig = " + ".join(c["profile"]["ability_node_classes"]) or "(no ability nodes)"
+        grouped.setdefault(sig, []).append(c["name"])
+    n_pack = sum(c["status"] == "pack" for c in cards.values())
+    n_suspect = sum(c["status"] == "suspect" for c in cards.values())
+    return {
+        "meta": {
+            "question": (
+                "does every M21 card have a pack, a suspect, or a "
+                "documented family-less status?"
+            ),
+            "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
+            "built_by": "tools/audit/wave_builder.py --coverage",
+            "family_predicates": {
+                "etb": "etb_triggers: TriggeredAbility w/ ZoneChangeEvent to BATTLEFIELD",
+                "spell": "spell_abilities: SpellAbility nodes",
+                "static": "static_nodes: top-level StaticAbility + KeywordAbility",
+                "activated": "activated_abilities: ActivatedAbility nodes",
+            },
+            "status_precedence": "pack > suspect (both memberships kept per card)",
+            "n_cards": len(cards),
+            "n_pack": n_pack,
+            "n_suspect": n_suspect,
+            "n_uncovered": len(uncovered),
+            "n_pack_and_suspect": sum(
+                c["in_pack"] and c["in_suspect"] for c in cards.values()
+            ),
+            "n_uncovered_engine_supported": sum(
+                c["engine_supported"] for c in uncovered
+            ),
+            "uncovered_grouped_by_top_level_nodes": {
+                k: v for k, v in sorted(grouped.items())
+            },
+        },
+        "cards": dict(sorted(cards.items())),
+    }
+
+
+def print_coverage(cov: dict) -> None:
+    """Human summary of the census: counts, then every uncovered card
+    grouped by its top-level node-class signature."""
+    meta = cov["meta"]
+    print(
+        f"coverage: {meta['n_cards']} cards = {meta['n_pack']} pack + "
+        f"{meta['n_suspect']} suspect + {meta['n_uncovered']} uncovered "
+        f"({meta['n_pack_and_suspect']} names in pack AND suspect; "
+        f"{meta['n_uncovered_engine_supported']} uncovered engine-supported)"
+    )
+    for sig, names in meta["uncovered_grouped_by_top_level_nodes"].items():
+        print(f"  [{sig}] x{len(names)}: {', '.join(names)}")
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
     ap.add_argument(
@@ -533,7 +703,25 @@ def main(argv=None) -> int:
     )
     ap.add_argument("--out", default=None)
     ap.add_argument("--lint", action="store_true", help="re-derive and diff vs disk")
+    ap.add_argument(
+        "--coverage",
+        action="store_true",
+        help=(
+            "corpus adjudication census instead of a wave file: every golden "
+            "card's pack/suspect/uncovered status, profiles for the uncovered"
+        ),
+    )
     args = ap.parse_args(argv)
+
+    if args.coverage:
+        out = Path(args.out) if args.out else DEFAULT_COVERAGE
+        cov = derive_coverage()
+        out.write_text(
+            json.dumps(cov, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        print_coverage(cov)
+        print(f"wrote {out}")
+        return 0
 
     if args.wave4:
         derive, default_out = derive_wave4, DEFAULT_OUT4

@@ -1,0 +1,3709 @@
+{
+  "cards": {
+    "0045c5fa-3229-4050-b139-5712fa24b308": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Demon",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [
+          "FLYING"
+        ],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "00c0543c-2a1f-4425-8283-4062d74a1637": {
+      "engine_supported": true,
+      "families": [
+        "etb"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Solemn Simulacrum",
+      "status": "pack"
+    },
+    "010ec11a-0484-486d-b7c0-de65593bf457": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Sanguine Indulgence",
+      "status": "pack"
+    },
+    "05f0feb6-6783-49fd-acf6-68b44aaff846": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Feline Sovereign",
+      "status": "pack"
+    },
+    "065b8e5e-874e-4de3-9f12-41e4b1604561": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Blood Glutton",
+      "status": "pack"
+    },
+    "08c7db90-c0cf-4482-b7ee-bb033e5996d2": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Colossal Dreadmaw",
+      "status": "pack"
+    },
+    "0a1a0911-dcd5-4a2f-8deb-abb5b273b0fb": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Staunch Shieldmate",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "0a865453-ddc8-4403-8f1e-5752e3582458": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Keral Keep Disciples",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "0b4925d7-e2bb-4b74-a538-80fe759799ad": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Malefic Scythe",
+      "status": "pack"
+    },
+    "0c3c3bcc-d485-4a01-92fe-8bf29c0fc926": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Meteorite",
+      "status": "pack"
+    },
+    "0c85b8f7-0bd0-4680-9ec5-d4b110460a54": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": true,
+      "name": "Fabled Passage",
+      "status": "pack"
+    },
+    "0d5eb0b9-9b08-4d26-b141-a9d612a680a6": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Roaming Ghostlight",
+      "status": "pack"
+    },
+    "0d899095-cef7-43d2-aaf7-eb73b62f5ec8": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Igneous Cur",
+      "status": "pack"
+    },
+    "0e11792b-7fe5-4208-aa0b-e5d09b2b65fe": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Baneslayer Angel",
+      "status": "pack"
+    },
+    "0f63de7b-03f2-49ad-b217-88fe9c50d68a": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Snarespinner",
+      "status": "pack"
+    },
+    "0f80f061-6304-4c7b-ab53-f406385e39df": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "spell",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Goremand",
+      "status": "pack"
+    },
+    "12dd664c-a279-4adc-b6cb-bec22eedca5c": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Siege Striker",
+      "status": "pack"
+    },
+    "1306c72f-fc6b-470b-a95e-0364e0e30ac7": {
+      "engine_supported": true,
+      "families": [
+        "spell",
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Sparkhunter Masticore",
+      "status": "pack"
+    },
+    "132859dd-de66-45c6-8af4-ab5e202a17b0": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Sanctum of Fruitful Harvest",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "14cefb15-d833-4c70-80c9-f2d34b6c846b": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Runed Halo",
+      "status": "pack"
+    },
+    "15323e45-8260-43dc-b72b-efd661a58d75": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Spirit of Malevolence",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "1573f7f9-672c-421a-b1ac-3d0d8aea59ca": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Tormod's Crypt",
+      "status": "pack"
+    },
+    "15d2176b-ab3d-4738-bcbc-bcebf891d16e": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Life Goes On",
+      "status": "pack"
+    },
+    "1601e553-31c2-4e04-9f0c-bc17e49eeff7": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Basri, Devoted Paladin",
+      "status": "pack"
+    },
+    "1758e102-22da-4cb3-98d5-76f7501d026d": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Gale Swooper",
+      "status": "pack"
+    },
+    "1818b0b1-0104-4673-9be8-acfc773ef87d": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": false,
+      "in_suspect": true,
+      "name": "Sanctum of Tranquil Light",
+      "status": "suspect"
+    },
+    "189131b7-ed59-4750-a4ed-453e4497a5c8": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Indulging Patrician",
+      "status": "pack"
+    },
+    "1c9e1f75-73f0-4846-b53f-458a0984b1bb": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Teferi's Ageless Insight",
+      "profile": {
+        "ability_node_classes": [
+          "ReplacementAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "1cb0610b-a731-42c2-b93f-0a29f63cebf4": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Thrill of Possibility",
+      "status": "pack"
+    },
+    "1cd1e3a8-e09d-4b61-8244-92b317132d6a": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Sanctum of Calm Waters",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "1d07856b-d9ef-418c-bd06-3888dbcaddf4": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Vodalian Arcanist",
+      "status": "pack"
+    },
+    "1e414a4f-6e76-4cbe-9c69-d52852cd5bc0": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Heartfire Immolator",
+      "status": "pack"
+    },
+    "1ef73b3b-ab4a-494b-b969-dcde995cee34": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Soul Sear",
+      "status": "pack"
+    },
+    "1ff25f67-36a7-4cfa-a2b1-2135b5b6fb67": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Scavenging Ooze",
+      "status": "pack"
+    },
+    "2038f505-7b03-4c63-bc44-c5139729dd05": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Feat of Resistance",
+      "status": "pack"
+    },
+    "2069c2cb-3cb7-4f3b-be72-ae783de82c42": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Cat",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "21fa2442-6eac-4dce-a9cc-76f0053fdb8f": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": false,
+      "in_suspect": true,
+      "name": "Peer into the Abyss",
+      "status": "suspect"
+    },
+    "2359db1c-6029-4748-9f09-d57bb0ae92e9": {
+      "engine_supported": true,
+      "families": [
+        "spell",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Liliana's Scorn",
+      "status": "pack"
+    },
+    "236e1f57-7ef5-455a-82a6-8ff6b85d8849": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Nine Lives",
+      "status": "pack"
+    },
+    "24882fa2-3fe9-4c1b-aa3d-0e6488b9db27": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Heroic Intervention",
+      "status": "pack"
+    },
+    "28c46eb7-bdfc-44b9-b7e9-b073260851f0": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": false,
+      "in_suspect": true,
+      "name": "Rin and Seri, Inseparable",
+      "status": "suspect"
+    },
+    "2b2d76f5-4c9b-49dc-b202-68095e2d9b29": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Faith's Fetters",
+      "status": "pack"
+    },
+    "2b7dba01-b08c-4218-9fc1-da55559d9155": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Saproling",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "2dbe384b-71c4-43f9-be35-ba2894021b85": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Garruk's Harbinger",
+      "status": "pack"
+    },
+    "2dc59566-10cb-468a-b6a2-17d6c0186e6d": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Capture Sphere",
+      "status": "pack"
+    },
+    "2e7c3881-6fa6-4fd2-ae86-9e3a0fcecdbd": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Sporeweb Weaver",
+      "status": "pack"
+    },
+    "2f4ad084-2062-44c0-9975-15f100204531": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Swiftwater Cliffs",
+      "status": "pack"
+    },
+    "2f94cb83-1f48-4293-b219-67830c074aeb": {
+      "engine_supported": true,
+      "families": [
+        "spell",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Enthralling Hold",
+      "status": "pack"
+    },
+    "306549ad-84c7-4983-840b-9663799e9f40": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Rousing Read",
+      "status": "pack"
+    },
+    "3127ae9b-a7a7-43ec-89d7-688f8445b33d": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Garruk's Uprising",
+      "status": "pack"
+    },
+    "32ea6b1c-d48e-4663-ad5c-d7f4a85450af": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Garruk, Unleashed",
+      "status": "pack"
+    },
+    "33d405ea-7a9a-4970-b70f-9c05d90dd6f0": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Duress",
+      "status": "pack"
+    },
+    "340aaeb6-cd18-4908-9729-8c53ab02c6f8": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Knight",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [
+          "VIGILANCE"
+        ],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "342eb666-838c-43d0-bf52-2f704f2a80e3": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Hooded Blightfang",
+      "status": "pack"
+    },
+    "344cdec9-60b3-42ec-a3d5-41ee1d4f7c6c": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Traitorous Greed",
+      "status": "pack"
+    },
+    "35dfe1c7-48ab-436f-9a6e-44835ea01cf9": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Wall of Runes",
+      "status": "pack"
+    },
+    "365548fb-5acc-4a8a-b20b-26d28b7d029f": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Village Rites",
+      "status": "pack"
+    },
+    "3701ed34-a97c-4d7b-a15a-4faec02ef24b": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Pack Leader",
+      "status": "pack"
+    },
+    "3792763c-7aa0-4055-b8a1-3257e0443ef1": {
+      "engine_supported": true,
+      "families": [
+        "etb"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Skeleton Archer",
+      "status": "pack"
+    },
+    "382097b3-f753-493c-bde4-101c0538feb4": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Frost Breath",
+      "status": "pack"
+    },
+    "397b9dcf-690a-4a58-8637-bb9baab7cc2f": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Elder Gargaroth",
+      "status": "pack"
+    },
+    "3a124fe5-f525-43e5-9746-501c68a98330": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Spined Megalodon",
+      "status": "pack"
+    },
+    "3a19a959-ea83-404b-89f7-e5dbf4cb7995": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Waker of Waves",
+      "status": "pack"
+    },
+    "3c549374-6c37-42e0-8d88-a8555d46732d": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Treasure",
+      "profile": {
+        "ability_node_classes": [
+          "ActivatedAbility"
+        ],
+        "cost_nodes": [
+          "CostSacrifice",
+          "CostTap"
+        ],
+        "keywords": [],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "3c8a6c58-f4af-4809-af86-a931313fa71e": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Finishing Blow",
+      "status": "pack"
+    },
+    "3d395892-ef4e-41ea-a66b-99dc3affe51a": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Griffin",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [
+          "FLYING"
+        ],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "3e41648f-c5a9-4b26-b97e-8176fe5e9c85": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Brash Taunter",
+      "status": "pack"
+    },
+    "3fc640dd-6292-4d36-82fb-bd366bc00bd3": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Infernal Scarring",
+      "status": "pack"
+    },
+    "3ff3b9c4-80ec-44d9-99ec-6fea3a86468b": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Setessan Training",
+      "status": "pack"
+    },
+    "40be0923-5d57-46fd-84ef-7f1a1fd5da42": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Furor of the Bitten",
+      "status": "pack"
+    },
+    "40c64f08-ab2f-4933-8e0e-d1a1c729008f": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Angel",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [
+          "FLYING"
+        ],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "41c15160-ee8c-42e3-bc6c-593b8c8ae335": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Crash Through",
+      "status": "pack"
+    },
+    "42d7ec93-0943-43e2-9b65-b7edc3349410": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Gadrak, the Crown-Scourge",
+      "status": "pack"
+    },
+    "430b3e61-09a5-4390-b377-89830cacf66e": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Caged Zombie",
+      "status": "pack"
+    },
+    "4339f621-8502-4433-a37a-654591ca1b43": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Turn to Slag",
+      "status": "pack"
+    },
+    "45429b2c-be3b-4b2e-9bab-a059ccbda8cd": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Blossoming Sands",
+      "status": "pack"
+    },
+    "4600e968-fe3a-446a-a306-bd10e6763e0d": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Rise Again",
+      "status": "pack"
+    },
+    "47258c3e-b4a7-466d-9464-3924f75d9293": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Bad Deal",
+      "status": "pack"
+    },
+    "48a53d6e-0320-4b9c-b692-6d0fc00e46cc": {
+      "engine_supported": true,
+      "families": [
+        "etb"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Rambunctious Mutt",
+      "status": "pack"
+    },
+    "494c819d-7d73-432b-8c96-4cb9dcd31094": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Grasp of Darkness",
+      "status": "pack"
+    },
+    "497d7ab8-07f1-4c8a-a45a-52b9a4d9400f": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Basri Ket",
+      "status": "pack"
+    },
+    "49dc3434-2501-4788-84f2-93e55730f67c": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Selfless Savior",
+      "status": "pack"
+    },
+    "4b5f30a6-b0fb-4dcb-85d5-1db1bba73737": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Valorous Steed",
+      "status": "pack"
+    },
+    "4c1c3a0a-5782-4b7d-8b9c-61eea913166d": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": false,
+      "in_suspect": true,
+      "name": "Transmogrify",
+      "status": "suspect"
+    },
+    "4d7a06f9-2569-4b72-bd5f-5a190337a692": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Goblin Wizard",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [
+          "PROWESS"
+        ],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "4e698713-6203-44f2-b438-1b26b951536d": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Alchemist's Gift",
+      "status": "pack"
+    },
+    "4eaa100c-f1ef-4a2b-9370-5dad7f3a95f2": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Unleash Fury",
+      "status": "pack"
+    },
+    "4fb9c040-c684-4ba8-970e-58313af5584a": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Wildwood Patrol",
+      "status": "pack"
+    },
+    "5104053a-d394-4b00-82a4-60fd9f051a6e": {
+      "engine_supported": true,
+      "families": [
+        "etb"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Fierce Empath",
+      "status": "pack"
+    },
+    "515cee6a-a2e1-4eeb-8e1d-293724313b14": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Chandra's Incinerator",
+      "status": "pack"
+    },
+    "52159875-354c-47f9-bb1c-cd65395fcc68": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Fiery Emancipation",
+      "profile": {
+        "ability_node_classes": [
+          "ReplacementAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "5291deb9-0b89-42c2-bde6-26f88931c3f4": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Chandra's Pyreling",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "52b3a979-3b93-4441-9237-0c8a754e5523": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": false,
+      "in_suspect": true,
+      "name": "Furious Rise",
+      "status": "suspect"
+    },
+    "53b17c51-a216-484f-80df-3904284df0ea": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Chandra's Firemaw",
+      "status": "pack"
+    },
+    "5462cb38-7cd7-46e8-a273-35d0d1af45b4": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Run Afoul",
+      "status": "pack"
+    },
+    "550811ca-0995-4886-aa8c-5cee118aa54f": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Spellgorger Weird",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "56148ae7-a9df-4771-8d53-d9ffb815c884": {
+      "engine_supported": false,
+      "families": [
+        "spell"
+      ],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Sublime Epiphany",
+      "profile": {
+        "ability_node_classes": [
+          "SpellAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "56719f6a-1a6c-4c0a-8d21-18f7d7350b68": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": true,
+      "name": "Swamp",
+      "status": "pack"
+    },
+    "56c1893f-1382-4a31-a28a-ea604677fcdb": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Liliana, Waker of the Dead Emblem",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "57d0c688-6206-4c83-9fcb-27fd29e2a9ed": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Basri's Lieutenant",
+      "status": "pack"
+    },
+    "5820d760-8ed7-4abf-a959-c06ed86a3730": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Swift Response",
+      "status": "pack"
+    },
+    "58ad45fc-b625-4484-8d49-ebc42db9040a": {
+      "engine_supported": true,
+      "families": [
+        "spell",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Chandra, Heart of Fire",
+      "status": "pack"
+    },
+    "58d7b8b3-ac47-4805-8259-4ba8e70d7dc3": {
+      "engine_supported": true,
+      "families": [
+        "spell",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Primal Might",
+      "status": "pack"
+    },
+    "58f5bbd2-b876-4eb9-aa79-f4d3511961e0": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Havoc Jester",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "595f1dee-8c3b-44a6-9e71-a4bb4334b309": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Liliana's Scrounger",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "5a898412-5b1e-4217-ac78-5b4099ed8e16": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Angelic Ascension",
+      "status": "pack"
+    },
+    "5c946cc0-5d90-4970-acf8-b14eff177cbc": {
+      "engine_supported": true,
+      "families": [
+        "etb"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Storm Caller",
+      "status": "pack"
+    },
+    "5cfd73ab-8509-4e4b-9704-68d8dad3b301": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Discontinuity",
+      "status": "pack"
+    },
+    "5d641bf6-0f93-4189-8dc1-ec7ea446dade": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Tranquil Cove",
+      "status": "pack"
+    },
+    "5daac63a-1534-4194-8cb7-506508e364f4": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Invigorating Surge",
+      "status": "pack"
+    },
+    "5e39d311-efb5-4f51-82cd-e8079e32907a": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Sanctum of Shattered Heights",
+      "status": "pack"
+    },
+    "60555f06-dc85-4a34-ae3c-fc1cdb923be7": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Bolt Hound",
+      "status": "pack"
+    },
+    "60bc63dc-ac9f-4a2f-aef5-c90d0aa31553": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Thrashing Brontodon",
+      "status": "pack"
+    },
+    "61859443-e298-41c7-a179-6e6554de91c9": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Anointed Chorister",
+      "status": "pack"
+    },
+    "61e09dd9-7870-48c2-9177-d6abc3162692": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Titanic Growth",
+      "status": "pack"
+    },
+    "62c240ac-f2dd-4e39-9e82-50307efa833e": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Archfiend's Vessel",
+      "status": "pack"
+    },
+    "63f60dfc-2bc4-411f-ae53-504156fe0102": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Sanctum of All",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "645b5784-a6f7-4cf3-966a-e1a51420b96b": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Mystic Skyfish",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "64c54c9f-0550-41e2-a44a-5892a199f670": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Light of Promise",
+      "status": "pack"
+    },
+    "64e29bfc-9313-4e8c-808c-bc27f6b018a6": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Bloodfell Caves",
+      "status": "pack"
+    },
+    "66093486-c9c3-42c5-97d1-ec0fe54f65b0": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Twinblade Assassins",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "6629a48b-be9a-4636-8add-69d096a1ca7e": {
+      "engine_supported": false,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Double Vision",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "67d55b4f-944e-4376-93ed-1a240bca1eae": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Silversmote Ghoul",
+      "status": "pack"
+    },
+    "68281e06-64e3-490b-8691-8f4169614ec0": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Basri's Solidarity",
+      "status": "pack"
+    },
+    "694cb93a-bcc5-44b0-a76c-19ae4a4e5e0f": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Ranger's Guile",
+      "status": "pack"
+    },
+    "6a0419c3-4bfa-46c1-932b-fe10f2fa2ad7": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": true,
+      "name": "Alpine Watchdog",
+      "status": "pack"
+    },
+    "6b946317-8a66-41b7-b902-308784d69b90": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Idol of Endurance",
+      "status": "pack"
+    },
+    "6bb61f34-5d57-4eaa-a02c-f5d08c1ee920": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Beast",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "6c2c8bf3-9bf8-4a86-89d3-3bb36260dc51": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Azusa, Lost but Seeking",
+      "status": "pack"
+    },
+    "6c922206-6e68-4dcd-9559-88da1074f2c4": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Rugged Highlands",
+      "status": "pack"
+    },
+    "6db442e5-fbcc-4456-a4c5-bea1aee3fc8e": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Radiant Fountain",
+      "status": "pack"
+    },
+    "6de2d53c-06e3-4c56-a5cf-c9cb2db42527": {
+      "engine_supported": true,
+      "families": [
+        "etb"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Pursued Whale",
+      "status": "pack"
+    },
+    "6de38910-8d0d-4fac-b9db-c80ffd1850ea": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Bone Pit Brute",
+      "status": "pack"
+    },
+    "6de714e1-446d-4fb9-9e3d-bcd3ec6af9ca": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Jungle Hollow",
+      "status": "pack"
+    },
+    "6f0d94d9-64bb-4175-83bc-301e8f79f54f": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Temple of Triumph",
+      "status": "pack"
+    },
+    "713332c1-5bd8-400f-bfff-c1ca0697a043": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Opt",
+      "status": "pack"
+    },
+    "7240037f-ddea-425e-9824-866e2bb0dc84": {
+      "engine_supported": false,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Teferi, Timeless Voyager",
+      "status": "pack"
+    },
+    "72dc807b-35fb-4d69-ae4c-04eed0646170": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Battle-Rattle Shaman",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "7336a541-3ae9-4ab2-acb8-f574c0a5b3a9": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Vito, Thorn of the Dusk Rose",
+      "status": "pack"
+    },
+    "7616dacf-44e2-4b03-b120-875cc2e50ea5": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Warded Battlements",
+      "status": "pack"
+    },
+    "7721e800-fba6-4ae7-855e-631b2ecc8d6b": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Chandra, Flame's Catalyst",
+      "status": "pack"
+    },
+    "777b8ec4-a783-4297-96b7-4f200d0eb734": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Return to Nature",
+      "status": "pack"
+    },
+    "7851e4c8-020c-4a3d-88ed-0c97609cdfed": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Experimental Overload",
+      "status": "pack"
+    },
+    "791a992f-6f67-41a0-8100-a4a6401e6148": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Dog",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "79f94050-d850-41ca-b1db-5ae0cf743f0a": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Temple of Epiphany",
+      "status": "pack"
+    },
+    "7a1e4880-9abb-4018-84bd-91b5ec702c51": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Shacklegeist",
+      "status": "pack"
+    },
+    "7b0767b8-b504-456e-93bd-218502f73b3d": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Palladium Myr",
+      "status": "pack"
+    },
+    "7b428e94-8428-455f-b555-f648fcdd2127": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Hunter's Edge",
+      "status": "pack"
+    },
+    "7b600c0e-5ad2-48a2-a147-346ca78c8629": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Liliana's Standard Bearer",
+      "status": "pack"
+    },
+    "7cab62dc-a256-4da8-a3ea-b3903ec37077": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Griffin Aerie",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "7d00fb28-ea6c-49a9-b4af-ffb38860a9a7": {
+      "engine_supported": false,
+      "families": [
+        "spell"
+      ],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Cancel",
+      "profile": {
+        "ability_node_classes": [
+          "SpellAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "7d5dfa6b-f685-4925-b93a-ae5815a3c0a7": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Rain of Revelation",
+      "status": "pack"
+    },
+    "7e26f0b7-20e6-46d5-8130-d98c14d6aa29": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Temple of Mystery",
+      "status": "pack"
+    },
+    "800fb917-8898-4eba-9f94-aec6e9d75236": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Mazemind Tome",
+      "status": "pack"
+    },
+    "81674138-08d0-4126-9e6d-27f6e7dd2403": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Tavern Swindler",
+      "status": "pack"
+    },
+    "81f5c70f-fbb1-4b3a-a048-1f4602adfa0e": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Celestial Enforcer",
+      "status": "pack"
+    },
+    "8291bc2e-ef58-4bd4-b261-b587142bbb1c": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": false,
+      "in_suspect": true,
+      "name": "Ornery Dilophosaur",
+      "status": "suspect"
+    },
+    "846887e4-744f-44ce-9110-d09680b11e95": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Tolarian Kraken",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [
+          "CostManaGeneric"
+        ],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "846a4f9c-d955-403f-8a08-5c7c3d32e180": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Volcanic Geyser",
+      "status": "pack"
+    },
+    "84c0db59-255d-41af-a3d4-3f3548f1195f": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Thieves' Guild Enforcer",
+      "status": "pack"
+    },
+    "84ec7820-6608-459c-b172-80e8e3750cf4": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Sigiled Contender",
+      "status": "pack"
+    },
+    "863a5ddb-2d66-4a07-bafc-38290776d5c0": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Mistral Singer",
+      "status": "pack"
+    },
+    "865a2194-fca0-446e-aae3-ca475cd66e00": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Dismal Backwater",
+      "status": "pack"
+    },
+    "86e2bbdd-a788-4f76-9ebb-ef48d9bc9dcf": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Pitchburn Devils",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "87e9065d-814a-47fa-9e92-19fb6fd6d78c": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Historian of Zhalfir",
+      "status": "pack"
+    },
+    "88939cb3-5f61-4857-95cb-9446c6c1f1aa": {
+      "engine_supported": true,
+      "families": [
+        "etb"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Alpine Houndmaster",
+      "status": "pack"
+    },
+    "8a15841a-dcb6-454a-b865-43a067f42b4e": {
+      "engine_supported": true,
+      "families": [
+        "etb"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Trufflesnout",
+      "status": "pack"
+    },
+    "8a76a9b9-3127-45fe-b20f-a8f643276281": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Containment Priest",
+      "status": "pack"
+    },
+    "8a908da7-b41c-4712-b7dc-8c6027875d36": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Garruk, Unleashed Emblem",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "8aa1bbc9-b047-4d68-93f4-728e40dafc5e": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Kitesail Freebooter",
+      "status": "pack"
+    },
+    "8b6e2feb-9e8f-4912-ada0-1614502d9813": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Makeshift Battalion",
+      "status": "pack"
+    },
+    "8b755881-a72d-4e21-a369-d2924eb4585a": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Cultivate",
+      "status": "pack"
+    },
+    "8c601628-b1ed-467b-ba92-8572343147f8": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Aven Gagglemaster",
+      "status": "pack"
+    },
+    "8ccd20c7-b7fc-4ab1-a98b-3bbcc2079339": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": true,
+      "name": "Masked Blackguard",
+      "status": "pack"
+    },
+    "8d83dfb3-5662-4109-b465-bf5f257e58a5": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Tide Skimmer",
+      "status": "pack"
+    },
+    "8d907825-25f9-4b25-9fac-e0a207ed1797": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Skyway Sniper",
+      "status": "pack"
+    },
+    "8f28b65b-4b73-4080-9cdc-d236ad99f39c": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Track Down",
+      "status": "pack"
+    },
+    "912bc348-9ba3-4001-90a8-104d2bb17527": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Silent Dart",
+      "status": "pack"
+    },
+    "91c9dbd8-a8d8-4a4e-8408-3ad92e974d11": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Niambi, Esteemed Speaker",
+      "status": "pack"
+    },
+    "927fb139-0493-48be-8cc4-2c7d854d6a55": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Radha, Heart of Keld",
+      "status": "pack"
+    },
+    "92acbbeb-f82b-413b-b243-f7a012f5400c": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Necromentia",
+      "status": "pack"
+    },
+    "92c824da-2351-43bd-9fa0-d09709ad8205": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Basri's Acolyte",
+      "status": "pack"
+    },
+    "93c35f9e-3346-4269-b1af-df9f216bfd7a": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Concordia Pegasus",
+      "status": "pack"
+    },
+    "93cf50cf-0ecc-4d3e-abea-778c1ebacec4": {
+      "engine_supported": true,
+      "families": [
+        "etb"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Massacre Wurm",
+      "status": "pack"
+    },
+    "95a08f25-8d44-4704-a4d1-a098bf010932": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Burlfist Oak",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "95c3976c-33f3-490b-bfd3-7f1af2fe0416": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Chromatic Orrery",
+      "status": "pack"
+    },
+    "974f788a-039f-4310-a2fe-16b14a1e2d35": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Skyscanner",
+      "status": "pack"
+    },
+    "9825dab8-ca1a-44ea-b1d7-77c66f00351f": {
+      "engine_supported": true,
+      "families": [
+        "spell",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Basri's Aegis",
+      "status": "pack"
+    },
+    "98deac9e-28ea-4d11-8d75-833bf6d66e6e": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Keen Glidemaster",
+      "status": "pack"
+    },
+    "98e0b1a8-902d-4285-b13c-e63f2e1692f1": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Kinetic Augur",
+      "status": "pack"
+    },
+    "99ed6e18-7f14-4ea8-baee-ad6c081388ff": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Predatory Wurm",
+      "status": "pack"
+    },
+    "9bd4a0bd-d10c-434a-8254-89f38740aafd": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Forgotten Sentinel",
+      "profile": {
+        "ability_node_classes": [
+          "EtBState"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "9c2fd3a3-96f2-4e84-85a9-77698c2f83aa": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Volcanic Salvo",
+      "status": "pack"
+    },
+    "9e2e3272-d4e1-4329-b1d2-f393b3511b82": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Subira, Tulzidi Caravanner",
+      "status": "pack"
+    },
+    "a00aa3a1-d93d-4e06-9a75-6f8efe48c6ef": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Weird",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "a1d8fcb9-26b2-4d09-9db7-e644294749f8": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Sanctum of Stone Fangs",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "a217f386-11b5-48f0-b173-3b0700ba295f": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Portcullis Vine",
+      "status": "pack"
+    },
+    "a2c4537e-70a6-416d-9e8b-f549ad535147": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Chandra's Magmutt",
+      "status": "pack"
+    },
+    "a2fe5937-212c-4e71-8d6e-f408b38100aa": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Conclave Mentor",
+      "profile": {
+        "ability_node_classes": [
+          "ReplacementAbility",
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "a3fb7228-e76b-4e96-a40e-20b5fed75685": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": true,
+      "name": "Mountain",
+      "status": "pack"
+    },
+    "a7865331-4c53-46db-b2d7-7e5cb21b6b9d": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Frantic Inventory",
+      "status": "pack"
+    },
+    "a9d288b8-cdc1-4e55-a0c9-d6edfc95e65d": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Shock",
+      "status": "pack"
+    },
+    "ab67e4ec-9392-4130-970f-6ad65656e5c1": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Basri Ket Emblem",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "abc519b8-82de-4559-be03-ddb1ddaab993": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Wishcoin Crab",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "ad44cf74-b717-48fb-9fa2-77512024d76a": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Mind Rot",
+      "status": "pack"
+    },
+    "adff8c13-8909-47d0-acad-ba63597f2e96": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Leafkin Avenger",
+      "status": "pack"
+    },
+    "b0af0c54-2a59-4075-8543-d41ff20c4c87": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Wind-Scarred Crag",
+      "status": "pack"
+    },
+    "b1062763-1fcf-4605-9253-daa1687e8173": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Canopy Stalker",
+      "status": "pack"
+    },
+    "b1385b03-cb4b-4812-857f-7421f1df39af": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Revitalize",
+      "status": "pack"
+    },
+    "b1a2b096-a440-4ef9-ab2a-059c79999297": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Bird",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [
+          "FLYING"
+        ],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "b23c1f40-291d-43b3-971d-97ded8b367cb": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "See the Truth",
+      "status": "pack"
+    },
+    "b24d1540-ed8b-4df3-abfe-1b8492a58388": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Pestilent Haze",
+      "status": "pack"
+    },
+    "b2c6aa39-2d2a-459c-a555-fb48ba993373": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Island",
+      "status": "pack"
+    },
+    "b338d879-189d-4b74-9d63-42920fdb9855": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Kaervek, the Spiteful",
+      "status": "pack"
+    },
+    "b34bb2dc-c1af-4d77-b0b3-a0fb342a5fc6": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": true,
+      "name": "Forest",
+      "status": "pack"
+    },
+    "b3b8c7d0-46b9-4519-808a-154e503a58b6": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Liliana's Devotee",
+      "status": "pack"
+    },
+    "b3f6e68e-9490-4719-8d2e-d1ec22a96132": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Teferi's Wavecaster",
+      "status": "pack"
+    },
+    "b5f5400e-f341-40e3-b935-36d9cf983a20": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Adherent of Hope",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "b917f39a-3176-47ad-afda-08d09b873c02": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Fungal Rebirth",
+      "status": "pack"
+    },
+    "b9dec104-c636-4770-a7fc-7a3331face15": {
+      "engine_supported": true,
+      "families": [
+        "etb"
+      ],
+      "in_pack": false,
+      "in_suspect": true,
+      "name": "Wildwood Scourge",
+      "status": "suspect"
+    },
+    "bb27bfdf-fe8d-45bd-ad62-8118dce06eda": {
+      "engine_supported": false,
+      "families": [
+        "spell"
+      ],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Rewind",
+      "profile": {
+        "ability_node_classes": [
+          "SpellAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "bc71ebf6-2056-41f7-be35-b2e5c34afa99": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Plains",
+      "status": "pack"
+    },
+    "c1177f22-a1cf-4da3-a68d-ff954e878403": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Goblin Arsonist",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "c19f3f00-2c7b-4e85-a034-e65760d9cc13": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Tempered Veteran",
+      "status": "pack"
+    },
+    "c36d7c2b-204f-432e-b8e2-ffb3ffb49231": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Gnarled Sage",
+      "status": "pack"
+    },
+    "c387f46f-ad91-4964-8dc6-acefe537fe3c": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Unsubstantiate",
+      "status": "pack"
+    },
+    "c3ea33f4-17ac-41a4-8320-361b6f8aba0d": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Hellkite Punisher",
+      "status": "pack"
+    },
+    "c54b375d-a456-4886-96f2-8dc7a0024a5b": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Carrion Grub",
+      "status": "pack"
+    },
+    "c6b94e03-61c0-4077-b3da-a70795e97278": {
+      "engine_supported": true,
+      "families": [
+        "etb"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Teferi's Tutelage",
+      "status": "pack"
+    },
+    "c7c241f2-d3cc-4032-a9da-149de73c2539": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Vryn Wingmare",
+      "status": "pack"
+    },
+    "c8384392-1914-4423-9f49-92f5643d15dc": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Garruk's Gorehorn",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "c87440aa-4616-49ff-a211-ebdc37767f62": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Lorescale Coatl",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "c8c6924e-9af8-4212-be28-b0b4eaa4c7d8": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Warden of the Woods",
+      "status": "pack"
+    },
+    "cb65ee08-bfdb-4c18-8967-8bcf31fcabfa": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Witch's Cauldron",
+      "status": "pack"
+    },
+    "cbcb6d9a-6ae5-4bcd-8013-2b657553764a": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Mangara, the Diplomat",
+      "status": "pack"
+    },
+    "cc1203cb-6758-4454-b78b-341930ff4da1": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Liliana's Steward",
+      "status": "pack"
+    },
+    "cc261487-060f-47e6-ac5e-a204254058b3": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Riddleform",
+      "status": "pack"
+    },
+    "cdb68656-633d-436e-ad56-0fdb4814bd19": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Fetid Imp",
+      "status": "pack"
+    },
+    "ce873790-de4d-4ba3-8023-c44306ba3ff8": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Deathbloom Thallid",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "cf307f81-488c-4df5-8b08-ba46e3e7f3d9": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Eliminate",
+      "status": "pack"
+    },
+    "d03dbb60-e32b-4b74-ae8a-73d428d344cd": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Seasoned Hallowblade",
+      "status": "pack"
+    },
+    "d14f313c-fea6-49c4-8197-5b74ee584a6b": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Scorching Dragonfire",
+      "status": "pack"
+    },
+    "d185c829-ef12-403a-a071-7520a0293d4a": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Demonic Embrace",
+      "status": "pack"
+    },
+    "d37f858e-03c8-4594-9b92-cd03699a1591": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Scoured Barrens",
+      "status": "pack"
+    },
+    "d3de6b36-c631-4b52-b16b-0749a347d73d": {
+      "engine_supported": true,
+      "families": [
+        "etb"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Daybreak Charger",
+      "status": "pack"
+    },
+    "d43463d2-4395-4616-acc3-c4f80ebe3242": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Watcher of the Spheres",
+      "status": "pack"
+    },
+    "d4454ff8-1671-4bf5-a9f2-30c9d997f975": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Cat",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "d4911e00-eed1-4c8c-8779-8a3f9406ead7": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Garruk's Warsteed",
+      "status": "pack"
+    },
+    "d654dd73-763d-4dfb-a30f-a058fd7f27a6": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Liliana, Death Mage",
+      "status": "pack"
+    },
+    "d6a9746c-eba5-4735-aec1-e70edba2c686": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": false,
+      "in_suspect": true,
+      "name": "Secure the Scene",
+      "status": "suspect"
+    },
+    "d799a2c4-628a-45da-b9ca-0337c46e3e14": {
+      "engine_supported": false,
+      "families": [
+        "spell"
+      ],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Lofty Denial",
+      "profile": {
+        "ability_node_classes": [
+          "CostModifier",
+          "SpellAbility"
+        ],
+        "cost_nodes": [
+          "CostManaGeneric"
+        ],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "da4f4094-b0ce-4b5b-8ac3-8c0a5159220f": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Sabertooth Mauler",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "dc3073fc-dc23-426e-b867-fee5dd99fe25": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Shipwreck Dowser",
+      "status": "pack"
+    },
+    "dc55421f-dee8-4263-9df0-2365df5f14bb": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Temple of Malady",
+      "status": "pack"
+    },
+    "dce4d65f-cb91-48a2-a2a7-013e73dfb667": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Legion's Judgment",
+      "status": "pack"
+    },
+    "ddc8c973-c31e-463f-be45-f3fa7d632362": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Zombie",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "dfbd5ad1-0f68-4219-95c4-98f674f321be": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Jeskai Elder",
+      "status": "pack"
+    },
+    "e08c71aa-d35c-4c20-b4db-ae9d36ee3169": {
+      "engine_supported": false,
+      "families": [
+        "spell"
+      ],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Miscast",
+      "profile": {
+        "ability_node_classes": [
+          "SpellAbility"
+        ],
+        "cost_nodes": [
+          "CostManaGeneric"
+        ],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "e0df8e2a-96d2-4e4d-b065-aa2e162abbfe": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": true,
+      "name": "Liliana, Waker of the Dead",
+      "status": "pack"
+    },
+    "e2106eba-15f5-42b5-b797-6582ae94f3de": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Falconer Adept",
+      "status": "pack"
+    },
+    "e3483dd4-0118-4143-9b55-51078a6f274a": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Epitaph Golem",
+      "status": "pack"
+    },
+    "e3886fe8-9b76-4613-8891-4ec74657c087": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Glorious Anthem",
+      "status": "pack"
+    },
+    "e3ca6b70-01d2-44e9-937a-a2d50bbf9d10": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Dub",
+      "status": "pack"
+    },
+    "e4a68bb3-5a79-4764-8223-acddd16fb660": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Tome Anima",
+      "status": "pack"
+    },
+    "e4bacf1b-0a45-4c73-857d-dffadb7e6fa5": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Speaker of the Heavens",
+      "status": "pack"
+    },
+    "e51680d1-3e6c-4d1b-9705-36f73d7328cf": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Rookie Mistake",
+      "status": "pack"
+    },
+    "e5c4ed40-5069-4606-81f2-59dcfa1345bd": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Read the Tides",
+      "status": "pack"
+    },
+    "e5cc1492-c9cc-48f0-8c11-02ead883675c": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Gloom Sower",
+      "status": "pack"
+    },
+    "e62f8d69-a559-4f13-a5c9-5fb750b4af2c": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Grim Tutor",
+      "status": "pack"
+    },
+    "e63e34da-db53-4444-89f5-d4144b6deffc": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Construct",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "e6ae536a-95c0-495d-98b8-200b3564dd79": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": true,
+      "name": "Destructive Tampering",
+      "status": "pack"
+    },
+    "e6e6fce8-0f6a-4b84-865e-d4e4a4182f9f": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Temple of Silence",
+      "status": "pack"
+    },
+    "e802fb53-7cf5-46bc-8a0b-f99cf5c20f74": {
+      "engine_supported": false,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Teferi, Master of Time",
+      "profile": {
+        "ability_node_classes": [
+          "ActivatedAbility",
+          "StaticAbility"
+        ],
+        "cost_nodes": [
+          "CostLoyalty"
+        ],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "e8210145-a6ac-4f84-a74c-a5799c5e9434": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Obsessive Stitcher",
+      "status": "pack"
+    },
+    "e842a4e5-ea0b-43ae-9ed8-93e30f4e7b8a": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Short Sword",
+      "status": "pack"
+    },
+    "e84f1727-ce01-44be-aebf-8a0c4e032c9a": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Teferi's Protege",
+      "status": "pack"
+    },
+    "ea43fd04-e9fa-42fb-ba20-22dcc21c6c43": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Stormwing Entity",
+      "status": "pack"
+    },
+    "eac25f12-6459-438c-a09e-93e23d2cf80d": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Soldier",
+      "profile": {
+        "ability_node_classes": [],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "eb0e6f63-2861-4392-ac0e-64380fbbd8ae": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Library Larcenist",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "ec96cde2-f1e6-495c-94e2-3e8ae79e556c": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Thornwood Falls",
+      "status": "pack"
+    },
+    "ed14c7fa-632c-47ee-9db0-8c492771121a": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Burn Bright",
+      "status": "pack"
+    },
+    "ee08435b-a2c1-491a-87cb-e60789b09c25": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Dire Fleet Warmonger",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "ee811356-ef6a-4972-b827-32c2d329b3c3": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Drowsing Tyrannodon",
+      "status": "pack"
+    },
+    "eecb3047-a563-441a-9175-200421981ac3": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Ugin, the Spirit Dragon",
+      "status": "pack"
+    },
+    "f0cbf361-d7dc-4556-a654-71c08785095a": {
+      "engine_supported": true,
+      "families": [
+        "etb"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Crypt Lurker",
+      "status": "pack"
+    },
+    "f24f68d0-6e81-4294-a084-8ec8f36fef18": {
+      "engine_supported": true,
+      "families": [
+        "static"
+      ],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Pirate",
+      "profile": {
+        "ability_node_classes": [
+          "StaticAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": []
+      },
+      "status": "uncovered"
+    },
+    "f2b284cd-fa12-4ba1-b297-80105bb48fde": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Hobblefiend",
+      "status": "pack"
+    },
+    "f379fa0b-e9fc-4307-a574-a0c95e5e7f72": {
+      "engine_supported": true,
+      "families": [
+        "etb"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Chrome Replicator",
+      "status": "pack"
+    },
+    "f3c40943-1d7c-4ea2-b34f-8df8b6775701": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Animal Sanctuary",
+      "status": "pack"
+    },
+    "f42b6510-7322-4733-85ea-7ae6bd6ca8fc": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": false,
+      "in_suspect": false,
+      "name": "Quirion Dryad",
+      "profile": {
+        "ability_node_classes": [
+          "TriggeredAbility"
+        ],
+        "cost_nodes": [],
+        "keywords": [],
+        "mana_cost_nodes": [
+          "CostManaColor",
+          "CostManaGeneric"
+        ]
+      },
+      "status": "uncovered"
+    },
+    "f5d1bd3c-0e65-4999-a810-881b2389b40e": {
+      "engine_supported": true,
+      "families": [
+        "static",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Conspicuous Snoop",
+      "status": "pack"
+    },
+    "f621dcaa-c500-4a17-a65a-60d9b5516a3b": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Goblin Wizardry",
+      "status": "pack"
+    },
+    "f75ed312-3a23-4624-80c5-03980aa22d0b": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Llanowar Visionary",
+      "status": "pack"
+    },
+    "f8640899-2458-40f2-98a3-35c402ee9a7a": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Jolrael, Mwonvuli Recluse",
+      "status": "pack"
+    },
+    "f8c2d9c5-6fe6-4698-9972-83cdd625d94b": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Defiant Strike",
+      "status": "pack"
+    },
+    "f8e17f4f-080d-4bba-bd05-ca27e94ccecc": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Terror of the Peaks",
+      "status": "pack"
+    },
+    "f9672b63-415a-448b-a3da-140df63a0f0c": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": true,
+      "name": "Pridemalkin",
+      "status": "pack"
+    },
+    "f98f7cb7-90ca-41e7-9f1d-8054931ecf0e": {
+      "engine_supported": true,
+      "families": [
+        "etb"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Barrin, Tolarian Archmage",
+      "status": "pack"
+    },
+    "fa10cacb-ab14-447a-b411-9d74bc3772fb": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Onakke Ogre",
+      "status": "pack"
+    },
+    "fb4a044b-f25d-47ff-b272-754e577ce50a": {
+      "engine_supported": true,
+      "families": [
+        "etb",
+        "static"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Turret Ogre",
+      "status": "pack"
+    },
+    "fb694e7e-f66e-4958-b6ed-aa74bc9ac43e": {
+      "engine_supported": true,
+      "families": [
+        "spell"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Sure Strike",
+      "status": "pack"
+    },
+    "fc762e40-84c1-4762-82f7-a0fc4f6fd522": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Garruk, Savage Herald",
+      "status": "pack"
+    },
+    "fe168bf1-f626-460c-890b-1ce758af01fc": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Ghostly Pilferer",
+      "status": "pack"
+    },
+    "fea95888-e16a-4209-9cd4-623f7f4d2f67": {
+      "engine_supported": true,
+      "families": [],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Walking Corpse",
+      "status": "pack"
+    },
+    "feb4fcec-6f3a-4643-9ffb-69d3f5953322": {
+      "engine_supported": true,
+      "families": [
+        "activated"
+      ],
+      "in_pack": true,
+      "in_suspect": false,
+      "name": "Prismite",
+      "status": "pack"
+    }
+  },
+  "meta": {
+    "built_by": "tools/audit/wave_builder.py --coverage",
+    "family_predicates": {
+      "activated": "activated_abilities: ActivatedAbility nodes",
+      "etb": "etb_triggers: TriggeredAbility w/ ZoneChangeEvent to BATTLEFIELD",
+      "spell": "spell_abilities: SpellAbility nodes",
+      "static": "static_nodes: top-level StaticAbility + KeywordAbility"
+    },
+    "n_cards": 305,
+    "n_pack": 238,
+    "n_pack_and_suspect": 9,
+    "n_suspect": 8,
+    "n_uncovered": 59,
+    "n_uncovered_engine_supported": 52,
+    "question": "does every M21 card have a pack, a suspect, or a documented family-less status?",
+    "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
+    "status_precedence": "pack > suspect (both memberships kept per card)",
+    "uncovered_grouped_by_top_level_nodes": {
+      "(no ability nodes)": [
+        "Angel",
+        "Beast",
+        "Bird",
+        "Cat",
+        "Cat",
+        "Construct",
+        "Demon",
+        "Dog",
+        "Garruk's Gorehorn",
+        "Goblin Wizard",
+        "Griffin",
+        "Knight",
+        "Saproling",
+        "Soldier",
+        "Staunch Shieldmate",
+        "Weird",
+        "Wishcoin Crab",
+        "Zombie"
+      ],
+      "ActivatedAbility": [
+        "Treasure"
+      ],
+      "ActivatedAbility + StaticAbility": [
+        "Teferi, Master of Time"
+      ],
+      "CostModifier + SpellAbility": [
+        "Lofty Denial"
+      ],
+      "EtBState": [
+        "Forgotten Sentinel"
+      ],
+      "ReplacementAbility": [
+        "Fiery Emancipation",
+        "Teferi's Ageless Insight"
+      ],
+      "ReplacementAbility + TriggeredAbility": [
+        "Conclave Mentor"
+      ],
+      "SpellAbility": [
+        "Cancel",
+        "Miscast",
+        "Rewind",
+        "Sublime Epiphany"
+      ],
+      "StaticAbility": [
+        "Pirate"
+      ],
+      "TriggeredAbility": [
+        "Adherent of Hope",
+        "Basri Ket Emblem",
+        "Battle-Rattle Shaman",
+        "Burlfist Oak",
+        "Chandra's Pyreling",
+        "Deathbloom Thallid",
+        "Dire Fleet Warmonger",
+        "Double Vision",
+        "Garruk, Unleashed Emblem",
+        "Goblin Arsonist",
+        "Griffin Aerie",
+        "Havoc Jester",
+        "Keral Keep Disciples",
+        "Library Larcenist",
+        "Liliana's Scrounger",
+        "Liliana, Waker of the Dead Emblem",
+        "Lorescale Coatl",
+        "Mystic Skyfish",
+        "Pitchburn Devils",
+        "Quirion Dryad",
+        "Sabertooth Mauler",
+        "Sanctum of All",
+        "Sanctum of Calm Waters",
+        "Sanctum of Fruitful Harvest",
+        "Sanctum of Stone Fangs",
+        "Spellgorger Weird",
+        "Spirit of Malevolence",
+        "Tolarian Kraken",
+        "Twinblade Assassins"
+      ]
+    }
+  }
+}
