@@ -1,0 +1,31 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "f",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Fierce Empath"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "f",
+      "decisions": [
+        "skip"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "f": "battlefield"
+    },
+    "hand": {
+      "0": 0
+    }
+  }
+}

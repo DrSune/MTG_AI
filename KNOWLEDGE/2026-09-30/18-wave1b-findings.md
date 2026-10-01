@@ -166,3 +166,32 @@ documented loud strings (Zone(ANY), TARGET-designation family,
 ZONE_COUNT_GE, QX…). Deviation recorded in doc 19: golden movers were 9
 lines, not just turret — the if-do gate has no IR to consume without the
 compiler merge; audit set-equal before regeneration.
+
+---
+## STATUS flip — round 18b (2026-10-01, doc 2026-10-01/01): 21 packs repatriated green
+
+The TARGET-designation family is EXECUTED (doc 2026-10-01/01: CR 603.1
+designate-then-apply channel, TARGET_PLAYER event routing table, Zone(ANY)
+runtime enumeration + CR 109.5 seats, CMC_GE / ZONE_COUNT_GE /
+NAME_PARTITION_COUNT_GE / THAT_MANY_COUNT wired, DISCARD joins the result
+producers). Moved to `tools/scenarios/` (now **84/84**): the 11
+TARGET/TARGET_PLAYER ETB/draw trigger cards (barrin, basris_acolyte,
+basris_lieutenant, bone_pit_brute, daybreak_charger, gale_swooper,
+kitesail_freebooter, meteorite, pridemalkin, skeleton_archer,
+terror_of_the_peaks), the dies/tutelage event-anaphora pair
+(massacre_wurm_dies, teferis_tutelage), the pred-parity five
+(chrome_replicator, thieves_guild_enforcer, fierce_empath, kinetic_augur,
+niambi_esteemed_speaker) and the three forced-designation cards
+(rambunctious_mutt, roaming_ghostlight, shipwreck_dowser). Pack-side
+authoring bugs fixed with the moves (counter-key spelling, kitesail's
+reveal-zone placement, niambi's Bear cmc, terror's life promise,
+kinetic_augur's fire-branch expect — printed "may" never reaches the
+frozen IR, compiler-side, reported not patched).
+
+**Suspects remaining: 2, both OUT OF SCOPE for the trigger lane, staying
+loud by design:** `capture_sphere` (a CAST-resolution permanent:
+"whenever equipped creature deals damage" fires but the equip-attach
+permanence death is a cast/attach-lane state gap, not designation) and
+`wildwood_scourge` (QX into ETB counters: "convoke" X is a CAST-lane
+declared-X value; ETB-state QX has no declared X — the 12c cost-context
+flag is the honest answer until the cast lane feeds X to etb_state).

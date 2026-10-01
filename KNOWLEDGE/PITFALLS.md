@@ -1,5 +1,41 @@
 # PITFALLS — standing traps (each dated; newest first)
 
+## 2026-10-01
+- **[18b designation asks consume the scenario `decisions` queue in ARRIVAL
+  order — and designation asks fire BEFORE the may-offer] (CR 601.2c/603.1
+  ordering).** A misspelled or out-of-order word silently falls back to
+  `vocab[0]` (deterministic but WRONG), so the pack fails as a mysterious
+  counter/power mismatch, never as a loud ask error. When repatriating a
+  TARGET trigger: write decisions in ask order (target pick(s), then
+  'fire'/'skip', then CHOOSE indices), or give NO decisions when the
+  designation is forced (one candidate / duel TARGET_PLAYER → auto-fill,
+  no ask — `test_forced_single_candidate_never_asks` pins it).
+- **[PC-8 is a compiler-side metric — executor work can NEVER move it.]**
+  coverage.py counts POOL ENTRIES whose compiled IR carries a TARGET-mode
+  selector (98/305 since the corpus froze); a designation channel changes
+  zero IR bytes. Report the executor truth (crash→run card count, runner
+  green count) and state PC-8 unchanged — do not promise PC-8 rises.
+- **[QAtMost TARGET asks: the FIRST pick carries NO "NONE" token** (frozen
+  C17 designation range 1..n — the query lane's pinned contract); later
+  picks append it. Asserting the vocab SHAPE (not just the effect) pins
+  the contract; answering NONE at pick 1 would silently take vocab[0].
+- **[Trigger-firing contexts pre-bind `target` by an EVENT-KIND routing
+  table: DAMAGE→dealer (16a), CREATURE_DIES→dead creature (18b).]** A new
+  TARGET_PLAYER trigger must check the antecedent first — when the firing
+  already carries one, `_designate` must NOT ask (asking would let a
+  policy "choose" the player the rules already fixed; Massacre Wurm's
+  "that player" is the dead creature's controller, not a decision).
+- **[`test_executor_legality.py::test_unsupported_condition_pred_raises`
+  uses a live unimplemented pred as its probe]** — implementing a pred
+  (18b: CMC_GE) BREAKS it; amend it to the next unimplemented pred
+  (LIFE_LEAD_OVER_START_GE / TURN_OF) following the file's AMENDED
+  convention. Same trap pattern as 13c/14e.
+- **[Pack `decisions` words may be PACK KEYS now (18b harness): resolved to
+  the card's handle before the vocab check** — but a key that also reads
+  like a raw word (never mind) is resolved ONLY if present in
+  `runner.handles`; raw handle strings ("player:1") pass through.
+
+
 ## 2026-09-29
 - **[subagent reports — report-body vocabulary can be HALLUCINATED while the
   CODE is correct.]** The r9-A completion report described "Verb.DO (48

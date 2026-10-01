@@ -5,10 +5,10 @@
   },
   "cards": [
     {
-      "key": "lt",
+      "key": "dc",
       "zone": "hand",
       "controller": 0,
-      "real": "Basri's Lieutenant"
+      "real": "Daybreak Charger"
     },
     {
       "key": "d",
@@ -23,16 +23,18 @@
   "steps": [
     {
       "op": "enter",
-      "key": "lt"
+      "key": "dc",
+      "decisions": [
+        "d"
+      ]
     }
   ],
   "expect": {
-    "counters": {
-      "d": {
-        "+1/+1": 1
-      }
+    "power": {
+      "d": 4
+    },
+    "zone": {
+      "dc": "battlefield"
     }
-  },
-  "status": "suspect",
-  "finding": "PRINTED: 'put a +1/+1 counter on target creature you control.' ENGINE: raises ValueError 'TARGET selector has no designation' (same family)."
+  }
 }

@@ -1,0 +1,38 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "t",
+      "real": "Terror of the Peaks",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "c",
+      "real": "Walking Corpse",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "t"
+    },
+    {
+      "op": "enter",
+      "key": "c",
+      "decisions": [
+        "player:1"
+      ]
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 18
+    }
+  }
+}

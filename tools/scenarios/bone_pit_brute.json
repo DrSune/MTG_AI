@@ -5,10 +5,10 @@
   },
   "cards": [
     {
-      "key": "gs",
+      "key": "bb",
       "zone": "hand",
       "controller": 0,
-      "real": "Gale Swooper"
+      "real": "Bone Pit Brute"
     },
     {
       "key": "d",
@@ -23,16 +23,15 @@
   "steps": [
     {
       "op": "enter",
-      "key": "gs"
+      "key": "bb",
+      "decisions": [
+        "d"
+      ]
     }
   ],
   "expect": {
-    "battlefield_keywords": {
-      "Dummy": [
-        "FLYING"
-      ]
+    "power": {
+      "d": 6
     }
-  },
-  "status": "suspect",
-  "finding": "PRINTED: 'target creature gains flying until end of turn.' ENGINE: raises ValueError 'TARGET selector has no designation' (same family)."
+  }
 }

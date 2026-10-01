@@ -1,0 +1,39 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "p",
+      "real": "Pridemalkin",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "sheep",
+      "name": "Sheep",
+      "power": "2",
+      "toughness": "2",
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "p",
+      "decisions": [
+        "sheep"
+      ]
+    }
+  ],
+  "expect": {
+    "counters": {
+      "sheep": {
+        "PLUS_1_PLUS_1": 1
+      }
+    }
+  }
+}

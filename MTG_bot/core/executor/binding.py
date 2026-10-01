@@ -47,6 +47,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
+    Atom,
     BecomesBlockedEvent,
     CardDrawnEvent,
     CardRecord,
@@ -67,7 +68,11 @@ from MTG_bot.core.ability_tree import (
     Filter,
     LifeGainedEvent,
     LoyaltyActivatedEvent,
+    QAtMost,
+    QConst,
     SacrificeEvent,
+    Selector,
+    SelectorMode,
     StepEvent,
     TapStateEvent,
     TargetingEvent,
@@ -76,8 +81,10 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    walk,
 )
 from MTG_bot.core.compiler.compiler import PoolCompile
+from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.durations_min import duration_tag
 from MTG_bot.core.executor.events import (
     KIND_CARD_DRAWN,
@@ -95,7 +102,11 @@ from MTG_bot.core.executor.events import (
     GameEvent,
 )
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
-from MTG_bot.core.executor.selectors import ZONE_KIND_TO_STATE, controller_matches
+from MTG_bot.core.executor.selectors import (
+    ZONE_KIND_TO_STATE,
+    controller_matches,
+    players_for_ref,
+)
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, GameWorld
 
@@ -799,8 +810,9 @@ class TriggerBinder:
         return chosen
 
     def _fire(self, payload: _Firing) -> None:
-        """One trigger resolution: the condition gate, then the effect.
-        May-offers ask the executor's decision stream (14b, B-4)."""
+        """One trigger resolution: the condition gate, the 18b TARGET-
+        designation channel, then the effect. May-offers ask the executor's
+        decision stream (14b, B-4)."""
         event = payload.event
         ctx = self._ctx(payload.source, payload.controller, event)
         node = payload.node
@@ -808,9 +820,179 @@ class TriggerBinder:
             subject = event.subject if event.subject is not None else payload.source
             if not eval_filter(node.condition, subject, ctx):
                 return
+        # 18b (CR 603.1): designate targets BEFORE applying — the frozen IR
+        # puts the ability's TARGET coordinates on the TRIGGERED-ABILITY node
+        # itself, and CR 603.1 chooses targets as the ability goes on the
+        # stack, which for a firing means before its first verb runs. The
+        # 16a DAMAGE echo already bound its anaphoric antecedent in _ctx
+        # (the dealer); the 18b DIES twin (Massacre Wurm's "that player")
+        # binds here; anything else the effect reads as target/TARGET_PLAYER
+        # gets a real designation ask through the 14b channel.
+        if ctx.bindings.get("target") is None:
+            if event.kind == KIND_CREATURE_DIES and event.subject is not None:
+                # 16a's twin: in a DIES firing the antecedent the frozen IR
+                # compiles to TARGET_PLAYER IS the dead creature — players
+                # _for_ref folds a card designation to its controller, so
+                # "that player loses 2 life" means the creature's controller
+                # (the event's OWN filter scoped it to an opponent's creature
+                # when the card text says so). The event object is the
+                # honest antecedent, exactly the DAMAGE dealer ruling.
+                ctx.bindings["target"] = event.subject
+            else:
+                self._designate(node, ctx)
         # The 12a shared effect runner — the SAME dispatch execute() uses,
         # journalled at its Atom boundaries by the Executor.
         self.executor._run_effect(node.effect, ctx)
+
+    def _designate(self, node: _AnyTrigger, ctx: ExecCtx) -> None:
+        """The 18b designation channel (CR 603.1, first PC-8 lift).
+
+        The TARGET-bearing trigger no longer crashes at its first verb: the
+        engine enumerates the candidates through its OWN 12c query surface
+        (``query.legal_targets`` — §8.3 query/runtime identity, no mirrored
+        population) and asks the 14b vocabulary-addressed channel for the
+        choice (ask id ``target:<source>:<digest>``, the ONE_OF ask's shape
+        — the Handle-sorted candidate list IS the vocabulary, C15-complete,
+        ``take_decision`` re-validates membership). The answer lands in
+        ``ctx.bindings["target"]`` BEFORE the effect runs, the exact mirror
+        of ``stack.cast``'s designate-then-apply.
+
+        Routing table (per-card, event-kind driven — see _fire):
+        * DAMAGE firing → the dealer (16a, in _ctx);
+        * CREATURE_DIES firing → the dead creature (18b, in _fire);
+        * a single distinct TARGET-mode Selector → enumerated ask (below);
+        * a TARGET_PLAYER ControllerRef with no Selector (the "target
+          opponent" grammar gap, the 14b synthetic-slot twin) → the
+          ABILITY CONTROLLER's opponent seats; in the duel that is one
+          seat → auto-filled (§1.4 forced auto-fill, no ask);
+        * a multi-slot trigger (two distinct TARGETs, or a TARGET and a
+          TARGET_PLAYER) → the loud raise stands (the cast lane's
+          per-slot designation is /06 arc 3; this channel never guess-
+          binds a second slot).
+
+        The site tag carries the CONTROLLER seat (``target:<seat>:<source>:
+        <digest>``, four segments like the combat lane): the answer belongs
+        to the seat the rules gave the decision to, and a mirror pair of
+        the same card asks two DIFFERENT keys (attribution, not collision).
+
+        Zero-candidate honesty: nothing enumerable means no decision exists
+        (C15) and the binding is the EMPTY set — the effect's TARGET atoms
+        resolve to nothing, which IS the CR 603.4 answer ("a triggered
+        ability with no legal targets resolves doing nothing"); never a
+        crash, never a guess. Cardinality follows the frozen slot contract:
+        ``QConst(1)`` designates exactly one (forced when one candidate);
+        ``QAtMost(n)`` asks pick-by-pick, the first pick mandatory (C17:
+        TARGET designation range 1..n, the pinned contract the query lane
+        already enforces), later picks carry the ``"NONE"`` stop token the
+        block-ask lane established; ``QConst(n>1)`` asks n picks without
+        the stop token and clamps at exhaustion (C17's 0..remaining
+        sibling); ``QAtLeast``/QX-in-TARGET stays the flag it always was.
+        """
+        selectors: list[Selector] = []
+        seen: set[str] = set()
+        reads_target_player = False
+        for inner in walk(node.effect):
+            if not isinstance(inner, Atom):
+                continue
+            for _role, value in inner.args.pairs:
+                if (
+                    value is ControllerRef.TARGET_PLAYER
+                    or isinstance(value, Zone)
+                    and value.controller is ControllerRef.TARGET_PLAYER
+                ):
+                    reads_target_player = True
+                if (
+                    isinstance(value, Selector)
+                    and value.mode is SelectorMode.TARGET
+                    and value.referent is None
+                ):
+                    key = repr(value)
+                    if key not in seen:
+                        seen.add(key)
+                        selectors.append(value)
+        if not selectors and not reads_target_player:
+            return  # no designation to make
+        if len(selectors) > 1 or (selectors and reads_target_player):
+            raise NotImplementedError(
+                f"executor: trigger {node.effect!r:.80} carries "
+                f"{len(selectors) + int(reads_target_player)} designation "
+                "slots; per-slot designation is /06 arc 3 (never guess-bind "
+                "the second)"
+            )
+        if reads_target_player:
+            # The synthetic player slot (spell_target_slots' 14b twin): the
+            # candidate population is the ENGINE's player rule — the ability
+            # controller's opponents — and the cross-seat ruling is CR
+            # 603.1's: the ABILITY's controller designates, so an opponent's
+            # trigger asks the OPPONENT's seat (ctx.controller IS that seat,
+            # the firing context was built from payload.controller).
+            opponents = players_for_ref(ControllerRef.OPPONENT, ctx)
+            if not opponents:
+                ctx.bindings["target"] = []  # CR 603.4 nothing (20-life
+                # duel always has an opponent; the empty read is the honest
+                # multiplayer-shape answer, not a crash)
+            elif len(opponents) == 1:
+                ctx.bindings["target"] = opponents[0]
+            else:
+                vocab = tuple(str(h) for h in sorted(opponents))
+                answer = ctx.take_decision(
+                    vocab,
+                    f"target:{ctx.controller}:{ctx.source}:{site_digest(vocab)}",
+                )
+                ctx.bindings["target"] = next(
+                    h for h in sorted(opponents) if str(h) == answer
+                )
+            return
+        selector = selectors[0]
+        from MTG_bot.core.executor.query import (  # cycle-free at call time
+            _widen_any_target,  # the query lane's ONE widening opinion (13b)
+            legal_targets,
+        )
+
+        slot = legal_targets(
+            self.world,
+            self.executor,
+            selector,
+            source=ctx.source,
+            controller=ctx.controller,
+        )
+        slot = _widen_any_target(self.executor, selector, slot) or slot
+        candidates = sorted(slot.candidates)
+        if not candidates:
+            ctx.bindings["target"] = []  # CR 603.4: resolves doing nothing
+            return
+        count = selector.count
+        if isinstance(count, QConst):
+            wanted = count.value
+            optional_stop = False
+        elif isinstance(count, QAtMost):
+            wanted = min(count.n, len(candidates))
+            optional_stop = True  # C17 first pick mandatory, later ones stoppable
+        else:
+            raise NotImplementedError(
+                f"executor: trigger TARGET count {count!r} designates "
+                "through the 12c prompt (QX/QAtLeast in a trigger TARGET "
+                "is not a frozen-IR shape)"
+            )
+        picks: list[Handle] = []
+        pool = list(candidates)
+        for pick_no in range(wanted):
+            if len(pool) == 1 and not (optional_stop and pick_no > 0):
+                picks.append(pool[0])  # §1.4 auto-fill: one legal filler
+                break
+            vocab = tuple(str(h) for h in pool)
+            if optional_stop and pick_no > 0:
+                vocab = vocab + ("NONE",)
+            answer = ctx.take_decision(
+                vocab,
+                f"target:{ctx.controller}:{ctx.source}:{site_digest(vocab)}",
+            )
+            if answer == "NONE":
+                break
+            pick = next(h for h in pool if str(h) == answer)
+            picks.append(pick)
+            pool.remove(pick)
+        ctx.bindings["target"] = picks if len(picks) != 1 else picks[0]
 
     def _ctx(
         self,

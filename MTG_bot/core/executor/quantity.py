@@ -53,6 +53,7 @@ from MTG_bot.core.ability_tree import (
     QThisTurn,
     Quantity,
     QUnbounded,
+    Selector,
 )
 from MTG_bot.core.executor.decisions import DecisionStream
 from MTG_bot.core.executor.durations_min import DurationLedger
@@ -334,6 +335,25 @@ def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
         # permanent's property.)
         reg = ctx.bindings.get("tapped_this_way")
         return len(reg) if isinstance(reg, (list, tuple)) else 0
+    if field is QPropField.THAT_MANY_COUNT:
+        # Grammar round 7 (R7) "then do that many": the count of objects
+        # the PRECEDING producer atom acted on in THIS resolution — the
+        # 14e ``result`` register is the engine's own record of that set
+        # (TAP/UNTAP/PUT_COUNTER/MOVE_ZONE/SEARCH/CHOOSE write it; DISCARD
+        # joined in 18b for Kinetic Augur's "discard …, then draw that
+        # many"). Handle argument unused, the THIS_WAY_COUNT sibling. An
+        # UNSET register RAISES (16b made THIS_WAY's absence the benign 0
+        # because a declined may legitimately leaves it unwritten — but
+        # "that many" has no zero-reading: the compiler only places it in
+        # a mandatory continuation, so a missing antecedent is a missing
+        # question, the established flag-never-guess rule).
+        handles = ctx.binding_handles("result")
+        if handles is None:
+            raise NotImplementedError(
+                "executor: THAT_MANY_COUNT has no producer register — no "
+                "preceding atom wrote the result register in this resolution"
+            )
+        return len(handles)
     raise NotImplementedError(
         f"executor: QProp field {field.name} not implemented (12c query surface)"
     )
@@ -547,6 +567,18 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         if handle.namespace != "card":
             return False
         return (world.cards[handle].identity.cmc or 0) <= threshold
+    if pred is FAtomPred.CMC_GE:
+        # 18b query-lane parity: the GE twin of CMC_LE (14e), the SAME
+        # identity read (a missing cmc — synthetic tokens — is mana value
+        # 0, the established convention). Fierce Empath's "reveals a
+        # creature with converted mana cost 6 or greater" search filter;
+        # one evaluator answers the query lane (enumerate_candidates) and
+        # the runtime lane alike — the parity test pins they cannot drift.
+        assert atom.count is not None
+        threshold = resolve(atom.count, ctx)
+        if handle.namespace != "card":
+            return False
+        return (world.cards[handle].identity.cmc or 0) >= threshold
     if pred is FAtomPred.KEYWORD_HAS:
         # 14f (B-21): "with <keyword>" introspection — the games demanded
         # it from BOTH surfaces the frozen grammar places it in: a selector
@@ -661,6 +693,84 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 if counted >= threshold:
                     return True
         return counted >= threshold
+    if pred is FAtomPred.ZONE_COUNT_GE:
+        # Grammar round 6 (R6-2, Thieves' Guild Enforcer): "<who> has >=
+        # count cards in their <zone> matching inner_filter". Handle-free
+        # set gate like CONTROLLER_COUNT_GE (the trigger-condition judge);
+        # TRUE when ANY denoted player's zone meets the threshold ("an
+        # opponent has eight or more cards in their graveyard"). WHO drives
+        # the population — in the corpus the IR's zone.controller rides
+        # with WHO, so reading WHO is the whole answer (ControllerRef or
+        # the CONTROLLER_IS-precedent referent Selector). A non-card zone
+        # (PLAYER position) is flagged, never counted empty.
+        from MTG_bot.core.executor.selectors import (
+            ZONE_KIND_TO_STATE,
+            controller_of,
+            players_for_ref,
+            resolve_selector,
+        )
+
+        assert atom.count is not None and atom.zone is not None
+        threshold = resolve(atom.count, ctx)
+        zone_ir = atom.zone
+        if atom.who is None:
+            raise NotImplementedError(
+                "executor: ZONE_COUNT_GE with no WHO has no consumer (R6-2 "
+                "requires the player slot; flag, never guess YOU)"
+            )
+        state_kind = ZONE_KIND_TO_STATE.get(zone_ir.kind)
+        if state_kind is None:
+            raise NotImplementedError(
+                f"executor: ZONE_COUNT_GE zone {zone_ir.kind.name} is not a "
+                "card zone (flag, never a zero-count guess)"
+            )
+        who = atom.who
+        if isinstance(who, ControllerRef):
+            players = players_for_ref(who, ctx)
+        elif isinstance(who, Selector):
+            players = [
+                c if c.namespace == "player" else controller_of(ctx, c)
+                for c in resolve_selector(who, ctx)
+            ]
+        else:
+            raise NotImplementedError(
+                f"executor: ZONE_COUNT_GE who {who!r} is neither a "
+                "ControllerRef nor a Selector (R6-2 closed vocabulary)"
+            )
+        for player in players:
+            counted = sum(
+                1
+                for h in ctx.world.players[player].zone(state_kind).entries
+                if atom.inner_filter is None or eval_filter(atom.inner_filter, h, ctx)
+            )
+            if counted >= threshold:
+                return True
+        return False
+    if pred is FAtomPred.NAME_PARTITION_COUNT_GE:
+        # Grammar round 10 (R10-2, C26, Chrome Replicator): among the
+        # permanents ctx.controller CONTROLS, those passing inner_filter
+        # group by EXACT printed name and the largest group must reach
+        # count — templates_b2a's pinned reading ("grouped by EXACT name,
+        # the largest group; no pairwise name-equality vocabulary").
+        # Handle-free like CONTROLLER_COUNT_GE; the battlefield population
+        # read through the GAIN_CONTROL overlay (controller_of, 16e).
+        from MTG_bot.core.executor.selectors import controller_of
+
+        assert atom.count is not None and atom.inner_filter is not None
+        threshold = resolve(atom.count, ctx)
+        groups: dict[str, int] = {}
+        for card in sorted(world.cards):
+            if (
+                world.zone_of(card).kind != ZONE_BATTLEFIELD
+                or controller_of(ctx, card) != ctx.controller
+                or not eval_filter(atom.inner_filter, card, ctx)
+            ):
+                continue
+            name = world.cards[card].identity.name
+            groups[name] = groups.get(name, 0) + 1
+            if groups[name] >= threshold:
+                return True
+        return False
     if pred is FAtomPred.MOVED_TO_ZONE_THIS_TURN:
         # 14d (B-7): the journal-history family. Necromentia's "-1/-0… for
         # each card exiled from their hand this way" counts per CANDIDATE

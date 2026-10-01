@@ -43,7 +43,5 @@
       "tk": "graveyard",
       "sc": "battlefield"
     }
-  },
-  "status": "suspect",
-  "finding": "PRINTED: 'Whenever a creature an opponent controls dies, that player loses 2 life.' ENGINE: the dies firing raises ValueError 'TARGET_PLAYER needs a bound target (12c target prompt)' - the dying creature's controller is never designated; the -2/-2 ETB itself works (see massacre_wurm pass pack)."
+  }
 }

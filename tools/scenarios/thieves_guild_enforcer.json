@@ -1,0 +1,21 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "e",
+      "real": "Thieves' Guild Enforcer",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "e"
+    }
+  ],
+  "expect": {}
+}

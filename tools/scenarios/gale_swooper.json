@@ -5,10 +5,10 @@
   },
   "cards": [
     {
-      "key": "bb",
+      "key": "gs",
       "zone": "hand",
       "controller": 0,
-      "real": "Bone Pit Brute"
+      "real": "Gale Swooper"
     },
     {
       "key": "d",
@@ -23,14 +23,17 @@
   "steps": [
     {
       "op": "enter",
-      "key": "bb"
+      "key": "gs",
+      "decisions": [
+        "d"
+      ]
     }
   ],
   "expect": {
-    "power": {
-      "d": 6
+    "battlefield_keywords": {
+      "Dummy": [
+        "FLYING"
+      ]
     }
-  },
-  "status": "suspect",
-  "finding": "PRINTED: 'target creature gets +4/+0 until end of turn.' ENGINE: raises ValueError 'TARGET selector has no designation' (same trigger-target designation gap family as Daybreak Charger)."
+  }
 }

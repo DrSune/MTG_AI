@@ -1,0 +1,21 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "t",
+      "real": "Teferi's Tutelage",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "t"
+    }
+  ],
+  "expect": {}
+}

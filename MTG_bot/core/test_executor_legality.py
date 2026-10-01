@@ -373,12 +373,15 @@ class TestConditionGate(LegalityCase):
         # planeswalker" gate evaluates it over the printed name).
         # AMENDED 2026-09-30 (round 14e): CMC_LE left this probe too — the
         # identity-mana-value read is answered now (Eliminate/Idol/Ugin).
-        # CMC_GE (its GE twin) is still unimplemented and keeps the probe.
+        # AMENDED 2026-10-01 (round 18b): CMC_GE left this probe — its
+        # identity read is answered now (Fierce Empath's CMC-6-or-greater
+        # search filter, the CMC_LE twin). LIFE_LEAD_OVER_START_GE (the
+        # R9-2 net-life gate) is still unimplemented and keeps the probe.
         self.attach(
             [
                 ability(
                     cost(),
-                    condition=FAtom(FAtomPred.CMC_GE, count=QConst(4)),
+                    condition=FAtom(FAtomPred.LIFE_LEAD_OVER_START_GE, count=QConst(4)),
                 )
             ]
         )

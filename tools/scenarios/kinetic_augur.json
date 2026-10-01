@@ -32,7 +32,8 @@
   "steps": [
     {
       "op": "enter",
-      "key": "k"
+      "key": "k",
+      "decisions": []
     }
   ],
   "expect": {
@@ -40,10 +41,8 @@
       "0": 2
     },
     "zone": {
-      "z1": "hand",
-      "z2": "hand"
+      "z1": "graveyard",
+      "z2": "graveyard"
     }
-  },
-  "status": "suspect",
-  "finding": "PRINTED: 'discard up to two cards, then draw that many cards' + 'power is equal to the number of instant and sorcery cards in your graveyard.' ENGINE: both discards EXECUTE, then raises NotImplementedError 'QProp field THAT_MANY_COUNT not implemented' - the rebound draw never happens (hand ends 0); the static power is also uncompiled (effective power None)."
+  }
 }

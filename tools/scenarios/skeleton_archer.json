@@ -1,0 +1,28 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "a",
+      "real": "Skeleton Archer",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "a",
+      "decisions": [
+        "player:1"
+      ]
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 19
+    }
+  }
+}

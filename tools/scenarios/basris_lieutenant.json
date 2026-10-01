@@ -1,0 +1,39 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "lt",
+      "zone": "hand",
+      "controller": 0,
+      "real": "Basri's Lieutenant"
+    },
+    {
+      "key": "d",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Dummy",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "lt",
+      "decisions": [
+        "d"
+      ]
+    }
+  ],
+  "expect": {
+    "counters": {
+      "d": {
+        "PLUS_1_PLUS_1": 1
+      }
+    }
+  }
+}

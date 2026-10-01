@@ -23,14 +23,15 @@
   "steps": [
     {
       "op": "enter",
-      "key": "m"
+      "key": "m",
+      "decisions": [
+        "player:1"
+      ]
     }
   ],
   "expect": {
     "life": {
       "1": 18
     }
-  },
-  "status": "suspect",
-  "finding": "PRINTED: 'it deals 2 damage to any target.' ENGINE: raises NotImplementedError \"Zone(ANY) enumeration is 12c's query surface\" - the any-target zone enumeration (creature/player/planeswalker union) is unimplemented."
+  }
 }

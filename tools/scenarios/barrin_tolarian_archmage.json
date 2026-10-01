@@ -30,7 +30,5 @@
     "zone": {
       "d": "hand"
     }
-  },
-  "status": "suspect",
-  "finding": "PRINTED: 'return up to one other target creature or planeswalker to its owner's hand.' ENGINE: raises ValueError 'TARGET selector has no designation' (same family)."
+  }
 }

@@ -1,0 +1,37 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "m",
+      "real": "Rambunctious Mutt",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "art",
+      "name": "Battery",
+      "power": "0",
+      "toughness": "1",
+      "type": "Artifact",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "m",
+      "decisions": [
+        "zz"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "art": "graveyard"
+    }
+  }
+}

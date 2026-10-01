@@ -216,10 +216,19 @@ def _v_discard(ctx: ExecCtx, atom: Atom) -> None:
                 else pool[: resolve(sel.count, ctx)]
             )
     hand = ctx.world.players[player].zone(ZONE_HAND).entries
+    moved: list = []
     for card in sorted(cards):
         if card not in hand:
             raise ValueError(f"executor: DISCARD card {card} is not in {player}'s hand")
         _move_to(ctx, card, player, ZONE_GRAVEYARD)
+        moved.append(card)
+    # 18b (R7 THAT_MANY_COUNT pairing): the DISCARDED SET is the register —
+    # "you may discard up to two cards, then draw that many" (Kinetic
+    # Augur). 14e B-9's ruling: the action's object is the honest antecedent,
+    # and DISCARD was the one object-action verb not writing it. Written
+    # even when empty (discarding nothing from an empty hand IS the answer
+    # the continuation counts — 0, honestly, not a missing question).
+    ctx.bindings["result"] = moved
 
 
 def _v_mill(ctx: ExecCtx, atom: Atom) -> None:

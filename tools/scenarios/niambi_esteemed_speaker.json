@@ -1,0 +1,41 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "n",
+      "real": "Niambi, Esteemed Speaker",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "b",
+      "name": "Bear",
+      "power": "3",
+      "toughness": "3",
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0,
+      "cmc": 3
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "n",
+      "decisions": [
+        "fire"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "b": "hand"
+    },
+    "life": {
+      "0": 23
+    }
+  }
+}

@@ -23,6 +23,7 @@ from __future__ import annotations
 from MTG_bot.core.ability_tree import (
     Atom,
     ControllerRef,
+    FAnd,
     Quantity,
     QUnbounded,
     Selector,
@@ -35,6 +36,7 @@ from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
+    PLAYER_ZONES,
     ZONE_BATTLEFIELD,
     ZONE_COMMAND,
     ZONE_EXILE,
@@ -100,8 +102,7 @@ def controller_matches(
         # resolve the bound object(s) and compare their player side.
         candidates = resolve_selector(who, ctx)
         players = [
-            c if c.namespace == "player" else controller_of(ctx, c)
-            for c in candidates
+            c if c.namespace == "player" else controller_of(ctx, c) for c in candidates
         ]
         return actual in players
     if who is ControllerRef.YOU:
@@ -139,9 +140,27 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
     if kind is ZoneKind.PLAYER:
         return players_for_ref(zone_ir.controller, ctx)
     if kind is ZoneKind.ANY:
-        raise NotImplementedError(
-            "executor: Zone(ANY) enumeration is 12c's query surface"
-        )
+        # 18b: Zone(ANY) at RUNTIME — the exact seat-order × PLAYER_ZONES
+        # loop legality._zone_handles has answered for the QUERY side since
+        # 12c, lifted so §8.3's query/runtime enumeration identity holds
+        # for the "any target"/"any zone" selectors that compile this way
+        # (Meteorite, Skeleton Archer, Terror of the Peaks). The controller
+        # ref is deliberately NOT a filter here (the frozen 12c reading:
+        # ANY spans every player's zones — an opinion, one implementation,
+        # two lanes). HIDDEN zones (libraries, the opponent's hand) ride
+        # along: the executor is an OMNISCIENT v1 policy — the hidden-
+        # information model gap is documented (doc 2026-10-01/20) exactly
+        # like the combat-uninterrupted gap, never silently papered.
+        if zone_ir.controller is ControllerRef.OWNER:
+            raise NotImplementedError(
+                "executor: OWNER in selector enumeration needs per-candidate "
+                "owner scoping (12b)"
+            )
+        handles_all: list[Handle] = []
+        for player in ctx.world.player_order:
+            for any_kind in PLAYER_ZONES:
+                handles_all.extend(ctx.world.players[player].zone(any_kind).entries)
+        return handles_all
     ref = zone_ir.controller
     if kind is ZoneKind.STACK:
         # 14d (B-19): B-2's RUNTIME twin. ZONE_KIND_TO_STATE has no STACK
@@ -190,6 +209,18 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
         else:
             handles.extend(entries)
     return handles
+
+
+def _is_any_universal(sel: Selector) -> bool:
+    """True for the "any target" IR shape: an ANY-kind zone (primary or
+    extra) with the empty FAnd filter — query._widen_any_target's twin
+    predicate, shared here because the runtime TARGET legality set must
+    widen over exactly the same population the query offers (CR 109.5)."""
+    return bool(
+        sel.filter is not None
+        and isinstance(sel.filter, FAnd)
+        and not sel.filter.children
+    ) and any(z.kind is ZoneKind.ANY for z in (sel.zone, *sel.zones))
 
 
 def resolve_selector(sel: Selector, ctx: ExecCtx) -> list[Handle]:
@@ -290,10 +321,18 @@ def resolve_selector(sel: Selector, ctx: ExecCtx) -> list[Handle]:
             # (a card) under "target", and "target opponent" means THAT
             # card's player — never the card itself.
             bound = [
-                h if h.namespace == "player" else controller_of(ctx, h)
-                for h in bound
+                h if h.namespace == "player" else controller_of(ctx, h) for h in bound
             ]
         legal = set(candidates)
+        if _is_any_universal(sel):
+            # 18b (CR 109.5): "any target" includes PLAYERS. The query
+            # side's _widen_any_target has joined the seats to a
+            # universal-filtered ANY population since 13b; the runtime
+            # legality set mirrors that widening EXACTLY — one population,
+            # two lanes, no second opinion (§8.3). A NON-universal filter
+            # cannot denote a player ("target creature" excludes them,
+            # the same rules answer query.py documents).
+            legal.update(ctx.world.player_order)
         return sorted(h for h in bound if h in legal)
     if sel.mode is SelectorMode.ONE_OF:
         # 14c (B-13): the partition choice, asked as C15 prescribes —

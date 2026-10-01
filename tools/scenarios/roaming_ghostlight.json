@@ -1,0 +1,37 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "g",
+      "real": "Roaming Ghostlight",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "c",
+      "name": "Cow",
+      "power": "2",
+      "toughness": "2",
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "g",
+      "decisions": [
+        "zz"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "c": "hand"
+    }
+  }
+}

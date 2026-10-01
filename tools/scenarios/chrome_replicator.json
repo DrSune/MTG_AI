@@ -42,7 +42,5 @@
     "tokens": {
       "Construct": 1
     }
-  },
-  "status": "suspect",
-  "finding": "PRINTED: 'if you control two or more nonland, nontoken permanents with the same name as one another, create a 4/4 Construct token.' ENGINE: raises NotImplementedError 'filter pred NAME_PARTITION_COUNT_GE not implemented (12c query surface)' - the same-name partition count predicate is missing."
+  }
 }

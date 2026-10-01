@@ -13,7 +13,7 @@
     {
       "key": "z",
       "zone": "hand",
-      "controller": 0,
+      "controller": 1,
       "name": "Zap",
       "power": 1,
       "toughness": 1,
@@ -23,7 +23,10 @@
   "steps": [
     {
       "op": "enter",
-      "key": "k"
+      "key": "k",
+      "decisions": [
+        "0"
+      ]
     }
   ],
   "expect": {
@@ -31,7 +34,5 @@
       "z": "exile",
       "k": "battlefield"
     }
-  },
-  "status": "suspect",
-  "finding": "PRINTED: 'target opponent reveals their hand; you choose a noncreature, nonland card; exile it.' ENGINE: raises ValueError 'TARGET_PLAYER needs a bound target (12c target prompt)' - trigger TARGET_PLAYER selectors have no designation channel. (Pack carries a synthetic Instant in MY hand as the would-be exile candidate; the raise fires before any choice.)"
+  }
 }

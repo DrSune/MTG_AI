@@ -220,6 +220,13 @@ class ScenarioRunner:
             def prov(vocab, what):
                 self.asks_seen.append((what, tuple(vocab)))
                 got = queue.pop(0) if queue else vocab[0]
+                if got in self.handles:
+                    # 18b: a DESIGNATION answer may be given as a PACK KEY
+                    # ("sheep", not "card:1") — resolved to the handle
+                    # string the vocabulary actually carries. Pack-card
+                    # order is deterministic, so the pin stays replay-exact
+                    # and the pack says WHO, not an accident of numbering.
+                    got = str(self.handles[got])
                 return got if got in vocab else vocab[0]
 
             self.ex.decisions.provider = prov
