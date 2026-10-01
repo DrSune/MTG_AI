@@ -49,10 +49,12 @@ from typing import TYPE_CHECKING
 from MTG_bot.core.ability_tree import (
     BecomesBlockedEvent,
     CombatDamageEvent,
+    ControllerRef,
     DamageDealtEvent,
     DeclareAttackersEvent,
     DeclareBlockersEvent,
     Duration,
+    DurationEot,
     DurationUntilLeaves,
     DurationUntilNextStep,
     DurationUntilNextTurn,
@@ -64,6 +66,7 @@ from MTG_bot.core.ability_tree import (
     Filter,
     FNot,
     FOr,
+    LifeGainedEvent,
     QUnbounded,
     ReplacementAbility,
     Step,
@@ -173,6 +176,38 @@ class ReplacementRegistry:
                 rec.status = "expired"
                 expired += 1
         return expired
+
+    def register_ephemeral_replacements(
+        self, source: Handle, controller: Handle, record: CardRecord
+    ) -> int:
+        """r19a (Life Goes On): a RESOLVING INSTANT/SORCERY's ReplacementAbility
+        nodes. A spell never attaches (it hits the graveyard), so the
+        battlefield lifecycle that normally registers replacements never
+        sees it — yet the grammar carries the corpus' turn-shaped replacement
+        idiom ("If a creature died this turn, you'd gain 8 life instead") as
+        a card-level ReplacementAbility on the spell itself. Registering at
+        resolution start (stack.py) with an Eot tag is the honest home: the
+        effect is live from resolution to end of turn, expires in the EOT
+        sweep, and never survives the window its own text names."""
+        count = 0
+        for node in record.abilities:
+            if isinstance(node, ReplacementAbility):
+                self._seq += 1
+                self.replacements.append(
+                    ReplacementRecord(
+                        seq=self._seq,
+                        tag="Eot",
+                        duration=DurationEot(),
+                        condition=node.condition,
+                        status="live",
+                        source=source,
+                        controller=controller,
+                        event=node.event,
+                        action=node.action,
+                    )
+                )
+                count += 1
+        return count
 
     def register_prevention(
         self,
@@ -288,6 +323,44 @@ class ReplacementRegistry:
             if not self._player_filter_matches(event.filter, victim, rec_ctx):
                 continue
             if not self._condition_holds(rec, victim, rec_ctx):
+                continue
+            return rec
+        return None
+
+    def replacement_for_life_gained(
+        self, ctx: ExecCtx, player: Handle
+    ) -> ReplacementRecord | None:
+        """r19a (Life Goes On): the apply-pipeline interceptor for a
+        LIFE-GAINED event (C24 replacement-before-apply, mirrored from the
+        damage hook). The subject of a LifeGainedEvent is the gaining
+        player, so the record's condition (DIED_THIS_TURN) is judged over
+        the PLAYER handle — quantity's existential reading answers it.
+        CONTROLLER RULE as in the damage lane: every predicate is judged
+        in the record's own coordinates.
+
+        The CR 614.4a loop guard lives in ``ctx.replaced_seq``: a record
+        already applied in this event chain is skipped, so the replacement
+        action's own life gain cannot be re-replaced by the same effect.
+        A permanent-sourced record must still be on the battlefield; the
+        spell-sourced (Eot) half of the grammar's idiom is deliberately
+        exempt — the spell has resolved and moved on."""
+        for rec in sorted(self.replacements, key=lambda r: r.seq):
+            event = rec.event
+            if not isinstance(event, LifeGainedEvent):
+                continue
+            if rec.status != "live" or rec.seq in ctx.replaced_seq:
+                continue
+            if event.controller is not ControllerRef.YOU:
+                raise NotImplementedError(
+                    "executor: LifeGainedEvent with a non-YOU controller "
+                    "reference is not in the corpus (flag, not guess)"
+                )
+            if player != rec.controller:
+                continue  # "you" means the REPLACEMENT's controller
+            if rec.tag == "Permanent" and not self._source_alive(rec.source):
+                continue
+            rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
+            if not self._condition_holds(rec, player, rec_ctx):
                 continue
             return rec
         return None
@@ -419,9 +492,12 @@ class ReplacementRegistry:
         return 1
 
     def sweep_at_eot(self) -> int:
+        # r19a: replacements join the EOT sweep (the spell-sourced
+        # "this turn" replacements live resolution -> Eot; the damage lane
+        # only ever had PERVENT_EFFECT prevents to sweep).
         return sum(
             self._expire(rec)
-            for rec in self.preventions
+            for rec in (*self.preventions, *self.replacements)
             if rec.tag == "Eot" and rec.status != "expired"
         )
 

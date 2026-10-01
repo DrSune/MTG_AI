@@ -370,7 +370,11 @@ class EventJournal:
                 )
             if from_state == ZONE_BATTLEFIELD and kind == ZONE_GRAVEYARD:
                 identity = world.cards[card].identity
-                was_power, was_toughness = self.ledger.effective_pt(identity, card)
+                # r19a: the was-snapshot folds counters too (a 2/2 that died
+                # with a +1/+1 counter on it DIED a 3/3 — Gadrak's C18 row).
+                was_power, was_toughness = self.ledger.effective_pt(
+                    identity, card, world.cards[card].counters
+                )
                 self._emit(
                     KIND_CREATURE_DIES,
                     card,

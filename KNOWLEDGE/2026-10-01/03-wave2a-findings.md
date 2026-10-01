@@ -98,3 +98,42 @@ Verification: `tools/run_scenarios.py` → **108/108**;
 `tools/run_scenarios.py --dir tools/audit/suspects` → **0/14** (all fail,
 each on its documented line); `pytest MTG_bot/core -q` → **2112 + 4 subtests,
 0 failed**. Engine, runner, and pre-existing 84 packs byte-identical.
+
+---
+
+## Wave-2 fix-A outcome (appended 2026-10-01, batch r19a)
+
+Full engineering record: `05-wave2-fix-a.md`. Disposition of the six suspects:
+
+- **Promoted GREEN** to `tools/scenarios/` (5): basris_solidarity (loyalty
+  seed), fungal_rebirth (IS_PERMANENT), life_goes_on_if_died (died-branch),
+  cultivate (SEARCH partition), chandra_heart_of_fire (loyalty identity).
+  Promotion convention: `status` and `finding` keys stripped on the way in.
+- **STOP / remains suspect** (1): tampering_no_block — golden e6ae536a
+  compiles the can't-block clause to `PtDelta INCREASE QConst(0)` (zero
+  payload); cannot-block is unrepresentable in the FROZEN IR. Post-fix
+  failure signature sharpened, not resolved: `blocked[atk]: expected [],
+  got ['wall']`, `life[1]: expected 18, got 20`. Routed to the compiler
+  campaign.
+- **Suspect ledger cleanup**: the 5 promoted packs were REMOVED from
+  `tools/audit/suspects/` (18b convention: promotion empties the quarantine
+  row). Ledger now **22 files**. Side observation: 3 untouched suspects pass
+  unaided (`sanguine_indulgence`, `secure_the_scene`, `volcanic_salvo` —
+  fixed as a by-product of engine work, never promoted). Left as-is;
+  candidates for a future promotion sweep.
+
+Pack exceptions made during promotion (flagged, not silent):
+1. **cultivate**: `decisions` rewritten `["Forest","Plains","Forest"]` →
+   `["card:1"]` — pool-lane answers inside a cast effect are RAW-validated
+   against vocab (handle strings); pack keys only resolve via the provider
+   lane which never ran. `"Forest"` was never a legal pool answer.
+2. **trufflesnout.json** (pre-existing GREEN pack): PT asserts corrected
+   2/2 → **3/3**. Scryfall m21/212 prints 2/2; the +1/+1 counter ETB makes
+   3/3. The pack was green only because the pre-19a `effective_pt` fold
+   silently ignored counters — a green-on-a-silent-bug. Engine kept fixed;
+   assertion corrected to printed truth.
+
+Post-fix verification: scenarios **131/131** (126 tracked at authoring-close
+HEAD 0ff4d7f + the 5 promotions above); `pytest MTG_bot/core -q` → **2134 passed + 4 subtests**
+(2112 + 22 new in `MTG_bot/core/test_executor_r19a.py`); traces repinned →
+**0/10 seeds diverging**; PC-1/2/3/4 byte-identical to T5 rows.

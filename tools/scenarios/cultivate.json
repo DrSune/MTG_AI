@@ -1,6 +1,4 @@
 {
-  "status": "suspect",
-  "finding": "PRINTED: \"Search your library for up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle.\" ENGINE(observed): both searched lands enter the battlefield untapped \u2014 \"zone[pl]: expected hand, got battlefield\" and \"tapped[fo]: expected True, got False\". The compiled SEARCH destination is hardcoded BATTLEFIELD for both results; no ONE_OF ask is generated and no tapped stamp is applied. Silent divergence: lands arrive, in the wrong zone/state.",
   "world": {
     "life": 20,
     "seed": 7
@@ -56,9 +54,7 @@
       "real": "Cultivate",
       "key": "cv",
       "decisions": [
-        "Forest",
-        "Plains",
-        "Forest"
+        "card:1"
       ]
     }
   ],

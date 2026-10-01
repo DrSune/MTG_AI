@@ -1,6 +1,4 @@
 {
-  "status": "suspect",
-  "finding": "PRINTED: \"Put a +1/+1 counter on each creature you control.\" ENGINE(observed): counters are written (counters lanes pass: both allies {PLUS_1_PLUS_1: 1}) but power/toughness never move: \"power[a]: expected 2, got 1\", \"power[b]: expected 3, got 2\", \"toughness[a]: expected 2, got 1\", \"toughness[b]: expected 3, got 2\". _v_put_counter (verbs.py:412) only writes the counters dict; durations.effective_pt (durations.py:267) folds ONLY MODIFY_PT/SET_PT ledger entries \u2014 there is no +1/+1-counter-to-PT fold engine-wide (trufflesnout.json PT asserts pass only because that token compiles at base 2/2). Canonical counter->PT gap; affects every counter card.",
   "world": {
     "life": 20,
     "seed": 7

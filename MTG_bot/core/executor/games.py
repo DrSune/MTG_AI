@@ -278,6 +278,12 @@ def identity_of(record: CardRecord) -> CardIdentity:
         power=_printed_pt(record.power),
         toughness=_printed_pt(record.toughness),
         keywords=tuple(str(item.keyword.name) for item in record.keywords),
+        # r19a (Chandra, Heart of Fire): the compiled record carries the
+        # printed starting loyalty, but this conversion silently DROPPED it,
+        # so binder._register's loyalty seed (which reads identity.loyalty)
+        # never ran and every cast planeswalker entered with an empty
+        # counters map. One field, one path — the seed itself is unchanged.
+        loyalty=str(record.loyalty) if record.loyalty is not None else None,
     )
 
 

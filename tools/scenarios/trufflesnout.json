@@ -1,53 +1,53 @@
 {
- "world": {
-  "life": 20,
-  "seed": 7
- },
- "cards": [
-  {
-   "key": "t1",
-   "real": "Trufflesnout",
-   "zone": "hand",
-   "controller": 0
+  "world": {
+    "life": 20,
+    "seed": 7
   },
-  {
-   "key": "t2",
-   "real": "Trufflesnout",
-   "zone": "hand",
-   "controller": 0
-  }
- ],
- "steps": [
-  {
-   "op": "enter",
-   "key": "t1",
-   "decisions": [
-    "0"
-   ]
+  "cards": [
+    {
+      "key": "t1",
+      "real": "Trufflesnout",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "t2",
+      "real": "Trufflesnout",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "t1",
+      "decisions": [
+        "0"
+      ]
+    },
+    {
+      "op": "enter",
+      "key": "t2",
+      "decisions": [
+        "1"
+      ]
+    }
+  ],
+  "expect": {
+    "counters": {
+      "t1": {
+        "PLUS_1_PLUS_1": 1
+      }
+    },
+    "power": {
+      "t1": 3
+    },
+    "toughness": {
+      "t1": 3
+    },
+    "life": {
+      "0": 24
+    }
   },
-  {
-   "op": "enter",
-   "key": "t2",
-   "decisions": [
-    "1"
-   ]
-  }
- ],
- "expect": {
-  "counters": {
-   "t1": {
-    "PLUS_1_PLUS_1": 1
-   }
-  },
-  "power": {
-   "t1": 2
-  },
-  "toughness": {
-   "t1": 2
-  },
-  "life": {
-   "0": 24
-  }
- },
- "notes": "Printed (Scryfall-confirmed M21): 'choose one \u2014 Put a +1/+1 counter on ~. / You gain 4 life.' Mode ask vocab ('0','1'): t1 picks 0 (ONE counter -> 2/2), t2 picks 1 (life 20 -> 24). Both branches."
+  "notes": "Printed (Scryfall m21/212): 2/2 with 'When this creature enters, choose one \u2014 Put a +1/+1 counter on this creature. / You gain 4 life.' Mode ask vocab ('0','1'): t1 picks 0 (ONE counter -> 3/3 over the printed 2/2), t2 picks 1 (life 20 -> 24). r19a: P/T expectations corrected 2->3 \u2014 the old 2/2 encoded the pre-19a silent bug (effective_pt ignored P/T counters) and had contradicted the printed card."
 }

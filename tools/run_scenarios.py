@@ -534,7 +534,9 @@ class ScenarioRunner:
             for key, want in expect.get(lane, {}).items():
                 handle = self.handles[key]
                 p, t = self.ex.ledger.effective_pt(
-                    self.world.cards[handle].identity, handle
+                    self.world.cards[handle].identity,
+                    handle,
+                    self.world.cards[handle].counters,
                 )
                 got_pt = (p, t)[idx]
                 if got_pt != want:
@@ -558,7 +560,9 @@ class ScenarioRunner:
                 handle = found[0]
                 if lane == "battlefield_pt":
                     p, t = self.ex.ledger.effective_pt(
-                        self.world.cards[handle].identity, handle
+                        self.world.cards[handle].identity,
+                        handle,
+                        self.world.cards[handle].counters,
                     )
                     if [p, t] != list(want):
                         fails.append(

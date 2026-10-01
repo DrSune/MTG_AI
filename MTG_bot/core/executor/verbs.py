@@ -245,6 +245,30 @@ def _v_mill(ctx: ExecCtx, atom: Atom) -> None:
 def _v_gain_life(ctx: ExecCtx, atom: Atom) -> None:
     n = amount(ctx, atom, "amount")
     for player in sorted(role_players(ctx, atom)):
+        # r19a (Life Goes On): C24 replacement-before-apply, mirrored from
+        # the damage hook in _v_deal_damage. A live LifeGainedEvent
+        # replacement consumes the event — no life mutation happens (the
+        # journal sees no gain at all), the replacement's ACTION runs as a
+        # nested journalled effect once this atom's boundary closes, and
+        # the CR 614.4a chain guard (__init__.py's drain) keeps the same
+        # record from re-replacing its own 8-life action.
+        repl = (
+            ctx.replacements.replacement_for_life_gained(ctx, player)
+            if ctx.replacements is not None
+            else None
+        )
+        if repl is not None:
+            ctx.pending_replacements.append(repl)
+            ctx.events.append(
+                (
+                    len(ctx.events),
+                    "LIFE_REPLACED",
+                    str(player),
+                    str(repl.source),
+                    n,
+                )
+            )
+            continue
         ctx.world.players[player].life += n
         ctx.events.append((len(ctx.events), "GAIN_LIFE", str(player), n))
 
@@ -864,6 +888,19 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
         )
     tapped_on_enter = bool(atom.args.get("tapped_on_enter"))
     cards = _search_designation(atom, ctx)
+    if ctx.search_partition:
+        # r19a (Cultivate): the Seq's sibling MOVE_ZONE atoms are a
+        # ONE_OF/REST PARTITION ("put one onto the battlefield tapped and
+        # the other into your hand") — the destination in this atom is a
+        # documented compile-time PLACEHOLDER (the split carries the real
+        # destinations). Delivering here would empty the zone the partition
+        # re-searches and silently skip the ask. DESIGNATE ONLY: the cards
+        # stay put, the REVEAL atom sees them in the library, and the
+        # 'result' register below is the found-set record.
+        ctx.bindings["result"] = list(cards)
+        for card in cards:
+            ctx.events.append((len(ctx.events), "SEARCH", str(card), "designated"))
+        return
     for card in cards:
         owner = ctx.world.controller_of(card)
         target_player = zone_owner(ctx, dest_ir, owner=owner)

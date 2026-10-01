@@ -414,6 +414,17 @@ def cast(
             "executor: cast: an aura resolution needs its enchant target "
             "(_validate_spell_targets should have refused the cast first)"
         )
+    if not aura and node.kind not in _PERMANENT_KINDS:
+        # r19a (Life Goes On): an instant/sorcery's own ReplacementAbility
+        # nodes go live AT RESOLUTION START — the spell never attaches, so
+        # this is the only lifecycle hook the turn-shaped corpus idiom
+        # ("…you'd gain 8 life instead") has; registering before the
+        # effect runs lets the spell replace its own event. Eot-expired.
+        registered = executor.binder.records.get(world.cards[handle].identity.oracle_id)
+        if registered is not None:
+            executor.replacements.register_ephemeral_replacements(
+                handle, seat, registered
+            )
     if not aura and node.effect is not None:  # effect-less castable creatures (T3 r3)
         executor._run_effect(node.effect, ctx)
     before_put = executor.journal.snapshot()
@@ -536,6 +547,10 @@ def cast_card(
     aura = is_aura_spell(world, handle)
     if aura and not chosen:
         raise ValueError("executor: CAST: an aura cast needs its enchant target")
+    if not aura and node.kind not in _PERMANENT_KINDS:
+        # r19a: same instant-resolution replacement registration as the
+        # normal resolve lane (see resolve_spell's hook).
+        executor.replacements.register_ephemeral_replacements(handle, caster, record)
     if not aura and node.effect is not None:
         executor._run_effect(node.effect, ctx)
     before_put = executor.journal.snapshot()

@@ -659,10 +659,36 @@ class Executor:
                     bindings=None,
                     decisions=(),
                 )
+                # r19a: the CR 614.4a chain guard travels with the action —
+                # the record that consumed THIS event cannot consume the
+                # event its own action produces.
+                inner.replaced_seq = ctx.replaced_seq | {repl.seq}
                 self._run_effect(repl.action, inner)
         elif isinstance(effect, Seq):
-            for step in effect.steps:
-                self._run_effect(step, ctx)
+            # r19a (Cultivate): when a partition MOVE_ZONE (the ONE_OF pick
+            # / REST complement) appears among the steps, a SEARCH atom in
+            # this sequence DESIGNATES instead of delivering — the
+            # partition re-searches the found set and would find nothing
+            # the SEARCH had already moved. Shallow scan: the corpus'
+            # partition idiom is a flat sibling chain (the compiler emits
+            # SEARCH/REVEAL/MOVE/MOVE/SHUFFLE as direct steps).
+            def _is_partition(step: object) -> bool:
+                if not isinstance(step, Atom) or step.verb is not Verb.MOVE_ZONE:
+                    return False
+                sel = step.args.get("cards")
+                return isinstance(sel, Selector) and sel.mode in (
+                    SelectorMode.ONE_OF,
+                    SelectorMode.REST,
+                )
+
+            partition = any(_is_partition(step) for step in effect.steps)
+            saved = ctx.search_partition
+            ctx.search_partition = saved or partition
+            try:
+                for step in effect.steps:
+                    self._run_effect(step, ctx)
+            finally:
+                ctx.search_partition = saved
         elif isinstance(effect, OptionalEffect):
             # 14b (B-5, query/runtime identity): the ASK vocabulary is the
             # query surface's own narrowed optional_offer — the policy gets
@@ -854,7 +880,9 @@ class Executor:
         for player in self.world.player_order:
             for card in self.world.players[player].zone(ZONE_BATTLEFIELD).entries:
                 identity = self.world.cards[card].identity
-                _power, toughness = self.ledger.effective_pt(identity, card)
+                _power, toughness = self.ledger.effective_pt(
+                    identity, card, self.world.cards[card].counters
+                )
                 if toughness is None:
                     continue
                 if (
@@ -1547,7 +1575,9 @@ class Executor:
         def lethal_of(b: Handle) -> int:
             if deathtouch:
                 return 1  # CR 702.2b: any nonzero damage from the source
-            _p, toughness = self.ledger.effective_pt(world.cards[b].identity, b)
+            _p, toughness = self.ledger.effective_pt(
+                world.cards[b].identity, b, world.cards[b].counters
+            )
             return max(1, (toughness or 1) - self.damage.get(b, 0))
 
         if not self.layers.keyword_of(dealer, Keyword.TRAMPLE):
@@ -1619,7 +1649,9 @@ class Executor:
         strikes: list[tuple[Handle, tuple[tuple[int, Handle], ...]]] = []
         for dealer in dealers:
             identity = self.world.cards[dealer].identity
-            power, _toughness = self.ledger.effective_pt(identity, dealer)
+            power, _toughness = self.ledger.effective_pt(
+                identity, dealer, self.world.cards[dealer].counters
+            )
             if not power:
                 # 0 (or an unmaterialized *): CR 120.7 - not dealt at all.
                 continue

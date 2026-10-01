@@ -265,14 +265,28 @@ class DurationLedger:
     # -------------------------------------------------------------- folding
 
     def effective_pt(
-        self, identity: CardIdentity, card: Handle
+        self,
+        identity: CardIdentity,
+        card: Handle,
+        counters: dict[str, int] | None = None,
     ) -> tuple[int | None, int | None]:
         """(power, toughness) after every LIVE recorded change, in the
-        documented base -> timestamp -> order fold."""
-        return self._effective(identity, card)
+        documented base -> timestamp -> order fold.
+
+        r19a (Basri's Solidarity): ``counters`` — the card's live counter
+        map (world.cards[h].counters) — folds the P/T counters PLUS the
+        ledger. CR 613.3b: the +1/+1-counter layer comes AFTER the
+        timestamp-ordered continuous-effect layer, so the counter sum is
+        applied after the fold, and it stacks on top of a SET_PT the same
+        way a counter stacks on "becomes a 1/1". Callers that pass no map
+        get the pre-19a byte-exact fold."""
+        return self._effective(identity, card, counters)
 
     def _effective(
-        self, identity: CardIdentity, card: Handle
+        self,
+        identity: CardIdentity,
+        card: Handle,
+        counters: dict[str, int] | None = None,
     ) -> tuple[int | None, int | None]:
         power = parse_pt(identity.power)
         toughness = parse_pt(identity.toughness)
@@ -290,6 +304,17 @@ class DurationLedger:
                     power = change.power_set
                 if change.toughness_set is not None:
                     toughness = change.toughness_set
+        if counters:
+            # CR 120.10 family: +1/+1 and -1/-1 coexist (annihilation is a
+            # state-based action on the world, not this fold). An undefined
+            # printed P/T (``*``) stays undefined — a counter does not
+            # materialize a number the card never printed.
+            plus = counters.get("PLUS_1_PLUS_1", 0) - counters.get("MINUS_1_MINUS_1", 0)
+            if plus:
+                if power is not None:
+                    power += plus
+                if toughness is not None:
+                    toughness += plus
         return power, toughness
 
     def _fold_stack(self, card: Handle) -> list[PtChange]:

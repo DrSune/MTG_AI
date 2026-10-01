@@ -140,6 +140,17 @@ class ExecCtx:
     # per mutation — no double-emitted events), by the executor's run_atom
     # wrapper draining this list.
     pending_replacements: list[ReplacementRecord] = field(default_factory=list)
+    # r19a (Life Goes On): the CR 614.4a loop guard — the seqs of the
+    # replacement records that already consumed an event in THIS chain.
+    # A replacement's own ACTION runs with the producing record's seq in
+    # the set, so the same effect can never re-replace its own replacement
+    # (one application per event chain, per event kind).
+    replaced_seq: frozenset[int] = frozenset()
+    # r19a (Cultivate): a Seq that contains ONE_OF/REST partition
+    # MOVE_ZONE siblings searches to DESIGNATE, not to deliver — set by
+    # the Seq walker's pre-scan so the SEARCH atom knows its found cards
+    # must stay put for the partition atoms to re-find.
+    search_partition: bool = False
 
     def take_decision(self, vocab: tuple[str, ...], what: str) -> str:
         """Consume the next decision for THIS demand site; raise when no
@@ -186,8 +197,8 @@ class ExecCtx:
         return handles[0] if handles else None
 
     def effective_pt(self, card: Handle) -> tuple[int | None, int | None]:
-        identity = self.world.cards[card].identity
-        return self.ledger.effective_pt(identity, card)
+        card_state = self.world.cards[card]
+        return self.ledger.effective_pt(card_state.identity, card, card_state.counters)
 
 
 def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
@@ -388,6 +399,14 @@ def _resolve_prop(prop: QProp, ctx: ExecCtx) -> int:
 _TYPE_LINE_SEPARATORS = ("//", "/", ",")
 
 
+# r19a (IS_PERMANENT): the CR 110.1 permanent card types — a card whose
+# type line names one of these is a permanent wherever it currently sits
+# (library, stack, graveyard, exile included).
+_PERMANENT_TYPE_WORDS = frozenset(
+    {"Artifact", "Creature", "Enchantment", "Land", "Planeswalker", "Battle"}
+)
+
+
 def _type_line_tokens(identity_text: str) -> list[str]:
     """Split a printed type line into its type/subtype words, keeping the
     subtype group's card names intact (data-only, C12: no oracle text is
@@ -455,9 +474,19 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
     if pred is FAtomPred.IS_UNTAPPED:
         return not world.cards[handle].tapped
     if pred is FAtomPred.IS_PERMANENT:
-        return (
-            handle.namespace == "card" and world.zone_of(handle).kind == "battlefield"
-        )
+        # r19a (Fungal Rebirth): CR 110.1 — a permanent is a CARD THAT HAS A
+        # PERMANENT CARD TYPE, not "a card sitting on the battlefield". The
+        # zone reading silently misjudged every gate asked OFF the
+        # battlefield: Fungal Rebirth's graveyard test ("creature card in a
+        # graveyard") and Unsubstantiate's spell-on-the-stack target both
+        # answer about the card, and answered wrong. The type-line test is
+        # zone-independent; on the battlefield it agrees with the old zone
+        # reading for every permanent (and non-permanent) there, so the
+        # green lanes are unchanged.
+        if handle not in world.cards:
+            return False
+        words = set(_type_line_tokens(world.cards[handle].identity.type_line))
+        return bool(words & _PERMANENT_TYPE_WORDS)
     if pred is FAtomPred.IS_TOKEN:
         # "nontoken creature that died" — printed token-ness (identity data,
         # survives death; added for real 12b dies triggers).
@@ -903,10 +932,29 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # inventing one off English substrings.
         from MTG_bot.core.executor.events import KIND_CREATURE_DIES
 
-        return any(
-            e.kind == KIND_CREATURE_DIES and e.subject == handle
-            for e in _turn_rows(ctx, pred.name)
+        rows = _turn_rows(ctx, pred.name)
+        dies = [e for e in rows if e.kind == KIND_CREATURE_DIES]
+        if any(e.subject == handle for e in dies):
+            return True
+        # r19a (Life Goes On / Fungal Rebirth): an EXISTENTIAL reading for
+        # a judged handle that could never itself have been the dead
+        # creature — a player handle (a LifeGainedEvent replacement judged
+        # over its subject) or a card whose printed type line names no
+        # creature (a Conditional judged over the resolving spell, e.g.
+        # "if a creature died this turn" on an instant). Selector
+        # candidates ARE creature-typed (Gadrak's graveyard census,
+        # Liliana's Standard Bearer), so their strict per-handle reading —
+        # "did THIS creature die" — is untouched; a creature-typed handle
+        # that did not die still answers False.
+        creature_typed = (
+            handle.namespace == "card"
+            and handle in world.cards
+            and "Creature"
+            in set(_type_line_tokens(world.cards[handle].identity.type_line))
         )
+        if not creature_typed:
+            return bool(dies)
+        return False
     if pred is FAtomPred.IS_EXILED_WITH_SOURCE:
         # 14d (B-7): "cards exiled with ~" (Idol of Endurance, Chandra,
         # Heart of Fire; the Necromentia name-exile station's sibling).

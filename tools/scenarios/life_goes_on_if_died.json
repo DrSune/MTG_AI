@@ -1,6 +1,4 @@
 {
-  "status": "suspect",
-  "finding": "PRINTED: \"You gain 4 life. If a creature died this turn, you gain 8 life instead.\" ENGINE(observed): with a creature dead earlier this turn, life gained is still 4: \"life[0]: expected 28, got 24\". The died-this-turn condition never consults the death ledger (or compiles constant-false). Plain branch is green in life_goes_on.json. Silent divergence.",
   "world": {
     "life": 20,
     "seed": 7

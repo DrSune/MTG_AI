@@ -1,6 +1,4 @@
 {
-  "status": "suspect",
-  "finding": "PRINTED: \"Return target permanent card from your graveyard to your hand. If a creature died this turn, create two 1/1 green Saproling creature tokens.\" ENGINE(observed): targeting the graveyard Trufflesnout raises \"executor: cast: illegal target selection: selection:off_population:card:1\" \u2014 the IS_PERMANENT predicate (quantity.py:457) is zone_of(h)==\"battlefield\", so a card IN a graveyard can never satisfy \"permanent card\" where the printed text requires it. Loud.",
   "world": {
     "life": 20,
     "seed": 7

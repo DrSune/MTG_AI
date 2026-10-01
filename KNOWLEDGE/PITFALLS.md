@@ -668,3 +668,23 @@
   step 1 — the world then looks like an engine that mutated before a
   may-ask. Add a decoy card listed AFTER the target so the draw eats it,
   and pin lanes knowing the pop-last rule.
+
+- **Decision lanes are NOT interchangeable (2026-10-01, r19a)**: an ask
+  answered through the per-op `decisions` POOL inside a cast effect is
+  validated RAW against the ask vocabulary — no pack-key→handle mapping.
+  Pool answers for designation asks must be handle strings (`"card:1"`);
+  pack keys resolve ONLY via the provider lane (`run_scenarios.py:223-229`),
+  which does not run for pool-supplied words. A wrong-lane word either
+  raises `decision '…' not in (…)` or (worse, pre-r19a) fell back to
+  `vocab[0]` silently. bad_deal's `['c1','c2']` never reached
+  `take_decision` at all (they ride `_search_designation` bindings);
+  grim_tutor's `"Cardinal"` is a NAME-declaration ask (vocab = card names,
+  verbs.py ~1166-1190). Before rewriting a pack's decisions, identify
+  which lane the ask actually consumes.
+- **A green assertion can be green ON a silent bug (2026-10-01, r19a)**:
+  trufflesnout.json asserted 2/2 for a 2/2 that enters with a +1/+1
+  counter — passing only because `effective_pt` ignored counters entirely.
+  Fixing the engine turned the pack red; Scryfall (m21/212) said the
+  printed-truth answer was always 3/3. When an engine fix reddens a GREEN
+  pack, re-derive the expectation from the printed card before believing
+  either side; correct the pack to printed truth, never revert the fix.
