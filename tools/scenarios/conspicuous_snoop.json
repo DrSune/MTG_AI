@@ -1,0 +1,40 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Conspicuous Snoop",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "s"
+  },
+  {
+   "op": "activate",
+   "key": "s",
+   "idx": 1,
+   "seat": 0,
+   "decisions": [
+    "skip"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "s": "battlefield"
+  }
+ },
+ "notes": "r20b: REVEAL payload static installs as a lifetime 'disclosure' layer (play-with-top-revealed is a zone-knowledge rule, the verb lane's recorded no-op doctrine extended to DurationPermanent statics). The compiled no-cost 'cast a Goblin from the top' activation is LIVE: with an empty library the may-offer answers 'skip' and the effect resolves doing nothing; Snoop stands."
+}

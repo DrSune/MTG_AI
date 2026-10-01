@@ -1,0 +1,57 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Warden of the Woods",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "tg",
+   "real": "Titanic Growth",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "w"
+  },
+  {
+   "op": "cast",
+   "real": "Titanic Growth",
+   "key": "tg",
+   "targets": [
+    "w"
+   ],
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tg": "graveyard"
+  },
+  "hand": {
+   "0": 2
+  },
+  "power": {
+   "w": 9
+  },
+  "toughness": {
+   "w": 11
+  }
+ },
+ "notes": "r20b: TARGETING feed \u2014 Warden's TargetingEvent(IS_SOURCE) trigger fires when Titanic Growth designates it; the may-DRAW-2 answers 'fire'. Baseline-0 hand law: hand 0 after the cast, +2 drawn = 2. Buff check proves the spell itself still resolved (5/7 -> 9/11 EOT)."
+}

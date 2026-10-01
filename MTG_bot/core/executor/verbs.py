@@ -161,6 +161,26 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         owner = ctx.world.controller_of(card)
         target_player = zone_owner(ctx, dest_ir, owner=owner)
         src = ctx.world.zone_of(card)
+        if dest_kind == ZONE_BATTLEFIELD:
+            # r20b (Containment Priest): C24 replacement-before-apply for
+            # the ENTER move itself — a live ZoneChangeEvent replacement
+            # consumes the ETB (the permanent never becomes a permanent,
+            # no battlefield placement, no tapped_on_enter stamp), and the
+            # action (EXILE referent=event) runs as a journalled nested
+            # effect with the moving card bound, mirroring the life lane.
+            repl = (
+                ctx.replacements.replacement_for_zone_change(
+                    card, src.kind, dest_kind, ctx.replaced_seq
+                )
+                if ctx.replacements is not None
+                else None
+            )
+            if repl is not None:
+                ctx.pending_replacements.append((repl, card))
+                ctx.events.append(
+                    (len(ctx.events), "ZONE_REPLACED", str(card), str(repl.source))
+                )
+                continue
         zone = ctx.world.players[target_player].zone(dest_kind)
         ctx.world.move_card(card, zone)
         if bottom_dest:

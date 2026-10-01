@@ -531,6 +531,13 @@ def cast(
         mode_choices=mode_choices,
     )
 
+    # r20b: the TARGETING feed (CR 601.2c). Designation IS an event — one
+    # row per designated object, Handle-sorted — emitted the moment the
+    # targets are declared, BEFORE payment and the park, so a "whenever
+    # ... targets" trigger queues over the spell and drains at the next
+    # checkpoint (the mission's mid-cast-feed contract).
+    executor.journal.emit_targeting(handle, seat, targets)
+
     # 6: park + frame + event. The payment happens BEFORE the park
     # (pay_costs' own apply_effect boundaries journal the taps/sacrifices
     # exactly as activate() does); the parking gets its own journal
@@ -718,6 +725,9 @@ def cast_card(
     if node is None:
         raise ValueError(f"executor: CAST {record.name}: no SpellAbility on the card")
     _validate_spell_targets(executor, caster, handle, node, targets)
+    # r20b: TARGETING feed — same 601.2c contract as cast(): declare, then
+    # journal the designation rows before payment.
+    executor.journal.emit_targeting(handle, caster, targets)
     cost = cost_override if cost_override is not None else record.mana_cost
     plan = None
     if cost is not None and cost.parts:

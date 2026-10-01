@@ -164,7 +164,9 @@ class LayerRecord:
     permission kinds are selector-less, like mana_policy), and 16b's
     ``"mandate"`` (MANDATE_ATTACK static rules — "attacks each combat if
     able"; selector-bearing like the generic static, read at every
-    declare-attackers by the legality surface).
+    declare-attackers by the legality surface), and r20b's
+    ``"disclosure"`` (REVEAL/LOOK_AT payload statics — the recorded zone-
+    knowledge fact, selector-less and inert at re-apply by rules right).
     ``status`` — ``live`` | ``dormant`` (a condition currently false — the
     record survives, its effect does not apply) | ``expired`` (terminal; the
     record stays for the audit dump). ``ledger_ids`` maps each materialized
@@ -377,6 +379,18 @@ class LayerRegistry:
         # LIVE at every consult (the draw clock can flip mid-combat); the
         # atom's own ``condition`` argument mirrors an event slot in every
         # corpus prevention shape (the _dbe_both idiom) and stays carried.
+        # r20b (Conspicuous Snoop "Play with the top card of your library
+        # revealed."): REVEAL/LOOK_AT payload statics split into
+        # "disclosure" layers. A continuous disclosure is a ZONE-KNOWLEDGE
+        # rule, not a layer mutation — the verb lane already documents
+        # REVEAL/LOOK_AT as the engine's two legitimate recorded no-ops
+        # (doc /10: the AI's knowledge boundary is the QUERY lane's, never
+        # visibility state), so the static lane registers the fact as a
+        # lifetime record — visible in the layer registry, anchored to the
+        # source's liveness exactly like a mandate, and inert at re-apply
+        # because it mutates nothing by rules right, not by silence: the
+        # record IS the promise ("the card is played revealed").
+        looks = [atom for atom in atoms if atom.verb in (Verb.REVEAL, Verb.LOOK_AT)]
         mandates = [atom for atom in atoms if atom.verb is Verb.MANDATE_ATTACK]
         mandates_block = [atom for atom in atoms if atom.verb is Verb.MANDATE_BLOCK]
         prevents = [atom for atom in atoms if atom.verb is Verb.PREVENT_EFFECT]
@@ -384,9 +398,25 @@ class LayerRegistry:
             atom
             for atom in atoms
             if atom.verb
-            not in (Verb.MANDATE_ATTACK, Verb.MANDATE_BLOCK, Verb.PREVENT_EFFECT)
+            not in (
+                Verb.MANDATE_ATTACK,
+                Verb.MANDATE_BLOCK,
+                Verb.PREVENT_EFFECT,
+                Verb.REVEAL,
+                Verb.LOOK_AT,
+            )
         ]
         records: list[LayerRecord] = [
+            self._new(
+                "disclosure",
+                handle,
+                controller,
+                (look,),
+                condition=static.condition,
+            )
+            for look in looks
+        ]
+        records += [
             self._new(
                 "mandate",
                 handle,

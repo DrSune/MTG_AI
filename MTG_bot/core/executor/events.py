@@ -31,6 +31,7 @@ ordinal is event data; ``begin_turn`` resets them.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import cast
 
@@ -82,6 +83,15 @@ KIND_GAME_LOST = "GAME_LOST"
 KIND_DECLARE_ATTACKERS = "DECLARE_ATTACKERS"
 KIND_DECLARE_BLOCKERS = "DECLARE_BLOCKERS"
 KIND_COMBAT_DAMAGE = "COMBAT_DAMAGE"
+# r20b (Warden of the Woods): the TARGET designation feed. One row per
+# DESIGNATED object at the designation point (CR 601.2c for spells,
+# 602.2b for activated abilities, the 18b trigger channel for triggered
+# abilities — the three lanes that own a designation; TARGET-mode effect
+# selectors READ a designation, they never make one, so they emit
+# nothing). Subject = the designated object (the TargetingEvent filter
+# reads it, IS_SOURCE = "whenever THIS becomes the target"); data carries
+# (source_object, actor) for the audit trail.
+KIND_TARGETING = "TARGETING"
 
 # state.py zone-kind strings used by the diff's rule checks.
 # (ZONE_KIND_TO_STATE — the IR->state map — lives in selectors.py.)
@@ -125,6 +135,8 @@ class GameEvent:
         carried the single ``(amount, recipient)`` pair (no blockers);
         16c keeps ONE row per dealer however the assignment splits
         (the CombatDamageEvent feed).
+      * TARGETING     — ``(source_object, actor)``, subject the designated
+        object (r20b, the TargetingEvent feed).
     """
 
     clock: int
@@ -288,6 +300,26 @@ class EventJournal:
             "CAST",
             (caster, self.cast_counts[caster], spell_kind, from_zone, x_value),
         )
+
+    def emit_targeting(
+        self,
+        source_object: Handle,
+        actor: Handle,
+        designated: Sequence[Handle],
+    ) -> None:
+        """The TARGETING rows (r20b): one per designated object, Handle-
+        sorted (the determinism law — designation sets are canonical order,
+        mirroring declared_targets' sorted tuple). Empty designations emit
+        nothing (a targetless cast/ability has no targeting event, CR
+        115.4's self-clause included)."""
+        for target in sorted(designated):
+            self._emit(
+                KIND_TARGETING,
+                target,
+                source_object,
+                "TARGET",
+                (source_object, actor),
+            )
 
     def begin_turn(self, player: Handle) -> None:
         """Reset per-turn event trackers for a new turn (12b skeleton)."""

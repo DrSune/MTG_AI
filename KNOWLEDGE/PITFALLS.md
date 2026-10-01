@@ -697,3 +697,15 @@
   (no isort/I001 etc.) and reports a false-clean baseline. Use
   `ruff check --stdin-filename <project/path.py> - < /tmp/head_foo.py` so
   pyproject rules bind and Δ-vs-HEAD is honest.
+- **Two event ledgers, assert against the right one (2026-10-01, r20b)**:
+  feed rows the binder MATCHES (TARGETING, CAST, DAMAGE, TURN_PHASE …) live on
+  `ex.journal.events` as `GameEvent` objects (binding.match_new scans that list,
+  binding.py:504); raw verb audit rows (TAP/MOVE tuples) and replacement-created
+  ledger rows (`DAMAGE_PREVENTED`) live on `ex.events`. A TARGETING assertion
+  against `ex.events` reads empty and looks like a dead emit site.
+- **Trigger ctx answers only via the provider/FIFO lane (2026-10-01, r20b)**:
+  the per-op `decisions=(...)` tuple exists only in the CAST/activate ExecCtx;
+  a may-offer asked by a TRIGGER during the settle runs in a fresh ctx and
+  raises `nothing is primed` unless `ex.decisions.provider` (or
+  `decisions.push(vocab, what, …)`) answers — the scenario harness proves the
+  pattern (run_scenarios.py:232).

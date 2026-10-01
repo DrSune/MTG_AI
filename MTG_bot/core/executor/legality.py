@@ -1292,6 +1292,11 @@ def activate(
     chosen = sorted(targets)
     if chosen:
         bindings["target"] = chosen
+        # r20b: TARGETING feed. Clock-order caveat of the FOLDED move:
+        # activate() pays before it designates, so these rows land after
+        # the payment rows — a documented compromise of the one-call
+        # surface, not CR 602.2b's declare-then-pay order.
+        executor.journal.emit_targeting(handle, seat, chosen)
     effect = ability.effect
     assert effect is not None  # ActivatedAbility.effect is a required field
     return executor.apply_effect(

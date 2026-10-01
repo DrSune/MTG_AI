@@ -14,11 +14,12 @@
  "infeasible_skips": 2704,
  "player_target_designations": 46,
  "combat_losses": 13,
- "coverage_fired": 76,
- "coverage_fired_of_pool_pct": 25.3,
- "coverage_fired_of_engine_pct": 26.0,
+ "coverage_fired": 84,
+ "coverage_fired_of_pool_pct": 28.1,
+ "coverage_fired_of_engine_pct": 28.9,
  "coverage_battlefield": 31,
  "fired_of_engine": [
+  "Alchemist's Gift",
   "Angelic Ascension",
   "Animal Sanctuary",
   "Bad Deal",
@@ -34,6 +35,7 @@
   "Dismal Backwater",
   "Duress",
   "Eliminate",
+  "Enthralling Hold",
   "Fabled Passage",
   "Feat of Resistance",
   "Finishing Blow",
@@ -43,6 +45,7 @@
   "Fungal Rebirth",
   "Goblin Wizardry",
   "Goremand",
+  "Grasp of Darkness",
   "Grim Tutor",
   "Invigorating Surge",
   "Island",
@@ -57,8 +60,10 @@
   "Opt",
   "Peer into the Abyss",
   "Plains",
+  "Primal Might",
   "Radiant Fountain",
   "Rain of Revelation",
+  "Ranger's Guile",
   "Read the Tides",
   "Revitalize",
   "Rise Again",
@@ -72,6 +77,7 @@
   "Soul Sear",
   "Sparkhunter Masticore",
   "Spellgorger Weird",
+  "Sure Strike",
   "Swamp",
   "Swift Response",
   "Swiftwater Cliffs",
@@ -82,11 +88,13 @@
   "Temple of Triumph",
   "Thornwood Falls",
   "Thrill of Possibility",
+  "Titanic Growth",
   "Track Down",
   "Traitorous Greed",
   "Tranquil Cove",
   "Transmogrify",
   "Turn to Slag",
+  "Unleash Fury",
   "Unsubstantiate",
   "Volcanic Geyser",
   "Volcanic Salvo",
@@ -110,7 +118,7 @@
    "fired": 15,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "b590e250e0cea49265732d3d71f63cec1b63fcb3751b70597d12d10c6fba306c",
+   "fingerprint": "2e84f154f9893faa4a326c512938d91f92fcb6dc36d34eb8583d50081eb4e234",
    "crash": null
   },
   {
@@ -133,10 +141,10 @@
    "survived": false,
    "reason": "game over: player:0(life<=0)",
    "acts": 45,
-   "fired": 8,
+   "fired": 9,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "666b733d0327b4528843d21e24796945d58ddd1b55e3a1a4245583aca625f5d6",
+   "fingerprint": "e09000f07a26a3de25c5df377af1349c789627c6b0bfa21a483c1c64be6302f3",
    "crash": null
   },
   {
@@ -149,7 +157,7 @@
    "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "ec43313cca37d7b8c2b8bdbe379d7a2a2939fe5847e9d34217105488418b580f",
+   "fingerprint": "f21cb77a1a81814a2be0b80e4555952794fc297250510a29558e92e6b25d470a",
    "crash": null
   },
   {
@@ -162,7 +170,7 @@
    "fired": 22,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "b90931edfe9f4119c6905d9bdc5363fe6128d222770682e65b683466d83b6166",
+   "fingerprint": "421464b22639e4e0b883e0188b9c010cbe3d98a09fc3b4786d9b87a5fbc4ce95",
    "crash": null
   },
   {
@@ -175,7 +183,7 @@
    "fired": 17,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "e706369a81e2d771e19338beb3b69fee16cda97bf6a9d493db1fcc0a8a1920d0",
+   "fingerprint": "b4d77fa30141ce22e5c0d3a540fa4f5123901071479ac07d8ec50d7a5c4c0fbb",
    "crash": null
   },
   {
@@ -201,7 +209,7 @@
    "fired": 16,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "704abe6d43f79ea974431ecc6886aa081b7b2e6d1a417c5989400b300d78f054",
+   "fingerprint": "b0860c43d22e77b415d874468a79f0dc2a7a75dc6b5346c0eff5e9a0e80a97a5",
    "crash": null
   },
   {
@@ -211,10 +219,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 135,
-   "fired": 19,
+   "fired": 20,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "cc82b6565b88bcf93affc71853c41a7a14fc171ac7d406e54a24f55d2da04aa3",
+   "fingerprint": "85cf6d979a9e3085a9aa971f57b2ef912e854c1db20e21d166fbeb3b5732fac9",
    "crash": null
   },
   {
@@ -237,10 +245,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 126,
-   "fired": 11,
+   "fired": 12,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "c388ee077dc00912a69bdaa3773aa047fa64745e4dfb0e2c499e1100a55c8048",
+   "fingerprint": "58e1718a89c2a14fe050bbc85214b7e397aa85135c9dc09ee0abcad270682a9a",
    "crash": null
   },
   {
@@ -250,10 +258,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 139,
-   "fired": 22,
+   "fired": 23,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "6326eedede772bc93a942af452ad109a332b1f83bdaace282f07e885c507d5e8",
+   "fingerprint": "bb7c1b83e4675b5b6e89c39970526b110fc81f5d5c55329f7380ad53b17c2319",
    "crash": null
   },
   {
@@ -263,10 +271,10 @@
    "survived": true,
    "reason": "game over: player:0(life<=0)",
    "acts": 142,
-   "fired": 17,
+   "fired": 19,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "fc253ef6c16af3fa4e42b94c1c2de6532b2c548d845725950204429aa77191a4",
+   "fingerprint": "d53d513f67a55dcf730c2f629305c2bf2d1dc1398fec82995acd871d3ab87d88",
    "crash": null
   },
   {
@@ -276,10 +284,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 153,
-   "fired": 14,
+   "fired": 16,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "51aeebf0d0fd089ab4f5258dd4e607551cbf1ade2d100416b5ed61116d2e5b15",
+   "fingerprint": "6c5689518ebf5d40087a9dcbb5d5e537dc406a5ee5720790caacd326721a4753",
    "crash": null
   },
   {
@@ -289,10 +297,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 136,
-   "fired": 15,
+   "fired": 17,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "cbba2e25d9bfa247e1058bab1a7aeba52a0e0811d28b652c042f0b158dba227e",
+   "fingerprint": "d2b7038512e118c0aa66b413a09830d6ae079475a16bcd29355660ea5b17b3d9",
    "crash": null
   },
   {
@@ -318,7 +326,7 @@
    "fired": 19,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "dd703a6dadd529e90e4b843afd412e18dad023f9938f1a4feb45f43d978cdf56",
+   "fingerprint": "4b32c2d48cd5f670cfe500cc1185800a30c98b8429e850bba1677694029279c0",
    "crash": null
   },
   {
@@ -331,7 +339,7 @@
    "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "0ec9620c5f3f47a03a42105eaa803520580c66021fddfb47d586b2fbb9029b54",
+   "fingerprint": "d7d8b9c3e79e5322e18a2f07868cc59c4222f733db0df3ae4d0a44a23466af61",
    "crash": null
   },
   {
@@ -357,7 +365,7 @@
    "fired": 11,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "9b0388fb195fae039c96e9a924a7cb0b0a58315f3fe77e84e5df623a79cb2541",
+   "fingerprint": "113af6cecf27faee9495fc905c917114a6a6e9b74fc7a49c3cf92a4bd7ad935c",
    "crash": null
   },
   {
@@ -370,7 +378,7 @@
    "fired": 13,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "8cb7561afd0bc7f75d865dcb1d46965aead1f217b95ea15601ece737b4533fa2",
+   "fingerprint": "2b692db3f489bc805c9c75e4a66be1ba868d1d63f68e1debada3e1fe082d13de",
    "crash": null
   },
   {
@@ -380,10 +388,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 119,
-   "fired": 15,
+   "fired": 16,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "8797b5fc9ad390e7c2780446f87f938c4913035f51e1718deb9a11f44738fbbd",
+   "fingerprint": "b88e0624bea1f35b385339c2fccfa91647755fb0f234ba5ed50dac76b13e95cc",
    "crash": null
   },
   {
@@ -396,7 +404,7 @@
    "fired": 20,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "565366657d4530e54d61fee4d264fbdd7c57f97d26e4f0e864ce3b8b9611d214",
+   "fingerprint": "89eff7a2e94d653cde19b1526803026b45b9753fdc0b20e451b88b61f0c4417c",
    "crash": null
   },
   {
@@ -422,7 +430,7 @@
    "fired": 9,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "de8ee64442b03df5f0b51af7acefce38fb4fcb12a79b30e7bb27df22385c0d28",
+   "fingerprint": "72e674f9f32d0e34b660121ff9bf7f75a65fefb8b933eac16071446967e0926e",
    "crash": null
   },
   {
@@ -432,10 +440,10 @@
    "survived": false,
    "reason": "game over: player:1(life<=0)",
    "acts": 89,
-   "fired": 13,
+   "fired": 14,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "3a15245daeaeea831b364b1edaa6272211e87bf62929bf0a5815623c16e0e05b",
+   "fingerprint": "a225a15fd81599d1eeb6bbb25b260ad240fc6d03b95382130c90aebf819e6831",
    "crash": null
   },
   {
@@ -448,7 +456,7 @@
    "fired": 19,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "06b9cfdd81b4d3e9bd10a108a82867022b12e9db12d7d7ae17a53e813d17f6bf",
+   "fingerprint": "7606a02e8e813471d000c2971da8099c6417ed701de7a54f812848b3c1441b5f",
    "crash": null
   },
   {
@@ -458,10 +466,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 97,
-   "fired": 15,
+   "fired": 17,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "003d33ae4b5a3bbb95750b709fcab0b4400b68ebfd291b9f6d33c602b8a5d8ba",
+   "fingerprint": "48021372b9bb78656cd12f95c05ff41d71e748d8a1016f97ccabaf3f5aa5f10e",
    "crash": null
   },
   {
@@ -487,7 +495,7 @@
    "fired": 16,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "732efcb8731876990d1c33211b06dc35d2e2c6d5ed5ad9a577ca88510df7c304",
+   "fingerprint": "1142b18497b42e25b7117093e80ba3666e47ac5f566ff1216bff9125677d8a27",
    "crash": null
   },
   {
@@ -497,10 +505,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 103,
-   "fired": 17,
+   "fired": 18,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "edcb3a0e9a21e0eb503004470ae32444608788f049a74448677fd71cfda68a7e",
+   "fingerprint": "8cbe1323252e5c3bd3c45516e17d817cdf7acbafd3a324752cbfc91f76690a47",
    "crash": null
   },
   {
@@ -510,10 +518,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 132,
-   "fired": 13,
+   "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "c2533d315df653f75eb336e9f06b0ecbd46a0374cba57c93053d14c6855f6c30",
+   "fingerprint": "aef227db131185f4db3c364726c9d2ad965e5555b135f266632d71ce3701b80b",
    "crash": null
   },
   {
@@ -523,10 +531,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 92,
-   "fired": 13,
+   "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "8c52eec938cb49bd2a9fc622387fbaee867de1a6fa0bd12f897db436e674ea45",
+   "fingerprint": "1a14e9eb1070792b486834f79e1691e730c8062fc9a88c16a1515f086ddecb4e",
    "crash": null
   },
   {
@@ -565,7 +573,7 @@
    "fired": 17,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "adf95dfdaaddd60e1fd0499dff3edf6e0baef90c9f23ae93d872768792866de3",
+   "fingerprint": "22dea4a7a6cd706839ce7d8ddc0ec0a28cb752607c7450582f6ddd1dc3e44f4c",
    "crash": null
   },
   {
@@ -575,10 +583,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 151,
-   "fired": 22,
+   "fired": 23,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "99d2338bec8e7b354e9fc3c283d8d64139d047a14ef62853542456af6f675ba3",
+   "fingerprint": "b0b247042eca2060240f69f1e1a2bc3009d7b6264a52464cfd5eef160bba345a",
    "crash": null
   },
   {
@@ -591,7 +599,7 @@
    "fired": 15,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "d799105220cb955f948b2ad396cfbdf1d16a2a48a45c7f6b4c2fbe7465a088b1",
+   "fingerprint": "224b8168df3f6c9afd069d0a3ef7226473a4ea2f170b9e6075148819f1b288c6",
    "crash": null
   },
   {
@@ -601,10 +609,10 @@
    "survived": false,
    "reason": "game over: player:1(life<=0)",
    "acts": 89,
-   "fired": 14,
+   "fired": 16,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "221373f871458f17d2f5af9ed8047c4e07af606ec174059610ca4da564aca26b",
+   "fingerprint": "f5bf158e9e3af5fdd34c777c367d5d8e2f5b87d9ce4549111264c45c09e1e504",
    "crash": null
   },
   {
@@ -640,10 +648,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 131,
-   "fired": 25,
+   "fired": 26,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "bc94fc3c5244c4e2c3c925389e337941e5a61a9b393770dd66a8613ab955e8dd",
+   "fingerprint": "07ca206f075322e3d4db86606b1758acf411bbbe4bae89a3a8a9a535b8bec695",
    "crash": null
   },
   {
@@ -669,7 +677,7 @@
    "fired": 12,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "feb227360c000546f311deeec48d54284e6783972b496de4e4b282d0bade5217",
+   "fingerprint": "c335883eb490eb4bcb436832e71dcd2fa7bb013280359fd7db0d7046cac6aa6d",
    "crash": null
   },
   {
@@ -695,7 +703,7 @@
    "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "951bf612e9ab111a312f1f1095c7307ded25dfe498e4b202df1ab2065aef3cb9",
+   "fingerprint": "96d8d54779bd3677ecb28a2202bd625aa96cba6c4a01a54d289552c37d7019d6",
    "crash": null
   },
   {
@@ -721,7 +729,7 @@
    "fired": 12,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "ca87b08d7eee3f273082b50f16b820bc4886b06ead5abf5a989c95bd5338ee10",
+   "fingerprint": "44e388dc67e5f72a7a49575d02d9cf63a7d9e77b3a7bdcdd66417724d2f1951c",
    "crash": null
   },
   {
@@ -731,10 +739,10 @@
    "survived": false,
    "reason": "game over: player:1(life<=0)",
    "acts": 55,
-   "fired": 9,
+   "fired": 10,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "6cd72ea8b45753374c8adda5deee6e522521b91ee1abc7f03b24fa507b837a9e",
+   "fingerprint": "8d1eac4d383acfadf4e946647398bfede87ae1b8fed2327d5559646893e03c67",
    "crash": null
   },
   {
@@ -747,7 +755,7 @@
    "fired": 17,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "098b30f822b0b006bf6fcd3198c021b946e2c1aa13b298a656fe2efc2eb30685",
+   "fingerprint": "3d94f5bf914f64079182a5f125d78e462cf2d50f2f6d625cf42b4082f9bae9d5",
    "crash": null
   },
   {
@@ -760,7 +768,7 @@
    "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "03ad7bdb94e1fa80cfba291160ee2e76456c3e097a82b440c233a1e5a5b17f78",
+   "fingerprint": "8fbad6f71f8184839c421e624da758f4249d5a8f0b286831276c79ff2f369350",
    "crash": null
   },
   {
@@ -773,7 +781,7 @@
    "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "78cbeffea954c4ac06eba7ecd8974795a53db0727543181a4316d0f7e13f68dc",
+   "fingerprint": "501c4a5ddbe52bb1998d5bf59b38b2bbf8346234f99d45d0b7ab81046d5f9fa1",
    "crash": null
   },
   {
@@ -783,10 +791,10 @@
    "survived": false,
    "reason": "game over: player:1(life<=0)",
    "acts": 75,
-   "fired": 13,
+   "fired": 14,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "7b64f0c7b3f3e631c596a2a7ca6d84166f88ffe22ea9efa7bd145543cb602e08",
+   "fingerprint": "daf11c8d75e411f8741208ea6d20675dc190f1cf8b8159b6a82fafd97eea9808",
    "crash": null
   },
   {
@@ -799,7 +807,7 @@
    "fired": 7,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "b08e247dcbdfc0c2b49ee18ccd16fdf5a8dad2f3ae7f18519856330af0e09c91",
+   "fingerprint": "c942e7d9b2a1a418366e42763732ad2749b243f77d14a3497f44906b65d2f923",
    "crash": null
   },
   {
@@ -809,10 +817,10 @@
    "survived": false,
    "reason": "game over: player:1(life<=0)",
    "acts": 134,
-   "fired": 16,
+   "fired": 17,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "7c0571b8316f1b749213c077f114517b1bdce56738b4ddaedfb1b9f9d1633b5b",
+   "fingerprint": "cb0b7c77c1459738f9fccdfc7b1fc653e80d15df46bd45cd25f9b4bcedcffd2d",
    "crash": null
   },
   {
@@ -838,7 +846,7 @@
    "fired": 10,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "e8553a98dfe8c70e26ef35a36581d7c1d0265be8101ce34fdb647695404c0e7e",
+   "fingerprint": "d2002ce7f42cbf42db6ff8451459f1562d4fc202b3805e7e9f5de38ebc546ab0",
    "crash": null
   },
   {
@@ -851,7 +859,7 @@
    "fired": 20,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "3e5a3fa99906ce72a397936699eaf5b948f21471806d7da5a78749b16e4f7c4a",
+   "fingerprint": "6cca835d65cbc0b8bf0b3204191c4b05f0144b6a78633e7bfd45447b71ed74c2",
    "crash": null
   },
   {
@@ -864,7 +872,7 @@
    "fired": 19,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "a0b58b9fe895015e6d9f8773b141a60f54136a37c7075a559840eac0e1e39015",
+   "fingerprint": "023fea67302aa67ef7d7234c013856b07d0138e2d25130cc9c6831b66d125f53",
    "crash": null
   },
   {
@@ -877,7 +885,7 @@
    "fired": 13,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "726be4a10f3efcbce49f86ea727875d71c3fbc16831b6bb6385caaec6ac9e735",
+   "fingerprint": "1138317ca04dd8d5c809426844d83c7607b52941c75dea1b7ffd8b516baa1ea7",
    "crash": null
   },
   {
@@ -903,7 +911,7 @@
    "fired": 10,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "095a562a247ce7caaf9c893e2d6b948fdebdc70ffaff44fc5ac23aeb8d48fe13",
+   "fingerprint": "2501452faf8bc2e70788f67784a3aa7c56e641064e002a90aebd100c1b09178c",
    "crash": null
   },
   {
@@ -916,7 +924,7 @@
    "fired": 13,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "7d218477e6c74e1adfa4b5c14ef5e92c529f56f72f85f9d96449de340ce7b543",
+   "fingerprint": "6ff208f0f6a75bcdb2270b4c6f9e7cdbfbf5d4d8da93bde2c1440d9c1d182a57",
    "crash": null
   },
   {
@@ -929,7 +937,7 @@
    "fired": 17,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "bbd4ee8d7239ea26a1c3497cb2d72c0fc7459a0ed154e014b461cf208a50a52b",
+   "fingerprint": "8f119f8cdfb02cb800e2a79c5abafe4728f4782d756a05b4fdc0f8666e889193",
    "crash": null
   },
   {
@@ -952,10 +960,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 121,
-   "fired": 14,
+   "fired": 16,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "76403dcc4e4c0777af8047229caccd2a43d1637175661e691e6fd4188ba9042d",
+   "fingerprint": "82c1e7cf2c96d13985bb413031d3f6e4ce071b18499bd03da133e9fa25d447aa",
    "crash": null
   },
   {
@@ -965,10 +973,10 @@
    "survived": false,
    "reason": "game over: player:1(life<=0)",
    "acts": 59,
-   "fired": 9,
+   "fired": 10,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "b90858c7d2477f32b68abbd58632d1534e6466276ab18356ce933fd0f6c5a9b8",
+   "fingerprint": "0251ed8151d99edb5ea6682c6c5ea9afc05d685236de9fc9a393886dcb799319",
    "crash": null
   },
   {
@@ -978,10 +986,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 119,
-   "fired": 15,
+   "fired": 17,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "82d2bb6a2804d2f46f1aa05cb4ab086365c4a4607848d42f4a4317ab5dc55711",
+   "fingerprint": "395d4f90bfad779d2b49ef7405c6511426665f8db21682c6033566577ad20501",
    "crash": null
   },
   {
@@ -994,7 +1002,7 @@
    "fired": 19,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "e54a8604a39d9d96db4275aa70e8c5798b7dc7eb1638bdcf2fe3bf3963e492ce",
+   "fingerprint": "ce4a2ae8abf8811fa80f7b906a1fd80bb7d7a80ebd5a53719a1c1516d8a054df",
    "crash": null
   },
   {
@@ -1007,7 +1015,7 @@
    "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "3f60e315eda4751eda1be053938ca5bd1a09888584ed96dc879766ab7553658f",
+   "fingerprint": "9491b99e810d8c6c1d4b2d72a77a51faf17ffc968dd5c1237f68707f6866a1e4",
    "crash": null
   },
   {
@@ -1020,7 +1028,7 @@
    "fired": 17,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "5286ff9ba3d4283796618633d0d9374ca71bb67814f185724550c961a4d8fa33",
+   "fingerprint": "9ae01df82293630164f61c9d1dd60efa795cab45d712a2a9749a76095e8e39de",
    "crash": null
   },
   {
@@ -1033,7 +1041,7 @@
    "fired": 11,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "de5f5e900990b214f903780e22ff01ceb64809751d9e3a1af1bc34a902123868",
+   "fingerprint": "988885940e31dfc6037db847a222b1894046921288a7046bff38f0010bf0bd35",
    "crash": null
   },
   {
@@ -1059,7 +1067,7 @@
    "fired": 12,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "743a8685e524d238e8442c7ab2bb00771cce147688a67eae4e9540d6a2205cce",
+   "fingerprint": "73c2b65240418fb2b6636cdbe493e12a77d430af230270909c4dde821433b01a",
    "crash": null
   },
   {
@@ -1085,7 +1093,7 @@
    "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "1a7f7da7196e1cee6ff2552c55d6419bda8dbb3462f84e0c3acb52a1373f008b",
+   "fingerprint": "da34cc57bffb32e470b5a471be730cd001771f7713658026014598202063b98f",
    "crash": null
   },
   {
@@ -1098,7 +1106,7 @@
    "fired": 12,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "77b9f687680dee2e309f04a6cdc51c159cff5e3c14878829a86908e2d2eb3ad0",
+   "fingerprint": "6c5f4e024ea060ad37a784b071c6df2d09ba0d703a24afaaa9911b3296e176ed",
    "crash": null
   },
   {
@@ -1111,7 +1119,7 @@
    "fired": 19,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "545f4771b32e59172b732cee163a18901e214b8e1dbc072a081669564c6cba33",
+   "fingerprint": "f370b64c26d176f8a8d22a7d48adb1ea21f6c791518ccdf75d76c0409a8441db",
    "crash": null
   },
   {
@@ -1124,7 +1132,7 @@
    "fired": 11,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "36451161a8afb619accbddd57123929f5a5dcccdac5bafdfcf82a6d176b0aa7d",
+   "fingerprint": "8a3d6c47b785c67adcab0287be03e72b500ab6ae0381b0a7b70722dc271135bb",
    "crash": null
   },
   {
@@ -1134,10 +1142,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 182,
-   "fired": 21,
+   "fired": 22,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "5dd8008b7a22e4054905f9db818d19f97a9eca13edb9f5961f42c8368f36303a",
+   "fingerprint": "9b98b1b7777a39c38dfc7afe501efcee584e9d8d68560e0d5c5fa74cdc545950",
    "crash": null
   },
   {
@@ -1147,10 +1155,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 122,
-   "fired": 18,
+   "fired": 20,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "804b6b78b041728c957ce37d5e3b81c35e3fe3b5b3ca82aad7bdd8ca8a0ac94e",
+   "fingerprint": "e47eb249a577c0b426030246731aef3527fa41144eb5ad1d49f3f340619cc1eb",
    "crash": null
   },
   {
@@ -1176,7 +1184,7 @@
    "fired": 15,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "c2abf48a3a799f3b1b6df3272496523266dbd79d78fef11186e14b810bf70322",
+   "fingerprint": "3a72cf30389ce7586644fe9713b0f6c242ffd85409ce6be1f756281003e5c5e3",
    "crash": null
   },
   {
@@ -1202,7 +1210,7 @@
    "fired": 13,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "28c85c840849c2bca0ab30e94cfbb27b405f98d62649f80e89fb9ec357dad14f",
+   "fingerprint": "7474c934060ece5abb2e0ca4e87d7f15dd02522b9885704f9a73abdeda75e75e",
    "crash": null
   },
   {
@@ -1228,7 +1236,7 @@
    "fired": 17,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "9c23916892258412f5f0e07aab100005719ed538b818386495e405de545c2e77",
+   "fingerprint": "30144416d2a747cdc1ff3757053b110866452737b08734e4682d437d9a054748",
    "crash": null
   },
   {
@@ -1238,10 +1246,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 96,
-   "fired": 13,
+   "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "b6da7667810315ec61332192e1454db6059483a694863510e99d27b8f0f8f735",
+   "fingerprint": "0daaa0005ec830e825dcc87148e4bdf70c53b08a0a642a36f70cb3e2539e334e",
    "crash": null
   },
   {
@@ -1267,7 +1275,7 @@
    "fired": 17,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "bf8d6b5dc2478666958c9ab0847fe220ddcdb694ad7e7b507020407c664c5615",
+   "fingerprint": "b8222d0dfd6e802c57e6cdd6943e485bbf5b51658f8dd4022d8383d4ed9a3e4f",
    "crash": null
   },
   {
@@ -1280,7 +1288,7 @@
    "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "5ab6d06a9ab3da1b6aa3854c6780a7968d32028d07b472b784e9776f6b735fb0",
+   "fingerprint": "1ea3b2b7da90c04eb5fd6fc539d4365bd5d89ca584ad2e1ba6fe259282eba7a6",
    "crash": null
   },
   {
@@ -1293,7 +1301,7 @@
    "fired": 13,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "e9d324ba5ec664854fb284a66dbb8ff462476bc3e01344f6e3c5be0d667cca78",
+   "fingerprint": "5dacb68718fb15dce3f6cb7b02e08c317cd203c20512ea54b61a387f9c5ec2a6",
    "crash": null
   },
   {
@@ -1303,10 +1311,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 141,
-   "fired": 15,
+   "fired": 16,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "da5e56eb90a1195a876b5a7ee9b9738a4828efffea622fe180f8c7092ffd3825",
+   "fingerprint": "34cff8055d2be5573b6ebffdcea0cd2ab26cfd821606c647efdc5398a4ff12d8",
    "crash": null
   },
   {
@@ -1332,7 +1340,7 @@
    "fired": 13,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "74a3c8aed238d95bdac88853e28a58cf4854de049a93edbb5ba73bfe12982071",
+   "fingerprint": "5f1ffe045a6f97d27159c8ce9d5b6bf73a35570fd3d86d86151a6d4820ecec89",
    "crash": null
   },
   {
@@ -1345,7 +1353,7 @@
    "fired": 15,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "4c5ff412ed390231ac54f5720809274792d747e65f3d605f5bb4367c96de3d38",
+   "fingerprint": "5cbf8339721418b67cc3144de5731ebe56ab29d74adbb7d0d32565f3186157e5",
    "crash": null
   },
   {
@@ -1355,10 +1363,10 @@
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
    "acts": 131,
-   "fired": 14,
+   "fired": 15,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "69bcf9ad9f12faf1c7a03137ef71803b60a9065dd223500845ed0094ed40150a",
+   "fingerprint": "c3e5c79b8eb50e480c6f550095e80362467e860bf57022a37b0a634b77838934",
    "crash": null
   },
   {
@@ -1384,7 +1392,7 @@
    "fired": 22,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "325980ea1fea5f41b2421f3a1ce9ad41daac1eb3d71a5d2deb79709b253b2951",
+   "fingerprint": "e6cff1eb10e9241e68324450069665b2aa368d97e02d8a7d5730ae8f63eaac15",
    "crash": null
   },
   {
@@ -1402,7 +1410,7 @@
   }
  ],
  "pool_compile_seconds": 0.23,
- "wall_seconds": 97.12,
+ "wall_seconds": 99.04,
  "argv": [
   "--seeds",
   "100",

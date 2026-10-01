@@ -682,11 +682,21 @@ class Executor:
             # it journalled as ITS OWN atom boundary — one diff per
             # mutation, no double-emitted events.
             while ctx.pending_replacements:
-                repl = ctx.pending_replacements.pop(0)
+                entry = ctx.pending_replacements.pop(0)
+                repl_bindings: dict[str, Binding] | None = None
+                if isinstance(entry, tuple):
+                    # r20b (Containment Priest): a zone-change consumer
+                    # queued (record, moving card) — the action's referent
+                    # selector ("exile it") resolves against the binding
+                    # the die lane uses.
+                    repl, event_card = entry
+                    repl_bindings = {"event": [event_card]}
+                else:
+                    repl = entry
                 inner = self._ctx(
                     source=repl.source,
                     controller=repl.controller,
-                    bindings=None,
+                    bindings=repl_bindings,
                     decisions=(),
                 )
                 # r19a: the CR 614.4a chain guard travels with the action —

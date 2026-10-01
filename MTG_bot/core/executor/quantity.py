@@ -143,9 +143,14 @@ class ExecCtx:
     one_of_window: tuple[Handle, ...] = ()
     # 12d: damage replacements consume the event and queue their ACTION;
     # the action runs AFTER the consuming atom's journal boundary (one diff
-    # per mutation — no double-emitted events), by the executor's run_atom
-    # wrapper draining this list.
-    pending_replacements: list[ReplacementRecord] = field(default_factory=list)
+    # per mutation — no double-emitted events). r20b (Containment Priest):
+    # a ZONE-CHANGE replacement queues ``(record, moving card)`` so the
+    # drain can bind the moving card as ``event`` for the action's
+    # referent selector (the die-lane convention) — the damage/life lanes
+    # keep bare records and a bindings-less action ctx.
+    pending_replacements: list[ReplacementRecord | tuple[ReplacementRecord, Handle]] = (
+        field(default_factory=list)
+    )
     # r19a (Life Goes On): the CR 614.4a loop guard — the seqs of the
     # replacement records that already consumed an event in THIS chain.
     # A replacement's own ACTION runs with the producing record's seq in
@@ -1022,6 +1027,25 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             elif not controller_matches(atom.zone.controller, caster, ctx):
                 continue
             return True
+        return False
+    if pred is FAtomPred.WAS_CAST_THIS_TURN:
+        # r20b (Containment Priest, R5-1): the zone-agnostic twin of
+        # CAST_THIS_TURN_FROM — "it was cast this turn (by who)". Same 13b
+        # KIND_CAST rows (emitted at 601.2h, before resolution, so the row
+        # is already journalled by the time a enters-the-battlefield
+        # replacement judges it: the Priest spares its own casting spell
+        # and every other cast creature, but not a put-onto-the-battlefield
+        # creature — which never passed through the stack).
+        from MTG_bot.core.executor.events import KIND_CAST
+        from MTG_bot.core.executor.selectors import controller_matches
+
+        assert atom.who is not None
+        for e in _turn_rows(ctx, pred.name):
+            if e.kind != KIND_CAST or e.subject != handle:
+                continue
+            caster = e.cast[0]
+            if controller_matches(atom.who, caster, ctx):
+                return True
         return False
     if pred is FAtomPred.DIED_THIS_TURN:
         # 14d (B-7): the C18 row. CREATURE_DIES carries the was-snapshot

@@ -2276,3 +2276,15 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | traces | **10/10 seeds IDENTICAL — 0 diverging, no repin** | `tools/traces/catalog.py compare` | new drains never fire in sim corpus |
 | games | **0 crash classes / 100 seeds**; 85 survived, mean 57.4 turns | `python -m MTG_bot.core.executor.games --seeds 100 --pool all` | `reports/games_2026-10-01.json` |
 | lint/type | pyright **0** · ruff **Δ0 vs HEAD** (all 5 changed files) | `pyright <files>` · `ruff check --stdin-filename …` | one self-introduced I001 fixed |
+
+## 2026-10-01 (wave-3 fix batch B / r20b — trigger-feed, replacement & disclosure lanes)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| r20b batch | **4/5 suspects fixed & promoted; 1 compiler-STOP** (warden/targeting, hooded/player-subject, priest/zone-replacement, snoop/disclosure; rin mis-split → backlog) | `.venv/bin/python tools/run_scenarios.py --dir tools/scenarios` | see 12-wave3-fix-b.md |
+| runner gate | **200/200** (196 baseline + 4) | `tools/run_scenarios.py --dir tools/scenarios` | rin stays a suspect (registers loud; not promotable) |
+| suite gate | **2196 passed** (2182 + 14 new) | `.venv/bin/python -m pytest MTG_bot/core -q` | `test_executor_r20b.py` new; full-tree 23 fails == HEAD pre-existing (rule_engine/strategic_brain, verified in HEAD worktree) |
+| grammar gate | PC-1 **301/305** · PC-2 **634/639** · PC-3 0 · PC-4 **exact** | `tools/measure_grammar.py --with-engine-flags` | PC-6/PC-8 pre-existing fails; PC-7 deferred |
+| traces | 9/10 diverge (pure TARGETING insertions @ designation) → **repin 6162 entries → 0/10** | `tools/traces/catalog.py repin && … compare` | reconcile evidence: first diff per seed = TARGETING row above CAST row |
+| games | **0 crash classes / 100 seeds**; 85 survived, mean 57.4 turns | `python -m MTG_bot.core.executor.games --seeds 100 --pool all` | identical to r20a baseline |
+| lint/type | pyright **0 errors** · ruff **Δ0 vs HEAD** | `pyright MTG_bot/core/executor …` · `ruff check` vs HEAD worktree | 4 self-introduced lint items fixed |

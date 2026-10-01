@@ -69,6 +69,7 @@ from MTG_bot.core.ability_tree import (
     FAtomPred,
     Filter,
     FNot,
+    FOr,
     Keyword,
     LifeGainedEvent,
     LoyaltyActivatedEvent,
@@ -104,6 +105,7 @@ from MTG_bot.core.executor.events import (
     KIND_DECLARE_BLOCKERS,
     KIND_LIFE_GAINED,
     KIND_TAP_STATE,
+    KIND_TARGETING,
     KIND_TURN_PHASE,
     KIND_ZONE_CHANGE,
     GameEvent,
@@ -138,13 +140,16 @@ MAX_TRIGGER_FIRES = 200
 # the blocker step ships the feed (journal DECLARE_BLOCKERS rows, one per
 # declaration PAIR: subject = the blocker, data = (attacker, group)) and
 # :meth:`TriggerBinder._match_node` subscribes both node kinds.
+# r20b (Warden of the Woods): TargetingEvent LEFT too — the three
+# designation lanes (spell 601.2c plan, activation 602.2b, the 18b trigger
+# channel) ship the journal TARGETING feed and ``_match_node`` subscribes
+# the node (filter over the designated object, the grammar's only slot).
 _UNSUPPORTED_EVENTS: dict[type, str] = {
     LoyaltyActivatedEvent: "12c (loyalty activations)",
     StepEvent: (
         "12e (step-level subscription emitter; 12d's untap tick is an "
         "executor step that emits TapState/phase events, not StepEvents)"
     ),
-    TargetingEvent: "12c (target designation)",
 }
 
 # Delayed-trigger window tags the end-of-turn sweep expires. ``UntilNextTurn``
@@ -173,6 +178,49 @@ def _is_subject_identity(filter_: Filter) -> bool:
     raise stays for every other filter: its preds read card data a player
     handle does not carry."""
     return isinstance(filter_, FAtom) and filter_.pred is FAtomPred.IS_SOURCE
+
+
+# r20b (Hooded Blightfang): the preds whose answer over a PLAYER subject
+# is decidable without reading any card data — a player IS none of these
+# things, so each honest answer is FALSE (and TRUE under FNot). The rest
+# of the vocab genuinely reads card data a player handle does not carry,
+# and keeps the 12c raise: flag, never guess.
+_PLAYER_SHAPE_PREDS = frozenset(
+    {
+        FAtomPred.TYPE_EQ,
+        FAtomPred.SUBTYPE_EQ,
+        FAtomPred.SUPERTYPE_EQ,
+        FAtomPred.NAME_EQ,
+        FAtomPred.NAME_CONTAINS,
+        FAtomPred.KEYWORD_HAS,
+        FAtomPred.IS_TOKEN,
+        FAtomPred.IS_PERMANENT,
+    }
+)
+
+
+def _player_subject_verdict(filter_: Filter, subject: Handle, ctx: ExecCtx) -> bool:
+    """16a (Brash)'s identity reading, widened r20b: the boolean-algebra
+    closure over the decidable player-subject preds. A player subject can
+    never BE a card-shape thing, so those atoms answer FALSE outright; a
+    player's CONTROLLER_IS is honestly the player itself. The nodes
+    compose. Any pred outside the decidable set keeps the original 12c
+    raise verbatim."""
+    if isinstance(filter_, FAnd):
+        return all(_player_subject_verdict(c, subject, ctx) for c in filter_.children)
+    if isinstance(filter_, FOr):
+        return any(_player_subject_verdict(c, subject, ctx) for c in filter_.children)
+    if isinstance(filter_, FNot):
+        return not _player_subject_verdict(filter_.inner, subject, ctx)
+    if isinstance(filter_, FAtom):
+        if filter_.pred in _PLAYER_SHAPE_PREDS and filter_.who is None:
+            return False
+        if filter_.pred is FAtomPred.CONTROLLER_IS and filter_.who is not None:
+            # a player is its own controller (CR 109.5's player half)
+            return controller_matches(filter_.who, subject, ctx)
+    raise NotImplementedError(
+        "executor: DamageDealtEvent filter over a player subject is 12c's query surface"
+    )
 
 
 def _compile_bridge(compiled: object) -> CardRecord:
@@ -733,6 +781,22 @@ class TriggerBinder:
             return controller_matches(node.controller, event.subject, ctx)
         if kind == KIND_CAST and isinstance(node, CastSpellEvent):
             return self._match_cast(node, event, source, controller)
+        if kind == KIND_TARGETING and isinstance(node, TargetingEvent):
+            # r20b (Warden of the Woods): the designation feed — the filter
+            # reads the DESIGNATED object (IS_SOURCE = "whenever THIS
+            # becomes the target of a spell or ability"). A PLAYER subject
+            # (a Duress-shaped cast) is answered with the same honest
+            # three-valued shape as the damage lane: card-shape preds are
+            # FALSE outright, undecidable preds keep the 12c raise.
+            assert event.subject is not None  # the row names its object
+            ctx = self._match_ctx(source, controller, event)
+            if event.subject.namespace == "player":
+                if _is_universal(node.filter):
+                    return True
+                if _is_subject_identity(node.filter):
+                    return False
+                return _player_subject_verdict(node.filter, event.subject, ctx)
+            return eval_filter(node.filter, event.subject, ctx)
         return False  # no subscriber shape for this journalled kind
 
     def _match_cast(
@@ -893,10 +957,12 @@ class TriggerBinder:
                 return True
             if _is_subject_identity(node.filter):
                 return False  # 16a: a player is never the source CARD (Brash)
-            raise NotImplementedError(
-                "executor: DamageDealtEvent filter over a player subject "
-                "is 12c's query surface"
-            )
+            # r20b (Hooded Blightfang): the player-damage row must be
+            # ANSWERABLE by a card-shape filter — the Blightfang's "deals
+            # combat damage to a planeswalker" node reads SUPERTYPE_EQ over
+            # its subject, and a player is honestly not one: FALSE, not a
+            # crash. Undecidable preds keep the 12c raise.
+            return _player_subject_verdict(node.filter, subject, ctx)
         assert subject is not None  # a damage event always names its subject
         return eval_filter(node.filter, subject, ctx)
 
@@ -1076,6 +1142,15 @@ class TriggerBinder:
                 ctx.bindings["target"] = next(
                     h for h in sorted(opponents) if str(h) == answer
                 )
+            # r20b: TARGETING feed — a genuine designation made here is an
+            # event (pre-bound firings never reach this method). The empty
+            # CR 603.4 set emits nothing.
+            designated = ctx.bindings["target"]
+            self.executor.journal.emit_targeting(
+                ctx.source,
+                ctx.controller,
+                designated if isinstance(designated, list) else [designated],
+            )
             return
         selector = selectors[0]
         from MTG_bot.core.executor.query import (  # cycle-free at call time
@@ -1127,6 +1202,9 @@ class TriggerBinder:
             picks.append(pick)
             pool.remove(pick)
         ctx.bindings["target"] = picks if len(picks) != 1 else picks[0]
+        # r20b: TARGETING feed — see the player-slot note above; an empty
+        # pick list (impossible past the zero-candidate return) emits none.
+        self.executor.journal.emit_targeting(ctx.source, ctx.controller, picks)
 
     def _ctx(
         self,

@@ -615,9 +615,14 @@ class TestRaises(BindingCase):
         # AMENDED 2026-10-02 (round 16c): DeclareBlockersEvent +
         # BecomesBlockedEvent LEFT this list too — the blocker step ships
         # the feed (DECLARE_BLOCKERS pair rows, binder matchers) and both
-        # bind CLEAN (checked below). Targeting/step raises stay.
+        # bind CLEAN (checked below). Step raises stays.
+        # AMENDED 2026-10-01 (round 20b): TargetingEvent LEFT this list —
+        # the designation feed ships (journal.emit_targeting rows at the
+        # cast 601.2c designation, the folded activate and the trigger
+        # designation lane; binding.py._match_node KIND_TARGETING subscribes
+        # them; firing semantics pinned in test_executor_r20b — Warden of
+        # the Woods lane).
         for event in (
-            TargetingEvent(filter=UNIV),
             StepEvent(Phase.COMBAT, Step.DECLARE_ATTACKERS, ControllerRef.YOU),
         ):
             with (
@@ -640,15 +645,18 @@ class TestRaises(BindingCase):
         # SUBJECT over the blocker, blocked over the attacker, the anchored
         # BecomesBlockedEvent reading — are pinned in test_executor_blockers).
         self.assertEqual(
-            self.attach_trigger(
-                self.watch, DeclareBlockersEvent(filter=UNIV), gain(1)
-            ),
+            self.attach_trigger(self.watch, DeclareBlockersEvent(filter=UNIV), gain(1)),
             1,
         )
         self.assertEqual(
-            self.attach_trigger(
-                self.watch, BecomesBlockedEvent(filter=UNIV), gain(1)
-            ),
+            self.attach_trigger(self.watch, BecomesBlockedEvent(filter=UNIV), gain(1)),
+            1,
+        )
+        # 20b: the designation feed binds clean (the TARGETING row matcher,
+        # the player-subject guard and the IS_SOURCE/IS_TARGET semantics
+        # are pinned in test_executor_r20b).
+        self.assertEqual(
+            self.attach_trigger(self.watch, TargetingEvent(filter=UNIV), gain(1)),
             1,
         )
 

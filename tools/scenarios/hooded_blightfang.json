@@ -1,0 +1,45 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "b",
+   "real": "Hooded Blightfang",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "p",
+   "real": "Concordia Pegasus",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "b": true,
+    "p": true
+   }
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 21,
+   "1": 17
+  },
+  "battlefield_keywords": {
+   "Hooded Blightfang": [
+    "DEATHTOUCH"
+   ]
+  }
+ },
+ "notes": "Printed: Deathtouch; 'Whenever a creature you control with deathtouch attacks, each opponent loses 1 life and you gain 1 life.' Both creatures attack: 2 combat damage (1+1) plus the deathtouch-attacker drain (opponent -1, me +1) = life 1:17 / 0:21. The Pegasus attack must NOT fire the drain a second time - if it did, life would read 0:22 / 1:16 (negative control folded into the exact numbers)."
+}

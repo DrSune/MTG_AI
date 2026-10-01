@@ -72,10 +72,16 @@ from MTG_bot.core.ability_tree import (
     ReplacementAbility,
     Step,
     TapStateEvent,
+    Zone,
+    ZoneChangeEvent,
+    ZoneKind,
 )
 from MTG_bot.core.executor.durations import duration_tag
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
-from MTG_bot.core.executor.selectors import controller_matches
+from MTG_bot.core.executor.selectors import (
+    ZONE_KIND_TO_STATE,
+    controller_matches,
+)
 from MTG_bot.core.identity import Handle
 
 if TYPE_CHECKING:  # pragma: no cover - typing-only
@@ -462,6 +468,78 @@ class ReplacementRegistry:
                 decisions=(),
             )
             if not eval_filter(event.filter, card, rec_ctx):
+                continue
+            if not self._condition_holds(rec, card, rec_ctx):
+                continue
+            return rec
+        return None
+
+    def _endpoint_matches(
+        self,
+        zone_ir: Zone | None,
+        state_kind: str | None,
+        card: Handle,
+        ctx: ExecCtx,
+    ) -> bool:
+        """One ZoneChangeEvent endpoint vs the about-to-happen move — the
+        binding-side ``_zone_matches`` convention (12b) reused verbatim so
+        the trigger lane and the replacement lane read endpoints alike:
+        ANY matches, a created object's missing ``from`` matches ANY, and
+        OWNER scopes to the card's owner (who in this frozen model is
+        exactly the zone owner)."""
+        if zone_ir is None or zone_ir.kind is ZoneKind.ANY:
+            return True
+        want = ZONE_KIND_TO_STATE.get(zone_ir.kind)
+        if want is None or state_kind is None or want != state_kind:
+            return False
+        ref = zone_ir.controller
+        if ref is ControllerRef.ANY or ref is ControllerRef.OWNER:
+            return True
+        return controller_matches(ref, self.world.controller_of(card), ctx)
+
+    def replacement_for_zone_change(
+        self,
+        card: Handle,
+        from_state: str | None,
+        to_state: str,
+        replaced_seq: frozenset[int] = frozenset(),
+    ) -> ReplacementRecord | None:
+        """r20b (Containment Priest): the apply-pipeline interceptor for a
+        ZONE-CHANGE event — the enter lane mirrors the death hook
+        (C24 replacement-before-apply): ``_v_move_zone`` consults this
+        BEFORE the battlefield move, and a match consumes the enter (no
+        battlefield placement; the action — EXILE referent=event — runs
+        through the pending-replacement drain with the moving card bound
+        as ``event``, exactly like the die lane).
+
+        CONTROLLER RULE as in the other lanes: every predicate is judged
+        in the RECORD's coordinates. The WAS_CAST_THIS_TURN condition
+        reads the journalled 601.2h CAST rows, so a spell that cast its
+        way onto the battlefield is spared and a put-onto creature (which
+        never touched the stack) is not. The CR 614.4a chain guard rides
+        ``replaced_seq``; a Permanent-sourced record must still be on the
+        battlefield, the Eot half is exempt."""
+        for rec in sorted(self.replacements, key=lambda r: r.seq):
+            event = rec.event
+            if not isinstance(event, ZoneChangeEvent):
+                continue
+            if rec.status != "live" or rec.seq in replaced_seq:
+                continue
+            if rec.tag == "Permanent" and not self._source_alive(rec.source):
+                continue
+            rec_ctx = self.executor._ctx(
+                source=rec.source,
+                controller=rec.controller,
+                bindings={"event": [card]},
+                decisions=(),
+            )
+            if not self._endpoint_matches(event.to_zone, to_state, card, rec_ctx):
+                continue
+            if not self._endpoint_matches(event.from_zone, from_state, card, rec_ctx):
+                continue
+            if event.subject is not None and not eval_filter(
+                event.subject, card, rec_ctx
+            ):
                 continue
             if not self._condition_holds(rec, card, rec_ctx):
                 continue
