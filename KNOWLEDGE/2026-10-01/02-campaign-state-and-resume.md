@@ -83,3 +83,8 @@ compiler-limited STOPs, routed). Resume point now: wave-3 derivation (statics/ke
 Full loop; see /14-wave3-closeout.md. Packs 204, suite 2213, ledger 8 (compiler backlog, incl.
 creature-spell-node systemic question). Promotion law hardened (MOVE+STRIP, one dir per card).
 Resume point now: wave-4 derivation (mana/activation cohort).
+
+## Addendum — wave 4 CLOSED (2026-10-01)
+See /20-wave4-closeout.md. Packs 248, suite 2239, ledger 12 = ALL compiler-campaign routed;
+zero open engine-side suspects. Next: whole-corpus coverage audit (which cards belong to no
+family and lack a pack) to decide wave 5 or corpus-complete declaration.

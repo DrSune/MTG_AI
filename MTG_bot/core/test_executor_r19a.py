@@ -206,12 +206,25 @@ class DiedThisTurnTest(BindingCase):
     def test_other_creature_still_answers_false(self):
         # Gadrak / Liliana's Standard Bearer census: a creature-typed
         # handle that did not die is NOT "a creature that died".
+        # AMENDED 2026-10-01 (round 21b): the strict per-handle reading
+        # now ALSO requires the handle to be OFF the battlefield — a
+        # battlefield creature can never itself be the dead one, so its
+        # gate is the existential reading (Caged Zombie's activation
+        # source). The graveyard handle keeps the strict False below.
         other = self.world.add_card(
             card_id("Bystander", "1", "1"), self.p0, ZONE_BATTLEFIELD
         )
         self.kill_watch()
-        self.assertFalse(
+        self.assertTrue(
             _eval_atom(_is(FAtomPred.DIED_THIS_TURN), other, self.ctx(source=other))
+        )
+        graveyard = self.world.add_card(
+            card_id("Grave Bystander", "1", "1"), self.p0, ZONE_GRAVEYARD
+        )
+        self.assertFalse(
+            _eval_atom(
+                _is(FAtomPred.DIED_THIS_TURN), graveyard, self.ctx(source=graveyard)
+            )
         )
 
     def test_player_and_spell_read_existentially(self):
@@ -390,7 +403,6 @@ class LoyaltyIdentityTest(unittest.TestCase):
             power=None,
             toughness=None,
             loyalty=5,
-        
         )
         ident = identity_of(rec)
         self.assertEqual(ident.loyalty, "5")

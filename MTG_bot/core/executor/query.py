@@ -247,7 +247,7 @@ def legal_activations(
             if ability_playable(world, executor, handle, idx, seat=seat) is not None:
                 continue
             ctx = ctx_for(executor, source=handle, controller=seat)
-            plan, _ = build_payment_plan(world, ctx, ability.cost)
+            plan, _ = build_payment_plan(world, ctx, ability.cost, activation=handle)
             assert plan is not None  # ability_playable just greenlit
             options.append(
                 ActivationOption(
@@ -270,7 +270,7 @@ def legal_activations(
             if ability_playable(world, executor, handle, idx, seat=seat) is not None:
                 continue
             ctx = ctx_for(executor, source=handle, controller=seat)
-            plan, _ = build_payment_plan(world, ctx, node.cost)
+            plan, _ = build_payment_plan(world, ctx, node.cost, activation=handle)
             assert plan is not None  # ability_playable just greenlit
             options.append(
                 ActivationOption(

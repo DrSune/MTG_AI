@@ -415,6 +415,15 @@ def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
         # question, the established flag-never-guess rule).
         handles = ctx.binding_handles("result")
         if handles is None:
+            # r21b (Basri Ket's -2): the trigger-antecedent reading. When
+            # the "that many" rides a DECLARE_ATTACKERS-triggered effect
+            # there IS no preceding producer atom — the DECLARATION itself
+            # is the antecedent set, and 21b's _fire records the whole
+            # declaration group under this register. The ``result``
+            # register keeps strict precedence (Kinetic Augur stays on the
+            # producer path); this fallback only answers when it is absent.
+            handles = ctx.binding_handles("declare_attackers")
+        if handles is None:
             raise NotImplementedError(
                 "executor: THAT_MANY_COUNT has no producer register — no "
                 "preceding atom wrote the result register in this resolution"
@@ -842,6 +851,32 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 if counted >= threshold:
                     return True
         return counted >= threshold
+    if pred is FAtomPred.CONTROLLER_COUNT_GT:
+        # r21b (Garruk, Unleashed's -2, grammar round 8 R8-9): the DUAL-
+        # filter population comparison "if an opponent controls more
+        # <inner_filter> than you <right_inner_filter>". The two sides
+        # carry their OWN CONTROLLER_IS atoms (the compiled Garruk atom:
+        # inner = Creature AND CONTROLLER_IS OPPONENT, right_inner =
+        # Creature AND CONTROLLER_IS YOU), so each side's count is just
+        # its filter over the battlefield population — the same handle-
+        # free WORLD count the GE sibling defines, and the pack's
+        # printed direction is the ground truth (an opponent's 3 Thrulls
+        # over your new Beast → TRUE, loyalty counter). Two-player
+        # reading: any-opponent existence and the global opponent count
+        # coincide whenever one opponent holds the maximum, which is the
+        # corpus shape.
+        assert atom.inner_filter is not None
+        assert atom.right_inner_filter is not None
+
+        def _bf_count(filt) -> int:
+            return sum(
+                1
+                for card in sorted(world.cards)
+                if world.zone_of(card).kind == ZONE_BATTLEFIELD
+                and eval_filter(filt, card, ctx)
+            )
+
+        return _bf_count(atom.inner_filter) > _bf_count(atom.right_inner_filter)
     if pred is FAtomPred.ZONE_COUNT_GE:
         # Grammar round 6 (R6-2, Thieves' Guild Enforcer): "<who> has >=
         # count cards in their <zone> matching inner_filter". Handle-free
@@ -1085,11 +1120,24 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # Liliana's Standard Bearer), so their strict per-handle reading —
         # "did THIS creature die" — is untouched; a creature-typed handle
         # that did not die still answers False.
+        # r21b (Caged Zombie / Sabertooth Mauler / Liliana's Devotee):
+        # the strict per-handle reading now ALSO requires the handle to
+        # be OFF the battlefield — a creature sitting on the battlefield
+        # is, by definition, not the dead creature, so its condition
+        # gate can only ever be the EXISTENTIAL "if a creature died this
+        # turn" reading (the activation-source case the r19a note already
+        # covers for non-creature types; the creature-typed battlefield
+        # source was the overlooked twin). Graveyard / exile / hand
+        # creature-typed handles keep the strict reading (Gadrak's
+        # graveyard census, Liliana's Standard Bearer), and a handle
+        # that IS one of the dead creatures still answers True via the
+        # subject-match above.
         creature_typed = (
             handle.namespace == "card"
             and handle in world.cards
             and "Creature"
             in set(_type_line_tokens(world.cards[handle].identity.type_line))
+            and world.zone_of(handle).kind != ZONE_BATTLEFIELD
         )
         if not creature_typed:
             return bool(dies)

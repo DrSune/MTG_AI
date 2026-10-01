@@ -1,10 +1,8 @@
 {
- "status": "suspect",
  "world": {
   "life": 20,
   "seed": 7
  },
- "finding": "PRINTED: '[\u22122]: Create a 3/3 green Beast creature token. Then if an opponent controls more creatures than you, put a loyalty counter on Garruk.' ENGINE(observed): the activation raises \"NotImplementedError: executor: filter pred CONTROLLER_COUNT_GT not implemented (12c query surface)\" \u2014 the 'an opponent controls more creatures than you' comparison predicate has no executor implementation, so the WHOLE -2 ability (including the unconditional Beast creation) cannot resolve. No token, no loyalty movement, refusal via exception not legality.",
  "notes": "+1 is green in garruk_unleashed.json. Three opponents-side 1/1s satisfy the printed Then-if.",
  "cards": [
   {

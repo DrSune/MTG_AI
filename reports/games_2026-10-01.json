@@ -5,19 +5,19 @@
  "playable_engine": 88,
  "n_games": 100,
  "turn_cap": 60,
- "survived": 85,
- "survival_pct": 85.0,
- "mean_turns": 57.39,
+ "survived": 86,
+ "survival_pct": 86.0,
+ "mean_turns": 57.69,
  "max_turns": 60,
- "total_acts": 12365,
- "multi_target_skips": 59,
- "infeasible_skips": 2704,
- "player_target_designations": 46,
- "combat_losses": 13,
+ "total_acts": 12418,
+ "multi_target_skips": 60,
+ "infeasible_skips": 2716,
+ "player_target_designations": 47,
+ "combat_losses": 12,
  "coverage_fired": 84,
  "coverage_fired_of_pool_pct": 28.1,
  "coverage_fired_of_engine_pct": 28.9,
- "coverage_battlefield": 31,
+ "coverage_battlefield": 32,
  "fired_of_engine": [
   "Alchemist's Gift",
   "Angelic Ascension",
@@ -103,8 +103,8 @@
  "crash_games": 0,
  "crashes": [],
  "reasons": {
-  "turn cap 60 reached": 83,
-  "game over: player:0": 8,
+  "turn cap 60 reached": 84,
+  "game over: player:0": 7,
   "game over: player:1": 9
  },
  "rows": [
@@ -517,11 +517,11 @@
    "turns": 60,
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
-   "acts": 132,
+   "acts": 128,
    "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "aef227db131185f4db3c364726c9d2ad965e5555b135f266632d71ce3701b80b",
+   "fingerprint": "34e8c6ef61b1f1331bd52e40d8350329af2b6104c3096cfd0e681fdda3a5e112",
    "crash": null
   },
   {
@@ -569,11 +569,11 @@
    "turns": 60,
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
-   "acts": 137,
+   "acts": 146,
    "fired": 17,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "22dea4a7a6cd706839ce7d8ddc0ec0a28cb752607c7450582f6ddd1dc3e44f4c",
+   "fingerprint": "8860afcd5d732659de5ba4cf1696b9d12a7cb8045c039c8d8bdd78506b1ed86e",
    "crash": null
   },
   {
@@ -599,7 +599,7 @@
    "fired": 15,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "224b8168df3f6c9afd069d0a3ef7226473a4ea2f170b9e6075148819f1b288c6",
+   "fingerprint": "d632ac7caf70c697e3cf98dae25dbf37abe73c96ec1f930fa571c8243119031e",
    "crash": null
   },
   {
@@ -647,11 +647,11 @@
    "turns": 60,
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
-   "acts": 131,
-   "fired": 26,
+   "acts": 125,
+   "fired": 24,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "07ca206f075322e3d4db86606b1758acf411bbbe4bae89a3a8a9a535b8bec695",
+   "fingerprint": "5f148e8a03c4afe700664c15a0b7d3728e3fa693f2e1e9cd0c95602fea46e6b7",
    "crash": null
   },
   {
@@ -699,11 +699,11 @@
    "turns": 60,
    "survived": true,
    "reason": "turn cap 60 reached (no loser)",
-   "acts": 131,
-   "fired": 14,
+   "acts": 129,
+   "fired": 15,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "96d8d54779bd3677ecb28a2202bd625aa96cba6c4a01a54d289552c37d7019d6",
+   "fingerprint": "3f987d33c170c34b237298e04b4a356c2291a8b28f4f562771e5fcb235eefbdc",
    "crash": null
   },
   {
@@ -1106,7 +1106,7 @@
    "fired": 12,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "6c5f4e024ea060ad37a784b071c6df2d09ba0d703a24afaaa9911b3296e176ed",
+   "fingerprint": "79c2ee5a5bf870a989efee6fd12464fde8ad62c39c68a0100ede1880f95ace0b",
    "crash": null
   },
   {
@@ -1294,14 +1294,14 @@
   {
    "seed": 91,
    "pool": "all",
-   "turns": 30,
-   "survived": false,
-   "reason": "game over: player:0(life<=0)",
-   "acts": 72,
-   "fired": 13,
-   "combat_losses": 1,
+   "turns": 60,
+   "survived": true,
+   "reason": "turn cap 60 reached (no loser)",
+   "acts": 128,
+   "fired": 24,
+   "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "5dacb68718fb15dce3f6cb7b02e08c317cd203c20512ea54b61a387f9c5ec2a6",
+   "fingerprint": "35e16256249453c310c2f1e0d74f9fc69f57862c4e6169550efe7093cf400574",
    "crash": null
   },
   {
@@ -1409,8 +1409,8 @@
    "crash": null
   }
  ],
- "pool_compile_seconds": 0.19,
- "wall_seconds": 99.91,
+ "pool_compile_seconds": 0.2,
+ "wall_seconds": 97.06,
  "argv": [
   "--seeds",
   "100",

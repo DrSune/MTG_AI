@@ -1,10 +1,8 @@
 {
- "status": "suspect",
  "world": {
   "life": 20,
   "seed": 7
  },
- "finding": "PRINTED: '{2}: Put target card from your graveyard on the bottom of your library.' ENGINE(observed): the corpse moves, but lands on TOP \u2014 behaviorally proven by the next turn's draw: after a full cycle the top library card is 'Library 5' and hand count 2 (the Chaff was drawn on begin_turn, entries [L0..L5, Chaff] before the cycle). Root cause: the grammar's ZonePosition.BOTTOM exists (ability_tree.py:328) and verbs.py honors destination.position == BOTTOM ('See the Truth' r19b), but Epitaph Golem's compiled atom carries destination=Zone(LIBRARY, controller=YOU, position=None) \u2014 the compiler drops BOTTOM and the move defaults to the top.",
  "notes": "graveyard empty + hand 2 pass in both worlds; the library lane is the divergence witness (printed-correct: Chaff at the bottom survives the cycle draw).",
  "mana": {
   "0": {

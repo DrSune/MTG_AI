@@ -1,11 +1,9 @@
 {
- "status": "suspect",
  "world": {
   "life": 20,
   "seed": 7
  },
- "finding": "PRINTED: '{1}{B}, {T}: Each opponent loses 2 life. Activate only if a creature died this turn.' ENGINE(observed): after combat settles the Skyscanner's death the journal carries a CREATURE_DIES row in this turn window (probe: died rows include the bird), yet the activation raises 'illegal activation: condition:false' \u2014 the compiled DIED_THIS_TURN condition is read strictly as 'THIS creature died' (the zombie can never legally activate its own ability, since it must be untapped to die) instead of 'a creature died'.",
- "notes": "deal_damage does not settle death rows \u2014 the kill is done with real combat (blocker dies).",
+ "notes": "deal_damage does not settle death rows \u2014 the kill is done with real combat (blocker dies). | 21b: expect.damage pins the tiger's 1 remaining combat mark (CR 120.4 the mark persists until the cleanup step; end_turn clears).",
  "mana": {
   "0": {
    "C": 1,
@@ -63,6 +61,9 @@
   },
   "tapped": {
    "zombie": true
+  },
+  "damage": {
+   "tiger": 1
   }
  }
 }

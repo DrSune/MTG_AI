@@ -1022,6 +1022,26 @@ class TriggerBinder:
         decision stream (14b, B-4)."""
         event = payload.event
         ctx = self._ctx(payload.source, payload.controller, event)
+        # r21b (Basri Ket's -2): a DECLARE_ATTACKERS firing records its WHOLE
+        # declaration group — every journalled attacker row sharing the
+        # event's group id — into a dedicated ``declare_attackers`` register.
+        # The granted "whenever … attacks, create a token" continuation
+        # counts the attackers with THAT_MANY_COUNT, whose primary reading
+        # is the in-resolution ``result`` register (Kinetic Augur's
+        # precedence, untouched); the group register is the fallback that
+        # answers when the trigger itself IS the antecedent (no producer
+        # atom ran in this resolution). Rows are journalled at declaration
+        # time, before the matcher drains any firing (16b's group dedup
+        # already relies on that ordering), so the group is complete here.
+        if event.kind == KIND_DECLARE_ATTACKERS and event.subject is not None:
+            group = event.declare_group
+            ctx.bindings["declare_attackers"] = [
+                e.subject
+                for e in self.executor.journal.turn_window()
+                if e.kind == KIND_DECLARE_ATTACKERS
+                and e.declare_group == group
+                and e.subject is not None
+            ]
         node = payload.node
         if node.condition is not None:
             subject = event.subject if event.subject is not None else payload.source

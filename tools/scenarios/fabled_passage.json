@@ -71,7 +71,10 @@
     "*",
     "*"
    ]
+  },
+  "tapped": {
+   "s1": false
   }
  },
- "notes": "Working half: tap+sacrifice cost, search-by-prompt-key delivers the named basic land, library shuffles (6 '*' wildcards). s2 (last lib entry) absorbs the setup draw so s1 stays findable. This rig controls 4 lands post-search, so per the printed conditional clause the land SHOULD be untapped \u2014 no tapped lane asserted here; the 'onto the battlefield tapped' clause for <4 lands is falsified in fabled_passage_enters_tapped.json."
+ "notes": "Working half: tap+sacrifice cost, search-by-prompt-key delivers the named basic land, library shuffles (6 '*' wildcards). s2 (last lib entry) absorbs the setup draw so s1 stays findable. This rig controls 4 lands post-search, so per the printed conditional clause the land ends UNTAPPED. 21b FALSIFIABILITY PIN: the tapped[s1]=false assertion is byte-green today only because the compiler drops the printed 'onto the battlefield tapped' clause (tapped_on_enter STOP, see the fabled_passage_enters_tapped.json suspect) and the Conditional UNTAP no-ops; the moment tapped_on_enter compiles, the UNTAP MUST fire or this assertion goes red \u2014 the true branch is pinned, and the <4-lands FALSE branch stays falsified in the suspect pack."
 }

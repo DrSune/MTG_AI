@@ -489,6 +489,7 @@ def build_payment_plan(
     cost: Cost,
     *,
     mana_use: Handle | None = None,
+    activation: Handle | None = None,
 ) -> tuple[PaymentPlan | None, str | None]:
     """Fold one :class:`Cost` against the world into the canonical
     :class:`PaymentPlan`, or a machine-readable reason string.
@@ -568,13 +569,29 @@ def build_payment_plan(
     generic_add = 0
     generic_cut = 0
     extra_life = 0
+    # r21b (Sanctum of Tranquil Light): the fold now ALSO runs on the
+    # ACTIVATION lane — "activated abilities … cost less" cards compile a
+    # CostModifier whose IS_SOURCE filter reads the ABILITY'S SOURCE, and
+    # with mana_use None the whole lane was dead, silently charging the
+    # printed cost. The activation shape stays pinned to the verified
+    # corpus: only a modifier whose filter is exactly ``FAtom(IS_SOURCE)``
+    # folds there (the discount describes the host's OWN ability), so no
+    # cast-lane reduction (Vryn/Watcher's blanket auras, Discontinuity's
+    # conditional window, TARGETS_SOURCE/IS_ANY_TARGET spell filters) can
+    # leak into an activation; and the golden audit shows Sanctum is the
+    # ONLY IS_SOURCE host that also carries an ActivatedAbility, so the
+    # cast-lane five fold exactly as before and no activation of theirs
+    # exists to fold. ``judge`` names the discounted object on both lanes.
+    judge = mana_use if mana_use is not None else activation
     if (
         ex is not None
-        and mana_use is not None
-        and mana_use == ctx.source
-        and mana_use.namespace == "card"
+        and judge is not None
+        and judge == ctx.source
+        and judge.namespace == "card"
     ):
-        mod_hosts: list[Handle] = [mana_use]
+        assert judge is not None
+        activation_lane = mana_use is None
+        mod_hosts: list[Handle] = [judge]
         for seat in world.player_order:
             mod_hosts.extend(sorted(world.players[seat].zone(ZONE_BATTLEFIELD).entries))
         for host in mod_hosts:
@@ -584,7 +601,7 @@ def build_payment_plan(
             mods = [n for n in rec.abilities if isinstance(n, CostModifier)]
             if not mods:
                 continue
-            if host == mana_use:
+            if host == judge:
                 mod_ctx = ctx  # the spell judges itself in its own seat
             else:
                 mod_ctx = ex._ctx(
@@ -595,12 +612,17 @@ def build_payment_plan(
                     x_value=ctx.x_value,
                 )
             for mod in mods:
-                if not eval_filter(mod.filter, mana_use, mod_ctx):
+                if activation_lane and not (
+                    isinstance(mod.filter, FAtom)
+                    and mod.filter.pred is FAtomPred.IS_SOURCE
+                ):
+                    continue
+                if not eval_filter(mod.filter, judge, mod_ctx):
                     continue
                 if not controller_matches(mod.controller_ref, ctx.controller, mod_ctx):
                     continue
                 if mod.condition is not None and not eval_filter(
-                    mod.condition, mana_use, mod_ctx
+                    mod.condition, judge, mod_ctx
                 ):
                     continue
                 for delta in (mod.delta, *mod.extra_deltas):
@@ -957,7 +979,7 @@ def ability_playable(
         subject = condition_ctx_source if condition_ctx_source is not None else handle
         if not eval_filter(ability.condition, subject, ctx):
             return "condition:false"
-    plan, reason = build_payment_plan(world, ctx, ability.cost)
+    plan, reason = build_payment_plan(world, ctx, ability.cost, activation=handle)
     if plan is None:
         return reason
     return None
@@ -1340,7 +1362,9 @@ def activate(
         # domain contract of activate(), whatever the wrong input was.
         raise ValueError("executor: illegal activation: ability:not_activated")
     ctx = ctx_for(executor, source=handle, controller=seat)
-    plan, plan_reason = build_payment_plan(executor.world, ctx, ability.cost)
+    plan, plan_reason = build_payment_plan(
+        executor.world, ctx, ability.cost, activation=handle
+    )
     if plan is None:  # pragma: no cover - ability_playable just checked
         raise ValueError(f"executor: illegal activation: {plan_reason}")
     pay_costs(executor, plan, source=handle, controller=seat)

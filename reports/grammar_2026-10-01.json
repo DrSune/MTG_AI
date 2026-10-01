@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-10-01T19:54:25+02:00",
-  "git_head": "4545d5853121f62bf8d3abc36dc596375327234f",
+  "generated": "2026-10-01T21:17:12+02:00",
+  "git_head": "8d4bbe7244e33d4e718b8ed336d532a35fb76a75",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -101,15 +101,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.243,
+      "value": 0.245,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
+        0.237,
         0.236,
-        0.234,
-        0.243
+        0.245
       ]
     },
     "PC-6": {
@@ -256,65 +256,5 @@
       "bucket_hint": "spell-effect"
     }
   ],
-  "unparsed_count": 5,
-  "engine_support": {
-    "engine_supported_cards": 297,
-    "of_total": 305,
-    "supported_verbs": [
-      "ADD_LAND_PLAY",
-      "ADD_MANA",
-      "ATTACH",
-      "CAST",
-      "CHOOSE",
-      "CHOOSE_NAME",
-      "CREATE_TOKEN",
-      "DAMAGE_ASSIGN_POLICY",
-      "DEAL_DAMAGE",
-      "DESTROY",
-      "DISCARD",
-      "DRAW",
-      "END_TURN",
-      "EXILE",
-      "EXTRA_TURN",
-      "FIGHT",
-      "FLIP_COIN",
-      "GAIN_CONTROL",
-      "GAIN_LIFE",
-      "GET_EMBLEM",
-      "GRANT_ABILITY",
-      "GRANT_ACTIVATION",
-      "GRANT_TYPE",
-      "LOOK_AT",
-      "LOSE_ABILITY",
-      "LOSE_GAME",
-      "LOSE_LIFE",
-      "MANA_POLICY",
-      "MANDATE_ATTACK",
-      "MANDATE_BLOCK",
-      "MILL",
-      "MODIFY_PT",
-      "MOVE_ZONE",
-      "PAY",
-      "PREVENT_EFFECT",
-      "PUT_COUNTER",
-      "REMOVE_COUNTER",
-      "REVEAL",
-      "SACRIFICE",
-      "SCRY",
-      "SEARCH",
-      "SET_PT",
-      "SHUFFLE",
-      "TAP",
-      "UNTAP"
-    ],
-    "flip_proof": {
-      "card": "Cancel",
-      "spell_ability_only": true,
-      "default_engine_supported": true,
-      "gated_engine_supported": false,
-      "offending_verbs": [
-        "COUNTER_SPELL"
-      ]
-    }
-  }
+  "unparsed_count": 5
 }

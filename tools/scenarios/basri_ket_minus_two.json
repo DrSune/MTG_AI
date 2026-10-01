@@ -1,11 +1,9 @@
 {
- "status": "suspect",
  "world": {
   "life": 20,
   "seed": 7
  },
- "finding": "PRINTED: '[\u22122]: Whenever one or more nontoken creatures attack this turn, create that many 1/1 white Soldier creature tokens that are tapped and attacking.' ENGINE(observed): the -2 activation itself passes legality, but the first Declare-Attackers ask after it raises \"NotImplementedError: executor: THAT_MANY_COUNT has no producer register \u2014 no preceding atom wrote the result register in this resolution\" \u2014 the 'that many' quantity has no producer, so the promise can never resolve. STEP FAIL repro: crash before any token row.",
- "notes": "Crashes mid-combat; tokens/life expectations below are the printed-correct state.",
+ "notes": "Printed-correct state, recomputed 21b: -2 grants the DA-trigger, declaration of tiger+wolf creates 2 tapped attacking Soldiers (group size = 'that many'), combat deals 5+2+1+1=9 -> seat 1 at 11 life; loyalty 3-2=1. The original 8 was an author misprint written while the pack crashed mid-combat.",
  "cards": [
   {
    "key": "basri",
@@ -53,7 +51,7 @@
    "Soldier": 2
   },
   "life": {
-   "1": 8
+   "1": 11
   },
   "counters": {
    "basri": {

@@ -13,6 +13,22 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.245 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-10-01 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.243 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
@@ -2384,3 +2400,15 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | suite | **2222 passed + 3 subtests, 0 failed** (2213 + 9 new r21a) | `pytest MTG_bot/core -q` | new MTG_bot/core/test_executor_r21a.py |
 | PC line | **PC-1 301/305 · PC-2 634/639 · PC-3 0 · PC-4 0** (unchanged) | `tools/measure_grammar.py --with-engine-flags` | 2026-10-01 |
 | traces | seeds 3+7 diverged by design (STATE_CHECK walker-death rows) -> repinned; compare **0/10**; games **100/100, 0 crash classes** | `tools/traces/catalog.py repin` / `build --seeds 100 --pool all --catalog /tmp` | outcome classes unchanged |
+
+## 2026-10-01 (wave-4 fix-b r21b — activation fold / dual-count pred / dies narrowing / graveyard sweep)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| r21b suspects dispositioned | **5 FIXED+promoted, 3 STOP-witnesses stand** (Sanctum = compiler NAME_EQ-instead-of-SUBTYPE census; Fabled = no tapped_on_enter TRUE branch; Furious Rise = phantom activation) | tools/audit/suspects/ + file 19 | 8 in scope; suspects dir 17 -> 12 files (two double-state suspect JSONs deleted in orchestrator audit) |
+| packs | **243 -> 248 green** (+5: basri_ket [life 11 — author 8 was misprint], caged_zombie [+damage-mark assertion], epitaph, garruk, tormods) | `.venv/bin/python tools/run_scenarios.py` -> `248/248 packs passed` | fabled_passage.json restructured with falsifiability pin `"tapped": {"s1": false}`, still green |
+| suite | **2239 passed + 3 subtests, 0 failed** (2222 + 17 new r21b; r19a DIED battlefield pin AMENDED) | `pytest MTG_bot/core -q` | new MTG_bot/core/test_executor_r21b.py |
+| games | **0 crash classes**, survived 86/100, coverage 84 cards | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all` | reports/games_2026-10-01.json |
+| traces | **0/10 diverging — NO repin** (all 7 fixes narrowly gated, traces byte-stable) | `.venv/bin/python tools/traces/catalog.py compare` | contrast r21a (2 seeds repinned) |
+| wave-4 lint | **43/43 covered, consumed** | `.venv/bin/python tools/audit/wave_builder.py --wave4 --lint` | ruff Δ0 vs HEAD on every touched file |
+| PC line | **PC-1 301/305 · PC-2 634/639 · PC-3 0 · PC-4 0** (unchanged, no IR touched) | `tools/measure_grammar.py` | 2026-10-01 (tool auto-appended its own row) |

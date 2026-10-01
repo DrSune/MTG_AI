@@ -32,6 +32,7 @@ from MTG_bot.core.ability_tree import (
     QUnbounded,
     Selector,
     SelectorMode,
+    Verb,
     Zone,
     ZoneKind,
     ZonePosition,
@@ -526,12 +527,37 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
         and value.mode is SelectorMode.CHOOSE
         and _filter_is_self_referential(value.filter)
     )
+    # r21b (Tormod's Crypt): the FOURTH self-resolving shape — the whole-
+    # graveyard sweep. "Exile target player's graveyard" compiles as an
+    # ALL-mode EXILE over Zone(GRAVEYARD, TARGET_PLAYER) with a UNIVERSAL
+    # filter (empty FAnd — the zone IS the population, there is nothing to
+    # filter); the designation names a CARD in that graveyard, and the
+    # binding-first lane exiled just the designated cards — the exact
+    # silent-semantics shape (the sweep never ran, legality stayed green).
+    # The exemption is pinned to the five verified corpus conditions: ALL
+    # mode, EXILE verb, universal empty-FAnd filter, GRAVEYARD zone,
+    # TARGET_PLAYER controller — a corpus scan of every ALL+TARGET_PLAYER
+    # selector shows ONLY Tormod's Crypt matches all five (Peer into the
+    # Abyss fails verb/zone, Duress/Kitesail/Necromentia/Teferi carry non-
+    # universal filters, Death Mage's filter is an FAtom). resolve_selector
+    # folds the card designation through players_for_ref's TARGET_PLAYER
+    # lane (controller_of) and sweeps the full graveyard.
+    graveyard_sweep = (
+        isinstance(value, Selector)
+        and value.mode is SelectorMode.ALL
+        and atom.verb is Verb.EXILE
+        and isinstance(value.filter, FAnd)
+        and not value.filter.children
+        and value.zone.kind is ZoneKind.GRAVEYARD
+        and value.zone.controller is ControllerRef.TARGET_PLAYER
+    )
     if (
         bound is not None
         and not anaphoric
         and not player_side
         and not population
         and not self_ref
+        and not graveyard_sweep
     ):
         return bound
     if isinstance(value, Selector):

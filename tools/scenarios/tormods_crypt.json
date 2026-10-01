@@ -1,0 +1,46 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "c",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Tormod's Crypt"
+  },
+  {
+   "key": "w",
+   "zone": "graveyard",
+   "controller": 1,
+   "real": "Walking Corpse"
+  },
+  {
+   "key": "tin",
+   "name": "Tin",
+   "type": "Instant",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "c",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "w"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "c": "graveyard",
+   "w": "exile",
+   "tin": "exile"
+  }
+ },
+ "notes": "Printed: '{T}, Sacrifice this artifact: Exile target player's graveyard.' Designating one card in the opponent's graveyard binds that player; the ALL-mode selector sweeps the WHOLE gy: both cards exile. The Crypt pays {T}+self-sac (graveyard assert)."
+}

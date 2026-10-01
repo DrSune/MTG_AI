@@ -379,19 +379,20 @@ class TestConditionGate(LegalityCase):
         # AMENDED 2026-10-01 (round 20c): LIFE_LEAD_OVER_START_GE left this
         # probe — the R9-2 net-life gate is answered now (Speaker of the
         # Heavens' activation gate: current life minus the executor's
-        # starting-life snapshot). CONTROLLER_COUNT_GT (the R8-9 dual-
-        # filter comparison, Garruk's "you control more creatures than any
-        # opponent" split) is still unimplemented and keeps the probe.
+        # starting-life snapshot). AMENDED 2026-10-01 (round 21b):
+        # CONTROLLER_COUNT_GT left this probe — the R8-9 dual-filter
+        # comparison is answered now (Garruk, Unleashed's -2 "if an
+        # opponent controls more creatures than you"). CONTROLLER_COUNT_LE
+        # (the family's unimplemented sibling — no corpus card compiles it
+        # yet) keeps the probe.
         self.attach(
             [
                 ability(
                     cost(),
                     condition=FAtom(
-                        FAtomPred.CONTROLLER_COUNT_GT,
+                        FAtomPred.CONTROLLER_COUNT_LE,
                         inner_filter=FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
-                        right_inner_filter=FAtom(
-                            FAtomPred.TYPE_EQ, string_value="Creature"
-                        ),
+                        count=QConst(2),
                     ),
                 )
             ]

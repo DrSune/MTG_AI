@@ -733,3 +733,30 @@
   between does NOT reset it. Packs exercising 2+ loyalty abilities of one PW must interleave
   `advance_turn`, and must budget that each rotation into a seat's fresh turn draws that seat
   ONE card (liliana_death_mage pack: hand 1→2 across the second advance).
+
+## r21b-era traps (2026-10-01, fix-batch 21b)
+
+- **The suspects DIR is not runner-safe — crashers abort the whole sweep (r21b,
+  2026-10-01)**: one remaining wave-4 suspect raises `NotImplementedError:
+  StaticAbility payload verb GAIN_LIFE is not layer-parseable (12e)` at
+  attach_pool, and `tools/run_scenarios.py --dir tools/audit/suspects` dies
+  MID-DIR — a batch dispositioning run must copy the in-scope packs into an
+  ISOLATED temp dir (`/tmp/opencode/rNN_sus`) and point `--dir` there; the
+  directory total is not a signal.
+- **A surviving damaged creature's marks stay in `ex.damage` until end-turn
+  (r21b)**: the damage ledger clears only in `end_turn` (CR 514.2) and pops on
+  DEATH, and the scenario runner asserts the ledger EQUALS
+  `expect["damage"]` EXACTLY — any pack whose combat leaves a survivor marked
+  (Skyscanner ping on a living tiger) must carry the residual in its expect or
+  it fails with a phantom `{'card':0: 1}` diff.
+- **QProp string referents "event"/"result" gate the register reads (r21b)**:
+  `THAT_MANY_COUNT` (and siblings) resolve behind `_referent_handle`, which
+  RAISES unless the ExecCtx carries a bound `event`/`result` register — a unit
+  test calling `resolve(QProp('event', ...))` must pass
+  `bindings={"event": <handle>, ...}` alongside the count register; the 21b
+  `declare_attackers` fallback only answers once that referent read passed.
+- **DIED_THIS_TURN strictness is zone-scoped now (r21b)**: strict per-handle
+  requires creature-typed AND OFF-battlefield; a battlefield creature handle
+  judges EXISTENTIALLY (any dies row → True, Caged-Zombie activation gate).
+  Tests that pin "another creature answers False" must judge an OFF-board
+  handle — the r19a battlefield pin was amended for exactly this.

@@ -156,7 +156,15 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
     # bottom-put is completed here: each card is re-inserted at index 0,
     # iterating Handle-DESCENDING so the final bottom run reads ascending
     # (mirrors the scry canonical rule — doc-18a's sorted(bottoms)).
-    bottom_dest = dest_ir.position is ZonePosition.BOTTOM
+    # r21b (Epitaph Golem): the compiler emits NO position for the
+    # "put it on the bottom of your library" idiom (verified corpus-wide:
+    # every other MOVE_ZONE→LIBRARY consumer carries an explicit TOP or
+    # BOTTOM — See the Truth's scry-puts, Bolas's Accumulator), so a
+    # position-less LIBRARY destination IS the bottom-put. Defaulting it
+    # to the append-top silently reversed Epitaph's printed card.
+    bottom_dest = dest_ir.position is ZonePosition.BOTTOM or (
+        dest_ir.position is None and dest_kind == ZONE_LIBRARY
+    )
     for card in sorted(cards, reverse=True) if bottom_dest else cards:
         owner = ctx.world.controller_of(card)
         target_player = zone_owner(ctx, dest_ir, owner=owner)
