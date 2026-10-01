@@ -2412,3 +2412,13 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | traces | **0/10 diverging — NO repin** (all 7 fixes narrowly gated, traces byte-stable) | `.venv/bin/python tools/traces/catalog.py compare` | contrast r21a (2 seeds repinned) |
 | wave-4 lint | **43/43 covered, consumed** | `.venv/bin/python tools/audit/wave_builder.py --wave4 --lint` | ruff Δ0 vs HEAD on every touched file |
 | PC line | **PC-1 301/305 · PC-2 634/639 · PC-3 0 · PC-4 0** (unchanged, no IR touched) | `tools/measure_grammar.py` | 2026-10-01 (tool auto-appended its own row) |
+
+## 2026-10-01 (wave-5 derivation — TRIGGER/REPLACEMENT residue cohort)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| wave-5 cohort | **31 rows** = 136 trigger/replacement-family cards − 104 pack/suspect-covered (name) − 1 gate-flagged | `.venv/bin/python tools/audit/wave_builder.py --wave5 [--lint]` | names-split: 25 trigger-only (incl. 4 Sanctum lands) + 3 PW-emblem records + 2 replacement-only + 1 hybrid (Conclave Mentor); Forgotten Sentinel out (top-level EtBState, zero trigger/replacement nodes — residue doc, meta.residue_note) |
+| gate exclusion | **Double Vision** sole-cause COPY | `meta.excluded_by_flag` | re-admit when COPY lands; 31/31 engine-supported + art |
+| verb histogram (mechanics) | **PUT_COUNTER 8 · DEAL_DAMAGE 5 · MODIFY_PT 4 · GRANT_ABILITY 4 · DRAW 4** (then CREATE_TOKEN 3, GAIN_LIFE 3, SEARCH 2) | tools/audit/wave5.json | wave-5 effect payloads only |
+| lints | **--wave5 lint OK (31, IR current)**; w1 66/66 · w2 67/67 · w3 55/55 · w4 43/43 consumed; --coverage byte-identical | `.venv/bin/python tools/audit/wave_builder.py {--lint,--waveN --lint,--coverage}` | meta.status unset (open wave) |
+| suite | **2239 passed + 3 subtests, 0 failed** (unchanged; tools-only) | `pytest MTG_bot/core -q` | pyright 0, ruff Δ0 on builder |

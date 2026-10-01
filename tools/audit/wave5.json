@@ -1,0 +1,438 @@
+{
+  "cards": {
+    "Adherent of Hope": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/b5f5400e-f341-40e3-b935-36d9cf983a20.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "PUT_COUNTER"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "b5f5400e-f341-40e3-b935-36d9cf983a20",
+      "printed_text": "At the beginning of combat on your turn, if you control a Basri planeswalker, put a +1/+1 counter on this creature."
+    },
+    "Basri Ket Emblem": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/ab67e4ec-9392-4130-970f-6ad65656e5c1.jpg",
+      "is_emblem": true,
+      "mechanics": [
+        "CREATE_TOKEN",
+        "PUT_COUNTER"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "ab67e4ec-9392-4130-970f-6ad65656e5c1",
+      "printed_text": ""
+    },
+    "Battle-Rattle Shaman": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/72dc807b-35fb-4d69-ae4c-04eed0646170.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "MODIFY_PT"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "72dc807b-35fb-4d69-ae4c-04eed0646170",
+      "printed_text": "At the beginning of combat on your turn, you may have target creature get +2/+0 until end of turn."
+    },
+    "Burlfist Oak": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/95a08f25-8d44-4704-a4d1-a098bf010932.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "MODIFY_PT"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "95a08f25-8d44-4704-a4d1-a098bf010932",
+      "printed_text": "Whenever you draw a card, this creature gets +2/+2 until end of turn."
+    },
+    "Chandra's Pyreling": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/5291deb9-0b89-42c2-bde6-26f88931c3f4.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "GRANT_ABILITY",
+        "MODIFY_PT"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "5291deb9-0b89-42c2-bde6-26f88931c3f4",
+      "printed_text": "Whenever a source you control deals noncombat damage to an opponent, this creature gets +1/+0 and gains double strike until end of turn. (It deals both first-strike and regular combat damage.)"
+    },
+    "Conclave Mentor": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/a2fe5937-212c-4e71-8d6e-f408b38100aa.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "GAIN_LIFE",
+        "PUT_COUNTER"
+      ],
+      "n_replacement_abilities": 1,
+      "n_triggered_abilities": 1,
+      "oracle_id": "a2fe5937-212c-4e71-8d6e-f408b38100aa",
+      "printed_text": "If one or more +1/+1 counters would be put on a creature you control, that many plus one +1/+1 counters are put on that creature instead.\nWhen this creature dies, you gain life equal to its power."
+    },
+    "Deathbloom Thallid": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/ce873790-de4d-4ba3-8023-c44306ba3ff8.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "CREATE_TOKEN"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "ce873790-de4d-4ba3-8023-c44306ba3ff8",
+      "printed_text": "When this creature dies, create a 1/1 green Saproling creature token."
+    },
+    "Dire Fleet Warmonger": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/ee08435b-a2c1-491a-87cb-e60789b09c25.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "GRANT_ABILITY",
+        "MODIFY_PT",
+        "SACRIFICE"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "ee08435b-a2c1-491a-87cb-e60789b09c25",
+      "printed_text": "At the beginning of combat on your turn, you may sacrifice another creature. If you do, this creature gets +2/+2 and gains trample until end of turn. (It can deal excess combat damage to the player or planeswalker it's attacking.)"
+    },
+    "Fiery Emancipation": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/52159875-354c-47f9-bb1c-cd65395fcc68.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_replacement_abilities": 1,
+      "n_triggered_abilities": 0,
+      "oracle_id": "52159875-354c-47f9-bb1c-cd65395fcc68",
+      "printed_text": "If a source you control would deal damage to a permanent or player, it deals triple that damage to that permanent or player instead."
+    },
+    "Garruk, Unleashed Emblem": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/8a908da7-b41c-4712-b7dc-8c6027875d36.jpg",
+      "is_emblem": true,
+      "mechanics": [
+        "SEARCH",
+        "SHUFFLE"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "8a908da7-b41c-4712-b7dc-8c6027875d36",
+      "printed_text": ""
+    },
+    "Goblin Arsonist": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/c1177f22-a1cf-4da3-a68d-ff954e878403.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "c1177f22-a1cf-4da3-a68d-ff954e878403",
+      "printed_text": "When this creature dies, you may have it deal 1 damage to any target."
+    },
+    "Griffin Aerie": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/7cab62dc-a256-4da8-a3ea-b3903ec37077.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "CREATE_TOKEN"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "7cab62dc-a256-4da8-a3ea-b3903ec37077",
+      "printed_text": "At the beginning of your end step, if you gained 3 or more life this turn, create a 2/2 white Griffin creature token with flying."
+    },
+    "Havoc Jester": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/58f5bbd2-b876-4eb9-aa79-f4d3511961e0.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "58f5bbd2-b876-4eb9-aa79-f4d3511961e0",
+      "printed_text": "Whenever you sacrifice a permanent, this creature deals 1 damage to any target."
+    },
+    "Keral Keep Disciples": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/0a865453-ddc8-4403-8f1e-5752e3582458.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "0a865453-ddc8-4403-8f1e-5752e3582458",
+      "printed_text": "Whenever you activate a loyalty ability of a Chandra planeswalker, this creature deals 1 damage to each opponent."
+    },
+    "Library Larcenist": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/eb0e6f63-2861-4392-ac0e-64380fbbd8ae.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "DRAW"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "eb0e6f63-2861-4392-ac0e-64380fbbd8ae",
+      "printed_text": "Whenever this creature attacks, draw a card."
+    },
+    "Liliana's Scrounger": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/595f1dee-8c3b-44a6-9e71-a4bb4334b309.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "PUT_COUNTER"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "595f1dee-8c3b-44a6-9e71-a4bb4334b309",
+      "printed_text": "At the beginning of each end step, if a creature died this turn, you may put a loyalty counter on a Liliana planeswalker you control."
+    },
+    "Liliana, Waker of the Dead Emblem": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/56c1893f-1382-4a31-a28a-ea604677fcdb.jpg",
+      "is_emblem": true,
+      "mechanics": [
+        "GRANT_ABILITY",
+        "MOVE_ZONE"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "56c1893f-1382-4a31-a28a-ea604677fcdb",
+      "printed_text": ""
+    },
+    "Lorescale Coatl": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/c87440aa-4616-49ff-a211-ebdc37767f62.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "PUT_COUNTER"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "c87440aa-4616-49ff-a211-ebdc37767f62",
+      "printed_text": "Whenever you draw a card, put a +1/+1 counter on this creature."
+    },
+    "Mystic Skyfish": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/645b5784-a6f7-4cf3-966a-e1a51420b96b.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "GRANT_ABILITY"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "645b5784-a6f7-4cf3-966a-e1a51420b96b",
+      "printed_text": "Whenever you draw your second card each turn, this creature gains flying until end of turn."
+    },
+    "Pitchburn Devils": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/86e2bbdd-a788-4f76-9ebb-ef48d9bc9dcf.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "86e2bbdd-a788-4f76-9ebb-ef48d9bc9dcf",
+      "printed_text": "When this creature dies, it deals 3 damage to any target."
+    },
+    "Quirion Dryad": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/f42b6510-7322-4733-85ea-7ae6bd6ca8fc.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "PUT_COUNTER"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "f42b6510-7322-4733-85ea-7ae6bd6ca8fc",
+      "printed_text": "Whenever you cast a spell that's white, blue, black, or red, put a +1/+1 counter on this creature."
+    },
+    "Sabertooth Mauler": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/da4f4094-b0ce-4b5b-8ac3-8c0a5159220f.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "PUT_COUNTER",
+        "UNTAP"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "da4f4094-b0ce-4b5b-8ac3-8c0a5159220f",
+      "printed_text": "At the beginning of your end step, if a creature died this turn, put a +1/+1 counter on this creature and untap it."
+    },
+    "Sanctum of All": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/63f60dfc-2bc4-411f-ae53-504156fe0102.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "SEARCH",
+        "SHUFFLE"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "63f60dfc-2bc4-411f-ae53-504156fe0102",
+      "printed_text": "At the beginning of your upkeep, you may search your library and/or graveyard for a Shrine card and put it onto the battlefield. If you search your library this way, shuffle.\nIf an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time."
+    },
+    "Sanctum of Calm Waters": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/1cd1e3a8-e09d-4b61-8244-92b317132d6a.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "DISCARD",
+        "DRAW"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "1cd1e3a8-e09d-4b61-8244-92b317132d6a",
+      "printed_text": "At the beginning of your first main phase, you may draw X cards, where X is the number of Shrines you control. If you do, discard a card."
+    },
+    "Sanctum of Fruitful Harvest": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/132859dd-de66-45c6-8af4-ab5e202a17b0.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "ADD_MANA"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "132859dd-de66-45c6-8af4-ab5e202a17b0",
+      "printed_text": "At the beginning of your first main phase, add X mana of any one color, where X is the number of Shrines you control."
+    },
+    "Sanctum of Stone Fangs": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/a1d8fcb9-26b2-4d09-9db7-e644294749f8.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "GAIN_LIFE",
+        "LOSE_LIFE"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "a1d8fcb9-26b2-4d09-9db7-e644294749f8",
+      "printed_text": "At the beginning of your first main phase, each opponent loses X life and you gain X life, where X is the number of Shrines you control."
+    },
+    "Spellgorger Weird": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/550811ca-0995-4886-aa8c-5cee118aa54f.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "PUT_COUNTER"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "550811ca-0995-4886-aa8c-5cee118aa54f",
+      "printed_text": "Whenever you cast a noncreature spell, put a +1/+1 counter on this creature."
+    },
+    "Spirit of Malevolence": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/15323e45-8260-43dc-b72b-efd661a58d75.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "GAIN_LIFE",
+        "LOSE_LIFE"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "15323e45-8260-43dc-b72b-efd661a58d75",
+      "printed_text": "When this creature dies, each opponent loses 1 life and you gain 1 life."
+    },
+    "Teferi's Ageless Insight": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/1c9e1f75-73f0-4846-b53f-458a0984b1bb.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "DRAW"
+      ],
+      "n_replacement_abilities": 1,
+      "n_triggered_abilities": 0,
+      "oracle_id": "1c9e1f75-73f0-4846-b53f-458a0984b1bb",
+      "printed_text": "If you would draw a card except the first one you draw in each of your draw steps, draw two cards instead."
+    },
+    "Tolarian Kraken": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/846887e4-744f-44ce-9110-d09680b11e95.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "PAY",
+        "TAP",
+        "UNTAP"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "846887e4-744f-44ce-9110-d09680b11e95",
+      "printed_text": "Whenever you draw a card, you may pay {1}. When you do, you may tap or untap target creature."
+    },
+    "Twinblade Assassins": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/66093486-c9c3-42c5-97d1-ec0fe54f65b0.jpg",
+      "is_emblem": false,
+      "mechanics": [
+        "DRAW"
+      ],
+      "n_replacement_abilities": 0,
+      "n_triggered_abilities": 1,
+      "oracle_id": "66093486-c9c3-42c5-97d1-ec0fe54f65b0",
+      "printed_text": "At the beginning of your end step, if a creature died this turn, draw a card."
+    }
+  },
+  "meta": {
+    "built_by": "tools/audit/wave_builder.py",
+    "coverage": "136 trigger/replacement-family cards = 104 already covered (name) + 1 gate-flagged + 31 wave-5 cohort",
+    "excluded_by_flag": {
+      "Double Vision": [
+        "COPY"
+      ]
+    },
+    "excluded_count": 104,
+    "family": "TRIGGER/REPLACEMENT residue (top-level TriggeredAbility + ReplacementAbility nodes), engine-supported gate, pack/suspect-covered names excluded, emblem records kept",
+    "n_cards": 31,
+    "n_gate_excluded": 1,
+    "n_trigger_cards": 136,
+    "residue_note": "Forgotten Sentinel compiles with a top-level EtBState node and zero TriggeredAbility/ReplacementAbility nodes \u2014 out of cohort by the derive-from-IR rule; stays in the residue doc",
+    "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
+    "wave": "wave5"
+  }
+}

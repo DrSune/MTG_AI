@@ -51,6 +51,21 @@ identical under a top-level-only reading. Cards already exercised by a
 pack or suspect are EXCLUDED by name (``meta.excluded_count``); gate
 flags record the unsupported verbs inside the activated nodes.
 
+Wave 5 (loop step 1, 2026-10-01) is the TRIGGER/REPLACEMENT cohort — the
+residue family the coverage census (``--coverage``) identified: every card
+whose TOP-LEVEL ``record.abilities`` carry a :class:`TriggeredAbility` or
+:class:`ReplacementAbility` node and that no pack or suspect exercises yet
+(uncovered per the census, enforced by the same NAME exclusion). Unlike
+waves 1-4, emblem records are NOT skipped — the three PW emblem token
+records and the four Sanctum legendary lands (Sanctum of All + the
+Calm Waters / Fruitful Harvest / Stone Fangs companions) are exactly the
+uncovered trigger population the census found (token records that are
+not emblems stay out). Same engine-supported gate as the prior modes: a cohort card whose
+flag is False is excluded with the unsupported verbs its trigger/
+replacement nodes hit (``meta.excluded_by_flag``). Forgotten Sentinel
+compiles with a top-level ``EtBState`` node and NO trigger/replacement
+node — it stays in the residue doc, not this wave.
+
 Usage::
 
     .venv/bin/python tools/audit/wave_builder.py              # write wave1.json
@@ -61,6 +76,8 @@ Usage::
     .venv/bin/python tools/audit/wave_builder.py --wave3 --lint
     .venv/bin/python tools/audit/wave_builder.py --wave4      # write wave4.json
     .venv/bin/python tools/audit/wave_builder.py --wave4 --lint
+    .venv/bin/python tools/audit/wave_builder.py --wave5      # write wave5.json
+    .venv/bin/python tools/audit/wave_builder.py --wave5 --lint
     .venv/bin/python tools/audit/wave_builder.py --coverage
 
 Coverage census (2026-10-01): the corpus-level adjudication question —
@@ -97,6 +114,7 @@ from MTG_bot.core.ability_tree import (
     Atom,
     CostPart,
     KeywordAbility,
+    ReplacementAbility,
     SpellAbility,
     StaticAbility,
     TriggeredAbility,
@@ -114,6 +132,7 @@ DEFAULT_OUT = Path(__file__).resolve().parent / "wave1.json"
 DEFAULT_OUT2 = Path(__file__).resolve().parent / "wave2.json"
 DEFAULT_OUT3 = Path(__file__).resolve().parent / "wave3.json"
 DEFAULT_OUT4 = Path(__file__).resolve().parent / "wave4.json"
+DEFAULT_OUT5 = Path(__file__).resolve().parent / "wave5.json"
 DEFAULT_COVERAGE = Path(__file__).resolve().parent / "coverage.json"
 
 #: Wave-3 name-exclusion sources: every green scenario pack (148) and every
@@ -550,6 +569,127 @@ def derive_wave4() -> dict:
     }
 
 
+def trigger_replacement_nodes(record) -> list:
+    """The wave-5 family map: TOP-LEVEL TriggeredAbility (delayed/
+    conditional triggers) and ReplacementAbility (continuous replacement
+    effects) nodes in ``record.abilities`` — the residual trigger lane the
+    four-family census left uncovered. Read out of the compiled record,
+    never a substring. Top-level-only mirrors the census grouping (the
+    wave's cohort rule is stated on the census's node-class signature)."""
+    return [
+        a
+        for a in record.abilities
+        if isinstance(a, (TriggeredAbility, ReplacementAbility))
+    ]
+
+
+def _trigger_payload(node):
+    """The executable payload of a wave-5 node: TriggeredAbility wraps
+    ``effect``, ReplacementAbility wraps ``action`` (the sibling-class
+    naming of the grammar — same Effect type, different field)."""
+    return node.action if isinstance(node, ReplacementAbility) else node.effect
+
+
+def trigger_unsupported_verbs(record) -> list[str]:
+    """Atom verb names INSIDE the card's trigger/replacement nodes that the
+    engine cannot execute — the honest flag reason for a wave-5 exclusion."""
+    return sorted(
+        {
+            node.verb.name
+            for a in trigger_replacement_nodes(record)
+            for node in walk(a)
+            if isinstance(node, Atom) and node.verb not in SUPPORTED_VERBS_V2
+        }
+    )
+
+
+def trigger_mechanics(record) -> list[str]:
+    """Wave-5 mechanics: atom verbs inside the trigger/replacement nodes'
+    effect payloads — the residual trigger lane's verb families, read out
+    of the IR."""
+    return sorted(
+        {
+            node.verb.name
+            for a in trigger_replacement_nodes(record)
+            for node in walk(_trigger_payload(a))
+            if isinstance(node, Atom)
+        }
+    )
+
+
+def derive_wave5() -> dict:
+    """Wave 5 = TRIGGER/REPLACEMENT residue cohort, engine-supported gate,
+    minus every card already exercised by a green pack or suspect (excluded
+    by NAME — ``meta.excluded_count``). Coverage arithmetic: n_trigger_cards
+    = n_covered_excluded + n_gate_excluded + n_cards. Emblem records count
+    as members (their triggers are the audited effect); plain token records
+    do not. Forgotten Sentinel carries a top-level EtBState node and NO
+    trigger/replacement node, so the derive-from-IR rule leaves it in the
+    residue doc — recorded honestly in ``meta.residue_note``. meta.status
+    stays unset (open wave)."""
+    pool, gated, texts = _compile_state()
+    covered = covered_names()
+    cards: dict[str, dict] = {}
+    excluded: dict[str, list[str]] = {}
+    n_trigger_cards = 0
+    n_covered = 0
+    for oid, res in pool.results.items():
+        record = res.card
+        if record.is_token and oid not in pool.emblems:
+            continue
+        trigs = trigger_replacement_nodes(record)
+        if not trigs:
+            continue
+        n_trigger_cards += 1
+        if not gated.results[oid].legality.engine_supported:
+            reasons = trigger_unsupported_verbs(record)
+            excluded[record.name] = reasons or unsupported_verbs(record)
+            continue
+        if record.name in covered:
+            n_covered += 1
+            continue
+        n_t = sum(isinstance(a, TriggeredAbility) for a in trigs)
+        cards[record.name] = {
+            "oracle_id": oid,
+            "mechanics": trigger_mechanics(record),
+            "n_triggered_abilities": n_t,
+            "n_replacement_abilities": len(trigs) - n_t,
+            "is_emblem": oid in pool.emblems,
+            "engine_supported": bool(gated.results[oid].legality.engine_supported),
+            "image": str(ASSETS / f"{oid}.jpg"),
+            "has_image": (ASSETS / f"{oid}.jpg").exists(),
+            "printed_text": texts.get(oid, ""),
+        }
+    return {
+        "meta": {
+            "wave": "wave5",
+            "family": (
+                "TRIGGER/REPLACEMENT residue (top-level TriggeredAbility + "
+                "ReplacementAbility nodes), engine-supported gate, "
+                "pack/suspect-covered names excluded, emblem records kept"
+            ),
+            "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
+            "built_by": "tools/audit/wave_builder.py",
+            "residue_note": (
+                "Forgotten Sentinel compiles with a top-level EtBState node "
+                "and zero TriggeredAbility/ReplacementAbility nodes — out of "
+                "cohort by the derive-from-IR rule; stays in the residue doc"
+            ),
+            "n_trigger_cards": n_trigger_cards,
+            "excluded_count": n_covered,
+            "n_gate_excluded": len(excluded),
+            "excluded_by_flag": dict(sorted(excluded.items())),
+            "coverage": (
+                f"{n_trigger_cards} trigger/replacement-family cards = "
+                f"{n_covered} already covered (name) + {len(excluded)} "
+                f"gate-flagged + {len(cards)} wave-5 cohort"
+            ),
+            "n_cards": len(cards),
+        },
+        "cards": dict(sorted(cards.items())),
+    }
+
+
 def families_of(record) -> list[str]:
     """Which of the four audited families the card belongs to, decided by
     the waves' own node-detection helpers (never a substring): etb =
@@ -701,6 +841,11 @@ def main(argv=None) -> int:
     ap.add_argument(
         "--wave4", action="store_true", help="MANA/ACTIVATED cohort instead of wave 1"
     )
+    ap.add_argument(
+        "--wave5",
+        action="store_true",
+        help="TRIGGER/REPLACEMENT residue cohort instead of wave 1",
+    )
     ap.add_argument("--out", default=None)
     ap.add_argument("--lint", action="store_true", help="re-derive and diff vs disk")
     ap.add_argument(
@@ -723,7 +868,9 @@ def main(argv=None) -> int:
         print(f"wrote {out}")
         return 0
 
-    if args.wave4:
+    if args.wave5:
+        derive, default_out = derive_wave5, DEFAULT_OUT5
+    elif args.wave4:
         derive, default_out = derive_wave4, DEFAULT_OUT4
     elif args.wave3:
         derive, default_out = derive_wave3, DEFAULT_OUT3
