@@ -1,0 +1,80 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "k",
+   "real": "Tolarian Kraken",
+   "controller": 0,
+   "zone": "battlefield"
+  },
+  {
+   "key": "sheep",
+   "name": "Sheep",
+   "controller": 0,
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield"
+  },
+  {
+   "key": "goat",
+   "name": "Goat",
+   "controller": 0,
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield"
+  },
+  {
+   "key": "r",
+   "real": "Revitalize",
+   "controller": 0,
+   "zone": "hand"
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "r",
+   "decisions": [
+    "sheep",
+    "skip"
+   ]
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "sheep": false,
+   "goat": false
+  },
+  "life": {
+   "0": 23
+  },
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "graveyard": {
+   "0": [
+    "Revitalize"
+   ]
+  }
+ },
+ "notes": "'You may pay {1}' must be a genuine offer: skipping it short-circuits the 'When you do' clause - only two asks fire (target, may-pay), the inner may and choose never arrive, and no creature is tapped."
+}

@@ -1,0 +1,45 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "lil",
+   "real": "Liliana, Waker of the Dead",
+   "controller": 0,
+   "zone": "battlefield"
+  },
+  {
+   "key": "gc",
+   "name": "Grave Beast",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "graveyard"
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "gc": true
+   }
+  }
+ ],
+ "expect": {
+  "zone": {
+   "gc": "graveyard",
+   "lil": "battlefield"
+  },
+  "attackers": {
+   "gc": false
+  },
+  "life": {
+   "1": 20
+  }
+ },
+ "notes": "Control: without the -7 activation the Grave Beast sits in the graveyard (no emblem, no grant), cannot attack, and the opponent takes no damage."
+}

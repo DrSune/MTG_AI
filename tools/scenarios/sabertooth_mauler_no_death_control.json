@@ -1,0 +1,36 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "m",
+   "real": "Sabertooth Mauler",
+   "controller": 0,
+   "zone": "hand"
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "m",
+   "tapped": true
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "m": {}
+  },
+  "tapped": {
+   "m": true
+  },
+  "zone": {
+   "m": "battlefield"
+  }
+ },
+ "notes": "Control for the end-step pack: no creature died this turn, so the conditional must not fire - the Mauler keeps zero counters and stays tapped."
+}

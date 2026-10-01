@@ -1,0 +1,83 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "wave5a trigger/replacement cohort | printed: whenever you SACRIFICE a permanent, 1 damage to any target. Real driver: Hobblefiend's activated sacrifice cost (the fodder designation pre-binds through targets); the Jester trigger's designation answer comes from the decisions queue.",
+ "mana": {
+  "0": {
+   "C": 2
+  }
+ },
+ "cards": [
+  {
+   "key": "fod",
+   "zone": "hand",
+   "controller": 0,
+   "name": "Fodder",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "hob",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Hobblefiend"
+  },
+  {
+   "key": "jes",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Havoc Jester"
+  },
+  {
+   "key": "beast",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Beast",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5"
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "fod"
+  },
+  {
+   "op": "enter",
+   "key": "hob"
+  },
+  {
+   "op": "activate",
+   "key": "hob",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "fod"
+   ],
+   "decisions": [
+    "beast"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "fod": "graveyard",
+   "jes": "battlefield"
+  },
+  "counters": {
+   "hob": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "damage": {
+   "beast": 1
+  },
+  "life": {
+   "1": 20
+  }
+ }
+}

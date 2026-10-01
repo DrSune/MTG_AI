@@ -1,0 +1,21 @@
+{
+  "world": { "life": 20, "seed": 7 },
+  "cards": [
+    { "key": "d", "real": "Quirion Dryad", "controller": 0, "zone": "battlefield" },
+    { "key": "me", "name": "Tank", "type": "Creature", "power": "1", "toughness": "9", "controller": 0, "zone": "battlefield" },
+    { "key": "sh", "real": "Shock", "controller": 0, "zone": "hand" },
+    { "key": "tg", "real": "Titanic Growth", "controller": 0, "zone": "hand" }
+  ],
+  "mana": { "0": { "R": 3, "G": 3 } },
+  "steps": [
+    { "op": "cast", "key": "sh", "targets": ["me"] },
+    { "op": "cast", "key": "tg", "targets": ["me"] }
+  ],
+  "expect": {
+    "counters": { "d": { "PLUS_1_PLUS_1": 1 } },
+    "hand": { "0": 0 },
+    "zone": { "me": "battlefield" },
+    "damage": { "me": 2 }
+  },
+  "notes": "Printed: 'Whenever you cast a spell that's white, blue, black, or red, put a +1/+1 counter on this creature.' Shock (red) fires; Titanic Growth (green) does not. The compiled COLOR_IN ('W','U','B','R') is subset semantics: a spell's colors must be non-empty and inside the set. Divergence note: for a gold spell whose colors straddle green (e.g. RG), printed 'that's ... red' would fire but the subset filter does not; no monocolour test line touches that, so the pack asserts the printed monocolour behaviour only."
+}

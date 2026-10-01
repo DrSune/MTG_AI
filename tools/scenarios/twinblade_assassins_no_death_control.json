@@ -1,0 +1,38 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t",
+   "real": "Twinblade Assassins",
+   "controller": 0,
+   "zone": "battlefield"
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 0
+  },
+  "library": {
+   "0": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "life": {
+   "0": 20
+  }
+ },
+ "notes": "Control: with no death this turn the end-step conditional must not draw; the end_turn op itself must not pop the library either (the draw belongs to begin_turn, not the end step)."
+}

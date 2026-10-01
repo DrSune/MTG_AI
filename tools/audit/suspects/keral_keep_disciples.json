@@ -1,0 +1,72 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "repro: run this exact pack through tools/run_scenarios.py. wave5a cohort. wave5a trigger/replacement cohort | printed: whenever you activate a loyalty ability of a CHANDRA planeswalker, 1 damage to each opponent. Positive: Chandra, Flame's Catalyst +1 (its own 3 damage included: 20-3-1=16). Negative: a Basri Ket +1 in the same pack must NOT trigger it (life stays 16).",
+ "cards": [
+  {
+   "key": "ke",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Keral Keep Disciples"
+  },
+  {
+   "key": "cat",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Chandra, Flame's Catalyst"
+  },
+  {
+   "key": "basri",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Basri Ket"
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "cat",
+   "set": 5
+  },
+  {
+   "op": "activate",
+   "key": "cat",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "player:1"
+   ]
+  },
+  {
+   "op": "loyalty",
+   "key": "basri",
+   "set": 7
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "ke"
+   ],
+   "decisions": [
+    "player:1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 16
+  },
+  "counters": {
+   "ke": {
+    "PLUS_1_PLUS_1": 1
+   }
+  }
+ },
+ "status": "suspect",
+ "finding": "loud (keral_keep_disciples). binding.py:147 _UNSUPPORTED_EVENTS rejects LoyaltyActivatedEvent at attach_pool: NotImplementedError 'executor: Keral Keep Disciples trigger event LoyaltyActivatedEvent is 12c (loyalty activations)'. Runner-UNSAFE: raises in ScenarioRunner setup, crashes the whole sweep (run_pack only catches PackError there). Expected: whenever you activate a Chandra loyalty ability, Keral Keep Disciples deals 1 damage to each opponent. Observed: no registration possible. NOTE: Chandra PWs (Flame's Catalyst idx0 +1 3-dmg-each; Heart of Fire idx2 +1) ARE in get_supply('all'), so a positive driver exists \u2014 only the binder whitelist blocks."
+}

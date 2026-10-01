@@ -1,0 +1,51 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "wave5a trigger/replacement cohort | printed: beginning of combat, you may have TARGET CREATURE get +2/+0 EOT. t1 declines the may; t2 takes it \u2014 the only legal designation candidate is the Shaman itself (sole creature on the battlefield), answered by the engine's first legal word.",
+ "cards": [
+  {
+   "key": "sh",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Battle-Rattle Shaman"
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "may": {
+    "sh": false
+   }
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "may": {
+    "sh": true
+   }
+  }
+ ],
+ "expect": {
+  "power": {
+   "sh": 4
+  },
+  "toughness": {
+   "sh": 2
+  }
+ }
+}

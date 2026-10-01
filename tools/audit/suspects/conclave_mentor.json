@@ -1,0 +1,83 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "repro: run this exact pack through tools/run_scenarios.py. wave5a cohort. wave5a trigger/replacement cohort | printed lane A (replacement): a +1/+1 counter on a creature you control becomes TWO while Mentor is out (Basri Ket +1 on Wolf). Lane B (dies): gain life equal to power (2). Mentor dies to a blocker afterwards.",
+ "cards": [
+  {
+   "key": "basri",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Basri Ket"
+  },
+  {
+   "key": "men",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Conclave Mentor"
+  },
+  {
+   "key": "wolf",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Wolf",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "wall",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Wall",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5"
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "basri",
+   "set": 7
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "wolf"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "men": true
+   },
+   "block": {
+    "wall": "men"
+   }
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "wolf": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  "life": {
+   "0": 22
+  },
+  "zone": {
+   "men": "graveyard"
+  }
+ },
+ "status": "suspect",
+ "finding": "silent (conclave_mentor). TWO gaps. (1) CounterPlacedEvent REPLACEMENT consumer missing: ReplacementRegistry hooks player-damage/life/death/zone-change only; CounterPlacedEvent has a TRIGGER feed (binding.py:718) but no replacement hook. Expected: Basri Ket +1 on Wolf under Conclave Mentor = TWO counters. Observed: {'PLUS_1_PLUS_1': 1}. (2) Mentor's dies->gain-life-equal-power is the SYSTEMATIC own-dies-trigger gap (see deathbloom_thallid). Expected life 22, observed 20."
+}

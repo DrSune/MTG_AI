@@ -1,0 +1,40 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "wave5a trigger/replacement cohort | printed: whenever you draw a card, +2/+2 EOT. Real begin_turn draw on turn 2 (advance_turn) drives the CardDrawnEvent trigger; 2/3 becomes 4/5 inside the same turn.",
+ "cards": [
+  {
+   "key": "oak",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Burlfist Oak"
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "power": {
+   "oak": 4
+  },
+  "toughness": {
+   "oak": 5
+  },
+  "hand": {
+   "0": 1
+  }
+ }
+}

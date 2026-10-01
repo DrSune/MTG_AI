@@ -1,0 +1,45 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "py",
+   "real": "Chandra's Pyreling",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m",
+   "real": "Meteorite",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "m",
+   "decisions": [
+    "player:1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 18
+  },
+  "battlefield_pt": {
+   "Chandra's Pyreling": [
+    2,
+    3
+   ]
+  },
+  "battlefield_keywords": {
+   "Chandra's Pyreling": [
+    "DOUBLE_STRIKE"
+   ]
+  }
+ }
+}

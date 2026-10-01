@@ -1,0 +1,82 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "k",
+   "real": "Tolarian Kraken",
+   "controller": 0,
+   "zone": "battlefield"
+  },
+  {
+   "key": "sheep",
+   "name": "Sheep",
+   "controller": 0,
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield"
+  },
+  {
+   "key": "goat",
+   "name": "Goat",
+   "controller": 0,
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand"
+  },
+  {
+   "key": "r",
+   "real": "Revitalize",
+   "controller": 0,
+   "zone": "hand"
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "goat",
+   "tapped": true
+  },
+  {
+   "op": "cast",
+   "key": "r",
+   "decisions": [
+    "goat",
+    "fire",
+    "fire",
+    "1"
+   ]
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "goat": false,
+   "sheep": false
+  },
+  "life": {
+   "0": 23
+  },
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ },
+ "notes": "The untap half of the same trigger: the Goat enters tapped, and choose word '1' on the tap/untap lane untaps the designated target."
+}

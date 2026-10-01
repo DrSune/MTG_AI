@@ -1,0 +1,74 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "m",
+   "real": "Sabertooth Mauler",
+   "controller": 0,
+   "zone": "hand"
+  },
+  {
+   "key": "og",
+   "name": "Ogre",
+   "controller": 0,
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield"
+  },
+  {
+   "key": "sh",
+   "real": "Shock",
+   "controller": 0,
+   "zone": "hand"
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "m",
+   "tapped": true
+  },
+  {
+   "op": "cast",
+   "key": "sh",
+   "targets": [
+    "og"
+   ]
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "m": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "tapped": {
+   "m": false
+  },
+  "zone": {
+   "og": "graveyard"
+  },
+  "graveyard": {
+   "0": [
+    "Ogre",
+    "Shock"
+   ]
+  },
+  "hand": {
+   "0": 0
+  }
+ },
+ "notes": "Printed: 'At the beginning of your end step, if a creature died this turn, put a +1/+1 counter on this creature and untap it.' The Mauler enters tapped, a creature (the 1/1 Ogre) dies to Shock in the main phase, and the end-step trigger adds the counter AND untaps. The trigger reads the turn's CREATURE_DIES journal."
+}

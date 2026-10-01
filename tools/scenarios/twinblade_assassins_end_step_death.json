@@ -1,0 +1,70 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t",
+   "real": "Twinblade Assassins",
+   "controller": 0,
+   "zone": "battlefield"
+  },
+  {
+   "key": "og",
+   "name": "Ogre",
+   "controller": 0,
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield"
+  },
+  {
+   "key": "sh",
+   "real": "Shock",
+   "controller": 0,
+   "zone": "hand"
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "sh",
+   "targets": [
+    "og"
+   ]
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "zone": {
+   "og": "graveyard"
+  },
+  "graveyard": {
+   "0": [
+    "Ogre",
+    "Shock"
+   ]
+  }
+ },
+ "notes": "Printed: 'At the beginning of your end step, if a creature died this turn, draw a card.' Shock kills the 1/1 Ogre; the end-step trigger pops exactly one library card into hand (Library 4 was the next pop after the setup begin_turn's empty-library no-op)."
+}

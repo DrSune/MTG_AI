@@ -1,0 +1,77 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "wave5a trigger/replacement cohort | emblem (Scryfall-printed): beginning of combat, create a 1/1 Soldier token, then a +1/+1 counter on each creature you control. Minted by Basri Ket -6 (loyalty seeded 7, survives at 1). t1 combat predates the emblem (no Soldier \u2014 pinned by final count).",
+ "cards": [
+  {
+   "key": "basri",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Basri Ket"
+  },
+  {
+   "key": "wolf",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Wolf",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "loyalty",
+   "key": "basri",
+   "set": 7
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 2,
+   "seat": 0
+  },
+  {
+   "op": "combat",
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Soldier": 1
+  },
+  "battlefield_pt": {
+   "Wolf": [
+    3,
+    3
+   ],
+   "Soldier": [
+    2,
+    2
+   ]
+  },
+  "counters": {
+   "wolf": {
+    "PLUS_1_PLUS_1": 1
+   }
+  }
+ }
+}

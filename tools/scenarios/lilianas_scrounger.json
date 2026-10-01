@@ -1,0 +1,92 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "wave5a trigger/replacement cohort | printed: at the beginning of EACH end step, if a creature died this turn, you may put a loyalty counter on a Liliana planeswalker you control. t1 end step: nothing died (negative, pinned by final counter total 1). t2: fodder dies in combat; the end-step may + Liliana designation come from the decisions queue. marks lane dropped: end_turn cleanup clears damage marks (CR 514.2).",
+ "cards": [
+  {
+   "key": "sc",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Liliana's Scrounger"
+  },
+  {
+   "key": "lili",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Liliana, Waker of the Dead"
+  },
+  {
+   "key": "fod",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Fodder",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "2"
+  },
+  {
+   "key": "wall",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Wall",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5"
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "enter",
+   "key": "lili"
+  },
+  {
+   "op": "loyalty",
+   "key": "lili",
+   "set": 3
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "fod": true
+   },
+   "block": {
+    "wall": "fod"
+   }
+  },
+  {
+   "op": "end_turn",
+   "decisions": [
+    "fire",
+    "lili"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "lili": {
+    "LOYALTY": 4
+   }
+  },
+  "zone": {
+   "fod": "graveyard"
+  },
+  "life": {
+   "1": 20
+  }
+ }
+}

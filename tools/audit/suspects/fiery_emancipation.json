@@ -1,0 +1,86 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "repro: run this exact pack through tools/run_scenarios.py. wave5a cohort. wave5a trigger/replacement cohort | printed: a source you control would deal damage to a PERMANENT OR PLAYER -> triple. Player lane: Shock 2 -> 6 (life 14). Permanent lane: brute 1 -> 3 marks on the Beast. Negative: an OPPONENT-sourced hit is NOT tripled (2 marks).",
+ "mana": {
+  "0": {
+   "R": 2
+  }
+ },
+ "cards": [
+  {
+   "key": "fiery",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Fiery Emancipation"
+  },
+  {
+   "key": "brute",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Brute",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "brute2",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Brute-Two",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "beast",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Beast",
+   "type": "Creature",
+   "power": "6",
+   "toughness": "6"
+  },
+  {
+   "key": "shock",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Shock"
+  }
+ ],
+ "steps": [
+  {
+   "op": "cast",
+   "key": "shock",
+   "decisions": [
+    "player:1"
+   ]
+  },
+  {
+   "op": "deal_damage",
+   "source": "brute",
+   "target": "beast",
+   "amount": 1
+  },
+  {
+   "op": "deal_damage",
+   "source": "brute2",
+   "target": "brute",
+   "amount": 2,
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 14
+  },
+  "damage": {
+   "beast": 3,
+   "brute": 2
+  }
+ },
+ "status": "suspect",
+ "finding": "loud (fiery_emancipation). Replacement registers at attach, but the FIRST damage anywhere raises NotImplementedError 'executor: damage-replacement source filter is later phase (C-4 damage surface)' from the damage pipeline (verbs/replacements consult). Expected: damage from a source you control to a permanent or player is tripled (Meteorite ETB 2 -> 6). Observed: executor dies on step 1. No observable lane; both player and card branches unreachable."
+}

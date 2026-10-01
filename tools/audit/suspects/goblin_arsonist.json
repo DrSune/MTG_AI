@@ -1,0 +1,53 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "repro: run this exact pack through tools/run_scenarios.py. wave5a cohort. wave5a trigger/replacement cohort | printed: when this dies, you MAY have it deal 1 damage to ANY target. Combat death to a blocker; the may is taken via the combat answer map, the any-target designation takes the engine's first legal candidate.",
+ "cards": [
+  {
+   "key": "ar",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Goblin Arsonist"
+  },
+  {
+   "key": "wall",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Wall",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5"
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "ar": true
+   },
+   "block": {
+    "wall": "ar"
+   }
+  },
+  {
+   "op": "end_turn",
+   "decisions": [
+    "fire",
+    "player:1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ar": "graveyard"
+  },
+  "life": {
+   "1": 19
+  }
+ },
+ "status": "suspect",
+ "finding": "silent (goblin_arsonist). Same SYSTEMATIC own-dies-trigger gap as deathbloom_thallid (ZONE_CHANGE detaches before the CREATURE_DIES row). Expected: Goblin Arsonist dies in combat -> may -> 1 damage to any target (life lane 19). Observed: graveyard, life 20, may-ask never made (asks list empty of it)."
+}

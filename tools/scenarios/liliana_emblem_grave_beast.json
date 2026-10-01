@@ -1,0 +1,61 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "lil",
+   "real": "Liliana, Waker of the Dead",
+   "controller": 0,
+   "zone": "battlefield"
+  },
+  {
+   "key": "gc",
+   "name": "Grave Beast",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "graveyard"
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "lil",
+   "set": 7
+  },
+  {
+   "op": "activate",
+   "key": "lil",
+   "idx": 2,
+   "seat": 0
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "gc": true
+   }
+  }
+ ],
+ "expect": {
+  "zone": {
+   "lil": "graveyard",
+   "gc": "battlefield"
+  },
+  "battlefield_keywords": {
+   "Grave Beast": [
+    "HASTE"
+   ]
+  },
+  "attackers": {
+   "gc": true
+  },
+  "life": {
+   "1": 18
+  }
+ },
+ "notes": "The batch-B row is the EMBLEM card itself (is_emblem, empty printed text); this pack witnesses the emblem's reach through its generator: the compiled -7 (idx 2, loyalty seeded to 7) exiles Liliana to the graveyard and the emblem it mints grants a static HASTE to the Grave Beast the -7's earlier ability had reanimated - the emblem has no battlefield handle, so its presence is asserted through the granted keyword, and the 2/2 beater then swings the same turn for exactly 2 damage (20->18)."
+}

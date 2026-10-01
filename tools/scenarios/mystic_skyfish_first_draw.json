@@ -1,0 +1,16 @@
+{
+  "world": { "life": 20, "seed": 7 },
+  "cards": [
+    { "key": "sf", "real": "Mystic Skyfish", "controller": 0, "zone": "battlefield" }
+  ],
+  "steps": [
+    { "op": "advance_turn" },
+    { "op": "advance_turn" }
+  ],
+  "expect": {
+    "battlefield_keywords": { "Mystic Skyfish": [] },
+    "life": { "0": 20 },
+    "hand": { "0": 1 }
+  },
+  "notes": "Control for the grant pack: the turn's first draw (upkeep draw of turn 2) is NOT the second card, so the ordinal=2 trigger must not grant FLYING."
+}

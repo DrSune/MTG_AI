@@ -1,0 +1,62 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "a",
+   "real": "Sanctum of All",
+   "controller": 0,
+   "zone": "hand"
+  },
+  {
+   "key": "sh",
+   "real": "Sanctum of Shattered Heights",
+   "controller": 0,
+   "zone": "library"
+  },
+  {
+   "key": "dc",
+   "name": "Decoy",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "controller": 0,
+   "zone": "library"
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "a"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sh": "battlefield"
+  },
+  "library": {
+   "0": [
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ]
+  },
+  "hand": {
+   "0": 2
+  }
+ },
+ "notes": "Printed: 'At the beginning of your upkeep, you may search your library and/or graveyard for a Shrine card and put it onto the battlefield. If you search this way, shuffle.' The Shrine rides in the library under a Decoy declared AFTER it (setup's begin_turn draws the last library entry - the Decoy - so the Shrine survives at the bottom; that harness law is recorded in the findings). The single Shrine candidate auto-narrows the search's choose; fire puts it onto the battlefield and shuffles the five remaining cards, whose slot order the CR-mandated shuffle leaves unknown -> the '*' wildcard asserts the SET exactly. SoA entered via op, so the upkeep ask lands on the second advance_turn."
+}

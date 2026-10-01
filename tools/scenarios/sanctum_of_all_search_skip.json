@@ -1,0 +1,63 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "a",
+   "real": "Sanctum of All",
+   "controller": 0,
+   "zone": "hand"
+  },
+  {
+   "key": "sh",
+   "real": "Sanctum of Shattered Heights",
+   "controller": 0,
+   "zone": "library"
+  },
+  {
+   "key": "dc",
+   "name": "Decoy",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "controller": 0,
+   "zone": "library"
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "a"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "skip"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sh": "library"
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Sanctum of Shattered Heights"
+   ]
+  },
+  "hand": {
+   "0": 2
+  }
+ },
+ "notes": "Skip half: the may-search is declined, so the Shrine stays at the BOTTOM of an unshuffled library - the exact-order lane witnesses that skipping neither moves nor shuffles anything."
+}

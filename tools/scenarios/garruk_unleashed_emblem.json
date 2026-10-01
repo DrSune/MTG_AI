@@ -1,0 +1,54 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "wave5a trigger/replacement cohort | emblem (Scryfall-printed): beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle. Minted by the -7 (Garruk then hits 0 loyalty and leaves). The search designation takes the engine's first legal creature from the library; the mandated shuffle leaves the slot order unknown so the library lane pins the SET with wildcards.",
+ "cards": [
+  {
+   "key": "ga",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Garruk, Unleashed"
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "ga",
+   "set": 7
+  },
+  {
+   "op": "activate",
+   "key": "ga",
+   "idx": 2,
+   "seat": 0
+  },
+  {
+   "op": "end_turn",
+   "decisions": [
+    "fire",
+    "pick"
+   ]
+  }
+ ],
+ "expect": {
+  "library": {
+   "0": [
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ]
+  },
+  "graveyard": {
+   "0": [
+    "Garruk, Unleashed"
+   ]
+  },
+  "hand": {
+   "0": 0
+  }
+ }
+}

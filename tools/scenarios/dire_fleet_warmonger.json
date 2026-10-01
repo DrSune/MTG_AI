@@ -1,0 +1,68 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "wave5a trigger/replacement cohort | printed: beginning of combat you may sacrifice ANOTHER creature; if you do, +2/+2 and trample EOT. t1 declines; t2 takes it \u2014 the sole legal 'another creature' candidate (fodder) is taken by the first-legal-word fallback.",
+ "cards": [
+  {
+   "key": "wa",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Dire Fleet Warmonger"
+  },
+  {
+   "key": "fod",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Fodder",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "may": {
+    "wa": false
+   }
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "may": {
+    "wa": true
+   }
+  }
+ ],
+ "expect": {
+  "zone": {
+   "fod": "graveyard"
+  },
+  "power": {
+   "wa": 5
+  },
+  "toughness": {
+   "wa": 5
+  },
+  "battlefield_keywords": {
+   "Dire Fleet Warmonger": [
+    "TRAMPLE"
+   ]
+  }
+ }
+}

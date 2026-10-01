@@ -1,0 +1,74 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "wave5a trigger/replacement cohort | printed: beginning of your end step, if you gained 3+ life this turn, create a 2/2 Griffin with flying. Two Radiant Fountain ETBs journal +2/+4 real life. t1 end step has NO gain (negative \u2014 no token; pinned by final count 1).",
+ "cards": [
+  {
+   "key": "ae",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Griffin Aerie"
+  },
+  {
+   "key": "f1",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Radiant Fountain"
+  },
+  {
+   "key": "f2",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Radiant Fountain"
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "enter",
+   "key": "f1"
+  },
+  {
+   "op": "enter",
+   "key": "f2"
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Griffin": 1
+  },
+  "battlefield_keywords": {
+   "Griffin": [
+    "FLYING"
+   ]
+  },
+  "battlefield_pt": {
+   "Griffin": [
+    2,
+    2
+   ]
+  },
+  "life": {
+   "0": 24
+  },
+  "hand": {
+   "0": 1
+  }
+ }
+}

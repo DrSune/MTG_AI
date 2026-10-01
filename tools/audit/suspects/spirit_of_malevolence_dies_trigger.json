@@ -1,0 +1,46 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv",
+   "real": "Spirit of Malevolence",
+   "controller": 0,
+   "zone": "battlefield"
+  },
+  {
+   "key": "bt",
+   "name": "Beater",
+   "controller": 0,
+   "power": "5",
+   "toughness": "5",
+   "type": "Creature",
+   "zone": "battlefield"
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "bt",
+   "target": "dv",
+   "amount": 5,
+   "decisions": [
+    "foe"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 21,
+   "1": 19
+  },
+  "zone": {
+   "dv": "graveyard"
+  }
+ },
+ "notes": "Printed: 'When this creature dies, each opponent loses 1 life and you gain 1 life.'",
+ "status": "suspect",
+ "finding": "SILENT: life stays 20/20 after the Spirit dies (zone lane confirms the death). Same self-dies law as wave5b_pitchburn_devils_dies_trigger: binding.py detaches IS_SOURCE triggers on the ZONE_CHANGE row, which is journalled before the CREATURE_DIES row, so the dies effect can never observe its own death. Two packs, one engine defect."
+}

@@ -1,0 +1,21 @@
+{
+  "world": { "life": 20, "seed": 7 },
+  "cards": [
+    { "key": "c", "real": "Lorescale Coatl", "controller": 0, "zone": "battlefield" },
+    { "key": "r1", "real": "Revitalize", "controller": 0, "zone": "hand" },
+    { "key": "r2", "real": "Revitalize", "controller": 0, "zone": "hand" }
+  ],
+  "mana": { "0": { "W": 5 } },
+  "steps": [
+    { "op": "cast", "key": "r1" },
+    { "op": "cast", "key": "r2" }
+  ],
+  "expect": {
+    "counters": { "c": { "PLUS_1_PLUS_1": 2 } },
+    "life": { "0": 26 },
+    "hand": { "0": 2 },
+    "library": { "0": ["Library 3", "Library 2", "Library 1", "Library 0"] },
+    "graveyard": { "0": ["Revitalize", "Revitalize"] }
+  },
+  "notes": "Printed: 'Whenever you draw a card, put a +1/+1 counter on this creature.' Two Revitalizes = two draws = two counters (+3 life each). The setup begin_turn ran before the library rig was stocked, so the only pops are these two draws."
+}

@@ -1,0 +1,82 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "k",
+   "real": "Tolarian Kraken",
+   "controller": 0,
+   "zone": "battlefield"
+  },
+  {
+   "key": "sheep",
+   "name": "Sheep",
+   "controller": 0,
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield"
+  },
+  {
+   "key": "goat",
+   "name": "Goat",
+   "controller": 0,
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield"
+  },
+  {
+   "key": "r",
+   "real": "Revitalize",
+   "controller": 0,
+   "zone": "hand"
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "r",
+   "decisions": [
+    "sheep",
+    "fire",
+    "fire",
+    "0"
+   ]
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "sheep": true,
+   "goat": false
+  },
+  "life": {
+   "0": 23
+  },
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "graveyard": {
+   "0": [
+    "Revitalize"
+   ]
+  }
+ },
+ "notes": "Printed: 'Whenever you draw a card, you may pay {1}. When you do, you may tap or untap target creature.' Revitalize's draw triggers the Kraken; the ask chain is target-designation FIRST, then the may-pay offer, then the inner may, then the tap/untap choose ('0'=tap). Revitalize's compiled grant is +3 life in this pool (same observation as the skyfish packs); the W:3 pool covers the {1}{W} cast plus the trigger's {1}."
+}

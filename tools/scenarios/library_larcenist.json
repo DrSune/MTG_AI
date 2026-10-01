@@ -1,0 +1,35 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "wave5a trigger/replacement cohort | printed: whenever this attacks, draw a card. Real unblocked attack (DeclareAttackersEvent) draws the library top; the 1/2 body also deals 1 unblocked combat damage.",
+ "cards": [
+  {
+   "key": "la",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Library Larcenist"
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "la": true
+   }
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 1
+  },
+  "life": {
+   "1": 19
+  },
+  "attackers": {
+   "la": true
+  }
+ }
+}
