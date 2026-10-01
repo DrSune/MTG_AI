@@ -1,0 +1,80 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "a",
+   "real": "Tome Anima",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "r1",
+   "real": "Revitalize",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "r2",
+   "real": "Revitalize",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "f",
+   "name": "Fence",
+   "power": 3,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "cast",
+   "key": "r1",
+   "real": "Revitalize",
+   "controller": 0
+  },
+  {
+   "op": "cast",
+   "key": "r2",
+   "real": "Revitalize",
+   "controller": 0
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "a": true
+   }
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 4,
+   "W": 4
+  }
+ },
+ "expect": {
+  "hand": {
+   "0": 2
+  },
+  "life": {
+   "0": 26,
+   "1": 17
+  },
+  "not_asked_to_block": [
+   "f"
+  ],
+  "zone": {
+   "r1": "graveyard",
+   "r2": "graveyard",
+   "f": "battlefield"
+  }
+ },
+ "notes": "Revitalize x2 (engine pays W-first, so the pool carries slack): gain 3 twice (life 26), draw 2 -> Tome Anima's 'can't be blocked as long as you've drawn two or more cards this turn' static narrows the blocker ask away (Fence never asked); the Anima then walks in for 3."
+}

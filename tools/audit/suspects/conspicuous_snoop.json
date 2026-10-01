@@ -1,0 +1,38 @@
+{
+  "status": "suspect",
+  "finding": "PRINTED: 'As long as the top card of your library is a Goblin card, this creature has all activated abilities of that card.' ENGINE: the golden compile reports the WHOLE clause as UNPARSED (res.unparsed) - zero static node exists for the ability-grant, so the promise is dead. The pack scripts the only observable face of the grant: asking the engine for the Goblin-ability activation (idx 1 - Snoop owns exactly one compiled activation, the no-cost cast-from-top) must fail instead of producing the promised activated ability.",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "s",
+      "real": "Conspicuous Snoop",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "C": 5
+    }
+  },
+  "steps": [
+    {
+      "op": "enter",
+      "key": "s"
+    },
+    {
+      "op": "activate",
+      "key": "s",
+      "idx": 1,
+      "seat": 0
+    }
+  ],
+  "expect": {
+    "zone": {
+      "s": "battlefield"
+    }
+  }
+}

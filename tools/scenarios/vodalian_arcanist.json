@@ -1,0 +1,64 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "v",
+   "real": "Vodalian Arcanist",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "o",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "v",
+   "idx": 0,
+   "seat": 0
+  },
+  {
+   "op": "cast",
+   "key": "o",
+   "real": "Opt",
+   "controller": 0,
+   "decisions": [
+    "top"
+   ]
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 1
+  }
+ },
+ "expect": {
+  "tapped": {
+   "v": true
+  },
+  "zone": {
+   "o": "graveyard",
+   "v": "battlefield"
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "{T}: Add {C} runs through the real pay+run path and the Arcanist ends tapped. The mana-pool amount and the THIS_MANA instant/sorcery restriction have NO observable harness lane -> asserted by completion only, limitation recorded in findings (no divergence evidence)."
+}

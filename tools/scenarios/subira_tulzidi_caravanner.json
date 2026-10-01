@@ -1,0 +1,82 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Subira, Tulzidi Caravanner",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "r",
+   "name": "Scout",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f",
+   "name": "Fence",
+   "power": 3,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "s"
+  },
+  {
+   "op": "activate",
+   "key": "s",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "r"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "s": true,
+    "r": true
+   }
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2
+  }
+ },
+ "expect": {
+  "attackers": {
+   "s": true,
+   "r": true
+  },
+  "blocked": {
+   "s": [],
+   "r": []
+  },
+  "life": {
+   "1": 16
+  },
+  "tapped": {
+   "s": true
+  },
+  "battlefield_keywords": {
+   "Subira, Tulzidi Caravanner": [
+    "HASTE"
+   ]
+  }
+ },
+ "notes": "Haste: Subira attacks the SAME turn she enters (journalled ETB, no prior turn). {1} makes the 2/2 Scout an unblockable attacker (IS_ANY_TARGET + POWER_LE prevent): no blocker was even chosen, 4 damage lands."
+}

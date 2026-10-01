@@ -1,0 +1,51 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Skyway Sniper",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "k",
+   "real": "Kitesail Freebooter",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "s",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "k"
+   ]
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2,
+   "G": 1
+  }
+ },
+ "expect": {
+  "damage": {
+   "k": 1
+  },
+  "zone": {
+   "k": "battlefield"
+  },
+  "battlefield_keywords": {
+   "Skyway Sniper": [
+    "REACH"
+   ]
+  }
+ },
+ "notes": "{2}{G}: 1 damage to target creature with flying (mark ledger on the 1/2 Freebooter, survives 1<2). Reach on the keyword lane."
+}

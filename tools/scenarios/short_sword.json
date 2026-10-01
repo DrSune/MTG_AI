@@ -1,0 +1,66 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Short Sword",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "Bearer",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "Twin",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "s"
+  },
+  {
+   "op": "activate",
+   "key": "s",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "a"
+   ]
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 1
+  }
+ },
+ "expect": {
+  "power": {
+   "a": 3,
+   "b": 2
+  },
+  "toughness": {
+   "a": 3,
+   "b": 2
+  },
+  "zone": {
+   "s": "battlefield"
+  }
+ },
+ "notes": "Equip {1} attaches via the real ATTACH verb: bearer 2/2->3/3, the untouched Twin stays 2/2 (negative control on the attached filter)."
+}

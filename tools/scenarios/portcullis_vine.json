@@ -1,0 +1,57 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "v",
+   "real": "Portcullis Vine",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "f",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "v"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {}
+  },
+  {
+   "op": "activate",
+   "key": "v",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "v"
+   ]
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2
+  }
+ },
+ "expect": {
+  "zone": {
+   "v": "graveyard"
+  },
+  "hand": {
+   "0": 2
+  },
+  "not_asked": [
+   "v"
+  ]
+ },
+ "notes": "DEFENDER: the combat phase never asked the Wall to attack. {2},{T},sac-a-defender: the vine sacrifices ITSELF (cost designation answered with the pack key) -> draw -> hand Shock+1 drawn card."
+}

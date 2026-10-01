@@ -1,0 +1,43 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bg",
+   "real": "Masked Blackguard",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "bg",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 3,
+   "B": 1
+  }
+ },
+ "expect": {
+  "zone": {
+   "bg": "battlefield"
+  },
+  "power": {
+   "bg": 3
+  },
+  "toughness": {
+   "bg": 2
+  },
+  "tapped": {
+   "bg": false
+  }
+ },
+ "notes": "Static/keyword card: golden has ONLY the {2}{B} pump ActivatedAbility (no SpellAbility node -> cast path is a systematic gap, see suspect; FLASH timing untestable through it). The pump fires: 2/1 -> 3/2, self stays untapped."
+}

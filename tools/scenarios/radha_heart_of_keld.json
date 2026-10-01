@@ -1,0 +1,36 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "r",
+   "real": "Radha, Heart of Keld",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "battlefield_keywords": {
+   "Radha, Heart of Keld": [
+    "FIRST_STRIKE"
+   ]
+  }
+ },
+ "notes": "First strike DURING MY TURN only: the clock ends on my turn (two end/advance cycles) and the layer reads FIRST_STRIKE. The off-turn negative half (empty on opponent's turn) is not assertable at pack end; its gate pred TURN_OF(YOU) is the engine's own scope."
+}

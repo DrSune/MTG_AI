@@ -1,0 +1,70 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "k",
+      "real": "Kaervek, the Spiteful",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "mine",
+      "real": "Walking Corpse",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "theirs",
+      "real": "Skyscanner",
+      "zone": "battlefield",
+      "controller": 1
+    },
+    {
+      "key": "wisp",
+      "name": "Wisp",
+      "power": "1",
+      "toughness": "1",
+      "type": "Creature",
+      "zone": "hand",
+      "controller": 1
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "k"
+    },
+    {
+      "op": "enter",
+      "key": "mine"
+    },
+    {
+      "op": "enter",
+      "key": "theirs"
+    },
+    {
+      "op": "enter",
+      "key": "wisp"
+    }
+  ],
+  "expect": {
+    "battlefield_pt": {
+      "Walking Corpse": [
+        1,
+        1
+      ],
+      "Kaervek, the Spiteful": [
+        3,
+        2
+      ]
+    },
+    "zone": {
+      "theirs": "graveyard",
+      "wisp": "graveyard"
+    }
+  },
+  "notes": "Printed: 'Other creatures get -1/-1.' The static hits EVERY other creature on BOTH sides: my 2/2 corpse reads 1/1, Kaervek itself is NOT self-applied (stays 3/2), and the opposing 1/1 Thopter plus the entering 1/1 Wisp are reduced to 0/0 and buried by the state-based actions (CR 704.5a)."
+}

@@ -1,0 +1,48 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Tide Skimmer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "p",
+   "real": "Concordia Pegasus",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "s": true,
+    "p": true
+   }
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 1
+  },
+  "life": {
+   "1": 17
+  },
+  "attackers": {
+   "s": true,
+   "p": true
+  },
+  "battlefield_keywords": {
+   "Tide Skimmer": [
+    "FLYING"
+   ]
+  }
+ },
+ "notes": "Attack with TWO flyers (Skimmer + Pegasus) -> the CONTROLLER_COUNT_GE(2, FLYING+IS_ATTACKING) gate draws exactly one card. One flyer would not (count gate printed as threshold 2)."
+}

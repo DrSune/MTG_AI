@@ -1,0 +1,46 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "t",
+      "real": "Drowsing Tyrannodon",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "g",
+      "real": "Blood Glutton",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "t": true,
+        "g": true
+      }
+    }
+  ],
+  "expect": {
+    "attackers": {
+      "t": true,
+      "g": true
+    },
+    "life": {
+      "1": 13
+    },
+    "battlefield_pt": {
+      "Drowsing Tyrannodon": [
+        3,
+        3
+      ]
+    }
+  },
+  "notes": "Printed: Defender; 'As long as you control a creature with power 4 or greater, this creature can attack as though it didn't have defender.' With the 4-power Blood Glutton in play the conditional LOSE_ABILITY(DEFENDER) static lifts: the engine OFFERS the attack (journal row) and 3+4 combat damage lands (life 20->13). The defender baseline (no 4-power friend -> never asked) is pinned by combat_vigilance_defender.json."
+}

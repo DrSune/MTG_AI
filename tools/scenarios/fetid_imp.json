@@ -1,0 +1,52 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "i",
+      "real": "Fetid Imp",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "p",
+      "real": "Concordia Pegasus",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "B": 2
+    }
+  },
+  "steps": [
+    {
+      "op": "enter",
+      "key": "i"
+    },
+    {
+      "op": "activate",
+      "key": "i",
+      "idx": 0,
+      "seat": 0
+    }
+  ],
+  "expect": {
+    "tapped": {
+      "i": false
+    },
+    "battlefield_keywords": {
+      "Fetid Imp": [
+        "DEATHTOUCH",
+        "FLYING"
+      ],
+      "Concordia Pegasus": [
+        "FLYING"
+      ]
+    }
+  },
+  "notes": "Printed: Flying; '{B}: This creature gains deathtouch until end of turn.' Paid B from the seeded pool: the keyword layer shows FLYING + DEATHTOUCH on the Imp; the flying neighbor never gains it (negative control). {B} does not tap the Imp."
+}

@@ -1,0 +1,37 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "ci",
+      "real": "Chandra's Incinerator",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "ci"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "ci": "battlefield"
+    },
+    "battlefield_pt": {
+      "Chandra's Incinerator": [
+        6,
+        6
+      ]
+    },
+    "battlefield_keywords": {
+      "Chandra's Incinerator": [
+        "TRAMPLE"
+      ]
+    }
+  },
+  "notes": "Printed static/keyword: Trample on a 6/6. The other two clauses (cost reduction X = noncombat damage to opponents this turn; the noncombat-damage ping trigger) need damage dealt TO A PLAYER outside combat, which the pack harness has no lane for (deal_damage binds a battlefield target) - spell/cast-lane clauses, not static-layer behavior."
+}

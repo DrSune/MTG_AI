@@ -1,0 +1,43 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Waker of Waves",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "Blub",
+   "power": 3,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {}
+  }
+ ],
+ "expect": {
+  "power": {
+   "b": 2
+  },
+  "toughness": {
+   "b": 3
+  },
+  "zone": {
+   "b": "battlefield",
+   "w": "battlefield"
+  }
+ },
+ "notes": "Static -1/-0 aura: the opponent's 3/3 reads 2/3 while Waker is on the battlefield. The printed {1}{U}, Discard-this-card: dig-2 activation is a LOUD suspect - activation legality rejects the from-hand source 'window:not_on_battlefield' although the printed cost is a hand activation."
+}

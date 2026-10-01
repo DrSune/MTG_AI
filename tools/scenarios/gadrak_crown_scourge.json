@@ -1,0 +1,99 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "g",
+      "real": "Gadrak, the Crown-Scourge",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "a1",
+      "name": "Cog",
+      "power": null,
+      "toughness": null,
+      "type": "Artifact",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "a2",
+      "name": "Cog Two",
+      "power": null,
+      "toughness": null,
+      "type": "Artifact",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "a3",
+      "name": "Cog Three",
+      "power": null,
+      "toughness": null,
+      "type": "Artifact",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "a4",
+      "name": "Cog Four",
+      "power": null,
+      "toughness": null,
+      "type": "Artifact",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "g": true
+      }
+    },
+    {
+      "op": "enter",
+      "key": "a1"
+    },
+    {
+      "op": "enter",
+      "key": "a2"
+    },
+    {
+      "op": "enter",
+      "key": "a3"
+    },
+    {
+      "op": "enter",
+      "key": "a4"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "g": true
+      }
+    }
+  ],
+  "expect": {
+    "attackers": {
+      "g": true
+    },
+    "life": {
+      "1": 15
+    },
+    "tapped": {
+      "g": true
+    },
+    "battlefield_keywords": {
+      "Gadrak, the Crown-Scourge": [
+        "FLYING"
+      ]
+    }
+  },
+  "notes": "Printed: Flying; 'Gadrak can't attack unless you control four or more artifacts.' Combat #1 runs with ZERO artifacts: the attack-restriction static must refuse (if it leaked, combat #1 would deal 5 and final life would be 10, not the asserted 15). Then four artifacts enter and combat #2 lets the 5-damage attack through (attackers lane = the LAST declare group; life 20-5=15 counts BOTH combats - only a held restriction gives 15). The end-step Treasure-per-died-creature trigger is a trigger-lane clause, not asserted."
+}

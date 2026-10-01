@@ -1,0 +1,55 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "f",
+      "real": "Feline Sovereign",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "cat",
+      "name": "Hunting Kitty",
+      "power": "1",
+      "toughness": "1",
+      "type": "Creature \u2014 Cat",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "dog",
+      "name": "Mongrel",
+      "power": "2",
+      "toughness": "2",
+      "type": "Creature \u2014 Dog",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "f"
+    }
+  ],
+  "expect": {
+    "battlefield_pt": {
+      "Hunting Kitty": [
+        2,
+        2
+      ],
+      "Feline Sovereign": [
+        2,
+        3
+      ],
+      "Mongrel": [
+        2,
+        2
+      ]
+    }
+  },
+  "notes": "Printed: 'OTHER Cats you control get +1/+1 and have protection from Dogs.' The other Cat is buffed 1/1 -> 2/2; the Sovereign does NOT self-apply ('other'); the Dog stays 2/2. Protection from Dogs has no pack lane (no targeted/damaged-by interaction asserted here); the +1/+1 subtype-gated static is the layer promise."
+}

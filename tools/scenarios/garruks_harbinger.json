@@ -1,0 +1,45 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "h",
+      "real": "Garruk's Harbinger",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "h": true
+      }
+    },
+    {
+      "op": "end_turn"
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 16
+    },
+    "library": {
+      "0": [
+        "Library 1",
+        "Library 0",
+        "*",
+        "*",
+        "*",
+        "*"
+      ]
+    },
+    "hand": {
+      "0": 0
+    }
+  },
+  "notes": "Printed: 'Hexproof from black' + combat-damage rummage. The 4-damage attack lands (life 20->16) and the trigger runs: look at the top 4 (Library 4..1), the may-reveal offer is DECLINED by the combat provider's default, and ALL FOUR go to the BOTTOM in random order - the library lane pins the untouched top card (Library 0) plus four wildcard slots (5 cards after begin_turn's draw). 'Hexproof from black' is NOT lane-checkable (not in the runner's ten-keyword list; targeting legality is a legality-lane probe) and the compile carries the KNOWN-GAP \"keyword 'Hexproof from': requires Filter param\" - see findings."
+}

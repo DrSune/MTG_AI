@@ -1,0 +1,79 @@
+{
+  "status": "suspect",
+  "finding": "PRINTED: Prowess. ENGINE(observed): after two noncreature spells (Opt x2) power/toughness stay 2/2 (expected 4/4 stacked). ROOT CAUSE: Keyword.PROWESS compiles as a bare KeywordAbility (templates_b5b KeywordOutcome) but the executor has ZERO references to PROWESS - no cast-listening trigger exists, so the +1/+1 UET ping never fires. Same gap as Jeskai Elder.",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "h",
+      "real": "Heartfire Immolator",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "o1",
+      "real": "Opt",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "o2",
+      "real": "Opt",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "plain",
+      "name": "Militia",
+      "power": "2",
+      "toughness": "2",
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "U": 5
+    }
+  },
+  "steps": [
+    {
+      "op": "enter",
+      "key": "h"
+    },
+    {
+      "op": "cast",
+      "real": "Opt",
+      "key": "o1",
+      "decisions": [
+        "bottom"
+      ]
+    },
+    {
+      "op": "cast",
+      "real": "Opt",
+      "key": "o2",
+      "decisions": [
+        "bottom"
+      ]
+    }
+  ],
+  "expect": {
+    "power": {
+      "h": 4
+    },
+    "toughness": {
+      "h": 4
+    },
+    "battlefield_pt": {
+      "Militia": [
+        2,
+        2
+      ]
+    }
+  },
+  "notes": "Printed: Prowess. TWO noncreature spells (Opt x2) each grant +1/+1 until end of turn - the buffs STACK on the ledger lanes: 2/2 -> 4/4 (a one-shot trigger fold would read 3/3). The non-prowess 2/2 twin stays 2/2 (negative control). Asserted while the duration is open, watcher_flying_buff convention."
+}

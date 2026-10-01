@@ -1,0 +1,60 @@
+{
+  "status": "suspect",
+  "finding": "PRINTED: 'Enchant creature. Enchanted creature gets +2/+0 and has \"When this creature dies, draw a card.\"' ENGINE(observed): the +2/+0 attacks for 4 (life lane green) and the aura correctly buries with the host (graveyard bag green), but the GRANTED death trigger never draws - hand stays 0 (expected 2). The GrantedAbility (TriggeredAbility/CreatureDiesEvent) is verifiably registered on the host via layers.granted_abilities(host) before death; the trigger drain never consults granted triggered abilities (no granted-row matching in the trigger-firing path).",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "s",
+      "real": "Infernal Scarring",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "host",
+      "real": "Walking Corpse",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enchant",
+      "aura": "s",
+      "host": "host"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "host": true
+      }
+    },
+    {
+      "op": "deal_damage",
+      "source": "host",
+      "target": "host",
+      "amount": 4
+    },
+    {
+      "op": "end_turn"
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 16
+    },
+    "graveyard": {
+      "0": [
+        "Infernal Scarring",
+        "Walking Corpse"
+      ]
+    },
+    "hand": {
+      "0": 2
+    }
+  },
+  "notes": "Printed: 'Enchant creature. Enchanted creature gets +2/+0 and has \"When this creature dies, draw a card.\"' The +2/+0 is load-bearing on the COMBAT lane: the enchanted 2/2 attacks for 4 (life 20->16; an unbuffed host would read 18). Then 4 damage on itself kills it (SBA), the GRANTED death trigger draws a card (hand 1->2; a dead grant would read 1)."
+}

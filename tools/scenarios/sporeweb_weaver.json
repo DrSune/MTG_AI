@@ -1,0 +1,52 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Sporeweb Weaver",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "Gnash",
+   "power": 3,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "b",
+   "target": "w",
+   "amount": 2,
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 21
+  },
+  "tokens": {
+   "Saproling": 1
+  },
+  "zone": {
+   "w": "battlefield"
+  },
+  "damage": {
+   "w": 2
+  },
+  "battlefield_keywords": {
+   "Sporeweb Weaver": [
+    "REACH"
+   ]
+  }
+ },
+ "notes": "Dealt 2 damage -> +1 life and a 1/1 green Saproling token (printed pair). Reach asserts on the lane; 'hexproof from blue' is a colored-hexproof grant outside the lane vocab -> findings note."
+}

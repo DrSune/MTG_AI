@@ -1,0 +1,128 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "m",
+   "real": "Mangara, the Diplomat",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "biter",
+   "name": "Gnash",
+   "power": 5,
+   "toughness": 5,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "c1",
+   "real": "Walking Corpse",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "c2",
+   "real": "Walking Corpse",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "s1",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "s2",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "c1"
+  },
+  {
+   "op": "enter",
+   "key": "c2"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "cast",
+   "key": "s1",
+   "real": "Shock",
+   "controller": 1,
+   "targets": [
+    "biter"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "s2",
+   "real": "Shock",
+   "controller": 1,
+   "targets": [
+    "biter"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "c1": true,
+    "c2": true,
+    "biter": false
+   }
+  }
+ ],
+ "mana": {
+  "1": {
+   "R": 2
+  }
+ },
+ "expect": {
+  "life": {
+   "0": 16
+  },
+  "hand": {
+   "0": 3
+  },
+  "zone": {
+   "biter": "battlefield",
+   "m": "battlefield",
+   "c1": "battlefield"
+  },
+  "attackers": {
+   "c1": true,
+   "c2": true,
+   "biter": false
+  },
+  "battlefield_keywords": {
+   "Mangara, the Diplomat": [
+    "LIFELINK"
+   ]
+  },
+  "damage": {
+   "biter": 4
+  }
+ },
+ "notes": "Printed both draws: opponent's SECOND spell each turn (two Shocks at their own 5/5 -> +1 card) and 2+ creatures attacking me (two unblocked 2/2 Corpses -> +1 card, 4 damage). Lifelink asserted via the layers lane."
+}

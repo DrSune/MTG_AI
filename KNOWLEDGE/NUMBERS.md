@@ -2230,3 +2230,21 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | gate-flagged | **1**: Teferi, Master of Time — **PHASE_OUT** | `meta.excluded_by_flag` | static nodes themselves verb-clean (GRANT_ACTIVATION is supported); whole-card gate fails on PHASE_OUT elsewhere |
 | top-5 verb families | MODIFY_PT **13** · FLYING **9** · GRANT_ABILITY **8** · LIFELINK **5** · REACH **5** | mechanics ∩ static nodes in wave3.json | 25 distinct verbs over the 55-row cohort |
 | gates | wave1+wave2+wave3 lint **OK byte-identical**; core suite **2168 + 4 subtests** unchanged; pyright **0**; ruff **Δ0** | `.venv/bin/python tools/audit/wave_builder.py --lint` / `--wave2 --lint` / `--wave3 --lint` · `pytest MTG_bot/core -q` · `pyright tools/audit/wave_builder.py` | tools-only change; MTG_bot/** untouched |
+
+## 2026-10-01 (wave-3a batch A validation — 28 static/keyword cards)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| wave-3a batch A | **28 cards → 16 green + 12 suspect** | `.venv/bin/python tools/run_scenarios.py --dir /tmp/opencode/staging` | all 12 divergences root-caused; see 09-wave3a-findings.md |
+| runner gate | **164/164** (148 baseline + 16 new) | `.venv/bin/python tools/run_scenarios.py` | zero regressions |
+| suite gate | **2168 + 4 subtests** unchanged | `.venv/bin/python -m pytest MTG_bot/core -q` | engine frozen, untouched |
+| dead keywords | LIFELINK **0** · PROWESS **0** · BATTALION **0** handler hits | `grep -rn "LIFELINK\|PROWESS\|BATTALION" MTG_bot/core/executor/` | compiled+layered but no runtime teeth; 7 of 12 suspects |
+
+## 2026-10-01 (wave-3b batch B validation — 27 static/keyword cards)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| wave-3b batch B | **27 cards → 22 green + 9 suspect files** | `.venv/bin/python tools/run_scenarios.py --dir /tmp/opencode/b3b_ship` | 5 card-level + 4 systemic root-caused; see 10-wave3b-findings.md |
+| runner gate | **186/186** (164 baseline + 22 new) | `.venv/bin/python tools/run_scenarios.py` | zero regressions |
+| suite gate | **2168 + 4 subtests** unchanged | `.venv/bin/python -m pytest MTG_bot/core -q` | engine frozen, untouched |
+| creature cast gap | **163/165** creature goldens lack SpellAbility | golden-pool scan (`abilities` node tags) | `cast:not_a_spell` = systematic silent lane-gap |

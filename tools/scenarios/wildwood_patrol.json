@@ -1,0 +1,69 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "p",
+   "real": "Wildwood Patrol",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f",
+   "name": "Fence",
+   "power": 1,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "p": true
+   },
+   "block": {
+    "f": "p"
+   },
+   "trample": {
+    "p": [
+     0
+    ]
+   }
+  }
+ ],
+ "expect": {
+  "power": {
+   "p": 4
+  },
+  "toughness": {
+   "p": 2
+  },
+  "damage": {
+   "p": 1
+  },
+  "life": {
+   "1": 19
+  },
+  "blocked": {
+   "p": [
+    "f"
+   ]
+  },
+  "zone": {
+   "p": "battlefield",
+   "f": "graveyard"
+  },
+  "battlefield_keywords": {
+   "Wildwood Patrol": [
+    "TRAMPLE"
+   ]
+  }
+ },
+ "notes": "Trample 4/2 vs 1/3 wall: lethal 3 covered, excess 1 exists (the engine's trample ask fires with vocab 0..1 only for a keyword holder); answer 0-to-blocker -> the whole excess leaks through -> player at 19. Patrol takes 1 back and survives with a 1-damage mark. Trample on the layers lane."
+}

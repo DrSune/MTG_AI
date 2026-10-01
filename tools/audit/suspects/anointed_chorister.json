@@ -1,0 +1,65 @@
+{
+  "status": "suspect",
+  "finding": "PRINTED: Lifelink; '{4}{W}: This creature gets +3/+3 until end of turn.' ENGINE(observed): 4 damage dealt to a creature changes NO life (life[0] stays 20, expected 21) - the life lane is the ONLY divergence; the activation and the keyword lane (LIFELINK reads green through layers.keyword_of) all pass. ROOT CAUSE: the DEAL_DAMAGE / life-gain execution path never consults LIFELINK - grep for LIFELINK over MTG_bot/core/executor/ is EMPTY. The keyword is compiled and layered but has no runtime teeth.",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "c",
+      "real": "Anointed Chorister",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "wc",
+      "real": "Walking Corpse",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "W": 5
+    }
+  },
+  "steps": [
+    {
+      "op": "enter",
+      "key": "c"
+    },
+    {
+      "op": "deal_damage",
+      "source": "c",
+      "target": "wc",
+      "amount": 4
+    },
+    {
+      "op": "activate",
+      "key": "c",
+      "idx": 0,
+      "seat": 0
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 21
+    },
+    "zone": {
+      "wc": "graveyard"
+    },
+    "power": {
+      "c": 4
+    },
+    "toughness": {
+      "c": 4
+    },
+    "battlefield_keywords": {
+      "Anointed Chorister": [
+        "LIFELINK"
+      ]
+    }
+  },
+  "notes": "Printed: Lifelink; '{4}{W}: This creature gets +3/+3 until end of turn.' Lifelink: 4 damage dealt -> life 20->21 and the lethal marks bury the 2/2 (SBA). Activation (paid Wx5 from the seeded pool): 1/1 -> 4/4 on the power/toughness lanes."
+}

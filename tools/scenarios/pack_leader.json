@@ -1,0 +1,62 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "l",
+   "real": "Pack Leader",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "p",
+   "name": "Rambler",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature \u2014 Dog",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f",
+   "name": "Fence",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "l": true,
+    "p": false
+   },
+   "block": {}
+  }
+ ],
+ "expect": {
+  "power": {
+   "p": 3,
+   "l": 2
+  },
+  "toughness": {
+   "p": 3
+  },
+  "zone": {
+   "l": "battlefield",
+   "f": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "damage": {}
+ },
+ "notes": "Anthem lane: other Dogs +1/+1 (pup 2/2->3/3), self stays 2/2 (printed 'other'). Leader attacks UNBLOCKED (block NONE) and deals 2 to the opponent. The 'whenever this creature attacks, prevent all combat damage that would be dealt to Dogs you control' trigger is a silent suspect: PREVENT_EFFECT against CombatDamageEvent has no damage-application consumer (only untap/block/attack consumers exist) \u2014 a blocked Leader dies anyway. See suspect."
+}

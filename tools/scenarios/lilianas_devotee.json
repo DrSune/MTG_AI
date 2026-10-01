@@ -1,0 +1,57 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "d",
+      "real": "Liliana's Devotee",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "z",
+      "real": "Walking Corpse",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "t",
+      "real": "Skyscanner",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "d"
+    },
+    {
+      "op": "enter",
+      "key": "z"
+    },
+    {
+      "op": "enter",
+      "key": "t"
+    }
+  ],
+  "expect": {
+    "battlefield_pt": {
+      "Walking Corpse": [
+        3,
+        2
+      ],
+      "Liliana's Devotee": [
+        2,
+        3
+      ],
+      "Skyscanner": [
+        1,
+        1
+      ]
+    }
+  },
+  "notes": "Printed static: 'Zombies you control get +1/+0.' The Zombie (Walking Corpse) is buffed 2/2 -> 3/2 - toughness lane proves it's +P only; the Devotee itself is a Human (printed 2/3, NOT self-buffed into 3/3... printed base is already 2/3 so the assert is honest base), and the opponent's non-Zombie stays 1/1 (negative control). The end-step zombie-token offer needs a death + optional {1}{B} payment (trigger/decision cohort)."
+}

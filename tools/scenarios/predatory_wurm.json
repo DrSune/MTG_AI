@@ -1,0 +1,52 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Predatory Wurm",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g",
+   "name": "Garruk Omenbound",
+   "power": null,
+   "toughness": null,
+   "type": "Planeswalker \u2014 Garruk",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "w": true
+   }
+  }
+ ],
+ "expect": {
+  "power": {
+   "w": 6
+  },
+  "toughness": {
+   "w": 6
+  },
+  "tapped": {
+   "w": false
+  },
+  "life": {
+   "1": 14
+  },
+  "battlefield_keywords": {
+   "Predatory Wurm": [
+    "VIGILANCE"
+   ]
+  }
+ },
+ "notes": "The +2/+2 while-condition reads my Garruk planeswalker (synthetic Planeswalker \u2014 Garruk) -> 6/6 dealing 6. Vigilance: attack leaves it untapped."
+}

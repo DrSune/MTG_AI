@@ -1,0 +1,45 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Waker of Waves",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "Blub",
+   "power": 3,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "w",
+   "idx": 1,
+   "seat": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 1,
+   "U": 1
+  }
+ },
+ "expect": {
+  "zone": {
+   "w": "graveyard"
+  }
+ },
+ "status": "suspect",
+ "notes": "repro: activate the printed from-hand discard ability.",
+ "finding": "PRINTED: '{1}{U}, Discard this card: Look at the top two cards of your library. Put one of them into your hand and the other into your graveyard.' \u2014 an activation whose COST is a hand discard, legal from the hand. ENGINE(observed): legality.activate rejects the source with 'executor: illegal activation: window:not_on_battlefield:card:N' \u2014 activation legality hard-requires battlefield presence, so the printed hand-activation window does not exist. LOUD raise (ValueError), reproducible from a bare hand setup. The card's -1/-0 static ships green in tools/scenarios/waker_of_waves.json. WAVE3B 2026-10-01."
+}

@@ -1,0 +1,68 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "s",
+      "real": "Gnarled Sage",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "o1",
+      "real": "Opt",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "o2",
+      "real": "Opt",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "U": 5
+    }
+  },
+  "steps": [
+    {
+      "op": "enter",
+      "key": "s"
+    },
+    {
+      "op": "cast",
+      "real": "Opt",
+      "key": "o1",
+      "decisions": [
+        "bottom"
+      ]
+    },
+    {
+      "op": "cast",
+      "real": "Opt",
+      "key": "o2",
+      "decisions": [
+        "bottom"
+      ]
+    }
+  ],
+  "expect": {
+    "battlefield_pt": {
+      "Gnarled Sage": [
+        4,
+        6
+      ]
+    },
+    "battlefield_keywords": {
+      "Gnarled Sage": [
+        "REACH",
+        "VIGILANCE"
+      ]
+    }
+  },
+  "notes": "Printed: Reach; 'As long as you've drawn two or more cards this turn, this creature gets +0/+2 and has vigilance.' Two Opts cast (plus the begin_turn draw) satisfy the while-condition: 4/4 -> 4/6 with REACH+VIGILANCE on the layers lane."
+}

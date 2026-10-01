@@ -1,0 +1,74 @@
+{
+  "status": "suspect",
+  "finding": "PRINTED: 'Enchant creature. Enchanted creature has \"Whenever you gain life, put that many +1/+1 counters on this creature.\"' ENGINE(observed): a 4-damage lifelink swing gains no life (lifelink gap), counters = {} and PT stays [2,2]. The GRANT_ABILITY node (LifeGainedEvent -> PUT_COUNTER count=event.AMOUNT) compiles and registers; it is downstream-untestable while NO life-gain source exists in the executor (LIFELINK has zero handler hits). PRIMARY ROOT CAUSE: dead LIFELINK.",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "lp",
+      "real": "Light of Promise",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "host",
+      "real": "Walking Corpse",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "g",
+      "real": "Blood Glutton",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "v",
+      "name": "Warden",
+      "power": "1",
+      "toughness": "5",
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "steps": [
+    {
+      "op": "enchant",
+      "aura": "lp",
+      "host": "host"
+    },
+    {
+      "op": "enter",
+      "key": "g"
+    },
+    {
+      "op": "deal_damage",
+      "source": "g",
+      "target": "v",
+      "amount": 4
+    },
+    {
+      "op": "end_turn"
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 24
+    },
+    "counters": {
+      "host": {
+        "PLUS_1_PLUS_1": 4
+      }
+    },
+    "battlefield_pt": {
+      "Walking Corpse": [
+        6,
+        6
+      ]
+    }
+  },
+  "notes": "Printed: 'Enchant creature. Enchanted creature has \"Whenever you gain life, put that many +1/+1 counters on this creature.\"' Lifelink Glutton gains exactly 4: the GRANTED life-gain trigger puts 4 +1/+1 counters on the host (counters table pinned) and the r19a counter fold reads 2/2 -> 6/6. A dead grant would leave counters {} / PT [2,2]."
+}

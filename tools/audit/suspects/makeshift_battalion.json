@@ -1,0 +1,63 @@
+{
+  "status": "suspect",
+  "finding": "PRINTED: 'Battalion - Whenever this creature and at least two other creatures attack, put a +1/+1 counter on this creature.' ENGINE(observed): three attackers go through and 6 damage lands (life lane green) but counters = {} (expected PLUS_1_PLUS_1: 1). ROOT CAUSE: Keyword.BATTALION (params QConst(2)) compiles as a bare KeywordAbility, but the executor has ZERO references to BATTALION (grep over MTG_bot/core/executor/) - no attack-group trigger is ever registered; the compile also carries GAP \"keyword 'Battalion': requires params not available from identity alone\".",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "m",
+      "real": "Makeshift Battalion",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "p",
+      "real": "Concordia Pegasus",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "c",
+      "real": "Walking Corpse",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "c"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "m": true,
+        "p": true,
+        "c": true
+      }
+    },
+    {
+      "op": "end_turn"
+    }
+  ],
+  "expect": {
+    "counters": {
+      "m": {
+        "PLUS_1_PLUS_1": 1
+      }
+    },
+    "power": {
+      "m": 4
+    },
+    "toughness": {
+      "m": 3
+    },
+    "life": {
+      "1": 14
+    }
+  },
+  "notes": "Printed: 'Battalion - Whenever this creature and at least two other creatures attack, put a +1/+1 counter on this creature.' Exactly the trigger group (3 attackers) goes through; 3+1+2 combat damage lands (life 20->14) and the counter lands: 3/2 -> 4/3 on the ledger lanes."
+}

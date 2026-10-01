@@ -1,0 +1,57 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "d",
+      "real": "Dub",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "host",
+      "real": "Walking Corpse",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "sky",
+      "real": "Skyscanner",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enchant",
+      "aura": "d",
+      "host": "host"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "d": "battlefield"
+    },
+    "battlefield_pt": {
+      "Walking Corpse": [
+        4,
+        4
+      ],
+      "Skyscanner": [
+        1,
+        1
+      ]
+    },
+    "battlefield_keywords": {
+      "Walking Corpse": [
+        "FIRST_STRIKE"
+      ],
+      "Skyscanner": [
+        "FLYING"
+      ]
+    }
+  },
+  "notes": "Printed: 'Enchanted creature gets +2/+2, has first strike, and is a Knight in addition to its other types.' Host 2/2 -> 4/4 with FIRST_STRIKE; the neighbor stays plain (negative). Knight type-grant: compiled in the static seq, no pack type lane (probe note)."
+}

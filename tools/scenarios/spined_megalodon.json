@@ -1,0 +1,42 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "m",
+   "real": "Spined Megalodon",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "m": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 15
+  },
+  "attackers": {
+   "m": true
+  },
+  "library": {
+   "0": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ },
+ "notes": "Attack -> the scry 1 trigger fires inside the combat phase and the harness provider answers with the ask's first word; library integrity holds either way (asserted exactly). Hexproof sits outside the keyword lane's 10-key vocab and negative targeting raises -> findings note, not a silent pass claim."
+}

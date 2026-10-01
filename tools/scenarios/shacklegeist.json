@@ -1,0 +1,124 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "g",
+   "real": "Shacklegeist",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "sp",
+   "name": "Spooky",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature \u2014 Spirit",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f",
+   "name": "Fence",
+   "power": 2,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "i",
+   "real": "Fetid Imp",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "c",
+   "real": "Walking Corpse",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "m",
+   "name": "Moo",
+   "power": 3,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "i"
+  },
+  {
+   "op": "enter",
+   "key": "c"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "i": true,
+    "c": true
+   },
+   "block": {
+    "g": "i",
+    "f": "c"
+   }
+  },
+  {
+   "op": "activate",
+   "key": "g",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "m"
+   ]
+  }
+ ],
+ "expect": {
+  "block_asks": {
+   "g": "<i>,NONE"
+  },
+  "blocked": {
+   "i": [
+    "g"
+   ],
+   "c": [
+    "f"
+   ]
+  },
+  "damage": {
+   "g": 1,
+   "f": 2
+  },
+  "zone": {
+   "i": "graveyard",
+   "c": "graveyard",
+   "g": "battlefield",
+   "f": "battlefield"
+  },
+  "tapped": {
+   "m": true,
+   "g": true,
+   "sp": true
+  },
+  "battlefield_keywords": {
+   "Shacklegeist": [
+    "FLYING"
+   ]
+  }
+ },
+ "notes": "Block restriction: the geist's block ask vocabulary carries ONLY the flying Fetid Imp, never the 2/2 Corpse (narrowed at the ask, printed 'can block only creatures with flying'). {T}: tap 2 untapped Spirits (geist+Spooky, CHOOSE cost asks) -> taps the opponents' 3/3 Moo."
+}

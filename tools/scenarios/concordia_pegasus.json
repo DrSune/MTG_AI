@@ -1,0 +1,45 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "p",
+      "real": "Concordia Pegasus",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "c",
+      "real": "Walking Corpse",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "p"
+    },
+    {
+      "op": "enter",
+      "key": "c"
+    }
+  ],
+  "expect": {
+    "battlefield_pt": {
+      "Concordia Pegasus": [
+        1,
+        3
+      ]
+    },
+    "battlefield_keywords": {
+      "Concordia Pegasus": [
+        "FLYING"
+      ],
+      "Walking Corpse": []
+    }
+  },
+  "notes": "Printed: Flying. Keyword lands on the layers lane for the Pegasus; the flying Thopter twin entered the same turn carries NO keyword (negative control)."
+}

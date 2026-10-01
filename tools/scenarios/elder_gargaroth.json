@@ -1,0 +1,48 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "g",
+      "real": "Elder Gargaroth",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "g": true
+      }
+    }
+  ],
+  "expect": {
+    "battlefield_keywords": {
+      "Elder Gargaroth": [
+        "REACH",
+        "TRAMPLE",
+        "VIGILANCE"
+      ]
+    },
+    "battlefield_pt": {
+      "Elder Gargaroth": [
+        6,
+        6
+      ]
+    },
+    "tapped": {
+      "g": false
+    },
+    "life": {
+      "1": 14
+    },
+    "tokens": {
+      "Beast": 1
+    }
+  },
+  "notes": "Printed: 'Vigilance, reach, trample' + the attack/block choose-one. All three keywords read on the layers lane; the attack goes through, 6 damage lands (life 20->14) and VIGILANCE keeps it UNtapped. The attack trigger's mode ask is answered by the harness default (first legal mode) = 'create a 3/3 Beast token' - the tokens lane pins it. (If the engine's default mode differs, this pin moves with the observed vocab, never the assert.)"
+}

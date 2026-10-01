@@ -1,0 +1,51 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "o",
+      "real": "Chromatic Orrery",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "wc",
+      "real": "Walking Corpse",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "C": 6
+    }
+  },
+  "steps": [
+    {
+      "op": "activate",
+      "key": "o",
+      "idx": 2,
+      "seat": 0
+    }
+  ],
+  "expect": {
+    "zone": {
+      "o": "battlefield"
+    },
+    "tapped": {
+      "o": true
+    },
+    "hand": {
+      "0": 1
+    },
+    "power": {
+      "wc": 2
+    },
+    "toughness": {
+      "wc": 2
+    }
+  },
+  "notes": "Printed: '{5}, {T}: Draw a card for each color among permanents you control.' Seeded C-mana pays {5}; the artifact taps; exactly ONE card is drawn (hand baseline 0 -> 1; the begin_turn draw is a no-op on the empty library): the only color among my permanents is BLACK (Walking Corpse) - the colorless Orrery itself adds no color. The mana-spend-anywhere MANA_POLICY static has no observable pack lane (no spend legality ask in the harness); the {T} Add-{C}x5 move is unobservable too (no mana-pool expect lane)."
+}

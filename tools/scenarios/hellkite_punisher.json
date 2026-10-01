@@ -1,0 +1,63 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "h",
+      "real": "Hellkite Punisher",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "sky",
+      "real": "Skyscanner",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "R": 2
+    }
+  },
+  "steps": [
+    {
+      "op": "enter",
+      "key": "h"
+    },
+    {
+      "op": "activate",
+      "key": "h",
+      "idx": 0,
+      "seat": 0
+    }
+  ],
+  "expect": {
+    "power": {
+      "h": 7
+    },
+    "toughness": {
+      "h": 6
+    },
+    "tapped": {
+      "h": false
+    },
+    "battlefield_keywords": {
+      "Hellkite Punisher": [
+        "FLYING"
+      ],
+      "Skyscanner": [
+        "FLYING"
+      ]
+    },
+    "battlefield_pt": {
+      "Skyscanner": [
+        1,
+        1
+      ]
+    }
+  },
+  "notes": "Printed: Flying; '{R}: This creature gets +1/+0 until end of turn.' Paid from the seeded pool: 6/6 -> 7/6 on the ledger lanes, FLYING on the keyword lane; the neighbor is untouched (negative control)."
+}

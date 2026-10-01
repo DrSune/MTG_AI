@@ -1,0 +1,57 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "de",
+      "real": "Demonic Embrace",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "host",
+      "real": "Walking Corpse",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "sky",
+      "real": "Skyscanner",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "enchant",
+      "aura": "de",
+      "host": "host"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "de": "battlefield"
+    },
+    "battlefield_pt": {
+      "Walking Corpse": [
+        5,
+        3
+      ],
+      "Skyscanner": [
+        1,
+        1
+      ]
+    },
+    "battlefield_keywords": {
+      "Walking Corpse": [
+        "FLYING"
+      ],
+      "Skyscanner": [
+        "FLYING"
+      ]
+    }
+  },
+  "notes": "Printed: 'Enchant creature. Enchanted creature gets +3/+1, has flying, and is a Demon in addition to its other types.' Attached through the real attach edge: host 2/2 -> 5/3 with FLYING on the layers lane; the un-enchanted neighbor keeps its own printed FLYING and gains no Demon typing (negative on the delta). The type-grant (Demon) has no pack type-line lane - probe evidence: the GRANT_TYPE Demon node is compiled in the aura static. The graveyard-flash clause is a cast-lane clause (wave-2 family)."
+}

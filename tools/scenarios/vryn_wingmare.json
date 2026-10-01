@@ -1,0 +1,60 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Vryn Wingmare",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "o",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "cast",
+   "key": "o",
+   "real": "Opt",
+   "controller": 0,
+   "decisions": [
+    "top"
+   ]
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2,
+   "U": 1
+  }
+ },
+ "expect": {
+  "zone": {
+   "o": "graveyard"
+  },
+  "battlefield_keywords": {
+   "Vryn Wingmare": [
+    "FLYING"
+   ]
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "Flying on the layers lane; Opt resolves (scry 'top', draw -> library 4..0, hand 1). SURCHARGE PROOF (ad-hoc probe with mana exactly base {U} only): the cast is REJECTED 'cost:mana_generic:0<1' - the {1} extra is enforced by the CR 601.2f CostModifier fold; this pack pays the surcharge (C:2,U:1) so the cast goes through."
+}

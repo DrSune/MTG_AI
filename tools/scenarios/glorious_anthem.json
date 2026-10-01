@@ -1,0 +1,53 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "ga",
+      "real": "Glorious Anthem",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "mine",
+      "real": "Walking Corpse",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "theirs",
+      "real": "Skyscanner",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "ga"
+    },
+    {
+      "op": "enter",
+      "key": "mine"
+    },
+    {
+      "op": "enter",
+      "key": "theirs"
+    }
+  ],
+  "expect": {
+    "battlefield_pt": {
+      "Walking Corpse": [
+        3,
+        3
+      ],
+      "Skyscanner": [
+        1,
+        1
+      ]
+    }
+  },
+  "notes": "Printed: 'Creatures you control get +1/+1.' MY creature enters under the anthem: 2/2 -> 3/3. The OPPONENT'S creature enters in the same script and must stay 1/1 (negative control - the 'you control' gate)."
+}

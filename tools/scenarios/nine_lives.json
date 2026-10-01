@@ -1,0 +1,66 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "nl",
+   "real": "Nine Lives",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b1",
+   "name": "Gnash",
+   "power": 3,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "b2",
+   "name": "Snap",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "b1": true,
+    "b2": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20
+  },
+  "counters": {
+   "nl": {
+    "INCARNATION": 2
+   }
+  },
+  "attackers": {
+   "b1": true,
+   "b2": true
+  },
+  "zone": {
+   "nl": "battlefield"
+  }
+ },
+ "notes": "Replacement: every source that WOULD damage me is prevented and buys an incarnation counter instead (2 unblocked attackers -> 5 total damage prevented, life stays 20). Hexproof is outside the bf keyword lane's 10-key vocabulary and negative targeting raises instead of asserting -> noted in findings."
+}

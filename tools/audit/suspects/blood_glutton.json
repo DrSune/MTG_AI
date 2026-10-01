@@ -1,0 +1,58 @@
+{
+  "status": "suspect",
+  "finding": "PRINTED: Lifelink. ENGINE(observed): 4 damage to the Warden marks damage (damage lane green) but the controller is never paid (life[0] stays 20, expected 24). ROOT CAUSE: the LIFELINK keyword has no executor handler (zero grep hits over MTG_bot/core/executor/); layers.keyword_of reports LIFELINK correctly, so only the life-gain leg is dead.",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "g",
+      "real": "Blood Glutton",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "v",
+      "name": "Warden",
+      "power": "1",
+      "toughness": "5",
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "g"
+    },
+    {
+      "op": "deal_damage",
+      "source": "g",
+      "target": "v",
+      "amount": 4
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 24,
+      "1": 20
+    },
+    "damage": {
+      "v": 4
+    },
+    "battlefield_pt": {
+      "Blood Glutton": [
+        4,
+        3
+      ]
+    },
+    "battlefield_keywords": {
+      "Blood Glutton": [
+        "LIFELINK"
+      ]
+    }
+  },
+  "notes": "Printed: Lifelink. 4 damage to the 5-toughness Warden marks 4 and the life gain follows the damage: 20->24; the player is NOT paid life (life[1]=20 \u2014 lifelink rides the damage, not the player). Base 4/3 with the LIFELINK keyword on the layers lane."
+}

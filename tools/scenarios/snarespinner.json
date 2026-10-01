@@ -1,0 +1,61 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Snarespinner",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "i",
+   "real": "Fetid Imp",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "i": true
+   },
+   "block": {
+    "s": "i"
+   }
+  }
+ ],
+ "expect": {
+  "power": {
+   "s": 3
+  },
+  "blocked": {
+   "i": [
+    "s"
+   ]
+  },
+  "damage": {
+   "s": 1
+  },
+  "zone": {
+   "i": "graveyard",
+   "s": "battlefield"
+  },
+  "battlefield_keywords": {
+   "Snarespinner": [
+    "REACH"
+   ]
+  }
+ },
+ "notes": "Reach lets the Spider answer the flyer; the block-a-flying-creature trigger gives +2/+0 EoT -> power 3 mid/after this combat, still 2 toughness -> survives the Imp's 1 and bites back for 2 (Imp dies)."
+}
