@@ -1,0 +1,54 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "isle",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Island"
+  },
+  {
+   "key": "glide",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Keen Glidemaster"
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "isle",
+   "idx": 0,
+   "seat": 0
+  },
+  {
+   "op": "activate",
+   "key": "glide",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "glide"
+   ]
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "isle": true,
+   "glide": false
+  },
+  "battlefield_keywords": {
+   "Keen Glidemaster": [
+    "FLYING"
+   ]
+  }
+ },
+ "notes": "Spend-trick proof of {T}: Add {U}: seed covers only the {2}; the {U} of Glidemaster's {2}{U} must come from Island's tap (without it: cost:mana:U:0<1). Glidemaster's own clause is keen_glidemaster.json."
+}

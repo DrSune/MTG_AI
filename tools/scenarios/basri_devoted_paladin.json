@@ -1,0 +1,116 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "basri",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Basri, Devoted Paladin"
+  },
+  {
+   "key": "wolf",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Wolf",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "wolf"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "wolf": true
+   }
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "wolf": true
+   }
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "loyalty",
+   "key": "basri",
+   "set": 6
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 2,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "counters": {
+   "wolf": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  "power": {
+   "wolf": 6
+  },
+  "toughness": {
+   "wolf": 6
+  },
+  "battlefield_keywords": {
+   "Wolf": [
+    "FLYING"
+   ]
+  },
+  "life": {
+   "1": 13
+  },
+  "graveyard": {
+   "0": [
+    "Basri, Devoted Paladin"
+   ]
+  }
+ },
+ "notes": "Three-turn loyalty arc. T1 +1: wolf counter + vigilance (attacks stay untapped \u2014 transient, probe-verified; T1 hit was 3 dmg). T2 -1: 'whenever a creature attacks this turn, +1/+1' trigger fires on the attack (counter #2; 4 dmg). T3: loyalty seeded 6 (harness ledger op, CR 606.3), -6 gives +2/+2 + FLYING -> 6/6; loyalty 0 planeswalker hits the graveyard. Basri, Devoted Paladin identity loyalty = 4 (stamped by enter)."
+}

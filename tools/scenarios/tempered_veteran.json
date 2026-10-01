@@ -1,0 +1,60 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "v",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Tempered Veteran"
+  },
+  {
+   "key": "t",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Trufflesnout"
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "t",
+   "decisions": [
+    "0"
+   ]
+  },
+  {
+   "op": "activate",
+   "key": "v",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "t"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "t": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  "power": {
+   "t": 4
+  },
+  "toughness": {
+   "t": 4
+  },
+  "tapped": {
+   "v": true
+  }
+ },
+ "notes": "Printed: '{W}, {T}: Put a +1/+1 counter on target creature with a +1/+1 counter on it.' The Trufflesnout mode-'0' ETB seeds the REQUIRED counter (2/2 with 1 counter), then the Veteran's {W}+{T} finds the HAS-COUNTER target and stacks a second: 4/4 on the ledger, Veteran tapped. The {4}{W}{W} idx-1 twin shares the {T} cost (one tap per cycle) - same counter verb, un-gated target: findings note. (No-counter refusal raises in legality: not pack-expressible.)"
+}

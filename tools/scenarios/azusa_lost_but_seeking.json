@@ -1,0 +1,63 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "az",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Azusa, Lost but Seeking"
+  },
+  {
+   "key": "f1",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Forest"
+  },
+  {
+   "key": "f2",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Forest"
+  },
+  {
+   "key": "f3",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Forest"
+  }
+ ],
+ "steps": [
+  {
+   "op": "play",
+   "key": "f1"
+  },
+  {
+   "op": "activate",
+   "key": "az",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "fire"
+   ]
+  },
+  {
+   "op": "play",
+   "key": "f2"
+  },
+  {
+   "op": "play",
+   "key": "f3"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "f1": "battlefield",
+   "f2": "battlefield",
+   "f3": "battlefield"
+  }
+ },
+ "notes": "Azusa's compiled activation offers a may-vocab ('fire','skip'); firing it unlocks land plays 2+3 (play op = real CR 305.1 land drop with once-per-turn ledger \u2014 without the ability the third play would refuse)."
+}

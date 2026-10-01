@@ -1,0 +1,48 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "d",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Silent Dart"
+  },
+  {
+   "key": "v",
+   "name": "Vugl",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "4",
+   "toughness": "4"
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "d",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "v"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "d": "graveyard"
+  },
+  "damage": {
+   "v": 3
+  }
+ },
+ "notes": "Printed: '{4}, {T}, Sacrifice this artifact: It deals 3 damage to target creature.' The exact {4} pays, the Dart sacrifices out of play, and 3 damage marks land on the 4/4 (survives, so the mark ledger is readable)."
+}

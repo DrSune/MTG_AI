@@ -1,0 +1,526 @@
+{
+  "cards": {
+    "Animal Sanctuary": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/f3c40943-1d7c-4ea2-b34f-8df8b6775701.jpg",
+      "mechanics": [
+        "ADD_MANA",
+        "PUT_COUNTER"
+      ],
+      "n_activated_abilities": 2,
+      "oracle_id": "f3c40943-1d7c-4ea2-b34f-8df8b6775701",
+      "printed_text": "{T}: Add {C}.\n{2}, {T}: Put a +1/+1 counter on target Bird, Cat, Dog, Goat, Ox, or Snake."
+    },
+    "Azusa, Lost but Seeking": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/6c2c8bf3-9bf8-4a86-89d3-3bb36260dc51.jpg",
+      "mechanics": [
+        "ADD_LAND_PLAY"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "6c2c8bf3-9bf8-4a86-89d3-3bb36260dc51",
+      "printed_text": "You may play two additional lands on each of your turns."
+    },
+    "Basri Ket": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/497d7ab8-07f1-4c8a-a45a-52b9a4d9400f.jpg",
+      "mechanics": [
+        "CREATE_TOKEN",
+        "GET_EMBLEM",
+        "GRANT_ABILITY",
+        "PUT_COUNTER"
+      ],
+      "n_activated_abilities": 3,
+      "oracle_id": "497d7ab8-07f1-4c8a-a45a-52b9a4d9400f",
+      "printed_text": "[+1]: Put a +1/+1 counter on up to one target creature. It gains indestructible until end of turn.\n[\u22122]: Whenever one or more nontoken creatures attack this turn, create that many 1/1 white Soldier creature tokens that are tapped and attacking.\n[\u22126]: You get an emblem with \"At the beginning of combat on your turn, create a 1/1 white Soldier creature token, then put a +1/+1 counter on each creature you control.\""
+    },
+    "Basri, Devoted Paladin": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/1601e553-31c2-4e04-9f0c-bc17e49eeff7.jpg",
+      "mechanics": [
+        "GRANT_ABILITY",
+        "MODIFY_PT",
+        "PUT_COUNTER"
+      ],
+      "n_activated_abilities": 3,
+      "oracle_id": "1601e553-31c2-4e04-9f0c-bc17e49eeff7",
+      "printed_text": "[+1]: Put a +1/+1 counter on up to one target creature. It gains vigilance until end of turn.\n[\u22121]: Whenever a creature attacks this turn, put a +1/+1 counter on it.\n[\u22126]: Creatures you control get +2/+2 and gain flying until end of turn."
+    },
+    "Caged Zombie": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/430b3e61-09a5-4390-b377-89830cacf66e.jpg",
+      "mechanics": [
+        "LOSE_LIFE"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "430b3e61-09a5-4390-b377-89830cacf66e",
+      "printed_text": "{1}{B}, {T}: Each opponent loses 2 life. Activate only if a creature died this turn."
+    },
+    "Celestial Enforcer": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/81f5c70f-fbb1-4b3a-a048-1f4602adfa0e.jpg",
+      "mechanics": [
+        "TAP"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "81f5c70f-fbb1-4b3a-a048-1f4602adfa0e",
+      "printed_text": "{1}{W}, {T}: Tap target creature. Activate only if you control a creature with flying."
+    },
+    "Chandra's Magmutt": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/a2c4537e-70a6-416d-9e8b-f549ad535147.jpg",
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "a2c4537e-70a6-416d-9e8b-f549ad535147",
+      "printed_text": "{T}: This creature deals 1 damage to target player or planeswalker."
+    },
+    "Epitaph Golem": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/e3483dd4-0118-4143-9b55-51078a6f274a.jpg",
+      "mechanics": [
+        "MOVE_ZONE"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "e3483dd4-0118-4143-9b55-51078a6f274a",
+      "printed_text": "{2}: Put target card from your graveyard on the bottom of your library."
+    },
+    "Fabled Passage": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/0c85b8f7-0bd0-4680-9ec5-d4b110460a54.jpg",
+      "mechanics": [
+        "SEARCH",
+        "SHUFFLE",
+        "UNTAP"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "0c85b8f7-0bd0-4680-9ec5-d4b110460a54",
+      "printed_text": "{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle. Then if you control four or more lands, untap that land."
+    },
+    "Forest": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/b34bb2dc-c1af-4d77-b0b3-a0fb342a5fc6.jpg",
+      "mechanics": [
+        "ADD_MANA"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "b34bb2dc-c1af-4d77-b0b3-a0fb342a5fc6",
+      "printed_text": "({T}: Add {G}.)"
+    },
+    "Furious Rise": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/52b3a979-3b93-4441-9237-0c8a754e5523.jpg",
+      "mechanics": [
+        "CAST"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "52b3a979-3b93-4441-9237-0c8a754e5523",
+      "printed_text": "At the beginning of your end step, if you control a creature with power 4 or greater, exile the top card of your library. You may play that card until you exile another card with this enchantment."
+    },
+    "Garruk, Unleashed": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/32ea6b1c-d48e-4663-ad5c-d7f4a85450af.jpg",
+      "mechanics": [
+        "CREATE_TOKEN",
+        "GET_EMBLEM",
+        "GRANT_ABILITY",
+        "MODIFY_PT",
+        "PUT_COUNTER"
+      ],
+      "n_activated_abilities": 3,
+      "oracle_id": "32ea6b1c-d48e-4663-ad5c-d7f4a85450af",
+      "printed_text": "[+1]: Up to one target creature gets +3/+3 and gains trample until end of turn.\n[\u22122]: Create a 3/3 green Beast creature token. Then if an opponent controls more creatures than you, put a loyalty counter on Garruk.\n[\u22127]: You get an emblem with \"At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle.\""
+    },
+    "Ghostly Pilferer": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/fe168bf1-f626-460c-890b-1ce758af01fc.jpg",
+      "mechanics": [
+        "PREVENT_EFFECT"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "fe168bf1-f626-460c-890b-1ce758af01fc",
+      "printed_text": "Whenever this creature becomes untapped, you may pay {2}. If you do, draw a card.\nWhenever an opponent casts a spell from anywhere other than their hand, draw a card.\nDiscard a card: This creature can't be blocked this turn."
+    },
+    "Igneous Cur": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/0d899095-cef7-43d2-aaf7-eb73b62f5ec8.jpg",
+      "mechanics": [
+        "MODIFY_PT"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "0d899095-cef7-43d2-aaf7-eb73b62f5ec8",
+      "printed_text": "{1}{R}: This creature gets +2/+0 until end of turn."
+    },
+    "Island": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/b2c6aa39-2d2a-459c-a555-fb48ba993373.jpg",
+      "mechanics": [
+        "ADD_MANA"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "b2c6aa39-2d2a-459c-a555-fb48ba993373",
+      "printed_text": "({T}: Add {U}.)"
+    },
+    "Jolrael, Mwonvuli Recluse": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/f8640899-2458-40f2-98a3-35c402ee9a7a.jpg",
+      "mechanics": [
+        "SET_PT"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "f8640899-2458-40f2-98a3-35c402ee9a7a",
+      "printed_text": "Whenever you draw your second card each turn, create a 2/2 green Cat creature token.\n{4}{G}{G}: Until end of turn, creatures you control have base power and toughness X/X, where X is the number of cards in your hand."
+    },
+    "Keen Glidemaster": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/98deac9e-28ea-4d11-8d75-833bf6d66e6e.jpg",
+      "mechanics": [
+        "GRANT_ABILITY"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "98deac9e-28ea-4d11-8d75-833bf6d66e6e",
+      "printed_text": "{2}{U}: Target creature gains flying until end of turn."
+    },
+    "Leafkin Avenger": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/adff8c13-8909-47d0-acad-ba63597f2e96.jpg",
+      "mechanics": [
+        "ADD_MANA",
+        "DEAL_DAMAGE"
+      ],
+      "n_activated_abilities": 2,
+      "oracle_id": "adff8c13-8909-47d0-acad-ba63597f2e96",
+      "printed_text": "{T}: Add {G} for each creature with power 4 or greater you control.\n{7}{R}: This creature deals damage equal to its power to target player or planeswalker."
+    },
+    "Liliana's Steward": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/cc1203cb-6758-4454-b78b-341930ff4da1.jpg",
+      "mechanics": [
+        "DISCARD"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "cc1203cb-6758-4454-b78b-341930ff4da1",
+      "printed_text": "{T}, Sacrifice this creature: Target opponent discards a card. Activate only as a sorcery."
+    },
+    "Liliana, Death Mage": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/d654dd73-763d-4dfb-a30f-a058fd7f27a6.jpg",
+      "mechanics": [
+        "DESTROY",
+        "LOSE_LIFE",
+        "MOVE_ZONE"
+      ],
+      "n_activated_abilities": 3,
+      "oracle_id": "d654dd73-763d-4dfb-a30f-a058fd7f27a6",
+      "printed_text": "[+1]: Return up to one target creature card from your graveyard to your hand.\n[\u22123]: Destroy target creature. Its controller loses 2 life.\n[\u22127]: Target opponent loses 2 life for each creature card in their graveyard."
+    },
+    "Liliana, Waker of the Dead": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/e0df8e2a-96d2-4e4d-b065-aa2e162abbfe.jpg",
+      "mechanics": [
+        "DISCARD",
+        "GET_EMBLEM",
+        "MODIFY_PT"
+      ],
+      "n_activated_abilities": 3,
+      "oracle_id": "e0df8e2a-96d2-4e4d-b065-aa2e162abbfe",
+      "printed_text": "[+1]: Each player discards a card. Each opponent who can't loses 3 life.\n[\u22123]: Target creature gets -X/-X until end of turn, where X is the number of cards in your graveyard.\n[\u22127]: You get an emblem with \"At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control. It gains haste.\""
+    },
+    "Mazemind Tome": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/800fb917-8898-4eba-9f94-aec6e9d75236.jpg",
+      "mechanics": [
+        "DRAW",
+        "SCRY"
+      ],
+      "n_activated_abilities": 2,
+      "oracle_id": "800fb917-8898-4eba-9f94-aec6e9d75236",
+      "printed_text": "{T}, Put a page counter on this artifact: Scry 1. (Look at the top card of your library. You may put that card on the bottom.)\n{2}, {T}, Put a page counter on this artifact: Draw a card.\nWhen there are four or more page counters on this artifact, exile it. If you do, you gain 4 life."
+    },
+    "Mountain": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/a3fb7228-e76b-4e96-a40e-20b5fed75685.jpg",
+      "mechanics": [
+        "ADD_MANA"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "a3fb7228-e76b-4e96-a40e-20b5fed75685",
+      "printed_text": "({T}: Add {R}.)"
+    },
+    "Obsessive Stitcher": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/e8210145-a6ac-4f84-a74c-a5799c5e9434.jpg",
+      "mechanics": [
+        "DISCARD",
+        "DRAW",
+        "MOVE_ZONE"
+      ],
+      "n_activated_abilities": 2,
+      "oracle_id": "e8210145-a6ac-4f84-a74c-a5799c5e9434",
+      "printed_text": "{T}: Draw a card, then discard a card.\n{2}{U}{B}, {T}, Sacrifice this creature: Return target creature card from your graveyard to the battlefield."
+    },
+    "Palladium Myr": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/7b0767b8-b504-456e-93bd-218502f73b3d.jpg",
+      "mechanics": [
+        "ADD_MANA"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "7b0767b8-b504-456e-93bd-218502f73b3d",
+      "printed_text": "{T}: Add {C}{C}."
+    },
+    "Prismite": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/feb4fcec-6f3a-4643-9ffb-69d3f5953322.jpg",
+      "mechanics": [
+        "ADD_MANA"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "feb4fcec-6f3a-4643-9ffb-69d3f5953322",
+      "printed_text": "{2}: Add one mana of any color."
+    },
+    "Riddleform": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/cc261487-060f-47e6-ac5e-a204254058b3.jpg",
+      "mechanics": [
+        "SCRY"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "cc261487-060f-47e6-ac5e-a204254058b3",
+      "printed_text": "Whenever you cast a noncreature spell, you may have this enchantment become a 3/3 Sphinx creature with flying in addition to its other types until end of turn.\n{2}{U}: Scry 1. (Look at the top card of your library. You may put that card on the bottom.)"
+    },
+    "Sanctum of Shattered Heights": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/5e39d311-efb5-4f51-82cd-e8079e32907a.jpg",
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "5e39d311-efb5-4f51-82cd-e8079e32907a",
+      "printed_text": "{1}, Discard a land card or Shrine card: Sanctum of Shattered Heights deals X damage to target creature or planeswalker, where X is the number of Shrines you control."
+    },
+    "Sanctum of Tranquil Light": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/1818b0b1-0104-4673-9be8-acfc773ef87d.jpg",
+      "mechanics": [
+        "TAP"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "1818b0b1-0104-4673-9be8-acfc773ef87d",
+      "printed_text": "{5}{W}: Tap target creature. This ability costs {1} less to activate for each Shrine you control."
+    },
+    "Scavenging Ooze": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/1ff25f67-36a7-4cfa-a2b1-2135b5b6fb67.jpg",
+      "mechanics": [
+        "EXILE",
+        "GAIN_LIFE",
+        "PUT_COUNTER"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "1ff25f67-36a7-4cfa-a2b1-2135b5b6fb67",
+      "printed_text": "{G}: Exile target card from a graveyard. If it was a creature card, put a +1/+1 counter on this creature and you gain 1 life."
+    },
+    "Seasoned Hallowblade": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/d03dbb60-e32b-4b74-ae8a-73d428d344cd.jpg",
+      "mechanics": [
+        "GRANT_ABILITY",
+        "TAP"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "d03dbb60-e32b-4b74-ae8a-73d428d344cd",
+      "printed_text": "Discard a card: Tap this creature. It gains indestructible until end of turn. (Damage and effects that say \"destroy\" don't destroy it.)"
+    },
+    "Selfless Savior": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/49dc3434-2501-4788-84f2-93e55730f67c.jpg",
+      "mechanics": [
+        "GRANT_ABILITY"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "49dc3434-2501-4788-84f2-93e55730f67c",
+      "printed_text": "Sacrifice this creature: Another target creature you control gains indestructible until end of turn. (Damage and effects that say \"destroy\" don't destroy it.)"
+    },
+    "Silent Dart": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/912bc348-9ba3-4001-90a8-104d2bb17527.jpg",
+      "mechanics": [
+        "DEAL_DAMAGE"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "912bc348-9ba3-4001-90a8-104d2bb17527",
+      "printed_text": "{4}, {T}, Sacrifice this artifact: It deals 3 damage to target creature."
+    },
+    "Silversmote Ghoul": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/67d55b4f-944e-4376-93ed-1a240bca1eae.jpg",
+      "mechanics": [
+        "DRAW"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "67d55b4f-944e-4376-93ed-1a240bca1eae",
+      "printed_text": "At the beginning of your end step, if you gained 3 or more life this turn, return this card from your graveyard to the battlefield tapped.\n{1}{B}, Sacrifice this creature: Draw a card."
+    },
+    "Swamp": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/56719f6a-1a6c-4c0a-8d21-18f7d7350b68.jpg",
+      "mechanics": [
+        "ADD_MANA"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "56719f6a-1a6c-4c0a-8d21-18f7d7350b68",
+      "printed_text": "({T}: Add {B}.)"
+    },
+    "Tavern Swindler": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/81674138-08d0-4126-9e6d-27f6e7dd2403.jpg",
+      "mechanics": [
+        "FLIP_COIN",
+        "GAIN_LIFE"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "81674138-08d0-4126-9e6d-27f6e7dd2403",
+      "printed_text": "{T}, Pay 3 life: Flip a coin. If you win the flip, you gain 6 life."
+    },
+    "Teferi's Protege": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/e84f1727-ce01-44be-aebf-8a0c4e032c9a.jpg",
+      "mechanics": [
+        "DISCARD",
+        "DRAW"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "e84f1727-ce01-44be-aebf-8a0c4e032c9a",
+      "printed_text": "{1}{U}, {T}: Draw a card, then discard a card."
+    },
+    "Tempered Veteran": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/c19f3f00-2c7b-4e85-a034-e65760d9cc13.jpg",
+      "mechanics": [
+        "PUT_COUNTER"
+      ],
+      "n_activated_abilities": 2,
+      "oracle_id": "c19f3f00-2c7b-4e85-a034-e65760d9cc13",
+      "printed_text": "{W}, {T}: Put a +1/+1 counter on target creature with a +1/+1 counter on it.\n{4}{W}{W}, {T}: Put a +1/+1 counter on target creature."
+    },
+    "Thrashing Brontodon": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/60bc63dc-ac9f-4a2f-aef5-c90d0aa31553.jpg",
+      "mechanics": [
+        "DESTROY"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "60bc63dc-ac9f-4a2f-aef5-c90d0aa31553",
+      "printed_text": "{1}, Sacrifice this creature: Destroy target artifact or enchantment."
+    },
+    "Tormod's Crypt": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/1573f7f9-672c-421a-b1ac-3d0d8aea59ca.jpg",
+      "mechanics": [
+        "EXILE"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "1573f7f9-672c-421a-b1ac-3d0d8aea59ca",
+      "printed_text": "{T}, Sacrifice this artifact: Exile target player's graveyard."
+    },
+    "Ugin, the Spirit Dragon": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/eecb3047-a563-441a-9175-200421981ac3.jpg",
+      "mechanics": [
+        "DEAL_DAMAGE",
+        "DRAW",
+        "EXILE",
+        "GAIN_LIFE",
+        "MOVE_ZONE"
+      ],
+      "n_activated_abilities": 3,
+      "oracle_id": "eecb3047-a563-441a-9175-200421981ac3",
+      "printed_text": "[+2]: Ugin deals 3 damage to any target.\n[\u2212X]: Exile each permanent with mana value X or less that's one or more colors.\n[\u221210]: You gain 7 life, draw seven cards, then put up to seven permanent cards from your hand onto the battlefield."
+    },
+    "Vito, Thorn of the Dusk Rose": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/7336a541-3ae9-4ab2-acb8-f574c0a5b3a9.jpg",
+      "mechanics": [
+        "GRANT_ABILITY"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "7336a541-3ae9-4ab2-acb8-f574c0a5b3a9",
+      "printed_text": "Whenever you gain life, target opponent loses that much life.\n{3}{B}{B}: Creatures you control gain lifelink until end of turn."
+    },
+    "Witch's Cauldron": {
+      "engine_supported": true,
+      "has_image": true,
+      "image": "/home/sune/Desktop/MTG_AI/MTG_bot/assets/card_images/cb65ee08-bfdb-4c18-8967-8bcf31fcabfa.jpg",
+      "mechanics": [
+        "DRAW",
+        "GAIN_LIFE"
+      ],
+      "n_activated_abilities": 1,
+      "oracle_id": "cb65ee08-bfdb-4c18-8967-8bcf31fcabfa",
+      "printed_text": "{1}{B}, {T}, Sacrifice a creature: You gain 1 life and draw a card."
+    }
+  },
+  "meta": {
+    "built_by": "tools/audit/wave_builder.py",
+    "coverage": "94 activated-family cards = 49 already covered (name) + 2 gate-flagged + 43 wave-4 cohort",
+    "excluded_by_flag": {
+      "Teferi, Master of Time": [
+        "PHASE_OUT"
+      ],
+      "Teferi, Timeless Voyager": [
+        "PHASE_OUT"
+      ]
+    },
+    "excluded_count": 49,
+    "family": "MANA/ACTIVATED (cost:effect \u2014 ActivatedAbility nodes: tap/mana/loyalty/equip lanes; M21 goldens carry zero cycling text), engine-supported gate, pack/suspect-covered names excluded",
+    "n_activated_cards": 94,
+    "n_cards": 43,
+    "n_gate_excluded": 2,
+    "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
+    "wave": "wave4"
+  }
+}

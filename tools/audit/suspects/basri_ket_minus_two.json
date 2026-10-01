@@ -1,0 +1,64 @@
+{
+ "status": "suspect",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "finding": "PRINTED: '[\u22122]: Whenever one or more nontoken creatures attack this turn, create that many 1/1 white Soldier creature tokens that are tapped and attacking.' ENGINE(observed): the -2 activation itself passes legality, but the first Declare-Attackers ask after it raises \"NotImplementedError: executor: THAT_MANY_COUNT has no producer register \u2014 no preceding atom wrote the result register in this resolution\" \u2014 the 'that many' quantity has no producer, so the promise can never resolve. STEP FAIL repro: crash before any token row.",
+ "notes": "Crashes mid-combat; tokens/life expectations below are the printed-correct state.",
+ "cards": [
+  {
+   "key": "basri",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Basri Ket"
+  },
+  {
+   "key": "tiger",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Tiger",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5"
+  },
+  {
+   "key": "wolf",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Wolf",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "tiger": true,
+    "wolf": true
+   }
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Soldier": 2
+  },
+  "life": {
+   "1": 8
+  },
+  "counters": {
+   "basri": {
+    "LOYALTY": 1
+   }
+  }
+ }
+}

@@ -1,0 +1,92 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "leaf",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Leafkin Avenger"
+  },
+  {
+   "key": "tiger",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Tiger",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5"
+  },
+  {
+   "key": "jol",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Jolrael, Mwonvuli Recluse"
+  },
+  {
+   "key": "h1",
+   "zone": "hand",
+   "controller": 0,
+   "name": "Silk",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "h2",
+   "zone": "hand",
+   "controller": 0,
+   "name": "Silk2",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "h3",
+   "zone": "hand",
+   "controller": 0,
+   "name": "Silk3",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "leaf",
+   "idx": 0,
+   "seat": 0
+  },
+  {
+   "op": "activate",
+   "key": "jol",
+   "idx": 1,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "power": {
+   "tiger": 3,
+   "leaf": 3
+  },
+  "toughness": {
+   "tiger": 3,
+   "leaf": 3
+  },
+  "hand": {
+   "0": 3
+  },
+  "tapped": {
+   "leaf": true
+  }
+ },
+ "notes": "{T}: Add {G} for each creature with power 4+ you control \u2014 proven by the only payment path for Jolrael's {4}{G}{G}: seed covers the {4}, and the two {G} must come from Leafkin's tap with the 5/5 Tiger out (pool otherwise fails cost:mana:G). Jolrael's X/X clause (X=3 hand incl. setup draw) rewrites everyone to 3/3, Leafkin taps for its {T} cost."
+}

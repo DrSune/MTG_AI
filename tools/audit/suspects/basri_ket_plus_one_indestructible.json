@@ -1,0 +1,55 @@
+{
+ "status": "suspect",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "finding": "PRINTED: '[+1]: Put a +1/+1 counter on up to one target creature. It gains indestructible until end of turn.' ENGINE(observed): the counter clause lands (wolf 2/2 -> 3/3, PLUS_1_PLUS_1: 1), but the keywords lane shows 'battlefield_keywords[Wolf]: expected [INDESTRUCTIBLE], got []' \u2014 the indestructible grant is silently compiled away \u2014 and the loyalty increment is missing: 'counters[basri]: expected {LOYALTY: 5}, got {LOYALTY: 4}' (Basri, Devoted Paladin's +1 correctly stamps 4->5 in the same harness, so this is card-specific, not a harness artifact).",
+ "notes": "Two silent clause drops on the same ability; the +1/+1 counter half is green in basri_ket.json.",
+ "cards": [
+  {
+   "key": "basri",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Basri Ket"
+  },
+  {
+   "key": "wolf",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Wolf",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "wolf"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "wolf": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "basri": {
+    "LOYALTY": 5
+   }
+  },
+  "power": {
+   "wolf": 3
+  },
+  "battlefield_keywords": {
+   "Wolf": [
+    "INDESTRUCTIBLE"
+   ]
+  }
+ }
+}

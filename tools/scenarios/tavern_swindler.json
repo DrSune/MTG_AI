@@ -1,0 +1,31 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Tavern Swindler"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "t",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 17
+  },
+  "tapped": {
+   "t": true
+  }
+ },
+ "notes": "Printed: '{T}, Pay 3 life: Flip a coin. If you win the flip, you gain 6 life.' At master_seed 7 the flip LOSES (reconciled in staging): life pays 3 -> 17 and the 6-life win-branch stays closed. The tap and the life payment (both cost side) are asserted; the RNG branch is seed-pinned."
+}

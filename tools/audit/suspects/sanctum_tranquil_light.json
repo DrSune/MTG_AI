@@ -1,0 +1,47 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "l",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Sanctum of Tranquil Light"
+  },
+  {
+   "key": "v",
+   "name": "Vugl",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "4",
+   "toughness": "4"
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "l",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "v"
+   ]
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "v": true
+  }
+ },
+ "notes": "Printed: '{5}{W}: Tap target creature. This ability costs {1} less to activate for each Shrine you control.' The Sanctum IS a Shrine (Legendary Enchantment - Shrine) so the printed total with it on the battlefield is {4}{W}: a W:5 pool is exactly payable. OBSERVED: activation raises cost:mana_generic:4<5 - the compiled CostModifier (idx 1, CostDeltaReduceGeneric 1*count) never folds on the ACTIVATION lane (build_payment_plan scans modifiers only when mana_use is the casting spell, r19b spell-lane scope).",
+ "status": "suspect",
+ "finding": "PRINTED: '{5}{W}: Tap target creature. This ability costs {1} less to activate for each Shrine you control.' The Sanctum is itself a Shrine (Legendary Enchantment - Shrine), so the printed activation total with it on the battlefield is {4}{W}. A W:5 pool is exactly payable. ENGINE(observed): activation raises ValueError cost:mana_generic:4<5 - the engine demands the UNDISCOUNTED {5}{W}. The compiled CostModifier (ability idx 1, CostDeltaReduceGeneric 1*count) never folds on the ACTIVATION lane: build_payment_plan (legality.py ~486) scans CostModifier nodes only when `mana_use is not None and mana_use == ctx.source` - the spell-lane gate (r19b); activate() passes mana_use=None so the discount branch is skipped. SECONDARY DEFECT: the modifier's count filter compiles to NAME_EQ 'Shrine' instead of SUBTYPE_EQ Shrine, so even on the spell lane it would only fold for a card literally named Shrine. RIGID - the activation refuses outright, no silent number lie. WAVE4B 2026-10-01."
+}

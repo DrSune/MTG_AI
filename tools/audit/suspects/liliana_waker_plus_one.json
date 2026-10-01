@@ -1,0 +1,46 @@
+{
+ "status": "suspect",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "finding": "PRINTED: '[+1]: Each player discards a card. Each opponent who can't loses 3 life.' ENGINE(observed): my discard clause resolves (hand card 'mine' -> graveyard), but the opponent \u2014 EMPTY hand, cannot discard \u2014 does not lose the life: 'life[1]: expected 17, got 20'. The 'who can't loses 3 life' replacement branch is compiled away; the ability costs loyalty for a half-clause.",
+ "notes": "The -3 X/X half is green in liliana_waker_of_the_dead.json.",
+ "cards": [
+  {
+   "key": "wk",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Liliana, Waker of the Dead"
+  },
+  {
+   "key": "mine",
+   "zone": "hand",
+   "controller": 0,
+   "name": "Silk",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "wk",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "mine"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 17,
+   "0": 20
+  },
+  "hand": {
+   "0": 0
+  }
+ }
+}

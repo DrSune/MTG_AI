@@ -1,0 +1,67 @@
+{
+ "status": "suspect",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "finding": "PRINTED: 'Discard a card: This creature can't be blocked this turn.' ENGINE(observed): the discard COST resolves (Silk -> graveyard, hand empties), but the PREVENT_EFFECT 'can't be blocked' clause is silently dropped: the blocking ask is still offered to the opponent ('block vocab = (card:0, NONE)'), the Wall's forced block registers \u2014 'blocked[pilf]: expected [], got [wall]' \u2014 and Ghostly Pilferer takes 1 and dies instead of dealing 3 (life stays 20). The activated ability costs a card and delivers nothing.",
+ "notes": "Pilferer's two other printed abilities are triggers (untapped-pay-draw, cast-from-not-hand draw) \u2014 this card has exactly one activated ability and it is the broken one.",
+ "cards": [
+  {
+   "key": "pilf",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Ghostly Pilferer"
+  },
+  {
+   "key": "silk",
+   "zone": "hand",
+   "controller": 0,
+   "name": "Silk",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "wall",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Wall",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "4"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "pilf",
+   "idx": 2,
+   "seat": 0,
+   "decisions": [
+    "silk"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "pilf": true
+   },
+   "block": {
+    "wall": "pilf"
+   }
+  }
+ ],
+ "expect": {
+  "blocked": {
+   "pilf": []
+  },
+  "life": {
+   "1": 18
+  },
+  "hand": {
+   "0": 0
+  }
+ }
+}

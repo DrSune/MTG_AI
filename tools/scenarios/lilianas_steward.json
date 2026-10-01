@@ -1,0 +1,48 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "stew",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Liliana's Steward"
+  },
+  {
+   "key": "h1",
+   "zone": "hand",
+   "controller": 1,
+   "name": "Chaff",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "stew",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "h1"
+   ]
+  }
+ ],
+ "expect": {
+  "hand": {
+   "1": 0
+  },
+  "zone": {
+   "stew": "graveyard"
+  },
+  "graveyard": {
+   "1": [
+    "Chaff"
+   ]
+  }
+ },
+ "notes": "{T}, Sacrifice: target opponent discards. TARGET_PLAYER binding rides a card handle in the opponent's zone (targets=['h1']) \u2014 the decisions channel cannot designate a player (12c 'TARGET_PLAYER needs a bound target'). Steward itself hits the graveyard as its own cost."
+}

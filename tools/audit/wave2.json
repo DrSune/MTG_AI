@@ -864,6 +864,7 @@
     "n_carry_over": 2,
     "n_gate_excluded": 5,
     "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
+    "status": "closed",
     "wave": "wave2"
   }
 }

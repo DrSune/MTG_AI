@@ -1,0 +1,59 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s1",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Swamp"
+  },
+  {
+   "key": "s2",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Swamp"
+  },
+  {
+   "key": "g",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Silversmote Ghoul"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "s1",
+   "idx": 0,
+   "seat": 0
+  },
+  {
+   "op": "activate",
+   "key": "s2",
+   "idx": 0,
+   "seat": 0
+  },
+  {
+   "op": "activate",
+   "key": "g",
+   "idx": 1,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "s1": true,
+   "s2": true
+  },
+  "zone": {
+   "g": "graveyard"
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "Printed: '({T}: Add {B}.)' Pool starts EMPTY; two taps stock exactly B:2 - proven spendable by the Ghoul's printed {1}{B} (legality raises if the mana never entered the pool). Both Swamps end tapped."
+}

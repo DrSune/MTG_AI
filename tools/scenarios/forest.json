@@ -1,0 +1,58 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "forest",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Forest"
+  },
+  {
+   "key": "ooze",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Scavenging Ooze"
+  },
+  {
+   "key": "corpse",
+   "zone": "graveyard",
+   "controller": 0,
+   "name": "Grizzly",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "forest",
+   "idx": 0,
+   "seat": 0
+  },
+  {
+   "op": "activate",
+   "key": "ooze",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "corpse"
+   ]
+  }
+ ],
+ "expect": {
+  "graveyard": {
+   "0": []
+  },
+  "power": {
+   "ooze": 3
+  },
+  "tapped": {
+   "forest": true
+  }
+ },
+ "notes": "Spend-trick proof of {T}: Add {G}: with an empty seeded pool, the only G the Ooze's {G} can pay from is Forest's tap; without Forest's mana the activation refuses (cost:mana:G:0<1)."
+}

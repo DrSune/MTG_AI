@@ -1,0 +1,116 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "lm",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Liliana, Death Mage"
+  },
+  {
+   "key": "corpse",
+   "zone": "graveyard",
+   "controller": 0,
+   "name": "Grizzly",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "bird",
+   "zone": "battlefield",
+   "controller": 1,
+   "real": "Skyscanner"
+  },
+  {
+   "key": "o1",
+   "zone": "hand",
+   "controller": 1,
+   "name": "Spark",
+   "type": "Instant"
+  },
+  {
+   "key": "g1",
+   "zone": "graveyard",
+   "controller": 1,
+   "name": "Chaff",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "g2",
+   "zone": "graveyard",
+   "controller": 1,
+   "name": "Chaff",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "lm",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "corpse"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "activate",
+   "key": "lm",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "bird"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "loyalty",
+   "key": "lm",
+   "set": 7
+  },
+  {
+   "op": "activate",
+   "key": "lm",
+   "idx": 2,
+   "seat": 0,
+   "targets": [
+    "o1"
+   ]
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 2
+  },
+  "life": {
+   "1": 12
+  },
+  "graveyard": {
+   "0": [
+    "Liliana, Death Mage"
+   ],
+   "1": [
+    "Chaff",
+    "Chaff",
+    "Skyscanner"
+   ]
+  },
+  "zone": {
+   "bird": "graveyard"
+  }
+ },
+ "notes": "All three loyalty abilities. +1 returns Grizzly to hand. -3 destroys Skyscanner, its controller loses 2 (18). advance_turn before -7: CR 606.3 one loyalty ability per permanent per turn (window:loyalty:once_per_turn otherwise refuses idx 2); that rotation draws seat 0 one card (hand 2 = corpse + draw). -7: loyalty ledger-seeded to 7, opponent's graveyard now has 3 creature cards -> loses 6 more (12); 0-loyalty planeswalker sacrifices itself (graveyard lane)."
+}

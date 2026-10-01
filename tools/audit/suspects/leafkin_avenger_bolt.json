@@ -1,0 +1,47 @@
+{
+ "status": "suspect",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "finding": "PRINTED: '{7}{R}: This creature deals damage equal to its power to target player or planeswalker.' ENGINE(observed): same dual gap as Chandra's Magmutt \u2014 a pure PLAYER target is unaddressable ('TARGET selector has no designation' / 'TARGET_PLAYER needs a bound target'), and against a planeswalker the ability resolves without the loyalty decrement ('counters[pw]: expected {LOYALTY: 3}, got {LOYALTY: 4}'). The {T} mana half is green in leafkin_avenger.json.",
+ "notes": "Seed pays the full {7}{R} once; the repro isolates the effect half.",
+ "mana": {
+  "0": {
+   "C": 7,
+   "R": 1
+  }
+ },
+ "cards": [
+  {
+   "key": "leaf",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Leafkin Avenger"
+  },
+  {
+   "key": "pw",
+   "zone": "battlefield",
+   "controller": 1,
+   "real": "Basri, Devoted Paladin"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "leaf",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "pw"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "pw": {
+    "LOYALTY": 3
+   }
+  }
+ }
+}

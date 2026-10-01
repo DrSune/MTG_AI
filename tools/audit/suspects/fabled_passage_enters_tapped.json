@@ -1,0 +1,59 @@
+{
+ "status": "suspect",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "finding": "PRINTED: 'Search your library for a basic land card, put it onto the battlefield tapped, then shuffle. Then if you control four or more lands, untap that land.' ENGINE(observed): with only two lands (the Passage + Forest), the searched Swamp still enters UNTAPPED \u2014 'tapped[s1]: expected True, got False'. The SEARCH atom's args carry no tapped_on_enter (compiler emits tapped_on_enter=None; the executor's _v_search honors the flag at verbs.py:1000, and Cultivate's partition MOVE_ZONE siblings DO emit tapped_on_enter=True \u2014 the Fabled SEARCH-delivery template just drops it). The conditional-untap clause is therefore unfalsifiable: the land is already untapped in every branch.",
+ "notes": "Search/sacrifice/shuffle half is green in fabled_passage.json. d1 Mountain is the LAST library entry so the setup begin_turn draw eats IT, leaving the Swamp findable \u2014 without it the 'search' silently no-ops (that was the old FPb probe's confound). Y2 probe: with >=4 lands post-search the land is untapped, which matches the printed conditional-untap clause, so the divergence is isolated to the <4-land branch.",
+ "cards": [
+  {
+   "key": "fp",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Fabled Passage"
+  },
+  {
+   "key": "l1",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Forest"
+  },
+  {
+   "key": "s1",
+   "zone": "library",
+   "controller": 0,
+   "real": "Swamp"
+  },
+  {
+   "key": "d1",
+   "zone": "library",
+   "controller": 0,
+   "real": "Mountain"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "fp",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "s1"
+   ]
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "s1": true
+  },
+  "zone": {
+   "s1": "battlefield"
+  },
+  "graveyard": {
+   "0": [
+    "Fabled Passage"
+   ]
+  }
+ }
+}

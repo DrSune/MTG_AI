@@ -1,0 +1,56 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "garruk",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Garruk, Unleashed"
+  },
+  {
+   "key": "wolf",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Wolf",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "garruk",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "wolf"
+   ]
+  }
+ ],
+ "expect": {
+  "power": {
+   "wolf": 5
+  },
+  "toughness": {
+   "wolf": 5
+  },
+  "battlefield_keywords": {
+   "Wolf": [
+    "TRAMPLE"
+   ]
+  },
+  "counters": {
+   "garruk": {
+    "LOYALTY": 5
+   }
+  },
+  "tapped": {
+   "garruk": false
+  }
+ },
+ "notes": "+1 works (buff + trample + loyalty increment 4->5). -2 crashes: garruk_minus_two.json. -7 is activation-legal (loyalty-seed repro shows the 0-loyalty planeswalker correctly sacrifices itself to the graveyard); the emblem's end-step search is a triggered ability outside activated scope."
+}

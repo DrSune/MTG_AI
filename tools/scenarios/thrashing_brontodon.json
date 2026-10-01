@@ -1,0 +1,50 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "b",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Thrashing Brontodon"
+  },
+  {
+   "key": "f",
+   "name": "Tin Foil",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "b",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "f"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "b": "graveyard",
+   "f": "graveyard"
+  },
+  "graveyard": {
+   "0": [
+    "Tin Foil",
+    "Thrashing Brontodon"
+   ]
+  }
+ },
+ "notes": "Printed: '{1}, Sacrifice this creature: Destroy target artifact or enchantment.' The {1} pays, the Brontodon sacrifices itself, and the artifact target is DESTROYED to the graveyard - exact graveyard bag."
+}

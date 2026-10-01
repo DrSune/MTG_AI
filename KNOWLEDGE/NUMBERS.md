@@ -2334,3 +2334,26 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | traces | **0/10 diverge — NO repin** (first batch-closed campaign-wide) | `tools/traces/catalog.py compare` | fixes never fire on the 10 trace seeds |
 | games | **0 crash classes / 100 seeds** (83 caps, 17 game-overs) | `python -m MTG_bot.core.executor.games --seeds 100 --pool all` | |
 | lint/type | pyright **6 == HEAD baseline 6** (pre-existing Counter noise) · ruff **Δ0 vs HEAD** | `pyright …` · `ruff check --no-cache` vs HEAD worktree | 1 self-introduced SIM102 fixed |
+
+## 2026-10-01 (wave-4 derivation — mana/activated cohort)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| wave-4 cohort | **43 cards** (all engine-supported, all with art) | `.venv/bin/python tools/audit/wave_builder.py --wave4 [--lint]` | ActivatedAbility nodes via walk(), derive-from-IR; 93/94 top-level, sole nested (Gadrak TokenSpec) pack-covered anyway |
+| coverage arithmetic | **94 = 49 + 2 + 43** | same | 94 activated-family cards = 49 pack/suspect-covered (name, 203-name union) + 2 gate-flagged + 43 cohort |
+| gate-flagged | **2**: Teferi, Master of Time + Teferi, Timeless Voyager — **PHASE_OUT** | `meta.excluded_by_flag` | same offenders as wave-3 flag; re-admit when phase-out lands |
+| cycling lane | **0 cards** | golden-dump text scan | M21 goldens carry zero cycling text — lane named in meta as verified no-op |
+| top-5 verb families | ADD_MANA **8** · GRANT_ABILITY **7** · PUT_COUNTER **6** · DRAW **6** · DEAL_DAMAGE **5** | mechanics ∩ activated effects in wave4.json | cost mix: CostTap 24 · CostManaGeneric 21 · CostManaColor 20 · CostLoyalty 18 · CostSacrifice 9 |
+| gates | wave4 lint **OK**; wave1/2 files lint **byte-identical**; wave3.json file byte-identical but **lint pre-drifted at HEAD** (55 wave-3 packs promoted post-freeze, not re-frozen at closeout) | `--lint` / `--wave2 --lint` · `md5sum` | suite **2213 + 3 subtests** unchanged; pyright **0**; ruff **Δ0**; tools-only |
+| wave-4b packs | **18 promoted** (204 -> **222**, all green) | `.venv/bin/python tools/run_scenarios.py` -> `222/222 packs passed` | 21 batch names: 18 green, 2 suspects |
+| wave-4b suspects | **2**: sanctum_tranquil_light (activation lane never folds CostModifier - rigid `cost:mana_generic:4<5`) + tormods_crypt (TARGET_PLAYER UNIV filter -> binding-first per-card exile, no gy sweep - silent) | `.venv/bin/python tools/run_scenarios.py --dir /tmp/opencode/staging4b` + both-designate control probe | NAME_EQ 'Shrine' vs SUBTYPE_EQ secondary defect in STL modifier |
+| wave-4b gates | scenarios **222/222**; pytest **2213 passed + 3 subtests** (engine frozen, unchanged) | `tools/run_scenarios.py` / `pytest MTG_bot/core -q` | 2026-10-01 |
+
+## 2026-10-01 (wave-4a adjudication — mana/activated cohort, first half)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| wave-4a batch | **22 cards** (Animal Sanctuary → Mazemind Tome), engine frozen | tools/audit/wave4.json first half | sibling batch = wave4b (file 17) |
+| wave-4a packs | **17 green promoted** (222 -> **239**, all green) | `.venv/bin/python tools/run_scenarios.py` -> `239/239 packs passed` | 5 cards suspect-only (Caged Zombie, Magmutt, Epitaph Golem, Furious Rise, Ghostly Pilferer) |
+| wave-4a suspects | **11 files / 10 cards**, 0/11 fail-only as designed | `tools/run_scenarios.py --dir tools/audit/suspects` | loud: THAT_MANY_COUNT (Basri Ket −2), CONTROLLER_COUNT_GT (Garruk −2), 'result' register (Furious Rise phantom activation), condition:false (Caged Zombie); silent: +1/+1 counter has no INDESTRUCTIBLE (Basri Ket +1), searched land enters UNTAPPED <4 lands (Fabled Passage), Chaff draw-through not BOTTOM (Epitaph Golem), loyalty never decremented (Magmutt/Leafkin bolt), can't-be-blocked never applied (Ghostly Pilferer), no opponent-life-loss clause (Waker +1), CREATURE_DIES row not consulted (Caged Zombie) |
+| gates | scenarios **239/239**; pytest **2213 passed + 3 subtests** (engine frozen, unchanged) | `tools/run_scenarios.py` / `pytest MTG_bot/core -q` | 2026-10-01 |

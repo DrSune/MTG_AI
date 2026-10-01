@@ -1,0 +1,63 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "enf",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Celestial Enforcer"
+  },
+  {
+   "key": "sky",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Skyscanner"
+  },
+  {
+   "key": "sheep",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Sheep",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "goat",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Goat",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "enf",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "sheep"
+   ]
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "sheep": true,
+   "enf": true,
+   "goat": false,
+   "sky": false
+  }
+ },
+ "notes": "Flyer (Skyscanner) satisfies the 'Activate only if you control a creature with flying' gate; target taps, non-targets stay untapped, {1}{W}+{T} paid (W:2 seed, only one activation payable)."
+}

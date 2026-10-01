@@ -716,3 +716,20 @@
   `binder.detach(leaving=True)` before the prune), never while the host is on the battlefield.
 - Atom role pairs use the grammar's printed role names: PUT_COUNTER's amount role is `count`
   (not `amount`) — a wrong key raises `missing required roles` at Atom construction (r20c).
+
+- Pack-rig cards built by the synthetic-card helper DEFAULT to `zone:"battlefield"`; a discard
+  or hand-cost rig MUST pass `zone:"hand"` explicitly or the cost finds 0 candidates and the
+  activation behaves like an empty hand (wave4b seasoned_hallowblade, 2026-10-01).
+- Negative controls (illegal activation, insufficient mana, tapped source, loyalty gate) are
+  UNPACKABLE in the frozen DSL: `activate` raises and the runner turns any step exception into
+  pack failure — document refusal behavior in notes/findings instead (wave4b, 2026-10-01).
+- ALL-mode TARGET_PLAYER effects with an UNIV filter (FAnd children=()) have no referent, so
+  `role_handles` falls to the binding-first lane and processes ONLY designated cards — printed
+  whole-zone sweeps silently underfire (tormods_crypt suspect, 2026-10-01).
+- **CR 606.3 loyalty window is PERMANENT-scope, not ability-scope (wave4a, 2026-10-01)**:
+  once a permanent's loyalty ability fires in a turn window, EVERY other loyalty ability of
+  that same permanent is refused for the rest of that window with
+  `illegal activation: window:loyalty:once_per_turn` — a harness loyalty-set ledger op in
+  between does NOT reset it. Packs exercising 2+ loyalty abilities of one PW must interleave
+  `advance_turn`, and must budget that each rotation into a seat's fresh turn draws that seat
+  ONE card (liliana_death_mage pack: hand 1→2 across the second advance).

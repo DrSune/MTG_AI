@@ -1,0 +1,51 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "c",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Witch's Cauldron"
+  },
+  {
+   "key": "tin",
+   "name": "Tin",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "1",
+   "toughness": "1"
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "c",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tin": "graveyard"
+  },
+  "tapped": {
+   "c": true
+  },
+  "life": {
+   "0": 21
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "Printed: '{1}{B}, {T}, Sacrifice a creature: You gain 1 life and draw a card.' B:2 is the exact bill; the printed cost sac's the only creature (Tin buries), the Cauldron stays but ends tapped, and the printed effect: life 21, hand 1."
+}

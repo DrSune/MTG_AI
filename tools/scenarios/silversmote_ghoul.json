@@ -1,0 +1,36 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "g",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Silversmote Ghoul"
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "g",
+   "idx": 1,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "g": "graveyard"
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "Printed: '{1}{B}, Sacrifice this creature: Draw a card.' B:2 is the EXACT bill (colored 1B + generic 1 from the same key); the self-sacrifice buries the Ghoul and the draw lands (hand baseline 0 -> 1, draw pops Library 5). idx 1: idx 0 is the end-step return-from-gy trigger."
+}

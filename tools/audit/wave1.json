@@ -824,6 +824,7 @@
     "family": "ETB (ZoneChangeEvent to BATTLEFIELD)",
     "n_cards": 66,
     "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
+    "status": "closed",
     "wave": "wave1"
   }
 }

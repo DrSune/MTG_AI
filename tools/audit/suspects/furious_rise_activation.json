@@ -1,0 +1,72 @@
+{
+ "status": "suspect",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "finding": "PRINTED: Furious Rise has NO activated ability \u2014 its text is a pure end-step trigger ('At the beginning of your end step, ... exile the top card of your library. You may play that card...'). ENGINE(observed): the trigger half works (p7 'F' probe: after end_turn the top library card moves to exile). But the compiled card exposes activatable slots: idx0 correctly refuses ('illegal activation: ability:not_activated:TriggeredAbility'), while idx1 accepts legality and then raises \"NotImplementedError: executor: selector referent 'result' has no register \u2014 no trigger firing bound one and no producer atom wrote one in this execution\" after the may-offer ('fire','skip') is fired. A non-existent activated ability is activatable and crashes the executor.",
+ "notes": "The crash itself is the repro; lane below is the innocuous end-state had it resolved.",
+ "cards": [
+  {
+   "key": "rise",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Furious Rise"
+  },
+  {
+   "key": "tiger",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Tiger",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5"
+  },
+  {
+   "key": "ward",
+   "zone": "library",
+   "controller": 0,
+   "name": "Ward",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "drawn",
+   "zone": "library",
+   "controller": 0,
+   "name": "Drawn",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "activate",
+   "key": "rise",
+   "idx": 1,
+   "seat": 0,
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 1
+  }
+ }
+}

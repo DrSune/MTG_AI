@@ -1,0 +1,51 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "p",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Prismite"
+  },
+  {
+   "key": "g",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Silversmote Ghoul"
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "p",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "B"
+   ]
+  },
+  {
+   "op": "activate",
+   "key": "g",
+   "idx": 1,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "g": "graveyard"
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "Printed: '{2}: Add one mana of any color.' Decision 'B': the generic {2} drains 2C (3->1), the ASKED color lands in the pool - proven because the Ghoul's printed {1}{B} is payable EXACTLY (1B + 1C) afterwards; any wrong color choice or uncounted add raises in legality."
+}

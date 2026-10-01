@@ -1,0 +1,79 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "tome",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Mazemind Tome"
+  },
+  {
+   "key": "drawn",
+   "zone": "library",
+   "controller": 0,
+   "name": "Drawn",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "tome",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "activate",
+   "key": "tome",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "bottom"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "tome": {
+    "PAGE": 2
+   }
+  },
+  "tapped": {
+   "tome": true
+  },
+  "hand": {
+   "0": 3
+  },
+  "library": {
+   "0": [
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Library 3"
+   ]
+  }
+ },
+ "notes": "Both activated abilities. T1 {2},{T}+page: Draw a card (top junk L5 -> hand). Full cycle untaps the Tome; T2 {T}+page: Scry 1 answering 'bottom' sends L3 to the bottom of the library (lane shows L2,L1,L0 over L3). 4-page exile trigger untouched (PAGE 2)."
+}

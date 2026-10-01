@@ -1,0 +1,50 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cur",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Igneous Cur"
+  },
+  {
+   "key": "cat",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Cat",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 1,
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "cur",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "power": {
+   "cur": 3,
+   "cat": 1
+  },
+  "toughness": {
+   "cur": 2
+  },
+  "counters": {
+   "cat": {}
+  }
+ },
+ "notes": "{1}{R}: self +2/+0 \u2014 1/2 -> 3/2 (toughness clause checked too); the seed pays the mixed cost exactly (one activation only)."
+}

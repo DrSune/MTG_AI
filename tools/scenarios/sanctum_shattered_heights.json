@@ -1,0 +1,60 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Sanctum of Shattered Heights"
+  },
+  {
+   "key": "s2",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Sanctum of Shattered Heights"
+  },
+  {
+   "key": "mt",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Mountain"
+  },
+  {
+   "key": "v",
+   "name": "Vugl",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "4",
+   "toughness": "4"
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "s",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "v"
+   ]
+  }
+ ],
+ "expect": {
+  "damage": {
+   "v": 2
+  },
+  "zone": {
+   "mt": "graveyard"
+  }
+ },
+ "notes": "Printed: '{1}, Discard a land card or Shrine card: ~ deals X damage to target creature or planeswalker, where X is the number of Shrines you control.' Two Shrines on battlefield -> X=2 lands on the 4/4; the {1} is exact and the land-card cost (Mountain) leaves the hand."
+}

@@ -1,0 +1,41 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "p",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Teferi's Protege"
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "p",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "p": true
+  },
+  "hand": {
+   "0": 0
+  },
+  "graveyard": {
+   "0": [
+    "Library 5"
+   ]
+  }
+ },
+ "notes": "Printed: '{1}{U}, {T}: Draw a card, then discard a card.' Exact bill U:2 (1 colored + 1 generic), the Protege ends tapped, the draw (Library 5 off a baseline-empty hand) is immediately paid back by the printed discard -> hand 0 with Library 5 in the graveyard."
+}

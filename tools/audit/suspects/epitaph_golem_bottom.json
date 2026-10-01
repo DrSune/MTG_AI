@@ -1,0 +1,84 @@
+{
+ "status": "suspect",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "finding": "PRINTED: '{2}: Put target card from your graveyard on the bottom of your library.' ENGINE(observed): the corpse moves, but lands on TOP \u2014 behaviorally proven by the next turn's draw: after a full cycle the top library card is 'Library 5' and hand count 2 (the Chaff was drawn on begin_turn, entries [L0..L5, Chaff] before the cycle). Root cause: the grammar's ZonePosition.BOTTOM exists (ability_tree.py:328) and verbs.py honors destination.position == BOTTOM ('See the Truth' r19b), but Epitaph Golem's compiled atom carries destination=Zone(LIBRARY, controller=YOU, position=None) \u2014 the compiler drops BOTTOM and the move defaults to the top.",
+ "notes": "graveyard empty + hand 2 pass in both worlds; the library lane is the divergence witness (printed-correct: Chaff at the bottom survives the cycle draw).",
+ "mana": {
+  "0": {
+   "C": 2
+  }
+ },
+ "cards": [
+  {
+   "key": "golem",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Epitaph Golem"
+  },
+  {
+   "key": "corpse",
+   "zone": "graveyard",
+   "controller": 0,
+   "name": "Chaff",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "drawn",
+   "zone": "library",
+   "controller": 0,
+   "name": "Drawn",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "golem",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "corpse"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "graveyard": {
+   "0": []
+  },
+  "hand": {
+   "0": 2
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Chaff"
+   ]
+  },
+  "tapped": {
+   "golem": false
+  }
+ }
+}

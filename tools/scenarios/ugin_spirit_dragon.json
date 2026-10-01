@@ -1,0 +1,50 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "u",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Ugin, the Spirit Dragon"
+  },
+  {
+   "key": "v",
+   "name": "Vugl",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "4",
+   "toughness": "4"
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "u",
+   "set": 4
+  },
+  {
+   "op": "activate",
+   "key": "u",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "v"
+   ]
+  }
+ ],
+ "expect": {
+  "damage": {
+   "v": 3
+  },
+  "counters": {
+   "u": {
+    "LOYALTY": 6
+   }
+  }
+ },
+ "notes": "Printed: '[+2]: Ugin deals 3 damage to any target.' Loyalty seeded to 4 (CR 606.3 clock fresh), the +2 cost MOVES THE COUNTER LEDGER 4 -> 6 and the 3-damage effect lands. The printed identity carries no loyalty field (seed op is the lane). [-X] is NOT pack-expressible (QX cost needs a caller-supplied X - no x lane in the frozen activate op); [-10] probed green in staging (life 27, six drawn fillers auto-played) but the hand-put-lane + 7-draw on a 6-card library stays seed-coupled - findings note."
+}

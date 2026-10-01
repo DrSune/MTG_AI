@@ -1,0 +1,80 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "m",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Palladium Myr"
+  },
+  {
+   "key": "p",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Prismite"
+  },
+  {
+   "key": "o",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Scavenging Ooze"
+  },
+  {
+   "key": "tin",
+   "name": "Tin",
+   "type": "Creature",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "m",
+   "idx": 0,
+   "seat": 0
+  },
+  {
+   "op": "activate",
+   "key": "p",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "G"
+   ]
+  },
+  {
+   "op": "activate",
+   "key": "o",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "tin"
+   ]
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "m": true
+  },
+  "zone": {
+   "tin": "exile",
+   "p": "battlefield"
+  },
+  "counters": {
+   "o": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "power": {
+   "o": 3
+  },
+  "life": {
+   "0": 21
+  }
+ },
+ "notes": "Printed: '{T}: Add {C}{C}.' Pool starts EMPTY; after the Myr activation Prismite's '{2}' (exact drain of the two generic mana - legality raises if they never arrived) and the Ooze's colored '{G}' lane (paid by Prismite's choice-G) chain green: the two {C} are IN the pool and spendable. {T} asserted on the Myr."
+}

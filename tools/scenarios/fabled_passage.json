@@ -1,0 +1,77 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "fp",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Fabled Passage"
+  },
+  {
+   "key": "l1",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Forest"
+  },
+  {
+   "key": "l2",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Island"
+  },
+  {
+   "key": "l3",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Mountain"
+  },
+  {
+   "key": "s1",
+   "zone": "library",
+   "controller": 0,
+   "real": "Swamp"
+  },
+  {
+   "key": "s2",
+   "zone": "library",
+   "controller": 0,
+   "real": "Forest"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "fp",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "s1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "fp": "graveyard",
+   "s1": "battlefield"
+  },
+  "graveyard": {
+   "0": [
+    "Fabled Passage"
+   ]
+  },
+  "library": {
+   "0": [
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ]
+  }
+ },
+ "notes": "Working half: tap+sacrifice cost, search-by-prompt-key delivers the named basic land, library shuffles (6 '*' wildcards). s2 (last lib entry) absorbs the setup draw so s1 stays findable. This rig controls 4 lands post-search, so per the printed conditional clause the land SHOULD be untapped \u2014 no tapped lane asserted here; the 'onto the battlefield tapped' clause for <4 lands is falsified in fabled_passage_enters_tapped.json."
+}

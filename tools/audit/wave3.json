@@ -647,6 +647,7 @@
     "n_gate_excluded": 1,
     "n_static_cards": 100,
     "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
+    "status": "closed",
     "wave": "wave3"
   }
 }

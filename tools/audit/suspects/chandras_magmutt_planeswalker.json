@@ -1,0 +1,44 @@
+{
+ "status": "suspect",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "finding": "PRINTED: '{T}: This creature deals 1 damage to target player or planeswalker.' ENGINE(observed): the planeswalker half is accepted by legality (mutt taps, ability resolves) but the loyalty zone is never touched \u2014 verbs.py has zero Planeswalker/LOYALTY damage handling \u2014 'counters[pw]: expected {LOYALTY: 3}, got {LOYALTY: 4}'; and a pure PLAYER target is unaddressable: activate with no targets raises \"TARGET selector has no designation (pass bindings={'target': ...})\" while decisions-only attempts raise 'TARGET_PLAYER needs a bound target (12c target prompt)'. Neither legal target kind can receive the printed damage.",
+ "notes": "PW handle binding works for zone PLAYER-or-PW selectors; the damage verb just drops the loyalty decrement.",
+ "cards": [
+  {
+   "key": "mutt",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Chandra's Magmutt"
+  },
+  {
+   "key": "pw",
+   "zone": "battlefield",
+   "controller": 1,
+   "real": "Basri, Devoted Paladin"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "mutt",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "pw"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "pw": {
+    "LOYALTY": 3
+   }
+  },
+  "tapped": {
+   "mutt": true
+  }
+ }
+}

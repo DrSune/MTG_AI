@@ -1,0 +1,62 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "vi",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Vito, Thorn of the Dusk Rose"
+  },
+  {
+   "key": "w",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Walking Corpse"
+  },
+  {
+   "key": "v",
+   "name": "Vugl",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "4",
+   "toughness": "4"
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "vi",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "deal_damage",
+   "source": "w",
+   "target": "v",
+   "amount": 2
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 22
+  },
+  "damage": {
+   "v": 2
+  },
+  "battlefield_keywords": {
+   "Walking Corpse": [
+    "LIFELINK"
+   ]
+  }
+ },
+ "notes": "Printed: '{3}{B}{B}: Creatures you control gain lifelink until end of turn.' Exact B:5 pays; the ALL-mode grant covers the Corpse (keyword lane reads LIFELINK) AND bites: the harness 2-damage deal through the r20a lifelink leg returns life 20 -> 22. idx 1: idx 0 is the 'Whenever you gain life' trigger row (separate trigger-family lane, drain not in this pack's steps)."
+}

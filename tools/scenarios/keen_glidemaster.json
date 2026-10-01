@@ -1,0 +1,55 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "glide",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Keen Glidemaster"
+  },
+  {
+   "key": "snake",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Snake",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2,
+   "U": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "glide",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "glide"
+   ]
+  }
+ ],
+ "expect": {
+  "battlefield_keywords": {
+   "Keen Glidemaster": [
+    "FLYING"
+   ]
+  },
+  "power": {
+   "glide": 2,
+   "snake": 1
+  },
+  "tapped": {
+   "glide": false
+  }
+ },
+ "notes": "{2}{U}: target creature gains flying until end of turn \u2014 self-target grants FLYING in the keywords lane; the seed pays the exact cost once; the ability does not tap and buffs no power."
+}

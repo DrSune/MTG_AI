@@ -1,0 +1,93 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "jol",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Jolrael, Mwonvuli Recluse"
+  },
+  {
+   "key": "tiger",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Tiger",
+   "type": "Creature",
+   "power": "6",
+   "toughness": "5"
+  },
+  {
+   "key": "wolf",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Wolf",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "ogre",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Ogre",
+   "type": "Creature",
+   "power": "8",
+   "toughness": "8"
+  },
+  {
+   "key": "h1",
+   "zone": "hand",
+   "controller": 0,
+   "name": "Silk",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "h2",
+   "zone": "hand",
+   "controller": 0,
+   "name": "Silk2",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "jol",
+   "idx": 1,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "power": {
+   "tiger": 2,
+   "wolf": 2,
+   "ogre": 8
+  },
+  "toughness": {
+   "tiger": 2,
+   "wolf": 2
+  },
+  "hand": {
+   "0": 2
+  },
+  "battlefield_pt": {
+   "Tiger": [
+    2,
+    2
+   ]
+  }
+ },
+ "notes": "{4}{G}{G}: controlled creatures have base P/T X/X, X = cards in hand at resolution = 2 (no setup draw in this layout). Opponent's 8/8 untouched \u2014 'creatures YOU control'. Jolrael's own identity P/T is a compiler quirk (Q1/Q2) \u2014 her lanes are not asserted."
+}

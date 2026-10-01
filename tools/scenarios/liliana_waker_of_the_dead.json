@@ -1,0 +1,66 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "wk",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Liliana, Waker of the Dead"
+  },
+  {
+   "key": "g1",
+   "zone": "graveyard",
+   "controller": 0,
+   "name": "Chaff",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "g2",
+   "zone": "graveyard",
+   "controller": 0,
+   "name": "Chaff",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "ogre",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Ogre",
+   "type": "Creature",
+   "power": "4",
+   "toughness": "4"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "wk",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "ogre"
+   ]
+  }
+ ],
+ "expect": {
+  "power": {
+   "ogre": 2
+  },
+  "toughness": {
+   "ogre": 2
+  },
+  "counters": {
+   "wk": {
+    "LOYALTY": 1
+   }
+  }
+ },
+ "notes": "-3: -X/-X where X = my graveyard count (2): 4/4 Ogre -> 2/2; loyalty 4-3=1. The +1's 'Each opponent who can't [discard] loses 3 life' clause is missing \u2014 liliana_waker_plus_one.json."
+}

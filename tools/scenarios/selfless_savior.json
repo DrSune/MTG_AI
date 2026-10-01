@@ -1,0 +1,38 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Selfless Savior"
+  },
+  {
+   "key": "w",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Walking Corpse"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "s",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "w"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "s": "graveyard",
+   "w": "battlefield"
+  }
+ },
+ "notes": "Printed: 'Sacrifice this creature: Another target creature you control gains indestructible until end of turn.' The self-sacrifice cost leaves the Savior to the graveyard while the designated creature stands. The indestructible grant itself is unobservable in the frozen runner (keyword lane vocab has no INDESTRUCTIBLE, no destroy op) - noted, not asserted."
+}

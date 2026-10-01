@@ -1,0 +1,48 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "c",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Tormod's Crypt"
+  },
+  {
+   "key": "w",
+   "zone": "graveyard",
+   "controller": 1,
+   "real": "Walking Corpse"
+  },
+  {
+   "key": "tin",
+   "name": "Tin",
+   "type": "Instant",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "c",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "w"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "c": "graveyard",
+   "w": "exile",
+   "tin": "exile"
+  }
+ },
+ "notes": "Printed: '{T}, Sacrifice this artifact: Exile target player's graveyard.' Designating one card in the opponent's graveyard binds that player; the ALL-mode selector sweeps the WHOLE gy: both cards exile. The Crypt pays {T}+self-sac (graveyard assert).",
+ "status": "suspect",
+ "finding": "PRINTED: '{T}, Sacrifice this artifact: Exile target player's graveyard.' - designating the opponent's graveyard exiles the ENTIRE gy. Rig: two cards in seat-1 graveyard (Walking Corpse + Tin), one card designated via targets:[w]. ENGINE(observed): only the DESIGNATED card exiles; the undesignated Tin stays in graveyard (zone[tin]: graveyard). CONTROL probe: designating BOTH cards exiles both -> the effect is a per-card binding, not a graveyard sweep. Root cause: the effect's TARGET_PLAYER selector carries an ALL-mode UNIV filter (FAnd with children=()) that has no referent, so role_handles (selectors.py ~461) fails _filter_has_referent and falls through to the binding-first lane, exiling just the bound cards; the population-lane whole-graveyard sweep never fires. SILENT - legality/announce lanes green, only the sweep is missing. WAVE4B 2026-10-01."
+}

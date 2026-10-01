@@ -1,0 +1,57 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "o",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Scavenging Ooze"
+  },
+  {
+   "key": "tin",
+   "name": "Tin",
+   "type": "Creature",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "o",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "tin"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tin": "exile"
+  },
+  "counters": {
+   "o": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "power": {
+   "o": 3
+  },
+  "toughness": {
+   "o": 3
+  },
+  "life": {
+   "0": 21
+  }
+ },
+ "notes": "Printed: '{G}: Exile target card from a graveyard. If it was a creature card, put a +1/+1 counter on this creature and you gain 1 life.' The single printed green pays; the gy creature card EXILES (not buries); the if-it-was branch lands: 2/2 -> 3/3 counter lane + life 20 -> 21."
+}

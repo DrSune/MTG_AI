@@ -1,0 +1,117 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s1",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Animal Sanctuary"
+  },
+  {
+   "key": "s2",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Animal Sanctuary"
+  },
+  {
+   "key": "tome",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Mazemind Tome"
+  },
+  {
+   "key": "cat",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Cat",
+   "type": "Creature \u2014 Cat",
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "drawn",
+   "zone": "library",
+   "controller": 0,
+   "name": "Drawn",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "s1",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "cat"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "activate",
+   "key": "s1",
+   "idx": 0,
+   "seat": 0
+  },
+  {
+   "op": "activate",
+   "key": "s2",
+   "idx": 0,
+   "seat": 0
+  },
+  {
+   "op": "activate",
+   "key": "tome",
+   "idx": 1,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "counters": {
+   "cat": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "tome": {
+    "PAGE": 1
+   }
+  },
+  "tapped": {
+   "s1": true,
+   "s2": true,
+   "tome": true
+  },
+  "hand": {
+   "0": 3
+  },
+  "library": {
+   "0": [
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ },
+ "notes": "Printed {2},{T}: counter on Bird/Cat/... (s1 idx1 on Cat, survives the cycle); {T}: Add {C} (s1+s2 turn-2 taps fund Mazemind Tome's {2},{T} draw \u2014 the only observable proof of Add {C} with no pool lane). Mana pool persists across turn cycles (NUMBERS 2026-10-01 wave4a)."
+}

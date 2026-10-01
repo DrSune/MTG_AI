@@ -1,0 +1,43 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "r",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Riddleform"
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "r",
+   "idx": 1,
+   "seat": 0,
+   "decisions": [
+    "bottom"
+   ]
+  }
+ ],
+ "expect": {
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Library 5"
+   ]
+  }
+ },
+ "notes": "Printed activation: '{2}{U}: Scry 1.' The {2}{U} pays from a U:3 pool (1 colored + 2 generic - exact); decision 'bottom' sends the viewed top card (Library 5) under the WHOLE library (CR 701.1) - exact order asserted. idx 1 because idx 0 is the noncreature-cast trigger row."
+}

@@ -39,6 +39,18 @@ appears as a ``real`` entry in ``tools/scenarios/*.json`` (the 148 green
 packs) or ``tools/audit/suspects/*.json`` is EXCLUDED by name; the count
 lands in ``meta.excluded_count``. No carry-over semantics apply.
 
+Wave 4 (loop step 1, 2026-10-01) is the MANA/ACTIVATED cohort: every
+non-token card whose compiled IR carries an :class:`ActivatedAbility`
+node anywhere (the "cost: effect" lane — tap abilities, mana abilities,
+loyalty abilities, equip; verified 2026-10-01 the M21 goldens carry ZERO
+cycling text, so the cycling lane has no corpus members). Same
+derive-from-IR rule and gate as waves 2-3; exactly one card (Gadrak, the
+Crown-Scourge) carries the node only INSIDE its TokenSpec (the token's
+own ability) and is pack-covered by name anyway, so the row set is
+identical under a top-level-only reading. Cards already exercised by a
+pack or suspect are EXCLUDED by name (``meta.excluded_count``); gate
+flags record the unsupported verbs inside the activated nodes.
+
 Usage::
 
     .venv/bin/python tools/audit/wave_builder.py              # write wave1.json
@@ -47,6 +59,15 @@ Usage::
     .venv/bin/python tools/audit/wave_builder.py --wave2 --lint
     .venv/bin/python tools/audit/wave_builder.py --wave3      # write wave3.json
     .venv/bin/python tools/audit/wave_builder.py --wave3 --lint
+    .venv/bin/python tools/audit/wave_builder.py --wave4      # write wave4.json
+    .venv/bin/python tools/audit/wave_builder.py --wave4 --lint
+
+Closed waves: a frozen cohort whose every card has since been promoted
+into ``tools/scenarios/*.json`` or ``tools/audit/suspects/*.json`` carries
+``meta.status = "closed"``. Its ``--lint`` then PASSes iff every frozen row
+is covered by name (the fresh derivation legitimately excludes consumed
+cards by name, so byte-drift is expected, not failure); open waves keep
+exact byte-identical lint.
 
 Exit code 0 = wave file current (lint) / written (build).
 """
@@ -62,6 +83,7 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
 from MTG_bot.core.ability_tree import (
+    ActivatedAbility,
     Atom,
     KeywordAbility,
     SpellAbility,
@@ -80,6 +102,7 @@ ASSETS = REPO / "MTG_bot" / "assets" / "card_images"
 DEFAULT_OUT = Path(__file__).resolve().parent / "wave1.json"
 DEFAULT_OUT2 = Path(__file__).resolve().parent / "wave2.json"
 DEFAULT_OUT3 = Path(__file__).resolve().parent / "wave3.json"
+DEFAULT_OUT4 = Path(__file__).resolve().parent / "wave4.json"
 
 #: Wave-3 name-exclusion sources: every green scenario pack (148) and every
 #: suspect file; a card counts as covered if its name appears as a ``real``
@@ -401,6 +424,102 @@ def derive_wave3() -> dict:
     }
 
 
+def activated_abilities(record) -> list[ActivatedAbility]:
+    """The wave-4 family map: ActivatedAbility nodes ("cost: effect" —
+    tap/mana/loyalty/equip lanes) read out of the compiled record via
+    ``walk``, never a substring. Verified 2026-10-01: 93 of the 94 family
+    cards carry theirs top-level; the sole nested one (Gadrak's TokenSpec)
+    is pack-covered by name, so top-level-only would freeze the same rows."""
+    return [n for n in walk(record) if isinstance(n, ActivatedAbility)]
+
+
+def activated_unsupported_verbs(record) -> list[str]:
+    """Atom verb names INSIDE the card's activated nodes that the engine
+    cannot execute — the honest flag reason for a wave-4 exclusion."""
+    return sorted(
+        {
+            node.verb.name
+            for a in activated_abilities(record)
+            for node in walk(a)
+            if isinstance(node, Atom) and node.verb not in SUPPORTED_VERBS_V2
+        }
+    )
+
+
+def activated_mechanics(record) -> list[str]:
+    """Wave-4 mechanics: atom verbs inside the activated abilities' effect
+    payloads — the cost:effect lane's verb families, read out of the IR."""
+    return sorted(
+        {
+            node.verb.name
+            for a in activated_abilities(record)
+            for node in walk(a.effect)
+            if isinstance(node, Atom)
+        }
+    )
+
+
+def derive_wave4() -> dict:
+    """Wave 4 = mana/activated lane, engine-supported gate, minus every
+    card already exercised by a green pack or suspect (excluded by NAME —
+    ``meta.excluded_count``). Coverage arithmetic: n_activated_cards =
+    n_covered_excluded + n_gate_excluded + n_cards. No carry-over rows."""
+    pool, gated, texts = _compile_state()
+    covered = covered_names()
+    cards: dict[str, dict] = {}
+    excluded: dict[str, list[str]] = {}
+    n_activated_cards = 0
+    n_covered = 0
+    for oid, res in pool.results.items():
+        record = res.card
+        if record.is_token or oid in pool.emblems:
+            continue
+        acts = activated_abilities(record)
+        if not acts:
+            continue
+        n_activated_cards += 1
+        if not gated.results[oid].legality.engine_supported:
+            reasons = activated_unsupported_verbs(record)
+            excluded[record.name] = reasons or unsupported_verbs(record)
+            continue
+        if record.name in covered:
+            n_covered += 1
+            continue
+        cards[record.name] = {
+            "oracle_id": oid,
+            "mechanics": activated_mechanics(record),
+            "n_activated_abilities": len(acts),
+            "engine_supported": bool(gated.results[oid].legality.engine_supported),
+            "image": str(ASSETS / f"{oid}.jpg"),
+            "has_image": (ASSETS / f"{oid}.jpg").exists(),
+            "printed_text": texts.get(oid, ""),
+        }
+    return {
+        "meta": {
+            "wave": "wave4",
+            "family": (
+                "MANA/ACTIVATED (cost:effect — ActivatedAbility nodes: "
+                "tap/mana/loyalty/equip lanes; M21 goldens carry zero "
+                "cycling text), engine-supported gate, "
+                "pack/suspect-covered names excluded"
+            ),
+            "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
+            "built_by": "tools/audit/wave_builder.py",
+            "n_activated_cards": n_activated_cards,
+            "excluded_count": n_covered,
+            "n_gate_excluded": len(excluded),
+            "excluded_by_flag": dict(sorted(excluded.items())),
+            "coverage": (
+                f"{n_activated_cards} activated-family cards = {n_covered} "
+                f"already covered (name) + {len(excluded)} gate-flagged + "
+                f"{len(cards)} wave-4 cohort"
+            ),
+            "n_cards": len(cards),
+        },
+        "cards": dict(sorted(cards.items())),
+    }
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
     ap.add_argument(
@@ -409,11 +528,16 @@ def main(argv=None) -> int:
     ap.add_argument(
         "--wave3", action="store_true", help="STATIC/keyword cohort instead of wave 1"
     )
+    ap.add_argument(
+        "--wave4", action="store_true", help="MANA/ACTIVATED cohort instead of wave 1"
+    )
     ap.add_argument("--out", default=None)
     ap.add_argument("--lint", action="store_true", help="re-derive and diff vs disk")
     args = ap.parse_args(argv)
 
-    if args.wave3:
+    if args.wave4:
+        derive, default_out = derive_wave4, DEFAULT_OUT4
+    elif args.wave3:
         derive, default_out = derive_wave3, DEFAULT_OUT3
     elif args.wave2:
         derive, default_out = derive_wave2, DEFAULT_OUT2
@@ -425,6 +549,19 @@ def main(argv=None) -> int:
 
     if args.lint:
         disk = out.read_text(encoding="utf-8")
+        frozen = json.loads(disk)
+        if frozen.get("meta", {}).get("status") == "closed":
+            # Closed cohort: every frozen card was promoted into a pack or
+            # suspect, so the fresh derivation legitimately excludes them by
+            # name — byte-drift is expected. PASS iff every frozen row is now
+            # covered by name in scenarios/ or suspects/.
+            names = sorted(frozen["cards"])
+            uncovered = [n for n in names if n not in covered_names()]
+            if not uncovered:
+                print(f"closed: {len(names)}/{len(names)} covered, consumed")
+                return 0
+            print(f"lint DRIFT (closed wave): uncovered={uncovered}")
+            return 1
         if disk == text:
             print(f"lint OK: {wave['meta']['n_cards']} cards, IR current")
             return 0

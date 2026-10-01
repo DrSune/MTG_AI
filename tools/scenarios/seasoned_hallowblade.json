@@ -1,0 +1,44 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "h",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Seasoned Hallowblade"
+  },
+  {
+   "key": "tin",
+   "name": "Tin",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "h",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "h"
+   ]
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "h": true
+  },
+  "zone": {
+   "tin": "graveyard"
+  },
+  "hand": {
+   "0": 0
+  }
+ },
+ "notes": "Printed: 'Discard a card: Tap this creature. It gains indestructible until end of turn.' The hand-card cost leaves to the graveyard (hand baseline 0 -> 0 after discard of the seeded Tin), the self-tap lands. INDESTRUCTIBLE sits OUTSIDE the runner keyword lane's 10-key vocab and no destroy op exists in the frozen harness - the grant's damage/destroy immunity is unobservable in-pack (findings note), not a silent pass claim."
+}
