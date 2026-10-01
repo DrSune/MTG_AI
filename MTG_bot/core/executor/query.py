@@ -66,7 +66,7 @@ from __future__ import annotations
 
 import itertools
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
@@ -631,6 +631,70 @@ def legal_casts(
     return rows
 
 
+def filter_has_pred(filter_: object, pred: FAtomPred) -> bool:
+    """r19c (Experimental Overload): does this filter tree carry ``pred``
+    anywhere (FAnd/FOr children, FNot inner)? The cast lane's self-
+    designation clause keys on exactly this shape — a TARGET selector whose
+    ONLY way to be satisfied is the source spell itself."""
+    from MTG_bot.core.ability_tree import FNot, FOr
+
+    if isinstance(filter_, FAtom):
+        return filter_.pred is pred
+    if isinstance(filter_, (FAnd, FOr)):
+        return any(filter_has_pred(c, pred) for c in filter_.children)
+    if isinstance(filter_, FNot):
+        return filter_has_pred(filter_.inner, pred)
+    return False
+
+
+def _designation_selector(selector: Selector) -> Selector:
+    """r19c (Rookie Mistake): the DESIGNATION face of a TARGET selector —
+    the filter with its ``IS_ANY_TARGET`` atoms read as TAUTOLOGIES.
+
+    CR 601.2c designates targets one at a time; an anaphoric filter like
+    "target creature that's targeted by this spell" ('another target
+    creature' compiled) is UNDECIDABLE while the designation is still
+    being built — nothing is targeted yet, so the raw predicate empties the
+    candidate population and the slot becomes uncastable by construction
+    (the same chicken-and-egg the runtime answers from the finished
+    designation, quantity._eval_atom's closed-C12 reading). At DESIGNATION
+    time every card is a POTENTIAL target, so the atom must pass; the
+    runtime keeps evaluating the ORIGINAL filter (the designation exists
+    by then — ExecCtx.designation_union), and the slot keeps the original
+    selector as its identity key (repr-match for per-slot designation)."""
+    from MTG_bot.core.ability_tree import FNot, Filter, FOr
+
+    def strip(filter_: Filter) -> tuple[Filter, bool]:
+        if isinstance(filter_, FAtom):
+            if filter_.pred is FAtomPred.IS_ANY_TARGET:
+                return FAnd(()), True
+            return filter_, False
+        if isinstance(filter_, FAnd):
+            kids: list[Filter] = []
+            changed = False
+            for child in filter_.children:
+                kept, was = strip(child)
+                changed = changed or was
+                # a tautology conjunct drops out of the AND (§ universal)
+                if changed and isinstance(kept, FAnd) and not kept.children:
+                    continue
+                kids.append(kept)
+            if not changed:
+                return filter_, False
+            return FAnd(tuple(kids)), True
+        if isinstance(filter_, (FOr, FNot)):
+            # deliberately NOT stripped: a disjunct / negation of an
+            # anaphora stays conservative (loud candidate empties stay
+            # loud) — the corpus 'another target' idiom ANDs it.
+            return filter_, False
+        return filter_, False
+
+    stripped, changed = strip(selector.filter)
+    if not changed:
+        return selector
+    return replace(selector, filter=stripped)
+
+
 def spell_target_slots(
     executor: Executor,
     node: SpellAbility,
@@ -682,13 +746,21 @@ def spell_target_slots(
             if key in seen:
                 continue
             seen.add(key)
+            # r19c (Rookie Mistake): candidates enumerate through the
+            # DESIGNATION face (IS_ANY_TARGET = potential-target tautology);
+            # the slot keeps the ORIGINAL selector as its identity — the
+            # cast lane repr-matches designations to the atom's own Selector
+            # and the runtime re-evaluates the un-stripped filter.
+            enum_value = _designation_selector(value)
             slot = legal_targets(
                 executor.world,
                 executor,
-                value,
+                enum_value,
                 source=spell_handle,
                 controller=seat,
             )
+            if enum_value is not value:
+                slot = replace(slot, selector=value)
             widened = _widen_any_target(executor, value, slot)
             if widened is not None:
                 slot = widened

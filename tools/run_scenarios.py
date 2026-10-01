@@ -313,6 +313,14 @@ class ScenarioRunner:
             self.ex.journal.record_atom(before, None, "ATTACH", [])
             self.ex.binder.on_events()  # GY->BF re-entry re-registers
             self.ex.layers.recompute()
+            # r19c (Capture Sphere): on_events only QUEUES; the aura's own
+            # "When this Aura enters the battlefield, tap enchanted
+            # creature" EtB sat pending forever. Drain like the activate op
+            # — static-grant auras (the four green enchant packs) have no
+            # EtB trigger and stay byte-unchanged; the attachment is
+            # already in the table when the trigger RESOLVES, so the
+            # "enchanted creature" selector reads the fresh host.
+            self.ex.fire_triggers()
         elif op == "loyalty":
             # harness ledger write: seed the CR 606.3 loyalty counter so a
             # minus ability with a big cost (Herald's -7) is payable.

@@ -47,7 +47,5 @@
    "sp": "graveyard",
    "ar": "graveyard"
   }
- },
- "status": "suspect",
- "finding": "WAVE2B (2026-10-01) re-run: printed 'Choose one \u2014 Destroy target artifact / Destroy target enchantment / Exile target card from a graveyard.' The compiled spell carries THREE TARGET selectors; the cast raises 'NotImplementedError: a spell with more than one TARGET selector needs per-slot designation (arc 3)' regardless of targets/decisions/board. Multi-slot designation is unimplemented; no mode of this card is castable from a pack."
+ }
 }

@@ -1,0 +1,45 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "nc",
+   "real": "Necromentia",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "doom",
+   "name": "Doom",
+   "type": "Instant",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Necromentia",
+   "key": "nc",
+   "decisions": [
+    "Doom"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "nc": "graveyard",
+   "doom": "exile"
+  },
+  "life": {
+   "0": 20
+  }
+ }
+}

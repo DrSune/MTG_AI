@@ -1,0 +1,38 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cs",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Capture Sphere"
+  },
+  {
+   "key": "host",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Host Beast",
+   "power": 4,
+   "toughness": 4,
+   "type": "Creature"
+  }
+ ],
+ "steps": [
+  {
+   "op": "enchant",
+   "aura": "cs",
+   "host": "host"
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "host": true
+  },
+  "zone": {
+   "cs": "battlefield"
+  }
+ }
+}

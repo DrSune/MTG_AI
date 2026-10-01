@@ -1,0 +1,62 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "du",
+   "real": "Duress",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "prey",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "sheep",
+   "name": "Sheep",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Duress",
+   "key": "du",
+   "decisions": [
+    "prey"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "du": "graveyard",
+   "prey": "graveyard",
+   "sheep": "hand"
+  },
+  "hand": {
+   "1": 1
+  },
+  "graveyard": {
+   "1": [
+    "Opt"
+   ]
+  },
+  "life": {
+   "0": 20
+  }
+ }
+}

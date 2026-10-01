@@ -1153,7 +1153,19 @@ def _v_choose(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append((len(ctx.events), "CHOOSE", str(ctx.source)))
         return
     vocab = tuple(str(i) for i in range(len(rows)))
-    pick = ctx.take_decision(vocab, f"choose:{ctx.source}:{site_digest(tuple(rows))}")
+    # r19c (Duress): ADDITIVE handle aliases. A provider that resolves a
+    # pack key ("prey") gets back a HANDLE string — which is not a
+    # positional index token, so the old vocabulary could never accept the
+    # resolution. Each singleton candidate row's own handle is therefore a
+    # legal token too; §8.3 identity holds because the aliases ARE members
+    # of the query's own enumeration (rows), appended after the ORDER
+    # tokens — the digest and the index lane stay byte-unchanged.
+    alias = {str(row[0]): str(i) for i, row in enumerate(rows) if len(row) == 1}
+    ask_vocab = vocab + tuple(a for a in alias if a not in vocab)
+    pick = ctx.take_decision(
+        ask_vocab, f"choose:{ctx.source}:{site_digest(tuple(rows))}"
+    )
+    pick = alias.get(pick, pick)
     chosen = rows[int(pick)]
     if len(chosen) < want:
         # the under-filled zero row picked when candidates ran out

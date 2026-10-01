@@ -13,6 +13,23 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.242 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **297/305** (0.9738) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 45 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-10-01 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.241 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
@@ -2192,3 +2209,14 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | Packs green | **126/126** (84 old + 42 new: 24 batch-A + 18 batch-B) | `python tools/run_scenarios.py` | orchestrator re-ran; engine untouched by authoring |
 | Wave-2 suspects | **27 files** (25 new + 2 carry-overs re-confirmed) | `ls tools/audit/suspects/` | ~10 silent-bug root causes; rest harness/designation/cast-lane |
 | Core suite | **2112 + 4 subtests** unchanged | `python -m pytest MTG_bot/core -q` | authoring was tools/docs-only |
+
+## 2026-10-01 (wave-2 fix-batch 19c — cast declaration lane)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| scenarios | **148/148** | `.venv/bin/python tools/run_scenarios.py` | 140 + 8 promotions (duress, mind_rot, necromentia, hunters_edge, experimental_overload, return_to_nature, rookie_mistake, capture_sphere) |
+| suspects | **1/5 fail-only** | `… --dir tools/audit/suspects` | secure_the_scene PASS-as-STOP; peer+wildwood STOPPED-COMPILER (golden has 0 LOSE_LIFE atoms / 0 SpellAbility+QX); tampering+transmogrify fix-B STOPs |
+| core suite | **2168 passed + 4 subtests, 0 failed** | `.venv/bin/python -m pytest MTG_bot/core -q` | 2152 + 16 r19c pins; 1 AMENDED multi-target pin in test_executor_stack.py |
+| PC gate | PC-1 **301/305** · PC-2 **634/639** · PC-3 **0** · PC-4 **0**; engine **297/305, V2 45** UNCHANGED | `.venv/bin/python tools/measure_grammar.py --with-engine-flags` | EXACT vs T5/fix-A/fix-B; PC-6/PC-8 standing FAILs unchanged |
+| catalog | repin **6144 entries/10 games**, post **0/10 diverge** | `tools/traces/catalog.py repin && … compare` | seed-8 diff attributed to RandomPolicy's uniform choose over the +alias CHOOSE vocab (games.py:383-403) |
+| pyright / ruff | **0 new** (6 pre-existing Counter errors in run_scenarios.py); ruff **Δ0** | `pyright` / `ruff check` | 2 lints introduced mid-batch (UP037, I001) auto-fixed + re-greened |

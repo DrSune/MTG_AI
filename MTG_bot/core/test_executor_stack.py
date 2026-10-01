@@ -344,8 +344,15 @@ class TestCastPipeline(StackCase):
         creature = self.world.add_card(
             card_id("Victim", "1", "1"), self.p1, ZONE_BATTLEFIELD
         )
-        with self.assertRaises(NotImplementedError):
+        # AMENDED r19c (was assertRaises(NotImplementedError), "more than one
+        # TARGET selector needs per-slot designation (arc 3)"): arc 3 LANDED —
+        # multi-slot casts now designate POSITIONALLY (the i-th target fills
+        # the i-th exactly-one slot). Under-supply stays loud with the
+        # designation-count shape; the full positive path is pinned in
+        # test_executor_r19c.py.
+        with self.assertRaises(ValueError) as cm:
             cast(self.ex, self.p0, spell, targets=(creature,))
+        self.assertIn("2 TARGET slots need 2 designations", str(cm.exception))
 
     def test_creature_lands_battlefield_etb_live(self):
         etb = TriggeredAbility(

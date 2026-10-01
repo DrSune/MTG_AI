@@ -168,6 +168,25 @@ class ExecCtx:
     # bare Conditional after any other atom keeps the old ctx.source
     # subject, byte-unchanged. Empty (the default) everywhere else.
     look_window: tuple[Handle, ...] = ()
+    # r19c (Rookie Mistake / Hunter's Edge): MULTI-slot spell designation —
+    # per-TARGET-selector designations keyed by the Selector's ``repr()``
+    # (the same identity key ``spell_target_slots`` dedupes on). None for
+    # ordinary single-slot spells, so every pre-19c lane is byte-unchanged;
+    # _run_effect's Atom branch shadows ``bindings["target"]`` to the atom's
+    # own slot while its verbs run (CR 601.2c: one spell, one designation
+    # PER SELECTOR — the shared union binding cannot serve two populations,
+    # which is why multi-slot casts stayed loud for two arcs).
+    slot_designations: dict[str, tuple[Handle, ...]] | None = None
+    # the WHOLE designation (every slot's handles, Handle-sorted): what
+    # IS_ANY_TARGET anaphora means at resolution — "another target
+    # creature" is decided against ALL designations, never the per-atom
+    # shadow alone. None = single-slot spell: the old binding-first read.
+    designation_union: tuple[Handle, ...] | None = None
+    # r19c (Return to Nature): modes declared at CAST time (CR 601.2b —
+    # modes before targets) arrive here as ORDER tokens so the runtime
+    # Choose CONSUMES the declaration instead of re-asking for a choice
+    # the caster already made. Consumed in ask order; empty elsewhere.
+    prechosen_modes: list[str] = field(default_factory=list)
 
     def take_decision(self, vocab: tuple[str, ...], what: str) -> str:
         """Consume the next decision for THIS demand site; raise when no
@@ -188,12 +207,26 @@ class ExecCtx:
         """
         if self.decision_idx < len(self.decisions):
             choice = self.decisions[self.decision_idx]
-            self.decision_idx += 1
-            if choice not in vocab:
-                raise ValueError(f"executor: {what} decision {choice!r} not in {vocab}")
+            if choice in vocab:
+                self.decision_idx += 1
+                if self.stream is not None:
+                    self.stream.ask_log.append((what, choice))
+                return choice
+            # r19c (Duress / Experimental Overload): the next pool word does
+            # not answer THIS site — a may-offer cannot eat a card name, a
+            # candidate-index ask cannot eat a pack key. A mismatched word
+            # is NOT consumed: it stays in the pool for the site it was
+            # scripted for, and THIS site falls through to the stream /
+            # provider lanes, which answer from the vocabulary itself.
+            # Green packs are byte-unchanged (their pool words always
+            # matched); when no stream lane can answer, the ORIGINAL
+            # raise shape is preserved (test_executor_games pins it).
             if self.stream is not None:
-                self.stream.ask_log.append((what, choice))
-            return choice
+                try:
+                    return self.stream.take(vocab, what)
+                except ValueError:
+                    pass
+            raise ValueError(f"executor: {what} decision {choice!r} not in {vocab}")
         if self.stream is not None:
             return self.stream.take(vocab, what)
         raise ValueError(
@@ -483,7 +516,12 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
     if pred is FAtomPred.IS_ANY_TARGET:
         # 12d (Frost Breath s2 / Selfless Savior anaphora): the object is
         # one of the ability's designated targets — the closed C12 reading,
-        # judged against the call's target bindings.
+        # judged against the call's target bindings. r19c: on a MULTI-slot
+        # spell the per-atom "target" shadow (ExecCtx.slot_designations)
+        # would shrink "any target" to one slot; the spell-wide union is
+        # the designation and means ANY of them.
+        if ctx.designation_union is not None:
+            return handle in ctx.designation_union
         bound = ctx.binding_handles("target")
         return bound is not None and handle in bound
     if pred is FAtomPred.IS_TAPPED:

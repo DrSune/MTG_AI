@@ -60,7 +60,5 @@
     3
    ]
   }
- },
- "status": "suspect",
- "finding": "WAVE2B (2026-10-01) re-run: printed 'target creature gets +0/+2 and another target creature gets -2/-0' \u2014 TWO TARGET selectors on one instant: the cast raises 'NotImplementedError: a spell with more than one TARGET selector needs per-slot designation (arc 3)'. Same multi-slot gap as Return to Nature; nothing about the promise is testable."
+ }
 }

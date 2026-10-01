@@ -165,7 +165,11 @@ from MTG_bot.core.executor.replacements import (
     ReplacementRecord,
     ReplacementRegistry,
 )
-from MTG_bot.core.executor.selectors import players_for_ref, resolve_selector
+from MTG_bot.core.executor.selectors import (
+    atom_target_slot_key as _atom_target_slot_key,
+    players_for_ref,
+    resolve_selector,
+)
 from MTG_bot.core.executor.stack import (
     SpellObject,
     SpellStack,
@@ -635,7 +639,32 @@ class Executor:
             # single verbs.py edit.
             before = self.journal.snapshot()
             start = len(self.events)
-            run_atom(effect, ctx)
+            # r19c (Rookie Mistake / Hunter's Edge): on a MULTI-slot spell
+            # each TARGET atom acts on ITS OWN designation — the shared
+            # union binding cannot serve two populations, so the Atom lane
+            # shadows bindings["target"] to the atom's slot (repr-matched,
+            # the same identity key spell_target_slots dedupes on) for the
+            # duration of run_atom. QProp(referent='target') anaphora reads
+            # through the shadow, so "…equal to THAT creature's power"
+            # means the atom's own target, never the sorted-first of a
+            # union. IS_ANY_TARGET is exempt via ExecCtx.designation_union.
+            # Single-slot spells: slot_designations is None, zero change.
+            designations = ctx.slot_designations
+            slot_key = (
+                _atom_target_slot_key(effect, designations) if designations else None
+            )
+            shadow_prev: Binding | None = None
+            if slot_key is not None and designations is not None:
+                shadow_prev = ctx.bindings.get("target")
+                ctx.bindings["target"] = list(designations[slot_key])
+            try:
+                run_atom(effect, ctx)
+            finally:
+                if slot_key is not None:
+                    if shadow_prev is None:
+                        ctx.bindings.pop("target", None)
+                    else:
+                        ctx.bindings["target"] = shadow_prev
             new_events = self.journal.record_atom(
                 before,
                 ctx.source,
@@ -734,10 +763,23 @@ class Executor:
                 bindings=ctx.bindings,
             )
             vocab = tuple(str(i) for i in range(len(opts)))
-            pick = ctx.take_decision(
-                vocab,
-                f"choose:{ctx.source}:{site_digest(tuple(o.option_idxs for o in opts))}",
-            )
+            # r19c (Return to Nature, CR 601.2b): a mode DECLARED at cast
+            # time (the cast lane consumed the ORDER token before the
+            # targets — modes before targets) arrives as a pre-chosen
+            # token; asking again would bill the pack for a decision the
+            # caster already made. Empty everywhere else — every pre-19c
+            # Choose keeps asking its token at resolution, byte-unchanged.
+            if ctx.prechosen_modes:
+                pick = ctx.prechosen_modes.pop(0)
+                if pick not in vocab:
+                    raise ValueError(
+                        f"executor: choose: declared mode {pick!r} not in {vocab}"
+                    )
+            else:
+                pick = ctx.take_decision(
+                    vocab,
+                    f"choose:{ctx.source}:{site_digest(tuple(o.option_idxs for o in opts))}",
+                )
             for idx in opts[int(pick)].option_idxs:
                 self._run_effect(effect.options[idx], ctx)
         elif isinstance(effect, EachPlayer):

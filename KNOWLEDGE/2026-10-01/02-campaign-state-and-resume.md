@@ -74,3 +74,7 @@ the real 13a plan doc is c820fc9.
 Combat arc: engine 288→297/305, all-pool crashes 1→0, suite 2022→2112, packs 3→84, catalog 5504
 →re-pinned 4× always 0-unexplained. Viewer live at reports/replays/ (s7 pre-combat · s19/s24 first
 combat deaths · s37 control-steal · + per-wave showcases).
+
+## Addendum — wave 2 CLOSED (2026-10-01)
+Full loop executed; see /08-wave2-closeout.md. Packs 148, suite 2168, suspects 5 (all
+compiler-limited STOPs, routed). Resume point now: wave-3 derivation (statics/keywords).

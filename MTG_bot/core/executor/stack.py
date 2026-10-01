@@ -286,13 +286,176 @@ def _validate_spell_targets(
                 )
         return
     if len(slots) > 1:
-        raise NotImplementedError(
-            "executor: cast: a spell with more than one TARGET selector "
-            "needs per-slot designation (arc 3)"
-        )
+        # r19c (arc 3): per-slot POSITIONAL designation — the same rule the
+        # cast lane's _plan_cast_designation applies.
+        _validate_positional(slots, targets)
+        return
     reason = validate_target_selection(slots[0], targets)
     if reason is not None:
         raise ValueError(f"executor: cast: illegal target selection: {reason}")
+
+
+def _validate_positional(
+    slots: list,
+    targets: tuple[Handle, ...],
+    skip: frozenset[int] | set[int] = frozenset(),
+) -> None:
+    """r19c (arc 3 closes): MULTI-slot designation is POSITIONAL — the i-th
+    entry of the cast's ``targets`` designates the i-th TARGET selector in
+    WALK ORDER, each validated against its OWN slot (the same
+    ``validate_target_selection`` oracle — §8.3 identity, one population
+    per selector, no cross-slot hijack). Scope: every slot exactly-one
+    (QConst(1)); an up-to/one-or-more multi-slot keeps the loud raise (no
+    corpus card needs it, and a greedy split would be a guess). A handle
+    MAY repeat across slots — the CR's "another target" clause lives in the
+    selector's own filter (IS_ANY_TARGET), which is the rules' answer, not
+    a second opinion invented here."""
+    from MTG_bot.core.executor.query import validate_target_selection
+
+    if any(s.min_count != 1 or s.max_count != 1 for s in slots):
+        raise NotImplementedError(
+            "executor: cast: multi-slot designation supports exactly-one "
+            "TARGET selectors only (r19c)"
+        )
+    if len(targets) != len(slots):
+        raise ValueError(
+            f"executor: cast: {len(slots)} TARGET slots need {len(slots)} "
+            f"designations, got {len(targets)}"
+        )
+    for i, (slot, one) in enumerate(zip(slots, targets, strict=True)):
+        if i in skip:
+            # forced auto-designation (CR 115.4 self-clause): the handle IS
+            # the spell, population enumeration cannot see it yet — the
+            # designation is trusted BY CONSTRUCTION, not by a pass.
+            continue
+        reason = validate_target_selection(slot, (one,))
+        if reason is not None:
+            raise ValueError(f"executor: cast: illegal target selection: {reason}")
+
+
+def _plan_cast_designation(
+    executor: Executor,
+    seat: Handle,
+    handle: Handle,
+    node: SpellAbility,
+    *,
+    targets: tuple[Handle, ...],
+    decisions: tuple[str, ...],
+    mode_choices: tuple[int, ...],
+) -> tuple[
+    tuple[Handle, ...], dict[str, tuple[Handle, ...]], tuple[str, ...], tuple[int, ...]
+]:
+    """r19c: the CR 601.2b/2c DECLARATION lane — modes, then targets, with
+    the three machinery gaps the suspects pinned, each closing a loud raise:
+
+    * **modes before targets** (601.2b): a Choose spell whose options carry
+      more than one TARGET slot cannot be validated option-blind — the
+      chosen mode decides WHICH slots exist at all. The mode arrives as
+      ``mode_choices[0]`` or, when absent, as the leading index token of
+      ``decisions`` (the pack's scripted answer, consumed HERE so the
+      runtime Choose never re-asks a decision already made);
+    * **forced auto-designation** (601.2c, the 18b trigger-lane convention
+      mirrored): when the spell designated nothing and EVERY slot has one
+      single legal filler — a lone-opponent TARGET_PLAYER population
+      (Duress/Mind Rot/Peer/Necromentia), a one-candidate target, or the
+      self-exile clause (a TARGET selector whose only satisfier is the
+      source spell — Experimental Overload's IS_SOURCE/BATTLEFIELD shape,
+      empty at designation because 601.2h parks the spell only LATER; CR
+      115.4's own-spell clause) — the cast takes THE answer, because there
+      is exactly one and the Slate cannot state it any other way. Any
+      slot that leaves a real choice stays loud (count_below_min), never a
+      guess;
+    * **multi-slot designation** (601.2c): several exactly-one TARGET
+      selectors designate POSITIONALLY (:func:`_validate_positional`) and
+      return the repr-keyed per-slot map the effect runtime threads into
+      ExecCtx.slot_designations.
+
+    Returns ``(designated_targets, slot_designations, remaining_decisions,
+    declared_modes)``. Validation of the finished designation happens
+    HERE — :func:`cast` must not re-validate mode-blind."""
+    from MTG_bot.core.ability_tree import Choose, FAtomPred
+    from MTG_bot.core.executor.query import filter_has_pred, spell_target_slots
+
+    slots = spell_target_slots(executor, node, spell_handle=handle, seat=seat)
+    remaining = tuple(decisions)
+    modes: tuple[int, ...] = ()
+
+    # --- modes before targets (601.2b) ------------------------------------
+    if len(slots) > 1 and isinstance(node.effect, Choose):
+        if mode_choices:
+            mode = int(mode_choices[0])
+        elif remaining and remaining[0].lstrip("-").isdigit():
+            mode = int(remaining[0])
+            remaining = remaining[1:]
+        else:
+            raise ValueError(
+                "executor: cast: a multi-target Choose spell must declare "
+                "its mode (mode_choices= or a leading index decision token)"
+            )
+        if not 0 <= mode < len(node.effect.options):
+            raise ValueError(
+                f"executor: cast: Choose mode {mode} outside "
+                f"0..{len(node.effect.options) - 1}"
+            )
+        from dataclasses import replace
+
+        active = replace(node, effect=node.effect.options[mode])
+        slots = spell_target_slots(executor, active, spell_handle=handle, seat=seat)
+        modes = (mode,)
+
+    if not slots:
+        # targetless / TARGET_PLAYER-only legacy shapes: the original
+        # player-coordinate oracle validates (it re-derives the same slots).
+        _validate_spell_targets(executor, seat, handle, node, targets)
+        return targets, {}, remaining, modes
+
+    # --- forced auto-designation (601.2c, one legal answer per slot) ------
+    # `auto_skip` marks slots filled by the SELF-CLAUSE branch below: their
+    # designation cannot pass population validation (the spell is not in the
+    # enumerated zone until 601.2h parks it), so it is trusted by
+    # construction instead. One-candidate fills come FROM the population
+    # and validate normally.
+    auto_skip: set[int] = set()
+    if not targets:
+        auto: list[Handle] = []
+        for slot in slots:
+            if slot.min_count == slot.max_count == 1 and len(slot.candidates) == 1:
+                auto.append(slot.candidates[0])
+            elif (
+                not slot.candidates
+                and slot.min_count >= 1
+                and filter_has_pred(slot.selector.filter, FAtomPred.IS_SOURCE)
+            ):
+                # the self-relocation clause: the source IS the only legal
+                # designation; zone enumeration cannot see the spell until
+                # 601.2h parks it, so population emptiness is expected.
+                auto.append(handle)
+                auto_skip.add(len(auto) - 1)
+            else:
+                auto = []
+                auto_skip.clear()
+                break
+        if len(auto) == len(slots):
+            targets = tuple(auto)
+
+    # --- validate + thread -------------------------------------------------
+    if len(slots) == 1:
+        if 0 not in auto_skip:
+            from MTG_bot.core.executor.query import validate_target_selection
+
+            reason = validate_target_selection(slots[0], targets)
+            if reason is not None:
+                raise ValueError(f"executor: cast: illegal target selection: {reason}")
+        return targets, {}, remaining, modes
+
+    _validate_positional(slots, targets, skip=auto_skip)
+    slot_designations = {
+        repr(slot.selector): (one,) for slot, one in zip(slots, targets, strict=True)
+    }
+    # a Choose-pruned multi-slot spell lands in the len==1 branch above;
+    # a mode the caller supplied AND a multi-slot residue would mean the
+    # option STILL fans slots — positional threading covers it unchanged.
+    return targets, slot_designations, remaining, modes
 
 
 def cast(
@@ -355,8 +518,18 @@ def cast(
         if _cost_has_x(spell_cost(_record, node.additional_costs)):
             x = 0
 
-    # 2-3: declaration.
-    _validate_spell_targets(executor, seat, handle, node, targets)
+    # 2-3: declaration — r19c: modes (601.2b) then targets (601.2c) through
+    # the PLAN lane, which owns auto-designation, the Choose-mode prune and
+    # positional multi-slot validation (and thereby the validation itself).
+    targets, slot_designations, decisions, declared_modes = _plan_cast_designation(
+        executor,
+        seat,
+        handle,
+        node,
+        targets=targets,
+        decisions=decisions,
+        mode_choices=mode_choices,
+    )
 
     # 6: park + frame + event. The payment happens BEFORE the park
     # (pay_costs' own apply_effect boundaries journal the taps/sacrifices
@@ -369,7 +542,7 @@ def cast(
         spell_kind=node.kind.name,
         x_value=x,
         declared_targets=tuple(sorted(targets)),
-        mode_choices=tuple(mode_choices),
+        mode_choices=declared_modes or tuple(mode_choices),
         payment=plan,
         declared_clock=executor.journal.clock,
         from_zone="hand",
@@ -402,6 +575,24 @@ def cast(
     if chosen:
         bindings["target"] = chosen
     ctx = executor._cast_ctx(handle, seat, bindings, decisions, x)
+    # r19c: the per-slot designation map (multi-TARGET spells) and the
+    # spell-wide union IS_ANY_TARGET means; both None/empty on every pre-
+    # 19c single-slot shape, leaving those lanes byte-unchanged. A mode the
+    # declaration consumed for a single-option-set Choose rides on as a
+    # PRE-CHOSEN token so the runtime node honours the 601.2b answer
+    # instead of re-asking a decision the caster already made.
+    if slot_designations:
+        ctx.slot_designations = slot_designations
+        ctx.designation_union = tuple(sorted(set(targets)))
+    if declared_modes:
+        from MTG_bot.core.ability_tree import Choose, QConst
+
+        if (
+            isinstance(node.effect, Choose)
+            and isinstance(node.effect.count, QConst)
+            and node.effect.count.value == 1
+        ):
+            ctx.prechosen_modes = [str(m) for m in declared_modes]
     from MTG_bot.core.executor.query import is_aura_spell
 
     # 16e (CR 303.4a/608.2a): an aura enters the battlefield ATTACHED, and
@@ -444,7 +635,18 @@ def cast(
         # consumed until the op closes (_consume_end_turn), so no other
         # spell's graveyard move can be re-routed by this branch.
         dest = ZONE_EXILE
-    world.move_to_zone(handle, seat, dest)
+    # r19c (Experimental Overload): a spell's own effect may relocate ITSELF
+    # off the stack (the self-exile clause resolves before 601.2j's PUT).
+    # The graveyard/battlefield move then has no subject — the spell is not
+    # in the stack zone any more, its own MOVE row already journalled the
+    # relocation, and a second move would drag it from exile into the
+    # graveyard. The SPELL_PUT row stays (the cast DID put the spell, its
+    # effect just chose where it landed).
+    cur_kind = world.zone_of(handle).kind
+    if cur_kind != ZONE_STACK:
+        dest = cur_kind
+    else:
+        world.move_to_zone(handle, seat, dest)
     executor.events.append(
         (len(executor.events), "SPELL_PUT", str(handle), f"stack->{dest}")
     )

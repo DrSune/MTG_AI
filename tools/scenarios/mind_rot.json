@@ -1,0 +1,59 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mr",
+   "real": "Mind Rot",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c1",
+   "name": "Chaff",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "c2",
+   "name": "Trash",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Mind Rot",
+   "key": "mr",
+   "decisions": [
+    "c1",
+    "c2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "mr": "graveyard"
+  },
+  "hand": {
+   "1": 0
+  },
+  "graveyard": {
+   "1": [
+    "Chaff",
+    "Trash"
+   ]
+  },
+  "life": {
+   "0": 20
+  }
+ }
+}

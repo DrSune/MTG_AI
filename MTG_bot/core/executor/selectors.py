@@ -419,6 +419,23 @@ def _filter_has_referent(filter_: object) -> bool:
 # ---------------------------------------------------------------- role readers
 
 
+def atom_target_slot_key(atom: Atom, slot_designations: dict[str, tuple]) -> str | None:
+    """r19c (multi-slot casts): the repr-key of THIS atom's own TARGET
+    selector, when the atom carries one the spell designated — the key the
+    effect runtime uses to shadow ``bindings["target"]`` to the atom's own
+    slot (ExecCtx.slot_designations). None when the atom designates nothing
+    or its selector was not part of the spell's designation walk (the
+    shared union binding then stands, exactly as before)."""
+    for _role, value in atom.args.pairs:
+        if (
+            isinstance(value, Selector)
+            and value.mode is SelectorMode.TARGET
+            and repr(value) in slot_designations
+        ):
+            return repr(value)
+    return None
+
+
 def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
     """The handles a target/cards/equipment role acts on, Handle-sorted.
 

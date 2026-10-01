@@ -1,0 +1,56 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "eo",
+   "real": "Experimental Overload",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "jt",
+   "name": "Jolt",
+   "type": "Instant",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "zp",
+   "name": "Zap",
+   "type": "Instant",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 3,
+   "R": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Experimental Overload",
+   "key": "eo",
+   "decisions": [
+    "Jolt"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "eo": "exile",
+   "jt": "hand"
+  },
+  "tokens": {
+   "Weird": 1
+  },
+  "life": {
+   "0": 20
+  }
+ }
+}
