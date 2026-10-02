@@ -35,6 +35,7 @@ if TYPE_CHECKING:  # pragma: no cover - typing-only, dodges runtime cycles
 from MTG_bot.core.ability_tree import (
     QX,
     ControllerRef,
+    CounterKind,
     FAnd,
     FAtom,
     FAtomPred,
@@ -106,6 +107,14 @@ class ExecCtx:
     # and the event|result referents resolve inside a firing.
     event: object = None
     event_amount: int | None = None
+    # r22b (Conclave Mentor): the counter count a CounterPlacedEvent
+    # REPLACEMENT is rewriting — the register QProp("event", COUNTER_COUNT)
+    # reads INSIDE a counter replacement's action ("that many plus one"),
+    # where the card's accumulated counters are the WRONG answer (the
+    # event names what is being placed NOW, not what already sits there).
+    # None outside the counter-replacement drain — the pre-r22b sum-of-
+    # counters reading (Basri's Lieutenant-style "that many") is untouched.
+    event_counter_count: int | None = None
     # 12d registries + the owning executor: the runtime layer verbs
     # (GRANT/LOSE_ABILITY, PREVENT_EFFECT) and the damage-replacement
     # interceptor reach them through the ctx; None only in bare unit-test
@@ -147,10 +156,17 @@ class ExecCtx:
     # a ZONE-CHANGE replacement queues ``(record, moving card)`` so the
     # drain can bind the moving card as ``event`` for the action's
     # referent selector (the die-lane convention) — the damage/life lanes
-    # keep bare records and a bindings-less action ctx.
-    pending_replacements: list[ReplacementRecord | tuple[ReplacementRecord, Handle]] = (
-        field(default_factory=list)
-    )
+    # keep bare records and a bindings-less action ctx. r22b (Conclave
+    # Mentor): a COUNTER-PLACEMENT replacement queues
+    # ``(record, card, kind, count)`` — the drain binds the receiving card
+    # as ``event`` AND publishes the placed count into
+    # ``event_counter_count`` so the action's "that many plus one" reads
+    # the EVENT, not the card's accumulated ledger.
+    pending_replacements: list[
+        ReplacementRecord
+        | tuple[ReplacementRecord, Handle]
+        | tuple[ReplacementRecord, Handle, CounterKind, int]
+    ] = field(default_factory=list)
     # r19a (Life Goes On): the CR 614.4a loop guard — the seqs of the
     # replacement records that already consumed an event in THIS chain.
     # A replacement's own ACTION runs with the producing record's seq in
@@ -381,6 +397,13 @@ def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
         }[field]
         return len(ctx.world.players[handle].zone(kind).entries)
     if field is QPropField.COUNTER_COUNT:
+        # r22b (Conclave Mentor): inside a counter placement's replacement
+        # action, "that many" names the count the EVENT is placing (the
+        # drain publishes it), not the card's whole counter sum. Outside
+        # the replacement drain the register is None and the pre-r22b
+        # accumulated reading stands byte-unchanged.
+        if ctx.event_counter_count is not None:
+            return ctx.event_counter_count
         return sum(ctx.world.cards[handle].counters.values())
     if field is QPropField.AMOUNT:
         # The triggering event's damage amount (Brash Taunter) — 12b register.
@@ -782,6 +805,39 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             return False
         actual = controller_of(ctx, handle)
         return controller_matches(who, actual, ctx)
+    if pred is FAtomPred.NOT_FIRST_DRAW_THIS_STEP:
+        # r22b (Teferi's Ageless Insight, grammar R5-4): "not the first
+        # card who draws in their draw step". A PLAYER-coordinate pred —
+        # the drawn card (the CardDrawnEvent subject) is not inspected;
+        # the ``who`` seat answers it off the executor's draw-step
+        # tracker (set by Executor._turn_draw, advanced by every APPLIED
+        # draw the verb lane makes). Outside a draw step every draw is
+        # vacuously "not the first of the step" — the exclusion names a
+        # step, and no step is open.
+        from MTG_bot.core.executor.selectors import players_for_ref
+
+        if atom.who is None:
+            return False
+        if isinstance(atom.who, Selector):
+            raise NotImplementedError(
+                "executor: NOT_FIRST_DRAW_THIS_STEP with a referent-Selector "
+                "who has no corpus carrier (flag, never guess) — r22b"
+            )
+        seats = players_for_ref(atom.who, ctx)
+        if len(seats) != 1:
+            raise NotImplementedError(
+                "executor: NOT_FIRST_DRAW_THIS_STEP names a single drawer; "
+                f"{atom.who.name} denotes {len(seats)} seats (r22b)"
+            )
+        ex = ctx.executor
+        if ex is None:
+            raise NotImplementedError(
+                "executor: NOT_FIRST_DRAW_THIS_STEP needs the executor's "
+                "draw-step tracker (bare ExecCtx has none) — r22b"
+            )
+        if not getattr(ex, "_draw_step_open", False):
+            return True
+        return ex.draw_step_ordinal.get(seats[0], 0) > 0
     if pred is FAtomPred.FLIP_WON:
         # 13a (Tavern Swindler compiles the flip and its winner-gate to two
         # rows, so the predicate runs in a SEPARATE context from the

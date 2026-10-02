@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-10-02T01:10:07+02:00",
-  "git_head": "ae0fbe4c878dd2cfd7174b7234aaa53294a64ddc",
+  "generated": "2026-10-02T02:26:02+02:00",
+  "git_head": "fb34746aaad35d6ee5bcfdbe33767adc89af0dd6",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -101,15 +101,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.242,
+      "value": 0.246,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
+        0.236,
         0.234,
-        0.232,
-        0.242
+        0.246
       ]
     },
     "PC-6": {
@@ -256,5 +256,65 @@
       "bucket_hint": "spell-effect"
     }
   ],
-  "unparsed_count": 5
+  "unparsed_count": 5,
+  "engine_support": {
+    "engine_supported_cards": 297,
+    "of_total": 305,
+    "supported_verbs": [
+      "ADD_LAND_PLAY",
+      "ADD_MANA",
+      "ATTACH",
+      "CAST",
+      "CHOOSE",
+      "CHOOSE_NAME",
+      "CREATE_TOKEN",
+      "DAMAGE_ASSIGN_POLICY",
+      "DEAL_DAMAGE",
+      "DESTROY",
+      "DISCARD",
+      "DRAW",
+      "END_TURN",
+      "EXILE",
+      "EXTRA_TURN",
+      "FIGHT",
+      "FLIP_COIN",
+      "GAIN_CONTROL",
+      "GAIN_LIFE",
+      "GET_EMBLEM",
+      "GRANT_ABILITY",
+      "GRANT_ACTIVATION",
+      "GRANT_TYPE",
+      "LOOK_AT",
+      "LOSE_ABILITY",
+      "LOSE_GAME",
+      "LOSE_LIFE",
+      "MANA_POLICY",
+      "MANDATE_ATTACK",
+      "MANDATE_BLOCK",
+      "MILL",
+      "MODIFY_PT",
+      "MOVE_ZONE",
+      "PAY",
+      "PREVENT_EFFECT",
+      "PUT_COUNTER",
+      "REMOVE_COUNTER",
+      "REVEAL",
+      "SACRIFICE",
+      "SCRY",
+      "SEARCH",
+      "SET_PT",
+      "SHUFFLE",
+      "TAP",
+      "UNTAP"
+    ],
+    "flip_proof": {
+      "card": "Cancel",
+      "spell_ability_only": true,
+      "default_engine_supported": true,
+      "gated_engine_supported": false,
+      "offending_verbs": [
+        "COUNTER_SPELL"
+      ]
+    }
+  }
 }

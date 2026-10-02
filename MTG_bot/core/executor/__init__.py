@@ -97,6 +97,7 @@ from MTG_bot.core.ability_tree import (
     Choose,
     Conditional,
     ControllerRef,
+    CounterKind,
     DelayedTrigger,
     EachPlayer,
     EtBState,
@@ -492,6 +493,13 @@ class Executor:
         # (amount, True) — the DamageDealtEvent ``combat`` scope (16c,
         # Garruk's Harbinger / Subira's delayed trigger).
         self._combat_wave_open = False
+        # r22b (Teferi's Ageless Insight): the CR 504.5 draw-step register.
+        # _draw_step_open is True ONLY while :meth:`_turn_draw` runs; the
+        # ordinal map counts the draws that happened inside that window per
+        # player (_v_draw stamps, NOT_FIRST_DRAW_THIS_STEP reads, see
+        # quantity.py). Transient like the combat flag — never fingerprinted.
+        self._draw_step_open = False
+        self.draw_step_ordinal: dict[Handle, int] = {}
         # Deathtouch marks (CR 702.2b): a creature carrying ANY damage
         # marked by a deathtouch source dies at the state check even below
         # lethal; the flag rides the ledger beside the amount.
@@ -707,13 +715,25 @@ class Executor:
             while ctx.pending_replacements:
                 entry = ctx.pending_replacements.pop(0)
                 repl_bindings: dict[str, Binding] | None = None
+                counter_reg: tuple[CounterKind, int] | None = None
                 if isinstance(entry, tuple):
-                    # r20b (Containment Priest): a zone-change consumer
-                    # queued (record, moving card) — the action's referent
-                    # selector ("exile it") resolves against the binding
-                    # the die lane uses.
-                    repl, event_card = entry
-                    repl_bindings = {"event": [event_card]}
+                    if len(entry) == 4:
+                        # r22b (Conclave Mentor): a counter-placement
+                        # consumer queued (record, receiving card, kind,
+                        # amount) — the action's referent binds to the
+                        # card AND the COUNTER_COUNT prop register carries
+                        # the replaced event's count (ADD(QProp(event,
+                        # COUNTER_COUNT), 1) reads it, quantity.py).
+                        repl, event_card, counter_kind, counter_n = entry
+                        repl_bindings = {"event": [event_card]}
+                        counter_reg = (counter_kind, counter_n)
+                    else:
+                        # r20b (Containment Priest): a zone-change consumer
+                        # queued (record, moving card) — the action's
+                        # referent selector ("exile it") resolves against
+                        # the binding the die lane uses.
+                        repl, event_card = entry
+                        repl_bindings = {"event": [event_card]}
                 else:
                     repl = entry
                 inner = self._ctx(
@@ -722,6 +742,8 @@ class Executor:
                     bindings=repl_bindings,
                     decisions=(),
                 )
+                if counter_reg is not None:
+                    inner.event_counter_count = counter_reg[1]
                 # r19a: the CR 614.4a chain guard travels with the action —
                 # the record that consumed THIS event cannot consume the
                 # event its own action produces.
@@ -1250,7 +1272,17 @@ class Executor:
         a 'you drew' trigger's APNAP controller already is."""
         self._op_seq += 1
         ctx = self._ctx(source=player, controller=player, bindings=None, decisions=())
-        self._run_effect(_TURN_DRAW, ctx)
+        # r22b: the draw-step window. _v_draw stamps draw_step_ordinal only
+        # while this flag is open; NOT_FIRST_DRAW_THIS_STEP (Teferi's Ageless
+        # Insight condition, quantity.py) answers per that register. Cleared
+        # unconditionally — a draw-armed trigger firing later sees the
+        # window shut (CR 504.5: the register is scoped to the step).
+        self._draw_step_open = True
+        self.draw_step_ordinal = {}
+        try:
+            self._run_effect(_TURN_DRAW, ctx)
+        finally:
+            self._draw_step_open = False
 
     def _untap_step(self, player: Handle) -> int:
         """The 12d untap step. Every tapped permanent the ACTIVE player

@@ -5,6 +5,40 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-10-02 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.246 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **297/305** (0.9738) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 45 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-10-02 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.244 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **297/305** (0.9738) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 45 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
 ## 2026-10-02 (wave-5 fix batch A / r22a — own-dies law, sacrifice-vocab, designation gate)
 
 | Number | Value | Command | Notes |
@@ -2450,3 +2484,14 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | verb histogram (mechanics) | **PUT_COUNTER 8 · DEAL_DAMAGE 5 · MODIFY_PT 4 · GRANT_ABILITY 4 · DRAW 4** (then CREATE_TOKEN 3, GAIN_LIFE 3, SEARCH 2) | tools/audit/wave5.json | wave-5 effect payloads only |
 | lints | **--wave5 lint OK (31, IR current)**; w1 66/66 · w2 67/67 · w3 55/55 · w4 43/43 consumed; --coverage byte-identical | `.venv/bin/python tools/audit/wave_builder.py {--lint,--waveN --lint,--coverage}` | meta.status unset (open wave) |
 | suite | **2239 passed + 3 subtests, 0 failed** (unchanged; tools-only) | `pytest MTG_bot/core -q` | pyright 0, ruff Δ0 on builder |
+
+## 2026-10-02 (wave-5 fix-b r22b — damage/draw/counter replacement consumers)
+
+| metric | value | producing command | notes |
+|---|---|---|---|
+| scenarios | **281/281 passed** | `.venv/bin/python tools/run_scenarios.py` | 278 + 3 promoted (fiery/teferi/conclave); fiery brute 2/2→2/3 setup fix |
+| core suite | **2261 passed + 3 subtests, 0 failed** | `pytest MTG_bot/core -q` | 2249 baseline + 12 new `test_executor_r22b.py` |
+| grammar | **PC-1 301/305 · PC-2 634/639 · PC-3 0 · PC-4 0** EXACT baseline | `tools/measure_grammar.py --with-engine-flags` | unchanged (engine-side only) |
+| fingerprints | **0/10 seeds diverging, NO repin** | `tools/traces/catalog.py compare` | new consults inert without matching replacement records |
+| games | **100/100, 0 crashes** (61 667 journal entries) | `tools/traces/catalog.py build --pool all --seeds 100 --catalog /tmp/...` | probe catalog outside the pinned one |
+| lints | pyright **0** on touched files; ruff **Δ0** | `pyright <files>` / `ruff check` | 2 I001 in new code self-fixed |

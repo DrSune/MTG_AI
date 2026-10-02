@@ -47,9 +47,14 @@ from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
+    QX,
+    Atom,
     BecomesBlockedEvent,
+    CardDrawnEvent,
     CombatDamageEvent,
     ControllerRef,
+    CounterKind,
+    CounterPlacedEvent,
     CreatureDiesEvent,
     DamageDealtEvent,
     DeclareAttackersEvent,
@@ -68,16 +73,19 @@ from MTG_bot.core.ability_tree import (
     FNot,
     FOr,
     LifeGainedEvent,
+    QAtLeast,
+    Quantity,
     QUnbounded,
     ReplacementAbility,
     Step,
     TapStateEvent,
+    Verb,
     Zone,
     ZoneChangeEvent,
     ZoneKind,
 )
 from MTG_bot.core.executor.durations import duration_tag
-from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
+from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     controller_matches,
@@ -308,46 +316,139 @@ class ReplacementRegistry:
             "name a ControllerRef (got " + type(filter_).__name__ + ") — 12e"
         )
 
-    def replacement_for_player_damage(
-        self, ctx: ExecCtx, victim: Handle
-    ) -> ReplacementRecord | None:
-        """The apply-pipeline interceptor hook: is a live replacement about
-        to consume this damage-to-a-player event? (Checked BEFORE any life
-        mutation — C24 replacement-before-apply.)
+    @staticmethod
+    def _is_player_only_filter(filter_: Filter) -> bool:
+        """r22b (Fiery Emancipation): is a DamageDealtEvent filter pure
+        PLAYER-COORDINATE — a predicate whose only meaning is "the damaged
+        object IS a named seat"? The 12d reading of a bare
+        ``CONTROLLER_IS YOU`` on a damage event is the CR's damaged-object
+        idiom "this damage is about to hit YOU" (Nine Lives), so such a
+        record never reaches the CARD lane; a filter carrying even one
+        card-shape leaf (TYPE_EQ ...) is read over the damaged object by
+        ``eval_filter`` (and its CONTROLLER_IS leaves then mean "a card
+        YOU control" — the quantity.py card branch). A universal node
+        (the empty FAnd Fiery Emancipation compiles to) is NOT player-
+        only: it matches every subject, both lanes. Unknown node shapes
+        are NOT player-only — they fall through to eval_filter's own
+        flag-raise rather than being silently excluded."""
+        if isinstance(filter_, FAtom):
+            return filter_.pred.name == "CONTROLLER_IS" and filter_.who is not None
+        if isinstance(filter_, FAnd):
+            return bool(filter_.children) and all(
+                ReplacementRegistry._is_player_only_filter(c) for c in filter_.children
+            )
+        if isinstance(filter_, FOr):
+            return bool(filter_.children) and all(
+                ReplacementRegistry._is_player_only_filter(c) for c in filter_.children
+            )
+        if isinstance(filter_, FNot):
+            return ReplacementRegistry._is_player_only_filter(filter_.inner)
+        return False
 
-        CONTROLLER RULE: the atom runs in the DEALER's coordinates, but the
-        replacement's filters ("to you") belong to the REPLACEMENT — every
-        predicate here is judged in the record's own coordinates
-        (source=the replacement's object, controller=its controller), the
-        same rule granted abilities follow."""
+    def replacement_for_damage(
+        self,
+        ctx: ExecCtx,
+        victim: Handle,
+        dealer: Handle,
+        amount: int,
+        combat: bool,
+    ) -> tuple[ReplacementRecord, int | None] | None:
+        """r22b (Fiery Emancipation): the unified apply-pipeline interceptor
+        for a DAMAGE event, both lanes (C24 replacement-before-apply).
+        Returns ``(record, None)`` when the record CONSUMES the event (the
+        Nine Lives doctrine — the damage never applies, the action runs in
+        the drain) or ``(record, new_amount)`` when it MODIFIES the event's
+        quantity in place (the Fiery Emancipation idiom: the action is a
+        DEAL_DAMAGE whose amount quantity rewrites the event's —
+        ``QBin(MUL, 3, QProp(event, AMOUNT))`` — so exactly one journalled
+        DAMAGE row lands, dealer attribution and lifelink stay on the
+        dealt amount, and the action's C-4 dealer surface is never
+        executed). ``None`` when nothing applies.
+
+        The event's slots read as matchers over the about-to-happen event:
+        ``amount`` accepts the two no-constraint idioms (QUnbounded "all",
+        QX the compiler's amount placeholder) and flags the first-N cap
+        (12e: caps are counters + triggers, never guessed); ``combat`` True
+        is the standing later-phase flag, False scopes to non-combat;
+        ``source`` is a Filter over the DEALER, evaluated in the record's
+        coordinates (the CONTROLLER_IS card branch resolves a spell
+        handle through the zone-owner controller_of — the caster).
+        CONTROLLER RULE as in every other lane: every predicate is judged
+        in the RECORD's own coordinates.
+
+        CR 616.1 ordering is unmodeled: when TWO live records match the
+        same event, the choice belongs to the damaged player and the
+        executor does not guess — RAISE (loud on hit, per the standing
+        mandate). A single record whose action re-queues damage cannot
+        self-replace: the drain's CR 614.4a ``replaced_seq`` guard covers
+        the consume half, and the modify half never executes an action."""
+        matches: list[ReplacementRecord] = []
         for rec in sorted(self.replacements, key=lambda r: r.seq):
             event = rec.event
             if not isinstance(event, DamageDealtEvent):
                 continue
-            if event.source is not None:
-                raise NotImplementedError(
-                    "executor: damage-replacement source filter is later "
-                    "phase (C-4 damage surface)"
-                )
             if event.combat is True:
                 raise NotImplementedError(
                     "executor: combat-damage replacement is later phase (combat)"
                 )
-            if event.amount is not None and not isinstance(event.amount, QUnbounded):
+            if not isinstance(event.amount, (QUnbounded, QX)):
                 raise NotImplementedError(
                     "executor: bounded damage-replacement caps ('the first "
                     "N') are modeled as counters + triggers, not guessed "
                     "here (12e)"
                 )
-            if not self._source_alive(rec.source):
+            if rec.status != "live" or rec.seq in ctx.replaced_seq:
+                continue
+            if event.combat is False and combat:
+                continue
+            if rec.tag == "Permanent" and not self._source_alive(rec.source):
                 continue
             rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
-            if not self._player_filter_matches(event.filter, victim, rec_ctx):
+            if victim.namespace == "player":
+                if not self._player_filter_matches(event.filter, victim, rec_ctx):
+                    continue
+            else:
+                if self._is_player_only_filter(event.filter):
+                    continue  # "to you" — the player idiom skips the card lane
+                if not eval_filter(event.filter, victim, rec_ctx):
+                    continue
+            if event.source is not None and not eval_filter(
+                event.source, dealer, rec_ctx
+            ):
                 continue
             if not self._condition_holds(rec, victim, rec_ctx):
                 continue
-            return rec
-        return None
+            matches.append(rec)
+        if len(matches) > 1:
+            raise NotImplementedError(
+                "executor: "
+                + str(len(matches))
+                + " damage replacements apply to one event; the CR 616.1 "
+                "ordering choice belongs to the affected player (unmodeled)"
+            )
+        if not matches:
+            return None
+        rec = matches[0]
+        if isinstance(rec.action, Atom) and rec.action.verb is Verb.DEAL_DAMAGE:
+            quantity = rec.action.args.get("amount")
+            if quantity is None:
+                raise NotImplementedError(
+                    "executor: a DEAL_DAMAGE replacement action without an "
+                    "amount slot is not the Fiery idiom (flag, not guess)"
+                )
+            assert isinstance(quantity, Quantity)
+            # the MATCHED record's own coordinates (never the loop's last
+            # scan context), plus the event register the action's
+            # QProp(event, AMOUNT) reads and the victim bound as ``event``.
+            ev_ctx = replace(
+                ctx,
+                source=rec.source,
+                controller=rec.controller,
+                bindings={"event": [victim]},
+                event_amount=amount,
+            )
+            return (rec, max(0, resolve(quantity, ev_ctx)))
+        return (rec, None)
 
     def prevented_card_damage(
         self, ctx: ExecCtx, victim: Handle, combat: bool
@@ -431,6 +532,112 @@ class ReplacementRegistry:
                 continue
             rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
             if not self._condition_holds(rec, player, rec_ctx):
+                continue
+            return rec
+        return None
+
+    def replacement_for_card_draw(
+        self, ctx: ExecCtx, drawer: Handle, amount: int
+    ) -> ReplacementRecord | None:
+        """r22b (Teferi's Ageless Insight): the apply-pipeline interceptor
+        for a CARD-DRAW event (C24 replacement-before-apply, mirrored from
+        the life lane — the draw never touches the library, so the journal
+        sees no CARD_DRAWN row for it, and the replacement's DRAW action
+        runs in the drain with the record's coordinates; the CR 614.4a
+        guard in ``ctx.replaced_seq`` stops the action's own draw from
+        re-arming the same record, while a second carrier chains exactly
+        as the CR's sequential-replacement reading demands).
+
+        The subject of a CardDrawnEvent is the drawn card, which does not
+        exist yet at the consult — the PLAYER-coordinate condition
+        (NOT_FIRST_DRAW_THIS_STEP, judged over the drawer) is what the
+        corpus carries, so the drawer handle serves as subject. The
+        ``ordinal`` slot ("whenever you draw your second card") belongs to
+        the TRIGGER table (Mystic Skyfish reads the journalled per-turn
+        count there); a draw REPLACEMENT naming one has no corpus carrier
+        — the raise, never a silent ignore. CONTROLLER RULE as in the
+        other lanes: the condition is judged in the record's coordinates,
+        and "you" is the REPLACEMENT's controller."""
+        for rec in sorted(self.replacements, key=lambda r: r.seq):
+            event = rec.event
+            if not isinstance(event, CardDrawnEvent):
+                continue
+            if rec.status != "live" or rec.seq in ctx.replaced_seq:
+                continue
+            if event.controller is not ControllerRef.YOU:
+                raise NotImplementedError(
+                    "executor: CardDrawnEvent replacement with a non-YOU "
+                    "controller reference is not in the corpus (flag, not "
+                    "guess)"
+                )
+            if drawer != rec.controller:
+                continue  # "you" means the REPLACEMENT's controller
+            if event.ordinal is not None:
+                raise NotImplementedError(
+                    "executor: ordinal-scoped draw replacement has no "
+                    "consumer (the corpus carries ordinals on triggers "
+                    "only)"
+                )
+            if rec.tag == "Permanent" and not self._source_alive(rec.source):
+                continue
+            rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
+            if not self._condition_holds(rec, drawer, rec_ctx):
+                continue
+            return rec
+        return None
+
+    def replacement_for_counter_placement(
+        self,
+        ctx: ExecCtx,
+        card: Handle,
+        kind: CounterKind,
+        amount: int,
+    ) -> ReplacementRecord | None:
+        """r22b (Conclave Mentor): the apply-pipeline interceptor for a
+        COUNTER-PLACEMENT event (C24 replacement-before-apply): the PUT-
+        COUNTER verb consults this per receiving card BEFORE the counter
+        ledger is touched; a match consumes the placement (no counters
+        land, so the state diff emits no COUNTER_PLACED row for it) and
+        the action runs in the drain with the receiving card bound as
+        ``event`` and the placed count published into
+        ``event_counter_count`` — the register the action's
+        ``QProp(event, COUNTER_COUNT)`` ("that many plus one") reads,
+        where the card's accumulated counters would be the wrong answer.
+        The CR 614.4a guard lets a SECOND carrier chain: the first
+        action's placement re-consults and the second record sees the
+        rewritten count (two Mentors make a +1 a +3, CR-correct through
+        the same drain the single carrier uses).
+
+        The event's ``count`` slot is the "one or more" matcher
+        (QAtLeast(1) — the grammar's R5-2 idiom): n >= 1 satisfies it;
+        QUnbounded matches any placement. Any other shape is a cap the
+        executor does not guess (12e). The subject filter ("a creature
+        you control") is a CARD-shape predicate, judged over the
+        receiving card in the RECORD's coordinates — CONTROLLER RULE."""
+        for rec in sorted(self.replacements, key=lambda r: r.seq):
+            event = rec.event
+            if not isinstance(event, CounterPlacedEvent):
+                continue
+            if rec.status != "live" or rec.seq in ctx.replaced_seq:
+                continue
+            if event.counter_kind is not kind:
+                continue
+            count = event.count
+            if isinstance(count, QAtLeast):
+                if amount < count.n:
+                    continue
+            elif not isinstance(count, (QUnbounded, QX, type(None))):
+                raise NotImplementedError(
+                    "executor: bounded counter-placement replacement caps "
+                    "are modeled as counters + triggers, not guessed here "
+                    "(12e shape rule)"
+                )
+            if rec.tag == "Permanent" and not self._source_alive(rec.source):
+                continue
+            rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
+            if not eval_filter(event.filter, card, rec_ctx):
+                continue
+            if not self._condition_holds(rec, card, rec_ctx):
                 continue
             return rec
         return None

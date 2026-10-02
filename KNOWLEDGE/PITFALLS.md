@@ -760,3 +760,19 @@
   judges EXISTENTIALLY (any dies row → True, Caged-Zombie activation gate).
   Tests that pin "another creature answers False" must judge an OFF-board
   handle — the r19a battlefield pin was amended for exactly this.
+
+- **2026-10-02 · Damage marks vanish with the corpse.** `ex.damage` entries are
+  cleared when the marked permanent dies at the state check. A scenario pack that
+  asserts `damage: X n` must give X a survivable toughness — a lethal-amount assert
+  observes NOTHING (missing ledger entry, indistinguishable from a non-applied
+  effect). Caught promoting the fiery pack (2/2 hit for 2: negative lane lost its
+  discriminating power until brute became 2/3).
+- **2026-10-02 · `__init__.py` duplicate literal lines.** `self._combat_wave_open =
+  False` appears in BOTH `Executor.__init__` and a combat-wave `finally:` body; an
+  edit anchored on that bare line hit the `finally` and broke the file. Anchor
+  edits on the surrounding comment block, never a bare repeated assignment.
+- **2026-10-02 · NOT_FIRST_DRAW_THIS_STEP is STEP-scoped, not turn-scoped.** The
+  frozen grammar predicates on the DRAW STEP only (Executor `_draw_step_open` /
+  `draw_step_ordinal`, set in `_turn_draw`); real Teferi's Ageless Insight rules
+  say "first card each TURN" — an upkeep draw before the draw step is doubled
+  here but not by the real card. Documented deviation, do not silently "fix".

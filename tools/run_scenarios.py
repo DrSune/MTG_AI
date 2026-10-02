@@ -254,12 +254,21 @@ class ScenarioRunner:
             spell_key = step.get("key") or f"cast_{step['real']}"
             if spell_key not in self.handles:
                 raise PackError(f"no hand card {spell_key!r} — add it under cards")
+            targets = [self.handles[k] for k in step.get("targets", ())]
+            # r22b: a cast step's "player:N" decision token is a PLAYER
+            # designation for the spell's target slot. The ASK channel never
+            # answers CAST-time multi-candidate targeting (that stays loud by
+            # harness policy), so the token lifts straight into the explicit
+            # target list — the pack says WHO, seat-indexed.
+            for tok in step.get("decisions", ()):
+                if isinstance(tok, str) and tok.startswith("player:"):
+                    targets.append(self.seats[int(tok.split(":", 1)[1])])
             cast(
                 self.ex,
                 self.seats[step.get("controller", 0)],
                 self.handles[spell_key],
                 x=step.get("x"),
-                targets=tuple(self.handles[k] for k in step.get("targets", ())),
+                targets=tuple(targets),
                 decisions=tuple(step.get("decisions", ())),
             )
         elif op == "end_turn":

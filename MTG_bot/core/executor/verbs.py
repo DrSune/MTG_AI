@@ -355,34 +355,56 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
             "executor: DEAL_DAMAGE dealer/recipient (C-4 damage surface) is 12b/12d"
         )
     n = amount(ctx, atom, "amount")
+    combat = bool(getattr(ctx.executor, "_combat_wave_open", False))
     for target in role_handles(ctx, atom, "target"):
+        n_i = n
         if target.namespace == "player":
-            # 12d: C24 replacement-before-apply. A live ReplacementAbility
-            # (Nine Lives' compiled row is the canonical) CONSUMES the
-            # event: no life mutation happens (so the journal sees no
-            # damage at all), and the replacement's action runs as a
-            # nested journalled effect once this atom's boundary closes.
-            repl = (
-                ctx.replacements.replacement_for_player_damage(ctx, target)
+            # 12d: C24 replacement-before-apply. r22b (Fiery Emancipation):
+            # the unified damage consult serves both doctrines — a live
+            # replacement that CONSUMES the event (Nine Lives' compiled row
+            # is the canonical) leaves no life mutation (the journal sees
+            # no damage at all) and queues its action for the drain; one
+            # that MODIFIES the event's quantity (Fiery's DEAL_DAMAGE
+            # action rewriting QProp(event, AMOUNT)) rewrites the amount
+            # IN PLACE, so exactly one journalled DAMAGE row lands on the
+            # tripled number and dealer attribution / lifelink stay on the
+            # dealt amount.
+            res = (
+                ctx.replacements.replacement_for_damage(
+                    ctx, target, ctx.source, n_i, combat
+                )
                 if ctx.replacements is not None
                 else None
             )
-            if repl is not None:
-                ctx.pending_replacements.append(repl)
+            if res is not None:
+                repl, new_n = res
+                if new_n is None:
+                    ctx.pending_replacements.append(repl)
+                    ctx.events.append(
+                        (
+                            len(ctx.events),
+                            "DAMAGE_REPLACED",
+                            str(target),
+                            str(repl.source),
+                            n_i,
+                        )
+                    )
+                    continue
                 ctx.events.append(
                     (
                         len(ctx.events),
-                        "DAMAGE_REPLACED",
+                        "DAMAGE_MODIFIED",
                         str(target),
                         str(repl.source),
-                        n,
+                        n_i,
+                        new_n,
                     )
                 )
-                continue
+                n_i = new_n
             p = ctx.world.players[target]
-            p.life = max(0, p.life - n)
+            p.life = max(0, p.life - n_i)
             ctx.events.append((len(ctx.events), "DAMAGE", str(target), p.life))
-            _lifelink_gain(ctx, n)  # r20a: lifelink reads ANY damage dealt
+            _lifelink_gain(ctx, n_i)  # r20a: lifelink reads ANY damage dealt
             continue
         # 16a (CR 120.4/120.6): damage is MARKED, never instant-lethal. The
         # mark rides the executor's damage ledger and the settle tail's
@@ -391,7 +413,7 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
         # exchange is a simultaneous double kill. The DAMAGE tuple keeps
         # feeding the journal's KIND_DAMAGE row (events.py), so "is dealt
         # damage" triggers (Brash Taunter) are unchanged.
-        _deal_damage_to_card(ctx, target, n)
+        _deal_damage_to_card(ctx, target, n_i)
 
 
 def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
@@ -428,6 +450,43 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
                 )
             )
             return
+    # r22b (Fiery Emancipation): the replacement lane over CARD damage. The
+    # unified consult's QUANTITY-MODIFICATION half rewrites the mark before
+    # it lands — the permanent lane (walker loyalty below, the damage
+    # ledger, the DAMAGE row and its lifelink twin) then reads the dealt
+    # number exactly like the player lane. A record in the CONSUME shape
+    # (an action that is not the DEAL_DAMAGE quantity rewrite) would have
+    # to prevent the mark AND run its action against a card — the corpus
+    # carries no such consumer (Nine Lives' "to you" filter never reaches
+    # this lane: the consult's player-idiom gate skips it) — so it stays
+    # loud, never silently dropped.
+    if ctx.replacements is not None:
+        res = ctx.replacements.replacement_for_damage(
+            ctx,
+            target,
+            ctx.source,
+            n,
+            combat=bool(getattr(ctx.executor, "_combat_wave_open", False)),
+        )
+        if res is not None:
+            repl, new_n = res
+            if new_n is None:
+                raise NotImplementedError(
+                    "executor: a card-damage replacement whose action is "
+                    "not a quantity rewrite has no consumer (flag, never "
+                    "guess) — r22b"
+                )
+            ctx.events.append(
+                (
+                    len(ctx.events),
+                    "DAMAGE_MODIFIED",
+                    str(target),
+                    str(repl.source),
+                    n,
+                    new_n,
+                )
+            )
+            n = new_n
     # r21a (CR 120.4d): damage dealt to a PLANESWALKER removes that many
     # loyalty counters — the walker lane never MARKS damage (there is no
     # toughness read for it; the zero-loyalty state check in the settle
@@ -548,6 +607,32 @@ def _v_put_counter(ctx: ExecCtx, atom: Atom) -> None:
     n = amount(ctx, atom, "count")
     cards = role_handles(ctx, atom, "target")
     for card in cards:
+        # r22b (Conclave Mentor): the CounterPlacedEvent replacement lane —
+        # per RECEIVING card, the same consult-per-item shape the damage
+        # lane uses. The queued 4-tuple carries (record, card, kind, n):
+        # the drain binds {"event": [card]} and stamps event_counter_count
+        # so the action's COUNTER_COUNT prop reads what WAS put (CR 614.3a
+        # the original placement never happened, but the event's amount is
+        # what the replacement modifies FROM — Mentor is ADD(QProp(event,
+        # COUNTER_COUNT), 1)).
+        repl = (
+            ctx.replacements.replacement_for_counter_placement(ctx, card, kind, n)
+            if ctx.replacements is not None
+            else None
+        )
+        if repl is not None:
+            ctx.pending_replacements.append((repl, card, kind, n))
+            ctx.events.append(
+                (
+                    len(ctx.events),
+                    "COUNTER_REPLACED",
+                    str(card),
+                    str(repl.source),
+                    kind.name,
+                    n,
+                )
+            )
+            continue
         counters = ctx.world.cards[card].counters
         counters[kind.name] = counters.get(kind.name, 0) + n
         ctx.events.append((len(ctx.events), "PUT_COUNTER", str(card), kind.name, n))
@@ -958,8 +1043,31 @@ def _v_draw(ctx: ExecCtx, atom: Atom) -> None:
     count_q = atom.args.get("amount")
     assert count_q is None or isinstance(count_q, Quantity)
     n = 1 if count_q is None else resolve(count_q, ctx)
+    # r22b (Teferi's Ageless Insight): the CardDrawnEvent replacement lane.
+    # A live record whose event matches this draw queues its ACTION for the
+    # executor drain and the draw NEVER happens (CR 614.3a — the replaced
+    # event is replaced WHOLE, cards stay in the library). One record per
+    # draw is taken (first match): duplicate carriers chain through the
+    # drain's replaced_seq guard, the CR 616.1 choice among DIFFERENT
+    # replacement effects is unmodelled and stays loud at consult time.
+    if ctx.replacements is not None:
+        repl = ctx.replacements.replacement_for_card_draw(ctx, player, n)
+        if repl is not None:
+            ctx.pending_replacements.append(repl)
+            ctx.events.append(
+                (len(ctx.events), "DRAW_REPLACED", str(player), str(repl.source), n)
+            )
+            return
     ctx.world.draw(player, n)
     ctx.events.append((len(ctx.events), "DRAW", str(player), n))
+    # r22b: the CR 504.5 'the first draw of the draw step' register — the
+    # executor stamps the per-turn ordinal ONLY while the skeleton's draw
+    # step is open, so main-phase draws (Niya's Restock, Loot) never touch
+    # it and NOT_FIRST_DRAW_THIS_STEP answers False for them (quantity.py
+    # reads the same pair of trackers).
+    ex = ctx.executor
+    if ex is not None and getattr(ex, "_draw_step_open", False):
+        ex.draw_step_ordinal[player] = ex.draw_step_ordinal.get(player, 0) + 1
 
 
 def _search_designation(atom: Atom, ctx: ExecCtx) -> list[Handle]:

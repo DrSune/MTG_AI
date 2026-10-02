@@ -1,0 +1,53 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t",
+   "real": "Teferi's Ageless Insight",
+   "controller": 0,
+   "zone": "battlefield"
+  },
+  {
+   "key": "r1",
+   "real": "Revitalize",
+   "controller": 0,
+   "zone": "hand"
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "cast",
+   "key": "r1"
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 3
+  },
+  "library": {
+   "0": [
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "life": {
+   "0": 23
+  }
+ },
+ "notes": "Printed: 'If you would draw a card except the first one you draw in each of your draw steps, draw two cards instead.' Turn 2's draw is card one (unaffected); Revitalize's draw in the main phase is an additional draw, so the printed replacement makes it TWO cards: three library pops total."
+}
