@@ -35,6 +35,7 @@ from MTG_bot.core.ability_tree import (
     CostLoyalty,
     CostManaColor,
     CostManaGeneric,
+    CostModifier,
     CostPutCounter,
     CostSacrifice,
     CostTap,
@@ -1376,6 +1377,22 @@ class TestB5cIrStructure(unittest.TestCase):
         put = next(p for p in ability.cost.parts if isinstance(p, CostPutCounter))
         # The page counter lands on the source permanent itself.
         self.assertIsNotNone(_find_atom(put.target.filter, FAtomPred.IS_SOURCE))
+
+    def test_shrine_cost_reduction_census_is_type_eq_not_name_eq(self) -> None:
+        # C1 batch (2026-10-02): the "for each Shrine you control" census
+        # must be the type-line word pred (TYPE_EQ "Shrine", the audited
+        # sanctum_of_all_search_fire idiom). NAME_EQ is the closed-card-
+        # name pred and counted 0 on every board, silently zeroing the
+        # discount (the sanctum_tranquil_light STOP, 22c).
+        outcome: Any = _match_outcome("B5c-shrine-activation-cost")
+        modifier: Any = outcome.ability
+        self.assertIsInstance(modifier, CostModifier)
+        census: Any = modifier.delta.amount.right  # QBin(MUL, {N}, QCount)
+        self.assertIsInstance(census, QCount)
+        atom = _find_atom(census.selector.filter, FAtomPred.TYPE_EQ)
+        self.assertIsNotNone(atom)
+        self.assertEqual(atom.string_value, "Shrine")
+        self.assertIsNone(_find_atom(census.selector.filter, FAtomPred.NAME_EQ))
 
     # -- bullets -------------------------------------------------------
 

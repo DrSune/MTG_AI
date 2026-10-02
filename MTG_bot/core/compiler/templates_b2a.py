@@ -39,7 +39,10 @@ Conventions (documented build decisions):
   drives ``OptionalEffect``.
 - ``another`` / ``other`` adds ``FNot(inner=FAtom(IS_SOURCE))``.
 - ``X is the number of Shrines you control`` is encoded as a ``QCount`` over
-  ``NAME_EQ("Shrine")`` permanents you control.
+  ``TYPE_EQ("Shrine")`` permanents you control (C1 batch, 2026-10-02: the
+  tribe noun "Shrine" is a type-line word test — the same audited idiom as
+  the green ``sanctum_of_all_search_fire`` ``TYPE_EQ("Shrine")`` search;
+  ``NAME_EQ`` is the grammar's closed-card-name pred and matches no card).
 - Token color words populate ``TokenSpec.color`` (grammar round 8 / C-2;
   ``Treasure`` artifact tokens stay colorless/None).
 - ``add X mana of any one color`` is encoded as ``ADD_MANA(color="ANY")``
@@ -194,12 +197,22 @@ def _creatures_died_this_turn(
 
 
 def _shrine_count() -> QCount:
-    """``X`` for "where X is the number of Shrines you control"."""
+    """``X`` for "where X is the number of Shrines you control".
+
+    C1 batch (2026-10-02): the census predicate is ``TYPE_EQ("Shrine")``,
+    NOT ``NAME_EQ("Shrine")``. NAME_EQ is the grammar's closed-card-name
+    pred ("cards named Frantic Inventory") and no corpus card is named
+    "Shrine" — the old bake counted 0 on every board (22c STOPs). The
+    tribe noun rides the printed type line ("Legendary Enchantment —
+    Shrine"), which is exactly what the frozen executor's TYPE/SUBTYPE/
+    SUPERTYPE word-test reads — the audited idiom of the green
+    sanctum_of_all_search_fire golden and of the r22c executor pins.
+    """
     return QCount(
         Selector(
             QUnbounded(),
             SelectorMode.ALL,
-            FAtom(pred=FAtomPred.NAME_EQ, string_value="Shrine"),
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Shrine"),
             Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
         )
     )

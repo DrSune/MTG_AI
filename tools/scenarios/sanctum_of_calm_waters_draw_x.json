@@ -1,0 +1,53 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cw",
+   "real": "Sanctum of Calm Waters",
+   "controller": 0,
+   "zone": "hand"
+  },
+  {
+   "key": "d",
+   "name": "Discard Me",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "controller": 0,
+   "zone": "hand"
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "cw"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "fire",
+    "d"
+   ]
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 2
+  },
+  "library": {
+   "0": [
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ },
+ "notes": "Printed: 'At the beginning of your first main phase, you may draw X cards, where X is the number of Shrines you control. If you do, discard a card.' Entering with only itself gives X=1: fire should pop one extra card (two pops total after the turn draw) and then the discard nets hand 2 with library [Library 3..0]."
+}

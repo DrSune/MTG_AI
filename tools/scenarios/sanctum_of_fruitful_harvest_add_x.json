@@ -1,0 +1,66 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "h",
+   "real": "Sanctum of Fruitful Harvest",
+   "controller": 0,
+   "zone": "hand"
+  },
+  {
+   "key": "s",
+   "real": "Sanctum of Shattered Heights",
+   "controller": 0,
+   "zone": "battlefield"
+  },
+  {
+   "key": "foe",
+   "name": "Enemy Beast",
+   "controller": 1,
+   "power": "5",
+   "toughness": "5",
+   "type": "Creature",
+   "zone": "battlefield"
+  },
+  {
+   "key": "sh",
+   "real": "Shock",
+   "controller": 0,
+   "zone": "hand"
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "h"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "R"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "sh",
+   "targets": [
+    "foe"
+   ]
+  }
+ ],
+ "expect": {
+  "damage": {
+   "foe": 2
+  },
+  "zone": {
+   "sh": "graveyard"
+  }
+ },
+ "notes": "Printed: 'At the beginning of your first main phase, add X mana of any one color, where X is the number of Shrines you control.' With Harvest + Shattered Heights on the battlefield, X=2: the ask 'mana:card:0' is answered 'R', the pool should hold {R:2}, enough to cast Shock at the Beast for 2 marks."
+}

@@ -1193,7 +1193,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(selector.mode, SelectorMode.ALL)
         self.assertEqual(selector.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
         self.assertEqual(
-            _find_atom(selector.filter, FAtomPred.NAME_EQ).string_value, "Shrine"
+            _find_atom(selector.filter, FAtomPred.TYPE_EQ).string_value, "Shrine"
         )
         # "any one color" = color-choice marker "ANY" (round 8 / C-3;
         # plain str, not an enum).
@@ -1645,7 +1645,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.DRAW)
         qcount = _qcount(atom, "amount")
         self.assertEqual(
-            _find_atom(qcount.selector.filter, FAtomPred.NAME_EQ).string_value, "Shrine"
+            _find_atom(qcount.selector.filter, FAtomPred.TYPE_EQ).string_value, "Shrine"
         )
 
     def test_niambi_may_return_other_you_control(self) -> None:

@@ -2485,10 +2485,14 @@ def _build_shrine_activation_cost_reduction(m: re.Match[str]) -> SentenceOutcome
     control.`` (Sanctum of Tranquil Light) — CostModifier sibling node
     (T3 round K, b4 precedent _build_total_power_cost_modifier):
     filter=IS_SOURCE (the printed "This ability" anchor object — the
-    source card), delta=CostDeltaReduceGeneric(QBin(MUL, {N},
+    source card),     delta=CostDeltaReduceGeneric(QBin(MUL, {N},
     QCount(Shrine-you-control))) — the "for each X" multiplication,
-    Shrine count via the b2a ``NAME_EQ "Shrine"`` precedent (M21 Shrines
-    carry the Shrine supertype name in NAME_EQ position).
+    Shrine count via the b2a ``TYPE_EQ "Shrine"`` census (C1 batch,
+    2026-10-02: the tribe noun is a type-line word — "Legendary
+    Enchantment — Shrine" — read by the executor's TYPE/SUBTYPE/SUPERTYPE
+    word test; the superseded "supertype name in NAME_EQ position"
+    rationale was wrong: NAME_EQ is the closed-card-name pred and the
+    old bake counted 0 on every board, killing the discount).
 
     Lossy (verbatim): "to activate" — CostModifier's filter vocabulary
     is spell/permanent-scoped, the sibling node's adjacency to the {5}{W}
@@ -2507,7 +2511,7 @@ def _build_shrine_activation_cost_reduction(m: re.Match[str]) -> SentenceOutcome
                     Selector(
                         QUnbounded(),
                         SelectorMode.ALL,
-                        FAtom(pred=FAtomPred.NAME_EQ, string_value="Shrine"),
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Shrine"),
                         Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
                     )
                 ),

@@ -1,0 +1,26 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Sanctum of Stone Fangs",
+   "controller": 0,
+   "zone": "battlefield"
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 21,
+   "1": 19
+  }
+ },
+ "notes": "Printed: 'At the beginning of your first main phase, each opponent loses X life and you gain X life, where X is the number of Shrines you control.' The Sanctum itself is a Shrine (Legendary Enchantment - Shrine), so X=1 even alone: 21/19 expected."
+}
