@@ -92,6 +92,13 @@ KIND_COMBAT_DAMAGE = "COMBAT_DAMAGE"
 # reads it, IS_SOURCE = "whenever THIS becomes the target"); data carries
 # (source_object, actor) for the audit trail.
 KIND_TARGETING = "TARGETING"
+# r22c (Keral Keep Disciples): the loyalty feed. ONE row per activation
+# whose cost PAID a loyalty symbol (CR 606.2b's loyalty ability), emitted
+# at the payment point in legality.activate. Subject = the permanent
+# activated (the LoyaltyActivatedEvent filter reads it — Keral's "a
+# Chandra planeswalker"); cause = the activating player (the node's
+# controller scope); data carries the paid delta for the audit trail.
+KIND_LOYALTY_ACTIVATED = "LOYALTY_ACTIVATED"
 
 # state.py zone-kind strings used by the diff's rule checks.
 # (ZONE_KIND_TO_STATE — the IR->state map — lives in selectors.py.)
@@ -137,6 +144,9 @@ class GameEvent:
         (the CombatDamageEvent feed).
       * TARGETING     — ``(source_object, actor)``, subject the designated
         object (r20b, the TargetingEvent feed).
+      * LOYALTY_ACTIVATED — ``(delta,)``, subject the permanent whose
+        loyalty ability was activated, cause the activating player
+        (r22c, the LoyaltyActivatedEvent feed).
     """
 
     clock: int
@@ -209,6 +219,12 @@ class GameEvent:
         ``((amount, recipient), ...)`` wrapped so the row stays ONE event
         per dealer (16c; 16b's single-pair shape is the 1-element case)."""
         return cast("tuple[tuple[tuple[int, Handle], ...]]", self.data)
+
+    @property
+    def loyalty(self) -> int:
+        """LOYALTY_ACTIVATED payload: the paid loyalty delta (signed —
+        CR 606.2b's ``+N``/``-N`` symbol; r22c)."""
+        return cast(int, self.data[0])
 
 
 @dataclass
@@ -320,6 +336,15 @@ class EventJournal:
                 "TARGET",
                 (source_object, actor),
             )
+
+    def emit_loyalty_activation(
+        self, permanent: Handle, actor: Handle, delta: int
+    ) -> GameEvent:
+        """The LOYALTY_ACTIVATED row (r22c, the LoyaltyActivatedEvent
+        feed): one per activation that PAID a loyalty symbol — legality.
+        activate calls this exactly where CR 606.2b's loyalty ability is
+        bought. Subject = the permanent, cause = the activating player."""
+        return self._emit(KIND_LOYALTY_ACTIVATED, permanent, actor, "LOYALTY", (delta,))
 
     def begin_turn(self, player: Handle) -> None:
         """Reset per-turn event trackers for a new turn (12b skeleton)."""

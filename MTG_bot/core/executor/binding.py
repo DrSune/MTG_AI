@@ -104,6 +104,7 @@ from MTG_bot.core.executor.events import (
     KIND_DECLARE_ATTACKERS,
     KIND_DECLARE_BLOCKERS,
     KIND_LIFE_GAINED,
+    KIND_LOYALTY_ACTIVATED,
     KIND_TAP_STATE,
     KIND_TARGETING,
     KIND_TURN_PHASE,
@@ -144,8 +145,12 @@ MAX_TRIGGER_FIRES = 200
 # designation lanes (spell 601.2c plan, activation 602.2b, the 18b trigger
 # channel) ship the journal TARGETING feed and ``_match_node`` subscribes
 # the node (filter over the designated object, the grammar's only slot).
+# r22c (Keral Keep Disciples): LoyaltyActivatedEvent LEFT too — the
+# activation lane ships the journal LOYALTY_ACTIVATED feed (emitted at
+# the loyalty-payment point of legality.activate, CR 606.2b's symbol) and
+# ``_match_node`` subscribes the node (controller scope over the
+# activating player, filter over the permanent — the grammar's two slots).
 _UNSUPPORTED_EVENTS: dict[type, str] = {
-    LoyaltyActivatedEvent: "12c (loyalty activations)",
     StepEvent: (
         "12e (step-level subscription emitter; 12d's untap tick is an "
         "executor step that emits TapState/phase events, not StepEvents)"
@@ -855,6 +860,19 @@ class TriggerBinder:
                 if _is_subject_identity(node.filter):
                     return False
                 return _player_subject_verdict(node.filter, event.subject, ctx)
+            return eval_filter(node.filter, event.subject, ctx)
+        if kind == KIND_LOYALTY_ACTIVATED and isinstance(node, LoyaltyActivatedEvent):
+            # r22c (Keral Keep Disciples): the loyalty feed — the node's
+            # CONTROLLER scope reads the ACTIVATING player (the row's
+            # cause, the CR 606.3 seat), its FILTER reads the PERMANENT
+            # whose loyalty ability was paid for (the grammar's "a
+            # Chandra planeswalker" slot — a Basri row evaluates FALSE
+            # here, the negative half of the pack).
+            assert event.subject is not None  # the row names the permanent
+            assert event.cause is not None  # the row names its activator
+            ctx = self._match_ctx(source, controller, event)
+            if not controller_matches(node.controller, event.cause, ctx):
+                return False
             return eval_filter(node.filter, event.subject, ctx)
         return False  # no subscriber shape for this journalled kind
 

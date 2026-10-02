@@ -13,6 +13,23 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.247 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **297/305** (0.9738) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 45 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-10-02 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.246 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
@@ -2495,3 +2512,15 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | fingerprints | **0/10 seeds diverging, NO repin** | `tools/traces/catalog.py compare` | new consults inert without matching replacement records |
 | games | **100/100, 0 crashes** (61 667 journal entries) | `tools/traces/catalog.py build --pool all --seeds 100 --catalog /tmp/...` | probe catalog outside the pinned one |
 | lints | pyright **0** on touched files; ruff **Δ0** | `pyright <files>` / `ruff check` | 2 I001 in new code self-fixed |
+
+## 2026-10-02 (wave-5 fix-c r22c — loyalty feed + 5 compiler-side STOPs)
+
+| Item | Number | Command | Note |
+|---|---|---|---|
+| scenarios | **282/282 passed** | `.venv/bin/python tools/run_scenarios.py` | 281 + keral promoted (MOVE+strip); suspects 18→17 |
+| core suite | **2271 passed + 3 subtests, 0 failed** | `pytest MTG_bot/core -q` | 2261 + 10 new `test_executor_r22c.py` |
+| grammar | **PC-1 301/305 · PC-2 634/639 · PC-3 0 · PC-4 0** EXACT baseline | `tools/measure_grammar.py --with-engine-flags` | unchanged (no IR touched) |
+| fingerprints | **2/10 seeds diverged by pure LOYALTY_ACTIVATED insertion → repinned → 0/10** | `tools/traces/catalog.py compare / repin` | outcomes identical; 12b/r20b precedent |
+| games | **100 seeds, 86 survived, 0 crash classes** | `python -m MTG_bot.core.executor.games --seeds 100 --pool all` | reports/games_2026-10-02.json |
+| lints | pyright **0** on 4 touched files; ruff **Δ0** | `pyright <files>` / `ruff check` | legality TRY004 is HEAD-documented |
+| stops | **5**: sancti×3 (compiler NAME_EQ "Shrine" idiom, goldens pin it), adherent (quantifier loss, 19a precedent), pyreling (no destination pred) | `KNOWLEDGE/2026-10-01/25-wave5-fix-c.md` | falsifiability pins reproduce every witness from hand-built IR |

@@ -66,7 +66,5 @@
     "PLUS_1_PLUS_1": 1
    }
   }
- },
- "status": "suspect",
- "finding": "loud (keral_keep_disciples). binding.py:147 _UNSUPPORTED_EVENTS rejects LoyaltyActivatedEvent at attach_pool: NotImplementedError 'executor: Keral Keep Disciples trigger event LoyaltyActivatedEvent is 12c (loyalty activations)'. Runner-UNSAFE: raises in ScenarioRunner setup, crashes the whole sweep (run_pack only catches PackError there). Expected: whenever you activate a Chandra loyalty ability, Keral Keep Disciples deals 1 damage to each opponent. Observed: no registration possible. NOTE: Chandra PWs (Flame's Catalyst idx0 +1 3-dmg-each; Heart of Fire idx2 +1) ARE in get_supply('all'), so a positive driver exists \u2014 only the binder whitelist blocks."
+ }
 }

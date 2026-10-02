@@ -1436,6 +1436,12 @@ def activate(
     if plan.loyalty:
         # CR 606.3 once-per-turn clock (13a), keyed on the permanent.
         executor.loyalty_clock[handle] = executor.world.turn
+        # r22c (Keral Keep Disciples): the LOYALTY_ACTIVATED feed — a
+        # loyalty symbol was PAID, so this activation IS a loyalty
+        # ability (CR 606.2b). The row lands after payment (the same
+        # documented one-call compromise as the r20b targeting rows
+        # below): the queued trigger sees the post-payment world.
+        executor.journal.emit_loyalty_activation(handle, seat, plan.loyalty)
     bindings: dict[str, Binding] = {}
     chosen = sorted(targets)
     if chosen:
