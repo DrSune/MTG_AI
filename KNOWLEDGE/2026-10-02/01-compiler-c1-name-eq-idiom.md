@@ -65,3 +65,31 @@ the r22c honest-0 NAME_EQ executor pin KEPT as falsifiability witness). Catalog 
 diverge** (no repin). Games `--seeds 100 --pool all`: **86/100 survived, 0 crash classes**
 (= 22c baseline). pyright **0** on 4 touched files; ruff **Δ0** (1 I001 in test_templates_b5c
 imports is HEAD-preexisting at the same line).
+
+## 6. Passing-suspect sweep (2026-10-02, HEAD df53003)
+
+The C1-flagged five passers: the 4 sancta were already PROMOTED in §5; the sweep re-ran the
+suspect lane (`tools/run_scenarios.py --dir tools/audit/suspects`) over the 13 survivors —
+**1 passer remained: secure_the_scene**. Verdict **RE-SHARPENED-FAILS**, not promote: the
+engine bug it documents is real (`_v_create_token` mints at `ctx.controller`; no anaphoric
+controller-role lane) and its asserts never touched it — the green-on-a-silent-bug trap.
+
+Printed-promise diff + resolution:
+- "Exile target nonland permanent" — asserted (zone lane); exile **owner** dimension NOT
+  observable (lane reads zone KIND only) — recorded, not asserted.
+- "creates a 1/1 … Soldier token" — name-count was asserted; **P/T was unasserted** → added
+  `battlefield_pt {Soldier:[1,1]}` (passes honestly under the bug — name-keyed lane).
+  **Color "white" not observable** in the expect schema — recorded.
+- "ITS CONTROLLER creates" — the token has no pack key, so no lane reads its owner directly;
+  but an owner ACTS with it. Pack extended: cycle to P1's turn (`end_turn`+`advance_turn`),
+  run seat-1 `combat` carrying the r22a decisions script `["ATTACK"]` (unmapped attack sites
+  pop script words; a site that never exists never consumes one), assert `life {0:19, 1:20}`.
+  Printed-faithful engine → Soldier is P1's, asked, attacks unblocked, P0 at 19. Current
+  engine → token stuck to caster P0, P1 has zero creatures, zero asks, life[0]=20 →
+  **pack FAILS on exactly the documented line**: `life[0]: expected 19, got 20`. Logged
+  assumption: the future green path also presumes the sickness/untap clocks are clean by
+  P1's turn 2 (whale_pirate_token proves the seat-1 combat-damage flow itself).
+
+Gates after: suspects **0/13 pass** (every survivor fails on its documented line), scenarios
+**286/286**, `pytest MTG_bot/core -q` **2272 + 3 subtests, 0 failed**. No engine/runner/golden
+touched; no commits.

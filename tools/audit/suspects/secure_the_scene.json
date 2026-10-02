@@ -37,6 +37,19 @@
    "targets": [
     "ar"
    ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "decisions": [
+    "ATTACK"
+   ]
   }
  ],
  "expect": {
@@ -46,8 +59,18 @@
   },
   "tokens": {
    "Soldier": 1
+  },
+  "battlefield_pt": {
+   "Soldier": [
+    1,
+    1
+   ]
+  },
+  "life": {
+   "0": 19,
+   "1": 20
   }
  },
  "status": "suspect",
- "finding": "WAVE2B (2026-10-01) re-run: printed 'Exile target nonland permanent. ITS CONTROLLER creates a 1/1 white Soldier creature token.' The exile lands in the OWNER's exile zone correctly, but the Soldier token enters under the SPELL'S CASTER: the compiled CREATE_TOKEN atom carries only the tokens role (no controller role at all), and verbs.py:655 _v_create_token mints the handle at ctx.controller unconditionally \u2014 there is no role lane for the anaphoric 'its controller'. The harness tokens lane counts tokens by NAME without a controller dimension, so the expressible half above passes while the printed controller promise is broken for every opponent-controlled target."
+ "finding": "WAVE2B (2026-10-01) re-run: printed 'Exile target nonland permanent. ITS CONTROLLER creates a 1/1 white Soldier creature token.' The exile lands in the OWNER's exile zone correctly, but the Soldier token enters under the SPELL'S CASTER: the compiled CREATE_TOKEN atom carries only the tokens role (no controller role at all), and verbs.py _v_create_token mints the handle at ctx.controller unconditionally \u2014 there is no role lane for the anaphoric 'its controller'. PASSING-SUSPECT SWEEP (2026-10-02): the pack PASSed because its asserts never touched the controller promise (tokens lane counts by NAME, no controller dimension) \u2014 the green-on-a-silent-bug trap. Re-sharpened: the promise enumerated and each half tested or recorded. (a) '1/1' now asserted via battlefield_pt[Soldier]=[1,1] (name-keyed lane, controller-blind \u2014 passes under the bug, honest either way). (b) CONTROLLER is probed by OBSERVABLE CONSEQUENCE, not fabricated introspection: the token has no pack key so no lane can read its owner, but an owner acts with it \u2014 the pack cycles to P1's turn and runs seat-1 combat with the r22a decisions script ['ATTACK'] (unmapped attack sites pop script words; a site that does not exist never gets the word). Printed-faithful engine: the Soldier is P1's, gets asked, attacks unblocked, life[0]=19. Current engine (token stuck to caster P0): P1 controls nothing, zero asks, zero damage, life[0]=20 \u2014 the pack FAILS on the documented line. Assumption logged: the fixed-engine green path also presumes sickness/untap clocks are clean by P1's turn 2 (whale_pirate_token proves the seat-1 combat-damage flow). NOT observable in the schema, recorded not asserted: the token's COLOR ('white') and the exile's OWNER (zone lane reads zone KIND only)."
 }
