@@ -891,9 +891,23 @@ def main(argv=None) -> int:
             # name — byte-drift is expected. PASS iff every frozen row is now
             # covered by name in scenarios/ or suspects/.
             names = sorted(frozen["cards"])
-            uncovered = [n for n in names if n not in covered_names()]
+            # Emblem rows are effect identities, not golden card names: their
+            # packs carry the minting planeswalker's name instead. Waive with
+            # the mapped pack file recorded in meta.closed_waivers.
+            waivers = frozen.get("meta", {}).get("closed_waivers", {})
+            for w in waivers:
+                pack = waivers[w]
+                if not (REPO / "tools/scenarios" / pack).exists():
+                    print(f"lint DRIFT (closed wave): waiver {w} -> {pack} missing")
+                    return 1
+            uncovered = [
+                n for n in names if n not in covered_names() and n not in waivers
+            ]
             if not uncovered:
-                print(f"closed: {len(names)}/{len(names)} covered, consumed")
+                print(
+                    f"closed: {len(names)}/{len(names)} covered, consumed"
+                    + (f" (+{len(waivers)} waived)" if waivers else "")
+                )
                 return 0
             print(f"lint DRIFT (closed wave): uncovered={uncovered}")
             return 1

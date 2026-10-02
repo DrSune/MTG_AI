@@ -88,3 +88,8 @@ Resume point now: wave-4 derivation (mana/activation cohort).
 See /20-wave4-closeout.md. Packs 248, suite 2239, ledger 12 = ALL compiler-campaign routed;
 zero open engine-side suspects. Next: whole-corpus coverage audit (which cards belong to no
 family and lack a pack) to decide wave 5 or corpus-complete declaration.
+
+## Addendum — wave 5 CLOSED → CORPUS ADJUDICATION-COMPLETE (2026-10-02)
+Five waves consumed: 66+67+55+43+31 rows. Packs 282, suite 2271, 305/305 cards accounted for
+(/26-wave5-closeout.md). All 17 suspects compiler-routed. Next arc: compiler campaign (golden
+inventory protocol) + 2 logged micro-gaps (Treasure activation, Forgotten Sentinel).
