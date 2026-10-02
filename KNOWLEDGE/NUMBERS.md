@@ -13,6 +13,39 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.247 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0931** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **297/305** (0.9738) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 45 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-10-02 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, refreshed) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.247 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0931** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-10-02 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.249 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0929** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
@@ -2731,3 +2764,15 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | grammar | PC-1 303/305 · PC-2 637/639 · PC-3 0 · PC-4 0 · engine 297/305 (45 verbs) — **ALL Δ0** vs C4 | `tools/measure_grammar.py --with-engine-flags` | PC-6/PC-8 standing FAILs unchanged; engine verbs untouched (filter preds aren't verbs) |
 | catalog | 1/10 diverged → repin → **0/10**; COLOR_COUNT_GE add stayed **byte-identical** | `tools/traces/catalog.py compare` / `repin` | sole divergence = GAIN_LIFE-crash seed NotImplementedError → decisive kill (intended); pure raise-replacements can't move pins |
 | lints | pyright **0 errors** (13 touched files); ruff **Δ0 NEW**, −1 pre-existing | pyright CLI / ruff vs HEAD-worktree | ruff multiset deltas via `--stdin-filename` are INVALID (per-file ignores lost, phantom codes counted line numbers); copy HEAD inside repo or use a worktree |
+
+## 2026-10-02 (compiler campaign C5 — phantom play-permission suppression + PREVENT_EFFECT; Rin STOP-spec)
+
+| Item | Number | Command | Note |
+|---|---|---|---|
+| golden set-equality | **2 movers of 305** — `52b3a979` Furious Rise (phantom −52 lines) + `e6ae536a` Tampering (junk→PREVENT_EFFECT), C1-form audited vs /tmp/golden_pre_c5 | `tools/measure_grammar.py --set M21 --refresh-goldens` | PC-4 re-verify **0 diffs** (305 verified); assembly-drop carries explicit KNOWN-GAP (play permission) note (compiler.py:1477) |
+| scenarios | **300/300 passed**; suspects 7→**4** files, **0/4** | `tools/run_scenarios.py` [+ `--dir tools/audit/suspects`] | promoted tampering_no_block, furious_rise_activation (NEGATIVE: not_activated / no-ability-idx refusals; hand 0:1 covers upkeep draw), rin_and_seri_cast_triggers; harness gained `expect_raise` step key (run_scenarios.py:665) |
+| suite | **2312 passed + 3 subtests, 0 failed** | `.venv/bin/python -m pytest MTG_bot/core -q` | +6: TestC5FuriousRisePlayPermissionSuppression ×2 (test_templates_b2a.py:2142) + TestDurationEotSourceExemption ×4 (test_executor_r21a.py:260); b5c pin retargeted to PREVENT_EFFECT |
+| grammar | PC-1 303/305 · PC-2 637/639 · PC-3 0 · PC-4 0 · engine 297/305 (45 verbs) · PC-8 0.3213 — **Δ0** vs 23a; PC-6 max share 0.092943→**0.093103** honest | `tools/measure_grammar.py --set M21 --with-engine-flags` | PC-6 drift = suppressed atoms shrank the atom denominator; orphans unchanged {PHASE_IN}; PC-5 jitter only |
+| catalog | **0/10 diverge — NO repin** | `tools/traces/catalog.py compare` | batch fixes never fire on the 10 trace seeds |
+| games | **0 crash classes**, 100 decisive 48/52, mean_turns **33.49 — exact Δ0** vs 23a | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all --deck-pairs-seed 1409 --turns 60` | Eot-exemption + suppression blast-radius-free on the field |
+| lints | pyright **Δ0 new** (6 pre-existing Counter FPs, run_scenarios.py untouched lines); ruff **Δ0 NEW** | pyright CLI / ruff vs HEAD-worktree-inside-repo | HEAD already carries BLE001 (run_scenarios.py) + I001 (test_templates_b5c.py) — identical multisets; /tmp worktree silently loses ruff config (empty output ≠ clean) |

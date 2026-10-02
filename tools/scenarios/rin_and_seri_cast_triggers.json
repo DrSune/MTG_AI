@@ -1,0 +1,69 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "r",
+   "real": "Rin and Seri, Inseparable",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "d",
+   "real": "Alpine Watchdog",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c",
+   "real": "Pridemalkin",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 8,
+   "G": 8,
+   "W": 8
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "d",
+   "real": "Alpine Watchdog",
+   "controller": 0
+  },
+  {
+   "op": "cast",
+   "key": "c",
+   "real": "Pridemalkin",
+   "controller": 0,
+   "decisions": [
+    "r"
+   ]
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Cat": 1,
+   "Dog": 1
+  },
+  "power": {
+   "r": 5
+  },
+  "zone": {
+   "d": "battlefield",
+   "c": "battlefield"
+  },
+  "battlefield_pt": {
+   "Cat": [
+    1,
+    1
+   ]
+  }
+ }
+}

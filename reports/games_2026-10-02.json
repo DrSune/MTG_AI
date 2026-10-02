@@ -1549,8 +1549,8 @@
    "crash": null
   }
  ],
- "pool_compile_seconds": 0.19,
- "wall_seconds": 62.0,
+ "pool_compile_seconds": 0.22,
+ "wall_seconds": 62.13,
  "argv": [
   "--seeds",
   "100",
@@ -1559,8 +1559,6 @@
   "--deck-pairs-seed",
   "1409",
   "--turns",
-  "60",
-  "--out",
-  "reports/games_2026-10-02.json"
+  "60"
  ]
 }

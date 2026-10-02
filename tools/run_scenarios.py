@@ -662,10 +662,23 @@ def run_pack(path: Path, supply) -> list[str]:
         # failure is that pack's result, not a crash of the whole sweep.
         return [f"setup: {type(e).__name__}: {e}"]
     for step in pack["steps"]:
+        want = step.get("expect_raise")
         try:
             runner.run_step(step)
         except Exception as e:
-            return [f"step {step}: {type(e).__name__}: {e}"]
+            if want is None:
+                return [f"step {step}: {type(e).__name__}: {e}"]
+            # C5 negative packs: a step whose REFUSAL is the assertion —
+            # an illegal activation must raise a CLEAN legality error
+            # (refusal), not an engine crash. The substring names the
+            # refusal class; the exception type is checked too.
+            if want not in f"{type(e).__name__}: {e}":
+                return [
+                    f"step {step}: expected raise {want!r}, got {type(e).__name__}: {e}"
+                ]
+            continue
+        if want is not None:
+            return [f"step {step}: expected raise {want!r}, but it succeeded"]
     return runner.check()
 
 

@@ -42,6 +42,7 @@ from MTG_bot.core.ability_tree import (
     CounterKind,
     DamageDealtEvent,
     DeclareAttackersEvent,
+    DeclareBlockersEvent,
     DelayedTrigger,
     DurationEot,
     DurationUntilNextStep,
@@ -1437,15 +1438,28 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertEqual(spec.power, QConst(3))
         self.assertEqual(spec.toughness, QConst(3))
 
-    def test_bullet_cant_block_is_zero_delta_pt(self) -> None:
-        """Lossy encoding: no PREVENT_BLOCK grammar, so 'can't block' is a
-        zero-delta MODIFY_PT over creatures lacking flying, until end of turn."""
+    def test_bullet_cant_block_is_prevent_effect(self) -> None:
+        """C5: 'Creatures without flying can't block this turn' is a real
+        PREVENT_EFFECT — universal condition, DeclareBlockersEvent whose
+        blocker-side filter names the creature-without-flying set (the
+        Shacklegeist FNot(FLYING) idiom on the blocker side), DurationEot,
+        and NO target role (PREVENT_EFFECT carries none)."""
         atom = _as_atom(_as_effect(_match_outcome("B5c-bullet-cant-block")).effect)
-        self.assertIs(atom.verb, Verb.MODIFY_PT)
-        self.assertEqual(_pt_delta(atom), (("INCREASE", 0), ("INCREASE", 0)))
-        target = _pairs(atom)["target"]
-        self.assertIsNotNone(_find_fnot(target.filter), "expected FNot(FLYING) guard")
-        self.assertIsInstance(_pairs(atom)["duration"], DurationEot)
+        self.assertIs(atom.verb, Verb.PREVENT_EFFECT)
+        pairs = _pairs(atom)
+        self.assertEqual(pairs["condition"], FAnd(children=()))
+        event = pairs["event"]
+        self.assertIsInstance(event, DeclareBlockersEvent)
+        self.assertIsNotNone(_find_fnot(event.filter), "expected FNot(FLYING) guard")
+        inner = _find_fnot(event.filter).inner
+        self.assertIsInstance(inner, FAtom)
+        self.assertIs(inner.pred, FAtomPred.KEYWORD_HAS)
+        self.assertEqual(
+            event.filter.children[0],
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+        )
+        self.assertIsInstance(pairs["duration"], DurationEot)
+        self.assertNotIn("target", pairs)
 
     def test_bullet_destroy_zones(self) -> None:
         for tid, subtype in (

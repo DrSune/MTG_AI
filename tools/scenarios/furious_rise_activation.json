@@ -1,0 +1,68 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "rise",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Furious Rise"
+  },
+  {
+   "key": "tiger",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Tiger",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5"
+  },
+  {
+   "key": "ward",
+   "zone": "library",
+   "controller": 0,
+   "name": "Ward",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "drawn",
+   "zone": "library",
+   "controller": 0,
+   "name": "Drawn",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "rise",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "illegal activation: ability:not_activated"
+  },
+  {
+   "op": "activate",
+   "key": "rise",
+   "idx": 1,
+   "seat": 0,
+   "decisions": [
+    "fire"
+   ],
+   "expect_raise": "no ability idx 1"
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 1
+  },
+  "zone": {
+   "ward": "library"
+  }
+ }
+}

@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-10-02T08:33:45+02:00",
-  "git_head": "cd975cb41f7c5cc5ec3df5998a71ba610af3bd44",
+  "generated": "2026-10-02T09:37:09+02:00",
+  "git_head": "7f3879a3521f20f4ad72e038213f7412a0cfea59",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -101,15 +101,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.249,
+      "value": 0.247,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
         0.24,
-        0.239,
-        0.249
+        0.238,
+        0.247
       ]
     },
     "PC-6": {
@@ -123,18 +123,18 @@
         ]
       },
       "max_verb_share": {
-        "value": 0.092943,
+        "value": 0.093103,
         "target": "<0.20",
         "pass": true
       },
       "pass": false,
-      "atom_total": 581,
+      "atom_total": 580,
       "max_share_verb": "DRAW",
       "verb_histogram": {
         "ADD_LAND_PLAY": 1,
         "ADD_MANA": 49,
         "ATTACH": 2,
-        "CAST": 9,
+        "CAST": 8,
         "CHOOSE": 2,
         "CHOOSE_NAME": 2,
         "COPY": 2,
@@ -164,11 +164,11 @@
         "MANDATE_ATTACK": 3,
         "MANDATE_BLOCK": 1,
         "MILL": 3,
-        "MODIFY_PT": 52,
+        "MODIFY_PT": 51,
         "MOVE_ZONE": 35,
         "PAY": 3,
         "PHASE_OUT": 2,
-        "PREVENT_EFFECT": 14,
+        "PREVENT_EFFECT": 15,
         "PUT_COUNTER": 33,
         "REMOVE_COUNTER": 1,
         "REVEAL": 14,

@@ -1,0 +1,79 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "tb",
+   "real": "Destructive Tampering",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "cog",
+   "name": "Rusty Cog",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "atk",
+   "name": "Ram",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wall",
+   "name": "Grunt",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 8
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Destructive Tampering",
+   "key": "tb",
+   "targets": [
+    "cog"
+   ],
+   "decisions": [
+    "1"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "atk": true
+   },
+   "block": {
+    "wall": "atk"
+   }
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tb": "graveyard",
+   "cog": "battlefield"
+  },
+  "blocked": {
+   "atk": false
+  },
+  "life": {
+   "1": 18
+  }
+ }
+}

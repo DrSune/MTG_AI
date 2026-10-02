@@ -38,6 +38,7 @@ from MTG_bot.core.ability_tree import (
     FAtomPred,
     FNot,
     FOr,
+    Keyword,
     QConst,
     Selector,
     SelectorMode,
@@ -53,6 +54,7 @@ from MTG_bot.core.state import (
     GameWorld,
 )
 from MTG_bot.core.test_executor_verbs import (
+    CREATURE,
     UNIV,
     atom,
     card_id,
@@ -253,3 +255,100 @@ class TestPlayerOrPlaneswalkerDesignation(R21aCase):
         )
         self.assertEqual(self.world.players[self.p0].life, 19)
         self.assertNotIn(self.alpha, self.ex.damage)  # never marked the card
+
+
+class TestDurationEotSourceExemption(R21aCase):
+    """C5 (Destructive Tampering): a RESOLVED sorcery's DurationEot
+    prevention outlives its source (CR 611.2a — by the declare-blockers
+    step the spell is long in the graveyard). ``_pair_vetoed`` exempts
+    ONLY the DurationEot shape from the ``_source_alive`` battlefield
+    gate; static (duration None) and WHILE-gated records keep it."""
+
+    def _tampering_record(self, duration):
+        # The promoted pack's world (tools/scenarios/tampering_no_block.json)
+        # in hand-registered shape: the spell has ALREADY resolved into the
+        # graveyard by combat time (the pack's own expect.zone pins
+        # tb:graveyard BEFORE the block ask), and the Choose-branch '1'
+        # registered the block-only restriction.
+        spell = self.world.add_card(
+            card_id("Tampering", type_line="Sorcery"), self.p0, ZONE_GRAVEYARD
+        )
+        self.assertEqual(self.world.zone_of(spell).kind, ZONE_GRAVEYARD)
+        no_fly = FNot(FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING))
+        return self.ex.replacements.register_prevention(
+            source=spell,  # NOT on the battlefield at block-ask time
+            controller=self.p0,
+            condition=None,
+            event=DeclareBlockersEvent(filter=CREATURE, blocked=no_fly),
+            step=None,
+            duration=duration,
+            targets=(),
+        )
+
+    def _flying_attacker(self):
+        sky = self.world.add_card(
+            CardIdentity(
+                oracle_id=card_id("Skywraith").oracle_id,
+                name="Skywraith",
+                type_line="Creature",
+                power="2",
+                toughness="2",
+                cmc=3,
+                keywords=("FLYING",),
+            ),
+            self.p0,
+            ZONE_BATTLEFIELD,
+        )
+        # the KEYWORD_HAS oracle reads the LAYER registry, whose printed-
+        # keyword map was built at Executor() construction: re-seen.
+        self.ex.layers.recompute()
+        return sky
+
+    def test_graveyard_sourced_eot_record_vetoes_non_flying_block(self):
+        # The promoted pack's core claim, consult-level: the spell sits in
+        # the graveyard, yet the Eot record still refuses Beta (no flying)
+        # the block on Alpha.
+        self._tampering_record(DurationEot())
+        self.assertTrue(
+            self.ex.replacements.prevents_block_declaration(self.beta, self.alpha)
+        )
+
+    def test_eot_exemption_keeps_the_event_slot_filters(self):
+        # The exemption widens liveness only, never the pair filters: a
+        # FLYING attacker fails the blocked slot (FNot(KEYWORD_HAS
+        # FLYING)), so the same graveyard-sourced record vetoes nothing.
+        sky = self._flying_attacker()
+        self._tampering_record(DurationEot())
+        self.assertFalse(
+            self.ex.replacements.prevents_block_declaration(self.beta, sky)
+        )
+
+    def test_same_record_without_eot_duration_keeps_the_liveness_gate(self):
+        # duration=None is the static-carrier shape (battlefield lifecycle):
+        # the source-in-graveyard record is dead on arrival — the C5
+        # exemption must NOT leak beyond DurationEot.
+        self._tampering_record(None)
+        self.assertFalse(
+            self.ex.replacements.prevents_block_declaration(self.beta, self.alpha)
+        )
+
+    def test_none_duration_with_alive_source_still_vetoes(self):
+        # The gate's positive side: the same static-shape record sourced on
+        # the battlefield vetoes exactly as before C5 (Ghostly Pilferer
+        # lifecycle unchanged).
+        carrier = self.world.add_card(
+            card_id("Carrier", type_line="Enchantment"), self.p0, ZONE_BATTLEFIELD
+        )
+        no_fly = FNot(FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING))
+        self.ex.replacements.register_prevention(
+            source=carrier,
+            controller=self.p0,
+            condition=None,
+            event=DeclareBlockersEvent(filter=CREATURE, blocked=no_fly),
+            step=None,
+            duration=None,
+            targets=(),
+        )
+        self.assertTrue(
+            self.ex.replacements.prevents_block_declaration(self.beta, self.alpha)
+        )

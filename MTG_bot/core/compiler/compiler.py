@@ -1032,6 +1032,29 @@ def _spell_kind_from_types(types: tuple[str, ...], is_creature: bool) -> SpellKi
     return SpellKind.SORCERY
 
 
+def _is_result_anaphoric_cast_permission(ability: Ability) -> bool:
+    """C5 (Furious Rise): an EMPTY-cost ActivatedAbility whose effect is an
+    OptionalEffect-wrapped CAST over a ``referent="result"`` selector —
+    ``_build_play_that_card_until``'s shape for "You may play that card
+    until you exile another card with this enchantment."  The printed card
+    carries NO activated ability: the play window is a permission created
+    by the end-step trigger's exile, and the engine has no play-permission
+    lane (the node was a phantom whose activation crashed the executor on
+    the register-less selector).  The template stays MATCHED (PC-1/PC-2
+    honesty: the sentence is parsed and reported); the NODE is suppressed
+    at assembly with a KNOWN-GAP note.  The shape is narrow by design:
+    Azusa-style empty-cost activations carry other verbs, and every other
+    corpus may-cast permission names its cost or its object (no result
+    referent) — a corpus scan found exactly one carrier."""
+    if not isinstance(ability, ActivatedAbility) or ability.cost.parts:
+        return False
+    inner = ability.effect.inner if isinstance(ability.effect, OptionalEffect) else None
+    if not isinstance(inner, Atom) or inner.verb is not Verb.CAST:
+        return False
+    src = dict(inner.args.pairs).get("source")
+    return isinstance(src, Selector) and src.referent == "result"
+
+
 def compile_card(
     raw: RawCard,
     registry: TemplateRegistry,
@@ -1451,6 +1474,19 @@ def compile_card(
     effect_src: list[int] = []
     for src, outcome in zip(processed_sentence_idx, processed):
         if isinstance(outcome, AbilityOutcome):
+            if _is_result_anaphoric_cast_permission(outcome.ability):
+                # C5: the phantom "you may play that card" permission —
+                # never printed as an activated ability, unresolvable by
+                # the executor (no play-permission lane, register-less
+                # selector). Suppressed HERE, at emission into the card
+                # tree; the sentence stays template-matched.
+                known_gaps.append(
+                    "KNOWN-GAP (play permission): anaphoric 'you may play "
+                    "that card' cast-permission node suppressed at assembly "
+                    "(no executor play-permission lane; the card prints no "
+                    "activated ability)"
+                )
+                continue
             ability_outcomes.append(outcome.ability)
             ability_src.append(src)
         elif isinstance(outcome, EffectOutcome):

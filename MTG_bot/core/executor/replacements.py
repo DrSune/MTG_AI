@@ -816,7 +816,18 @@ class ReplacementRegistry:
         subject over the BLOCKER and blocked over the ATTACKER; attack
         records filter over the ATTACKER (an ``attacked`` slot has no
         corpus carrier — the raise, never a silent ignore)."""
-        if rec.status == "expired" or not self._source_alive(rec.source):
+        if rec.status == "expired":
+            return False
+        # C5 (Destructive Tampering "can't block this turn"): a RESOLVED
+        # until-end-of-turn effect outlives its source (CR 611.2a — the
+        # sorcery is long in the graveyard by the declare-blockers step).
+        # Only the time-bounded DurationEot shape is exempt — its single
+        # expiry is the EOT sweep (tag "Eot"). Static carriers (duration
+        # None, registered through the battlefield lifecycle) and WHILE-
+        # gated records keep the liveness gate exactly as before.
+        if not isinstance(rec.duration, DurationEot) and not self._source_alive(
+            rec.source
+        ):
             return False
         ctx = self._rec_ctx(rec, subject)
         if isinstance(rec.duration, DurationWhileCondition) and not eval_filter(

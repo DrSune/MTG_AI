@@ -89,6 +89,7 @@ from MTG_bot.core.ability_tree import (
     CounterKind,
     DamageDealtEvent,
     DeclareAttackersEvent,
+    DeclareBlockersEvent,
     DelayedTrigger,
     DurationEot,
     DurationUntilNextStep,
@@ -1911,18 +1912,22 @@ def _build_bullet_copy_token(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_bullet_cant_block(m: re.Match[str]) -> SentenceOutcome:
-    # Lossy: no PREVENT_BLOCK grammar; encoded as MODIFY_PT zero-delta
-    # placeholder on the affected creatures.
-    zero = QConst(0)
+    """``• Creatures without flying can't block this turn.`` (Destructive
+    Tampering; C5 — the lossy MODIFY_PT zero-delta placeholder is replaced
+    by the real PREVENT_EFFECT shape: a universal condition (the clause
+    names no object), a DeclareBlockersEvent whose blocker-side ``filter``
+    is FAnd(TYPE_EQ Creature, FNot(KEYWORD_HAS FLYING)) — the Shacklegeist
+    blocked-slot idiom turned onto the blocker side — and the printed
+    "this turn" as DurationEot. PREVENT_EFFECT carries no ``target`` role
+    (PITFALLS: atoms with a target= under _VERB_ROLES fail validation)."""
     atom = Atom(
-        verb=Verb.MODIFY_PT,
+        verb=Verb.PREVENT_EFFECT,
         args=AtomArgs(
             pairs=(
+                ("condition", FAnd(children=())),
                 (
-                    "target",
-                    Selector(
-                        QUnbounded(),
-                        SelectorMode.ALL,
+                    "event",
+                    DeclareBlockersEvent(
                         FAnd(
                             children=(
                                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
@@ -1933,12 +1938,9 @@ def _build_bullet_cant_block(m: re.Match[str]) -> SentenceOutcome:
                                     )
                                 ),
                             )
-                        ),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                        )
                     ),
                 ),
-                ("power", PtDelta(PtDirection.INCREASE, zero)),
-                ("toughness", PtDelta(PtDirection.INCREASE, zero)),
                 ("duration", DurationEot()),
             )
         ),
