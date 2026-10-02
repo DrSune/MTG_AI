@@ -1,0 +1,37 @@
+{
+ "cards": [
+  {
+   "controller": 0,
+   "key": "adh",
+   "real": "Adherent of Hope",
+   "zone": "battlefield"
+  },
+  {
+   "controller": 0,
+   "key": "basri",
+   "real": "Basri Ket",
+   "zone": "battlefield"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "adh": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "power": {
+   "adh": 3
+  }
+ },
+ "notes": "repro: run this exact pack through tools/run_scenarios.py. wave5a cohort. wave5a trigger/replacement cohort | printed: beginning of combat, if you control a Basri planeswalker -> +1/+1 counter. Turn 1 combat WITHOUT Basri (negative, pinned by final counter==1); Basri Ket enters; turn-2 combat fires it.",
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0
+  }
+ ],
+ "world": {
+  "life": 20,
+  "seed": 7
+ }
+}

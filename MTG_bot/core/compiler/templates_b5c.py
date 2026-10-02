@@ -1727,6 +1727,17 @@ def _build_cost_sacrifice_discard(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_cost_sacrifice_search(m: re.Match[str]) -> SentenceOutcome:
+    """``{T}, Sacrifice this land: Search your library for a basic land
+    card, put it onto the battlefield tapped, then shuffle.`` (Fabled
+    Passage s1; the s2 conditional-untap tail is the B5c-then-if-lands
+    row.)
+
+    C2 (batch 0, 2026-10-02): the printed clause says "onto the battlefield
+    TAPPED" and the grammar carries the slot (SEARCH ``tapped_on_enter``
+    opt:bool, ``_v_search`` honors it, MOVE_ZONE precedent b2b:1453) — the
+    old compile silently DROPPED it, so the <4-land branch entered untapped
+    (wave-21b suspect). The flag is stamped here now; the >=4-land falsifier
+    is the tail row's Conditional(CONTROLLER_COUNT_GE Lands>=4, UNTAP)."""
     cost = Cost(
         parts=(
             CostTap(),
@@ -1771,6 +1782,7 @@ def _build_cost_sacrifice_search(m: re.Match[str]) -> SentenceOutcome:
                             ),
                         ),
                         ("controller", ControllerRef.YOU),
+                        ("tapped_on_enter", True),
                     )
                 ),
             ),

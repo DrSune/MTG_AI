@@ -131,7 +131,7 @@
    "fired": 18,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "4e0345b41fc59c3957616582390c137dbd81e8b8ad5317a966900ac39fedeb6f",
+   "fingerprint": "6fb7a71766d74fac92b7c1b5e53caf0734f87cb3a0d090b93e13d9a5b0a3ff64",
    "crash": null
   },
   {
@@ -157,7 +157,7 @@
    "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "f21cb77a1a81814a2be0b80e4555952794fc297250510a29558e92e6b25d470a",
+   "fingerprint": "06bba9ef3ee3265aa86222244fc188bfb6fe64488e7a30a36c7897695abf524e",
    "crash": null
   },
   {
@@ -183,7 +183,7 @@
    "fired": 17,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "b4d77fa30141ce22e5c0d3a540fa4f5123901071479ac07d8ec50d7a5c4c0fbb",
+   "fingerprint": "8b320af80c7fc32973668491b4f874a7e018ca3ec23dd23568801255ebc96195",
    "crash": null
   },
   {
@@ -352,7 +352,7 @@
    "fired": 11,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "3b2515b6d49078da0aae311a2af971c45aba166a1c59c64a6899bd735f541bba",
+   "fingerprint": "7d746c9ed0a8c6d3898f20e237812ff113c5116bb5fd2923f1813afb85e5bd5f",
    "crash": null
   },
   {
@@ -430,7 +430,7 @@
    "fired": 9,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "2280ff96a7d16b101769a5ac5a96fa90481c3779e06ea8d880d7417f630db624",
+   "fingerprint": "d5955c260fdc8c046143df5858259d9235be582fe8b20fbcd6e640aab3216e7f",
    "crash": null
   },
   {
@@ -482,7 +482,7 @@
    "fired": 10,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "6e06c01da2a49a78c50da4949653c51ab9db20b4ead404fc3640830424311e32",
+   "fingerprint": "7057643e733f56df70841cadb57d8fbacb7deaa674b44e6003fcd57a89f7c828",
    "crash": null
   },
   {
@@ -495,7 +495,7 @@
    "fired": 16,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "1142b18497b42e25b7117093e80ba3666e47ac5f566ff1216bff9125677d8a27",
+   "fingerprint": "243288dc0f8bf4022d2ca8c380dc27cb1e0749ba2003fd43c84b4a3381218c57",
    "crash": null
   },
   {
@@ -586,7 +586,7 @@
    "fired": 23,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "b0b247042eca2060240f69f1e1a2bc3009d7b6264a52464cfd5eef160bba345a",
+   "fingerprint": "b01b8b5e0a5155565a7fd31ea4b8d6da9dfe3340dcdb80c82bc5b773dc3ba9e0",
    "crash": null
   },
   {
@@ -651,7 +651,7 @@
    "fired": 24,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "5f148e8a03c4afe700664c15a0b7d3728e3fa693f2e1e9cd0c95602fea46e6b7",
+   "fingerprint": "efa53f1a5e682b58d4375b72186c329a170d3b207ebbe65e0fe05f1d2a278752",
    "crash": null
   },
   {
@@ -677,7 +677,7 @@
    "fired": 12,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "c335883eb490eb4bcb436832e71dcd2fa7bb013280359fd7db0d7046cac6aa6d",
+   "fingerprint": "2456dabe4fddc373b041b2a331ad60b5c04ef73ff4ec82918cdd3f8558fad4f4",
    "crash": null
   },
   {
@@ -716,7 +716,7 @@
    "fired": 12,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "182b76764a9325e845db9066e8eb1add9b3bd9c32b263372f5902fb91dd061b7",
+   "fingerprint": "f414de63adb54a1697ddf9a3d6ee0d528d1e90b56ea1b902147e7065b8188550",
    "crash": null
   },
   {
@@ -729,7 +729,7 @@
    "fired": 12,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "44e388dc67e5f72a7a49575d02d9cf63a7d9e77b3a7bdcdd66417724d2f1951c",
+   "fingerprint": "784cfbf3bb1580bea2e78680612a7c05ff1016db56a4c71c51f10484f91f6481",
    "crash": null
   },
   {
@@ -755,7 +755,7 @@
    "fired": 17,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "3d94f5bf914f64079182a5f125d78e462cf2d50f2f6d625cf42b4082f9bae9d5",
+   "fingerprint": "da5762d4ee3a0ca7e360bbaf8efdffd377fc8845cccb116f81a598ce6ce858df",
    "crash": null
   },
   {
@@ -768,7 +768,7 @@
    "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "8fbad6f71f8184839c421e624da758f4249d5a8f0b286831276c79ff2f369350",
+   "fingerprint": "43a983ceccd3135147f10a671fb678e9f6875356b82297dffa1f5fc4c4f3a065",
    "crash": null
   },
   {
@@ -781,7 +781,7 @@
    "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "501c4a5ddbe52bb1998d5bf59b38b2bbf8346234f99d45d0b7ab81046d5f9fa1",
+   "fingerprint": "c104865ee3528dd210dbd7860981a5e9d81ca35831875501a55d9ef0ce408731",
    "crash": null
   },
   {
@@ -807,7 +807,7 @@
    "fired": 7,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "c942e7d9b2a1a418366e42763732ad2749b243f77d14a3497f44906b65d2f923",
+   "fingerprint": "c7156484b0c84f946c3c18e1e2e89d74508e87dacc698ce2290428b20f2f1250",
    "crash": null
   },
   {
@@ -846,7 +846,7 @@
    "fired": 10,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "d2002ce7f42cbf42db6ff8451459f1562d4fc202b3805e7e9f5de38ebc546ab0",
+   "fingerprint": "2027f5d7b52ace4421bd269983b7263524364497c585eefe6d96f0a914d2a222",
    "crash": null
   },
   {
@@ -872,7 +872,7 @@
    "fired": 19,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "023fea67302aa67ef7d7234c013856b07d0138e2d25130cc9c6831b66d125f53",
+   "fingerprint": "03f1215fea81d447fbe829b3698872105edcbc4ae4df019f37492df042b50561",
    "crash": null
   },
   {
@@ -885,7 +885,7 @@
    "fired": 13,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "1138317ca04dd8d5c809426844d83c7607b52941c75dea1b7ffd8b516baa1ea7",
+   "fingerprint": "9105432844f3216f3ff9d39f90e52ca7323f154878c8edab24a1da2ded1fd910",
    "crash": null
   },
   {
@@ -924,7 +924,7 @@
    "fired": 13,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "6ff208f0f6a75bcdb2270b4c6f9e7cdbfbf5d4d8da93bde2c1440d9c1d182a57",
+   "fingerprint": "905396ae675e8621a9a2a7ffa5037dfe31168e4e708749a7ed56256254967ebe",
    "crash": null
   },
   {
@@ -937,7 +937,7 @@
    "fired": 17,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "8f119f8cdfb02cb800e2a79c5abafe4728f4782d756a05b4fdc0f8666e889193",
+   "fingerprint": "f7327f91a648ca205116d900ed0268838c15b2a709f35757031e9e82ba7b1c53",
    "crash": null
   },
   {
@@ -963,7 +963,7 @@
    "fired": 16,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "82c1e7cf2c96d13985bb413031d3f6e4ce071b18499bd03da133e9fa25d447aa",
+   "fingerprint": "886166956837362dcac932f581db9cac248919d9a7d7e7f32aa2b01301261abe",
    "crash": null
   },
   {
@@ -1002,7 +1002,7 @@
    "fired": 19,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "ce4a2ae8abf8811fa80f7b906a1fd80bb7d7a80ebd5a53719a1c1516d8a054df",
+   "fingerprint": "6ab77366a3bef799244b426a108bc32e1634794b735260d28ee707a912cad614",
    "crash": null
   },
   {
@@ -1028,7 +1028,7 @@
    "fired": 17,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "9ae01df82293630164f61c9d1dd60efa795cab45d712a2a9749a76095e8e39de",
+   "fingerprint": "3ed244bad16110e458c2a02a771f38b17dd41a4ee5e5e3e8a213e4fad960c980",
    "crash": null
   },
   {
@@ -1093,7 +1093,7 @@
    "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "da34cc57bffb32e470b5a471be730cd001771f7713658026014598202063b98f",
+   "fingerprint": "d2973f7f74dee06ac99260ec21f65a2c44631b91f23ae21491bf30f2cac0987f",
    "crash": null
   },
   {
@@ -1106,7 +1106,7 @@
    "fired": 12,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "79c2ee5a5bf870a989efee6fd12464fde8ad62c39c68a0100ede1880f95ace0b",
+   "fingerprint": "34b3b58dec139ad6a0518129006e6dbfd706b7a5bd29d6f9eb82214b3f5cd003",
    "crash": null
   },
   {
@@ -1132,7 +1132,7 @@
    "fired": 11,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "04302961dbae984c2023ded3d96f32295240456b1d88271834502709f23bb011",
+   "fingerprint": "d836baa2f7ae1645ee0b017b3f27bb9d24bc8d75e6663778c9401d60664441f5",
    "crash": null
   },
   {
@@ -1171,7 +1171,7 @@
    "fired": 10,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "534071ad8e8ef7efa3a7ab61ccd6312dbf306794e50ec2e7309042db21669a73",
+   "fingerprint": "62b399ed4f78d71a4e0604464ac0599084c59c833abcf377bee1a35dc53471a5",
    "crash": null
   },
   {
@@ -1197,7 +1197,7 @@
    "fired": 19,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "264facd96236d97e3d9550b3735da5762d496af2cf671b0fd265d5acc6032440",
+   "fingerprint": "73d9733662fa0d329374f5ce144ba8b9863628507398bb7078cbf48f682037d8",
    "crash": null
   },
   {
@@ -1249,7 +1249,7 @@
    "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "0daaa0005ec830e825dcc87148e4bdf70c53b08a0a642a36f70cb3e2539e334e",
+   "fingerprint": "ed830ddedac7061e975d48918bc2f57b3db2caab7f89e2276e1f2d90dc37cabb",
    "crash": null
   },
   {
@@ -1275,7 +1275,7 @@
    "fired": 17,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "b8222d0dfd6e802c57e6cdd6943e485bbf5b51658f8dd4022d8383d4ed9a3e4f",
+   "fingerprint": "38ba5db43f85b756056e29898fd59a0a2b0a7cd9d79b8faae3184d2587c48dea",
    "crash": null
   },
   {
@@ -1340,7 +1340,7 @@
    "fired": 13,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "eb7b7321d77b3aab83d7b0e7cca585f206849494fff54fc9ae6268e90752980f",
+   "fingerprint": "f3a9fe6c56bd1f7fbf0dd1bb9d4fb60682e428ec77e3b49732806e3e99acf77d",
    "crash": null
   },
   {
@@ -1405,12 +1405,12 @@
    "fired": 14,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "1f529a5164aec4f50282de5230237f6c541b18256b31e31ea7cbbb4a12322d56",
+   "fingerprint": "8de544840efe0bfd49a7afb5bdc5d3e42368dee50401f890364b9bb53d9f4d35",
    "crash": null
   }
  ],
- "pool_compile_seconds": 0.22,
- "wall_seconds": 99.88,
+ "pool_compile_seconds": 0.21,
+ "wall_seconds": 97.27,
  "argv": [
   "--seeds",
   "100",

@@ -1,0 +1,57 @@
+{
+ "cards": [
+  {
+   "controller": 0,
+   "key": "fp",
+   "real": "Fabled Passage",
+   "zone": "battlefield"
+  },
+  {
+   "controller": 0,
+   "key": "l1",
+   "real": "Forest",
+   "zone": "battlefield"
+  },
+  {
+   "controller": 0,
+   "key": "s1",
+   "real": "Swamp",
+   "zone": "library"
+  },
+  {
+   "controller": 0,
+   "key": "d1",
+   "real": "Mountain",
+   "zone": "library"
+  }
+ ],
+ "expect": {
+  "graveyard": {
+   "0": [
+    "Fabled Passage"
+   ]
+  },
+  "tapped": {
+   "s1": true
+  },
+  "zone": {
+   "s1": "battlefield"
+  }
+ },
+ "notes": "Search/sacrifice/shuffle half is green in fabled_passage.json. d1 Mountain is the LAST library entry so the setup begin_turn draw eats IT, leaving the Swamp findable \u2014 without it the 'search' silently no-ops (that was the old FPb probe's confound). Y2 probe: with >=4 lands post-search the land is untapped, which matches the printed conditional-untap clause, so the divergence is isolated to the <4-land branch.",
+ "steps": [
+  {
+   "decisions": [
+    "s1"
+   ],
+   "idx": 0,
+   "key": "fp",
+   "op": "activate",
+   "seat": 0
+  }
+ ],
+ "world": {
+  "life": 20,
+  "seed": 7
+ }
+}

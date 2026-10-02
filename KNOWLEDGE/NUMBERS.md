@@ -12,6 +12,23 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
 | PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, refreshed) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.244 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **297/305** (0.9738) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 45 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-10-02 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.263 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
@@ -2599,3 +2616,15 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | census | **305 = 267 pack + 9 suspect + 29 uncovered** (31→29; +5 stale rows legitimately promoted by disk-derived refresh) | `.venv/bin/python tools/audit/wave_builder.py --coverage` | Treasure→suspect, Forgotten Sentinel→pack |
 | five-wave lint | 66/66 · 67/67 · 55/55 · 43/43 · 31/31 (+3 waived) all "closed: consumed" | `wave_builder.py --waveN --lint` | unchanged |
 | core suite | **2272 + 3 subtests, unchanged** | `pytest MTG_bot/core -q` | engine frozen, zero edits outside tools/ |
+
+## 2026-10-02 (compiler campaign C2 — existential quantifiers + Fabled tapped_on_enter)
+
+| Item | Number | Command | Note |
+|---|---|---|---|
+| golden set-equality | **3 files moved, keys={abilities} only, 302/305 byte-identical, per-card multiset set-equal** (FP +tapped_on_enter pair; adherent +1 COUNT_GE(count=1), 3 filter atoms verbatim; ornery count 4→1, filter EQUAL) | `/tmp/opencode/c2_inventory_audit.py` vs `/tmp/golden_pre_c2` | C1 protocol on HEAD cb98a7c; B5c row verified Fabled-only in M21 via data `text` grep |
+| scenarios | **290/290 passed** | `.venv/bin/python tools/run_scenarios.py` | 287 + 3 promoted (MOVE+strip), all 3 green under fixed IR pre-promotion; suspects 14→11 |
+| suite | **2277 passed + 3 subtests, 0 failed** | `pytest MTG_bot/core -q` | 2272 + 5 new test_compiler_c2.py pins; 2 pins AMENDED (b2a adherent, b2b ornery) |
+| grammar | PC EXCEPT: PC-1 301/305 · PC-2 634/639 · PC-3 0 · PC-4 0 (refreshed) · **PC-8 0.3213 Δ0 no-move** | `tools/measure_grammar.py --set M21 --refresh-goldens --with-engine-flags` | engine 297/305; PC-6 orphan pre-existing FAIL; all Δ0 vs C1 baseline — honest no-coverage-gain report |
+| catalog | **6/10 diverged → repin → 0/10** | `tools/traces/catalog.py compare` / `repin` | attribution clean: each diverging seed +2 entries incl. one new TAP_STATE·SEARCH (Fabled flag); outcomes identical per seed |
+| games | **100 seeds, 86 survived, 0 crash classes** | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all` | mean_turns 57.69, coverage fired 84; = baseline; reports/games_2026-10-02.json |
+| lints | pyright **0 errors** on 6 touched files; ruff **all pass** | `pyright` / `ruff check` | engine untouched |

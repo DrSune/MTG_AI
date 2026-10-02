@@ -1525,7 +1525,17 @@ def _build_historian_teferi_condition(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_ornery_power_condition_self_boost(m: re.Match[str]) -> SentenceOutcome:
     """#31: attacks, if you control a creature with power N or greater,
-    this creature gets +P/+T until end of turn."""
+    this creature gets +P/+T until end of turn.
+
+    C2 (batch 1, 2026-10-02): the printed clause is an EXISTENCE claim —
+    "A CREATURE with power 4 or greater" quantifies over the controlled
+    population with the threshold inside the POWER_GE filter; the gate
+    demands ONE such creature. The old compile bound the sentence's single
+    number to BOTH slots (count=QConst(4) AND the power filter), demanding
+    FOUR creatures — the wave-3b suspect off-by-one. The N now lives ONLY
+    in the inner filter, count=QConst(1), exactly as the already-correct
+    ETB sibling #8 (Garruk's Uprising) and the r18a turret_ogre idiom
+    read it."""
     n = _n(m, 1)
     power = _n(m, 2)
     toughness = _n(m, 3)
@@ -1548,7 +1558,7 @@ def _build_ornery_power_condition_self_boost(m: re.Match[str]) -> SentenceOutcom
                 )
             ),
         ),
-        condition=_you_control_at_least(_creature_power_ge_filter(n), n),
+        condition=_you_control_at_least(_creature_power_ge_filter(n), 1),
     )
 
 

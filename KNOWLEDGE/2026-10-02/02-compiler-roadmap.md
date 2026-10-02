@@ -79,3 +79,10 @@ PC-3 **0 EXACT** always · PC-4 0 after audited re-pin · pytest core green + fa
 pins per fix (r22c style) · scenarios 286/286 + promoted packs · catalog 0-diverge-or-
 repin · games 0 crash classes · pyright 0 / ruff Δ0 · goldens move ONLY via the set-
 evidence audit (pre/post snapshots, byte-identical proof for untouched cards).
+
+> [!NOTE] Ratification note (2026-10-02, orchestrator; landed with batch C2 = roadmap 0+1)
+> Golden-set moves for **audited additive or output-fix emissions** under the C1-form
+> evidence (pre/post snapshot, byte-identical proof for untouched cards, per-card printed-
+> vs-compiled multiset set-equality) are **ratified protocol** — precedent: B-11 family,
+> C1 sancta sweep, now C2 (3 goldens: Fabled flag, Adherent census, Ornery count). PC-8
+> re-baseline toward ≥0.40 is **accepted up front** as expected compiler-side progress.

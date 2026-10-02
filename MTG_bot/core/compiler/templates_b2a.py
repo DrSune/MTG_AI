@@ -1581,6 +1581,20 @@ def _build_crypt_lurker(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_adherent_of_hope(m: re.Match[str]) -> SentenceOutcome:
+    """``At the beginning of combat on your turn, if you control a Basri
+    planeswalker, put a +1/+1 counter on this creature.``
+
+    C2 (batch 1, 2026-10-02): the intervening "if" is an EXISTENCE claim
+    over the controlled-permanent population — the same set-level reading
+    the r18a turret_ogre fix established (B-3, CR 603.4). The old compile
+    placed the bare per-card filter as the condition, which the trigger
+    gate judges against a single handle (the trigger SOURCE = the Adherent
+    itself: wave-5a suspect — true only when the Adherent is named Basri).
+    The condition is now ``CONTROLLER_COUNT_GE`` count=QConst(1) with the
+    NAME_CONTAINS-"Basri" / TYPE_EQ-Planeswalker / CONTROLLER_IS-YOU test
+    INSIDE the inner filter, where it is evaluated per candidate
+    (b2b historian-Teferi sibling, executor census green since r21b).
+    """
     counter_p, counter_t = _n(m, 1), _n(m, 2)
     if (counter_p, counter_t) != (1, 1):
         raise ValueError(
@@ -1599,12 +1613,16 @@ def _build_adherent_of_hope(m: re.Match[str]) -> SentenceOutcome:
                 )
             ),
         ),
-        condition=FAnd(
-            children=(
-                FAtom(pred=FAtomPred.NAME_CONTAINS, string_value="Basri"),
-                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
-                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-            )
+        condition=FAtom(
+            pred=FAtomPred.CONTROLLER_COUNT_GE,
+            inner_filter=FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.NAME_CONTAINS, string_value="Basri"),
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
+                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                )
+            ),
+            count=QConst(1),
         ),
     )
 

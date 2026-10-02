@@ -1,0 +1,49 @@
+{
+ "cards": [
+  {
+   "controller": 0,
+   "key": "d",
+   "real": "Ornery Dilophosaur",
+   "zone": "battlefield"
+  },
+  {
+   "controller": 0,
+   "key": "t",
+   "name": "Tusk",
+   "power": 5,
+   "toughness": 5,
+   "type": "Creature",
+   "zone": "battlefield"
+  }
+ ],
+ "expect": {
+  "battlefield_keywords": {
+   "Ornery Dilophosaur": [
+    "DEATHTOUCH"
+   ]
+  },
+  "life": {
+   "1": 16
+  },
+  "power": {
+   "d": 4
+  },
+  "toughness": {
+   "d": 4
+  }
+ },
+ "notes": "Printed: attacks WITH A 5/5 under my control (ONE creature power>=4) -> +2/+2 EoT -> 4/4, 4 damage. If the compiled CONTROLLER_COUNT_GE threshold (count=4) gates instead, the buff and the life line fail -> suspect.",
+ "steps": [
+  {
+   "attack": {
+    "d": true
+   },
+   "op": "combat",
+   "seat": 0
+  }
+ ],
+ "world": {
+  "life": 20,
+  "seed": 7
+ }
+}

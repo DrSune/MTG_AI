@@ -761,14 +761,24 @@ class TestB2aTriggerEvents(unittest.TestCase):
         assert isinstance(event, TurnPhaseEvent)
         self.assertIs(event.phase, Phase.COMBAT)
         self.assertIs(event.controller, ControllerRef.YOU)
+        # C2 (batch 1, 2026-10-02) AMENDED: the "if you control a Basri
+        # planeswalker" existence claim is a CONTROLLER_COUNT_GE(count=1)
+        # census whose inner filter carries the per-card test (r18a
+        # turret_ogre idiom; wave-5a suspect). The old pin witnessed the
+        # dropped-quantifier miscompile.
         condition = ability.condition
-        assert isinstance(condition, FAnd)
+        assert isinstance(condition, FAtom)
+        self.assertIs(condition.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertEqual(condition.count, QConst(1))
+        inner = condition.inner_filter
+        assert isinstance(inner, FAnd)
         self.assertEqual(
-            _find_atom(condition, FAtomPred.NAME_CONTAINS).string_value, "Basri"
+            _find_atom(inner, FAtomPred.NAME_CONTAINS).string_value, "Basri"
         )
         self.assertEqual(
-            _find_atom(condition, FAtomPred.TYPE_EQ).string_value, "Planeswalker"
+            _find_atom(inner, FAtomPred.TYPE_EQ).string_value, "Planeswalker"
         )
+        self.assertIs(_find_atom(inner, FAtomPred.CONTROLLER_IS).who, ControllerRef.YOU)
 
     def test_lilianas_devotee_is_end_step_with_died_this_turn(self) -> None:
         ability = _ability(
