@@ -1,9 +1,9 @@
 """Tests for B5a bucket templates (templates_b5a.py).
 
 Covers all 90 shapes in ``/tmp/opencode/phase1_buckets/B5a.json``:
-- 63 template-covered (59 templates; B5a-land-add matches 5 basic-land shapes)
+- 64 template-covered (60 templates; B5a-land-add matches 5 basic-land shapes)
 - 23 rule-reminder pre-consumed by the compiler
-- 4 UNCOVERED (no expressible/attachable construct; recorded in UNCOVERED and pinned)
+- 3 UNCOVERED (no expressible/attachable construct; recorded in UNCOVERED and pinned)
 
 PC-3: every concrete sentence fullmatches at most one template.
 """
@@ -400,7 +400,11 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "B5a-trample-counter",
     ),
     # shape 71
-    ("Each opponent who can't loses 3 life.", "UNCOV", ""),
+    (
+        "Each opponent who can't loses 3 life.",
+        "COVERED",
+        "B5a-each-opp-cant-lose-life",
+    ),
     # shape 72
     ("Each player loses 2 life.", "COVERED", "B5a-lose-life-each-player"),
     # shape 73
@@ -617,7 +621,7 @@ class TestTemplateInventory(unittest.TestCase):
     """Verify the B5a template collection is well-formed."""
 
     def test_56_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 59)
+        self.assertEqual(len(TEMPLATES), 60)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -633,7 +637,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 59)
+        self.assertEqual(len(reg), 60)
 
 
 # ---------------------------------------------------------------------------
@@ -656,14 +660,14 @@ class TestShapeTable(unittest.TestCase):
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
         self.assertEqual(rr, 23, f"RR count {rr} != 23")
-        self.assertEqual(covered, 63, f"COVERED count {covered} != 63")
-        self.assertEqual(uncov, 4, f"UNCOV count {uncov} != 4")
+        self.assertEqual(covered, 64, f"COVERED count {covered} != 64")
+        self.assertEqual(uncov, 3, f"UNCOV count {uncov} != 3")
 
     def test_covered_tids_valid_and_unique_58(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
-            len(unique_tids), 59, f"expected 59 unique tids, got {len(unique_tids)}"
+            len(unique_tids), 60, f"expected 60 unique tids, got {len(unique_tids)}"
         )
         # All tids start with B5a-
         for tid in unique_tids:
@@ -693,7 +697,7 @@ class TestUncovered(unittest.TestCase):
     """Verify the UNCOVERED attribute is well-formed and pinned to SHAPES."""
 
     def test_7_rows(self) -> None:
-        self.assertEqual(len(UNCOVERED), 4)
+        self.assertEqual(len(UNCOVERED), 3)
 
     def test_unique_sorted_keys(self) -> None:
         keys = [k for k, _ in UNCOVERED]
@@ -1786,7 +1790,7 @@ class TestCanonicalStability(unittest.TestCase):
                 f"canonical instability for {tid} ({sent[:40]})",
             )
             seen.add(tid)
-        self.assertEqual(len(seen), 59, f"only {len(seen)} unique tids tested")
+        self.assertEqual(len(seen), 60, f"only {len(seen)} unique tids tested")
 
 
 # ---------------------------------------------------------------------------

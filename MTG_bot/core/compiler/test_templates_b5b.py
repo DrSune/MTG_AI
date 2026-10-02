@@ -2,11 +2,11 @@
 
 Covers all 90 shapes in ``/tmp/opencode/phase1_buckets/B5b.json``
 (91 distinct concrete sentences):
-- 70 template-covered rows over 69 shapes / 62 tids (57 single-shape tids,
-  5 multi-shape tids, plus one shape with two concrete rows)
-- 21 UNCOVERED (no template; 20 have no grammar construct or are
-  deferred/queued (D14 reveal-until, E ingest artifact), 1 is
-  compiler-built-in: "If you search your library this way, shuffle." —
+- 89 template-covered rows (79 tids, incl. 5 multi-shape normalized tids;
+  ``B5b-modpt-plus`` is one shape with two concrete rows; round-11 C3
+  retired the Transmogrify reveal-until pair)
+- 2 UNCOVERED (no template) + the compiler-built-in search-shuffle
+  boilerplate row: "If you search your library this way, shuffle." —
   see test_compiler.py::TestContinuation::test_search_shuffle_*)
 - 0 rule-reminder pre-consumed
 
@@ -503,8 +503,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 85
     (
         "That creature's controller reveals cards from the top of their library until they reveal a creature card.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-transmogrify-reveal-creature",
     ),
     # shape 86
     (
@@ -517,8 +517,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 88
     (
         "That player puts that card onto the battlefield, then shuffles the rest into their library.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5b-transmogrify-shuffle-rest",
     ),
     # shape 89
     (
@@ -693,8 +693,8 @@ def _find_shape(sent: str) -> tuple[str, str, str]:
 class TestTemplateInventory(unittest.TestCase):
     """Verify the B5b template collection is well-formed."""
 
-    def test_77_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 77)
+    def test_79_templates(self) -> None:
+        self.assertEqual(len(TEMPLATES), 79)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -710,7 +710,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 77)
+        self.assertEqual(len(reg), 79)
 
 
 # ---------------------------------------------------------------------------
@@ -731,14 +731,14 @@ class TestShapeTable(unittest.TestCase):
     def test_category_counts(self) -> None:
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
-        self.assertEqual(covered, 87, f"COVERED count {covered} != 87")
-        self.assertEqual(uncov, 4, f"UNCOV count {uncov} != 4")
+        self.assertEqual(covered, 89, f"COVERED count {covered} != 89")
+        self.assertEqual(uncov, 2, f"UNCOV count {uncov} != 2")
 
-    def test_covered_tids_valid_and_unique_77(self) -> None:
+    def test_covered_tids_valid_and_unique_79(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
-            len(unique_tids), 77, f"expected 77 unique tids, got {len(unique_tids)}"
+            len(unique_tids), 79, f"expected 79 unique tids, got {len(unique_tids)}"
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5b-"), f"bad tid: {tid}")
@@ -1625,7 +1625,7 @@ class TestCanonicalStability(unittest.TestCase):
                 f"canonical instability for {tid} ({sent[:40]})",
             )
             seen.add(tid)
-        self.assertEqual(len(seen), 77, f"only {len(seen)} unique tids tested")
+        self.assertEqual(len(seen), 79, f"only {len(seen)} unique tids tested")
 
 
 # ---------------------------------------------------------------------------

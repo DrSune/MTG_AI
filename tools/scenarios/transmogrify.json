@@ -1,0 +1,58 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Transmogrify",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "t",
+   "name": "Doomed Bull",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Transmogrify",
+   "key": "sp",
+   "targets": [
+    "t"
+   ],
+   "decisions": [
+    "player:1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard",
+   "t": "exile"
+  },
+  "battlefield_pt": {
+   "Library 5": [
+    1,
+    1
+   ]
+  }
+ },
+ "notes": "WAVE2B (2026-10-01) re-run: printed 'Exile target creature. That creature's controller reveals cards from the top of their library until they reveal a creature card. That player PUTS THAT CARD ONTO THE BATTLEFIELD, then shuffles the rest into their library.' The exile lands (opponent's Bull exiles correctly); the reveal-until-creature and put-onto-battlefield tail is a no-op: the opponent's library top IS a printed Creature ('Library 5', 1/1) and the battlefield stays empty. C3: engine contract (query.py:778-798, 14b) synthesizes a second positional slot for TARGET_PLAYER reads; cast now designates ('t', seat 1) via the r22b player:N token \u2014 TARGET_PLAYER then binds controller-of-target, the card's 'that creature's controller'."
+}

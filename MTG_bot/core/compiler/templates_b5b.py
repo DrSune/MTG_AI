@@ -1,11 +1,11 @@
-"""B5b bucket templates — 75 templates covering 84 of 90 B5b shapes.
+"""B5b bucket templates — 79 templates covering 88 of 90 B5b shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B5b.json`` (90 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (90 = 84 template + 0 rule-reminder + 6 uncovered):
+Coverage (90 = 88 template + 0 rule-reminder + 2 uncovered):
 
 - **84 template-covered shapes** (75 templates: 57 single-shape tids +
   5 multi-shape normalized tids — put-counter ×3, return-cards-hand ×2,
@@ -41,11 +41,11 @@ Coverage (90 = 84 template + 0 rule-reminder + 6 uncovered):
   ``It gains haste."`` emblem-quote residue marker (C19 — payload lives
   in the emblem attach).
 - **0 rule-reminder shapes** — no fully-parenthesised sentences in B5b.
-- **6 uncovered shapes** — Transmogrify's reveal-until dig (deferred
-  D14), Sanctum-of-All additional trigger, Vodalian mana restriction,
-  the Snoop topdeck-revealed state (8-C re-examined and withdrawn: no
-  continuous revealed-zone-state marker), and the search-shuffle
-  boilerplate note.  Recorded in the test file.
+- **2 uncovered shapes** — Sanctum-of-All's additional-trigger gate and
+  the search-shuffle boilerplate note (compiler built-in, recorded not
+  template-driven).  Round 11 C3 retired Transmogrify's reveal-until dig
+  (deferred D14) as a top-of-library SEARCH + TARGET_PLAYER SHUFFLE pair.
+  Recorded in ``UNCOVERED`` below and pinned by tests.
 
 Conventions (documented build decisions):
 
@@ -1906,6 +1906,74 @@ def _build_cultivate_search(m: re.Match[str]) -> SentenceOutcome:
     return EffectOutcome(effect=Seq(steps=(search, reveal, to_bf, to_hand, shuffle)))
 
 
+def _build_transmog_reveal_creature(m: re.Match[str]) -> SentenceOutcome:
+    """``That creature's controller reveals cards from the top of their
+    library until they reveal a creature card.`` (Transmogrify s2, grammar
+    round 11 C3 — the deferred D14 reveal-until dig retired: encoded as a
+    top-of-library creature CHOOSE search.  ``ZonePosition.TOP`` enumerates
+    exactly the library top (the r8 ``_looked_top_library`` canonical,
+    ``entries[-1:]``), so CHOOSE can never reach a deeper card and never a
+    bottom-of-library draw; ``ControllerRef.TARGET_PLAYER`` carries "that
+    creature's controller" (bound by the s1 exile's target).
+    DIVERGENCE: a non-creature top card finds nothing instead of scanning
+    deeper — the grammar has no reveal-until iterator; documented.  The
+    literal REVEAL is the SEARCH verb's built-in disclosure (b2b
+    convention)."""
+    search = Atom(
+        verb=Verb.SEARCH,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                        Zone(
+                            kind=ZoneKind.LIBRARY,
+                            controller=ControllerRef.TARGET_PLAYER,
+                            position=ZonePosition.TOP,
+                        ),
+                    ),
+                ),
+                (
+                    "destination",
+                    Zone(ZoneKind.BATTLEFIELD, ControllerRef.TARGET_PLAYER),
+                ),
+                ("controller", ControllerRef.TARGET_PLAYER),
+            )
+        ),
+    )
+    return EffectOutcome(effect=search)
+
+
+def _build_transmog_shuffle_rest(m: re.Match[str]) -> SentenceOutcome:
+    """``That player puts that card onto the battlefield, then shuffles the
+    rest into their library.`` (Transmogrify s3, grammar round 11 C3 — the
+    put-half rides s2's SEARCH destination (the grammar cannot name "that
+    card" across the reveal-until; documented lossless-split convention);
+    the remaining emission is the remainder SHUFFLE, TARGET_PLAYER-owned so
+    the anaphoric "That player" reads the s1-exile target binding (the
+    Vodalian ``Zone(LIBRARY, TARGET_PLAYER)`` shuffle precedent).  Neither
+    sentence carries a continuation prefix: card assembly folds the
+    instant's three plain effects into one ``Seq`` (multi-effect fold)."""
+    shuffle = Atom(
+        verb=Verb.SHUFFLE,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "zone",
+                    Zone(
+                        kind=ZoneKind.LIBRARY,
+                        controller=ControllerRef.TARGET_PLAYER,
+                    ),
+                ),
+            )
+        ),
+    )
+    return EffectOutcome(effect=shuffle)
+
+
 def _build_cast_elsewhere_instead(m: re.Match[str]) -> SentenceOutcome:
     """``If this spell was cast from anywhere other than your hand, put
     each of those cards into your hand instead.`` (See the Truth s3) —
@@ -3323,6 +3391,29 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_play_top_revealed,
     ),
+    # --- grammar round-11 C3 coverage batch (Transmogrify reveal-until pair) ---
+    Template(
+        tid="B5b-transmogrify-reveal-creature",
+        name="top-of-library creature search for that player (SEARCH TOP, C3)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^That creature's controller reveals cards from the top of their "
+            r"library until they reveal a creature card\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_transmog_reveal_creature,
+    ),
+    Template(
+        tid="B5b-transmogrify-shuffle-rest",
+        name="shuffle-remainder tail (SHUFFLE Zone LIBRARY TARGET_PLAYER, C3)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^That player puts that card onto the battlefield, then shuffles "
+            r"the rest into their library\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_transmog_shuffle_rest,
+    ),
 )
 
 UNCOVERED: tuple[tuple[str, str], ...] = (
@@ -3333,13 +3424,5 @@ UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         "If you search your library this way, shuffle.",
         "Conditional shuffle on library-search trigger",
-    ),
-    (
-        "That creature's controller reveals cards from the top of their library until they reveal a creature card.",
-        "Anaphoric controller reveal-until-creature (search-until)",
-    ),
-    (
-        "That player puts that card onto the battlefield, then shuffles the rest into their library.",
-        "Anaphoric zone-move with shuffle-remainder (modal continuation)",
     ),
 )

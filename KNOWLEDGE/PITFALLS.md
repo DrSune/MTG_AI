@@ -792,3 +792,11 @@
   the journal's ENTER branch, so `play`, `enter` AND cast resolution all stamp it.
   A pack that omits the `tapped` step parameter therefore asserts the COMPILED
   EtBState node, not a harness override — that is the honest ETB-residue lane.
+- **2026-10-02 · C3: TARGET_PLAYER reads synthesize a SECOND cast slot.** A spell with
+  a TARGET-mode Selector AND any `ControllerRef.TARGET_PLAYER` read (even a derived
+  "that creature's controller" zone) gets the 14b synthesized positional slot
+  (query.py:778-798) — cast needs BOTH designations, positional, walk order
+  (`_validate_positional`). Scenario packs supply the player via the r22b
+  `decisions: ["player:N"]` token; auto-designation only fires when ZERO targets are
+  given. `binding_one("target")` = FIRST designation, so TARGET_PLAYER still resolves
+  controller-of-target. Pack-side fix; never touch the frozen slot synthesis.

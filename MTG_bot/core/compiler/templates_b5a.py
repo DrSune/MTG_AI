@@ -1,13 +1,13 @@
-"""B5a bucket templates — 58 templates covering 62 of 90 B5a shapes.
+"""B5a bucket templates — 60 templates covering 64 of 90 B5a shapes.
 
 Bucket input: ``/tmp/opencode/phase1_buckets/B5a.json`` (90 normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key.
 
-Coverage (90 = 62 template + 23 rule-reminder + 5 uncovered):
+Coverage (90 = 64 template + 23 rule-reminder + 3 uncovered):
 
-- **62 template-covered shapes** (58 templates; the basic-land
+- **64 template-covered shapes** (60 templates; the basic-land
   ``({T}: Add {C}.)`` family is one template for five shapes):
   basic-land tap abilities, ADD_MANA, static P/T grants, counter-spell,
   token creation, keyword rule-reminder sentences (Deathtouch/Defender/
@@ -23,15 +23,18 @@ Coverage (90 = 62 template + 23 rule-reminder + 5 uncovered):
   (Thieves' Guild Enforcer), TURN_OF static grant (Radha) and TURN_OF
   CostModifier (Discontinuity), blocked-side PREVENT_EFFECT
   (Ghostly Pilferer discard, Faith's Fetters attack+block Seq — C11
-  lossy), untap-prevention on enchanted creature (Capture Sphere, lossy).
+  lossy), untap-prevention on enchanted creature (Capture Sphere, lossy),
+  and grammar round 11 C3: the each-opponent "who can't" life-loss gate
+  (Waker +1 tail — Conditional + EachPlayer over a post-discard hand
+  count, payment-failure row retired).
 - **23 rule-reminder shapes** — fully parenthesised sentences consumed by
   the compiler's ``_is_rule_reminder`` before template matching (no
   template needed; verified in tests).
-- **5 uncovered shapes** — no expressible/attachable grammar construct
-  exists (sorcery-window attach, library-top all-abilities grant, name-choice
-  modal headers, payment-failure condition). Round 9-B landed the Speaker
-  life-lead gate (timing clause lossy) and the Drowsing LOSE_ABILITY
-  defender-strip. Recorded in ``UNCOVERED`` below and pinned by tests.
+- **3 uncovered shapes** — the library-top all-abilities grant
+  (ability-introspection, R10) plus the two choose-opener modal headers
+  (compiler built-in, not templates). Round 11 C3 retired the
+  payment-failure row ("who can't") as a Conditional + EachPlayer gate.
+  Recorded in ``UNCOVERED`` below and pinned by tests.
 
 Conventions (documented build decisions):
 
@@ -69,6 +72,7 @@ from MTG_bot.core.ability_tree import (
     AtomArgs,
     ActivatedAbility,
     ActivationWindow,
+    Conditional,
     ControllerRef,
     Cost,
     CostDeltaReduceGeneric,
@@ -84,6 +88,7 @@ from MTG_bot.core.ability_tree import (
     DeclareBlockersEvent,
     DurationEot,
     DurationWhileCondition,
+    EachPlayer,
     FAnd,
     FAtom,
     FAtomPred,
@@ -695,6 +700,44 @@ def _build_lose_life(m: re.Match[str]) -> SentenceOutcome:
         ),
     )
     return EffectOutcome(effect=atom)
+
+
+def _build_each_opp_cant_lose_life(m: re.Match[str]) -> SentenceOutcome:
+    """``Each opponent who can't loses 3 life.`` (Liliana Waker +1 tail;
+    grammar round 11 C3 — the round-9 "payment-failure condition" UNCOVERED
+    row retired: "who can't [discard a card]" resolves to a post-discard
+    hand-count gate, the roadmap-sanctioned r21b reading (an opponent
+    reduced to an empty hand by the preceding forced discard loses 3).
+    EachPlayer(ref=ALL_OPPONENTS) rotates the CONTROLLER role (b2a/b2b
+    precedent), so the YOU-relative predicate AND the YOU-relative
+    LOSE_LIFE both rebind per opponent.  The sentence carries no ``may``
+    and no continuation prefix: the compiler appends this mandatory tail
+    to the preceding loyalty ability through the R11-1 loyalty-trailing
+    path (``_append_mandatory_to_seq``)."""
+    cant_discard = FNot(
+        inner=FAtom(
+            pred=FAtomPred.ZONE_COUNT_GE,
+            who=ControllerRef.YOU,
+            zone=Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),
+            inner_filter=FAnd(children=()),
+            count=QConst(1),
+        )
+    )
+    lose = Atom(
+        verb=Verb.LOSE_LIFE,
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                ("amount", QConst(int(m.group("n")))),
+            )
+        ),
+    )
+    return EffectOutcome(
+        effect=EachPlayer(
+            ref=ControllerRef.ALL_OPPONENTS,
+            effect=Conditional(pred=cant_discard, then_effect=lose),
+        )
+    )
 
 
 def _enchant_pt(m: re.Match[str], groups: tuple[int, int]) -> Atom:
@@ -2013,9 +2056,18 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_activate_only_sorcery,
     ),
+    # --- grammar round-11 C3 coverage batch (payment-failure gate) ---
+    Template(
+        tid="B5a-each-opp-cant-lose-life",
+        name="each opponent who-can't life-loss tail (Conditional+EachPlayer, C3)",
+        bucket=_BUCKET,
+        pattern=re.compile(r"^Each opponent who can't loses (?P<n>\d+) life\.$"),
+        priority=_PRIORITY,
+        build=_build_each_opp_cant_lose_life,
+    ),
 )
 
-# UNCOVERED — 4 normalized-key rows
+# UNCOVERED — 3 normalized-key rows
 #
 # Each row is (shape_key, reason).  shape_key is the B5a.json normalized
 # key (digits → "N").  Sorted alphabetically by shape_key.  The T4 test
@@ -2032,9 +2084,5 @@ UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
     (
         "Choose one —",
         "handled by the compiler's choose-opener built-in (compiler._wrap_choose_openers), not a template",
-    ),
-    (
-        "Each opponent who can't loses N life.",
-        '"who can\'t" payment-failure condition not in grammar',
     ),
 )

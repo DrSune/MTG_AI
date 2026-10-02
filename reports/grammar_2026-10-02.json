@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-10-02T04:40:13+02:00",
-  "git_head": "cb98a7c9f29a23fbbfd1121d4411863a9aad7247",
+  "generated": "2026-10-02T05:53:11+02:00",
+  "git_head": "9e26ba25062bda1b2e7fe887e3308c1a516eb9ae",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -69,18 +69,18 @@
   "pcs": {
     "PC-1": {
       "name": "card_coverage",
-      "cards_zero_unparsed": 301,
+      "cards_zero_unparsed": 303,
       "denominator": 305,
-      "value": 0.986885,
+      "value": 0.993443,
       "target": ">=0.90",
       "stretch": ">=0.95",
       "pass": true
     },
     "PC-2": {
       "name": "sentence_coverage",
-      "sentences_matched": 634,
+      "sentences_matched": 637,
       "denominator": 639,
-      "value": 0.992175,
+      "value": 0.99687,
       "target": ">=0.95",
       "stretch": ">=0.98",
       "pass": true
@@ -107,9 +107,9 @@
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.237,
-        0.244,
-        0.236
+        0.236,
+        0.234,
+        0.244
       ]
     },
     "PC-6": {
@@ -123,12 +123,12 @@
         ]
       },
       "max_verb_share": {
-        "value": 0.093426,
+        "value": 0.092943,
         "target": "<0.20",
         "pass": true
       },
       "pass": false,
-      "atom_total": 578,
+      "atom_total": 581,
       "max_share_verb": "DRAW",
       "verb_histogram": {
         "ADD_LAND_PLAY": 1,
@@ -159,7 +159,7 @@
         "LOOK_AT": 4,
         "LOSE_ABILITY": 2,
         "LOSE_GAME": 1,
-        "LOSE_LIFE": 12,
+        "LOSE_LIFE": 13,
         "MANA_POLICY": 2,
         "MANDATE_ATTACK": 3,
         "MANDATE_BLOCK": 1,
@@ -174,9 +174,9 @@
         "REVEAL": 14,
         "SACRIFICE": 4,
         "SCRY": 12,
-        "SEARCH": 17,
+        "SEARCH": 18,
         "SET_PT": 4,
-        "SHUFFLE": 16,
+        "SHUFFLE": 17,
         "TAP": 8,
         "UNTAP": 5
       }
@@ -221,33 +221,15 @@
     "files": 305,
     "diffs": [],
     "stable": true,
-    "goldens": "refreshed",
+    "goldens": "verified",
     "baseline": "VCS-tracked (committed goldens; verify-only by default)"
   },
   "unparsed_queue": [
-    {
-      "oracle_id": "4c1c3a0a-5782-4b7d-8b9c-61eea913166d",
-      "name": "Transmogrify",
-      "sentence": "That creature's controller reveals cards from the top of their library until they reveal a creature card.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "4c1c3a0a-5782-4b7d-8b9c-61eea913166d",
-      "name": "Transmogrify",
-      "sentence": "That player puts that card onto the battlefield, then shuffles the rest into their library.",
-      "bucket_hint": "spell-effect"
-    },
     {
       "oracle_id": "63f60dfc-2bc4-411f-ae53-504156fe0102",
       "name": "Sanctum of All",
       "sentence": "If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "e0df8e2a-96d2-4e4d-b065-aa2e162abbfe",
-      "name": "Liliana, Waker of the Dead",
-      "sentence": "Each opponent who can't loses 3 life.",
-      "bucket_hint": "static"
     },
     {
       "oracle_id": "f5d1bd3c-0e65-4999-a810-881b2389b40e",
@@ -256,7 +238,7 @@
       "bucket_hint": "spell-effect"
     }
   ],
-  "unparsed_count": 5,
+  "unparsed_count": 2,
   "engine_support": {
     "engine_supported_cards": 297,
     "of_total": 305,
