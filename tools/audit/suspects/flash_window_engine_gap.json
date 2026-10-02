@@ -1,0 +1,37 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bg",
+   "real": "Masked Blackguard",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "cast",
+   "key": "bg",
+   "controller": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bg": "battlefield"
+  }
+ },
+ "mana": {
+  "0": {
+   "C": 3,
+   "B": 1
+  }
+ },
+ "status": "suspect",
+ "finding": "ENGINE GAP (red-as-intended since C4 2026-10-02). Printed FLASH (cast any time you could cast an instant) is never consulted: spell_window_reason(legality.py:1101-1118) takes only the SpellKind and CREATURE sits in _SORCERY_WINDOW_KINDS, so casting Masked Blackguard on the opponent's turn raises 'illegal cast: window:not_your_turn'. The compiler half is DONE (C4 emitted the SpellAbility(CREATURE) cast lane, the cast now reaches the window gate at all \u2014 before C4 it died at cast:not_a_spell). Fix requires an ENGINE change: spell_window_reason / spell_castable must consult the record's Keyword.FLASH (window bypass for FLASH-carrying permanents, CR 702.9a). Executor FROZEN in the compiler campaign; collect for the next engine batch."
+}

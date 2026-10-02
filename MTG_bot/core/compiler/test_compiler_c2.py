@@ -106,7 +106,7 @@ class TestC2CompilerPins(unittest.TestCase):
         CONTROLLER_IS — not the old bare filter the gate judged against
         the trigger source (wave-5a suspect)."""
         res = self._compile(_ADHERENT)
-        (ability,) = res.card.abilities
+        ability, _carrier = res.card.abilities  # + C4 effect-less cast carrier
         assert isinstance(ability, TriggeredAbility)
         cond = ability.condition
         assert isinstance(cond, FAtom)  # NOT FAnd: the quantifier leads
@@ -126,7 +126,7 @@ class TestC2CompilerPins(unittest.TestCase):
         the power filter is demanded (count=1); the printed 4 lives only
         in the POWER_GE filter (wave-3b off-by-one)."""
         res = self._compile(_ORNERY)
-        (ability,) = res.card.abilities
+        ability, _carrier = res.card.abilities  # + C4 effect-less cast carrier
         assert isinstance(ability, TriggeredAbility)
         cond = ability.condition
         assert isinstance(cond, FAtom)

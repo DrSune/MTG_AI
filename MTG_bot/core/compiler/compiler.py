@@ -1514,7 +1514,12 @@ def compile_card(
             abilities.append(ActivatedAbility(cost=Cost(parts=()), effect=eff))
             ability_srcs.append(src)
     elif is_creature:
-        # Creature: EffectOutcome → SpellAbility(CREATURE, effect)
+        # Creature: always a SpellAbility(CREATURE) — the cast lane.
+        # EffectOutcome folds into it when present; a plain creature with
+        # no effect sentence still gets an effect-less carrier (effect=None
+        # precedent: additional-costs cards, and grammar requires *some*
+        # SpellAbility for legality.cast — creatures cast through the SAME
+        # lane as instants; C4 roadmap batch 4).
         if effect_outcomes:
             combined = (
                 effect_outcomes[0]
@@ -1523,6 +1528,12 @@ def compile_card(
             )
             abilities.append(SpellAbility(kind=SpellKind.CREATURE, effect=combined))
             ability_srcs.append(max(effect_src))
+        else:
+            abilities.append(SpellAbility(kind=SpellKind.CREATURE))
+            # Synthetic carrier, not tied to a sentence — use the last
+            # sentence index so it can never masquerade as a "preceding"
+            # ability when anchoring activation gates.
+            ability_srcs.append(len(raw.sentences) - 1)
     else:
         # Instant/Sorcery/Enchantment/other: fold all effects into one
         # SpellAbility.

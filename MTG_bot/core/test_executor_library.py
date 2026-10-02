@@ -392,8 +392,11 @@ class TestFlipCoin(LibraryCase):
         gate is still judged off the executor's flip ledger."""
         rec = golden("Tavern Swindler")["abilities"]
         self.assertEqual(
-            [a["tag"] for a in rec], ["ActivatedAbility"]
-        )  # the SpellAbility row is GONE (capture)
+            [a["tag"] for a in rec], ["ActivatedAbility", "SpellAbility"]
+        )  # the 13a tail row is GONE (capture); the second row is the C4
+        # effect-less SpellAbility(CREATURE) cast carrier, not an effect.
+        self.assertNotIn("effect", rec[1])
+        self.assertEqual(rec[1]["kind"]["name"], "CREATURE")
         whole = from_dict("Seq", rec[0]["effect"])
         cond = whole.steps[1]  # IF(FLIP_WON) → GAIN_LIFE
         seed = next(s for s in range(60) if _flip_outcome(s)[1])  # a HEADS seed

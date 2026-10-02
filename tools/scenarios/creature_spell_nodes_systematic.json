@@ -1,0 +1,34 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bg",
+   "real": "Masked Blackguard",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "cast",
+   "key": "bg",
+   "real": "Masked Blackguard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 3,
+   "B": 1
+  }
+ },
+ "expect": {
+  "zone": {
+   "bg": "battlefield"
+  }
+ },
+ "notes": "repro: cast ANY plain creature from hand on your own turn. Promoted 2026-10-02 C4: compiler now emits SpellAbility(CREATURE) for every non-token creature (audited additive emission, 147 goldens); the cast lane legality.cast required since wave3b. Masked Blackguard's FLASH half is NOT covered here (own-turn cast only) \u2014 see flash_window_engine_gap.json."
+}

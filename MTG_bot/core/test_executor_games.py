@@ -553,15 +553,17 @@ class CrashLedgerTest(unittest.TestCase):
         with self.assertRaises(NotImplementedError) as cm:
             executor.apply_effect(grant, source=blade, controller=p0)
         self.assertIn("producer", str(cm.exception))
-        # …and the cast is the B-1 not_a_spell flag, not the B-9 referent
-        # raise (the crash moved to the ledger's castability row).
+        # …and a hand cast no longer trips the B-1 not_a_spell flag: C4
+        # gave the creature a cast-lane carrier, so legality now reaches
+        # the mana gate and fails there on an empty pool (the raise
+        # MOVED, it did not disappear — B-9 still resolves above).
         hand_spell = world.add_card(identity_of(blade_rec), p0, ZONE_HAND)
         world.active_player = p0
         executor.turn_open = True
         executor.phase = "FIRST_MAIN"
         with self.assertRaises(ValueError) as cm:
             cast(executor, p0, hand_spell, targets=(), decisions=())
-        self.assertIn("not_a_spell", str(cm.exception))
+        self.assertIn("cost:mana", str(cm.exception))
 
     def test_new_rest_one_of_designation_is_the_12c_gap(self) -> None:
         """AMENDED 14c (B-13 FIXED): the split-selection pair designates

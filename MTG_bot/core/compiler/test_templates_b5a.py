@@ -1926,10 +1926,14 @@ class TestEndToEndCompile(unittest.TestCase):
         )
         result = compile_card(raw, self.reg)
         # One activated ability, gate-attached, nothing unparsed
-        self.assertEqual(len(result.card.abilities), 1)
+        # (plus the C4 effect-less SpellAbility(CREATURE) cast carrier).
+        self.assertEqual(len(result.card.abilities), 2)
         ab = result.card.abilities[0]
         assert isinstance(ab, ActivatedAbility)
         self.assertIs(ab.timing, ActivationWindow.SORCERY)
+        carrier = result.card.abilities[1]
+        assert isinstance(carrier, SpellAbility)
+        self.assertIsNone(carrier.effect)
         self.assertEqual(len(result.unparsed), 0)
         self.assertEqual(len(result.rule_reminders), 0)
 
@@ -2225,8 +2229,11 @@ class TestB5aRound10Structures(unittest.TestCase):
         result = compile_card(raw, reg)
         self.assertEqual(len(result.unparsed), 0)
         self.assertEqual(len(result.ambiguities), 0)
-        self.assertEqual(len(result.card.abilities), 1)
+        # gate-attached activation + the C4 effect-less cast carrier.
+        self.assertEqual(len(result.card.abilities), 2)
         ab = result.card.abilities[0]
         assert isinstance(ab, ActivatedAbility)
+        assert isinstance(result.card.abilities[1], SpellAbility)
+        self.assertIsNone(result.card.abilities[1].effect)
         self.assertIs(ab.timing, ActivationWindow.SORCERY)
         self.assertIsNone(ab.condition)

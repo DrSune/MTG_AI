@@ -694,10 +694,14 @@ class TestContinuation(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         # The continuation was consumed into the static ability; no spell
-        # effect is left to fold.
+        # effect is left to fold (C4: the creature still carries its
+        # effect-less cast-lane carrier).
         self.assertEqual(
             res.card.abilities,
-            (StaticAbility(effect=Seq(steps=(_draw_atom(1), _draw_atom(2)))),),
+            (
+                StaticAbility(effect=Seq(steps=(_draw_atom(1), _draw_atom(2)))),
+                SpellAbility(kind=SpellKind.CREATURE),
+            ),
         )
 
     def test_may_continuation_stays_optional(self) -> None:
@@ -859,7 +863,10 @@ class TestContinuation(unittest.TestCase):
         )
 
     def test_search_shuffle_merges_into_activated_ability(self) -> None:
-        """B4 tutor shape: shuffle lands inside the ActivatedAbility's OptionalEffect."""
+        """B4 tutor shape: shuffle lands inside the ActivatedAbility's OptionalEffect.
+
+        C4: the creature fixture now also trails the effect-less
+        SpellAbility(CREATURE) cast carrier."""
         raw = _raw_card(
             "C",
             1,
@@ -889,7 +896,7 @@ class TestContinuation(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        self.assertEqual(len(res.card.abilities), 1)
+        self.assertEqual(len(res.card.abilities), 2)  # + C4 cast carrier
         ab = res.card.abilities[0]
         if not isinstance(ab, ActivatedAbility):
             self.fail(f"expected ActivatedAbility, got {type(ab).__name__}")
@@ -1117,6 +1124,8 @@ class TestTriggerTrailing(unittest.TestCase):
                     condition=None,
                     effect=Seq(steps=(_draw_atom(1), _draw_atom(2), _draw_atom(3))),
                 ),
+                # C4: plain creatures carry the effect-less cast lane.
+                SpellAbility(kind=SpellKind.CREATURE),
             ),
         )
 
@@ -1228,6 +1237,8 @@ class TestTriggerTrailing(unittest.TestCase):
                         else_effect=_draw_atom(2),
                     ),
                 ),
+                # C4: plain creatures carry the effect-less cast lane.
+                SpellAbility(kind=SpellKind.CREATURE),
             ),
         )
 
@@ -1269,9 +1280,11 @@ class TestTriggerTrailing(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        trigger, activated = res.card.abilities  # 14e: no SpellAbility left
+        trigger, activated, carrier = res.card.abilities  # + C4 cast carrier
         assert isinstance(trigger, TriggeredAbility)
         assert isinstance(activated, ActivatedAbility)
+        assert isinstance(carrier, SpellAbility)
+        self.assertIsNone(carrier.effect)  # effect-less CREATURE carrier
         # The trigger owns ONLY its own sentence (boundary half, intact).
         self.assertEqual(trigger.effect, _draw_atom(1))
         # 14e (B-17): the post-activated bare tail is the ACTIVATION's tail.
@@ -1380,7 +1393,8 @@ class TestActivationTrailing(unittest.TestCase):
 
     def test_plain_activation_owns_its_tail(self) -> None:
         """Swindler shape: {T}: Draw a card. / You draw another card. ->
-        ONE ActivatedAbility Seq, no SpellAbility tail."""
+        ONE ActivatedAbility Seq, no SpellAbility tail effect (the trailing
+        C4 node is the effect-less cast carrier, not an effect owner)."""
         raw = _raw_card(
             "S",
             71,
@@ -1395,9 +1409,11 @@ class TestActivationTrailing(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        (activated,) = res.card.abilities
+        activated, carrier = res.card.abilities  # + C4 cast carrier
         assert isinstance(activated, ActivatedAbility)
         self.assertEqual(activated.effect, Seq(steps=(_draw_atom(1), _draw_atom(2))))
+        assert isinstance(carrier, SpellAbility)
+        self.assertIsNone(carrier.effect)
 
     def test_permission_row_is_transparent_boundary(self) -> None:
         """The exemption: activation / OPT(CAST) permission / bare tail ->
@@ -1425,9 +1441,11 @@ class TestActivationTrailing(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        activation, permission = res.card.abilities
+        activation, permission, carrier = res.card.abilities  # + C4 carrier
         assert isinstance(activation, ActivatedAbility)
         assert isinstance(permission, ActivatedAbility)
+        assert isinstance(carrier, SpellAbility)
+        self.assertIsNone(carrier.effect)
         # The activation owns the tail…
         self.assertEqual(activation.effect, Seq(steps=(_draw_atom(1), _draw_atom(2))))
         # …and the permission row is untouched, still alone its OPT(CAST).
@@ -1548,16 +1566,19 @@ class TestRound14fFidelity(unittest.TestCase):
             if res.card.name == "Waker of Waves"
         ]
         kinds = [type(a).__name__ for a in waker.abilities]
-        self.assertEqual(kinds, ["StaticAbility", "ActivatedAbility"])
+        self.assertEqual(kinds, ["StaticAbility", "ActivatedAbility", "SpellAbility"])
         static = waker.abilities[0]
         assert isinstance(static, StaticAbility)
         atom = static.effect
         assert isinstance(atom, Atom)
         self.assertIs(atom.verb, Verb.MODIFY_PT)
         self.assertIsNone(atom.args.get("duration"))  # continuous, not timed
-        # no SpellAbility node: the miscompile is GONE (card joins the B-1
-        # not-castable set, 14e precedent — measured in the re-run).
-        self.assertFalse(any(isinstance(a, SpellAbility) for a in waker.abilities))
+        # C4: the miscompile stays GONE — the trailing SpellAbility is the
+        # effect-less CREATURE cast carrier, NOT the old tail-effect node.
+        carrier = waker.abilities[2]
+        assert isinstance(carrier, SpellAbility)
+        self.assertIsNone(carrier.effect)
+        self.assertIs(carrier.kind, SpellKind.CREATURE)
         # the 14e activation capture is untouched by the re-wrap
         activation = waker.abilities[1]
         assert isinstance(activation, ActivatedAbility)
@@ -2452,6 +2473,8 @@ class TestChooseOpener(unittest.TestCase):
                         options=(_draw_atom(1), _destroy_atom()),
                     ),
                 ),
+                # C4: plain creatures carry the effect-less cast lane.
+                SpellAbility(kind=SpellKind.CREATURE),
             ),
         )
 
@@ -2484,6 +2507,8 @@ class TestChooseOpener(unittest.TestCase):
                     condition=None,
                     effect=choose,
                 ),
+                # C4: plain creatures carry the effect-less cast lane.
+                SpellAbility(kind=SpellKind.CREATURE),
             ),
         )
 
@@ -2638,7 +2663,7 @@ class TestChooseOpenerM21(unittest.TestCase):
 
     def test_etb_shape(self) -> None:
         res = self._compile("Trufflesnout")
-        self.assertEqual(len(res.card.abilities), 1)
+        self.assertEqual(len(res.card.abilities), 2)  # trigger + C4 cast carrier
         ab = _triggered(res.card.abilities[0])
         event = ab.event
         assert isinstance(event, ZoneChangeEvent)

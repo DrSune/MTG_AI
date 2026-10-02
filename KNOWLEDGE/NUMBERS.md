@@ -12,6 +12,23 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
 | PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, refreshed) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.248 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0929** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **297/305** (0.9738) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 45 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-10-02 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.244 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0929** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
@@ -2657,3 +2674,15 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | catalog | **2/10 diverged → repin → 0/10** | `tools/traces/catalog.py compare` / `build` | attribution clean: seed 1 = Transmogrify in deck, seed 7 = Waker+Transmogrify; other 8 seeds byte-identical |
 | games | **100 seeds, 86 survived, 0 crash classes** | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all` | = baseline; mean_turns 57.69; reports/games_2026-10-02.json |
 | lints | pyright **0 errors** on touched files; ruff **Δ0** (68 = baseline incl. new file) | `pyright` / `ruff check` | engine frozen, zero engine edits |
+
+## 2026-10-02 (compiler campaign C4 — creature cast lane: SpellAbility(CREATURE) for all 147 plain creatures)
+
+| Item | Number | Command | Note |
+|---|---|---|---|
+| golden set-equality | **147 goldens moved, keys={abilities} only, 158 byte-identical** (each mover = pre-list + exactly ONE appended effect-less `SpellAbility(CREATURE)`; src=len(sentences)-1) | `/tmp/opencode/c4_inventory_audit.py` vs `/tmp/golden_pre_c4` | roadmap "163" was a grep count incl. **16 token creatures** (correctly untouched); Goremand/Sparkhunter falsified as additional-costs carriers — byte-identical, no duplicate node |
+| grammar | PC-3 **0** · PC-4 **0** (305 refreshed) · PC-1 303/305 · PC-2 637/639 Δ0 · **PC-8 0.3213 Δ0** (honest: effect-less carrier has no targets) | `tools/measure_grammar.py --set M21 --refresh-goldens --with-engine-flags` | refreshed tree byte-equal to audited compile (`diff -r` clean) |
+| scenarios | **293/293 passed**; suspects **0/9** | `tools/run_scenarios.py` [+ `--dir tools/audit/suspects`] | `creature_spell_nodes_systematic` promoted; NEW red `flash_window_engine_gap` (legality.py:1101 no keyword consult, CR 702.9a); wildwood finding extended (lane opens, QX=engine EtBState half) |
+| suite | **2290 passed + 3 subtests, 0 failed** | `.venv/bin/python -m pytest MTG_bot/core -q` | 2284 + 6 test_compiler_c4.py pins; 18 honest falsifications amended (carrier append); B9 pin: raise MOVED `not_a_spell`→`cost:mana` |
+| catalog | **10/10 diverged → repin → 0/10** | `tools/traces/catalog.py compare` / `repin` | every first-divergence = new CAST entry; outcomes flip cap→decisive kill = intended blast radius |
+| games | **83 decisive game-overs (first campaign games END; mean_turns 31.05 vs 57.69), 17 crash games / 7 classes** (baseline 0) | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all` | ALL 7 attributed executor-half (TARGETS_SOURCE×5, target-prompt×3, QX×3 = wildwood, tripwire×2 guard, GAIN_LIFE layer×2, event-register×1, Radha land-cast×1 legality guard); zero compiler-emission defects; engine frozen |
+| lints | pyright **0 errors** (8 touched files); ruff **Δ0** (per-file multisets = HEAD) | `pyright` / `ruff check` | ruff compares MUST copy HEAD copies inside the repo (config differs outside root) |

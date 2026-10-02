@@ -1723,7 +1723,12 @@ class TestEndToEndCompile(unittest.TestCase):
             toughness_raw="3",
         )
         result = compile_card(raw, self.reg)
-        self.assertEqual(len(result.card.abilities), 0)
+        # C4: the keyword itself stays off the ability list; the only node
+        # is the effect-less SpellAbility(CREATURE) cast carrier.
+        self.assertEqual(len(result.card.abilities), 1)
+        carrier = result.card.abilities[0]
+        assert isinstance(carrier, SpellAbility)
+        self.assertIsNone(carrier.effect)
         self.assertEqual(len(result.card.keywords), 1)
         self.assertEqual(result.card.keywords[0].keyword, Keyword.REACH)
         self.assertEqual(len(result.unparsed), 0)
