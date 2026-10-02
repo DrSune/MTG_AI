@@ -83,11 +83,8 @@ from MTG_bot.core.ability_tree import (
     AtomArgs,
     CardRecord,
     ControllerRef,
-    Effect,
     QConst,
     Quantity,
-    Selector,
-    SelectorMode,
     SpellAbility,
     Verb,
     Zone,
@@ -102,9 +99,9 @@ from MTG_bot.core.executor.query import (
     ActivationOption,
     CastOption,
     TargetSlot,
+    activation_target_slots,
     legal_activations,
     legal_casts,
-    legal_targets,
     spell_target_slots,
     validate_target_selection,
 )
@@ -530,16 +527,17 @@ class RandomPolicy:
         executor = game.executor
         name = game.name_of(option.source)
         game.attempted = f"act:{name}#{option.ability_idx}"
-        slots = [
-            legal_targets(
-                executor.world,
+        # r23a (Liliana's Steward): the activation twin of the spell lane's
+        # slot question — TARGET-mode Selectors AND the synthesized
+        # TARGET_PLAYER coordinate the old Selector-only walk was blind to.
+        slots = list(
+            activation_target_slots(
                 executor,
-                selector,
+                option.ability.effect,
                 source=option.source,
-                controller=seat,
+                seat=seat,
             )
-            for selector in self._target_selectors(option.ability.effect)
-        ]
+        )
         if len(slots) > 1:
             game.multi_target_skips += 1
             game.unsupported_rows.add((option.source, option.ability_idx))
@@ -565,26 +563,6 @@ class RandomPolicy:
                 tuple(targets),
                 f"#{option.ability_idx}",
             )
-
-    @staticmethod
-    def _target_selectors(effect: Effect | None) -> tuple[Selector, ...]:
-        """The TARGET-mode selectors of an ACTIVATED ability — the per-slot
-        question :func:`spell_target_slots` asks for a spell, asked here against
-        the IR object the ``ActivationOption`` already carries."""
-        seen: list[Selector] = []
-        if effect is None:  # pragma: no cover - ActivatedAbility.effect is required
-            return ()
-        for node in walk(effect):
-            if not isinstance(node, Atom):
-                continue
-            for _role, value in node.args.pairs:
-                if (
-                    isinstance(value, Selector)
-                    and value.mode is SelectorMode.TARGET
-                    and not any(value == other for other in seen)
-                ):
-                    seen.append(value)
-        return tuple(seen)
 
     # -- the turn
     def take_acts(self, game: Game, seat: Handle) -> None:

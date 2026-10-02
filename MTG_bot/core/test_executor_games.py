@@ -999,11 +999,15 @@ class Round14cFixTest(unittest.TestCase):
         # r19b AMENDMENT: TURN_OF moved out of this role — Discontinuity's
         # cost window made the grammar demand it, and it answers from the
         # active-seat column (no journal), so a bare ctx cannot keep it
-        # loud; its regression lives in test_executor_r19b. TARGETS_SOURCE
-        # is the same-shaped honest raise (no slot, no implementation).
-        with self.assertRaises(NotImplementedError) as cm:
-            eval_filter(FAtom(FAtomPred.TARGETS_SOURCE), card, bare)
-        self.assertIn("TARGETS_SOURCE", str(cm.exception))
+        # loud; its regression lives in test_executor_r19b.
+        # r23a AMENDMENT: TARGETS_SOURCE moved out of THIS role too — the
+        # Pursued Whale cost-fold crash class demanded it, and it now
+        # answers as the IS_ANY_TARGET mirror (does the judged object's
+        # designation contain the ctx's SOURCE). A bare ctx designates
+        # NOTHING, so the documented pre-declaration reading is a
+        # conservative False (no designation can hold the source); the
+        # True/False fold behaviour is pinned in test_executor_r23a.
+        self.assertFalse(eval_filter(FAtom(FAtomPred.TARGETS_SOURCE), card, bare))
 
     def test_new_zone_stack_runtime_enumeration_raises(self) -> None:
         """B-19 — FIXED 14d. AMENDED 14d (was: an Unsubstantiate-shape

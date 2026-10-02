@@ -241,7 +241,27 @@ class LayerRegistry:
                 self._new("keyword", handle, controller, node, (handle,))
                 count += 1
             elif isinstance(node, StaticAbility):
-                count += len(self._new_static(handle, node, controller=controller))
+                try:
+                    count += len(self._new_static(handle, node, controller=controller))
+                except NotImplementedError as e:
+                    # r23a (Rin and Seri, Inseparable): a static whose
+                    # payload is not layer-parseable (12e — GAIN_LIFE) must
+                    # NOT kill the game. _new_static keeps raising by
+                    # design (the unit contract: a layer question never
+                    # gets a silent guess), but a permanent entering with a
+                    # compiler-mis-shaped static half should lose THAT
+                    # half, not the match. This is a LOUD refusal: the
+                    # skipped static is recorded on the executor
+                    # (unparseable_statics — coverage-visible, and the
+                    # card's own suspect file carries the compiler
+                    # attribution). Only the parseability flag is caught —
+                    # any other NotImplementedError still propagates.
+                    if "not layer-parseable" not in str(e):
+                        raise
+                    flag = f"{handle}: {e}"
+                    sink = getattr(self.executor, "unparseable_statics", None)
+                    if sink is not None and flag not in sink:
+                        sink.append(flag)
         return count
 
     def detach_source(self, handle: Handle) -> int:

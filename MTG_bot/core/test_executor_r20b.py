@@ -522,29 +522,35 @@ class R20bCase(unittest.TestCase):
             "the disclosure fact is registered, anchored to the source",
         )
 
-    def test_gain_life_static_still_raises(self):
-        # Flag-not-degrade: the Rin and Seri compiler mis-split (activation
-        # tail compiled as a bare StaticAbility) must keep its loud raise —
-        # a static life-gain has no rules-meaningful evaluation schedule.
+    def test_gain_life_static_is_guarded_and_flagged(self):
+        # AMENDED r23a (2026-10-02): flag-not-degrade stands, but the
+        # raise-at-attach KILLED GAMES (Rin and Seri's cast lane,
+        # reports/games_2026-10-02.json). The refusal stays LOUD — it is
+        # RECORDED, not thrown: the permanent enters, and the
+        # unparseable static (compiler mis-split half — the suspect file
+        # keeps the attribution) lands in executor.unparseable_statics
+        # for coverage to see. No silent skip anywhere.
         card = self._card("Mis-Split Legend")
-        with self.assertRaises(NotImplementedError):
-            self.ex.attach_card(
-                card,
-                record_of(
-                    [
-                        StaticAbility(
-                            effect=atom(
-                                Verb.GAIN_LIFE,
-                                amount=QConst(1),
-                                controller=ControllerRef.YOU,
-                            ),
-                            condition=None,
-                        )
-                    ],
-                    name="Mis-Split Legend",
-                    oid=self.world.cards[card].identity.oracle_id,
-                ),
-            )
+        self.ex.attach_card(
+            card,
+            record_of(
+                [
+                    StaticAbility(
+                        effect=atom(
+                            Verb.GAIN_LIFE,
+                            amount=QConst(1),
+                            controller=ControllerRef.YOU,
+                        ),
+                        condition=None,
+                    )
+                ],
+                name="Mis-Split Legend",
+                oid=self.world.cards[card].identity.oracle_id,
+            ),
+        )
+        self.assertEqual(len(self.ex.unparseable_statics), 1)
+        self.assertIn("GAIN_LIFE", self.ex.unparseable_statics[0])
+        self.assertIn(str(card), self.ex.unparseable_statics[0])
 
 
 if __name__ == "__main__":  # pragma: no cover

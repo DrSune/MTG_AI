@@ -5,19 +5,19 @@
  "playable_engine": 235,
  "n_games": 100,
  "turn_cap": 60,
- "survived": 0,
- "survival_pct": 0.0,
- "mean_turns": 31.05,
- "max_turns": 53,
- "total_acts": 6497,
- "multi_target_skips": 24,
- "infeasible_skips": 202,
- "player_target_designations": 18,
- "combat_losses": 82,
- "coverage_fired": 223,
- "coverage_fired_of_pool_pct": 75.4,
- "coverage_fired_of_engine_pct": 77.6,
- "coverage_battlefield": 164,
+ "survived": 1,
+ "survival_pct": 1.0,
+ "mean_turns": 33.49,
+ "max_turns": 60,
+ "total_acts": 7004,
+ "multi_target_skips": 26,
+ "infeasible_skips": 212,
+ "player_target_designations": 17,
+ "combat_losses": 99,
+ "coverage_fired": 230,
+ "coverage_fired_of_pool_pct": 77.5,
+ "coverage_fired_of_engine_pct": 79.8,
+ "coverage_battlefield": 161,
  "fired_of_engine": [
   "Adherent of Hope",
   "Alchemist's Gift",
@@ -32,6 +32,7 @@
   "Bad Deal",
   "Baneslayer Angel",
   "Basri's Acolyte",
+  "Basri's Aegis",
   "Basri's Lieutenant",
   "Basri's Solidarity",
   "Battle-Rattle Shaman",
@@ -125,6 +126,7 @@
   "Liliana's Steward",
   "Llanowar Visionary",
   "Lorescale Coatl",
+  "Makeshift Battalion",
   "Mangara, the Diplomat",
   "Masked Blackguard",
   "Massacre Wurm",
@@ -157,6 +159,7 @@
   "Ranger's Guile",
   "Read the Tides",
   "Revitalize",
+  "Rin and Seri, Inseparable",
   "Rise Again",
   "Roaming Ghostlight",
   "Rugged Highlands",
@@ -198,12 +201,14 @@
   "Swiftwater Cliffs",
   "Tavern Swindler",
   "Teferi's Protege",
+  "Teferi's Wavecaster",
   "Tempered Veteran",
   "Temple of Epiphany",
   "Temple of Malady",
   "Temple of Mystery",
   "Temple of Silence",
   "Temple of Triumph",
+  "Terror of the Peaks",
   "Thieves' Guild Enforcer",
   "Thornwood Falls",
   "Thrashing Brontodon",
@@ -226,6 +231,7 @@
   "Vito, Thorn of the Dusk Rose",
   "Vodalian Arcanist",
   "Volcanic Geyser",
+  "Volcanic Salvo",
   "Vryn Wingmare",
   "Waker of Waves",
   "Walking Corpse",
@@ -235,208 +241,11 @@
   "Wind-Scarred Crag",
   "Wishcoin Crab"
  ],
- "crash_games": 17,
- "crashes": [
-  {
-   "exc": "NotImplementedError",
-   "message": "executor: filter pred TARGETS_SOURCE not implemented (12c query surface)",
-   "frame": "quantity.py:1398 in _eval_atom",
-   "count": 5,
-   "seeds": [
-    4,
-    26,
-    31,
-    33,
-    95
-   ],
-   "cards": [
-    "T34.act:Forest(#0)",
-    "T34.act:Island(#0)",
-    "T34.cast:Traitorous Greed(1t)",
-    "T34.end",
-    "act:Island#0",
-    "cast:Pursued Whale",
-    "cast:Siege Striker",
-    "cast:Terror of the Peaks"
-   ],
-   "attempted": "cast:Pursued Whale",
-   "recent_acts": [
-    "act:Dismal Backwater(#2)",
-    "act:Mountain(#0)",
-    "cast:Pursued Whale(0t)"
-   ],
-   "stack": [],
-   "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 4"
-  },
-  {
-   "exc": "ValueError",
-   "message": "executor: TARGET_PLAYER needs a bound target (12c target prompt)",
-   "frame": "selectors.py:90 in players_for_ref",
-   "count": 3,
-   "seeds": [
-    15,
-    65,
-    92
-   ],
-   "cards": [
-    "T29.cast:Kitesail Freebooter(0t)",
-    "T29.cast:Liliana's Steward(0t)",
-    "T29.land:Temple of Epiphany",
-    "T7.end",
-    "T8.act:Animal Sanctuary(#0)",
-    "T8.act:Jungle Hollow(#2)",
-    "T8.cast:Liliana's Steward(0t)",
-    "act:Liliana's Steward#0"
-   ],
-   "attempted": "act:Liliana's Steward#0",
-   "recent_acts": [
-    "land:Temple of Epiphany",
-    "cast:Liliana's Steward(0t)",
-    "cast:Kitesail Freebooter(0t)"
-   ],
-   "stack": [],
-   "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 15"
-  },
-  {
-   "exc": "NotImplementedError",
-   "message": "executor: QX has no declared X (cast(x=...) binds it; 12c cost-context flag)",
-   "frame": "quantity.py:328 in resolve",
-   "count": 3,
-   "seeds": [
-    16,
-    18,
-    20
-   ],
-   "cards": [
-    "T5.act:Plains(#0)",
-    "T5.act:Prismite(#0)",
-    "T5.cast:Prismite(0t)",
-    "T9.act:Azusa, Lost but Seeking(#0)",
-    "T9.act:Blossoming Sands(#2)",
-    "T9.act:Island(#0)",
-    "T9.cast:Keen Glidemaster(0t)",
-    "cast:Wildwood Scourge"
-   ],
-   "attempted": "cast:Wildwood Scourge",
-   "recent_acts": [
-    "act:Blossoming Sands(#2)",
-    "cast:Keen Glidemaster(0t)",
-    "act:Azusa, Lost but Seeking(#0)"
-   ],
-   "stack": [],
-   "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 16"
-  },
-  {
-   "exc": "RuntimeError",
-   "message": "executor: trigger-loop tripwire \u2014 one drain resolved 200 triggers and the queue is still growing (self-retriggering loop: flag it, never run it)",
-   "frame": "binding.py:1061 in fire_all",
-   "count": 2,
-   "seeds": [
-    17,
-    50
-   ],
-   "cards": [
-    "T30.end",
-    "T31.land:Forest",
-    "T36.act:Temple of Silence(#2)",
-    "T36.end",
-    "T37.end",
-    "T38.act:Swiftwater Cliffs(#2)",
-    "cast:Turn to Slag",
-    "cast:Turret Ogre"
-   ],
-   "attempted": "cast:Turn to Slag",
-   "recent_acts": [
-    "act:Blossoming Sands(#2)",
-    "act:Temple of Silence(#2)",
-    "act:Swiftwater Cliffs(#2)"
-   ],
-   "stack": [],
-   "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 17"
-  },
-  {
-   "exc": "NotImplementedError",
-   "message": "executor: StaticAbility payload verb GAIN_LIFE is not layer-parseable (12e)",
-   "frame": "layers.py:492 in _new_static",
-   "count": 2,
-   "seeds": [
-    42,
-    79
-   ],
-   "cards": [
-    "T15.end",
-    "T16.end",
-    "T17.end",
-    "T40.cast:Fungal Rebirth(1t)",
-    "T40.end",
-    "T41.act:Bloodfell Caves(#2)",
-    "T41.act:Plains(#0)",
-    "cast:Rin and Seri, Inseparable"
-   ],
-   "attempted": "cast:Rin and Seri, Inseparable",
-   "recent_acts": [
-    "act:Island(#0)",
-    "cast:Basri's Acolyte(0t)",
-    "cast:Historian of Zhalfir(0t)"
-   ],
-   "stack": [],
-   "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 42"
-  },
-  {
-   "exc": "NotImplementedError",
-   "message": "executor: selector referent 'event' has no register \u2014 no trigger firing bound one and no producer atom wrote one in this execution",
-   "frame": "selectors.py:275 in resolve_selector",
-   "count": 1,
-   "seeds": [
-    5
-   ],
-   "cards": [
-    "T46.end",
-    "T47.end",
-    "T47.land:Plains",
-    "T48.end",
-    "land:Plains"
-   ],
-   "attempted": "land:Plains",
-   "recent_acts": [
-    "act:Mountain(#0)",
-    "act:Swamp(#0)",
-    "land:Plains"
-   ],
-   "stack": [],
-   "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 5"
-  },
-  {
-   "exc": "ValueError",
-   "message": "executor: CAST Island: no SpellAbility on the card",
-   "frame": "stack.py:726 in cast_card",
-   "count": 1,
-   "seeds": [
-    90
-   ],
-   "cards": [
-    "T25.end",
-    "T26.act:Mountain(#0)",
-    "T26.act:Thornwood Falls(#2)",
-    "T26.cast:Radha, Heart of Keld(0t)",
-    "act:Radha, Heart of Keld#1"
-   ],
-   "attempted": "act:Radha, Heart of Keld#1",
-   "recent_acts": [
-    "act:Mountain(#0)",
-    "act:Thornwood Falls(#2)",
-    "cast:Radha, Heart of Keld(0t)"
-   ],
-   "stack": [],
-   "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 90"
-  }
- ],
+ "crash_games": 0,
+ "crashes": [],
  "reasons": {
-  "game over: player:0": 39,
-  "game over: player:1": 44,
-  "crash:NotImplementedError": 11,
-  "crash:ValueError": 4,
-  "crash:RuntimeError": 2
+  "game over: player:0": 48,
+  "game over: player:1": 52
  },
  "rows": [
   {
@@ -449,7 +258,7 @@
    "fired": 13,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "3511a868bb4412d4c5172629516ec3e045b81133232d8ce87a5d4bea712a5371",
+   "fingerprint": "25b75f8d12c7c82a1e0170384c9e2086c6a936cc62a2fb8d2d67c792a7bc2a87",
    "crash": null
   },
   {
@@ -462,7 +271,7 @@
    "fired": 20,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "39e8d765279c761fd14aeda5cb57a99acbc7925614f0a3672e88b242c7b77d5b",
+   "fingerprint": "caaed7aefeffaa36d2ee2a71cfaeeb768f89c4323c58b1084dd78725647f8c1c",
    "crash": null
   },
   {
@@ -475,7 +284,7 @@
    "fired": 17,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "c5031593019952b9ebdd17a6f9c19561a7b5a73b023ee570c8530cdd29714b13",
+   "fingerprint": "3e07564d4b76f01e81e769c7ccce5cb34c7dfdd43ada691de677d550a73a0d44",
    "crash": null
   },
   {
@@ -488,60 +297,34 @@
    "fired": 16,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "717e53e3fc60f883556bfbd80429973a77c433c2ba09bfeffa492f58c84d8ef0",
+   "fingerprint": "7e4de9bc91623912f61f2a5111f443ebb974a0c1f8ada2110016ce8e8a3cd6f7",
    "crash": null
   },
   {
    "seed": 4,
    "pool": "all",
-   "turns": 20,
+   "turns": 22,
    "survived": false,
-   "reason": "crash:NotImplementedError",
-   "acts": 43,
-   "fired": 11,
-   "combat_losses": 0,
+   "reason": "game over: player:0(life<=0)",
+   "acts": 48,
+   "fired": 13,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "2dd95d4c193fd9ec48ee9fabc1bfc092e43e2a5cdc753668c876f14a4ca8181e",
-   "crash": {
-    "exc": "NotImplementedError",
-    "message": "executor: filter pred TARGETS_SOURCE not implemented (12c query surface)",
-    "frame": "quantity.py:1398 in _eval_atom",
-    "turn": 20,
-    "attempted": "cast:Pursued Whale",
-    "recent_acts": [
-     "act:Dismal Backwater(#2)",
-     "act:Mountain(#0)",
-     "cast:Pursued Whale(0t)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 4"
-   }
+   "fingerprint": "f7071fa831bd76cea3111bf6ccc29061163802ec2c0835b66fb0c5604623d160",
+   "crash": null
   },
   {
    "seed": 5,
    "pool": "all",
-   "turns": 47,
+   "turns": 49,
    "survived": false,
-   "reason": "crash:NotImplementedError",
-   "acts": 135,
+   "reason": "game over: player:1(life<=0)",
+   "acts": 136,
    "fired": 24,
-   "combat_losses": 0,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "9b81a1f04153c87f4bf8a2e0ec47af2003d21615c83b7e4578bc6642c670136b",
-   "crash": {
-    "exc": "NotImplementedError",
-    "message": "executor: selector referent 'event' has no register \u2014 no trigger firing bound one and no producer atom wrote one in this execution",
-    "frame": "selectors.py:275 in resolve_selector",
-    "turn": 47,
-    "attempted": "land:Plains",
-    "recent_acts": [
-     "act:Mountain(#0)",
-     "act:Swamp(#0)",
-     "land:Plains"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 5"
-   }
+   "fingerprint": "fbf1885e24ec0851e0a12031c82b6c2ed91e8860d983069bc9c153b8b271c5ea",
+   "crash": null
   },
   {
    "seed": 6,
@@ -553,7 +336,7 @@
    "fired": 5,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "1986e7a9919c1751c42a9cbf94fec5e9c1bd017afefb59c5c0a547a0eb495b6d",
+   "fingerprint": "87c8566b4d1087eb97cc64574e16ebc596600b52aa71d21c0438365250fc1719",
    "crash": null
   },
   {
@@ -566,7 +349,7 @@
    "fired": 23,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "821d7e60eb57f9bd15c691e3370bbfb11a543dad1b8688057d7bcc5df37b95dc",
+   "fingerprint": "1bd7a0eb0fc22dbebc66b1935d87d6bd650ab4028a2f95ab81c6fbb0110cd12e",
    "crash": null
   },
   {
@@ -579,7 +362,7 @@
    "fired": 14,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "2fe8b4538d9b1ed9ac2dc9e2dca38d1063b94a4532bb422ff3b0c6d62bd4e0bd",
+   "fingerprint": "6709bc7c77329a414002e22f7ab7fc018babdeada16ce339d99a503c4b613041",
    "crash": null
   },
   {
@@ -592,7 +375,7 @@
    "fired": 12,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "3fba296ce49757ffbacf28725b271e3221e2c64e64ba6db673f772a5f3f73862",
+   "fingerprint": "8572ce94e6bb593bb998c7f08572d028f7038be95cbeac3a7606d1964a58c98a",
    "crash": null
   },
   {
@@ -605,7 +388,7 @@
    "fired": 12,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "96534d2333655d909f5255118bf63953d702a00b22ba4e2521afbbb2113ca3e6",
+   "fingerprint": "33cbb6ea2d396a5165202fd170006c08c73251a563538b11cb562d499d025d82",
    "crash": null
   },
   {
@@ -618,7 +401,7 @@
    "fired": 23,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "0060c34557e08e41027932020e104577ec787b8a57d438f3bacce2778cb0c85a",
+   "fingerprint": "c16626f588dfd6dcac1fe105a63efe87a53d3833f83c123f553264b3dd6e6d96",
    "crash": null
   },
   {
@@ -631,7 +414,7 @@
    "fired": 12,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "f054aec11ec6ae5ad20ff1573a51626083163523c06b9ac1e878a41906bee532",
+   "fingerprint": "1419b2a368448d27ddbc615e504f0dd0e474d1067f7774b8cabb9510df95e7c1",
    "crash": null
   },
   {
@@ -644,7 +427,7 @@
    "fired": 20,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "aa1cdf14f8b205340375b18cc9dbf9bdf30a3d4e497b7806e9a5703c989a83e2",
+   "fingerprint": "68f924dc95f40487e0ec744c30e1121fa9f8d2332a29be28e65f32fae68755e7",
    "crash": null
   },
   {
@@ -657,112 +440,60 @@
    "fired": 16,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "7c7e6c20970bcb8db504d9ab74ab4f56f7f2ba2c3aedcb1fcd7b7bf29eec4f76",
+   "fingerprint": "70b22e448b297a51f371af0f5f846018e6c8222fe27f607f4db6ce08e09c2476",
    "crash": null
   },
   {
    "seed": 15,
    "pool": "all",
-   "turns": 28,
+   "turns": 35,
    "survived": false,
-   "reason": "crash:ValueError",
-   "acts": 90,
-   "fired": 20,
-   "combat_losses": 0,
+   "reason": "game over: player:1(life<=0)",
+   "acts": 121,
+   "fired": 25,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "ce7ba13989dde3c6d5a75909b16dad12e0299fe7fc1d8312fbd495751756df8a",
-   "crash": {
-    "exc": "ValueError",
-    "message": "executor: TARGET_PLAYER needs a bound target (12c target prompt)",
-    "frame": "selectors.py:90 in players_for_ref",
-    "turn": 28,
-    "attempted": "act:Liliana's Steward#0",
-    "recent_acts": [
-     "land:Temple of Epiphany",
-     "cast:Liliana's Steward(0t)",
-     "cast:Kitesail Freebooter(0t)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 15"
-   }
+   "fingerprint": "a646ebe5ac038362f763566f4b994adf07903ae77d9925c8d334acf7dcfbf151",
+   "crash": null
   },
   {
    "seed": 16,
    "pool": "all",
-   "turns": 8,
+   "turns": 54,
    "survived": false,
-   "reason": "crash:NotImplementedError",
-   "acts": 21,
-   "fired": 4,
-   "combat_losses": 0,
+   "reason": "game over: player:0(life<=0)",
+   "acts": 107,
+   "fired": 24,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "642c103d1f9581a4510bb8828eb2d253c6a95577aabf69bd4b06a8fab225b764",
-   "crash": {
-    "exc": "NotImplementedError",
-    "message": "executor: QX has no declared X (cast(x=...) binds it; 12c cost-context flag)",
-    "frame": "quantity.py:328 in resolve",
-    "turn": 8,
-    "attempted": "cast:Wildwood Scourge",
-    "recent_acts": [
-     "act:Blossoming Sands(#2)",
-     "cast:Keen Glidemaster(0t)",
-     "act:Azusa, Lost but Seeking(#0)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 16"
-   }
+   "fingerprint": "f1edbbde9a4f4b0085376cd7b34518406fcf65b36a0cb240e06e6412c09ba394",
+   "crash": null
   },
   {
    "seed": 17,
    "pool": "all",
-   "turns": 37,
-   "survived": false,
-   "reason": "crash:RuntimeError",
-   "acts": 56,
-   "fired": 17,
-   "combat_losses": 0,
+   "turns": 60,
+   "survived": true,
+   "reason": "game over: player:0(life<=0)",
+   "acts": 105,
+   "fired": 26,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "3bfe9584aa87fa21f74019e5ab5f7367c1f2fca37ae6a24539bcdd077bfb5f80",
-   "crash": {
-    "exc": "RuntimeError",
-    "message": "executor: trigger-loop tripwire \u2014 one drain resolved 200 triggers and the queue is still growing (self-retriggering loop: flag it, never run it)",
-    "frame": "binding.py:1061 in fire_all",
-    "turn": 37,
-    "attempted": "cast:Turn to Slag",
-    "recent_acts": [
-     "act:Blossoming Sands(#2)",
-     "act:Temple of Silence(#2)",
-     "act:Swiftwater Cliffs(#2)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 17"
-   }
+   "fingerprint": "48b586b3cd700e2b74949769277b4de6bdcd2d20c65dee981812ffe99331f1fc",
+   "crash": null
   },
   {
    "seed": 18,
    "pool": "all",
-   "turns": 4,
+   "turns": 35,
    "survived": false,
-   "reason": "crash:NotImplementedError",
-   "acts": 9,
-   "fired": 3,
-   "combat_losses": 0,
+   "reason": "game over: player:1(life<=0)",
+   "acts": 67,
+   "fired": 14,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "7c09b0340bd9318e3674bc3f69dcd896eff77bcda2843ab15de7cb13b3bc5b43",
-   "crash": {
-    "exc": "NotImplementedError",
-    "message": "executor: QX has no declared X (cast(x=...) binds it; 12c cost-context flag)",
-    "frame": "quantity.py:328 in resolve",
-    "turn": 4,
-    "attempted": "cast:Wildwood Scourge",
-    "recent_acts": [
-     "act:Island(#0)",
-     "cast:Prismite(0t)",
-     "act:Prismite(#0)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 18"
-   }
+   "fingerprint": "455ef15e7e51289c3cbdf8f0a824b71cd48d5e8004ad8da706c890041eb57f0f",
+   "crash": null
   },
   {
    "seed": 19,
@@ -774,34 +505,21 @@
    "fired": 10,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "217d2070d211b5f06a7c975e7f93c7b4656a8481a85e790e0c17e083f9f01177",
+   "fingerprint": "30069d0e85c7c4911cf832d1858f84091484b82baa3c9d28371d92270b217be8",
    "crash": null
   },
   {
    "seed": 20,
    "pool": "all",
-   "turns": 25,
+   "turns": 29,
    "survived": false,
-   "reason": "crash:NotImplementedError",
-   "acts": 59,
-   "fired": 15,
-   "combat_losses": 0,
+   "reason": "game over: player:1(life<=0)",
+   "acts": 65,
+   "fired": 18,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "948991e4703763ca8903982728df99582044be4b90b65fa0ba8efcc532813b49",
-   "crash": {
-    "exc": "NotImplementedError",
-    "message": "executor: QX has no declared X (cast(x=...) binds it; 12c cost-context flag)",
-    "frame": "quantity.py:328 in resolve",
-    "turn": 25,
-    "attempted": "cast:Wildwood Scourge",
-    "recent_acts": [
-     "act:Swamp(#0)",
-     "act:Forest(#0)",
-     "cast:Vodalian Arcanist(0t)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 20"
-   }
+   "fingerprint": "479a86f7bc5e8358592c315fdc858789cdc43786c5c7525066dd0a393054c996",
+   "crash": null
   },
   {
    "seed": 21,
@@ -813,7 +531,7 @@
    "fired": 23,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "ccebb885db80eea781f586d3e19f7c2603f5e647e7c09a5c58e2319864e9154d",
+   "fingerprint": "9cc5ec648c09e439f93f7c0ed0133176ded37e53db365115b662e4f56b3b2898",
    "crash": null
   },
   {
@@ -826,7 +544,7 @@
    "fired": 14,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "1e04464bd5b7b520d6959538f1bc7e7c29fdede413ac0b644e6a289fb23e0429",
+   "fingerprint": "befd9f78841d2095c3e7d757f68b595248251ccc192dd38a3ccdc30ba6c0c34d",
    "crash": null
   },
   {
@@ -839,7 +557,7 @@
    "fired": 10,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "73bfe186a734dd0f29442923996a34ee6dc8e8ca428d0ccdb478fe941553b5b5",
+   "fingerprint": "e3e9cb9002f14d62ad8ad3d18abba0a60e7e57390c33b17eb9137e257e4e2b54",
    "crash": null
   },
   {
@@ -852,7 +570,7 @@
    "fired": 11,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "490f83daf25ae85a80bd00600b3c9540cacd648086b921d20bfd007a09db0dfa",
+   "fingerprint": "5307113d1bc49abbfe5230866d62659779dbf03502d233b0e988a93a3f3e423e",
    "crash": null
   },
   {
@@ -865,34 +583,21 @@
    "fired": 13,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "f97a4159e8cbb0d0cbccbefb7759a67023d441585e1ba637d0dd5999fc9b6b57",
+   "fingerprint": "97f11856548bd7873aab0c45276731b44f0f662a756cf5ea62bf9f11aff054f8",
    "crash": null
   },
   {
    "seed": 26,
    "pool": "all",
-   "turns": 21,
+   "turns": 36,
    "survived": false,
-   "reason": "crash:NotImplementedError",
-   "acts": 44,
-   "fired": 10,
-   "combat_losses": 0,
+   "reason": "game over: player:0(life<=0)",
+   "acts": 81,
+   "fired": 20,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "aa6777de15474a208479b368882c6d3bb879f9fd8d513e048d32d2b6fc0d84ad",
-   "crash": {
-    "exc": "NotImplementedError",
-    "message": "executor: filter pred COLOR_COUNT_GE not implemented (12c query surface)",
-    "frame": "quantity.py:1398 in _eval_atom",
-    "turn": 21,
-    "attempted": "cast:Siege Striker",
-    "recent_acts": [
-     "act:Temple of Malady(#2)",
-     "act:Dismal Backwater(#2)",
-     "cast:Siege Striker(0t)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 26"
-   }
+   "fingerprint": "4540e7c23f2e479606d45fe8ca7169e4e225049598f3135a4747d198157d33ac",
+   "crash": null
   },
   {
    "seed": 27,
@@ -904,7 +609,7 @@
    "fired": 12,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "1faecca6158fa0fbf3d526846000e7f46752eb5fe355c668c619c4b974c421b0",
+   "fingerprint": "150b8b679b29f12a842271f33d9725b46bb9f56ccefbaba2238b141e45a60d2e",
    "crash": null
   },
   {
@@ -917,7 +622,7 @@
    "fired": 21,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "508443bbee4c8a499a8bb57e3b57da89d9affc48bbeb7c33ad0559f3ff318c0c",
+   "fingerprint": "3d2cb592e98fcf77075f95eed24b91f0c382f8bf274538f9fbdff90577ce8eee",
    "crash": null
   },
   {
@@ -930,7 +635,7 @@
    "fired": 25,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "504d9467448b9ff27da31eef759e03cf277dee32d913b1a4fd255a6a94be197b",
+   "fingerprint": "2d14be11c2eb5664e75b7a11a9b785d5ee91066be2f367708e6e7bb3832ae174",
    "crash": null
   },
   {
@@ -943,34 +648,21 @@
    "fired": 16,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "6b000c3e4153b635054d8dacc11929271c8e06eacabaff8b08517585f414d54d",
+   "fingerprint": "39a434a026bbf37d205b8bdde4fbc5d89214cb596b22557b3648e2e325c27a21",
    "crash": null
   },
   {
    "seed": 31,
    "pool": "all",
-   "turns": 32,
+   "turns": 34,
    "survived": false,
-   "reason": "crash:NotImplementedError",
+   "reason": "game over: player:0(life<=0)",
    "acts": 76,
-   "fired": 19,
-   "combat_losses": 0,
+   "fired": 20,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "782d07a99b8c3088751f42ac4db94a836c5a327a3ef991db242fe7517f5a442a",
-   "crash": {
-    "exc": "NotImplementedError",
-    "message": "executor: filter pred TARGETS_SOURCE not implemented (12c query surface)",
-    "frame": "quantity.py:1398 in _eval_atom",
-    "turn": 32,
-    "attempted": "cast:Terror of the Peaks",
-    "recent_acts": [
-     "act:Tavern Swindler(#0)",
-     "act:Temple of Malady(#2)",
-     "cast:Terror of the Peaks(0t)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 31"
-   }
+   "fingerprint": "9616fa78b7aa30a8e4a6caf275c56bd415abbe9b09b7efba8f668886967c88ad",
+   "crash": null
   },
   {
    "seed": 32,
@@ -982,34 +674,21 @@
    "fired": 16,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "b10db4508de78350904fd91cb5f4d810c3d19049f65c2df1420ba6135ff9288c",
+   "fingerprint": "d7b8238bf7c71fd23613264fbc5d291179ad14ea7550aef99bb9bfdb7fe52a2e",
    "crash": null
   },
   {
    "seed": 33,
    "pool": "all",
-   "turns": 33,
+   "turns": 35,
    "survived": false,
-   "reason": "crash:NotImplementedError",
-   "acts": 107,
-   "fired": 26,
-   "combat_losses": 0,
+   "reason": "game over: player:1(life<=0)",
+   "acts": 109,
+   "fired": 27,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "463b8a73f0bb7179f8e7788915d6e4aba53f78376aa1fed2ec20bccd838e247c",
-   "crash": {
-    "exc": "NotImplementedError",
-    "message": "executor: filter pred COLOR_COUNT_GE not implemented (12c query surface)",
-    "frame": "quantity.py:1398 in _eval_atom",
-    "turn": 33,
-    "attempted": "act:Island#0",
-    "recent_acts": [
-     "act:Forest(#0)",
-     "cast:Traitorous Greed(1t)",
-     "act:Island(#0)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 33"
-   }
+   "fingerprint": "9e200bb0b2494ffc628833bd643ee5d25b780320b603e19585b612ea00cec3f7",
+   "crash": null
   },
   {
    "seed": 34,
@@ -1021,7 +700,7 @@
    "fired": 12,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "481250503b99ce04d1e48e25c0d5df0b57285900052955a410387f61048bd2c9",
+   "fingerprint": "b5d276f0ff43d6becd7e43ede48ec29e09fd30d472ba393599a893e63adde1cf",
    "crash": null
   },
   {
@@ -1034,7 +713,7 @@
    "fired": 20,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "193db156b1c7f2618a21f5bcc5c71dda6412a2ee503dd1c236b12f5c85d96ee5",
+   "fingerprint": "8b10e97c1457139c526e5795f751b077ff5cd8f22b7dbaae60a03889c9769433",
    "crash": null
   },
   {
@@ -1047,7 +726,7 @@
    "fired": 17,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "ad2d02bf115a0d6004fe14bd3862d507709b99b132247e2342c9a9f002c06739",
+   "fingerprint": "f65ac5624be72ab88ffca8b5c4a3e15ea28c02f59cfc8d49440dd05e2424411e",
    "crash": null
   },
   {
@@ -1060,7 +739,7 @@
    "fired": 10,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "04836e57021347b1d3bdd737e81b70f78b89144efeea5ab09bc58fe2daf104dc",
+   "fingerprint": "6ae7a945184e0ec3cfec83ee2aca01fd92db8f8770dc6ee08121a2e28a5d56d2",
    "crash": null
   },
   {
@@ -1073,7 +752,7 @@
    "fired": 29,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "b88f90a7b444f8f9ee6faa141c804fbaf314deda6b458baa36a6768741f76025",
+   "fingerprint": "320830ff9e4f2156d4f24746e79b91c4260ad84b916f9eb7c652f685a5047e94",
    "crash": null
   },
   {
@@ -1086,7 +765,7 @@
    "fired": 14,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "23274d2ac9eac3f633c2a63ec09645478fdcb44c2726f9ab3aaa8c62274e7215",
+   "fingerprint": "83fc2bbb64aa6554e0bb515b8e94e186872e1aecb7c369cf2fa2fe120542698a",
    "crash": null
   },
   {
@@ -1099,7 +778,7 @@
    "fired": 17,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "0cae646241be5b5924d0b4431dddd8863271936f47922be5ef9e2b3131ad1a70",
+   "fingerprint": "3ba99cb0a1c5dcf8705289dd4767ec58ce574a6fcdab3833cf05b8a4abdce0bd",
    "crash": null
   },
   {
@@ -1112,34 +791,21 @@
    "fired": 20,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "89b04eb0aee97b449bd2442a78fc3a38913506f52e2ff724cbc324fbcf7c88c7",
+   "fingerprint": "a01d8077cb233cb4d531088ae76323ab8e3d1213392542548edbd1b31f0ac853",
    "crash": null
   },
   {
    "seed": 42,
    "pool": "all",
-   "turns": 17,
+   "turns": 36,
    "survived": false,
-   "reason": "crash:NotImplementedError",
-   "acts": 34,
-   "fired": 11,
-   "combat_losses": 0,
+   "reason": "game over: player:0(life<=0)",
+   "acts": 61,
+   "fired": 17,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "3278f1d496c6593f4064ba11df3919453ea6d12093e5e042b9d4650014dd3fa4",
-   "crash": {
-    "exc": "NotImplementedError",
-    "message": "executor: StaticAbility payload verb GAIN_LIFE is not layer-parseable (12e)",
-    "frame": "layers.py:492 in _new_static",
-    "turn": 17,
-    "attempted": "cast:Rin and Seri, Inseparable",
-    "recent_acts": [
-     "act:Island(#0)",
-     "cast:Basri's Acolyte(0t)",
-     "cast:Historian of Zhalfir(0t)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 42"
-   }
+   "fingerprint": "44d9a433cb5a925404194f5469d8fd639d7a9fc00a0ff98221f84f566aa59858",
+   "crash": null
   },
   {
    "seed": 43,
@@ -1151,7 +817,7 @@
    "fired": 22,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "371bc3c47506bbadff2f532210b6da5d93a667851628f9a832d01b6a9e69ade6",
+   "fingerprint": "ccbe8cdb155e22f125a99aa30b0e606787f66e0dbea66fbd0d2083c93ca8468c",
    "crash": null
   },
   {
@@ -1164,7 +830,7 @@
    "fired": 18,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "cb95b0396c2317dbf64bcacd65086a064197770b52de4227fcb2bea65952638d",
+   "fingerprint": "1f2977b278668d2fd242bd496524c2d05e5bdf5a40b5803b99fdc2150858e9d2",
    "crash": null
   },
   {
@@ -1177,7 +843,7 @@
    "fired": 20,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "0cf36432d56420d244d2f66ecfeb756f58e08f3e7189d90bfa3a7c11393cc36f",
+   "fingerprint": "5386a6b22cdc81963145785c289d1195aa775d29485a5b17b3fa102b8acca523",
    "crash": null
   },
   {
@@ -1190,7 +856,7 @@
    "fired": 16,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "ded6dcf1dac29559d31cbb8e10524f727f8e01eb846a9ceec68bc2669999e5b3",
+   "fingerprint": "61fa610eb7941d5cb2b35cb3d80e3b593d512263c7732b9a56083436afb0843b",
    "crash": null
   },
   {
@@ -1203,7 +869,7 @@
    "fired": 28,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "6a7456e8216902f483ff4f074efd7fd7437b5d20d97b1af6dab807d16dfb6216",
+   "fingerprint": "221bb60e9df41a5078e06d91767ee47201d33530703a62b9faf93273c04b20f9",
    "crash": null
   },
   {
@@ -1216,7 +882,7 @@
    "fired": 19,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "615c7fa5f0aac4cbb793cd818f7b5ac3adddee5d44c800ea115a37ca766ce67d",
+   "fingerprint": "492d4b04bdc6fa872046cb093ac06c96c420a09c4a72362dacbafc3470b01e2b",
    "crash": null
   },
   {
@@ -1229,34 +895,21 @@
    "fired": 13,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "1e7aaad14d96a7f1ffab79c3e96893378803fe81b1d89e1a8b235f308b56bc9c",
+   "fingerprint": "7a1728470dcfeb5dd34f83e6c1e1aaca05f3ceaa6feccbba949bd003fb3d75ac",
    "crash": null
   },
   {
    "seed": 50,
    "pool": "all",
-   "turns": 30,
+   "turns": 44,
    "survived": false,
-   "reason": "crash:RuntimeError",
-   "acts": 61,
-   "fired": 17,
-   "combat_losses": 0,
+   "reason": "game over: player:0(life<=0)",
+   "acts": 98,
+   "fired": 23,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "b9c4c95e5bbcf9a2a995236388c5d0f2260c866725e7aad24e7c5cc48d0bfd07",
-   "crash": {
-    "exc": "RuntimeError",
-    "message": "executor: trigger-loop tripwire \u2014 one drain resolved 200 triggers and the queue is still growing (self-retriggering loop: flag it, never run it)",
-    "frame": "binding.py:1061 in fire_all",
-    "turn": 30,
-    "attempted": "cast:Turret Ogre",
-    "recent_acts": [
-     "act:Forest(#0)",
-     "act:Temple of Malady(#2)",
-     "land:Forest"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 50"
-   }
+   "fingerprint": "12434a36df6ce93f33fa25988aeee9a7a0703c9d6f94d42c157750ee2a69f929",
+   "crash": null
   },
   {
    "seed": 51,
@@ -1268,7 +921,7 @@
    "fired": 11,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "22062192a9fee31ff70a781933765c91c47bca66950e53dd9c2fcfc374382e16",
+   "fingerprint": "e32e1d606401af13e9bd0f0a4b03da5e5ce9c88e4da7a663840be6694d2b7f0c",
    "crash": null
   },
   {
@@ -1281,7 +934,7 @@
    "fired": 13,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "412ceb6c1110235dee05ecc6bc52de5117a3c7186f0b8b5752f6ee6309b185f7",
+   "fingerprint": "d0b417d5e6192c10281731b9b4a60542c5bf167ddc963efc66efd536c3dd7c85",
    "crash": null
   },
   {
@@ -1294,7 +947,7 @@
    "fired": 11,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "712921cb35eb4a11958b276bb0d49ef8cbd7110d22e2897b50faa4e339a48f04",
+   "fingerprint": "29450afde5aab9246cadda0e40a0af68aab846dc5cc3bd13af003f2f96fc9671",
    "crash": null
   },
   {
@@ -1307,7 +960,7 @@
    "fired": 20,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "8177bb7a4e347dbe21db5824a243076a8b665e8419d918134acffce37e294ae3",
+   "fingerprint": "90047c76403e706c14fd2b94404ef3c294805286fbfbccee7f764e0491b24e4e",
    "crash": null
   },
   {
@@ -1320,7 +973,7 @@
    "fired": 13,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "a260987014ffa2d59a8e0771531329bd390206e114753763fb356f614191b10a",
+   "fingerprint": "2797b6927bd02e8851dc80f22aaa2e4faae3e0f9b12573648e43fb1985e121d3",
    "crash": null
   },
   {
@@ -1333,7 +986,7 @@
    "fired": 10,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "851b9dfd645a6045a715b6bf0aa3ed4995f5bef42dfa4a8f8e7ac66108d0e20b",
+   "fingerprint": "a482b126a4d607e001fcec7c929053a20a85e3f67ab5f472620725c46f4736f0",
    "crash": null
   },
   {
@@ -1346,7 +999,7 @@
    "fired": 16,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "c5d48039810ffaf33d20150a45d772728a3c43ad382a6da860391f4bdb9c8b2f",
+   "fingerprint": "7f7b7c46621bb9759a3fc0c1c758c91c1466a0762c233563b6256e6824e08202",
    "crash": null
   },
   {
@@ -1359,7 +1012,7 @@
    "fired": 14,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "ea656f85231b8e1444d5433836d2d72b547f47de4d23ab7ab55e7447eab4300e",
+   "fingerprint": "d087f5fca5c0ff26940c5559a0712f32deaba25d614b0b93f38732f179fc5ff8",
    "crash": null
   },
   {
@@ -1372,7 +1025,7 @@
    "fired": 22,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "8a1a82c85a6382a138b70e84b608de26351a7082db8f1b579bb3ef3de2a4a340",
+   "fingerprint": "9a00c854b600d0c3721d9058591c9aa1298897f583cc48fb3739eaaebdb16318",
    "crash": null
   },
   {
@@ -1381,11 +1034,11 @@
    "turns": 29,
    "survived": false,
    "reason": "game over: player:1(life<=0)",
-   "acts": 65,
-   "fired": 17,
+   "acts": 64,
+   "fired": 16,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "cc72acc558e658186cd05611aa259181ba3fb8972e11b5331d1fca2e6e00a61b",
+   "fingerprint": "704ac59748512ff3b9c947c14b358ea12e5ec8f637345e901630af542b40faec",
    "crash": null
   },
   {
@@ -1398,7 +1051,7 @@
    "fired": 15,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "8546c6bf247181008bd8dca69074b6b685ac5d308225d752ebd5bc6423d255b8",
+   "fingerprint": "98bfd16affa7057958536545010586888012d79b94ecc15ef6ca3752b92e7ec6",
    "crash": null
   },
   {
@@ -1411,7 +1064,7 @@
    "fired": 15,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "89fd54d8e03646717cf7cc4861c8ea7ffcd9d03cc39b602f01ffe315f89704e2",
+   "fingerprint": "d75d939e7e9ad072f39b731649c87ac1e8586e619dbfff5443ae568d19bd366d",
    "crash": null
   },
   {
@@ -1424,7 +1077,7 @@
    "fired": 22,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "8ffed4bfbfc7645ce71cedde98cb022d20169aa8534d50c68deaf147005dd7e4",
+   "fingerprint": "2c288cd0c136ecac55b1be8491b317bc2546d970030008fa0cd596d27c9d291e",
    "crash": null
   },
   {
@@ -1437,34 +1090,21 @@
    "fired": 15,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "a9847fb03cc87451c0c837892252b0d573b5597a89cc522f68911ca08c61c97b",
+   "fingerprint": "d4abadc976e815e38afe693b7a59c4288ea964be0c284b4d3f42c0c3e96a0a81",
    "crash": null
   },
   {
    "seed": 65,
    "pool": "all",
-   "turns": 25,
+   "turns": 55,
    "survived": false,
-   "reason": "crash:ValueError",
-   "acts": 41,
-   "fired": 11,
-   "combat_losses": 0,
+   "reason": "game over: player:1(life<=0)",
+   "acts": 98,
+   "fired": 26,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "7b7c2b4026a4c4fb64893bfa8dfa195a2ae0ba3446ca6a38eebdb97ca86a2fcf",
-   "crash": {
-    "exc": "ValueError",
-    "message": "executor: TARGET_PLAYER needs a bound target (12c target prompt)",
-    "frame": "selectors.py:90 in players_for_ref",
-    "turn": 25,
-    "attempted": "act:Liliana's Steward#0",
-    "recent_acts": [
-     "act:Swamp(#0)",
-     "cast:Enthralling Hold(1t)",
-     "act:Island(#0)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 65"
-   }
+   "fingerprint": "457bc852c39235d3ce0e69b73c714133b0fb39516d6b3946a28ea8b4a9938381",
+   "crash": null
   },
   {
    "seed": 66,
@@ -1476,7 +1116,7 @@
    "fired": 14,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "ee720d27e0ea8de534225b4e7449b28249a6b316dd903827bb1a125e31c0da45",
+   "fingerprint": "e478adcba8ce1ce38a08ed0e393341c7090a9bd1b8a3c63ac73a053f57ce765c",
    "crash": null
   },
   {
@@ -1489,7 +1129,7 @@
    "fired": 17,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "e2ac125e7ccd56a139ce8ae05f8e78d644133f4064f23756f8e2f2ff24b69cc5",
+   "fingerprint": "165fe836db640816a831c02fdda566cc49a76c4bfc5a1fdcb1679dabe2ce6c91",
    "crash": null
   },
   {
@@ -1502,7 +1142,7 @@
    "fired": 10,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "e2223c0278b2c80e09fd7093def3502f564746a7d85c23008c6b48207278a67e",
+   "fingerprint": "861718c6444bc83477a351bee3cd772c41d8fb7e1122b405ec3c01dcdd0034b7",
    "crash": null
   },
   {
@@ -1515,7 +1155,7 @@
    "fired": 13,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "667ca33d2a1dfa59fa4b521e0ce07b79f57cfdcaac079a15bf607f0f8507ea8c",
+   "fingerprint": "8d7b0218f699778ea1d8a6b1be2c3bd377005d3e0c0f8e574dda08183ad8868e",
    "crash": null
   },
   {
@@ -1528,7 +1168,7 @@
    "fired": 26,
    "combat_losses": 0,
    "coverage_error": "",
-   "fingerprint": "4964c8e3a54b50c674842176200c987543f8ea3743a5d3e1638288ea39448bec",
+   "fingerprint": "4d11eecdc94ad52868c1dafdf0df50ba51fda1750de19b92c0ba33ad89b20dd3",
    "crash": null
   },
   {
@@ -1541,7 +1181,7 @@
    "fired": 16,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "6e6cea35ce89acb6156756410b89f42a4ba189665182e1b946192ded70f32f94",
+   "fingerprint": "85df952251709c16f0df198541f03c17c94d891c809612de94c6427043d4cc26",
    "crash": null
   },
   {
@@ -1554,7 +1194,7 @@
    "fired": 7,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "c338181d9f68d9f935bbb23c5c8c9ac8ed530c59cf1979ae64e142b7468ed6b0",
+   "fingerprint": "83526e35bd7162a28c01b9afc7c66308e83b82e991a91a409386ebbe3abc6836",
    "crash": null
   },
   {
@@ -1567,7 +1207,7 @@
    "fired": 20,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "e517fb7c194ea99921f4473e4964f9ffa80264e4e0a60b929217ef2137536afa",
+   "fingerprint": "3f40cb931d32cfac0ee03b69f7f374138f0bffb056a8bc9cc0ed03b5df31fb9e",
    "crash": null
   },
   {
@@ -1580,7 +1220,7 @@
    "fired": 19,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "b78428e6b23616586504b24f0c9c8139f015640f2522d33591f6889db2f24ff5",
+   "fingerprint": "47a10dff75c575fdba468300bd3cc4ef2cfbe60d53a4fc56a62b82ceb00fc178",
    "crash": null
   },
   {
@@ -1593,7 +1233,7 @@
    "fired": 14,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "eb2514f99bf6daf35849cfbe23ea93f06cfa0359820d813a9d736fa9845375ad",
+   "fingerprint": "c71006d2d62fe83c099bb9a1f4b4ca7a97587be69b584dcc4baaa85760c2d7d1",
    "crash": null
   },
   {
@@ -1606,7 +1246,7 @@
    "fired": 8,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "a97cfebbf9a85c5caad9b2ae7c5c4ef3087a99c5a6f9f1cfde20e6a26b785d01",
+   "fingerprint": "502c91a8cce02981dc61e1e909e8caa906260c4f8ed1d0aba89f9c1e9e6cca37",
    "crash": null
   },
   {
@@ -1619,7 +1259,7 @@
    "fired": 22,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "b78b3b18199e9ae2438805c1065bc1775d586c86616bb657d5ecad3995bea03a",
+   "fingerprint": "0c3c9af97239b13c49e46f3ab85a2370fe4819720a15e4f90904bd1b22a23450",
    "crash": null
   },
   {
@@ -1632,34 +1272,21 @@
    "fired": 26,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "524710744908dca39d35377aa40b87d631dd2046bfff877ccd579e79eaa1a210",
+   "fingerprint": "8ade589d199b21cd8dfc640bbfd53e2c76e6a860c424b33864464ff9a8f2f9b7",
    "crash": null
   },
   {
    "seed": 79,
    "pool": "all",
-   "turns": 40,
+   "turns": 43,
    "survived": false,
-   "reason": "crash:NotImplementedError",
-   "acts": 115,
-   "fired": 19,
-   "combat_losses": 0,
+   "reason": "game over: player:1(life<=0)",
+   "acts": 124,
+   "fired": 23,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "1d36fa7f725c02fb608f0f5f0e2e3455f6c505c8bd70487e4756cc1be728feaa",
-   "crash": {
-    "exc": "NotImplementedError",
-    "message": "executor: StaticAbility payload verb GAIN_LIFE is not layer-parseable (12e)",
-    "frame": "layers.py:492 in _new_static",
-    "turn": 40,
-    "attempted": "cast:Rin and Seri, Inseparable",
-    "recent_acts": [
-     "cast:Fungal Rebirth(1t)",
-     "act:Plains(#0)",
-     "act:Bloodfell Caves(#2)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 79"
-   }
+   "fingerprint": "0c0ebd485b87155a46d49e407332f64f05e8f4420a12bee6ac1dc3cc47761bd9",
+   "crash": null
   },
   {
    "seed": 80,
@@ -1671,7 +1298,7 @@
    "fired": 14,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "684c896c6b5f9585a1c7a73ee58184c9b0032ad5511d2eb1e98733c068910439",
+   "fingerprint": "c8b8e42a50119c2f8653869f260964904eb7c371ccd1188603e6150fcd570215",
    "crash": null
   },
   {
@@ -1684,7 +1311,7 @@
    "fired": 10,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "72b267cfe96462a9ccc1a461dbbd4ae16d27f9fde3827fd5f74de9033f297a74",
+   "fingerprint": "bc4e38b5f9f6789c7c520021b01ffe60a87f3ffc42d22310dcec3242b9fb0989",
    "crash": null
   },
   {
@@ -1697,7 +1324,7 @@
    "fired": 24,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "7c5a86d8523e5d88a7e9a58f91c5a2cdb3c15c6adf24ca5c03d928de922e427b",
+   "fingerprint": "4bb412c4603b0bb5a8eaed97e8aee4cbb6cd9912ab8adf574ab297c8178d3174",
    "crash": null
   },
   {
@@ -1710,7 +1337,7 @@
    "fired": 22,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "b9df9489703a3ab09a2652fcb843895fc423a728b91db4a6f50fd72437c33a69",
+   "fingerprint": "808b7a57f45a21bbc68a8ec56773133a9224e559b8ef734aebef3b41c281d4fa",
    "crash": null
   },
   {
@@ -1723,7 +1350,7 @@
    "fired": 12,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "37f4923df32ee4857cd303d54d9ab4dcc67c951a9324e1975519a3eae369861c",
+   "fingerprint": "0392e9790d699aefe349c39428c349f8a5db63d92a87db1bff9b8b151579529b",
    "crash": null
   },
   {
@@ -1736,7 +1363,7 @@
    "fired": 13,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "17bdce2b569f21a9a7bc62282507164707ff3f5f9822da9738994117c4450a32",
+   "fingerprint": "cdc19af4b65447d7a6912f1a1061e31ec02e0c54e052633804e929cac22b8480",
    "crash": null
   },
   {
@@ -1749,7 +1376,7 @@
    "fired": 13,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "daafe0259938f79643cb07c0e7a9390d3abd63288476e773a832db47bd8444e8",
+   "fingerprint": "ebdbf21397dcff63acf5a694319f79475ee29769c833d2f2dce5f1878cd8542f",
    "crash": null
   },
   {
@@ -1762,7 +1389,7 @@
    "fired": 8,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "b316a64143de07074cbc4b8ca0e3dd8bcb8947ed254a323cf46c61ffed8c6ab4",
+   "fingerprint": "e35785c96f2b156484f3a47c4095eb29adf47f4f44611a5ee6af9c0490e83792",
    "crash": null
   },
   {
@@ -1775,47 +1402,34 @@
    "fired": 17,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "5c4da0ad2ee3e248fd858f3229eda5337ea977035eb3519281665ea834da8590",
+   "fingerprint": "b053a816cf32959b4bafcf14186afb859ec663d49f9c5f367d29c21b2877d755",
    "crash": null
   },
   {
    "seed": 89,
    "pool": "all",
-   "turns": 39,
+   "turns": 29,
    "survived": false,
    "reason": "game over: player:1(life<=0)",
-   "acts": 123,
-   "fired": 28,
+   "acts": 80,
+   "fired": 20,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "0baa202a21f1ee7d7e15e3486e21d88dc331f79baec0bb628e18d910dbe491ef",
+   "fingerprint": "47d486b072663f8da7e229fbebad4e8cdae309d26c474cef15c744d2ae3a6bd0",
    "crash": null
   },
   {
    "seed": 90,
    "pool": "all",
-   "turns": 25,
+   "turns": 38,
    "survived": false,
-   "reason": "crash:ValueError",
-   "acts": 40,
-   "fired": 10,
-   "combat_losses": 0,
+   "reason": "game over: player:0(life<=0)",
+   "acts": 75,
+   "fired": 17,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "c67ab239c79910b295d7cf91555da5396d2f30da19fc0827986d2cb07e799cb8",
-   "crash": {
-    "exc": "ValueError",
-    "message": "executor: CAST Island: no SpellAbility on the card",
-    "frame": "stack.py:726 in cast_card",
-    "turn": 25,
-    "attempted": "act:Radha, Heart of Keld#1",
-    "recent_acts": [
-     "act:Mountain(#0)",
-     "act:Thornwood Falls(#2)",
-     "cast:Radha, Heart of Keld(0t)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 90"
-   }
+   "fingerprint": "fee472a845ef2db620d8c8eed0085f27f828f6c1b9525577b4cfed78a97d963a",
+   "crash": null
   },
   {
    "seed": 91,
@@ -1827,34 +1441,21 @@
    "fired": 16,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "b002d1a8ddc18c36ea1921b0819d6acb64691f9836adc213d92c7b9b099f1631",
+   "fingerprint": "5c5619ad74e03091326312b123350f589f3a81f8aa7fbc93437d77bd795be5f4",
    "crash": null
   },
   {
    "seed": 92,
    "pool": "all",
-   "turns": 7,
+   "turns": 47,
    "survived": false,
-   "reason": "crash:ValueError",
-   "acts": 12,
-   "fired": 5,
-   "combat_losses": 0,
+   "reason": "game over: player:1(life<=0)",
+   "acts": 123,
+   "fired": 24,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "390fc293af63cc2fd776f89574b3ede686c6445491932c575b31a0508da946ea",
-   "crash": {
-    "exc": "ValueError",
-    "message": "executor: TARGET_PLAYER needs a bound target (12c target prompt)",
-    "frame": "selectors.py:90 in players_for_ref",
-    "turn": 7,
-    "attempted": "act:Liliana's Steward#0",
-    "recent_acts": [
-     "act:Jungle Hollow(#2)",
-     "cast:Liliana's Steward(0t)",
-     "act:Animal Sanctuary(#0)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 92"
-   }
+   "fingerprint": "40dc61e5d48268fd09d5a8ef3ff213c612eb8cc053016181f66357dd4d2af3db",
+   "crash": null
   },
   {
    "seed": 93,
@@ -1866,7 +1467,7 @@
    "fired": 16,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "bb5ca683f88d1b82682f697c873ac3cf94794a449588188191323d4019b4097d",
+   "fingerprint": "a07eb19da363b6acab7296ed6cc6e5c980126dbe21c4831679adf45cdb987157",
    "crash": null
   },
   {
@@ -1879,34 +1480,21 @@
    "fired": 13,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "4cde9602fa50ac72bacf415798589e818c5c5b54cc50e84cabb6ce72a6781ae4",
+   "fingerprint": "431c46524daaef10cfd69def17a7315791f292bd8c5d7a56af737897ac0bc129",
    "crash": null
   },
   {
    "seed": 95,
    "pool": "all",
-   "turns": 27,
+   "turns": 28,
    "survived": false,
-   "reason": "crash:NotImplementedError",
+   "reason": "game over: player:0(life<=0)",
    "acts": 83,
-   "fired": 23,
-   "combat_losses": 0,
+   "fired": 24,
+   "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "2b31e9e56c861691231d3cd526ea94e383d052290135b54cd861e291da9fda37",
-   "crash": {
-    "exc": "NotImplementedError",
-    "message": "executor: filter pred COLOR_COUNT_GE not implemented (12c query surface)",
-    "frame": "quantity.py:1398 in _eval_atom",
-    "turn": 27,
-    "attempted": "act:Island#0",
-    "recent_acts": [
-     "act:Temple of Epiphany(#2)",
-     "act:Temple of Mystery(#2)",
-     "act:Island(#0)"
-    ],
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool all --deck-pairs-seed 1409 --turns 60 --repro 95"
-   }
+   "fingerprint": "da8de3c2afa51c34f0bf370dd01ae7bfca61ac88f631a74c382014080cd9843b",
+   "crash": null
   },
   {
    "seed": 96,
@@ -1918,7 +1506,7 @@
    "fired": 15,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "eae152c5e37b5017c9ae7294ab3cfa08db83b123783fd066d6da7b910f583d66",
+   "fingerprint": "711dccf5b5f448d23efd5f016a09cf4b89f81581abfa81e583ac90a462ca85a5",
    "crash": null
   },
   {
@@ -1931,7 +1519,7 @@
    "fired": 15,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "82f14acdb03b3aecf94f2f54f8065cde6e4facf2eff9bc7b2e828c7a66882f81",
+   "fingerprint": "4c4e40b0421982ea8553676753cc25c4a4f66c633324bf9596d1eb00fb5e26e2",
    "crash": null
   },
   {
@@ -1944,7 +1532,7 @@
    "fired": 19,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "af38ea5d84a1f033e069b883a617cf69efb044da27cb3711dbab1969e38787ca",
+   "fingerprint": "a6847bcd86efb67b22a151a3d47207d70a770c0db26be5733473cd0060f94c10",
    "crash": null
   },
   {
@@ -1957,16 +1545,22 @@
    "fired": 7,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "9212ab55432bbf4c87d491dc4f59de3109c707932a3bba5fa4046d0a3c11ffc2",
+   "fingerprint": "f3a448f6d3cd90ec44d16f731368a9c7fc19839ac4ead96da813b9cfb19133d5",
    "crash": null
   }
  ],
- "pool_compile_seconds": 0.22,
- "wall_seconds": 60.5,
+ "pool_compile_seconds": 0.19,
+ "wall_seconds": 62.0,
  "argv": [
   "--seeds",
   "100",
   "--pool",
-  "all"
+  "all",
+  "--deck-pairs-seed",
+  "1409",
+  "--turns",
+  "60",
+  "--out",
+  "reports/games_2026-10-02.json"
  ]
 }

@@ -1,0 +1,36 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Wildwood Scourge",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "cast",
+   "key": "s",
+   "x": 2,
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2,
+   "G": 1
+  }
+ },
+ "expect": {
+  "counters": {
+   "s": {
+    "PLUS_1_PLUS_1": 2
+   }
+  }
+ },
+ "notes": "r23a (2026-10-02) ENGINE FIX \u2014 promoted from suspects. History: printed '~ enters with X +1/+1 counters on it' was unbindable \u2014 r19c attributed it COMPILER (X-cost permanent carried 0 SpellAbility nodes; the enters-with-X clause compiled trigger-shaped, and QX-without-declared-X loudly raises, which is CORRECT engine behavior); C4 landed the compiler half (SpellAbility(CREATURE) cast carrier \u2014 cast(x=2) then passed not_a_spell, the window and the 601.2f cost fold, but the journaled ETB trigger still read a bare QX). r23a lands the ENGINE half: the cast-declared X is carried to ETB resolution via the etb_x QX ledger \u2014 X binds from the cast declaration (CR 614.1c / 601.2f), not from a cost context that no longer exists. GREEN now: Wildwood Scourge cast with x=2 paid {C:2}{G:1} enters with 2 +1/+1 counters."
+}

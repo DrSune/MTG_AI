@@ -27,8 +27,9 @@ Contracts honoured:
     matcher with a duration tag; the end-of-turn sweep expires the
     turn-window entries;
   * **tripwire** — one drain resolves at most ``MAX_TRIGGER_FIRES``
-    trigger instances; beyond that a self-retriggering loop RAISES — the
-    loop is a bug to flag, never a bug to run;
+    trigger instances; beyond that the guard QUARANTINES its runaway
+    source (dropped firings recorded in ``executor.trigger_loops``) and
+    the drain continues — the loop is a bug to flag, never a bug to run;
   * **flag, don't degrade** — combat/cast/step/targeting event nodes have
     no emitter before the later phases: *binding* one RAISES
     ``NotImplementedError`` naming the owning phase, instead of silently
@@ -278,6 +279,12 @@ class TriggerBinder:
         # match path consults it through :meth:`_controller_of`.
         self.emblem_owner: dict[Handle, Handle] = {}
         self.firings: dict[int, _Firing] = {}
+        # r23a (tripwire guard, Chandra's Incinerator seeds 17/50): sources
+        # whose trigger self-retriggers the drain are QUARANTINED by
+        # fire_all; _queue then drops their firings for the rest of the
+        # game — "flag it, never run it". This is replayed state: the
+        # executor folds it into state_fingerprint through this object.
+        self.quarantined: set[Handle] = set()
         self.delayed: list[DelayedBinding] = []
         self._seen_journal_len = 0
         self._seq = 0
@@ -644,6 +651,11 @@ class TriggerBinder:
         node: _AnyTrigger,
         event: GameEvent,
     ) -> None:
+        if source in self.quarantined:
+            # r23a tripwire guard: a flagged loop source never queues
+            # again this game (its firing was already recorded loudly in
+            # executor.trigger_loops).
+            return
         if event.kind == KIND_DECLARE_ATTACKERS and isinstance(
             node.event, DeclareAttackersEvent
         ):
@@ -1049,25 +1061,65 @@ class TriggerBinder:
         """Drain the world's trigger queue: APNAP order_key, then
         ``str(source)`` then bind-seq (Handle-sort within a seat, ruling 5).
         Every firing runs through the 12a effect runner, whose journalled
-        events queue the next batch; loop until empty or the tripwire
-        raises. 14b (B-4 ruling): the drain consumes NO positional stream
+        events queue the next batch; loop until empty — the r23a tripwire
+        guard QUARANTINES a self-retriggering source (recorded in the
+        executor's trigger_loops ledger) and the drain continues.
+        14b (B-4 ruling): the drain consumes NO positional stream
         — every demand a firing makes reaches the executor's
         vocabulary-addressed decision channel (per-(vocab, what) FIFO /
         ask-time provider), so a trigger the op itself armed mid-drain is
         answerable exactly like one that was already pending."""
         fired = 0
+        per_source: dict[Handle, int] = {}
         while self.world.triggers:
             if fired >= MAX_TRIGGER_FIRES:
-                raise RuntimeError(
-                    "executor: trigger-loop tripwire — one drain resolved "
-                    f"{MAX_TRIGGER_FIRES} triggers and the queue is still "
-                    "growing (self-retriggering loop: flag it, never run it)"
+                # r23a (Chandra's Incinerator, games seeds 17/50): the
+                # tripwire GUARDS instead of killing the game. The culprit
+                # is the source this drain fired MOST — its effect's own
+                # events re-arm it (an Incinerator "whenever you deal
+                # noncombat damage" trigger eating its own damage row).
+                # QUARANTINE it: drop its queued instances, block its
+                # _queue for the rest of the game, record the event loudly
+                # in executor.trigger_loops — "flag it, never run it" —
+                # and continue the drain with everything else. Only an
+                # eighth distinct runaway in ONE game re-raises: then the
+                # state itself is the anomaly, not a card.
+                culprit = next(
+                    (
+                        src
+                        for src, _n in sorted(
+                            per_source.items(), key=lambda kv: (-kv[1], str(kv[0]))
+                        )
+                        if src not in self.quarantined
+                    ),
+                    None,
                 )
+                if culprit is None or len(self.quarantined) >= 8:
+                    raise RuntimeError(
+                        "executor: trigger-loop tripwire — one drain resolved "
+                        f"{MAX_TRIGGER_FIRES} triggers and the queue is still "
+                        "growing (self-retriggering loop: flag it, never run it)"
+                    )
+                record = self.handle_record.get(culprit)
+                self.quarantined.add(culprit)
+                dropped = [t for t in self.world.triggers if t.source == culprit]
+                for t in dropped:
+                    self.world.triggers.remove(t)
+                    self.firings.pop(t.clock, None)
+                self.executor.trigger_loops.append(
+                    f"{culprit} ({getattr(record, 'name', culprit)!r}): "
+                    f"self-retriggering after {per_source.get(culprit, 0)} "
+                    f"drain fires — quarantined, {len(dropped)} queued "
+                    "firings dropped"
+                )
+                fired = 0
+                continue
             instance = self._pop_next()
             payload = self.firings.pop(instance.clock, None)
             if payload is None:  # pragma: no cover - instances only via _queue
                 continue
             self._fire(payload)
+            per_source[instance.source] = per_source.get(instance.source, 0) + 1
             fired += 1
             self.on_events()  # the firing's own events queue the next batch
         return fired
@@ -1292,6 +1344,18 @@ class TriggerBinder:
             selector,
             source=ctx.source,
             controller=ctx.controller,
+            # r23a (Feline Sovereign): the firing ctx's bindings ride into
+            # the candidate enumeration. The trigger already bound the
+            # 'event' register (binding.py _ctx stamps event.subject before
+            # designation), and the destroyed object's filter reads it —
+            # "destroy target artifact or enchantment THAT CREATURE'S
+            # CONTROLLER controls" compiles CONTROLLER_IS who=
+            # Selector(referent='event'). A fresh ctx without the firing
+            # bindings made that selector ask a register it never saw
+            # (selectors.py: 'event' has no register). legal_targets has
+            # taken bindings= since 14a B-8a for exactly this; the trigger
+            # lane was the last caller not passing it.
+            bindings=ctx.bindings,
         )
         slot = _widen_any_target(self.executor, selector, slot) or slot
         candidates = sorted(slot.candidates)
@@ -1358,12 +1422,30 @@ class TriggerBinder:
         # r20a (Light of Promise): a LIFE_GAINED row's data[0] IS the amount
         # gained, so QProp(referent='event', field=AMOUNT) resolves inside a
         # life-gained firing exactly as it does inside a damage firing.
+        # r23a (Wildwood Scourge, CR 614.1c): a spell cast with a declared X
+        # carries that X into every firing this ENTRY generates — stack.cast
+        # recorded it as the spell landed. The read is NON-destructive on
+        # purpose: _match_zone_change builds this same ctx for the matcher
+        # (a pop there would rob the firing), and every ETB ability of the
+        # entering permanent may legitimately mention X. The entry is
+        # cleared when the permanent leaves the battlefield, so a later
+        # reanimation fires with no X and QX stays the loud 12c flag.
+        x_value: int | None = None
+        if (
+            event.kind == KIND_ZONE_CHANGE
+            and event.subject is not None
+            and event.subject == source
+            and len(event.data) >= 2
+            and event.data[1] == ZONE_BATTLEFIELD
+        ):
+            x_value = ex.etb_x.get(source)
         return ExecCtx(
             world=ex.world,
             ledger=ex.ledger,
             controller=controller,
             source=source,
             bindings=dict(bindings),
+            x_value=x_value,  # r23a: CR 614.1c cast-declared X at ETB
             decisions=(),  # 14b: firings answer through ex.decisions
             stream=ex.decisions,
             events=ex.events,
@@ -1433,4 +1515,10 @@ class TriggerBinder:
                 (str(handle), str(owner)) for handle, owner in self.emblem_owner.items()
             )
         )
-        return (("attached", attached), ("delayed", delayed), ("emblems", emblems))
+        quarantined = tuple(sorted(map(str, self.quarantined)))
+        return (
+            ("attached", attached),
+            ("delayed", delayed),
+            ("emblems", emblems),
+            ("quarantined", quarantined),
+        )

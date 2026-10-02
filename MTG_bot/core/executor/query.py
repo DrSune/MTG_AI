@@ -111,6 +111,7 @@ __all__ = [
     "CastOption",
     "OptionChoice",
     "TargetSlot",
+    "activation_target_slots",
     "choose_options",
     "legal_activations",
     "legal_casts",
@@ -552,6 +553,40 @@ def optional_offer(
                 continue
             if len(enumerate_candidates(value, ctx)) == 0:
                 return MAY_VOCAB[1:]
+    # r23a (Radha, Heart of Keld): the CAST atom's third unactionable shape.
+    # The frozen compiler turns "you may play lands from the top of your
+    # library" (and every "you may cast that card" rider) into an optional
+    # Verb.CAST whose SOURCE is a Selector; the engine's cast lane answers a
+    # card WITHOUT a SpellAbility (a land — CR 305's special action is not a
+    # cast) with the loud 'CAST Island: no SpellAbility' raise. When the
+    # designated population holds NOTHING the cast lane can run, CR 117.3
+    # narrows the may-offer to skip — the same "no candidates, no action"
+    # rule that gates the empty-hand discard above, read through the
+    # castability structure (does a SpellAbility carrier exist) rather than
+    # mana (a spell too expensive to pay is still ACTIONABLE, CR 117.3
+    # removes only impossible actions, and the PAY part is its own atom).
+    for node in walk(effect.inner):
+        if isinstance(node, Atom) and node.verb is Verb.CAST:
+            sel = node.args.get("source")
+            if sel is not None and getattr(sel, "referent", "") in ("event", "result"):
+                continue  # produced mid-effect (Snoop's "cast THAT card"):
+                # nothing enumerable pre-execution — NOT inactionability
+            if isinstance(sel, Selector):
+                from MTG_bot.core.executor.legality import spell_record
+
+                # A 12a role binding routes the CAST atom's source to the
+                # designated card (the waiver shape) — the gate reads the
+                # SAME population the runtime would cast, query/runtime
+                # identity; else the selector's zone.
+                cands = ctx.binding_handles("source")
+                if cands is None:
+                    cands = enumerate_candidates(sel, ctx)
+                if not any(
+                    (rec := spell_record(executor, c)) is not None
+                    and any(isinstance(a, SpellAbility) for a in rec.abilities)
+                    for c in cands
+                ):
+                    return MAY_VOCAB[1:]
     return MAY_VOCAB
 
 
@@ -662,7 +697,7 @@ def _designation_selector(selector: Selector) -> Selector:
     runtime keeps evaluating the ORIGINAL filter (the designation exists
     by then — ExecCtx.designation_union), and the slot keeps the original
     selector as its identity key (repr-match for per-slot designation)."""
-    from MTG_bot.core.ability_tree import FNot, Filter, FOr
+    from MTG_bot.core.ability_tree import Filter, FNot, FOr
 
     def strip(filter_: Filter) -> tuple[Filter, bool]:
         if isinstance(filter_, FAtom):
@@ -780,6 +815,85 @@ def spell_target_slots(
         # the CR population the runtime REQUIRES (an opponent seat of the
         # caster, the same rule _validate_spell_targets re-checks), now
         # answered by the query so no caller mirrors the rule.
+        opponents = tuple(sorted(h for h in executor.world.player_order if h != seat))
+        slots.append(
+            TargetSlot(
+                selector=Selector(
+                    count=QConst(1),
+                    mode=SelectorMode.TARGET,
+                    filter=FAnd(()),
+                    zone=Zone(ZoneKind.PLAYER, ControllerRef.TARGET_PLAYER),
+                ),
+                candidates=opponents,
+                min_count=1,
+                max_count=1,
+                forced=len(opponents) == 1,
+                synthetic=True,
+            )
+        )
+    return slots
+
+
+def activation_target_slots(
+    executor: Executor,
+    effect: object,
+    *,
+    source: Handle,
+    seat: Handle,
+) -> list[TargetSlot]:
+    """r23a (Liliana's Steward): the TARGET-selection slots of an ACTIVATED
+    ability — the activation twin of :func:`spell_target_slots`, one slot
+    type and one validation oracle for every ability in the game (§8.3).
+
+    The games policy's activation lane previously walked the effect for
+    TARGET-mode Selectors only. The corpus' "target opponent" activations
+    (Steward's "{T}, Sacrifice: target opponent discards") carry NO
+    TARGET-mode Selector at all — the coordinate is a TARGET_PLAYER
+    ControllerRef on the discard atom (plus a CHOOSE-zone hand) — so the
+    lane never designated it and the RUNTIME hit the 12c
+    'TARGET_PLAYER needs a bound target' raise mid-resolution. The spell
+    lane already synthesizes that slot from the engine's own player rule;
+    the activation lane now asks the same question, so a caller designates
+    from a QUERY instead of crashing into the runtime prompt."""
+    slots: list[TargetSlot] = []
+    seen: set[str] = set()
+    if effect is None:
+        return slots
+    reads_target_player = False
+    for inner in walk(effect):
+        if not isinstance(inner, Atom):
+            continue
+        for _role, value in inner.args.pairs:
+            if (
+                value is ControllerRef.TARGET_PLAYER
+                or isinstance(value, Zone)
+                and value.controller is ControllerRef.TARGET_PLAYER
+            ):
+                reads_target_player = True
+            if not isinstance(value, Selector) or value.mode is not SelectorMode.TARGET:
+                continue
+            key = repr(value)
+            if key in seen:
+                continue
+            seen.add(key)
+            enum_value = _designation_selector(value)
+            slot = legal_targets(
+                executor.world,
+                executor,
+                enum_value,
+                source=source,
+                controller=seat,
+            )
+            if enum_value is not value:
+                slot = replace(slot, selector=value)
+            widened = _widen_any_target(executor, value, slot)
+            if widened is not None:
+                slot = widened
+            slots.append(slot)
+    if reads_target_player:
+        # Same synthesized opponent-seat slot as the spell lane (CR
+        # 601.2c's population rule is coordinate-agnostic: an activation
+        # asking for "target opponent" designates an opponent seat).
         opponents = tuple(sorted(h for h in executor.world.player_order if h != seat))
         slots.append(
             TargetSlot(

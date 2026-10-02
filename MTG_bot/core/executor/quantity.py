@@ -561,6 +561,24 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             return handle in ctx.designation_union
         bound = ctx.binding_handles("target")
         return bound is not None and handle in bound
+    if pred is FAtomPred.TARGETS_SOURCE:
+        # r23a (Pursued Whale, CR 601.2f cost fold): "Spells your opponents
+        # cast that target this creature cost {3} more to cast." The filter
+        # asks whether the JUDGED object — the casting spell in the fold's
+        # coordinates (legality.py builds mod_ctx with source=the modifier's
+        # host and copies the cast ctx's target bindings) — designated the
+        # filter's SOURCE (the static's host) among its targets. Before the
+        # 601.2d target declaration there is no designation at all, so the
+        # pre-target cost enumeration conservatively reads False and the
+        # printed cost shows; the honest +3 lands at PAYMENT, where
+        # stack.cast has already journaled bindings["target"] (the fold
+        # re-runs there). This is the exact mirror of IS_ANY_TARGET: that
+        # pred asks "object ∈ my targets", this asks "source ∈ judge's
+        # targets", judged in the host's coordinates.
+        if ctx.designation_union is not None:
+            return ctx.source in ctx.designation_union
+        bound = ctx.binding_handles("target")
+        return bound is not None and ctx.source in bound
     if pred is FAtomPred.IS_TAPPED:
         return world.cards[handle].tapped
     if pred is FAtomPred.IS_UNTAPPED:
@@ -698,6 +716,22 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             return atom.color in card_colors
         assert atom.colors  # FAtom validation: COLOR_IN requires non-empty
         return bool(card_colors) and card_colors <= set(atom.colors)
+    if pred is FAtomPred.COLOR_COUNT_GE:
+        # r23a (the games' last crash class): "protection from multicolored"
+        # (Basri's Lieutenant, count=2, read by block_pair_blocked_reason as
+        # a blocker-quality filter over the attacker) and Ugin's "-X: exile
+        # each permanent ... that's one or more colors" (count=1, inside the
+        # effect selector's FAnd). The subject simply has COUNT or more
+        # colors (CR 901.3's color-count test; the grammar's own doc line).
+        # Same identity data as the COLOR_HAS/COLOR_IN twin above — the
+        # engine carries no color-changing continuous effects (layers.py
+        # never writes color), so an object's printed colors ARE its colors
+        # in every zone.
+        if handle.namespace != "card":
+            return False
+        assert atom.count is not None  # FAtom: count is a required slot
+        threshold = resolve(atom.count, ctx)
+        return len(world.cards[handle].identity.colors) >= threshold
     if pred is FAtomPred.NAME_CHOSEN:
         # 13b (Runed Halo): the object's name is the one the SOURCE's
         # CHOOSE_NAME atom recorded (grammar round 7's write/read pair).

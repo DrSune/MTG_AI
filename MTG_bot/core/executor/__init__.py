@@ -21,7 +21,8 @@ dispatch; DelayedTrigger SCHEDULES into the
   * :meth:`Executor.fire_triggers` / the auto-drain at the end of every
     public op — matched triggers resolve through the world's APNAP
     ``order_key``, in Handle-tie-broken order, until the queue empties
-    (``MAX_TRIGGER_FIRES`` tripwire: a self-retriggering loop RAISES).
+    (``MAX_TRIGGER_FIRES`` tripwire: a self-retriggering source is
+    QUARANTINED and flagged in ``trigger_loops``, never run).
     12c adds the decision half: :mod:`executor.legality` (activation
     legality, the CR-checked cost fold, ``pay_costs`` through the
     journalled verbs, the folded ``activate`` move) and
@@ -357,6 +358,30 @@ class Executor:
         # (ruling 1: folded into state_fingerprint, removed at the cleanup
         # step and when the permanent leaves the battlefield).
         self.damage: dict[Handle, int] = {}
+        # r23a (Wildwood Scourge, CR 614.1c): the X declared by a spell's
+        # cast (601.2f) travels to that permanent's ETB firings. stack.cast
+        # records the declared X as the spell ENTERS the battlefield; the
+        # binder's _ctx hands it to the firing's ExecCtx (x_value) for that
+        # entry ONLY, consuming it. Cleared when the permanent leaves the
+        # battlefield so a graveyard re-entry (reanimation) is NOT cast-
+        # context and QX correctly stays the loud 12c flag.
+        self.etb_x: dict[Handle, int] = {}
+        # r23a (Rin and Seri): LOUD refusals of the guarded-static lane —
+        # a StaticAbility whose payload is not layer-parseable (12e) is
+        # skipped at battlefield attach and recorded here (handle + the
+        # engine's own message). NOT folded into state_fingerprint: it is
+        # a pure derivation of the world + records, never a hidden
+        # decision. Coverage reporting and the scenario packs assert it.
+        self.unparseable_statics: list[str] = []
+        # r23a (Chandra's Incinerator, games seeds 17/50): the tripwire
+        # guard's loud ledger. A self-retriggering trigger source hits the
+        # drain tripwire; the guard QUARANTINES the source (its queued and
+        # future firings are dropped) and records the event here — "flag
+        # it, never run it", the drain continues instead of killing the
+        # game. Like unparseable_statics this is a coverage-visible record,
+        # NOT folded into state_fingerprint (the quarantine set itself,
+        # which is state, rides the fold through the binder).
+        self.trigger_loops: list[str] = []
         self.journal = EventJournal(world, self.ledger)
         # 12d registries (built BEFORE the binder: the binder's lifecycle
         # hooks reach them during attach).
@@ -900,6 +925,7 @@ class Executor:
             self.ledger.expire_leaves(anchor)
             self.layers.expire_leaves(anchor)
             self.replacements.expire_leaves(anchor)
+            self.etb_x.pop(anchor, None)  # r23a: cast-X leaves with it
             self.damage.pop(anchor, None)  # 16a: CR 120.6, marks leave with it
             self.damage_deathtouch.discard(anchor)  # 16c: the flag rides along
             # 16c: a departing permanent leaves no trace in the block record
@@ -2080,6 +2106,8 @@ class Executor:
         h.update(repr(self.replacements.dump()).encode())
         # 16a: damage marks are replayed state too (ruling 1, CR 120.6).
         h.update(repr(sorted(self.damage.items())).encode())
+        # r23a: the cast-declared X ledger rides the same fold.
+        h.update(repr(sorted(map(str, self.etb_x.items()))).encode())
         # 16c: the deathtouch flag rides the same fold (CR 702.2b kills).
         h.update(repr(sorted(map(str, self.damage_deathtouch))).encode())
         # 16b: the attack record + the dispatched mandate ledger are

@@ -832,6 +832,14 @@ class TestEffectCast(StackCase):
             )
 
     def test_cast_land_designation_raises(self):
+        # AMENDED r23a (Radha batch): with a LAND bound as the CAST atom's
+        # source, the may-offer now honestly narrows to skip — CR 117.3
+        # removes an action whose population holds no SpellAbility
+        # carrier, and the gate reads the SAME routed population the
+        # runtime would cast (query/runtime identity). Loudness survives
+        # in two layers: a 'fire' decision against the skip-only offer is
+        # rejected at the decision channel, and a BARE (non-may) CAST
+        # atom on a land still raises the no-SpellAbility flag verbatim.
         land_id = card_id("Wasteland", type_line="Land")
         land = self.world.add_card(land_id, self.p0, ZONE_EXILE)
         self.ex.attach_card(
@@ -844,6 +852,26 @@ class TestEffectCast(StackCase):
                 controller=self.p0,
                 bindings={"source": land},
                 decisions=("fire",),
+            )
+        self.assertIn("not in", str(cm.exception))
+        bare = Atom(
+            verb=Verb.CAST,
+            args=AtomArgs(
+                pairs=(
+                    (
+                        "source",
+                        Selector(QConst(1), SelectorMode.CHOOSE, UNIV, ANY_ZONE),
+                    ),
+                    ("cost", Cost(())),
+                )
+            ),
+        )
+        with self.assertRaises(ValueError) as cm:
+            self.ex.apply_effect(
+                bare,
+                source=self.caster("Caster4"),
+                controller=self.p0,
+                bindings={"source": land},
             )
         self.assertIn("SpellAbility", str(cm.exception))
 

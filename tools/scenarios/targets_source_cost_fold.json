@@ -1,0 +1,45 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "whale",
+   "real": "Pursued Whale",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "tg",
+   "real": "Titanic Growth",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 4,
+   "G": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "tg",
+   "controller": 0,
+   "targets": [
+    "whale"
+   ]
+  }
+ ],
+ "expect": {
+  "power": {
+   "whale": 12
+  },
+  "zone": {
+   "tg": "graveyard"
+  }
+ },
+ "notes": "r23a TARGETS_SOURCE cost fold: printed 'Spells your opponents cast that target this creature cost {3} more to cast.' Titanic Growth ({1}{G}) cast by seat 0 TARGETING the enemy Whale must cost {C:4}{G} — the pool above is exactly that. Pre-fix the cost fold's filter eval raises NotImplementedError (filter pred TARGETS_SOURCE not implemented, 12c); post-fix _eval_atom answers it against the designation union / bound 'target' handles (the fold ctx source is the Whale host, the judge is the casting spell). After resolution the Whale is 8+4=12 power and the instant is in the graveyard."
+}

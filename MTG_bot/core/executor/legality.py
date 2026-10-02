@@ -99,6 +99,7 @@ from MTG_bot.core.ability_tree import (
     FAtomPred,
     Filter,
     Keyword,
+    KeywordAbility,
     Phase,
     QBin,
     QConst,
@@ -1099,11 +1100,27 @@ _SORCERY_WINDOW_KINDS = frozenset(
 
 
 def spell_window_reason(
-    executor: Executor, seat: Handle, kind: SpellKind
+    executor: Executor, seat: Handle, kind: SpellKind, *, flash: bool = False
 ) -> str | None:
     """Why a spell of ``kind`` cannot be cast by ``seat`` RIGHT NOW (None
-    = the window holds). See the window table above."""
+    = the window holds). See the window table above.
+
+    r23a (CR 702.9a, Masked Blackguard): ``flash`` — the card CARRIES the
+    FLASH keyword (the cast lane's own record answers; a granted-from-
+    battlefield FLASH would not describe a card sitting in hand) — is an
+    ADDITIVE window bypass: it lifts ONLY the sorcery-window restrictions
+    (not_your_turn / phase / empty-stack), never the instant baseline, and
+    never the OTHER gates (window, mana and targets stay fully re-checked
+    in spell_castable). An instant-timing spell already passes the table,
+    so the flag only ever widens CREATURE/SORCERY/ENCHANTMENT/
+    PLANESWALKER carriers exactly as printed."""
     if kind not in _SORCERY_WINDOW_KINDS:
+        return None
+    if flash:
+        # FLASH says "cast any time you could cast an INSTANT" — the
+        # carrier joins the instant row of the table wholesale (v1's
+        # permissive instant reading: every gate above is a sorcery-
+        # window gate, and an instant answers none of them).
         return None
     world = executor.world
     if world.active_player != seat:
@@ -1148,7 +1165,19 @@ def spell_castable(
     node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None)
     if node is None:
         return f"cast:not_a_spell:{handle}", None, None, None
-    window = spell_window_reason(executor, seat, node.kind)
+    # r23a (CR 702.9a): the cast lane's own record answers FLASH — the
+    # compiled card carries KeywordAbility(FLASH) in its KEYWORDS tuple
+    # (Masked Blackguard; the abilities list keeps only the cast/activated
+    # nodes). Keyword grants from the battlefield describe permanents, not
+    # a card waiting in hand, so the record is the honest source for a cast.
+    flash = any(
+        isinstance(k, KeywordAbility) and k.keyword is Keyword.FLASH
+        for k in record.keywords
+    ) or any(
+        isinstance(a, KeywordAbility) and a.keyword is Keyword.FLASH
+        for a in record.abilities
+    )
+    window = spell_window_reason(executor, seat, node.kind, flash=flash)
     if window is not None:
         return window, None, None, None
     cost = spell_cost(record, node.additional_costs)

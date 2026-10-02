@@ -12,6 +12,39 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
 | PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.249 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0929** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **297/305** (0.9738) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 45 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-10-02 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.242 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0929** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-10-02 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, refreshed) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.248 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0929** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
@@ -2686,3 +2719,15 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | catalog | **10/10 diverged → repin → 0/10** | `tools/traces/catalog.py compare` / `repin` | every first-divergence = new CAST entry; outcomes flip cap→decisive kill = intended blast radius |
 | games | **83 decisive game-overs (first campaign games END; mean_turns 31.05 vs 57.69), 17 crash games / 7 classes** (baseline 0) | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all` | ALL 7 attributed executor-half (TARGETS_SOURCE×5, target-prompt×3, QX×3 = wildwood, tripwire×2 guard, GAIN_LIFE layer×2, event-register×1, Radha land-cast×1 legality guard); zero compiler-emission defects; engine frozen |
 | lints | pyright **0 errors** (8 touched files); ruff **Δ0** (per-file multisets = HEAD) | `pyright` / `ruff check` | ruff compares MUST copy HEAD copies inside the repo (config differs outside root) |
+
+## 2026-10-02 (engine batch 23a — seven crash classes killed + FLASH; class 8 exposed & killed)
+
+| Item | Number | Command | Note |
+|---|---|---|---|
+| games | **0 crash classes / 100 seeds** (was 17 games/7 classes), 100 decisive endings 48/52, mean_turns 33.49, coverage 230 fired | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all --deck-pairs-seed 1409 --turns 60` | 8th class COLOR_COUNT_GE EXPOSED by the TARGETS_SOURCE fix (seeds 26/33/95 survived further) and killed same batch — identity color-count, Basri protection gate + Ugin exile filter |
+| tripwire | quarantine guard: fires once, games 17/50 end clean, ledger `trigger_loops=['card:102 (Chandra\'s Incinerator)…quarantined']` | `…games … --repro 17` | permanent per-source quarantine folded into fingerprint via binder.dump(); re-raise only at ≥8 quarantines/game |
+| suite | **2306 passed + 3 subtests, 0 failed** | `.venv/bin/python -m pytest MTG_bot/core -q` | new test_executor_r23a.py 16 pins; 4 stale pins amended to the guard contract (tripwire/GAIN_LIFE/land-cast/bare-ctx TARGETS_SOURCE) |
+| scenarios | **297/297 passed**; suspects 9→**7** | `tools/run_scenarios.py` | promoted targets_source_cost_fold, rin_seri_static_guard + de-suspected wildwood_scourge, flash_window_engine_gap (engine halves landed) |
+| grammar | PC-1 303/305 · PC-2 637/639 · PC-3 0 · PC-4 0 · engine 297/305 (45 verbs) — **ALL Δ0** vs C4 | `tools/measure_grammar.py --with-engine-flags` | PC-6/PC-8 standing FAILs unchanged; engine verbs untouched (filter preds aren't verbs) |
+| catalog | 1/10 diverged → repin → **0/10**; COLOR_COUNT_GE add stayed **byte-identical** | `tools/traces/catalog.py compare` / `repin` | sole divergence = GAIN_LIFE-crash seed NotImplementedError → decisive kill (intended); pure raise-replacements can't move pins |
+| lints | pyright **0 errors** (13 touched files); ruff **Δ0 NEW**, −1 pre-existing | pyright CLI / ruff vs HEAD-worktree | ruff multiset deltas via `--stdin-filename` are INVALID (per-file ignores lost, phantom codes counted line numbers); copy HEAD inside repo or use a worktree |

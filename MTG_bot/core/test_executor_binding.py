@@ -82,7 +82,15 @@ def reset_oracle_ids():
     _ORACLE_SEQ = itertools.count(100)
 
 
-def card_id(name, power=None, toughness=None, type_line="Creature", cmc=2, oid=None):
+def card_id(
+    name,
+    power=None,
+    toughness=None,
+    type_line="Creature",
+    cmc=2,
+    oid=None,
+    colors=(),
+):
     if oid is None:
         n = next(_ORACLE_SEQ)
         oid = f"{n:08x}-1111-2222-3333-444444444444"
@@ -93,6 +101,7 @@ def card_id(name, power=None, toughness=None, type_line="Creature", cmc=2, oid=N
         power=power,
         toughness=toughness,
         cmc=cmc,
+        colors=tuple(colors),
     )
 
 
@@ -684,10 +693,15 @@ class TestRaises(BindingCase):
             1,
         )
 
-    def test_trigger_loop_tripwire_caps_and_raises(self):
-        # Looper's own ETB shuffles itself graveyard->battlefield: an
-        # unconditional self-retrigger chain. MAX fires resolve, then the
-        # cap RAISES — the loop is a bug to flag, never a bug to run.
+    def test_trigger_loop_tripwire_quarantines_the_loop_source(self):
+        # AMENDED r23a (2026-10-02, games seeds 17/50): the tripwire
+        # GUARDS instead of raising — Chandra's Incinerator's real-world
+        # self-retrigger killed GAMES, and "flag it, never run it" means
+        # flag, not kill. Looper's own ETB shuffles itself graveyard->
+        # battlefield: MAX fires resolve, then the culprit source is
+        # QUARANTINED (queued firings dropped, future _queue calls drop),
+        # the event is recorded loudly in executor.trigger_loops, and the
+        # drain COMPLETES normally.
         loop = Seq(
             (
                 atom(Verb.MOVE_ZONE, cards=referent_sel("event"), destination=GY_ANY),
@@ -698,14 +712,22 @@ class TestRaises(BindingCase):
         self.ex.attach_card(
             looper, self.record_for(looper, [etb_trigger(loop)], name="Looper")
         )
-        with self.assertRaises(RuntimeError):
-            self.ex.execute(
-                enter(BF_YOU),
-                source=looper,
-                controller=self.p0,
-                bindings={"cards": looper},
-            )
+        self.ex.execute(  # NO raise — the guard absorbs the loop
+            enter(BF_YOU),
+            source=looper,
+            controller=self.p0,
+            bindings={"cards": looper},
+        )
         self.assertGreaterEqual(MAX_TRIGGER_FIRES, 200)
+        self.assertEqual(len(self.ex.trigger_loops), 1)
+        self.assertIn("Looper", self.ex.trigger_loops[0])
+        self.assertIn(looper, self.ex.binder.quarantined)
+        # The drain COMPLETED (not aborted): the queue and every firing
+        # payload are consumed, and the quarantined source left nothing
+        # behind. The _queue gate keeps it out for good; games seeds
+        # 17/50 pin the end-to-end absorption in test_executor_games.
+        self.assertFalse(self.ex.world.triggers)
+        self.assertFalse(any(str(s) == str(looper) for s in self.ex.binder.firings))
 
 
 class TestMayAndDeterminism(BindingCase):

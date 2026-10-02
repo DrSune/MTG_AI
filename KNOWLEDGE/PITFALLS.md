@@ -800,3 +800,14 @@
   `decisions: ["player:N"]` token; auto-designation only fires when ZERO targets are
   given. `binding_one("target")` = FIRST designation, so TARGET_PLAYER still resolves
   controller-of-target. Pack-side fix; never touch the frozen slot synthesis.
+- **`ruff check --stdin-filename x.py` silently drops per-file-ignores.** The phantom
+  filename never matches `[tool.ruff]` per-file globs, so the multiset is computed under a
+  DIFFERENT config than real-path runs — per-batch deltas were garbage (and a naive token
+  parse turns line numbers into fake "codes"). Compare ruff multiset deltas by copying the
+  HEAD files INSIDE the repo (or a `git worktree add --detach` checkout, which carries the
+  same pyproject). (2026-10-02 r23a.)
+- **Crash classes are an onion: killing an early one EXPOSES the next.** After TARGETS_SOURCE
+  was fixed, the very same seeds 26/33/95 survived their old crash point and died one query
+  later on COLOR_COUNT_GE (block gate) — a clean class list from the last 100-seed run is
+  stale the moment any fix lands. Re-run the FULL games sweep after every class fix; "all
+  repro seeds clean" is not proof of zero classes. (2026-10-02 r23a.)

@@ -658,6 +658,14 @@ def cast(
         (len(executor.events), "SPELL_PUT", str(handle), f"stack->{dest}")
     )
     if dest == ZONE_BATTLEFIELD:
+        # r23a (Wildwood Scourge, CR 614.1c): the cast-declared X rides to
+        # this permanent's ETB firings — recorded as the spell enters, the
+        # binder consumes it for THIS entry only. The frozen IR compiles
+        # "enters with X counters" as a TriggeredAbility reading QX (EtBState
+        # initial-counters shape is a compiler follow-up), so the trigger
+        # needs the cast context the declaration created.
+        if x is not None:
+            executor.etb_x[handle] = x
         # The re-entry lifecycle: a pool-registered record re-attaches so
         # the card's own ETB triggers are live BEFORE the journal event is
         # matched (binding._lifecycle re-registers via handle_record; the
@@ -787,6 +795,8 @@ def cast_card(
         (len(executor.events), "SPELL_PUT", str(handle), f"stack->{dest}")
     )
     if dest == ZONE_BATTLEFIELD:
+        if x is not None:  # r23a: same CR 614.1c X ride as the cast lane
+            executor.etb_x[handle] = x
         registered = executor.binder.records.get(world.cards[handle].identity.oracle_id)
         if registered is not None:
             executor.binder.attach_card(handle, registered)
