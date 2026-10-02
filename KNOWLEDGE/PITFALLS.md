@@ -776,3 +776,19 @@
   `draw_step_ordinal`, set in `_turn_draw`); real Teferi's Ageless Insight rules
   say "first card each TURN" — an upkeep draw before the draw step is doubled
   here but not by the real card. Documented deviation, do not silently "fix".
+- **2026-10-02 · Keyless-mint law.** Engine-minted tokens have NO pack key; every
+  OPERAND op (activate/deal_damage/fight/combat maps) is key-resolved
+  (`run_scenarios.py` activate resolves only `self.handles[key]`). Minted tokens are
+  reachable only by report lanes (tokens/battlefield_pt) or combat-phase ask
+  vocabulary (secure_the_scene trick). Token identities live in goldens/census
+  rows, NOT the supply pool — `"real":"Treasure"` dies at setup with "pool has no
+  card". (wave-6 treasure_token_activation suspect)
+- **2026-10-02 · ADD_MANA ANY is an ask.** A color-less ADD_MANA ("Add one mana of
+  any color") consumes one decision-provider word (W/U/B/R/G/C, tag `mana:<source>`)
+  before writing the pool — mana-activation packs must carry `decisions`, and the
+  runner has NO mana-pool expect lane (documented since chromatic_orrery); prove
+  mana via an observable consequence (cast from pool) or log OBSERVABILITY-GAP.
+- **2026-10-02 · EtBState rides EVERY entry.** The `_apply_etb_state` stamp sits in
+  the journal's ENTER branch, so `play`, `enter` AND cast resolution all stamp it.
+  A pack that omits the `tapped` step parameter therefore asserts the COMPILED
+  EtBState node, not a harness override — that is the honest ETB-residue lane.

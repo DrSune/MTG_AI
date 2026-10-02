@@ -202,10 +202,10 @@
     "132859dd-de66-45c6-8af4-ab5e202a17b0": {
       "engine_supported": true,
       "families": [],
-      "in_pack": false,
-      "in_suspect": true,
+      "in_pack": true,
+      "in_suspect": false,
       "name": "Sanctum of Fruitful Harvest",
-      "status": "suspect"
+      "status": "pack"
     },
     "14cefb15-d833-4c70-80c9-f2d34b6c846b": {
       "engine_supported": true,
@@ -272,10 +272,10 @@
       "families": [
         "activated"
       ],
-      "in_pack": false,
-      "in_suspect": true,
+      "in_pack": true,
+      "in_suspect": false,
       "name": "Sanctum of Tranquil Light",
-      "status": "suspect"
+      "status": "pack"
     },
     "189131b7-ed59-4750-a4ed-453e4497a5c8": {
       "engine_supported": true,
@@ -308,10 +308,10 @@
     "1cd1e3a8-e09d-4b61-8244-92b317132d6a": {
       "engine_supported": true,
       "families": [],
-      "in_pack": false,
-      "in_suspect": true,
+      "in_pack": true,
+      "in_suspect": false,
       "name": "Sanctum of Calm Waters",
-      "status": "suspect"
+      "status": "pack"
     },
     "1d07856b-d9ef-418c-bd06-3888dbcaddf4": {
       "engine_supported": true,
@@ -677,20 +677,9 @@
         "activated"
       ],
       "in_pack": false,
-      "in_suspect": false,
+      "in_suspect": true,
       "name": "Treasure",
-      "profile": {
-        "ability_node_classes": [
-          "ActivatedAbility"
-        ],
-        "cost_nodes": [
-          "CostSacrifice",
-          "CostTap"
-        ],
-        "keywords": [],
-        "mana_cost_nodes": []
-      },
-      "status": "uncovered"
+      "status": "suspect"
     },
     "3c8a6c58-f4af-4809-af86-a931313fa71e": {
       "engine_supported": true,
@@ -1199,7 +1188,7 @@
         "activated"
       ],
       "in_pack": true,
-      "in_suspect": true,
+      "in_suspect": false,
       "name": "Sanctum of Shattered Heights",
       "status": "pack"
     },
@@ -2049,20 +2038,10 @@
     "9bd4a0bd-d10c-434a-8254-89f38740aafd": {
       "engine_supported": true,
       "families": [],
-      "in_pack": false,
+      "in_pack": true,
       "in_suspect": false,
       "name": "Forgotten Sentinel",
-      "profile": {
-        "ability_node_classes": [
-          "EtBState"
-        ],
-        "cost_nodes": [],
-        "keywords": [],
-        "mana_cost_nodes": [
-          "CostManaGeneric"
-        ]
-      },
-      "status": "uncovered"
+      "status": "pack"
     },
     "9c2fd3a3-96f2-4e84-85a9-77698c2f83aa": {
       "engine_supported": true,
@@ -2102,10 +2081,10 @@
     "a1d8fcb9-26b2-4d09-9db7-e644294749f8": {
       "engine_supported": true,
       "families": [],
-      "in_pack": false,
-      "in_suspect": true,
+      "in_pack": true,
+      "in_suspect": false,
       "name": "Sanctum of Stone Fangs",
-      "status": "suspect"
+      "status": "pack"
     },
     "a217f386-11b5-48f0-b173-3b0700ba295f": {
       "engine_supported": true,
@@ -2162,7 +2141,7 @@
         "spell"
       ],
       "in_pack": true,
-      "in_suspect": true,
+      "in_suspect": false,
       "name": "Shock",
       "status": "pack"
     },
@@ -3195,7 +3174,7 @@
         "spell"
       ],
       "in_pack": true,
-      "in_suspect": false,
+      "in_suspect": true,
       "name": "Defiant Strike",
       "status": "pack"
     },
@@ -3308,11 +3287,11 @@
       "static": "static_nodes: top-level StaticAbility + KeywordAbility"
     },
     "n_cards": 305,
-    "n_pack": 262,
-    "n_pack_and_suspect": 14,
-    "n_suspect": 12,
-    "n_uncovered": 31,
-    "n_uncovered_engine_supported": 24,
+    "n_pack": 267,
+    "n_pack_and_suspect": 13,
+    "n_suspect": 9,
+    "n_uncovered": 29,
+    "n_uncovered_engine_supported": 22,
     "question": "does every M21 card have a pack, a suspect, or a documented family-less status?",
     "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
     "status_precedence": "pack > suspect (both memberships kept per card)",
@@ -3337,17 +3316,11 @@
         "Wishcoin Crab",
         "Zombie"
       ],
-      "ActivatedAbility": [
-        "Treasure"
-      ],
       "ActivatedAbility + StaticAbility": [
         "Teferi, Master of Time"
       ],
       "CostModifier + SpellAbility": [
         "Lofty Denial"
-      ],
-      "EtBState": [
-        "Forgotten Sentinel"
       ],
       "SpellAbility": [
         "Cancel",

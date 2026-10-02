@@ -1,0 +1,29 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "fs",
+   "real": "Forgotten Sentinel",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "fs"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "fs": "battlefield"
+  },
+  "tapped": {
+   "fs": true
+  }
+ },
+ "notes": "Printed: 'This creature enters tapped.' (wave-6 residue: the golden's ONLY ability node is an EtBState{tapped:true} - wave 1's EtB family derivation keyed on TriggeredAbility/ZoneChangeEvent nodes, so a pure EtBState card like this never surfaced in the 66-row wave.) The enter op carries NO tapped override (its step parameter defaults false), so the tapped lane can only be satisfied by the engine's own journal entry hook stamping the compiled EtBState node (CR 614.1c, executor _on_zone_changes ENTER branch -> _apply_etb_state). Style twin: the wave-1 checkland/tempo EtBState packs (blossoming_sands et al.), which reach the same stamp through the play op; non-lands have no play op, so the journalled enter op takes the role."
+}

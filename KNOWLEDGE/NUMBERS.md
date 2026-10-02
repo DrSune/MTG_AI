@@ -12,6 +12,23 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
 | PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.263 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **297/305** (0.9738) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 45 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-10-02 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9869** (301/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9922** (634/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, refreshed) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.242 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0934** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
@@ -2572,3 +2589,13 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | games | **100 seeds, 86 survived, 0 crash classes** | `.venv/bin/python MTG_bot/core/executor/games.py --seeds 100 --pool all` | = 22c baseline; reports/games_2026-10-02.json |
 | lints | pyright **0** on 4 touched files; ruff **Δ0** | `pyright <files>` / `ruff check` | b5c test I001 is HEAD-preexisting same line |
 | stays suspect | adherent_of_hope (NAME_CONTAINS, quantifier loss ≠ this idiom), chandras_pyreling; **flag**: secure_the_scene PASSes at HEAD (asserts don't exercise its loss) | stash-verified 1/17 pre → 5/17 post (4 sancta) | `KNOWLEDGE/2026-10-02/01-compiler-c1-name-eq-idiom.md` |
+
+## 2026-10-02 (wave-6 residue wave — two /26 gaps closed)
+
+| Item | Number | Command | Note |
+|---|---|---|---|
+| scenarios | **287/287 passed** | `.venv/bin/python tools/run_scenarios.py` | 286 + forgotten_sentinel (EtBState via enter op, first-try green) |
+| suspects | **14 files, 0/14 red-as-intended**; new treasure_token_activation red at `pool has no card 'Treasure'` | `.venv/bin/python tools/run_scenarios.py --dir tools/audit/suspects` | HARNESS routing, not compiler; mint-half probe green |
+| census | **305 = 267 pack + 9 suspect + 29 uncovered** (31→29; +5 stale rows legitimately promoted by disk-derived refresh) | `.venv/bin/python tools/audit/wave_builder.py --coverage` | Treasure→suspect, Forgotten Sentinel→pack |
+| five-wave lint | 66/66 · 67/67 · 55/55 · 43/43 · 31/31 (+3 waived) all "closed: consumed" | `wave_builder.py --waveN --lint` | unchanged |
+| core suite | **2272 + 3 subtests, unchanged** | `pytest MTG_bot/core -q` | engine frozen, zero edits outside tools/ |
