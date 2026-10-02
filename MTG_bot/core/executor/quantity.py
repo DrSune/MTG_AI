@@ -396,6 +396,21 @@ def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
             QPropField.CARDS_IN_GRAVEYARD: ZONE_GRAVEYARD,
         }[field]
         return len(ctx.world.players[handle].zone(kind).entries)
+    if field is QPropField.LIFE:
+        # r24a (2026-10-02): the life-TOTAL operand the C3 roadmap correction
+        # named — "loses half their life. Round up" (Peer into the Abyss) has
+        # no zone to count, so QCount could never carry it and C3 STOPPED the
+        # card. This lane is the engine half of that split: the same twin
+        # convention as the CARDS_IN_* fields above (referent "controller",
+        # validated in QProp.__post_init__ — a referent mismatch raises there,
+        # never silently re-scopes), and a direct order-free attribute read —
+        # the determinism contract the zone-count twins keep. The future
+        # compiler emit reads LOSE_LIFE(amount=QBin((QProp(controller, LIFE)
+        # + 1) DIV 2)) through here; the frozen Peer golden carries no
+        # LOSE_LIFE atom yet, so the print-still-drops-the-clause witness is
+        # the promoted pack's documented deviation, and THIS lane is pinned
+        # end-to-end in test_executor_r24a.
+        return ctx.world.players[handle].life
     if field is QPropField.COUNTER_COUNT:
         # r22b (Conclave Mentor): inside a counter placement's replacement
         # action, "that many" names the count the EVENT is placing (the

@@ -93,3 +93,13 @@ family and lack a pack) to decide wave 5 or corpus-complete declaration.
 Five waves consumed: 66+67+55+43+31 rows. Packs 282, suite 2271, 305/305 cards accounted for
 (/26-wave5-closeout.md). All 17 suspects compiler-routed. Next arc: compiler campaign (golden
 inventory protocol) + 2 logged micro-gaps (Treasure activation, Forgotten Sentinel).
+
+## Addendum — phase-3 compiler campaign state (2026-10-02, session end)
+C1-C5 + 23a + 24a landed: 302 green packs, suite 2322, games 100/100 DECISIVE & 0 crash
+(33.5 mean turns), all PC Δ0 except honest compiler-side shifts (PC-1 303/305, PC-2 637/639).
+Ledger: 2 suspects, BOTH owner-blocked (grammar round-11: damage destination [pyreling] +
+CREATE_TOKEN.controller [secure_the_scene]). Ratifications on record: C1-form audited golden
+moves (C2 note), additive QPropField.LIFE (this doc), PC-8 re-baseline accepted.
+Peer's life clause still dropped compiler-side (emit batch 2 residue, documented in its pack).
+Owner replays: s8/s12/s21/s30. Next when owner rules grammar round: batch 6, then response-
+window arc (R16-1 unlock, COUNTER_SPELL family ×5).

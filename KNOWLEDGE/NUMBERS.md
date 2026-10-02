@@ -13,6 +13,39 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.244 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0931** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **297/305** (0.9738) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 45 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-10-02 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.244 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0931** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-10-02 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.247 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0931** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
@@ -2776,3 +2809,14 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | catalog | **0/10 diverge — NO repin** | `tools/traces/catalog.py compare` | batch fixes never fire on the 10 trace seeds |
 | games | **0 crash classes**, 100 decisive 48/52, mean_turns **33.49 — exact Δ0** vs 23a | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all --deck-pairs-seed 1409 --turns 60` | Eot-exemption + suppression blast-radius-free on the field |
 | lints | pyright **Δ0 new** (6 pre-existing Counter FPs, run_scenarios.py untouched lines); ruff **Δ0 NEW** | pyright CLI / ruff vs HEAD-worktree-inside-repo | HEAD already carries BLE001 (run_scenarios.py) + I001 (test_templates_b5c.py) — identical multisets; /tmp worktree silently loses ruff config (empty output ≠ clean) |
+
+## 2026-10-02 (engine batch 24a — LIFE quantity lane + harness token lane; last two non-owner suspects closed)
+
+| Item | Number | Command | Note |
+|---|---|---|---|
+| scenarios | **302/302 passed**; suspects 4→**2** files (chandras_pyreling + secure_the_scene, owner-blocked signatures unchanged), **0/2** | `tools/run_scenarios.py` [+ `--dir tools/audit/suspects`] | promoted peer_into_the_abyss (life-half = documented compiler gap, expect.life records print-drop) + treasure_token_activation (harness token-golden fallback + NEW expect.mana_pool lane; keyless-mint law stands) |
+| suite | **2322 passed + 3 subtests, 0 failed** | `.venv/bin/python -m pytest MTG_bot/core -q` | +10 test_executor_r24a: QProp(controller,LIFE) read + controller-scope + order-free; (LIFE+1)//2 rounds up 20→10/13→7-lost/1→1; LOSE_LIFE end-to-end 20→10, p1-13→6; referent raises ×2 |
+| grammar | PC-1 303/305 · PC-2 637/639 · PC-3 0 · PC-4 **0 (305 verified — LIFE field byte-stable)** · engine 297/305 (45 verbs) · PC-9 stable — **ALL Δ0** vs C5 | `tools/measure_grammar.py --set M21 --with-engine-flags` | PC-6/PC-8 standing FAILs unchanged |
+| catalog | **0/10 diverge — NO repin** | `tools/traces/catalog.py compare` | engine additions never fire on the 10 trace seeds |
+| games | **0 crash classes**, 100 decisive 48/52, mean_turns **33.49 — exact Δ0** vs C5 | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all --deck-pairs-seed 1409 --turns 60` | additive lane invisible to games (no golden emits LIFE) |
+| lints | pyright **Δ0** (6 pre-existing Counter FPs in run_scenarios.py — HEAD copy of the file reproduces exactly 6); ruff **Δ0 NEW** (identical per-file multisets, stdin-vs-HEAD) | pyright CLI / `ruff check` per file | scope flag: ability_tree.py touched OUTSIDE authorized list (additive QPropField.LIFE per C3 roadmap; needs ratification) |

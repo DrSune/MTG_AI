@@ -17,7 +17,11 @@ Pack vocabulary (all keys required as noted):
   world   : {"life": int, "seed": int}
   cards   : [{"key": str, "zone": "hand"|"battlefield"|"library"|"graveyard"
                     |"exile", "controller": 0|1,
-              "real": "<pool card name>"  OR
+              "real": "<pool card name>"  OR  "<compiled token name>"
+                                            (r24a: a token golden — "Treasure"
+                                            — addressed by name through the
+                                            pool fallback; is_token records
+                                            only), OR
               "name"/"power"/"toughness"/"type" (synthetic)}]
   mana    : {"0": {"G": 5}, ...}            optional, per seat index
   steps   : [{"op": "deal_damage"|"fight", "source": key, "target": key
@@ -71,6 +75,9 @@ Pack vocabulary (all keys required as noted):
              "tokens": {Name: n},          — battlefield token records
              "tapped": {key: bool},
              "hand": {"0": int},
+             "mana_pool": {"0": {"W": 1}},  r24a: the PlayerState.mana_pool
+                                            totals (frozen _v_add_mana write;
+                                            zero-equivalence both sides)
              "counters": {key: {"KIND": n}},  17a: the counter table,
              "power": {key: int},             17a: ledger effective_pt,
              "toughness": {key: int},         17a: (base->timestamp fold),
@@ -163,6 +170,23 @@ class ScenarioRunner:
                     if meta.name == card["real"]:
                         record = supply.pool.results[oid].card
                         break
+                if record is None:
+                    # r24a TOKEN-GOLDEN LANE (treasure_token_activation):
+                    # token identities are compiled golden rows, never dealt
+                    # pool METAS (the keyless-mint law's other face —
+                    # supply('all') filters is_token out of metas at
+                    # games.compile_supply). A metas miss therefore falls
+                    # back to the compiled TOKEN record by name. Only
+                    # is_token records qualify: the lane never fakes or
+                    # substitutes a printed identity, and the golden's REAL
+                    # oracle_id is what binder.attach_pool files under
+                    # ``records`` and what legality.spell_record reads — so
+                    # the pack-keyed token carries the SAME compiled
+                    # ActivatedAbility the engine's own mints carry.
+                    for result in supply.pool.results.values():
+                        if result.card.is_token and result.card.name == card["real"]:
+                            record = result.card
+                            break
                 if record is None:
                     raise PackError(f"pool has no card {card['real']!r}")
                 identity = identity_of(record)
@@ -561,6 +585,18 @@ class ScenarioRunner:
             got = len(self.world.players[self.seats[int(seat)]].zone(ZONE_HAND).entries)
             if got != size:
                 fails.append(f"hand[{seat}]: expected {size}, got {got}")
+        # r24a MANA-POOL LANE (treasure_token_activation; the gap documented
+        # since chromatic_orrery's note): assert the ADD_MANA totals directly
+        # on PlayerState.mana_pool — the frozen totals write _v_add_mana is,
+        # not the 13b segment mirror. ZERO-EQUIVALENCE both sides: a spent
+        # colour is DELETED from the dict by legality.pay_costs, so an
+        # absent key and an explicit 0 assert the same fact.
+        for seat, colors in expect.get("mana_pool", {}).items():
+            pool = self.world.players[self.seats[int(seat)]].mana_pool
+            got_pool = {k: v for k, v in pool.items() if v}
+            want_pool = {k: v for k, v in dict(colors).items() if v}
+            if got_pool != want_pool:
+                fails.append(f"mana_pool[{seat}]: expected {want_pool}, got {got_pool}")
         # 17a lanes ------------------------------------------------------------
         for key, kinds in expect.get("counters", {}).items():
             got = dict(self.world.cards[self.handles[key]].counters)

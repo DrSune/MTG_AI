@@ -1,0 +1,93 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t",
+   "real": "Treasure",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "t2",
+   "real": "Treasure",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ds",
+   "real": "Defiant Strike",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "soldier",
+   "name": "Soldier",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "t"
+  },
+  {
+   "op": "activate",
+   "key": "t",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "W"
+   ]
+  },
+  {
+   "op": "enter",
+   "key": "t2"
+  },
+  {
+   "op": "activate",
+   "key": "t2",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "U"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Defiant Strike",
+   "key": "ds",
+   "targets": [
+    "soldier"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "t": "graveyard",
+   "t2": "graveyard",
+   "ds": "graveyard"
+  },
+  "power": {
+   "soldier": 2
+  },
+  "hand": {
+   "0": 1
+  },
+  "tokens": {
+   "Treasure": 0
+  },
+  "mana_pool": {
+   "0": {
+    "U": 1
+   }
+  }
+ },
+ "notes": "r24a (2026-10-02) HARNESS \u2014 promoted from suspects. History: the suspect died at setup \"pool has no card 'Treasure'\": compile_supply filters is_token records out of metas, so no pack could ever name a token, although the Treasure golden sits in supply.pool.results (one ActivatedAbility {T},Sac -> ADD_MANA 1 ANY) and binder.attach_pool/legality.spell_record resolve it by real oracle_id \u2014 run_scenarios gained a token-golden fallback for \"real\" refs (harness-only; engine untouched). t's W is paid into Defiant Strike (soldier power 2 proves the payment); t2's U survives in the mana_pool expect lane added this batch. DOCUMENTED LIMITATION: engine-minted tokens (Gadrak) still have no pack address \u2014 the keyless-mint law stands (PITFALLS); the report lane tokens.Treasure works (24a probe), so the pack sets up real-token copies instead."
+}

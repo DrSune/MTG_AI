@@ -367,6 +367,15 @@ class QPropField(Enum):
     CARDS_IN_HAND = "CARDS_IN_HAND"  # "the number of cards in your hand"
     CARDS_IN_LIBRARY = "CARDS_IN_LIBRARY"  # Peer into the Abyss
     CARDS_IN_GRAVEYARD = "CARDS_IN_GRAVEYARD"  # Liliana, Waker of the Dead [-3]
+    # r24a (2026-10-02, engine batch 24a; the C3 roadmap correction's engine
+    # half): the life-TOTAL operand — "loses half their life. Round up" (Peer
+    # into the Abyss). QCount counts zone OBJECTS and no field read a player's
+    # life, so that clause had no compilable quantity (C3 STOP verdict). The
+    # lane is additive+byte-stable per the R3 law: the frozen compiler emits
+    # no LOSE_LIFE(QProp LIFE) tree yet — the emit lands with the compiler
+    # batch; the executor already answers it (quantity._prop_value, pinned in
+    # test_executor_r24a).
+    LIFE = "LIFE"  # "half your life total" (Peer into the Abyss)
     AMOUNT = "AMOUNT"  # the triggering event's damage amount (Brash Taunter)
     COUNTER_COUNT = "COUNTER_COUNT"  # the counter count of the event or the source (Conclave Mentor; grammar round 7: Malefic Scythe's SOUL counters on this Equipment)
     THIS_WAY_COUNT = "THIS_WAY_COUNT"  # "for each creature tapped this way" (Siege Striker) / "for each card exiled this way" (Necromentia s3) — grammar round 7, referent "event"
@@ -784,6 +793,9 @@ class QProp:
             QPropField.CARDS_IN_HAND,
             QPropField.CARDS_IN_LIBRARY,
             QPropField.CARDS_IN_GRAVEYARD,
+            # r24a: the life total is the same PLAYER property (same twin
+            # convention, same controller-only referent rule).
+            QPropField.LIFE,
         )
         if self.field in player_fields and self.referent != "controller":
             raise ValueError(
