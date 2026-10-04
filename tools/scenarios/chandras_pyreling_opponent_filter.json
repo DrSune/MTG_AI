@@ -1,0 +1,50 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "py",
+      "real": "Chandra's Pyreling",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "m",
+      "real": "Meteorite",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "v",
+      "zone": "battlefield",
+      "controller": 1,
+      "name": "Victim",
+      "power": 5,
+      "toughness": 9,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "enter",
+      "key": "m",
+      "decisions": [
+        "v"
+      ]
+    }
+  ],
+  "expect": {
+    "damage": {
+      "v": 2
+    },
+    "battlefield_pt": {
+      "Chandra's Pyreling": [
+        1,
+        3
+      ]
+    }
+  },
+  "notes": "repro: run this exact pack through tools/run_scenarios.py. wave5a cohort negative control."
+}

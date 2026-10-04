@@ -2348,7 +2348,20 @@ class TestRound7BTopUps(unittest.TestCase):
         eff = spells[0].effect
         assert isinstance(eff, Seq)
         self.assertEqual(len(eff.steps), 2)
-        self.assertEqual(_as_atom(eff.steps[1]).verb, Verb.CREATE_TOKEN)
+        create = _as_atom(eff.steps[1])
+        self.assertEqual(create.verb, Verb.CREATE_TOKEN)
+        # R11-2 anaphoric creator: the emitted CREATE_TOKEN carries a
+        # "controller" role — the referent-target Selector (the s1 exile's
+        # controller is the antecedent), CHOOSE one, any zone/controller.
+        # Same idiom _build_its_controller_loses_life emits (Death Mage).
+        roles = dict(create.args.pairs)
+        controller_sel = roles["controller"]
+        assert isinstance(controller_sel, Selector)
+        self.assertEqual(controller_sel.referent, "target")
+        self.assertIs(controller_sel.mode, SelectorMode.CHOOSE)
+        self.assertEqual(controller_sel.count, QConst(1))
+        self.assertIs(controller_sel.zone.kind, ZoneKind.ANY)
+        self.assertIs(controller_sel.zone.controller, ControllerRef.ANY)
 
 
 # ---------------------------------------------------------------------------

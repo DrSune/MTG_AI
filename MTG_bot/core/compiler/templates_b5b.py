@@ -2248,10 +2248,12 @@ def _build_its_controller_token(m: re.Match[str]) -> SentenceOutcome:
     executor-side referent binding per R4).
     Faithful since round 8: TokenSpec.color="W" carries ``white`` (C-2
     repair — the row's pattern pins the word "white" for both Angel and
-    Soldier sentences).  Remaining lossy (verbatim): ``Its controller``
-    as the CREATING player has no CREATE_TOKEN controller role — the
-    creator is implicit (the exact Necromentia s3 precedent documented in
-    B5b-token-per-exiled-this-way).
+    Soldier sentences).  FAITHFUL since grammar round 11 (R11-2, batch 6
+    ruling /10): ``Its controller`` lands as the CREATE_TOKEN ``controller``
+    role — the exact R4 referent-target Selector shape the Liliana Death
+    Mage "its controller loses life" row uses (the antecedent is the s1
+    TARGET designation; ``role_players`` folds the exiled card to its
+    controller at execution).
     C16: none — fully forced."""
     subtype = m.group("st")
     return EffectOutcome(
@@ -2259,6 +2261,16 @@ def _build_its_controller_token(m: re.Match[str]) -> SentenceOutcome:
             verb=Verb.CREATE_TOKEN,
             args=AtomArgs(
                 pairs=(
+                    (
+                        "controller",
+                        Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            FAnd(children=()),
+                            Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+                            referent="target",
+                        ),
+                    ),
                     (
                         "tokens",
                         TokenSpec(

@@ -1183,6 +1183,13 @@ class TestB2bTriggerEvents(unittest.TestCase):
         assert isinstance(event.source, FAtom)
         self.assertIs(event.source.pred, FAtomPred.CONTROLLER_IS)
         self.assertIs(event.source.who, ControllerRef.YOU)
+        # R11-1 destination predicate: "to an opponent" is the DamageDealt
+        # FILTER over the damage subject — FAtom(OPPONENT_OF, who=YOU),
+        # player-total (a card subject never passes). Replaces the vacuous
+        # FAnd(()) that let the trigger fire on damage to anything.
+        assert isinstance(event.filter, FAtom)
+        self.assertIs(event.filter.pred, FAtomPred.OPPONENT_OF)
+        self.assertIs(event.filter.who, ControllerRef.YOU)
         self.assertIsNone(ability.condition)
 
     def test_pyreling_is_noncombat_damage_event(self) -> None:
@@ -1199,6 +1206,11 @@ class TestB2bTriggerEvents(unittest.TestCase):
         self.assertIs(event.combat, False)
         assert isinstance(event.source, FAtom)
         self.assertIs(event.source.who, ControllerRef.YOU)
+        # R11-1 destination predicate, pinned in both template shapes
+        # (the +1/+0 and the burn-to-target emissions share it).
+        assert isinstance(event.filter, FAtom)
+        self.assertIs(event.filter.pred, FAtomPred.OPPONENT_OF)
+        self.assertIs(event.filter.who, ControllerRef.YOU)
 
     def test_pack_leader_is_declare_attackers(self) -> None:
         ability = _ability(

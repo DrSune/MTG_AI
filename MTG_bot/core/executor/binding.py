@@ -224,6 +224,13 @@ def _player_subject_verdict(filter_: Filter, subject: Handle, ctx: ExecCtx) -> b
         if filter_.pred is FAtomPred.CONTROLLER_IS and filter_.who is not None:
             # a player is its own controller (CR 109.5's player half)
             return controller_matches(filter_.who, subject, ctx)
+        if filter_.pred is FAtomPred.OPPONENT_OF:
+            # r25 (grammar round 11, R11-1): the destination identity pred
+            # is decidable over a player subject by definition — the atom
+            # is player-total (its _eval_atom branch reads only seats and
+            # bindings, never card data), so the shared oracle answers
+            # here too instead of the 12c raise.
+            return eval_filter(filter_, subject, ctx)
     raise NotImplementedError(
         "executor: DamageDealtEvent filter over a player subject is 12c's query surface"
     )

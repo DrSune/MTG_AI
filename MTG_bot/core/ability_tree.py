@@ -571,6 +571,21 @@ class FAtomPred(Enum):
         # the DeclareAttackersEvent (LIFE_LEAD vocabulary-first
         # precedent: the executor reads the game record).
     )
+    OPPONENT_OF = (
+        "OPPONENT_OF"  # grammar round 11, R11-1 (batch 6 destination
+        # ruling /10): the subject IS a PLAYER who is an opponent of
+        # ``who`` — the damage-DESTINATION test "…deals damage TO AN
+        # OPPONENT" (Chandra's Pyreling / Incinerator). A destination
+        # PREDICATE in the existing event-filter idiom: the
+        # DamageDealtEvent ``filter`` is already the lane over the
+        # damaged object, so no new event field is needed. A card/
+        # permanent subject is honestly FALSE (a permanent is not a
+        # player, CR 109.5) — the pyreling suspect's negative: damage
+        # to an opponent's CREATURE must not satisfy "to an opponent".
+        # ``who`` is a ControllerRef or referent Selector (CONTROLLER_IS
+        # precedent); the two-player harness answers "the seats that are
+        # not who's side are its opponents" (controller_matches mirror).
+    )
 
 
 class CounterKind(Enum):
@@ -1283,6 +1298,14 @@ class FAtom:
             raise ValueError(
                 "FAtom: CONTROLLER_IS who must be you, opponent, the target "
                 "player, or a referent Selector (grammar round 4)"
+            )
+        if self.pred is FAtomPred.OPPONENT_OF and not (
+            isinstance(self.who, ControllerRef)
+            or (isinstance(self.who, Selector) and self.who.referent is not None)
+        ):
+            raise ValueError(
+                "FAtom: OPPONENT_OF who must be a ControllerRef or a referent "
+                "Selector (grammar round 11, CONTROLLER_IS precedent)"
             )
 
 
@@ -3165,6 +3188,10 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
         frozenset({"count", "inner_filter"}),
         frozenset({"count", "inner_filter"}),
     ),
+    # OPPONENT_OF (grammar round 11, R11-1): the destination identity pred
+    # — who = the side the subject must NOT be on (ControllerRef or
+    # referent Selector, the CONTROLLER_IS single-slot precedent).
+    FAtomPred.OPPONENT_OF: (frozenset({"who"}), frozenset({"who"})),
 }
 
 # Atom role -> allowed value types. "types" is a tuple of card-type strings
@@ -3253,7 +3280,13 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     Verb.GAIN_LIFE: {"controller": True, "amount": True},
     Verb.LOSE_LIFE: {"controller": True, "amount": True},
     Verb.ADD_MANA: {"controller": True, "amount": True, "color": False},
-    Verb.CREATE_TOKEN: {"tokens": True, "count": False},
+    # CREATE_TOKEN += controller (grammar round 11, R11-2, batch 6 ruling
+    # /10): the anaphoric "ITS CONTROLLER creates a … token" creator
+    # (Secure the Scene / Angelic Ascension s2). Optional; omitted = the
+    # ability's controller (every pre-round row, byte-unchanged). The
+    # value is a ControllerRef or referent Selector (LOSE_LIFE-controller
+    # precedent, Gloom-Sower/Death-Mage lanes).
+    Verb.CREATE_TOKEN: {"tokens": True, "count": False, "controller": False},
     Verb.PUT_COUNTER: {"target": True, "counter_kind": True, "count": True},
     Verb.REMOVE_COUNTER: {"target": True, "counter_kind": True, "count": True},
     Verb.MODIFY_PT: {

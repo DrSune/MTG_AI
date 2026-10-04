@@ -854,6 +854,33 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             return False
         actual = controller_of(ctx, handle)
         return controller_matches(who, actual, ctx)
+    if pred is FAtomPred.OPPONENT_OF:
+        # r25 (grammar round 11, R11-1): the DESTINATION identity pred —
+        # the subject must BE a player on the far side of ``who``. The
+        # two-seat harness answer mirrors controller_matches' OPPONENT
+        # row: a player that is not ``who``'s side is an opponent. A
+        # CARD subject is honestly FALSE (CR 109.5 — a permanent is not
+        # a player): the pyreling negative, damage to an opponent's
+        # creature never satisfies "to an opponent".
+        if handle.namespace != "player":
+            return False
+        from MTG_bot.core.executor.selectors import (
+            controller_of,
+            players_for_ref,
+            resolve_selector,
+        )
+
+        who = atom.who
+        if who is None:
+            return False
+        if isinstance(who, Selector):
+            side = [
+                c if c.namespace == "player" else controller_of(ctx, c)
+                for c in resolve_selector(who, ctx)
+            ]
+        else:
+            side = players_for_ref(who, ctx)
+        return handle not in side
     if pred is FAtomPred.NOT_FIRST_DRAW_THIS_STEP:
         # r22b (Teferi's Ageless Insight, grammar R5-4): "not the first
         # card who draws in their draw step". A PLAYER-coordinate pred —

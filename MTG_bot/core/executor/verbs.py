@@ -856,6 +856,25 @@ def _v_create_token(ctx: ExecCtx, atom: Atom) -> None:
     count_quantity = atom.args.get("count")
     assert count_quantity is None or isinstance(count_quantity, Quantity)
     n = 1 if count_quantity is None else resolve(count_quantity, ctx)
+    creator = ctx.controller
+    if atom.args.get("controller") is not None:
+        # r25 (grammar round 11, R11-2): the anaphoric creator — "ITS
+        # CONTROLLER creates a … token" (Secure the Scene / Angelic
+        # Ascension s2). The role resolves through the same
+        # role_players lane LOSE_LIFE uses for its controller-of-the-
+        # referent reads (referent-target selector folds a card
+        # binding to its controller, Gloom-Sower/Death-Mage
+        # precedent). No role = the ability's controller, every
+        # pre-round-11 row unchanged. A resolution that names ZERO or
+        # MULTIPLE players is flagged, never guessed — the printed
+        # clause has exactly one antecedent.
+        resolved = sorted(role_players(ctx, atom, "controller"))
+        if len(resolved) != 1:
+            raise ValueError(
+                f"executor: CREATE_TOKEN controller role resolved to "
+                f"{len(resolved)} players (need exactly 1)"
+            )
+        creator = resolved[0]
     for _ in range(n):
         power = None if spec.power is None else resolve(spec.power, ctx)
         toughness = None if spec.toughness is None else resolve(spec.toughness, ctx)
@@ -870,7 +889,7 @@ def _v_create_token(ctx: ExecCtx, atom: Atom) -> None:
             keywords=tuple(k.name for k in spec.keywords),
             is_token=True,
         )
-        handle = ctx.world.add_card(identity, ctx.controller, ZONE_BATTLEFIELD)
+        handle = ctx.world.add_card(identity, creator, ZONE_BATTLEFIELD)
         # 16c (the token-record binder registration — the /13 named gap):
         # the token's own rule lines ("This token can't block", "Creatures
         # you control attack each combat if able" — the Pursued Whale

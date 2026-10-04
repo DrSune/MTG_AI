@@ -1675,12 +1675,15 @@ def _noncombat_source_event() -> DamageDealtEvent:
     the event ``source`` filter (CONTROLLER_IS YOU — the 8-A dealer/recipient
     ATOM roles were re-checked in round 8-B: both rows' effect atoms act on
     their own source, so no dealer/recipient role applies there; flipping
-    them would be cosmetic).  Remaining lossy: "to an opponent" stays
-    dropped from the damaged-recipient event filter (no player-identity
-    FAtomPred — R8 candidate).  ``combat=False`` pins noncombat damage."""
+    them would be cosmetic).  FAITHFUL since grammar round 11 (R11-1, batch
+    6 ruling /10): the DESTINATION predicate ``OPPONENT_OF`` (who=YOU) lands
+    in the damaged-recipient event filter — the DamageDealtEvent ``filter``
+    IS the destination lane, so damage to an opponent's PERMANENT or to
+    YOURSELF no longer fires the trigger (the pyreling suspect's negative).
+    ``combat=False`` pins noncombat damage."""
     return DamageDealtEvent(
         amount=QUnbounded(),
-        filter=FAnd(children=()),
+        filter=FAtom(pred=FAtomPred.OPPONENT_OF, who=ControllerRef.YOU),
         source=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
         combat=False,
     )

@@ -1,0 +1,74 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "sp",
+      "real": "Secure the Scene",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "ar",
+      "name": "Gear Hauler",
+      "power": "2",
+      "toughness": "2",
+      "type": "Artifact Creature",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "R": 10,
+      "G": 10,
+      "W": 10,
+      "U": 10,
+      "B": 10
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Secure the Scene",
+      "key": "sp",
+      "targets": [
+        "ar"
+      ]
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 1,
+      "decisions": [
+        "ATTACK"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "sp": "graveyard",
+      "ar": "exile"
+    },
+    "tokens": {
+      "Soldier": 1
+    },
+    "battlefield_pt": {
+      "Soldier": [
+        1,
+        1
+      ]
+    },
+    "life": {
+      "0": 19,
+      "1": 20
+    }
+  }
+}
