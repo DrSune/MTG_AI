@@ -818,3 +818,36 @@
   when a gate row "moves", first re-run the same command on a clean HEAD copy, then report
   the discrepancy as environment/historical drift rather than attributing it to the batch.
   (2026-10-04 B3a.)
+- **2026-10-04 · B4a `KIND_CAST` is not source-attributable.** The 13b cast row
+  names the spell being cast (`subject = spell`, `cause = spell`) and its data
+  is `(caster, ordinal, spell_kind, from_zone, x_value)`. A permanent that
+  lets a player cast a card therefore does not appear on the explicit CAST
+  row. Do not treat a may-cast effect side as LIT from `CAST` alone: own
+  casting can be the wrong side, and an effect-cast other spell is not
+  attributable without a world-diff row caused by the permanent or a future
+  explicit cast-source journal field. (`tools/audit/branch_coverage.py`.)
+- **2026-10-04 · B4a membership by handle substrings is false coverage.**
+  Scenario packs use synthetic handles (`card:N`, `<player:0>`, etc.), while
+  real-card membership is declared by printed names in `"real"` values. Probe
+  membership recursively through scenario/suspect JSON and collect only
+  `"real"` printed names; never let a snake_case handle light `in_pack`.
+  (`tools/audit/membership.py`.)
+- **2026-10-04 · stale `bcs.json` suspect flags survive promotions.**
+  `bcs.json` carried 22 `in_suspect=True` cards while `tools/audit/suspects/`
+  was empty and the promoted scenario files were green. Suspect membership
+  must be disk-derived, not inherited from an old census.
+  (`tools/audit/membership.py`.)
+- **2026-10-04 · B4b co-fire is not collision.** A pair that co-fired only
+  proves both cards were attributable to some row in the same replay; it does
+  not prove their mechanisms resolved against each other in the same layer,
+  replacement window, or trigger stack. PC-13 holes remain a work order for
+  forced splices. (`tools/audit/pair_coverage.py`.)
+- **2026-10-04 · §F's literal both-ends BCS floor is vacuous for flagged cards.**
+  All collision-flagged cards have BCS ≤ 16, so "both ends BCS ≥ 20" would
+  produce no pair universe. Use the ruled §C class-gated floor: class mechanism
+  on both ends plus BCS ≥ T on at least one end.
+- **2026-10-04 · data-payload handles need colons in tests.**
+  `branch_coverage._handles_in` accepts data strings only when they contain `:`
+  and do not start with `<`, because those are the real handle forms. Pair
+  coverage hermetic tests must use `c:1`, not bare `c`, to exercise data-payload
+  attribution. (`tools/audit/test_pair_coverage.py`.)

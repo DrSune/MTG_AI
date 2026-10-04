@@ -2382,8 +2382,8 @@
    "oracle_id": "b5f5400e-f341-40e3-b935-36d9cf983a20",
    "handle": "adherent_of_hope",
    "status": "suspect",
-   "in_pack": false,
-   "in_suspect": true,
+   "in_pack": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 1,
@@ -2469,7 +2469,7 @@
    "handle": "alpine_watchdog",
    "status": "pack",
    "in_pack": true,
-   "in_suspect": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 0,
@@ -2721,7 +2721,7 @@
    "handle": "basri_ket",
    "status": "pack",
    "in_pack": true,
-   "in_suspect": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 7,
@@ -3413,7 +3413,7 @@
    "handle": "chandra_s_pyreling",
    "status": "pack",
    "in_pack": true,
-   "in_suspect": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 2,
@@ -3870,7 +3870,7 @@
    "handle": "defiant_strike",
    "status": "pack",
    "in_pack": true,
-   "in_suspect": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 2,
@@ -3946,7 +3946,7 @@
    "handle": "destructive_tampering",
    "status": "pack",
    "in_pack": true,
-   "in_suspect": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 2,
@@ -4324,7 +4324,7 @@
    "handle": "fabled_passage",
    "status": "pack",
    "in_pack": true,
-   "in_suspect": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 3,
@@ -4554,7 +4554,7 @@
    "handle": "forest",
    "status": "pack",
    "in_pack": true,
-   "in_suspect": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 1,
@@ -4673,8 +4673,8 @@
    "oracle_id": "52b3a979-3b93-4441-9237-0c8a754e5523",
    "handle": "furious_rise",
    "status": "suspect",
-   "in_pack": false,
-   "in_suspect": true,
+   "in_pack": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 1,
@@ -6132,7 +6132,7 @@
    "handle": "liliana_waker_of_the_dead",
    "status": "pack",
    "in_pack": true,
-   "in_suspect": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 6,
@@ -6329,7 +6329,7 @@
    "handle": "masked_blackguard",
    "status": "pack",
    "in_pack": true,
-   "in_suspect": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 1,
@@ -6395,7 +6395,7 @@
    "handle": "meteorite",
    "status": "pack",
    "in_pack": true,
-   "in_suspect": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 2,
@@ -6485,7 +6485,7 @@
    "handle": "mountain",
    "status": "pack",
    "in_pack": true,
-   "in_suspect": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 1,
@@ -6679,8 +6679,8 @@
    "oracle_id": "8291bc2e-ef58-4bd4-b261-b587142bbb1c",
    "handle": "ornery_dilophosaur",
    "status": "suspect",
-   "in_pack": false,
-   "in_suspect": true,
+   "in_pack": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 1,
@@ -6745,8 +6745,8 @@
    "oracle_id": "21fa2442-6eac-4dce-a9cc-76f0053fdb8f",
    "handle": "peer_into_the_abyss",
    "status": "suspect",
-   "in_pack": false,
-   "in_suspect": true,
+   "in_pack": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 1,
@@ -6910,7 +6910,7 @@
    "handle": "pridemalkin",
    "status": "pack",
    "in_pack": true,
-   "in_suspect": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 2,
@@ -7298,8 +7298,8 @@
    "oracle_id": "28c46eb7-bdfc-44b9-b7e9-b073260851f0",
    "handle": "rin_and_seri_inseparable",
    "status": "suspect",
-   "in_pack": false,
-   "in_suspect": true,
+   "in_pack": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 4,
@@ -7819,8 +7819,8 @@
    "oracle_id": "d6a9746c-eba5-4735-aec1-e70edba2c686",
    "handle": "secure_the_scene",
    "status": "suspect",
-   "in_pack": false,
-   "in_suspect": true,
+   "in_pack": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 2,
@@ -8571,7 +8571,7 @@
    "handle": "swamp",
    "status": "pack",
    "in_pack": true,
-   "in_suspect": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 1,
@@ -9368,8 +9368,8 @@
    "oracle_id": "4c1c3a0a-5782-4b7d-8b9c-61eea913166d",
    "handle": "transmogrify",
    "status": "suspect",
-   "in_pack": false,
-   "in_suspect": true,
+   "in_pack": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 3,
@@ -9390,8 +9390,8 @@
    "oracle_id": "3c549374-6c37-42e0-8d88-a8555d46732d",
    "handle": "treasure",
    "status": "suspect",
-   "in_pack": false,
-   "in_suspect": true,
+   "in_pack": true,
+   "in_suspect": false,
    "is_token": true,
    "primitives": {
     "p1_atomic_ops": 1,
@@ -9935,8 +9935,8 @@
    "oracle_id": "b9dec104-c636-4770-a7fc-7a3331face15",
    "handle": "wildwood_scourge",
    "status": "suspect",
-   "in_pack": false,
-   "in_suspect": true,
+   "in_pack": true,
+   "in_suspect": false,
    "is_token": false,
    "primitives": {
     "p1_atomic_ops": 2,
@@ -10051,5 +10051,248 @@
    "branches": [],
    "collision_flags": []
   }
+ },
+ "membership": {
+  "generated": "2026-10-04T19:37:54+00:00",
+  "command": ".venv/bin/python tools/audit/membership.py --write",
+  "law": "a card is covered iff its PRINTED NAME appears as a \"real\" value in a pack file; never a handle substring, never bcs.json's own flags",
+  "sources": {
+   "packs_dir": "tools/scenarios",
+   "pack_files": 304,
+   "suspects_dir": "tools/audit/suspects",
+   "suspect_files": 0
+  },
+  "supersedes": "in_pack/in_suspect copied from an unreproducible catalog row in B1 (tools/audit/bcs.py main)",
+  "before": {
+   "in_pack": 267,
+   "in_suspect": 22
+  },
+  "after": {
+   "in_pack": 276,
+   "in_suspect": 0
+  },
+  "changed": {
+   "Adherent of Hope": {
+    "was": [
+     false,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Alpine Watchdog": {
+    "was": [
+     true,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Basri Ket": {
+    "was": [
+     true,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Chandra's Pyreling": {
+    "was": [
+     true,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Defiant Strike": {
+    "was": [
+     true,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Destructive Tampering": {
+    "was": [
+     true,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Fabled Passage": {
+    "was": [
+     true,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Forest": {
+    "was": [
+     true,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Furious Rise": {
+    "was": [
+     false,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Liliana, Waker of the Dead": {
+    "was": [
+     true,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Masked Blackguard": {
+    "was": [
+     true,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Meteorite": {
+    "was": [
+     true,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Mountain": {
+    "was": [
+     true,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Ornery Dilophosaur": {
+    "was": [
+     false,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Peer into the Abyss": {
+    "was": [
+     false,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Pridemalkin": {
+    "was": [
+     true,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Rin and Seri, Inseparable": {
+    "was": [
+     false,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Secure the Scene": {
+    "was": [
+     false,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Swamp": {
+    "was": [
+     true,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Transmogrify": {
+    "was": [
+     false,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Treasure": {
+    "was": [
+     false,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   },
+   "Wildwood Scourge": {
+    "was": [
+     false,
+     true
+    ],
+    "now": [
+     true,
+     false
+    ]
+   }
+  },
+  "changed_count": 22
  }
 }

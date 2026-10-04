@@ -1,0 +1,1267 @@
+{
+ "meta": {
+  "built_by": "BUGCATCH batch B4b \u2014 tools/audit/pair_coverage.py",
+  "date": "2026-10-04T19:55:16+00:00",
+  "command": ".venv/bin/python tools/audit/pair_coverage.py --quiet",
+  "design": "KNOWLEDGE/2026-10-02/12-bugcatch-design.md \u00a7C + \u00a7F PC-13",
+  "gating": "both ends express the class's mechanism; BCS >= 20 on ONE end as floor (2026-10-04 ruling amending \u00a7F's both-ends wording)",
+  "co_fire_law": "card fired iff a journal row is attributable to it; pair co-fired iff both fired in the same replay",
+  "co_fire_limit": "co-fire is not collision: it does not prove the two mechanisms resolved against each other in one layer / replacement window / trigger stack. Tested by this metric is a necessary, not sufficient, condition \u2014 forced splices close it.",
+  "corpus_games": 20,
+  "pair_universe": 17919,
+  "pair_classes_considered": 7
+ },
+ "totals": {
+  "candidate_pairs": 8577,
+  "tested": 2399,
+  "untested": 6178,
+  "classes_with_zero_tested": [],
+  "pairs_co_fired_in_corpus": 2389,
+  "pairs_designed_in_packs": 13
+ },
+ "per_class": {
+  "pt_layers": {
+   "mechanism_members": 108,
+   "candidate_pairs": 3003,
+   "tested": 681,
+   "untested": 2322,
+   "coverage_pct": 22.68,
+   "weight": 1.0,
+   "flagged_members": [
+    "Basri's Solidarity",
+    "Makeshift Battalion",
+    "Mistral Singer"
+   ],
+   "top_untested": [
+    {
+     "pair": "Basri Ket + Siege Striker",
+     "heat": 3710.0,
+     "a": "Basri Ket",
+     "b": "Siege Striker"
+    },
+    {
+     "pair": "Basri Ket + Malefic Scythe",
+     "heat": 3430.0,
+     "a": "Basri Ket",
+     "b": "Malefic Scythe"
+    },
+    {
+     "pair": "Basri Ket + Wildwood Scourge",
+     "heat": 3080.0,
+     "a": "Basri Ket",
+     "b": "Wildwood Scourge"
+    },
+    {
+     "pair": "Alpine Houndmaster + Basri Ket",
+     "heat": 2870.0,
+     "a": "Alpine Houndmaster",
+     "b": "Basri Ket"
+    },
+    {
+     "pair": "Basri Ket + Garruk, Savage Herald",
+     "heat": 2730.0,
+     "a": "Basri Ket",
+     "b": "Garruk, Savage Herald"
+    },
+    {
+     "pair": "Basri Ket + Feat of Resistance",
+     "heat": 2660.0,
+     "a": "Basri Ket",
+     "b": "Feat of Resistance"
+    },
+    {
+     "pair": "Garruk, Unleashed + Malefic Scythe",
+     "heat": 2646.0,
+     "a": "Garruk, Unleashed",
+     "b": "Malefic Scythe"
+    },
+    {
+     "pair": "Malefic Scythe + Siege Striker",
+     "heat": 2597.0,
+     "a": "Malefic Scythe",
+     "b": "Siege Striker"
+    },
+    {
+     "pair": "Basri Ket + Feline Sovereign",
+     "heat": 2590.0,
+     "a": "Basri Ket",
+     "b": "Feline Sovereign"
+    },
+    {
+     "pair": "Basri Ket + Kinetic Augur",
+     "heat": 2520.0,
+     "a": "Basri Ket",
+     "b": "Kinetic Augur"
+    }
+   ]
+  },
+  "replacement_x_replacement": {
+   "mechanism_members": 27,
+   "candidate_pairs": 273,
+   "tested": 70,
+   "untested": 203,
+   "coverage_pct": 25.64,
+   "weight": 1.0,
+   "flagged_members": [
+    "Destructive Tampering",
+    "Teferi's Ageless Insight"
+   ],
+   "top_untested": [
+    {
+     "pair": "Conclave Mentor + Gadrak, the Crown-Scourge",
+     "heat": 2116.0,
+     "a": "Conclave Mentor",
+     "b": "Gadrak, the Crown-Scourge"
+    },
+    {
+     "pair": "Chandra, Flame's Catalyst + Conclave Mentor",
+     "heat": 1564.0,
+     "a": "Chandra, Flame's Catalyst",
+     "b": "Conclave Mentor"
+    },
+    {
+     "pair": "Chandra, Flame's Catalyst + Gadrak, the Crown-Scourge",
+     "heat": 1564.0,
+     "a": "Chandra, Flame's Catalyst",
+     "b": "Gadrak, the Crown-Scourge"
+    },
+    {
+     "pair": "Conclave Mentor + Pursued Whale",
+     "heat": 1518.0,
+     "a": "Conclave Mentor",
+     "b": "Pursued Whale"
+    },
+    {
+     "pair": "Gadrak, the Crown-Scourge + Pursued Whale",
+     "heat": 1518.0,
+     "a": "Gadrak, the Crown-Scourge",
+     "b": "Pursued Whale"
+    },
+    {
+     "pair": "Conclave Mentor + Faith's Fetters",
+     "heat": 1472.0,
+     "a": "Conclave Mentor",
+     "b": "Faith's Fetters"
+    },
+    {
+     "pair": "Conclave Mentor + Fiery Emancipation",
+     "heat": 1380.0,
+     "a": "Conclave Mentor",
+     "b": "Fiery Emancipation"
+    },
+    {
+     "pair": "Conclave Mentor + Sublime Epiphany",
+     "heat": 1334.0,
+     "a": "Conclave Mentor",
+     "b": "Sublime Epiphany"
+    },
+    {
+     "pair": "Conclave Mentor + Nine Lives",
+     "heat": 1242.0,
+     "a": "Conclave Mentor",
+     "b": "Nine Lives"
+    },
+    {
+     "pair": "Conclave Mentor + Subira, Tulzidi Caravanner",
+     "heat": 1242.0,
+     "a": "Conclave Mentor",
+     "b": "Subira, Tulzidi Caravanner"
+    }
+   ]
+  },
+  "replacement_x_trigger": {
+   "mechanism_members": 9,
+   "candidate_pairs": 36,
+   "tested": 9,
+   "untested": 27,
+   "coverage_pct": 25.0,
+   "weight": 1.0,
+   "flagged_members": [],
+   "top_untested": [
+    {
+     "pair": "Conclave Mentor + Gadrak, the Crown-Scourge",
+     "heat": 2116.0,
+     "a": "Conclave Mentor",
+     "b": "Gadrak, the Crown-Scourge"
+    },
+    {
+     "pair": "Conclave Mentor + Pursued Whale",
+     "heat": 1518.0,
+     "a": "Conclave Mentor",
+     "b": "Pursued Whale"
+    },
+    {
+     "pair": "Gadrak, the Crown-Scourge + Pursued Whale",
+     "heat": 1518.0,
+     "a": "Gadrak, the Crown-Scourge",
+     "b": "Pursued Whale"
+    },
+    {
+     "pair": "Conclave Mentor + Faith's Fetters",
+     "heat": 1472.0,
+     "a": "Conclave Mentor",
+     "b": "Faith's Fetters"
+    },
+    {
+     "pair": "Conclave Mentor + Nine Lives",
+     "heat": 1242.0,
+     "a": "Conclave Mentor",
+     "b": "Nine Lives"
+    },
+    {
+     "pair": "Conclave Mentor + Subira, Tulzidi Caravanner",
+     "heat": 1242.0,
+     "a": "Conclave Mentor",
+     "b": "Subira, Tulzidi Caravanner"
+    },
+    {
+     "pair": "Gadrak, the Crown-Scourge + Subira, Tulzidi Caravanner",
+     "heat": 1242.0,
+     "a": "Gadrak, the Crown-Scourge",
+     "b": "Subira, Tulzidi Caravanner"
+    },
+    {
+     "pair": "Ghostly Pilferer + Pursued Whale",
+     "heat": 1122.0,
+     "a": "Ghostly Pilferer",
+     "b": "Pursued Whale"
+    },
+    {
+     "pair": "Capture Sphere + Conclave Mentor",
+     "heat": 1058.0,
+     "a": "Capture Sphere",
+     "b": "Conclave Mentor"
+    },
+    {
+     "pair": "Capture Sphere + Gadrak, the Crown-Scourge",
+     "heat": 1058.0,
+     "a": "Capture Sphere",
+     "b": "Gadrak, the Crown-Scourge"
+    }
+   ]
+  },
+  "grant_x_consumer_missing": {
+   "mechanism_members": 108,
+   "candidate_pairs": 3003,
+   "tested": 681,
+   "untested": 2322,
+   "coverage_pct": 22.68,
+   "weight": 1.0,
+   "flagged_members": [
+    "Basri's Solidarity",
+    "Makeshift Battalion",
+    "Mistral Singer"
+   ],
+   "top_untested": [
+    {
+     "pair": "Basri Ket + Siege Striker",
+     "heat": 3710.0,
+     "a": "Basri Ket",
+     "b": "Siege Striker"
+    },
+    {
+     "pair": "Basri Ket + Malefic Scythe",
+     "heat": 3430.0,
+     "a": "Basri Ket",
+     "b": "Malefic Scythe"
+    },
+    {
+     "pair": "Basri Ket + Wildwood Scourge",
+     "heat": 3080.0,
+     "a": "Basri Ket",
+     "b": "Wildwood Scourge"
+    },
+    {
+     "pair": "Alpine Houndmaster + Basri Ket",
+     "heat": 2870.0,
+     "a": "Alpine Houndmaster",
+     "b": "Basri Ket"
+    },
+    {
+     "pair": "Basri Ket + Garruk, Savage Herald",
+     "heat": 2730.0,
+     "a": "Basri Ket",
+     "b": "Garruk, Savage Herald"
+    },
+    {
+     "pair": "Basri Ket + Feat of Resistance",
+     "heat": 2660.0,
+     "a": "Basri Ket",
+     "b": "Feat of Resistance"
+    },
+    {
+     "pair": "Garruk, Unleashed + Malefic Scythe",
+     "heat": 2646.0,
+     "a": "Garruk, Unleashed",
+     "b": "Malefic Scythe"
+    },
+    {
+     "pair": "Malefic Scythe + Siege Striker",
+     "heat": 2597.0,
+     "a": "Malefic Scythe",
+     "b": "Siege Striker"
+    },
+    {
+     "pair": "Basri Ket + Feline Sovereign",
+     "heat": 2590.0,
+     "a": "Basri Ket",
+     "b": "Feline Sovereign"
+    },
+    {
+     "pair": "Basri Ket + Kinetic Augur",
+     "heat": 2520.0,
+     "a": "Basri Ket",
+     "b": "Kinetic Augur"
+    }
+   ]
+  },
+  "sacrifice_x_dies_token_anthem": {
+   "mechanism_members": 124,
+   "candidate_pairs": 4223,
+   "tested": 1004,
+   "untested": 3219,
+   "coverage_pct": 23.77,
+   "weight": 1.0,
+   "flagged_members": [
+    "Basri's Solidarity",
+    "Makeshift Battalion",
+    "Mistral Singer",
+    "Secure the Scene"
+   ],
+   "top_untested": [
+    {
+     "pair": "Basri Ket + Siege Striker",
+     "heat": 3710.0,
+     "a": "Basri Ket",
+     "b": "Siege Striker"
+    },
+    {
+     "pair": "Basri Ket + Malefic Scythe",
+     "heat": 3430.0,
+     "a": "Basri Ket",
+     "b": "Malefic Scythe"
+    },
+    {
+     "pair": "Basri Ket + Wildwood Scourge",
+     "heat": 3080.0,
+     "a": "Basri Ket",
+     "b": "Wildwood Scourge"
+    },
+    {
+     "pair": "Alpine Houndmaster + Basri Ket",
+     "heat": 2870.0,
+     "a": "Alpine Houndmaster",
+     "b": "Basri Ket"
+    },
+    {
+     "pair": "Basri Ket + Rin and Seri, Inseparable",
+     "heat": 2800.0,
+     "a": "Basri Ket",
+     "b": "Rin and Seri, Inseparable"
+    },
+    {
+     "pair": "Basri Ket + Garruk, Savage Herald",
+     "heat": 2730.0,
+     "a": "Basri Ket",
+     "b": "Garruk, Savage Herald"
+    },
+    {
+     "pair": "Basri Ket + Elder Gargaroth",
+     "heat": 2660.0,
+     "a": "Basri Ket",
+     "b": "Elder Gargaroth"
+    },
+    {
+     "pair": "Basri Ket + Experimental Overload",
+     "heat": 2660.0,
+     "a": "Basri Ket",
+     "b": "Experimental Overload"
+    },
+    {
+     "pair": "Basri Ket + Feat of Resistance",
+     "heat": 2660.0,
+     "a": "Basri Ket",
+     "b": "Feat of Resistance"
+    },
+    {
+     "pair": "Garruk, Unleashed + Malefic Scythe",
+     "heat": 2646.0,
+     "a": "Garruk, Unleashed",
+     "b": "Malefic Scythe"
+    }
+   ]
+  },
+  "x_census_x_name": {
+   "mechanism_members": 56,
+   "candidate_pairs": 1404,
+   "tested": 420,
+   "untested": 984,
+   "coverage_pct": 29.91,
+   "weight": 1.0,
+   "flagged_members": [],
+   "top_untested": [
+    {
+     "pair": "Basri Ket + Siege Striker",
+     "heat": 3710.0,
+     "a": "Basri Ket",
+     "b": "Siege Striker"
+    },
+    {
+     "pair": "Basri Ket + Malefic Scythe",
+     "heat": 3430.0,
+     "a": "Basri Ket",
+     "b": "Malefic Scythe"
+    },
+    {
+     "pair": "Basri Ket + Wildwood Scourge",
+     "heat": 3080.0,
+     "a": "Basri Ket",
+     "b": "Wildwood Scourge"
+    },
+    {
+     "pair": "Alpine Houndmaster + Basri Ket",
+     "heat": 2870.0,
+     "a": "Alpine Houndmaster",
+     "b": "Basri Ket"
+    },
+    {
+     "pair": "Basri Ket + Rin and Seri, Inseparable",
+     "heat": 2800.0,
+     "a": "Basri Ket",
+     "b": "Rin and Seri, Inseparable"
+    },
+    {
+     "pair": "Basri Ket + Garruk, Savage Herald",
+     "heat": 2730.0,
+     "a": "Basri Ket",
+     "b": "Garruk, Savage Herald"
+    },
+    {
+     "pair": "Basri Ket + Experimental Overload",
+     "heat": 2660.0,
+     "a": "Basri Ket",
+     "b": "Experimental Overload"
+    },
+    {
+     "pair": "Garruk, Unleashed + Malefic Scythe",
+     "heat": 2646.0,
+     "a": "Garruk, Unleashed",
+     "b": "Malefic Scythe"
+    },
+    {
+     "pair": "Malefic Scythe + Siege Striker",
+     "heat": 2597.0,
+     "a": "Malefic Scythe",
+     "b": "Siege Striker"
+    },
+    {
+     "pair": "Basri Ket + Feline Sovereign",
+     "heat": 2590.0,
+     "a": "Basri Ket",
+     "b": "Feline Sovereign"
+    }
+   ]
+  },
+  "branch_entanglement": {
+   "mechanism_members": 124,
+   "candidate_pairs": 4386,
+   "tested": 1370,
+   "untested": 3016,
+   "coverage_pct": 31.24,
+   "weight": 1.0,
+   "flagged_members": [
+    "Destructive Tampering",
+    "Fabled Passage",
+    "Secure the Scene"
+   ],
+   "top_untested": [
+    {
+     "pair": "Basri Ket + Siege Striker",
+     "heat": 3710.0,
+     "a": "Basri Ket",
+     "b": "Siege Striker"
+    },
+    {
+     "pair": "Basri Ket + Wildwood Scourge",
+     "heat": 3080.0,
+     "a": "Basri Ket",
+     "b": "Wildwood Scourge"
+    },
+    {
+     "pair": "Alpine Houndmaster + Basri Ket",
+     "heat": 2870.0,
+     "a": "Alpine Houndmaster",
+     "b": "Basri Ket"
+    },
+    {
+     "pair": "Basri Ket + Garruk, Savage Herald",
+     "heat": 2730.0,
+     "a": "Basri Ket",
+     "b": "Garruk, Savage Herald"
+    },
+    {
+     "pair": "Basri Ket + Elder Gargaroth",
+     "heat": 2660.0,
+     "a": "Basri Ket",
+     "b": "Elder Gargaroth"
+    },
+    {
+     "pair": "Basri Ket + Experimental Overload",
+     "heat": 2660.0,
+     "a": "Basri Ket",
+     "b": "Experimental Overload"
+    },
+    {
+     "pair": "Basri Ket + Feat of Resistance",
+     "heat": 2660.0,
+     "a": "Basri Ket",
+     "b": "Feat of Resistance"
+    },
+    {
+     "pair": "Basri Ket + Feline Sovereign",
+     "heat": 2590.0,
+     "a": "Basri Ket",
+     "b": "Feline Sovereign"
+    },
+    {
+     "pair": "Basri Ket + Kinetic Augur",
+     "heat": 2520.0,
+     "a": "Basri Ket",
+     "b": "Kinetic Augur"
+    },
+    {
+     "pair": "Basri Ket + Niambi, Esteemed Speaker",
+     "heat": 2380.0,
+     "a": "Basri Ket",
+     "b": "Niambi, Esteemed Speaker"
+    }
+   ]
+  }
+ },
+ "untested_pairs": [
+  {
+   "pair": "Basri Ket + Siege Striker",
+   "a": "Basri Ket",
+   "b": "Siege Striker",
+   "bcs_a": 70,
+   "bcs_b": 53,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 3710.0,
+   "pair_heat": {
+    "pt_layers": 3710.0,
+    "grant_x_consumer_missing": 3710.0,
+    "sacrifice_x_dies_token_anthem": 3710.0,
+    "x_census_x_name": 3710.0,
+    "branch_entanglement": 3710.0
+   }
+  },
+  {
+   "pair": "Basri Ket + Malefic Scythe",
+   "a": "Basri Ket",
+   "b": "Malefic Scythe",
+   "bcs_a": 70,
+   "bcs_b": 49,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 3430.0,
+   "pair_heat": {
+    "pt_layers": 3430.0,
+    "grant_x_consumer_missing": 3430.0,
+    "sacrifice_x_dies_token_anthem": 3430.0,
+    "x_census_x_name": 3430.0
+   }
+  },
+  {
+   "pair": "Basri Ket + Wildwood Scourge",
+   "a": "Basri Ket",
+   "b": "Wildwood Scourge",
+   "bcs_a": 70,
+   "bcs_b": 44,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 3080.0,
+   "pair_heat": {
+    "pt_layers": 3080.0,
+    "grant_x_consumer_missing": 3080.0,
+    "sacrifice_x_dies_token_anthem": 3080.0,
+    "x_census_x_name": 3080.0,
+    "branch_entanglement": 3080.0
+   }
+  },
+  {
+   "pair": "Alpine Houndmaster + Basri Ket",
+   "a": "Alpine Houndmaster",
+   "b": "Basri Ket",
+   "bcs_a": 41,
+   "bcs_b": 70,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2870.0,
+   "pair_heat": {
+    "pt_layers": 2870.0,
+    "grant_x_consumer_missing": 2870.0,
+    "sacrifice_x_dies_token_anthem": 2870.0,
+    "x_census_x_name": 2870.0,
+    "branch_entanglement": 2870.0
+   }
+  },
+  {
+   "pair": "Basri Ket + Rin and Seri, Inseparable",
+   "a": "Basri Ket",
+   "b": "Rin and Seri, Inseparable",
+   "bcs_a": 70,
+   "bcs_b": 40,
+   "classes": [
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2800.0,
+   "pair_heat": {
+    "sacrifice_x_dies_token_anthem": 2800.0,
+    "x_census_x_name": 2800.0
+   }
+  },
+  {
+   "pair": "Basri Ket + Garruk, Savage Herald",
+   "a": "Basri Ket",
+   "b": "Garruk, Savage Herald",
+   "bcs_a": 70,
+   "bcs_b": 39,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2730.0,
+   "pair_heat": {
+    "pt_layers": 2730.0,
+    "grant_x_consumer_missing": 2730.0,
+    "sacrifice_x_dies_token_anthem": 2730.0,
+    "x_census_x_name": 2730.0,
+    "branch_entanglement": 2730.0
+   }
+  },
+  {
+   "pair": "Basri Ket + Elder Gargaroth",
+   "a": "Basri Ket",
+   "b": "Elder Gargaroth",
+   "bcs_a": 70,
+   "bcs_b": 38,
+   "classes": [
+    "sacrifice_x_dies_token_anthem",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2660.0,
+   "pair_heat": {
+    "sacrifice_x_dies_token_anthem": 2660.0,
+    "branch_entanglement": 2660.0
+   }
+  },
+  {
+   "pair": "Basri Ket + Experimental Overload",
+   "a": "Basri Ket",
+   "b": "Experimental Overload",
+   "bcs_a": 70,
+   "bcs_b": 38,
+   "classes": [
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2660.0,
+   "pair_heat": {
+    "sacrifice_x_dies_token_anthem": 2660.0,
+    "x_census_x_name": 2660.0,
+    "branch_entanglement": 2660.0
+   }
+  },
+  {
+   "pair": "Basri Ket + Feat of Resistance",
+   "a": "Basri Ket",
+   "b": "Feat of Resistance",
+   "bcs_a": 70,
+   "bcs_b": 38,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2660.0,
+   "pair_heat": {
+    "pt_layers": 2660.0,
+    "grant_x_consumer_missing": 2660.0,
+    "sacrifice_x_dies_token_anthem": 2660.0,
+    "branch_entanglement": 2660.0
+   }
+  },
+  {
+   "pair": "Garruk, Unleashed + Malefic Scythe",
+   "a": "Garruk, Unleashed",
+   "b": "Malefic Scythe",
+   "bcs_a": 54,
+   "bcs_b": 49,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2646.0,
+   "pair_heat": {
+    "pt_layers": 2646.0,
+    "grant_x_consumer_missing": 2646.0,
+    "sacrifice_x_dies_token_anthem": 2646.0,
+    "x_census_x_name": 2646.0
+   }
+  },
+  {
+   "pair": "Malefic Scythe + Siege Striker",
+   "a": "Malefic Scythe",
+   "b": "Siege Striker",
+   "bcs_a": 49,
+   "bcs_b": 53,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2597.0,
+   "pair_heat": {
+    "pt_layers": 2597.0,
+    "grant_x_consumer_missing": 2597.0,
+    "sacrifice_x_dies_token_anthem": 2597.0,
+    "x_census_x_name": 2597.0
+   }
+  },
+  {
+   "pair": "Basri Ket + Feline Sovereign",
+   "a": "Basri Ket",
+   "b": "Feline Sovereign",
+   "bcs_a": 70,
+   "bcs_b": 37,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2590.0,
+   "pair_heat": {
+    "pt_layers": 2590.0,
+    "grant_x_consumer_missing": 2590.0,
+    "sacrifice_x_dies_token_anthem": 2590.0,
+    "x_census_x_name": 2590.0,
+    "branch_entanglement": 2590.0
+   }
+  },
+  {
+   "pair": "Basri Ket + Brash Taunter",
+   "a": "Basri Ket",
+   "b": "Brash Taunter",
+   "bcs_a": 70,
+   "bcs_b": 36,
+   "classes": [
+    "x_census_x_name"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2520.0,
+   "pair_heat": {
+    "x_census_x_name": 2520.0
+   }
+  },
+  {
+   "pair": "Basri Ket + Kinetic Augur",
+   "a": "Basri Ket",
+   "b": "Kinetic Augur",
+   "bcs_a": 70,
+   "bcs_b": 36,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2520.0,
+   "pair_heat": {
+    "pt_layers": 2520.0,
+    "grant_x_consumer_missing": 2520.0,
+    "sacrifice_x_dies_token_anthem": 2520.0,
+    "x_census_x_name": 2520.0,
+    "branch_entanglement": 2520.0
+   }
+  },
+  {
+   "pair": "Conclave Mentor + Garruk, Unleashed",
+   "a": "Conclave Mentor",
+   "b": "Garruk, Unleashed",
+   "bcs_a": 46,
+   "bcs_b": 54,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2484.0,
+   "pair_heat": {
+    "pt_layers": 2484.0,
+    "grant_x_consumer_missing": 2484.0,
+    "sacrifice_x_dies_token_anthem": 2484.0,
+    "x_census_x_name": 2484.0
+   }
+  },
+  {
+   "pair": "Conclave Mentor + Siege Striker",
+   "a": "Conclave Mentor",
+   "b": "Siege Striker",
+   "bcs_a": 46,
+   "bcs_b": 53,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2438.0,
+   "pair_heat": {
+    "pt_layers": 2438.0,
+    "grant_x_consumer_missing": 2438.0,
+    "sacrifice_x_dies_token_anthem": 2438.0,
+    "x_census_x_name": 2438.0
+   }
+  },
+  {
+   "pair": "Basri Ket + Niambi, Esteemed Speaker",
+   "a": "Basri Ket",
+   "b": "Niambi, Esteemed Speaker",
+   "bcs_a": 70,
+   "bcs_b": 34,
+   "classes": [
+    "x_census_x_name",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2380.0,
+   "pair_heat": {
+    "x_census_x_name": 2380.0,
+    "branch_entanglement": 2380.0
+   }
+  },
+  {
+   "pair": "Siege Striker + Wildwood Scourge",
+   "a": "Siege Striker",
+   "b": "Wildwood Scourge",
+   "bcs_a": 53,
+   "bcs_b": 44,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2332.0,
+   "pair_heat": {
+    "pt_layers": 2332.0,
+    "grant_x_consumer_missing": 2332.0,
+    "sacrifice_x_dies_token_anthem": 2332.0,
+    "x_census_x_name": 2332.0,
+    "branch_entanglement": 2332.0
+   }
+  },
+  {
+   "pair": "Barrin, Tolarian Archmage + Basri Ket",
+   "a": "Barrin, Tolarian Archmage",
+   "b": "Basri Ket",
+   "bcs_a": 33,
+   "bcs_b": 70,
+   "classes": [
+    "x_census_x_name",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2310.0,
+   "pair_heat": {
+    "x_census_x_name": 2310.0,
+    "branch_entanglement": 2310.0
+   }
+  },
+  {
+   "pair": "Basri Ket + Pursued Whale",
+   "a": "Basri Ket",
+   "b": "Pursued Whale",
+   "bcs_a": 70,
+   "bcs_b": 33,
+   "classes": [
+    "sacrifice_x_dies_token_anthem",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2310.0,
+   "pair_heat": {
+    "sacrifice_x_dies_token_anthem": 2310.0,
+    "branch_entanglement": 2310.0
+   }
+  },
+  {
+   "pair": "Gadrak, the Crown-Scourge + Malefic Scythe",
+   "a": "Gadrak, the Crown-Scourge",
+   "b": "Malefic Scythe",
+   "bcs_a": 46,
+   "bcs_b": 49,
+   "classes": [
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2254.0,
+   "pair_heat": {
+    "sacrifice_x_dies_token_anthem": 2254.0,
+    "x_census_x_name": 2254.0
+   }
+  },
+  {
+   "pair": "Basri Ket + Garruk's Harbinger",
+   "a": "Basri Ket",
+   "b": "Garruk's Harbinger",
+   "bcs_a": 70,
+   "bcs_b": 32,
+   "classes": [
+    "x_census_x_name",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2240.0,
+   "pair_heat": {
+    "x_census_x_name": 2240.0,
+    "branch_entanglement": 2240.0
+   }
+  },
+  {
+   "pair": "Basri Ket + Liliana, Death Mage",
+   "a": "Basri Ket",
+   "b": "Liliana, Death Mage",
+   "bcs_a": 70,
+   "bcs_b": 32,
+   "classes": [
+    "x_census_x_name"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2240.0,
+   "pair_heat": {
+    "x_census_x_name": 2240.0
+   }
+  },
+  {
+   "pair": "Basri Ket + Radha, Heart of Keld",
+   "a": "Basri Ket",
+   "b": "Radha, Heart of Keld",
+   "bcs_a": 70,
+   "bcs_b": 32,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2240.0,
+   "pair_heat": {
+    "pt_layers": 2240.0,
+    "grant_x_consumer_missing": 2240.0,
+    "sacrifice_x_dies_token_anthem": 2240.0,
+    "x_census_x_name": 2240.0,
+    "branch_entanglement": 2240.0
+   }
+  },
+  {
+   "pair": "Basri Ket + Thieves' Guild Enforcer",
+   "a": "Basri Ket",
+   "b": "Thieves' Guild Enforcer",
+   "bcs_a": 70,
+   "bcs_b": 32,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2240.0,
+   "pair_heat": {
+    "pt_layers": 2240.0,
+    "grant_x_consumer_missing": 2240.0,
+    "sacrifice_x_dies_token_anthem": 2240.0,
+    "branch_entanglement": 2240.0
+   }
+  },
+  {
+   "pair": "Alpine Houndmaster + Garruk, Unleashed",
+   "a": "Alpine Houndmaster",
+   "b": "Garruk, Unleashed",
+   "bcs_a": 41,
+   "bcs_b": 54,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2214.0,
+   "pair_heat": {
+    "pt_layers": 2214.0,
+    "grant_x_consumer_missing": 2214.0,
+    "sacrifice_x_dies_token_anthem": 2214.0,
+    "x_census_x_name": 2214.0,
+    "branch_entanglement": 2214.0
+   }
+  },
+  {
+   "pair": "Basri, Devoted Paladin + Malefic Scythe",
+   "a": "Basri, Devoted Paladin",
+   "b": "Malefic Scythe",
+   "bcs_a": 45,
+   "bcs_b": 49,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2205.0,
+   "pair_heat": {
+    "pt_layers": 2205.0,
+    "grant_x_consumer_missing": 2205.0,
+    "sacrifice_x_dies_token_anthem": 2205.0,
+    "x_census_x_name": 2205.0
+   }
+  },
+  {
+   "pair": "Alpine Houndmaster + Siege Striker",
+   "a": "Alpine Houndmaster",
+   "b": "Siege Striker",
+   "bcs_a": 41,
+   "bcs_b": 53,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name",
+    "branch_entanglement"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2173.0,
+   "pair_heat": {
+    "pt_layers": 2173.0,
+    "grant_x_consumer_missing": 2173.0,
+    "sacrifice_x_dies_token_anthem": 2173.0,
+    "x_census_x_name": 2173.0,
+    "branch_entanglement": 2173.0
+   }
+  },
+  {
+   "pair": "Garruk, Unleashed + Rin and Seri, Inseparable",
+   "a": "Garruk, Unleashed",
+   "b": "Rin and Seri, Inseparable",
+   "bcs_a": 54,
+   "bcs_b": 40,
+   "classes": [
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2160.0,
+   "pair_heat": {
+    "sacrifice_x_dies_token_anthem": 2160.0,
+    "x_census_x_name": 2160.0
+   }
+  },
+  {
+   "pair": "Malefic Scythe + Wildwood Scourge",
+   "a": "Malefic Scythe",
+   "b": "Wildwood Scourge",
+   "bcs_a": 49,
+   "bcs_b": 44,
+   "classes": [
+    "pt_layers",
+    "grant_x_consumer_missing",
+    "sacrifice_x_dies_token_anthem",
+    "x_census_x_name"
+   ],
+   "co_fire_games": 0,
+   "designed_by_packs": [],
+   "tested": false,
+   "tested_by": "",
+   "flagged_ends": [],
+   "heat": 2156.0,
+   "pair_heat": {
+    "pt_layers": 2156.0,
+    "grant_x_consumer_missing": 2156.0,
+    "sacrifice_x_dies_token_anthem": 2156.0,
+    "x_census_x_name": 2156.0
+   }
+  }
+ ]
+}

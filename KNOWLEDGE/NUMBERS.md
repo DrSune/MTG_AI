@@ -5,6 +5,31 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-10-04 (BUGCATCH B4a correction + B4b pair coverage — tools-only, no engine/scenario edits; supersedes membership/heat portions of the B4a section below)
+
+| Item | Number | Command | Note |
+|---|---|---|---|
+| corrected branch coverage | **97 branches: 28 LIT / 22 DARK / 47 UNMATCHABLE** | `.venv/bin/python tools/audit/branch_coverage.py --quiet` | Heat now uses §E calibration: DARK × BCS × collision-class weight × anomaly hits. Branch totals remain unchanged. Artifact `tools/audit/branch_coverage.json`. |
+| disk membership | **in_pack 267→276, in_suspect 22→0, flags changed 22** | `.venv/bin/python tools/audit/membership.py --t 20 --write` | Derived recursively from printed names in `"real"` card values under `tools/scenarios/` and `tools/audit/suspects/`; handles never confer membership. |
+| PC-11 residue | **1 at T=20 — `Sublime Epiphany`** | `.venv/bin/python tools/audit/membership.py --t 20 --write` | 66 cards at or above BCS 20; 65 covered; stale suspect flags are fully covered by green packs. |
+| heat card rollup | **Garruk's Harbinger 96, Chandra, Heart of Fire 74, Chandra, Flame's Catalyst 68** | `.venv/bin/python tools/audit/branch_coverage.py --quiet` | Card heat = dark branch count × mean branch heat. |
+| B4b pair matrix | **8577 candidate pairs: 2399 tested / 6178 untested; 13 designed; 0 classes with zero tested coverage** | `.venv/bin/python tools/audit/pair_coverage.py --quiet` | Per-class coverage 22.68–31.24%; top untested pair `Basri Ket + Siege Striker`, heat 3710.0. Artifact `tools/audit/pair_coverage.json`. |
+| gates | tools/audit **60 passed**, core **2350 passed + 3 subtests**, pyright **0 errors / 0 warnings / 0 informations**, ruff **0 findings** | `.venv/bin/pytest tools/audit -q`; `.venv/bin/pytest MTG_bot/core -q`; `pyright tools/audit/b4_journal.py tools/audit/branch_coverage.py tools/audit/membership.py tools/audit/pair_coverage.py tools/audit/test_branch_coverage.py tools/audit/test_pair_coverage.py`; `ruff check tools/audit/b4_journal.py tools/audit/branch_coverage.py tools/audit/membership.py tools/audit/pair_coverage.py tools/audit/test_branch_coverage.py tools/audit/test_pair_coverage.py` | Final tool state; no commits, no engine or `run_scenarios.py` edits. |
+
+---
+
+## 2026-10-04 (BUGCATCH batch B4a — branch coverage over journal evidence; tools-only, no engine/scenario edits)
+
+| Item | Number | Command | Note |
+|---|---|---|---|
+| branch coverage | **97 branches: 28 LIT / 22 DARK / 47 UNMATCHABLE** | `.venv/bin/python tools/audit/branch_coverage.py` | Evidence lanes: 304 green pack journals + 20 corpus replays (`--pool all`, deck-pair seed 1409, 60 turns). Artifact `tools/audit/branch_coverage.json`. |
+| precedent sanity | Fabled Passage conditional **OK**; Life Goes On died precedent **NOT-DECLARED** | `.venv/bin/python tools/audit/branch_coverage.py` | B1 declares 0 Life Goes On branches; attributed LIFE_GAINED evidence is present in the lanes. |
+| CAST attribution | **8 verb-CAST branches remain DARK** | `python3 - <<PY` matcher inspection + production JSON | 13b `KIND_CAST` row lacks a source-permanent field; own casting is excluded as the may-cast side. Future positive controls need attributable world-diff rows or a new cast-source journal contract. |
+| tests | **14 new branch matcher tests**, `tools/audit` **48 passed**, core **2350 passed + 3 subtests** | `.venv/bin/pytest tools/audit/test_branch_coverage.py -q`; `.venv/bin/pytest tools/audit -q`; `.venv/bin/pytest MTG_bot/core -q` | Synthetic hermetic matcher pins; no engine behavior change. |
+| lints | pyright **0 errors, 0 warnings, 0 informations**; ruff **0 findings** | `pyright tools/audit/b4_journal.py tools/audit/branch_coverage.py tools/audit/test_branch_coverage.py`; `ruff check tools/audit/b4_journal.py tools/audit/branch_coverage.py tools/audit/test_branch_coverage.py` | Final tool state. |
+
+---
+
 ## 2026-10-04 (T5 — Phase-1 grammar measurement harness)
 
 | Number | Value | Command | Notes |
