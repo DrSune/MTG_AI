@@ -5,6 +5,22 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-10-04 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.247 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0931** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
 ## 2026-10-04 (BUGCATCH batch B1 — BCS instrument + branch inventory; tools-only, HEAD 8b4506e)
 
 | Item | Number | Command | Note |
@@ -2892,3 +2908,15 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | catalog | **0/10 diverge — NO repin** | `tools/traces/catalog.py compare` | engine additions never fire on the 10 trace seeds |
 | games | **0 crash classes**, 100 decisive 48/52, mean_turns **33.49 — exact Δ0** vs C5 | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all --deck-pairs-seed 1409 --turns 60` | additive lane invisible to games (no golden emits LIFE) |
 | lints | pyright **Δ0** (6 pre-existing Counter FPs in run_scenarios.py — HEAD copy of the file reproduces exactly 6); ruff **Δ0 NEW** (identical per-file multisets, stdin-vs-HEAD) | pyright CLI / `ruff check` per file | scope flag: ability_tree.py touched OUTSIDE authorized list (additive QPropField.LIFE per C3 roadmap; needs ratification) |
+
+## 2026-10-04 (BUGCATCH B3a — LOSE_LIFE journalled (LIFE_LOST); 3 D6 suspects falsified; §C flags)
+
+| area | number | command | note |
+| --- | --- | --- | --- |
+| detectors | **0 hits / 20 seeds** (was 4 D1 HITs + 3 D6 suspects) | `.venv/bin/python tools/audit/detectors.py --seeds 20 --pool all --deck-pairs-seed 1409 --turns 60` | D1 fold synced to new LIFE_LOST kind (CR 118.5 own-kind law); seed 12: `20+0−0−3=17 final=17`; D6 repl=live-only (CR 614.3 ghost proof: attach_source self-detaches) + grant/lose source-side exempt (CR 611.2a); faults still fire |
+| engine | **2350 passed + 3 subtests, 0 failed** (baseline 2345 + exactly 5 new pins) | `.venv/bin/python -m pytest MTG_bot/core -q` | pins in new test_executor_b3a_life_journal.py (row shape/clamp-delta/gain/damage-not-loss/fold); GAIN_LIFE was never silent — no gain row added |
+| catalog | **0/10 — RE-PINNED** (was 3/10 diverge) | `tools/traces/catalog.py compare → repin → compare` | seeds 2/3/4 each = PURE insertion of one LIFE_LOST row: identical endings, n+1, first-diff is the new row; md5 372a5fd3007cb12b3428effcbca6fd1d |
+| games | **0 crash classes**, 100 decisive 53/47, mean_turns 33.48 | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all --deck-pairs-seed 1409 --turns 60` | A/B vs stashed-HEAD events.py byte-identical 53/47 — C6's 48/52 row is environment/historical drift, NOT B3a (journal lane flips zero outcomes) |
+| grammar | PC-1 303/305 · PC-2 637/639 · PC-3 0 · PC-4 0 verified · PC-8 0.3213 — **Δ0** vs C6 | `tools/measure_grammar.py` | PC-6/PC-8 standing FAILs unchanged; compile lane untouched |
+| bcs | 305 cards, scores **zero drift**; **8 collision_flags** set; 2 Liliana signatures remapped LOSE_LIFE→LIFE_LOST feed | `.venv/bin/python tools/audit/bcs.py` | branch_entanglement×2, keyword_x_consumer×2, replacement_x_ordering×2, single_fold×2 (design §C); B1's "LOSE_LIFE maps to LIFE_GAINED (B3 to falsify)" falsified — engine emitted NO row |
+| lints | pyright **0 errors** 4 touched files; ruff **Δ0** | pyright CLI / `ruff check` per file vs HEAD worktree | audit suite 28→**34** tests (2 D1 fold + 4 D6 falsification) |

@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-04T17:47:39+00:00",
+ "generated": "2026-10-04T18:19:00+00:00",
  "design": "KNOWLEDGE/2026-10-02/12-bugcatch-design.md \u00a7D (B2)",
  "coverage_note": {
   "catalog_rows_lack": "catalog.json per row = [sha16, kind|subject|cause|verb]; the data payload (damage amounts, was-PT assertions, zone names, counter kinds) is hashed away and layers/replacements/binder dumps are not captured \u2014 D1..D5 structurally infeasible there",
@@ -538,7 +538,7 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
@@ -583,7 +583,7 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
@@ -628,7 +628,7 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
@@ -673,7 +673,7 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
@@ -717,7 +717,7 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
@@ -762,7 +762,7 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
@@ -804,7 +804,7 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
@@ -849,7 +849,7 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
@@ -894,7 +894,7 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
@@ -937,13 +937,13 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
   "10": {
    "mode": "replay",
-   "n_rows": 442,
+   "n_rows": 446,
    "crash": null,
    "kinds": {
     "TURN_PHASE": 155,
@@ -952,6 +952,7 @@
     "TAP_STATE": 106,
     "LIFE_GAINED": 3,
     "CAST": 10,
+    "LIFE_LOST": 4,
     "DECLARE_ATTACKERS": 8,
     "DAMAGE": 10,
     "COMBAT_DAMAGE": 10,
@@ -961,28 +962,8 @@
    },
    "detectors": {
     "D1_life": {
-     "status": "HIT",
-     "note": "",
-     "hits": [
-      {
-       "detector": "D1_life",
-       "seed": "10",
-       "class": "hit",
-       "detail": "player:0: journal fold 20+2-1=21 but final life 17 (delta -4: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
-       "row_index": null,
-       "clock": null,
-       "subject": null
-      },
-      {
-       "detector": "D1_life",
-       "seed": "10",
-       "class": "hit",
-       "detail": "player:1: journal fold 20+1-17=4 but final life 0 (delta -4: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
-       "row_index": null,
-       "clock": null,
-       "subject": null
-      }
-     ]
+     "status": "clean",
+     "note": ""
     },
     "D2_mana": {
      "status": "EXEMPT",
@@ -1002,7 +983,7 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
@@ -1048,13 +1029,13 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
   "12": {
    "mode": "replay",
-   "n_rows": 265,
+   "n_rows": 266,
    "crash": null,
    "kinds": {
     "TURN_PHASE": 75,
@@ -1068,23 +1049,13 @@
     "COMBAT_DAMAGE": 10,
     "CREATURE_DIES": 1,
     "TARGETING": 2,
-    "COUNTER_PLACED": 1
+    "COUNTER_PLACED": 1,
+    "LIFE_LOST": 1
    },
    "detectors": {
     "D1_life": {
-     "status": "HIT",
-     "note": "",
-     "hits": [
-      {
-       "detector": "D1_life",
-       "seed": "12",
-       "class": "hit",
-       "detail": "player:0: journal fold 20+0-0=20 but final life 17 (delta -3: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
-       "row_index": null,
-       "clock": null,
-       "subject": null
-      }
-     ]
+     "status": "clean",
+     "note": ""
     },
     "D2_mana": {
      "status": "EXEMPT",
@@ -1104,13 +1075,13 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
   "13": {
    "mode": "replay",
-   "n_rows": 257,
+   "n_rows": 259,
    "crash": null,
    "kinds": {
     "TURN_PHASE": 91,
@@ -1122,32 +1093,13 @@
     "DAMAGE": 6,
     "TARGETING": 1,
     "DECLARE_ATTACKERS": 5,
-    "COMBAT_DAMAGE": 5
+    "COMBAT_DAMAGE": 5,
+    "LIFE_LOST": 2
    },
    "detectors": {
     "D1_life": {
-     "status": "HIT",
-     "note": "",
-     "hits": [
-      {
-       "detector": "D1_life",
-       "seed": "13",
-       "class": "hit",
-       "detail": "player:0: journal fold 20+0-0=20 but final life 18 (delta -2: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
-       "row_index": null,
-       "clock": null,
-       "subject": null
-      },
-      {
-       "detector": "D1_life",
-       "seed": "13",
-       "class": "hit",
-       "detail": "player:1: journal fold 20+3-21=2 but final life 0 (delta -2: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
-       "row_index": null,
-       "clock": null,
-       "subject": null
-      }
-     ]
+     "status": "clean",
+     "note": ""
     },
     "D2_mana": {
      "status": "EXEMPT",
@@ -1167,7 +1119,7 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
@@ -1212,7 +1164,7 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
@@ -1258,7 +1210,7 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
@@ -1302,34 +1254,14 @@
      "note": ""
     },
     "D6_lifecycle": {
-     "status": "HIT",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides",
-     "hits": [
-      {
-       "detector": "D6_lifecycle",
-       "seed": "16",
-       "class": "multi-replacement-per-event",
-       "detail": "2 replacement records for one event \"ZoneChangeEvent(from_zone=Zone(kind=<ZoneKind.ANY: 'ANY'>, controller=<ControllerRef.ANY: 'ANY'>, position=None), to_zon\" (statuses ['expired', 'expired'])",
-       "row_index": null,
-       "clock": null,
-       "subject": "card:38"
-      },
-      {
-       "detector": "D6_lifecycle",
-       "seed": "16",
-       "class": "dead-handle-bound-ref",
-       "detail": "live layer #9 kind=grant tag=Eot bound to card:72 ended in 'graveyard'",
-       "row_index": null,
-       "clock": null,
-       "subject": "card:72"
-      }
-     ]
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
   "17": {
    "mode": "replay",
-   "n_rows": 530,
+   "n_rows": 532,
    "crash": null,
    "kinds": {
     "TURN_PHASE": 175,
@@ -1345,32 +1277,13 @@
     "CREATURE_DIES": 7,
     "TARGETING": 6,
     "COUNTER_PLACED": 2,
-    "LOYALTY_ACTIVATED": 1
+    "LOYALTY_ACTIVATED": 1,
+    "LIFE_LOST": 2
    },
    "detectors": {
     "D1_life": {
-     "status": "HIT",
-     "note": "",
-     "hits": [
-      {
-       "detector": "D1_life",
-       "seed": "17",
-       "class": "hit",
-       "detail": "player:0: journal fold 20+2-20=2 but final life 0 (delta -2: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
-       "row_index": null,
-       "clock": null,
-       "subject": null
-      },
-      {
-       "detector": "D1_life",
-       "seed": "17",
-       "class": "hit",
-       "detail": "player:1: journal fold 20+5-11=14 but final life 12 (delta -2: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
-       "row_index": null,
-       "clock": null,
-       "subject": null
-      }
-     ]
+     "status": "clean",
+     "note": ""
     },
     "D2_mana": {
      "status": "EXEMPT",
@@ -1389,19 +1302,8 @@
      "note": ""
     },
     "D6_lifecycle": {
-     "status": "HIT",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides",
-     "hits": [
-      {
-       "detector": "D6_lifecycle",
-       "seed": "17",
-       "class": "multi-replacement-per-event",
-       "detail": "2 replacement records for one event \"ZoneChangeEvent(from_zone=Zone(kind=<ZoneKind.ANY: 'ANY'>, controller=<ControllerRef.ANY: 'ANY'>, position=None), to_zon\" (statuses ['expired', 'expired'])",
-       "row_index": null,
-       "clock": null,
-       "subject": "card:43"
-      }
-     ]
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
@@ -1446,7 +1348,7 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   },
@@ -1490,7 +1392,7 @@
     },
     "D6_lifecycle": {
      "status": "clean",
-     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides; repl lane counts only live records (expired = self-detached lifecycle ghost, CR 614.3 needs co-existence); grant/lose source-side dead handles are CR 611.2a-legal (effect outlives its source)"
     }
    }
   }
@@ -1498,8 +1400,8 @@
  "replay_summary": {
   "per_detector": {
    "D1_life": {
-    "clean": 16,
-    "HIT": 4,
+    "clean": 20,
+    "HIT": 0,
     "EXEMPT": 0
    },
    "D2_mana": {
@@ -1523,103 +1425,12 @@
     "EXEMPT": 0
    },
    "D6_lifecycle": {
-    "clean": 18,
-    "HIT": 2,
+    "clean": 20,
+    "HIT": 0,
     "EXEMPT": 0
    }
   },
-  "all_hits": [
-   {
-    "detector": "D1_life",
-    "seed": "10",
-    "class": "hit",
-    "detail": "player:0: journal fold 20+2-1=21 but final life 17 (delta -4: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
-    "row_index": null,
-    "clock": null,
-    "subject": null
-   },
-   {
-    "detector": "D1_life",
-    "seed": "10",
-    "class": "hit",
-    "detail": "player:1: journal fold 20+1-17=4 but final life 0 (delta -4: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
-    "row_index": null,
-    "clock": null,
-    "subject": null
-   },
-   {
-    "detector": "D1_life",
-    "seed": "12",
-    "class": "hit",
-    "detail": "player:0: journal fold 20+0-0=20 but final life 17 (delta -3: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
-    "row_index": null,
-    "clock": null,
-    "subject": null
-   },
-   {
-    "detector": "D1_life",
-    "seed": "13",
-    "class": "hit",
-    "detail": "player:0: journal fold 20+0-0=20 but final life 18 (delta -2: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
-    "row_index": null,
-    "clock": null,
-    "subject": null
-   },
-   {
-    "detector": "D1_life",
-    "seed": "13",
-    "class": "hit",
-    "detail": "player:1: journal fold 20+3-21=2 but final life 0 (delta -2: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
-    "row_index": null,
-    "clock": null,
-    "subject": null
-   },
-   {
-    "detector": "D6_lifecycle",
-    "seed": "16",
-    "class": "multi-replacement-per-event",
-    "detail": "2 replacement records for one event \"ZoneChangeEvent(from_zone=Zone(kind=<ZoneKind.ANY: 'ANY'>, controller=<ControllerRef.ANY: 'ANY'>, position=None), to_zon\" (statuses ['expired', 'expired'])",
-    "row_index": null,
-    "clock": null,
-    "subject": "card:38"
-   },
-   {
-    "detector": "D6_lifecycle",
-    "seed": "16",
-    "class": "dead-handle-bound-ref",
-    "detail": "live layer #9 kind=grant tag=Eot bound to card:72 ended in 'graveyard'",
-    "row_index": null,
-    "clock": null,
-    "subject": "card:72"
-   },
-   {
-    "detector": "D1_life",
-    "seed": "17",
-    "class": "hit",
-    "detail": "player:0: journal fold 20+2-20=2 but final life 0 (delta -2: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
-    "row_index": null,
-    "clock": null,
-    "subject": null
-   },
-   {
-    "detector": "D1_life",
-    "seed": "17",
-    "class": "hit",
-    "detail": "player:1: journal fold 20+5-11=14 but final life 12 (delta -2: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
-    "row_index": null,
-    "clock": null,
-    "subject": null
-   },
-   {
-    "detector": "D6_lifecycle",
-    "seed": "17",
-    "class": "multi-replacement-per-event",
-    "detail": "2 replacement records for one event \"ZoneChangeEvent(from_zone=Zone(kind=<ZoneKind.ANY: 'ANY'>, controller=<ControllerRef.ANY: 'ANY'>, position=None), to_zon\" (statuses ['expired', 'expired'])",
-    "row_index": null,
-    "clock": null,
-    "subject": "card:43"
-   }
-  ]
+  "all_hits": []
  },
  "replay_meta": {
   "pool": "all",

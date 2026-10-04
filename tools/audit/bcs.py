@@ -200,7 +200,13 @@ VERB_TO_JOURNAL = {
     "PREVENT_EFFECT": "DAMAGE_PREVENTED",
     "DRAW": "CARD_DRAWN",
     "GAIN_LIFE": "LIFE_GAINED",
-    "LOSE_LIFE": "LIFE_GAINED",
+    # B3a falsification: the B1 note predicted LOSE_LIFE mapped to a
+    # (negative) LIFE_GAINED row — FALSE. The engine emitted NO row at
+    # all (D1 hit 4/20 seeds); B3a ships the dedicated LIFE_LOST kind
+    # (CR 118.5: losing life is not dealt damage, and binding.py
+    # dispatches LifeGainedEvent by kind, so a negative gain row was
+    # never admissible). Branch signatures now target the real feed.
+    "LOSE_LIFE": "LIFE_LOST",
     "PUT_COUNTER": "COUNTER_PLACED",
     "REMOVE_COUNTER": "COUNTER_PLACED",
     "TAP": "TAP_STATE",
@@ -221,6 +227,23 @@ VERB_TO_JOURNAL = {
     "CREATE_TOKEN": "ZONE_CHANGE",
 }
 DEATHY_VERBS = {"SACRIFICE", "DESTROY"}
+
+# B3a (design §C): machine-readable per-card collision-class flags for the
+# 8 calibration exceptions — cards whose bug is CROSS-card/cross-branch and
+# therefore invisible to per-card primitive counting (the B1 blind-spot
+# table, mirrored in meta.calibration.blind_spot_classes). Consumers (B4
+# scenario-priority ranking) read cards[<name>].collision_flags instead of
+# parsing the prose table.
+COLLISION_FLAGS: dict[str, list[str]] = {
+    "Destructive Tampering": ["branch_entanglement"],
+    "Fabled Passage": ["branch_entanglement"],
+    "Makeshift Battalion": ["keyword_x_consumer"],
+    "Mistral Singer": ["keyword_x_consumer"],
+    "Teferi's Ageless Insight": ["replacement_x_ordering"],
+    "Caged Zombie": ["replacement_x_ordering"],
+    "Basri's Solidarity": ["single_fold"],
+    "Secure the Scene": ["single_fold"],
+}
 
 
 def iter_nodes(obj):
@@ -525,6 +548,7 @@ def main():
             "primitives": counts,
             "bcs": s,
             "branches": branch_inventory(hdl, abilities),
+            "collision_flags": COLLISION_FLAGS.get(row["name"], []),
         }
 
     # ----- vanilla-identity residue set: uncovered, only plain keywords/etb ---
@@ -615,6 +639,7 @@ def main():
                 "bcs": c["bcs"],
                 "branches_declared": len(c["branches"]),
                 "status": c["status"],
+                "collision_flags": c["collision_flags"],
             }
             for n, c in heat
         ],

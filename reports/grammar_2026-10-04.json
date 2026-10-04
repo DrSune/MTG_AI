@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-10-04T18:26:23+02:00",
-  "git_head": "85f1aaf59d994d1d5d577fad37317bb5b854371e",
+  "generated": "2026-10-04T20:19:59+02:00",
+  "git_head": "2fba3721ee3a70919abbc197333033cb6d8cb4f0",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -101,15 +101,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.293,
+      "value": 0.247,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.269,
-        0.293,
-        0.258
+        0.239,
+        0.238,
+        0.247
       ]
     },
     "PC-6": {
@@ -221,7 +221,7 @@
     "files": 305,
     "diffs": [],
     "stable": true,
-    "goldens": "refreshed",
+    "goldens": "verified",
     "baseline": "VCS-tracked (committed goldens; verify-only by default)"
   },
   "unparsed_queue": [
@@ -238,65 +238,5 @@
       "bucket_hint": "spell-effect"
     }
   ],
-  "unparsed_count": 2,
-  "engine_support": {
-    "engine_supported_cards": 297,
-    "of_total": 305,
-    "supported_verbs": [
-      "ADD_LAND_PLAY",
-      "ADD_MANA",
-      "ATTACH",
-      "CAST",
-      "CHOOSE",
-      "CHOOSE_NAME",
-      "CREATE_TOKEN",
-      "DAMAGE_ASSIGN_POLICY",
-      "DEAL_DAMAGE",
-      "DESTROY",
-      "DISCARD",
-      "DRAW",
-      "END_TURN",
-      "EXILE",
-      "EXTRA_TURN",
-      "FIGHT",
-      "FLIP_COIN",
-      "GAIN_CONTROL",
-      "GAIN_LIFE",
-      "GET_EMBLEM",
-      "GRANT_ABILITY",
-      "GRANT_ACTIVATION",
-      "GRANT_TYPE",
-      "LOOK_AT",
-      "LOSE_ABILITY",
-      "LOSE_GAME",
-      "LOSE_LIFE",
-      "MANA_POLICY",
-      "MANDATE_ATTACK",
-      "MANDATE_BLOCK",
-      "MILL",
-      "MODIFY_PT",
-      "MOVE_ZONE",
-      "PAY",
-      "PREVENT_EFFECT",
-      "PUT_COUNTER",
-      "REMOVE_COUNTER",
-      "REVEAL",
-      "SACRIFICE",
-      "SCRY",
-      "SEARCH",
-      "SET_PT",
-      "SHUFFLE",
-      "TAP",
-      "UNTAP"
-    ],
-    "flip_proof": {
-      "card": "Cancel",
-      "spell_ability_only": true,
-      "default_engine_supported": true,
-      "gated_engine_supported": false,
-      "offending_verbs": [
-        "COUNTER_SPELL"
-      ]
-    }
-  }
+  "unparsed_count": 2
 }

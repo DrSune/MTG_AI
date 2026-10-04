@@ -55,6 +55,17 @@ KIND_TAP_STATE = "TAP_STATE"
 KIND_CARD_DRAWN = "CARD_DRAWN"
 KIND_DAMAGE = "DAMAGE"
 KIND_LIFE_GAINED = "LIFE_GAINED"
+# B3a (BUGCATCH D1, seed 12 "Life Goes On"): the life-LOSS feed. A life
+# DECREASE that is not dealt damage (Verb.LOSE_LIFE — "you lose 3 life",
+# the corpus' life-as-cost lane) previously left ZERO journal rows: the
+# diff emitted a decrease only under cause_verb == "DEAL_DAMAGE" (as a
+# DAMAGE row), so a LOSE_LIFE resolution was invisible and the replay
+# fingerprint could not reconstruct life history. LIFE_LOST is its OWN
+# kind — never a DAMAGE row (CR 118.5: losing life is not dealt damage;
+# no DamageDealtEvent may subscribe to a loss) and never a negative
+# LIFE_GAINED row (binding.py dispatches LifeGainedEvent by kind, so a
+# negative gain row would fire "whenever you gain life" triggers).
+KIND_LIFE_LOST = "LIFE_LOST"
 KIND_TURN_PHASE = "TURN_PHASE"
 # 13b: the cast feed (CastSpellEvent triggers subscribe; the emitter is
 # stack.cast/cast_card, ordinals per controller per turn — the twin of the
@@ -128,6 +139,9 @@ class GameEvent:
         is COMBAT damage (16c, the DamageDealtEvent ``combat`` scope);
         subject may be a player handle.
       * LIFE_GAINED   — ``(amount,)``
+      * LIFE_LOST     — ``(amount,)``, subject the player; a non-damage
+        life DECREASE (B3a, the LOSE_LIFE feed; the amount is the actual
+        delta after the verb's 0-clamp)
       * TURN_PHASE    — ``(phase_name, active_player)``, subject None.
       * CAST          — ``(caster, ordinal_this_turn, spell_kind,
         from_zone, x_value)``, subject the spell card (13b).
@@ -466,7 +480,8 @@ class EventJournal:
                         (name, gained),
                     )
 
-        # --- life: gains are events; DEAL_DAMAGE losses are damage.
+        # --- life: gains are events; DEAL_DAMAGE losses are damage; every
+        # other decrease (LOSE_LIFE, life-as-cost) is a LIFE_LOST row.
         for player in world.player_order:
             was_life = before.life.get(player)
             now_life = after.life[player]
@@ -487,6 +502,19 @@ class EventJournal:
                     cause,
                     cause_verb,
                     (was_life - now_life, True) if combat else (was_life - now_life,),
+                )
+            else:
+                # B3a: the amount is the ACTUAL state delta (the verb's
+                # 0-clamp included), same clock/ordering spine as the
+                # DAMAGE/LIFE_GAINED rows above, so a journal fold
+                # (start + ΣLIFE_GAINED − ΣDAMAGE − ΣLIFE_LOST)
+                # reconstructs the final life exactly.
+                self._emit(
+                    KIND_LIFE_LOST,
+                    player,
+                    cause,
+                    cause_verb,
+                    (was_life - now_life,),
                 )
 
         # --- non-lethal card damage leaves no state trace: the 12a handler

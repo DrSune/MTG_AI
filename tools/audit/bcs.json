@@ -229,1831 +229,2152 @@
    "card": "Basri Ket",
    "bcs": 70,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Garruk, Unleashed",
    "bcs": 54,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Siege Striker",
    "bcs": 53,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Malefic Scythe",
    "bcs": 49,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Liliana, Waker of the Dead",
    "bcs": 48,
    "branches_declared": 2,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Conclave Mentor",
    "bcs": 46,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Gadrak, the Crown-Scourge",
    "bcs": 46,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Basri, Devoted Paladin",
    "bcs": 45,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Wildwood Scourge",
    "bcs": 44,
    "branches_declared": 0,
-   "status": "suspect"
+   "status": "suspect",
+   "collision_flags": []
   },
   {
    "card": "Alpine Houndmaster",
    "bcs": 41,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Rin and Seri, Inseparable",
    "bcs": 40,
    "branches_declared": 0,
-   "status": "suspect"
+   "status": "suspect",
+   "collision_flags": []
   },
   {
    "card": "Garruk, Savage Herald",
    "bcs": 39,
    "branches_declared": 2,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Elder Gargaroth",
    "bcs": 38,
    "branches_declared": 2,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Experimental Overload",
    "bcs": 38,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Feat of Resistance",
    "bcs": 38,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Chandra, Heart of Fire",
    "bcs": 37,
    "branches_declared": 2,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Feline Sovereign",
    "bcs": 37,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Brash Taunter",
    "bcs": 36,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Kinetic Augur",
    "bcs": 36,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Chandra, Flame's Catalyst",
    "bcs": 34,
    "branches_declared": 2,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Ghostly Pilferer",
    "bcs": 34,
    "branches_declared": 2,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Niambi, Esteemed Speaker",
    "bcs": 34,
    "branches_declared": 2,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Barrin, Tolarian Archmage",
    "bcs": 33,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Pursued Whale",
    "bcs": 33,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Faith's Fetters",
    "bcs": 32,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Garruk's Harbinger",
    "bcs": 32,
    "branches_declared": 3,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Liliana, Death Mage",
    "bcs": 32,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Radha, Heart of Keld",
    "bcs": 32,
    "branches_declared": 2,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Thieves' Guild Enforcer",
    "bcs": 32,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Chandra's Incinerator",
    "bcs": 31,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Fiery Emancipation",
    "bcs": 30,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Demonic Embrace",
    "bcs": 29,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Dire Fleet Warmonger",
    "bcs": 29,
    "branches_declared": 2,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Riddleform",
    "bcs": 29,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Sublime Epiphany",
    "bcs": 29,
    "branches_declared": 1,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Mazemind Tome",
    "bcs": 28,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Ugin, the Spirit Dragon",
    "bcs": 28,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Canopy Stalker",
    "bcs": 27,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Nine Lives",
    "bcs": 27,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Primal Might",
    "bcs": 27,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Subira, Tulzidi Caravanner",
    "bcs": 27,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Basri's Acolyte",
    "bcs": 26,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Jolrael, Mwonvuli Recluse",
    "bcs": 26,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Necromentia",
    "bcs": 26,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Light of Promise",
    "bcs": 25,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Terror of the Peaks",
    "bcs": 25,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Leafkin Avenger",
    "bcs": 24,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Liliana's Devotee",
    "bcs": 24,
    "branches_declared": 2,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Sporeweb Weaver",
    "bcs": 24,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Archfiend's Vessel",
    "bcs": 23,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Basri's Lieutenant",
    "bcs": 23,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Capture Sphere",
    "bcs": 23,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Shacklegeist",
    "bcs": 23,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Solemn Simulacrum",
    "bcs": 23,
    "branches_declared": 2,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Unleash Fury",
    "bcs": 23,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Pack Leader",
    "bcs": 22,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Basri's Aegis",
    "bcs": 21,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Frost Breath",
    "bcs": 21,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Rousing Read",
    "bcs": 21,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Volcanic Salvo",
    "bcs": 21,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Aven Gagglemaster",
    "bcs": 20,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Carrion Grub",
    "bcs": 20,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Chrome Replicator",
    "bcs": 20,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Infernal Scarring",
    "bcs": 20,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Setessan Training",
    "bcs": 20,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Tolarian Kraken",
    "bcs": 20,
    "branches_declared": 3,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Crypt Lurker",
    "bcs": 19,
    "branches_declared": 3,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Heartfire Immolator",
    "bcs": 19,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Kitesail Freebooter",
    "bcs": 19,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Peer into the Abyss",
    "bcs": 19,
    "branches_declared": 0,
-   "status": "suspect"
+   "status": "suspect",
+   "collision_flags": []
   },
   {
    "card": "Roaming Ghostlight",
    "bcs": 19,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "See the Truth",
    "bcs": 19,
    "branches_declared": 3,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Teferi, Master of Time",
    "bcs": 19,
    "branches_declared": 1,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Vito, Thorn of the Dusk Rose",
    "bcs": 19,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Dub",
    "bcs": 18,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Mangara, the Diplomat",
    "bcs": 18,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Sanctum of Calm Waters",
    "bcs": 18,
    "branches_declared": 2,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Sanctum of Stone Fangs",
    "bcs": 18,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Sanctum of Tranquil Light",
    "bcs": 18,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Scorching Dragonfire",
    "bcs": 18,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Chandra's Firemaw",
    "bcs": 17,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Garruk's Warsteed",
    "bcs": 17,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Hunter's Edge",
    "bcs": 17,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Idol of Endurance",
    "bcs": 17,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Jeskai Elder",
    "bcs": 17,
    "branches_declared": 2,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Liliana's Standard Bearer",
    "bcs": 17,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Sabertooth Mauler",
    "bcs": 17,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Sanctum of Shattered Heights",
    "bcs": 17,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Teferi's Wavecaster",
    "bcs": 17,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Teferi, Timeless Voyager",
    "bcs": 17,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Trufflesnout",
    "bcs": 17,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Waker of Waves",
    "bcs": 17,
    "branches_declared": 2,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Alchemist's Gift",
    "bcs": 16,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Bolt Hound",
    "bcs": 16,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Chandra's Pyreling",
    "bcs": 16,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Chromatic Orrery",
    "bcs": 16,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Fabled Passage",
    "bcs": 16,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": [
+    "branch_entanglement"
+   ]
   },
   {
    "card": "Fungal Rebirth",
    "bcs": 16,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Garruk's Uprising",
    "bcs": 16,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Hobblefiend",
    "bcs": 16,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Watcher of the Spheres",
    "bcs": 16,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Bloodfell Caves",
    "bcs": 15,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Blossoming Sands",
    "bcs": 15,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Containment Priest",
    "bcs": 15,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Destructive Tampering",
    "bcs": 15,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": [
+    "branch_entanglement"
+   ]
   },
   {
    "card": "Dismal Backwater",
    "bcs": 15,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Jungle Hollow",
    "bcs": 15,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Massacre Wurm",
    "bcs": 15,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Pridemalkin",
    "bcs": 15,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Rugged Highlands",
    "bcs": 15,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Scoured Barrens",
    "bcs": 15,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Shipwreck Dowser",
    "bcs": 15,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Swiftwater Cliffs",
    "bcs": 15,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Temple of Epiphany",
    "bcs": 15,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Temple of Malady",
    "bcs": 15,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Temple of Mystery",
    "bcs": 15,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Temple of Silence",
    "bcs": 15,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Temple of Triumph",
    "bcs": 15,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Thornwood Falls",
    "bcs": 15,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Tranquil Cove",
    "bcs": 15,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Volcanic Geyser",
    "bcs": 15,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Wind-Scarred Crag",
    "bcs": 15,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Basri Ket Emblem",
    "bcs": 14,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Deathbloom Thallid",
    "bcs": 14,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Falconer Adept",
    "bcs": 14,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Hooded Blightfang",
    "bcs": 14,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Invigorating Surge",
    "bcs": 14,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Obsessive Stitcher",
    "bcs": 14,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Silversmote Ghoul",
    "bcs": 14,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Teferi's Tutelage",
    "bcs": 14,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Tempered Veteran",
    "bcs": 14,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Turret Ogre",
    "bcs": 14,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Valorous Steed",
    "bcs": 14,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Angelic Ascension",
    "bcs": 13,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Animal Sanctuary",
    "bcs": 13,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Enthralling Hold",
    "bcs": 13,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Fierce Empath",
    "bcs": 13,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Goblin Arsonist",
    "bcs": 13,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Goremand",
    "bcs": 13,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Liliana's Scorn",
    "bcs": 13,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Liliana's Scrounger",
    "bcs": 13,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Liliana, Waker of the Dead Emblem",
    "bcs": 13,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Meteorite",
    "bcs": 13,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Ornery Dilophosaur",
    "bcs": 13,
    "branches_declared": 0,
-   "status": "suspect"
+   "status": "suspect",
+   "collision_flags": []
   },
   {
    "card": "Pirate",
    "bcs": 13,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Rambunctious Mutt",
    "bcs": 13,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Read the Tides",
    "bcs": 13,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Rookie Mistake",
    "bcs": 13,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Scavenging Ooze",
    "bcs": 13,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Secure the Scene",
    "bcs": 13,
    "branches_declared": 0,
-   "status": "suspect"
+   "status": "suspect",
+   "collision_flags": [
+    "single_fold"
+   ]
   },
   {
    "card": "Snarespinner",
    "bcs": 13,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Spellgorger Weird",
    "bcs": 13,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Stormwing Entity",
    "bcs": 13,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Battle-Rattle Shaman",
    "bcs": 12,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Bone Pit Brute",
    "bcs": 12,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Daybreak Charger",
    "bcs": 12,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Duress",
    "bcs": 12,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Gale Swooper",
    "bcs": 12,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Gnarled Sage",
    "bcs": 12,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Return to Nature",
    "bcs": 12,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Sanguine Indulgence",
    "bcs": 12,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Seasoned Hallowblade",
    "bcs": 12,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Short Sword",
    "bcs": 12,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Tome Anima",
    "bcs": 12,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Chandra's Magmutt",
    "bcs": 11,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Cultivate",
    "bcs": 11,
    "branches_declared": 2,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Double Vision",
    "bcs": 11,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Griffin Aerie",
    "bcs": 11,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Llanowar Visionary",
    "bcs": 11,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Lofty Denial",
    "bcs": 11,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Miscast",
    "bcs": 11,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Radiant Fountain",
    "bcs": 11,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Runed Halo",
    "bcs": 11,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Sanctum of Fruitful Harvest",
    "bcs": 11,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Sparkhunter Masticore",
    "bcs": 11,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Speaker of the Heavens",
    "bcs": 11,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Thrashing Brontodon",
    "bcs": 11,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Traitorous Greed",
    "bcs": 11,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Warden of the Woods",
    "bcs": 11,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Adherent of Hope",
    "bcs": 10,
    "branches_declared": 0,
-   "status": "suspect"
+   "status": "suspect",
+   "collision_flags": []
   },
   {
    "card": "Burlfist Oak",
    "bcs": 10,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Furor of the Bitten",
    "bcs": 10,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Life Goes On",
    "bcs": 10,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Lorescale Coatl",
    "bcs": 10,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Mystic Skyfish",
    "bcs": 10,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Pitchburn Devils",
    "bcs": 10,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Quirion Dryad",
    "bcs": 10,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Ranger's Guile",
    "bcs": 10,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Selfless Savior",
    "bcs": 10,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Silent Dart",
    "bcs": 10,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Skeleton Archer",
    "bcs": 10,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Sure Strike",
    "bcs": 10,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Garruk, Unleashed Emblem",
    "bcs": 9,
    "branches_declared": 1,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Gloom Sower",
    "bcs": 9,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Kaervek, the Spiteful",
    "bcs": 9,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Pestilent Haze",
    "bcs": 9,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Rewind",
    "bcs": 9,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Sanctum of All",
    "bcs": 9,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Spirit of Malevolence",
    "bcs": 9,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Tavern Swindler",
    "bcs": 9,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Track Down",
    "bcs": 9,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Unsubstantiate",
    "bcs": 9,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Anointed Chorister",
    "bcs": 8,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Cancel",
    "bcs": 8,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Frantic Inventory",
    "bcs": 8,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Historian of Zhalfir",
    "bcs": 8,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Keral Keep Disciples",
    "bcs": 8,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Library Larcenist",
    "bcs": 8,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Liliana's Steward",
    "bcs": 8,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Sigiled Contender",
    "bcs": 8,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Skyscanner",
    "bcs": 8,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Spined Megalodon",
    "bcs": 8,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Storm Caller",
    "bcs": 8,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Tormod's Crypt",
    "bcs": 8,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Treasure",
    "bcs": 8,
    "branches_declared": 0,
-   "status": "suspect"
+   "status": "suspect",
+   "collision_flags": []
   },
   {
    "card": "Twinblade Assassins",
    "bcs": 8,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Wall of Runes",
    "bcs": 8,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Goblin Wizardry",
    "bcs": 7,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Havoc Jester",
    "bcs": 7,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Indulging Patrician",
    "bcs": 7,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Soul Sear",
    "bcs": 7,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Turn to Slag",
    "bcs": 7,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Vodalian Arcanist",
    "bcs": 7,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Caged Zombie",
    "bcs": 6,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": [
+    "replacement_x_ordering"
+   ]
   },
   {
    "card": "Defiant Strike",
    "bcs": 6,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Eliminate",
    "bcs": 6,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Fetid Imp",
    "bcs": 6,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Finishing Blow",
    "bcs": 6,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Hellkite Punisher",
    "bcs": 6,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Heroic Intervention",
    "bcs": 6,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Igneous Cur",
    "bcs": 6,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Masked Blackguard",
    "bcs": 6,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Predatory Wurm",
    "bcs": 6,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Teferi's Ageless Insight",
    "bcs": 6,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": [
+    "replacement_x_ordering"
+   ]
   },
   {
    "card": "Witch's Cauldron",
    "bcs": 6,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Baneslayer Angel",
    "bcs": 5,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Celestial Enforcer",
    "bcs": 5,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Conspicuous Snoop",
    "bcs": 5,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Furious Rise",
    "bcs": 5,
    "branches_declared": 0,
-   "status": "suspect"
+   "status": "suspect",
+   "collision_flags": []
   },
   {
    "card": "Grasp of Darkness",
    "bcs": 5,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Keen Glidemaster",
    "bcs": 5,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Portcullis Vine",
    "bcs": 5,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Tide Skimmer",
    "bcs": 5,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Titanic Growth",
    "bcs": 5,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Transmogrify",
    "bcs": 5,
    "branches_declared": 0,
-   "status": "suspect"
+   "status": "suspect",
+   "collision_flags": []
   },
   {
    "card": "Azusa, Lost but Seeking",
    "bcs": 4,
    "branches_declared": 1,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Crash Through",
    "bcs": 4,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Discontinuity",
    "bcs": 4,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Drowsing Tyrannodon",
    "bcs": 4,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Teferi's Protege",
    "bcs": 4,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Bad Deal",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Basri's Solidarity",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": [
+    "single_fold"
+   ]
   },
   {
    "card": "Burn Bright",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Epitaph Golem",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Forest",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Glorious Anthem",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Grim Tutor",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Island",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Legion's Judgment",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Mountain",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Palladium Myr",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Plains",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Rise Again",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Shock",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Skyway Sniper",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Swamp",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Swift Response",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Thrill of Possibility",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Village Rites",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Vryn Wingmare",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Warded Battlements",
    "bcs": 3,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Blood Glutton",
    "bcs": 2,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Goblin Wizard",
    "bcs": 2,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Makeshift Battalion",
    "bcs": 2,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": [
+    "keyword_x_consumer"
+   ]
   },
   {
    "card": "Mistral Singer",
    "bcs": 2,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": [
+    "keyword_x_consumer"
+   ]
   },
   {
    "card": "Opt",
    "bcs": 2,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Rain of Revelation",
    "bcs": 2,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Revitalize",
    "bcs": 2,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Mind Rot",
    "bcs": 1,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Prismite",
    "bcs": 1,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Run Afoul",
    "bcs": 1,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Alpine Watchdog",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Angel",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Beast",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Bird",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Cat",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Cat (2)",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Colossal Dreadmaw",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Concordia Pegasus",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Construct",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Demon",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Dog",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Forgotten Sentinel",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Garruk's Gorehorn",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Griffin",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Knight",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Onakke Ogre",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Saproling",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Soldier",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Staunch Shieldmate",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Walking Corpse",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Weird",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Wildwood Patrol",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "pack"
+   "status": "pack",
+   "collision_flags": []
   },
   {
    "card": "Wishcoin Crab",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   },
   {
    "card": "Zombie",
    "bcs": 0,
    "branches_declared": 0,
-   "status": "uncovered"
+   "status": "uncovered",
+   "collision_flags": []
   }
  ],
  "cards": {
@@ -2076,7 +2397,8 @@
     "p9_anaphora": 1
    },
    "bcs": 10,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Alchemist's Gift": {
    "oracle_id": "4e698713-6203-44f2-b438-1b26b951536d",
@@ -2107,7 +2429,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Alpine Houndmaster": {
    "oracle_id": "88939cb3-5f61-4857-95cb-9446c6c1f1aa",
@@ -2138,7 +2461,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Alpine Watchdog": {
    "oracle_id": "6a0419c3-4bfa-46c1-932b-fe10f2fa2ad7",
@@ -2159,7 +2483,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Angel": {
    "oracle_id": "40c64f08-ab2f-4933-8e0e-d1a1c729008f",
@@ -2180,7 +2505,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Angelic Ascension": {
    "oracle_id": "5a898412-5b1e-4217-ac78-5b4099ed8e16",
@@ -2201,7 +2527,8 @@
     "p9_anaphora": 0
    },
    "bcs": 13,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Animal Sanctuary": {
    "oracle_id": "f3c40943-1d7c-4ea2-b34f-8df8b6775701",
@@ -2222,7 +2549,8 @@
     "p9_anaphora": 0
    },
    "bcs": 13,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Anointed Chorister": {
    "oracle_id": "61859443-e298-41c7-a179-6e6554de91c9",
@@ -2243,7 +2571,8 @@
     "p9_anaphora": 1
    },
    "bcs": 8,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Archfiend's Vessel": {
    "oracle_id": "62c240ac-f2dd-4e39-9e82-50307efa833e",
@@ -2264,7 +2593,8 @@
     "p9_anaphora": 2
    },
    "bcs": 23,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Aven Gagglemaster": {
    "oracle_id": "8c601628-b1ed-467b-ba92-8572343147f8",
@@ -2285,7 +2615,8 @@
     "p9_anaphora": 1
    },
    "bcs": 20,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Azusa, Lost but Seeking": {
    "oracle_id": "6c2c8bf3-9bf8-4a86-89d3-3bb36260dc51",
@@ -2316,7 +2647,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Bad Deal": {
    "oracle_id": "47258c3e-b4a7-466d-9464-3924f75d9293",
@@ -2337,7 +2669,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Baneslayer Angel": {
    "oracle_id": "0e11792b-7fe5-4208-aa0b-e5d09b2b65fe",
@@ -2358,7 +2691,8 @@
     "p9_anaphora": 0
    },
    "bcs": 5,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Barrin, Tolarian Archmage": {
    "oracle_id": "f98f7cb7-90ca-41e7-9f1d-8054931ecf0e",
@@ -2379,7 +2713,8 @@
     "p9_anaphora": 3
    },
    "bcs": 33,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Basri Ket": {
    "oracle_id": "497d7ab8-07f1-4c8a-a45a-52b9a4d9400f",
@@ -2400,7 +2735,8 @@
     "p9_anaphora": 4
    },
    "bcs": 70,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Basri Ket Emblem": {
    "oracle_id": "ab67e4ec-9392-4130-970f-6ad65656e5c1",
@@ -2421,7 +2757,8 @@
     "p9_anaphora": 0
    },
    "bcs": 14,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Basri's Acolyte": {
    "oracle_id": "92c824da-2351-43bd-9fa0-d09709ad8205",
@@ -2442,7 +2779,8 @@
     "p9_anaphora": 2
    },
    "bcs": 26,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Basri's Aegis": {
    "oracle_id": "9825dab8-ca1a-44ea-b1d7-77c66f00351f",
@@ -2473,7 +2811,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Basri's Lieutenant": {
    "oracle_id": "57d0c688-6206-4c83-9fcb-27fd29e2a9ed",
@@ -2494,7 +2833,8 @@
     "p9_anaphora": 1
    },
    "bcs": 23,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Basri's Solidarity": {
    "oracle_id": "68281e06-64e3-490b-8691-8f4169614ec0",
@@ -2515,7 +2855,10 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": [
+    "single_fold"
+   ]
   },
   "Basri, Devoted Paladin": {
    "oracle_id": "1601e553-31c2-4e04-9f0c-bc17e49eeff7",
@@ -2536,7 +2879,8 @@
     "p9_anaphora": 3
    },
    "bcs": 45,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Battle-Rattle Shaman": {
    "oracle_id": "72dc807b-35fb-4d69-ae4c-04eed0646170",
@@ -2567,7 +2911,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Beast": {
    "oracle_id": "6bb61f34-5d57-4eaa-a02c-f5d08c1ee920",
@@ -2588,7 +2933,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Bird": {
    "oracle_id": "b1a2b096-a440-4ef9-ab2a-059c79999297",
@@ -2609,7 +2955,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Blood Glutton": {
    "oracle_id": "065b8e5e-874e-4de3-9f12-41e4b1604561",
@@ -2630,7 +2977,8 @@
     "p9_anaphora": 0
    },
    "bcs": 2,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Bloodfell Caves": {
    "oracle_id": "64e29bfc-9313-4e8c-808c-bc27f6b018a6",
@@ -2661,7 +3009,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Blossoming Sands": {
    "oracle_id": "45429b2c-be3b-4b2e-9bab-a059ccbda8cd",
@@ -2692,7 +3041,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Bolt Hound": {
    "oracle_id": "60555f06-dc85-4a34-ae3c-fc1cdb923be7",
@@ -2713,7 +3063,8 @@
     "p9_anaphora": 2
    },
    "bcs": 16,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Bone Pit Brute": {
    "oracle_id": "6de38910-8d0d-4fac-b9db-c80ffd1850ea",
@@ -2734,7 +3085,8 @@
     "p9_anaphora": 1
    },
    "bcs": 12,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Brash Taunter": {
    "oracle_id": "3e41648f-c5a9-4b26-b97e-8176fe5e9c85",
@@ -2755,7 +3107,8 @@
     "p9_anaphora": 4
    },
    "bcs": 36,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Burlfist Oak": {
    "oracle_id": "95a08f25-8d44-4704-a4d1-a098bf010932",
@@ -2776,7 +3129,8 @@
     "p9_anaphora": 1
    },
    "bcs": 10,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Burn Bright": {
    "oracle_id": "ed14c7fa-632c-47ee-9db0-8c492771121a",
@@ -2797,7 +3151,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Caged Zombie": {
    "oracle_id": "430b3e61-09a5-4390-b377-89830cacf66e",
@@ -2818,7 +3173,10 @@
     "p9_anaphora": 1
    },
    "bcs": 6,
-   "branches": []
+   "branches": [],
+   "collision_flags": [
+    "replacement_x_ordering"
+   ]
   },
   "Cancel": {
    "oracle_id": "7d00fb28-ea6c-49a9-b4af-ffb38860a9a7",
@@ -2839,7 +3197,8 @@
     "p9_anaphora": 0
    },
    "bcs": 8,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Canopy Stalker": {
    "oracle_id": "b1062763-1fcf-4605-9253-daa1687e8173",
@@ -2860,7 +3219,8 @@
     "p9_anaphora": 3
    },
    "bcs": 27,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Capture Sphere": {
    "oracle_id": "2dc59566-10cb-468a-b6a2-17d6c0186e6d",
@@ -2881,7 +3241,8 @@
     "p9_anaphora": 4
    },
    "bcs": 23,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Carrion Grub": {
    "oracle_id": "c54b375d-a456-4886-96f2-8dc7a0024a5b",
@@ -2902,7 +3263,8 @@
     "p9_anaphora": 2
    },
    "bcs": 20,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Cat": {
    "oracle_id": "2069c2cb-3cb7-4f3b-be72-ae783de82c42",
@@ -2923,7 +3285,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Cat (2)": {
    "oracle_id": "d4454ff8-1671-4bf5-a9f2-30c9d997f975",
@@ -2944,7 +3307,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Celestial Enforcer": {
    "oracle_id": "81f5c70f-fbb1-4b3a-a048-1f4602adfa0e",
@@ -2965,7 +3329,8 @@
     "p9_anaphora": 0
    },
    "bcs": 5,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Chandra's Firemaw": {
    "oracle_id": "53b17c51-a216-484f-80df-3904284df0ea",
@@ -2996,7 +3361,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Chandra's Incinerator": {
    "oracle_id": "515cee6a-a2e1-4eeb-8e1d-293724313b14",
@@ -3017,7 +3383,8 @@
     "p9_anaphora": 3
    },
    "bcs": 31,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Chandra's Magmutt": {
    "oracle_id": "a2c4537e-70a6-416d-9e8b-f549ad535147",
@@ -3038,7 +3405,8 @@
     "p9_anaphora": 0
    },
    "bcs": 11,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Chandra's Pyreling": {
    "oracle_id": "5291deb9-0b89-42c2-bde6-26f88931c3f4",
@@ -3059,7 +3427,8 @@
     "p9_anaphora": 2
    },
    "bcs": 16,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Chandra, Flame's Catalyst": {
    "oracle_id": "7721e800-fba6-4ae7-855e-631b2ecc8d6b",
@@ -3099,7 +3468,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Chandra, Heart of Fire": {
    "oracle_id": "58ad45fc-b625-4484-8d49-ebc42db9040a",
@@ -3139,7 +3509,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Chromatic Orrery": {
    "oracle_id": "95c3976c-33f3-490b-bfd3-7f1af2fe0416",
@@ -3170,7 +3541,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Chrome Replicator": {
    "oracle_id": "f379fa0b-e9fc-4307-a574-a0c95e5e7f72",
@@ -3191,7 +3563,8 @@
     "p9_anaphora": 1
    },
    "bcs": 20,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Colossal Dreadmaw": {
    "oracle_id": "08c7db90-c0cf-4482-b7ee-bb033e5996d2",
@@ -3212,7 +3585,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Conclave Mentor": {
    "oracle_id": "a2fe5937-212c-4e71-8d6e-f408b38100aa",
@@ -3233,7 +3607,8 @@
     "p9_anaphora": 3
    },
    "bcs": 46,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Concordia Pegasus": {
    "oracle_id": "93c35f9e-3346-4269-b1af-df9f216bfd7a",
@@ -3254,7 +3629,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Conspicuous Snoop": {
    "oracle_id": "f5d1bd3c-0e65-4999-a810-881b2389b40e",
@@ -3285,7 +3661,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Construct": {
    "oracle_id": "e63e34da-db53-4444-89f5-d4144b6deffc",
@@ -3306,7 +3683,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Containment Priest": {
    "oracle_id": "8a76a9b9-3127-45fe-b20f-a8f643276281",
@@ -3327,7 +3705,8 @@
     "p9_anaphora": 1
    },
    "bcs": 15,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Crash Through": {
    "oracle_id": "41c15160-ee8c-42e3-bc6c-593b8c8ae335",
@@ -3348,7 +3727,8 @@
     "p9_anaphora": 0
    },
    "bcs": 4,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Crypt Lurker": {
    "oracle_id": "f0cbf361-d7dc-4556-a654-71c08785095a",
@@ -3397,7 +3777,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Cultivate": {
    "oracle_id": "8b755881-a72d-4e21-a369-d2924eb4585a",
@@ -3437,7 +3818,8 @@
       "note": "one_of/rest selection branch (tampering class)"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Daybreak Charger": {
    "oracle_id": "d3de6b36-c631-4b52-b16b-0749a347d73d",
@@ -3458,7 +3840,8 @@
     "p9_anaphora": 1
    },
    "bcs": 12,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Deathbloom Thallid": {
    "oracle_id": "ce873790-de4d-4ba3-8023-c44306ba3ff8",
@@ -3479,7 +3862,8 @@
     "p9_anaphora": 1
    },
    "bcs": 14,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Defiant Strike": {
    "oracle_id": "f8c2d9c5-6fe6-4698-9972-83cdd625d94b",
@@ -3500,7 +3884,8 @@
     "p9_anaphora": 0
    },
    "bcs": 6,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Demon": {
    "oracle_id": "0045c5fa-3229-4050-b139-5712fa24b308",
@@ -3521,7 +3906,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Demonic Embrace": {
    "oracle_id": "d185c829-ef12-403a-a071-7520a0293d4a",
@@ -3552,7 +3938,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Destructive Tampering": {
    "oracle_id": "e6ae536a-95c0-495d-98b8-200b3564dd79",
@@ -3583,6 +3970,9 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
+   ],
+   "collision_flags": [
+    "branch_entanglement"
    ]
   },
   "Dire Fleet Warmonger": {
@@ -3623,7 +4013,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Discontinuity": {
    "oracle_id": "5cfd73ab-8509-4e4b-9704-68d8dad3b301",
@@ -3644,7 +4035,8 @@
     "p9_anaphora": 1
    },
    "bcs": 4,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Dismal Backwater": {
    "oracle_id": "865a2194-fca0-446e-aae3-ca475cd66e00",
@@ -3675,7 +4067,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Dog": {
    "oracle_id": "791a992f-6f67-41a0-8100-a4a6401e6148",
@@ -3696,7 +4089,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Double Vision": {
    "oracle_id": "6629a48b-be9a-4636-8add-69d096a1ca7e",
@@ -3717,7 +4111,8 @@
     "p9_anaphora": 1
    },
    "bcs": 11,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Drowsing Tyrannodon": {
    "oracle_id": "ee811356-ef6a-4972-b827-32c2d329b3c3",
@@ -3738,7 +4133,8 @@
     "p9_anaphora": 1
    },
    "bcs": 4,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Dub": {
    "oracle_id": "e3ca6b70-01d2-44e9-937a-a2d50bbf9d10",
@@ -3759,7 +4155,8 @@
     "p9_anaphora": 3
    },
    "bcs": 18,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Duress": {
    "oracle_id": "33d405ea-7a9a-4970-b70f-9c05d90dd6f0",
@@ -3780,7 +4177,8 @@
     "p9_anaphora": 1
    },
    "bcs": 12,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Elder Gargaroth": {
    "oracle_id": "397b9dcf-690a-4a58-8637-bb9baab7cc2f",
@@ -3820,7 +4218,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Eliminate": {
    "oracle_id": "cf307f81-488c-4df5-8b08-ba46e3e7f3d9",
@@ -3841,7 +4240,8 @@
     "p9_anaphora": 0
    },
    "bcs": 6,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Enthralling Hold": {
    "oracle_id": "2f94cb83-1f48-4293-b219-67830c074aeb",
@@ -3862,7 +4262,8 @@
     "p9_anaphora": 2
    },
    "bcs": 13,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Epitaph Golem": {
    "oracle_id": "e3483dd4-0118-4143-9b55-51078a6f274a",
@@ -3883,7 +4284,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Experimental Overload": {
    "oracle_id": "7851e4c8-020c-4a3d-88ed-0c97609cdfed",
@@ -3914,7 +4316,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Fabled Passage": {
    "oracle_id": "0c85b8f7-0bd0-4680-9ec5-d4b110460a54",
@@ -3945,6 +4348,9 @@
       "note": "the row can only appear on the side of the condition that fires"
      }
     }
+   ],
+   "collision_flags": [
+    "branch_entanglement"
    ]
   },
   "Faith's Fetters": {
@@ -3966,7 +4372,8 @@
     "p9_anaphora": 5
    },
    "bcs": 32,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Falconer Adept": {
    "oracle_id": "e2106eba-15f5-42b5-b797-6582ae94f3de",
@@ -3987,7 +4394,8 @@
     "p9_anaphora": 1
    },
    "bcs": 14,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Feat of Resistance": {
    "oracle_id": "2038f505-7b03-4c63-bc44-c5139729dd05",
@@ -4018,7 +4426,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Feline Sovereign": {
    "oracle_id": "05f0feb6-6783-49fd-acf6-68b44aaff846",
@@ -4039,7 +4448,8 @@
     "p9_anaphora": 3
    },
    "bcs": 37,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Fetid Imp": {
    "oracle_id": "cdb68656-633d-436e-ad56-0fdb4814bd19",
@@ -4060,7 +4470,8 @@
     "p9_anaphora": 1
    },
    "bcs": 6,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Fierce Empath": {
    "oracle_id": "5104053a-d394-4b00-82a4-60fd9f051a6e",
@@ -4091,7 +4502,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Fiery Emancipation": {
    "oracle_id": "52159875-354c-47f9-bb1c-cd65395fcc68",
@@ -4112,7 +4524,8 @@
     "p9_anaphora": 2
    },
    "bcs": 30,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Finishing Blow": {
    "oracle_id": "3c8a6c58-f4af-4809-af86-a931313fa71e",
@@ -4133,7 +4546,8 @@
     "p9_anaphora": 0
    },
    "bcs": 6,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Forest": {
    "oracle_id": "b34bb2dc-c1af-4d77-b0b3-a0fb342a5fc6",
@@ -4154,7 +4568,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Forgotten Sentinel": {
    "oracle_id": "9bd4a0bd-d10c-434a-8254-89f38740aafd",
@@ -4175,7 +4590,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Frantic Inventory": {
    "oracle_id": "a7865331-4c53-46db-b2d7-7e5cb21b6b9d",
@@ -4196,7 +4612,8 @@
     "p9_anaphora": 0
    },
    "bcs": 8,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Frost Breath": {
    "oracle_id": "382097b3-f753-493c-bde4-101c0538feb4",
@@ -4217,7 +4634,8 @@
     "p9_anaphora": 2
    },
    "bcs": 21,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Fungal Rebirth": {
    "oracle_id": "b917f39a-3176-47ad-afda-08d09b873c02",
@@ -4248,7 +4666,8 @@
       "note": "the row can only appear on the side of the condition that fires"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Furious Rise": {
    "oracle_id": "52b3a979-3b93-4441-9237-0c8a754e5523",
@@ -4269,7 +4688,8 @@
     "p9_anaphora": 0
    },
    "bcs": 5,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Furor of the Bitten": {
    "oracle_id": "40be0923-5d57-46fd-84ef-7f1a1fd5da42",
@@ -4290,7 +4710,8 @@
     "p9_anaphora": 2
    },
    "bcs": 10,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Gadrak, the Crown-Scourge": {
    "oracle_id": "42d7ec93-0943-43e2-9b65-b7edc3349410",
@@ -4311,7 +4732,8 @@
     "p9_anaphora": 4
    },
    "bcs": 46,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Gale Swooper": {
    "oracle_id": "1758e102-22da-4cb3-98d5-76f7501d026d",
@@ -4332,7 +4754,8 @@
     "p9_anaphora": 1
    },
    "bcs": 12,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Garruk's Gorehorn": {
    "oracle_id": "c8384392-1914-4423-9f49-92f5643d15dc",
@@ -4353,7 +4776,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Garruk's Harbinger": {
    "oracle_id": "2dbe384b-71c4-43f9-be35-ba2894021b85",
@@ -4402,7 +4826,8 @@
       "note": "one_of/rest selection branch (tampering class)"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Garruk's Uprising": {
    "oracle_id": "3127ae9b-a7a7-43ec-89d7-688f8445b33d",
@@ -4423,7 +4848,8 @@
     "p9_anaphora": 1
    },
    "bcs": 16,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Garruk's Warsteed": {
    "oracle_id": "d4911e00-eed1-4c8c-8779-8a3f9406ead7",
@@ -4454,7 +4880,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Garruk, Savage Herald": {
    "oracle_id": "fc762e40-84c1-4762-82f7-a0fc4f6fd522",
@@ -4494,7 +4921,8 @@
       "note": "the row can only appear on the side of the condition that fires"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Garruk, Unleashed": {
    "oracle_id": "32ea6b1c-d48e-4663-ad5c-d7f4a85450af",
@@ -4525,7 +4953,8 @@
       "note": "the row can only appear on the side of the condition that fires"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Garruk, Unleashed Emblem": {
    "oracle_id": "8a908da7-b41c-4712-b7dc-8c6027875d36",
@@ -4556,7 +4985,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Ghostly Pilferer": {
    "oracle_id": "fe168bf1-f626-460c-890b-1ce758af01fc",
@@ -4596,7 +5026,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Gloom Sower": {
    "oracle_id": "e5cc1492-c9cc-48f0-8c11-02ead883675c",
@@ -4617,7 +5048,8 @@
     "p9_anaphora": 1
    },
    "bcs": 9,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Glorious Anthem": {
    "oracle_id": "e3886fe8-9b76-4613-8891-4ec74657c087",
@@ -4638,7 +5070,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Gnarled Sage": {
    "oracle_id": "c36d7c2b-204f-432e-b8e2-ffb3ffb49231",
@@ -4659,7 +5092,8 @@
     "p9_anaphora": 2
    },
    "bcs": 12,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Goblin Arsonist": {
    "oracle_id": "c1177f22-a1cf-4da3-a68d-ff954e878403",
@@ -4690,7 +5124,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Goblin Wizard": {
    "oracle_id": "4d7a06f9-2569-4b72-bd5f-5a190337a692",
@@ -4711,7 +5146,8 @@
     "p9_anaphora": 0
    },
    "bcs": 2,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Goblin Wizardry": {
    "oracle_id": "f621dcaa-c500-4a17-a65a-60d9b5516a3b",
@@ -4732,7 +5168,8 @@
     "p9_anaphora": 0
    },
    "bcs": 7,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Goremand": {
    "oracle_id": "0f80f061-6304-4c7b-ab53-f406385e39df",
@@ -4763,7 +5200,8 @@
       "note": "per-player fan-out"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Grasp of Darkness": {
    "oracle_id": "494c819d-7d73-432b-8c96-4cb9dcd31094",
@@ -4784,7 +5222,8 @@
     "p9_anaphora": 0
    },
    "bcs": 5,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Griffin": {
    "oracle_id": "3d395892-ef4e-41ea-a66b-99dc3affe51a",
@@ -4805,7 +5244,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Griffin Aerie": {
    "oracle_id": "7cab62dc-a256-4da8-a3ea-b3903ec37077",
@@ -4826,7 +5266,8 @@
     "p9_anaphora": 0
    },
    "bcs": 11,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Grim Tutor": {
    "oracle_id": "e62f8d69-a559-4f13-a5c9-5fb750b4af2c",
@@ -4847,7 +5288,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Havoc Jester": {
    "oracle_id": "58f5bbd2-b876-4eb9-aa79-f4d3511961e0",
@@ -4868,7 +5310,8 @@
     "p9_anaphora": 0
    },
    "bcs": 7,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Heartfire Immolator": {
    "oracle_id": "1e414a4f-6e76-4cbe-9c69-d52852cd5bc0",
@@ -4889,7 +5332,8 @@
     "p9_anaphora": 1
    },
    "bcs": 19,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Hellkite Punisher": {
    "oracle_id": "c3ea33f4-17ac-41a4-8320-361b6f8aba0d",
@@ -4910,7 +5354,8 @@
     "p9_anaphora": 1
    },
    "bcs": 6,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Heroic Intervention": {
    "oracle_id": "24882fa2-3fe9-4c1b-aa3d-0e6488b9db27",
@@ -4931,7 +5376,8 @@
     "p9_anaphora": 0
    },
    "bcs": 6,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Historian of Zhalfir": {
    "oracle_id": "87e9065d-814a-47fa-9e92-19fb6fd6d78c",
@@ -4952,7 +5398,8 @@
     "p9_anaphora": 1
    },
    "bcs": 8,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Hobblefiend": {
    "oracle_id": "f2b284cd-fa12-4ba1-b297-80105bb48fde",
@@ -4973,7 +5420,8 @@
     "p9_anaphora": 2
    },
    "bcs": 16,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Hooded Blightfang": {
    "oracle_id": "342eb666-838c-43d0-bf52-2f704f2a80e3",
@@ -4994,7 +5442,8 @@
     "p9_anaphora": 1
    },
    "bcs": 14,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Hunter's Edge": {
    "oracle_id": "7b428e94-8428-455f-b555-f648fcdd2127",
@@ -5015,7 +5464,8 @@
     "p9_anaphora": 0
    },
    "bcs": 17,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Idol of Endurance": {
    "oracle_id": "6b946317-8a66-41b7-b902-308784d69b90",
@@ -5046,7 +5496,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Igneous Cur": {
    "oracle_id": "0d899095-cef7-43d2-aaf7-eb73b62f5ec8",
@@ -5067,7 +5518,8 @@
     "p9_anaphora": 1
    },
    "bcs": 6,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Indulging Patrician": {
    "oracle_id": "189131b7-ed59-4750-a4ed-453e4497a5c8",
@@ -5088,7 +5540,8 @@
     "p9_anaphora": 0
    },
    "bcs": 7,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Infernal Scarring": {
    "oracle_id": "3fc640dd-6292-4d36-82fb-bd366bc00bd3",
@@ -5109,7 +5562,8 @@
     "p9_anaphora": 3
    },
    "bcs": 20,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Invigorating Surge": {
    "oracle_id": "5daac63a-1534-4194-8cb7-506508e364f4",
@@ -5130,7 +5584,8 @@
     "p9_anaphora": 0
    },
    "bcs": 14,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Island": {
    "oracle_id": "b2c6aa39-2d2a-459c-a555-fb48ba993373",
@@ -5151,7 +5606,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Jeskai Elder": {
    "oracle_id": "dfbd5ad1-0f68-4219-95c4-98f674f321be",
@@ -5191,7 +5647,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Jolrael, Mwonvuli Recluse": {
    "oracle_id": "f8640899-2458-40f2-98a3-35c402ee9a7a",
@@ -5212,7 +5669,8 @@
     "p9_anaphora": 0
    },
    "bcs": 26,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Jungle Hollow": {
    "oracle_id": "6de714e1-446d-4fb9-9e3d-bcd3ec6af9ca",
@@ -5243,7 +5701,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Kaervek, the Spiteful": {
    "oracle_id": "b338d879-189d-4b74-9d63-42920fdb9855",
@@ -5264,7 +5723,8 @@
     "p9_anaphora": 1
    },
    "bcs": 9,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Keen Glidemaster": {
    "oracle_id": "98deac9e-28ea-4d11-8d75-833bf6d66e6e",
@@ -5285,7 +5745,8 @@
     "p9_anaphora": 0
    },
    "bcs": 5,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Keral Keep Disciples": {
    "oracle_id": "0a865453-ddc8-4403-8f1e-5752e3582458",
@@ -5316,7 +5777,8 @@
       "note": "per-player fan-out"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Kinetic Augur": {
    "oracle_id": "98e0b1a8-902d-4285-b13c-e63f2e1692f1",
@@ -5337,7 +5799,8 @@
     "p9_anaphora": 4
    },
    "bcs": 36,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Kitesail Freebooter": {
    "oracle_id": "8aa1bbc9-b047-4d68-93f4-728e40dafc5e",
@@ -5358,7 +5821,8 @@
     "p9_anaphora": 2
    },
    "bcs": 19,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Knight": {
    "oracle_id": "340aaeb6-cd18-4908-9729-8c53ab02c6f8",
@@ -5379,7 +5843,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Leafkin Avenger": {
    "oracle_id": "adff8c13-8909-47d0-acad-ba63597f2e96",
@@ -5400,7 +5865,8 @@
     "p9_anaphora": 0
    },
    "bcs": 24,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Legion's Judgment": {
    "oracle_id": "dce4d65f-cb91-48a2-a2a7-013e73dfb667",
@@ -5421,7 +5887,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Library Larcenist": {
    "oracle_id": "eb0e6f63-2861-4392-ac0e-64380fbbd8ae",
@@ -5442,7 +5909,8 @@
     "p9_anaphora": 1
    },
    "bcs": 8,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Life Goes On": {
    "oracle_id": "15d2176b-ab3d-4738-bcbc-bcebf891d16e",
@@ -5463,7 +5931,8 @@
     "p9_anaphora": 1
    },
    "bcs": 10,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Light of Promise": {
    "oracle_id": "64c54c9f-0550-41e2-a44a-5892a199f670",
@@ -5484,7 +5953,8 @@
     "p9_anaphora": 3
    },
    "bcs": 25,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Liliana's Devotee": {
    "oracle_id": "b3b8c7d0-46b9-4519-808a-154e503a58b6",
@@ -5524,7 +5994,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Liliana's Scorn": {
    "oracle_id": "2359db1c-6029-4748-9f09-d57bb0ae92e9",
@@ -5555,7 +6026,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Liliana's Scrounger": {
    "oracle_id": "595f1dee-8c3b-44a6-9e71-a4bb4334b309",
@@ -5586,7 +6058,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Liliana's Standard Bearer": {
    "oracle_id": "7b600c0e-5ad2-48a2-a147-346ca78c8629",
@@ -5607,7 +6080,8 @@
     "p9_anaphora": 2
    },
    "bcs": 17,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Liliana's Steward": {
    "oracle_id": "cc1203cb-6758-4454-b78b-341930ff4da1",
@@ -5628,7 +6102,8 @@
     "p9_anaphora": 1
    },
    "bcs": 8,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Liliana, Death Mage": {
    "oracle_id": "d654dd73-763d-4dfb-a30f-a058fd7f27a6",
@@ -5649,7 +6124,8 @@
     "p9_anaphora": 0
    },
    "bcs": 32,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Liliana, Waker of the Dead": {
    "oracle_id": "e0df8e2a-96d2-4e4d-b065-aa2e162abbfe",
@@ -5675,7 +6151,7 @@
      "branch_id": "liliana_waker_of_the_dead:01:EachPlayer",
      "kind": "EachPlayer",
      "signature": {
-      "journal_kind": "LIFE_GAINED",
+      "journal_kind": "LIFE_LOST",
       "data_predicate": "one row per controller for verb LOSE_LIFE; count == seated players",
       "note": "per-player fan-out"
      }
@@ -5684,12 +6160,13 @@
      "branch_id": "liliana_waker_of_the_dead:02:Conditional",
      "kind": "Conditional",
      "signature": {
-      "journal_kind": "LIFE_GAINED",
+      "journal_kind": "LIFE_LOST",
       "data_predicate": "row for verb LOSE_LIFE present iff ZONE_COUNT_GE",
       "note": "the row can only appear on the side of the condition that fires"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Liliana, Waker of the Dead Emblem": {
    "oracle_id": "56c1893f-1382-4a31-a28a-ea604677fcdb",
@@ -5710,7 +6187,8 @@
     "p9_anaphora": 1
    },
    "bcs": 13,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Llanowar Visionary": {
    "oracle_id": "f75ed312-3a23-4624-80c5-03980aa22d0b",
@@ -5731,7 +6209,8 @@
     "p9_anaphora": 1
    },
    "bcs": 11,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Lofty Denial": {
    "oracle_id": "d799a2c4-628a-45da-b9ca-0337c46e3e14",
@@ -5752,7 +6231,8 @@
     "p9_anaphora": 1
    },
    "bcs": 11,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Lorescale Coatl": {
    "oracle_id": "c87440aa-4616-49ff-a211-ebdc37767f62",
@@ -5773,7 +6253,8 @@
     "p9_anaphora": 1
    },
    "bcs": 10,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Makeshift Battalion": {
    "oracle_id": "8b6e2feb-9e8f-4912-ada0-1614502d9813",
@@ -5794,7 +6275,10 @@
     "p9_anaphora": 0
    },
    "bcs": 2,
-   "branches": []
+   "branches": [],
+   "collision_flags": [
+    "keyword_x_consumer"
+   ]
   },
   "Malefic Scythe": {
    "oracle_id": "0b4925d7-e2bb-4b74-a538-80fe759799ad",
@@ -5815,7 +6299,8 @@
     "p9_anaphora": 4
    },
    "bcs": 49,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Mangara, the Diplomat": {
    "oracle_id": "cbcb6d9a-6ae5-4bcd-8013-2b657553764a",
@@ -5836,7 +6321,8 @@
     "p9_anaphora": 0
    },
    "bcs": 18,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Masked Blackguard": {
    "oracle_id": "8ccd20c7-b7fc-4ab1-a98b-3bbcc2079339",
@@ -5857,7 +6343,8 @@
     "p9_anaphora": 1
    },
    "bcs": 6,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Massacre Wurm": {
    "oracle_id": "93cf50cf-0ecc-4d3e-abea-778c1ebacec4",
@@ -5878,7 +6365,8 @@
     "p9_anaphora": 1
    },
    "bcs": 15,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Mazemind Tome": {
    "oracle_id": "800fb917-8898-4eba-9f94-aec6e9d75236",
@@ -5899,7 +6387,8 @@
     "p9_anaphora": 4
    },
    "bcs": 28,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Meteorite": {
    "oracle_id": "0c3c3bcc-d485-4a01-92fe-8bf29c0fc926",
@@ -5920,7 +6409,8 @@
     "p9_anaphora": 1
    },
    "bcs": 13,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Mind Rot": {
    "oracle_id": "ad44cf74-b717-48fb-9fa2-77512024d76a",
@@ -5941,7 +6431,8 @@
     "p9_anaphora": 0
    },
    "bcs": 1,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Miscast": {
    "oracle_id": "e08c71aa-d35c-4c20-b4db-ae9d36ee3169",
@@ -5962,7 +6453,8 @@
     "p9_anaphora": 0
    },
    "bcs": 11,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Mistral Singer": {
    "oracle_id": "863a5ddb-2d66-4a07-bafc-38290776d5c0",
@@ -5983,7 +6475,10 @@
     "p9_anaphora": 0
    },
    "bcs": 2,
-   "branches": []
+   "branches": [],
+   "collision_flags": [
+    "keyword_x_consumer"
+   ]
   },
   "Mountain": {
    "oracle_id": "a3fb7228-e76b-4e96-a40e-20b5fed75685",
@@ -6004,7 +6499,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Mystic Skyfish": {
    "oracle_id": "645b5784-a6f7-4cf3-966a-e1a51420b96b",
@@ -6025,7 +6521,8 @@
     "p9_anaphora": 1
    },
    "bcs": 10,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Necromentia": {
    "oracle_id": "92acbbeb-f82b-413b-b243-f7a012f5400c",
@@ -6046,7 +6543,8 @@
     "p9_anaphora": 2
    },
    "bcs": 26,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Niambi, Esteemed Speaker": {
    "oracle_id": "91c9dbd8-a8d8-4a4e-8408-3ad92e974d11",
@@ -6086,7 +6584,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Nine Lives": {
    "oracle_id": "236e1f57-7ef5-455a-82a6-8ff6b85d8849",
@@ -6107,7 +6606,8 @@
     "p9_anaphora": 3
    },
    "bcs": 27,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Obsessive Stitcher": {
    "oracle_id": "e8210145-a6ac-4f84-a74c-a5799c5e9434",
@@ -6128,7 +6628,8 @@
     "p9_anaphora": 1
    },
    "bcs": 14,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Onakke Ogre": {
    "oracle_id": "fa10cacb-ab14-447a-b411-9d74bc3772fb",
@@ -6149,7 +6650,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Opt": {
    "oracle_id": "713332c1-5bd8-400f-bfff-c1ca0697a043",
@@ -6170,7 +6672,8 @@
     "p9_anaphora": 0
    },
    "bcs": 2,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Ornery Dilophosaur": {
    "oracle_id": "8291bc2e-ef58-4bd4-b261-b587142bbb1c",
@@ -6191,7 +6694,8 @@
     "p9_anaphora": 2
    },
    "bcs": 13,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Pack Leader": {
    "oracle_id": "3701ed34-a97c-4d7b-a15a-4faec02ef24b",
@@ -6212,7 +6716,8 @@
     "p9_anaphora": 2
    },
    "bcs": 22,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Palladium Myr": {
    "oracle_id": "7b0767b8-b504-456e-93bd-218502f73b3d",
@@ -6233,7 +6738,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Peer into the Abyss": {
    "oracle_id": "21fa2442-6eac-4dce-a9cc-76f0053fdb8f",
@@ -6254,7 +6760,8 @@
     "p9_anaphora": 0
    },
    "bcs": 19,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Pestilent Haze": {
    "oracle_id": "b24d1540-ed8b-4df3-abfe-1b8492a58388",
@@ -6285,7 +6792,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Pirate": {
    "oracle_id": "f24f68d0-6e81-4294-a084-8ec8f36fef18",
@@ -6306,7 +6814,8 @@
     "p9_anaphora": 2
    },
    "bcs": 13,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Pitchburn Devils": {
    "oracle_id": "86e2bbdd-a788-4f76-9ebb-ef48d9bc9dcf",
@@ -6327,7 +6836,8 @@
     "p9_anaphora": 1
    },
    "bcs": 10,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Plains": {
    "oracle_id": "bc71ebf6-2056-41f7-be35-b2e5c34afa99",
@@ -6348,7 +6858,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Portcullis Vine": {
    "oracle_id": "a217f386-11b5-48f0-b173-3b0700ba295f",
@@ -6369,7 +6880,8 @@
     "p9_anaphora": 0
    },
    "bcs": 5,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Predatory Wurm": {
    "oracle_id": "99ed6e18-7f14-4ea8-baee-ad6c081388ff",
@@ -6390,7 +6902,8 @@
     "p9_anaphora": 1
    },
    "bcs": 6,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Pridemalkin": {
    "oracle_id": "f9672b63-415a-448b-a3da-140df63a0f0c",
@@ -6411,7 +6924,8 @@
     "p9_anaphora": 1
    },
    "bcs": 15,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Primal Might": {
    "oracle_id": "58d7b8b3-ac47-4805-8259-4ba8e70d7dc3",
@@ -6432,7 +6946,8 @@
     "p9_anaphora": 0
    },
    "bcs": 27,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Prismite": {
    "oracle_id": "feb4fcec-6f3a-4643-9ffb-69d3f5953322",
@@ -6453,7 +6968,8 @@
     "p9_anaphora": 0
    },
    "bcs": 1,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Pursued Whale": {
    "oracle_id": "6de2d53c-06e3-4c56-a5cf-c9cb2db42527",
@@ -6484,7 +7000,8 @@
       "note": "per-player fan-out"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Quirion Dryad": {
    "oracle_id": "f42b6510-7322-4733-85ea-7ae6bd6ca8fc",
@@ -6505,7 +7022,8 @@
     "p9_anaphora": 1
    },
    "bcs": 10,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Radha, Heart of Keld": {
    "oracle_id": "927fb139-0493-48be-8cc4-2c7d854d6a55",
@@ -6545,7 +7063,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Radiant Fountain": {
    "oracle_id": "6db442e5-fbcc-4456-a4c5-bea1aee3fc8e",
@@ -6566,7 +7085,8 @@
     "p9_anaphora": 1
    },
    "bcs": 11,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Rain of Revelation": {
    "oracle_id": "7d5dfa6b-f685-4925-b93a-ae5815a3c0a7",
@@ -6587,7 +7107,8 @@
     "p9_anaphora": 0
    },
    "bcs": 2,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Rambunctious Mutt": {
    "oracle_id": "48a53d6e-0320-4b9c-b692-6d0fc00e46cc",
@@ -6608,7 +7129,8 @@
     "p9_anaphora": 1
    },
    "bcs": 13,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Ranger's Guile": {
    "oracle_id": "694cb93a-bcc5-44b0-a76c-19ae4a4e5e0f",
@@ -6629,7 +7151,8 @@
     "p9_anaphora": 0
    },
    "bcs": 10,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Read the Tides": {
    "oracle_id": "e5c4ed40-5069-4606-81f2-59dcfa1345bd",
@@ -6660,7 +7183,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Return to Nature": {
    "oracle_id": "777b8ec4-a783-4297-96b7-4f200d0eb734",
@@ -6691,7 +7215,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Revitalize": {
    "oracle_id": "b1385b03-cb4b-4812-857f-7421f1df39af",
@@ -6712,7 +7237,8 @@
     "p9_anaphora": 0
    },
    "bcs": 2,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Rewind": {
    "oracle_id": "bb27bfdf-fe8d-45bd-ad62-8118dce06eda",
@@ -6733,7 +7259,8 @@
     "p9_anaphora": 0
    },
    "bcs": 9,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Riddleform": {
    "oracle_id": "cc261487-060f-47e6-ac5e-a204254058b3",
@@ -6764,7 +7291,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Rin and Seri, Inseparable": {
    "oracle_id": "28c46eb7-bdfc-44b9-b7e9-b073260851f0",
@@ -6785,7 +7313,8 @@
     "p9_anaphora": 0
    },
    "bcs": 40,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Rise Again": {
    "oracle_id": "4600e968-fe3a-446a-a306-bd10e6763e0d",
@@ -6806,7 +7335,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Roaming Ghostlight": {
    "oracle_id": "0d5eb0b9-9b08-4d26-b141-a9d612a680a6",
@@ -6827,7 +7357,8 @@
     "p9_anaphora": 1
    },
    "bcs": 19,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Rookie Mistake": {
    "oracle_id": "e51680d1-3e6c-4d1b-9705-36f73d7328cf",
@@ -6848,7 +7379,8 @@
     "p9_anaphora": 1
    },
    "bcs": 13,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Rousing Read": {
    "oracle_id": "306549ad-84c7-4983-840b-9663799e9f40",
@@ -6869,7 +7401,8 @@
     "p9_anaphora": 3
    },
    "bcs": 21,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Rugged Highlands": {
    "oracle_id": "6c922206-6e68-4dcd-9559-88da1074f2c4",
@@ -6900,7 +7433,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Run Afoul": {
    "oracle_id": "5462cb38-7cd7-46e8-a273-35d0d1af45b4",
@@ -6921,7 +7455,8 @@
     "p9_anaphora": 0
    },
    "bcs": 1,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Runed Halo": {
    "oracle_id": "14cefb15-d833-4c70-80c9-f2d34b6c846b",
@@ -6942,7 +7477,8 @@
     "p9_anaphora": 1
    },
    "bcs": 11,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Sabertooth Mauler": {
    "oracle_id": "da4f4094-b0ce-4b5b-8ac3-8c0a5159220f",
@@ -6963,7 +7499,8 @@
     "p9_anaphora": 3
    },
    "bcs": 17,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Sanctum of All": {
    "oracle_id": "63f60dfc-2bc4-411f-ae53-504156fe0102",
@@ -6994,7 +7531,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Sanctum of Calm Waters": {
    "oracle_id": "1cd1e3a8-e09d-4b61-8244-92b317132d6a",
@@ -7034,7 +7572,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Sanctum of Fruitful Harvest": {
    "oracle_id": "132859dd-de66-45c6-8af4-ab5e202a17b0",
@@ -7055,7 +7594,8 @@
     "p9_anaphora": 0
    },
    "bcs": 11,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Sanctum of Shattered Heights": {
    "oracle_id": "5e39d311-efb5-4f51-82cd-e8079e32907a",
@@ -7076,7 +7616,8 @@
     "p9_anaphora": 0
    },
    "bcs": 17,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Sanctum of Stone Fangs": {
    "oracle_id": "a1d8fcb9-26b2-4d09-9db7-e644294749f8",
@@ -7097,7 +7638,8 @@
     "p9_anaphora": 0
    },
    "bcs": 18,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Sanctum of Tranquil Light": {
    "oracle_id": "1818b0b1-0104-4673-9be8-acfc773ef87d",
@@ -7118,7 +7660,8 @@
     "p9_anaphora": 1
    },
    "bcs": 18,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Sanguine Indulgence": {
    "oracle_id": "010ec11a-0484-486d-b7c0-de65593bf457",
@@ -7139,7 +7682,8 @@
     "p9_anaphora": 1
    },
    "bcs": 12,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Saproling": {
    "oracle_id": "2b7dba01-b08c-4218-9fc1-da55559d9155",
@@ -7160,7 +7704,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Scavenging Ooze": {
    "oracle_id": "1ff25f67-36a7-4cfa-a2b1-2135b5b6fb67",
@@ -7191,7 +7736,8 @@
       "note": "the row can only appear on the side of the condition that fires"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Scorching Dragonfire": {
    "oracle_id": "d14f313c-fea6-49c4-8197-5b74ee584a6b",
@@ -7212,7 +7758,8 @@
     "p9_anaphora": 2
    },
    "bcs": 18,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Scoured Barrens": {
    "oracle_id": "d37f858e-03c8-4594-9b92-cd03699a1591",
@@ -7243,7 +7790,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Seasoned Hallowblade": {
    "oracle_id": "d03dbb60-e32b-4b74-ae8a-73d428d344cd",
@@ -7264,7 +7812,8 @@
     "p9_anaphora": 2
    },
    "bcs": 12,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Secure the Scene": {
    "oracle_id": "d6a9746c-eba5-4735-aec1-e70edba2c686",
@@ -7285,7 +7834,10 @@
     "p9_anaphora": 0
    },
    "bcs": 13,
-   "branches": []
+   "branches": [],
+   "collision_flags": [
+    "single_fold"
+   ]
   },
   "See the Truth": {
    "oracle_id": "b23c1f40-291d-43b3-971d-97ded8b367cb",
@@ -7334,7 +7886,8 @@
       "note": "one_of/rest selection branch (tampering class)"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Selfless Savior": {
    "oracle_id": "49dc3434-2501-4788-84f2-93e55730f67c",
@@ -7355,7 +7908,8 @@
     "p9_anaphora": 1
    },
    "bcs": 10,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Setessan Training": {
    "oracle_id": "3ff3b9c4-80ec-44d9-99ec-6fea3a86468b",
@@ -7376,7 +7930,8 @@
     "p9_anaphora": 3
    },
    "bcs": 20,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Shacklegeist": {
    "oracle_id": "7a1e4880-9abb-4018-84bd-91b5ec702c51",
@@ -7397,7 +7952,8 @@
     "p9_anaphora": 2
    },
    "bcs": 23,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Shipwreck Dowser": {
    "oracle_id": "dc3073fc-dc23-426e-b867-fee5dd99fe25",
@@ -7418,7 +7974,8 @@
     "p9_anaphora": 1
    },
    "bcs": 15,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Shock": {
    "oracle_id": "a9d288b8-cdc1-4e55-a0c9-d6edfc95e65d",
@@ -7439,7 +7996,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Short Sword": {
    "oracle_id": "e842a4e5-ea0b-43ae-9ed8-93e30f4e7b8a",
@@ -7460,7 +8018,8 @@
     "p9_anaphora": 2
    },
    "bcs": 12,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Siege Striker": {
    "oracle_id": "12dd664c-a279-4adc-b6cb-bec22eedca5c",
@@ -7491,7 +8050,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Sigiled Contender": {
    "oracle_id": "84ec7820-6608-459c-b172-80e8e3750cf4",
@@ -7512,7 +8072,8 @@
     "p9_anaphora": 1
    },
    "bcs": 8,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Silent Dart": {
    "oracle_id": "912bc348-9ba3-4001-90a8-104d2bb17527",
@@ -7533,7 +8094,8 @@
     "p9_anaphora": 1
    },
    "bcs": 10,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Silversmote Ghoul": {
    "oracle_id": "67d55b4f-944e-4376-93ed-1a240bca1eae",
@@ -7554,7 +8116,8 @@
     "p9_anaphora": 2
    },
    "bcs": 14,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Skeleton Archer": {
    "oracle_id": "3792763c-7aa0-4055-b8a1-3257e0443ef1",
@@ -7575,7 +8138,8 @@
     "p9_anaphora": 1
    },
    "bcs": 10,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Skyscanner": {
    "oracle_id": "974f788a-039f-4310-a2fe-16b14a1e2d35",
@@ -7596,7 +8160,8 @@
     "p9_anaphora": 1
    },
    "bcs": 8,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Skyway Sniper": {
    "oracle_id": "8d907825-25f9-4b25-9fac-e0a207ed1797",
@@ -7617,7 +8182,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Snarespinner": {
    "oracle_id": "0f63de7b-03f2-49ad-b217-88fe9c50d68a",
@@ -7638,7 +8204,8 @@
     "p9_anaphora": 2
    },
    "bcs": 13,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Soldier": {
    "oracle_id": "eac25f12-6459-438c-a09e-93e23d2cf80d",
@@ -7659,7 +8226,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Solemn Simulacrum": {
    "oracle_id": "00c0543c-2a1f-4425-8283-4062d74a1637",
@@ -7699,7 +8267,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Soul Sear": {
    "oracle_id": "1ef73b3b-ab4a-494b-b969-dcde995cee34",
@@ -7720,7 +8289,8 @@
     "p9_anaphora": 0
    },
    "bcs": 7,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Sparkhunter Masticore": {
    "oracle_id": "1306c72f-fc6b-470b-a95e-0364e0e30ac7",
@@ -7741,7 +8311,8 @@
     "p9_anaphora": 1
    },
    "bcs": 11,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Speaker of the Heavens": {
    "oracle_id": "e4bacf1b-0a45-4c73-857d-dffadb7e6fa5",
@@ -7762,7 +8333,8 @@
     "p9_anaphora": 0
    },
    "bcs": 11,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Spellgorger Weird": {
    "oracle_id": "550811ca-0995-4886-aa8c-5cee118aa54f",
@@ -7783,7 +8355,8 @@
     "p9_anaphora": 1
    },
    "bcs": 13,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Spined Megalodon": {
    "oracle_id": "3a124fe5-f525-43e5-9746-501c68a98330",
@@ -7804,7 +8377,8 @@
     "p9_anaphora": 1
    },
    "bcs": 8,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Spirit of Malevolence": {
    "oracle_id": "15323e45-8260-43dc-b72b-efd661a58d75",
@@ -7825,7 +8399,8 @@
     "p9_anaphora": 1
    },
    "bcs": 9,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Sporeweb Weaver": {
    "oracle_id": "2e7c3881-6fa6-4fd2-ae86-9e3a0fcecdbd",
@@ -7846,7 +8421,8 @@
     "p9_anaphora": 2
    },
    "bcs": 24,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Staunch Shieldmate": {
    "oracle_id": "0a1a0911-dcd5-4a2f-8deb-abb5b273b0fb",
@@ -7867,7 +8443,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Storm Caller": {
    "oracle_id": "5c946cc0-5d90-4970-acf8-b14eff177cbc",
@@ -7888,7 +8465,8 @@
     "p9_anaphora": 1
    },
    "bcs": 8,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Stormwing Entity": {
    "oracle_id": "ea43fd04-e9fa-42fb-ba20-22dcc21c6c43",
@@ -7909,7 +8487,8 @@
     "p9_anaphora": 2
    },
    "bcs": 13,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Subira, Tulzidi Caravanner": {
    "oracle_id": "9e2e3272-d4e1-4329-b1d2-f393b3511b82",
@@ -7930,7 +8509,8 @@
     "p9_anaphora": 3
    },
    "bcs": 27,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Sublime Epiphany": {
    "oracle_id": "56148ae7-a9df-4771-8d53-d9ffb815c884",
@@ -7961,7 +8541,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Sure Strike": {
    "oracle_id": "fb694e7e-f66e-4958-b6ed-aa74bc9ac43e",
@@ -7982,7 +8563,8 @@
     "p9_anaphora": 0
    },
    "bcs": 10,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Swamp": {
    "oracle_id": "56719f6a-1a6c-4c0a-8d21-18f7d7350b68",
@@ -8003,7 +8585,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Swift Response": {
    "oracle_id": "5820d760-8ed7-4abf-a959-c06ed86a3730",
@@ -8024,7 +8607,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Swiftwater Cliffs": {
    "oracle_id": "2f4ad084-2062-44c0-9975-15f100204531",
@@ -8055,7 +8639,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Tavern Swindler": {
    "oracle_id": "81674138-08d0-4126-9e6d-27f6e7dd2403",
@@ -8086,7 +8671,8 @@
       "note": "the row can only appear on the side of the condition that fires"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Teferi's Ageless Insight": {
    "oracle_id": "1c9e1f75-73f0-4846-b53f-458a0984b1bb",
@@ -8107,7 +8693,10 @@
     "p9_anaphora": 0
    },
    "bcs": 6,
-   "branches": []
+   "branches": [],
+   "collision_flags": [
+    "replacement_x_ordering"
+   ]
   },
   "Teferi's Protege": {
    "oracle_id": "e84f1727-ce01-44be-aebf-8a0c4e032c9a",
@@ -8128,7 +8717,8 @@
     "p9_anaphora": 0
    },
    "bcs": 4,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Teferi's Tutelage": {
    "oracle_id": "c6b94e03-61c0-4077-b3da-a70795e97278",
@@ -8149,7 +8739,8 @@
     "p9_anaphora": 1
    },
    "bcs": 14,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Teferi's Wavecaster": {
    "oracle_id": "b3f6e68e-9490-4719-8d2e-d1ec22a96132",
@@ -8180,7 +8771,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Teferi, Master of Time": {
    "oracle_id": "e802fb53-7cf5-46bc-8a0b-f99cf5c20f74",
@@ -8211,7 +8803,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Teferi, Timeless Voyager": {
    "oracle_id": "7240037f-ddea-425e-9824-866e2bb0dc84",
@@ -8232,7 +8825,8 @@
     "p9_anaphora": 0
    },
    "bcs": 17,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Tempered Veteran": {
    "oracle_id": "c19f3f00-2c7b-4e85-a034-e65760d9cc13",
@@ -8253,7 +8847,8 @@
     "p9_anaphora": 0
    },
    "bcs": 14,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Temple of Epiphany": {
    "oracle_id": "79f94050-d850-41ca-b1db-5ae0cf743f0a",
@@ -8284,7 +8879,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Temple of Malady": {
    "oracle_id": "dc55421f-dee8-4263-9df0-2365df5f14bb",
@@ -8315,7 +8911,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Temple of Mystery": {
    "oracle_id": "7e26f0b7-20e6-46d5-8130-d98c14d6aa29",
@@ -8346,7 +8943,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Temple of Silence": {
    "oracle_id": "e6e6fce8-0f6a-4b84-865e-d4e4a4182f9f",
@@ -8377,7 +8975,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Temple of Triumph": {
    "oracle_id": "6f0d94d9-64bb-4175-83bc-301e8f79f54f",
@@ -8408,7 +9007,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Terror of the Peaks": {
    "oracle_id": "f8e17f4f-080d-4bba-bd05-ca27e94ccecc",
@@ -8429,7 +9029,8 @@
     "p9_anaphora": 3
    },
    "bcs": 25,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Thieves' Guild Enforcer": {
    "oracle_id": "84c0db59-255d-41af-a3d4-3f3548f1195f",
@@ -8460,7 +9061,8 @@
       "note": "per-player fan-out"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Thornwood Falls": {
    "oracle_id": "ec96cde2-f1e6-495c-94e2-3e8ae79e556c",
@@ -8491,7 +9093,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Thrashing Brontodon": {
    "oracle_id": "60bc63dc-ac9f-4a2f-aef5-c90d0aa31553",
@@ -8512,7 +9115,8 @@
     "p9_anaphora": 1
    },
    "bcs": 11,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Thrill of Possibility": {
    "oracle_id": "1cb0610b-a731-42c2-b93f-0a29f63cebf4",
@@ -8533,7 +9137,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Tide Skimmer": {
    "oracle_id": "8d83dfb3-5662-4109-b465-bf5f257e58a5",
@@ -8554,7 +9159,8 @@
     "p9_anaphora": 0
    },
    "bcs": 5,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Titanic Growth": {
    "oracle_id": "61e09dd9-7870-48c2-9177-d6abc3162692",
@@ -8575,7 +9181,8 @@
     "p9_anaphora": 0
    },
    "bcs": 5,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Tolarian Kraken": {
    "oracle_id": "846887e4-744f-44ce-9110-d09680b11e95",
@@ -8624,7 +9231,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Tome Anima": {
    "oracle_id": "e4a68bb3-5a79-4764-8223-acddd16fb660",
@@ -8645,7 +9253,8 @@
     "p9_anaphora": 2
    },
    "bcs": 12,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Tormod's Crypt": {
    "oracle_id": "1573f7f9-672c-421a-b1ac-3d0d8aea59ca",
@@ -8666,7 +9275,8 @@
     "p9_anaphora": 1
    },
    "bcs": 8,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Track Down": {
    "oracle_id": "8f28b65b-4b73-4080-9cdc-d236ad99f39c",
@@ -8697,7 +9307,8 @@
       "note": "the row can only appear on the side of the condition that fires"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Traitorous Greed": {
    "oracle_id": "344cdec9-60b3-42ec-a3d5-41ee1d4f7c6c",
@@ -8718,7 +9329,8 @@
     "p9_anaphora": 1
    },
    "bcs": 11,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Tranquil Cove": {
    "oracle_id": "5d641bf6-0f93-4189-8dc1-ec7ea446dade",
@@ -8749,7 +9361,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Transmogrify": {
    "oracle_id": "4c1c3a0a-5782-4b7d-8b9c-61eea913166d",
@@ -8770,7 +9383,8 @@
     "p9_anaphora": 0
    },
    "bcs": 5,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Treasure": {
    "oracle_id": "3c549374-6c37-42e0-8d88-a8555d46732d",
@@ -8791,7 +9405,8 @@
     "p9_anaphora": 1
    },
    "bcs": 8,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Trufflesnout": {
    "oracle_id": "8a15841a-dcb6-454a-b865-43a067f42b4e",
@@ -8822,7 +9437,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Turn to Slag": {
    "oracle_id": "4339f621-8502-4433-a37a-654591ca1b43",
@@ -8843,7 +9459,8 @@
     "p9_anaphora": 1
    },
    "bcs": 7,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Turret Ogre": {
    "oracle_id": "fb4a044b-f25d-47ff-b272-754e577ce50a",
@@ -8864,7 +9481,8 @@
     "p9_anaphora": 2
    },
    "bcs": 14,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Twinblade Assassins": {
    "oracle_id": "66093486-c9c3-42c5-97d1-ec0fe54f65b0",
@@ -8885,7 +9503,8 @@
     "p9_anaphora": 1
    },
    "bcs": 8,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Ugin, the Spirit Dragon": {
    "oracle_id": "eecb3047-a563-441a-9175-200421981ac3",
@@ -8906,7 +9525,8 @@
     "p9_anaphora": 0
    },
    "bcs": 28,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Unleash Fury": {
    "oracle_id": "4eaa100c-f1ef-4a2b-9370-5dad7f3a95f2",
@@ -8927,7 +9547,8 @@
     "p9_anaphora": 0
    },
    "bcs": 23,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Unsubstantiate": {
    "oracle_id": "c387f46f-ad91-4964-8dc6-acefe537fe3c",
@@ -8948,7 +9569,8 @@
     "p9_anaphora": 0
    },
    "bcs": 9,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Valorous Steed": {
    "oracle_id": "4b5f30a6-b0fb-4dcb-85d5-1db1bba73737",
@@ -8969,7 +9591,8 @@
     "p9_anaphora": 1
    },
    "bcs": 14,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Village Rites": {
    "oracle_id": "365548fb-5acc-4a8a-b20b-26d28b7d029f",
@@ -8990,7 +9613,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Vito, Thorn of the Dusk Rose": {
    "oracle_id": "7336a541-3ae9-4ab2-acb8-f574c0a5b3a9",
@@ -9011,7 +9635,8 @@
     "p9_anaphora": 1
    },
    "bcs": 19,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Vodalian Arcanist": {
    "oracle_id": "1d07856b-d9ef-418c-bd06-3888dbcaddf4",
@@ -9032,7 +9657,8 @@
     "p9_anaphora": 0
    },
    "bcs": 7,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Volcanic Geyser": {
    "oracle_id": "846a4f9c-d955-403f-8a08-5c7c3d32e180",
@@ -9053,7 +9679,8 @@
     "p9_anaphora": 0
    },
    "bcs": 15,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Volcanic Salvo": {
    "oracle_id": "9c2fd3a3-96f2-4e84-85a9-77698c2f83aa",
@@ -9074,7 +9701,8 @@
     "p9_anaphora": 1
    },
    "bcs": 21,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Vryn Wingmare": {
    "oracle_id": "c7c241f2-d3cc-4032-a9da-149de73c2539",
@@ -9095,7 +9723,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Waker of Waves": {
    "oracle_id": "3a19a959-ea83-404b-89f7-e5dbf4cb7995",
@@ -9135,7 +9764,8 @@
       "note": "one_of/rest selection branch (tampering class)"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Walking Corpse": {
    "oracle_id": "fea95888-e16a-4209-9cd4-623f7f4d2f67",
@@ -9156,7 +9786,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Wall of Runes": {
    "oracle_id": "35dfe1c7-48ab-436f-9a6e-44835ea01cf9",
@@ -9177,7 +9808,8 @@
     "p9_anaphora": 1
    },
    "bcs": 8,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Warded Battlements": {
    "oracle_id": "7616dacf-44e2-4b03-b120-875cc2e50ea5",
@@ -9198,7 +9830,8 @@
     "p9_anaphora": 0
    },
    "bcs": 3,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Warden of the Woods": {
    "oracle_id": "c8c6924e-9af8-4212-be28-b0b4eaa4c7d8",
@@ -9229,7 +9862,8 @@
       "note": "decline side is only lit by a forced-decline probe"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Watcher of the Spheres": {
    "oracle_id": "d43463d2-4395-4616-acc3-c4f80ebe3242",
@@ -9250,7 +9884,8 @@
     "p9_anaphora": 2
    },
    "bcs": 16,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Weird": {
    "oracle_id": "a00aa3a1-d93d-4e06-9a75-6f8efe48c6ef",
@@ -9271,7 +9906,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Wildwood Patrol": {
    "oracle_id": "4fb9c040-c684-4ba8-970e-58313af5584a",
@@ -9292,7 +9928,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Wildwood Scourge": {
    "oracle_id": "b9dec104-c636-4770-a7fc-7a3331face15",
@@ -9313,7 +9950,8 @@
     "p9_anaphora": 4
    },
    "bcs": 44,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Wind-Scarred Crag": {
    "oracle_id": "b0af0c54-2a59-4075-8543-d41ff20c4c87",
@@ -9344,7 +9982,8 @@
       "note": "one branch per option; falsifiable per-option lane"
      }
     }
-   ]
+   ],
+   "collision_flags": []
   },
   "Wishcoin Crab": {
    "oracle_id": "abc519b8-82de-4559-be03-ddb1ddaab993",
@@ -9365,7 +10004,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Witch's Cauldron": {
    "oracle_id": "cb65ee08-bfdb-4c18-8967-8bcf31fcabfa",
@@ -9386,7 +10026,8 @@
     "p9_anaphora": 0
    },
    "bcs": 6,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   },
   "Zombie": {
    "oracle_id": "ddc8c973-c31e-463f-be45-f3fa7d632362",
@@ -9407,7 +10048,8 @@
     "p9_anaphora": 0
    },
    "bcs": 0,
-   "branches": []
+   "branches": [],
+   "collision_flags": []
   }
  }
 }

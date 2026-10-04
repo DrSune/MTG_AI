@@ -107,6 +107,28 @@ def test_d1_exempt_without_state() -> None:
     assert v.status == "EXEMPT"
 
 
+def test_d1_life_lost_rows_fold_clean() -> None:
+    # B3a: a journalled LOSE_LIFE (LIFE_LOST row) is a foldable loss —
+    # the seed-12 "Life Goes On" class must reconstruct, not HIT.
+    rows = [
+        row(0, D.KIND_LIFE_GAINED, P0, (3,)),
+        row(1, D.KIND_LIFE_LOST, P0, (3,)),
+        row(2, D.KIND_LIFE_LOST, P1, (2,)),
+    ]
+    g = game(rows, start_life={P0: 20, P1: 20}, final_life={P0: 20, P1: 18})
+    assert D.d1_life(g).status == "clean"
+
+
+def test_d1_still_fires_when_life_lost_undercounts() -> None:
+    # The fold-vocab sync must not WEAKEN the detector: a life loss
+    # without its row still HITS even when other LIFE_LOST rows exist.
+    rows = [row(0, D.KIND_LIFE_LOST, P0, (1,))]
+    g = game(rows, start_life={P0: 20}, final_life={P0: 15})
+    v = D.d1_life(g)
+    assert v.status == "HIT"
+    assert any("unjournalled" in h.detail for h in v.hits)
+
+
 # --------------------------------------------------------------------------
 # D2 mana conservation (defensive fold; EXEMPT while no mana verbs exist)
 
@@ -425,6 +447,73 @@ def test_d6_dormant_duplicate_is_silent() -> None:
         ],
     )
     assert D.d6_lifecycle(g).status == "clean"
+
+
+def test_d6_expired_repl_ghosts_are_silent() -> None:
+    # B3a falsification (B2 seed 16/17, Containment Priest): a card that
+    # left the battlefield re-registers on re-entry, and attach_source
+    # self-detaches the old record — the dump keeps BOTH as expired audit
+    # rows. They never co-exist with a live record, so they cannot both
+    # apply to one event (CR 614.3 requires simultaneous application).
+    g = game(
+        [],
+        repl_rows=[
+            ("repl", 1, "card:9", P0, "t1", "expired", "EVT-A", "noop"),
+            ("repl", 2, "card:9", P0, "t1", "expired", "EVT-A", "noop"),
+        ],
+    )
+    assert D.d6_lifecycle(g).status == "clean"
+
+
+def test_d6_live_plus_expired_ghost_is_silent() -> None:
+    # The re-entry shape: one live record plus its own expired ghost.
+    g = game(
+        [],
+        repl_rows=[
+            ("repl", 3, "card:9", P0, "t1", "expired", "EVT-A", "noop"),
+            ("repl", 4, "card:9", P0, "t1", "live", "EVT-A", "replace"),
+        ],
+    )
+    assert D.d6_lifecycle(g).status == "clean"
+
+
+_GRANT_EOT_LAYER: tuple[object, ...] = (
+    9,
+    "grant",
+    "card:72",
+    P0,
+    "Eot",
+    "live",
+    ("card:68",),
+    "payload",
+    (),
+)
+
+
+def test_d6_grant_eot_dead_source_is_silent() -> None:
+    # B3a falsification (B2 seed 16): Crash Through resolved to the
+    # graveyard, its duration-tagged EOT +3/+3 grant stays live on the
+    # (alive) creature — CR 611.2a: an effect exists independently of
+    # its source once created.
+    g = game(
+        [],
+        final_zone={"card:72": "graveyard", "card:68": D.BATTLEFIELD},
+        layers_rows=[_GRANT_EOT_LAYER],
+    )
+    assert D.d6_lifecycle(g).status == "clean"
+
+
+def test_d6_grant_dead_target_still_fires() -> None:
+    # The narrowing is SOURCE-side only: a live grant bound to a dead
+    # TARGET remains a hit.
+    g = game(
+        [],
+        final_zone={"card:72": "graveyard", "card:68": "exile"},
+        layers_rows=[_GRANT_EOT_LAYER],
+    )
+    v = D.d6_lifecycle(g)
+    assert v.status == "HIT"
+    assert v.hits[0].klass == "dead-handle-bound-ref"
 
 
 # --------------------------------------------------------------------------

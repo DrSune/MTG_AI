@@ -811,3 +811,10 @@
   later on COLOR_COUNT_GE (block gate) — a clean class list from the last 100-seed run is
   stale the moment any fix lands. Re-run the FULL games sweep after every class fix; "all
   repro seeds clean" is not proof of zero classes. (2026-10-02 r23a.)
+- **Games-table headline numbers are environment-sensitive — A/B against HEAD before
+  blaming your own diff.** The 100-seed endings/mean_turns row (48/52, 33.49) recorded by
+  B1/C6 does NOT reproduce at HEAD 2fba372 (53/47, 33.48 — verified by stashing the change
+  and re-running the exact pinned command). A journal-only lane flips zero game outcomes;
+  when a gate row "moves", first re-run the same command on a clean HEAD copy, then report
+  the discrepancy as environment/historical drift rather than attributing it to the batch.
+  (2026-10-04 B3a.)

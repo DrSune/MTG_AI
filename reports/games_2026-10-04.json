@@ -1548,8 +1548,8 @@
    "crash": null
   }
  ],
- "pool_compile_seconds": 0.24,
- "wall_seconds": 62.34,
+ "pool_compile_seconds": 0.19,
+ "wall_seconds": 61.86,
  "argv": [
   "--seeds",
   "100",

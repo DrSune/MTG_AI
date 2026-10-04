@@ -51,6 +51,11 @@ KIND_CREATURE_DIES = "CREATURE_DIES"
 KIND_COUNTER_PLACED = "COUNTER_PLACED"
 KIND_DAMAGE = "DAMAGE"
 KIND_LIFE_GAINED = "LIFE_GAINED"
+# B3a: the engine's life-loss feed (executor.events.KIND_LIFE_LOST). The
+# D1 fold vocabulary must track the journal's: start + ΣLIFE_GAINED
+# − ΣDAMAGE − ΣLIFE_LOST == final life. Losing life is NOT dealt damage
+# (CR 118.5), so it is its own kind and its own fold term.
+KIND_LIFE_LOST = "LIFE_LOST"
 KIND_TURN_PHASE = "TURN_PHASE"
 KIND_GAME_LOST = "GAME_LOST"
 KIND_COMBAT_DAMAGE = "COMBAT_DAMAGE"
@@ -251,7 +256,8 @@ def counter_deltas(rows: list[Row]) -> dict[str, list[tuple[int, str, int]]]:
 
 def d1_life(g: ReplayData) -> Verdict:
     v = Verdict("D1_life", "clean")
-    if not any(r.kind in (KIND_DAMAGE, KIND_LIFE_GAINED) for r in g.rows):
+    life_kinds = (KIND_DAMAGE, KIND_LIFE_GAINED, KIND_LIFE_LOST)
+    if not any(r.kind in life_kinds for r in g.rows):
         v.note = "no life-moving rows; nothing to conserve"
         return v
     if not g.final_life:
@@ -269,7 +275,9 @@ def d1_life(g: ReplayData) -> Verdict:
             continue
         if row.kind == KIND_LIFE_GAINED and row.subject.startswith("player:"):
             gains[row.subject] = gains.get(row.subject, 0) + _to_int(row.data[0])
-        elif row.kind == KIND_DAMAGE and row.subject.startswith("player:"):
+        elif row.kind in (KIND_DAMAGE, KIND_LIFE_LOST) and row.subject.startswith(
+            "player:"
+        ):
             losses[row.subject] = losses.get(row.subject, 0) + _to_int(row.data[0])
     for player, final in g.final_life.items():
         start = g.start_life.get(player, 20)
@@ -653,9 +661,16 @@ def d6_lifecycle(g: ReplayData) -> Verdict:
         # (iii) replacement fired >1x per event: two replacement records
         # competing for the same event identity (containment case). FP
         # story: legal sequential replacement choice per CR 614.
+        # B3a narrowing: only LIVE records can apply to an event. An
+        # ``expired`` row is a lifecycle audit trail entry — a re-entering
+        # card's previous registration, self-detached by
+        # replacements.attach_source (replacements.py) the instant the new
+        # one registers, so the two NEVER co-exist. CR 614.3 co-registration
+        # requires records applied to the same event simultaneously; a ghost
+        # can't. B2 seed 16/17 Containment Priest double-list: falsified.
         by_event: dict[str, list[tuple[object, ...]]] = {}
         for row in g.repl_rows:
-            if row and row[0] == "repl" and row[5] != "dormant":
+            if row and row[0] == "repl" and row[5] == "live":
                 by_event.setdefault(str(row[6]), []).append(row)
         for event, rows in sorted(by_event.items()):
             if len(rows) > 1:
@@ -670,14 +685,26 @@ def d6_lifecycle(g: ReplayData) -> Verdict:
     if g.layers_rows is not None:
         # (iv) dead-handle bound refs in the layer registry: live layers
         # whose source/targets ended off the battlefield.
+        # B3a narrowing (source side only): a duration-tagged ``grant`` /
+        # ``lose`` layer is created at its spell/ability RESOLUTION, and
+        # CR 611.2a — "an effect once created exists independently of its
+        # source" — so an instant that granted an EOT effect correctly
+        # lives in the graveyard while the grant stays live (B2 seed 16:
+        # Crash Through's +3/+3 grant, falsified). Static/continuous
+        # layers DO depend on their source (CR 611.3a: loses the ability
+        # when the source leaves), so a dead source there stays a hit.
+        # The TARGET side is flagged for every kind regardless.
         for row in g.layers_rows:
             seq, kind_, source, _controller, tag, status = row[:6]
             raw_targets = row[6] if isinstance(row[6], tuple) else ()
             targets = tuple(str(t) for t in raw_targets)
             if status != "live" or not g.final_zone:
                 continue
+            source_exempt = kind_ in ("grant", "lose") and bool(str(tag).strip())
             for raw in (source, *targets):
                 handle = str(raw)
+                if source_exempt and handle == str(source):
+                    continue
                 if handle.startswith("card:") and g.final_zone.get(handle) not in (
                     None,
                     BATTLEFIELD,
@@ -691,7 +718,10 @@ def d6_lifecycle(g: ReplayData) -> Verdict:
     notes.append(
         "delayed triggers legitimately expire mid-game (clock-bounded); only "
         "game-end survivors are flagged; attached-on-graveyard is suspect "
-        "(graveyard triggers are legal), adjudication decides"
+        "(graveyard triggers are legal), adjudication decides; repl lane "
+        "counts only live records (expired = self-detached lifecycle ghost, "
+        "CR 614.3 needs co-existence); grant/lose source-side dead handles "
+        "are CR 611.2a-legal (effect outlives its source)"
     )
     if notes:
         v.note = "; ".join(notes)
