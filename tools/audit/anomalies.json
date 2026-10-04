@@ -1,0 +1,1630 @@
+{
+ "generated": "2026-10-04T17:47:39+00:00",
+ "design": "KNOWLEDGE/2026-10-02/12-bugcatch-design.md \u00a7D (B2)",
+ "coverage_note": {
+  "catalog_rows_lack": "catalog.json per row = [sha16, kind|subject|cause|verb]; the data payload (damage amounts, was-PT assertions, zone names, counter kinds) is hashed away and layers/replacements/binder dumps are not captured \u2014 D1..D5 structurally infeasible there",
+  "journal_rows_lack": "no mana verbs (D2 stays exempt), no SET_PT/MODIFY_PT/GRANT rows (D5 fold sees counters only; unexplained diffs carry a benign-layer note), no counter-removal rows (D3 removal side exempt), no per-trigger fire counts (D6 drained = still-attached-or-pending at end, window bounded by game end)"
+ },
+ "catalog_scan": {
+  "0": {
+   "mode": "catalog",
+   "n_rows": 561,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 159,
+    "ZONE_CHANGE": 104,
+    "CARD_DRAWN": 45,
+    "TAP_STATE": 139,
+    "LIFE_GAINED": 4,
+    "CAST": 17,
+    "DECLARE_ATTACKERS": 15,
+    "DAMAGE": 26,
+    "COMBAT_DAMAGE": 22,
+    "COUNTER_PLACED": 5,
+    "LOYALTY_ACTIVATED": 3,
+    "TARGETING": 6,
+    "DECLARE_BLOCKERS": 7,
+    "CREATURE_DIES": 9
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "EXEMPT",
+     "note": "final life unavailable (catalog rows carry no payload/state)"
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": "no was-PT assertions (no deaths) in this game"
+    },
+    "D6_lifecycle": {
+     "status": "EXEMPT",
+     "note": "registers not captured (catalog rows) \u2014 lifecycle unverifiable"
+    }
+   }
+  },
+  "1": {
+   "mode": "catalog",
+   "n_rows": 426,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 131,
+    "ZONE_CHANGE": 70,
+    "CARD_DRAWN": 36,
+    "LIFE_GAINED": 4,
+    "TAP_STATE": 96,
+    "CAST": 9,
+    "DAMAGE": 24,
+    "DECLARE_ATTACKERS": 17,
+    "DECLARE_BLOCKERS": 7,
+    "COMBAT_DAMAGE": 24,
+    "CREATURE_DIES": 3,
+    "COUNTER_PLACED": 4,
+    "TARGETING": 1
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "EXEMPT",
+     "note": "final life unavailable (catalog rows carry no payload/state)"
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": "no was-PT assertions (no deaths) in this game"
+    },
+    "D6_lifecycle": {
+     "status": "EXEMPT",
+     "note": "registers not captured (catalog rows) \u2014 lifecycle unverifiable"
+    }
+   }
+  },
+  "2": {
+   "mode": "catalog",
+   "n_rows": 345,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 103,
+    "ZONE_CHANGE": 58,
+    "CARD_DRAWN": 28,
+    "LIFE_GAINED": 4,
+    "TAP_STATE": 90,
+    "TARGETING": 1,
+    "CAST": 9,
+    "DAMAGE": 17,
+    "DECLARE_ATTACKERS": 14,
+    "COMBAT_DAMAGE": 16,
+    "DECLARE_BLOCKERS": 2,
+    "CREATURE_DIES": 3
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "EXEMPT",
+     "note": "final life unavailable (catalog rows carry no payload/state)"
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": "no was-PT assertions (no deaths) in this game"
+    },
+    "D6_lifecycle": {
+     "status": "EXEMPT",
+     "note": "registers not captured (catalog rows) \u2014 lifecycle unverifiable"
+    }
+   }
+  },
+  "3": {
+   "mode": "catalog",
+   "n_rows": 283,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 91,
+    "ZONE_CHANGE": 45,
+    "CARD_DRAWN": 25,
+    "TAP_STATE": 83,
+    "CAST": 6,
+    "LIFE_GAINED": 1,
+    "DECLARE_ATTACKERS": 9,
+    "DAMAGE": 9,
+    "COMBAT_DAMAGE": 11,
+    "DECLARE_BLOCKERS": 2,
+    "CREATURE_DIES": 1
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "EXEMPT",
+     "note": "final life unavailable (catalog rows carry no payload/state)"
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": "no was-PT assertions (no deaths) in this game"
+    },
+    "D6_lifecycle": {
+     "status": "EXEMPT",
+     "note": "registers not captured (catalog rows) \u2014 lifecycle unverifiable"
+    }
+   }
+  },
+  "4": {
+   "mode": "catalog",
+   "n_rows": 409,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 111,
+    "ZONE_CHANGE": 62,
+    "CARD_DRAWN": 29,
+    "TAP_STATE": 112,
+    "LIFE_GAINED": 3,
+    "CAST": 11,
+    "DECLARE_ATTACKERS": 22,
+    "DAMAGE": 25,
+    "COMBAT_DAMAGE": 26,
+    "TARGETING": 1,
+    "CREATURE_DIES": 3,
+    "DECLARE_BLOCKERS": 4
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "EXEMPT",
+     "note": "final life unavailable (catalog rows carry no payload/state)"
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": "no was-PT assertions (no deaths) in this game"
+    },
+    "D6_lifecycle": {
+     "status": "EXEMPT",
+     "note": "registers not captured (catalog rows) \u2014 lifecycle unverifiable"
+    }
+   }
+  },
+  "5": {
+   "mode": "catalog",
+   "n_rows": 225,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 79,
+    "ZONE_CHANGE": 39,
+    "CARD_DRAWN": 24,
+    "LIFE_GAINED": 1,
+    "TAP_STATE": 52,
+    "CAST": 3,
+    "COUNTER_PLACED": 9,
+    "DECLARE_ATTACKERS": 6,
+    "DAMAGE": 6,
+    "COMBAT_DAMAGE": 6
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "EXEMPT",
+     "note": "final life unavailable (catalog rows carry no payload/state)"
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": "no was-PT assertions (no deaths) in this game"
+    },
+    "D6_lifecycle": {
+     "status": "EXEMPT",
+     "note": "registers not captured (catalog rows) \u2014 lifecycle unverifiable"
+    }
+   }
+  },
+  "6": {
+   "mode": "catalog",
+   "n_rows": 241,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 83,
+    "ZONE_CHANGE": 40,
+    "CARD_DRAWN": 22,
+    "TAP_STATE": 59,
+    "LIFE_GAINED": 2,
+    "CAST": 5,
+    "DECLARE_ATTACKERS": 8,
+    "DAMAGE": 10,
+    "COMBAT_DAMAGE": 9,
+    "TARGETING": 1,
+    "DECLARE_BLOCKERS": 1,
+    "CREATURE_DIES": 1
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "EXEMPT",
+     "note": "final life unavailable (catalog rows carry no payload/state)"
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": "no was-PT assertions (no deaths) in this game"
+    },
+    "D6_lifecycle": {
+     "status": "EXEMPT",
+     "note": "registers not captured (catalog rows) \u2014 lifecycle unverifiable"
+    }
+   }
+  },
+  "7": {
+   "mode": "catalog",
+   "n_rows": 331,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 111,
+    "ZONE_CHANGE": 58,
+    "CARD_DRAWN": 31,
+    "TAP_STATE": 87,
+    "CAST": 8,
+    "TARGETING": 4,
+    "DAMAGE": 9,
+    "CREATURE_DIES": 2,
+    "DECLARE_ATTACKERS": 8,
+    "COMBAT_DAMAGE": 9,
+    "COUNTER_PLACED": 2,
+    "LIFE_GAINED": 1,
+    "DECLARE_BLOCKERS": 1
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "EXEMPT",
+     "note": "final life unavailable (catalog rows carry no payload/state)"
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": "no was-PT assertions (no deaths) in this game"
+    },
+    "D6_lifecycle": {
+     "status": "EXEMPT",
+     "note": "registers not captured (catalog rows) \u2014 lifecycle unverifiable"
+    }
+   }
+  },
+  "8": {
+   "mode": "catalog",
+   "n_rows": 592,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 199,
+    "ZONE_CHANGE": 112,
+    "CARD_DRAWN": 68,
+    "TAP_STATE": 148,
+    "CAST": 13,
+    "TARGETING": 2,
+    "DECLARE_ATTACKERS": 11,
+    "DAMAGE": 15,
+    "COMBAT_DAMAGE": 14,
+    "DECLARE_BLOCKERS": 3,
+    "CREATURE_DIES": 3,
+    "LIFE_GAINED": 3,
+    "COUNTER_PLACED": 1
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "EXEMPT",
+     "note": "final life unavailable (catalog rows carry no payload/state)"
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": "no was-PT assertions (no deaths) in this game"
+    },
+    "D6_lifecycle": {
+     "status": "EXEMPT",
+     "note": "registers not captured (catalog rows) \u2014 lifecycle unverifiable"
+    }
+   }
+  },
+  "9": {
+   "mode": "catalog",
+   "n_rows": 426,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 131,
+    "ZONE_CHANGE": 61,
+    "CARD_DRAWN": 35,
+    "TAP_STATE": 105,
+    "LIFE_GAINED": 8,
+    "CAST": 7,
+    "CREATURE_DIES": 3,
+    "DECLARE_ATTACKERS": 20,
+    "DAMAGE": 23,
+    "COMBAT_DAMAGE": 24,
+    "DECLARE_BLOCKERS": 4,
+    "TARGETING": 2,
+    "COUNTER_PLACED": 3
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "EXEMPT",
+     "note": "final life unavailable (catalog rows carry no payload/state)"
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": "no was-PT assertions (no deaths) in this game"
+    },
+    "D6_lifecycle": {
+     "status": "EXEMPT",
+     "note": "registers not captured (catalog rows) \u2014 lifecycle unverifiable"
+    }
+   }
+  }
+ },
+ "catalog_summary": {
+  "per_detector": {
+   "D1_life": {
+    "clean": 0,
+    "HIT": 0,
+    "EXEMPT": 10
+   },
+   "D2_mana": {
+    "clean": 0,
+    "HIT": 0,
+    "EXEMPT": 10
+   },
+   "D3_counter": {
+    "clean": 10,
+    "HIT": 0,
+    "EXEMPT": 0
+   },
+   "D4_token": {
+    "clean": 10,
+    "HIT": 0,
+    "EXEMPT": 0
+   },
+   "D5_pt_recompute": {
+    "clean": 10,
+    "HIT": 0,
+    "EXEMPT": 0
+   },
+   "D6_lifecycle": {
+    "clean": 0,
+    "HIT": 0,
+    "EXEMPT": 10
+   }
+  },
+  "all_hits": []
+ },
+ "replay_scan": {
+  "0": {
+   "mode": "replay",
+   "n_rows": 623,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 171,
+    "ZONE_CHANGE": 108,
+    "CARD_DRAWN": 48,
+    "TAP_STATE": 165,
+    "LIFE_GAINED": 3,
+    "CAST": 17,
+    "DECLARE_ATTACKERS": 24,
+    "DAMAGE": 32,
+    "COMBAT_DAMAGE": 33,
+    "TARGETING": 4,
+    "CREATURE_DIES": 8,
+    "DECLARE_BLOCKERS": 9,
+    "COUNTER_PLACED": 1
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "clean",
+     "note": ""
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "counter REMOVALS emit no row (grammar has no removal feed), so the removal side of conservation is exempt by construction"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "token copies/commander-copy tokens have no register class of their own yet (design \u00a7D FP story); copies share the created-object lane"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "1": {
+   "mode": "replay",
+   "n_rows": 495,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 179,
+    "ZONE_CHANGE": 83,
+    "CARD_DRAWN": 46,
+    "LIFE_GAINED": 7,
+    "TAP_STATE": 105,
+    "CAST": 8,
+    "TARGETING": 2,
+    "DECLARE_ATTACKERS": 15,
+    "DAMAGE": 20,
+    "COMBAT_DAMAGE": 19,
+    "DECLARE_BLOCKERS": 4,
+    "CREATURE_DIES": 7
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "clean",
+     "note": ""
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "token copies/commander-copy tokens have no register class of their own yet (design \u00a7D FP story); copies share the created-object lane"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "2": {
+   "mode": "replay",
+   "n_rows": 466,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 135,
+    "ZONE_CHANGE": 73,
+    "CARD_DRAWN": 35,
+    "LIFE_GAINED": 13,
+    "TAP_STATE": 128,
+    "CAST": 12,
+    "TARGETING": 3,
+    "DECLARE_ATTACKERS": 17,
+    "DAMAGE": 22,
+    "COMBAT_DAMAGE": 21,
+    "CREATURE_DIES": 4,
+    "DECLARE_BLOCKERS": 3
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "clean",
+     "note": ""
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "3": {
+   "mode": "replay",
+   "n_rows": 416,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 155,
+    "ZONE_CHANGE": 75,
+    "CARD_DRAWN": 43,
+    "TAP_STATE": 90,
+    "CAST": 9,
+    "LIFE_GAINED": 2,
+    "DECLARE_ATTACKERS": 11,
+    "DECLARE_BLOCKERS": 1,
+    "DAMAGE": 14,
+    "COMBAT_DAMAGE": 12,
+    "CREATURE_DIES": 1,
+    "TARGETING": 3
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "clean",
+     "note": ""
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "4": {
+   "mode": "replay",
+   "n_rows": 260,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 87,
+    "ZONE_CHANGE": 42,
+    "CARD_DRAWN": 22,
+    "LIFE_GAINED": 3,
+    "TAP_STATE": 69,
+    "CAST": 4,
+    "DECLARE_ATTACKERS": 10,
+    "DAMAGE": 10,
+    "COMBAT_DAMAGE": 11,
+    "DECLARE_BLOCKERS": 1,
+    "CREATURE_DIES": 1
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "clean",
+     "note": ""
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "token copies/commander-copy tokens have no register class of their own yet (design \u00a7D FP story); copies share the created-object lane"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "5": {
+   "mode": "replay",
+   "n_rows": 772,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 195,
+    "ZONE_CHANGE": 129,
+    "CARD_DRAWN": 61,
+    "LIFE_GAINED": 4,
+    "TAP_STATE": 249,
+    "CREATURE_DIES": 10,
+    "CAST": 16,
+    "TARGETING": 4,
+    "DECLARE_ATTACKERS": 25,
+    "DECLARE_BLOCKERS": 13,
+    "DAMAGE": 33,
+    "COMBAT_DAMAGE": 33
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "clean",
+     "note": ""
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "token copies/commander-copy tokens have no register class of their own yet (design \u00a7D FP story); copies share the created-object lane"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "6": {
+   "mode": "replay",
+   "n_rows": 202,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 83,
+    "ZONE_CHANGE": 29,
+    "CARD_DRAWN": 21,
+    "TAP_STATE": 38,
+    "CAST": 3,
+    "DECLARE_ATTACKERS": 9,
+    "DAMAGE": 9,
+    "COMBAT_DAMAGE": 9,
+    "LIFE_GAINED": 1
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "clean",
+     "note": ""
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": "no was-PT assertions (no deaths) in this game"
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "7": {
+   "mode": "replay",
+   "n_rows": 573,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 183,
+    "ZONE_CHANGE": 96,
+    "CARD_DRAWN": 46,
+    "LIFE_GAINED": 7,
+    "TAP_STATE": 160,
+    "CAST": 12,
+    "DECLARE_ATTACKERS": 15,
+    "DAMAGE": 21,
+    "COMBAT_DAMAGE": 18,
+    "TARGETING": 6,
+    "DECLARE_BLOCKERS": 3,
+    "CREATURE_DIES": 6
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "clean",
+     "note": ""
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "token copies/commander-copy tokens have no register class of their own yet (design \u00a7D FP story); copies share the created-object lane"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "8": {
+   "mode": "replay",
+   "n_rows": 441,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 127,
+    "ZONE_CHANGE": 65,
+    "CARD_DRAWN": 34,
+    "TAP_STATE": 119,
+    "LIFE_GAINED": 4,
+    "CAST": 8,
+    "DECLARE_ATTACKERS": 24,
+    "DAMAGE": 25,
+    "COMBAT_DAMAGE": 27,
+    "DECLARE_BLOCKERS": 3,
+    "CREATURE_DIES": 4,
+    "TARGETING": 1
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "clean",
+     "note": ""
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "9": {
+   "mode": "replay",
+   "n_rows": 369,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 131,
+    "ZONE_CHANGE": 57,
+    "CARD_DRAWN": 34,
+    "TAP_STATE": 115,
+    "LIFE_GAINED": 3,
+    "CAST": 4,
+    "CREATURE_DIES": 1,
+    "DECLARE_ATTACKERS": 8,
+    "DAMAGE": 8,
+    "COMBAT_DAMAGE": 8
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "clean",
+     "note": ""
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "10": {
+   "mode": "replay",
+   "n_rows": 442,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 155,
+    "ZONE_CHANGE": 87,
+    "CARD_DRAWN": 47,
+    "TAP_STATE": 106,
+    "LIFE_GAINED": 3,
+    "CAST": 10,
+    "DECLARE_ATTACKERS": 8,
+    "DAMAGE": 10,
+    "COMBAT_DAMAGE": 10,
+    "CREATURE_DIES": 3,
+    "DECLARE_BLOCKERS": 2,
+    "TARGETING": 1
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "HIT",
+     "note": "",
+     "hits": [
+      {
+       "detector": "D1_life",
+       "seed": "10",
+       "class": "hit",
+       "detail": "player:0: journal fold 20+2-1=21 but final life 17 (delta -4: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
+       "row_index": null,
+       "clock": null,
+       "subject": null
+      },
+      {
+       "detector": "D1_life",
+       "seed": "10",
+       "class": "hit",
+       "detail": "player:1: journal fold 20+1-17=4 but final life 0 (delta -4: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
+       "row_index": null,
+       "clock": null,
+       "subject": null
+      }
+     ]
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "11": {
+   "mode": "replay",
+   "n_rows": 419,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 131,
+    "ZONE_CHANGE": 78,
+    "CARD_DRAWN": 35,
+    "LIFE_GAINED": 6,
+    "TAP_STATE": 102,
+    "TARGETING": 5,
+    "CAST": 12,
+    "COUNTER_PLACED": 1,
+    "DECLARE_ATTACKERS": 14,
+    "DAMAGE": 15,
+    "COMBAT_DAMAGE": 17,
+    "DECLARE_BLOCKERS": 2,
+    "CREATURE_DIES": 1
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "clean",
+     "note": ""
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "counter REMOVALS emit no row (grammar has no removal feed), so the removal side of conservation is exempt by construction"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "token copies/commander-copy tokens have no register class of their own yet (design \u00a7D FP story); copies share the created-object lane"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "12": {
+   "mode": "replay",
+   "n_rows": 265,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 75,
+    "ZONE_CHANGE": 46,
+    "CARD_DRAWN": 19,
+    "TAP_STATE": 80,
+    "CAST": 9,
+    "LIFE_GAINED": 2,
+    "DECLARE_ATTACKERS": 10,
+    "DAMAGE": 10,
+    "COMBAT_DAMAGE": 10,
+    "CREATURE_DIES": 1,
+    "TARGETING": 2,
+    "COUNTER_PLACED": 1
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "HIT",
+     "note": "",
+     "hits": [
+      {
+       "detector": "D1_life",
+       "seed": "12",
+       "class": "hit",
+       "detail": "player:0: journal fold 20+0-0=20 but final life 17 (delta -3: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
+       "row_index": null,
+       "clock": null,
+       "subject": null
+      }
+     ]
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "counter REMOVALS emit no row (grammar has no removal feed), so the removal side of conservation is exempt by construction"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "13": {
+   "mode": "replay",
+   "n_rows": 257,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 91,
+    "ZONE_CHANGE": 48,
+    "CARD_DRAWN": 25,
+    "TAP_STATE": 69,
+    "LIFE_GAINED": 3,
+    "CAST": 4,
+    "DAMAGE": 6,
+    "TARGETING": 1,
+    "DECLARE_ATTACKERS": 5,
+    "COMBAT_DAMAGE": 5
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "HIT",
+     "note": "",
+     "hits": [
+      {
+       "detector": "D1_life",
+       "seed": "13",
+       "class": "hit",
+       "detail": "player:0: journal fold 20+0-0=20 but final life 18 (delta -2: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
+       "row_index": null,
+       "clock": null,
+       "subject": null
+      },
+      {
+       "detector": "D1_life",
+       "seed": "13",
+       "class": "hit",
+       "detail": "player:1: journal fold 20+3-21=2 but final life 0 (delta -2: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
+       "row_index": null,
+       "clock": null,
+       "subject": null
+      }
+     ]
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "token copies/commander-copy tokens have no register class of their own yet (design \u00a7D FP story); copies share the created-object lane"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": "no was-PT assertions (no deaths) in this game"
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "14": {
+   "mode": "replay",
+   "n_rows": 363,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 119,
+    "ZONE_CHANGE": 66,
+    "CARD_DRAWN": 31,
+    "TAP_STATE": 83,
+    "LIFE_GAINED": 5,
+    "CAST": 9,
+    "TARGETING": 4,
+    "DECLARE_ATTACKERS": 13,
+    "DAMAGE": 15,
+    "COMBAT_DAMAGE": 15,
+    "DECLARE_BLOCKERS": 1,
+    "CREATURE_DIES": 2
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "clean",
+     "note": ""
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "15": {
+   "mode": "replay",
+   "n_rows": 589,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 139,
+    "ZONE_CHANGE": 104,
+    "CARD_DRAWN": 39,
+    "TAP_STATE": 199,
+    "LIFE_GAINED": 5,
+    "CAST": 18,
+    "TARGETING": 6,
+    "DAMAGE": 21,
+    "CREATURE_DIES": 7,
+    "DECLARE_ATTACKERS": 18,
+    "COMBAT_DAMAGE": 23,
+    "DECLARE_BLOCKERS": 5,
+    "COUNTER_PLACED": 5
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "clean",
+     "note": ""
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "counter REMOVALS emit no row (grammar has no removal feed), so the removal side of conservation is exempt by construction"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "token copies/commander-copy tokens have no register class of their own yet (design \u00a7D FP story); copies share the created-object lane"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "16": {
+   "mode": "replay",
+   "n_rows": 648,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 215,
+    "ZONE_CHANGE": 117,
+    "CARD_DRAWN": 58,
+    "LIFE_GAINED": 8,
+    "TAP_STATE": 166,
+    "CAST": 15,
+    "CREATURE_DIES": 6,
+    "DECLARE_ATTACKERS": 17,
+    "DAMAGE": 21,
+    "COMBAT_DAMAGE": 19,
+    "TARGETING": 4,
+    "DECLARE_BLOCKERS": 2
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "clean",
+     "note": ""
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "HIT",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides",
+     "hits": [
+      {
+       "detector": "D6_lifecycle",
+       "seed": "16",
+       "class": "multi-replacement-per-event",
+       "detail": "2 replacement records for one event \"ZoneChangeEvent(from_zone=Zone(kind=<ZoneKind.ANY: 'ANY'>, controller=<ControllerRef.ANY: 'ANY'>, position=None), to_zon\" (statuses ['expired', 'expired'])",
+       "row_index": null,
+       "clock": null,
+       "subject": "card:38"
+      },
+      {
+       "detector": "D6_lifecycle",
+       "seed": "16",
+       "class": "dead-handle-bound-ref",
+       "detail": "live layer #9 kind=grant tag=Eot bound to card:72 ended in 'graveyard'",
+       "row_index": null,
+       "clock": null,
+       "subject": "card:72"
+      }
+     ]
+    }
+   }
+  },
+  "17": {
+   "mode": "replay",
+   "n_rows": 530,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 175,
+    "ZONE_CHANGE": 96,
+    "CARD_DRAWN": 46,
+    "TAP_STATE": 123,
+    "LIFE_GAINED": 7,
+    "CAST": 14,
+    "DECLARE_ATTACKERS": 12,
+    "DECLARE_BLOCKERS": 4,
+    "DAMAGE": 21,
+    "COMBAT_DAMAGE": 16,
+    "CREATURE_DIES": 7,
+    "TARGETING": 6,
+    "COUNTER_PLACED": 2,
+    "LOYALTY_ACTIVATED": 1
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "HIT",
+     "note": "",
+     "hits": [
+      {
+       "detector": "D1_life",
+       "seed": "17",
+       "class": "hit",
+       "detail": "player:0: journal fold 20+2-20=2 but final life 0 (delta -2: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
+       "row_index": null,
+       "clock": null,
+       "subject": null
+      },
+      {
+       "detector": "D1_life",
+       "seed": "17",
+       "class": "hit",
+       "detail": "player:1: journal fold 20+5-11=14 but final life 12 (delta -2: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
+       "row_index": null,
+       "clock": null,
+       "subject": null
+      }
+     ]
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "counter REMOVALS emit no row (grammar has no removal feed), so the removal side of conservation is exempt by construction"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "HIT",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides",
+     "hits": [
+      {
+       "detector": "D6_lifecycle",
+       "seed": "17",
+       "class": "multi-replacement-per-event",
+       "detail": "2 replacement records for one event \"ZoneChangeEvent(from_zone=Zone(kind=<ZoneKind.ANY: 'ANY'>, controller=<ControllerRef.ANY: 'ANY'>, position=None), to_zon\" (statuses ['expired', 'expired'])",
+       "row_index": null,
+       "clock": null,
+       "subject": "card:43"
+      }
+     ]
+    }
+   }
+  },
+  "18": {
+   "mode": "replay",
+   "n_rows": 432,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 139,
+    "ZONE_CHANGE": 69,
+    "CARD_DRAWN": 36,
+    "LIFE_GAINED": 2,
+    "TAP_STATE": 107,
+    "CAST": 8,
+    "CREATURE_DIES": 6,
+    "DECLARE_ATTACKERS": 17,
+    "DAMAGE": 21,
+    "COMBAT_DAMAGE": 21,
+    "DECLARE_BLOCKERS": 4,
+    "COUNTER_PLACED": 2
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "clean",
+     "note": ""
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "counter REMOVALS emit no row (grammar has no removal feed), so the removal side of conservation is exempt by construction"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  },
+  "19": {
+   "mode": "replay",
+   "n_rows": 261,
+   "crash": null,
+   "kinds": {
+    "TURN_PHASE": 87,
+    "ZONE_CHANGE": 49,
+    "CARD_DRAWN": 22,
+    "TAP_STATE": 58,
+    "CAST": 4,
+    "LIFE_GAINED": 1,
+    "DECLARE_ATTACKERS": 11,
+    "DAMAGE": 13,
+    "COMBAT_DAMAGE": 13,
+    "DECLARE_BLOCKERS": 2,
+    "CREATURE_DIES": 1
+   },
+   "detectors": {
+    "D1_life": {
+     "status": "clean",
+     "note": ""
+    },
+    "D2_mana": {
+     "status": "EXEMPT",
+     "note": "the journal has no mana verb (no ADD_MANA/MANA_SPENT kinds in the KIND_* vocabulary) \u2014 conservation unverifiable; lane stays exempt until mana is journalled (Treasure {T} gap precedent)"
+    },
+    "D3_counter": {
+     "status": "clean",
+     "note": "no COUNTER_PLACED rows"
+    },
+    "D4_token": {
+     "status": "clean",
+     "note": "no created (token) objects in this game"
+    },
+    "D5_pt_recompute": {
+     "status": "clean",
+     "note": ""
+    },
+    "D6_lifecycle": {
+     "status": "clean",
+     "note": "delayed triggers legitimately expire mid-game (clock-bounded); only game-end survivors are flagged; attached-on-graveyard is suspect (graveyard triggers are legal), adjudication decides"
+    }
+   }
+  }
+ },
+ "replay_summary": {
+  "per_detector": {
+   "D1_life": {
+    "clean": 16,
+    "HIT": 4,
+    "EXEMPT": 0
+   },
+   "D2_mana": {
+    "clean": 0,
+    "HIT": 0,
+    "EXEMPT": 20
+   },
+   "D3_counter": {
+    "clean": 20,
+    "HIT": 0,
+    "EXEMPT": 0
+   },
+   "D4_token": {
+    "clean": 20,
+    "HIT": 0,
+    "EXEMPT": 0
+   },
+   "D5_pt_recompute": {
+    "clean": 20,
+    "HIT": 0,
+    "EXEMPT": 0
+   },
+   "D6_lifecycle": {
+    "clean": 18,
+    "HIT": 2,
+    "EXEMPT": 0
+   }
+  },
+  "all_hits": [
+   {
+    "detector": "D1_life",
+    "seed": "10",
+    "class": "hit",
+    "detail": "player:0: journal fold 20+2-1=21 but final life 17 (delta -4: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
+    "row_index": null,
+    "clock": null,
+    "subject": null
+   },
+   {
+    "detector": "D1_life",
+    "seed": "10",
+    "class": "hit",
+    "detail": "player:1: journal fold 20+1-17=4 but final life 0 (delta -4: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
+    "row_index": null,
+    "clock": null,
+    "subject": null
+   },
+   {
+    "detector": "D1_life",
+    "seed": "12",
+    "class": "hit",
+    "detail": "player:0: journal fold 20+0-0=20 but final life 17 (delta -3: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
+    "row_index": null,
+    "clock": null,
+    "subject": null
+   },
+   {
+    "detector": "D1_life",
+    "seed": "13",
+    "class": "hit",
+    "detail": "player:0: journal fold 20+0-0=20 but final life 18 (delta -2: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
+    "row_index": null,
+    "clock": null,
+    "subject": null
+   },
+   {
+    "detector": "D1_life",
+    "seed": "13",
+    "class": "hit",
+    "detail": "player:1: journal fold 20+3-21=2 but final life 0 (delta -2: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
+    "row_index": null,
+    "clock": null,
+    "subject": null
+   },
+   {
+    "detector": "D6_lifecycle",
+    "seed": "16",
+    "class": "multi-replacement-per-event",
+    "detail": "2 replacement records for one event \"ZoneChangeEvent(from_zone=Zone(kind=<ZoneKind.ANY: 'ANY'>, controller=<ControllerRef.ANY: 'ANY'>, position=None), to_zon\" (statuses ['expired', 'expired'])",
+    "row_index": null,
+    "clock": null,
+    "subject": "card:38"
+   },
+   {
+    "detector": "D6_lifecycle",
+    "seed": "16",
+    "class": "dead-handle-bound-ref",
+    "detail": "live layer #9 kind=grant tag=Eot bound to card:72 ended in 'graveyard'",
+    "row_index": null,
+    "clock": null,
+    "subject": "card:72"
+   },
+   {
+    "detector": "D1_life",
+    "seed": "17",
+    "class": "hit",
+    "detail": "player:0: journal fold 20+2-20=2 but final life 0 (delta -2: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
+    "row_index": null,
+    "clock": null,
+    "subject": null
+   },
+   {
+    "detector": "D1_life",
+    "seed": "17",
+    "class": "hit",
+    "detail": "player:1: journal fold 20+5-11=14 but final life 12 (delta -2: life moved by an unjournalled verb, or a DAMAGE/LIFE row missed/ghosted)",
+    "row_index": null,
+    "clock": null,
+    "subject": null
+   },
+   {
+    "detector": "D6_lifecycle",
+    "seed": "17",
+    "class": "multi-replacement-per-event",
+    "detail": "2 replacement records for one event \"ZoneChangeEvent(from_zone=Zone(kind=<ZoneKind.ANY: 'ANY'>, controller=<ControllerRef.ANY: 'ANY'>, position=None), to_zon\" (statuses ['expired', 'expired'])",
+    "row_index": null,
+    "clock": null,
+    "subject": "card:43"
+   }
+  ]
+ },
+ "replay_meta": {
+  "pool": "all",
+  "seeds": 20,
+  "deck_pairs_seed": 1409,
+  "turn_cap": 60
+ }
+}

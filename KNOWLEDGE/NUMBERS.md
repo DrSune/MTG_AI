@@ -5,6 +5,16 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-10-04 (BUGCATCH batch B1 — BCS instrument + branch inventory; tools-only, HEAD 8b4506e)
+
+| Item | Number | Command | Note |
+|---|---|---|---|
+| BCS | 305 cards, mean **14.1**, max **70** (Basri Ket); buckets 0:24 / 1–9:89 / 10–29:161 / 30+:31 | `python3 tools/audit/bcs.py` | 9 IR primitives, integer weights {1,3,2,6,3,5,2,4,3} = documented silent-semantic ledger-bug counts; artifact `tools/audit/bcs.json` |
+| calib | silent-semantic gate **19/27** pass (≥2 of p4–p9); vanilla-identity **14/14** all-zero | `python3 tools/audit/bcs.py` | 8 exceptions all risk-prims=1, classified score **blind spots** (branch-entanglement / keyword×consumer / replacement×ordering / single-fold) per design §C — weights NOT curve-fit; machinery (3) + crash-only (10) excluded by class |
+| branches | **97 declared** on 74 cards (Cond 16, Choose 27, Optional 41, EachPlayer 5, Selector ONE_OF/REST 8); lit-so-far **deferred to B3** | `python3 tools/audit/bcs.py` | each branch = ID + falsifiable signature (journal_kind × data_predicate); branch serialiser fields documented (EachPlayer uses `effect`, not `inner`) |
+| suite | **2345 passed + 3 subtests, 0 failed** — unchanged | `.venv/bin/python -m pytest MTG_bot/core -q` | tools-only batch, no engine edits, no commits |
+| lints | pyright **0 errors** · ruff **Δ0** on `tools/audit/bcs.py` | `pyright tools/audit/bcs.py` / `ruff check tools/audit/bcs.py` | new file 0 findings; `datetime.now(UTC)` convention matched |
+
 ## 2026-10-04 (grammar batch B6 — OPPONENT_OF destination predicate + CREATE_TOKEN controller role; last 2 suspects closed per /10 ruling)
 
 | Item | Number | Command | Note |
