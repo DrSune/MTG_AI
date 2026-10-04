@@ -1,0 +1,92 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "basri",
+   "real": "Basri, Devoted Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wolf",
+   "name": "Wolf",
+   "type": "Creature",
+   "power": 3,
+   "toughness": 3,
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "scythe",
+   "real": "Malefic Scythe",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "basri",
+   "set": 5
+  },
+  {
+   "op": "enter",
+   "key": "scythe"
+  },
+  {
+   "op": "activate",
+   "key": "scythe",
+   "idx": 3,
+   "seat": 1,
+   "targets": [
+    "wolf"
+   ]
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "wolf"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "wolf": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "scythe": {
+    "SOUL": 1
+   },
+   "basri": {
+    "LOYALTY": 6
+   }
+  },
+  "power": {
+   "wolf": 5
+  },
+  "toughness": {
+   "wolf": 5
+  },
+  "battlefield_keywords": {
+   "Wolf": [
+    "VIGILANCE"
+   ]
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "HUNT H3 pair 4 (heat 2205, counter-layer x soul-static x cross-seat target). Malefic Scythe (seat 1) enters with its printed soul counter and equips seat 1's 3/3 Wolf (static +1/+1 per soul counter -> 4/4). Basri, Devoted Paladin (seat 0) +1 targets the ENEMY Wolf: 'put a +1/+1 counter on up to one target creature. It gains vigilance until end of turn' - target has no controller restriction (CR 115.7a / 601.2b; H2 cross-seat precedent), and equip/loyalty compile with timing None so the activation is legal in seat 0's own window. All three layers must STACK on the printed 3/3: +1 counter (CR 122.1c), +1 soul static (CR 613.3d) -> 5/5. The EoT vigilance clause is asserted IN the stamping window (H2 rig law 2: EoT effects expire on the turn dance). Counters lanes pin each layer separately so a collapsed total cannot pass: wolf PLUS_1_PLUS_1 1, scythe SOUL 1. Falsifiers: 4/4 (either the counter or the soul static blind), 5/4 or 4/5 (layer asymmetry), vigilance missing (EoT clause not stamped), loyalty 5 (+1 cost unpaid)."
+}

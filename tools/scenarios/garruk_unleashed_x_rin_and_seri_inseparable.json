@@ -1,0 +1,103 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "garruk",
+   "real": "Garruk, Unleashed",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "r",
+   "real": "Rin and Seri, Inseparable",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "d",
+   "real": "Alpine Watchdog",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "c",
+   "real": "Pridemalkin",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "W": 4,
+   "G": 4,
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "garruk",
+   "set": 6
+  },
+  {
+   "op": "activate",
+   "key": "garruk",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "cast",
+   "key": "d",
+   "real": "Alpine Watchdog",
+   "controller": 1
+  },
+  {
+   "op": "cast",
+   "key": "c",
+   "real": "Pridemalkin",
+   "controller": 1,
+   "decisions": [
+    "r"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "garruk": {
+    "LOYALTY": 4
+   }
+  },
+  "tokens": {
+   "Beast": 1,
+   "Cat": 1,
+   "Dog": 1
+  },
+  "power": {
+   "r": 5
+  },
+  "battlefield_pt": {
+   "Cat": [
+    1,
+    1
+   ]
+  },
+  "zone": {
+   "d": "battlefield",
+   "c": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "HUNT H3 pair 5 (heat 2160, FALSE-census contrast x cross-seat cast triggers x token-name lanes). Garruk, Unleashed (seat 0) -2 FIRST creates its 3/3 Beast, THEN censuses 'if an opponent controls more creatures than you': seat 1 = Rin alone = 1 vs seat 0 = Garruk + Beast = 2 -> FALSE branch, no loyalty rebate, 6-2 = 4 (the TRUE branch is lit by alpine_houndmaster_x_garruk_unleashed; same ability, opposite census answer - together they pin both printed outcomes). Dance to seat 1's window, then the Rin and Seri printed cast triggers fire for the OPPONENT of Garruk: cast a Dog spell (Alpine Watchdog, no EtB ask) -> 'create a Cat creature token'; cast a Cat spell (Pridemalkin, EtB counter decision 'r') -> 'create a Dog creature token' AND the +1/+1 counter rides Rin to power 5 (rin_and_seri_cast_triggers precedent lanes). Token lane is keyed by printed token name, merged across seats (basri_ket_x_elder_gargaroth precedent): Beast 1 (seat 0) + Cat 1 + Dog 1 (seat 1); Cat printed 1/1 via battlefield_pt. Falsifiers: loyalty 5 (rebate fired on a false census), Cat/Dog 0 (cast trigger blind to cross-seat... they are seat 1's own casts - a lost trigger zeroes both), battlefield_pt [2,2] (token PT printed wrong), power r 4 (EtB counter lost)."
+}

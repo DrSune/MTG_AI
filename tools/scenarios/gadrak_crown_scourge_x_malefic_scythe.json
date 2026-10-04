@@ -1,0 +1,90 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "gadrak",
+   "real": "Gadrak, the Crown-Scourge",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "brute",
+   "name": "Brute",
+   "type": "Creature",
+   "power": 5,
+   "toughness": 3,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wall",
+   "name": "Wall",
+   "type": "Creature",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "scythe",
+   "real": "Malefic Scythe",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "scythe"
+  },
+  {
+   "op": "activate",
+   "key": "scythe",
+   "idx": 3,
+   "seat": 1,
+   "targets": [
+    "wall"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "brute": true
+   },
+   "block": {
+    "wall": "brute"
+   }
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Treasure": 2
+  },
+  "counters": {
+   "scythe": {
+    "SOUL": 2
+   }
+  },
+  "zone": {
+   "wall": "graveyard",
+   "brute": "graveyard"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "HUNT H3 pair 2 (heat 2254, dies x end-step census x soul-counter layer). Malefic Scythe (seat 1) enters with its printed soul counter (EtBState) and equips seat 1's 2/2 Wall -> effective 3/3 in the blocker lane (static '+1/+1 for each soul counter', CR 613.3d). Brute 5/3 attacks, Wall blocks: the soul fold decides who lives - folded, Wall deals 3 and Brute (toughness 3) DIES too (CR 704.5f); soul-blind, Wall deals 2 and Brute survives. The fold is observed through the SURVIVAL lane, not the mark ledger: the ledger is empty once end_turn cleanup runs (rig law, H3 findings), and Gadrak's end-step census counts the deaths either way. Gadrak (seat 0) end step, on end_turn: 'create a Treasure token for each nontoken creature that died this turn' - printed WITHOUT a controller restriction, so the opponent's Wall counts (CR 603.2 'this turn' covers the combat): BOTH died -> Treasure 2. This Treasure end-step lane was left UNASSERTED by the gadrak_crown_scourge solo pack - first lighting here. Falsifiers: Treasure 1 (soul-blind block -> Brute survives, OR cross-controller census dropped), Treasure 0 (end-step trigger lost), SOUL 1 (dies trigger lost)."
+}

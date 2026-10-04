@@ -1,0 +1,71 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "basri",
+   "real": "Basri, Devoted Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wolf",
+   "name": "Wolf",
+   "type": "Creature",
+   "power": 3,
+   "toughness": 3,
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "mentor",
+   "real": "Conclave Mentor",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "basri",
+   "set": 5
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "wolf"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "wolf": {
+    "PLUS_1_PLUS_1": 2
+   },
+   "basri": {
+    "LOYALTY": 6
+   }
+  },
+  "power": {
+   "wolf": 5
+  },
+  "toughness": {
+   "wolf": 5
+  },
+  "battlefield_keywords": {
+   "Wolf": [
+    "VIGILANCE"
+   ]
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "HUNT H3 pair 8 (heat 2070, replacement-effect x counter-grant). Basri, Devoted Paladin (seat 0) +1 on the ENEMY 3/3 Wolf: 'put a +1/+1 counter on up to one target creature. It gains vigilance until end of turn'. Conclave Mentor (seat 1) sits next to the Wolf and its CONTINUOUS replacement applies (CR 614.1a, watches the counter-placing event itself): 'if one or more +1/+1 counters would be put on a creature you control, that many plus one are put on it instead' - 1 becomes 2 (CR 614.6a single application: one event, one replacement, not iterative; the affected creature and Mentor share controller seat 1). Result: wolf 2 counters -> effective 5/5 on the printed 3/3 (CR 122.1c), vigilance stamped in the same activation window (asserted pre-dance, H2 rig law 2). Loyalty 5 -> 6 pays the +1. The counter lane (2) and the PT lanes (5/5) fail together but the KEYWORD and LOYALTY lanes stay green in that branch, isolating which promise broke. Falsifier: 1 counter and 4/4 = replacement dead; 3 counters = illegal iterative application."
+}

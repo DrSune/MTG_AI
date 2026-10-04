@@ -1,0 +1,74 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "garruk",
+   "real": "Garruk, Unleashed",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "brute",
+   "name": "Brute",
+   "type": "Creature",
+   "power": 7,
+   "toughness": 7,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mentor",
+   "real": "Conclave Mentor",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "garruk",
+   "set": 5
+  },
+  {
+   "op": "activate",
+   "key": "garruk",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "mentor"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "brute": true
+   },
+   "block": {
+    "mentor": "brute"
+   }
+  }
+ ],
+ "expect": {
+  "counters": {
+   "garruk": {
+    "LOYALTY": 6
+   }
+  },
+  "damage": {
+   "brute": 5
+  },
+  "zone": {
+   "mentor": "graveyard",
+   "brute": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 25
+  }
+ },
+ "notes": "HUNT H3 pair 1 (heat 2484, pt_layers: enemy EoT DCP x dies-census fold). Garruk, Unleashed (seat 0) +1 on ENEMY Conclave Mentor: 'Up to one target creature gets +3/+3 and gains trample until end of turn' (CR 601.2b target has no controller restriction; H2 cross-seat precedent). Mentor blocks the 7/7: effective 5/6 (2+3 / 3+3, CR 613.3d layer-7c DCP) -> takes 7 and DIES mid-combat; its dies trigger resolves while the EoT buff is still applied (CR 603.3 / 611.2a duration), so 'you gain life equal to its power' pays the EFFECTIVE 5, not the printed 2 -> seat 1 life 25. The +3/+3 also folds into damage assignment: Brute's mark ledger reads 5 (H2 rig law 4, counter/DCP-blind damage would mark 2). Marks on the dying Mentor reset with it (H2 rig law 3) so only Brute's lane is asserted. Falsifiers: no buff at death -> life 22; buff not folded into block damage -> Brute marked 2. Loyalty 5->6 (+1 paid)."
+}

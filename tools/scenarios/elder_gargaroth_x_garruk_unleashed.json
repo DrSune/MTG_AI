@@ -1,0 +1,85 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "garruk",
+   "real": "Garruk, Unleashed",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wall",
+   "name": "Wall",
+   "type": "Creature",
+   "power": 5,
+   "toughness": 5,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g",
+   "real": "Elder Gargaroth",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "garruk",
+   "set": 6
+  },
+  {
+   "op": "activate",
+   "key": "garruk",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "g": true
+   },
+   "block": {
+    "wall": "g"
+   },
+    "trample": {
+     "g": [
+      0
+     ]
+    }
+  }
+ ],
+ "expect": {
+  "counters": {
+   "garruk": {
+    "LOYALTY": 4
+   }
+  },
+  "tokens": {
+   "Beast": 2
+  },
+  "damage": {
+   "g": 5
+  },
+  "life": {
+   "0": 19,
+   "1": 20
+  },
+  "zone": {
+   "wall": "graveyard",
+   "g": "battlefield"
+  }
+ },
+ "notes": "HUNT H3 pair 9 (heat 2052, trample partition x attack choose-trigger x FALSE-census). Window 1, seat 0: Garruk -2 creates its Beast then censuses: seat 1 = Gargaroth alone = 1 vs seat 0 = Garruk + Wall + Beast = 3 -> FALSE, loyalty 6-2 = 4 (the same ability's TRUE branch is lit in alpine_houndmaster_x_garruk_unleashed). Window 2, seat 1: Elder Gargaroth (6/6 trample) attacks the 5/5 Wall and is blocked - the 'attacks or blocks' choose-trigger fires on the ATTACK branch, default first legal mode = 'create a 3/3 green Beast creature token' (elder_gargaroth + basri_ket_x_elder_gargaroth precedents; the token lane merges seats: 1 from Garruk's -2 + 1 from Gargaroth = 2). Trample assignment (engine ask `trample:<card>:<slot>:<turn>`, vocabulary 0..remaining AFTER lethal coverage is reserved): the map value is how much EXCESS is pinned to THAT blocker slot, the defending player takes the rest (H3 rig law, trample_excess_partition precedent). 5 lethal to the Wall (CR 702.19b minimum), excess 1, answer [0] -> 0 excess stays on the blocker, 1 routes to the player -> seat 0 life 19; answer [1] would pin the excess to the Wall (life 20 falsifier), and a trample-blind ledger sends all 6 to the Wall. Wall deals 5 -> Gargaroth survives with 5 marks (marks on the dying Wall reset with it, H2 rig law 3). Falsifiers: Beast 1 (attack trigger lost), loyalty 5 (bogus census rebate), life 20 (excess not routed)."
+}

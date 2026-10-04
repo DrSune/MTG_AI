@@ -864,7 +864,11 @@ class TriggerBinder:
             return controller_matches(node.controller, event.subject, ctx)
         if kind == KIND_CAST and isinstance(node, CastSpellEvent):
             return self._match_cast(node, event, source, controller)
-        if kind == KIND_TARGETING and isinstance(node, TargetingEvent):
+        if (
+            kind == KIND_TARGETING
+            and event.cause_verb == "TARGET"
+            and isinstance(node, TargetingEvent)
+        ):
             # r20b (Warden of the Woods): the designation feed — the filter
             # reads the DESIGNATED object (IS_SOURCE = "whenever THIS
             # becomes the target of a spell or ability"). A PLAYER subject

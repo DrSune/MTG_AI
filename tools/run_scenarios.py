@@ -63,8 +63,10 @@ Pack vocabulary (all keys required as noted):
                                             the engine's, and recorded;
                                             an unspecified block is NONE)]
   expect  : {"life": {"0": int...}, "zone": {key: zone...},
-             "damage": {key: int...},      — damage is the 16a mark ledger
-             "attackers": {key: bool},     — the DECLARE_ATTACKERS rows,
+              "damage": {key: int...},      — damage is the 16a mark ledger
+              "damage_received": {key: int...}, — historical card DAMAGE rows
+                                         summed (survives cleanup; subset lane)
+              "attackers": {key: bool},     — the DECLARE_ATTACKERS rows,
              "blocked": {key: [blockerKey...]} — the DECLARE_BLOCKERS rows
                                         of the last group (16c),
              "asks": {key: "ATTACK,DECLINE"},  — vocab per attack site,
@@ -108,6 +110,7 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
 )
 from MTG_bot.core.executor import Executor
+from MTG_bot.core.executor.events import KIND_DAMAGE
 from MTG_bot.core.executor.games import get_supply, identity_of
 from MTG_bot.core.executor.stack import cast, play_land
 from MTG_bot.core.identity import CardIdentity
@@ -482,6 +485,22 @@ class ScenarioRunner:
             }
             fails.append(f"damage marks: expected {exp}, got {got}")
         expect = self.pack.get("expect", {})
+        if "damage_received" in expect:
+            received = {}
+            for row in self.ex.journal.events:
+                if (
+                    row.kind == KIND_DAMAGE
+                    and row.subject is not None
+                    and row.subject.namespace == "card"
+                ):
+                    received[row.subject] = received.get(row.subject, 0) + row.amount
+            for key, amount in expect["damage_received"].items():
+                handle = self.handles[key]
+                got_amount = received.get(handle, 0)
+                if got_amount != amount:
+                    fails.append(
+                        f"damage_received[{key}]: expected {amount}, got {got_amount}"
+                    )
         # 16b: the attack record is read from the JOURNAL (DECLARE_ATTACKERS
         # rows of the LAST declare group — journalled truth, not the
         # executor's post-clear memory).

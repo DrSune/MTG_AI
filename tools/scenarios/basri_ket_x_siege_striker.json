@@ -40,14 +40,12 @@
    "op": "combat",
    "seat": 0,
    "attack": {
-    "striker": true
+    "striker": true,
+    "grog": false
    },
    "may": {
     "striker": true
-   },
-   "decisions": [
-    "grog"
-   ]
+   }
   }
  ],
  "expect": {
@@ -73,7 +71,6 @@
    "1": 14
   }
  },
- "status": "suspect",
- "finding": "HUNT H2 SUSPECT (pair 1, heat 3710, pt_layers): the attack trigger's +1/+1-until-end-of-turn DCP is VISIBLE to combat damage (double-strike totals 6 -> life1 14, observed correct) but DROPS OUT of post-combat P/T evaluation: power/toughness lanes report 2/2 (base 1/1 + counter) instead of the CR 3/3. The rig's combat op does NOT run cleanup (probe: Basri-+1's activate-sourced 'until end of turn' INDESTRUCTIBLE survives a bare combat op, while an activate-sourced +3/+3 (Garruk Unleashed precedent) also survives) - so only trigger-sourced EoT effects are expired early, at end of combat rather than cleanup (CR 514.2, 611.3). Cross-seat counter folding itself is sound (probe A: enemy Basri +1 on printed-static creature reads 2/2).",
+ "adjudication": "H4 2026-10-04: NOT an engine expiry bug. The combat rig only had an attack answer for striker, so the generic script word 'grog' leaked into the undeclared attack:card:1 ask and made Grog attack (tapping it before the trigger resolved). The deterministic CHOOSE tap selector then found no untapped creature, so the trigger's +1/+1 quantity resolved from 0 tapped-this-way cards. Explicitly declining Grog's attack makes the engine record +1/+1, keep it after combat, and observe all expected lanes.",
  "notes": "HUNT H2 pair 1 (heat 3710, pt_layers). Enemy Basri Ket (seat 1) +1 designates the opposing Siege Striker - the printed +1 reads 'up to one target creature', NO controller restriction (compiled TARGET carries no CONTROLLER_IS YOU). Then Striker attacks and its own trigger taps Grog (+1/+1 until end of turn, Siege Striker's printed promise). CR expectation: printed 1/1 + counter (CR 122.1c, layer 7c) + EoT +1/+1 (layer 7c, timestamp) = 3/3; double strike (CR 702.7d) sends 3+3=6 to seat 1 (observed: life 14 CORRECT). Only the post-combat PT lanes diverge -> suspect."
 }

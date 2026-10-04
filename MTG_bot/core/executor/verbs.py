@@ -148,7 +148,11 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                         (len(ctx.events), "MOVE", str(card), "library->hand")
                     )
             return
-        pool = [h for h in resolve_selector(sel, ctx) if h.namespace == "card"]
+        pool = [
+            h
+            for h in resolve_selector(sel, ctx, journal_partition=partition)
+            if h.namespace == "card"
+        ]
         cards = pool if partition else (pool[:n] if n else pool)
     # r19b (See the Truth): a destination Zone.position == BOTTOM means the
     # cards land at the BOTTOM of the pile — move_card appends (top for a
@@ -234,7 +238,11 @@ def _v_discard(ctx: ExecCtx, atom: Atom) -> None:
             # (the 13b 'result' register, the B-15 designation, the B-13
             # channel ask) — the hand scoping below is only for the raw
             # engine-side CHOOSE/RANDOM/ALL stand-ins.
-            cards = resolve_selector(sel, ctx)
+            cards = resolve_selector(
+                sel,
+                ctx,
+                journal_partition=sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST),
+            )
         else:
             # 14c (B-18): CR 701.8a — a discard moves cards from the
             # ACTOR'S OWN hand, so the selection pool is the actor's LIVE
@@ -1031,19 +1039,35 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
     player = role_player(ctx, atom)
     lib = ctx.world.players[player].zone(ZONE_LIBRARY)
     count_q = atom.args.get("count")
+    # H4 (Garruk's Harbinger): a REVEAL inside a LOOK_AT sentence is
+    # anaphoric — "reveal [one card] from among them" — not a fresh top-of-
+    # library look. Record the top-of-window payload, but preserve the wider
+    # LOOK_AT window for the following ONE_OF/REST partition instead of
+    # collapsing the population to the first card.
+    prior_window = tuple(ctx.look_window)
     if isinstance(count_q, QUnbounded):
         # 13a: QUnbounded is not number-resolvable, and here it means the
         # ENTIRE zone — the Cultivate compile idiom (REVEAL with an
         # unbounded count "counts" the searched library; the grammar's
         # documented inability to reference the found set).
         seen_cards = list(reversed(lib.entries))
+    elif prior_window and atom.verb is Verb.REVEAL:
+        n = amount(ctx, atom, "count")
+        seen_cards = list(prior_window[:n]) if n else []
     else:
         n = amount(ctx, atom, "count")
         seen_cards = list(reversed(lib.entries[-n:])) if n else []
     # r19b: the look window — the handles shown, top-first, for the NEXT
     # sentence (Conditional subject / library-TOP partition candidates).
     # The event record stays the str view, byte-identical to pre-19b.
-    ctx.look_window = tuple(seen_cards)
+    if (
+        prior_window
+        and atom.verb is Verb.REVEAL
+        and len(prior_window) > len(seen_cards)
+    ):
+        ctx.look_window = prior_window
+    else:
+        ctx.look_window = tuple(seen_cards)
     seen = tuple(str(c) for c in seen_cards)
     ctx.events.append((len(ctx.events), atom.verb.name, str(player), seen))
 
@@ -1108,7 +1132,15 @@ def _search_designation(atom: Atom, ctx: ExecCtx) -> list[Handle]:
         raise ValueError(  # noqa: TRY004
             "executor: SEARCH cards role has no binding"
         )
-    return [h for h in resolve_selector(sel, ctx) if h.namespace == "card"]
+    return [
+        h
+        for h in resolve_selector(
+            sel,
+            ctx,
+            journal_partition=sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST),
+        )
+        if h.namespace == "card"
+    ]
 
 
 def _v_search(ctx: ExecCtx, atom: Atom) -> None:

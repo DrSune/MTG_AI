@@ -1,0 +1,58 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "gadrak",
+   "real": "Gadrak, the Crown-Scourge",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "brute",
+   "name": "Brute",
+   "type": "Creature",
+   "power": 5,
+   "toughness": 5,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mentor",
+   "real": "Conclave Mentor",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "brute": true
+   },
+   "block": {
+    "mentor": "brute"
+   }
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Treasure": 1
+  },
+  "life": {
+   "0": 20,
+   "1": 22
+  },
+  "zone": {
+   "mentor": "graveyard",
+   "brute": "battlefield"
+  }
+ },
+ "notes": "HUNT H3 pair 7 (heat 2116, dies-lifesteal x end-step death census, single-death contrast). Conclave Mentor (seat 1) blocks the 5/5 Brute: takes 5, dies; 'when this creature dies, you gain life equal to its power' pays its PRINTED 2 (no buff this time - contrast conclave_mentor_x_garruk_unleashed where an enemy EoT +3/+3 was folded into the same trigger at death) -> seat 1 life 22. Brute survives unasserted on the damage ledger: marks are wiped by end_turn cleanup before the runner reads state (H3 rig law, findings doc) - survival is asserted via the zone lane instead. Gadrak (seat 0) end step on end_turn: 'create a Treasure token for each nontoken creature that died this turn' - exactly ONE died, and it belongs to the OPPONENT, but the printed census has no controller qualifier (CR 603.2): Treasure 1. Contrast pair 2 where BOTH blockers and attackers died -> Treasure 2: the two packs bracket the census count. Falsifiers: Treasure 0 (cross-controller census or end-step trigger lost), Treasure 2 (double-count), life 20 (dies trigger lost)."
+}

@@ -228,7 +228,27 @@ def _is_any_universal(sel: Selector) -> bool:
     ) and any(z.kind is ZoneKind.ANY for z in (sel.zone, *sel.zones))
 
 
-def resolve_selector(sel: Selector, ctx: ExecCtx) -> list[Handle]:
+def _emit_partition_journal(
+    ctx: ExecCtx, sel: Selector, chosen: list[Handle], journal_partition: bool
+) -> None:
+    """Journal the chosen set of a real ONE_OF/REST partition.
+
+    The row verb is the selector mode itself, not ``TARGET``: branch
+    coverage needs the chosen-cardinality evidence, while CR target
+    triggers must stay silent for choices such as "put one of them into
+    your hand". Bare test contexts without a journal stay no-op so existing
+    unit rigs continue to exercise the pure selector lane.
+    """
+    if not journal_partition or ctx.journal is None:
+        return
+    ctx.journal.emit_targeting(
+        ctx.source, ctx.controller, chosen, cause_verb=sel.mode.name
+    )
+
+
+def resolve_selector(
+    sel: Selector, ctx: ExecCtx, *, journal_partition: bool = False
+) -> list[Handle]:
     """A Selector IR -> concrete handles.
 
     ALL returns the filtered population in zone order; CHOOSE resolves the
@@ -247,6 +267,11 @@ def resolve_selector(sel: Selector, ctx: ExecCtx) -> list[Handle]:
     makes the subtraction usually a no-op). C15: an ONE_OF ask no lane
     can answer RAISES (never a default); an empty ONE_OF population
     chooses nothing (C17 clamp).
+
+    H4 Scope C: callers that are actually applying the selected set pass
+    ``journal_partition=True``. That emits audit TARGETING rows for
+    ONE_OF/REST chosen sets. Legality/query/count callers leave it false so
+    hypothetical populations never pollute the journal.
     """
     partition_window: list[Handle] | None = None
     if sel.referent is not None:
@@ -381,12 +406,17 @@ def resolve_selector(sel: Selector, ctx: ExecCtx) -> list[Handle]:
             return []
         if len(ordered) == 1:
             ctx.one_of_pick = ordered[0]  # §1.4 auto-fill: one legal answer
-            return ordered
-        vocab = tuple(str(h) for h in ordered)
-        answer = ctx.take_decision(vocab, f"one_of:{ctx.source}:{site_digest(vocab)}")
-        pick = next(h for h in ordered if str(h) == answer)
-        ctx.one_of_pick = pick
-        return [pick]
+            result = ordered
+        else:
+            vocab = tuple(str(h) for h in ordered)
+            answer = ctx.take_decision(
+                vocab, f"one_of:{ctx.source}:{site_digest(vocab)}"
+            )
+            pick = next(h for h in ordered if str(h) == answer)
+            ctx.one_of_pick = pick
+            result = [pick]
+        _emit_partition_journal(ctx, sel, result, journal_partition)
+        return result
     if sel.mode is SelectorMode.REST:
         # 14c (B-13): the deterministic complement — ``query.rest_of`` at
         # runtime, no ask (the engine takes what the ONE_OF left). Under
@@ -396,6 +426,7 @@ def resolve_selector(sel: Selector, ctx: ExecCtx) -> list[Handle]:
         ordered = sorted(candidates)
         if ctx.one_of_pick is not None:
             ordered = [h for h in ordered if h != ctx.one_of_pick]
+        _emit_partition_journal(ctx, sel, ordered, journal_partition)
         return ordered
     raise NotImplementedError(
         f"executor: SelectorMode.{sel.mode.name} designation is 12c's target prompt"

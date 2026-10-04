@@ -157,6 +157,36 @@ def test_rest_lit_on_multi_designation():
     assert match(rest, rows).status == BC.LIT
 
 
+def test_partition_modes_are_not_lumped_into_each_other():
+    rows = [
+        row(3, "TARGETING", "card:9", TAG, "ONE_OF", (TAG, "player:0")),
+        row(4, "TARGETING", "card:8", TAG, "REST", (TAG, "player:0")),
+        row(5, "TARGETING", "card:7", TAG, "REST", (TAG, "player:0")),
+    ]
+    one = branch(
+        "Selector:ONE_OF",
+        "TARGETING",
+        "designation row's chosen-set cardinality differs per branch",
+    )
+    rest = branch(
+        "Selector:REST",
+        "TARGETING",
+        "designation row's chosen-set cardinality differs per branch",
+    )
+    assert match(one, rows).status == BC.LIT
+    assert match(rest, rows).status == BC.LIT
+
+
+def test_rest_singleton_does_not_fake_one_of():
+    rows = [row(3, "TARGETING", "card:9", TAG, "REST", (TAG, "player:0"))]
+    one = branch(
+        "Selector:ONE_OF",
+        "TARGETING",
+        "designation row's chosen-set cardinality differs per branch",
+    )
+    assert match(one, rows).status == BC.DARK
+
+
 # ------------------------------------------------------------- dies lane
 
 

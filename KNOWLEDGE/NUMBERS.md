@@ -5,6 +5,37 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-10-05 (HUNT H4 — suspect fixes + `ONE_OF`/`REST` partition journaling; HEAD `10d53c6`, uncommitted)
+
+| Item | Number | Command | Note |
+|---|---|---|---|
+| scenario packs | **336/336 green** | `.venv/bin/python tools/run_scenarios.py --dir tools/scenarios` | Gadrak × Malefic Scythe now uses the new additive historical `damage_received` lane while preserving the live `damage` ledger law. |
+| suspect packs | **2/3 green** | `.venv/bin/python tools/run_scenarios.py --dir tools/audit/suspects` | Basri × Siege Striker and Garruk’s Harbinger are green; Malefic Scythe × Wildwood Scourge remains red-as-intended for the H3 EtB counters/P/T-layer bug. |
+| core suite | **2354 passed + 3 subtests** | `.venv/bin/python -m pytest MTG_bot/core -q --no-header -rf` | Includes `MTG_bot/core/test_executor_h4.py` partition-journal pins. |
+| audit suite | **62 passed** | `.venv/bin/python -m pytest tools/audit -q --no-header -rf` | Includes mode-aware `ONE_OF`/`REST` branch matcher tests. |
+| grammar | **PC-1 303/305 · PC-2 637/639 · PC-3 0 · PC-4 0 · PC-5 0.295 ms/card · PC-9 stable · PC-10 pass** | `.venv/bin/python tools/measure_grammar.py` | Δ0 vs `reports/grammar_2026-10-04.json` except PC-5 timing noise. PC-6 and PC-8 remain standing FAILs. |
+| catalog | **0/10 diverging seeds after attribution** | `.venv/bin/python tools/traces/catalog.py compare` | First compare showed seed 5 only: partition audit-row insertion at entries 201+, game length 225→230, outcome unchanged. Catalog repinned after attribution. |
+| random games | **0 crash classes**, endings **47/53**, mean **33.52** turns | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all --deck-pairs-seed 1409 --turns 60` | Report `reports/games_2026-10-04.json` modified by the games tool. |
+| branch coverage | **97 branches: 37 LIT / 13 DARK / 47 UNMATCHABLE** | `.venv/bin/python tools/audit/branch_coverage.py --quiet` | Nine branches moved `DARK -> LIT` with the new scenario corpus and mode-aware partition evidence. |
+| pair coverage | **8577 candidate pairs: 2419 tested / 6158 untested**, **33** designed packs | `.venv/bin/python tools/audit/pair_coverage.py --quiet` | No collision class has zero tested coverage. |
+| lints | pyright **0 new**, ruff **Δ0** on touched files | `pyright` + `ruff check` on touched Python files | `tools/run_scenarios.py` retains six pre-existing `Counter` type errors and one pre-existing `BLE001`. |
+
+## 2026-10-05 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.295 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0931** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
 ## 2026-10-04 (BUGCATCH B4a correction + B4b pair coverage — tools-only, no engine/scenario edits; supersedes membership/heat portions of the B4a section below)
 
 | Item | Number | Command | Note |
@@ -2948,3 +2979,5 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 
 | packs | **327/327 green** (H1 hunt +14: 12-branch verdict packs + twins; working tree also carries parallel basri_ket_x_* pair packs) | `.venv/bin/python tools/run_scenarios.py` | 2026-10-04 H1 (HEAD 88b1966): 9 GREEN, 1 SUSPECT (`suspects/garruk_s_harbinger_branch01.json` red-as-intended on its library lane), 2 FALSIFIED (Radha TOP-only land-cast + auto-filler law; Demonic Embrace r20c CR 602.3 window) — engine/goldens untouched |
 | engine | **2350 passed + 3 subtests, 0 failed** (unchanged) | `.venv/bin/python -m pytest MTG_bot/core -q` | 2026-10-04 H1 round, tools+knowledge-only diff |
+| packs | **336/336 green** (H3 hunt +9; 10th pair SUSPECT held in `suspects/malefic_scythe_x_wildwood_scourge.json`) | `.venv/bin/python tools/run_scenarios.py` | 2026-10-05 H3 (HEAD 10d53c6): 9 GREEN + 1 SUSPECT — EtB X-counters on Wildwood Scourge visible to counters lane but ABSENT from P/T layer AND combat (probe deals 1 not 2; CR 122.1c/613.3d); 2 pack bugs falsified (Houndmaster printed 2/2; trample map = excess-PINNED-to-blocker polarity); `KNOWLEDGE/2026-10-04/08-hunt-pairs-r2.md` |
+| engine | **2354 passed + 3 subtests, 0 failed** | `.venv/bin/python -m pytest MTG_bot/core -q` | 2026-10-05 H3 round: Δ+4 vs 2350 from a parallel session's tests; MTG_bot untouched by H3 |

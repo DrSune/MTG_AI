@@ -244,13 +244,23 @@ def match_branch(
 
         # --- TARGETING cardinality lanes (one_of / rest selection).
         if "chosen-set cardinality" in pred:
-            groups: dict[str, int] = {}
+            groups: dict[tuple[str, str], int] = {}
             for row in game.rows:
                 if row.kind != "TARGETING" or row.cause not in tags:
                     continue
-                groups[row.cause] = groups.get(row.cause, 0) + 1
-            sizes = set(groups.values())
+                key = (str(row.cause), row.verb)
+                groups[key] = groups.get(key, 0) + 1
             want_one = "ONE_OF" in kind
+            partition_mode = "ONE_OF" if want_one else "REST"
+            modes = {verb for (_cause, verb) in groups if verb in ("ONE_OF", "REST")}
+            if modes:
+                sizes = {
+                    size
+                    for (_cause, verb), size in groups.items()
+                    if verb == partition_mode
+                }
+            else:
+                sizes = set(groups.values())
             hit = (1 in sizes) if want_one else any(s >= 2 for s in sizes)
             if hit:
                 matched_by.append(game.source)

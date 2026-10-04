@@ -157,7 +157,12 @@ class GameEvent:
         16c keeps ONE row per dealer however the assignment splits
         (the CombatDamageEvent feed).
       * TARGETING     — ``(source_object, actor)``, subject the designated
-        object (r20b, the TargetingEvent feed).
+        object (r20b, the TargetingEvent feed). ``cause_verb == "TARGET"``
+        is the CR designation feed. ``cause_verb == "ONE_OF"`` /
+        ``"REST"`` are partition-designation audit rows: they journal the
+        chosen set for branch coverage but intentionally do not fire
+        TargetingEvent triggers, because "choose one of them" is not a
+        target designation (CR 115.4).
       * LOYALTY_ACTIVATED — ``(delta,)``, subject the permanent whose
         loyalty ability was activated, cause the activating player
         (r22c, the LoyaltyActivatedEvent feed).
@@ -336,18 +341,27 @@ class EventJournal:
         source_object: Handle,
         actor: Handle,
         designated: Sequence[Handle],
+        *,
+        cause_verb: str = "TARGET",
     ) -> None:
         """The TARGETING rows (r20b): one per designated object, Handle-
         sorted (the determinism law — designation sets are canonical order,
         mirroring declared_targets' sorted tuple). Empty designations emit
         nothing (a targetless cast/ability has no targeting event, CR
-        115.4's self-clause included)."""
+        115.4's self-clause included).
+
+        H4 Scope C adds a separate lane for ONE_OF/REST partition choices:
+        those rows use ``cause_verb="ONE_OF"`` or ``"REST"`` so branch
+        coverage can distinguish the partition cardinalities from CR target
+        designations without pretending a partition choice is a legal
+        target event.
+        """
         for target in sorted(designated):
             self._emit(
                 KIND_TARGETING,
                 target,
                 source_object,
-                "TARGET",
+                cause_verb,
                 (source_object, actor),
             )
 

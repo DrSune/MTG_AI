@@ -1,12 +1,12 @@
 {
  "meta": {
   "built_by": "BUGCATCH batch B4a \u2014 tools/audit/branch_coverage.py",
-  "date": "2026-10-04T19:43:11+00:00",
+  "date": "2026-10-04T22:40:43+00:00",
   "command": "python tools/audit/branch_coverage.py",
   "design": "KNOWLEDGE/2026-10-02/12-bugcatch-design.md \u00a7B (lit-rule) + \u00a7E (heat)",
   "evidence_lanes": {
    "pack": {
-    "green_journals": 304,
+    "green_journals": 336,
     "not_green_skipped": [],
     "law": "failing packs are skipped \u2014 a lane that cannot fail is not evidence"
    },
@@ -35,8 +35,10 @@
    "LOYALTY",
    "MILL",
    "MOVE_ZONE",
+   "ONE_OF",
    "PLAY_LAND",
    "PUT_COUNTER",
+   "REST",
    "SACRIFICE",
    "SEARCH",
    "STATE_CHECK",
@@ -82,11 +84,11 @@
  },
  "totals": {
   "branches_declared": 97,
-  "LIT": 28,
-  "DARK": 22,
+  "LIT": 37,
+  "DARK": 13,
   "UNMATCHABLE": 47,
-  "lit_in_pack_only": 17,
-  "lit_in_corpus_only": 3
+  "lit_in_pack_only": 24,
+  "lit_in_corpus_only": 4
  },
  "pc11_membership": {
   "t": 20,
@@ -271,11 +273,10 @@
    "in_pack": true,
    "in_suspect": false,
    "declared": 2,
-   "lit": 0,
-   "dark": 2,
+   "lit": 2,
+   "dark": 0,
    "unmatchable": 0,
-   "branch_coverage": 0.0,
-   "heat": 22.0
+   "branch_coverage": 1.0
   },
   "Demonic Embrace": {
    "bcs": 29,
@@ -399,11 +400,10 @@
    "in_pack": true,
    "in_suspect": false,
    "declared": 3,
-   "lit": 0,
-   "dark": 3,
+   "lit": 3,
+   "dark": 0,
    "unmatchable": 0,
-   "branch_coverage": 0.0,
-   "heat": 96.0
+   "branch_coverage": 1.0
   },
   "Garruk's Warsteed": {
    "bcs": 17,
@@ -534,11 +534,10 @@
    "in_pack": true,
    "in_suspect": false,
    "declared": 2,
-   "lit": 0,
-   "dark": 1,
+   "lit": 1,
+   "dark": 0,
    "unmatchable": 1,
-   "branch_coverage": 0.0,
-   "heat": 24.0
+   "branch_coverage": 0.5
   },
   "Liliana's Scorn": {
    "bcs": 13,
@@ -712,11 +711,10 @@
    "in_pack": true,
    "in_suspect": false,
    "declared": 3,
-   "lit": 1,
-   "dark": 2,
+   "lit": 3,
+   "dark": 0,
    "unmatchable": 0,
-   "branch_coverage": 0.333,
-   "heat": 38.0
+   "branch_coverage": 1.0
   },
   "Siege Striker": {
    "bcs": 53,
@@ -923,11 +921,11 @@
    "in_pack": true,
    "in_suspect": false,
    "declared": 2,
-   "lit": 0,
-   "dark": 2,
+   "lit": 1,
+   "dark": 1,
    "unmatchable": 0,
-   "branch_coverage": 0.0,
-   "heat": 34.0
+   "branch_coverage": 0.5,
+   "heat": 17.0
   },
   "Warden of the Woods": {
    "bcs": 11,
@@ -1212,18 +1210,17 @@
    "kind": "Selector:REST",
    "journal_kind": "TARGETING",
    "data_predicate": "designation row's chosen-set cardinality differs per branch (ONE_OF=1, REST=rest)",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
+   "status": "LIT",
+   "matched_by": [
+    "corpus:0",
+    "corpus:15"
+   ],
+   "evidence": [
+    "designation group size [2] via {('card:5', 'ONE_OF'): 1, ('card:5', 'REST'): 2}",
+    "designation group size [4] via {('card:17', 'ONE_OF'): 1, ('card:17', 'REST'): 4}"
+   ],
    "missing": "",
-   "fanout_n": 0,
-   "bcs": 11,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 11.0,
-   "printed_text_line": "Search your library for up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle."
+   "fanout_n": 0
   },
   {
    "branch_id": "cultivate:02:Selector:ONE_OF",
@@ -1231,18 +1228,19 @@
    "kind": "Selector:ONE_OF",
    "journal_kind": "TARGETING",
    "data_predicate": "designation row's chosen-set cardinality differs per branch (ONE_OF=1, REST=rest)",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
+   "status": "LIT",
+   "matched_by": [
+    "pack:cultivate.json",
+    "corpus:0",
+    "corpus:15"
+   ],
+   "evidence": [
+    "designation group size [1] via {('card:0', 'ONE_OF'): 1, ('card:0', 'REST'): 1}",
+    "designation group size [1] via {('card:5', 'ONE_OF'): 1, ('card:5', 'REST'): 2}",
+    "designation group size [1] via {('card:17', 'ONE_OF'): 1, ('card:17', 'REST'): 4}"
+   ],
    "missing": "",
-   "fanout_n": 0,
-   "bcs": 11,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 11.0,
-   "printed_text_line": "Search your library for up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle."
+   "fanout_n": 0
   },
   {
    "branch_id": "demonic_embrace:01:OptionalEffect",
@@ -1347,13 +1345,17 @@
    "data_predicate": "row for verb MOVE_ZONE present == may-accepted; absence == declined (needs a positive control lane)",
    "status": "LIT",
    "matched_by": [
-    "pack:experimental_overload.json"
+    "pack:basri_ket_x_experimental_overload.json",
+    "pack:experimental_overload.json",
+    "pack:experimental_overload_x_garruk_unleashed.json"
    ],
    "evidence": [
-    "clock=7 ZONE_CHANGE subj=card:1 cause=card:0 verb=MOVE_ZONE"
+    "clock=16 ZONE_CHANGE subj=card:1 cause=card:0 verb=MOVE_ZONE",
+    "clock=7 ZONE_CHANGE subj=card:1 cause=card:0 verb=MOVE_ZONE",
+    "clock=15 ZONE_CHANGE subj=card:5 cause=card:4 verb=MOVE_ZONE"
    ],
    "missing": "",
-   "fanout_n": 1
+   "fanout_n": 3
   },
   {
    "branch_id": "fabled_passage:01:Conditional",
@@ -1425,18 +1427,19 @@
    "kind": "Selector:REST",
    "journal_kind": "TARGETING",
    "data_predicate": "designation row's chosen-set cardinality differs per branch (ONE_OF=1, REST=rest)",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
+   "status": "LIT",
+   "matched_by": [
+    "pack:garruk_s_harbinger_branch02.json",
+    "pack:garruk_s_harbinger_branch03.json",
+    "pack:garruks_harbinger.json"
+   ],
+   "evidence": [
+    "designation group size [3] via {('card:0', 'ONE_OF'): 1, ('card:0', 'REST'): 3}",
+    "designation group size [3] via {('card:0', 'ONE_OF'): 1, ('card:0', 'REST'): 3}",
+    "designation group size [4] via {('card:0', 'REST'): 4}"
+   ],
    "missing": "",
-   "fanout_n": 0,
-   "bcs": 32,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 32.0,
-   "printed_text_line": "Hexproof from black"
+   "fanout_n": 0
   },
   {
    "branch_id": "garruk_s_harbinger:02:OptionalEffect",
@@ -1444,18 +1447,17 @@
    "kind": "OptionalEffect",
    "journal_kind": "ZONE_CHANGE",
    "data_predicate": "row for verb MOVE_ZONE present == may-accepted; absence == declined (needs a positive control lane)",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
+   "status": "LIT",
+   "matched_by": [
+    "pack:garruk_s_harbinger_branch02.json",
+    "pack:garruk_s_harbinger_branch03.json"
+   ],
+   "evidence": [
+    "clock=9 ZONE_CHANGE subj=card:3 cause=card:0 verb=MOVE_ZONE",
+    "clock=9 ZONE_CHANGE subj=card:3 cause=card:0 verb=MOVE_ZONE"
+   ],
    "missing": "",
-   "fanout_n": 0,
-   "bcs": 32,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 32.0,
-   "printed_text_line": "Hexproof from black"
+   "fanout_n": 2
   },
   {
    "branch_id": "garruk_s_harbinger:03:Selector:ONE_OF",
@@ -1463,18 +1465,17 @@
    "kind": "Selector:ONE_OF",
    "journal_kind": "TARGETING",
    "data_predicate": "designation row's chosen-set cardinality differs per branch (ONE_OF=1, REST=rest)",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
+   "status": "LIT",
+   "matched_by": [
+    "pack:garruk_s_harbinger_branch02.json",
+    "pack:garruk_s_harbinger_branch03.json"
+   ],
+   "evidence": [
+    "designation group size [1] via {('card:0', 'ONE_OF'): 1, ('card:0', 'REST'): 3}",
+    "designation group size [1] via {('card:0', 'ONE_OF'): 1, ('card:0', 'REST'): 3}"
+   ],
    "missing": "",
-   "fanout_n": 0,
-   "bcs": 32,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 32.0,
-   "printed_text_line": "Hexproof from black"
+   "fanout_n": 0
   },
   {
    "branch_id": "garruk_s_warsteed:01:OptionalEffect",
@@ -1524,15 +1525,20 @@
    "data_predicate": "row for verb PUT_COUNTER present iff CONTROLLER_COUNT_GT & CONTROLLER_IS & TYPE_EQ(Creature)",
    "status": "LIT",
    "matched_by": [
+    "pack:alpine_houndmaster_x_garruk_unleashed.json",
+    "pack:conclave_mentor_x_garruk_unleashed.json",
+    "pack:experimental_overload_x_garruk_unleashed.json",
     "pack:garruk_minus_two.json",
-    "pack:garruk_unleashed.json"
+    "pack:garruk_unleashed.json",
+    "pack:garruk_unleashed_x_malefic_scythe.json"
    ],
    "evidence": [
     "clock=5 COUNTER_PLACED subj=card:0 cause=card:0 verb=PUT_COUNTER",
-    "clock=3 COUNTER_PLACED subj=card:0 cause=card:0 verb=PUT_COUNTER"
+    "clock=3 COUNTER_PLACED subj=card:0 cause=card:0 verb=PUT_COUNTER",
+    "clock=5 COUNTER_PLACED subj=card:0 cause=card:0 verb=PUT_COUNTER"
    ],
    "missing": "",
-   "fanout_n": 2
+   "fanout_n": 6
   },
   {
    "branch_id": "garruk_unleashed_emblem:01:OptionalEffect",
@@ -1710,18 +1716,15 @@
    "kind": "Conditional",
    "journal_kind": "ZONE_CHANGE",
    "data_predicate": "row for verb CREATE_TOKEN present iff MAY_DONE",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
+   "status": "LIT",
+   "matched_by": [
+    "pack:liliana_s_devotee_branch01.json"
+   ],
+   "evidence": [
+    "clock=7 ZONE_CHANGE subj=card:15 cause=card:0 verb=CREATE_TOKEN"
+   ],
    "missing": "",
-   "fanout_n": 0,
-   "bcs": 24,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 24.0,
-   "printed_text_line": "Zombies you control get +1/+0."
+   "fanout_n": 1
   },
   {
    "branch_id": "liliana_s_devotee:02:OptionalEffect",
@@ -1978,7 +1981,7 @@
    ],
    "evidence": [
     "clock=15 CARD_DRAWN subj=card:6 cause=card:0 verb=DRAW",
-    "clock=283 CARD_DRAWN subj=card:24 cause=player:0 verb=DRAW",
+    "clock=288 CARD_DRAWN subj=card:24 cause=player:0 verb=DRAW",
     "clock=642 CARD_DRAWN subj=card:108 cause=card:72 verb=DRAW"
    ],
    "missing": "",
@@ -2024,13 +2027,17 @@
    "data_predicate": "row for verb MOVE_ZONE present iff CAST_THIS_TURN_FROM",
    "status": "LIT",
    "matched_by": [
-    "pack:see_the_truth.json"
+    "pack:see_the_truth.json",
+    "pack:see_the_truth_branch02.json",
+    "pack:see_the_truth_branch03.json"
    ],
    "evidence": [
-    "clock=5 ZONE_CHANGE subj=card:6 cause=card:0 verb=MOVE_ZONE"
+    "clock=6 ZONE_CHANGE subj=card:6 cause=card:0 verb=MOVE_ZONE",
+    "clock=6 ZONE_CHANGE subj=card:4 cause=card:0 verb=MOVE_ZONE",
+    "clock=6 ZONE_CHANGE subj=card:6 cause=card:0 verb=MOVE_ZONE"
    ],
    "missing": "",
-   "fanout_n": 1
+   "fanout_n": 3
   },
   {
    "branch_id": "see_the_truth:02:Selector:REST",
@@ -2038,18 +2045,19 @@
    "kind": "Selector:REST",
    "journal_kind": "TARGETING",
    "data_predicate": "designation row's chosen-set cardinality differs per branch (ONE_OF=1, REST=rest)",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
+   "status": "LIT",
+   "matched_by": [
+    "pack:see_the_truth.json",
+    "pack:see_the_truth_branch02.json",
+    "pack:see_the_truth_branch03.json"
+   ],
+   "evidence": [
+    "designation group size [2] via {('card:0', 'ONE_OF'): 1, ('card:0', 'REST'): 2}",
+    "designation group size [2] via {('card:0', 'ONE_OF'): 1, ('card:0', 'REST'): 2}",
+    "designation group size [2] via {('card:0', 'ONE_OF'): 1, ('card:0', 'REST'): 2}"
+   ],
    "missing": "",
-   "fanout_n": 0,
-   "bcs": 19,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 19.0,
-   "printed_text_line": "Look at the top three cards of your library. Put one of those cards into your hand and the rest on the bottom of your library in any order. If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead."
+   "fanout_n": 0
   },
   {
    "branch_id": "see_the_truth:03:Selector:ONE_OF",
@@ -2057,18 +2065,19 @@
    "kind": "Selector:ONE_OF",
    "journal_kind": "TARGETING",
    "data_predicate": "designation row's chosen-set cardinality differs per branch (ONE_OF=1, REST=rest)",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
+   "status": "LIT",
+   "matched_by": [
+    "pack:see_the_truth.json",
+    "pack:see_the_truth_branch02.json",
+    "pack:see_the_truth_branch03.json"
+   ],
+   "evidence": [
+    "designation group size [1] via {('card:0', 'ONE_OF'): 1, ('card:0', 'REST'): 2}",
+    "designation group size [1] via {('card:0', 'ONE_OF'): 1, ('card:0', 'REST'): 2}",
+    "designation group size [1] via {('card:0', 'ONE_OF'): 1, ('card:0', 'REST'): 2}"
+   ],
    "missing": "",
-   "fanout_n": 0,
-   "bcs": 19,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 19.0,
-   "printed_text_line": "Look at the top three cards of your library. Put one of those cards into your hand and the rest on the bottom of your library in any order. If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead."
+   "fanout_n": 0
   },
   {
    "branch_id": "siege_striker:01:OptionalEffect",
@@ -2389,18 +2398,15 @@
    "kind": "Selector:ONE_OF",
    "journal_kind": "TARGETING",
    "data_predicate": "designation row's chosen-set cardinality differs per branch (ONE_OF=1, REST=rest)",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
+   "status": "LIT",
+   "matched_by": [
+    "pack:waker_of_waves_activation.json"
+   ],
+   "evidence": [
+    "designation group size [1] via {('card:0', 'ONE_OF'): 1, ('card:0', 'REST'): 1}"
+   ],
    "missing": "",
-   "fanout_n": 0,
-   "bcs": 17,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 17.0,
-   "printed_text_line": "Creatures your opponents control get -1/-0."
+   "fanout_n": 0
   },
   {
    "branch_id": "warden_of_the_woods:01:OptionalEffect",
@@ -2511,63 +2517,6 @@
    "printed_text_line": "[+1]: Chandra deals 3 damage to each opponent."
   },
   {
-   "branch_id": "garruk_s_harbinger:01:Selector:REST",
-   "card": "Garruk's Harbinger",
-   "kind": "Selector:REST",
-   "journal_kind": "TARGETING",
-   "data_predicate": "designation row's chosen-set cardinality differs per branch (ONE_OF=1, REST=rest)",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
-   "missing": "",
-   "fanout_n": 0,
-   "bcs": 32,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 32.0,
-   "printed_text_line": "Hexproof from black"
-  },
-  {
-   "branch_id": "garruk_s_harbinger:02:OptionalEffect",
-   "card": "Garruk's Harbinger",
-   "kind": "OptionalEffect",
-   "journal_kind": "ZONE_CHANGE",
-   "data_predicate": "row for verb MOVE_ZONE present == may-accepted; absence == declined (needs a positive control lane)",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
-   "missing": "",
-   "fanout_n": 0,
-   "bcs": 32,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 32.0,
-   "printed_text_line": "Hexproof from black"
-  },
-  {
-   "branch_id": "garruk_s_harbinger:03:Selector:ONE_OF",
-   "card": "Garruk's Harbinger",
-   "kind": "Selector:ONE_OF",
-   "journal_kind": "TARGETING",
-   "data_predicate": "designation row's chosen-set cardinality differs per branch (ONE_OF=1, REST=rest)",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
-   "missing": "",
-   "fanout_n": 0,
-   "bcs": 32,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 32.0,
-   "printed_text_line": "Hexproof from black"
-  },
-  {
    "branch_id": "radha_heart_of_keld:01:OptionalEffect",
    "card": "Radha, Heart of Keld",
    "kind": "OptionalEffect",
@@ -2604,63 +2553,6 @@
    "anomaly_hits": 0,
    "heat": 29.0,
    "printed_text_line": "Enchant creature"
-  },
-  {
-   "branch_id": "liliana_s_devotee:01:Conditional",
-   "card": "Liliana's Devotee",
-   "kind": "Conditional",
-   "journal_kind": "ZONE_CHANGE",
-   "data_predicate": "row for verb CREATE_TOKEN present iff MAY_DONE",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
-   "missing": "",
-   "fanout_n": 0,
-   "bcs": 24,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 24.0,
-   "printed_text_line": "Zombies you control get +1/+0."
-  },
-  {
-   "branch_id": "see_the_truth:02:Selector:REST",
-   "card": "See the Truth",
-   "kind": "Selector:REST",
-   "journal_kind": "TARGETING",
-   "data_predicate": "designation row's chosen-set cardinality differs per branch (ONE_OF=1, REST=rest)",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
-   "missing": "",
-   "fanout_n": 0,
-   "bcs": 19,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 19.0,
-   "printed_text_line": "Look at the top three cards of your library. Put one of those cards into your hand and the rest on the bottom of your library in any order. If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead."
-  },
-  {
-   "branch_id": "see_the_truth:03:Selector:ONE_OF",
-   "card": "See the Truth",
-   "kind": "Selector:ONE_OF",
-   "journal_kind": "TARGETING",
-   "data_predicate": "designation row's chosen-set cardinality differs per branch (ONE_OF=1, REST=rest)",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
-   "missing": "",
-   "fanout_n": 0,
-   "bcs": 19,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 19.0,
-   "printed_text_line": "Look at the top three cards of your library. Put one of those cards into your hand and the rest on the bottom of your library in any order. If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead."
   },
   {
    "branch_id": "idol_of_endurance:01:OptionalEffect",
@@ -2739,25 +2631,6 @@
    "printed_text_line": "Creatures your opponents control get -1/-0."
   },
   {
-   "branch_id": "waker_of_waves:02:Selector:ONE_OF",
-   "card": "Waker of Waves",
-   "kind": "Selector:ONE_OF",
-   "journal_kind": "TARGETING",
-   "data_predicate": "designation row's chosen-set cardinality differs per branch (ONE_OF=1, REST=rest)",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
-   "missing": "",
-   "fanout_n": 0,
-   "bcs": 17,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 17.0,
-   "printed_text_line": "Creatures your opponents control get -1/-0."
-  },
-  {
    "branch_id": "fungal_rebirth:01:Conditional",
    "card": "Fungal Rebirth",
    "kind": "Conditional",
@@ -2775,44 +2648,6 @@
    "anomaly_hits": 0,
    "heat": 16.0,
    "printed_text_line": "Return target permanent card from your graveyard to your hand. If a creature died this turn, create two 1/1 green Saproling creature tokens."
-  },
-  {
-   "branch_id": "cultivate:01:Selector:REST",
-   "card": "Cultivate",
-   "kind": "Selector:REST",
-   "journal_kind": "TARGETING",
-   "data_predicate": "designation row's chosen-set cardinality differs per branch (ONE_OF=1, REST=rest)",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
-   "missing": "",
-   "fanout_n": 0,
-   "bcs": 11,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 11.0,
-   "printed_text_line": "Search your library for up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle."
-  },
-  {
-   "branch_id": "cultivate:02:Selector:ONE_OF",
-   "card": "Cultivate",
-   "kind": "Selector:ONE_OF",
-   "journal_kind": "TARGETING",
-   "data_predicate": "designation row's chosen-set cardinality differs per branch (ONE_OF=1, REST=rest)",
-   "status": "DARK",
-   "matched_by": [],
-   "evidence": [],
-   "missing": "",
-   "fanout_n": 0,
-   "bcs": 11,
-   "collision_flags": [],
-   "classes": [],
-   "class_weight": 0,
-   "anomaly_hits": 0,
-   "heat": 11.0,
-   "printed_text_line": "Search your library for up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle."
   },
   {
    "branch_id": "tavern_swindler:01:Conditional",
@@ -2855,14 +2690,6 @@
  ],
  "heat_rollup": [
   {
-   "card": "Garruk's Harbinger",
-   "bcs": 32,
-   "dark": 3,
-   "mean_branch_heat": 32.0,
-   "heat": 96.0,
-   "collision_flags": []
-  },
-  {
    "card": "Chandra, Heart of Fire",
    "bcs": 37,
    "dark": 2,
@@ -2879,23 +2706,7 @@
    "collision_flags": []
   },
   {
-   "card": "See the Truth",
-   "bcs": 19,
-   "dark": 2,
-   "mean_branch_heat": 19.0,
-   "heat": 38.0,
-   "collision_flags": []
-  },
-  {
    "card": "Jeskai Elder",
-   "bcs": 17,
-   "dark": 2,
-   "mean_branch_heat": 17.0,
-   "heat": 34.0,
-   "collision_flags": []
-  },
-  {
-   "card": "Waker of Waves",
    "bcs": 17,
    "dark": 2,
    "mean_branch_heat": 17.0,
@@ -2919,23 +2730,15 @@
    "collision_flags": []
   },
   {
-   "card": "Liliana's Devotee",
-   "bcs": 24,
-   "dark": 1,
-   "mean_branch_heat": 24.0,
-   "heat": 24.0,
-   "collision_flags": []
-  },
-  {
-   "card": "Cultivate",
-   "bcs": 11,
-   "dark": 2,
-   "mean_branch_heat": 11.0,
-   "heat": 22.0,
-   "collision_flags": []
-  },
-  {
    "card": "Idol of Endurance",
+   "bcs": 17,
+   "dark": 1,
+   "mean_branch_heat": 17.0,
+   "heat": 17.0,
+   "collision_flags": []
+  },
+  {
+   "card": "Waker of Waves",
    "bcs": 17,
    "dark": 1,
    "mean_branch_heat": 17.0,

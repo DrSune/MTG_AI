@@ -1,5 +1,13 @@
 # PITFALLS — standing traps (each dated; newest first)
 
+## 2026-10-05
+- **[Scenario `damage` is live-ledger truth; use `damage_received` for historical combat proof.]** `expect["damage"]` reads the executor's live damage ledger, which `end_turn()` cleanup clears. A pack that survives combat but asserts post-cleanup damage needs the additive `expect["damage_received"]` lane, which sums historical `KIND_DAMAGE` rows with `subject.namespace == "card"`.
+- **[Partition `TARGETING` rows are audit evidence, not CR target designation.]** `ONE_OF` and `REST` selectors may emit `TARGETING` journal rows with `cause_verb="ONE_OF"` or `cause_verb="REST"`, but `TargetingEvent` triggers match only `cause_verb == "TARGET"`. Query, legality, and count resolution must not journal partition choices; only real partition-applying verbs pass `journal_partition=True`.
+- **[Branch matcher must filter partition rows by selector mode.]** `ONE_OF` and `REST` evidence is grouped by `(row.cause, row.verb)` and then filtered against the requested selector mode. A singleton `REST` complement must never be allowed to fake a lit `ONE_OF` branch.
+- **[C2 source-referent selectors need the neutral zone, not battlefield.]** A selector with `referent="source"` must use `Zone(ZoneKind.ANY, ControllerRef.ANY)` in `__post_init__`; using battlefield-only zones fails with `C2: referent pin requires a neutral zone` even when the card is on the battlefield.
+- **[A narrow anaphoric `REVEAL` inside an open `LOOK_AT` window must not overwrite the wider population.]** Garruk's Harbinger regressed when a later `REVEAL count=1` replaced the wider look window, collapsing `ONE_OF` and making `REST` resolve empty. Look-window updates are population-preserving, not replace-the-window.
+- **[Suspect directories can be intentionally red.]** The scenario gate scans only `tools/scenarios`; `tools/audit/suspects` is an adjudication lane. `2/3` there is the correct current state while Malefic Scythe × Wildwood Scourge remains a pinned H3 bug.
+
 ## 2026-10-01
 - **[18b designation asks consume the scenario `decisions` queue in ARRIVAL
   order — and designation asks fire BEFORE the may-offer] (CR 601.2c/603.1
@@ -871,3 +879,20 @@
   (6) **Crash Through** draws exactly ONE card despite a doubled CARD_DRAWN
   journal pair (running-count rows `[…,1]` then `[…,2]`) — count hand cards,
   not journal rows. (`KNOWLEDGE/2026-10-04/05-hunt-h1-findings.md`.)
+- **H3 scenario-rig laws** (2026-10-05, `KNOWLEDGE/2026-10-04/08-hunt-pairs-r2.md`):
+  (1) **Auto damage ledger** — run_scenarios asserts the final damage-marks
+  ledger even when `damage` is omitted from `expect`; omission means "expect
+  EMPTY". Packs ending mid-combat with marks on survivors must assert the
+  marks or dance past EoT. (2) **Trample map polarity** — the `trample` lane
+  answers ask `trample:<card>:<slot>:<turn>` AFTER lethal coverage is
+  reserved; the value is the EXCESS PINNED TO THAT BLOCKER SLOT, the
+  defending player takes the remainder (`[0]` = route all excess face).
+  (3) **Summoning sickness silently skips attacks** — cast→combat in one
+  window deals nothing and asks nothing (a probe "passes" vacuously); probe
+  attack damage only after a full end_turn/advance_turn dance. (4) **X-cast
+  without `"x"`** on a variable-spell card is an illegal cast: the spell
+  wastes to graveyard with no error beyond the zone lane. (5) **Divergent
+  pairs are STAGED OUT of the gate** — suspects live in
+  `tools/audit/suspects/` as scenario JSON + `status`/`finding` fields
+  pinning the CR values (red-as-intended); gate default scans only
+  `tools/scenarios`.

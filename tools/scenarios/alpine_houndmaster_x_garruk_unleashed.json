@@ -1,0 +1,84 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "garruk",
+   "real": "Garruk, Unleashed",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "h",
+   "real": "Alpine Houndmaster",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "h1",
+   "name": "Hound",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "h2",
+   "name": "Hound",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "garruk",
+   "set": 6
+  },
+  {
+   "op": "activate",
+   "key": "garruk",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "h": true,
+    "h1": true,
+    "h2": true
+   }
+  }
+ ],
+ "expect": {
+  "counters": {
+   "garruk": {
+    "LOYALTY": 5
+   }
+  },
+  "tokens": {
+   "Beast": 1
+  },
+  "life": {
+   "0": 14,
+   "1": 20
+  },
+  "zone": {
+   "h": "battlefield"
+  }
+ },
+ "notes": "HUNT H3 pair 3 (heat 2214, post-creation census ordering x attack X-census). Garruk, Unleashed (seat 0) -2: printed order is CREATE the 3/3 Beast token, THEN 'if an opponent controls more creatures than you, put a loyalty counter on Garruk' - the census must read POST-Beast counts (CR 603.4 ordered instructions in one ability resolution): seat 1 = Houndmaster + 2 Hounds = 3 > seat 0 = Garruk + Beast = 2 -> TRUE branch, loyalty 6-2+1 = 5 (the FALSE branch is lit by garruk_unleashed_x_rin_and_seri). Seat 1's window after the dance: Alpine Houndmaster attacks with exactly two other Hounds: 'whenever this creature attacks, it gets +X/+0 where X is the number of other attacking creatures' -> X = 2 (H2 rig law: attacking census, alpine_houndmaster_x_basri_ket precedent, which pins the engine's printed base as 2/2: '2 base + counter + census'). No legal blockers - a planeswalker is not a creature (CR 509.1a) - so (2+2) + 1 + 1 = 6 face: seat 0 life 14. Falsifiers: loyalty 4 (census fired PRE-creation or bonus branch dead), Beast 0 (token step of the -2 lost), life 16 (attack census X=0 - not folded into face damage)."
+}
