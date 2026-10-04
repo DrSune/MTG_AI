@@ -1,0 +1,70 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "basri",
+   "real": "Basri Ket",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wolf",
+   "name": "Wolf",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g",
+   "real": "Elder Gargaroth",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "wolf": true
+   },
+   "block": {
+     "g": "wolf"
+   }
+  }
+ ],
+ "expect": {
+  "damage": {
+   "g": 2
+  },
+  "tokens": {
+   "Soldier": 1,
+   "Beast": 1
+  },
+  "zone": {
+   "wolf": "graveyard",
+   "g": "battlefield"
+  },
+  "counters": {
+   "basri": {
+    "LOYALTY": 1
+   }
+  },
+  "life": {
+   "0": 20,
+   "1": 19
+  }
+ },
+ "notes": "HUNT H2 pair 7 (heat 2660, nontoken-census recursion + attack/block branch). Basri -2 armed; Wolf attacks -> the -2 trigger's census 'whenever one or more NONTOKEN creatures attack, create THAT MANY' sees exactly ONE nontoken attacker (the Soldier token it creates also attacks, tapped, but must NOT inflate or re-fire the census - token-exclusion branch, CR 603.3 watches the declare-attackers event only + printed 'nontoken', CR 603.2). Elder Gargaroth (seat 1) blocks: its BLOCK branch of 'attacks or blocks, choose one' fires (default first mode = create 3/3 Beast token, elder_gargaroth precedent). Gargaroth's printed trample is inert while blocking (CR 702.8a applies to attacking creatures) -> seat 0 takes nothing; Wolf takes all 6 and dies (CR 704.5s); the unblocked 1/1 Soldier ticks seat 1 for 1. Damage ledger shows only the surviving Gargaroth's 2 marks (the 16a mark ledger resets with the dying creature). Basri loyalty 3-2=1. Tokens: Soldier 1 (seat 0's, keyless) + Beast 1 (seat 1's)."
+}

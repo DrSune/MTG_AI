@@ -1,0 +1,62 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "d",
+   "real": "Liliana's Devotee",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "z",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s",
+   "name": "Ripper",
+   "type_line": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "cmc": 3,
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 2,
+   "C": 2,
+   "R": 2,
+   "G": 2,
+   "U": 2,
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "s",
+   "target": "z",
+   "amount": 3,
+   "controller": 0
+  },
+  {
+   "op": "end_turn",
+   "seat": 0,
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Zombie": 1
+  }
+ },
+ "notes": "Branch liliana_s_devotee:01 (Conditional, heat 24). deal_damage kills the Walking Corpse (CREATURE_DIES row), the END_TURN trigger offers PAY {1}{B} (real fire/skip ask on the provider - ASKS-visible), the pack FIRES (mana lane pays), and the Conditional MAY_DONE true-branch mints the 2/2 Zombie keylessly (ZONE_CHANGE null->battlefield cause card:0) - the tokens lane pins it. Twin: ..._twin.json skips -> tokens 0."
+}

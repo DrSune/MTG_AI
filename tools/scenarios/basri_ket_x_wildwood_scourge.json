@@ -1,0 +1,83 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "mana": {
+  "1": {
+   "C": 4,
+   "G": 4
+  }
+ },
+ "cards": [
+  {
+   "key": "scourge",
+   "real": "Wildwood Scourge",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "prey",
+   "name": "Prey",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "basri",
+   "real": "Basri Ket",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "cast",
+   "key": "scourge",
+   "real": "Wildwood Scourge",
+   "controller": 1,
+   "x": 1
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "prey"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "scourge": {
+    "PLUS_1_PLUS_1": 2
+   },
+   "prey": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "basri": {
+    "LOYALTY": 4
+   }
+  },
+  "power": {
+   "prey": 3
+  },
+  "zone": {
+   "scourge": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "HUNT H2 pair 3 (heat 3080, grant-vs-consumer across seats / trigger-event census). Seat 1's Wildwood Scourge enters with X=1 counters (r23a etb_x lane). ENEMY Basri (seat 0) +1 puts a +1/+1 counter on seat 1's OWN non-Hydra Prey. Scourge's printed trigger: 'Whenever one or more +1/+1 counters are put on another non-Hydra creature you control, put a +1/+1 counter on this creature' — CR 603.2 watches the EVENT (a counter was put), with NO requirement that you caused it; 'another' excludes only Scourge itself (CR 603.2/121.2). Expected: Scourge rides to 2 counters (3/3), Prey 3 power, Basri loyalty 4. If the engine gates the trigger on the counter-placer's identity it stays at 1 -> SUSPECT."
+}

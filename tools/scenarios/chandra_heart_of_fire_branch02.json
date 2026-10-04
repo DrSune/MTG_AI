@@ -1,0 +1,65 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ch",
+   "real": "Chandra, Heart of Fire",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ct",
+   "real": "Crash Through",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "C": 10,
+   "B": 10,
+   "G": 10,
+   "U": 10,
+   "W": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "ch",
+   "set": 10,
+   "seat": 0
+  },
+  {
+   "op": "activate",
+   "key": "ch",
+   "idx": 3,
+   "seat": 0
+  },
+  {
+   "op": "activate",
+   "key": "ch",
+   "idx": 4,
+   "seat": 0,
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 20
+  },
+  "zone": {
+   "ct": "graveyard"
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "Branch chandra_heart_of_fire:02 (ultimate OptionalEffect permission, heat 37). Same -9 exiling as branch01, but the idx4 (ultimate) permission node FIRES and CASTs Crash Through from exile: CAST row + hand 2. Twin skips (exile stays, hand 0)."
+}

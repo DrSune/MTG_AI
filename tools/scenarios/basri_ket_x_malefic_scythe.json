@@ -1,0 +1,87 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "mana": {
+  "1": {
+   "C": 4
+  }
+ },
+ "cards": [
+  {
+   "key": "scythe",
+   "real": "Malefic Scythe",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "brute",
+   "name": "Brute",
+   "power": 5,
+   "toughness": 5,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "basri",
+   "real": "Basri Ket",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "scythe"
+  },
+  {
+   "op": "activate",
+   "key": "scythe",
+   "idx": 3,
+   "seat": 1,
+   "targets": [
+    "brute"
+   ]
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "brute"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "brute": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "scythe": {
+    "SOUL": 1
+   },
+   "basri": {
+    "LOYALTY": 4
+   }
+  },
+  "power": {
+   "brute": 7
+  },
+  "toughness": {
+   "brute": 7
+  },
+  "battlefield_keywords": {
+   "Brute": [
+    "INDESTRUCTIBLE"
+   ]
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "HUNT H2 pair 2 (heat 3430, pt_layers — counter census x counter fold on ONE creature). Seat 1's Malefic Scythe enters with a soul counter (EtBState) and equips its Brute: 'Equipped creature gets +1/+1 for each soul counter' — a for-each-counter census static (malefic_scythe precedent: scales live). Enemy Basri (seat 0) +1 designates that SAME opposing Brute (printed 'up to one target creature', unrestricted). Expected layers math (CR 613.3f layer, counters 122.1c, timestamps 613.7a): 5/5 + 1 soul static + 1 counter = 7/7, and Basri's second clause stamps INDESTRUCTIBLE (the 21a-fixed keyword lane). Basri's counter landing on an opponent's creature is legal designation (CR 601.2b — the spell/ability's filter decides, and it says creature)."
+}

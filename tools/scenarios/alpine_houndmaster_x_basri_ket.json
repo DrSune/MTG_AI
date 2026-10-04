@@ -1,0 +1,78 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "h",
+   "real": "Alpine Houndmaster",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "boar",
+   "name": "Boar",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "basri",
+   "real": "Basri Ket",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 1,
+   "targets": [
+    "h"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "h": true,
+    "boar": true
+   }
+  }
+ ],
+ "expect": {
+  "counters": {
+   "h": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "basri": {
+    "LOYALTY": 4
+   }
+  },
+  "power": {
+   "h": 4
+  },
+  "toughness": {
+   "h": 3
+  },
+  "battlefield_keywords": {
+   "Alpine Houndmaster": [
+    "INDESTRUCTIBLE"
+   ]
+  },
+  "life": {
+   "0": 20,
+   "1": 14
+  },
+  "zone": {
+   "h": "battlefield",
+   "boar": "battlefield"
+  }
+ },
+ "notes": "HUNT H2 pair 4 (heat 2870, x_census x pt_layers). Enemy Basri (seat 1) +1 stamps the opposing Alpine Houndmaster with a counter (+ indestructible, printed clause). Houndmaster then attacks with exactly one other creature: its own trigger 'gets +X/+0 where X is the number of other attacking creatures' — the attacking-census must count Boar (X=1) and STACK onto the counter layer: 2 base + 1 counter (CR 122.1c) + 1 census static = power 4, toughness 3 (counter only, the census is +X/+0). Combat sends 4 + 2 = 6 to seat 1 (life 14). The counter must not perturb the X census (count is creatures, not power)."
+}

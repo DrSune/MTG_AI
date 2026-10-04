@@ -1,0 +1,104 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "eo",
+   "real": "Experimental Overload",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "mine",
+   "name": "Shock",
+   "type": "Instant",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "theirs",
+   "name": "Shock",
+   "type": "Instant",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "basri",
+   "real": "Basri Ket",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wolf",
+   "name": "Wolf",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "1": {
+   "U": 3,
+   "R": 3
+  },
+  "0": {
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "wolf"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "cast",
+   "real": "Experimental Overload",
+   "key": "eo",
+   "controller": 1,
+   "decisions": [
+    "Shock"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "mine": "hand",
+   "theirs": "graveyard",
+   "eo": "exile"
+  },
+  "tokens": {
+   "Weird": 1
+  },
+  "counters": {
+   "wolf": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "basri": {
+    "LOYALTY": 4
+   }
+  },
+  "power": {
+   "wolf": 3
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "HUNT H2 pair 8 (heat 2660, controller-perspective graveyard census across seats). Printed: {2}{U}{R}, 'Create an X/X blue and red Weird token where X is the number of instant and sorcery cards in YOUR graveyard. Then you may return an instant or sorcery card from a graveyard to your hand. Exile Experimental Overload.' Seat 1 casts on its own turn (turn dance); the return designation 'Shock' is ambiguous by NAME between seat 1's Shock and seat 0's identically-named Shock - the engine returned the CASTER'S Shock and left seat 0's untouched (CR 401.2 + the compiled return selector's controller filter). The X-census value (1/1 vs 2/2) is unobservable under the keyless-mint law (tokens have no pack key, hence no PT lane); exactly one Weird token record is asserted. Spell self-exiles per printed text. Basri (seat 0) +1 on own Wolf rides window one as the counter-vs-token-mint coexistence witness."
+}

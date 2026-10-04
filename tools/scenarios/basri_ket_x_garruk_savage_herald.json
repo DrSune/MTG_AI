@@ -1,0 +1,117 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "herald",
+   "real": "Garruk, Savage Herald",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "boar",
+   "name": "Boar",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "wall",
+   "name": "Guard Wall",
+   "power": 0,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "basri",
+   "real": "Basri Ket",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "wall"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "loyalty",
+   "key": "herald",
+   "set": 7
+  },
+  {
+   "op": "activate",
+   "key": "herald",
+   "idx": 2,
+   "seat": 1
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "boar": true
+   },
+   "block": {
+    "wall": "boar"
+   },
+   "policy": {
+    "boar": "AS_BLOCKED"
+   }
+  }
+ ],
+ "expect": {
+  "policy_asks": {
+   "boar": "AS_BLOCKED,UNBLOCKED"
+  },
+  "blocked": {
+   "boar": [
+    "wall"
+   ]
+  },
+  "counters": {
+   "wall": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "basri": {
+    "LOYALTY": 4
+   }
+  },
+  "damage": {
+   "boar": 1,
+   "wall": 2
+  },
+  "power": {
+   "wall": 1
+  },
+  "toughness": {
+   "wall": 4
+  },
+  "zone": {
+   "wall": "battlefield",
+   "boar": "battlefield",
+   "herald": "graveyard"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "HUNT H2 pair 6 (heat 2730, grant-vs-consumer x counter->damage-fold x SBA). Seat 1's Garruk, Savage Herald -7 (loyalty seeded 7) grants seat 1's creatures the assign-as-though-unblocked grant; the policy ask APPEARS on the blocked attacker (grant has a consumer; dead-keyword class would show no ask) - herald_assigns_unblocked precedent. The answer here is AS_BLOCKED: 2 damage routes to the blocking Guard Wall, whose toughness is 3 + Basri's enemy-stamped counter = 4 (CR 122.1c folds before the lethal check CR 704.5s) -> SURVIVES. Same counter lifts the Wall's printed 0 power to 1 (CR 122.1c is +1/+1, not toughness-only): the 2/2 Boar takes 1 and lives. Herald at 0 loyalty dies to the SBA (CR 704.5k) once -7 resolves, but its EoT grant persists independently of its source (CR 611.2a) - the ask still fired. Basri loyalty 3+1=4."
+}

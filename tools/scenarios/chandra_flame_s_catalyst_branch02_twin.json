@@ -1,0 +1,53 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cf",
+   "real": "Chandra, Flame's Catalyst",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ct",
+   "real": "Crash Through",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "C": 10,
+   "B": 10,
+   "G": 10,
+   "U": 10,
+   "W": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "cf",
+   "idx": 4,
+   "seat": 0,
+   "decisions": [
+    "skip"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 20
+  },
+  "zone": {
+   "ct": "hand"
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "Negative twin of chandra_flame_s_catalyst_branch02: the free-cast offer SKIPs - Crash Through stays in hand (zone + hand lanes), no CAST row."
+}

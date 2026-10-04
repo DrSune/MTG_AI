@@ -1,0 +1,62 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "d",
+   "real": "Liliana's Devotee",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "z",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s",
+   "name": "Ripper",
+   "type_line": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "cmc": 3,
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 2,
+   "C": 2,
+   "R": 2,
+   "G": 2,
+   "U": 2,
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "s",
+   "target": "z",
+   "amount": 3,
+   "controller": 0
+  },
+  {
+   "op": "end_turn",
+   "seat": 0,
+   "decisions": [
+    "skip"
+   ]
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Zombie": 0
+  }
+ },
+ "notes": "Negative twin of liliana_s_devotee_branch01: the {1}{B} offer SKIPs, the Conditional false-branch creates nothing (tokens 0). Same death, same seed - the only delta is the decision."
+}

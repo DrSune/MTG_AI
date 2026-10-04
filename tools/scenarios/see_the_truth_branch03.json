@@ -1,0 +1,48 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "See the Truth",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "See the Truth",
+   "key": "sp",
+   "decisions": [
+    "card:6"
+   ]
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Library 4",
+    "Library 3"
+   ]
+  }
+ },
+ "notes": "Branch see_the_truth:03 (Selector:ONE_OF, heat 19). Differentiated pick: card:6 (Library 5, the TOP card) is designated into hand and the REST {Library 4, Library 3} sinks to the bottom - the library lane proves the pick was the designated ONE_OF, not a constant (compare branch02's lane byte-for-byte: only the pick changes, two slots move)."
+}

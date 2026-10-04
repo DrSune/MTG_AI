@@ -1,0 +1,41 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "h",
+   "real": "Garruk's Harbinger",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "h": true
+   },
+   "may": {
+    "h": true
+   },
+   "decisions": [
+    "card:3"
+   ]
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 16
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "Branch garruk_s_harbinger:02 (OptionalEffect accept side, heat 32). The may-reveal offer is ACCEPTED via the combat provider (may map); REVEAL + ONE_OF-to-hand run without asks (auto-designation), exactly one card lands in hand and the 4-damage attack lands (life 16). Decline twin = the existing green garruks_harbinger.json (hand 0, all four to bottom). The REST half of this same resolution is the garruk_s_harbinger_branch01 SUSPECT: the accept path does not move the rest to the bottom (printed text makes the rest clause unconditional)."
+}

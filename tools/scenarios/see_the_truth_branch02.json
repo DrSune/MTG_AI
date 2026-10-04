@@ -1,0 +1,48 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "See the Truth",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "G": 10,
+   "W": 10,
+   "U": 10,
+   "B": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "See the Truth",
+   "key": "sp",
+   "decisions": [
+    "card:4"
+   ]
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Library 5",
+    "Library 4"
+   ]
+  }
+ },
+ "notes": "Branch see_the_truth:02 (Selector:REST, heat 19). ONE_OF pick = card:4 (Library 3 - candidate handle, honored) to hand; the REST pair {Library 5, Library 4} goes to the BOTTOM as a group preserving relative order (library lane pins all five survivors top-first). The REST partition is never journalled TARGETING - the matcher's targeting_cardinality lane (REST = group >= 2) can never fire here; OBSERVABILITY note in H1 findings. Negative twin: the branch03 pack picks a different candidate - every lane slot is falsifiable."
+}

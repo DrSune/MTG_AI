@@ -1,0 +1,53 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cf",
+   "real": "Chandra, Flame's Catalyst",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ct",
+   "real": "Crash Through",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "C": 10,
+   "B": 10,
+   "G": 10,
+   "U": 10,
+   "W": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "cf",
+   "idx": 4,
+   "seat": 0,
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 20
+  },
+  "zone": {
+   "ct": "graveyard"
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "Branch chandra_flame_s_catalyst:02 (OptionalEffect free-cast, heat 34). The idx4 offer FIRES and free-CASTs Crash Through from hand (zone lane: hand -> stack -> graveyard; CAST row; one filler draw make the hand lane 1 = the drawn filler (spell left hand)). Free = no mana paid. Twin: ..._twin.json skips and the spell stays in hand."
+}

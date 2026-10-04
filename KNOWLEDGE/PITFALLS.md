@@ -851,3 +851,23 @@
   and do not start with `<`, because those are the real handle forms. Pair
   coverage hermetic tests must use `c:1`, not bare `c`, to exercise data-payload
   attribution. (`tools/audit/test_pair_coverage.py`.)
+- **2026-10-04 · scenario-rig laws from the H1 hunt.**
+  (1) **Auto-filler law**: `run_scenarios` adds 6 keyed-less "Library i"
+  Creature fillers per seat AFTER the cards loop, so they own the library TOP
+  forever — declared library cards sink below them, "Library i" handles come
+  AFTER all declared keys, and `begin_turn` draws the last DECLARED library
+  card (fills are drawn later by real advances). (2) **TARGET selectors never
+  ask a provider**: designations arrive only through the activate/cast op's
+  `targets:` lane and must be selector candidates (`pass bindings={'target':
+  ...}` is the loud flag); CHOOSE/ONE_OF accept decision words. (3) **Handle
+  shift**: declaring one extra keyed card shifts every filler handle +1 —
+  `card:5` silently retargets; recount handles before pinning decision words.
+  (4) **`verbs._v_cast` passes NO target channel** to `cast_card` (its
+  docstring pins the gap): effect-cast spells must be untargeted, else
+  `cast: illegal target selection: selection:count_below_min:0<1`. (5)
+  **lane-1 silence**: a positional `decisions` word matching the offer vocab
+  is consumed WITHOUT provider call and without any journal row (only
+  `stream.ask_log`) — witness may-decisions via world-diff lanes only.
+  (6) **Crash Through** draws exactly ONE card despite a doubled CARD_DRAWN
+  journal pair (running-count rows `[…,1]` then `[…,2]`) — count hand cards,
+  not journal rows. (`KNOWLEDGE/2026-10-04/05-hunt-h1-findings.md`.)

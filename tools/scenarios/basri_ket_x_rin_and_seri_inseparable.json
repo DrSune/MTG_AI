@@ -1,0 +1,131 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "mana": {
+  "1": {
+   "C": 8,
+   "R": 8,
+   "G": 8,
+   "W": 8
+  }
+ },
+ "cards": [
+  {
+   "key": "rin",
+   "real": "Rin and Seri, Inseparable",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "wd",
+   "real": "Alpine Watchdog",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "pm",
+   "real": "Pridemalkin",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "basri",
+   "real": "Basri Ket",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "tiger",
+   "name": "Tiger",
+   "power": 5,
+   "toughness": 5,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "cast",
+   "key": "wd",
+   "real": "Alpine Watchdog",
+   "controller": 1
+  },
+  {
+   "op": "cast",
+   "key": "pm",
+   "real": "Pridemalkin",
+   "controller": 1,
+   "decisions": [
+    "rin"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "tiger": true
+   }
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Cat": 1,
+   "Dog": 1,
+   "Soldier": 1
+  },
+  "battlefield_pt": {
+   "Cat": [
+    1,
+    1
+   ],
+   "Dog": [
+    1,
+    1
+   ],
+   "Soldier": [
+    1,
+    1
+   ]
+  },
+  "counters": {
+   "rin": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "basri": {
+    "LOYALTY": 1
+   }
+  },
+  "zone": {
+   "wd": "battlefield",
+   "pm": "battlefield",
+   "rin": "battlefield",
+   "tiger": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 14
+  }
+ },
+ "notes": "HUNT H2 pair 5 (heat 2800, token-controller / token-census law). Seat 1 casts Dog spell (Alpine Watchdog) -> Rin's printed trigger mints ONE 1/1 green Cat for seat 1; then Cat spell (Pridemalkin) -> ONE 1/1 white Dog for seat 1, and Pridemalkin's EtB counter lands on Rin (designation 'rin', sibling rin_and_seri_cast_triggers idiom). Enemy Basri (seat 0) -2 then rides Tiger's attack: one 1/1 white Soldier tapped+attacking for SEAT 0 (CR 111.2 — a token enters under its creator's control; the historical Soldier-controller bug shape). No blockers offered: Tiger 5 + Soldier 1 hit seat 1 for 6. Token lane must show 3 tokens, three distinct identities, right counts per creator; the census on each cast trigger is per-cast (2 casts -> exactly 2 tokens)."
+}

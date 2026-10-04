@@ -1,0 +1,88 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "scythe",
+   "real": "Malefic Scythe",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "brute",
+   "name": "Brute",
+   "type": "Creature",
+   "power": 5,
+   "toughness": 5,
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "garruk",
+   "real": "Garruk, Unleashed",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "1": {
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "scythe"
+  },
+  {
+   "op": "activate",
+   "key": "scythe",
+   "idx": 3,
+   "seat": 1,
+   "targets": [
+    "brute"
+   ]
+  },
+  {
+   "op": "activate",
+   "key": "garruk",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "brute"
+   ]
+  }
+ ],
+ "expect": {
+  "power": {
+   "brute": 9
+  },
+  "toughness": {
+   "brute": 9
+  },
+  "battlefield_keywords": {
+   "Brute": [
+    "TRAMPLE"
+   ]
+  },
+  "counters": {
+   "scythe": {
+    "SOUL": 1
+   },
+   "garruk": {
+    "LOYALTY": 5
+   }
+  },
+  "zone": {
+   "scythe": "battlefield",
+   "brute": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "Cross-seat planeswalker buff onto an equipped enemy creature: Scythe (seat 1) enters with its 1 soul counter (EtB trigger) and equips its own Brute for the +1/+1-per-soul static; Garruk Unleashed (seat 0) +1 has no controller restriction on its TARGET, so +3/+3 and trample land on seat 1's Brute (CR 601.2b, 109.5 the controller of the ability is who pays loyalty, the object just needs to be a legal target). Layers: the Scythe's soul-counter DCP and Garruk's +3/+3 DCP both apply in layer 7c in timestamp order, commutative here -> 9/9 (CR 613.3d, 613.6a). Trample rides the same buff."
+}

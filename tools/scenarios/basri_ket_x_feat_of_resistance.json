@@ -1,0 +1,101 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "fr",
+   "real": "Feat of Resistance",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "basri",
+   "real": "Basri Ket",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "sent",
+   "name": "Sentinel",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "W": 2
+  },
+  "0": {
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "cast",
+   "real": "Feat of Resistance",
+   "key": "fr",
+   "controller": 1,
+   "targets": [
+    "sent"
+   ],
+   "decisions": [
+    "0"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "sent"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "fr": "graveyard"
+  },
+  "counters": {
+   "sent": {
+    "PLUS_1_PLUS_1": 2
+   },
+   "basri": {
+    "LOYALTY": 4
+   }
+  },
+  "power": {
+   "sent": 4
+  },
+  "toughness": {
+   "sent": 4
+  },
+  "battlefield_keywords": {
+   "Sentinel": [
+    "INDESTRUCTIBLE"
+   ]
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "HUNT H2 pair 9 (heat 2660, both-sides buff stacking). Turn dance: Feat (seat 1, colour designation \"0\") resolves on seat 1's turn — its +1/+1 counter is permanent, its EoT protection then expires cleanly at the dance (CR 514.2); Basri's +1 lands on seat 0's own window (CR 307.5 planeswalker timing respected) on the ENEMY creature — legal, the compiled TARGET carries no CONTROLLER_IS YOU filter (CR 601.2b). Two +1/+1 counters stack -> 4/4 (CR 122.1c) with INDESTRUCTIBLE until end of turn alive at the check. Protection PREVENTION is untestable here: damage needs a pack-keyed operand and Basri's Soldiers are keyless mints (keyless-mint law)."
+}

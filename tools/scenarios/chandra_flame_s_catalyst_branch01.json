@@ -1,0 +1,62 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cf",
+   "real": "Chandra, Flame's Catalyst",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ct",
+   "real": "Crash Through",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 10,
+   "C": 10,
+   "B": 10,
+   "G": 10,
+   "U": 10,
+   "W": 10
+  }
+ },
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "cf",
+   "set": 10,
+   "seat": 0
+  },
+  {
+   "op": "activate",
+   "key": "cf",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "ct"
+   ],
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 20
+  },
+  "zone": {
+   "ct": "graveyard"
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "Branch chandra_flame_s_catalyst:01 (OptionalEffect, heat 34). -2 TARGET-binds GY Crash Through (TARGET selectors never ask - bindings arrive via the op's targets lane; the TARGETING row is journalled), the may-offer FIRES on the positional lane, CAST from graveyard resolves (CAST row, one filler draw = hand 2, spell back in GY). Untargeted spell on purpose: cast_card's atom side has NO target channel (stack.py docstring), so a targeted any-target recast raises count_below_min - the documented engine gap. Twin: ..._twin.json skips."
+}

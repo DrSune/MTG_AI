@@ -1,0 +1,41 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "h",
+   "real": "Garruk's Harbinger",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "h": true
+   },
+   "may": {
+    "h": true
+   },
+   "decisions": [
+    "card:3"
+   ]
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 16
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "Branch garruk_s_harbinger:03 (Selector:ONE_OF, heat 32). Same accept resolution: the ONE_OF partition hands over EXACTLY ONE card (hand lane 1, seed 7) and the ONE_OF designation is never journalled as TARGETING - the matcher's targeting_cardinality lane (ONE_OF = group of 1) can never fire on this card; see the H1 findings OBSERVABILITY note. Decline twin = garruks_harbinger.json."
+}
