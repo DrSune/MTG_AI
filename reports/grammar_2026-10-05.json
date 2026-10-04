@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-10-05T00:34:54+02:00",
-  "git_head": "10d53c6165dfa0b431fd5bffcdcaae5a21447b6f",
+  "generated": "2026-10-05T01:20:05+02:00",
+  "git_head": "68f9c857697369a10a81c826fa13092f14298e4d",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -101,15 +101,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.295,
+      "value": 0.249,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.256,
-        0.25,
-        0.295
+        0.238,
+        0.237,
+        0.249
       ]
     },
     "PC-6": {

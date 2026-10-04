@@ -1,0 +1,15 @@
+{
+  "law": "PC-11 residue cards may sit uncovered ONLY if listed here with a ruled citation; the B5 gate (tools/audit/measure_bugcatch.py) fails on any ungated residue. A deferral is a ruling, not an excuse: it names the standing rule that makes the card untestable today and where the re-admission is tracked.",
+  "gate": "tools/audit/measure_bugcatch.py",
+  "deferrals": [
+    {
+      "card": "Sublime Epiphany",
+      "handle": "sublime_epiphany",
+      "bcs": 29,
+      "reason": "Sole uncovered card at BCS >= 20. Its counter-targeting lanes require the COUNTER_SPELL response-window atoms, deferred engine-wide by the R16-1 ruling (combat v1 runs uninterrupted; no opponent ask-site between stack events). The card was excluded from wave-2 authoring by exactly this flag (COPY + COUNTER_SPELL, meta.excluded_by_flag) and cannot get a falsifiable expect lane until the window arc lands.",
+      "cite": "R16-1 response-window deferral — KNOWLEDGE/2026-09-30/11-round16-combat-plan.md (option iii) + KNOWLEDGE/2026-09-30/16-round16-closeout.md; wave-5 closeout re-admission note: KNOWLEDGE/2026-10-01/26-wave5-closeout.md ('DEFERRED by standing ruling: COUNTER_SPELL family x5 (R16-1 response window)'); wave-2 exclusion: KNOWLEDGE/2026-10-01/02-campaign-state-and-resume.md",
+      "re_admit_when": "R16-1 response window / COUNTER_SPELL family lands in the engine",
+      "ruled": "2026-10-05 B5"
+    }
+  ]
+}

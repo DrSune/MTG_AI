@@ -1,0 +1,107 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "scourge",
+   "real": "Wildwood Scourge",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "prey",
+   "name": "Prey",
+   "type": "Creature",
+   "power": 3,
+   "toughness": 3,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "hound",
+   "name": "Hound",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "scythe",
+   "real": "Malefic Scythe",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 3,
+   "G": 2
+  },
+  "1": {
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "scourge",
+   "real": "Wildwood Scourge",
+   "controller": 0,
+   "x": 1
+  },
+  {
+   "op": "enter",
+   "key": "scythe"
+  },
+  {
+   "op": "activate",
+   "key": "scythe",
+   "idx": 3,
+   "seat": 1,
+   "targets": [
+    "hound"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "prey": true
+   },
+   "block": {
+    "hound": "prey"
+   }
+  }
+ ],
+ "expect": {
+  "counters": {
+   "scourge": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "scythe": {
+    "SOUL": 2
+   }
+  },
+  "power": {
+   "scourge": 1
+  },
+  "damage": {
+   "prey": 2
+  },
+  "zone": {
+   "hound": "graveyard",
+   "prey": "battlefield",
+   "scourge": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "toughness": {
+   "scourge": 1
+  }
+ }
+}

@@ -1,0 +1,182 @@
+{
+ "generated": "2026-10-04T23:31:46+00:00",
+ "command": "python tools/audit/measure_bugcatch.py",
+ "design": "KNOWLEDGE/2026-10-02/12-bugcatch-design.md §F",
+ "gate_policy": "exit 0 iff PC-11 ungated residue == 0 and PC-14 anomalies == 0; PC-12/PC-13 report-only until B3/B4 queues drain",
+ "gate": "PASS",
+ "pcs": {
+  "PC-11": {
+   "name": "complexity_census",
+   "target": "residue at BCS>=20 == deferrals.json exception list (ungated 0)",
+   "pass": true,
+   "gated": true,
+   "t": 20,
+   "value": 1,
+   "cards_at_or_above_t": 66,
+   "covered_by_packs_or_suspects": 65,
+   "residue_names": [
+    "Sublime Epiphany"
+   ],
+   "residue_deferred_cited": [
+    "Sublime Epiphany"
+   ],
+   "residue_ungated": [],
+   "deferral_law": "PC-11 residue cards may sit uncovered ONLY if listed here with a ruled citation; the B5 gate (tools/audit/measure_bugcatch.py) fails on any ungated residue. A deferral is a ruling, not an excuse: it names the standing rule that makes the card untestable today and where the re-admission is tracked."
+  },
+  "PC-12": {
+   "name": "branch_coverage",
+   "target": "lit/declared >= 0.90; zero DARK on BCS>=20",
+   "pass": false,
+   "gated": false,
+   "value": 0.3814,
+   "lit": 37,
+   "declared": 97,
+   "dark": 13,
+   "unmatchable": 47,
+   "dark_on_high_bcs": [
+    {
+     "branch_id": "chandra_heart_of_fire:01:OptionalEffect",
+     "card": "Chandra, Heart of Fire",
+     "kind": "OptionalEffect",
+     "bcs": 37,
+     "heat": 37.0
+    },
+    {
+     "branch_id": "chandra_heart_of_fire:02:OptionalEffect",
+     "card": "Chandra, Heart of Fire",
+     "kind": "OptionalEffect",
+     "bcs": 37,
+     "heat": 37.0
+    },
+    {
+     "branch_id": "chandra_flame_s_catalyst:01:OptionalEffect",
+     "card": "Chandra, Flame's Catalyst",
+     "kind": "OptionalEffect",
+     "bcs": 34,
+     "heat": 34.0
+    },
+    {
+     "branch_id": "chandra_flame_s_catalyst:02:OptionalEffect",
+     "card": "Chandra, Flame's Catalyst",
+     "kind": "OptionalEffect",
+     "bcs": 34,
+     "heat": 34.0
+    },
+    {
+     "branch_id": "radha_heart_of_keld:01:OptionalEffect",
+     "card": "Radha, Heart of Keld",
+     "kind": "OptionalEffect",
+     "bcs": 32,
+     "heat": 32.0
+    },
+    {
+     "branch_id": "demonic_embrace:01:OptionalEffect",
+     "card": "Demonic Embrace",
+     "kind": "OptionalEffect",
+     "bcs": 29,
+     "heat": 29.0
+    }
+   ]
+  },
+  "PC-13": {
+   "name": "interaction_coverage",
+   "target": "every collision-class pair (both ends in class, BCS>=T on one end) tested — report-only until B4 splices land",
+   "pass": false,
+   "gated": false,
+   "value": 0.282,
+   "tested": 2419,
+   "candidate_pairs": 8577,
+   "per_class": {
+    "pt_layers": {
+     "tested": 693,
+     "candidate_pairs": 3003,
+     "coverage_pct": 23.08
+    },
+    "replacement_x_replacement": {
+     "tested": 71,
+     "candidate_pairs": 273,
+     "coverage_pct": 26.01
+    },
+    "replacement_x_trigger": {
+     "tested": 10,
+     "candidate_pairs": 36,
+     "coverage_pct": 27.78
+    },
+    "grant_x_consumer_missing": {
+     "tested": 693,
+     "candidate_pairs": 3003,
+     "coverage_pct": 23.08
+    },
+    "sacrifice_x_dies_token_anthem": {
+     "tested": 1024,
+     "candidate_pairs": 4223,
+     "coverage_pct": 24.25
+    },
+    "x_census_x_name": {
+     "tested": 435,
+     "candidate_pairs": 1404,
+     "coverage_pct": 30.98
+    },
+    "branch_entanglement": {
+     "tested": 1379,
+     "candidate_pairs": 4386,
+     "coverage_pct": 31.44
+    }
+   },
+   "classes_with_zero_tested": [],
+   "co_fire_pairs": 2389,
+   "designed_pair_packs": 33
+  },
+  "PC-14": {
+   "name": "anomaly_scan",
+   "target": "0 D1–D6 anomalies (HITs + crashes) over the stress lanes",
+   "pass": true,
+   "gated": true,
+   "value": 0,
+   "lanes_run": [
+    "catalog"
+   ],
+   "lanes": {
+    "catalog": {
+     "seeds": 10,
+     "seconds": 0.0,
+     "per_detector": {
+      "D1_life": {
+       "clean": 0,
+       "HIT": 0,
+       "EXEMPT": 10
+      },
+      "D2_mana": {
+       "clean": 0,
+       "HIT": 0,
+       "EXEMPT": 10
+      },
+      "D3_counter": {
+       "clean": 10,
+       "HIT": 0,
+       "EXEMPT": 0
+      },
+      "D4_token": {
+       "clean": 10,
+       "HIT": 0,
+       "EXEMPT": 0
+      },
+      "D5_pt_recompute": {
+       "clean": 10,
+       "HIT": 0,
+       "EXEMPT": 0
+      },
+      "D6_lifecycle": {
+       "clean": 0,
+       "HIT": 0,
+       "EXEMPT": 10
+      }
+     },
+     "hits": 0,
+     "crashes": 0,
+     "hit_detail": []
+    }
+   }
+  }
+ }
+}

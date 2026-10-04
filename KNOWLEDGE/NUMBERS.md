@@ -5,6 +5,42 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-10-05 (B5 — BUGCATCH campaign metrics PC-11..PC-14)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-11 residue @ BCS>=20 | **1 (0 ungated)** | `python tools/audit/measure_bugcatch.py` | 66 cards at/above T; 65 in packs/suspects; deferred-by-rule: Sublime Epiphany — PASS (GATED) |
+| PC-12 branch litness | **0.3814** (37/97 LIT; 13 DARK) | `python tools/audit/measure_bugcatch.py` | target >= 0.90 — FAIL (report-only); 6 DARK on BCS>=T cards |
+| PC-13 pair coverage | **0.2820** (2419/8577) | `python tools/audit/measure_bugcatch.py` | 7 collision classes; 0 zero-tested classes; report-only until B4 splices land |
+| PC-14 anomalies | **0** over catalog lane(s) | `python tools/audit/measure_bugcatch.py` | D1–D6; target 0 — PASS (GATED) |
+
+
+## 2026-10-05 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.249 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0931** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-10-05 (B5 — BUGCATCH campaign metrics PC-11..PC-14)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-11 residue @ BCS>=20 | **1 (0 ungated)** | `python tools/audit/measure_bugcatch.py` | 66 cards at/above T; 65 in packs/suspects; deferred-by-rule: Sublime Epiphany — PASS (GATED) |
+| PC-12 branch litness | **0.3814** (37/97 LIT; 13 DARK) | `python tools/audit/measure_bugcatch.py` | target >= 0.90 — FAIL (report-only); 6 DARK on BCS>=T cards |
+| PC-13 pair coverage | **0.2820** (2419/8577) | `python tools/audit/measure_bugcatch.py` | 7 collision classes; 0 zero-tested classes; report-only until B4 splices land |
+| PC-14 anomalies | **0** over catalog lane(s) | `python tools/audit/measure_bugcatch.py` | D1–D6; target 0 — PASS (GATED) |
+
+
 ## 2026-10-05 (HUNT H4 — suspect fixes + `ONE_OF`/`REST` partition journaling; HEAD `10d53c6`, uncommitted)
 
 | Item | Number | Command | Note |
@@ -2981,3 +3017,8 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | engine | **2350 passed + 3 subtests, 0 failed** (unchanged) | `.venv/bin/python -m pytest MTG_bot/core -q` | 2026-10-04 H1 round, tools+knowledge-only diff |
 | packs | **336/336 green** (H3 hunt +9; 10th pair SUSPECT held in `suspects/malefic_scythe_x_wildwood_scourge.json`) | `.venv/bin/python tools/run_scenarios.py` | 2026-10-05 H3 (HEAD 10d53c6): 9 GREEN + 1 SUSPECT — EtB X-counters on Wildwood Scourge visible to counters lane but ABSENT from P/T layer AND combat (probe deals 1 not 2; CR 122.1c/613.3d); 2 pack bugs falsified (Houndmaster printed 2/2; trample map = excess-PINNED-to-blocker polarity); `KNOWLEDGE/2026-10-04/08-hunt-pairs-r2.md` |
 | engine | **2354 passed + 3 subtests, 0 failed** | `.venv/bin/python -m pytest MTG_bot/core -q` | 2026-10-05 H3 round: Δ+4 vs 2350 from a parallel session's tests; MTG_bot untouched by H3 |
+| packs | **339/339 green** (H5: suspect `malefic_scythe_x_wildwood_scourge` adjudicated & promoted with corrected expectations power/toughness 1) | `.venv/bin/python tools/run_scenarios.py` | 2026-10-05 H5 (HEAD 68f9c85): hunt premise WRONG — Scourge printed 0/0 (corpus+golden+Scryfall); observed power 1 IS the EtB counter fold (supersedes H3 row's "absent from P/T layer" claim). BUT real bug fixed underneath: `cast()`/`cast_card()` never called `_on_zone_changes(entered)` → EtBState never stamped on CAST path (CR 614.1c); `KNOWLEDGE/2026-10-04/09-h5-etb-counter-fold.md` |
+| engine | **2360 passed + 3 subtests, 0 failed** (2354 + 6 new H5 pins) | `.venv/bin/python -m pytest MTG_bot/core -q` | TestEtBSeedPTFold in test_executor_stack.py: X-seed/EtBState-seed fold, tapped-cast stamp, no double-count, X=0 dies, layer stacking |
+| catalog | seed-3 attributed (Forgotten Sentinel now enters tapped when CAST — the bug, 1 new UNTAP_STEP TAP_STATE row, outcome same) → **repin 3848 entries/10 games**, post **0/10 diverge** | `.venv/bin/python tools/traces/catalog.py repin && … compare` | other 9 seeds byte-identical |
+| games | **0 crash classes**, 100 decisive 47/53, mean_turns **33.48** | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all --deck-pairs-seed 1409 --turns 60` | band-identical to baseline |
+| grammar + lints | PC **Δ0** vs 2026-10-04 (only PC-5 jitter); pyright **0 errors** 2 touched files; ruff **Δ0** | `tools/measure_grammar.py` / pyright CLI / `ruff check` | engine fix is executor-lane only; compile lane untouched |

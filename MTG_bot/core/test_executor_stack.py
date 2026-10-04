@@ -1314,5 +1314,162 @@ class TestJournalFingerprintRaises(StackCase):
         self.assertEqual(runs[0][1], runs[1][1])  # executor folds replay
 
 
+class TestEtBSeedPTFold(StackCase):
+    """H5 adjudication (malefic_scythe_x_wildwood_scourge): the "enters
+    with X +1/+1 counters" SEED — both EtB shapes — folds into effective
+    P/T exactly once (CR 614.1c placement, CR 122.1c/613.3d layer). The
+    pair-hunt suspect was NOT an engine fold bug: Wildwood Scourge is
+    printed 0/0 (corpus M21.json, Scryfall FDN #236 — the frozen golden
+    agrees), so the suspected "printed 1" observation WAS the fold
+    (0 printed + 1 EtB counter). These pins lock the fold, the no-double-
+    count with effect-GRANTED placement (one counter map is the single
+    source of truth), the X=0 death, and the counter-after-static layer
+    order the Malefic Scythe equip lane rides."""
+
+    def scourge_shape(self, name="Wild Hydra"):
+        """The corpus Wildwood Scourge compiled shape: printed 0/0 Hydra
+        whose ETB TriggeredAbility puts QX +1/+1 counters on the entering
+        object (frozen IR: EtBState dynamic counters are a compiler
+        follow-up, so the X seed rides the etb_x cast ledger)."""
+        etb_x = TriggeredAbility(
+            event=ZoneChangeEvent(ANY_ZONE, BF_ANY, subject=FAtom(FAtomPred.IS_SOURCE)),
+            condition=None,
+            effect=atom(
+                Verb.PUT_COUNTER,
+                count=QX(),
+                counter_kind=CounterKind.PLUS_1_PLUS_1,
+                target=Selector(
+                    QConst(1), SelectorMode.CHOOSE, UNIV, ANY_ZONE, referent="event"
+                ),
+            ),
+        )
+        return self.give(
+            name,
+            SpellKind.CREATURE,
+            type_line="Creature — Hydra",
+            types=("Creature",),
+            power="0",
+            toughness="0",
+            extra_abilities=(etb_x,),
+        )
+
+    def pt(self, handle):
+        state = self.world.cards[handle]
+        return self.ex.ledger.effective_pt(state.identity, handle, dict(state.counters))
+
+    def test_etb_x_seed_folds_into_effective_pt(self):
+        # cast X=2 -> 2 counters, and the P/T layer SEES them: 0 + 2.
+        hydra = self.scourge_shape()
+        cast(self.ex, self.p0, hydra, x=2)
+        self.assertEqual(self.world.zone_of(hydra).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(self.world.cards[hydra].counters["PLUS_1_PLUS_1"], 2)
+        self.assertEqual(self.pt(hydra), (2, 2))
+
+    def test_etb_state_seed_folds_into_effective_pt(self):
+        # the EtBState CONSTANT-counter shape (the suspect's named lane):
+        # _apply_etb_state stamps as the permanent enters (CR 614.1c),
+        # the same world counter map effective_pt reads.
+        worm = self.give(
+            "Reservoir Worm",
+            SpellKind.CREATURE,
+            type_line="Creature",
+            types=("Creature",),
+            power="1",
+            toughness="1",
+            extra_abilities=(
+                EtBState(initial_counters=((CounterKind.PLUS_1_PLUS_1, QConst(2)),)),
+            ),
+        )
+        cast(self.ex, self.p0, worm)
+        self.assertEqual(self.world.cards[worm].counters["PLUS_1_PLUS_1"], 2)
+        self.assertEqual(self.pt(worm), (3, 3))  # printed 1 + seed 2, folded
+
+    def test_etb_state_tapped_cast_stamps(self):
+        # the same cast hook carries the entered-TAPPED half of the node
+        # (the checkland idiom): a cast permanent with the declared state
+        # enters tapped; the stamp is never a TAP event (CR 614.1c).
+        critter = self.give(
+            "Hollow Sentinel",
+            SpellKind.CREATURE,
+            type_line="Creature",
+            types=("Creature",),
+            power="1",
+            toughness="1",
+            extra_abilities=(EtBState(tapped=True),),
+        )
+        cast(self.ex, self.p0, critter)
+        self.assertTrue(self.world.cards[critter].tapped)
+        self.assertEqual(
+            [
+                e
+                for e in self.ex.journal.events
+                if e.kind == "TAP_STATE" and e.subject == critter
+            ],
+            [],
+        )
+
+    def test_seeded_and_granted_counters_fold_once(self):
+        # single source of truth: the EtBState seed and a later effect
+        # placement share ONE map; the fold sums it ONCE — 1 + (2+1),
+        # never 1 + 2 + 2.
+        worm = self.give(
+            "Reservoir Worm",
+            SpellKind.CREATURE,
+            type_line="Creature",
+            types=("Creature",),
+            power="1",
+            toughness="1",
+            extra_abilities=(
+                EtBState(initial_counters=((CounterKind.PLUS_1_PLUS_1, QConst(2)),)),
+            ),
+        )
+        cast(self.ex, self.p0, worm)
+        self.ex.execute(
+            atom(
+                Verb.PUT_COUNTER,
+                target=any_target(),
+                counter_kind=CounterKind.PLUS_1_PLUS_1,
+                count=QConst(1),
+            ),
+            source=worm,
+            controller=self.p0,
+            bindings={"target": worm},
+        )
+        self.assertEqual(self.world.cards[worm].counters["PLUS_1_PLUS_1"], 3)
+        self.assertEqual(self.pt(worm), (4, 4))
+
+    def test_etb_x_zero_enters_and_dies(self):
+        # X=0: the seed places nothing, the 0/0 stands on the battlefield
+        # for no SBA check (CR 704.5a toughness <= 0 buries it same-settle).
+        hydra = self.scourge_shape()
+        cast(self.ex, self.p0, hydra, x=0)
+        self.assertEqual(self.world.zone_of(hydra).kind, ZONE_GRAVEYARD)
+        self.assertLessEqual(
+            self.world.cards[hydra].counters.get("PLUS_1_PLUS_1", 0), 0
+        )
+
+    def test_counters_layer_stacks_on_static_delta(self):
+        # CR 613.3d layer order pinned the way the Malefic Scythe equip
+        # lane rides it: the timestamp static (+1/+1, the soul-counter
+        # static's compiled shape) folds FIRST, the counter map is added
+        # AFTER — printed 1 + static 1 + EtB seed 1 = 3/3.
+        worm = self.give(
+            "Reservoir Worm",
+            SpellKind.CREATURE,
+            type_line="Creature",
+            types=("Creature",),
+            power="1",
+            toughness="1",
+            extra_abilities=(
+                EtBState(initial_counters=((CounterKind.PLUS_1_PLUS_1, QConst(1)),)),
+            ),
+        )
+        cast(self.ex, self.p0, worm)
+        self.ex.ledger.record(
+            self.world.cards[worm].identity, "delta", worm, 1, 1, tag="Permanent"
+        )
+        self.assertEqual(self.pt(worm), (3, 3))
+
+
 if __name__ == "__main__":
     unittest.main()

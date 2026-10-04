@@ -7,17 +7,17 @@
  "turn_cap": 60,
  "survived": 0,
  "survival_pct": 0.0,
- "mean_turns": 33.52,
+ "mean_turns": 33.48,
  "max_turns": 55,
- "total_acts": 7011,
- "multi_target_skips": 25,
- "infeasible_skips": 216,
+ "total_acts": 6999,
+ "multi_target_skips": 26,
+ "infeasible_skips": 217,
  "player_target_designations": 16,
  "combat_losses": 99,
  "coverage_fired": 229,
  "coverage_fired_of_pool_pct": 77.2,
  "coverage_fired_of_engine_pct": 79.4,
- "coverage_battlefield": 161,
+ "coverage_battlefield": 162,
  "fired_of_engine": [
   "Adherent of Hope",
   "Alchemist's Gift",
@@ -341,14 +341,14 @@
   {
    "seed": 7,
    "pool": "all",
-   "turns": 46,
+   "turns": 44,
    "survived": false,
    "reason": "game over: player:0(life<=0)",
-   "acts": 94,
-   "fired": 23,
+   "acts": 92,
+   "fired": 22,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "1bd7a0eb0fc22dbebc66b1935d87d6bd650ab4028a2f95ab81c6fbb0110cd12e",
+   "fingerprint": "fbf18fc8276e62e7ee34a1187ab3a3f91781fc37a10ec250ea9e6bdc5cf6d512",
    "crash": null
   },
   {
@@ -510,14 +510,14 @@
   {
    "seed": 20,
    "pool": "all",
-   "turns": 29,
+   "turns": 31,
    "survived": false,
    "reason": "game over: player:1(life<=0)",
-   "acts": 65,
-   "fired": 18,
+   "acts": 70,
+   "fired": 19,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "479a86f7bc5e8358592c315fdc858789cdc43786c5c7525066dd0a393054c996",
+   "fingerprint": "d39ca01620832e56d7976fb55a15dd0a9e6e532796f6b2524be57b2307ec746b",
    "crash": null
   },
   {
@@ -608,7 +608,7 @@
    "fired": 12,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "150b8b679b29f12a842271f33d9725b46bb9f56ccefbaba2238b141e45a60d2e",
+   "fingerprint": "77364cf187a33f8ad102b56e41ad4c32d0378bb6d18784fcc5d66622b36febe7",
    "crash": null
   },
   {
@@ -634,7 +634,7 @@
    "fired": 25,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "2d14be11c2eb5664e75b7a11a9b785d5ee91066be2f367708e6e7bb3832ae174",
+   "fingerprint": "b2616acc613a2930e4f37137607216deb7089850023045129e3e0fc86fa54fb2",
    "crash": null
   },
   {
@@ -1030,14 +1030,14 @@
   {
    "seed": 60,
    "pool": "all",
-   "turns": 29,
+   "turns": 31,
    "survived": false,
    "reason": "game over: player:1(life<=0)",
-   "acts": 64,
-   "fired": 16,
+   "acts": 68,
+   "fired": 17,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "704ac59748512ff3b9c947c14b358ea12e5ec8f637345e901630af542b40faec",
+   "fingerprint": "b6a23e53ddf75fc4128a527e522223d69602b282cc2d76feef45e5d5d1454594",
    "crash": null
   },
   {
@@ -1089,7 +1089,7 @@
    "fired": 15,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "d4abadc976e815e38afe693b7a59c4288ea964be0c284b4d3f42c0c3e96a0a81",
+   "fingerprint": "6c6d659fb0b96cb262de59b838db87aff6d3bfee4b0654d201122951cb2c4f59",
    "crash": null
   },
   {
@@ -1154,7 +1154,7 @@
    "fired": 24,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "92738bc028348323f83669f79768f4b6be3d420637196f89fd909ecbcd49f972",
+   "fingerprint": "a904a7e4bfb8248d7413de395f9ad82b38e2d52b368768c9bab12e78df1e9385",
    "crash": null
   },
   {
@@ -1407,14 +1407,14 @@
   {
    "seed": 89,
    "pool": "all",
-   "turns": 29,
+   "turns": 23,
    "survived": false,
    "reason": "game over: player:1(life<=0)",
-   "acts": 80,
-   "fired": 20,
+   "acts": 61,
+   "fired": 16,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "47d486b072663f8da7e229fbebad4e8cdae309d26c474cef15c744d2ae3a6bd0",
+   "fingerprint": "8629dc5a072dc3ad0c09fef5c613bb1631a1cf104d93add2df484c350045ffff",
    "crash": null
   },
   {
@@ -1544,12 +1544,12 @@
    "fired": 7,
    "combat_losses": 1,
    "coverage_error": "",
-   "fingerprint": "f3a448f6d3cd90ec44d16f731368a9c7fc19839ac4ead96da813b9cfb19133d5",
+   "fingerprint": "3bf0743313b505b0757a3914278103ae7242792c0d6092ed9aee1b624eac3ce8",
    "crash": null
   }
  ],
- "pool_compile_seconds": 0.21,
- "wall_seconds": 62.12,
+ "pool_compile_seconds": 0.22,
+ "wall_seconds": 62.03,
  "argv": [
   "--seeds",
   "100",

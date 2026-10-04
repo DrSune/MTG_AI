@@ -678,9 +678,17 @@ def cast(
             executor.events.append(
                 (len(executor.events), "ATTACH", str(handle), str(chosen[0]))
             )
-    executor.journal.record_atom(
+    entered = executor.journal.record_atom(
         before_put, handle, "CAST", list(executor.events[start_put:])
     )
+    # H5 (CR 614.1c): the cast entry runs the SAME zone-change hooks the
+    # land drop runs — the compiled EtBState node (Malefic Scythe's "enters
+    # with a soul counter", the corpus' entered-tapped idiom) is stamped
+    # HERE, as the permanent enters, BEFORE its ETB triggers drain in
+    # _settle below. Without this call the node only lit on PLAY_LAND and
+    # the execute lane, so CASTING an EtB-state permanent entered with
+    # none of its declared entered state.
+    executor._on_zone_changes(entered)
     if aura and node.effect is not None:
         executor._run_effect(node.effect, ctx)
     executor._settle()
@@ -805,9 +813,12 @@ def cast_card(
             executor.events.append(
                 (len(executor.events), "ATTACH", str(handle), str(chosen[0]))
             )
-    executor.journal.record_atom(
+    entered = executor.journal.record_atom(
         before_put, handle, "CAST", list(executor.events[start_put:])
     )
+    # H5: same CR 614.1c entered-state stamp as the cast lane above —
+    # effect-cast permanents declare their EtBState too.
+    executor._on_zone_changes(entered)
     if aura and node.effect is not None:
         executor._run_effect(node.effect, ctx)
     executor._settle()
