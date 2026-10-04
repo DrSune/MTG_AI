@@ -103,3 +103,9 @@ moves (C2 note), additive QPropField.LIFE (this doc), PC-8 re-baseline accepted.
 Peer's life clause still dropped compiler-side (emit batch 2 residue, documented in its pack).
 Owner replays: s8/s12/s21/s30. Next when owner rules grammar round: batch 6, then response-
 window arc (R16-1 unlock, COUNTER_SPELL family ×5).
+
+## Addendum — BUGCATCH arc closed (2026-10-05)
+See KNOWLEDGE/2026-10-04/11-bugcatch-closeout.md. Instruments gated (PC-11/14 PASS-gated,
+PC-12 0.38 / PC-13 0.28 report-only); ledger EMPTY at 339 packs, suite 2360. Resume =
+heat-fed hunt rounds (pair_coverage/branch_coverage queues) until PC-12≥0.9; response-window
+arc still owner-sized; grammar round-11 fully consumed (both slots shipped).
