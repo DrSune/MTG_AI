@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-10-02T10:08:23+02:00",
-  "git_head": "868cb1983bf96c44a80b0cdde13729474cb89a2c",
+  "generated": "2026-10-02T10:15:52+02:00",
+  "git_head": "85f1aaf59d994d1d5d577fad37317bb5b854371e",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
