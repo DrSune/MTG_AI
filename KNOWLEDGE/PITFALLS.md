@@ -929,3 +929,8 @@
   Shieldmate), not a shock. (`tools/scenarios/lofty_denial.json`.)
   (5) **Rewind's UNTAP is CHOOSE ≤4 lands**: with ≤4 tapped lands the engine issues NO ask —
   pin `kickback_asks: {"0": []}` instead of scripting a mode answer.
+
+- **nn.ModuleList instance reuse = silent weight-tying** (2026-10-05): `block = Layer(...)` built ONCE then `nn.ModuleList(block for _ in range(L))` registers the SAME module L times — 5.5M params instead of 35M, loss plateaus ~0.67, no error raised. Always call the factory inside the generator; assert param count after building. Fixed in bc_model.py.
+- **Patience window that contains its own best**: `min(curve[-P:]) > best-eps` is self-satisfied whenever best sits inside the window → plateau fires at exactly len(curve)==P. Use `epoch - best_epoch >= patience` (train_bc.py).
+- **puzzle_cert extract_items rec.index() ordinal collapse**: frozen-dataclass __eq__ makes identical repeated asks indistinguishable; 4 corpus packs silently lose gold rows. packrec.py resolves ordinals by id() identity instead — replicate for any future extractor.
+- **CardState has no `.name`** — card name lives at `state.identity.name`; a broad try/except in obs capture turned this into a silent `obs_error` field on 127/138 asks for one whole diagnostic run. Check recorder output for error fields, don't trust row counts alone.

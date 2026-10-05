@@ -3188,3 +3188,9 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - workers=1: 1.28 games/s, ~101 decisions/s | workers=10: 7.0 games/s, 552 decisions/s (5.5x scaling)
 - => 500k-decision curriculum pool ≈ 15 min wall-clock at 10 workers; episodes record-once/replay-forever.
 - Memory at measure time: 9.1 GiB free (vLLM coding-engine reservation ~100 GiB held) — training S1 coexist window; S2/S3 need owner's engine-budget change. (2026-10-05 18:0x)
+
+## 2026-10-05 — Training batch 1: BC floor verdict PASS (command: `.venv/bin/python -m tools.training.train_bc --device cuda`)
+- gold_lines_all 119 rows acc **0.8235** — **+7.10 SE** vs random floor 0.4979, **+8.50 SE** vs null floor 0.437 (gate: >3 SE both) — p_one_sided ~2e-11. Doc 10.
+- l1_certified **4/4**; train_items 0.9388; **holdout_items 0.2857 BELOW floor (−1.53 SE)** — memorization, not generalization; batch-2 volume is the fix.
+- PointerBC 35,086,338 params (d512 L8), GPU peak **1.37 GiB** < 4 GiB budget, wall 239 s, best train loss 0.2254 @ ep204 (lr 3e-4, 250-epoch cosine, seed 1).
+- Corpus join **119/119** gold lines; measured counts 133 scripted / 96 menu-ask / 119 gold (supersedes "121"). Handle-candidate↔obs binding 80.1%; unbound = library/hand-zone asks only.

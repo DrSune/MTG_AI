@@ -1,0 +1,1339 @@
+{
+ "produced_by": "tools/training/train_bc.py",
+ "head": "f58675c",
+ "date": "2026-10-05",
+ "counts": {
+  "packs_with_decisions": 133,
+  "packs_with_menu_asks": 96,
+  "gold_lines": 119,
+  "gold_joined_to_corpus": 119,
+  "l1_ready": 4,
+  "holdout_items": 21
+ },
+ "vocab_size": 306,
+ "model": {
+  "d": 512,
+  "layers": 8,
+  "heads": 8,
+  "ff": 3072,
+  "grad_checkpoint": true,
+  "dropout": 0.0
+ },
+ "train": {
+  "params": 35086338,
+  "train_episodes": 79,
+  "curve": [
+   0.89068,
+   0.89465,
+   0.87192,
+   0.86658,
+   0.86856,
+   0.85664,
+   0.80543,
+   0.84464,
+   0.91522,
+   0.79932,
+   0.82607,
+   0.84344,
+   0.80595,
+   0.77813,
+   0.79422,
+   0.74466,
+   0.6832,
+   0.63686,
+   0.64273,
+   0.76664,
+   0.81879,
+   0.794,
+   0.77089,
+   0.86686,
+   0.80487,
+   0.76843,
+   0.76712,
+   0.74444,
+   0.72997,
+   0.70499,
+   0.64752,
+   0.60314,
+   0.56269,
+   0.58723,
+   0.60531,
+   0.61571,
+   0.48292,
+   0.48288,
+   0.52906,
+   0.56147,
+   0.48852,
+   0.49693,
+   0.46536,
+   0.56123,
+   0.48905,
+   0.57488,
+   0.47824,
+   0.4787,
+   0.46261,
+   0.45051,
+   0.47842,
+   0.52637,
+   0.49455,
+   0.51763,
+   0.42363,
+   0.4148,
+   0.67379,
+   0.49728,
+   0.42659,
+   0.39357,
+   0.4135,
+   0.39708,
+   0.41485,
+   0.40669,
+   0.36444,
+   0.43356,
+   0.38198,
+   0.35898,
+   0.38569,
+   0.37268,
+   0.40776,
+   0.38369,
+   0.38688,
+   0.39514,
+   0.33838,
+   0.33859,
+   0.35551,
+   0.35624,
+   0.35482,
+   0.37625,
+   0.32562,
+   0.40937,
+   0.34946,
+   0.36516,
+   0.35431,
+   0.44654,
+   0.44472,
+   0.34765,
+   0.36063,
+   0.32072,
+   0.3425,
+   0.36415,
+   0.42288,
+   0.33094,
+   0.35499,
+   0.34781,
+   0.38596,
+   0.35197,
+   0.36068,
+   0.31955,
+   0.35478,
+   0.31917,
+   0.37806,
+   0.38388,
+   0.35363,
+   0.31174,
+   0.31205,
+   0.31398,
+   0.3472,
+   0.32897,
+   0.32368,
+   0.36461,
+   0.32866,
+   0.32945,
+   0.32634,
+   0.32574,
+   0.34814,
+   0.31689,
+   0.31365,
+   0.3085,
+   0.28729,
+   0.30237,
+   0.34066,
+   0.31435,
+   0.33204,
+   0.32132,
+   0.32296,
+   0.30434,
+   0.29574,
+   0.31401,
+   0.3129,
+   0.32158,
+   0.35127,
+   0.29358,
+   0.30596,
+   0.31787,
+   0.34355,
+   0.30605,
+   0.3362,
+   0.29995,
+   0.30854,
+   0.28439,
+   0.33112,
+   0.36613,
+   0.31775,
+   0.2809,
+   0.34428,
+   0.29543,
+   0.30572,
+   0.28634,
+   0.26741,
+   0.27388,
+   0.28437,
+   0.29386,
+   0.29307,
+   0.26534,
+   0.33861,
+   0.25716,
+   0.28458,
+   0.30703,
+   0.29745,
+   0.30848,
+   0.29393,
+   0.30892,
+   0.31737,
+   0.26243,
+   0.29598,
+   0.24265,
+   0.26742,
+   0.25182,
+   0.28459,
+   0.29423,
+   0.28996,
+   0.26657,
+   0.32014,
+   0.25926,
+   0.27828,
+   0.26879,
+   0.2789,
+   0.32752,
+   0.33991,
+   0.25405,
+   0.29974,
+   0.25209,
+   0.28188,
+   0.23669,
+   0.31142,
+   0.27818,
+   0.29729,
+   0.27636,
+   0.26229,
+   0.27574,
+   0.23577,
+   0.29064,
+   0.27472,
+   0.26996,
+   0.27758,
+   0.29547,
+   0.26231,
+   0.2359,
+   0.27558,
+   0.27315,
+   0.30888,
+   0.25109,
+   0.2254,
+   0.29298,
+   0.27688,
+   0.32345,
+   0.25758,
+   0.26434,
+   0.28964,
+   0.24697,
+   0.28788,
+   0.25919,
+   0.24411,
+   0.26024,
+   0.24131,
+   0.32416,
+   0.25792,
+   0.25408,
+   0.27787,
+   0.3129,
+   0.26889,
+   0.23074,
+   0.25533,
+   0.28815,
+   0.23671,
+   0.25031,
+   0.2448,
+   0.27668,
+   0.26879,
+   0.25919,
+   0.25223,
+   0.23347,
+   0.24908,
+   0.28096,
+   0.28179,
+   0.24571,
+   0.27111,
+   0.27836,
+   0.2755,
+   0.27164,
+   0.26585,
+   0.24932,
+   0.24923,
+   0.25988,
+   0.23256,
+   0.25281,
+   0.25782,
+   0.2565
+  ],
+  "best_train_loss": 0.2254,
+  "best_epoch": 204,
+  "peak_gpu_mib": 1404.2
+ },
+ "device": "cuda",
+ "eval_rows": [
+  {
+   "pack": "alchemists_gift.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "alchemists_gift.json",
+   "ordinal": 1,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "alpine_houndmaster.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "azusa_lost_but_seeking.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "basri_ket_x_feat_of_resistance.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "basri_ket_x_rin_and_seri_inseparable.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "basris_acolyte.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "basris_acolyte.json",
+   "ordinal": 1,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "basris_lieutenant.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "bone_pit_brute.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "chandra_flame_s_catalyst_branch01.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "chandra_flame_s_catalyst_branch01_twin.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 0,
+   "correct": false,
+   "holdout": false
+  },
+  {
+   "pack": "chandra_flame_s_catalyst_branch02.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 1,
+   "correct": false,
+   "holdout": false
+  },
+  {
+   "pack": "chandra_flame_s_catalyst_branch02_twin.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "chandra_heart_of_fire_branch01.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "chandra_heart_of_fire_branch01_twin.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 0,
+   "correct": false,
+   "holdout": false
+  },
+  {
+   "pack": "chandra_heart_of_fire_branch02.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "chandra_heart_of_fire_branch02_twin.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 0,
+   "correct": false,
+   "holdout": false
+  },
+  {
+   "pack": "chandras_firemaw.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "chandras_pyreling.json",
+   "ordinal": 0,
+   "gold_idx": 2,
+   "pred_idx": 2,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "chandras_pyreling_opponent_filter.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "conspicuous_snoop.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "crypt_lurker_discard.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 1,
+   "correct": false,
+   "holdout": true
+  },
+  {
+   "pack": "crypt_lurker_discard.json",
+   "ordinal": 1,
+   "gold_idx": 1,
+   "pred_idx": 0,
+   "correct": false,
+   "holdout": true
+  },
+  {
+   "pack": "crypt_lurker_sac.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 1,
+   "correct": false,
+   "holdout": true
+  },
+  {
+   "pack": "crypt_lurker_sac.json",
+   "ordinal": 1,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": true
+  },
+  {
+   "pack": "crypt_lurker_skip.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "cultivate.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "daybreak_charger.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "duress.json",
+   "ordinal": 0,
+   "gold_idx": 2,
+   "pred_idx": 2,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "feat_of_resistance.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 3,
+   "correct": false,
+   "holdout": true
+  },
+  {
+   "pack": "fierce_empath.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "gale_swooper.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "garruk_s_harbinger_branch01.json",
+   "ordinal": 2,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "garruk_s_harbinger_branch02.json",
+   "ordinal": 2,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "garruk_s_harbinger_branch03.json",
+   "ordinal": 2,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "garruk_unleashed_emblem.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": true
+  },
+  {
+   "pack": "garruk_unleashed_x_rin_and_seri_inseparable.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "garruks_warsteed.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "gnarled_sage.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "gnarled_sage.json",
+   "ordinal": 1,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "goblin_arsonist.json",
+   "ordinal": 2,
+   "gold_idx": 2,
+   "pred_idx": 2,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "havoc_jester.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "havoc_jester.json",
+   "ordinal": 1,
+   "gold_idx": 2,
+   "pred_idx": 2,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "heartfire_immolator.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "heartfire_immolator.json",
+   "ordinal": 1,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "jeskai_elder.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "jeskai_elder.json",
+   "ordinal": 1,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "kitesail_freebooter.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 2,
+   "correct": false,
+   "holdout": true
+  },
+  {
+   "pack": "liliana_s_devotee_branch01.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 1,
+   "correct": false,
+   "holdout": false
+  },
+  {
+   "pack": "liliana_s_devotee_branch01_twin.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "lilianas_scrounger.json",
+   "ordinal": 3,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "mazemind_tome.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "meteorite.json",
+   "ordinal": 0,
+   "gold_idx": 2,
+   "pred_idx": 2,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "mistral_singer.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "mistral_singer_prowess.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "necromentia.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 1,
+   "correct": false,
+   "holdout": true
+  },
+  {
+   "pack": "niambi_esteemed_speaker.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "opt.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "palladium_myr.json",
+   "ordinal": 0,
+   "gold_idx": 4,
+   "pred_idx": 4,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "pestilent_haze.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "pestilent_haze.json",
+   "ordinal": 1,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "pitchburn_devils_dies_trigger.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "pridemalkin.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "prismite.json",
+   "ordinal": 0,
+   "gold_idx": 2,
+   "pred_idx": 2,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "read_the_tides.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "read_the_tides.json",
+   "ordinal": 1,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "riddleform_scry.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "rin_and_seri_cast_triggers.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "runed_halo.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "sanctum_of_all_search_fire.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 1,
+   "correct": false,
+   "holdout": true
+  },
+  {
+   "pack": "sanctum_of_all_search_skip.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "sanctum_of_calm_waters_draw_x.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "sanctum_of_fruitful_harvest_add_x.json",
+   "ordinal": 0,
+   "gold_idx": 3,
+   "pred_idx": 3,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "scry_bottom_temple.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 0,
+   "correct": false,
+   "holdout": true
+  },
+  {
+   "pack": "secure_the_scene.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "see_the_truth.json",
+   "ordinal": 0,
+   "gold_idx": 2,
+   "pred_idx": 2,
+   "correct": true,
+   "holdout": true
+  },
+  {
+   "pack": "see_the_truth_branch02.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 2,
+   "correct": false,
+   "holdout": false
+  },
+  {
+   "pack": "see_the_truth_branch03.json",
+   "ordinal": 0,
+   "gold_idx": 2,
+   "pred_idx": 2,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "sigiled_contender.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "skeleton_archer.json",
+   "ordinal": 0,
+   "gold_idx": 2,
+   "pred_idx": 2,
+   "correct": true,
+   "holdout": true
+  },
+  {
+   "pack": "solemn_simulacrum.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 0,
+   "correct": false,
+   "holdout": true
+  },
+  {
+   "pack": "solemn_simulacrum.json",
+   "ordinal": 1,
+   "gold_idx": 0,
+   "pred_idx": 1,
+   "correct": false,
+   "holdout": true
+  },
+  {
+   "pack": "spellgorger_weird_noncreature.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "stormwing_entity.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "stormwing_entity.json",
+   "ordinal": 1,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "tampering_destroy_artifact.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "tampering_no_block.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 0,
+   "correct": false,
+   "holdout": true
+  },
+  {
+   "pack": "teferis_wavecaster.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "tempered_veteran.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "temple_epiphany.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "temple_of_malady.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "temple_of_mystery.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "temple_of_silence.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 1,
+   "correct": false,
+   "holdout": true
+  },
+  {
+   "pack": "temple_of_triumph.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 1,
+   "correct": false,
+   "holdout": true
+  },
+  {
+   "pack": "terror_of_the_peaks.json",
+   "ordinal": 0,
+   "gold_idx": 3,
+   "pred_idx": 3,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "tolarian_kraken_skip_payment.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "tolarian_kraken_skip_payment.json",
+   "ordinal": 1,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "tolarian_kraken_tap.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "tolarian_kraken_tap.json",
+   "ordinal": 1,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "tolarian_kraken_tap.json",
+   "ordinal": 2,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "tolarian_kraken_tap.json",
+   "ordinal": 3,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "tolarian_kraken_untap.json",
+   "ordinal": 0,
+   "gold_idx": 2,
+   "pred_idx": 2,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "tolarian_kraken_untap.json",
+   "ordinal": 1,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "tolarian_kraken_untap.json",
+   "ordinal": 2,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "tolarian_kraken_untap.json",
+   "ordinal": 3,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "track_down.json",
+   "ordinal": 0,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "track_down.json",
+   "ordinal": 1,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "track_down.json",
+   "ordinal": 2,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "traitorous_greed.json",
+   "ordinal": 0,
+   "gold_idx": 3,
+   "pred_idx": 3,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "treasure_token_activation.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "treasure_token_activation.json",
+   "ordinal": 1,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "trufflesnout.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": true
+  },
+  {
+   "pack": "trufflesnout.json",
+   "ordinal": 1,
+   "gold_idx": 1,
+   "pred_idx": 1,
+   "correct": true,
+   "holdout": true
+  },
+  {
+   "pack": "vodalian_arcanist.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 1,
+   "correct": false,
+   "holdout": true
+  },
+  {
+   "pack": "vryn_wingmare.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 1,
+   "correct": false,
+   "holdout": true
+  },
+  {
+   "pack": "waker_of_waves_activation.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "wall_of_runes.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  },
+  {
+   "pack": "warden_of_the_woods.json",
+   "ordinal": 0,
+   "gold_idx": 0,
+   "pred_idx": 0,
+   "correct": true,
+   "holdout": false
+  }
+ ],
+ "gates": {
+  "gold_lines_all": {
+   "rows": 119,
+   "correct": 98,
+   "acc": 0.8235,
+   "vs_random": {
+    "n": 119,
+    "k": 98,
+    "acc": 0.8235,
+    "floor_p0": 0.4979,
+    "se": 0.0458,
+    "beat_margin_se": 7.1,
+    "binom_p_one_sided": 1.598e-13
+   },
+   "vs_null": {
+    "n": 119,
+    "k": 98,
+    "acc": 0.8235,
+    "floor_p0": 0.437,
+    "se": 0.0455,
+    "beat_margin_se": 8.5,
+    "binom_p_one_sided": 4.64e-18
+   }
+  },
+  "holdout_items": {
+   "rows": 21,
+   "correct": 6,
+   "acc": 0.2857,
+   "vs_random": {
+    "n": 21,
+    "k": 6,
+    "acc": 0.2857,
+    "floor_p0": 0.4517,
+    "se": 0.1086,
+    "beat_margin_se": -1.53,
+    "binom_p_one_sided": 0.9623
+   },
+   "vs_null": {
+    "n": 21,
+    "k": 6,
+    "acc": 0.2857,
+    "floor_p0": 0.381,
+    "se": 0.106,
+    "beat_margin_se": -0.9,
+    "binom_p_one_sided": 0.8707
+   }
+  },
+  "train_items": {
+   "rows": 98,
+   "correct": 92,
+   "acc": 0.9388,
+   "vs_random": {
+    "n": 98,
+    "k": 92,
+    "acc": 0.9388,
+    "floor_p0": 0.5079,
+    "se": 0.0505,
+    "beat_margin_se": 8.53,
+    "binom_p_one_sided": 1.357e-20
+   },
+   "vs_null": {
+    "n": 98,
+    "k": 92,
+    "acc": 0.9388,
+    "floor_p0": 0.449,
+    "se": 0.0502,
+    "beat_margin_se": 9.75,
+    "binom_p_one_sided": 3.143e-25
+   }
+  },
+  "l1_certified": {
+   "rows": 4,
+   "correct": 4,
+   "acc": 1.0,
+   "vs_random": {
+    "n": 4,
+    "k": 4,
+    "acc": 1.0,
+    "floor_p0": 0.0287,
+    "se": 0.1654,
+    "beat_margin_se": 5.87,
+    "binom_p_one_sided": 6.832e-07
+   },
+   "vs_null": {
+    "n": 4,
+    "k": 4,
+    "acc": 1.0,
+    "floor_p0": 0.0,
+    "se": 0.1654,
+    "beat_margin_se": 6.05,
+    "binom_p_one_sided": 1.0
+   }
+  }
+ },
+ "gpu_peak_gib": 1.37,
+ "gpu_budget_gib": 4.0,
+ "wall_seconds": 238.7,
+ "gate_verdict": {
+  "beats_random_floor_by_3SE": true,
+  "beats_null_floor_by_3SE": true,
+  "verdict": "PASS",
+  "reading": "BC on the cert schema clears every measured floor: schema + loop validated, proceed to batch 2."
+ }
+}
