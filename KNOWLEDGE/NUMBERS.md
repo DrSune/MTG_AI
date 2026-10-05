@@ -3183,3 +3183,8 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | Window live stats | **84 WINDOW_OPEN / 28 PASS → 56 instants cast in combat windows**; Rung-1 counter lane 14 opens/7 PASS over the same 100 seeds | journal emit-probe wrapper, `games --seeds 100 --pool all` rerun | combat lane 6× the counter lane; determinism cross-checked (identical endings) |
 | Catalog | repinned **4136 entries / 10 games**, post **0/10 diverge**, md5 `8b76978758164fddaf87fb2afdf7137c` | `tools/traces/catalog.py repin && … compare` | 10/10 diverged pre-repin as expected (window rng consumption) |
 | E1 re-measure | vs-random **0.860** (was 0.820), robust band **0.590** UNCHANGED, exploit gap **0.270** (was 0.230) | `.venv/bin/python tools/audit/exploit/noisy_policy.py 25` | window WIDENS the gap — scripted window answers convert, random policy wastes opens; ledger correction row in 01 doc |
+
+## 2026-10-05 — Training batch 0: executor env throughput (command: `.venv/bin/python -m tools.training.collector --bench --games 20 --pool all --workers 10`)
+- workers=1: 1.28 games/s, ~101 decisions/s | workers=10: 7.0 games/s, 552 decisions/s (5.5x scaling)
+- => 500k-decision curriculum pool ≈ 15 min wall-clock at 10 workers; episodes record-once/replay-forever.
+- Memory at measure time: 9.1 GiB free (vLLM coding-engine reservation ~100 GiB held) — training S1 coexist window; S2/S3 need owner's engine-budget change. (2026-10-05 18:0x)
