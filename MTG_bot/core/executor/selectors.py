@@ -216,16 +216,47 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
     return handles
 
 
+def _is_any_target_idiom(filter_: object) -> bool:
+    """r17-2 (geyser-FIX): mirror of :func:`query._is_any_target_idiom` —
+    the compiled printed-"any target" idiom, an FOr of exactly the three
+    TYPE_EQ atoms ``Creature`` / ``Planeswalker`` / ``Player`` (the Player
+    branch is the discriminator: no card matches it, and it separates
+    this population from the printed "target creature or planeswalker"
+    two-branch shape, which never denotes a player, CR 115.1d).
+    Duplicated locally (not imported) so the executor package has no
+    selectors->query import edge; the twins are pinned equal by
+    test_geyser_any_target_pins."""
+    if not isinstance(filter_, FOr) or len(filter_.children) != 3:
+        return False
+    kinds = {
+        (child.pred, child.string_value)
+        for child in filter_.children
+        if isinstance(child, FAtom)
+    }
+    return len(filter_.children) == 3 and kinds == {
+        (FAtomPred.TYPE_EQ, "Creature"),
+        (FAtomPred.TYPE_EQ, "Planeswalker"),
+        (FAtomPred.TYPE_EQ, "Player"),
+    }
+
+
 def _is_any_universal(sel: Selector) -> bool:
-    """True for the "any target" IR shape: an ANY-kind zone (primary or
-    extra) with the empty FAnd filter — query._widen_any_target's twin
+    """True for the "any target" IR shapes: the legacy universal shape (an
+    ANY-kind zone, primary or extra, with the empty FAnd filter — the 13b
+    lane) or the r17-2 battlefield idiom (FOr Creature/Planeswalker over
+    BATTLEFIELD zones only). This is query._player_widening_applies' twin
     predicate, shared here because the runtime TARGET legality set must
     widen over exactly the same population the query offers (CR 109.5)."""
-    return bool(
+    zones = (sel.zone, *sel.zones)
+    if bool(
         sel.filter is not None
         and isinstance(sel.filter, FAnd)
         and not sel.filter.children
-    ) and any(z.kind is ZoneKind.ANY for z in (sel.zone, *sel.zones))
+    ) and any(z.kind is ZoneKind.ANY for z in zones):
+        return True
+    return _is_any_target_idiom(sel.filter) and all(
+        z.kind is ZoneKind.BATTLEFIELD for z in zones
+    )
 
 
 def _emit_partition_journal(

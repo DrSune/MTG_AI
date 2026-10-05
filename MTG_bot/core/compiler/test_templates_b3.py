@@ -22,6 +22,7 @@ from MTG_bot.core.ability_tree import (
     FAtom,
     FAtomPred,
     FNot,
+    FOr,
     Keyword,
     KeywordAbility,
     PtDelta,
@@ -539,9 +540,12 @@ class TestB3EffectStructure(unittest.TestCase):
     def test_target_helper_zones_are_battlefield_r11(self) -> None:
         """R11-3 sweep: TARGET-mode creature selectors must bind to the
         battlefield — Zone(ANY, ANY) would let instants legally target
-        creature cards in graveyards/libraries.  _sel_any_target keeps
-        (ANY, ANY) by design (players/planeswalkers/cards are targetable
-        off the battlefield)."""
+        creature cards in graveyards/libraries.  AMENDED r17-2
+        (geyser-FIX): _sel_any_target binds to the battlefield too —
+        printed "any target" designates creatures, planeswalkers or
+        players (CR 109.5), never cards in hidden zones; the PLAYER side
+        joins through the engine's idiom widening, not through the zone
+        (the pre-fix (ANY, ANY) shape was the D10/E3 leak)."""
         battlefield_any = Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
         for helper in (
             templates_b3._sel_target_creature,
@@ -553,7 +557,8 @@ class TestB3EffectStructure(unittest.TestCase):
             self.assertIs(sel.mode, SelectorMode.TARGET, helper.__name__)
             self.assertEqual(sel.zone, battlefield_any, helper.__name__)
         any_target = templates_b3._sel_any_target()
-        self.assertEqual(any_target.zone, Zone(ZoneKind.ANY, ControllerRef.ANY))
+        self.assertEqual(any_target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertIsInstance(any_target.filter, FOr)
 
     def test_draw_per_distinct_color(self) -> None:
         """9-B row 6 (Chromatic Orrery): DRAW amount = QDistinctColorCount

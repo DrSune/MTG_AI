@@ -1851,9 +1851,15 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.DEAL_DAMAGE)
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.TARGET)
-        assert isinstance(target.filter, FAnd)
-        self.assertEqual(len(target.filter.children), 0)
-        self.assertEqual(target.zone, Zone(ZoneKind.ANY, ControllerRef.ANY))
+        # AMENDED r17-2 (geyser-FIX): printed "any target" is the
+        # battlefield FOr(Creature, Planeswalker) idiom, not the empty
+        # FAnd over Zone(ANY, ANY) — the old shape enumerated opponent-
+        # hidden zones (D10/E3 leak). Player side joins via the engine's
+        # idiom widening (CR 109.5).
+        idiom = target.filter
+        assert isinstance(idiom, FOr)
+        self.assertEqual(len(idiom.children), 3)
+        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         amount = _qprop(atom, "amount")
         self.assertEqual(amount.referent, "event")
         self.assertIs(amount.field, QPropField.POWER)

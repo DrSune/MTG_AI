@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-10-05T01:20:05+02:00",
-  "git_head": "68f9c857697369a10a81c826fa13092f14298e4d",
+  "generated": "2026-10-05T12:31:03+02:00",
+  "git_head": "d3b010d1c6df8315cc222de3d8a259d5fc789cb3",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -101,15 +101,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.249,
+      "value": 0.296,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.238,
-        0.237,
-        0.249
+        0.266,
+        0.261,
+        0.296
       ]
     },
     "PC-6": {
@@ -238,5 +238,65 @@
       "bucket_hint": "spell-effect"
     }
   ],
-  "unparsed_count": 2
+  "unparsed_count": 2,
+  "engine_support": {
+    "engine_supported_cards": 297,
+    "of_total": 305,
+    "supported_verbs": [
+      "ADD_LAND_PLAY",
+      "ADD_MANA",
+      "ATTACH",
+      "CAST",
+      "CHOOSE",
+      "CHOOSE_NAME",
+      "CREATE_TOKEN",
+      "DAMAGE_ASSIGN_POLICY",
+      "DEAL_DAMAGE",
+      "DESTROY",
+      "DISCARD",
+      "DRAW",
+      "END_TURN",
+      "EXILE",
+      "EXTRA_TURN",
+      "FIGHT",
+      "FLIP_COIN",
+      "GAIN_CONTROL",
+      "GAIN_LIFE",
+      "GET_EMBLEM",
+      "GRANT_ABILITY",
+      "GRANT_ACTIVATION",
+      "GRANT_TYPE",
+      "LOOK_AT",
+      "LOSE_ABILITY",
+      "LOSE_GAME",
+      "LOSE_LIFE",
+      "MANA_POLICY",
+      "MANDATE_ATTACK",
+      "MANDATE_BLOCK",
+      "MILL",
+      "MODIFY_PT",
+      "MOVE_ZONE",
+      "PAY",
+      "PREVENT_EFFECT",
+      "PUT_COUNTER",
+      "REMOVE_COUNTER",
+      "REVEAL",
+      "SACRIFICE",
+      "SCRY",
+      "SEARCH",
+      "SET_PT",
+      "SHUFFLE",
+      "TAP",
+      "UNTAP"
+    ],
+    "flip_proof": {
+      "card": "Cancel",
+      "spell_ability_only": true,
+      "default_engine_supported": true,
+      "gated_engine_supported": false,
+      "offending_verbs": [
+        "COUNTER_SPELL"
+      ]
+    }
+  }
 }

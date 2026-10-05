@@ -8,7 +8,7 @@
       "bcs": 29,
       "reason": "Sole uncovered card at BCS >= 20. Its counter-targeting lanes require the COUNTER_SPELL response-window atoms, deferred engine-wide by the R16-1 ruling (combat v1 runs uninterrupted; no opponent ask-site between stack events). The card was excluded from wave-2 authoring by exactly this flag (COPY + COUNTER_SPELL, meta.excluded_by_flag) and cannot get a falsifiable expect lane until the window arc lands.",
       "cite": "R16-1 response-window deferral — KNOWLEDGE/2026-09-30/11-round16-combat-plan.md (option iii) + KNOWLEDGE/2026-09-30/16-round16-closeout.md; wave-5 closeout re-admission note: KNOWLEDGE/2026-10-01/26-wave5-closeout.md ('DEFERRED by standing ruling: COUNTER_SPELL family x5 (R16-1 response window)'); wave-2 exclusion: KNOWLEDGE/2026-10-01/02-campaign-state-and-resume.md",
-      "re_admit_when": "R16-1 response window / COUNTER_SPELL family lands in the engine",
+      "re_admit_when": "counter window AND COPY-handler absent — R17-1 §5 cite amendment (KNOWLEDGE/2026-10-05/04-rulings-r17.md): the counter-targeting lanes need the R16-1 response window; the COPY lane is separately blocked while the COPY verb handler stays absent, so re-admission requires the window to land AND the COPY handler to still be missing",
       "ruled": "2026-10-05 B5"
     }
   ]

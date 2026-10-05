@@ -919,15 +919,57 @@ def _is_universal(filter_: object) -> bool:
     return isinstance(filter_, FAnd) and len(filter_.children) == 0
 
 
+def _is_any_target_idiom(filter_: object) -> bool:
+    """r17-2 (geyser-FIX): the compiled printed-"any target" idiom — an
+    FOr of exactly the three TYPE_EQ atoms ``Creature`` / ``Planeswalker``
+    / ``Player`` (the battlefield card side the templates emit; the player
+    side is EXACTLY this widening's job, CR 109.5). The third branch never
+    matches a card (no card carries "Player" in its types) — it is the
+    discriminator that separates this population from the printed
+    "target creature or planeswalker" TWO-branch shape, which never
+    denotes a player (CR 115.1d; the Finishing Blow regression this
+    guards). One shape, two lanes: the twins in :mod:`selectors` read it
+    identically so offer and resolution legality never diverge
+    (§8.3 identity)."""
+    from MTG_bot.core.ability_tree import FOr
+
+    if not isinstance(filter_, FOr) or len(filter_.children) != 3:
+        return False
+    kinds = {
+        (child.pred, child.string_value)
+        for child in filter_.children
+        if isinstance(child, FAtom)
+    }
+    return len(filter_.children) == 3 and kinds == {
+        (FAtomPred.TYPE_EQ, "Creature"),
+        (FAtomPred.TYPE_EQ, "Planeswalker"),
+        (FAtomPred.TYPE_EQ, "Player"),
+    }
+
+
+def _player_widening_applies(selector: Selector) -> bool:
+    """The ONE widening predicate (query offer lane and selectors runtime
+    legality share it through :func:`_widen_any_target` /
+    :func:`selectors._is_any_universal`): either the legacy universal
+    shape (empty FAnd over an ANY zone — the 13b lane, unchanged) or the
+    r17-2 battlefield "any target" idiom (FOr Creature/Planeswalker over
+    BATTLEFIELD zones only). Both are population answers — neither
+    evaluates a predicate on a player handle."""
+    zones = [selector.zone, *selector.zones]
+    if _is_universal(selector.filter) and any(z.kind is ZoneKind.ANY for z in zones):
+        return True
+    return _is_any_target_idiom(selector.filter) and all(
+        z.kind is ZoneKind.BATTLEFIELD for z in zones
+    )
+
+
 def _widen_any_target(
     executor: Executor, selector: Selector, slot: TargetSlot
 ) -> TargetSlot | None:
-    """Players join an ANY-zone universal-filter target (see
+    """Players join a "any target" population — the legacy universal
+    ANY-zone shape or the r17-2 battlefield idiom (see
     :func:`spell_target_slots`); None means "no widening applies"."""
-    zones = [selector.zone, *selector.zones]
-    if not any(z.kind is ZoneKind.ANY for z in zones):
-        return None
-    if not _is_universal(selector.filter):
+    if not _player_widening_applies(selector):
         return None
     world = executor.world
     players = {h for h in world.players}

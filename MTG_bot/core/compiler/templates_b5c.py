@@ -188,11 +188,34 @@ _PERMANENT_CARD_FILTER = FOr(
 
 
 def _any_target() -> Selector:
+    """Selector for ``any target`` (Shock-style; see the r17-2 note).
+
+    r17-2 (geyser-FIX): printed "any target" designates a creature, a
+    planeswalker or a player (CR 109.5) — NEVER a card hiding in a hand or
+    library. The card side compiles to the battlefield population with the
+    FOr type-idiom filter; the PLAYER side joins through the engine's
+    idiom widening (query._widen_any_target / selectors._is_any_universal
+    recognize this exact shape), so the filter is never evaluated on a
+    player handle. (Pre-fix this emitted Zone(ANY, ANY) + the universal
+    FAnd, which enumerated opponent-hidden zones — the D10/E3 leak.)
+    """
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
-        FAnd(children=()),
-        Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+        FOr(
+            (
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
+                # r17-2 discriminator: the third branch never matches a
+                # card (no card carries "Player" in its types) — it marks
+                # the population as the CR 109.5 "any target" one so the
+                # engine widening can tell it apart from the printed
+                # "target creature or planeswalker" two-branch shape
+                # (which NEVER denotes a player, CR 115.1d).
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Player"),
+            )
+        ),
+        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 

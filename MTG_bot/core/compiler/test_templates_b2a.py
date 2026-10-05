@@ -1626,7 +1626,13 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertEqual(_qconst(atom, "amount"), QConst(1))
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.TARGET)
-        self.assertEqual(target.zone, Zone(ZoneKind.ANY, ControllerRef.ANY))
+        # AMENDED r17-2 (geyser-FIX): printed "any target" designates a
+        # creature, a planeswalker or a player (CR 109.5) — never a card
+        # hiding in a hidden zone. The card side is the battlefield
+        # population with the FOr type idiom; the player side joins via
+        # the engine's idiom widening (query._widen_any_target).
+        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertIsInstance(target.filter, FOr)
 
     def test_lilianas_standard_bearer_draws_qcount(self) -> None:
         ability = _ability(
@@ -1718,7 +1724,10 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertEqual(_qconst(atom, "amount"), QConst(2))
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.TARGET)
-        self.assertEqual(target.zone, Zone(ZoneKind.ANY, ControllerRef.ANY))
+        # AMENDED r17-2 (geyser-FIX): battlefield idiom shape (see the
+        # Goblin Arsonist pin) — "any target" never reaches hidden zones.
+        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertIsInstance(target.filter, FOr)
 
     def test_skeleton_archer_deals_one_to_any_target(self) -> None:
         ability = _ability(
@@ -1729,9 +1738,11 @@ class TestB2aEffectStructure(unittest.TestCase):
         atom = _atom(ability)
         self.assertIs(atom.verb, Verb.DEAL_DAMAGE)
         self.assertEqual(_qconst(atom, "amount"), QConst(1))
-        self.assertEqual(
-            _selector(atom, "target").zone, Zone(ZoneKind.ANY, ControllerRef.ANY)
-        )
+        # AMENDED r17-2 (geyser-FIX): battlefield idiom shape (see the
+        # Goblin Arsonist pin) — "any target" never reaches hidden zones.
+        target = _selector(atom, "target")
+        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertIsInstance(target.filter, FOr)
 
     def test_faiths_fetters_gains_four_life(self) -> None:
         ability = _ability(

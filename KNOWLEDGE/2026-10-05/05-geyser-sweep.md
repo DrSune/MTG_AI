@@ -136,3 +136,51 @@ cite amendment (R17-1 §5).
 D10 “before” on this host = recorded rows **58/12 games** (source_probe) / **234/48**
 (masked_target_probe 24); the 654/12 figure came from the now-discarded sandbox build — treat both
 as pre-fix confirmations, post-fix value unrecorded (tree lost before the standing gate could run).
+
+## 6. FIX LANDED (host, @d3b010d working tree, 2026-10-05)
+Implemented per the §0.1 blueprint with ONE design correction discovered mid-gate (below).
+**Moved class = exactly the 11 measured selectors** (golden ids: Meteorite 0c3c3bcc, Rin and Seri
+28c46eb7, Skeleton Archer 3792763c, Chandra Heart of Fire 58ad45fc, Havoc Jester 58f5bbd2,
+Volcanic Geyser 846a4f9c, Pitchburn Devils 86e2bbdd, Shock a9d288b8, Goblin Arsonist c1177f22,
+Ugin eecb3047, Terror of the Peaks f8e17f4f). C1-form audit vs pre-refresh snapshot
+(/tmp/golden_pre_geyser, 305 files): moved=11, 294 byte-identical, every moved file's diff is
+3 leaf changes all inside `.abilities` (selector filter/zone), NONE outside.
+
+### 6.1 DESIGN CORRECTION — the 2-branch shape was WRONG (Finishing Blow regression)
+The blueprint's FOr(Creature, Planeswalker)+Zone(BATTLEFIELD,ANY) emitted for "any target"
+collides with the INDEPENDENT B5a templates `B5a-destroy-cw-pw` / `B5a-exile-cw-pw`, which
+compile printed "target creature or planeswalker" to exactly that shape. 115.1d vs 109.5:
+"any target" includes PLAYERS; "target creature or planeswalker" NEVER does. First games run
+crashed 10x `KeyError 'unknown card player:1'` (state.py:197 via _to_graveyard, verbs.py:222) —
+the policy designated player:1 on Finishing Blow ("Destroy target creature or planeswalker",
+M21) because the widening had joined players to its population.
+**Landed shape:** "any target" = FOr(Creature, Planeswalker, **TYPE_EQ Player**) over
+Zone(BATTLEFIELD, ANY). The third branch matches no card (no card carries "Player" in its
+types; template grep confirms no other emitter of TYPE_EQ "Player"), so card-side semantics are
+unchanged; it is the IR discriminator. Engine twins `query._is_any_target_idiom` /
+`selectors._is_any_target_idiom` require exactly the 3-atom set + ALL zones BATTLEFIELD;
+legacy universal+FAnd+ANY-zone widening is preserved byte-equivalent (`_player_widening_applies`
+= the single opinion; `_is_any_universal` its runtime twin; equality pinned by
+`test_geyser_any_target_pins.TestTwinPredicatesAgree`, which pins the B5a 2-branch shape as
+NEVER widening — the regression witness).
+Pins: new MTG_bot/core/test_geyser_any_target_pins.py (7 tests, RED-first 3F/3P at pre-fix HEAD
+→ 7P); witness pins AMENDED (r17-2) in test_templates_b2a (:1629 Arsonist, :1721 Meteorite,
+:1733 Skeleton Archer), test_templates_b2b (:1856 Terror family), test_templates_b3 (:542
+docstring + zone pin), test_templates_b5b (:1163 damage-any). b5c:1529/1675 and b2b:2216,
+b5b:2367 left untouched (C2 referent CHOOSE selectors, neutral zone by convention).
+
+### 6.2 Gate table (all re-run AFTER the 3-atom correction)
+| gate | result |
+| run_scenarios | **339/339**, zero packs re-verified (no pack scripted a hidden-zone "any target") |
+| pytest MTG_bot/core -q | **2367 passed + 3 subtests** (2360 baseline + 7 new pins), 0 failed |
+| pytest tools/audit -q | 62 passed |
+| measure_grammar --with-engine-flags | PC-3 **0**, PC-4 **0** (305 verified); PC-1/2/6/7/8/9/10 values BIT-IDENTICAL to HEAD report (PC-6/PC-8 pre-existing FAILs unchanged); only PC-5 latency jitter 0.249→0.296 ms (target <50) |
+| catalog compare → repin → compare | diverged 3/10 mid-bug (attributed), 1/10 after correction (seed 7 reverted to its ORIGINAL pre-fix hashes 28ed5bf6/b8196c2f — legal creature designation; candidate-set change legitimated the policy's re-pick) → **0/10** |
+| games --seeds 100 --pool all --deck-pairs-seed 1409 | **0 crash classes**, 100 decisive 56/44 (baseline band 47/53; player-side finishing widens endings — within re-selection band) |
+| masked_target_probe 12 | **leak_opp_hidden = 0** (was 116/24 games @4dbe864); candidates player_or_public=8 public=92, hidden=0 in all 4 policy lanes |
+| ruff | Δ0 vs HEAD copy (7 TRY004 in b5b are pre-existing; the 1 F401 introduced mid-session removed) |
+| pyright (LSP on-edit diagnostics) | 0 new errors on all touched files |
+
+### 6.3 Deferrals
+tools/audit/deferrals.json Sublime Epiphany `re_admit_when` amended per R17-1 §5:
+"counter window AND COPY-handler absent".

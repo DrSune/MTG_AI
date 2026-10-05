@@ -1160,7 +1160,11 @@ class TestStructuralAssertions(unittest.TestCase):
         target = p["target"]
         self.assertIsInstance(target, Selector)
         self.assertEqual(target.mode, SelectorMode.TARGET)
-        self.assertEqual(target.zone.kind, ZoneKind.ANY)
+        # AMENDED r17-2 (geyser-FIX): "any target" is the battlefield
+        # FOr(Creature, Planeswalker) idiom — hidden zones are not a
+        # target population (CR 109.5); players join via widening.
+        self.assertEqual(target.zone.kind, ZoneKind.BATTLEFIELD)
+        self.assertIsInstance(target.filter, FOr)
 
     # -- Zone moves --
 
