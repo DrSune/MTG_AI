@@ -23,6 +23,10 @@
 #   --no-engine     skip docker-stop AND engine restart/health-poll (trap-path
 #                   testing WITHOUT touching the engine)
 #   --engine-target NAME  switch target for bring-back (default: flash-next)
+#   --selfwake / --no-selfwake  after a SUCCESSFUL engine restore, arm
+#               tools/training/selfwake.py which injects a STOP-REVIEW prompt
+#               into the orchestrator session via the opencode API (:4096).
+#               Default ON — "you always see me, or how training is going".
 # Everything after -- (or all unrecognised args) goes to run_train.py.
 #
 # Never deletes anything. Every step is logged to reports/training_ops.log.
@@ -105,6 +109,13 @@ on_exit() {
     write_status "RESTARTING-ENGINE" "training ended (rc=$rc); bringing $TARGET back + health-polling"
     if bring_engine_back; then
       detail="$detail; engine $TARGET restored and gateway healthy"
+      if [ "$SELF_WAKE" = 1 ]; then
+        # the engine being back does NOT wake the orchestrator session (2026-10-05
+        # blink: 45 idle minutes despite a COMPLETE run). Arm the wake injector.
+        nohup "$PY" "$REPO/tools/training/selfwake.py" --arm \
+          --run-id "fm-$(date +%s)" >> "$OPSLOG" 2>&1 & disown
+        detail="$detail; selfwake armed (injects STOP-REVIEW prompt when engine warm)"
+      fi
     else
       detail="$detail; ENGINE RESTORE FAILED — see ops log for owner action"
     fi

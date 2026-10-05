@@ -114,3 +114,20 @@ head -8 reports/TRAINING_STATUS.md; tail -2 reports/training_runs.jsonl; tail re
 4. Before declaring any batch "failed": check what it actually left on disk — both "dead"
    2026-10-05 batches had completed most work (ab_duel/elo fully green, monitor live); the
    breaker kills the REPORT, not always the work.
+
+## Self-wake law (appended 2026-10-05 23:2x — closes the blink gap: engine restore ≠ session
+## wake; the 21:55–22:50 blink sat idle 43 min AFTER a COMPLETE run because the session is
+## event-driven and nothing called it)
+- `tools/training/selfwake.py --arm --run-id ID` = detached poller: waits for gateway health
+  (engine up = my turns can execute; +30 s warm delay), discovers the MTG_AI orchestrator
+  session via the opencode server (`:4096/session?directory=…`, freshest NON-subagent title —
+  subagent sessions must never be woken), POSTs one prompt to `/session/{sid}/prompt`.
+- VERIFIED end-to-end twice: 22:55:38 smoke (manual POST) and 23:20:06 wiring test
+  (`--arm --delay-after-up 15`, fired at +16 s). Endpoint quirk: the server answers only
+  after the turn completes, so a sender timeout does NOT mean failure — marker/log decide.
+- `run_full_memory.sh --selfwake` (default ON; `--no-engine` still wakes — engine never
+  stopped there) arms it from the EXIT trap with run-id `fm-<epoch>`; marker
+  `reports/monitoring/selfwake.json` refuses double-wake of the same run-id.
+- Loop safety: the injected prompt is a REVIEW prompt — it forbids auto-starting new
+  training; a runaway requires deliberately flipping --selfwake twice. Exit 1 + ops-log
+  line when wake fails (never silent).
