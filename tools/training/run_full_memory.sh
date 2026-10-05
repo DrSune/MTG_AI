@@ -49,12 +49,14 @@ FREE_WAIT_S="${FREE_WAIT_S:-120}"      # bound for memory to actually free
 HEALTH_WAIT_S="${HEALTH_WAIT_S:-1800}" # engine load takes ~10-12 min
 HEALTH_POLL_S="${HEALTH_POLL_S:-15}"
 
-DRY_RUN=0 NO_ENGINE=0 TARGET=flash-next
+DRY_RUN=0 NO_ENGINE=0 TARGET=flash-next SELF_WAKE=1
 RT_ARGS=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --dry-run) DRY_RUN=1; shift ;;
     --no-engine) NO_ENGINE=1; shift ;;
+    --selfwake) SELF_WAKE=1; shift ;;
+    --no-selfwake) SELF_WAKE=0; shift ;;
     --engine-target) TARGET="$2"; shift 2 ;;
     --) shift; RT_ARGS=("$@"); break ;;
     *) RT_ARGS+=("$1"); shift ;;
