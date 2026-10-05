@@ -34,3 +34,18 @@ in ab_duel.py untouched — ELO batch file); pytest tools/training 33 passed.
 **Not touched**: MTG_bot/**, tools/audit/, run_train.py (read-only — its
 jsonl is the board's heartbeat source; no instrument call was trivially
 warranted, trainers call log_metric.py themselves). No engine operations.
+
+## Home Assistant integration (added 21:5x)
+`GET /ha.json` — stable-field snapshot for REST sensors; `GET /ha` — compact dark card for an
+iframe/picture card in the HA app (30 s auto-refresh). Suggested sensor yaml:
+```yaml
+sensor:
+  - platform: rest
+    name: mtg_training
+    resource: http://192.168.1.108:8788/ha.json
+    value_template: "{{ value_json.state }}"
+    json_attributes: [phase, engine_up, mem_used_gib, last_stop_cause, elo_top]
+    scan_interval: 30
+```
+state values: idle | training | engine-down (engine-down is NORMAL during full-memory
+train-and-restart; the monitor itself never needs the engine).

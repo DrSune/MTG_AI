@@ -629,6 +629,84 @@ def health_json(paths: Paths) -> dict[str, Any]:
 
 
 # --------------------------------------------------------------------------
+# Home Assistant endpoints  (GET /ha.json for REST sensors, GET /ha compact view)
+# --------------------------------------------------------------------------
+
+
+def ha_state(paths: Paths) -> dict[str, Any]:
+    """Compact machine-readable snapshot for Home Assistant REST sensors.
+    Field names are STABLE (HA yaml binds them); values always present."""
+    st = training_state(paths)
+    eng = engine_info(paths)
+    final = next((e for e in reversed(st["entries"]) if e.get("event") == "final"), {})
+    elo_top: list[dict[str, Any]] = []
+    if paths.elo.exists():
+        try:
+            elo = json.loads(paths.elo.read_text(encoding="utf-8"))
+            elo_top = [
+                {
+                    "policy": r["policy"].split("/")[-1].removesuffix(".pt"),
+                    "elo": round(r["elo"]),
+                }
+                for r in elo.get("ratings", [])[:4]
+            ]
+        except (json.JSONDecodeError, KeyError):
+            pass
+    state = "training" if st["live"] else "idle"
+    if eng.get("gateway_ok") is False and not st["live"]:
+        state = "engine-down"  # e.g. mid full-memory restart
+    mem = eng.get("memory") or {}
+    return {
+        "ok": True,
+        "ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+        "state": state,
+        "phase": st.get("phase") or "",
+        "engine_up": bool(eng.get("gateway_ok")),
+        "engine": eng.get("active_engine") or "",
+        "mem_used_gib": mem.get("used_gib"),
+        "mem_total_gib": mem.get("total_gib"),
+        "last_stop_cause": final.get("cause", ""),
+        "last_stop_wall_s": final.get("wall_s"),
+        "metrics": len(read_jsonl(paths.metrics)),
+        "elo_top": elo_top,
+    }
+
+
+def _ha_html(d: dict[str, Any]) -> str:
+    """Ultra-compact dark card for the HA app (iframe/picture card)."""
+    tone = {"training": "#22c55e", "idle": "#64748b", "engine-down": "#f59e0b"}[
+        d["state"]
+    ]
+    rows = [
+        ("STATE", d["state"].upper()),
+        ("PHASE", d["phase"] or "—"),
+        ("ENGINE", "up" if d["engine_up"] else "DOWN"),
+        ("MEM", f"{d['mem_used_gib'] or '?'} / {d['mem_total_gib'] or '?'} GiB"),
+        ("LAST STOP", d["last_stop_cause"] or "—"),
+    ]
+    if d["elo_top"]:
+        rows.append(
+            ("ELO", ", ".join(f"{e['policy']}={e['elo']}" for e in d["elo_top"]))
+        )
+    lines = "".join(
+        f'<div style="display:flex;justify-content:space-between;padding:6px 0;'
+        f'border-bottom:1px solid #1e293b"><span style="color:#94a3b8">{k}</span>'
+        f"<b>{v}</b></div>"
+        for k, v in rows
+    )
+    return (
+        '<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">'
+        '<meta http-equiv="refresh" content="30">'
+        '<div style="font:15px/1.5 system-ui;background:#0f172a;color:#e2e8f0;'
+        "max-width:420px;margin:12px auto;padding:16px;border-radius:12px;"
+        "border-left:6px solid " + tone + '">'
+        '<div style="font-size:18px;font-weight:700;margin-bottom:8px">MTG Training</div>'
+        + lines
+        + "</div>"
+    )
+
+
+# --------------------------------------------------------------------------
 # Server
 # --------------------------------------------------------------------------
 class Handler(BaseHTTPRequestHandler):
@@ -658,6 +736,14 @@ class Handler(BaseHTTPRequestHandler):
                     uptime_s=round(time.time() - self.started, 1),
                 )
                 self._send(200, "application/json", json.dumps(payload).encode())
+            elif self.path in ("/ha", "/ha.json"):
+                payload = ha_state(self.paths)
+                if self.path == "/ha":
+                    self._send(
+                        200, "text/html; charset=utf-8", _ha_html(payload).encode()
+                    )
+                else:
+                    self._send(200, "application/json", json.dumps(payload).encode())
             else:
                 self._send(404, "text/plain", b"not found")
         except Exception as exc:  # noqa: BLE001 — never kill the handler thread
