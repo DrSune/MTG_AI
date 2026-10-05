@@ -1,0 +1,80 @@
+{
+ "name": "miscast_kickback_pay",
+ "note": "wave7 (kickback PAY lane, R17-1 ruling A): P0 casts Shock; P1 answers the window with the REAL Miscast ('counter target instant or sorcery spell unless its controller pays {3}'). At resolution the engine builds the kickback plan against the PAYER'S (P0's) pool and ASKS pay:<P0>:<digest> with vocab (PASS, PAY). P0 pays {3} from its R-only pool (deterministic drain), Shock LIVES and resolves, the Rager dies. Falsified by miscast_kickback_pass.json (PASS \u2192 Rager lives) and miscast_kickback_unpayable.json (no plan \u2192 no ask).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "miscast",
+   "real": "Miscast",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "rager",
+   "name": "Rager",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 5
+  },
+  "1": {
+   "U": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "shock",
+   "targets": [
+    "rager"
+   ],
+   "decisions": [
+    "miscast",
+    "PAY"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "shock": "graveyard",
+   "miscast": "graveyard",
+   "rager": "graveyard"
+  },
+  "mana_pool": {
+   "0": {
+    "R": 1
+   },
+   "1": {}
+  },
+  "window_asks": {
+   "1": [
+    "miscast"
+   ]
+  },
+  "kickback_asks": {
+   "0": [
+    "PAY"
+   ]
+  }
+ }
+}

@@ -719,11 +719,15 @@ class TestCapabilitySurface(unittest.TestCase):
             # and the equip/aura attachment verb on the attachments table.
             Verb.GAIN_CONTROL,
             Verb.ATTACH,
+            # RUNG-1 (response-window arc): the counter verb joins with
+            # the stack.cast response window (Cancel, Miscast, Rewind,
+            # Lofty Denial leave deferral).
+            Verb.COUNTER_SPELL,
         }
         self.assertEqual(SUPPORTED_VERBS_V2 - SUPPORTED_VERBS_V1, new)
         self.assertNotIn(Verb.DRAW, SUPPORTED_VERBS_V1)  # the round-12 freeze
         self.assertEqual(len(SUPPORTED_VERBS_V1), 24)
-        self.assertEqual(len(SUPPORTED_VERBS_V2), 45)
+        self.assertEqual(len(SUPPORTED_VERBS_V2), 46)
 
     def test_turn_ledger_fields_in_state_fingerprint(self):
         reset_oracle_ids()

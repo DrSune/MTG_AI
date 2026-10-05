@@ -5,21 +5,27 @@ per cast, exactly the way 12c folded ``ACTIVATE``: re-check legality, choose
 modes/targets/X (601.2c–e), determine and LOCK the total cost (601.2f), pay
 (601.2g), put the spell on the stack (601.2h), resolve it (601.4), move the
 card to its after-resolution zone (601.2j / 400.7).
-
-**No-interaction v1 vs CR 608.2 — the loud gap.** A real spell waits on the
-stack while players get a RESPONSE WINDOW (CR 608.2: mana abilities first,
-then spells/abilities in APNAP order); counterspells and instants-in-reply
-live entirely in that window. This executor has no priority/passing state,
-so v1 resolves a cast spell IMMEDIATELY: an uncontested cast always
-resolves, and a response window simply does not exist — which means
-counters CAN'T exist in v1 either. ``COUNTER_SPELL`` therefore STAYS a
-NotImplementedError at dispatch (Cancel and its three siblings keep raising
-— flagged, not degraded), and any "counter target spell" text is a
-guaranteed loud crash until the arc-3 response API. To keep that API cheap
-to add later, every declaration field the CR makes public
-(601.2b–e: modes, targets, X, total cost, timing choices) is stored on
-:class:`SpellObject` and journalled (risk-1, doc /11) — a future window
-reads a complete frame instead of re-deriving one.
+**Rung-1 response window vs CR 608.2 — the narrowed gap.** A real spell
+waits on the stack while players get a RESPONSE WINDOW (CR 608.2: mana
+abilities first, then spells/abilities in APNAP order). Round-13b had
+none: casts resolved IMMEDIATELY and ``COUNTER_SPELL`` was a loud
+NotImplementedError. RUNG-1 opens the first slice of that window: after
+the cast's triggers settle and BEFORE resolution, every opponent in
+seat order is asked (through the 14b decision channel, tag
+``counter:<seat>:<digest>``) whether they respond — ``PASS`` or the
+handle of a payable counterspell from hand, which is cast at the frame
+in a nested LIFO push (a counter can itself be countered). The window
+is ONE response round, in seat order, with no priority re-asks and no
+mana-ability lane: a real window interleaves passes and active-player
+rounds; this is rung 1 of the arc, and everything beyond it (instants-
+in-reply, priority, mana abilities) STAYS a documented gap. A frame a
+counter flags is popped without its effect running (601.4 interrupted;
+the card still goes to its graveyard, 400.7). A seat with nothing
+castable is never asked (C15 — an empty choice set is never offered).
+Every declaration field the CR makes public (601.2b–e: modes, targets,
+X, total cost, timing choices) is stored on :class:`SpellObject` and
+journalled (risk-1, doc /11) — the window reads a complete frame
+instead of re-deriving one.
 
 Stack placement: the frozen :mod:`MTG_bot.core.state` already declares
 ``ZONE_STACK`` (L41) but keeps it OUT of ``PLAYER_ZONES``, and the
@@ -42,13 +48,21 @@ the list still makes the ordering explicit and future-visible.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields, is_dataclass
 from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
+    Atom,
     Cost,
     SpellAbility,
     SpellKind,
+    Verb,
+)
+from MTG_bot.core.executor.decisions import site_digest
+from MTG_bot.core.executor.events import (
+    KIND_WINDOW_OPEN,
+    KIND_WINDOW_PASS,
+    parse_handle_tag,
 )
 from MTG_bot.core.executor.legality import (
     PaymentPlan,
@@ -117,6 +131,12 @@ class SpellObject:
     payment: PaymentPlan | None = None
     declared_clock: int = 0
     from_zone: str | None = None
+    # RUNG-1: the counter flag. Set by the COUNTER_SPELL handler when a
+    # response-window cast interrupts THIS frame; the popper sees it and
+    # returns without running the effect (CR 601.4's interrupted
+    # resolution). Transient within one cast() call — the frame pops the
+    # same breath it is flagged, so dump()/fingerprints never observe it.
+    countered: bool = False
 
 
 @dataclass
@@ -458,6 +478,95 @@ def _plan_cast_designation(
     return targets, slot_designations, remaining, modes
 
 
+def _tree_has_counter(node: object) -> bool:
+    """Does an IR subtree (SpellAbility effect trees, Seq/Choose/
+    Conditional shapes) contain a COUNTER_SPELL atom? Generic dataclass
+    walk — rung-1 must not re-encode the effect grammar; the IR is a
+    finite tree (no cycles), so the recursion terminates."""
+    if isinstance(node, Atom):
+        return node.verb is Verb.COUNTER_SPELL
+    if is_dataclass(node) and not isinstance(node, Handle):
+        for f in fields(node):
+            value = getattr(node, f.name)
+            if isinstance(value, (list, tuple)):
+                if any(_tree_has_counter(item) for item in value):
+                    return True
+            elif _tree_has_counter(value):
+                return True
+    return False
+
+
+def _tree_verb_closure(node: object, acc: set) -> set:
+    """Every Atom verb inside an IR subtree (the same generic dataclass
+    walk as :func:`_tree_has_counter`). The window's engine-support gate
+    asks for the FULL closure, not just the counter atom: a card that
+    counts a spell but also executes COPY (Sublime Epiphany) is not
+    executable by the engine, and offering it in a vocab that promises
+    executability crashed seed 96 of the 100-seed games smoke."""
+    if isinstance(node, Atom):
+        acc.add(node.verb)
+    elif is_dataclass(node) and not isinstance(node, Handle):
+        for f in fields(node):
+            value = getattr(node, f.name)
+            if isinstance(value, (list, tuple)):
+                for item in value:
+                    _tree_verb_closure(item, acc)
+            else:
+                _tree_verb_closure(value, acc)
+    return acc
+
+
+def _counter_vocab(
+    executor: Executor, seat: Handle, frame_handle: Handle
+) -> tuple[str, ...]:
+    """RUNG-1 response vocabulary for one seat facing ONE stack frame:
+    PASS plus the HANDLED string of every hand card that is a counter
+    spell it could legally cast AGAINST THAT FRAME right now. Four gates,
+    each the honest answer to a smoke-test failure:
+
+    * counter atom AND ``spell_castable`` (window, mana, record; C15:
+      nothing the seat cannot pay is offered);
+    * **verb closure** — every atom of the spell node lies in HANDLERS
+      (the runtime twin of the compile-time ``engine_supported`` gate;
+      Sublime Epiphany's COPY is not offered);
+    * **designability** — the frame passes the counter's own TARGET-slot
+      legality via :func:`validate_target_selection` (Miscast's
+      instant/sorcery filter is never offered at a creature spell — the
+      seed-16 crash); ``spell_castable`` cannot see this because it is
+      target-blind;
+    * **modeless declaration** — exactly one TARGET slot and no Choose
+      fan: the window lane casts with ``targets=(frame,)`` and declares
+      no mode, so a multi-slot/Choose counter is not offered (seed 96).
+
+    Handle-sorted (ruling 5)."""
+    from MTG_bot.core.executor.query import (
+        spell_target_slots,
+        validate_target_selection,
+    )
+    from MTG_bot.core.executor.verbs import HANDLERS
+
+    world = executor.world
+    hand = world.players[seat].zone("hand")
+    options: list[str] = []
+    for handle in hand.entries:
+        record = spell_record(executor, handle)
+        if record is None:
+            continue
+        node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None)
+        if node is None or node.effect is None or not _tree_has_counter(node.effect):
+            continue
+        if not _tree_verb_closure(node, set()) <= set(HANDLERS):
+            continue
+        reason, _n, _r, plan = spell_castable(executor, seat, handle)
+        if reason is not None or plan is None:
+            continue
+        slots = spell_target_slots(executor, node, spell_handle=handle, seat=seat)
+        if len(slots) != 1 or validate_target_selection(slots[0], (frame_handle,)):
+            continue
+        options.append(str(handle))
+    return ("PASS",) + tuple(sorted(options))
+
+
 def cast(
     executor: Executor,
     seat: Handle,
@@ -570,6 +679,34 @@ def cast(
     executor.journal.emit_cast(handle, seat, node.kind.name, "hand", x)
     executor._settle()  # cast triggers resolve first
 
+    # 6b (RUNG-1, CR 608.2's first slice): the RESPONSE WINDOW. Every
+    # opponent in seat order MAY answer the frame with a counterspell.
+    # One round, seat-ordered, no priority re-asks (documented narrowing
+    # above); a dead frame ends the round early; a seat with nothing to
+    # offer is skipped WITHOUT an ask (C15) and without a journal row.
+    # The nested ``cast`` is the LIFO push — the counter resolves ON TOP
+    # of this frame, and its own window opens recursively (a counter can
+    # be countered). Answers arrive through the 14b channel's provider
+    # lane: ``executor.decisions.take`` DIRECTLY, bypassing the pool —
+    # the per-op ``decisions=`` pool belongs to THIS spell's declaration
+    # (modes/targets), and letting a window answer consume it would
+    # silently re-target the cast (the contamination the pin tests).
+    digest = site_digest((str(handle), frame.declared_clock))
+    for responder in world.player_order:
+        if responder == seat:
+            continue
+        if frame.countered or world.zone_of(handle).kind != ZONE_STACK:
+            break
+        vocab = _counter_vocab(executor, responder, handle)
+        if len(vocab) <= 1:
+            continue
+        executor.journal.emit(KIND_WINDOW_OPEN, handle, responder, "WINDOW", (vocab,))
+        answer = executor.decisions.take(vocab, f"counter:{responder}:{digest}")
+        if answer == "PASS":
+            executor.journal.emit(KIND_WINDOW_PASS, handle, responder, "WINDOW", ())
+            continue
+        cast(executor, responder, parse_handle_tag(answer), targets=(handle,))
+
     # 7: resolution. The effect runs WITHOUT an intervening settle — the
     # spell leaves the stack and the PUT happens before anything its
     # mutations armed may fire (CR 608.3's resolution is indivisible in v1
@@ -577,6 +714,12 @@ def cast(
     # aftermath).
     popped = executor.stack.pop()
     assert popped is frame  # LIFO: single-caster v1 always pops what pushed
+    if frame.countered:
+        # RUNG-1 (CR 601.4 interrupted): the COUNTER_SPELL handler already
+        # flagged the frame, journalled the COUNTER row and moved the card
+        # to its graveyard (400.7). The effect never runs and the spell
+        # gets no SPELL_PUT — a countered spell was never put anywhere.
+        return frame
     bindings: dict[str, Binding] = {}
     chosen = sorted(targets)
     if chosen:

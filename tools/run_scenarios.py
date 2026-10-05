@@ -220,6 +220,10 @@ class ScenarioRunner:
         # 16b: the combat rig — asks the engine actually made, and
         # libraries deep enough for real begin_turn/advance_turn draws.
         self.asks_seen: list[tuple[str, tuple[str, ...]]] = []
+        # Rung-1 (2026-10-05): every response-window / kickback ask the
+        # engine made, as (tag, vocab, ANSWER) triples — the expect lanes
+        # window_asks / kickback_asks / window_vocab read these.
+        self.rung1_asks: list[tuple[str, tuple[str, ...], str]] = []
         for seat_idx in (0, 1):
             for i in range(6):
                 self.world.add_card(
@@ -246,7 +250,13 @@ class ScenarioRunner:
 
             def prov(vocab, what):
                 self.asks_seen.append((what, tuple(vocab)))
-                got = queue.pop(0) if queue else vocab[0]
+                rung1 = what.startswith(("counter:", "pay:"))
+                # Rung-1: the queue is the step's DECLARATION lane. A
+                # window/kickback ask whose word the queue does not reach
+                # takes the disciplined default "PASS" (queue exhaustion
+                # never crashes a window — the pack that wants another
+                # answer says so with a word).
+                got = queue.pop(0) if queue else ("PASS" if rung1 else vocab[0])
                 if got in self.handles:
                     # 18b: a DESIGNATION answer may be given as a PACK KEY
                     # ("sheep", not "card:1") — resolved to the handle
@@ -254,9 +264,34 @@ class ScenarioRunner:
                     # order is deterministic, so the pin stays replay-exact
                     # and the pack says WHO, not an accident of numbering.
                     got = str(self.handles[got])
-                return got if got in vocab else vocab[0]
+                answer = got if got in vocab else ("PASS" if rung1 else vocab[0])
+                if rung1:
+                    self.rung1_asks.append((what, tuple(vocab), answer))
+                return answer
 
             self.ex.decisions.provider = prov
+            try:
+                self._dispatch(step)
+            finally:
+                self.ex.decisions.provider = None
+            return
+        if step["op"] != "combat":
+            # Rung-1 quiet lane: a step WITHOUT a decisions queue still
+            # answers response-window and kickback asks with PASS (the
+            # window is not the pack's declaration lane). Every OTHER ask
+            # raises the engine's OWN exhaustion message verbatim — the
+            # 339 semantics (silence on unprimed asks) are byte-preserved.
+            def quiet(vocab, what):
+                self.asks_seen.append((what, tuple(vocab)))
+                if what.startswith(("counter:", "pay:")):
+                    self.rung1_asks.append((what, tuple(vocab), "PASS"))
+                    return "PASS"
+                raise ValueError(
+                    f"executor: {what} needs a decision from {tuple(vocab)}, "
+                    "nothing is primed and no answerer is registered"
+                )
+
+            self.ex.decisions.provider = quiet
             try:
                 self._dispatch(step)
             finally:
@@ -616,6 +651,48 @@ class ScenarioRunner:
             want_pool = {k: v for k, v in dict(colors).items() if v}
             if got_pool != want_pool:
                 fails.append(f"mana_pool[{seat}]: expected {want_pool}, got {got_pool}")
+        # Rung-1 lanes (2026-10-05 response-window arc) ----------------------
+        # window_asks / kickback_asks: per SEAT, the ordered ANSWERS the
+        # pack gave to the engine's counter:/pay: tags (a pack key names
+        # the counter spell; "PASS"/"PAY" are literals). window_vocab: the
+        # ordered VOCABULARIES of the counter: asks. Absent lanes are
+        # unchecked; an explicit [] pins "this seat was never asked".
+        want_tag = {
+            lane: prefix
+            for lane, prefix in (
+                ("window_asks", "counter:"),
+                ("kickback_asks", "pay:"),
+            )
+        }
+        for lane, prefix in want_tag.items():
+            for seat, wants in expect.get(lane, {}).items():
+                seat_str = str(self.seats[int(seat)])
+                got_ans = [
+                    a
+                    for (w, _, a) in self.rung1_asks
+                    # tags are "<kind>:<seat handle>:<digest>" and the
+                    # seat Handle str itself carries a colon ("player:1")
+                    if w.startswith(prefix) and ":".join(w.split(":")[1:3]) == seat_str
+                ]
+                want_ans = [
+                    str(self.handles[w]) if w in self.handles else w for w in wants
+                ]
+                if got_ans != want_ans:
+                    fails.append(
+                        f"{lane}[{seat}]: expected {want_ans!r}, got {got_ans!r}"
+                    )
+        if "window_vocab" in expect:
+            want_vocab = [
+                [str(self.handles[t]) if t in self.handles else t for t in vocab]
+                for vocab in expect["window_vocab"]
+            ]
+            got_vocab = [
+                list(v) for (w, v, _) in self.rung1_asks if w.startswith("counter:")
+            ]
+            if got_vocab != want_vocab:
+                fails.append(
+                    f"window_vocab: expected {want_vocab!r}, got {got_vocab!r}"
+                )
         # 17a lanes ------------------------------------------------------------
         for key, kinds in expect.get("counters", {}).items():
             got = dict(self.world.cards[self.handles[key]].counters)

@@ -1,0 +1,80 @@
+{
+ "name": "cancel",
+ "note": "wave7 (Rung-1 response window, R17-1 ruling A): P0 casts the REAL Shock at an opposing 2/2; after the declaration settles the WINDOW opens and asks P1 \u2014 who holds the REAL Cancel ({1}{U}{U}) \u2014 through executor.decisions. The pack answers with the counter spell's KEY; the engine casts it LIFO and the shock's effect NEVER RUNS (CR 601.4): the Rager lives, both spells hit graveyards. Falsified by cancel_pass.json, which answers PASS and inverts the zone lanes.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "cancel",
+   "real": "Cancel",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "rager",
+   "name": "Rager",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2
+  },
+  "1": {
+   "U": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "shock",
+   "targets": [
+    "rager"
+   ],
+   "decisions": [
+    "cancel"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "shock": "graveyard",
+   "cancel": "graveyard",
+   "rager": "battlefield"
+  },
+  "hand": {
+   "1": 0
+  },
+  "mana_pool": {
+   "1": {}
+  },
+  "window_asks": {
+   "1": [
+    "cancel"
+   ]
+  },
+  "window_vocab": [
+   [
+    "PASS",
+    "cancel"
+   ]
+  ]
+ }
+}

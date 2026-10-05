@@ -872,10 +872,7 @@ class TestDispatchRaises(ExecutorCase):
         # AMENDED (round 13b): CAST left the raise list — it is the spell
         # stack's effect-side handler (_v_cast -> stack.cast_card, covered
         # in test_executor_stack.py); PAY/CHOOSE/CHOOSE_NAME/MANA_POLICY
-        # joined the same round. COUNTER_SPELL STAYS: v1 has no
-        # interaction window — a counter-spell can never legally resolve
-        # (the four corpus cards keep their loud dispatch raise, pinned
-        # by test_counter_spell_still_raises in test_executor_stack.py).
+        # joined the same round.
         # AMENDED 2026-09-30 (round 13c): GET_EMBLEM left the raise list —
         # it is the emblems round's live handler (executor.get_emblem,
         # covered in test_executor_permissions.py); GRANT_TYPE,
@@ -884,9 +881,13 @@ class TestDispatchRaises(ExecutorCase):
         # AMENDED 2026-09-30 (round 16a): FIGHT left the raise list — it is
         # the damage-exchange round's live handler (HANDLERS[Verb.FIGHT],
         # covered by the 16a marked-damage/fight tests).
+        # AMENDED (RUNG-1 response-window arc): COUNTER_SPELL left the
+        # raise list — stack.cast now opens the response window and the
+        # verb has a real handler (kickback ask included); off-stack
+        # counters still raise loudly, pinned by
+        # test_counter_spell_off_stack_raises in test_executor_stack.py.
         probes = {
             Verb.PHASE_OUT: {"target": target_sel()},
-            Verb.COUNTER_SPELL: {"target": target_sel()},
         }
         for verb, roles in probes.items():  # DRAW deliberately outside v1
             with self.subTest(verb=verb.name):

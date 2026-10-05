@@ -1219,16 +1219,21 @@ class TestJournalFingerprintRaises(StackCase):
         self.assertEqual(evs[0].subject, self.p0)
         self.assertEqual(evs[0].data, ("LOSE_GAME",))
 
-    def test_counter_spell_still_raises(self):
-        # the mission pin: v1 has no response window, so a counter can
-        # never legally resolve — the loud flag STAYS (no silent no-op)
-        with self.assertRaises(NotImplementedError) as cm:
+    def test_counter_spell_off_stack_raises(self):
+        # superseded by RUNG-1 (response-window arc): COUNTER_SPELL is a
+        # real handler now — the old pin (loud NotImplementedError at
+        # dispatch) tested the pre-window engine. The LOUD flag stays,
+        # one level deeper: countering a card that is not a framed spell
+        # on the stack raises — never a silent no-op (North Star).
+        spell = self.shock()  # in hand, NOT framed on the stack
+        with self.assertRaises(ValueError) as cm:
             self.ex.execute(
                 atom(Verb.COUNTER_SPELL, target=any_target()),
                 source=self.p0,
                 controller=self.p0,
+                bindings={"target": [spell]},
             )
-        self.assertIn("COUNTER_SPELL", str(cm.exception))
+        self.assertIn("not on the stack", str(cm.exception))
 
     def test_replay_identity_with_the_new_folds(self):
         """Two executors, one scripted op sequence: byte-identical

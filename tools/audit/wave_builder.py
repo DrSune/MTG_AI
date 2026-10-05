@@ -78,6 +78,8 @@ Usage::
     .venv/bin/python tools/audit/wave_builder.py --wave4 --lint
     .venv/bin/python tools/audit/wave_builder.py --wave5      # write wave5.json
     .venv/bin/python tools/audit/wave_builder.py --wave5 --lint
+    .venv/bin/python tools/audit/wave_builder.py --wave7      # write wave7.json
+    .venv/bin/python tools/audit/wave_builder.py --wave7 --lint
     .venv/bin/python tools/audit/wave_builder.py --coverage
 
 Coverage census (2026-10-01): the corpus-level adjudication question —
@@ -118,6 +120,7 @@ from MTG_bot.core.ability_tree import (
     SpellAbility,
     StaticAbility,
     TriggeredAbility,
+    Verb,
     ZoneChangeEvent,
     walk,
 )
@@ -133,6 +136,7 @@ DEFAULT_OUT2 = Path(__file__).resolve().parent / "wave2.json"
 DEFAULT_OUT3 = Path(__file__).resolve().parent / "wave3.json"
 DEFAULT_OUT4 = Path(__file__).resolve().parent / "wave4.json"
 DEFAULT_OUT5 = Path(__file__).resolve().parent / "wave5.json"
+DEFAULT_OUT7 = Path(__file__).resolve().parent / "wave7.json"
 DEFAULT_COVERAGE = Path(__file__).resolve().parent / "coverage.json"
 
 #: Wave-3 name-exclusion sources: every green scenario pack (148) and every
@@ -690,6 +694,112 @@ def derive_wave5() -> dict:
     }
 
 
+def counter_spell_nodes(record) -> list:
+    """The wave-7 family map: the card's own SPELL abilities whose resolve
+    payload executes a COUNTER_SPELL atom (Rung-1 response-window cohort:
+    Cancel, Lofty Denial, Miscast, Rewind, Sublime Unmaking). Read out of
+    the compiled IR via :func:`walk` + ``Atom.verb``, never a substring.
+    Top-level SpellAbility-only mirrors the wave-2 census grouping."""
+    out = []
+    for a in record.abilities:
+        if not isinstance(a, SpellAbility):
+            continue
+        if any(isinstance(n, Atom) and n.verb == Verb.COUNTER_SPELL for n in walk(a)):
+            out.append(a)
+    return out
+
+
+def counter_has_unless(record) -> bool:
+    """True iff any COUNTER_SPELL atom on the card carries the ``unless``
+    cost role (Miscast/Lofty kickback lane vs Cancel/Rewind plain counter).
+    Read off the compiled AtomArgs pairs, never from rules text."""
+    return any(
+        name == "unless"
+        for a in counter_spell_nodes(record)
+        for n in walk(a)
+        if isinstance(n, Atom) and n.verb == Verb.COUNTER_SPELL and n.args
+        for name, _ in n.args.pairs
+    )
+
+
+def counter_mechanics(record) -> list[str]:
+    """Wave-7 mechanics: every atom verb inside the card's counter-spell
+    nodes (e.g. Rewind counts COUNTER + UNTAP) — the window family's verb
+    families, read out of the IR."""
+    return sorted(
+        {
+            node.verb.name
+            for a in counter_spell_nodes(record)
+            for node in walk(a)
+            if isinstance(node, Atom)
+        }
+    )
+
+
+def derive_wave7() -> dict:
+    """Wave 7 = RESPONSE-WINDOW cohort: cards whose cast/resolve payload
+    executes a COUNTER_SPELL atom (the Rung-1 engine lane: window 6b + the
+    unless-kickback ask). Engine-supported gate (Sublime Unmaking is the
+    one gate-flagged member: its tree also executes COPY), minus every
+    card already exercised by a green pack or suspect. All four gate-clean
+    members (Cancel, Lofty Denial, Miscast, Rewind) were consumed by the
+    eight wave-7 scenario packs the same round they were derived, so the
+    open cohort is legitimately empty: the arithmetic line is the artifact.
+    meta.status stays unset (open wave)."""
+    pool, gated, texts = _compile_state()
+    covered = covered_names()
+    cards: dict[str, dict] = {}
+    excluded: dict[str, list[str]] = {}
+    n_counter_cards = 0
+    n_covered = 0
+    for oid, res in pool.results.items():
+        record = res.card
+        if record.is_token and oid not in pool.emblems:
+            continue
+        if not counter_spell_nodes(record):
+            continue
+        n_counter_cards += 1
+        if not gated.results[oid].legality.engine_supported:
+            excluded[record.name] = unsupported_verbs(record)
+            continue
+        if record.name in covered:
+            n_covered += 1
+            continue
+        cards[record.name] = {
+            "oracle_id": oid,
+            "mechanics": counter_mechanics(record),
+            "has_unless_kickback": counter_has_unless(record),
+            "n_counter_abilities": len(counter_spell_nodes(record)),
+            "engine_supported": bool(gated.results[oid].legality.engine_supported),
+            "image": str(ASSETS / f"{oid}.jpg"),
+            "has_image": (ASSETS / f"{oid}.jpg").exists(),
+            "printed_text": texts.get(oid, ""),
+        }
+    return {
+        "meta": {
+            "wave": "wave7",
+            "family": (
+                "RESPONSE-WINDOW cohort (SpellAbility payloads executing a "
+                "COUNTER_SPELL atom), engine-supported gate, pack/suspect-"
+                "covered names excluded, emblem records kept"
+            ),
+            "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
+            "built_by": "tools/audit/wave_builder.py",
+            "n_counter_cards": n_counter_cards,
+            "excluded_count": n_covered,
+            "n_gate_excluded": len(excluded),
+            "excluded_by_flag": dict(sorted(excluded.items())),
+            "coverage": (
+                f"{n_counter_cards} counter-spell cards = {n_covered} "
+                f"already covered (name) + {len(excluded)} gate-flagged + "
+                f"{len(cards)} wave-7 cohort"
+            ),
+            "n_cards": len(cards),
+        },
+        "cards": dict(sorted(cards.items())),
+    }
+
+
 def families_of(record) -> list[str]:
     """Which of the four audited families the card belongs to, decided by
     the waves' own node-detection helpers (never a substring): etb =
@@ -846,6 +956,11 @@ def main(argv=None) -> int:
         action="store_true",
         help="TRIGGER/REPLACEMENT residue cohort instead of wave 1",
     )
+    ap.add_argument(
+        "--wave7",
+        action="store_true",
+        help="RESPONSE-WINDOW (counter-spell) cohort instead of wave 1",
+    )
     ap.add_argument("--out", default=None)
     ap.add_argument("--lint", action="store_true", help="re-derive and diff vs disk")
     ap.add_argument(
@@ -868,7 +983,9 @@ def main(argv=None) -> int:
         print(f"wrote {out}")
         return 0
 
-    if args.wave5:
+    if args.wave7:
+        derive, default_out = derive_wave7, DEFAULT_OUT7
+    elif args.wave5:
         derive, default_out = derive_wave5, DEFAULT_OUT5
     elif args.wave4:
         derive, default_out = derive_wave4, DEFAULT_OUT4

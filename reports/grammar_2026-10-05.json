@@ -1,7 +1,7 @@
 {
   "set": "M21",
-  "generated": "2026-10-05T12:31:03+02:00",
-  "git_head": "d3b010d1c6df8315cc222de3d8a259d5fc789cb3",
+  "generated": "2026-10-05T15:33:34+02:00",
+  "git_head": "3c79d3c2a72eef31bb9e775ea5a9c2e56bc8cd8a",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -101,15 +101,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.296,
+      "value": 0.25,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.266,
-        0.261,
-        0.296
+        0.245,
+        0.243,
+        0.25
       ]
     },
     "PC-6": {
@@ -240,7 +240,7 @@
   ],
   "unparsed_count": 2,
   "engine_support": {
-    "engine_supported_cards": 297,
+    "engine_supported_cards": 301,
     "of_total": 305,
     "supported_verbs": [
       "ADD_LAND_PLAY",
@@ -249,6 +249,7 @@
       "CAST",
       "CHOOSE",
       "CHOOSE_NAME",
+      "COUNTER_SPELL",
       "CREATE_TOKEN",
       "DAMAGE_ASSIGN_POLICY",
       "DEAL_DAMAGE",
@@ -290,12 +291,12 @@
       "UNTAP"
     ],
     "flip_proof": {
-      "card": "Cancel",
+      "card": "Sublime Epiphany",
       "spell_ability_only": true,
       "default_engine_supported": true,
       "gated_engine_supported": false,
       "offending_verbs": [
-        "COUNTER_SPELL"
+        "COPY"
       ]
     }
   }

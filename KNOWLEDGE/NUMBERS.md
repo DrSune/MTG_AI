@@ -13,6 +13,40 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.25 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0931** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **301/305** (0.9869) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 46 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-10-05 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.247 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0931** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+| PC-7 engine_supported_cards | **301/305** (0.9869) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over 46 verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |
+
+
+## 2026-10-05 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.296 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0931** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
@@ -3110,3 +3144,14 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | Games 100 seeds | **0 crash classes**, 100 decisive, endings **56/44**, mean_turns **33.4** (max 55) | `.venv/bin/python tools/run_games.py --seeds 100 --pool all --deck-pairs-seed 1409 --turns 60` | mid-fix 2-branch widening crashed 10 seeds (Finishing Blow KeyError); 3-atom fix clears it |
 | Grammar flags | PC-3 **0**, PC-4 **0**; PC-1/2/6/7/8/9/10 bit-identical to HEAD (PC-6/8 pre-existing FAILs unchanged); PC-5 jitter 0.249→0.296 ms | `tools/measure_grammar.py --with-engine-flags` | engine_supported 297/305 unchanged |
 | Catalog seeds | after attribution **0/10** diverge; seeds 0/2 = hidden-target designations fixed, seed 7 policy re-selection reverted to original pre-fix journal | `tools/traces/catalog.py compare` | repinned post-fix |
+
+## 2026-10-05 (Rung-1 counter window — post-fix gate)
+
+| area | number | command | note |
+| --- | --- | --- | --- |
+| Scenarios | **347/347** (339 → +8 wave-7 counter packs) | `.venv/bin/python tools/run_scenarios.py` | zero regressions; 8 packs cancel×3/miscast×3/lofty/rewind |
+| Core suite | **2379 passed + 2 subtests** | `pytest MTG_bot/core -q` | +2 vocab-gate pins in test_executor_rung1.py (file 12/12) |
+| PC-7 honesty | **301/305, 46 verbs** unchanged | `tools/measure_grammar.py --with-engine-flags` | window adds no census inflation; Sublime stays excluded |
+| Wave-7 census | 5 counter cards = **4 covered + 1 gate (Sublime, COPY) + 0 cohort** | `.venv/bin/python tools/audit/wave_builder.py --wave7 --lint` | `tools/audit/wave7.json` |
+| Games 100 seeds | **0 crash classes**, 97 decisive + 2 cap + 1 draw, mean_turns **33.93** | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all` | pre-fix run had 2 NEW crashes (seeds 16/96) — vocab gate fixes both |
+| Window live stats | **19 WINDOW_OPEN / 10 PASS / 7 COUNTER / 2 KICKBACK (both PAY)** over the 100 seeds; offer vocab mean 2.11 max 3 | journal replay probe (same seeds, `journal.events` kinds) | arithmetic exact 19=10+7+2; random policy paid both kickbacks |

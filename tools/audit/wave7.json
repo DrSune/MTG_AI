@@ -1,0 +1,19 @@
+{
+  "cards": {},
+  "meta": {
+    "built_by": "tools/audit/wave_builder.py",
+    "coverage": "5 counter-spell cards = 4 already covered (name) + 1 gate-flagged + 0 wave-7 cohort",
+    "excluded_by_flag": {
+      "Sublime Epiphany": [
+        "COPY"
+      ]
+    },
+    "excluded_count": 4,
+    "family": "RESPONSE-WINDOW cohort (SpellAbility payloads executing a COUNTER_SPELL atom), engine-supported gate, pack/suspect-covered names excluded, emblem records kept",
+    "n_cards": 0,
+    "n_counter_cards": 5,
+    "n_gate_excluded": 1,
+    "source": "golden pool: ingest_pool + build_full_registry + compile_pool",
+    "wave": "wave7"
+  }
+}

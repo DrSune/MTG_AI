@@ -60,7 +60,11 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.durations_min import duration_tag
-from MTG_bot.core.executor.events import KIND_GAME_LOST
+from MTG_bot.core.executor.events import (
+    KIND_COUNTER,
+    KIND_GAME_LOST,
+    KIND_KICKBACK,
+)
 from MTG_bot.core.executor.quantity import (
     ExecCtx,
     eval_filter,
@@ -1807,6 +1811,83 @@ def _v_attach(ctx: ExecCtx, atom: Atom) -> None:
     ctx.events.append((len(ctx.events), atom.verb.name, str(equipment), str(host)))
 
 
+def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
+    """RUNG-1: counter the designated spell on the stack.
+
+    The designated target is the framed CARD (the window casts the counter
+    with ``targets=(frame.handle,)``). The handler flags the victim's
+    :class:`~MTG_bot.core.executor.stack.SpellObject`, so the popper in
+    :func:`stack.cast` interrupts the resolution (CR 601.4) — the frame's
+    effect never runs and the card moves to its owner's graveyard
+    (CR 400.7).
+
+    The frozen IR's ``unless`` role (CR 601.2h "unless its controller pays
+    <cost>", the Miscast/Lofty Denial shape) is an ASK-TIME decision, not
+    a guess: when the victim's controller CAN pay (a plan folds against
+    the pool — the 601.2g lane's own arithmetic), the payer is asked
+    PAY/PASS through the 14b provider lane (tag ``pay:<seat>:<digest>``,
+    C15: never asked when unpayable). PAY runs the plan through
+    ``pay_costs`` mid-resolution and the spell LIVES; PASS (or no plan)
+    counters. Every unless-site journalled exactly one KICKBACK row —
+    ``UNPAYABLE`` is the honest witness when no decision was asked."""
+    from MTG_bot.core.executor.legality import (
+        build_payment_plan,
+        ctx_for,
+        pay_costs,
+    )
+
+    ex = ctx.executor
+    if ex is None:
+        raise ValueError("executor: COUNTER_SPELL needs an executor-bound ctx")
+    targets = role_handles(ctx, atom, "target")
+    if not targets:
+        raise ValueError("executor: COUNTER_SPELL with no designated spell")
+    spell = targets[0]
+    frame = next((f for f in ex.stack.frames if f.handle == spell), None)
+    if frame is None:
+        raise ValueError(
+            f"executor: COUNTER_SPELL target {spell} is not on the stack "
+            "(only a framed spell can be countered)"
+        )
+    if frame.countered:
+        raise ValueError(f"executor: COUNTER_SPELL target {spell} already countered")
+
+    unless = atom.args.get("unless")
+    if unless is not None:
+        assert isinstance(unless, Cost)  # _VERB_ROLES: the unless role is a Cost
+        payer = frame.controller
+        pctx = ctx_for(ex, source=ctx.source, controller=payer)
+        plan, _reason = build_payment_plan(ctx.world, pctx, unless, mana_use=ctx.source)
+        answer = "UNPAYABLE"
+        if plan is not None:
+            digest = site_digest((str(spell), frame.declared_clock))
+            answer = ex.decisions.take(("PASS", "PAY"), f"pay:{payer}:{digest}")
+            if answer == "PAY":
+                pay_costs(
+                    ex,
+                    plan,
+                    source=ctx.source,
+                    controller=payer,
+                    mana_use=ctx.source,
+                )
+                if ctx.journal is not None:
+                    ctx.journal.emit(
+                        KIND_KICKBACK, spell, ctx.source, "KICKBACK", ("PAY",)
+                    )
+                ctx.events.append(
+                    (len(ctx.events), "KICKBACK_PAID", str(payer), str(spell))
+                )
+                return
+        if ctx.journal is not None:
+            ctx.journal.emit(KIND_KICKBACK, spell, ctx.source, "KICKBACK", (answer,))
+
+    frame.countered = True
+    if ctx.journal is not None:
+        ctx.journal.emit(KIND_COUNTER, spell, ctx.source, "COUNTER_SPELL", ())
+    _move_to(ctx, spell, ctx.world.controller_of(spell), ZONE_GRAVEYARD)
+    ctx.events.append((len(ctx.events), "COUNTER", str(spell), str(ctx.source)))
+
+
 HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.MOVE_ZONE: _v_move_zone,
     Verb.EXILE: _v_exile,
@@ -1845,14 +1926,18 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     # 13b: the cast-side verbs — the gate-flip five (PAY, CAST, CHOOSE,
     # CHOOSE_NAME, MANA_POLICY). SUPPORTED_VERBS_V2 derives from THIS
     # table, so these entries are exactly what moves measure_grammar's
-    # engine-supported count; COUNTER_SPELL deliberately stays out (no
-    # interaction window in v1 — the four COUNTER_SPELL cards keep their
-    # loud dispatch raise, pinned by test_counter_spell_still_raises).
+    # engine-supported count.
     Verb.PAY: _v_pay,
     Verb.CAST: _v_cast,
     Verb.CHOOSE: _v_choose,
     Verb.CHOOSE_NAME: _v_choose_name,
     Verb.MANA_POLICY: _v_mana_policy,
+    # RUNG-1 (response-window arc): the counter verb, live with the
+    # stack.cast response window and its honest unless-kickback ask.
+    # SUPPORTED_VERBS_V2 derives from THIS table — 45 -> 46, the library
+    # pin is amended dated; the four COUNTER_SPELL cards (Cancel, Miscast,
+    # Rewind, Lofty Denial) leave deferral and enter game decks.
+    Verb.COUNTER_SPELL: _v_counter_spell,
     # 13c: the permission/effect verbs — emblem acquisition, static type
     # grants, the additional-land allowance and the activation-window
     # relaxation. SUPPORTED_VERBS_V2 derives from THIS table.

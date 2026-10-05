@@ -912,3 +912,20 @@
   against a deterministic blocker, but the gain must survive randomized blockers;
   current probe gain is only **+0.031** and specificity **+0.031**.
   (`blocker_model.py`.)
+
+- **2026-10-05 · counter-window traps (`MTG_bot/core/executor/stack.py`, Rung-1).**
+  (1) **`spell_castable` is target-blind**: it checks mana/timing/card-legality but never the
+  current target population. A response vocabulary is a PROMISE of executability — offering
+  Miscast at a creature spell crashed the window's nested cast (`selection:off_population`).
+  Gate offers with `spell_target_slots` + `validate_target_selection`. (`_counter_vocab`.)
+  (2) **Unsupported verbs hide inside supported trees**: a card with `Seq[COUNTER, COPY]`
+  (Sublime Epiphany) passes the counter-atom test; walk the full verb closure against HANDLERS
+  before offering, or `--pool all` policy answers will reach an unregistered verb.
+  (`_tree_verb_closure`.)
+  (3) **Multi-target `Choose` cannot be answered through the window channel**: it needs a mode
+  token the channel never carries — require exactly one TARGET slot, modeless.
+  (4) **Printed filters decide pack casting**: Lofty Denial's counter filter is TYPE_EQ Creature
+  — it counters creature spells ONLY; a lofty demo must cast a real creature (Staunch
+  Shieldmate), not a shock. (`tools/scenarios/lofty_denial.json`.)
+  (5) **Rewind's UNTAP is CHOOSE ≤4 lands**: with ≤4 tapped lands the engine issues NO ask —
+  pin `kickback_asks: {"0": []}` instead of scripting a mode answer.

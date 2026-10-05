@@ -1,0 +1,75 @@
+{
+ "name": "miscast_kickback_pass",
+ "note": "wave7 (kickback PASS lane): the identical Miscast world, but P0 declines the {3} kickback. The counter lands \u2014 Shock is COUNTERED, its effect never runs (the Rager lives), and the counter card still makes its graveyard trip (CR 601.4 + 400.7). P0 pays NOTHING: the R pool holds 4 after Shock's own {R}. The falsifiable pair against miscast_kickback_pay.json is the zone lanes plus the mana lane.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "miscast",
+   "real": "Miscast",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "rager",
+   "name": "Rager",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 5
+  },
+  "1": {
+   "U": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "shock",
+   "targets": [
+    "rager"
+   ],
+   "decisions": [
+    "miscast",
+    "PASS"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "shock": "graveyard",
+   "miscast": "graveyard",
+   "rager": "battlefield"
+  },
+  "mana_pool": {
+   "0": {
+    "R": 4
+   },
+   "1": {}
+  },
+  "kickback_asks": {
+   "0": [
+    "PASS"
+   ]
+  }
+ }
+}

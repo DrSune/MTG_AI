@@ -110,6 +110,23 @@ KIND_TARGETING = "TARGETING"
 # Chandra planeswalker"); cause = the activating player (the node's
 # controller scope); data carries the paid delta for the audit trail.
 KIND_LOYALTY_ACTIVATED = "LOYALTY_ACTIVATED"
+# RUNG-1 (response-window arc, /11 §13b follow-through): the counter-
+# window feed. WINDOW_OPEN carries ONE row per seat that was ASKED for a
+# response to a stack frame (subject = the framed spell, cause = the
+# responding seat, data = the offered vocabulary — PASS plus the payable
+# counters it holds; a seat with nothing to offer is never asked and
+# gets NO row, C15). WINDOW_PASS is the same seat's explicit refusal
+# row (the scripted audit — an unanswered window cannot silently exist).
+# COUNTER is the flag row of a countered frame (subject = the countered
+# spell, cause = the countering spell card). KICKBACK is the "unless its
+# controller pays <cost>" site of a COUNTER_SPELL resolution: one row
+# per counter WITH an unless cost, WHETHER OR NOT a decision was asked
+# (an unpayable payer is never asked — the row then carries the honest
+# "UNPAYABLE" witness instead of a fabricated answer).
+KIND_WINDOW_OPEN = "WINDOW_OPEN"
+KIND_WINDOW_PASS = "WINDOW_PASS"
+KIND_COUNTER = "COUNTER"
+KIND_KICKBACK = "KICKBACK"
 
 # state.py zone-kind strings used by the diff's rule checks.
 # (ZONE_KIND_TO_STATE — the IR->state map — lives in selectors.py.)
@@ -166,6 +183,17 @@ class GameEvent:
       * LOYALTY_ACTIVATED — ``(delta,)``, subject the permanent whose
         loyalty ability was activated, cause the activating player
         (r22c, the LoyaltyActivatedEvent feed).
+      * WINDOW_OPEN   — ``(vocab,)``, subject the framed spell, cause the
+        asked seat (RUNG-1, the response-window audit; one row per seat
+        actually asked).
+      * WINDOW_PASS   — ``()``, subject the framed spell, cause the
+        passing seat (RUNG-1).
+      * COUNTER       — ``()``, subject the countered spell card, cause
+        the countering spell card (RUNG-1's flag row).
+      * KICKBACK      — ``(answer,)``, subject the framed spell, cause
+        the countering spell card; answer is the PAY/PASS decision the
+        payer gave, or ``"UNPAYABLE"`` when the payer could not pay the
+        unless cost and was therefore never asked (RUNG-1, C15-honest).
     """
 
     clock: int

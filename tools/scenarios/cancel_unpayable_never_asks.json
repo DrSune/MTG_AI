@@ -1,0 +1,57 @@
+{
+ "name": "cancel_unpayable_never_asks",
+ "note": "wave7 (C15 narrowing through the window): P1 holds the REAL Cancel but with an EMPTY mana pool \u2014 the counter is not castable, so it never enters the window vocabulary and the seat is NEVER ASKED (no provider call, no journal row). Shock resolves untouched. The vocab pin is the falsifiable part: had the engine offered PASS-only, the lane would still be [] \u2014 and the window_asks lane pins the absence of the ask itself.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "cancel",
+   "real": "Cancel",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "rager",
+   "name": "Rager",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "shock",
+   "targets": [
+    "rager"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "shock": "graveyard",
+   "cancel": "hand",
+   "rager": "graveyard"
+  },
+  "window_asks": {
+   "1": []
+  },
+  "window_vocab": []
+ }
+}

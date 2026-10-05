@@ -1,0 +1,108 @@
+{
+ "name": "rewind",
+ "note": "wave7 (Rung-1 window, no-kickback + after-effect lane): P0 casts the REAL Shock at the Rager; P1 answers the WINDOW with the REAL Rewind ({2}{U}{U}, no unless-cost). At resolution Rewind counters the Shock (Rager lives) AND its Seq's second atom UNTAPS up to four lands \u2014 with only three tapped Plains seeded, the CHOOSE selector issues NO ask and untaps them all deterministically (an extra ask here would drain the one-word queue and CRASH the pack, so the empty decisions tail is itself a falsifier). P1 pays 2U+2 generic from six U (same-color-first) leaving {U:2}; P0 keeps {R:1} from Shock's own {R}.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "rewind",
+   "real": "Rewind",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "rager",
+   "name": "Rager",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "l1",
+   "name": "Plains",
+   "type": "Basic Land",
+   "zone": "battlefield",
+   "controller": 1,
+   "tapped": true
+  },
+  {
+   "key": "l2",
+   "name": "Plains",
+   "type": "Basic Land",
+   "zone": "battlefield",
+   "controller": 1,
+   "tapped": true
+  },
+  {
+   "key": "l3",
+   "name": "Plains",
+   "type": "Basic Land",
+   "zone": "battlefield",
+   "controller": 1,
+   "tapped": true
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2
+  },
+  "1": {
+   "U": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "shock",
+   "targets": [
+    "rager"
+   ],
+   "decisions": [
+    "rewind"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "shock": "graveyard",
+   "rewind": "graveyard",
+   "rager": "battlefield"
+  },
+  "tapped": {
+   "l1": false,
+   "l2": false,
+   "l3": false
+  },
+  "mana_pool": {
+   "0": {
+    "R": 1
+   },
+   "1": {
+    "U": 2
+   }
+  },
+  "window_asks": {
+   "1": [
+    "rewind"
+   ]
+  },
+  "kickback_asks": {
+   "0": []
+  }
+ }
+}

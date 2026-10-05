@@ -190,7 +190,13 @@ class DeckSupplyTest(unittest.TestCase):
         # losses. Deckable unchanged: none of the four is a creature, so
         # the engine decks are untouched — the two sorceries ride the
         # castable lane, the equipment the activation lane.
-        self.assertEqual(len(self.supply.engine_ids), 297)
+        # AMENDED (RUNG-1 response-window arc): 297 -> 301 — COUNTER_SPELL
+        # joined with the stack.cast response window, and the gate picked
+        # up EXACTLY its four carriers (Cancel, Miscast, Rewind, Lofty
+        # Denial — measure_grammar --with-engine-flags: 301/305), zero
+        # losses. Deckable unchanged: all four are instants, the castable
+        # lane; the window now answers for them when they are cast.
+        self.assertEqual(len(self.supply.engine_ids), 301)
 
 
 class ReplayDeterminismTest(unittest.TestCase):

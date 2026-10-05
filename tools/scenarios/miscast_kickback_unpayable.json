@@ -1,0 +1,75 @@
+{
+ "name": "miscast_kickback_unpayable",
+ "note": "wave7 (kickback UNPAYABLE lane, R17-1 ruling A): the identical Miscast world, but P0's pool is {R:1} \u2014 after Shock's own {R} the payer can offer NOTHING toward the {3} unless-cost. The engine builds no payment plan and therefore issues NO pay ask at all (the vocab lane cannot offer PAY it cannot honor); Miscast resolves as a plain counter. Shock is countered (Rager lives), both cards hit graveyards, P0's pool empties to {}. This is the negative control that keeps miscast_kickback_pay.json's ASK non-vacuous: same engine, same card, mana-only delta flips ask->silence.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "miscast",
+   "real": "Miscast",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "rager",
+   "name": "Rager",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  },
+  "1": {
+   "U": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "shock",
+   "targets": [
+    "rager"
+   ],
+   "decisions": [
+    "miscast"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "shock": "graveyard",
+   "miscast": "graveyard",
+   "rager": "battlefield"
+  },
+  "mana_pool": {
+   "0": {},
+   "1": {}
+  },
+  "window_asks": {
+   "1": [
+    "miscast"
+   ]
+  },
+  "kickback_asks": {
+   "0": []
+  }
+ }
+}

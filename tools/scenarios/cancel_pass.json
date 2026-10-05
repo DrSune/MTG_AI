@@ -1,0 +1,85 @@
+{
+ "name": "cancel_pass",
+ "note": "wave7 FALSIFIABLE TWIN of cancel.json: the identical world, but the window answer is PASS. The engine resolves Shock untouched \u2014 the Rager dies, Cancel STAYS IN HAND untouched (no cast, no payment, no graveyard trip). The zone lanes invert against cancel.json, so the counter pack's GREEN cannot be an accident of resolution.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "cancel",
+   "real": "Cancel",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "rager",
+   "name": "Rager",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2
+  },
+  "1": {
+   "U": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "shock",
+   "targets": [
+    "rager"
+   ],
+   "decisions": [
+    "PASS"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "shock": "graveyard",
+   "cancel": "hand",
+   "rager": "graveyard"
+  },
+  "hand": {
+   "1": 1
+  },
+  "mana_pool": {
+   "0": {
+    "R": 1
+   },
+   "1": {
+    "U": 3
+   }
+  },
+  "window_asks": {
+   "1": [
+    "PASS"
+   ]
+  },
+  "window_vocab": [
+   [
+    "PASS",
+    "cancel"
+   ]
+  ]
+ }
+}
