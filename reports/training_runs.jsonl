@@ -1,0 +1,10 @@
+{"event": "start", "ts": "2026-10-05T20:13:26+0200", "pid": 3871194, "cmd": ["echo", "training-watchdog-gate"], "phase": "gate-echo", "timeout_s": 10.0}
+{"event": "final", "ts": "2026-10-05T20:13:26+0200", "pid": 3871194, "cmd": ["echo", "training-watchdog-gate"], "phase": "gate-echo", "cause": "complete", "wall_s": 0.0, "exit_code": 0, "timeout_s": 10.0, "last_checkpoint": null, "gpu_peak_mib": null, "free_mem": "MemAvailable 0.0 GiB"}
+{"event": "start", "ts": "2026-10-05T20:13:45+0200", "pid": 3871880, "cmd": ["sh", "-c", "sleep 5; echo done-after-5s"], "phase": "gate-5s", "timeout_s": 30.0}
+{"event": "final", "ts": "2026-10-05T20:13:50+0200", "pid": 3871880, "cmd": ["sh", "-c", "sleep 5; echo done-after-5s"], "phase": "gate-5s", "cause": "complete", "wall_s": 5.04, "exit_code": 0, "timeout_s": 30.0, "last_checkpoint": null, "gpu_peak_mib": null, "free_mem": "MemAvailable 0.0 GiB"}
+{"event": "start", "ts": "2026-10-05T20:13:50+0200", "pid": 3872037, "cmd": ["sleep", "30"], "phase": "gate-timeout", "timeout_s": 3.0}
+{"event": "final", "ts": "2026-10-05T20:13:53+0200", "pid": 3872037, "cmd": ["sleep", "30"], "phase": "gate-timeout", "cause": "timeout", "wall_s": 3.0, "exit_code": 124, "timeout_s": 3.0, "last_checkpoint": null, "gpu_peak_mib": null, "free_mem": "MemAvailable 0.0 GiB"}
+{"event": "start", "ts": "2026-10-05T20:15:18+0200", "pid": 3875364, "cmd": ["sleep", "20"], "phase": "dry-run", "timeout_s": 60.0}
+{"event": "final", "ts": "2026-10-05T20:15:38+0200", "pid": 3875364, "cmd": ["sleep", "20"], "phase": "dry-run", "cause": "complete", "wall_s": 20.04, "exit_code": 0, "timeout_s": 60.0, "last_checkpoint": null, "gpu_peak_mib": null, "free_mem": "MemAvailable 9.4 GiB"}
+{"event": "start", "ts": "2026-10-05T20:16:09+0200", "pid": 3876983, "cmd": ["sleep", "20"], "phase": "dry-run", "timeout_s": 60.0}
+{"event": "final", "ts": "2026-10-05T20:16:29+0200", "pid": 3876983, "cmd": ["sleep", "20"], "phase": "dry-run", "cause": "complete", "wall_s": 20.03, "exit_code": 0, "timeout_s": 60.0, "last_checkpoint": null, "gpu_peak_mib": null, "free_mem": "MemAvailable 9.1 GiB"}

@@ -74,6 +74,14 @@ KIND_TURN_PHASE = "TURN_PHASE"
 # is a GameEvent row, and the generic dump() folds it into the fingerprint).
 KIND_CAST = "CAST"
 KIND_GAME_LOST = "GAME_LOST"
+# Stall rule (2026-10-05/11): the STALL_BREAK audit row. Emitted by the
+# GAME LOOP (games._play), never a verb — the harness-side twin of the
+# GAME_LOST pattern: the terminal call is not an atom, but the journal
+# must carry it or a stalled game's fingerprint would not record WHY it
+# ended. ONE row per ended game: subject None (the whole game, no
+# object), cause the seat whose per-round fingerprint streak tripped the
+# rule, cause_verb "STALL", data (repeat_rounds,) — pure state, no clock.
+KIND_STALL_BREAK = "STALL_BREAK"
 # 16b: the combat feeds. DECLARE_ATTACKERS carries ONE row per declared
 # attacker (subject = the attacker; the grammar's DeclareAttackersEvent
 # filter is subject-scoped) — the shared data[0] declare-group id lets the
@@ -163,6 +171,8 @@ class GameEvent:
       * CAST          — ``(caster, ordinal_this_turn, spell_kind,
         from_zone, x_value)``, subject the spell card (13b).
       * GAME_LOST     — ``(reason,)`` , subject the player (13b audit row).
+      * STALL_BREAK   — ``(repeat_rounds,)``, subject None, cause the seat
+        whose streak fired (stall-rule audit row, 2026-10-05/11).
       * DECLARE_ATTACKERS — ``(declare_group,)``, subject the declared
         attacker; one row per attacker, group shared per declaration (16b).
       * DECLARE_BLOCKERS — ``(attacker, declare_group)``, subject the

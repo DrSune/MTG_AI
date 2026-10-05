@@ -7,6 +7,18 @@ card images load from the local assets dir via a relative path
 (computed at build time, overridable with ``--img-base``), so the file
 opens over ``file://`` straight from the repo checkout.
 
+Response-window-arc journal kinds get dedicated rendering (VIEWER batch,
+2026-10-05): WINDOW_OPEN / WINDOW_PASS render as a highlighted response
+panel (who was asked, what they held, what they did), COUNTER / KICKBACK
+as inline event cards, LIFE_LOST / TARGETING as distinct event rows.
+STALL_BREAK renders too (emitter landed 2026-10-05/11, sibling batch):
+the viewer matches it BY KIND STRING, so it stays correct across the
+commit boundary either way, and unknown kinds keep the old generic
+event row, so nothing ever renders blank.
+The pre-existing row renderers (turn / action / decision / generic
+event) are byte-styled exactly as before; the views are computed at
+BUILD time in :func:`enrich_view` and attached as ``entry["view"]``.
+
 Run::
 
     .venv/bin/python tools/make_replay.py --seed 7 --pool engine
@@ -15,8 +27,11 @@ Run::
 from __future__ import annotations
 
 import argparse
+import ast
+import html as html_mod
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -49,6 +64,288 @@ def card_text_map() -> dict[str, dict[str, str]]:
             },
         )
     return out
+
+
+# --------------------------------------------------------------------------
+# Build-time views for the response-window-arc journal kinds (VIEWER batch).
+# The trace's event rows carry ``data`` as the Python str-repr of the
+# journal tuple (games.py dumps with default=str), e.g.::
+#
+#   WINDOW_OPEN   "(('PASS', 'card:112'),)"        subject "X (card:2)"
+#   WINDOW_OPEN   "(('PASS', 'card:117@card:20'),)"  subject "None" (combat)
+#   COUNTER       "()"                             cause "Cancel (card:112)"
+#   KICKBACK      "('PAY',)"                       answer PAY/PASS/UNPAYABLE
+#   LIFE_LOST     "(3,)"                           subject "player:0"
+#   TARGETING     "(Handle(namespace='card', index=10), Handle(namespace=
+#                  'player', index=0))"            verb TARGET / ONE_OF / REST
+#
+# Every builder is defensive: an unparseable shape leaves NO view, and the
+# JS falls back to the old generic event row — a malformed/unknown feed can
+# never blank the log.
+# --------------------------------------------------------------------------
+
+_TAG_NAME_RE = re.compile(r"^(.*) \((card:\d+)\)$")
+_PLAYER_RE = re.compile(r"player\D*(\d+)")
+_TARGET_PLAYER_RE = re.compile(r"namespace='player', index=(\d+)")
+_WINDOW_LOOKAHEAD = 300  # journal rows scanned for the window's outcome
+# STALL_BREAK: the emitter landed 2026-10-05/11 (KIND_STALL_BREAK in
+# executor/events.py: subject None, cause the seat, data (repeat_rounds,))
+# but the viewer still matches BY KIND STRING, which held across the
+# commit boundary of the sibling batch.
+KIND_STALL_BREAK = "STALL_BREAK"
+
+
+def _esc(text: object) -> str:
+    return html_mod.escape(str(text), quote=False)
+
+
+def _data_tuple(text: object) -> tuple | None:
+    """``"(('PASS', 'card:112'),)"`` -> the tuple, or None if unparseable."""
+    if isinstance(text, tuple | list):
+        return tuple(text)
+    if not isinstance(text, str):
+        return None
+    try:
+        val = ast.literal_eval(text)
+    except (ValueError, SyntaxError):
+        return None
+    return val if isinstance(val, tuple) else None
+
+
+def _seat(text: object) -> str:
+    match = _PLAYER_RE.search(str(text))
+    return "P" + match.group(1) if match else str(text)
+
+
+def _card_names(entries: list[dict]) -> dict[str, str]:
+    """``card:N`` handle -> card name, harvested from the trace itself
+    (subjects/causes arrive pre-formatted as ``"Name (card:N)"`` by
+    games.py's game_name; action entries carry handle + name)."""
+    names: dict[str, str] = {}
+    for e in entries:
+        for field in ("subject", "cause"):
+            match = _TAG_NAME_RE.match(str(e.get(field) or ""))
+            if match:
+                names.setdefault(match.group(2), match.group(1))
+        if e.get("type") == "action" and e.get("card") and e.get("handle"):
+            names.setdefault(str(e["handle"]), str(e["card"]))
+    return names
+
+
+def _pretty(token: str, names: dict[str, str]) -> str:
+    """``"card:112"`` -> ``"Cancel (card:112)"``; ``"card:a@card:b"`` ->
+    ``"A &rarr; B"``; anything unrecognised passes through untouched."""
+    if "@" in token:
+        caster, _, target = token.partition("@")
+        return f"{_pretty(caster, names)} &#8594; {_pretty(target, names)}"
+    if token in names:
+        return f"{names[token]} ({token})"
+    return token
+
+
+def _full(token: str, names: dict[str, str]) -> str:
+    """A vocab token -> the same string a journal subject would carry, so
+    held cards can be matched against later CAST/COUNTER subject rows."""
+    return f"{names[token]} ({token})" if token in names else token
+
+
+def _held(vocab: tuple, names: dict[str, str]) -> list[str]:
+    return [_pretty(t, names) for t in vocab if t != "PASS"]
+
+
+def enrich_view(payload: dict) -> None:
+    """Attach ``entry["view"] = {cls, html[, did]}`` to the window-arc
+    event rows. Kinds without a builder (and malformed shapes) are left
+    view-less and render through the old generic event branch."""
+    entries = payload.get("entries") or []
+    names = _card_names(entries)
+
+    def base(e: dict, cls: str, inner: str) -> dict:
+        return {"cls": cls, "html": inner, "kind": e.get("kind", "")}
+
+    def window_open(e: dict) -> dict | None:
+        vocab = _data_tuple(e.get("data"))
+        if not vocab or not isinstance(vocab[0], tuple):
+            return None
+        combat = e.get("verb") == "COMBAT_WINDOW"
+        spell = "&laquo;combat window&raquo;" if combat else _esc(e.get("subject"))
+        held = _held(vocab[0], names)
+        chips = "".join(f'<span class="chip">{h}</span>' for h in held)
+        did = '<span class="did">acted (see the rows below)</span>'
+        view = base(
+            e,
+            "window",
+            f"&#9670; RESPONSE WINDOW &mdash; {spell} &mdash; asked "
+            f"<b>{_seat(e.get('cause'))}</b> &middot; held: {chips}",
+        )
+        view["did"] = did
+        view["_held_full"] = [
+            _full(t.partition("@")[0], names) for t in vocab[0] if t != "PASS"
+        ]
+        return view
+
+    def window_pass(e: dict) -> dict | None:
+        spell = (
+            "&laquo;combat window&raquo;"
+            if e.get("verb") == "COMBAT_WINDOW"
+            else _esc(e.get("subject"))
+        )
+        return base(
+            e,
+            "windowpass",
+            f"&#8211; {_seat(e.get('cause'))} passed on {spell}",
+        )
+
+    def counter(e: dict) -> dict:
+        return base(
+            e,
+            "counter",
+            f"&#10006; <b>COUNTERED</b> {_esc(e.get('subject'))} by "
+            f"<b>{_esc(e.get('cause'))}</b>",
+        )
+
+    def kickback(e: dict) -> dict | None:
+        vocab = _data_tuple(e.get("data"))
+        if not vocab:
+            return None
+        answer = str(vocab[0])
+        cls = "pay" if answer == "PAY" else "nopay"
+        verb = "spell LIVES" if answer == "PAY" else "spell is COUNTERED"
+        return base(
+            e,
+            "kickback",
+            f"&#8617; unless-cost on {_esc(e.get('subject'))} (counter "
+            f'{_esc(e.get("cause"))}): payer <span class="{cls}">{_esc(answer)}'
+            f"</span> &mdash; {verb}",
+        )
+
+    def life_lost(e: dict) -> dict | None:
+        vocab = _data_tuple(e.get("data"))
+        if not vocab:
+            return None
+        return base(
+            e,
+            "life",
+            f"&darr; {_seat(e.get('subject'))} LOST <b>{_esc(vocab[0])}</b> "
+            f"life (not damage) &mdash; {_esc(e.get('cause'))}",
+        )
+
+    def targeting(e: dict) -> dict:
+        verb = e.get("verb")
+        actor = "?"
+        match = _TARGET_PLAYER_RE.search(str(e.get("data")))
+        if match:
+            actor = "P" + match.group(1)
+        if verb in ("ONE_OF", "REST"):  # partition audit rows (NOT designations)
+            label = "chosen (ONE_OF)" if verb == "ONE_OF" else "left in pool (REST)"
+            return base(
+                e,
+                "targeting partition",
+                f"&#9673; partition {label}: {_esc(e.get('subject'))} "
+                f"&mdash; {_esc(e.get('cause'))} [{actor}]",
+            )
+        return base(
+            e,
+            "targeting",
+            f"&#9678; TARGET: <b>{_esc(e.get('subject'))}</b> designated by "
+            f"{_esc(e.get('cause'))} [{actor}]",
+        )
+
+    def stall_break(e: dict) -> dict:
+        # Emitter landed 2026-10-05/11 (events.py KIND_STALL_BREAK):
+        # subject None, cause the seat, data (repeat_rounds,). Still
+        # matched BY KIND STRING and shape-tolerant: an unparseable
+        # payload falls back to the raw witness string.
+        rounds = _data_tuple(e.get("data"))
+        detail = (
+            f"after <b>{_esc(rounds[0])}</b> repeat rounds"
+            if rounds
+            else str(e.get("data") or "")
+        )
+        subject = str(e.get("subject") or "")
+        subject = "" if subject in ("None", "") else f" {_esc(subject)}"
+        return base(
+            e,
+            "stall",
+            f"&#9208; <b>STALL BREAK</b> T{e.get('turn', '?')} "
+            f"{_seat(e.get('cause'))}{subject} {detail}",
+        )
+
+    builders = {
+        "WINDOW_OPEN": window_open,
+        "WINDOW_PASS": window_pass,
+        "COUNTER": counter,
+        "KICKBACK": kickback,
+        "LIFE_LOST": life_lost,
+        "TARGETING": targeting,
+        KIND_STALL_BREAK: stall_break,
+    }
+    for entry in entries:
+        if entry.get("type") != "event":
+            continue
+        build = builders.get(str(entry.get("kind")))
+        if build is None:
+            continue
+        try:
+            view = build(entry)
+        except (
+            AttributeError,
+            IndexError,
+            KeyError,
+            SyntaxError,
+            TypeError,
+            ValueError,
+            re.error,
+        ):  # a broken/unknown feed must never blank the log
+            continue
+        if view:
+            entry["view"] = view
+
+    # Second pass: annotate each WINDOW_OPEN with what the seat actually
+    # DID, read off the following rows (pass row for the same seat/spell,
+    # a CAST event for a held card, or a COUNTER flag for the framed spell).
+    for i, entry in enumerate(entries):
+        view = entry.get("view")
+        if not view or view["cls"] != "window":
+            continue
+        subject = str(entry.get("subject"))
+        seat_cause = str(entry.get("cause"))
+        did = '<span class="did">acted (see the rows below)</span>'
+        picked_target = ""
+        for later in entries[i + 1 : i + 1 + _WINDOW_LOOKAHEAD]:
+            if (
+                later.get("kind") == "WINDOW_OPEN"
+                and str(later.get("subject")) == subject
+            ):
+                break
+            if (
+                later.get("kind") == "WINDOW_PASS"
+                and str(later.get("subject")) == subject
+                and str(later.get("cause")) == seat_cause
+            ):
+                did = '<span class="did">PASSED</span>'
+                break
+            if later.get("kind") == "COUNTER" and str(later.get("subject")) == subject:
+                did = (
+                    '<span class="did">COUNTERED &mdash; see the &#10006; card'
+                    " below</span>"
+                )
+                break
+            if later.get("kind") == "TARGETING" and str(later.get("cause")) in view.get(
+                "_held_full", []
+            ):
+                picked_target = str(later.get("subject"))
+            if later.get("kind") == "CAST" and str(later.get("subject")) in view.get(
+                "_held_full", []
+            ):
+                arrow = f" &#8594; {_esc(picked_target)}" if picked_target else ""
+                did = (
+                    f'<span class="did">CAST {_esc(later.get("subject"))}{arrow}</span>'
+                )
+                break
+        view["html"] += " &mdash; " + did
+        view.pop("did", None)
+        view.pop("_held_full", None)
 
 
 HTML_TEMPLATE = """<!DOCTYPE html>
@@ -99,6 +396,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
            font-size:10px; margin-right:4px; }
   .chosen { color:#9f9; font-weight:bold; }
   .alts { color:#888; }
+  /* response-window-arc kinds (VIEWER batch 2026-10-05) */
+  .row.window { background:#241f33; border-left:3px solid #c9a227; }
+  .row.window .chip { background:#3a3357; color:#dcd; border-radius:3px;
+                      padding:0 4px; font-size:10px; margin:0 2px; }
+  .row.window .did { color:#fc6; font-weight:bold; }
+  .row.windowpass { background:#201d29; border-left:3px solid #665a78;
+                    color:#a99; padding-left:16px; }
+  .row.counter { background:#3a1d24; border-left:3px solid #d33; }
+  .row.kickback { background:#33270f; border-left:3px solid #e93; }
+  .row.kickback .pay { color:#8f8; font-weight:bold; }
+  .row.kickback .nopay { color:#faa; font-weight:bold; }
+  .row.life { border-left:3px solid #a33; color:#faa; }
+  .row.targeting { border-left:3px solid #39a; color:#9cf; }
+  .row.targeting.partition { border-left-color:#367; color:#8ab; opacity:.8; }
+  .row.stall { background:#332c10; border-left:3px solid #fc3; }
   #stackpanel .st { background:#232536; margin:2px 0; padding:2px 5px;
                     border-radius:4px; cursor:pointer; }
   #popup { position:fixed; inset:0; background:#000a; display:none;
@@ -216,7 +528,9 @@ function renderLog() {
         '<span class="vocab">' + e.what + '</span>' +
         '<span class="chosen">&#9654; ' + e.answer + '</span> ' +
         '<span class="alts">| alt: ' + (alts || 'none') + '</span></div>';
-    } else if (e.type === 'event') html += '<div class="row event' + (i===idx?' sel':'') +
+    } else if (e.type === 'event' && e.view) html += '<div class="row ' + e.view.cls +
+      (i===idx?' sel':'') + '" data-i="' + i + '">' + e.view.html + '</div>';
+    else if (e.type === 'event') html += '<div class="row event' + (i===idx?' sel':'') +
       '" data-i="' + i + '">' + e.kind + (e.verb ? ' [' + e.verb + ']' : '') +
       ' ' + e.subject + (e.data && e.data !== '()' ? ' ' + e.data : '') + '</div>';
   });
@@ -259,6 +573,7 @@ render();
 
 def build_html(trace: dict, img_base: str) -> str:
     payload = dict(trace)
+    enrich_view(payload)
     payload["card_text"] = card_text_map()
     blob = json.dumps(payload, default=str).replace("</", "<\\/")
     return (

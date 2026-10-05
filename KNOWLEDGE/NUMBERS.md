@@ -13,6 +13,22 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.292 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0931** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-10-05 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.303 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0931** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
@@ -3194,3 +3210,8 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - l1_certified **4/4**; train_items 0.9388; **holdout_items 0.2857 BELOW floor (−1.53 SE)** — memorization, not generalization; batch-2 volume is the fix.
 - PointerBC 35,086,338 params (d512 L8), GPU peak **1.37 GiB** < 4 GiB budget, wall 239 s, best train loss 0.2254 @ ep204 (lr 3e-4, 250-epoch cosine, seed 1).
 - Corpus join **119/119** gold lines; measured counts 133 scripted / 96 menu-ask / 119 gold (supersedes "121"). Handle-candidate↔obs binding 80.1%; unbound = library/hand-zone asks only.
+
+## 2026-10-05 — STALL rule (CR 104.4b) in games loop (command: `.venv/bin/python -m pytest MTG_bot/core -q` ; `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all`)
+- Synthetic ETB-shuffle-back loop: terminates turn **5** (vs cap 60), REPEAT_ROUNDS=**3**, lives [20,20], 1 STALL_BREAK journal row, determinism 3/3.
+- Corpus pool=all 100 seeds: endings **identical** before/after ({p1: 51, p0: 47, cap-60: 2}) — cap games (seeds 53/91) are genuine grinds, fingerprint never repeats; 0 crash classes.
+- Gates: pytest **2391** passed (+5 new pins); scenarios **355/355**; catalog compare **0/10 diverging** (no repin); PC-9 stable. Doc 11-stall-rule.md.

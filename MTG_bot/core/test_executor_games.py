@@ -62,20 +62,31 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     Seq,
     SpellAbility,
+    SpellKind,
     TriggeredAbility,
     Verb,
     Zone,
+    ZoneChangeEvent,
     ZoneKind,
     ZonePosition,
     walk,
 )
+from MTG_bot.core.compiler.compiler import CompileResult, PoolCompile
 from MTG_bot.core.executor import Executor
+from MTG_bot.core.executor.events import KIND_STALL_BREAK
 from MTG_bot.core.executor.games import (
     DECK_SIZE,
     MAX_COPIES,
     MIN_MANA_SOURCES,
+    REPEAT_ROUNDS,
+    TURN_CAP,
+    CardMeta,
+    Game,
     RandomPolicy,
     Supply,
+    _play,
+    _setup_game,
+    _stall_fingerprint,
     build_deck,
     deal_decks,
     get_supply,
@@ -87,13 +98,14 @@ from MTG_bot.core.executor.legality import activate, ctx_for, spell_castable
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
 from MTG_bot.core.executor.query import (
     is_aura_spell,
+    legal_casts,
     legal_targets,
     optional_offer,
     spell_target_slots,
 )
 from MTG_bot.core.executor.selectors import resolve_selector
 from MTG_bot.core.executor.stack import cast, park, play_land
-from MTG_bot.core.identity import CardIdentity, Handle
+from MTG_bot.core.identity import CardIdentity, Handle, LegalityFlags
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
     ZONE_EXILE,
@@ -1697,6 +1709,175 @@ class Round16eControlTest(unittest.TestCase):
         aura = world.add_card(identity_of(record), p0, ZONE_BATTLEFIELD)
         executor._settle()
         self.assertEqual(world.zone_of(aura).kind, ZONE_GRAVEYARD)
+
+
+# ---------------------------------------------------------------------------
+# Stall rule (CR 104.4b): a world fingerprint that repeats exactly across
+# REPEAT_ROUNDS consecutive per-seat round observations ends the game early
+# as a STALL draw.  The synthetic world below is the canonical pathological
+# loop: a 0-mana creature whose ETB shuffles itself back into its owner's
+# library.  Every action cycle leaves the world exactly as it found it —
+# life, battlefield, zone sizes all invariant — except for library *order*,
+# which is deliberately excluded from the fingerprint (seeded shuffles
+# rewrite order while making zero progress).
+
+
+_STALL_OID = "00000000-1111-2222-3333-444444444444"
+
+
+class StallRuleTest(unittest.TestCase):
+    """The games/terminal-lane stall detector."""
+
+    @staticmethod
+    def _loop_supply() -> Supply:
+        etb = TriggeredAbility(
+            event=ZoneChangeEvent(
+                from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
+                to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                subject=FAtom(FAtomPred.IS_SOURCE),
+            ),
+            condition=None,
+            effect=Seq(
+                (
+                    _atom(
+                        Verb.MOVE_ZONE,
+                        cards=Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            UNIV,
+                            Zone(ZoneKind.ANY, ControllerRef.ANY),
+                            referent="event",
+                        ),
+                        destination=Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+                    ),
+                    _atom(Verb.SHUFFLE, zone=Zone(ZoneKind.LIBRARY, ControllerRef.YOU)),
+                )
+            ),
+        )
+        record = CardRecord(
+            oracle_id=_STALL_OID,
+            name="Stall Loop Drake",
+            type_line="Creature",
+            types=("Creature",),
+            subtypes=(),
+            supertypes=(),
+            colors=(),
+            color_identity=frozenset(),
+            mana_cost=None,
+            mana_value=0,
+            power=QConst(1),
+            toughness=QConst(1),
+            loyalty=None,
+            keywords=(),
+            abilities=(SpellAbility(kind=SpellKind.CREATURE, effect=None), etb),
+            is_token=False,
+        )
+        pool = PoolCompile(
+            cards={_STALL_OID: record},
+            emblems={},
+            orphan_emblems=(),
+            results={
+                _STALL_OID: CompileResult(
+                    card=record,
+                    legality=LegalityFlags(format_legal=True, engine_supported=True),
+                )
+            },
+            summary={},
+        )
+        metas = {
+            _STALL_OID: CardMeta(
+                oracle_id=_STALL_OID,
+                name="Stall Loop Drake",
+                type_line="Creature",
+                mana_value=0,
+                is_land=False,
+                produces_mana=False,
+                has_spell_node=True,
+                engine_supported=True,
+                is_basic=False,
+            )
+        }
+        return Supply(
+            mode="stall-synthetic",
+            pool=pool,
+            metas=metas,
+            deckable=(_STALL_OID,),
+            engine_ids=frozenset({_STALL_OID}),
+            playable_engine_ids=frozenset({_STALL_OID}),
+            pool_seconds=0.0,
+        )
+
+    @staticmethod
+    def _run_loop_game(seed: int = 0) -> Game:
+        supply = StallRuleTest._loop_supply()
+        deck = (_STALL_OID,) * DECK_SIZE
+        game = _setup_game(seed, supply, (deck, deck))
+        _play(game, _LoopDeckPolicy(seed), game.world.player_order, TURN_CAP)
+        return game
+
+    def test_infinite_loop_stalls_early(self) -> None:
+        game = self._run_loop_game()
+        self.assertTrue(game.reason.startswith("STALL"), game.reason)
+        # Observed: detected on the 5th turn (3rd observation of the active
+        # seat).  Bound: an active-seat streak needs REPEAT_ROUNDS of that
+        # seat's turns plus the interleaved opponent turns.
+        self.assertLessEqual(game.turns, 2 * REPEAT_ROUNDS + 2)
+        self.assertLess(game.turns, TURN_CAP)
+        life = [game.world.players[s].life for s in game.world.player_order]
+        self.assertEqual(life, [20, 20])  # zero-progress: nobody was hurt
+
+    def test_stall_break_row_recorded_in_journal(self) -> None:
+        game = self._run_loop_game()
+        rows = [r for r in game.executor.journal.dump() if r[1] == KIND_STALL_BREAK]
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0][4], "STALL")
+        self.assertEqual(rows[0][5], f"({REPEAT_ROUNDS},)")
+
+    def test_long_decisive_corpus_game_untouched(self) -> None:
+        # Seed 73, full engine pool: the longest decisive corpus game (56
+        # turns).  It grinds through many rounds but its world genuinely
+        # changes every round, so the stall rule must not fire.  Pinned at
+        # HEAD with the stall rule present (baseline reports/games_2026-10-05).
+        game = play_game(73, "all", SMOKE_DECK_PAIRS)
+        self.assertFalse(game.reason.startswith("STALL"), game.reason)
+        self.assertEqual(game.turns, 56)
+        self.assertEqual(game.reason, "game over: player:0(life<=0)")
+
+    def test_stall_run_is_deterministic(self) -> None:
+        first = self._run_loop_game()
+        second = self._run_loop_game()
+        self.assertEqual(first.reason, second.reason)
+        self.assertEqual(first.turns, second.turns)
+        self.assertEqual(
+            first.executor.state_fingerprint(), second.executor.state_fingerprint()
+        )
+
+    def test_fingerprint_is_pure_and_seat_symmetric(self) -> None:
+        # Fresh world: both seats' fingerprints exist, are tuples, and equal
+        # fingerprints mean equal lives (sanity on the pure helper).
+        supply = self._loop_supply()
+        deck = (_STALL_OID,) * DECK_SIZE
+        game = _setup_game(0, supply, (deck, deck))
+        first = _stall_fingerprint(game.executor)
+        self.assertIsInstance(first, tuple)
+        self.assertEqual(first, _stall_fingerprint(game.executor))
+
+
+class _LoopDeckPolicy(RandomPolicy):
+    """Deterministic policy: each turn, cast exactly one legal spell.
+
+    RandomPolicy's dice would take an expected ~250 turns per candidate
+    cast window here, making the stall statistically unreachable inside the
+    cap; a fixed single-cast policy exercises the detector squarely.
+    """
+
+    def take_acts(self, game: Game, seat: Handle) -> None:
+        self.turn = game.world.turn
+        self.seat_index = game.world.player_order.index(seat)
+        rows = [r for r in legal_casts(game.world, game.executor, seat) if not r.land]
+        if rows:
+            self.play_cast(game, seat, rows[0])
+        game.digest.append(f"T{self.turn}.end")
 
 
 def _oid(n: int) -> str:

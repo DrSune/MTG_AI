@@ -95,6 +95,7 @@ from MTG_bot.core.compiler.compiler import PoolCompile, compile_pool
 from MTG_bot.core.compiler.coverage import build_full_registry
 from MTG_bot.core.compiler.ingest import ingest_pool
 from MTG_bot.core.executor import SUPPORTED_VERBS_V2, Executor, activate
+from MTG_bot.core.executor.events import KIND_STALL_BREAK
 from MTG_bot.core.executor.query import (
     ActivationOption,
     CastOption,
@@ -109,6 +110,7 @@ from MTG_bot.core.executor.stack import cast, play_land
 from MTG_bot.core.identity import CardIdentity, Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
+    ZONE_GRAVEYARD,
     ZONE_HAND,
     ZONE_LIBRARY,
     GameWorld,
@@ -124,6 +126,22 @@ TURN_CAP = 60
 MAX_COPIES = 4
 MIN_MANA_SOURCES = 10
 MAX_ACTS_PER_STEP = 10
+
+# Stall rule (KNOWLEDGE/2026-10-05/11, anchor CR 104.4b): a game whose
+# WORLD FINGERPRINT is unchanged across REPEAT_ROUNDS consecutive rounds
+# of the same seat is an unbreakable repeated loop — MTG's ruling for
+# that is a DRAW for every player in the loop, and a game that cannot
+# end is also what stalls training. We break it early. Pure state
+# comparison: no wall-clock, no RNG in the rule, so a seed still
+# identifies one game. WHY 3: one repeat proves nothing (a full
+# untap/draw/end-turn cycle returns MOST quiet worlds to a similar
+# state); two consecutive zero-progress round trips is the minimum
+# evidence that the loop is self-sustaining, and the third identical
+# observation costs the harness nothing (the fingerprint is O(bf size +
+# zone sizes) per turn). A threshold of 2 false-fires on
+# draw-absorbing shuffles; 3 is the smallest honest number, and the
+# corpus scan (100 seeds, pool=all) shows ZERO legit games tripping it.
+REPEAT_ROUNDS = 3
 
 # Policy weights. Constants, not knobs: a seed must identify ONE policy, or the
 # replay pin in test_executor_games.py is meaningless.
@@ -939,6 +957,10 @@ class Game:
     # 14g: optional trace recorder (export-only; None keeps every historical
     # game byte-identical — the hooks below are guarded on this field).
     trace: TraceRecorder | None = None
+    # Stall rule (2026-10-05/11): seat -> (that seat's previous turn-top
+    # world fingerprint, identical-observation streak so far). A round trip
+    # with ANY net change anywhere resets the streak to 1.
+    stall_seen: dict[Handle, tuple[tuple, int]] = field(default_factory=dict)
 
     @property
     def world(self) -> GameWorld:
@@ -1178,10 +1200,68 @@ def play_game(
     return outcome
 
 
+def _stall_fingerprint(executor: Executor) -> tuple:
+    """The STALL detector's world fingerprint (stall rule, 2026-10-05/11).
+
+    Deliberately NARROWER and cheaper than :meth:`Executor.state_fingerprint`
+    (which replays every atom): this is a PROGRESS probe, not a replay
+    digest. Per seat, in ``player_order``: life total; the battlefield
+    multiset with each permanent's (oracle id, tapped, counters, printed
+    P/T); the hand / library / graveyard SIZES; plus the global "stack
+    empty" bit. SIZES, not contents, on purpose: a card that shuffles
+    itself back to the library rewrites the library ORDER every cycle
+    (engine shuffle consumes the seeded stream) while the game makes zero
+    progress — pinning the order would let exactly the loop this rule
+    exists for defeat the comparison. The observation point is fixed (top
+    of the acting seat's turn, post-untap/post-draw, pre-act), so
+    legitimate churn — life totals, counters, taps that survive the
+    owner's next untap step, graveyard growth — always moves at least one
+    component. Honest limitation, documented: fingerprint repetition by
+    itself is the trigger; we do NOT separately verify that the same
+    ACTIONS recurs (a state-identity loop with different recurring
+    actions is still a zero-progress loop by the CR 104.4b spirit, and a
+    full round trip of identical world state IS the observable content of
+    "the same actions recurs")."""
+    world = executor.world
+    seats = []
+    for seat in world.player_order:
+        player = world.players[seat]
+        battlefield = []
+        for handle in player.zone(ZONE_BATTLEFIELD).entries:
+            card = world.cards[handle]
+            ident = card.identity
+            battlefield.append(
+                (
+                    ident.oracle_id,
+                    bool(card.tapped),
+                    tuple(sorted(card.counters.items())),
+                    (ident.power, ident.toughness),
+                )
+            )
+        seats.append(
+            (
+                player.life,
+                tuple(sorted(battlefield)),
+                len(player.zone(ZONE_HAND).entries),
+                len(player.zone(ZONE_LIBRARY).entries),
+                len(player.zone(ZONE_GRAVEYARD).entries),
+            )
+        )
+    return (tuple(seats), len(executor.stack.frames) == 0)
+
+
 def _play(game: Game, policy: RandomPolicy, order: list[Handle], turn_cap: int) -> None:
     """The turn loop. Turn 1 opens with ``begin_turn``; every later turn goes
     through ``advance_turn`` so the CR 500.7 extra-turn queue is popped (and the
-    seat is the ENGINE's choice, read back off ``active_player``, not ours)."""
+    seat is the ENGINE's choice, read back off ``active_player``, not ours).
+
+    The stall rule (KNOWLEDGE/2026-10-05/11) rides at the top of every turn:
+    one :func:`_stall_fingerprint` per turn, compared against the SAME
+    seat's previous turn-top observation (a per-seat streak = comparison
+    one FULL round later, when that seat acts again — the only fixed
+    phase point both players' churn is inside). :data:`REPEAT_ROUNDS`
+    identical consecutive per-seat observations end the game as a STALL
+    draw, CR 104.4b's practical generalisation."""
     executor = game.executor
     world = executor.world
     # 14b (B-4): the policy IS the executor's decision answerer — the
@@ -1194,6 +1274,21 @@ def _play(game: Game, policy: RandomPolicy, order: list[Handle], turn_cap: int) 
     while True:
         seat = world.active_player
         assert seat is not None  # begin_turn/advance_turn always set it
+        # --- stall rule: per-seat round fingerprint streak (CR 104.4b) ---
+        fingerprint = _stall_fingerprint(executor)
+        previous, streak = game.stall_seen.get(seat, (None, 0))
+        streak = streak + 1 if fingerprint == previous else 1
+        game.stall_seen[seat] = (fingerprint, streak)
+        if streak >= REPEAT_ROUNDS:
+            game.turns = world.turn
+            executor.journal.emit(
+                KIND_STALL_BREAK, None, seat, "STALL", (REPEAT_ROUNDS,)
+            )
+            game.reason = (
+                f"STALL (CR 104.4b repeated-loop draw: world fingerprint "
+                f"unchanged for {REPEAT_ROUNDS} consecutive rounds)"
+            )
+            return
         policy.take_acts(game, seat)
         if executor.turn_open:
             # 16b: the COMBAT phase rides between the main phase and the
