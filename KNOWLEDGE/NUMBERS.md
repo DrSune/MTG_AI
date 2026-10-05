@@ -13,6 +13,22 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.303 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **1** / max share **0.0931** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-10-05 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-5 compile_latency p99 | **0.25 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **1** / max share **0.0931** (DRAW) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
@@ -3155,3 +3171,15 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | Wave-7 census | 5 counter cards = **4 covered + 1 gate (Sublime, COPY) + 0 cohort** | `.venv/bin/python tools/audit/wave_builder.py --wave7 --lint` | `tools/audit/wave7.json` |
 | Games 100 seeds | **0 crash classes**, 97 decisive + 2 cap + 1 draw, mean_turns **33.93** | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all` | pre-fix run had 2 NEW crashes (seeds 16/96) — vocab gate fixes both |
 | Window live stats | **19 WINDOW_OPEN / 10 PASS / 7 COUNTER / 2 KICKBACK (both PAY)** over the 100 seeds; offer vocab mean 2.11 max 3 | journal replay probe (same seeds, `journal.events` kinds) | arithmetic exact 19=10+7+2; random policy paid both kickbacks |
+
+## 2026-10-05 (Rung-2 combat-instant window — gate battery)
+
+| area | number | command | note |
+| --- | --- | --- | --- |
+| Scenarios | **355/355** (347 → +8 cw packs) | `.venv/bin/python tools/run_scenarios.py` | 347 pre-existing packs byte-identical via rig-side PASS fallback |
+| Core suite | **2386 passed + 2 subtests** | `pytest MTG_bot/core -q` | +7 pins in new test_executor_rung2.py incl. Carrion Grub negative-power pin |
+| Grammar flags | PC-1 **0.9934** / PC-2 **0.9969** / PC-3 **0** / PC-4 **0 diffs** — all Δ0 | `tools/measure_grammar.py --set M21` | no golden moved; compiler untouched |
+| Games 100 seeds | **0 crash classes**, 98 decisive (51/47) + 2 cap, mean_turns **34.07** (was 33.93) | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all` | first post-window run crashed seeds 10/73 `QConst:-1` — Carrion Grub's own -4/-4 blocked-trigger pushed effective power negative pre-damage; damage lane now skips the whole non-positive half-line (pre-existing latent bug, surfaced by window rng drift) |
+| Window live stats | **84 WINDOW_OPEN / 28 PASS → 56 instants cast in combat windows**; Rung-1 counter lane 14 opens/7 PASS over the same 100 seeds | journal emit-probe wrapper, `games --seeds 100 --pool all` rerun | combat lane 6× the counter lane; determinism cross-checked (identical endings) |
+| Catalog | repinned **4136 entries / 10 games**, post **0/10 diverge**, md5 `8b76978758164fddaf87fb2afdf7137c` | `tools/traces/catalog.py repin && … compare` | 10/10 diverged pre-repin as expected (window rng consumption) |
+| E1 re-measure | vs-random **0.860** (was 0.820), robust band **0.590** UNCHANGED, exploit gap **0.270** (was 0.230) | `.venv/bin/python tools/audit/exploit/noisy_policy.py 25` | window WIDENS the gap — scripted window answers convert, random policy wastes opens; ledger correction row in 01 doc |

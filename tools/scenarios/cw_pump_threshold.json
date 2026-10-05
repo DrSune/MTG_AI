@@ -1,0 +1,97 @@
+{
+ "name": "cw_pump_threshold",
+ "note": "Rung-2 combat window, the DEFENDER's kill-shot answer: a lone Titanic Growth in P1's hand raises the blocking 3/3 Guard over the lethality threshold (6/6 vs 3 damage). P0 holds no instant and is NEVER asked (C15, no row); P1 is asked once and pumps. Falsified by cw_pump_threshold_negative.json: no growth, mutual kill.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "brute",
+   "name": "Brute",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "guard",
+   "name": "Guard",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "growth",
+   "real": "Titanic Growth",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "G": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "brute"
+  },
+  {
+   "op": "enter",
+   "key": "guard"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "brute": true
+   },
+   "block": {
+    "guard": "brute"
+   },
+   "decisions": [
+    "growth@guard"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "brute": "graveyard",
+   "guard": "battlefield",
+   "growth": "graveyard"
+  },
+  "mana_pool": {
+   "1": {}
+  },
+  "combat_window_asks": {
+   "0": [],
+   "1": [
+    "growth@guard"
+   ]
+  },
+  "damage": {
+   "guard": 3
+  }
+ }
+}

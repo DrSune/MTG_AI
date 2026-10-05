@@ -1,0 +1,32 @@
+{
+ "name": "cw_burn_blocker",
+ "note": "Rung-2 combat window (CR 506.4/510): P0's Onakke Ogre (4/2) is blocked by a 2/2 Corpse - a trade. In the POST-DECLARE-BLOCKERS window the engine asks P0 (player order, instant-holding seat only); the pack answers shock@corpse. The cast settles INSIDE the window: the Corpse dies before the damage step, the Ogre comes UNBLOCKED for 4 (16 life). Falsified by cw_no_instant_negative.json: same fight, no instant, mutual kill.",
+ "world": { "life": 20, "seed": 7 },
+ "cards": [
+  { "key": "ogre", "real": "Onakke Ogre", "zone": "hand", "controller": 0 },
+  { "key": "corpse", "real": "Walking Corpse", "zone": "hand", "controller": 1 },
+  { "key": "shock", "real": "Shock", "zone": "hand", "controller": 0 }
+ ],
+ "mana": { "0": { "R": 1 } },
+ "steps": [
+  { "op": "enter", "key": "ogre" },
+  { "op": "enter", "key": "corpse" },
+  { "op": "end_turn" },
+  { "op": "advance_turn" },
+  { "op": "end_turn" },
+  { "op": "advance_turn" },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": { "ogre": true },
+   "block": { "corpse": "ogre" },
+   "decisions": ["shock@corpse"]
+  }
+ ],
+ "expect": {
+  "life": { "0": 20, "1": 16 },
+  "zone": { "ogre": "battlefield", "corpse": "graveyard", "shock": "graveyard" },
+  "mana_pool": { "0": {} },
+  "combat_window_asks": { "0": ["shock@corpse"], "1": [] }
+ }
+}

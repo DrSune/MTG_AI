@@ -1,0 +1,29 @@
+{
+ "name": "cw_pump_threshold_negative",
+ "note": "Rung-2 NEGATIVE twin of cw_pump_threshold: the same 3/3-vs-3/3 block with NO growth in P1's hand. No seat has a combat vocabulary, so both window asks are ABSENT (empty audit lanes, no journal rows) and the old pre-Rung-2 semantics stand: mutual kill, faces untouched.",
+ "world": { "life": 20, "seed": 7 },
+ "cards": [
+  { "key": "brute", "name": "Brute", "power": "3", "toughness": "3", "type": "Creature", "zone": "hand", "controller": 0 },
+  { "key": "guard", "name": "Guard", "power": "3", "toughness": "3", "type": "Creature", "zone": "hand", "controller": 1 }
+ ],
+ "steps": [
+  { "op": "enter", "key": "brute" },
+  { "op": "enter", "key": "guard" },
+  { "op": "end_turn" },
+  { "op": "advance_turn" },
+  { "op": "end_turn" },
+  { "op": "advance_turn" },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": { "brute": true },
+   "block": { "guard": "brute" }
+  }
+ ],
+ "expect": {
+  "life": { "0": 20, "1": 20 },
+  "zone": { "brute": "graveyard", "guard": "graveyard" },
+  "combat_window_asks": { "0": [], "1": [] },
+  "combat_window_vocab": []
+ }
+}

@@ -1,0 +1,111 @@
+{
+ "name": "cw_burn_then_pump",
+ "note": "Rung-2 combat window, BOTH seats act in player order: P0's Shock answers the block (non-lethal - the 3/3 Guard survives with 2 marked), then P1's Titanic Growth (in the SAME window, on the POST-BURN state - the Guard is still a legal target) raises it to 6/6. The damage step reads the ledger: the pumped Guard out-fights the 3/3 Brute (dies), taking only 3 of its 6 marked. Pins that the second seat's vocabulary is computed AFTER the first seat's cast has settled.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "brute",
+   "name": "Brute",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "guard",
+   "name": "Guard",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "growth",
+   "real": "Titanic Growth",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  },
+  "1": {
+   "G": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "brute"
+  },
+  {
+   "op": "enter",
+   "key": "guard"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "brute": true
+   },
+   "block": {
+    "guard": "brute"
+   },
+   "decisions": [
+    "shock@guard",
+    "growth@guard"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "brute": "graveyard",
+   "guard": "battlefield",
+   "shock": "graveyard",
+   "growth": "graveyard"
+  },
+  "mana_pool": {
+   "0": {},
+   "1": {}
+  },
+  "combat_window_asks": {
+   "0": [
+    "shock@guard"
+   ],
+   "1": [
+    "growth@guard"
+   ]
+  },
+  "damage": {
+   "guard": 5
+  }
+ }
+}

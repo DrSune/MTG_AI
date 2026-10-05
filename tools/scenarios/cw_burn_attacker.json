@@ -1,0 +1,77 @@
+{
+ "name": "cw_burn_attacker",
+ "note": "Rung-2 combat window, the H3 REVERSAL - the go-wide attack punished: an UNBLOCKED 2/2 Brute would deal 2, but P1 holds the Shock and answers in the post-declare window (P0 holds nothing and is never asked, C15). The attacker dies BEFORE the damage step and deals NOTHING (pinned engine law: a dead attacker's blockers - and it alone - deal no damage); P0's life stays 20.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "brute",
+   "name": "Brute",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "brute"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "brute": true
+   },
+   "decisions": [
+    "shock@brute"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "brute": "graveyard",
+   "shock": "graveyard"
+  },
+  "mana_pool": {
+   "1": {}
+  },
+  "combat_window_asks": {
+   "0": [],
+   "1": [
+    "shock@brute"
+   ]
+  }
+ }
+}

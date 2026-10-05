@@ -1,0 +1,104 @@
+{
+ "name": "cw_single_round",
+ "note": "Rung-2 documented narrowing pin (one priority round, no re-asks): P0 HOLDS a payable Shock but the pack answers PASS on its single ask; P1 pumps its 2/2 blocker to 5/5 and the shock-holding P0 is NEVER ASKED AGAIN - a real CR 510 window would hand P0 priority again to answer the pump with the burn, this rung does not, and the audit lane pins exactly one answer per seat. The un-answered pump stands: the attacker dies, the blocker lives. The kill-shot ordering lesson of H3, pinned as engine debt.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "attacker",
+   "real": "Walking Corpse",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "blocker",
+   "real": "Walking Corpse",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "growth",
+   "real": "Titanic Growth",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  },
+  "1": {
+   "G": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "attacker"
+  },
+  {
+   "op": "enter",
+   "key": "blocker"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "attacker": true
+   },
+   "block": {
+    "blocker": "attacker"
+   },
+   "decisions": [
+    "PASS",
+    "growth@blocker"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "attacker": "graveyard",
+   "blocker": "battlefield",
+   "shock": "hand",
+   "growth": "graveyard"
+  },
+  "mana_pool": {
+   "1": {}
+  },
+  "combat_window_asks": {
+   "0": [
+    "PASS"
+   ],
+   "1": [
+    "growth@blocker"
+   ]
+  },
+  "damage": {
+   "blocker": 2
+  }
+ }
+}

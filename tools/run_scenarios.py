@@ -250,7 +250,7 @@ class ScenarioRunner:
 
             def prov(vocab, what):
                 self.asks_seen.append((what, tuple(vocab)))
-                rung1 = what.startswith(("counter:", "pay:"))
+                rung1 = what.startswith(("counter:", "pay:", "cw:"))
                 # Rung-1: the queue is the step's DECLARATION lane. A
                 # window/kickback ask whose word the queue does not reach
                 # takes the disciplined default "PASS" (queue exhaustion
@@ -283,7 +283,7 @@ class ScenarioRunner:
             # 339 semantics (silence on unprimed asks) are byte-preserved.
             def quiet(vocab, what):
                 self.asks_seen.append((what, tuple(vocab)))
-                if what.startswith(("counter:", "pay:")):
+                if what.startswith(("counter:", "pay:", "cw:")):
                     self.rung1_asks.append((what, tuple(vocab), "PASS"))
                     return "PASS"
                 raise ValueError(
@@ -423,6 +423,21 @@ class ScenarioRunner:
         else:
             raise PackError(f"unknown op {op!r}")
 
+    def _resolve_word(self, word: str) -> str:
+        """18b pack-key resolution, RUNG-2-extended: a word (or either
+        side of a ``card@target`` composite) given as a PACK KEY resolves
+        to the handle string the vocabulary actually carries; the seat
+        literals ``p0``/``p1`` resolve to the player handles (a "any
+        target" instant's vocabulary legitimately names players)."""
+        if word in self.handles:
+            return str(self.handles[word])
+        if word in ("p0", "p1"):
+            return str(self.seats[int(word[1])])
+        card, sep, target = word.partition("@")
+        if sep:
+            return f"{self._resolve_word(card)}@{self._resolve_word(target)}"
+        return word
+
     def _combat(self, step: dict) -> None:
         """Run the whole COMBAT phase answering the engine's asks from the
         pack's answer maps ONLY. Site tags carry handles (attack:<card>:
@@ -463,6 +478,22 @@ class ScenarioRunner:
 
         def answer(vocab, what):
             self.asks_seen.append((what, tuple(vocab)))
+            # RUNG-2 (2026-10-05): the combat instant window. Its tag
+            # (cw:<seat>:<digest>) is claimed by NO answer map, so its
+            # scripted words ride the r22a ``decisions`` script IN
+            # ARRIVAL ORDER (window asks precede post-damage dies
+            # asks); a pack key or a ``key@key`` composite resolves
+            # through _resolve_word, and an unreached word defaults to
+            # the disciplined "PASS" — queue exhaustion never crashes a
+            # window, and the old combat packs (no cw: asks existed)
+            # stay byte-identical. Answers are journalled for the
+            # combat_window_asks / combat_window_vocab expect lanes.
+            if what.startswith("cw:"):
+                got = self._resolve_word(script.pop(0)) if script else "PASS"
+                if got not in vocab:
+                    got = "PASS"
+                self.rung1_asks.append((what, tuple(vocab), got))
+                return got
             # Handle strings carry a colon ("card:5"), so a site tag is
             # FOUR segments; match the answer keys as longest prefixes.
             got = next(
@@ -662,6 +693,9 @@ class ScenarioRunner:
             for lane, prefix in (
                 ("window_asks", "counter:"),
                 ("kickback_asks", "pay:"),
+                # RUNG-2: the combat instant window's audit lanes — the
+                # same shape, the cw: lane's own prefix.
+                ("combat_window_asks", "cw:"),
             )
         }
         for lane, prefix in want_tag.items():
@@ -674,16 +708,14 @@ class ScenarioRunner:
                     # seat Handle str itself carries a colon ("player:1")
                     if w.startswith(prefix) and ":".join(w.split(":")[1:3]) == seat_str
                 ]
-                want_ans = [
-                    str(self.handles[w]) if w in self.handles else w for w in wants
-                ]
+                want_ans = [self._resolve_word(w) for w in wants]
                 if got_ans != want_ans:
                     fails.append(
                         f"{lane}[{seat}]: expected {want_ans!r}, got {got_ans!r}"
                     )
         if "window_vocab" in expect:
             want_vocab = [
-                [str(self.handles[t]) if t in self.handles else t for t in vocab]
+                [self._resolve_word(t) for t in vocab]
                 for vocab in expect["window_vocab"]
             ]
             got_vocab = [
@@ -692,6 +724,21 @@ class ScenarioRunner:
             if got_vocab != want_vocab:
                 fails.append(
                     f"window_vocab: expected {want_vocab!r}, got {got_vocab!r}"
+                )
+        if "combat_window_vocab" in expect:
+            # RUNG-2: ordered vocabularies of the cw: asks; every token
+            # is a "card@target" composite, pack keys resolvable both
+            # sides.
+            want_vocab = [
+                [self._resolve_word(t) for t in vocab]
+                for vocab in expect["combat_window_vocab"]
+            ]
+            got_vocab = [
+                list(v) for (w, v, _) in self.rung1_asks if w.startswith("cw:")
+            ]
+            if got_vocab != want_vocab:
+                fails.append(
+                    f"combat_window_vocab: expected {want_vocab!r}, got {got_vocab!r}"
                 )
         # 17a lanes ------------------------------------------------------------
         for key, kinds in expect.get("counters", {}).items():

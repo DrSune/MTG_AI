@@ -179,6 +179,7 @@ from MTG_bot.core.executor.stack import (
     cast_card,
     is_land_card,
     land_playable,
+    open_combat_window,
     park,
     play_land,
     stack_zone,
@@ -1407,6 +1408,18 @@ class Executor:
         # "blocks a creature with flying" pump, Gloom Sower's life swap,
         # Elder Gargaroth's choice) resolve BEFORE the combat damage step.
         fired += self._settle()
+        # RUNG-2 (CR 506.4/510's first slice, 2026-10-05): the combat
+        # INSTANT window — after declare-blockers and its settle, before
+        # the damage step, both seats may answer the fight with a legal
+        # instant (kill the blocker before it fights, pump the defender
+        # over a lethal threshold, snipe the attacker). One round in
+        # player order, no priority re-asks (the rung-1 narrowing); a
+        # no-attacker combat has no declare-blockers or damage step, so
+        # there is nothing to respond to and no ask is made (C15). The
+        # cast's own settle removes dead creatures and folds pumped P/T
+        # into the ledger BEFORE _combat_damage reads it.
+        if self.attackers:
+            open_combat_window(self)
         fired += self._combat_damage(seat)
         # End of combat: the settle is the R16-1 SBA pass; the attack
         # record closes with the phase (CR 506.4 - nothing "is attacking"
@@ -1869,8 +1882,12 @@ class Executor:
             power, _toughness = self.ledger.effective_pt(
                 identity, dealer, self.world.cards[dealer].counters
             )
-            if not power:
-                # 0 (or an unmaterialized *): CR 120.7 - not dealt at all.
+            if not power or power < 0:
+                # 0, a negative, or an unmaterialized * : CR 120.7 - not
+                # dealt at all. The negative lane became REACHABLE with the
+                # Rung-2 combat window (a -X/-X instant cast between the
+                # declaration and the damage step can push a dealer's
+                # effective power below zero); damage is never negative.
                 continue
             plan = self._assign_damage(dealer, power, self.controller_of(dealer))
             if not plan:

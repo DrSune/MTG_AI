@@ -567,6 +567,126 @@ def _counter_vocab(
     return ("PASS",) + tuple(sorted(options))
 
 
+#: RUNG-2 (2026-10-05 combat-window arc): the effect atoms that make an
+#: instant worth asking about in a post-declare-blockers window — the
+#: combat-relevant payloads the corpus actually prints (burn a blocker /
+#: attacker, pump your own creature's P/T). Deliberately NARROW, the same
+#: way the rung-1 counter vocab is narrow: an instant whose every atom is
+#: combat-irrelevant (a discard, a draw) is never offered here — the
+#: window exists to model the fight, not to re-open every decision.
+_COMBAT_INSTANT_ATOMS = frozenset({Verb.DEAL_DAMAGE, Verb.MODIFY_PT, Verb.SET_PT})
+
+
+def _tree_has_any_atom(node: object, verbs: frozenset) -> bool:
+    """Does an IR subtree contain ANY atom of ``verbs``? (The generic
+    dataclass walk of :func:`_tree_has_counter`, generalised.)"""
+    if isinstance(node, Atom):
+        return node.verb in verbs
+    if is_dataclass(node) and not isinstance(node, Handle):
+        for f in fields(node):
+            value = getattr(node, f.name)
+            if isinstance(value, (list, tuple)):
+                if any(_tree_has_any_atom(item, verbs) for item in value):
+                    return True
+            elif _tree_has_any_atom(value, verbs):
+                return True
+    return False
+
+
+def _combat_instant_vocab(executor: Executor, seat: Handle) -> tuple[str, ...]:
+    """RUNG-2 response vocabulary for one seat in the combat instant
+    window: PASS plus one ``<card>@<target>`` token per legal
+    (instant, single-target designation) pair it could cast RIGHT NOW.
+    The four rung-1 gates (docstring of :func:`_counter_vocab` — each
+    one the honest answer to a seed-crash) are re-applied with the
+    combat shape swapped in for the counter shape:
+
+    * INSTANT kind + a combat-relevant atom (:data:`_COMBAT_INSTANT_ATOMS`)
+      and ``spell_castable`` (mana, record; C15);
+    * **verb closure** ⊆ HANDLERS (the runtime twin of engine_supported);
+    * **designability** — exactly one TARGET slot with 1 inside its
+      cardinality range, and EVERY token is candidate-checked through
+      :func:`validate_target_selection` (the target rides INSIDE the
+      token: unlike the counter lane there is no forced frame to
+      auto-designate — burn has a whole population);
+    * **modeless declaration** — a ``Choose`` fan can never open here
+      (the lane casts with one target and no mode)."""
+    from MTG_bot.core.ability_tree import Choose
+    from MTG_bot.core.executor.query import (
+        spell_target_slots,
+        validate_target_selection,
+    )
+    from MTG_bot.core.executor.verbs import HANDLERS
+
+    world = executor.world
+    hand = world.players[seat].zone("hand")
+    options: list[str] = []
+    for handle in hand.entries:
+        record = spell_record(executor, handle)
+        if record is None:
+            continue
+        node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None)
+        if (
+            node is None
+            or node.effect is None
+            or node.kind is not SpellKind.INSTANT
+            or not _tree_has_any_atom(node.effect, _COMBAT_INSTANT_ATOMS)
+        ):
+            continue
+        if isinstance(node.effect, Choose):
+            continue
+        if not _tree_verb_closure(node, set()) <= set(HANDLERS):
+            continue
+        reason, _n, _r, plan = spell_castable(executor, seat, handle)
+        if reason is not None or plan is None:
+            continue
+        slots = spell_target_slots(executor, node, spell_handle=handle, seat=seat)
+        if len(slots) != 1 or not slots[0].min_count <= 1 <= slots[0].max_count:
+            continue
+        for target in slots[0].candidates:
+            if validate_target_selection(slots[0], (target,)) is None:
+                options.append(f"{handle}@{target}")
+    return ("PASS",) + tuple(sorted(options))
+
+
+def open_combat_window(executor: Executor) -> None:
+    """RUNG-2 (CR 506.4/510's first slice): the post-declare-blockers
+    combat INSTANT window. After blockers are declared and their triggers
+    have settled, BEFORE the damage step, both players may cast instants
+    (the H3 kill-shot / pump-the-defender fight). One round in
+    ``player_order`` (the active player gets the first priority of the
+    step, CR 506.4 — the design doc's defender-first sketch is superseded
+    by the CR), no priority re-asks: the same documented narrowing as
+    rung 1, and every answer is a full-payload ``card@target`` token the
+    lane casts via the SAME :func:`cast` pipeline (which nests its own
+    rung-1 counter window — the windows compose for free — and settles
+    triggers + SBAs internally, so a dead blocker is gone and a pumped
+    creature's ledger is live before ``_combat_damage`` reads it).
+
+    A seat with NOTHING castable is never asked and gets NO row (C15).
+    Journal rows reuse WINDOW_OPEN/WINDOW_PASS with cause_verb
+    ``COMBAT_WINDOW`` and subject=None (no stack frame to point at); the
+    decision tag is ``cw:<seat>:<digest>`` — a distinct lane the rig can
+    fall back on WITHOUT touching the rung-1 counter:/pay: bytes."""
+    digest = site_digest(("combat-window", str(executor.journal.clock)))
+    for seat in executor.world.player_order:
+        vocab = _combat_instant_vocab(executor, seat)
+        if len(vocab) <= 1:
+            continue
+        executor.journal.emit(KIND_WINDOW_OPEN, None, seat, "COMBAT_WINDOW", (vocab,))
+        answer = executor.decisions.take(vocab, f"cw:{seat}:{digest}")
+        if answer == "PASS":
+            executor.journal.emit(KIND_WINDOW_PASS, None, seat, "COMBAT_WINDOW", ())
+            continue
+        card_tag, _, target_tag = answer.partition("@")
+        cast(
+            executor,
+            seat,
+            parse_handle_tag(card_tag),
+            targets=(parse_handle_tag(target_tag),),
+        )
+
+
 def cast(
     executor: Executor,
     seat: Handle,
