@@ -1,23 +1,95 @@
 {
-  "world": { "life": 20, "seed": 7 },
-  "cards": [
-    { "key": "w", "real": "Spellgorger Weird", "controller": 0, "zone": "battlefield" },
-    { "key": "me", "name": "Fodder", "type": "Creature", "power": "1", "toughness": "9", "controller": 0, "zone": "battlefield" },
-    { "key": "sh", "real": "Shock", "controller": 0, "zone": "hand" },
-    { "key": "tg", "real": "Titanic Growth", "controller": 0, "zone": "hand" },
-    { "key": "gor", "real": "Goremand", "controller": 0, "zone": "hand" }
-  ],
-  "mana": { "0": { "R": 6, "G": 6, "B": 6 } },
-  "steps": [
-    { "op": "cast", "key": "sh", "targets": ["me"] },
-    { "op": "cast", "key": "tg", "targets": ["me"] },
-    { "op": "cast", "key": "gor", "decisions": ["w", "me"] }
-  ],
-  "expect": {
-    "counters": { "w": { "PLUS_1_PLUS_1": 2 } },
-    "zone": { "w": "graveyard", "gor": "battlefield", "me": "battlefield" },
-    "damage": { "me": 2 },
-    "life": { "0": 20, "1": 20 }
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Spellgorger Weird",
+   "controller": 0,
+   "zone": "battlefield"
   },
-  "notes": "Printed: 'Whenever you cast a noncreature spell, put a +1/+1 counter on this creature.' Shock and Titanic Growth (both noncreature) fire; Goremand's cast (a creature spell) adds no third counter, and its counters ride with it to the graveyard. Goremand is the pool's ONLY castable plain creature besides Sparkhunter Masticore (see suspects/creature_spell_nodes_systematic.json; Masticore's compiled cast demands an undeliverable discard). Goremand's printed additional cost 'sacrifice a creature' is taken SILENTLY by the engine — the decisions channel never sees an ask (asks_seen is empty) and the cost was paid with Weird itself, the first controller-0 creature, not the 'me' word the step supplied. Zones assert that observation."
+  {
+   "key": "me",
+   "name": "Fodder",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "9",
+   "controller": 0,
+   "zone": "battlefield"
+  },
+  {
+   "key": "sh",
+   "real": "Shock",
+   "controller": 0,
+   "zone": "hand"
+  },
+  {
+   "key": "tg",
+   "real": "Titanic Growth",
+   "controller": 0,
+   "zone": "hand"
+  },
+  {
+   "key": "gor",
+   "real": "Goremand",
+   "controller": 0,
+   "zone": "hand"
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 6,
+   "G": 6,
+   "B": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "sh",
+   "targets": [
+    "me"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "tg",
+   "targets": [
+    "me"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "gor",
+   "decisions": [
+    "w",
+    "me"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "w": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  "zone": {
+   "w": "graveyard",
+   "gor": "battlefield",
+   "me": "battlefield"
+  },
+  "damage": {
+   "me": 2
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "Printed: 'Whenever you cast a noncreature spell, put a +1/+1 counter on this creature.' Shock and Titanic Growth (both noncreature) fire; Goremand's cast (a creature spell) adds no third counter, and its counters ride with it to the graveyard. Goremand is the pool's ONLY castable plain creature besides Sparkhunter Masticore (see suspects/creature_spell_nodes_systematic.json; Masticore's compiled cast demands an undeliverable discard). Goremand's printed additional cost 'sacrifice a creature' is taken SILENTLY by the engine \u2014 the decisions channel never sees an ask (asks_seen is empty) and the cost was paid with Weird itself, the first controller-0 creature, not the 'me' word the step supplied. Zones assert that observation.",
+ "eval_reclassification": {
+  "reason": "Spellgorger Weird's sacrifice cost is silently auto-paid by the engine \u2014 no choose ask is exposed (asks:[]), so the designation lane is not evaluable in the pack schema."
+ }
 }

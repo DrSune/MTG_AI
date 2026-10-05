@@ -5,6 +5,15 @@
  },
  "cards": [
   {
+   "key": "u",
+   "name": "Stray Aurochs",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
    "key": "c",
    "real": "Sigiled Contender",
    "zone": "battlefield",
@@ -49,5 +58,5 @@
    "c": "battlefield"
   }
  },
- "notes": "Pridemalkin (ETB: +1/+1 counter on target creature you control) ENTERS (creature cast is the systematic not_a_spell gap) and its ETB trigger asks - the designation answer 'c' lands the counter on Sigiled Contender. The conditional static then flips: 3/3 -> 4/4 and lifelink appears on the layers lane ('has lifelink as long as it has a +1/+1 counter'). Pridemalkin's own static ('each creature you control with a +1/+1 counter has trample') stacks on the same counter, so the layers lane reads LIFELINK+TRAMPLE."
+ "notes": "Pridemalkin (ETB: +1/+1 counter on target creature you control) ENTERS (creature cast is the systematic not_a_spell gap) and its ETB trigger asks - the designation answer 'c' lands the counter on Sigiled Contender. The conditional static then flips: 3/3 -> 4/4 and lifelink appears on the layers lane ('has lifelink as long as it has a +1/+1 counter'). Pridemalkin's own static ('each creature you control with a +1/+1 counter has trample') stacks on the same counter, so the layers lane reads LIFELINK+TRAMPLE. eval-granularity 2026-10-05: Stray Aurochs enters the candidate list FIRST: the null answer card:0 puts\nthe Pridemalkin counter on the aurochs, falsified by the exact counters/power/keyword lanes."
 }

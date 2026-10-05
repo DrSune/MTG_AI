@@ -97,5 +97,8 @@
    "1": 20
   }
  },
- "notes": "HUNT H2 pair 9 (heat 2660, both-sides buff stacking). Turn dance: Feat (seat 1, colour designation \"0\") resolves on seat 1's turn — its +1/+1 counter is permanent, its EoT protection then expires cleanly at the dance (CR 514.2); Basri's +1 lands on seat 0's own window (CR 307.5 planeswalker timing respected) on the ENEMY creature — legal, the compiled TARGET carries no CONTROLLER_IS YOU filter (CR 601.2b). Two +1/+1 counters stack -> 4/4 (CR 122.1c) with INDESTRUCTIBLE until end of turn alive at the check. Protection PREVENTION is untestable here: damage needs a pack-keyed operand and Basri's Soldiers are keyless mints (keyless-mint law)."
+ "notes": "HUNT H2 pair 9 (heat 2660, both-sides buff stacking). Turn dance: Feat (seat 1, colour designation \"0\") resolves on seat 1's turn \u2014 its +1/+1 counter is permanent, its EoT protection then expires cleanly at the dance (CR 514.2); Basri's +1 lands on seat 0's own window (CR 307.5 planeswalker timing respected) on the ENEMY creature \u2014 legal, the compiled TARGET carries no CONTROLLER_IS YOU filter (CR 601.2b). Two +1/+1 counters stack -> 4/4 (CR 122.1c) with INDESTRUCTIBLE until end of turn alive at the check. Protection PREVENTION is untestable here: damage needs a pack-keyed operand and Basri's Soldiers are keyless mints (keyless-mint law).",
+ "eval_reclassification": {
+  "reason": "Feature-colour designation unobservable: the deal_damage op bypasses Feat of Resistance protection (no prevention lane exists in the pack schema); the choose ask certifies nothing the null path changes."
+ }
 }

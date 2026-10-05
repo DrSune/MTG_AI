@@ -1,38 +1,50 @@
 {
-  "world": {
-    "life": 20,
-    "seed": 7
-  },
-  "cards": [
-    {
-      "key": "wr",
-      "real": "Wall of Runes",
-      "zone": "hand",
-      "controller": 0
-    }
-  ],
-  "steps": [
-    {
-      "op": "enter",
-      "key": "wr",
-      "decisions": ["top"]
-    }
-  ],
-  "expect": {
-    "life": {
-      "0": 20
-    },
-    "zone": {
-      "wr": "battlefield"
-    },
-    "tapped": {
-      "wr": false
-    },
-    "library": {
-      "0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]
-    },
-    "battlefield_keywords": {
-      "Wall of Runes": ["DEFENDER"]
-    }
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "wr",
+   "real": "Wall of Runes",
+   "zone": "hand",
+   "controller": 0
   }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "wr",
+   "decisions": [
+    "bottom"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20
+  },
+  "zone": {
+   "wr": "battlefield"
+  },
+  "tapped": {
+   "wr": false
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Library 5"
+   ]
+  },
+  "battlefield_keywords": {
+   "Wall of Runes": [
+    "DEFENDER"
+   ]
+  }
+ },
+ "notes": " | EVAL-GRANULARITY REPAIR 2026-10-05: scry 1 gold flipped to the ACTIVE 'bottom' call; the ordered library lane is falsifiable and the null (top) no-op now FAILS the pack. (The old 'bottom deviates from print' suspect note is OBSOLETE: probes confirm the engine's bottom branch is correct.)"
 }

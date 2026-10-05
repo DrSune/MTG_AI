@@ -30,7 +30,7 @@
    "real": "Opt",
    "controller": 0,
    "decisions": [
-    "top"
+    "bottom"
    ]
   }
  ],
@@ -49,16 +49,16 @@
   },
   "library": {
    "0": [
-    "Library 4",
     "Library 3",
     "Library 2",
     "Library 1",
-    "Library 0"
+    "Library 0",
+    "Library 5"
    ]
   },
   "hand": {
    "0": 1
   }
  },
- "notes": "{T}: Add {C} runs through the real pay+run path and the Arcanist ends tapped. The mana-pool amount and the THIS_MANA instant/sorcery restriction have NO observable harness lane -> asserted by completion only, limitation recorded in findings (no divergence evidence)."
+ "notes": "{T}: Add {C} runs through the real pay+run path and the Arcanist ends tapped. The mana-pool amount and the THIS_MANA instant/sorcery restriction have NO observable harness lane -> asserted by completion only, limitation recorded in findings (no divergence evidence). | EVAL-GRANULARITY REPAIR 2026-10-05: gold flipped to the ACTIVE scry call with a falsifiable library lane; null policy (top) now FAILS the pack."
 }

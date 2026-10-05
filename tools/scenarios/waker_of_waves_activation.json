@@ -42,5 +42,8 @@
    "w": "graveyard"
   }
  },
- "notes": "repro: activate the printed from-hand discard ability."
+ "notes": "repro: activate the printed from-hand discard ability.",
+ "eval_reclassification": {
+  "reason": "The activation's effect outcome (targeted-zone change) has no pack-expressible lane: every captured zone/tapped/library/hand lane is identical for the null and gold replays."
+ }
 }

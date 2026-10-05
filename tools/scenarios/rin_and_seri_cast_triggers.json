@@ -5,6 +5,15 @@
  },
  "cards": [
   {
+   "key": "u",
+   "name": "Stray Aurochs",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
    "key": "r",
    "real": "Rin and Seri, Inseparable",
    "zone": "battlefield",
@@ -65,5 +74,6 @@
     1
    ]
   }
- }
+ },
+ "notes": " eval-granularity 2026-10-05: Stray Aurochs first in the target menu: null card:0 lands the Pridemalkin\ncounter on the aurochs; the power[r]=5 and token lanes falsify (random ~0.25)."
 }

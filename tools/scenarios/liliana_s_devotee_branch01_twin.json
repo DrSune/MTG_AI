@@ -50,7 +50,8 @@
    "seat": 0,
    "decisions": [
     "skip"
-   ]
+   ],
+   "eval_reclassification": "branch-coverage negative twin of liliana_s_devotee_branch01: fire path certified by the sibling pack; this pack pins the SKIP false-branch (tokens 0 lane)."
   }
  ],
  "expect": {

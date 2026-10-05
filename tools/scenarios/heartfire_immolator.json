@@ -71,7 +71,15 @@
     2,
     2
    ]
+  },
+  "library": {
+   "0": [
+    "Library 1",
+    "Library 0",
+    "Library 5",
+    "Library 3"
+   ]
   }
  },
- "notes": "Printed: Prowess. TWO noncreature spells (Opt x2) each grant +1/+1 until end of turn - the buffs STACK on the ledger lanes: 2/2 -> 4/4 (a one-shot trigger fold would read 3/3). The non-prowess 2/2 twin stays 2/2 (negative control). Asserted while the duration is open, watcher_flying_buff convention."
+ "notes": "Printed: Prowess. TWO noncreature spells (Opt x2) each grant +1/+1 until end of turn - the buffs STACK on the ledger lanes: 2/2 -> 4/4 (a one-shot trigger fold would read 3/3). The non-prowess 2/2 twin stays 2/2 (negative control). Asserted while the duration is open, watcher_flying_buff convention. | EVAL-GRANULARITY REPAIR 2026-10-05: falsifiable library lane added (bottom,bottom -> L1,L0,L5,L3 top-first); every null/random scry deviation now FAILS the pack."
 }

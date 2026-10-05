@@ -1,59 +1,62 @@
 {
-  "world": {
-    "life": 20,
-    "seed": 7
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ta",
+   "real": "Destructive Tampering",
+   "zone": "hand",
+   "controller": 0
   },
-  "cards": [
-    {
-      "key": "ta",
-      "real": "Destructive Tampering",
-      "zone": "hand",
-      "controller": 0
-    },
-    {
-      "key": "cog",
-      "name": "Rusty Cog",
-      "type": "Artifact",
-      "zone": "battlefield",
-      "controller": 1
-    },
-    {
-      "key": "fly",
-      "name": "Sky Beast",
-      "power": 2,
-      "toughness": 2,
-      "type": "Creature",
-      "keywords": "FLYING",
-      "zone": "battlefield",
-      "controller": 1
-    }
-  ],
-  "mana": {
-    "0": {
-      "R": 8
-    }
+  {
+   "key": "cog",
+   "name": "Rusty Cog",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 1
   },
-  "steps": [
-    {
-      "op": "cast",
-      "real": "Destructive Tampering",
-      "key": "ta",
-      "targets": [
-        "cog"
-      ],
-      "decisions": [
-        "0"
-      ]
-    }
-  ],
-  "expect": {
-    "zone": {
-      "ta": "graveyard",
-      "cog": "graveyard",
-      "fly": "battlefield"
-    },
-    "life": {
-      "0": 20
-    }
+  {
+   "key": "fly",
+   "name": "Sky Beast",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "keywords": "FLYING",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 8
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Destructive Tampering",
+   "key": "ta",
+   "targets": [
+    "cog"
+   ],
+   "decisions": [
+    "0"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ta": "graveyard",
+   "cog": "graveyard",
+   "fly": "battlefield"
+  },
+  "life": {
+   "0": 20
+  }
+ },
+  "eval_reclassification": {
+   "reason": "Compiled choose options are (DESTROY target artifact, PREVENT non-Flying blockers EoT). The pack's destroy-the-target premise forces option '0', which is vocab[0], so the null replay equals gold by construction; option '1' is a blocker-prevention effect unobservable without a combat lane (probe: decisions ['1'] leaves the cog on the battlefield — the options ARE distinct, so flipping gold is impossible without a different premise)."
   }
 }

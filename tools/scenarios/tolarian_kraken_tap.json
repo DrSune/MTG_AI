@@ -49,19 +49,25 @@
     "fire",
     "fire",
     "0"
-   ]
+   ],
+   "eval_reclassification": {
+    "by_ask_kind": {
+     "choose": "Structurally unevaluable: the correct choose call ('0' = tap the token) is vocab[0], so the null replay equals gold by construction; the same step's target and two may items falsify the null-skip path against the tapped lane."
+    }
+   }
   }
  ],
  "expect": {
+  "zone": {
+   "k": "battlefield",
+   "sheep": "battlefield",
+   "goat": "battlefield",
+   "r": "graveyard"
+  },
   "tapped": {
+   "k": false,
    "sheep": true,
    "goat": false
-  },
-  "life": {
-   "0": 23
-  },
-  "hand": {
-   "0": 1
   },
   "library": {
    "0": [
@@ -70,13 +76,30 @@
     "Library 2",
     "Library 1",
     "Library 0"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
    ]
+  },
+  "hand": {
+   "0": 1,
+   "1": 0
   },
   "graveyard": {
    "0": [
     "Revitalize"
-   ]
+   ],
+   "1": []
+  },
+  "life": {
+   "0": 23,
+   "1": 20
   }
  },
- "notes": "Printed: 'Whenever you draw a card, you may pay {1}. When you do, you may tap or untap target creature.' Revitalize's draw triggers the Kraken; the ask chain is target-designation FIRST, then the may-pay offer, then the inner may, then the tap/untap choose ('0'=tap). Revitalize's compiled grant is +3 life in this pool (same observation as the skyfish packs); the W:3 pool covers the {1}{W} cast plus the trigger's {1}."
+ "notes": "Printed: 'Whenever you draw a card, you may pay {1}. When you do, you may tap or untap target creature.' Revitalize's draw triggers the Kraken; the ask chain is target-designation FIRST, then the may-pay offer, then the inner may, then the tap/untap choose ('0'=tap). Revitalize's compiled grant is +3 life in this pool (same observation as the skyfish packs); the W:3 pool covers the {1}{W} cast plus the trigger's {1}. eval-granularity 2026-10-05: choose ('0','1') flipped to the UNTAP word '1' (sheep is already untapped \u2014\nlegal no-op mode): gold pins tapped=false, the null '0' answer TAPS the sheep and falsifies. eval-granularity 2026-10-05: gold restored to the tap path; tapped lane is positive evidence for target/may items; the final choose item is declared item-level reclassified (gold==vocab[0])."
 }

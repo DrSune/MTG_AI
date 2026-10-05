@@ -37,27 +37,48 @@
   {
    "op": "advance_turn",
    "decisions": [
-    "skip"
+    "fire"
    ]
   }
  ],
  "expect": {
   "zone": {
-   "sh": "library"
+   "a": "battlefield",
+   "sh": "battlefield",
+   "dc": "hand"
+  },
+  "tapped": {
+   "a": false,
+   "sh": false
   },
   "library": {
    "0": [
     "Library 4",
+    "Library 0",
+    "Library 3",
+    "Library 2",
+    "Library 1"
+   ],
+   "1": [
+    "Library 4",
     "Library 3",
     "Library 2",
     "Library 1",
-    "Library 0",
-    "Sanctum of Shattered Heights"
+    "Library 0"
    ]
   },
   "hand": {
-   "0": 2
+   "0": 2,
+   "1": 1
+  },
+  "graveyard": {
+   "0": [],
+   "1": []
+  },
+  "life": {
+   "0": 20,
+   "1": 20
   }
  },
- "notes": "Skip half: the may-search is declined, so the Shrine stays at the BOTTOM of an unshuffled library - the exact-order lane witnesses that skipping neither moves nor shuffles anything."
+ "notes": "Skip half: the may-search is declined, so the Shrine stays at the BOTTOM of an unshuffled library - the exact-order lane witnesses that skipping neither moves nor shuffles anything. eval-granularity 2026-10-05: converted to the ACCEPT half: 'fire' searches \u2014 Sanctum of Shattered Heights\nlands on the battlefield (untapped \u2014 observed) and the Decoy surfaces to hand; the exact\ntop-first library lane pins the post-search shuffle. Null skips: the Shrine stays in the\nlibrary, falsifying the zone and library lanes."
 }

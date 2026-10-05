@@ -56,5 +56,8 @@
    "v": true
   }
  },
- "notes": "Printed: '{W}, {T}: Put a +1/+1 counter on target creature with a +1/+1 counter on it.' The Trufflesnout mode-'0' ETB seeds the REQUIRED counter (2/2 with 1 counter), then the Veteran's {W}+{T} finds the HAS-COUNTER target and stacks a second: 4/4 on the ledger, Veteran tapped. The {4}{W}{W} idx-1 twin shares the {T} cost (one tap per cycle) - same counter verb, un-gated target: findings note. (No-counter refusal raises in legality: not pack-expressible.)"
+ "notes": "Printed: '{W}, {T}: Put a +1/+1 counter on target creature with a +1/+1 counter on it.' The Trufflesnout mode-'0' ETB seeds the REQUIRED counter (2/2 with 1 counter), then the Veteran's {W}+{T} finds the HAS-COUNTER target and stacks a second: 4/4 on the ledger, Veteran tapped. The {4}{W}{W} idx-1 twin shares the {T} cost (one tap per cycle) - same counter verb, un-gated target: findings note. (No-counter refusal raises in legality: not pack-expressible.)",
+ "eval_reclassification": {
+  "reason": "Numeric choose maps '0' stably to the Trufflesnout token target regardless of added creatures, so the null pick equals the gold call by construction; counter assignment is designator-independent."
+ }
 }

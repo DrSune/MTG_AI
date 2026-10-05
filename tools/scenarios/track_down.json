@@ -26,9 +26,9 @@
    "real": "Track Down",
    "key": "sp",
    "decisions": [
-    "bottom",
     "top",
-    "top"
+    "bottom",
+    "bottom"
    ]
   }
  ],
@@ -38,6 +38,16 @@
   },
   "hand": {
    "0": 1
+  },
+  "library": {
+   "0": [
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Library 4",
+    "Library 3"
+   ]
   }
- }
+ },
+ "notes": " | EVAL-GRANULARITY REPAIR 2026-10-05: gold top,bottom,bottom scripted; all 8 decision outcomes produce DISTINCT libraries (probe), so every chained item is null-failing with random 0.125/0.25/0.5."
 }

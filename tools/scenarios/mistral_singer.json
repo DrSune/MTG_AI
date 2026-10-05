@@ -24,7 +24,7 @@
    "real": "Opt",
    "controller": 0,
    "decisions": [
-    "top"
+    "bottom"
    ]
   }
  ],
@@ -44,16 +44,16 @@
   },
   "library": {
    "0": [
-    "Library 4",
     "Library 3",
     "Library 2",
     "Library 1",
-    "Library 0"
+    "Library 0",
+    "Library 5"
    ]
   },
   "hand": {
    "0": 1
   }
  },
- "notes": "Flying on the layers lane. Opt (M21) = 'Scry 1, then draw a card': scry answered 'top', then the draw consumes Library 5 -> library 4..0, hand 1. Prowess is a separate silent suspect (golden compiles only KeywordAbility nodes; executor has no PROWESS consumer) \u2014 asserted 3/3 there fails, 2/2 observed."
+ "notes": "Flying on the layers lane. Opt (M21) = 'Scry 1, then draw a card': scry answered 'top', then the draw consumes Library 5 -> library 4..0, hand 1. Prowess is a separate silent suspect (golden compiles only KeywordAbility nodes; executor has no PROWESS consumer) \u2014 asserted 3/3 there fails, 2/2 observed. | EVAL-GRANULARITY REPAIR 2026-10-05: gold flipped to the ACTIVE scry call with a falsifiable library lane; null policy (top) now FAILS the pack."
 }

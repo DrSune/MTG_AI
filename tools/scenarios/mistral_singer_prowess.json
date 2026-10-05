@@ -24,7 +24,7 @@
    "real": "Opt",
    "controller": 0,
    "decisions": [
-    "top"
+    "bottom"
    ]
   }
  ],
@@ -39,7 +39,16 @@
   },
   "toughness": {
    "s": 3
+  },
+  "library": {
+   "0": [
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Library 5"
+   ]
   }
  },
- "notes": "repro: cast the noncreature Opt; Prowess promised the Singer reads 3/3."
+ "notes": "repro: cast the noncreature Opt; Prowess promised the Singer reads 3/3. | EVAL-GRANULARITY REPAIR 2026-10-05: gold flipped to the ACTIVE scry call with a falsifiable library lane; null policy (top) now FAILS the pack."
 }

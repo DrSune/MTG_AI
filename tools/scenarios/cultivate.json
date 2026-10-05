@@ -1,74 +1,107 @@
 {
-  "world": {
-    "life": 20,
-    "seed": 7
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cv",
+   "real": "Cultivate",
+   "zone": "hand",
+   "controller": 0
   },
-  "cards": [
-    {
-      "key": "cv",
-      "real": "Cultivate",
-      "zone": "hand",
-      "controller": 0
-    },
-    {
-      "key": "fo",
-      "name": "Forest",
-      "type": "Basic Land",
-      "zone": "library",
-      "controller": 0
-    },
-    {
-      "key": "pl",
-      "name": "Plains",
-      "type": "Basic Land",
-      "zone": "library",
-      "controller": 0
-    },
-    {
-      "key": "g1",
-      "name": "Gemthing",
-      "power": 1,
-      "toughness": 1,
-      "type": "Creature",
-      "zone": "library",
-      "controller": 0
-    },
-    {
-      "key": "j1",
-      "name": "Top Junk",
-      "power": 1,
-      "toughness": 1,
-      "type": "Creature",
-      "zone": "library",
-      "controller": 0
-    }
-  ],
-  "mana": {
-    "0": {
-      "G": 3
-    }
+  {
+   "key": "fo",
+   "name": "Forest",
+   "type": "Basic Land",
+   "zone": "library",
+   "controller": 0
   },
-  "steps": [
-    {
-      "op": "cast",
-      "real": "Cultivate",
-      "key": "cv",
-      "decisions": [
-        "card:1"
-      ]
-    }
-  ],
-  "expect": {
-    "zone": {
-      "cv": "graveyard",
-      "fo": "battlefield",
-      "pl": "hand"
-    },
-    "tapped": {
-      "fo": true
-    },
-    "life": {
-      "0": 20
-    }
+  {
+   "key": "pl",
+   "name": "Plains",
+   "type": "Basic Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "g1",
+   "name": "Gemthing",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "j1",
+   "name": "Top Junk",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
   }
+ ],
+ "mana": {
+  "0": {
+   "G": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Cultivate",
+   "key": "cv",
+   "decisions": [
+    "card:2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cv": "graveyard",
+   "fo": "hand",
+   "pl": "battlefield",
+   "g1": "library",
+   "j1": "hand"
+  },
+  "tapped": {
+   "pl": true
+  },
+  "library": {
+   "0": [
+    "Library 0",
+    "Library 2",
+    "Library 1",
+    "Library 4",
+    "Gemthing",
+    "Library 3",
+    "Library 5"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "hand": {
+   "0": 2,
+   "1": 0
+  },
+  "graveyard": {
+   "0": [
+    "Cultivate"
+   ],
+   "1": []
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "eval-granularity 2026-10-05: gold 'card:0': the null replay answers vocab[0] 'card:1' (Plains into play,\nForest to hand); the exact per-key zone lanes falsify the swapped designation (both lands are\nlegal picks \u2014 the lane pins the scripted one). eval-granularity 2026-10-05: gold switched to 'card:2' (second candidate to battlefield tapped); null replay answers vocab[0] 'card:1' which swaps the land destinations \u2014 exact library/hand lanes falsify it."
 }

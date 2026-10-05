@@ -47,7 +47,8 @@
    "seat": 0,
    "decisions": [
     "skip"
-   ]
+   ],
+   "eval_reclassification": "branch-coverage negative twin of chandra_heart_of_fire_branch02: ultimate fire path certified by the sibling pack; this pack pins the idx4 SKIP branch."
   }
  ],
  "expect": {

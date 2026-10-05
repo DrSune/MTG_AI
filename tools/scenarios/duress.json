@@ -37,26 +37,48 @@
    "real": "Duress",
    "key": "du",
    "decisions": [
-    "prey"
+    "1"
    ]
   }
  ],
  "expect": {
   "zone": {
    "du": "graveyard",
-   "prey": "graveyard",
+   "prey": "hand",
    "sheep": "hand"
   },
-  "hand": {
-   "1": 1
-  },
-  "graveyard": {
+  "library": {
+   "0": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ],
    "1": [
-    "Opt"
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
    ]
   },
+  "hand": {
+   "0": 0,
+   "1": 2
+  },
+  "graveyard": {
+   "0": [
+    "Duress"
+   ],
+   "1": []
+  },
   "life": {
-   "0": 20
+   "0": 20,
+   "1": 20
   }
- }
+ },
+ "notes": " eval-granularity 2026-10-05: gold '1' = discard the Sheep; the menu ('0','1','card:1') maps '0' to Opt \u2014\nthe null replay discards the Instant and the exact graveyard/hand/zone lanes falsify\n(random ~0.33)."
 }

@@ -44,7 +44,8 @@
    ],
    "decisions": [
     "skip"
-   ]
+   ],
+   "eval_reclassification": "branch-coverage negative twin of chandra_flame_s_catalyst_branch01: the fire path is certified by the sibling pack; this pack pins the SKIP branch (hand-0 lane). Flipping would erase skip-branch coverage, so the skip ask is not a ladder candidate."
   }
  ],
  "expect": {

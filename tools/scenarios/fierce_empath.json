@@ -1,31 +1,98 @@
 {
-  "world": {
-    "life": 20,
-    "seed": 7
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "f",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Fierce Empath"
   },
-  "cards": [
-    {
-      "key": "f",
-      "zone": "hand",
-      "controller": 0,
-      "real": "Fierce Empath"
-    }
-  ],
-  "steps": [
-    {
-      "op": "enter",
-      "key": "f",
-      "decisions": [
-        "skip"
-      ]
-    }
-  ],
-  "expect": {
-    "zone": {
-      "f": "battlefield"
-    },
-    "hand": {
-      "0": 0
-    }
+  {
+   "key": "x1",
+   "real": "Colossal Dreadmaw",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x2",
+   "real": "Colossal Dreadmaw",
+   "zone": "library",
+   "controller": 0
   }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "enter",
+   "key": "f",
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "f": "battlefield",
+   "x1": "hand",
+   "x2": "hand"
+  },
+  "tapped": {
+   "f": false
+  },
+  "library": {
+   "0": [],
+   "1": []
+  },
+  "hand": {
+   "0": 8,
+   "1": 6
+  },
+  "graveyard": {
+   "0": [],
+   "1": []
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": " eval-granularity 2026-10-05: printed promise path now LIT: twelve turn-cycles burn the six Library\nfillers so the second declared Colossal Dreadmaw (cmc 8) sits on top; 'fire' reveals and\n(creature with mana value 6+) puts it in hand \u2014 empty library + x2-in-hand lanes falsify the\nskip replay. (x1 was the begin_turn draw.)"
 }

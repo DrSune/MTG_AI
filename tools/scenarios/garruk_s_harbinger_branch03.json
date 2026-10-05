@@ -22,7 +22,7 @@
     "h": true
    },
    "decisions": [
-    "card:3"
+    "card:4"
    ]
   },
   {
@@ -30,12 +30,41 @@
   }
  ],
  "expect": {
-  "life": {
-   "1": 16
+  "zone": {
+   "h": "battlefield"
+  },
+  "tapped": {
+   "h": true
+  },
+  "library": {
+   "0": [
+    "Library 1",
+    "Library 0",
+    "Library 5",
+    "Library 4",
+    "Library 2"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
   },
   "hand": {
-   "0": 1
+   "0": 1,
+   "1": 0
+  },
+  "graveyard": {
+   "0": [],
+   "1": []
+  },
+  "life": {
+   "0": 20,
+   "1": 16
   }
  },
- "notes": "Branch garruk_s_harbinger:03 (Selector:ONE_OF, heat 32). Same accept resolution: the ONE_OF partition hands over EXACTLY ONE card (hand lane 1, seed 7) and the ONE_OF designation is never journalled as TARGETING - the matcher's targeting_cardinality lane (ONE_OF = group of 1) can never fire on this card; see the H1 findings OBSERVABILITY note. Decline twin = garruks_harbinger.json."
+ "notes": "Branch garruk_s_harbinger:03 (Selector:ONE_OF, heat 32). Same accept resolution: the ONE_OF partition hands over EXACTLY ONE card (hand lane 1, seed 7) and the ONE_OF designation is never journalled as TARGETING - the matcher's targeting_cardinality lane (ONE_OF = group of 1) can never fire on this card; see the H1 findings OBSERVABILITY note. Decline twin = garruks_harbinger.json. eval-granularity 2026-10-05: ONE_OF gold moved off vocab[0] (card:3=Library 2 = the null replay's pick):\n'card:4' takes Library 3 to hand, REST preserves the rest to the BOTTOM \u2014 the exact\ntop-first library lane falsifies the null partition (random 0.25)."
 }

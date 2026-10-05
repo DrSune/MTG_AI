@@ -11,6 +11,13 @@
    "controller": 0
   },
   {
+   "key": "ab",
+   "name": "Abort",
+   "type": "Instant",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
    "key": "doom",
    "name": "Doom",
    "type": "Instant",
@@ -36,10 +43,12 @@
  "expect": {
   "zone": {
    "nc": "graveyard",
-   "doom": "exile"
+   "doom": "exile",
+   "ab": "graveyard"
   },
   "life": {
    "0": 20
   }
- }
+ },
+ "notes": " eval-granularity 2026-10-05: an 'Abort' instant joins the enemy graveyard (name ask now offers Abort,\nDoom, six Library fillers...): the null policy answers the alphabetically-first vocab[0]\n'Abort', gold names Doom \u2014 the exact doom-exile/Abort-stays lanes falsify (random ~0.1)."
 }

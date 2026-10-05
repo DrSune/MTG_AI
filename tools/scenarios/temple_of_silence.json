@@ -16,7 +16,7 @@
    "op": "enter",
    "key": "t",
    "decisions": [
-    "top"
+    "bottom"
    ]
   }
  ],
@@ -29,14 +29,14 @@
   },
   "library": {
    "0": [
-    "Library 5",
     "Library 4",
     "Library 3",
     "Library 2",
     "Library 1",
-    "Library 0"
+    "Library 0",
+    "Library 5"
    ]
   }
  },
- "notes": "Printed: 'Temple of Silence enters tapped. When it enters, scry 1.' Entered via journaled enter op: tapped=True, scry ask vocab ('top','bottom'), 'top' -> exact no-op on the 6-card library. 'bottom' branch deviates from print -> suspect scry_bottom_temple.json."
+ "notes": "Printed: 'Temple of Silence enters tapped. When it enters, scry 1.' Entered via journaled enter op: tapped=True, scry ask vocab ('top','bottom'), 'top' -> exact no-op on the 6-card library. 'bottom' branch deviates from print -> suspect scry_bottom_temple.json. | EVAL-GRANULARITY REPAIR 2026-10-05: scry 1 gold flipped to the ACTIVE 'bottom' call; the ordered library lane is falsifiable and the null (top) no-op now FAILS the pack. (The old 'bottom deviates from print' suspect note is OBSOLETE: probes confirm the engine's bottom branch is correct.)"
 }

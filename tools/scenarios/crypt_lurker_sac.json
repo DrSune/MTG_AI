@@ -1,66 +1,96 @@
 {
-  "world": {
-    "life": 20,
-    "seed": 7
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s2",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Spare Goat",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature"
   },
-  "cards": [
-    {
-      "key": "s1",
-      "zone": "battlefield",
-      "controller": 0,
-      "name": "Sac Victim",
-      "power": 1,
-      "toughness": 1,
-      "type": "Creature"
-    },
-    {
-      "key": "c",
-      "zone": "hand",
-      "controller": 0,
-      "real": "Crypt Lurker"
-    },
-    {
-      "key": "dc1",
-      "zone": "hand",
-      "controller": 0,
-      "name": "Discardable",
-      "power": 1,
-      "toughness": 1,
-      "type": "Creature"
-    }
-  ],
-  "steps": [
-    {
-      "op": "enter",
-      "key": "c",
-      "decisions": [
-        "fire",
-        "0"
-      ]
-    }
-  ],
-  "expect": {
-    "zone": {
-      "s1": "graveyard",
-      "c": "battlefield",
-      "dc1": "hand"
-    },
-    "hand": {
-      "0": 2
-    },
-    "graveyard": {
-      "0": [
-        "Sac Victim"
-      ]
-    },
-    "library": {
-      "0": [
-        "Library 4",
-        "Library 3",
-        "Library 2",
-        "Library 1",
-        "Library 0"
-      ]
-    }
+  {
+   "key": "s1",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Sac Victim",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature"
+  },
+  {
+   "key": "c",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Crypt Lurker"
+  },
+  {
+   "key": "dc1",
+   "zone": "hand",
+   "controller": 0,
+   "name": "Discardable",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature"
   }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "c",
+   "decisions": [
+    "fire",
+    "1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "s2": "battlefield",
+   "s1": "battlefield",
+   "c": "battlefield",
+   "dc1": "graveyard"
+  },
+  "tapped": {
+   "s2": false,
+   "s1": false,
+   "c": false
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "hand": {
+   "0": 1,
+   "1": 0
+  },
+  "graveyard": {
+   "0": [
+    "Discardable"
+   ],
+   "1": []
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": " eval-granularity 2026-10-05: second candidate (Spare Goat) declared first: the choose menu's '0' takes the Goat, gold '1' discards Discardable instead \u2014 exact graveyard/zone/hand lanes falsify the null ('0') replay; menu (fire/skip) x (0/1) = two items, random 0.5 each."
 }

@@ -25,16 +25,24 @@
    "op": "enter",
    "key": "c",
    "decisions": [
-    "skip"
+    "fire"
    ]
   }
  ],
  "expect": {
-  "hand": {
-   "0": 1
+  "zone": {
+   "c": "graveyard",
+   "dc1": "hand"
   },
   "library": {
    "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ],
+   "1": [
     "Library 5",
     "Library 4",
     "Library 3",
@@ -43,9 +51,20 @@
     "Library 0"
    ]
   },
-  "zone": {
-   "c": "battlefield",
-   "dc1": "hand"
+  "hand": {
+   "0": 2,
+   "1": 0
+  },
+  "graveyard": {
+   "0": [
+    "Crypt Lurker"
+   ],
+   "1": []
+  },
+  "life": {
+   "0": 20,
+   "1": 20
   }
- }
+ },
+ "notes": " eval-granularity 2026-10-05: converted from the DECLINE half to the ACCEPT half: 'fire' makes the\nETB sacrifice itself and draw (auto-designation \u2014 the lurker is the only creature), library\ndrops Library 5 and the graveyard names it \u2014 falsifiable by the skip (null) replay."
 }

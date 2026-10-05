@@ -24,7 +24,7 @@
    "real": "Opt",
    "controller": 0,
    "decisions": [
-    "top"
+    "bottom"
    ]
   }
  ],
@@ -45,16 +45,16 @@
   },
   "library": {
    "0": [
-    "Library 4",
     "Library 3",
     "Library 2",
     "Library 1",
-    "Library 0"
+    "Library 0",
+    "Library 5"
    ]
   },
   "hand": {
    "0": 1
   }
  },
- "notes": "Flying on the layers lane; Opt resolves (scry 'top', draw -> library 4..0, hand 1). SURCHARGE PROOF (ad-hoc probe with mana exactly base {U} only): the cast is REJECTED 'cost:mana_generic:0<1' - the {1} extra is enforced by the CR 601.2f CostModifier fold; this pack pays the surcharge (C:2,U:1) so the cast goes through."
+ "notes": "Flying on the layers lane; Opt resolves (scry 'top', draw -> library 4..0, hand 1). SURCHARGE PROOF (ad-hoc probe with mana exactly base {U} only): the cast is REJECTED 'cost:mana_generic:0<1' - the {1} extra is enforced by the CR 601.2f CostModifier fold; this pack pays the surcharge (C:2,U:1) so the cast goes through. | EVAL-GRANULARITY REPAIR 2026-10-05: gold flipped to the ACTIVE scry call with a falsifiable library lane; null policy (top) now FAILS the pack."
 }

@@ -17,7 +17,7 @@
    "key": "s",
    "decisions": [
     "top",
-    "top"
+    "bottom"
    ]
   }
  ],
@@ -28,11 +28,11 @@
   "library": {
    "0": [
     "Library 5",
-    "Library 4",
     "Library 3",
     "Library 2",
     "Library 1",
-    "Library 0"
+    "Library 0",
+    "Library 4"
    ]
   },
   "battlefield_keywords": {
@@ -41,5 +41,5 @@
    ]
   }
  },
- "notes": "Printed: 'Flying. When ~ enters, scry 2.' Two scry asks (vocab ('top','bottom'), top-card first); both 'top' -> library order is an exact no-op. The 'bottom' printed parenthetical is a separate engine deviation (see suspects/scry_bottom_temple.json)."
+ "notes": "Printed: 'Flying. When ~ enters, scry 2.' Two scry asks (vocab ('top','bottom'), top-card first); both 'top' -> library order is an exact no-op. The 'bottom' printed parenthetical is a separate engine deviation (see suspects/scry_bottom_temple.json). | EVAL-GRANULARITY REPAIR 2026-10-05: gold keeps top card, bottoms the second; library lane falsifiable, null [top,top] fails both items."
 }

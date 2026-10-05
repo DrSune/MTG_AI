@@ -1,4 +1,5 @@
 {
+ "eval_reclassification": "branch-coverage negative twin of tolarian_kraken_tap (fire chain certified there, l1_ready): when the may-pay SKIPs, the 'when you do' target and tap/untap asks never arrive, so both step0 asks are structurally unobservable here; the untapped lane pins the short-circuit.",
  "world": {
   "life": 20,
   "seed": 7

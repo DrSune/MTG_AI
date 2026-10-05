@@ -26,13 +26,13 @@
    "real": "See the Truth",
    "key": "sp",
    "decisions": [
-    "card:4"
+    "card:5"
    ]
   }
  ],
  "expect": {
-  "hand": {
-   "0": 1
+  "zone": {
+   "sp": "graveyard"
   },
   "library": {
    "0": [
@@ -40,9 +40,31 @@
     "Library 1",
     "Library 0",
     "Library 5",
-    "Library 4"
+    "Library 3"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
    ]
+  },
+  "hand": {
+   "0": 1,
+   "1": 0
+  },
+  "graveyard": {
+   "0": [
+    "See the Truth"
+   ],
+   "1": []
+  },
+  "life": {
+   "0": 20,
+   "1": 20
   }
  },
- "notes": "Branch see_the_truth:02 (Selector:REST, heat 19). ONE_OF pick = card:4 (Library 3 - candidate handle, honored) to hand; the REST pair {Library 5, Library 4} goes to the BOTTOM as a group preserving relative order (library lane pins all five survivors top-first). The REST partition is never journalled TARGETING - the matcher's targeting_cardinality lane (REST = group >= 2) can never fire here; OBSERVABILITY note in H1 findings. Negative twin: the branch03 pack picks a different candidate - every lane slot is falsifiable."
+ "notes": "Branch see_the_truth:02 (Selector:REST, heat 19). ONE_OF pick = card:4 (Library 3 - candidate handle, honored) to hand; the REST pair {Library 5, Library 4} goes to the BOTTOM as a group preserving relative order (library lane pins all five survivors top-first). The REST partition is never journalled TARGETING - the matcher's targeting_cardinality lane (REST = group >= 2) can never fire here; OBSERVABILITY note in H1 findings. Negative twin: the branch03 pack picks a different candidate - every lane slot is falsifiable. eval-granularity 2026-10-05: ONE_OF gold moved off vocab[0] to 'card:5' (the null replay keeps answering\ncard:4=Library 3): the exact top-first library lane pins the alternate REST-bottom order,\nfalsifying the do-nothing partition."
 }

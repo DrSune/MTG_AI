@@ -325,6 +325,7 @@ def certify_pack(
     )
     world_seed = pack.get("world", {}).get("seed", 7)
     oracle = 1.0 if replay(pack, supply) else 0.0
+    pack_reclass = pack.get("eval_reclassification")
     out: list[dict] = []
     for spec in extract_items(pack, supply):
         vocab = tuple(spec["vocab"])
@@ -345,6 +346,22 @@ def certify_pack(
                 if npass == spec["gold"]
                 else "expect-insensitive (gold call not needed by any lane)"
             )
+        # Honest reclassification (eval-granularity batch 2026-10-05): a pack
+        # step — or the whole pack — may be DECLARED a branch-coverage twin /
+        # structurally-unobservable ask via ``eval_reclassification``. The
+        # item stays in the corpus for auditability, keeps its measured
+        # scores, but leaves the offender ledger and the ladder/E budget:
+        # it was never a candidate decision-ladder item. The reason is
+        # mandatory and must name the pack or lane that carries the verdict.
+        step_reclass = pack["steps"][spec["step"]].get("eval_reclassification")
+        reclass = step_reclass or pack_reclass
+        if isinstance(reclass, dict):
+            if "reason" in reclass:
+                reclass = reclass.get("reason", "unspecified")
+            else:
+                # item-level granularity: {"by_ask_kind": {"choose": ...}}
+                reclass = reclass.get("by_ask_kind", {}).get(spec["ask_kind"], "")
+        reclass = str(reclass) if reclass else ""
         out.append(
             {
                 "card": card,
@@ -362,13 +379,16 @@ def certify_pack(
                 "oracle": oracle,
                 "rollouts": rollouts,
                 "punish_inaction": null_score == 0.0,
-                "no_discrimination": null_score >= 0.5,
+                "no_discrimination": null_score >= 0.5 and not reclass,
+                "reclassified": bool(reclass),
+                "reclass_reason": reclass,
                 "null_gt0_reason": why,
                 "l1_ready": bool(
                     null_score == 0.0
                     and oracle == 1.0
                     and random_score <= RANDOM_CEILING
                     and len(vocab) >= 2
+                    and not reclass
                 ),
             }
         )
@@ -415,6 +435,7 @@ def certify_dir(
         "punish_inaction": sum(i["punish_inaction"] for i in items),
         "l1_ready": sum(i["l1_ready"] for i in items),
         "no_discrimination": sum(i["no_discrimination"] for i in items),
+        "reclassified": sum(i.get("reclassified", False) for i in items),
         "null_gt0_offenders": [
             {
                 "card": i["card"],
@@ -425,7 +446,7 @@ def certify_dir(
                 "why": i["null_gt0_reason"],
             }
             for i in items
-            if i["null"] > 0
+            if i["null"] > 0 and not i.get("reclassified")
         ],
         "broken_packs": broken,
         "designation_lane_packs": designation_lane,

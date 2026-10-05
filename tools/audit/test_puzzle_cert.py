@@ -215,3 +215,35 @@ def test_corpus_writer_schema(supply, tmp_path):
     assert summary["broken_packs"] == []
     # json round-trip discipline: everything emitted is serialisable
     assert json.loads(json.dumps({"summary": summary, "items": items}))
+
+
+# ------------------------------------------------- honest reclassification
+
+
+def test_pack_level_reclassification_exempts_offender(supply):
+    import copy
+
+    p = copy.deepcopy(NULL_IS_GOLD)
+    p["eval_reclassification"] = {"reason": "branch-coverage negative twin"}
+    (it,) = PC.certify_pack(Path("null_is_gold.json"), p, supply)
+    # scores are kept honest, the OFFENDER flag and ladder eligibility drop
+    assert it["null"] == 1.0 and it["null_pick"] == it["gold"]
+    assert it["reclassified"] is True and it["no_discrimination"] is False
+    assert it["reclass_reason"] == "branch-coverage negative twin"
+
+
+def test_by_ask_kind_reclassification_is_item_granular(supply):
+    import copy
+
+    probe = PC.certify_pack(Path("ladder.json"), copy.deepcopy(ATTACK_LADDER), supply)
+    kind = probe[0]["ask_kind"]
+    p = copy.deepcopy(ATTACK_LADDER)
+    p["steps"][0]["eval_reclassification"] = {"by_ask_kind": {kind: "declared twin"}}
+    for it in PC.certify_pack(Path("ladder.json"), p, supply):
+        assert it["reclassified"] is True and it["no_discrimination"] is False
+    # a kind that never matches reclassifies NOTHING (item-level precision)
+    p2 = copy.deepcopy(ATTACK_LADDER)
+    p2["steps"][0]["eval_reclassification"] = {"by_ask_kind": {"no_such_kind": "x"}}
+    assert not any(
+        i["reclassified"] for i in PC.certify_pack(Path("ladder.json"), p2, supply)
+    )

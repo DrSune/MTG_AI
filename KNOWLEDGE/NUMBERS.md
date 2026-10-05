@@ -3220,3 +3220,9 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - Board LIVE at http://192.168.1.108:8788/ — 3 panels (NOW / PROJECT SCOREBOARD / DETAILS), fresh-file reads per request, 30 s refresh; engine-guard + run_scenarios (0.62 s measured, packs tile live) cached 60 s.
 - Gates: /health ok=true; page curl-renders 3 panel heads + LIVE banner mid-run ("heartbeat 4 s ago · phase live-smoke", pid-alive probe) → IDLE after; pidfile kill/restart clean (setsid, SID==PID); ruff Δ0 on 4 new files; pytest tools/training **33 passed** (7 new test_monitor.py).
 - metrics.jsonl = single source (wandb_log.py always appends; wandb mirror iff WANDB_API_KEY; failure-guarded, never crashes trainer). Doc 13-monitoring-board.md.
+
+## 2026-10-05 — Eval granularity: corpus v2 (commands: `.venv/bin/python tools/audit/puzzle_cert.py --dir tools/scenarios --out tools/audit/puzzle_corpus.json` ; `.venv/bin/python tools/run_scenarios.py` ; `.venv/bin/python -m pytest tools/audit -q`)
+- **no_discrimination 52 → 0**; punish_inaction 67 → **104**; mean_random 0.4979 → **0.409**; items held at **119** (v1 backup `puzzle_corpus.v1.json`); broken_packs 0.
+- **E_active** (null==0 ∧ oracle==1 ∧ 0.02≤random≤0.9 ∧ not reclassified, recomputed identically both corpora): **66 → 103**; SE(p=.5)=√(.25/E): 0.0615 → **0.0493** (3SE band 0.185 → 0.148). l1_ready stays **4** by construction (binary vocab floors random ≥ ~0.5; ≥40 needs chained-ask ladders — backlog A3).
+- Reclassified (harness `eval_reclassification`, now incl. item-level `by_ask_kind`): **15 items / 14 packs** with mandatory reasons. Family split `eval_split.json`: 74 card families / 30 eval / 75 train + 44 eval items (sorted-index %5<2, no RNG).
+- Gates: packs **355/355**, tools/audit **74 passed** (+2 reclass pins), core **2391+2** (engine untouched). Doc 15-eval-granularity.md; traps → PITFALLS.

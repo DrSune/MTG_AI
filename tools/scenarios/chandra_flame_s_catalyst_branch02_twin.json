@@ -35,7 +35,8 @@
    "seat": 0,
    "decisions": [
     "skip"
-   ]
+   ],
+   "eval_reclassification": "branch-coverage negative twin of chandra_flame_s_catalyst_branch02: free-cast fire path certified by the sibling pack; this pack pins the SKIP branch (Crash Through stays in hand)."
   }
  ],
  "expect": {
