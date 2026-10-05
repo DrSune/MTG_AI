@@ -3215,3 +3215,8 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - Synthetic ETB-shuffle-back loop: terminates turn **5** (vs cap 60), REPEAT_ROUNDS=**3**, lives [20,20], 1 STALL_BREAK journal row, determinism 3/3.
 - Corpus pool=all 100 seeds: endings **identical** before/after ({p1: 51, p0: 47, cap-60: 2}) — cap games (seeds 53/91) are genuine grinds, fingerprint never repeats; 0 crash classes.
 - Gates: pytest **2391** passed (+5 new pins); scenarios **355/355**; catalog compare **0/10 diverging** (no repin); PC-9 stable. Doc 11-stall-rule.md.
+
+## 2026-10-05 — Monitoring batch: status board (commands: `bash tools/training/monitor_start.sh` ; `curl -s localhost:8788/health` ; `.venv/bin/pytest tools/training -q`)
+- Board LIVE at http://192.168.1.108:8788/ — 3 panels (NOW / PROJECT SCOREBOARD / DETAILS), fresh-file reads per request, 30 s refresh; engine-guard + run_scenarios (0.62 s measured, packs tile live) cached 60 s.
+- Gates: /health ok=true; page curl-renders 3 panel heads + LIVE banner mid-run ("heartbeat 4 s ago · phase live-smoke", pid-alive probe) → IDLE after; pidfile kill/restart clean (setsid, SID==PID); ruff Δ0 on 4 new files; pytest tools/training **33 passed** (7 new test_monitor.py).
+- metrics.jsonl = single source (wandb_log.py always appends; wandb mirror iff WANDB_API_KEY; failure-guarded, never crashes trainer). Doc 13-monitoring-board.md.

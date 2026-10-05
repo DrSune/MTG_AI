@@ -8,3 +8,5 @@
 {"event": "final", "ts": "2026-10-05T20:15:38+0200", "pid": 3875364, "cmd": ["sleep", "20"], "phase": "dry-run", "cause": "complete", "wall_s": 20.04, "exit_code": 0, "timeout_s": 60.0, "last_checkpoint": null, "gpu_peak_mib": null, "free_mem": "MemAvailable 9.4 GiB"}
 {"event": "start", "ts": "2026-10-05T20:16:09+0200", "pid": 3876983, "cmd": ["sleep", "20"], "phase": "dry-run", "timeout_s": 60.0}
 {"event": "final", "ts": "2026-10-05T20:16:29+0200", "pid": 3876983, "cmd": ["sleep", "20"], "phase": "dry-run", "cause": "complete", "wall_s": 20.03, "exit_code": 0, "timeout_s": 60.0, "last_checkpoint": null, "gpu_peak_mib": null, "free_mem": "MemAvailable 9.1 GiB"}
+{"event": "start", "ts": "2026-10-05T21:00:31+0200", "pid": 3960516, "cmd": ["sleep", "6"], "phase": "live-smoke", "timeout_s": 30.0}
+{"event": "final", "ts": "2026-10-05T21:00:37+0200", "pid": 3960516, "cmd": ["sleep", "6"], "phase": "live-smoke", "cause": "complete", "wall_s": 6.04, "exit_code": 0, "timeout_s": 30.0, "last_checkpoint": null, "gpu_peak_mib": null, "free_mem": "MemAvailable 0.2 GiB"}
