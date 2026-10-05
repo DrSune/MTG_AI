@@ -896,3 +896,19 @@
   `tools/audit/suspects/` as scenario JSON + `status`/`finding` fields
   pinning the CR values (red-as-intended); gate default scans only
   `tools/scenarios`.
+
+- **2026-10-05 · exploit-audit traps (`tools/audit/exploit/`).**
+  (1) **NoisyPolicy polarity**: `eps=0` is random play and `eps=1` is scripted play; do
+  not read a falling curve A as candidate weakness. (`noisy_policy.py`.)
+  (2) **Target slots are an omniscience surface**: `spell_target_slots` /
+  `activation_target_slots` can include opponent hand/library handles under
+  `Zone(ANY, controller=ANY)` (e.g. `Volcanic Geyser` “any target”), so a
+  winrate from full candidate lists is not transfer-safe until the same policy
+  is masked-evaluated. (`source_probe.py`, `masked_target_probe.py`.)
+  (3) **Fixed eval seeds are memorizable**: a seed-keyed policy can hit **0.900**
+  on memorized seeds and **0.500** on unseen seeds; always report rotated-seed
+  WR. (`seed_probe.py`.)
+  (4) **Deterministic blocker gains are suspect**: an attacker model can gain
+  against a deterministic blocker, but the gain must survive randomized blockers;
+  current probe gain is only **+0.031** and specificity **+0.031**.
+  (`blocker_model.py`.)

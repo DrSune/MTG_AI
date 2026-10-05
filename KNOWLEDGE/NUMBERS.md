@@ -3022,3 +3022,13 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 | catalog | seed-3 attributed (Forgotten Sentinel now enters tapped when CAST — the bug, 1 new UNTAP_STEP TAP_STATE row, outcome same) → **repin 3848 entries/10 games**, post **0/10 diverge** | `.venv/bin/python tools/traces/catalog.py repin && … compare` | other 9 seeds byte-identical |
 | games | **0 crash classes**, 100 decisive 47/53, mean_turns **33.48** | `.venv/bin/python -m MTG_bot.core.executor.games --seeds 100 --pool all --deck-pairs-seed 1409 --turns 60` | band-identical to baseline |
 | grammar + lints | PC **Δ0** vs 2026-10-04 (only PC-5 jitter); pyright **0 errors** 2 touched files; ruff **Δ0** | `tools/measure_grammar.py` / pyright CLI / `ruff check` | engine fix is executor-lane only; compile lane untouched |
+
+## 2026-10-05 (exploit / transfer audit — D8-D11 PoC)
+
+| area | number | command | note |
+| --- | --- | --- | --- |
+| D8 opponent-error curve | WR vs pure-random **0.820**, robust **0.590**, exploit_gap **0.230**, curve A slope **-0.314**, curve B slope **+0.281** | `.venv/bin/python tools/audit/exploit/noisy_policy.py 25` | `eps=0` random, `eps=1` script; no production change |
+| D9 seed rotation | fixed-seed WR **0.900**, unseen WR **0.500**, seed-keyed divergence **+0.400**, unseen-script control **0.875**, transfer-adjusted gap **+0.025** | `.venv/bin/python tools/audit/exploit/seed_probe.py 20` | seed-keyed lookup policy branch demonstrates the eval hazard |
+| D10 hidden target source | opponent-hidden target candidates **58/12 games**, all `Volcanic Geyser` | `.venv/bin/python tools/audit/exploit/source_probe.py 12` | engine offers hand/library cards under `Zone(kind=ANY, controller=ANY)` for “any target” |
+| D10 masked target ablation | opponent-hidden candidates masked **234/48 games**; scripted full-vs-masked WR delta **0.000**; hidden-biased full-vs-masked WR delta **0.000**; hidden choices **2** | `.venv/bin/python tools/audit/exploit/masked_target_probe.py 24` | current scripted floor does not monetize the leak, but trained policies must be gated |
+| D11 blocker-model probe | model gain vs deterministic blocker **+0.031**, model gain vs random blocker **+0.000**, specificity **+0.031** | `.venv/bin/python tools/audit/exploit/blocker_model.py 16` | weak below recommended detector gate |
