@@ -102,3 +102,15 @@ head -8 reports/TRAINING_STATUS.md; tail -2 reports/training_runs.jsonl; tail re
 - Tests: `tools/training/test_run_train.py` (9 tests: schema, complete,
   timeout/124, crash tail, oom+free-h, stop-review, stale-pid refusal,
   --ignore-prev, first-launch).
+
+## Memory-gate law (appended 2026-10-05 21:4x — after 2/3 parallel dispatches died at the
+## gateway circuit-breaker with avail RAM 1.6 GB; engine RSS grows while a ~239K-token session
+## is served, avail can sit <1 GiB for long stretches)
+1. Before ANY subagent dispatch: `free` avail ≥ 3 GiB; under 2 GiB dispatch NOTHING, queue the
+   work as a brief file instead (see /14 pattern — spec on disk beats a lost context window).
+2. At avail < 6 GiB: max ONE agent at a time (never batches of 2+).
+3. New heavy Python deps go in tools/training/.venv-train (or another isolated venv) — NEVER
+   in .venv (the engine-critical env; disk bloat there also slows every test run).
+4. Before declaring any batch "failed": check what it actually left on disk — both "dead"
+   2026-10-05 batches had completed most work (ab_duel/elo fully green, monitor live); the
+   breaker kills the REPORT, not always the work.
