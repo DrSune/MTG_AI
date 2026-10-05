@@ -36,3 +36,4 @@ scraped_frames/
 # until the ingest pipeline is reproducible from MTGJSON on a clean checkout.
 *.db
 !MTG_bot/data/mtg_bot.db
+reports/monitoring/selfwake.json
