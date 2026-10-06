@@ -46,7 +46,7 @@ CONTAINER=qwen-nvfp4
 GATEWAY_HEALTH="${GATEWAY_HEALTH:-http://127.0.0.1:8000/health}"
 MIN_FREE_GIB="${MIN_FREE_GIB:-60}"     # MemAvailable target after container stop
 FREE_WAIT_S="${FREE_WAIT_S:-120}"      # bound for memory to actually free
-HEALTH_WAIT_S="${HEALTH_WAIT_S:-1800}" # engine load takes ~10-12 min
+HEALTH_WAIT_S="${HEALTH_WAIT_S:-3600}" # engine load takes ~10-12 min
 HEALTH_POLL_S="${HEALTH_POLL_S:-15}"
 
 DRY_RUN=0 NO_ENGINE=0 TARGET=flash-next SELF_WAKE=1
@@ -82,22 +82,88 @@ write_status() { # $1=STATE $2=detail
   } > "$STATUS"
 }
 
-ENGINE_STOPPED=0
-bring_engine_back() { # runs inside trap; never clobbers the original rc
-  op "bring-engine-back: switching to $TARGET via engine-guard"
-  if ! engine-guard switch "$TARGET" --yes >>"$OPSLOG" 2>&1; then
-    op "ENGINE GUARD REFUSED the switch — OWNER ACTION NEEDED: engine-guard switch $TARGET --yes"
+gpu_tenants() {
+  nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv,noheader 2>/dev/null | sed '/^$/d' || true
+}
+
+wait_for_gpu_idle() {
+  local max_wait="${1:-60}"
+  local waited=0
+  local tenants
+  tenants="$(gpu_tenants)"
+  while [ -n "$tenants" ] && [ "$waited" -lt "$max_wait" ]; do
+    op "waiting for GPU compute tenants to drain (${waited}s / ${max_wait}s): $(echo "$tenants" | tr '\n' '; ')"
+    sleep 3
+    waited=$((waited + 3))
+    tenants="$(gpu_tenants)"
+  done
+  if [ -n "$tenants" ]; then
+    op "WARNING: GPU still in use after ${max_wait}s: $(echo "$tenants" | tr '\n' '; ')"
     return 1
   fi
-  local waited=0
-  while [ "$waited" -lt "$HEALTH_WAIT_S" ]; do
-    if curl -fsS -m 5 "$GATEWAY_HEALTH" >/dev/null 2>&1; then
-      op "gateway healthy after ${waited}s"
-      return 0
+  return 0
+}
+
+TRAIN_PID=""
+stop_training_child() {
+  if [ -n "${TRAIN_PID:-}" ] && kill -0 "$TRAIN_PID" 2>/dev/null; then
+    op "stopping training child process $TRAIN_PID"
+    kill -TERM "$TRAIN_PID" 2>/dev/null || true
+    local w=0
+    while kill -0 "$TRAIN_PID" 2>/dev/null && [ "$w" -lt 10 ]; do
+      sleep 1; w=$((w + 1))
+    done
+    if kill -0 "$TRAIN_PID" 2>/dev/null; then
+      op "force-killing training child process $TRAIN_PID"
+      kill -KILL "$TRAIN_PID" 2>/dev/null || true
     fi
-    sleep "$HEALTH_POLL_S"; waited=$((waited + HEALTH_POLL_S))
-    op "health poll: not up yet (${waited}s / ${HEALTH_WAIT_S}s)"
+  fi
+}
+
+ENGINE_STOPPED=0
+bring_engine_back() { # runs inside trap; never clobbers the original rc
+  local max_switch_attempts=3
+  local switch_attempts=0
+  local waited=0
+
+  stop_training_child
+  wait_for_gpu_idle 60 || true
+
+  while [ "$switch_attempts" -lt "$max_switch_attempts" ]; do
+    switch_attempts=$((switch_attempts + 1))
+    op "bring-engine-back (attempt $switch_attempts/$max_switch_attempts): switching to $TARGET via engine-guard"
+    if ! engine-guard switch "$TARGET" --yes >>"$OPSLOG" 2>&1; then
+      op "ENGINE GUARD REFUSED the switch (attempt $switch_attempts) — waiting before retry"
+      sleep 10
+      wait_for_gpu_idle 30 || true
+      continue
+    fi
+
+    local attempt_waited=0
+    while [ "$attempt_waited" -lt "$HEALTH_WAIT_S" ]; do
+      if curl -fsS -m 5 "$GATEWAY_HEALTH" >/dev/null 2>&1; then
+        op "gateway healthy after ${waited}s"
+        return 0
+      fi
+      sleep "$HEALTH_POLL_S"
+      waited=$((waited + HEALTH_POLL_S))
+      attempt_waited=$((attempt_waited + HEALTH_POLL_S))
+      op "health poll: not up yet (${waited}s / ${HEALTH_WAIT_S}s)"
+
+      # Detect premature failure in background switch unit
+      if [ "$attempt_waited" -ge 30 ]; then
+        local launch_in_prog active_engine
+        launch_in_prog=$(engine-guard status 2>/dev/null | grep -i "Launch in progress" | awk '{print $NF}' || true)
+        active_engine=$(engine-guard status 2>/dev/null | grep -i "^Engine :" | awk '{print $NF}' || true)
+        if [ "$launch_in_prog" = "False" ] && [ "$active_engine" = "none" ] && ! container_up; then
+          op "DETECTED switch failure in background (launch not in progress, engine none). Retrying switch..."
+          wait_for_gpu_idle 30 || true
+          break
+        fi
+      fi
+    done
   done
+
   op "ENGINE DID NOT ANSWER within ${HEALTH_WAIT_S}s — OWNER ACTION NEEDED: check $OPSLOG and 'engine-guard status'"
   return 1
 }
@@ -176,15 +242,30 @@ else
   op "--no-engine: skipping docker stop and engine restart (trap path is still armed)"
 fi
 
-# ---- step 2: train (NOT exec: exec would wipe the EXIT trap; foreground so
+# ---- step 2: train (NOT exec: exec would wipe the EXIT trap; foreground wait so
 #      the trap sees the real rc and Ctrl-C/kill still route through it) ------
 if [ "$DRY_RUN" = 1 ]; then
   op "dry-run: training step = sleep 20 (wrapped in run_train to exercise the full path)"
   write_status "LIVE" "dry-run training (sleep 20)"
-  "$PY" "$RUNNER" --phase dry-run --timeout 60 -- sleep 20
+  "$PY" "$RUNNER" --phase dry-run --timeout 60 -- sleep 20 &
+  TRAIN_PID=$!
+  wait "$TRAIN_PID"
+  rc=$?
+  TRAIN_PID=""
 else
+  # batch-3 fix: a multi-hour driver inside run_train must not inherit the
+  # 3600s default phase timeout. If the caller gave no --timeout, PREPEND an
+  # outer ceiling (must come before the REMAINDER command word to be parsed).
+  case " ${RT_ARGS[*]:-} " in
+    *" --timeout "*) ;;
+    *) RT_ARGS=( --timeout "${RUN_FULL_MEMORY_TIMEOUT:-86400}" "${RT_ARGS[@]}" ) ;;
+  esac
   write_status "LIVE" "training phase under watchdog; cmd=${RT_ARGS[*]}"
-  "$PY" "$RUNNER" "${RT_ARGS[@]}"
+  "$PY" "$RUNNER" "${RT_ARGS[@]}" &
+  TRAIN_PID=$!
+  wait "$TRAIN_PID"
+  rc=$?
+  TRAIN_PID=""
 fi
 rc=$?
 op "training step finished rc=$rc"
