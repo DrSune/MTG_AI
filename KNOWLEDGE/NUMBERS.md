@@ -3247,3 +3247,4 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - eval_split v3: 74 families frozen + 3 new (Havoc Jester EVAL, Hobblefiend train, Spined Megalodon EVAL) = **77 fam / 32 eval / 45 train**, items 103 train + 50 eval.
 - episodes_v2.jsonl rebuilt: **111 eps / 177 asks / 153 gold lines**; grounding 157/189 handle + 59/62 choose-digit; test_bc_v2 pins updated (153 / 157,189 / 59,62 / 76). BPTT max seq **1008 ≤ 1024** unchanged.
 - Gates: packs **371/371**; core **2391+2**; audit **74**; training **71**. Engine untouched. Ask-kind grammar law + null=vocab[0] trap → doc 23 + PITFALLS.
+- Sweep rerun 153 lines (run_full_memory -- batch5_sweep.sh; complete 469.69): ALL arms PASS incl 5.3M & 35.1M (0.68/0.70, +4.22/+4.51 SE, 50 eval items); big-model penalty gone; 10-item fail-core shared by all arms = 9 old blind spots + Havoc Jester #1 -> ceiling moved from data to ask-grammar observability
