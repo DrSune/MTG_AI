@@ -1,0 +1,113 @@
+{
+ "anchor": "random=0",
+ "details": {
+  "fit": "K=32.0 iterative to fixed point, anchored (random=0 by construction); vs_field_wr = score incl. 0.5*draws; bootstrap over games within pairs, seed-fixed",
+  "pairs": {
+   "pass-floor vs /home/sune/Desktop/MTG_AI/tools/training/bc_s2.pt": {
+    "a": {
+     "ci": [
+      0.5022,
+      0.6754
+     ],
+     "score": 0.5917,
+     "winrate": 0.5917,
+     "wins": 71
+    },
+    "b": {
+     "ci": [
+      0.309,
+      0.4811
+     ],
+     "score": 0.3917,
+     "winrate": 0.3917,
+     "wins": 47
+    },
+    "crashes": 2,
+    "draws": {
+     "cap": 0,
+     "other": 0,
+     "stall": 0
+    }
+   },
+   "random vs /home/sune/Desktop/MTG_AI/tools/training/bc_s2.pt": {
+    "a": {
+     "ci": [
+      0.356,
+      0.531
+     ],
+     "score": 0.4583,
+     "winrate": 0.4417,
+     "wins": 53
+    },
+    "b": {
+     "ci": [
+      0.42,
+      0.5961
+     ],
+     "score": 0.525,
+     "winrate": 0.5083,
+     "wins": 61
+    },
+    "crashes": 2,
+    "draws": {
+     "cap": 4,
+     "other": 0,
+     "stall": 0
+    }
+   },
+   "random vs pass-floor": {
+    "a": {
+     "ci": [
+      0.3958,
+      0.5719
+     ],
+     "score": 0.4875,
+     "winrate": 0.4833,
+     "wins": 58
+    },
+    "b": {
+     "ci": [
+      0.4039,
+      0.58
+     ],
+     "score": 0.4958,
+     "winrate": 0.4917,
+     "wins": 59
+    },
+    "crashes": 2,
+    "draws": {
+     "cap": 0,
+     "other": 1,
+     "stall": 0
+    }
+   }
+  }
+ },
+ "games_per_pair": 120,
+ "games_total": 360,
+ "ratings": [
+  {
+   "ci_hi": 83.8,
+   "ci_lo": -20.2,
+   "elo": 34.4,
+   "policy": "pass-floor",
+   "vs_field_wr": 0.5521
+  },
+  {
+   "ci_hi": 0.0,
+   "ci_lo": 0.0,
+   "elo": 0.0,
+   "policy": "random",
+   "vs_field_wr": 0.4813
+  },
+  {
+   "ci_hi": 44.8,
+   "ci_lo": -58.3,
+   "elo": -6.8,
+   "policy": "/home/sune/Desktop/MTG_AI/tools/training/bc_s2.pt",
+   "vs_field_wr": 0.4667
+  }
+ ],
+ "updated": "2026-10-06T11:28:16+00:00",
+ "wall_seconds": 634.6
+}

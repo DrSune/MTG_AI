@@ -133,3 +133,19 @@ task(
   (dated, numbered, never deleted — mark `superseded by …` instead). Headline numbers go into
   `NUMBERS.md` with date + producing command; traps go into `PITFALLS.md`.
 - A number not recorded in `NUMBERS.md` with a date and command is not admissible evidence.
+
+## 7. Code Quality Law (owner 2026-10-06 — binding for orchestrator and every subagent)
+- Prefer the simplest implementation that is easy for human and agent to inspect. No
+  unnecessary abstraction, indirection, cleverness or premature generalization — but never
+  drop error handling or validation to save lines.
+- Minimal diffs: touch only what the task requires. A drive-by rewrite of a file to change
+  one line is a bug surface, not tidiness.
+- VERIFIED means EXECUTED: after changing code, run the relevant tests — or write a small
+  test/script exercising the change including at least one edge or failure path — and fix
+  failures before reporting. Report WHAT you ran and the result. Never claim something works
+  because it was re-read; same-context self-review is the weakest check and the easiest to
+  fake ("review theater").
+- Fresh-eyes review for substantive changes: reviewer sees only the diff + requirements,
+  not the reasoning that produced them (use the adversarial/analyst subagents for this).
+- Keep prompts and prompts-to-subagents short: a few explicit rules outperform a wall of
+  style guidance on a local model. Verification first, style detail last.

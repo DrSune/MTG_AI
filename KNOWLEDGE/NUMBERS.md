@@ -3226,3 +3226,9 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - **E_active** (null==0 ∧ oracle==1 ∧ 0.02≤random≤0.9 ∧ not reclassified, recomputed identically both corpora): **66 → 103**; SE(p=.5)=√(.25/E): 0.0615 → **0.0493** (3SE band 0.185 → 0.148). l1_ready stays **4** by construction (binary vocab floors random ≥ ~0.5; ≥40 needs chained-ask ladders — backlog A3).
 - Reclassified (harness `eval_reclassification`, now incl. item-level `by_ask_kind`): **15 items / 14 packs** with mandatory reasons. Family split `eval_split.json`: 74 card families / 30 eval / 75 train + 44 eval items (sorted-index %5<2, no RNG).
 - Gates: packs **355/355**, tools/audit **74 passed** (+2 reclass pins), core **2391+2** (engine untouched). Doc 15-eval-granularity.md; traps → PITFALLS.
+
+## 2026-10-06 — Batch 2 v2-schema BC (commands: `.venv/bin/python -m tools.training.train_bc_v2 --device cuda --epochs 250 --resume tools/training/bc_s2_best.pt` ; `.venv/bin/python -m tools.training.elo random pass-floor tools/training/bc_s2.pt --games 120 --workers 6 --out tools/training/elo_s2_sanity.json`)
+- gold_lines_all **0.7815** (119, +8.27 SE vs random floor 0.409); train_families **0.8933** (75, +8.67 SE); **eval_families 0.5909 (44) = +2.29 SE vs random floor 0.4205 → FAILS the 3-SE gate (p=0.017)**; verdict **NULL** (bc2_report.json gate_verdict); l1_certified 4/4.
+- Batch1→2 delta **+3.82 SE** (holdout −1.53 → eval_families +2.29, each vs own floor): v2 schema measurably improves unseen-family generalization but not past gate.
+- Closed-loop Elo sanity (120 games/pair): bc_s2 **−6.8 [−58.3, 44.8]** ≈ random; pass-floor +34.4 [−20.2, 83.8]. Teacher-forced accuracy does not compose → batch-3 re-diagnosis lead.
+- best train loss 0.17172 @ ep191 of 250; vocab **380**; GPU peak 1.67 GiB < 4.0 budget; ~8.2 h wall across 9 segments under vLLM swap-thrash coexistence. Doc 16-batch2-bc.md.

@@ -61,8 +61,13 @@ from MTG_bot.core.executor.games import (
     deal_decks,
     get_supply,
 )
-from MTG_bot.core.state import ZONE_BATTLEFIELD
-from tools.training import bc_data
+from MTG_bot.core.state import (
+    ZONE_BATTLEFIELD,
+    ZONE_EXILE,
+    ZONE_GRAVEYARD,
+    ZONE_LIBRARY,
+)
+from tools.training import bc_data, bc_data_v2
 from tools.training.collector import (
     AskContext,
     FirstAsk,
@@ -192,12 +197,22 @@ class BcAsk:
 
     Streams longer than the model's ``max_len`` keep BOS + the most recent
     window (training never saw >1024; any choice here is off-distribution)
-    and bump ``truncations`` so the duel record says so honestly."""
+    and bump ``truncations`` so the duel record says so honestly.
 
-    def __init__(self, model: Any, vocab: dict[str, int], max_len: int) -> None:
+    v2 checkpoints (``blob["schema"] == "v2"``) additionally serialize the
+    zone lanes and ground candidates exactly as the RECORDER did
+    (packrec_v2/bc_data_v2): obs words come from ``obs_words_v2`` over the
+    v2 snapshot, and each candidate span is ``tokenize + [ref] + referent
+    rows`` via the snapshot's private ``_cards`` table plus the choose
+    digest stash (installed by :meth:`fresh`, a pure memo)."""
+
+    def __init__(
+        self, model: Any, vocab: dict[str, int], max_len: int, schema: str = "v1"
+    ) -> None:
         self.model = model
         self.vocab = vocab
         self.max_len = max_len
+        self.schema = schema
         self.truncations = 0
         self.seq: list[int] = [vocab[bc_data.BOS]]
 
@@ -219,9 +234,14 @@ class BcAsk:
             model.to(device).eval()
             for p in model.parameters():
                 p.requires_grad_(False)
-            _MODEL_CACHE[key] = (model, blob["vocab"], device)
-        model, vocab, _ = _MODEL_CACHE[key]
-        return cls(model, vocab, model.max_len)
+            schema = str(blob.get("schema", "v1"))
+            if schema == "v2":
+                # the duel drives a LIVE engine: the pure-memo wrappers
+                # fill the digest stash as choose pools enumerate.
+                bc_data_v2.install_choose_stash()
+            _MODEL_CACHE[key] = (model, blob["vocab"], device, schema)
+        model, vocab, _, schema = _MODEL_CACHE[key]
+        return cls(model, vocab, model.max_len, schema)
 
     def decide(self, ctx: AskContext) -> int:
         import torch  # lazy: floors never pay the torch import
@@ -232,8 +252,12 @@ class BcAsk:
 
         vocab = self.vocab
         unk = vocab[bc_data.UNK]
+        v2 = self.schema == "v2"
         self.seq.append(vocab[bc_data.ASK])
-        for w in bc_data.site_words(ctx.vocab) + bc_data.obs_words(ctx.world):
+        site_obs = bc_data.site_words(ctx.vocab) + (
+            bc_data_v2.obs_words_v2(ctx.world) if v2 else bc_data.obs_words(ctx.world)
+        )
+        for w in site_obs:
             self.seq.append(vocab.get(w, unk))
         self.seq.append(vocab[bc_data.SEP])
         if len(self.seq) > self.max_len:
@@ -242,18 +266,25 @@ class BcAsk:
         sep = len(self.seq) - 1
 
         cands = ctx.candidates
-        l_max = max(
-            (len(bc_data.tokenize(c)) or 1 for c in cands),
-            default=1,
-        )
+        if v2:
+            ground = bc_data_v2.ground_with(
+                _cards_rows_of(ctx.world), ctx.vocab, list(cands)
+            )
+            spans = [
+                bc_data_v2.cand_words_v2(c, ground[ci] if ci < len(ground) else [])
+                for ci, c in enumerate(cands)
+            ]
+        else:
+            spans = [bc_data.tokenize(c) or [bc_data.UNK] for c in cands]
+        l_max = max((len(s) for s in spans), default=1)
         cand_ids = torch.zeros(1, len(cands), l_max, dtype=torch.long)
         cand_mask = torch.zeros(1, len(cands), l_max, dtype=torch.bool)
         is_pass = torch.zeros(1, len(cands), dtype=torch.bool)
-        for ci, cand in enumerate(cands):
-            ids = [vocab.get(w, unk) for w in bc_data.tokenize(cand)] or [unk]
+        for ci, words in enumerate(spans):
+            ids = [vocab.get(w, unk) for w in words] or [unk]
             cand_ids[0, ci, : len(ids)] = torch.tensor(ids, dtype=torch.long)
             cand_mask[0, ci, : len(ids)] = True
-            is_pass[0, ci] = cand == "PASS"
+            is_pass[0, ci] = cands[ci] == "PASS"
 
         device = next(self.model.parameters()).device
         tokens = torch.tensor([self.seq], dtype=torch.long, device=device)
@@ -321,9 +352,38 @@ def snapshot_obs(world: Any, a_handle: Any) -> dict[str, Any]:
             obs["graveyard"].append(len(gy.entries) if gy else 0)
             pool = getattr(player, "mana_pool", None)
             obs["mana"].append(dict(sorted(pool.items())) if pool else {})
+        # v2 lanes: byte-layout identical to packrec_v2._obs_v2 (capped,
+        # newest-first). The v1 encoder never reads these keys, so bc_s1
+        # streams stay bit-identical even though every duel snapshots v2.
+        for key, zone, cap in (
+            ("library", ZONE_LIBRARY, bc_data_v2.LIB_CAP),
+            ("graveyard_rows", ZONE_GRAVEYARD, bc_data_v2.GY_CAP),
+            ("exile", ZONE_EXILE, bc_data_v2.EXILE_CAP),
+        ):
+            lane = []
+            for h in order:
+                z = world.players[h].zones.get(zone)
+                seq = list(z.entries)[::-1] if z else []  # tail IS top/newest
+                lane.append([card_row(c) for c in seq[:cap]])
+            obs[key] = lane
+        # private duel-side grounding table: handle str -> card row.
+        # Underscore-prefixed: obs_words/obs_words_v2 never serialize it.
+        obs["_cards"] = {str(h): card_row(h) for h in world.cards}
     except Exception as exc:  # noqa: BLE001 - degrade, never derail a duel
         obs["obs_error"] = f"{type(exc).__name__}: {exc}"
     return obs
+
+
+def _cards_rows_of(world: dict[str, Any]):
+    """Snapshot-side handle grounding: ``"card:17"`` -> its row in the
+    private ``_cards`` table (mirror of bc_data_v2.card_row_lookup)."""
+    table = world.get("_cards", {})
+
+    def rows_of(token: str):
+        handle = bc_data_v2._handle_of(token)
+        return table.get(str(handle)) if handle is not None else None
+
+    return rows_of
 
 
 def make_policy(spec: str, seat_seed: int, device: str) -> Any:
