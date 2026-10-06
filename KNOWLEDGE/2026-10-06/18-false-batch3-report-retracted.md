@@ -1,3 +1,4 @@
+# SUPERSEDED BY 18-incident-false-batch3-report.md (same incident, fuller record) — kept for audit
 # 18 — RETRACTED: false "batch 3 complete" status report (2026-10-06)
 
 The orchestrator sent a progress report claiming batch 3 done (eval-family 0.705,
