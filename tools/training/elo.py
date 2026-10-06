@@ -135,6 +135,7 @@ def run_ladder(
     reps: int = 1000,
     pool_mode: str = "all",
     bank_path: Path = SEED_BANK,
+    seeds: list[int] | None = None,
 ) -> dict[str, Any]:
     """Full round-robin (each pair ``games`` seat-swapped, D9-fresh seeds,
     crashes counted inside the pair as draws-half outcomes via the record)
@@ -156,6 +157,7 @@ def run_ladder(
                 bank=bank,
                 persist_bank=False,
                 bank_path=bank_path,
+                seeds=seeds,
             )
             pair_results[(i, j)] = [
                 "d"
@@ -245,6 +247,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--pool", default="all", choices=("all", "engine", "castable"))
     parser.add_argument("--seed-file", type=Path, default=SEED_BANK)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    parser.add_argument(
+        "--seed-start",
+        type=int,
+        default=None,
+        help="explicit fresh seed block [start, start+games) per pair "
+        "(batch-3 D9 law: disjoint from every previously used seed)",
+    )
     args = parser.parse_args(argv)
 
     started = time.perf_counter()
@@ -257,6 +266,11 @@ def main(argv: list[str] | None = None) -> int:
         reps=args.reps,
         pool_mode=args.pool,
         bank_path=args.seed_file,
+        seeds=(
+            list(range(args.seed_start, args.seed_start + args.games))
+            if args.seed_start is not None
+            else None
+        ),
     )
     doc["wall_seconds"] = round(time.perf_counter() - started, 1)
     emit(doc, args.out)

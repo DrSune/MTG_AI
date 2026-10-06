@@ -35,11 +35,13 @@ class PointerBC(nn.Module):
         ff: int = 3072,
         max_len: int = 1024,
         grad_checkpoint: bool = True,
+        dropout: float = 0.0,
     ) -> None:
         super().__init__()
         self.d = d
         self.max_len = max_len
         self.grad_checkpoint = grad_checkpoint
+        self.dropout = dropout
         self.tok_emb = nn.Embedding(vocab_size, d)
         self.pos_emb = nn.Embedding(max_len, d)
 
@@ -54,7 +56,7 @@ class PointerBC(nn.Module):
                 activation="gelu",
                 batch_first=True,
                 norm_first=True,
-                dropout=0.0,
+                dropout=dropout,
             )
 
         self.blocks = nn.ModuleList(_make_block() for _ in range(layers))
