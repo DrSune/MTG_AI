@@ -1,3 +1,5 @@
+# SUPERSEDED (owner 2026-10-06 14:12): belongs to ANOTHER project — not related to MTG_AI. Ignore.
+
 # 19 — Owner extension (design note, 2026-10-06 14:08): abstention must come WITH a reason
 
 Owner: "for the abstention training/idea — it should also explain why it abstains. Really
