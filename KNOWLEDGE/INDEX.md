@@ -3,7 +3,8 @@
 **Protocol (binding for all agents, see AGENTS.md §6):**
 
 1. **Session start**: read this file, then the newest dated folder's `01-*.md` orientation note,
-   then `NUMBERS.md` (latest measurement table) and `PITFALLS.md` (standing traps).
+   then `NUMBERS.md` (latest measurement table), `PITFALLS.md` (standing traps) and
+   `OWNER_PREFERENCES.md` (owner's binding style/verification preferences — they apply to every task).
 2. **Before touching a subsystem**: read the knowledge file for that subsystem if one exists
    (see map below). Delegated subagent tasks MUST name the specific knowledge files to read in
    the task prompt — a subagent that has not read the relevant knowledge file is operating blind.
@@ -19,6 +20,7 @@
 |---|---|
 | `NUMBERS.md` | The measurement log: dated tables of every number the project has, with what changed it |
 | `PITFALLS.md` | Standing traps: things that cost time if rediscovered, each dated |
+| `OWNER_PREFERENCES.md` | Owner's binding preferences (simple clean code; VERIFIED=EXECUTED; numbers as communication) — read every session |
 | `2026-09-14/01-orientation.md` | Session 1 orientation: repo state, phase status, where things live |
 | `2026-09-14/02-phase1-plan.md` | Phase 1 (ability-tree grammar): plan + pre-registered measurement targets PC-1..PC-10 |
 | `2026-09-15/01-ingest-dedup-decision.md` | Session 2: M21 reprint-duplicate oracle ids, dedup decision (pool = 305), ingest module shipped |
