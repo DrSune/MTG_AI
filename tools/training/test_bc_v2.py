@@ -225,3 +225,15 @@ class _FakeChoose:
 def test_stash_rows_for_rejects_non_digests():
     assert v2.stash_rows_for("target:creature") is None
     assert v2.stash_rows_for("choose:x:not_hex_00000") is None
+
+def test_seq_stats_over_limit(tmp_path):
+    """Owner law 2026-10-06: truncation must be measurable, never silent."""
+    from tools.training.train_bc_v2 import _seq_stats
+    ds = [{"seq": list(range(50))}, {"seq": list(range(60))}]
+    st = _seq_stats(ds, max_len=1024)
+    assert st["over_limit"] == 0 and st["max"] == 60
+    assert st["cap_headroom"] == 1024 - 60 and st["min"] == 50
+    over = ds + [{"seq": list(range(1100))}, {"seq": list(range(2000))}]
+    st2 = _seq_stats(over, max_len=1024)
+    assert st2["over_limit"] == 2 and st2["max"] == 2000
+    assert st2["cap_headroom"] == 1024 - 2000  # negative = over the cap

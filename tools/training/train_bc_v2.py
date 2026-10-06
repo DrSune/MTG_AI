@@ -474,13 +474,19 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
-def _seq_stats(dataset: list[dict[str, Any]]) -> dict[str, int]:
+def _seq_stats(dataset: list[dict[str, Any]], max_len: int = 1024) -> dict[str, int]:
     ls = sorted(len(ep["seq"]) for ep in dataset)
+    over = sum(1 for n in ls if n > max_len)
+    # OWNER LAW (2026-10-06 17:25): BPTT truncation must be visible. over_limit>0
+    # means sequences would be cut — train_bc_v3 exits BEFORE training when it
+    # sees this; the fix is lengthening max_len, never silent shortening.
     return {
         "min": ls[0],
         "median": ls[len(ls) // 2],
         "max": ls[-1],
-        "max_len": 1024,
+        "max_len": max_len,
+        "over_limit": over,
+        "cap_headroom": max_len - ls[-1],
     }
 
 

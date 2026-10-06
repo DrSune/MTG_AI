@@ -180,6 +180,17 @@ def train_arm(
     if device.type == "cuda":
         torch.cuda.manual_seed_all(args.seed)
     model = PointerBC(len(vocab), **cfg).to(device)
+    # Owner law 2026-10-06 17:25: BPTT shortening must never be silent. Count
+    # sequences over the cap BEFORE training and stop with the exact extension
+    # instruction (bc_model.encode raises past max_len; we front-run that).
+    for ds_name, ds in (("train", train_ds), ("eval", eval_ds)):
+        st = _seq_stats(ds, model.max_len)
+        if st["over_limit"]:
+            raise SystemExit(
+                f"{ds_name} dataset has {st['over_limit']} sequences over "
+                f"max_len={st['max_len']} (longest {st['max']}). Nothing was "
+                f"truncated; extend max_len per KNOWLEDGE/2026-10-06 owner law."
+            )
     train_eps = []
     for ep in train_ds:
         kept = [g for g in ep["gold"] if not is_eval_family(ep["card"], eval_families)]
@@ -439,7 +450,7 @@ def main(argv: list[str] | None = None) -> int:
             "data_mix": mix,
         },
         "vocab_size": len(vocab),
-        "seq_len": _seq_stats(train_ds),
+        "seq_len": _seq_stats(train_ds, model.max_len),
         "model": {**cfg, "max_len": model.max_len},
         "train": tinfo,
         "device": str(device),

@@ -3239,3 +3239,4 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - dagger arm: 0.6591, +3.21 SE — NULL vs B (rollout never diverged from script; not off-policy)
 - Elo: bc3_dagger_best +59.3 CI [6.8, 111.8] (first CI excluding random); pass-floor +42.5 CI [-9.4, 90.9]; 120 g/pair fresh seeds
 - gates: tools/training 66 passed; core+audit 2465+2; engine untouched (0 files)
+- BPTT cap audit 2026-10-06: max seq 1008 vs cap 1024 across batch2/3/dagger; encode() raises (never truncates); over_limit field live (command: pytest tools/training -q -> 67 passed)
