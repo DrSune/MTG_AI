@@ -10,6 +10,16 @@
 set -uo pipefail
 cd "$(dirname "$0")/../.." || exit 1
 
+# One driver at a time (2026-10-06 incident: a relaunched driver raced the
+# original which had never died — see KNOWLEDGE/2026-10-06/20). Stale lock
+# after a hard crash: rm -rf the dir (nothing else owns it).
+LOCK=/tmp/opencode/batch3_full.lock
+if ! mkdir "$LOCK" 2>/dev/null; then
+  echo "batch3_full: ANOTHER driver holds $LOCK — refusing to race. Exit 9."
+  exit 9
+fi
+trap 'rmdir "$LOCK" 2>/dev/null' EXIT
+
 RT="tools/training/run_train.py"
 PY=(".venv/bin/python" -u)
 SMOKE=0

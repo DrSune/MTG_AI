@@ -1,0 +1,113 @@
+{
+ "anchor": "random=0",
+ "details": {
+  "fit": "K=32.0 iterative to fixed point, anchored (random=0 by construction); vs_field_wr = score incl. 0.5*draws; bootstrap over games within pairs, seed-fixed",
+  "pairs": {
+   "pass-floor vs /home/sune/Desktop/MTG_AI/tools/training/bc3_dagger_best.pt": {
+    "a": {
+     "ci": [
+      0.3639,
+      0.5392
+     ],
+     "score": 0.4583,
+     "winrate": 0.45,
+     "wins": 54
+    },
+    "b": {
+     "ci": [
+      0.4281,
+      0.6042
+     ],
+     "score": 0.525,
+     "winrate": 0.5167,
+     "wins": 62
+    },
+    "crashes": 2,
+    "draws": {
+     "cap": 2,
+     "other": 0,
+     "stall": 0
+    }
+   },
+   "random vs /home/sune/Desktop/MTG_AI/tools/training/bc3_dagger_best.pt": {
+    "a": {
+     "ci": [
+      0.3324,
+      0.5061
+     ],
+     "score": 0.4208,
+     "winrate": 0.4167,
+     "wins": 50
+    },
+    "b": {
+     "ci": [
+      0.4773,
+      0.6519
+     ],
+     "score": 0.5708,
+     "winrate": 0.5667,
+     "wins": 68
+    },
+    "crashes": 1,
+    "draws": {
+     "cap": 1,
+     "other": 0,
+     "stall": 0
+    }
+   },
+   "random vs pass-floor": {
+    "a": {
+     "ci": [
+      0.3402,
+      0.5144
+     ],
+     "score": 0.4292,
+     "winrate": 0.425,
+     "wins": 51
+    },
+    "b": {
+     "ci": [
+      0.4773,
+      0.6519
+     ],
+     "score": 0.5708,
+     "winrate": 0.5667,
+     "wins": 68
+    },
+    "crashes": 0,
+    "draws": {
+     "cap": 1,
+     "other": 0,
+     "stall": 0
+    }
+   }
+  }
+ },
+ "games_per_pair": 120,
+ "games_total": 360,
+ "ratings": [
+  {
+   "ci_hi": 111.8,
+   "ci_lo": 6.8,
+   "elo": 59.3,
+   "policy": "/home/sune/Desktop/MTG_AI/tools/training/bc3_dagger_best.pt",
+   "vs_field_wr": 0.5542
+  },
+  {
+   "ci_hi": 90.9,
+   "ci_lo": -9.4,
+   "elo": 42.5,
+   "policy": "pass-floor",
+   "vs_field_wr": 0.5188
+  },
+  {
+   "ci_hi": 0.0,
+   "ci_lo": 0.0,
+   "elo": 0.0,
+   "policy": "random",
+   "vs_field_wr": 0.4271
+  }
+ ],
+ "updated": "2026-10-06T14:43:18+00:00",
+ "wall_seconds": 43.4
+}

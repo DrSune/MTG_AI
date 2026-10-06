@@ -1,0 +1,20 @@
+{
+ "produced_by": "tools/training/dagger_rollout_v3.py",
+ "date": "2026-10-06",
+ "ckpt": "tools/training/bc3_B.pt",
+ "device": "cuda",
+ "wall_seconds": 0.6,
+ "stats": {
+  "asks": 153,
+  "points": 47,
+  "applied": 47,
+  "correct": 29,
+  "illegal_skips": 3,
+  "truncations": 0,
+  "rollout_ok": 118,
+  "packs": 355,
+  "planned_gold_points": 119,
+  "packs_with_labels": 39
+ },
+ "teacher_filter_law": "scripted gold recorded iff still legal (word in vocab, the vanilla pool lane's own test); diverged illegality is skipped and counted in illegal_skips"
+}

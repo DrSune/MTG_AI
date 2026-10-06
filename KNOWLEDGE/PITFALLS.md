@@ -949,3 +949,5 @@
   turn (same-turn command or artifact existence check); post-compaction, re-verify any
   load-bearing artifact before repeating it. Batch verdicts come from the batch's own json,
   read in-turn — never from memory of a run.
+- **A "dead" dispatch's training driver may still be alive; a relaunch races it** (2026-10-06, incident /20): original driver survived the coder session's death; the relauncher's driver ran arm B concurrently; final artifacts happened to be consistent but interleaving was unreconstructable and a self-wake fired early from the wrapper that exited 0. Law: before relaunching any full-memory driver, `pgrep -af` + ledger tail prove no instance is live; drivers hold a flock (batch3_full.sh pattern).
+- **A rollout that never diverges is not DAgger** (2026-10-06): winner and control rollouts produced IDENTICAL point/correct stats — states were scripted, not model-visited; eval delta was zero. Check for a divergence counter (off-script continuation count) in rollout stats before believing any DAgger result.

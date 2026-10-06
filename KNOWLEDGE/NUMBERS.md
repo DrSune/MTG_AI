@@ -3232,3 +3232,10 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - Batch1→2 delta **+3.82 SE** (holdout −1.53 → eval_families +2.29, each vs own floor): v2 schema measurably improves unseen-family generalization but not past gate.
 - Closed-loop Elo sanity (120 games/pair): bc_s2 **−6.8 [−58.3, 44.8]** ≈ random; pass-floor +34.4 [−20.2, 83.8]. Teacher-forced accuracy does not compose → batch-3 re-diagnosis lead.
 - best train loss 0.17172 @ ep191 of 250; vocab **380**; GPU peak 1.67 GiB < 4.0 budget; ~8.2 h wall across 9 segments under vLLM swap-thrash coexistence. Doc 16-batch2-bc.md.
+
+## 2026-10-06 — Batch 3 (commands: tools/training/batch3_full.sh stage logs; eval = bc3_*_report.json gates.eval_families vs_random; Elo = tools/training/elo_s3_sanity.json seed-start 90001)
+- arm A 35.1M params: eval_families 0.6136, +2.60 SE (FAIL gate)
+- arm B 169,474 params: 0.6591, **+3.21 SE — first policy over the pre-registered 3-SE gate**
+- dagger arm: 0.6591, +3.21 SE — NULL vs B (rollout never diverged from script; not off-policy)
+- Elo: bc3_dagger_best +59.3 CI [6.8, 111.8] (first CI excluding random); pass-floor +42.5 CI [-9.4, 90.9]; 120 g/pair fresh seeds
+- gates: tools/training 66 passed; core+audit 2465+2; engine untouched (0 files)
