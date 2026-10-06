@@ -965,3 +965,7 @@
 - **M21.json is a compiled subset** (2026-10-07): no Terror/Fatal Push/Ultimate Price/Elite
   Inquisitor; twins: Eliminate {1}{B}, Skyway Sniper {G}. Verify names against
   `{c['name'] for c in pool['data']['cards']}` before authoring.
+- **Archive-set law (2026-10-07 crash 4.38)**: archiving a batch's report files but leaving its
+  `*_best.pt` checkpoints (gitignore swallows them, so `git mv` never moves them) arms a resume
+  trap — report-skip guard says RUN, config-mismatch guard then refuses (correctly). Archive
+  reports + best checkpoints + curve as ONE set, or use a fresh prefix per corpus.
