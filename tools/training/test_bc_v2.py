@@ -39,11 +39,11 @@ def dataset(episodes, vocab):
 
 
 # ----------------------------------------------------------------- integrity
-def test_joins_the_static_corpus_at_119(dataset):
+def test_joins_the_static_corpus_at_153(dataset):
     """Authoritative law: every v2 gold line maps to a corpus item. The OLD
     episodes.jsonl is stale (pre corpus-v2) — join to the corpus is truth."""
     corpus = __import__("json").loads(CORPUS.read_text(encoding="utf-8"))
-    assert v2.join_corpus(dataset, corpus["items"]) == 119
+    assert v2.join_corpus(dataset, corpus["items"]) == 153  # v3 regen 2026-10-07
 
 
 # ------------------------------------------------------------- schema laws
@@ -98,9 +98,9 @@ def test_cand_ids_keep_the_v1_vocab_prefix(dataset, vocab):
 
 # ---------------------------------------------------------------- grounding
 def test_handle_grounding_coverage(episodes):
-    """Pinned measurements (this file, deterministic replay): of the 103
-    handle-shaped gold candidates, 87 resolve through world.cards; 43/45
-    choose-digit candidates recover through the digest stash."""
+    """Pinned measurements (this file, deterministic replay; v3 regen
+    2026-10-07): of the 189 handle-shaped gold candidates, 157 resolve
+    through world.cards; 59/62 choose-digit candidates recover."""
     rows_g = [r for e in episodes for r in e["asks"] if r["gold"]]
 
     def grounded(r, ci):
@@ -117,9 +117,9 @@ def test_handle_grounding_coverage(episodes):
             elif c.isdigit() and r["what"].startswith("choose:"):
                 ch += 1
                 ch_ok += grounded(r, ci)
-    assert (hs_ok, hs) == (87, 103), "handle grounding drifted"
-    assert (ch_ok, ch) == (43, 45), "choose-digit grounding drifted"
-    assert sum(1 for r in rows_g if any(g for g in (r.get("ground") or []))) == 51
+    assert (hs_ok, hs) == (157, 189), "handle grounding drifted"  # v3 regen 2026-10-07
+    assert (ch_ok, ch) == (59, 62), "choose-digit grounding drifted"  # v3 regen 2026-10-07
+    assert sum(1 for r in rows_g if any(g for g in (r.get("ground") or []))) == 76  # v3 regen 2026-10-07
 
 
 def test_content_candidates_stay_bare(episodes):

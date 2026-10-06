@@ -1,0 +1,121 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv1",
+   "real": "Pitchburn Devils",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "dv2",
+   "real": "Pitchburn Devils",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "sn1",
+   "real": "Trufflesnout",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sn2",
+   "real": "Trufflesnout",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bt",
+   "name": "Beater",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w1",
+   "name": "Wall Three",
+   "type": "Creature",
+   "power": "0",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "v1",
+   "name": "Foe One",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "v2",
+   "name": "Foe Two",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {},
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "bt",
+   "target": "dv1",
+   "amount": 3,
+   "decisions": [
+    "v1"
+   ]
+  },
+  {
+   "op": "enter",
+   "key": "sn1",
+   "decisions": [
+    "1"
+   ]
+  },
+  {
+   "op": "deal_damage",
+   "source": "bt",
+   "target": "dv2",
+   "amount": 3,
+   "decisions": [
+    "v2"
+   ]
+  },
+  {
+   "op": "enter",
+   "key": "sn2",
+   "decisions": [
+    "1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 28,
+   "1": 20
+  },
+  "damage": {
+   "v1": 3,
+   "v2": 3
+  },
+  "zone": {
+   "dv1": "graveyard",
+   "dv2": "graveyard",
+   "sn1": "battlefield",
+   "sn2": "battlefield",
+   "bt": "battlefield"
+  }
+ },
+ "notes": "LADDER (4 chained asks): two Pitchburn Devils dies burn targets (gold v1 then v2, never the first candidate) interleaved with two Trufflesnout LIFE-mode choices (null takes the counter mode). damage/life/counters lanes each falsify their own null."
+}

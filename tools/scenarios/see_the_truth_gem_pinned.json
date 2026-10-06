@@ -1,0 +1,83 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sp",
+   "real": "See the Truth",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ga",
+   "name": "Gem Alpha",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "gb",
+   "name": "Gem Beta",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "gc",
+   "name": "Gem Gamma",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 5,
+   "G": 5,
+   "W": 5,
+   "U": 5,
+   "B": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "See the Truth",
+   "key": "sp",
+   "decisions": [
+    "card:8"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard",
+   "gc": "hand",
+   "ga": "library",
+   "gb": "library"
+  },
+  "hand": {
+   "0": 2
+  },
+  "library": {
+   "0": [
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Gem Beta",
+    "Gem Alpha",
+    "Library 5",
+    "Library 3"
+   ]
+  }
+ },
+ "notes": "blindspot-twin (Waker of Waves look-top put-into-hand): the one_of ask over the three named top cards; gold keeps Gem Beta \u2014 null keeps the first candidate and the hand/library lanes falsify the swap. (library lane: bottom order is scripted, trailing slots shuffle-mandated.)"
+}

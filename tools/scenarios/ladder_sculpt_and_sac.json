@@ -1,0 +1,124 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "tm",
+   "real": "Temple of Malady",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s",
+   "real": "Sanctum of Fruitful Harvest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "hob",
+   "real": "Hobblefiend",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "gem",
+   "name": "Prime Gem",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "fod",
+   "name": "Sacrifice Fodder",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "fod2",
+   "name": "Fodder Spare",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "sk",
+   "real": "Skyway Sniper",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "s"
+  },
+  {
+   "op": "play",
+   "key": "tm",
+   "seat": 0,
+   "decisions": [
+    "bottom"
+   ]
+  },
+  {
+   "op": "activate",
+   "key": "hob",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "fod2"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "G"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Skyway Sniper",
+   "key": "sk",
+   "decisions": []
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tm": "battlefield",
+   "fod2": "graveyard",
+   "fod": "battlefield",
+   "hob": "battlefield",
+   "s": "battlefield",
+   "sk": "battlefield"
+  },
+  "counters": {
+   "hob": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "tapped": {
+   "tm": false
+  }
+ },
+ "notes": "LADDER (4 chained asks): temple ETB scry, hobblefiend sac-victim, shrine color ask 'G', wall ETB scry \u2014 scry lanes (library order), zone, counters, mana_pool all pin. Sanctum is ONE shrine so X=1."
+}

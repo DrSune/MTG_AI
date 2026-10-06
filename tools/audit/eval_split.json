@@ -1,7 +1,7 @@
 {
- "rule": "family-wise deterministic: sort distinct card names, index%5 in {0,1} -> eval (2 of every 5)",
+ "rule": "family-wise deterministic: sort distinct card names, index%5 in {0,1} -> eval (2 of every 5). v3 amend 2026-10-07: 74 v2 assignments frozen; new families assigned by index%5 in the regenerated 77-family sort.",
  "seed_rule": "no RNG",
- "n_families": 74,
+ "n_families": 77,
  "eval_families": [
   "Alchemist's Gift",
   "Alpine Houndmaster",
@@ -13,6 +13,7 @@
   "Feat of Resistance",
   "Garruk's Harbinger",
   "Garruk's Warsteed",
+  "Havoc Jester",
   "Heartfire Immolator",
   "Jeskai Elder",
   "Mazemind Tome",
@@ -25,6 +26,7 @@
   "Sanctum of Calm Waters",
   "Skeleton Archer",
   "Solemn Simulacrum",
+  "Spined Megalodon",
   "Stray Aurochs",
   "Teferi's Wavecaster",
   "Temple of Mystery",
@@ -50,6 +52,7 @@
   "Garruk, Unleashed",
   "Gnarled Sage",
   "Goblin Arsonist",
+  "Hobblefiend",
   "Kitesail Freebooter",
   "Liliana's Devotee",
   "Liliana's Scrounger",
@@ -80,9 +83,9 @@
   "Wall of Runes",
   "Warden of the Woods"
  ],
- "train_items": 75,
- "eval_items": 44,
- "eval_l1_ready": 0,
+ "train_items": 103,
+ "eval_items": 50,
+ "eval_l1_ready": 2,
  "per_family": {
   "Alchemist's Gift": {
    "train_items": 0,
@@ -91,6 +94,10 @@
   "Alpine Houndmaster": {
    "train_items": 0,
    "eval_items": 1
+  },
+  "Goblin Arsonist": {
+   "train_items": 3,
+   "eval_items": 0
   },
   "Azusa, Lost but Seeking": {
    "train_items": 1,
@@ -180,10 +187,6 @@
    "train_items": 2,
    "eval_items": 0
   },
-  "Goblin Arsonist": {
-   "train_items": 1,
-   "eval_items": 0
-  },
   "Fodder": {
    "train_items": 2,
    "eval_items": 0
@@ -192,12 +195,32 @@
    "train_items": 0,
    "eval_items": 2
   },
+  "Hobblefiend": {
+   "train_items": 1,
+   "eval_items": 0
+  },
   "Jeskai Elder": {
    "train_items": 0,
    "eval_items": 2
   },
   "Kitesail Freebooter": {
-   "train_items": 1,
+   "train_items": 2,
+   "eval_items": 0
+  },
+  "Pitchburn Devils": {
+   "train_items": 5,
+   "eval_items": 0
+  },
+  "Trufflesnout": {
+   "train_items": 12,
+   "eval_items": 0
+  },
+  "Havoc Jester": {
+   "train_items": 0,
+   "eval_items": 4
+  },
+  "Temple of Malady": {
+   "train_items": 6,
    "eval_items": 0
   },
   "Liliana's Devotee": {
@@ -211,6 +234,10 @@
   "Mazemind Tome": {
    "train_items": 0,
    "eval_items": 1
+  },
+  "Spined Megalodon": {
+   "train_items": 0,
+   "eval_items": 2
   },
   "Meteorite": {
    "train_items": 0,
@@ -240,12 +267,8 @@
    "train_items": 2,
    "eval_items": 0
   },
-  "Pitchburn Devils": {
-   "train_items": 1,
-   "eval_items": 0
-  },
   "Pridemalkin": {
-   "train_items": 1,
+   "train_items": 2,
    "eval_items": 0
   },
   "Prismite": {
@@ -268,6 +291,10 @@
    "train_items": 1,
    "eval_items": 0
   },
+  "Sanctum of Fruitful Harvest": {
+   "train_items": 3,
+   "eval_items": 0
+  },
   "Sanctum of All": {
    "train_items": 0,
    "eval_items": 2
@@ -276,20 +303,12 @@
    "train_items": 0,
    "eval_items": 1
   },
-  "Sanctum of Fruitful Harvest": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Temple of Malady": {
-   "train_items": 2,
-   "eval_items": 0
-  },
   "Secure the Scene": {
    "train_items": 1,
    "eval_items": 0
   },
   "See the Truth": {
-   "train_items": 3,
+   "train_items": 4,
    "eval_items": 0
   },
   "Skeleton Archer": {
@@ -353,11 +372,7 @@
    "eval_items": 1
   },
   "Treasure": {
-   "train_items": 2,
-   "eval_items": 0
-  },
-  "Trufflesnout": {
-   "train_items": 2,
+   "train_items": 4,
    "eval_items": 0
   },
   "Vodalian Arcanist": {

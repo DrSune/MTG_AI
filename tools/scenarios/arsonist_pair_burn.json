@@ -1,0 +1,72 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "a1",
+   "real": "Goblin Arsonist",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a2",
+   "real": "Goblin Arsonist",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bt",
+   "name": "Beater",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "7",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "v",
+   "name": "Victim",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {},
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "bt",
+   "target": "a1",
+   "amount": 2,
+   "decisions": [
+    "v"
+   ]
+  },
+  {
+   "op": "deal_damage",
+   "source": "bt",
+   "target": "a2",
+   "amount": 2,
+   "decisions": [
+    "player:1"
+   ]
+  }
+ ],
+ "expect": {
+  "damage": {
+   "v": 1
+  },
+  "life": {
+   "1": 19
+  },
+  "zone": {
+   "a1": "graveyard",
+   "a2": "graveyard"
+  }
+ },
+ "notes": "blindspot-twin (Meteorite dies/ETB any-target): two arsonist dies triggers, gold burns the CREATURE then the PLAYER \u2014 null answers vocab[0] (first creature candidate) on both; the damage and life lanes falsify each independently."
+}

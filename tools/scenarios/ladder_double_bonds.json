@@ -1,0 +1,109 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sn1",
+   "real": "Trufflesnout",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sn2",
+   "real": "Trufflesnout",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "pd1",
+   "real": "Pridemalkin",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "pd2",
+   "real": "Pridemalkin",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "a1",
+   "name": "First Ally",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a2",
+   "name": "Second Ally",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 5,
+   "G": 5,
+   "W": 5,
+   "U": 5,
+   "B": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "sn1",
+   "decisions": [
+    "1"
+   ]
+  },
+  {
+   "op": "enter",
+   "key": "pd1",
+   "decisions": [
+    "a2"
+   ]
+  },
+  {
+   "op": "enter",
+   "key": "sn2",
+   "decisions": [
+    "0"
+   ]
+  },
+  {
+   "op": "enter",
+   "key": "pd2",
+   "decisions": [
+    "a1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 24
+  },
+  "counters": {
+   "a1": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "a2": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "sn1": {},
+   "sn2": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "pd1": {},
+   "pd2": {}
+  }
+ },
+ "notes": "LADDER (4 chained asks): alternating snout-mode and pridemalkin-counter-target asks; the life lane falsifies null mode-1 of sn1 (28), per-key counter lanes falsify every null designation."
+}

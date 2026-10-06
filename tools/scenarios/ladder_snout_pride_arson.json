@@ -1,0 +1,124 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sn",
+   "real": "Trufflesnout",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "pd",
+   "real": "Pridemalkin",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ar1",
+   "real": "Goblin Arsonist",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ar2",
+   "real": "Goblin Arsonist",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bt",
+   "name": "Beater",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ally",
+   "name": "Pack Ally",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "v1",
+   "name": "Burn One",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "v2",
+   "name": "Foe",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {},
+ "steps": [
+  {
+   "op": "enter",
+   "key": "sn",
+   "decisions": [
+    "1"
+   ]
+  },
+  {
+   "op": "enter",
+   "key": "pd",
+   "decisions": [
+    "ally"
+   ]
+  },
+  {
+   "op": "deal_damage",
+   "source": "bt",
+   "target": "ar1",
+   "amount": 2,
+   "decisions": [
+    "v1"
+   ]
+  },
+  {
+   "op": "deal_damage",
+   "source": "bt",
+   "target": "ar2",
+   "amount": 2,
+   "decisions": [
+    "v2"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 24
+  },
+  "counters": {
+   "ally": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "zone": {
+   "sn": "battlefield",
+   "pd": "battlefield",
+   "ar1": "graveyard",
+   "ar2": "graveyard"
+  },
+  "damage": {
+   "v1": 1,
+   "v2": 1
+  }
+ },
+ "notes": "LADDER (4 chained asks): snout mode ('1' vs null '0'), Pridemalkin counter target (ally != first candidate), and two real Goblin Arsonist dies burn targets (each gold != first candidate). Every lane (life/counters/damage) falsifies its own null replay."
+}

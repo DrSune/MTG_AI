@@ -1,0 +1,83 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t1",
+   "real": "Treasure",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "t2",
+   "real": "Treasure",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "el",
+   "real": "Eliminate",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "small",
+   "name": "Small Prey",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "t1",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "B"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Eliminate",
+   "key": "el",
+   "targets": [
+    "small"
+   ],
+   "decisions": []
+  },
+  {
+   "op": "activate",
+   "key": "t2",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "U"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "t1": "graveyard",
+   "small": "graveyard",
+   "el": "graveyard",
+   "t2": "graveyard"
+  },
+  "mana_pool": {
+   "0": {
+    "U": 1
+   }
+  }
+ },
+ "notes": "blindspot-twin (Prismite any-color): each Treasure activation asks the color vocab (W U B R G C); gold 'B' funds the {1}{B} Eliminate (null 'W' makes the SAME cast illegal - legality raise falsifies the null replay); gold 'U' leaves mana_pool {U} where null would leave {W}."
+}

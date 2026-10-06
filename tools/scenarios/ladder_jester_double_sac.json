@@ -1,0 +1,100 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "jes",
+   "real": "Havoc Jester",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "hob",
+   "real": "Hobblefiend",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "name": "Fodder One",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f2",
+   "name": "Fodder Two",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "v1",
+   "name": "Victim One",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "v2",
+   "name": "Victim Two",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "hob",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "f2",
+    "v1"
+   ]
+  },
+  {
+   "op": "activate",
+   "key": "hob",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "f1",
+    "v2"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "hob": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  "zone": {
+   "f1": "graveyard",
+   "f2": "graveyard",
+   "jes": "battlefield"
+  },
+  "damage": {
+   "v1": 1,
+   "v2": 1
+  }
+ },
+ "notes": "LADDER (4 chained asks): two Hobblefiend activations; the first sacrifice-victim ask has TWO fodder candidates (gold f2 != null vocab[0]) and each Jester-less burn trigger asks its target (gold v1 then v2 != first candidate); the second sac has a single victim (auto-take, not an ask)."
+}

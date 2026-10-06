@@ -1,0 +1,63 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Sanctum of Fruitful Harvest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "wr",
+   "real": "Wall of Runes",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {},
+ "steps": [
+  {
+   "op": "enter",
+   "key": "s"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "U"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Wall of Runes",
+   "key": "wr",
+   "decisions": [
+    "bottom"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "wr": "battlefield",
+   "s": "battlefield"
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "library": {
+   "0": [
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Library 4"
+   ]
+  }
+ },
+ "notes": "blindspot-twin (Prismite color ask under cost pressure): one Shrine so X=1; gold 'U' funds the {U} Wall of Runes cast, null 'W' makes the SAME cast illegal (legality raise falsifies the null replay). Wall's ETB scry word 'top' rides the cast step and is its own scripted ask."
+}

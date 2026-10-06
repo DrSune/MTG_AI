@@ -1,0 +1,62 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "tm",
+   "real": "Temple of Malady",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "gem",
+   "name": "Prime Gem",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {},
+ "steps": [
+  {
+   "op": "play",
+   "key": "tm",
+   "seat": 0,
+   "decisions": [
+    "bottom"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "tm": false
+  },
+  "hand": {
+   "0": 2
+  },
+  "zone": {
+   "tm": "battlefield",
+   "gem": "hand"
+  },
+  "library": {
+   "0": [
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Library 5"
+   ]
+  }
+ },
+ "notes": "blindspot-twin (Track Down scry-then-reveal top): scry gold 'top' keeps Prime Gem ON TOP; null 'bottom' buries it \u2014 the exact library-order lane falsifies it (both draws hit the six auto-Libraries; the set is still asserted). NOTE: if begin_turn draws make the gem-draw observable, hand count also pins."
+}

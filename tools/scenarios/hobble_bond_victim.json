@@ -1,0 +1,60 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "hob",
+   "real": "Hobblefiend",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "name": "Fodder One",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f2",
+   "name": "Fodder Two",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "hob",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "f2"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "hob": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "zone": {
+   "f1": "battlefield",
+   "f2": "graveyard"
+  }
+ },
+ "notes": "Palladium Myr-batch volume: the sac-cost victim ask (two legal fodder candidates); gold sacrifices the SECOND (exact zone lanes falsify the null first-pick). Tap/untap timing lane: {1} mana pays, hob stays tapped after."
+}

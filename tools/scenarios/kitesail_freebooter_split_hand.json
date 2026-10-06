@@ -1,0 +1,68 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "k",
+   "real": "Kitesail Freebooter",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "cr",
+   "name": "Big Brute",
+   "type": "Creature",
+   "power": "4",
+   "toughness": "4",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "i1",
+   "name": "First Salve",
+   "type": "Instant",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "i2",
+   "name": "Second Bomb",
+   "type": "Instant",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 5,
+   "G": 5,
+   "W": 5,
+   "U": 5,
+   "B": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "k",
+   "decisions": [
+    "i2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "i2": "exile",
+   "i1": "hand",
+   "cr": "hand",
+   "k": "battlefield"
+  }
+ },
+ "notes": "blindspot-twin (Duress hand-choice discard): Kitesail's menu excludes the creature; gold exiles the SECOND nonland while null answers vocab[0] and exiles the first \u2014 exact exile/hand lanes falsify it."
+}

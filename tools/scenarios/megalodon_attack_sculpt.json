@@ -1,0 +1,61 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "md",
+   "real": "Spined Megalodon",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "gem",
+   "name": "Sharp Gem",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {},
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "decisions": [
+    "ATTACK",
+    "bottom"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 15
+  },
+  "attackers": {
+   "md": true
+  },
+  "zone": {
+   "md": "battlefield"
+  },
+  "library": {
+   "0": [
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Library 4"
+   ]
+  }
+ },
+ "notes": "blindspot-twin (Track Down scry family, attack trigger): the attack-time scry ask; gold buries Sharp Gem (null 'top' keeps it) \u2014 the library-order lane falsifies it. Megalodon is unblocked (5/8 vs nothing); player life unchanged."
+}

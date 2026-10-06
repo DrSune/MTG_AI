@@ -3241,3 +3241,9 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - gates: tools/training 66 passed; core+audit 2465+2; engine untouched (0 files)
 - BPTT cap audit 2026-10-06: max seq 1008 vs cap 1024 across batch2/3/dagger; encode() raises (never truncates); over_limit field live (command: pytest tools/training -q -> 67 passed)
 - Batch 5 range sweep (command: run_full_memory -- batch5_sweep.sh; cause complete 315.44): margin PLATEAU 0.6591/+3.21SE at 0.17M..1.77M params, DEGRADES to 0.6136/+2.60 at 5.3M+; crossover ~2-5M at 75 gold lines; S0/S1/S2 fail IDENTICAL 12-item eval set (data-limited); S4 reproduces batch3-A exactly (0.6136, loss 0.18425)
+
+## 2026-10-07 — Corpus v3: volume blindspot batch (commands: `.venv/bin/python tools/audit/puzzle_cert.py --rollouts 200` ; `.venv/bin/python -m tools.training.packrec_v2` ; `.venv/bin/python tools/run_scenarios.py` ; `.venv/bin/python -m pytest tools/training tools/audit -q`)
+- 16 new packs (11 mechanics + 5 ladders, compiled-pool twins of the 12 blindspot mechanics) → items **119 → 153**; **E_active 103 → 133** (SE 0.0493 → 0.0434); **l1_ready 4 → 15**; punish_inaction **138/153**; no_discrimination 0; offenders 0; mean_random 0.359 (v2 backup `puzzle_corpus.v2.json`).
+- eval_split v3: 74 families frozen + 3 new (Havoc Jester EVAL, Hobblefiend train, Spined Megalodon EVAL) = **77 fam / 32 eval / 45 train**, items 103 train + 50 eval.
+- episodes_v2.jsonl rebuilt: **111 eps / 177 asks / 153 gold lines**; grounding 157/189 handle + 59/62 choose-digit; test_bc_v2 pins updated (153 / 157,189 / 59,62 / 76). BPTT max seq **1008 ≤ 1024** unchanged.
+- Gates: packs **371/371**; core **2391+2**; audit **74**; training **71**. Engine untouched. Ask-kind grammar law + null=vocab[0] trap → doc 23 + PITFALLS.

@@ -1,0 +1,55 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s1",
+   "real": "Trufflesnout",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Trufflesnout",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 5,
+   "G": 5,
+   "W": 5,
+   "U": 5,
+   "B": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "s1",
+   "decisions": [
+    "1"
+   ]
+  },
+  {
+   "op": "enter",
+   "key": "s2",
+   "decisions": [
+    "1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 28
+  },
+  "counters": {
+   "s1": {},
+   "s2": {}
+  }
+ },
+ "notes": "blindspot-twin (Alchemist's Gift choose-one boon): both snouts' gold is the LIFE mode '1'; the null replay answers '0' (vocab[0]) and BOTH lanes falsify it (28 life + empty counter lanes vs 24+counters)."
+}

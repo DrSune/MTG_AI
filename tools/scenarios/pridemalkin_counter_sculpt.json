@@ -1,0 +1,59 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "pd",
+   "real": "Pridemalkin",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "a1",
+   "name": "Ally One",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a2",
+   "name": "Ally Two",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 5,
+   "G": 5,
+   "W": 5,
+   "U": 5,
+   "B": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "pd",
+   "decisions": [
+    "a2"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "a1": {},
+   "a2": {
+    "PLUS_1_PLUS_1": 1
+   }
+  }
+ },
+ "notes": "blindspot-twin (Feat of Resistance counter-target): gold 'a2' places the ETB counter on the SECOND ally; the null replay answers vocab[0] and the per-key counters lanes falsify it."
+}

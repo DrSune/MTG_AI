@@ -1,0 +1,62 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "fe",
+   "real": "Fierce Empath",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c2",
+   "name": "Small Two",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "library",
+   "controller": 0,
+   "cmc": 2
+  },
+  {
+   "key": "c6",
+   "name": "Giant Six",
+   "type": "Creature",
+   "power": "6",
+   "toughness": "6",
+   "zone": "library",
+   "controller": 0,
+   "cmc": 6
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 5,
+   "G": 5,
+   "W": 5,
+   "U": 5,
+   "B": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "fe",
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "c6": "hand",
+   "c2": "library"
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "blindspot-twin (Solemn Simulacrum may-tutor): the may ask fire/skip - null skips and nothing enters hand (zone/hand lanes falsify); the search auto-take is engine-deterministic, so this pack scripts the single decision ask only."
+}

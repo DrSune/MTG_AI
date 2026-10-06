@@ -951,3 +951,17 @@
   read in-turn — never from memory of a run.
 - **A "dead" dispatch's training driver may still be alive; a relaunch races it** (2026-10-06, incident /20): original driver survived the coder session's death; the relauncher's driver ran arm B concurrently; final artifacts happened to be consistent but interleaving was unreconstructable and a self-wake fired early from the wrapper that exited 0. Law: before relaunching any full-memory driver, `pgrep -af` + ledger tail prove no instance is live; drivers hold a flock (batch3_full.sh pattern).
 - **A rollout that never diverges is not DAgger** (2026-10-06): winner and control rollouts produced IDENTICAL point/correct stats — states were scripted, not model-visited; eval delta was zero. Check for a divergence counter (off-script continuation count) in rollout stats before believing any DAgger result.
+
+- **Only take_decision-channel asks certify** (2026-10-07, doc 23): modal-spell MODE, combat-window
+  `cw:` shock casts, Cultivate/Fierce-Empath search picks, and single-candidate asks fire NO ask —
+  packs authored around them certify 0 items. Recorder-check a pack before promising items.
+- **null = vocab[0] when no PASS word exists** (2026-10-07, doc 23): scry('top'), mana('W'),
+  binary choose('0') — a gold equal to vocab[0] is a no_discrimination offender. Script gold ≠ vocab[0].
+- **`play`/enter lands & Temples enter UNTAPPED in the compiled engine** (2026-10-07): expect
+  tapped False unless a tap ask fired. `deal_damage` is one-way, does not tap the source, and
+  0-damage entries never appear in the damage lane.
+- **Synthetic cards need explicit zone+controller** (setup `KeyError: 'controller'`) and an explicit
+  `cmc` key — default 2 silently narrows eligibility vocabs (Fierce Empath → ('skip',) only).
+- **M21.json is a compiled subset** (2026-10-07): no Terror/Fatal Push/Ultimate Price/Elite
+  Inquisitor; twins: Eliminate {1}{B}, Skyway Sniper {G}. Verify names against
+  `{c['name'] for c in pool['data']['cards']}` before authoring.
