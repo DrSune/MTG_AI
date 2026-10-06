@@ -131,3 +131,18 @@ head -8 reports/TRAINING_STATUS.md; tail -2 reports/training_runs.jsonl; tail re
 - Loop safety: the injected prompt is a REVIEW prompt — it forbids auto-starting new
   training; a runaway requires deliberately flipping --selfwake twice. Exit 1 + ops-log
   line when wake fails (never silent).
+
+## Coexistence budget law (appended 2026-10-06 — owner OOM warning after batch-2 thrash)
+1. Heavy jobs declare a HARD cap and a measured peak (bc2: cap 4 GiB, peak 1.67 GiB — the
+   trainer was NEVER the balloon). The balloons are: (a) this orchestrator session's KV
+   (~239K tokens; gateway RAM_usable shrank 5.5->4.8 GB within one hour), (b) idle/zombie
+   agent node-children accumulating across the day, (c) parallel collectors/duel workers.
+2. DEFAULT for the NEXT training batch: run_full_memory.sh (engine-off). Coexisting beside
+   the ~100 GiB driver pin is the regime that swap-thrashed this box for 10 h and got an
+   opencode child OOM-killed (13:18). The selfwake loop now closes that path end-to-end.
+3. Duel/collector parallelism scales with `free` avail: workers = max(1, avail_GiB/2 - 1)
+   at LAUNCH time, re-checked before each stage (not the old fixed 6-10).
+4. Session hygiene: a >200K-token orchestrator session is itself a RAM load — after each
+   batch lands, prefer a fresh window; the knowledge tree + wake protocol make restart
+   cost ~zero. Zombie subagent children of THIS session's dispatches get reaped
+   (pkill -P) once their parent dispatch is confirmed dead.
