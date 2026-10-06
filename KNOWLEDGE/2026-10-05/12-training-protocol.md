@@ -146,3 +146,15 @@ head -8 reports/TRAINING_STATUS.md; tail -2 reports/training_runs.jsonl; tail re
    batch lands, prefer a fresh window; the knowledge tree + wake protocol make restart
    cost ~zero. Zombie subagent children of THIS session's dispatches get reaped
    (pkill -P) once their parent dispatch is confirmed dead.
+
+## Coexistence law reconciled (appended 2026-10-06 — owner flagged swap-thrash + 13:18 kernel
+## OOM kill of a worker child; batch-2 was trained at 8-9 GiB avail beside vLLM's ~100 GiB pin)
+- Batch-1 standing law "no big PyTorch beside vLLM unless avail > 40 GB" OVERNOTES the 3-GiB
+  dispatch gate: 3 GiB is for gateway/subagent DISPATCH; CUDA training is a different class.
+  I dispatched batch-2 training under the wrong law. It completed (9 resume segments) but the
+  box swap-thrashed (13/15 GiB) and the kernel eventually killed an opencode child.
+- STANDING RULE from now on: any job that may exceed ~4 GiB RSS runs via run_full_memory.sh
+  (engine-off) — that path exists for exactly this and self-wakes when done. Coexist training
+  only for measured-small jobs (bc2 peak was 1.67 GiB — the cap held; the THRASH came from
+  everything else on the box, which the pin leaves no room for).
+- Elo/collector worker counts scale with avail: workers <= floor((avail_GiB - 2) / 1.5).
