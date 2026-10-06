@@ -10,6 +10,12 @@ Pre-registered design (KNOWLEDGE/2026-10-06 batch-3 mission):
 * dagger — whichever arm won the eval margin, retrained with the SAME
   hyperparameters on the 50/50 mix ``episodes_dagger.jsonl`` (original v2
   episodes + filtered-DAgger episodes recorded on model-visited states).
+* S0..S4 — the batch-5 size ladder, pre-registered in
+  KNOWLEDGE/2026-10-06/21: identical data/seed/gates as A/B; only the
+  width/depth knobs move. S0 is exactly arm B, S4 exactly arm A. Every
+  report carries the ratio trio (params : gold_lines_train :
+  median_seq_len) — small corpora bias the capacity verdict, so the
+  model-range-vs-data-volume curve must stay reconstructable.
 
 Laws kept binding (do not silently change):
 * EVAL is ALWAYS the binding 44-item family-wise split from
@@ -24,9 +30,14 @@ Laws kept binding (do not silently change):
 
 Run::
 
-    .venv/bin/python -m tools.training.train_bc_v3 --arm A|B|dagger \
+    .venv/bin/python -m tools.training.train_bc_v3 --arm A|B|dagger|S0|S1|S2|S3|S4 \
         [--episodes FILE] [--prefix bc3_A] [--smoke] [--device auto] \
         [--out-dir DIR] [--fresh]
+
+The nominal ladder labels {0.17M, 0.66M, 2.5M, 10M, 35M} are the owner's
+rough estimates; the KNOB SETS above are what is pre-registered. Computed
+params are printed per arm and recorded in every report (ratio block), so a
+label/actual divergence is visible in the curve, never hidden.
 """
 
 from __future__ import annotations
@@ -78,17 +89,81 @@ ARMS: dict[str, dict[str, Any]] = {
         "dropout": 0.1,
         "grad_checkpoint": False,
     },
+    # --- batch-5 size ladder (KNOWLEDGE/2026-10-06/21). Knob sets are exactly
+    # as pre-registered; nominal labels are the owner's estimates, computed
+    # params are printed and reported. grad_checkpoint is a memory knob only
+    # (use_reentrant=False recomputes bit-identical forwards), so S3/S4 turn
+    # it on to stay under the 4 GiB budget without moving any number.
+    "S0": {  # == arm B exactly (~0.17M; computed 169,474 @ vocab 380)
+        "d": 64,
+        "layers": 2,
+        "heads": 4,
+        "ff": 128,
+        "dropout": 0.1,
+        "grad_checkpoint": False,
+    },
+    "S1": {  # nominal ~0.66M (computed 627,074 @ vocab 380)
+        "d": 128,
+        "layers": 3,
+        "heads": 4,
+        "ff": 256,
+        "dropout": 0.1,
+        "grad_checkpoint": False,
+    },
+    "S2": {  # nominal ~2.5M (computed 1,766,530 @ vocab 380)
+        "d": 192,
+        "layers": 4,
+        "heads": 6,
+        "ff": 512,
+        "dropout": 0.1,
+        "grad_checkpoint": False,
+    },
+    "S3": {  # nominal ~10M (computed 5,296,130 @ vocab 380)
+        "d": 256,
+        "layers": 6,
+        "heads": 8,
+        "ff": 1024,
+        "dropout": 0.1,
+        "grad_checkpoint": True,
+    },
+    "S4": {  # == arm A exactly (~35M; computed 35,124,226 @ vocab 380)
+        "d": 512,
+        "layers": 8,
+        "heads": 8,
+        "ff": 3072,
+        "dropout": 0.0,
+        "grad_checkpoint": True,
+    },
 }
-ARM_DATA = {
+SIZE_LADDER = ("S0", "S1", "S2", "S3", "S4")
+ARM_DATA: dict[str, Path] = {
     "A": EPISODES,
     "B": EPISODES,
     "dagger": REPO / "tools" / "training" / "episodes_dagger.jsonl",
+    **{name: EPISODES for name in SIZE_LADDER},
 }
 DAGGER_ARM = "dagger"  # arch resolved at runtime from --base-arm
 
 
 def arm_config(arm: str, base_arm: str) -> dict[str, Any]:
     return ARMS[base_arm if arm == DAGGER_ARM else arm]
+
+
+def ratio_block(
+    params: int, mix: dict[str, int], seq: dict[str, Any]
+) -> dict[str, Any]:
+    """Owner law (KNOWLEDGE/2026-10-06/21): every report carries the ratio
+    trio params : gold_lines_train : median_seq_len, so the model-range-vs-
+    data-volume curve keeps accumulating across batches. Small corpora bias
+    the capacity verdict — a bare accuracy number without the trio is not
+    admissible evidence."""
+    lines = sum(mix.values())
+    return {
+        "params": params,
+        "gold_lines_train": lines,
+        "median_seq_len": seq["median"],
+        "params_per_gold_line": round(params / max(lines, 1), 1),
+    }
 
 
 # --------------------------------------------------------------------- data
@@ -180,6 +255,12 @@ def train_arm(
     if device.type == "cuda":
         torch.cuda.manual_seed_all(args.seed)
     model = PointerBC(len(vocab), **cfg).to(device)
+    if not quiet:
+        print(
+            f"arm {args.arm}: {sum(p.numel() for p in model.parameters()):,} "
+            f"params (d={cfg['d']} layers={cfg['layers']} heads={cfg['heads']} "
+            f"ff={cfg['ff']} dropout={cfg['dropout']})"
+        )
     # Owner law 2026-10-06 17:25: BPTT shortening must never be silent. Count
     # sequences over the cap BEFORE training and stop with the exact extension
     # instruction (bc_model.encode raises past max_len; we front-run that).
@@ -326,7 +407,11 @@ def train_arm(
 # ------------------------------------------------------------------------ run
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Batch-3 BC arm trainer.")
-    ap.add_argument("--arm", required=True, choices=("A", "B", "dagger"))
+    ap.add_argument(
+        "--arm",
+        required=True,
+        choices=("A", "B", "dagger") + SIZE_LADDER,
+    )
     ap.add_argument(
         "--base-arm",
         choices=("A", "B"),
@@ -359,7 +444,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.smoke:
         args.epochs = 2
         if args.out_dir is None:
-            args.out_dir = Path("/tmp/opencode/b3smoke")
+            args.out_dir = Path(
+                "/tmp/opencode/b5smoke"
+                if args.arm in SIZE_LADDER
+                else "/tmp/opencode/b3smoke"
+            )
 
     cfg = arm_config(args.arm, args.base_arm)
     train_file = args.episodes or ARM_DATA[args.arm]
@@ -368,7 +457,9 @@ def main(argv: list[str] | None = None) -> int:
     out_dir = args.out_dir or (REPO / "tools" / "training")
     if args.smoke and REPO in out_dir.resolve().parents:
         raise SystemExit("smoke run must write under /tmp (dry-test law)")
-    prefix = args.prefix or f"bc3_{args.arm}"
+    prefix = args.prefix or (
+        f"bc5_{args.arm}" if args.arm in SIZE_LADDER else f"bc3_{args.arm}"
+    )
     out_dir.mkdir(parents=True, exist_ok=True)
     best_path = out_dir / f"{prefix}_best.pt"
     ckpt_path = out_dir / f"{prefix}.pt"
@@ -434,6 +525,7 @@ def main(argv: list[str] | None = None) -> int:
             "margin_se": b2.get("vs_random", {}).get("beat_margin_se"),
             "delta_margin_se": round(margin - b2["vs_random"]["beat_margin_se"], 2),
         }
+    seq_stats = _seq_stats(train_ds, model.max_len)
     report: dict[str, Any] = {
         "produced_by": "tools/training/train_bc_v3.py",
         "arm": args.arm,
@@ -450,7 +542,8 @@ def main(argv: list[str] | None = None) -> int:
             "data_mix": mix,
         },
         "vocab_size": len(vocab),
-        "seq_len": _seq_stats(train_ds, model.max_len),
+        "seq_len": seq_stats,
+        "ratio": ratio_block(tinfo["params"], mix, seq_stats),
         "model": {**cfg, "max_len": model.max_len},
         "train": tinfo,
         "device": str(device),

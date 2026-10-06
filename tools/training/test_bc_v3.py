@@ -51,6 +51,56 @@ def test_arm_configs_are_the_pre_registered_ones():
     assert v3.arm_config("dagger", "B") == v3.ARMS["B"]
 
 
+# ------------------------------------------------- batch-5 size ladder law
+def test_size_ladder_is_the_pre_registered_table():
+    # Knob sets exactly as pre-registered (KNOWLEDGE/2026-10-06/21 dispatch);
+    # S0 is batch-3 arm B exactly, S4 is batch-3 arm A exactly.
+    assert v3.SIZE_LADDER == ("S0", "S1", "S2", "S3", "S4")
+    ladder = {
+        "S0": {"d": 64, "layers": 2, "heads": 4, "ff": 128},
+        "S1": {"d": 128, "layers": 3, "heads": 4, "ff": 256},
+        "S2": {"d": 192, "layers": 4, "heads": 6, "ff": 512},
+        "S3": {"d": 256, "layers": 6, "heads": 8, "ff": 1024},
+        "S4": {"d": 512, "layers": 8, "heads": 8, "ff": 3072},
+    }
+    for name, knobs in ladder.items():
+        cfg = v3.ARMS[name]
+        assert {k: cfg[k] for k in knobs} == knobs, name
+        assert cfg["dropout"] == (0.0 if name == "S4" else 0.1), name
+        assert v3.arm_config(name, "B") == cfg  # ladder arms bypass base-arm
+        assert v3.ARM_DATA[name] is v3.EPISODES  # identical data, no exceptions
+    assert v3.ARMS["S0"] == v3.ARMS["B"]
+    assert v3.ARMS["S4"] == v3.ARMS["A"]
+
+
+def test_size_ladder_computed_params_monotonic_exact_endpoints():
+    # Nominal labels {0.17M, 0.66M, 2.5M, 10M, 35M} are the owner's rough
+    # estimates (vocab 380 makes S2/S3 land lower); the computed ladder must
+    # be strictly increasing and the endpoints bit-exact with batch 3.
+    counts = []
+    for name in v3.SIZE_LADDER:
+        model = PointerBC(380, **v3.ARMS[name])
+        counts.append(sum(p.numel() for p in model.parameters()))
+    assert counts[0] == 169_474 and counts[-1] == 35_124_226  # == batch-3 B/A
+    assert counts == sorted(counts) and len(set(counts)) == 5
+    assert 500_000 < counts[1] < 800_000  # ~0.66M nominal
+    assert 1_500_000 < counts[2] < 2_000_000  # ~2.5M nominal (actual 1.77M)
+    assert 4_500_000 < counts[3] < 6_000_000  # ~10M nominal (actual 5.3M)
+
+
+def test_ratio_block_carries_the_trio_and_survives_zero_lines():
+    # Owner law /21: params : gold lines : median seq_len in every report.
+    rb = v3.ratio_block(169_474, {"v2": 75, "dagger": 0}, {"median": 111})
+    assert rb == {
+        "params": 169_474,
+        "gold_lines_train": 75,
+        "median_seq_len": 111,
+        "params_per_gold_line": 2259.7,  # the batch3-B 2.3k number from /21
+    }
+    edge = v3.ratio_block(1000, {"v2": 0}, {"median": 10})
+    assert edge["params_per_gold_line"] == 1000.0  # no ZeroDivisionError
+
+
 def test_dropout_param_reaches_blocks_and_state_dict_is_stable():
     a, b = (
         PointerBC(50, d=16, layers=1, heads=2, ff=16, dropout=0.0),
@@ -225,3 +275,22 @@ def test_trainer_smoke_end_to_end_on_cpu(tmp_path):
     assert set(rep["gates"]) >= {"eval_families", "train_families"}
     blob = torch.load(tmp_path / "bc3_B.pt", map_location="cpu", weights_only=False)
     assert blob["config"]["dropout"] == 0.1 and blob["schema"] == "v2"
+    trio = rep["ratio"]
+    assert trio["params"] == rep["train"]["params"]
+    assert trio["gold_lines_train"] > 0 and trio["median_seq_len"] > 0
+
+
+def test_ladder_arm_smoke_writes_bc5_prefix_with_ratio_block(tmp_path):
+    # An S-arm runs end-to-end and defaults to the bc5_/b5smoke namespace.
+    rc = v3.main(
+        ["--arm", "S1", "--smoke", "--device", "cpu", "--out-dir", str(tmp_path)]
+    )
+    assert rc == 0
+    rep = json.loads((tmp_path / "bc5_S1_report.json").read_text())
+    assert rep["arm"] == "S1" and rep["model"]["d"] == 128
+    rb = rep["ratio"]
+    assert rb["params_per_gold_line"] == round(
+        rb["params"] / max(rb["gold_lines_train"], 1), 1
+    )
+    rebuilt = PointerBC(rep["vocab_size"], **v3.ARMS["S1"])
+    assert rb["params"] == sum(p.numel() for p in rebuilt.parameters())

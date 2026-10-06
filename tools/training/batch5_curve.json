@@ -1,0 +1,93 @@
+{
+ "produced_by": "tools/training/batch5_sweep.sh",
+ "law": "KNOWLEDGE/2026-10-06/21 \u2014 every row carries params : gold lines : median seq_len",
+ "gate": "eval_families acc vs random floor, >3 SE one-sided",
+ "arms": [
+  {
+   "arm": "S0",
+   "params": 169474,
+   "params_per_gold_line": 2259.7,
+   "eval_acc": 0.6591,
+   "margin_se": 3.21,
+   "gate_pass": true,
+   "best_loss": 0.22618,
+   "median_seq_len": 111,
+   "gold_lines_train": 75,
+   "cap_headroom": 16
+  },
+  {
+   "arm": "S1",
+   "params": 627074,
+   "params_per_gold_line": 8361.0,
+   "eval_acc": 0.6591,
+   "margin_se": 3.21,
+   "gate_pass": true,
+   "best_loss": 0.20422,
+   "median_seq_len": 111,
+   "gold_lines_train": 75,
+   "cap_headroom": 16
+  },
+  {
+   "arm": "S2",
+   "params": 1766530,
+   "params_per_gold_line": 23553.7,
+   "eval_acc": 0.6591,
+   "margin_se": 3.21,
+   "gate_pass": true,
+   "best_loss": 0.20888,
+   "median_seq_len": 111,
+   "gold_lines_train": 75,
+   "cap_headroom": 16
+  },
+  {
+   "arm": "S3",
+   "params": 5296130,
+   "params_per_gold_line": 70615.1,
+   "eval_acc": 0.6136,
+   "margin_se": 2.6,
+   "gate_pass": false,
+   "best_loss": 0.18085,
+   "median_seq_len": 111,
+   "gold_lines_train": 75,
+   "cap_headroom": 16
+  },
+  {
+   "arm": "S4",
+   "params": 35124226,
+   "params_per_gold_line": 468323.0,
+   "eval_acc": 0.6136,
+   "margin_se": 2.6,
+   "gate_pass": false,
+   "best_loss": 0.18425,
+   "median_seq_len": 111,
+   "gold_lines_train": 75,
+   "cap_headroom": 16
+  }
+ ],
+ "reference_batch3": [
+  {
+   "arm": "batch3-A",
+   "params": 35124226,
+   "params_per_gold_line": 468323.0,
+   "eval_acc": 0.6136,
+   "margin_se": 2.6,
+   "gate_pass": false,
+   "best_loss": 0.18425,
+   "median_seq_len": 111,
+   "gold_lines_train": 75,
+   "cap_headroom": null
+  },
+  {
+   "arm": "batch3-B",
+   "params": 169474,
+   "params_per_gold_line": 2259.7,
+   "eval_acc": 0.6591,
+   "margin_se": 3.21,
+   "gate_pass": true,
+   "best_loss": 0.22618,
+   "median_seq_len": 111,
+   "gold_lines_train": 75,
+   "cap_headroom": null
+  }
+ ]
+}
