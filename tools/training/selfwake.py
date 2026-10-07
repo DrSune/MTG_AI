@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 import time
 import urllib.parse
@@ -53,10 +54,34 @@ def gateway_up() -> bool:
 
 
 def find_session() -> tuple[str | None, str]:
-    """MTG_AI directory sessions, freshest non-subagent first."""
-    url = f"{SERVER}/session?directory={urllib.parse.quote(DIRECTORY)}&limit=200"
+    """MTG_AI directory sessions, checking active tmux first, then freshest non-subagent from server."""
+    # Fast path: check if opencode is actively running in a tmux pane
     try:
-        with urllib.request.urlopen(url, timeout=8) as r:
+        res = subprocess.run(
+            ["tmux", "list-panes", "-a", "-F", "#{pane_id}|#{session_name}:#{window_index}.#{pane_index}|#{pane_tty}|#{pane_current_path}"],
+            capture_output=True, text=True, timeout=3
+        )
+        if res.returncode == 0:
+            for line in res.stdout.strip().splitlines():
+                parts = line.split("|")
+                if len(parts) == 4:
+                    pane_id, target, tty, cwd = parts
+                    if str(DIRECTORY) in cwd or target.startswith("MTG:"):
+                        ps = subprocess.run(["ps", "-t", tty.replace("/dev/", ""), "-o", "args="], capture_output=True, text=True)
+                        for pline in ps.stdout.splitlines():
+                            tokens = pline.strip().split()
+                            if "opencode" in tokens and "-s" in tokens:
+                                idx = tokens.index("-s")
+                                if idx + 1 < len(tokens):
+                                    sid = tokens[idx + 1]
+                                    return sid, f"picked active tmux pane {target} ({sid})"
+    except Exception as exc:  # noqa: BLE001
+        log(f"tmux session check error: {exc}")
+
+    # Fallback: query server
+    url = f"{SERVER}/session?directory={urllib.parse.quote(str(DIRECTORY))}&limit=20"
+    try:
+        with urllib.request.urlopen(url, timeout=30) as r:
             sessions = json.load(r)
     except Exception as exc:  # noqa: BLE001
         return None, f"session list failed: {exc}"
@@ -74,9 +99,43 @@ def find_session() -> tuple[str | None, str]:
     return None, "no orchestrator session found (all candidates are subagents)"
 
 
+def wake_tmux(sid: str) -> bool:
+    """If the session is running in an interactive tmux pane, check if it is stuck on offline engine error and recover it."""
+    try:
+        res = subprocess.run(
+            ["tmux", "list-panes", "-a", "-F", "#{pane_id}|#{session_name}:#{window_index}.#{pane_index}|#{pane_tty}|#{pane_current_path}"],
+            capture_output=True, text=True, timeout=5
+        )
+        if res.returncode != 0:
+            return False
+        for line in res.stdout.strip().splitlines():
+            parts = line.split("|")
+            if len(parts) == 4:
+                pane_id, target, tty, cwd = parts
+                if str(DIRECTORY) in cwd or target.startswith("MTG:"):
+                    pane_out = subprocess.run(["tmux", "capture-pane", "-pt", pane_id, "-S", "-30"], capture_output=True, text=True).stdout
+                    if "Upstream vLLM engine is offline" in pane_out or "Upstream connection error" in pane_out or "All connection attempts failed" in pane_out:
+                        log(f"tmux pane {target} has offline engine error; restarting pane cleanly...")
+                        ps = subprocess.run(["ps", "-t", tty.replace("/dev/", ""), "-o", "pid,args"], capture_output=True, text=True)
+                        for pline in ps.stdout.splitlines()[1:]:
+                            if "opencode" in pline and "supervisor" not in pline and "serve" not in pline:
+                                pid = int(pline.split()[0])
+                                subprocess.run(["kill", "-15", str(pid)])
+                                time.sleep(1.0)
+                        subprocess.run(["tmux", "send-keys", "-t", pane_id, "stty sane; clear", "Enter"])
+                        time.sleep(0.5)
+                        subprocess.run(["tmux", "send-keys", "-t", pane_id, f"opencode -s {sid}", "Enter"])
+                        log(f"restarted opencode in tmux pane {target}")
+                        return True
+    except Exception as exc:  # noqa: BLE001
+        log(f"wake_tmux error: {exc}")
+    return False
+
+
 def inject(sid: str, text: str) -> bool:
+    wake_tmux(sid)
     body = json.dumps({"parts": [{"type": "text", "text": text}]}).encode()
-    for ep in ("message", "prompt"):  # API naming has moved before; try both
+    for ep in ("prompt_async", "message"):  # try async endpoint first, then message
         req = urllib.request.Request(
             f"{SERVER}/session/{sid}/{ep}",
             data=body,
@@ -85,7 +144,7 @@ def inject(sid: str, text: str) -> bool:
         )
         try:
             with urllib.request.urlopen(req, timeout=15) as r:
-                if r.status < 300:
+                if r.status in (200, 204):
                     log(f"injected via /{ep} into {sid}")
                     return True
         except Exception as exc:  # noqa: BLE001
