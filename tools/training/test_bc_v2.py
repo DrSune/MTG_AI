@@ -126,7 +126,7 @@ def test_handle_grounding_coverage(episodes):
         "choose-digit grounding drifted"
     )  # v3 regen 2026-10-07
     assert (
-        sum(1 for r in rows_g if any(g for g in (r.get("ground") or []))) == 79
+        sum(1 for r in rows_g if any(g for g in (r.get("ground") or []))) == 84  # P1b pilot regen
     )  # doc 36 regen 2026-10-07
 
 
