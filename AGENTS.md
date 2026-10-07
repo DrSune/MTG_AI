@@ -178,3 +178,8 @@ task(
 - Fundamentals (choose, count, race/class-identity, attack/block, damage-lanes) are reused
   most => highest priority to get orthogonal; complex functionality decomposes into them and
   is expected to drive REWRITES of atomics as shared structure becomes visible.
+- {when-event} is a FUNDAMENTAL too: event atoms (creature attacks / spell casts / you take
+  {X} damage ...) decompose as {event-kind, subject filter, quantity bound, controller
+  direction} — direction must have ONE encoding (today split between event.controller fields
+  and Filter.owner_color: unify per merge ledger). Keywords (FLYING 40 goldens, TRAMPLE 13)
+  ARE already shared atoms with multiple consumers — keep them that way.
