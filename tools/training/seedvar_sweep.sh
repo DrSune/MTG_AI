@@ -3,7 +3,11 @@
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 LOCK=/tmp/opencode/seedvar.lock
-mkdir -p "$LOCK" && flock -n "$LOCK" -c true 2>/dev/null || { echo "another seedvar driver holds the lock"; exit 9; }
+if ! mkdir "$LOCK" 2>/dev/null; then
+  echo "seedvar: ANOTHER driver holds $LOCK — refusing to race. Exit 9."
+  exit 9
+fi
+trap 'rmdir "$LOCK" 2>/dev/null' EXIT
 PY=(.venv/bin/python -m)
 RUN=(.venv/bin/python tools/training/run_train.py)
 for spec in "S0 2" "S0 3" "S4 2" "S4 3"; do
