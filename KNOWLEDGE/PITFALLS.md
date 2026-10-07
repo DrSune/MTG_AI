@@ -1008,3 +1008,5 @@
 - watchdog budget scales with engine state (2026-10-07): a 35M run is ~300 s engine-off but >2400 s with the engine up (KV contention) — never reuse an engine-off timeout for an engine-on batch; and never TERM-kill run_train parents expecting children to die (they survive; kill the trainer pid, verify with pgrep).
 
 - stale-lock law (2026-10-08, three silent no-op launches cost two engine cycles): a mkdir-dir lock squatted by a SIGPIPE-killed orphan (no EXIT trap ran) makes every later launch exit silently. Guard MUST self-heal: record pid inside the lock dir, reclaim when pid is dead. Never diagnose again by hand — the log line names the holder now.
+
+- refusal-not-completion law (2026-10-08): run_train refuses to start when the previous jsonl entry is UNFINISHED (correct guard — a kill leaves one); run_full_memory still prints exit rc=0 COMPLETE on such refusals (wrapper blind). After any manual kill of a training pid, the next launch needs --ignore-prev (verify pid dead first — the message says so). Read the DRIVER section of the launch log, not the wrapper banner, when a run "completes" without reports.
