@@ -138,7 +138,13 @@ class TestZoneVerbs(ExecutorCase):
 
     def test_exile(self):
         self.ex.execute(
-            atom(Verb.EXILE, target=target_sel()),
+            # T4 P1a: the old EXILE shape is the designation lane of the
+            # merged MOVE_ZONE atom (target role kept, A2(iv)).
+            atom(
+                Verb.MOVE_ZONE,
+                target=target_sel(),
+                destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
+            ),
             source=self.alpha,
             controller=self.p0,
             bindings={"target": self.gamma},
@@ -645,9 +651,13 @@ class TestSelectors(ExecutorCase):
         # 1..2, executor clamps to the 1 handle actually available.
         self.ex.execute(
             atom(
-                Verb.DISCARD,
+                Verb.MOVE_ZONE,
                 controller=ControllerRef.YOU,
                 cards=Selector(QAtMost(2), SelectorMode.CHOOSE, UNIV, HAND_YOU),
+                **{
+                    "destination": Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                    "from": HAND_YOU,
+                },
             ),
             source=self.alpha,
             controller=self.p0,
@@ -717,9 +727,15 @@ class TestQuantityAndFilters(ExecutorCase):
     def test_qbin_arithmetic_mills(self):
         self.ex.execute(
             atom(
-                Verb.MILL,
+                Verb.MOVE_ZONE,
                 controller=ControllerRef.YOU,
                 amount=QBin(QBinOp.ADD, QConst(2), QConst(1)),
+                **{
+                    "destination": Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                    "from": LIB_YOU,
+                    "journal_kind": "MILL",
+                    "pop_order": "TOP",
+                },
             ),
             source=self.alpha,
             controller=self.p0,
@@ -743,7 +759,17 @@ class TestQuantityAndFilters(ExecutorCase):
             agg=QAgg.SUM,
         )
         self.ex.execute(
-            atom(Verb.MILL, controller=ControllerRef.YOU, amount=power_sum),
+            atom(
+                Verb.MOVE_ZONE,
+                controller=ControllerRef.YOU,
+                amount=power_sum,
+                **{
+                    "destination": Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                    "from": LIB_YOU,
+                    "journal_kind": "MILL",
+                    "pop_order": "TOP",
+                },
+            ),
             source=self.alpha,
             controller=self.p0,
         )
@@ -755,7 +781,8 @@ class TestQuantityAndFilters(ExecutorCase):
     def test_filter_or_and_not(self):
         self.ex.execute(
             atom(
-                Verb.EXILE,
+                Verb.MOVE_ZONE,
+                destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
                 target=Selector(
                     QConst(2),
                     SelectorMode.CHOOSE,
@@ -778,7 +805,8 @@ class TestQuantityAndFilters(ExecutorCase):
     def test_filter_not_complements(self):
         self.ex.execute(
             atom(
-                Verb.EXILE,
+                Verb.MOVE_ZONE,
+                destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
                 target=Selector(
                     QConst(2),
                     SelectorMode.CHOOSE,
@@ -902,9 +930,21 @@ class TestQuantityAndFilters(ExecutorCase):
             self.ex.execute(unreachable, source=self.alpha, controller=self.p0)
 
     def test_qx_raises(self):
+        # T4 P1a: reshaped to the merged MOVE mill lane so the probe
+        # still tests the QX quantity raise, not a retired verb dispatch.
         with self.assertRaises(NotImplementedError):
             self.ex.execute(
-                atom(Verb.MILL, controller=ControllerRef.YOU, amount=QX()),
+                atom(
+                    Verb.MOVE_ZONE,
+                    controller=ControllerRef.YOU,
+                    amount=QX(),
+                    **{
+                        "destination": Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                        "from": LIB_YOU,
+                        "journal_kind": "MILL",
+                        "pop_order": "TOP",
+                    },
+                ),
                 source=self.alpha,
                 controller=self.p0,
             )
@@ -1123,7 +1163,17 @@ def scripted_run(seed):
         bindings={"target": beta},
     )
     ex.execute(
-        atom(Verb.MILL, controller=ControllerRef.OPPONENT, amount=QConst(1)),
+        atom(
+            Verb.MOVE_ZONE,
+            controller=ControllerRef.OPPONENT,
+            amount=QConst(1),
+            **{
+                "destination": Zone(ZoneKind.GRAVEYARD, ControllerRef.OPPONENT),
+                "from": Zone(ZoneKind.LIBRARY, ControllerRef.OPPONENT),
+                "journal_kind": "MILL",
+                "pop_order": "TOP",
+            },
+        ),
         source=src,
         controller=p0,
     )

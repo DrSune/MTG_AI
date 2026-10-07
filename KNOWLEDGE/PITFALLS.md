@@ -980,3 +980,6 @@
   hypothesis, not evidence; and un-triaged reclassification still hides real gaps —
   run_scenarios now rejects any eval_reclassification without a verdict + file:line
   proof, and puzzle_cert counts every one as fail_registered.)
+- (2026-10-07, P1a) Never run `ruff format` over a file list that can include golden
+  .json — a `ruff format $(git diff --name-only)` sweep mangled 305 goldens mid-task;
+  repair was a deterministic write_goldens rerun. Scope formatters to *.py explicitly.

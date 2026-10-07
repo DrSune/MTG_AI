@@ -1349,8 +1349,14 @@ def pay_costs(
         )
     if plan.discard:
         executor.apply_effect(
+            # T4 P1a: cost-DISCARD merged into MOVE_ZONE (HAND -> GY).
             _binding_atom(
-                Verb.DISCARD, "cards", plan.discard, controller=ControllerRef.YOU
+                Verb.MOVE_ZONE,
+                "cards",
+                plan.discard,
+                controller=ControllerRef.YOU,
+                destination=Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                **{"from": Zone(ZoneKind.HAND, ControllerRef.YOU)},
             ),
             source=source,
             controller=controller,

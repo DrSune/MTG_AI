@@ -5,6 +5,22 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-10-07 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.9934** (303/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **0.9969** (637/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, refreshed) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.29 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **4** / max share **0.1276** (MOVE_ZONE) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
 ## 2026-10-05 (T5 — Phase-1 grammar measurement harness)
 
 | Number | Value | Command | Notes |
@@ -3279,3 +3295,8 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - Significance criterion, 10 pool cards (Opt, Duress, Fabled Passage, Cultivate, Sublime Epiphany, Conspicuous Snoop, Teferi MoT, Basri Ket, Elder Gargaroth, Malefic Scythe): **30/31 clauses mapped = 96.8%**, 1 UNCOVERED (Snoop DERIVED-from-object ability menu, L-21); DB pool scan: 397 M21 cards, 0 sagas/adventures (L-25).
 - Verdict: P1 proceeds without current-code fixes; PT-timestamp + E1 direction merges gated to T4 layer-model/P2.
 - P0/T4-review 2026-10-07: 31 clauses/30 mapped (96.8%) 10 cards; gap ledger 26; 16 asks site:? fixed via SITE_KINDS+2 (kinds 17->19); tools 153 green
+
+## 2026-10-07 — T4 P1a MOVE merge executed (commands: `.venv/bin/python -m pytest MTG_bot/core -q`; `tools/run_scenarios.py`; `tools/measure_grammar.py --set M21 --refresh-goldens`; KNOWLEDGE/2026-10-07/39)
+- Verb partition shipped: OPERATION 6 / POLICY 7 / EFFECT 36 (= 49). Live dispatch set 46→43 (MILL/DISCARD/EXILE retired; V1 contract frozen untouched).
+- Golden churn: **36/305 files × 1 line** (predicted 39 records/36 files — hit); full diff audited verb+slot-only.
+- Gates: core pytest **2460 passed / 0 failed**; scenarios **373/373**; journal/replay 47; tools audit+training 153; episodes items **157 / no_discrimination 0**; eval split families 77 unchanged.

@@ -543,9 +543,11 @@ def _build_draw_discard_bad_deal(m: re.Match[str]) -> SentenceOutcome:
         ),
     )
     atom_discard = Atom(
-        verb=Verb.DISCARD,
+        verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
+                ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.OPPONENT)),
+                ("from", Zone(ZoneKind.HAND, ControllerRef.OPPONENT)),
                 ("controller", ControllerRef.OPPONENT),
                 ("cards", _discard_two_from_hand()),
             )

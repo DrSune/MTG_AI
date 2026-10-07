@@ -546,9 +546,17 @@ def test_explicit_empty_omit_fields_decode() -> None:
 
 
 def test_verb_role_table_pins() -> None:
+    # T4 P1a: MOVE_ZONE became the ONE move atom — objects ride one of
+    # cards/target/amount, with from/journal_kind/pop_order slots.
     assert at._VERB_ROLES[at.Verb.MOVE_ZONE] == {
-        "cards": True,
         "destination": True,
+        "cards": False,
+        "target": False,
+        "controller": False,
+        "amount": False,
+        "from": False,
+        "journal_kind": False,
+        "pop_order": False,
         "tapped_on_enter": False,
     }
     assert at._VERB_ROLES[at.Verb.SEARCH] == {

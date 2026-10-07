@@ -602,9 +602,14 @@ def _build_teferis_tutelage_etb(m: re.Match[str]) -> SentenceOutcome:
                     ),
                 ),
                 Atom(
-                    verb=Verb.DISCARD,
+                    verb=Verb.MOVE_ZONE,
                     args=AtomArgs(
                         pairs=(
+                            (
+                                "destination",
+                                Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                            ),
+                            ("from", Zone(ZoneKind.HAND, ControllerRef.YOU)),
                             ("controller", ControllerRef.YOU),
                             ("cards", _any_card_in_your_hand()),
                         )
@@ -1197,9 +1202,16 @@ def _build_thieves_guild_enforcer(m: re.Match[str]) -> SentenceOutcome:
         EachPlayer(
             ref=ControllerRef.ALL_OPPONENTS,
             effect=Atom(
-                verb=Verb.MILL,
+                verb=Verb.MOVE_ZONE,
                 args=AtomArgs(
-                    pairs=(("controller", ControllerRef.YOU), ("amount", QConst(2)))
+                    pairs=(
+                        ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+                        ("from", Zone(ZoneKind.LIBRARY, ControllerRef.YOU)),
+                        ("journal_kind", "MILL"),
+                        ("pop_order", "TOP"),
+                        ("controller", ControllerRef.YOU),
+                        ("amount", QConst(2)),
+                    )
                 ),
             ),
         ),
@@ -1368,9 +1380,16 @@ def _build_teferis_tutelage_draw_mill(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
         CardDrawnEvent(controller=ControllerRef.YOU),
         Atom(
-            verb=Verb.MILL,
+            verb=Verb.MOVE_ZONE,
             args=AtomArgs(
                 pairs=(
+                    (
+                        "destination",
+                        Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER),
+                    ),
+                    ("from", Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER)),
+                    ("journal_kind", "MILL"),
+                    ("pop_order", "TOP"),
                     ("controller", ControllerRef.TARGET_PLAYER),
                     ("amount", QConst(2)),
                 )

@@ -663,10 +663,15 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
     # universal filters, Death Mage's filter is an FAtom). resolve_selector
     # folds the card designation through players_for_ref's TARGET_PLAYER
     # lane (controller_of) and sweeps the full graveyard.
+    _dest = atom.args.get("destination")
     graveyard_sweep = (
         isinstance(value, Selector)
         and value.mode is SelectorMode.ALL
-        and atom.verb is Verb.EXILE
+        # T4 P1a: EXILE merged into MOVE_ZONE — the pin is now the verb
+        # plus a destination-kind read (same five verified conditions).
+        and atom.verb is Verb.MOVE_ZONE
+        and isinstance(_dest, Zone)
+        and _dest.kind is ZoneKind.EXILE
         and isinstance(value.filter, FAnd)
         and not value.filter.children
         and value.zone.kind is ZoneKind.GRAVEYARD

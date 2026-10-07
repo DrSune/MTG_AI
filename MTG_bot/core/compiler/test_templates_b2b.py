@@ -1478,8 +1478,16 @@ class TestB2bEffectStructure(unittest.TestCase):
         amount = _qconst(draw, "amount")
         self.assertEqual(amount.value, 1)
         discard = _atom_step(seq, 1)
-        self.assertIs(discard.verb, Verb.DISCARD)
+        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
+        self.assertIs(discard.verb, Verb.MOVE_ZONE)
         self.assertIs(discard.args.get("controller"), ControllerRef.YOU)
+        self.assertEqual(
+            discard.args.get("destination"),
+            Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+        )
+        self.assertEqual(
+            discard.args.get("from"), Zone(ZoneKind.HAND, ControllerRef.YOU)
+        )
 
     def test_temple_scry_etb(self) -> None:
         ability = _ability(_single_match(self.reg, "When this land enters, scry 1."))
@@ -1918,8 +1926,17 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIs(each.ref, ControllerRef.ALL_OPPONENTS)
         effect = each.effect
         assert isinstance(effect, Atom)
-        self.assertIs(effect.verb, Verb.MILL)
+        # T4 P1a: the mill shape is the merged MOVE_ZONE atom.
+        self.assertIs(effect.verb, Verb.MOVE_ZONE)
         self.assertIs(effect.args.get("controller"), ControllerRef.YOU)
+        self.assertEqual(
+            effect.args.get("destination"),
+            Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+        )
+        self.assertEqual(
+            effect.args.get("from"), Zone(ZoneKind.LIBRARY, ControllerRef.YOU)
+        )
+        self.assertEqual(effect.args.get("journal_kind"), "MILL")
         amount = _qconst(effect, "amount")
         self.assertEqual(amount.value, 2)
 
@@ -2041,8 +2058,18 @@ class TestB2bEffectStructure(unittest.TestCase):
             )
         )
         atom = _atom(ability)
-        self.assertIs(atom.verb, Verb.MILL)
+        # T4 P1a: the mill shape is the merged MOVE_ZONE atom — the milled
+        # player's own library and graveyard carry TARGET_PLAYER.
+        self.assertIs(atom.verb, Verb.MOVE_ZONE)
         self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_PLAYER)
+        self.assertEqual(
+            atom.args.get("destination"),
+            Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER),
+        )
+        self.assertEqual(
+            atom.args.get("from"), Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER)
+        )
+        self.assertEqual(atom.args.get("journal_kind"), "MILL")
         amount = _qconst(atom, "amount")
         self.assertEqual(amount.value, 2)
 

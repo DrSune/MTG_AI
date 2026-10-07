@@ -420,9 +420,11 @@ def _build_token_zombie(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_cont_discard(m: re.Match[str]) -> SentenceOutcome:
     atom = Atom(
-        verb=Verb.DISCARD,
+        verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
+                ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+                ("from", Zone(ZoneKind.HAND, ControllerRef.YOU)),
                 ("controller", ControllerRef.YOU),
                 (
                     "cards",
@@ -1027,9 +1029,11 @@ def _build_sacr_flying(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_discard_target_2(m: re.Match[str]) -> SentenceOutcome:
     atom = Atom(
-        verb=Verb.DISCARD,
+        verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
+                ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER)),
+                ("from", Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER)),
                 ("controller", ControllerRef.TARGET_PLAYER),
                 (
                     "cards",
@@ -1122,8 +1126,13 @@ def _build_repl_nontoken_enter_exile(m: re.Match[str]) -> SentenceOutcome:
                 inner=FAtom(pred=FAtomPred.WAS_CAST_THIS_TURN, who=ControllerRef.ANY)
             ),
             action=Atom(
-                verb=Verb.EXILE,
-                args=AtomArgs(pairs=(("target", _event_referent()),)),
+                verb=Verb.MOVE_ZONE,
+                args=AtomArgs(
+                    pairs=(
+                        ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                        ("target", _event_referent()),
+                    )
+                ),
             ),
         )
     )
@@ -1228,8 +1237,13 @@ def _build_repl_die_exile(m: re.Match[str]) -> SentenceOutcome:
             event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_ANY_TARGET)),
             condition=None,
             action=Atom(
-                verb=Verb.EXILE,
-                args=AtomArgs(pairs=(("target", _event_referent()),)),
+                verb=Verb.MOVE_ZONE,
+                args=AtomArgs(
+                    pairs=(
+                        ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                        ("target", _event_referent()),
+                    )
+                ),
             ),
         )
     )
@@ -1251,8 +1265,13 @@ def _build_repl_graveyard_exile(m: re.Match[str]) -> SentenceOutcome:
             ),
             condition=None,
             action=Atom(
-                verb=Verb.EXILE,
-                args=AtomArgs(pairs=(("target", _event_referent()),)),
+                verb=Verb.MOVE_ZONE,
+                args=AtomArgs(
+                    pairs=(
+                        ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                        ("target", _event_referent()),
+                    )
+                ),
             ),
         )
     )
@@ -1520,9 +1539,11 @@ def _build_that_player_discards_that_card(m: re.Match[str]) -> SentenceOutcome:
     the previous CHOOSE picked off the revealed hand → referent="result"
     (R7-1; antecedent ``B4-you-choose-from-it`` is in this batch)."""
     atom = Atom(
-        verb=Verb.DISCARD,
+        verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
+                ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER)),
+                ("from", Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER)),
                 ("controller", ControllerRef.TARGET_PLAYER),
                 ("cards", _result_selector()),
             )
@@ -1630,8 +1651,13 @@ def _build_search_name_exile(m: re.Match[str]) -> SentenceOutcome:
         ),
     )
     exile = Atom(
-        verb=Verb.EXILE,
-        args=AtomArgs(pairs=(("target", _result_selector()),)),
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                ("target", _result_selector()),
+            )
+        ),
     )
     return EffectOutcome(effect=Seq(steps=(search, exile)))
 

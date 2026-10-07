@@ -906,8 +906,17 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertIs(first.verb, Verb.DRAW)
         self.assertIs(_pairs(first).get("controller"), ControllerRef.YOU)
         self.assertEqual(_qconst(_pairs(first).get("amount")).value, 2)
-        self.assertIs(second.verb, Verb.DISCARD)
+        # T4 P1a: the discard shape is the merged MOVE_ZONE atom — the
+        # discarding opponent's own hand and graveyard.
+        self.assertIs(second.verb, Verb.MOVE_ZONE)
         self.assertIs(_pairs(second).get("controller"), ControllerRef.OPPONENT)
+        self.assertEqual(
+            _pairs(second).get("destination"),
+            Zone(ZoneKind.GRAVEYARD, ControllerRef.OPPONENT),
+        )
+        self.assertEqual(
+            _pairs(second).get("from"), Zone(ZoneKind.HAND, ControllerRef.OPPONENT)
+        )
         cards = _selector(second, "cards")
         self.assertIs(cards.mode, SelectorMode.CHOOSE)
         self.assertEqual(_qconst(cards.count).value, 2)

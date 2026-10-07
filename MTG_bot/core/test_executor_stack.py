@@ -926,7 +926,15 @@ class TestChooseVerb(StackCase):
             (
                 atom(Verb.CHOOSE, target=pool, count=QConst(1)),
                 atom(
-                    Verb.DISCARD, controller=ControllerRef.TARGET_PLAYER, cards=result
+                    Verb.MOVE_ZONE,
+                    controller=ControllerRef.TARGET_PLAYER,
+                    cards=result,
+                    **{
+                        "destination": Zone(
+                            ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER
+                        ),
+                        "from": Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER),
+                    },
                 ),
             )
         )
@@ -967,7 +975,11 @@ class TestChooseVerb(StackCase):
         effect = Seq(
             (
                 atom(Verb.CHOOSE, target=pool, count=QConst(1)),
-                atom(Verb.EXILE, target=result),
+                atom(
+                    Verb.MOVE_ZONE,
+                    target=result,
+                    destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
+                ),
             )
         )
         spell = self.give(

@@ -199,13 +199,14 @@ class SelfClauseTest(StackCase):
             name,
             SpellKind.INSTANT,
             effect=atom(
-                Verb.EXILE,
+                Verb.MOVE_ZONE,
                 target=Selector(
                     QConst(1),
                     SelectorMode.TARGET,
                     FAnd((FAtom(FAtomPred.IS_SOURCE),)),
                     Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
                 ),
+                destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
             ),
         )
 
@@ -275,9 +276,15 @@ class DecisionLaneTest(StackCase):
                     ),
                     atom(Verb.CHOOSE, target=pool, count=QConst(1)),
                     atom(
-                        Verb.DISCARD,
+                        Verb.MOVE_ZONE,
                         controller=ControllerRef.TARGET_PLAYER,
                         cards=result,
+                        **{
+                            "destination": Zone(
+                                ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER
+                            ),
+                            "from": Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER),
+                        },
                     ),
                 )
             ),
@@ -308,7 +315,15 @@ class ChooseAliasTest(StackCase):
             (
                 atom(Verb.CHOOSE, target=pool, count=QConst(1)),
                 atom(
-                    Verb.DISCARD, controller=ControllerRef.TARGET_PLAYER, cards=result
+                    Verb.MOVE_ZONE,
+                    controller=ControllerRef.TARGET_PLAYER,
+                    cards=result,
+                    **{
+                        "destination": Zone(
+                            ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER
+                        ),
+                        "from": Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER),
+                    },
                 ),
             )
         )

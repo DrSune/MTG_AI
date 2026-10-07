@@ -707,9 +707,11 @@ def _build_loyalty_draw_discard(m: re.Match[str]) -> SentenceOutcome:
                 ),
             ),
             Atom(
-                verb=Verb.DISCARD,
+                verb=Verb.MOVE_ZONE,
                 args=AtomArgs(
                     pairs=(
+                        ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+                        ("from", Zone(ZoneKind.HAND, ControllerRef.YOU)),
                         ("controller", ControllerRef.YOU),
                         ("cards", _hand_you_selector(QConst(1))),
                     )
@@ -735,9 +737,11 @@ def _build_loyalty_draw(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_loyalty_each_discard(m: re.Match[str]) -> SentenceOutcome:
     atom = Atom(
-        verb=Verb.DISCARD,
+        verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
+                ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)),
+                ("from", Zone(ZoneKind.HAND, ControllerRef.ANY)),
                 ("controller", ControllerRef.ANY),
                 (
                     "cards",
@@ -928,9 +932,11 @@ def _build_loyalty_discard_draw(m: re.Match[str]) -> SentenceOutcome:
     seq = Seq(
         steps=(
             Atom(
-                verb=Verb.DISCARD,
+                verb=Verb.MOVE_ZONE,
                 args=AtomArgs(
                     pairs=(
+                        ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+                        ("from", Zone(ZoneKind.HAND, ControllerRef.YOU)),
                         ("controller", ControllerRef.YOU),
                         (
                             "cards",
@@ -1037,9 +1043,11 @@ def _build_loyalty_discard_exile_top(m: re.Match[str]) -> SentenceOutcome:
     seq = Seq(
         steps=(
             Atom(
-                verb=Verb.DISCARD,
+                verb=Verb.MOVE_ZONE,
                 args=AtomArgs(
                     pairs=(
+                        ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+                        ("from", Zone(ZoneKind.HAND, ControllerRef.YOU)),
                         ("controller", ControllerRef.YOU),
                         (
                             "cards",
@@ -1054,9 +1062,10 @@ def _build_loyalty_discard_exile_top(m: re.Match[str]) -> SentenceOutcome:
                 ),
             ),
             Atom(
-                verb=Verb.EXILE,
+                verb=Verb.MOVE_ZONE,
                 args=AtomArgs(
                     pairs=(
+                        ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
                         (
                             "target",
                             Selector(
@@ -1269,9 +1278,10 @@ def _build_loyalty_exile_color_cmc_ux(m: re.Match[str]) -> SentenceOutcome:
     or more colors.  Dynamic loyalty cost → ``CostLoyalty(QX())``; cannot use
     ``_loyalty_wrapper`` (it parses a signed int delta)."""
     atom = Atom(
-        verb=Verb.EXILE,
+        verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
+                ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
                 (
                     "target",
                     Selector(
@@ -1711,8 +1721,13 @@ def _build_cost_sacrifice_exile(m: re.Match[str]) -> SentenceOutcome:
         )
     )
     atom = Atom(
-        verb=Verb.EXILE,
-        args=AtomArgs(pairs=(("target", _graveyard_target_player()),)),
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                ("target", _graveyard_target_player()),
+            )
+        ),
     )
     return AbilityOutcome(ability=ActivatedAbility(cost=cost, effect=atom))
 
@@ -1729,9 +1744,11 @@ def _build_cost_sacrifice_discard(m: re.Match[str]) -> SentenceOutcome:
         )
     )
     atom = Atom(
-        verb=Verb.DISCARD,
+        verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
+                ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER)),
+                ("from", Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER)),
                 ("controller", ControllerRef.TARGET_PLAYER),
                 (
                     "cards",
@@ -2039,9 +2056,10 @@ def _build_bullet_draw_three(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_bullet_exile_graveyard(m: re.Match[str]) -> SentenceOutcome:
     atom = Atom(
-        verb=Verb.EXILE,
+        verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
+                ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
                 (
                     "target",
                     Selector(

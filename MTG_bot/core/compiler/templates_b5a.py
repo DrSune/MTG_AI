@@ -554,9 +554,10 @@ def _build_double_power(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_exile_target(m: re.Match[str], f: "object") -> SentenceOutcome:
     atom = Atom(
-        verb=Verb.EXILE,
+        verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
+                ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
                 (
                     "target",
                     Selector(
@@ -603,10 +604,15 @@ def _build_draw_three_then_discard(m: re.Match[str]) -> SentenceOutcome:
         ),
     )
     discard = Atom(
-        verb=Verb.DISCARD,
+        verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
                 ("controller", _draw_controller()),
+                (
+                    "destination",
+                    Zone(ZoneKind.GRAVEYARD, _draw_controller()),
+                ),
+                ("from", Zone(ZoneKind.HAND, _draw_controller())),
                 (
                     "cards",
                     Selector(
@@ -1179,8 +1185,13 @@ def _build_exile_that_until_leaves(m: re.Match[str]) -> SentenceOutcome:
     (EXILE duration role); the card CHOICE (result referent) is
     preserved."""
     atom = Atom(
-        verb=Verb.EXILE,
-        args=AtomArgs(pairs=(("target", _result_selector()),)),
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                ("target", _result_selector()),
+            )
+        ),
     )
     return EffectOutcome(effect=atom)
 

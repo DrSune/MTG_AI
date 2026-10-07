@@ -134,22 +134,28 @@ class TestC3CompilerPins(unittest.TestCase):
         assert isinstance(ability.effect, Seq)
         head = ability.effect.steps[0]
         assert isinstance(head, Atom)
-        self.assertIs(head.verb, Verb.DISCARD)
+        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
+        self.assertIs(head.verb, Verb.MOVE_ZONE)
+        self.assertEqual(
+            head.args.get("destination"),
+            Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.ANY),
+        )
 
     # ---- transmogrify: top-of-library SEARCH + TARGET_PLAYER SHUFFLE ----
 
     def test_transmog_spell_folds_to_three_step_seq(self) -> None:
-        """EXILE, SEARCH, SHUFFLE — the three plain sentence effects fold
-        into the SpellAbility's single Seq at card assembly (no
-        continuation prefixes involved)."""
+        """MOVE_ZONE (exile shape), SEARCH, SHUFFLE — the three plain
+        sentence effects fold into the SpellAbility's single Seq at card
+        assembly (no continuation prefixes involved)."""
         res = self._compile(_TRANSMOG)
         (spell,) = res.card.abilities
         assert isinstance(spell, SpellAbility)
         assert isinstance(spell.effect, Seq)
         atoms = [s for s in spell.effect.steps if isinstance(s, Atom)]
         self.assertEqual(len(atoms), len(spell.effect.steps))
+        # T4 P1a: the old EXILE row is the merged MOVE_ZONE atom.
         self.assertEqual(
-            [a.verb for a in atoms], [Verb.EXILE, Verb.SEARCH, Verb.SHUFFLE]
+            [a.verb for a in atoms], [Verb.MOVE_ZONE, Verb.SEARCH, Verb.SHUFFLE]
         )
 
     def test_transmog_search_is_top_scoped_target_player(self) -> None:

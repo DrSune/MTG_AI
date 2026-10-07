@@ -368,7 +368,15 @@ class TestB3EffectStructure(unittest.TestCase):
         assert isinstance(first, Atom)
         assert isinstance(second, Atom)
         self.assertIs(first.verb, Verb.DRAW)
-        self.assertIs(second.verb, Verb.DISCARD)
+        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
+        self.assertIs(second.verb, Verb.MOVE_ZONE)
+        self.assertEqual(
+            second.args.get("destination"),
+            Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+        )
+        self.assertEqual(
+            second.args.get("from"), Zone(ZoneKind.HAND, ControllerRef.YOU)
+        )
 
     def test_scry_uses_constant_count(self) -> None:
         ability = _ability(_single_match(self.reg, "{2}{U}: Scry 1."))

@@ -831,7 +831,7 @@ class Round14cFixTest(unittest.TestCase):
         )
         executor.apply_effect(
             _atom(
-                Verb.EXILE,
+                Verb.MOVE_ZONE,
                 target=Selector(
                     QConst(1),
                     SelectorMode.CHOOSE,
@@ -839,6 +839,7 @@ class Round14cFixTest(unittest.TestCase):
                     Zone(ZoneKind.ANY, ControllerRef.ANY),
                     referent="result",
                 ),
+                destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
             ),
             source=p0,
             controller=p0,
@@ -868,7 +869,7 @@ class Round14cFixTest(unittest.TestCase):
                         destination=Zone(ZoneKind.EXILE, ControllerRef.YOU),
                     ),
                     _atom(
-                        Verb.EXILE,
+                        Verb.MOVE_ZONE,
                         target=Selector(
                             QConst(1),
                             SelectorMode.CHOOSE,
@@ -876,6 +877,7 @@ class Round14cFixTest(unittest.TestCase):
                             Zone(ZoneKind.ANY, ControllerRef.ANY),
                             referent="result",
                         ),
+                        destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
                     ),
                 )
             ),
@@ -911,7 +913,7 @@ class Round14cFixTest(unittest.TestCase):
         ]
         executor.execute(
             _atom(
-                Verb.DISCARD,
+                Verb.MOVE_ZONE,
                 controller=ControllerRef.OPPONENT,
                 cards=Selector(
                     QConst(2),
@@ -919,6 +921,10 @@ class Round14cFixTest(unittest.TestCase):
                     UNIV,
                     Zone(ZoneKind.HAND, ControllerRef.ANY),
                 ),
+                **{
+                    "destination": Zone(ZoneKind.GRAVEYARD, ControllerRef.OPPONENT),
+                    "from": Zone(ZoneKind.HAND, ControllerRef.OPPONENT),
+                },
             ),
             source=mine,
             controller=p0,
@@ -1137,13 +1143,14 @@ class Round14dJournalTest(unittest.TestCase):
         )
         executor.apply_effect(
             _atom(
-                Verb.EXILE,
+                Verb.MOVE_ZONE,
                 target=Selector(
                     QConst(1),
                     SelectorMode.TARGET,
                     UNIV,
                     Zone(ZoneKind.HAND, ControllerRef.YOU),
                 ),
+                destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
             ),
             source=p0,
             controller=p0,
@@ -1288,13 +1295,14 @@ class Round14dJournalTest(unittest.TestCase):
         )
         executor.apply_effect(
             _atom(
-                Verb.EXILE,
+                Verb.MOVE_ZONE,
                 target=Selector(
                     QConst(1),
                     SelectorMode.TARGET,
                     UNIV,
                     Zone(ZoneKind.HAND, ControllerRef.YOU),
                 ),
+                destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
             ),
             source=idol,
             controller=p0,
@@ -1566,13 +1574,14 @@ class Round14fSurfaceTest(unittest.TestCase):
         self.assertEqual(top, exiled)
         executor.apply_effect(
             _atom(
-                Verb.EXILE,
+                Verb.MOVE_ZONE,
                 target=Selector(
                     QConst(1),
                     SelectorMode.CHOOSE,
                     FAnd(()),
                     Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),
                 ),
+                destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
             ),
             source=chandra,
             controller=p0,
@@ -1591,13 +1600,14 @@ class Round14fSurfaceTest(unittest.TestCase):
         rival = world.add_card(card_id("Rival Card"), p0, ZONE_LIBRARY)
         executor.apply_effect(
             _atom(
-                Verb.EXILE,
+                Verb.MOVE_ZONE,
                 target=Selector(
                     QConst(1),
                     SelectorMode.CHOOSE,
                     FAnd(()),
                     Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),
                 ),
+                destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
             ),
             source=other,
             controller=p0,

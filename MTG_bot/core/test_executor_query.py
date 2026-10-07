@@ -209,9 +209,13 @@ class TestMayOffer(QueryCase):
             inner=__import__("MTG_bot.core.ability_tree", fromlist=["Seq"]).Seq(
                 (
                     atom(
-                        Verb.DISCARD,
+                        Verb.MOVE_ZONE,
                         cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, HAND_YOU),
                         controller=ControllerRef.YOU,
+                        **{
+                            "destination": Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                            "from": HAND_YOU,
+                        },
                     ),
                     draw_one(),
                 )

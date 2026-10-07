@@ -343,7 +343,8 @@ class GraveyardSweepTest(BindingCase):
 
     def tormod(self, mode=SelectorMode.ALL):
         return atom(
-            Verb.EXILE,
+            Verb.MOVE_ZONE,
+            destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
             target=Selector(
                 QConst(9),
                 mode,

@@ -848,8 +848,13 @@ def _build_mazemind_tome(m: re.Match[str]) -> SentenceOutcome:
             filter=FAtom(pred=FAtomPred.IS_SOURCE),
         ),
         Atom(
-            verb=Verb.EXILE,
-            args=AtomArgs(pairs=(("target", _self_selector()),)),
+            verb=Verb.MOVE_ZONE,
+            args=AtomArgs(
+                pairs=(
+                    ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                    ("target", _self_selector()),
+                )
+            ),
         ),
         condition=FAtom(
             pred=FAtomPred.HAS_COUNTER,
@@ -866,8 +871,13 @@ def _build_nine_lives(m: re.Match[str]) -> SentenceOutcome:
             filter=FAtom(pred=FAtomPred.IS_SOURCE),
         ),
         Atom(
-            verb=Verb.EXILE,
-            args=AtomArgs(pairs=(("target", _self_selector()),)),
+            verb=Verb.MOVE_ZONE,
+            args=AtomArgs(
+                pairs=(
+                    ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                    ("target", _self_selector()),
+                )
+            ),
         ),
         condition=FAtom(
             pred=FAtomPred.HAS_COUNTER,
@@ -904,9 +914,14 @@ def _build_rousing_read(m: re.Match[str]) -> SentenceOutcome:
                     ),
                 ),
                 Atom(
-                    verb=Verb.DISCARD,
+                    verb=Verb.MOVE_ZONE,
                     args=AtomArgs(
                         pairs=(
+                            (
+                                "destination",
+                                Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                            ),
+                            ("from", Zone(ZoneKind.HAND, ControllerRef.YOU)),
                             ("controller", ControllerRef.YOU),
                             (
                                 "cards",
@@ -1268,9 +1283,13 @@ def _build_carrion_grub(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
-            verb=Verb.MILL,
+            verb=Verb.MOVE_ZONE,
             args=AtomArgs(
                 pairs=(
+                    ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+                    ("from", Zone(ZoneKind.LIBRARY, ControllerRef.YOU)),
+                    ("journal_kind", "MILL"),
+                    ("pop_order", "TOP"),
                     ("controller", ControllerRef.YOU),
                     ("amount", QConst(4)),
                 )
@@ -1571,9 +1590,14 @@ def _build_crypt_lurker(m: re.Match[str]) -> SentenceOutcome:
                         ),
                     ),
                     Atom(
-                        verb=Verb.DISCARD,
+                        verb=Verb.MOVE_ZONE,
                         args=AtomArgs(
                             pairs=(
+                                (
+                                    "destination",
+                                    Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                                ),
+                                ("from", Zone(ZoneKind.HAND, ControllerRef.YOU)),
                                 ("controller", ControllerRef.YOU),
                                 (
                                     "cards",
@@ -1680,9 +1704,10 @@ def _build_furious_rise(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
         _end_step_event(),
         Atom(
-            verb=Verb.EXILE,
+            verb=Verb.MOVE_ZONE,
             args=AtomArgs(
                 pairs=(
+                    ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
                     (
                         "target",
                         Selector(
@@ -1922,8 +1947,13 @@ def _build_archfiends_vessel(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
-            verb=Verb.EXILE,
-            args=AtomArgs(pairs=(("target", _self_selector()),)),
+            verb=Verb.MOVE_ZONE,
+            args=AtomArgs(
+                pairs=(
+                    ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                    ("target", _self_selector()),
+                )
+            ),
         ),
         condition=condition,
     )
@@ -2015,9 +2045,11 @@ def _build_kinetic_augur_etb(m: re.Match[str]) -> SentenceOutcome:
     pinned); the anaphor "that many" is the R7-5 ``THAT_MANY_COUNT``
     quantity reading the discarded count off the effect register."""
     discard = Atom(
-        verb=Verb.DISCARD,
+        verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
+                ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+                ("from", Zone(ZoneKind.HAND, ControllerRef.YOU)),
                 ("controller", ControllerRef.YOU),
                 (
                     "cards",
@@ -2056,9 +2088,10 @@ def _build_idol_of_endurance_etb(m: re.Match[str]) -> SentenceOutcome:
     GAIN_CONTROL), so the temporary window is dropped; R8 grammar item.
     The card SET choice (filter + ALL) is fully expressed."""
     atom = Atom(
-        verb=Verb.EXILE,
+        verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
+                ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
                 (
                     "target",
                     Selector(

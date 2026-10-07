@@ -208,13 +208,14 @@ class TestDesignateThenApply(DesignationCase):
             mutt,
             etb_trigger(
                 atom(
-                    Verb.EXILE,
+                    Verb.MOVE_ZONE,
                     target=Selector(
                         QConst(1),
                         SelectorMode.TARGET,
                         FAtom(FAtomPred.TYPE_EQ, string_value="Artifact"),
                         BF_ANY,
                     ),
+                    destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
                 )
             ),
         )
@@ -333,9 +334,17 @@ class TestTargetPlayerRouting(DesignationCase):
                 event=CardDrawnEvent(ControllerRef.YOU),
                 condition=None,
                 effect=atom(
-                    Verb.MILL,
+                    Verb.MOVE_ZONE,
                     amount=QConst(1),
                     controller=ControllerRef.TARGET_PLAYER,
+                    **{
+                        "destination": Zone(
+                            ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER
+                        ),
+                        "from": Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER),
+                        "journal_kind": "MILL",
+                        "pop_order": "TOP",
+                    },
                 ),
             ),
             name="Tutelage Carrier",
@@ -532,11 +541,17 @@ class TestQueryLanePredParity(DesignationCase):
                 Seq(
                     steps=(
                         atom(
-                            Verb.DISCARD,
+                            Verb.MOVE_ZONE,
                             cards=Selector(
                                 QConst(2), SelectorMode.CHOOSE, UNIV, HAND_YOU
                             ),
                             controller=ControllerRef.YOU,
+                            **{
+                                "destination": Zone(
+                                    ZoneKind.GRAVEYARD, ControllerRef.YOU
+                                ),
+                                "from": HAND_YOU,
+                            },
                         ),
                         atom(
                             Verb.GAIN_LIFE,

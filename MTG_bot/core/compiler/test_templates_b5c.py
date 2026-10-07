@@ -1150,7 +1150,11 @@ class TestB5cIrStructure(unittest.TestCase):
         cost = _as_cost_loyalty(ability.cost.parts[0])
         self.assertIsInstance(cost.delta, QX, "dynamic delta must be QX")
         atom = _as_atom(ability.effect)
-        self.assertIs(atom.verb, Verb.EXILE)
+        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
+        self.assertIs(atom.verb, Verb.MOVE_ZONE)
+        self.assertEqual(
+            _pairs(atom)["destination"], Zone(ZoneKind.EXILE, ControllerRef.OWNER)
+        )
         sel = _pairs(atom)["target"]
         self.assertIsInstance(sel.count, QUnbounded)
         self.assertIs(sel.mode, SelectorMode.ALL)
@@ -1187,7 +1191,9 @@ class TestB5cIrStructure(unittest.TestCase):
     def test_loyalty_draw_discard_seq(self) -> None:
         seq = _as_seq(_activated_effect("B5c-loyalty-draw-discard"))
         self.assertEqual(
-            [s.verb for s in _seq_steps_as_atoms(seq)], [Verb.DRAW, Verb.DISCARD]
+            # T4 P1a: the discard step is the merged MOVE_ZONE atom.
+            [s.verb for s in _seq_steps_as_atoms(seq)],
+            [Verb.DRAW, Verb.MOVE_ZONE],
         )
 
     def test_loyalty_create_token(self) -> None:
@@ -1267,13 +1273,25 @@ class TestB5cIrStructure(unittest.TestCase):
     def test_loyalty_discard_exile_top_seq(self) -> None:
         seq = _as_seq(_activated_effect("B5c-loyalty-discard-exile-top"))
         discard, exile = _seq_steps_as_atoms(seq)
-        self.assertIs(discard.verb, Verb.DISCARD)
+        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
+        self.assertIs(discard.verb, Verb.MOVE_ZONE)
+        self.assertEqual(
+            _pairs(discard)["destination"],
+            Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+        )
+        self.assertEqual(
+            _pairs(discard)["from"], Zone(ZoneKind.HAND, ControllerRef.YOU)
+        )
         cards = _pairs(discard)["cards"]
         self.assertIsInstance(cards.count, QUnbounded)
         self.assertIs(cards.mode, SelectorMode.ALL)
         self.assertIs(cards.zone.kind, ZoneKind.HAND)
         self.assertIs(cards.zone.controller, ControllerRef.YOU)
-        self.assertIs(exile.verb, Verb.EXILE)
+        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
+        self.assertIs(exile.verb, Verb.MOVE_ZONE)
+        self.assertEqual(
+            _pairs(exile)["destination"], Zone(ZoneKind.EXILE, ControllerRef.OWNER)
+        )
         target = _pairs(exile)["target"]
         self.assertIs(target.mode, SelectorMode.TARGET)
         self.assertEqual(target.count, QConst(3))
@@ -1476,7 +1494,11 @@ class TestB5cIrStructure(unittest.TestCase):
 
     def test_bullet_exile_graveyard(self) -> None:
         atom = _as_atom(_as_effect(_match_outcome("B5c-bullet-exile-graveyard")).effect)
-        self.assertIs(atom.verb, Verb.EXILE)
+        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
+        self.assertIs(atom.verb, Verb.MOVE_ZONE)
+        self.assertEqual(
+            _pairs(atom)["destination"], Zone(ZoneKind.EXILE, ControllerRef.OWNER)
+        )
         self.assertIs(_pairs(atom)["target"].zone.kind, ZoneKind.GRAVEYARD)
 
     def test_bullet_return_nonland_hand(self) -> None:

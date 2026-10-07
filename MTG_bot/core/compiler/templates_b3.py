@@ -536,8 +536,13 @@ def _build_exile_target_graveyard(m: re.Match[str]) -> AbilityOutcome:
     cost = _parse_cost(m)
     sel = _sel_target_card_from_graveyard()
     effect = Atom(
-        verb=Verb.EXILE,
-        args=AtomArgs(pairs=(("target", sel),)),
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                ("target", sel),
+            )
+        ),
     )
     return _build_activated(cost, effect)
 
@@ -620,9 +625,11 @@ def _build_seq_draw_discard(m: re.Match[str]) -> AbilityOutcome:
         ),
     )
     discard = Atom(
-        verb=Verb.DISCARD,
+        verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
+                ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+                ("from", Zone(ZoneKind.HAND, ControllerRef.YOU)),
                 ("controller", ControllerRef.YOU),
                 ("cards", _sel_cards_in_your_hand()),
             )

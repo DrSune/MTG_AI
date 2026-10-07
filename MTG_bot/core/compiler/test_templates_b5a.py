@@ -1049,7 +1049,7 @@ class TestStructuralAssertions(unittest.TestCase):
             self.assertEqual(target.zone.kind, ZoneKind.BATTLEFIELD, f"{tid}")
 
     def test_exile_family(self) -> None:
-        """B5a-exile-*: EXILE verb, TARGET selector."""
+        """B5a-exile-*: merged MOVE_ZONE verb (T4 P1a), TARGET selector."""
         exile_tids = [
             "B5a-exile-creature",
             "B5a-exile-cw-pw",
@@ -1060,8 +1060,13 @@ class TestStructuralAssertions(unittest.TestCase):
             outcome = self._match_outcome(tid)
             eff = _as_effect(outcome)
             atom = _as_atom(eff.effect)
-            self.assertEqual(atom.verb, Verb.EXILE, f"{tid}")
+            self.assertEqual(atom.verb, Verb.MOVE_ZONE, f"{tid}")
             p = _pairs_dict(atom)
+            self.assertEqual(
+                p["destination"],
+                Zone(ZoneKind.EXILE, ControllerRef.OWNER),
+                f"{tid}",
+            )
             target = p["target"]
             self.assertIsInstance(target, Selector, f"{tid}")
             self.assertEqual(target.mode, SelectorMode.TARGET, f"{tid}")
@@ -1115,7 +1120,16 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(draw_atom.verb, Verb.DRAW)
         self.assertEqual(_pairs_dict(draw_atom)["amount"], QConst(3))
         discard_atom = _as_atom(discard)
-        self.assertEqual(discard_atom.verb, Verb.DISCARD)
+        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
+        self.assertEqual(discard_atom.verb, Verb.MOVE_ZONE)
+        self.assertEqual(
+            _pairs_dict(discard_atom)["destination"],
+            Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+        )
+        self.assertEqual(
+            _pairs_dict(discard_atom)["from"],
+            Zone(ZoneKind.HAND, ControllerRef.YOU),
+        )
 
     def test_draw_frantic_inventory(self) -> None:
         """B5a-draw-frantic-inventory: Seq(DRAW 1, DRAW QCount)."""
@@ -1688,13 +1702,18 @@ class TestRound7Structures(unittest.TestCase):
         return matches[0].outcome
 
     def test_exile_that_until_leaves(self) -> None:
-        """EXILE on the result referent; the until-leaves window is the
-        documented lossy drop (no EXILE duration role)."""
+        """Merged MOVE_ZONE (exile shape) on the result referent; the
+        until-leaves window is the documented lossy drop (no move duration
+        role)."""
         outcome = self._match_one(
             "Exile that card until this creature leaves the battlefield."
         )
         atom = _as_atom(_as_effect(outcome).effect)
-        self.assertIs(atom.verb, Verb.EXILE)
+        self.assertIs(atom.verb, Verb.MOVE_ZONE)
+        self.assertEqual(
+            _pairs_dict(atom)["destination"],
+            Zone(ZoneKind.EXILE, ControllerRef.OWNER),
+        )
         target = _pairs_dict(atom)["target"]
         self.assertEqual(target.referent, "result")
         self.assertIs(target.mode, SelectorMode.CHOOSE)

@@ -305,10 +305,12 @@ class TestBadDeal(unittest.TestCase):
         inner = golden("Bad Deal")["abilities"][0]["effect"]["steps"]
         seq_inner = [from_dict("Atom", s) for s in inner[0]["steps"]]
         lose_life = from_dict("Atom", inner[1])
-        self.assertEqual([a.verb.name for a in seq_inner], ["DRAW", "DISCARD"])
+        # T4 P1a: the golden's discard row is the merged MOVE_ZONE atom
+        # (destination=GY, from=HAND) — same behavior, merged shape.
+        self.assertEqual([a.verb.name for a in seq_inner], ["DRAW", "MOVE_ZONE"])
         fire = lambda n: self.ex.execute(n, source=self.p0, controller=self.p0)
         fire(seq_inner[0])  # DRAW 2 (YOU = p0)
-        fire(seq_inner[1])  # DISCARD 2 (CHOOSE ANY hand -> stand-in)
+        fire(seq_inner[1])  # discard-shape MOVE 2 (CHOOSE ANY hand -> stand-in)
         fire(lose_life)  # LOSE_LIFE 2 (ANY)
         self.assertEqual(self.zone(self.p0, ZONE_HAND), [self.libs[3], self.libs[2]])
         self.assertEqual(self.zone(self.p1, ZONE_HAND), [])
@@ -727,7 +729,10 @@ class TestCapabilitySurface(unittest.TestCase):
         self.assertEqual(SUPPORTED_VERBS_V2 - SUPPORTED_VERBS_V1, new)
         self.assertNotIn(Verb.DRAW, SUPPORTED_VERBS_V1)  # the round-12 freeze
         self.assertEqual(len(SUPPORTED_VERBS_V1), 24)
-        self.assertEqual(len(SUPPORTED_VERBS_V2), 46)
+        # T4 P1a: 46 -> 43 — EXILE/DISCARD/MILL moved off the live HANDLERS
+        # set onto the merged MOVE_ZONE dispatch (enum members kept for
+        # legacy decode only).
+        self.assertEqual(len(SUPPORTED_VERBS_V2), 43)
 
     def test_turn_ledger_fields_in_state_fingerprint(self):
         reset_oracle_ids()

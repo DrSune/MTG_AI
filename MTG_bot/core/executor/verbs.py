@@ -95,10 +95,19 @@ _COLORS_VOCAB = ("W", "U", "B", "R", "G", "C")
 # ------------------------------------------------------------------- handlers
 
 
-def _move_to(ctx: ExecCtx, card: Handle, player: Handle, kind: str) -> None:
+def _move_to(
+    ctx: ExecCtx,
+    card: Handle,
+    player: Handle,
+    kind: str,
+    journal_kind: str = "MOVE",
+) -> None:
+    # journal_kind (T4 P1a A2 ii): the literal event-kind column of the
+    # raw journalled row is a SLOT of the merged MOVE atom, never derived
+    # from the verb — the milled shape still writes "MILL" bytes.
     src = ctx.world.zone_of(card)
     ctx.world.move_to_zone(card, player, kind)
-    ctx.events.append((len(ctx.events), "MOVE", str(card), f"{src.kind}->{kind}"))
+    ctx.events.append((len(ctx.events), journal_kind, str(card), f"{src.kind}->{kind}"))
 
 
 def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
@@ -109,12 +118,112 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         raise NotImplementedError(
             f"executor: MOVE_ZONE to {dest_ir.kind.name} is not a card zone (12b/12c)"
         )
+    # T4 P1a (2026-10-07): the ONE move atom. MILL/DISCARD/EXILE compile
+    # onto MOVE_ZONE with orthogonal slots — {from} states the departure
+    # zone, {journal_kind} the raw-row kind (A2 ii), {pop_order} the
+    # library pop (A2 iii), {target} the designation lane (A2 iv). The
+    # three shape-branches below are the predecessor handlers' bodies
+    # verbatim, so every journalled byte and register write is exactly
+    # what the separate verbs produced (test_executor_p1a_move locks it).
+    journal_kind = str(atom.args.get("journal_kind") or "MOVE")
+    frm = atom.args.get("from")
+    if atom.args.get("pop_order") == "TOP":
+        # The mill shape (old _v_mill, verbatim): pop TOP of the named
+        # library — an EXPLICIT order, never a selector resolution —
+        # into the destination. The raw row keeps the literal "MILL"
+        # because the kind rides in from the slot (A2 ii).
+        if not isinstance(frm, Zone) or frm.kind is not ZoneKind.LIBRARY:
+            raise ValueError("executor: MOVE pop_order=TOP needs from=LIBRARY")
+        player = role_player(ctx, atom)
+        n = amount(ctx, atom, "amount")
+        lib = ctx.world.players[player].zone(ZONE_LIBRARY)
+        dest_zone = ctx.world.players[player].zone(dest_kind)
+        for _ in range(min(n, len(lib.entries))):
+            card = lib.entries.pop()  # top of library, zone order
+            dest_zone.entries.append(card)
+            ctx.events.append(
+                (
+                    len(ctx.events),
+                    journal_kind,
+                    str(card),
+                    f"{ZONE_LIBRARY}->{dest_kind}",
+                )
+            )
+        return
+    if isinstance(frm, Zone) and frm.kind is ZoneKind.HAND:
+        # The discard shape (old _v_discard, verbatim — B-18 live-hand
+        # re-read, C17 clamp, not-in-hand raise, A2(i) moved-set register).
+        player = role_player(ctx, atom)
+        cards = ctx.binding_handles("cards")
+        if cards is None:
+            sel = atom.args.get("cards")
+            if not isinstance(sel, Selector):
+                raise ValueError("executor: MOVE_ZONE cards role has no binding")
+            if (
+                sel.referent is not None
+                or sel.mode is SelectorMode.TARGET
+                or sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST)
+            ):
+                # designation / anaphora / partition paths all self-resolve
+                # (the 13b 'result' register, the B-15 designation, the
+                # B-13 channel ask) — the hand scoping below is only for
+                # the raw engine-side CHOOSE/RANDOM/ALL stand-ins.
+                cards = resolve_selector(
+                    sel,
+                    ctx,
+                    journal_partition=sel.mode
+                    in (SelectorMode.ONE_OF, SelectorMode.REST),
+                )
+            else:
+                # 14c (B-18): CR 701.8a — a discard moves cards from the
+                # ACTOR'S OWN hand, so the selection pool is the actor's
+                # LIVE hand re-read at take time, filtered through the
+                # Selector (Bad Deal: the discarding player lives in the
+                # controller role; the raw Selector population spans both
+                # hands). C17 clamp: fewer cards than the ceiling simply
+                # discards fewer.
+                live = list(ctx.world.players[player].zone(ZONE_HAND).entries)
+                pool = sorted(h for h in live if eval_filter(sel.filter, h, ctx))
+                if sel.mode is SelectorMode.RANDOM:
+                    rng = ctx.rng("RANDOM")
+                    rng.shuffle(pool)  # seeded: replay-identical
+                cards = (
+                    pool
+                    if isinstance(sel.count, QUnbounded)
+                    else pool[: resolve(sel.count, ctx)]
+                )
+        hand = ctx.world.players[player].zone(ZONE_HAND).entries
+        moved: list = []
+        for card in sorted(cards):
+            if card not in hand:
+                raise ValueError(
+                    f"executor: MOVE_ZONE discard card {card} is not in {player}'s hand"
+                )
+            _move_to(ctx, card, player, dest_kind, journal_kind)
+            moved.append(card)
+        # 18b (R7 THAT_MANY_COUNT pairing): the DISCARDED SET is the
+        # register — written even when empty (0 honestly, not a missing
+        # question). A2(i): kept across the merge.
+        ctx.bindings["result"] = moved
+        return
     tapped_on_enter = bool(atom.args.get("tapped_on_enter"))
     cards = ctx.binding_handles("cards")
     if cards is None:
-        # The draw idiom: "move the top n of the library to hand" with no
-        # designated cards — n comes from the selector's count.
         sel = atom.args.get("cards")
+        if sel is None:
+            # A2(iv): the designation lane (old _v_exile verbatim) — the
+            # objects ride `target`, NOT cards, so the r19c spell-
+            # designation shadowing still finds the key; the result
+            # register is written NOTHING (exile wrote none pre-merge).
+            for card in role_handles(ctx, atom, "target"):
+                _move_to(
+                    ctx,
+                    card,
+                    ctx.world.controller_of(card),
+                    dest_kind,
+                    journal_kind,
+                )
+            return
         if not isinstance(sel, Selector):
             raise ValueError("executor: MOVE_ZONE cards role has no binding")
         n = 0 if isinstance(sel.count, QUnbounded) else resolve(sel.count, ctx)
@@ -216,83 +325,9 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
     ctx.bindings["result"] = list(cards)
 
 
-def _v_exile(ctx: ExecCtx, atom: Atom) -> None:
-    for card in role_handles(ctx, atom, "target"):
-        _move_to(ctx, card, ctx.world.controller_of(card), ZONE_EXILE)
-
-
 def _to_graveyard(ctx: ExecCtx, atom: Atom) -> None:
     for card in role_handles(ctx, atom, "target"):
         _move_to(ctx, card, ctx.world.controller_of(card), ZONE_GRAVEYARD)
-
-
-def _v_discard(ctx: ExecCtx, atom: Atom) -> None:
-    player = role_player(ctx, atom)
-    cards = ctx.binding_handles("cards")
-    if cards is None:
-        sel = atom.args.get("cards")
-        if not isinstance(sel, Selector):
-            raise ValueError("executor: DISCARD cards role has no binding")
-        if (
-            sel.referent is not None
-            or sel.mode is SelectorMode.TARGET
-            or sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST)
-        ):
-            # designation / anaphora / partition paths all self-resolve
-            # (the 13b 'result' register, the B-15 designation, the B-13
-            # channel ask) — the hand scoping below is only for the raw
-            # engine-side CHOOSE/RANDOM/ALL stand-ins.
-            cards = resolve_selector(
-                sel,
-                ctx,
-                journal_partition=sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST),
-            )
-        else:
-            # 14c (B-18): CR 701.8a — a discard moves cards from the
-            # ACTOR'S OWN hand, so the selection pool is the actor's LIVE
-            # hand re-read at take time, filtered through the Selector.
-            # Bad Deal's compiled zone is Zone(HAND, ANY) (the documented
-            # card-level divergence: the discarding player lives in the
-            # ``controller`` role) and the raw Selector population spans
-            # both hands — the Handle-sorted CHOOSE/RANDOM stand-ins were
-            # picking the OTHER player's cards, and the not-in-hand raise
-            # ended the game. C17 clamp: fewer cards than the ceiling in
-            # hand simply discards fewer.
-            live = list(ctx.world.players[player].zone(ZONE_HAND).entries)
-            pool = sorted(h for h in live if eval_filter(sel.filter, h, ctx))
-            if sel.mode is SelectorMode.RANDOM:
-                rng = ctx.rng("RANDOM")
-                rng.shuffle(pool)  # seeded: replay-identical
-            cards = (
-                pool
-                if isinstance(sel.count, QUnbounded)
-                else pool[: resolve(sel.count, ctx)]
-            )
-    hand = ctx.world.players[player].zone(ZONE_HAND).entries
-    moved: list = []
-    for card in sorted(cards):
-        if card not in hand:
-            raise ValueError(f"executor: DISCARD card {card} is not in {player}'s hand")
-        _move_to(ctx, card, player, ZONE_GRAVEYARD)
-        moved.append(card)
-    # 18b (R7 THAT_MANY_COUNT pairing): the DISCARDED SET is the register —
-    # "you may discard up to two cards, then draw that many" (Kinetic
-    # Augur). 14e B-9's ruling: the action's object is the honest antecedent,
-    # and DISCARD was the one object-action verb not writing it. Written
-    # even when empty (discarding nothing from an empty hand IS the answer
-    # the continuation counts — 0, honestly, not a missing question).
-    ctx.bindings["result"] = moved
-
-
-def _v_mill(ctx: ExecCtx, atom: Atom) -> None:
-    player = role_player(ctx, atom)
-    n = amount(ctx, atom, "amount")
-    lib = ctx.world.players[player].zone(ZONE_LIBRARY)
-    gy = ctx.world.players[player].zone(ZONE_GRAVEYARD)
-    for _ in range(min(n, len(lib.entries))):
-        card = lib.entries.pop()  # top of library, zone order
-        gy.entries.append(card)
-        ctx.events.append((len(ctx.events), "MILL", str(card), "library->graveyard"))
 
 
 def _v_gain_life(ctx: ExecCtx, atom: Atom) -> None:
@@ -1890,11 +1925,8 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
 
 HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.MOVE_ZONE: _v_move_zone,
-    Verb.EXILE: _v_exile,
     Verb.SACRIFICE: _to_graveyard,
     Verb.DESTROY: _to_graveyard,
-    Verb.DISCARD: _v_discard,
-    Verb.MILL: _v_mill,
     Verb.GAIN_LIFE: _v_gain_life,
     Verb.LOSE_LIFE: _v_lose_life,
     Verb.DEAL_DAMAGE: _v_deal_damage,

@@ -187,7 +187,18 @@ def gain(n, who=ControllerRef.YOU) -> Atom:
 
 
 def mill_one() -> Atom:
-    return atom(Verb.MILL, controller=ControllerRef.YOU, amount=QConst(1))
+    # T4 P1a: the mill shape is the merged MOVE_ZONE atom.
+    return atom(
+        Verb.MOVE_ZONE,
+        controller=ControllerRef.YOU,
+        amount=QConst(1),
+        **{
+            "destination": Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+            "from": LIB_YOU,
+            "journal_kind": "MILL",
+            "pop_order": "TOP",
+        },
+    )
 
 
 def draw_one() -> Atom:
@@ -271,7 +282,11 @@ class TestAttachment(BindingCase):
         self.assertEqual(self.life(self.p0), 21)
         # Leave to exile and come back: the re-register fires it again.
         self.ex.execute(
-            atom(Verb.EXILE, target=all_bf()),
+            atom(
+                Verb.MOVE_ZONE,
+                target=all_bf(),
+                destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
+            ),
             source=self.watch,
             controller=self.p0,
             bindings={"target": visitor},
@@ -282,7 +297,11 @@ class TestAttachment(BindingCase):
         self.assertEqual(self.life(self.p0), 22)
         # Watchdog leaves: detached. The visitor's next entry is silent.
         self.ex.execute(
-            atom(Verb.EXILE, target=all_bf()),
+            atom(
+                Verb.MOVE_ZONE,
+                target=all_bf(),
+                destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
+            ),
             source=visitor,
             controller=self.p0,
             bindings={"target": self.watch},

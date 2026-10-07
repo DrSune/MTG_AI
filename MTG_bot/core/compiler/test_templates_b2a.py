@@ -1246,7 +1246,11 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(condition.counter_kind, CounterKind.PAGE)
         self.assertEqual(condition.count, QConst(4))
         atom = _atom(ability)
-        self.assertIs(atom.verb, Verb.EXILE)
+        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
+        self.assertIs(atom.verb, Verb.MOVE_ZONE)
+        self.assertEqual(
+            atom.args.get("destination"), Zone(ZoneKind.EXILE, ControllerRef.OWNER)
+        )
         self.assertEqual(
             _selector(atom, "target").filter, FAtom(pred=FAtomPred.IS_SOURCE)
         )
@@ -1476,9 +1480,19 @@ class TestB2aEffectStructure(unittest.TestCase):
             _single_match(self.reg, "When this creature enters, mill four cards.")
         )
         atom = _atom(ability)
-        self.assertIs(atom.verb, Verb.MILL)
+        # T4 P1a: the mill shape is the merged MOVE_ZONE atom with the
+        # library-pop slots pinned (journal_kind keeps the raw MILL row).
+        self.assertIs(atom.verb, Verb.MOVE_ZONE)
         self.assertEqual(_qconst(atom, "amount"), QConst(4))
         self.assertIs(atom.args.get("controller"), ControllerRef.YOU)
+        self.assertEqual(
+            atom.args.get("destination"), Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)
+        )
+        self.assertEqual(
+            atom.args.get("from"), Zone(ZoneKind.LIBRARY, ControllerRef.YOU)
+        )
+        self.assertEqual(atom.args.get("journal_kind"), "MILL")
+        self.assertEqual(atom.args.get("pop_order"), "TOP")
 
     def test_basris_acolyte_put_counter_up_to_two_other(self) -> None:
         ability = _ability(
@@ -1572,7 +1586,15 @@ class TestB2aEffectStructure(unittest.TestCase):
         )
         discard = choose.options[1]
         assert isinstance(discard, Atom)
-        self.assertIs(discard.verb, Verb.DISCARD)
+        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
+        self.assertIs(discard.verb, Verb.MOVE_ZONE)
+        self.assertEqual(
+            discard.args.get("destination"),
+            Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+        )
+        self.assertEqual(
+            discard.args.get("from"), Zone(ZoneKind.HAND, ControllerRef.YOU)
+        )
         self.assertEqual(
             _selector(discard, "cards").zone, Zone(ZoneKind.HAND, ControllerRef.YOU)
         )
@@ -1601,7 +1623,12 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(draw.verb, Verb.DRAW)
         self.assertEqual(_qconst(draw, "amount"), QConst(2))
         discard = _atom_step(seq, 1)
-        self.assertIs(discard.verb, Verb.DISCARD)
+        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
+        self.assertIs(discard.verb, Verb.MOVE_ZONE)
+        self.assertEqual(
+            discard.args.get("destination"),
+            Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+        )
         self.assertEqual(
             _selector(discard, "cards").zone, Zone(ZoneKind.HAND, ControllerRef.YOU)
         )
@@ -1809,7 +1836,11 @@ class TestB2aEffectStructure(unittest.TestCase):
             )
         )
         atom = _atom(ability)
-        self.assertIs(atom.verb, Verb.EXILE)
+        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
+        self.assertIs(atom.verb, Verb.MOVE_ZONE)
+        self.assertEqual(
+            atom.args.get("destination"), Zone(ZoneKind.EXILE, ControllerRef.OWNER)
+        )
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.CHOOSE)
         self.assertEqual(target.count, QConst(1))
@@ -1948,7 +1979,11 @@ class TestB2aEffectStructure(unittest.TestCase):
             )
         )
         atom = _atom(ability)
-        self.assertIs(atom.verb, Verb.EXILE)
+        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
+        self.assertIs(atom.verb, Verb.MOVE_ZONE)
+        self.assertEqual(
+            atom.args.get("destination"), Zone(ZoneKind.EXILE, ControllerRef.OWNER)
+        )
         target = _selector(atom, "target")
         assert isinstance(target.filter, FAtom)
         self.assertIs(target.filter.pred, FAtomPred.IS_SOURCE)
@@ -2007,7 +2042,12 @@ class TestB2aRound7Batch(unittest.TestCase):
         )
         seq = _seq(ability)
         discard = _atom_step(seq, 0)
-        self.assertIs(discard.verb, Verb.DISCARD)
+        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
+        self.assertIs(discard.verb, Verb.MOVE_ZONE)
+        self.assertEqual(
+            discard.args.get("destination"),
+            Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+        )
         cards = _selector(discard, "cards")
         # C15: "up to two" stays CHOOSE + QConst(2) — never TARGET.
         self.assertIs(cards.mode, SelectorMode.CHOOSE)
@@ -2029,7 +2069,11 @@ class TestB2aRound7Batch(unittest.TestCase):
             )
         )
         atom = _atom(ability)
-        self.assertIs(atom.verb, Verb.EXILE)
+        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
+        self.assertIs(atom.verb, Verb.MOVE_ZONE)
+        self.assertEqual(
+            atom.args.get("destination"), Zone(ZoneKind.EXILE, ControllerRef.OWNER)
+        )
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.ALL)
         self.assertIsInstance(target.count, QUnbounded)

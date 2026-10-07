@@ -881,12 +881,14 @@ class TestStructuralAssertions(unittest.TestCase):
     # -- Simple effect verbs --
 
     def test_cont_discard(self) -> None:
-        """B5b-cont-discard: DISCARD, YOU, 1 card from HAND."""
+        """B5b-cont-discard: merged MOVE_ZONE (T4 P1a), YOU, 1 from HAND."""
         outcome = self._match_outcome("B5b-cont-discard")
         eff = _as_effect(outcome)
         atom = _as_atom(eff.effect)
-        self.assertEqual(atom.verb, Verb.DISCARD)
+        self.assertEqual(atom.verb, Verb.MOVE_ZONE)
         p = _pairs_dict(atom)
+        self.assertEqual(p["destination"], Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU))
+        self.assertEqual(p["from"], Zone(ZoneKind.HAND, ControllerRef.YOU))
         self.assertEqual(p["controller"], ControllerRef.YOU)
         cards = p["cards"]
         self.assertIsInstance(cards, Selector)
@@ -1278,12 +1280,17 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertIn("FLYING", canon)
 
     def test_discard_target_2(self) -> None:
-        """B5b-discard-target-2: DISCARD, TARGET_PLAYER, 2 cards."""
+        """B5b-discard-target-2: merged MOVE_ZONE (T4 P1a), TARGET_PLAYER,
+        2 cards."""
         outcome = self._match_outcome("B5b-discard-target-2")
         eff = _as_effect(outcome)
         atom = _as_atom(eff.effect)
-        self.assertEqual(atom.verb, Verb.DISCARD)
+        self.assertEqual(atom.verb, Verb.MOVE_ZONE)
         p = _pairs_dict(atom)
+        self.assertEqual(
+            p["destination"], Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER)
+        )
+        self.assertEqual(p["from"], Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER))
         self.assertEqual(p["controller"], ControllerRef.TARGET_PLAYER)
         cards = p["cards"]
         self.assertIsInstance(cards, Selector)
@@ -1377,8 +1384,11 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(was_cast.pred, FAtomPred.WAS_CAST_THIS_TURN)
         self.assertEqual(was_cast.who, ControllerRef.ANY)
         atom = _as_atom(ab.action)
-        self.assertEqual(atom.verb, Verb.EXILE)
-        target = _pairs_dict(atom)["target"]
+        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
+        self.assertEqual(atom.verb, Verb.MOVE_ZONE)
+        p = _pairs_dict(atom)
+        self.assertEqual(p["destination"], Zone(ZoneKind.EXILE, ControllerRef.OWNER))
+        target = p["target"]
         assert isinstance(target, Selector)
         self.assertEqual(target.referent, "event")
 
@@ -1457,8 +1467,11 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(flt.pred, FAtomPred.IS_ANY_TARGET)
         self.assertIsNone(ab.condition)
         atom = _as_atom(ab.action)
-        self.assertEqual(atom.verb, Verb.EXILE)
-        target = _pairs_dict(atom)["target"]
+        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
+        self.assertEqual(atom.verb, Verb.MOVE_ZONE)
+        p = _pairs_dict(atom)
+        self.assertEqual(p["destination"], Zone(ZoneKind.EXILE, ControllerRef.OWNER))
+        target = p["target"]
         assert isinstance(target, Selector)
         self.assertEqual(target.referent, "event")
 
@@ -1478,8 +1491,11 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(subject.pred, FAtomPred.IS_ANY_TARGET)
         self.assertIsNone(ab.condition)
         atom = _as_atom(ab.action)
-        self.assertEqual(atom.verb, Verb.EXILE)
-        target = _pairs_dict(atom)["target"]
+        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
+        self.assertEqual(atom.verb, Verb.MOVE_ZONE)
+        p = _pairs_dict(atom)
+        self.assertEqual(p["destination"], Zone(ZoneKind.EXILE, ControllerRef.OWNER))
+        target = p["target"]
         assert isinstance(target, Selector)
         self.assertEqual(target.referent, "event")
 
@@ -1932,8 +1948,13 @@ class TestRound7AnaphoraBatch(unittest.TestCase):
         outcome = self._match_one("That player discards that card.")
         atom = _as_atom(_as_effect(outcome).effect)
         p = _pairs_dict(atom)
-        self.assertEqual(atom.verb, Verb.DISCARD)
+        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
+        self.assertEqual(atom.verb, Verb.MOVE_ZONE)
         self.assertEqual(p["controller"], ControllerRef.TARGET_PLAYER)
+        self.assertEqual(
+            p["destination"], Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER)
+        )
+        self.assertEqual(p["from"], Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER))
         self.assertEqual(p["cards"].referent, "result")
 
     def test_if_it_creature_conditional(self) -> None:
@@ -1982,8 +2003,11 @@ class TestRound7AnaphoraBatch(unittest.TestCase):
         self.assertIs(sel.filter.pred, FAtomPred.NAME_CHOSEN)
         self.assertEqual(len(sel.zones), 2)
         exile = _as_atom(seq.steps[1])
-        self.assertEqual(exile.verb, Verb.EXILE)
-        self.assertEqual(_pairs_dict(exile)["target"].referent, "result")
+        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
+        self.assertEqual(exile.verb, Verb.MOVE_ZONE)
+        p2 = _pairs_dict(exile)
+        self.assertEqual(p2["destination"], Zone(ZoneKind.EXILE, ControllerRef.OWNER))
+        self.assertEqual(p2["target"].referent, "result")
 
     def test_token_per_exiled_this_way(self) -> None:
         outcome = self._match_one(

@@ -92,9 +92,11 @@ def _bf_target() -> Selector:
 
 def _event_exile() -> Atom:
     """The Containment Priest action shape straight from the golden:
-    EXILE with the CHOOSE selector's ``referent="event"`` anaphora."""
+    the merged MOVE_ZONE designation lane (T4 P1a) with the CHOOSE
+    selector's ``referent="event"`` anaphora on ``target``."""
     return atom(
-        Verb.EXILE,
+        Verb.MOVE_ZONE,
+        destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
         target=Selector(
             QConst(1),
             SelectorMode.CHOOSE,

@@ -167,6 +167,16 @@ _MANA_POLICY_SCOPES = ("THIS_MANA", "ALL_YOURS")
 # all scope vocabularies; the per-verb vocabulary is enforced on the
 # enclosing Atom (_SCOPE_VOCAB_BY_VERB).
 _DAMAGE_ASSIGN_SCOPES = ("AS_UNBLOCKED",)
+# _MOVE_JOURNAL_KINDS / _MOVE_POP_ORDERS (T4 P1a, 2026-10-07): the closed
+# string vocabularies of the merged MOVE atom's two new string slots —
+# journal_kind (A2 ii: the literal journalled event kind, "MILL" for the
+# milled shape, "MOVE" default for every other) and pop_order (A2 iii:
+# mill's TOP-of-library pop, pinned EXPLICITLY so the merged atom never
+# falls onto a selector-order resolution). AtomArgs vocab-checks both,
+# same precedent as "color"/"scope"; no cross-verb ambiguity, so the
+# union check is complete at AtomArgs level.
+_MOVE_JOURNAL_KINDS = ("MOVE", "MILL")
+_MOVE_POP_ORDERS = ("TOP",)
 
 
 # ---- Closed vocabularies (enums) ----
@@ -175,8 +185,16 @@ _DAMAGE_ASSIGN_SCOPES = ("AS_UNBLOCKED",)
 class Verb(Enum):
     """The closed verb vocabulary (DESIGN_CARD_POOL step 1: ~60 verbs).
 
-    39 members covering the M21 pool; orphans are measured (PC-6) and pruned
-    later. Each docstring cites the pool card(s) that need it.
+    49 members covering the M21 pool; orphans are measured (PC-6) and pruned
+    later. Each docstring cites the pool card(s) that need it. Every member
+    carries an instance CLASS in ``VERB_CLASS`` (T4 §1 partition, below).
+
+    T4 P1a (2026-10-07): the MILL/DISCARD/EXILE shapes COMPILE to the one
+    merged MOVE_ZONE atom (docs/T4_SPEC.md §9 — destination + optional
+    from/journal_kind/pop_order slots); their members stay in the enum for
+    legacy decode of pre-merge serialisations and the CLASS partition of
+    all 49, but the compiler and the executor table no longer emit or
+    dispatch them.
     """
 
     DEAL_DAMAGE = "DEAL_DAMAGE"  # Brash Taunter (deals that much damage to target player or creature)
@@ -282,6 +300,79 @@ class Verb(Enum):
     # holds OptionalEffect(Atom(DAMAGE_ASSIGN_POLICY, ...))). Executor
     # deferred per the MANA_POLICY / ADD_LAND_PLAY orphan precedent.
     DAMAGE_ASSIGN_POLICY = "DAMAGE_ASSIGN_POLICY"
+
+
+class VerbClass(Enum):
+    """T4 §1: the instance CLASS of a Verb — its payload ROLE, not where a
+    decision happens (§9: the {menu}/{count} axes are the shared PICK
+    wrapper, so selection never belongs to the verb itself)."""
+
+    OPERATION = "OPERATION"  # the atom IS a decision/observation operation
+    POLICY = "POLICY"  # standing legality/timing/replacement constraint
+    EFFECT = "EFFECT"  # an immediate state delta
+
+
+# The CLASS partition of the FULL Verb enum (test_ability_tree asserts it
+# covers every member exactly once). Rulings are the spec's, 2026-10-07:
+# MANDATE_ATTACK/BLOCK are POLICY (combat-declaration legality — §11: the
+# restricting card's own component); CAST/FLIP_COIN/FIGHT/TAP/UNTAP/
+# SACRIFICE/DISCARD are EFFECTs whose menus live in the shared PICK/
+# designate wrapper; DISCARD/MILL/EXILE keep their EFFECT class as the
+# merged MOVE's legacy twins (P1a: unemitted members, same class).
+VERB_CLASS: dict[Verb, VerbClass] = {
+    # OPERATION (6)
+    Verb.CHOOSE: VerbClass.OPERATION,
+    Verb.CHOOSE_NAME: VerbClass.OPERATION,
+    Verb.SCRY: VerbClass.OPERATION,
+    Verb.SEARCH: VerbClass.OPERATION,
+    Verb.LOOK_AT: VerbClass.OPERATION,
+    Verb.PAY: VerbClass.OPERATION,
+    # POLICY (7)
+    Verb.MANA_POLICY: VerbClass.POLICY,
+    Verb.DAMAGE_ASSIGN_POLICY: VerbClass.POLICY,
+    Verb.GRANT_ACTIVATION: VerbClass.POLICY,
+    Verb.PREVENT_EFFECT: VerbClass.POLICY,
+    Verb.ADD_LAND_PLAY: VerbClass.POLICY,
+    Verb.MANDATE_ATTACK: VerbClass.POLICY,
+    Verb.MANDATE_BLOCK: VerbClass.POLICY,
+    # EFFECT (36)
+    Verb.DEAL_DAMAGE: VerbClass.EFFECT,
+    Verb.DESTROY: VerbClass.EFFECT,
+    Verb.EXILE: VerbClass.EFFECT,
+    Verb.DRAW: VerbClass.EFFECT,
+    Verb.MILL: VerbClass.EFFECT,
+    Verb.GAIN_LIFE: VerbClass.EFFECT,
+    Verb.LOSE_LIFE: VerbClass.EFFECT,
+    Verb.ADD_MANA: VerbClass.EFFECT,
+    Verb.CREATE_TOKEN: VerbClass.EFFECT,
+    Verb.PUT_COUNTER: VerbClass.EFFECT,
+    Verb.REMOVE_COUNTER: VerbClass.EFFECT,
+    Verb.MODIFY_PT: VerbClass.EFFECT,
+    Verb.SET_PT: VerbClass.EFFECT,
+    Verb.GRANT_ABILITY: VerbClass.EFFECT,
+    Verb.GRANT_TYPE: VerbClass.EFFECT,
+    Verb.TAP: VerbClass.EFFECT,
+    Verb.UNTAP: VerbClass.EFFECT,
+    Verb.MOVE_ZONE: VerbClass.EFFECT,
+    Verb.SHUFFLE: VerbClass.EFFECT,
+    Verb.COUNTER_SPELL: VerbClass.EFFECT,
+    Verb.COPY: VerbClass.EFFECT,
+    Verb.SACRIFICE: VerbClass.EFFECT,
+    Verb.DISCARD: VerbClass.EFFECT,
+    Verb.REVEAL: VerbClass.EFFECT,
+    Verb.ATTACH: VerbClass.EFFECT,
+    Verb.GAIN_CONTROL: VerbClass.EFFECT,
+    Verb.PHASE_IN: VerbClass.EFFECT,
+    Verb.PHASE_OUT: VerbClass.EFFECT,
+    Verb.EXTRA_TURN: VerbClass.EFFECT,
+    Verb.END_TURN: VerbClass.EFFECT,
+    Verb.LOSE_GAME: VerbClass.EFFECT,
+    Verb.FLIP_COIN: VerbClass.EFFECT,
+    Verb.CAST: VerbClass.EFFECT,
+    Verb.FIGHT: VerbClass.EFFECT,
+    Verb.LOSE_ABILITY: VerbClass.EFFECT,
+    Verb.GET_EMBLEM: VerbClass.EFFECT,
+}
 
 
 class SelectorMode(Enum):
@@ -2303,6 +2394,31 @@ class AtomArgs:
                     f"{(*_MANA_POLICY_SCOPES, *_DAMAGE_ASSIGN_SCOPES)}, "
                     f"got {value!r}"
                 )
+            # T4 P1a: the merged MOVE's closed string slots — single-verb
+            # vocabularies, so the AtomArgs-level union check is already
+            # exact (no _SCOPE_VOCAB_BY_VERB twin needed).
+            if role == "journal_kind" and value not in _MOVE_JOURNAL_KINDS:
+                raise ValueError(
+                    f"AtomArgs: role 'journal_kind' must be one of "
+                    f"{_MOVE_JOURNAL_KINDS}, got {value!r}"
+                )
+            if role == "pop_order" and value not in _MOVE_POP_ORDERS:
+                raise ValueError(
+                    f"AtomArgs: role 'pop_order' must be one of "
+                    f"{_MOVE_POP_ORDERS}, got {value!r}"
+                )
+        # P1a review follow-up (fresh-eyes MINOR): the mill lane is defined by
+        # TOP-pop; a journal_kind="MILL" site that forgets pop_order would
+        # silently fall through to the generic MOVE lane (wrong bookkeeping).
+        _jk = next((v for r, v in self.pairs if r == "journal_kind"), None)
+        if _jk == "MILL":
+            _po = next((v for r, v in self.pairs if r == "pop_order"), None)
+            if _po != "TOP":
+                raise ValueError(
+                    "AtomArgs: journal_kind 'MILL' requires pop_order 'TOP' "
+                    "(mill is top-of-library by rule CR 701.4a; omitting "
+                    "pop_order would silently take the generic MOVE lane)"
+                )
         object.__setattr__(self, "pairs", tuple(sorted(self.pairs, key=lambda p: p[0])))
 
     def get(self, role: str) -> object | None:
@@ -2343,6 +2459,18 @@ class Atom:
         ):
             raise ValueError(
                 f"Atom: {self.verb.name} needs at least one of power/toughness"
+            )
+        # T4 P1a: the merged MOVE carries its objects on exactly one of
+        # the three predecessor axes — an atom with none would be a
+        # move of nothing (grammar round 6's at-least-one precedent).
+        if self.verb is Verb.MOVE_ZONE and not roles.keys() & {
+            "cards",
+            "target",
+            "amount",
+        }:
+            raise ValueError(
+                f"Atom: {self.verb.name} needs one of the cards/target/"
+                "amount object axes"
             )
         # R10-4: per-verb scope vocabulary (AtomArgs validates the union
         # only; a cross-verb scope like MANA_POLICY/AS_UNBLOCKED is caught
@@ -3294,6 +3422,19 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     # role — which ActivationWindow the extra activation joins (Teferi,
     # Master of Time's +2: "until end of turn" = the sorcery window).
     "window": (ActivationWindow,),
+    # T4 P1a (2026-10-07), the merged MOVE atom's three new slots:
+    # "from" — the visible departure-zone axis (menu-visibility law §10:
+    # the mill/discard shapes ENCODE their source zone instead of leaning
+    # on the verb name; old MOVE_ZONE rows stay from-less = "wherever the
+    # objects are").
+    "from": (Zone,),
+    # "journal_kind" — A2(ii): the literal journalled event kind carried
+    # as a SLOT so the merge moves no journal bytes ("MILL", else the
+    # "MOVE" default); closed vocabulary _MOVE_JOURNAL_KINDS below.
+    "journal_kind": (str,),
+    # "pop_order" — A2(iii): mill's top-of-library pop, pinned explicitly
+    # (never a selector-order resolution); "TOP" only.
+    "pop_order": (str,),
 }
 
 # Verb -> {role: required?}. MODIFY_PT and SET_PT additionally require at
@@ -3354,9 +3495,25 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     # MOVE_ZONE / SEARCH: the optional `tapped_on_enter` bool role marks the
     # entered state ("put that card onto the battlefield tapped"); the
     # value is wrapped in a "Bool" tag inside the pairs (T3 round 2, item 4).
+    # MOVE_ZONE — T4 P1a (2026-10-07): the ONE move atom. `destination`
+    # is the mandatory `to`; the object arrives on exactly one of three
+    # axes, one per predecessor shape: `cards` (selector/binding, old
+    # MOVE_ZONE), `target` (designation lane, old EXILE — role key kept
+    # per A2(iv) so spell designation shadowing still finds it), or
+    # `controller`+`amount` with `pop_order`="TOP" (old MILL's library
+    # pop, A2(iii)). `from` states the departure zone where the shape
+    # knows it (mill/discard); `journal_kind` carries A2(ii)'s literal
+    # journal row kind. Axes stay orthogonal (§9): operation × menu ×
+    # count × journal kind, no fused special-case verb.
     Verb.MOVE_ZONE: {
-        "cards": True,
         "destination": True,
+        "cards": False,
+        "target": False,
+        "controller": False,
+        "amount": False,
+        "from": False,
+        "journal_kind": False,
+        "pop_order": False,
         "tapped_on_enter": False,
     },
     Verb.SEARCH: {
