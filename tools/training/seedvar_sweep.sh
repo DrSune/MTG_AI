@@ -3,11 +3,16 @@
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 LOCK=/tmp/opencode/seedvar.lock
-if ! mkdir "$LOCK" 2>/dev/null; then
-  echo "seedvar: ANOTHER driver holds $LOCK — refusing to race. Exit 9."
-  exit 9
-fi
-trap 'rmdir "$LOCK" 2>/dev/null' EXIT
+for _try in 1 2; do
+  if mkdir "$LOCK" 2>/dev/null; then break; fi
+  oldpid=$(cat "$LOCK/pid" 2>/dev/null || echo)
+  if [ -n "$oldpid" ] && ! kill -0 "$oldpid" 2>/dev/null; then
+    echo "seedvar: reclaiming STALE lock (pid $oldpid dead)"; command rm -rf "$LOCK"; continue
+  fi
+  echo "seedvar: live driver holds $LOCK (pid $oldpid) — refusing to race. Exit 9."; exit 9
+done
+echo $$ > "$LOCK/pid"
+trap 'command rm -rf "$LOCK" 2>/dev/null' EXIT
 PY=(.venv/bin/python -m)
 RUN=(.venv/bin/python tools/training/run_train.py)
 for spec in "S0 2" "S0 3" "S4 2" "S4 3"; do

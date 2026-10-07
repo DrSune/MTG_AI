@@ -1006,3 +1006,5 @@
 
 - driver flock law (2026-10-07 wasted engine cycle): flock cannot lock DIRECTORIES (ENOTDIR) -> a mkdir-dir + flock guard always exits; use the proven pattern: the mkdir ITSELF is the guard + trap rmdir on EXIT (batch5_sweep.sh lines 21-26). Also: run_full_memory spent a full engine stop/restore cycle on a 0.16s no-op driver exit — wrapper trusts the command; keep drivers pre-validated (bash -n + immediate dry path).
 - watchdog budget scales with engine state (2026-10-07): a 35M run is ~300 s engine-off but >2400 s with the engine up (KV contention) — never reuse an engine-off timeout for an engine-on batch; and never TERM-kill run_train parents expecting children to die (they survive; kill the trainer pid, verify with pgrep).
+
+- stale-lock law (2026-10-08, three silent no-op launches cost two engine cycles): a mkdir-dir lock squatted by a SIGPIPE-killed orphan (no EXIT trap ran) makes every later launch exit silently. Guard MUST self-heal: record pid inside the lock dir, reclaim when pid is dead. Never diagnose again by hand — the log line names the holder now.
