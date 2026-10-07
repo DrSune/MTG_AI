@@ -181,5 +181,5 @@ task(
 - {when-event} is a FUNDAMENTAL too: event atoms (creature attacks / spell casts / you take
   {X} damage ...) decompose as {event-kind, subject filter, quantity bound, controller
   direction} — direction must have ONE encoding (today split between event.controller fields
-  and Filter.owner_color: unify per merge ledger). Keywords (FLYING 40 goldens, TRAMPLE 13)
+  and FAtomPred.CONTROLLER_IS in subject filters: unify per merge ledger E1). Keywords (FLYING 40 goldens, TRAMPLE 13)
   ARE already shared atoms with multiple consumers — keep them that way.
