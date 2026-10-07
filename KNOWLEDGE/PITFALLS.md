@@ -969,3 +969,9 @@
   `*_best.pt` checkpoints (gitignore swallows them, so `git mv` never moves them) arms a resume
   trap — report-skip guard says RUN, config-mismatch guard then refuses (correctly). Archive
   reports + best checkpoints + curve as ONE set, or use a fresh prefix per corpus.
+- **sqlite-shadow law (2026-10-07)**: sqlite3.connect(path) CREATES an empty DB at a wrong
+  path silently; later reads see zero tables and probes print nothing (looks like bad schema,
+  is a phantom file). Always connect with mode=ro URIs and check config's real path first.
+- **reclassification-hides-bugs law (2026-10-07)**: eval_reclassification on a pack may only
+  be author-shipped as FAIL-REGISTERED with file:line proof of WHY there is no decision —
+  FoR proved one entry was actually an engine execution bug (no PREVENT in its tree).
