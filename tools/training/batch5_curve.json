@@ -1,0 +1,107 @@
+{
+ "produced_by": "tools/training/batch5_sweep.sh",
+ "law": "KNOWLEDGE/2026-10-06/21 \u2014 every row carries params : gold lines : median seq_len",
+ "gate": "eval_families acc vs random floor, >3 SE one-sided",
+ "arms": [
+  {
+   "arm": "S0",
+   "params": 171010,
+   "params_per_gold_line": 1644.3,
+   "eval_acc": 0.6863,
+   "margin_se": 5.16,
+   "margin_bootstrap_se": 3.85,
+   "gate_pass": true,
+   "verdict": "PASS",
+   "best_loss": 0.1893,
+   "median_seq_len": 116,
+   "gold_lines_train": 104,
+   "cap_headroom": 16
+  },
+  {
+   "arm": "S1",
+   "params": 630146,
+   "params_per_gold_line": 6059.1,
+   "eval_acc": 0.6863,
+   "margin_se": 5.16,
+   "margin_bootstrap_se": 3.84,
+   "gate_pass": true,
+   "verdict": "PASS",
+   "best_loss": 0.18001,
+   "median_seq_len": 116,
+   "gold_lines_train": 104,
+   "cap_headroom": 16
+  },
+  {
+   "arm": "S2",
+   "params": 1771138,
+   "params_per_gold_line": 17030.2,
+   "eval_acc": 0.6667,
+   "margin_se": 4.87,
+   "margin_bootstrap_se": 3.51,
+   "gate_pass": true,
+   "verdict": "PASS",
+   "best_loss": 0.18749,
+   "median_seq_len": 116,
+   "gold_lines_train": 104,
+   "cap_headroom": 16
+  },
+  {
+   "arm": "S3",
+   "params": 5302274,
+   "params_per_gold_line": 50983.4,
+   "eval_acc": 0.6863,
+   "margin_se": 5.16,
+   "margin_bootstrap_se": 3.85,
+   "gate_pass": true,
+   "verdict": "PASS",
+   "best_loss": 0.18382,
+   "median_seq_len": 116,
+   "gold_lines_train": 104,
+   "cap_headroom": 16
+  },
+  {
+   "arm": "S4",
+   "params": 35136514,
+   "params_per_gold_line": 337851.1,
+   "eval_acc": 0.7255,
+   "margin_se": 5.75,
+   "margin_bootstrap_se": 4.56,
+   "gate_pass": true,
+   "verdict": "PASS",
+   "best_loss": 0.18289,
+   "median_seq_len": 116,
+   "gold_lines_train": 104,
+   "cap_headroom": 16
+  }
+ ],
+ "reference_batch3": [
+  {
+   "arm": "batch3-A",
+   "params": 35124226,
+   "params_per_gold_line": 468323.0,
+   "eval_acc": 0.6136,
+   "margin_se": 2.6,
+   "margin_bootstrap_se": 2.24,
+   "gate_pass": false,
+   "verdict": "NULL",
+   "best_loss": 0.18425,
+   "median_seq_len": 111,
+   "gold_lines_train": 75,
+   "cap_headroom": null
+  },
+  {
+   "arm": "batch3-B",
+   "params": 169474,
+   "params_per_gold_line": 2259.7,
+   "eval_acc": 0.6591,
+   "margin_se": 3.21,
+   "margin_bootstrap_se": 2.56,
+   "gate_pass": false,
+   "verdict": "NULL",
+   "best_loss": 0.22618,
+   "median_seq_len": 111,
+   "gold_lines_train": 75,
+   "cap_headroom": null
+  }
+ ]
+}

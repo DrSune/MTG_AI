@@ -98,7 +98,11 @@ def row(rep, arm):
         "params_per_gold_line": round(rep["train"]["params"] / max(lines, 1), 1),
         "eval_acc": gates.get("acc"),
         "margin_se": rep["eval_margin_se"],
-        "gate_pass": rep["gate_verdict"]["beats_random_floor_by_3SE"],
+        "margin_bootstrap_se": rep.get("eval_margin_bootstrap_se"),
+        "gate_pass": rep["gate_verdict"].get(
+            "beats_random_floor_by_3SE_bootstrap",
+            rep["gate_verdict"].get("beats_random_floor_by_3SE", False)),
+        "verdict": rep["gate_verdict"].get("verdict"),
         "best_loss": rep["train"]["best_train_loss"],
         "median_seq_len": seq["median"],
         "gold_lines_train": lines,
