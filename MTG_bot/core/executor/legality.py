@@ -120,6 +120,7 @@ from MTG_bot.core.state import (
     PLAYER_ZONES,
     ZONE_BATTLEFIELD,
     ZONE_HAND,
+    ZONE_STACK,
     GameWorld,
 )
 
@@ -433,6 +434,50 @@ def _zone_handles(ctx: ExecCtx, zone: Zone) -> list[Handle]:
 # enum is frozen so the table cannot drift silently — a test pins it).
 from MTG_bot.core.executor.selectors import ZONE_KIND_TO_STATE as _STATE_KIND
 from MTG_bot.core.executor.selectors import controller_matches
+from MTG_bot.core.executor.selectors import controller_of as _effective_controller
+
+
+def _hexproof_vetoes_target(candidate: Handle, ctx: ExecCtx) -> bool:
+    """T4-P1c (gap L-4, CR 702.11b): does ``candidate``'s live HEXPROOF
+    forbid targeting from ``ctx``'s source? Same single-oracle shape as
+    the 16c PROTECTION pair consumer (``block_pair_blocked_reason``):
+    the keyword's quality rows are evaluated against the OTHER side of
+    the pair — here (targeting source, candidate).
+
+    Direction (CR 702.11b, no new encoding): hexproof blocks only
+    OPPONENT-controlled sources; the engine's opponent convention is a
+    distinct seat in player_order (every ``ControllerRef.OPPONENT``
+    resolution and ``selectors._opponents`` read), and the controller
+    always targets their own object freely. The candidate's controller
+    is read through ``controller_of`` (16e GAIN_CONTROL overlay aware).
+
+    Zone relevance (CR 113.10): the keyword functions only while the
+    object is a permanent on the battlefield or a spell on the stack —
+    the identity-seeded keyword names are zone-less, so this consumer
+    guard is what keeps a hexproof card in a graveyard an ordinary
+    target. A candidate the layers registry does not know (a player
+    seat: 702.11 protects the hexproof OBJECT, never its controller; a
+    token/overlay without a map entry) is never vetoed here.
+
+    Filter rows evaluate against ``ctx.source`` exactly as the block
+    consumer evaluates against the attacker: printed identity colors
+    via ``eval_filter`` (COLOR_HAS reads the source card's own
+    identity), so an opponent's blue Cancel trips Spined Megalodon's
+    COLOR_HAS-U row and a red Shock does not."""
+    layers = ctx.layers
+    if layers is None:
+        return False
+    world = ctx.world
+    if candidate not in world.cards:
+        return False  # player seat / off-world handle: never hexproof here
+    if world.zone_of(candidate).kind not in (ZONE_BATTLEFIELD, ZONE_STACK):
+        return False  # keyword off the battlefield/stack: dead (113.10)
+    rows = layers.hexproof_of(candidate)
+    if not rows:
+        return False
+    if _effective_controller(ctx, candidate) == ctx.controller:
+        return False  # 702.11b: "an opponent controls", own target is free
+    return any(row is None or eval_filter(row, ctx.source, ctx) for row in rows)
 
 
 def enumerate_candidates(sel: Selector, ctx: ExecCtx) -> list[Handle]:
@@ -463,7 +508,17 @@ def enumerate_candidates(sel: Selector, ctx: ExecCtx) -> list[Handle]:
         candidates = list(_zone_handles(ctx, sel.zone))
         for extra in sel.zones:
             candidates.extend(_zone_handles(ctx, extra))
-    return sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))
+    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))
+    if sel.mode is SelectorMode.TARGET:
+        # T4-P1c (CR 702.11b): the ONE hexproof chokepoint. Every target
+        # surface consumes this enumeration (legal_targets, spell_target_
+        # slots, the 601.2c cast validator via validate_target_selection,
+        # the trigger _designate ask menus, optional_offer actionability),
+        # so the query and the runtime present the same legal menu (§8.3
+        # identity, §10 blindness audit). TARGET-only by mode: ALL/CHOOSE/
+        # ONE_OF selections never TARGET, so sweepers are untouched.
+        handles = [h for h in handles if not _hexproof_vetoes_target(h, ctx)]
+    return handles
 
 
 def _required_count(count: Quantity, ctx: ExecCtx) -> int:

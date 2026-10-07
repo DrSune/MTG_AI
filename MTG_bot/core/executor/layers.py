@@ -80,6 +80,7 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.executor.durations import duration_tag
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
 from MTG_bot.core.identity import Handle
+from MTG_bot.core.state import ZONE_STACK
 
 if TYPE_CHECKING:  # pragma: no cover - typing-only, dodges the import cycle
     from MTG_bot.core.compiler.compiler import CardRecord
@@ -1109,6 +1110,79 @@ class LayerRegistry:
             found.extend(params_of(layer.payload))
         for granted in self._granted.get(handle, ()):
             found.extend(params_of(granted.node))
+        return tuple(found)
+
+    def hexproof_of(self, handle: Handle) -> tuple[Filter | None, ...]:
+        """T4-P1c (CR 702.11b, gap L-4): the live HEXPROOF rows on
+        ``handle`` — one entry per row: ``None`` for a bare "Hexproof"
+        (blocks EVERY opponent-controlled source) and the row's Filter
+        for "Hexproof from {quality}" (Spined Megalodon's compiled
+        COLOR_HAS-U param; a multi-quality row blocks from any of its
+        qualities, the ``protections_of`` pair-consumer's twin).
+
+        The loss-aware gate is ``_keywords`` (the materialized map, not a
+        raw record scan): ``_apply_remove`` on a live LOSE_ABILITY strips
+        the NAME while the originating layer records stay live, so a
+        record-scan like ``protections_of`` would keep a lost keyword
+        blocking. Name-without-a-live-params-row: the printed identity
+        seeds the NAME zone-lessly, so a STACKED hexproof spell (whose
+        record the battlefield lifecycle never attached — fresh-eyes
+        MAJOR fix, :meth:`_printed_stack_rows`) reads its rows from the
+        COMPILED record; anywhere else the nameless read stays the bare
+        blocking row. Zone relevance is the CONSUMER's guard (legality),
+        not this map's: the base names are zone-less by construction."""
+
+        def rows_of(node: object) -> tuple[Filter | None, ...]:
+            if not isinstance(node, KeywordAbility):
+                return ()
+            if _keyword_name(node.keyword) != _keyword_name(Keyword.HEXPROOF):
+                return ()
+            params = tuple(
+                p for p in node.params if isinstance(p, (FAnd, FOr, FNot, FAtom))
+            )
+            return params or (None,)
+
+        if _keyword_name(Keyword.HEXPROOF) not in self._keywords.get(handle, ()):
+            return ()
+        found: list[Filter | None] = []
+        for layer in self.records:
+            if layer.status != "live" or layer.kind not in ("keyword", "grant"):
+                continue
+            if handle not in layer.targets:
+                continue
+            found.extend(rows_of(layer.payload))
+        for granted in self._granted.get(handle, ()):
+            found.extend(rows_of(granted.node))
+        if not found:
+            found.extend(self._printed_stack_rows(handle, rows_of))
+        return tuple(found) or (None,)
+
+    def _printed_stack_rows(self, handle, rows_of):
+        """Fresh-eyes MAJOR (2026-10-07): a spell on the stack passes the
+        identity-seeded NAME gate of :meth:`hexproof_of` but carries NO
+        live layer rows — the binder's continuous lifecycle (attach_card
+        → attach_source) fires only on battlefield entry (both cast lanes
+        gate it on ``dest == ZONE_BATTLEFIELD``, stack.py 938/1073). The
+        empty live-scan must NOT collapse "Hexproof from {quality}" into
+        bare hexproof while the card is a spell: CR 702.11b covers the
+        creature SPELL on the stack, and an opponent's RED counterspell
+        still legally targets a printed blue-only hexproof creature
+        spell. The rows come from the compiled record registered for the
+        handle's identity — the SAME KeywordAbility nodes attach_source
+        would register — so bare stays bare, quality stays quality. A
+        card with no registered record cannot pass ``spell_castable`` in
+        the real pipeline (the cast gate reads the record), so the empty
+        result here keeps the caller's bare fallback as a defensive read
+        for uncompiled handles only."""
+        card = self.world.cards.get(handle)
+        if card is None or self.world.zone_of(handle).kind != ZONE_STACK:
+            return ()
+        record = self.executor.binder.records.get(card.identity.oracle_id)
+        if record is None:
+            return ()
+        found: list[Filter | None] = []
+        for node in tuple(record.keywords) + tuple(record.abilities):
+            found.extend(rows_of(node))
         return tuple(found)
 
     def land_play_bonus(self, controller: Handle) -> int:

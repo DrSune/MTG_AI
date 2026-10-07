@@ -3311,3 +3311,8 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - Distinct CHOOSE surfaces **154** (stage-1 155 = emblem double-count); disjoint partition core 22 / self-ref 55 / referent 36 / cost 26 / k≠1 15.
 - Structural rule promotes 22−8 = **14 live surfaces / 13 cards**; 8 FORCE_SILENT (L-27/28/29). Scripted-lane asks: still exactly **5 packs**; items/families/grounding **unchanged** (164/80/84/246-of-495), no_discrimination **0**.
 - Goldens 305 full regen, verify 0-diff, 6 cards drifted. Gates (final): core **2471 +2st**, scenarios **373/373**, tools **153**.
+
+## 2026-10-07 — T4 P1c hexproof enforcement (L-4) + fresh-eyes stack fix (commands: `pytest MTG_bot/core -q`; `tools/run_scenarios.py`; `pytest tools/audit tools/training -q`)
+- L-4 CLOSED: `layers.hexproof_of` row oracle (None=bare | Filter=quality rows) + ONE `SelectorMode.TARGET` chokepoint in `enumerate_candidates`; direction CR 702.11b via `controller_of`, zone CR 113.10 battlefield/stack guard in legality.
+- Stack MAJOR fixed (`_printed_stack_rows`): stacked spell sources rows from `binder.records[oracle_id]` — "hexproof from blue" no longer collapses to bare on the stack (pool cards: Sporeweb Weaver, Garruk's Harbinger — DB `text LIKE '%hexproof from%'` = 2 cards).
+- Hexproof pins **13→18** (+5 stack tests, incl. falsified: fallback monkeypatched off ⇒ exactly red-target pin fails). Gates: core **2491 +2st**, scenarios **373/373**, tools **153**. TREASURE keyword stays decorative (token type-line word, zero executor consumers — decision).

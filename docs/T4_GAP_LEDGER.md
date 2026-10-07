@@ -13,7 +13,7 @@ significant iff it can alter legal options or state outcomes.
 | L-1 | `{3/W}` number-prefixed hybrid costs not wired to `CostManaHybrid` (grammar models 2-colour hybrids only) | COVERAGE-HOLE | /34; compiler KNOWN-GAP marker | every hybrid/Phyrexian-cost set |
 | L-2 | "Choose one or more —" → `QUnbounded` loses min=1 (phantom zero-pick) | MIS-ENCODE | /34; Sublime golden verified | modal double-faces, kick-era modals |
 | L-3 | "attacks or blocks" → TWO duplicate TriggeredAbility records (event needs {kind-union}) | MIS-ENCODE | /34; Gargaroth golden verified today (2 identical abilities) | many; or-combat triggers common |
-| L-4 | HEXPROOF: 6 goldens carry keyword, ZERO executor enforcement | ENFORCEMENT-ABSENT | /32 E8, /33; audit table | every hexproof/shroud-ish set |
+| L-4 | HEXPROOF: 6 goldens carry keyword, ZERO executor enforcement | **DONE** (/42: hexproof_of oracle + TARGET-mode chokepoint; +stack fix — stack rows from compiled record, quality no longer collapses to bare) | /32 E8, /33; audit table; /42 fresh-eyes MAJOR | every hexproof/shroud-ish set |
 | L-5 | PT fold order-dependent ([+1/+1,SET_PT]=3/3 vs reverse=4/4; CR 613 ⇒ both 4/4) | OPEN | /36 pinned `test_current_pt_timestamp_behavior`; SPEC §8 two candidates, undecided | every layer-interaction puzzle |
 | L-6 | 14 compiler KNOWN-GAP markers: hybrid costs ×2, bare-unbuildable keywords, Sublime approx, Gargaroth split, anaphoric play-permission, token-effect/land-cost bucketing ×2, P/T fallback, /36 restatement, narrow-shape note | COVERAGE-HOLE | `grep -rn KNOWN-GAP MTG_bot/core/compiler/*.py` = 14 lines | mixed |
 | L-7 | `PlayLandEvent` absent → landfall un-encodable | COVERAGE-HOLE | /32 | landfall sets (M19 Rise of the West-era heavy) |
@@ -47,10 +47,10 @@ significant iff it can alter legal options or state outcomes.
 
 ## 3. Totals
 **26 rows: MIS-ENCODE 11 · COVERAGE-HOLE 13 (4 ask-channel, audit L-15..18) ·
-ENFORCEMENT-ABSENT 1 · OPEN 1.** Top-5 by generalization priority: **L-15** (170 surfaces onto
+ENFORCEMENT-ABSENT 0 (L-4 closed /42) · OPEN 1.** Top-5 by generalization priority: **L-15** (170 surfaces onto
 the asking channel — biggest tokenizer lift), **L-21+L-13+L-14 cluster** (menu taxonomy gap that
 breaks compile entirely), **L-16/L-17/L-18** (eval-relevant blindness on 12+13+10-volume atoms),
-**L-2/L-22** (min-quantity class of mis-encodes), **L-4** (enforcement bug, zero grammar cost).
+**L-2/L-22** (min-quantity class of mis-encodes), ~~**L-4**~~ (enforcement bug — CLOSED /42).
 
 ## 4. Significance-criterion pass — 10 pool cards, clause-by-clause (DB oracle text vs golden IR)
 
