@@ -324,3 +324,14 @@ These are forks, not tasks. See the report that accompanied this audit.
    and both of those are parked.** Note also that `L4`'s impact weighting pushes the opposite way,
    toward paranoia, so `L4`, `L5` and `L9a` have to be reasoned about together and not adopted one
    at a time. Whoever writes the belief-and-search design answers this before shipping it.
+
+## Tickets 2026-10-07 (from T4 P1b review, PRE-EXISTING — not campaign-gated)
+- B-19: rule_engine test_keywords::test_flying REAL logic failure (no-flying blocker can
+  block a flyer; can_be_blocked_by=True). Legacy module outside campaign gates — decide:
+  fix or deprecate rule_engine (duplicate engine surface?).
+- B-20: test_model::test_reasoning_loop_can_actually_iterate fails (passes_taken={1} of 8)
+  -> ALL historical multi-pass latency numbers rest on a broken loop. Re-validate or mark
+  legacy before any latency claim.
+- B-21: strategic_brain + test_full_system: 21 further failures, legacy.
+- B-22: campaign gate scope decision: does M21 campaign ever run repo-wide pytest, or is
+  core+tools the permanent contract? (Owner; affects §7 review completeness claims.)
