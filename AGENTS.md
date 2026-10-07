@@ -162,3 +162,19 @@ task(
   eval-item mechanics that remain un-askable (see KNOWLEDGE/2026-10-07/24 fail-core).
 - The first ~20 sets are expected to CHANGE the atomics materially — treat early integrations
   as tokenizer refinement opportunities, not just data pickups. Numbers go to NUMBERS.md.
+
+## 9. Axis-orthogonality law for atomic subcomponents (owner 2026-10-07)
+- Every decision/ability atom decomposes into ORTHOGONAL axes: {operation} (choose/may/
+  target/order/name/policy...), {menu} (fixed list | legal-set | derived | bounded-number,
+  always clamped by actual availability), {count} (1..X), {effect-of-each-choice}. No atom
+  may fuse axes that other cards need independently — the operation must be reusable with
+  any menu, count, or effect bundle ("choose two targets" = choose x count x target-menu).
+- Conceptually-identical encodings MUST collapse into one component (the {choose} currently
+  exists 3x coded differently: Choose combinator / silent selector-CHOOSE / asking ONE_OF).
+  Rewriting atomics to merge duplicates is expected and normal, especially in the first ~20
+  sets — but merges require: (i) similar practical effects (else the model conflates things
+  it shouldn't), (ii) volume: an atom shared by too few cards cannot be learned generalized
+  (owner hypothesis, testable) — every atom ships with a cards-using-it census.
+- Fundamentals (choose, count, race/class-identity, attack/block, damage-lanes) are reused
+  most => highest priority to get orthogonal; complex functionality decomposes into them and
+  is expected to drive REWRITES of atomics as shared structure becomes visible.
