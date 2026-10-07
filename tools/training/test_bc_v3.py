@@ -231,8 +231,10 @@ def test_elo_seed_start_builds_fresh_block(monkeypatch):
                     "ci_lo": 0.0,
                     "ci_hi": 0.0,
                     "vs_field_wr": 0.5,
+                    "admissible": True,
                 }
             ],
+            "headline_claims": [],
         }
 
     monkeypatch.setattr(elo, "run_ladder", fake_ladder)

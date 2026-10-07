@@ -64,7 +64,6 @@
    "op": "cast",
    "key": "gor",
    "decisions": [
-    "w",
     "me"
    ]
   }
@@ -76,20 +75,14 @@
    }
   },
   "zone": {
-   "w": "graveyard",
-   "gor": "battlefield",
-   "me": "battlefield"
-  },
-  "damage": {
-   "me": 2
+   "w": "battlefield",
+   "me": "graveyard",
+   "gor": "battlefield"
   },
   "life": {
    "0": 20,
    "1": 20
   }
  },
- "notes": "Printed: 'Whenever you cast a noncreature spell, put a +1/+1 counter on this creature.' Shock and Titanic Growth (both noncreature) fire; Goremand's cast (a creature spell) adds no third counter, and its counters ride with it to the graveyard. Goremand is the pool's ONLY castable plain creature besides Sparkhunter Masticore (see suspects/creature_spell_nodes_systematic.json; Masticore's compiled cast demands an undeliverable discard). Goremand's printed additional cost 'sacrifice a creature' is taken SILENTLY by the engine \u2014 the decisions channel never sees an ask (asks_seen is empty) and the cost was paid with Weird itself, the first controller-0 creature, not the 'me' word the step supplied. Zones assert that observation.",
- "eval_reclassification": {
-  "reason": "Spellgorger Weird's sacrifice cost is silently auto-paid by the engine \u2014 no choose ask is exposed (asks:[]), so the designation lane is not evaluable in the pack schema."
- }
+ "notes": "Printed: 'Whenever you cast a noncreature spell, put a +1/+1 counter on this creature.' Shock and Titanic Growth (both noncreature) fire; Goremand's cast (a creature spell) adds no third counter. Goremand's printed additional cost 'sacrifice a creature' DOES surface a sacrifice ask (vocab card:0=weird, card:1=fodder). Gold pays it with Fodder ('me', vocab[1]) \u2014 the null pick auto-pays with Spellgorger Weird (vocab[0]) and fails the zone lane. Un-reclassified 2026-10-07."
 }

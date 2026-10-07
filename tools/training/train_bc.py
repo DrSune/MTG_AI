@@ -20,6 +20,7 @@ import argparse
 import hashlib
 import json
 import math
+import random
 import time
 from pathlib import Path
 from typing import Any
@@ -110,8 +111,62 @@ def binomial_stats(k: int, n: int, p0: float) -> dict[str, float]:
     }
 
 
-def gate_stats(rows: list[dict[str, Any]]) -> dict[str, Any]:
-    """Accuracy vs the measured floors for one slice of gold rows."""
+def cluster_bootstrap_stats(
+    by_card: dict[str, list[int]],
+    p0: float,
+    B: int = 4000,
+    seed: int = 1,
+) -> dict[str, Any]:
+    """Card-cluster bootstrap of accuracy against a FIXED floor p0.
+
+    KNOWLEDGE/2026-10-07/26 falsification: items of one card are strongly
+    correlated (50 eval items = 32 cards), so the binomial SE is the wrong
+    model and inflates the margin ~30%. Resample CARDS with replacement
+    (items stay grouped, outcomes fixed within card). Each resample's
+    correct count is normalised by the ORIGINAL item count — denominator
+    size jitter is kept in the SE, never divided out (the conservative
+    choice; reproduces the /26 spot-check margins 3.0-3.5 within 0.06).
+    The floor is held fixed across resamples — per-item floors are not in
+    the persisted rows, so this is conservative there too.
+    ``margin_bootstrap_se`` is (acc - p0) / stdev(bootstrap accs);
+    ``p_beats_floor`` is the share of resamples whose acc exceeds p0.
+    Degenerate all-equal samples give SE 0 and a +/-inf margin (never
+    happens against a real floor).
+    """
+    cards = sorted(by_card)
+    groups = [by_card[c] for c in cards]
+    n_clusters = len(groups)
+    n_items = sum(len(g) for g in groups)
+    acc = sum(sum(g) for g in groups) / n_items
+    rng = random.Random(seed)
+    accs: list[float] = []
+    above = 0
+    for _ in range(B):
+        picks = [groups[rng.randrange(n_clusters)] for _ in range(n_clusters)]
+        a = sum(sum(p) for p in picks) / n_items
+        accs.append(a)
+        if a > p0:
+            above += 1
+    mean = sum(accs) / B
+    boot_se = math.sqrt(sum((a - mean) ** 2 for a in accs) / (B - 1))
+    margin = float("inf") if boot_se == 0.0 else (acc - p0) / boot_se
+    return {
+        "n_clusters": n_clusters,
+        "bootstrap_se": round(boot_se, 4),
+        "margin_bootstrap_se": round(margin, 2),
+        "p_beats_floor": above / B,
+        "bootstrap_B": B,
+        "bootstrap_seed": seed,
+    }
+
+
+def gate_stats(rows: list[dict[str, Any]], boot_seed: int = 1) -> dict[str, Any]:
+    """Accuracy vs the measured floors for one slice of gold rows.
+
+    Each floor block carries the iid binomial numbers AND the honest
+    card-cluster bootstrap numbers side by side (see
+    cluster_bootstrap_stats).
+    """
     certified = [r for r in rows if r["cert"]]
     k = sum(r["correct"] for r in certified)
     n = len(certified)
@@ -120,8 +175,15 @@ def gate_stats(rows: list[dict[str, Any]]) -> dict[str, Any]:
     res: dict[str, Any] = {"rows": n, "correct": k}
     if n:
         res["acc"] = round(k / n, 4)
-        res["vs_random"] = binomial_stats(k, n, mean_rand)
-        res["vs_null"] = binomial_stats(k, n, mean_null)
+        by_card: dict[str, list[int]] = {}
+        for r in certified:
+            by_card.setdefault(r["card"], []).append(1 if r["correct"] else 0)
+        res["vs_random"] = binomial_stats(k, n, mean_rand) | cluster_bootstrap_stats(
+            by_card, mean_rand, seed=boot_seed
+        )
+        res["vs_null"] = binomial_stats(k, n, mean_null) | cluster_bootstrap_stats(
+            by_card, mean_null, seed=boot_seed
+        )
     return res
 
 
@@ -258,10 +320,14 @@ def main(argv: list[str] | None = None) -> int:
     rows = eval_rows(model, dataset, device)
     certified = [r for r in rows if r["cert"]]
     slices = {
-        "gold_lines_all": gate_stats(rows),
-        "holdout_items": gate_stats([r for r in certified if r["holdout"]]),
-        "train_items": gate_stats([r for r in certified if not r["holdout"]]),
-        "l1_certified": gate_stats([r for r in certified if r["cert"]["l1_ready"]]),
+        "gold_lines_all": gate_stats(rows, args.seed),
+        "holdout_items": gate_stats([r for r in certified if r["holdout"]], args.seed),
+        "train_items": gate_stats(
+            [r for r in certified if not r["holdout"]], args.seed
+        ),
+        "l1_certified": gate_stats(
+            [r for r in certified if r["cert"]["l1_ready"]], args.seed
+        ),
     }
     peak_gib = tinfo["peak_gpu_mib"] / 1024.0
     report: dict[str, Any] = {
@@ -307,12 +373,21 @@ def main(argv: list[str] | None = None) -> int:
         "wall_seconds": round(time.perf_counter() - t0, 1),
     }
     g = slices["gold_lines_all"]
-    beat_rand = g["vs_random"]["beat_margin_se"] > 3.0
-    beat_null = g["vs_null"]["beat_margin_se"] > 3.0
+    # /26: the iid binomial margin is inflated ~30% by intra-card
+    # correlation — PASS requires BOTH the iid and the cluster margin > 3.
+    beat_rand = (
+        g["vs_random"]["beat_margin_se"] > 3.0
+        and g["vs_random"]["margin_bootstrap_se"] > 3.0
+    )
+    beat_null = (
+        g["vs_null"]["beat_margin_se"] > 3.0
+        and g["vs_null"]["margin_bootstrap_se"] > 3.0
+    )
     verdict = "PASS" if beat_rand and beat_null else "NULL"
     report["gate_verdict"] = {
         "beats_random_floor_by_3SE": beat_rand,
         "beats_null_floor_by_3SE": beat_null,
+        "gate": "gold lines vs floors, >3 SE one-sided on BOTH iid AND card-cluster bootstrap",
         "verdict": verdict,
         "reading": (
             "BC on the cert schema clears every measured floor: schema + "

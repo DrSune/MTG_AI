@@ -24,6 +24,12 @@
    "toughness": "2",
    "zone": "battlefield",
    "controller": 1
+  },
+  {
+   "key": "va",
+   "real": "Vodalian Arcanist",
+   "zone": "battlefield",
+   "controller": 0
   }
  ],
  "mana": {
@@ -50,8 +56,15 @@
     "sent"
    ],
    "decisions": [
-    "0"
+    "1"
    ]
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "sent": true
+   }
   },
   {
    "op": "end_turn"
@@ -92,13 +105,16 @@
     "INDESTRUCTIBLE"
    ]
   },
+  "not_asked_to_block": [
+   "va"
+  ],
+  "blocked": {
+   "sent": []
+  },
   "life": {
-   "0": 20,
+   "0": 17,
    "1": 20
   }
  },
- "notes": "HUNT H2 pair 9 (heat 2660, both-sides buff stacking). Turn dance: Feat (seat 1, colour designation \"0\") resolves on seat 1's turn \u2014 its +1/+1 counter is permanent, its EoT protection then expires cleanly at the dance (CR 514.2); Basri's +1 lands on seat 0's own window (CR 307.5 planeswalker timing respected) on the ENEMY creature \u2014 legal, the compiled TARGET carries no CONTROLLER_IS YOU filter (CR 601.2b). Two +1/+1 counters stack -> 4/4 (CR 122.1c) with INDESTRUCTIBLE until end of turn alive at the check. Protection PREVENTION is untestable here: damage needs a pack-keyed operand and Basri's Soldiers are keyless mints (keyless-mint law).",
- "eval_reclassification": {
-  "reason": "Feature-colour designation unobservable: the deal_damage op bypasses Feat of Resistance protection (no prevention lane exists in the pack schema); the choose ask certifies nothing the null path changes."
- }
+ "notes": "HUNT H2 pair 9 (heat 2660, both-sides buff stacking) + colour-decision observability. Turn dance: Feat (seat 1, colour designation \"1\" = BLUE, WUBRG) resolves on seat 1's turn \u2014 its +1/+1 counter is permanent, its EoT protection then expires cleanly at the dance (CR 514.2). The colour ask is observed IN-LANE before it expires: the 3/2 Sentinel attacks and the blue Vodalian Arcanist (seat 0) is never asked to block (CR 702.16c attacker-protection veto, legality.py block_pair_blocked_reason \u2192 layers.protections_of; blocker_askable: legal against nothing), so 3 damage land on seat 0 (life 17). The null policy answers the same ask with vocab[0] '0' (WHITE) \u2014 the blocker then blocks legally, life[0] stays 20 and the not_asked lane breaks. Basri's +1 lands on seat 0's own window (CR 307.5 planeswalker timing respected) on the ENEMY creature \u2014 legal, the compiled TARGET carries no CONTROLLER_IS YOU filter (CR 601.2b). Two +1/+1 counters stack -> 4/4 (CR 122.1c) with INDESTRUCTIBLE until end of turn alive at the check. Damage PREVENTION (the dealt-damage face of CR 702.16c) stays an executor semantics gap \u2014 see KNOWLEDGE/2026-10-07/27; the block-legality face is the observable lane."
 }

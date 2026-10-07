@@ -1,0 +1,44 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Trufflesnout"
+  },
+  {
+   "key": "v",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Tempered Veteran"
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "t",
+   "decisions": [
+    "1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 24
+  },
+  "counters": {
+   "t": {}
+  },
+  "power": {
+   "t": 2
+  },
+  "toughness": {
+   "t": 2
+  }
+ },
+ "notes": "Branch-coverage twin of tempered_veteran: Trufflesnout's ETB modal 'Choose one \u2014 put a +1/+1 counter on it; or you gain 4 life' takes the GAIN_LIFE branch ('1', NOT vocab[0]). The null pick '0' routes to the counter branch (life stays 20) and fails the life lane. The veteran stays unactivated: no counter, its idx0 gate is unsatisfiable (legality raises)."
+}

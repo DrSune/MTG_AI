@@ -56,7 +56,8 @@
    "0": 20
   }
  },
-  "eval_reclassification": {
-   "reason": "Compiled choose options are (DESTROY target artifact, PREVENT non-Flying blockers EoT). The pack's destroy-the-target premise forces option '0', which is vocab[0], so the null replay equals gold by construction; option '1' is a blocker-prevention effect unobservable without a combat lane (probe: decisions ['1'] leaves the cog on the battlefield — the options ARE distinct, so flipping gold is impossible without a different premise)."
-  }
+ "eval_reclassification": {
+  "reason": "Compiled choose options are (DESTROY target artifact, PREVENT non-Flying blockers EoT). The pack's destroy-the-target premise forces option '0', which is vocab[0], so the null replay equals gold by construction; option '1' is a blocker-prevention effect unobservable without a combat lane (probe: decisions ['1'] leaves the cog on the battlefield \u2014 the options ARE distinct, so flipping gold is impossible without a different premise). Modal choose is REAL (options compiled distinct); the destroy premise pins option '0' = vocab[0] = null word (puzzle_cert.py:78-85) so null replay == gold. Option '1' ('creatures without flying can't block this turn') is now observable IN PRINCIPLE via the not_asked_to_block combat lane (built for feat_of_resistance 2026-10-07; executor/legality.py:1694) \u2014 certifiable with an option-1 combat twin: TODO.",
+  "verdict": "null-degenerate-observable"
+ }
 }

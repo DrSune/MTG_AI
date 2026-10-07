@@ -35,3 +35,17 @@ selectors.py:438 = by-design (eval items there are MIS-SPECIFIED, re-register ho
 CREATED an empty shadow DB that masked the real one (config says data/mtg_bot.db). Removed
 file + stale root twin; real DB verified intact (397 cards, read-only uri mode thereafter).
 Pitfall recorded.
+
+---
+## CORRECTIONS appended same day (2026-10-07 09:2x)
+1. RETRACTED: "CONFIRMED engine bug — FoR lacks PREVENT". The pack's eval_reclassification
+   premise was FALSE; the printed text (DB cards.text, verified) is "+1/+1 counter; gains
+   PROTECTION from the colour of your choice" and the golden correctly compiles that.
+   The real gap (found by the fix batch, /27): executor PROTECTION implements only the
+   block-legality facet; CR 702.16c damage/target/enchant faces unimplemented (= runed_halo's
+   registered engine-semantics gap). Durable law now in PITFALLS: a CONFIRMED audit claim
+   without the card's oracle text in hand is a hypothesis.
+2. RE-SCORED (recompute_gates.py, /26 cluster method): bc3_B and dagger arms flip
+   PASS->NULL (bootstrap margin 2.56 < 3; iid 3.21 was inflated). The five bc5 arms PASS on
+   BOTH statistics (cluster 3.09-3.46, p>=0.9993). Elo s3 pairs: CIs straddle 0.5 ->
+   INADMISSIBLE under the new rule. First honest gate-PASS = batch-5 plateau arms.

@@ -36,6 +36,7 @@
  },
  "notes": "Printed: 'As ~ enters, choose a card name. You have protection from the chosen card name.' CHOOSE_NAME ask vocab = names present in the world ('Cow' offered, decision consumed, recorded in executor.name_choices). The protection MODIFIER has no expect lane on the runner -> thin pack: zone assertion only (documented limitation, not a failure).",
  "eval_reclassification": {
-  "reason": "The deal_damage op bypasses Runed Halo's named-protection (observed damage_received 2 != 0 with protection active); the named-card lane has no observable consequence."
+  "verdict": "engine-semantics-gap",
+  "reason": "Golden is correct per print ('As this enchantment enters, choose a card name. You have protection from the chosen card name.'). The engine gap is in the PROTECTION keyword itself: layers.protections_of has exactly ONE consumer, block_pair_blocked_reason (MTG_bot/core/executor/legality.py:1634-1686) \u2014 the 702.16c dealt-damage / can't-target / can't-enchant facets are unimplemented in the executor (verbs DEAL_DAMAGE consults only ctx.replacements/PREVENT_EFFECT, never protection keywords), so the deal_damage op legitimately bypasses the named choice and NO lane can observe it. FAIL REGISTERED pending the executor damage facet; then a life-lane pack certifies the name choose. Also null-degenerate today: gold 'Cow' is vocab[0] (puzzle_cert.py:78-85)."
  }
 }

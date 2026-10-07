@@ -216,15 +216,32 @@ def test_elo_json_schema(tmp_path: Path) -> None:
         reps=60,
         bank_path=bank_path,
     )
-    assert set(doc) >= {"updated", "anchor", "games_per_pair", "ratings", "games_total"}
+    assert set(doc) >= {
+        "updated",
+        "anchor",
+        "games_per_pair",
+        "ratings",
+        "games_total",
+        "headline_claims",
+    }
     assert doc["anchor"] == "random=0"
     assert doc["games_per_pair"] == 4 and doc["games_total"] == 12
     by_name = {r["policy"]: r for r in doc["ratings"]}
     assert by_name["random"]["elo"] == 0.0  # pinned, exact, in the JSON
+    assert by_name["random"]["admissible"] is True  # anchor: 0 by construction
     for r in doc["ratings"]:
-        assert set(r) == {"policy", "elo", "ci_lo", "ci_hi", "vs_field_wr"}
+        assert set(r) == {
+            "policy",
+            "elo",
+            "ci_lo",
+            "ci_hi",
+            "vs_field_wr",
+            "admissible",
+        }
         assert r["ci_lo"] <= r["elo"] <= r["ci_hi"]
         assert 0.0 <= r["vs_field_wr"] <= 1.0
+    # 4 games/pair cannot move any wr CI off 0.5 -> no headline claims (/26)
+    assert doc["headline_claims"] == []
     json.dumps(doc)  # board-safe
 
 

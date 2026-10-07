@@ -27,7 +27,7 @@
    "idx": 1,
    "seat": 0,
    "decisions": [
-    "card:6"
+    "card:7"
    ]
   }
  ],
@@ -40,10 +40,16 @@
  "expect": {
   "zone": {
    "w": "graveyard"
+  },
+  "graveyard": {
+   "0": [
+    "Waker of Waves",
+    "Library 4"
+   ]
+  },
+  "hand": {
+   "0": 1
   }
  },
- "notes": "repro: activate the printed from-hand discard ability.",
- "eval_reclassification": {
-  "reason": "The activation's effect outcome (targeted-zone change) has no pack-expressible lane: every captured zone/tapped/library/hand lane is identical for the null and gold replays."
- }
+ "notes": "Printed: '{1}{U}, Discard this card: Look at the top two cards of your library, put one into your hand and the other into your graveyard.' Gold line keeps Library 5 (handle card:7, NOT vocab[0]) \u2014 the null pick 'card:6' drops Library 5 to the graveyard instead and fails the graveyard lane. Reclassified 2026-10-05 claimed no lane existed; false \u2014 the graveyard lane (run_scenarios.py:826-829) discriminates. Un-reclassified 2026-10-07."
 }

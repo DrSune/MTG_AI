@@ -1,5 +1,5 @@
 {
- "rule": "family-wise deterministic: sort distinct card names, index%5 in {0,1} -> eval (2 of every 5). v3 amend 2026-10-07: 74 v2 assignments frozen; new families assigned by index%5 in the regenerated 77-family sort.",
+ "rule": "family-wise deterministic: sort distinct card names, index%5 in {0,1} -> eval (2 of every 5). Frozen prior assignments win; new families take the rule in the regenerated sort.",
  "seed_rule": "no RNG",
  "n_families": 77,
  "eval_families": [
@@ -83,317 +83,472 @@
   "Wall of Runes",
   "Warden of the Woods"
  ],
- "train_items": 103,
- "eval_items": 50,
- "eval_l1_ready": 2,
- "per_family": {
-  "Alchemist's Gift": {
-   "train_items": 0,
-   "eval_items": 2
-  },
-  "Alpine Houndmaster": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Goblin Arsonist": {
-   "train_items": 3,
-   "eval_items": 0
-  },
-  "Azusa, Lost but Seeking": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Feat of Resistance": {
-   "train_items": 0,
-   "eval_items": 2
-  },
-  "Rin and Seri, Inseparable": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Basri's Acolyte": {
-   "train_items": 2,
-   "eval_items": 0
-  },
-  "Basri's Lieutenant": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Bone Pit Brute": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Chandra, Flame's Catalyst": {
-   "train_items": 4,
-   "eval_items": 0
-  },
-  "Chandra, Heart of Fire": {
-   "train_items": 4,
-   "eval_items": 0
-  },
-  "Chandra's Firemaw": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Chandra's Pyreling": {
-   "train_items": 2,
-   "eval_items": 0
-  },
-  "Conspicuous Snoop": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Crypt Lurker": {
-   "train_items": 0,
-   "eval_items": 3
-  },
-  "Spare Goat": {
-   "train_items": 2,
-   "eval_items": 0
-  },
-  "Cultivate": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Daybreak Charger": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Duress": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Fierce Empath": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Gale Swooper": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Garruk's Harbinger": {
-   "train_items": 0,
-   "eval_items": 3
-  },
-  "Garruk, Unleashed": {
-   "train_items": 2,
-   "eval_items": 0
-  },
-  "Garruk's Warsteed": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Gnarled Sage": {
-   "train_items": 2,
-   "eval_items": 0
-  },
-  "Fodder": {
-   "train_items": 2,
-   "eval_items": 0
-  },
-  "Heartfire Immolator": {
-   "train_items": 0,
-   "eval_items": 2
-  },
-  "Hobblefiend": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Jeskai Elder": {
-   "train_items": 0,
-   "eval_items": 2
-  },
-  "Kitesail Freebooter": {
-   "train_items": 2,
-   "eval_items": 0
-  },
-  "Pitchburn Devils": {
-   "train_items": 5,
-   "eval_items": 0
-  },
-  "Trufflesnout": {
-   "train_items": 12,
-   "eval_items": 0
-  },
-  "Havoc Jester": {
-   "train_items": 0,
-   "eval_items": 4
-  },
-  "Temple of Malady": {
-   "train_items": 6,
-   "eval_items": 0
-  },
-  "Liliana's Devotee": {
-   "train_items": 2,
-   "eval_items": 0
-  },
-  "Liliana's Scrounger": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Mazemind Tome": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Spined Megalodon": {
-   "train_items": 0,
-   "eval_items": 2
-  },
-  "Meteorite": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Mistral Singer": {
-   "train_items": 2,
-   "eval_items": 0
-  },
-  "Necromentia": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Niambi, Esteemed Speaker": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Opt": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Palladium Myr": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Pestilent Haze": {
-   "train_items": 2,
-   "eval_items": 0
-  },
-  "Pridemalkin": {
-   "train_items": 2,
-   "eval_items": 0
-  },
-  "Prismite": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Read the Tides": {
-   "train_items": 0,
-   "eval_items": 2
-  },
-  "Riddleform": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Stray Aurochs": {
-   "train_items": 0,
-   "eval_items": 2
-  },
-  "Runed Halo": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Sanctum of Fruitful Harvest": {
-   "train_items": 3,
-   "eval_items": 0
-  },
-  "Sanctum of All": {
-   "train_items": 0,
-   "eval_items": 2
-  },
-  "Sanctum of Calm Waters": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Secure the Scene": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "See the Truth": {
-   "train_items": 4,
-   "eval_items": 0
-  },
-  "Skeleton Archer": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Solemn Simulacrum": {
-   "train_items": 0,
-   "eval_items": 2
-  },
-  "Spellgorger Weird": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Stormwing Entity": {
-   "train_items": 2,
-   "eval_items": 0
-  },
-  "Destructive Tampering": {
-   "train_items": 2,
-   "eval_items": 0
-  },
-  "Teferi's Wavecaster": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Tempered Veteran": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Temple of Epiphany": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Temple of Mystery": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Temple of Silence": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Temple of Triumph": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Terror of the Peaks": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Tolarian Kraken": {
-   "train_items": 10,
-   "eval_items": 0
-  },
-  "Track Down": {
-   "train_items": 0,
-   "eval_items": 3
-  },
-  "Traitorous Greed": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Treasure": {
-   "train_items": 4,
-   "eval_items": 0
-  },
-  "Vodalian Arcanist": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Vryn Wingmare": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Waker of Waves": {
-   "train_items": 0,
-   "eval_items": 1
-  },
-  "Wall of Runes": {
-   "train_items": 1,
-   "eval_items": 0
-  },
-  "Warden of the Woods": {
-   "train_items": 1,
-   "eval_items": 0
+ "eval_items": 51,
+ "train_items": 104,
+ "eval_l1_ready": 3,
+ "new_families_assigned": [],
+ "per_family": [
+  {
+   "family": "Alchemist's Gift",
+   "side": "eval",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Alpine Houndmaster",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Azusa, Lost but Seeking",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Basri's Acolyte",
+   "side": "train",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Basri's Lieutenant",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Bone Pit Brute",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Chandra's Firemaw",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Chandra's Pyreling",
+   "side": "train",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Chandra, Flame's Catalyst",
+   "side": "train",
+   "items": 4,
+   "l1_ready": 0
+  },
+  {
+   "family": "Chandra, Heart of Fire",
+   "side": "train",
+   "items": 4,
+   "l1_ready": 0
+  },
+  {
+   "family": "Conspicuous Snoop",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Crypt Lurker",
+   "side": "eval",
+   "items": 3,
+   "l1_ready": 0
+  },
+  {
+   "family": "Cultivate",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Daybreak Charger",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Destructive Tampering",
+   "side": "train",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Duress",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Feat of Resistance",
+   "side": "eval",
+   "items": 3,
+   "l1_ready": 1
+  },
+  {
+   "family": "Fierce Empath",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Fodder",
+   "side": "train",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Gale Swooper",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Garruk's Harbinger",
+   "side": "eval",
+   "items": 3,
+   "l1_ready": 0
+  },
+  {
+   "family": "Garruk's Warsteed",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Garruk, Unleashed",
+   "side": "train",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Gnarled Sage",
+   "side": "train",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Goblin Arsonist",
+   "side": "train",
+   "items": 3,
+   "l1_ready": 1
+  },
+  {
+   "family": "Havoc Jester",
+   "side": "eval",
+   "items": 4,
+   "l1_ready": 2
+  },
+  {
+   "family": "Heartfire Immolator",
+   "side": "eval",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Hobblefiend",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Jeskai Elder",
+   "side": "eval",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Kitesail Freebooter",
+   "side": "train",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Liliana's Devotee",
+   "side": "train",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Liliana's Scrounger",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Mazemind Tome",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Meteorite",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Mistral Singer",
+   "side": "train",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Necromentia",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Niambi, Esteemed Speaker",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Opt",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Palladium Myr",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Pestilent Haze",
+   "side": "train",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Pitchburn Devils",
+   "side": "train",
+   "items": 5,
+   "l1_ready": 2
+  },
+  {
+   "family": "Pridemalkin",
+   "side": "train",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Prismite",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Read the Tides",
+   "side": "eval",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Riddleform",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Rin and Seri, Inseparable",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 1
+  },
+  {
+   "family": "Runed Halo",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Sanctum of All",
+   "side": "eval",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Sanctum of Calm Waters",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Sanctum of Fruitful Harvest",
+   "side": "train",
+   "items": 3,
+   "l1_ready": 0
+  },
+  {
+   "family": "Secure the Scene",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "See the Truth",
+   "side": "train",
+   "items": 4,
+   "l1_ready": 0
+  },
+  {
+   "family": "Skeleton Archer",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Solemn Simulacrum",
+   "side": "eval",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Spare Goat",
+   "side": "train",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Spellgorger Weird",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Spined Megalodon",
+   "side": "eval",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Stormwing Entity",
+   "side": "train",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Stray Aurochs",
+   "side": "eval",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
+   "family": "Teferi's Wavecaster",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Tempered Veteran",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Temple of Epiphany",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Temple of Malady",
+   "side": "train",
+   "items": 6,
+   "l1_ready": 0
+  },
+  {
+   "family": "Temple of Mystery",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Temple of Silence",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Temple of Triumph",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Terror of the Peaks",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Tolarian Kraken",
+   "side": "train",
+   "items": 10,
+   "l1_ready": 2
+  },
+  {
+   "family": "Track Down",
+   "side": "eval",
+   "items": 3,
+   "l1_ready": 0
+  },
+  {
+   "family": "Traitorous Greed",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Treasure",
+   "side": "train",
+   "items": 4,
+   "l1_ready": 2
+  },
+  {
+   "family": "Trufflesnout",
+   "side": "train",
+   "items": 13,
+   "l1_ready": 5
+  },
+  {
+   "family": "Vodalian Arcanist",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Vryn Wingmare",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Waker of Waves",
+   "side": "eval",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Wall of Runes",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
+   "family": "Warden of the Woods",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
   }
- }
+ ]
 }

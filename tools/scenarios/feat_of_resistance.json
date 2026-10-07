@@ -11,13 +11,19 @@
    "controller": 0
   },
   {
-   "key": "def",
-   "name": "Defender One",
-   "power": 1,
-   "toughness": 1,
+   "key": "adv",
+   "name": "Charging Veteran",
+   "power": "1",
+   "toughness": "1",
    "type": "Creature",
    "zone": "battlefield",
    "controller": 0
+  },
+  {
+   "key": "wall",
+   "real": "Vodalian Arcanist",
+   "zone": "battlefield",
+   "controller": 1
   }
  ],
  "mana": {
@@ -31,11 +37,18 @@
    "real": "Feat of Resistance",
    "key": "fr",
    "targets": [
-    "def"
+    "adv"
    ],
    "decisions": [
-    "0"
+    "1"
    ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "adv": true
+   }
   }
  ],
  "expect": {
@@ -43,15 +56,20 @@
    "fr": "graveyard"
   },
   "counters": {
-   "def": {
+   "adv": {
     "PLUS_1_PLUS_1": 1
    }
   },
+  "not_asked_to_block": [
+   "wall"
+  ],
+  "blocked": {
+   "adv": []
+  },
   "life": {
-   "0": 20
+   "0": 20,
+   "1": 18
   }
  },
- "eval_reclassification": {
-  "reason": "Feature-colour designation unobservable: the deal_damage op bypasses Feat of Resistance protection (no prevention lane exists in the pack schema); the choose ask certifies nothing the null path changes."
- }
+ "notes": "printed: Put a +1/+1 counter on target creature you control. It gains protection from the color of your choice until end of turn. The colour Choose ask is a REAL decision observed through the block-legality lane (CR 702.16c, legality.py block_pair_blocked_reason reads layers.protections_of): choose BLUE ('1' = option index 1, WUBRG) on the 1/1 veteran, it becomes an unblockable 2/2 attacker against the blue Vodalian Arcanist — the blocker is never asked (blocker_askable: legal against nothing), the veteran's 2 land in the player. The null policy answers the same ask with vocab[0] '0' (white) — the blue blocker then blocks legally, the life lane (18 vs 20) and not_asked_to_block both fail; the wrong-colour twin feat_of_resistance_blocked_twin.json pins that branch."
 }

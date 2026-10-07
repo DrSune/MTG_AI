@@ -476,7 +476,13 @@
     "floor_p0": 0.409,
     "se": 0.0451,
     "beat_margin_se": 7.33,
-    "binom_p_one_sided": 2.699e-13
+    "binom_p_one_sided": 2.699e-13,
+    "n_clusters": 74,
+    "bootstrap_se": 0.0663,
+    "margin_bootstrap_se": 4.98,
+    "p_beats_floor": 1.0,
+    "bootstrap_B": 4000,
+    "bootstrap_seed": 1
    },
    "vs_null": {
     "n": 119,
@@ -485,7 +491,13 @@
     "floor_p0": 0.1261,
     "se": 0.0304,
     "beat_margin_se": 20.16,
-    "binom_p_one_sided": 4.161e-53
+    "binom_p_one_sided": 4.161e-53,
+    "n_clusters": 74,
+    "bootstrap_se": 0.0663,
+    "margin_bootstrap_se": 9.25,
+    "p_beats_floor": 1.0,
+    "bootstrap_B": 4000,
+    "bootstrap_seed": 1
    }
   },
   "train_families": {
@@ -499,7 +511,13 @@
     "floor_p0": 0.4023,
     "se": 0.0566,
     "beat_margin_se": 6.79,
-    "binom_p_one_sided": 1.279e-11
+    "binom_p_one_sided": 1.279e-11,
+    "n_clusters": 44,
+    "bootstrap_se": 0.0834,
+    "margin_bootstrap_se": 4.61,
+    "p_beats_floor": 1.0,
+    "bootstrap_B": 4000,
+    "bootstrap_seed": 1
    },
    "vs_null": {
     "n": 75,
@@ -508,7 +526,13 @@
     "floor_p0": 0.16,
     "se": 0.0423,
     "beat_margin_se": 14.8,
-    "binom_p_one_sided": 6.11e-33
+    "binom_p_one_sided": 6.11e-33,
+    "n_clusters": 44,
+    "bootstrap_se": 0.0834,
+    "margin_bootstrap_se": 7.51,
+    "p_beats_floor": 1.0,
+    "bootstrap_B": 4000,
+    "bootstrap_seed": 1
    }
   },
   "eval_families": {
@@ -522,7 +546,13 @@
     "floor_p0": 0.4205,
     "se": 0.0744,
     "beat_margin_se": 3.21,
-    "binom_p_one_sided": 0.001202
+    "binom_p_one_sided": 0.001202,
+    "n_clusters": 30,
+    "bootstrap_se": 0.0934,
+    "margin_bootstrap_se": 2.56,
+    "p_beats_floor": 0.995,
+    "bootstrap_B": 4000,
+    "bootstrap_seed": 1
    },
    "vs_null": {
     "n": 44,
@@ -531,7 +561,13 @@
     "floor_p0": 0.0682,
     "se": 0.038,
     "beat_margin_se": 15.55,
-    "binom_p_one_sided": 1.242e-23
+    "binom_p_one_sided": 1.242e-23,
+    "n_clusters": 30,
+    "bootstrap_se": 0.0934,
+    "margin_bootstrap_se": 6.33,
+    "p_beats_floor": 1.0,
+    "bootstrap_B": 4000,
+    "bootstrap_seed": 1
    }
   },
   "l1_certified": {
@@ -555,14 +591,19 @@
     "se": 0.1654,
     "beat_margin_se": 3.02,
     "binom_p_one_sided": 1.0
-   }
+   },
+   "cluster_bootstrap": "not reconstructable (l1_ready not persisted in eval_rows)"
   }
  },
  "eval_margin_se": 3.21,
  "gate_verdict": {
-  "gate": "eval-family gold lines vs random floor, >3 SE one-sided",
+  "gate": "eval-family gold lines vs random floor, >3 SE one-sided on BOTH iid binomial AND card-cluster bootstrap (KNOWLEDGE 2026-10-07/26)",
   "beats_random_floor_by_3SE": true,
-  "verdict": "PASS"
+  "beats_random_floor_by_3SE_bootstrap": false,
+  "verdict": "NULL",
+  "recomputed_by": "tools/training/recompute_gates.py",
+  "bootstrap_B": 4000,
+  "bootstrap_seed": 1
  },
  "batch2_comparison": {
   "available": true,
@@ -1764,5 +1805,105 @@
  ],
  "gpu_peak_gib": 0.19,
  "gpu_budget_gib": 4.0,
- "wall_seconds": 13.9
+ "wall_seconds": 13.9,
+ "gate_iid": {
+  "gold_lines_all": {
+   "rows": 119,
+   "correct": 88,
+   "acc": 0.7395,
+   "vs_random": {
+    "n": 119,
+    "k": 88,
+    "acc": 0.7395,
+    "floor_p0": 0.409,
+    "se": 0.0451,
+    "beat_margin_se": 7.33,
+    "binom_p_one_sided": 2.699e-13
+   },
+   "vs_null": {
+    "n": 119,
+    "k": 88,
+    "acc": 0.7395,
+    "floor_p0": 0.1261,
+    "se": 0.0304,
+    "beat_margin_se": 20.16,
+    "binom_p_one_sided": 4.161e-53
+   }
+  },
+  "train_families": {
+   "rows": 75,
+   "correct": 59,
+   "acc": 0.7867,
+   "vs_random": {
+    "n": 75,
+    "k": 59,
+    "acc": 0.7867,
+    "floor_p0": 0.4023,
+    "se": 0.0566,
+    "beat_margin_se": 6.79,
+    "binom_p_one_sided": 1.279e-11
+   },
+   "vs_null": {
+    "n": 75,
+    "k": 59,
+    "acc": 0.7867,
+    "floor_p0": 0.16,
+    "se": 0.0423,
+    "beat_margin_se": 14.8,
+    "binom_p_one_sided": 6.11e-33
+   }
+  },
+  "eval_families": {
+   "rows": 44,
+   "correct": 29,
+   "acc": 0.6591,
+   "vs_random": {
+    "n": 44,
+    "k": 29,
+    "acc": 0.6591,
+    "floor_p0": 0.4205,
+    "se": 0.0744,
+    "beat_margin_se": 3.21,
+    "binom_p_one_sided": 0.001202
+   },
+   "vs_null": {
+    "n": 44,
+    "k": 29,
+    "acc": 0.6591,
+    "floor_p0": 0.0682,
+    "se": 0.038,
+    "beat_margin_se": 15.55,
+    "binom_p_one_sided": 1.242e-23
+   }
+  },
+  "l1_certified": {
+   "rows": 4,
+   "correct": 2,
+   "acc": 0.5,
+   "vs_random": {
+    "n": 4,
+    "k": 2,
+    "acc": 0.5,
+    "floor_p0": 0.0287,
+    "se": 0.1654,
+    "beat_margin_se": 2.85,
+    "binom_p_one_sided": 0.004771
+   },
+   "vs_null": {
+    "n": 4,
+    "k": 2,
+    "acc": 0.5,
+    "floor_p0": 0.0,
+    "se": 0.1654,
+    "beat_margin_se": 3.02,
+    "binom_p_one_sided": 1.0
+   }
+  }
+ },
+ "gate_verdict_iid": {
+  "gate": "eval-family gold lines vs random floor, >3 SE one-sided",
+  "beats_random_floor_by_3SE": true,
+  "verdict": "PASS"
+ },
+ "eval_margin_bootstrap_se": 2.56
 }

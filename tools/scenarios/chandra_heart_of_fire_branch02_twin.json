@@ -48,7 +48,10 @@
    "decisions": [
     "skip"
    ],
-   "eval_reclassification": "branch-coverage negative twin of chandra_heart_of_fire_branch02: ultimate fire path certified by the sibling pack; this pack pins the idx4 SKIP branch."
+   "eval_reclassification": {
+    "reason": "branch-coverage negative twin of chandra_heart_of_fire_branch02: ultimate fire path certified by the sibling pack; this pack pins the idx4 SKIP branch. True-no-decision for the ladder: 'skip' is the null word (PASS_WORDS, tools/audit/puzzle_cert.py:75-85), so the null replay IS the gold line by design; this twin pins the decline branch only.",
+    "verdict": "true-no-decision"
+   }
   }
  ],
  "expect": {

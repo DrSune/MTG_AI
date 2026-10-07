@@ -45,7 +45,10 @@
    "decisions": [
     "skip"
    ],
-   "eval_reclassification": "branch-coverage negative twin of chandra_flame_s_catalyst_branch01: the fire path is certified by the sibling pack; this pack pins the SKIP branch (hand-0 lane). Flipping would erase skip-branch coverage, so the skip ask is not a ladder candidate."
+   "eval_reclassification": {
+    "reason": "branch-coverage negative twin of chandra_flame_s_catalyst_branch01: the fire path is certified by the sibling pack; this pack pins the SKIP branch (hand-0 lane). Flipping would erase skip-branch coverage, so the skip ask is not a ladder candidate. True-no-decision for the ladder: 'skip' is the null word (PASS_WORDS, tools/audit/puzzle_cert.py:75-85), so the null replay IS the gold line by design; this twin pins the decline branch only.",
+    "verdict": "true-no-decision"
+   }
   }
  ],
  "expect": {

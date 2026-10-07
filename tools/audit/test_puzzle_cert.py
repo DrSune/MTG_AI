@@ -247,3 +247,55 @@ def test_by_ask_kind_reclassification_is_item_granular(supply):
     assert not any(
         i["reclassified"] for i in PC.certify_pack(Path("ladder.json"), p2, supply)
     )
+
+
+# ------------------------------------------- FAIL-REGISTERED (2026-10-07)
+
+
+def test_fail_registered_verdict_is_counted_not_deleted(supply, tmp_path):
+    """A reclassification is a REGISTERED FAIL: it stays in the ledger and
+    the summary counts (by verdict), excluded from pass rate only."""
+    import copy
+
+    p = copy.deepcopy(NULL_IS_GOLD)
+    p["eval_reclassification"] = {
+        "reason": "branch twin, evidence: null word is gold",
+        "verdict": "true-no-decision",
+    }
+    d = tmp_path / "packs"
+    d.mkdir()
+    (d / "null_is_gold.json").write_text(json.dumps(p))
+    items, summary = PC.certify_dir(d, supply, rollouts=20)
+    assert items, "registered fails must STAY in the ledger"
+    assert all(i["fail_registered"] and not i["l1_ready"] for i in items)
+    assert all(i["fail_verdict"] == "true-no-decision" for i in items)
+    assert summary["fail_registered"] == len(items)
+    assert summary["fail_registered_by_verdict"] == {"true-no-decision": len(items)}
+    # counted in the summary, yet absent from pass material AND offender list
+    assert summary["l1_ready"] == 0 and summary["null_gt0_offenders"] == []
+
+
+def test_untriaged_reclassification_fails_the_runner_gate():
+    """tools/run_scenarios.py rejects bare-string / verdictless reclass —
+    silent reclassification (the 2026-10-07 false-premise hiding pattern)."""
+    import copy
+
+    from tools.run_scenarios import RECLASS_VERDICTS, _triage_check
+
+    p = copy.deepcopy(NULL_IS_GOLD)
+    assert _triage_check(p) == []  # no reclassification: nothing to triage
+    p["eval_reclassification"] = {"reason": "legacy silent exemption"}
+    (bad,) = _triage_check(p)
+    assert "verdict" in bad
+    p["eval_reclassification"] = {"reason": "x", "verdict": "hides-the-bug"}
+    assert _triage_check(p)  # unknown verdicts rejected: {RECLASS_VERDICTS}
+    p["steps"][0]["eval_reclassification"] = "bare string, no triage"
+    p.pop("eval_reclassification")
+    assert any("step 0" in b for b in _triage_check(p))
+    # by_ask_kind granularity carries evidence and verdict at the dict level
+    p2 = copy.deepcopy(NULL_IS_GOLD)
+    p2["steps"][0]["eval_reclassification"] = {
+        "verdict": RECLASS_VERDICTS[1],
+        "by_ask_kind": {"choose": "engine gap, see legality.py"},
+    }
+    assert _triage_check(p2) == []

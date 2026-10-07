@@ -51,7 +51,10 @@
    "decisions": [
     "skip"
    ],
-   "eval_reclassification": "branch-coverage negative twin of liliana_s_devotee_branch01: fire path certified by the sibling pack; this pack pins the SKIP false-branch (tokens 0 lane)."
+   "eval_reclassification": {
+    "reason": "branch-coverage negative twin of liliana_s_devotee_branch01: fire path certified by the sibling pack; this pack pins the SKIP false-branch (tokens 0 lane). True-no-decision for the ladder: 'skip' is the null word (PASS_WORDS, tools/audit/puzzle_cert.py:75-85), so the null replay IS the gold line by design; this twin pins the decline branch only.",
+    "verdict": "true-no-decision"
+   }
   }
  ],
  "expect": {

@@ -39,11 +39,11 @@ def dataset(episodes, vocab):
 
 
 # ----------------------------------------------------------------- integrity
-def test_joins_the_static_corpus_at_153(dataset):
+def test_joins_the_static_corpus_at_155(dataset):
     """Authoritative law: every v2 gold line maps to a corpus item. The OLD
     episodes.jsonl is stale (pre corpus-v2) — join to the corpus is truth."""
     corpus = __import__("json").loads(CORPUS.read_text(encoding="utf-8"))
-    assert v2.join_corpus(dataset, corpus["items"]) == 153  # v3 regen 2026-10-07
+    assert v2.join_corpus(dataset, corpus["items"]) == 155  # v4 regen 2026-10-07
 
 
 # ------------------------------------------------------------- schema laws
@@ -98,9 +98,10 @@ def test_cand_ids_keep_the_v1_vocab_prefix(dataset, vocab):
 
 # ---------------------------------------------------------------- grounding
 def test_handle_grounding_coverage(episodes):
-    """Pinned measurements (this file, deterministic replay; v3 regen
-    2026-10-07): of the 189 handle-shaped gold candidates, 157 resolve
-    through world.cards; 59/62 choose-digit candidates recover."""
+    """Pinned measurements (this file, deterministic replay; v4 regen
+    2026-10-07 after FoR/spellgorger un-reclassification): of the 189
+    handle-shaped gold candidates, 157 resolve through world.cards;
+    66/69 choose-digit candidates recover (was 59/62 pre-v4)."""
     rows_g = [r for e in episodes for r in e["asks"] if r["gold"]]
 
     def grounded(r, ci):
@@ -118,8 +119,12 @@ def test_handle_grounding_coverage(episodes):
                 ch += 1
                 ch_ok += grounded(r, ci)
     assert (hs_ok, hs) == (157, 189), "handle grounding drifted"  # v3 regen 2026-10-07
-    assert (ch_ok, ch) == (59, 62), "choose-digit grounding drifted"  # v3 regen 2026-10-07
-    assert sum(1 for r in rows_g if any(g for g in (r.get("ground") or []))) == 76  # v3 regen 2026-10-07
+    assert (ch_ok, ch) == (66, 69), (
+        "choose-digit grounding drifted"
+    )  # v3 regen 2026-10-07
+    assert (
+        sum(1 for r in rows_g if any(g for g in (r.get("ground") or []))) == 78
+    )  # v3 regen 2026-10-07
 
 
 def test_content_candidates_stay_bare(episodes):
@@ -150,7 +155,7 @@ class Verb(Enum):
 
 @dataclasses.dataclass
 class Atom:
-    verb: _Verb
+    verb: Verb
     args: tuple = ()
 
 
@@ -226,9 +231,11 @@ def test_stash_rows_for_rejects_non_digests():
     assert v2.stash_rows_for("target:creature") is None
     assert v2.stash_rows_for("choose:x:not_hex_00000") is None
 
+
 def test_seq_stats_over_limit(tmp_path):
     """Owner law 2026-10-06: truncation must be measurable, never silent."""
     from tools.training.train_bc_v2 import _seq_stats
+
     ds = [{"seq": list(range(50))}, {"seq": list(range(60))}]
     st = _seq_stats(ds, max_len=1024)
     assert st["over_limit"] == 0 and st["max"] == 60

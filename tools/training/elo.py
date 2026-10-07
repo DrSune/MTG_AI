@@ -125,6 +125,40 @@ def bootstrap_ci(
     return ci
 
 
+def pair_winrate_admissibility(
+    pair_results: dict[tuple[int, int], list[str]],
+    reps: int = 1000,
+    rng_seed: int = 20261005,
+) -> dict[tuple[int, int], dict[str, Any]]:
+    """Bootstrap winrate CI per pair; a pair's rating delta is
+    INADMISSIBLE unless its CI excludes 0.5 (KNOWLEDGE 2026-10-07/26:
+    under-powered games fabricate ratings — elo_s3_sanity CIs straddled
+    0.5 yet the ladder still printed positive Elo).
+
+    Winrate = (wins_a + 0.5*draws)/m from resampled raw games (crashes
+    ride along as draws, as in the fit); percentile 2.5/97.5 CI."""
+    rng = random.Random(rng_seed)
+    out: dict[tuple[int, int], dict[str, Any]] = {}
+    for key in sorted(pair_results):
+        outcomes = pair_results[key]
+        m = len(outcomes)
+
+        def score(seq: list[str]) -> float:
+            return (seq.count("a") + 0.5 * seq.count("d")) / m
+
+        wrs = sorted(
+            score([outcomes[rng.randrange(m)] for _ in range(m)]) for _ in range(reps)
+        )
+        lo = wrs[max(0, int(0.025 * reps) - 1)]
+        hi = wrs[min(reps - 1, int(0.975 * reps))]
+        out[key] = {
+            "winrate_a": round(score(outcomes), 4),
+            "wr_ci": [round(lo, 4), round(hi, 4)],
+            "admissible": bool(hi < 0.5 or lo > 0.5),
+        }
+    return out
+
+
 # ------------------------------------------------------------ ladder run
 def run_ladder(
     specs: list[str],
@@ -171,6 +205,7 @@ def run_ladder(
     counts = _pair_lists_to_counts(pair_results)
     elo = fit_elo(counts, len(labels), anchor)
     ci = bootstrap_ci(pair_results, len(labels), anchor, reps=reps)
+    adm = pair_winrate_admissibility(pair_results, reps=reps)
     wins = [0] * len(labels)
     score = [0.0] * len(labels)
     games_played = [0] * len(labels)
@@ -191,6 +226,11 @@ def run_ladder(
                 "vs_field_wr": round(score[p] / games_played[p], 4)
                 if games_played[p]
                 else 0.0,
+                # "points above random" is only a claim if the vs-anchor
+                # pair's bootstrap winrate CI excludes 0.5 (/26 rule);
+                # the anchor itself reads 0 by construction.
+                "admissible": p == anchor
+                or adm[(min(p, anchor), max(p, anchor))]["admissible"],
             }
             for p in range(len(labels))
         ),
@@ -201,17 +241,28 @@ def run_ladder(
         "anchor": "random=0",
         "games_per_pair": games,
         "ratings": ratings,
+        # Headline claims exclude every inadmissible pair (CI straddles
+        # 0.5): an under-powered game contributes a rating to the fit but
+        # is NOT a claim of skill above random.
+        "headline_claims": [
+            {"policy": r["policy"], "elo": r["elo"]}
+            for r in ratings
+            if r["admissible"] and r["policy"] != labels[anchor]
+        ],
         "games_total": sum(games_played) // 2,
         "details": {
             "fit": f"K={ELO_K} iterative to fixed point, anchored (random=0 by "
             "construction); vs_field_wr = score incl. 0.5*draws; "
-            "bootstrap over games within pairs, seed-fixed",
+            "bootstrap over games within pairs, seed-fixed; a rating delta "
+            "is admissible only if its vs-anchor pair's bootstrap winrate "
+            "CI excludes 0.5 (/26)",
             "pairs": {
                 f"{labels[i]} vs {labels[j]}": {
                     "a": meta["a"],
                     "b": meta["b"],
                     "draws": meta["draws"],
                     "crashes": meta["crashes"],
+                    "boot": adm[(i, j)],
                 }
                 for (i, j), meta in pair_meta.items()
             },
@@ -280,10 +331,16 @@ def main(argv: list[str] | None = None) -> int:
         f"total: {doc['games_total']}"
     )
     for r in doc["ratings"]:
+        flag = (
+            "" if r["admissible"] else "  [INADMISSIBLE: vs-anchor wr CI straddles 0.5]"
+        )
         print(
             f"  {r['policy']:>{width}}  elo {r['elo']:>8.1f} "
             f"[{r['ci_lo']:>8.1f}, {r['ci_hi']:>8.1f}]  field-wr {r['vs_field_wr']:.3f}"
+            f"{flag}"
         )
+    claims = ", ".join(f"{c['policy']} {c['elo']:+.1f}" for c in doc["headline_claims"])
+    print(f"# headline claims (admissible only): {claims or 'NONE'}", file=sys.stderr)
     print(f"# written {args.out}", file=sys.stderr)
     return 0
 

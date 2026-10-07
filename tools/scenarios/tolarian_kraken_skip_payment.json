@@ -1,5 +1,8 @@
 {
- "eval_reclassification": "branch-coverage negative twin of tolarian_kraken_tap (fire chain certified there, l1_ready): when the may-pay SKIPs, the 'when you do' target and tap/untap asks never arrive, so both step0 asks are structurally unobservable here; the untapped lane pins the short-circuit.",
+ "eval_reclassification": {
+  "reason": "branch-coverage negative twin of tolarian_kraken_tap (fire chain certified there, l1_ready): when the may-pay SKIPs, the 'when you do' target and tap/untap asks never arrive, so both step0 asks are structurally unobservable here; the untapped lane pins the short-circuit. Null word 'skip' (puzzle_cert.py:75-85) IS this pack's gold decline line; the fire path's real decisions are certified by tolarian_kraken_tap (l1_ready ladder).",
+  "verdict": "true-no-decision"
+ },
  "world": {
   "life": 20,
   "seed": 7

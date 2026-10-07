@@ -52,8 +52,9 @@
    ],
    "eval_reclassification": {
     "by_ask_kind": {
-     "choose": "Structurally unevaluable: the correct choose call ('0' = tap the token) is vocab[0], so the null replay equals gold by construction; the same step's target and two may items falsify the null-skip path against the tapped lane."
-    }
+     "choose": "The tap/untap mode ask: tap='0' IS vocab[0]=null word (puzzle_cert.py:78-85) and the fire-chain premise pins the tap; the tapped lane observes the untap branch \u2014 certifiable with an untap-premise twin (TODO). Same step's target and both may-pay items punish null and stay on the ladder."
+    },
+    "verdict": "null-degenerate-observable"
    }
   }
  ],

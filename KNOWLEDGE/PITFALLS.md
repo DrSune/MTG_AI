@@ -974,4 +974,9 @@
   is a phantom file). Always connect with mode=ro URIs and check config's real path first.
 - **reclassification-hides-bugs law (2026-10-07)**: eval_reclassification on a pack may only
   be author-shipped as FAIL-REGISTERED with file:line proof of WHY there is no decision —
-  FoR proved one entry was actually an engine execution bug (no PREVENT in its tree).
+  (2026-10-07/27 SUPERSEDES the original example: FoR's 'no PREVENT' was a FALSE
+  premise — the printed text is +1/+1 & protection-of-colour. The trap that REMAINS:
+  an audit claim marked CONFIRMED without the card's oracle text in hand is a
+  hypothesis, not evidence; and un-triaged reclassification still hides real gaps —
+  run_scenarios now rejects any eval_reclassification without a verdict + file:line
+  proof, and puzzle_cert counts every one as fail_registered.)

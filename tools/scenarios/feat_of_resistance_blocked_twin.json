@@ -1,0 +1,84 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "fr",
+   "real": "Feat of Resistance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "adv",
+   "name": "Charging Veteran",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wall",
+   "real": "Vodalian Arcanist",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Feat of Resistance",
+   "key": "fr",
+   "targets": [
+    "adv"
+   ],
+   "decisions": [
+    "0"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "adv": true
+   },
+   "block": {
+    "wall": "adv"
+   }
+  }
+ ],
+ "expect": {
+  "zone": {
+   "fr": "graveyard"
+  },
+  "counters": {
+   "adv": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "block_asks": {
+   "wall": "<adv>,NONE"
+  },
+  "blocked": {
+   "adv": [
+    "wall"
+   ]
+  },
+  "damage": {
+   "adv": 1,
+   "wall": 2
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "wrong-colour twin of feat_of_resistance.json (same position, colour '0' = WHITE): white protection does NOT veto the blue Vodalian Arcanist, so the block ask carries the veteran in its vocabulary, the pair is a legal assignment, the 2/2 is blocked (marks 1/2, neither dies) and seat 1's life stays 20. The gold pack's life[1]=18 lane fails this world and vice versa: the colour designation IS observable through the existing block-legality lane."
+}

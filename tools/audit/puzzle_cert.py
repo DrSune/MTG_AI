@@ -346,21 +346,28 @@ def certify_pack(
                 if npass == spec["gold"]
                 else "expect-insensitive (gold call not needed by any lane)"
             )
-        # Honest reclassification (eval-granularity batch 2026-10-05): a pack
-        # step — or the whole pack — may be DECLARED a branch-coverage twin /
-        # structurally-unobservable ask via ``eval_reclassification``. The
-        # item stays in the corpus for auditability, keeps its measured
-        # scores, but leaves the offender ledger and the ladder/E budget:
-        # it was never a candidate decision-ladder item. The reason is
-        # mandatory and must name the pack or lane that carries the verdict.
+        # FAIL-REGISTERED convention (owner 2026-10-07, replaces the silent
+        # "honest reclassification" of eval-granularity batch 2026-10-05): a
+        # pack step — or the whole pack — may be DECLARED a branch-coverage
+        # twin / structurally-unobservable ask via ``eval_reclassification``.
+        # Such an item is NOT counted as ladder pass material: it is marked
+        # ``fail_registered: true`` and stays in the corpus ledger AND the
+        # summary counts, with a mandatory reason naming the pack or lane and
+        # a triage ``verdict`` — one of "true-no-decision", "engine-semantics-
+        # gap", "null-degenerate-observable". Un-triaged reclassifications are
+        # exactly how engine bugs hid; run_scenarios enforces the verdict key.
         step_reclass = pack["steps"][spec["step"]].get("eval_reclassification")
-        reclass = step_reclass or pack_reclass
-        if isinstance(reclass, dict):
-            if "reason" in reclass:
-                reclass = reclass.get("reason", "unspecified")
+        reclass_src = step_reclass or pack_reclass
+        reclass_verdict = ""
+        if isinstance(reclass_src, dict):
+            reclass_verdict = str(reclass_src.get("verdict", ""))
+            if "reason" in reclass_src:
+                reclass = reclass_src.get("reason", "unspecified")
             else:
                 # item-level granularity: {"by_ask_kind": {"choose": ...}}
-                reclass = reclass.get("by_ask_kind", {}).get(spec["ask_kind"], "")
+                reclass = reclass_src.get("by_ask_kind", {}).get(spec["ask_kind"], "")
+        else:
+            reclass = reclass_src
         reclass = str(reclass) if reclass else ""
         out.append(
             {
@@ -381,6 +388,8 @@ def certify_pack(
                 "punish_inaction": null_score == 0.0,
                 "no_discrimination": null_score >= 0.5 and not reclass,
                 "reclassified": bool(reclass),
+                "fail_registered": bool(reclass),
+                "fail_verdict": reclass_verdict if reclass else "",
                 "reclass_reason": reclass,
                 "null_gt0_reason": why,
                 "l1_ready": bool(
@@ -436,6 +445,13 @@ def certify_dir(
         "l1_ready": sum(i["l1_ready"] for i in items),
         "no_discrimination": sum(i["no_discrimination"] for i in items),
         "reclassified": sum(i.get("reclassified", False) for i in items),
+        "fail_registered": sum(i.get("fail_registered", False) for i in items),
+        "fail_registered_by_verdict": {
+            v: sum(1 for i in items if i.get("fail_verdict") == v)
+            for v in sorted(
+                {i.get("fail_verdict", "") for i in items if i.get("fail_registered")}
+            )
+        },
         "null_gt0_offenders": [
             {
                 "card": i["card"],
@@ -481,6 +497,10 @@ CORPUS_NOTES = [
     "lanes do not punish inaction — author against them, do not delete them.",
     "D10 caveat: computed on current target surfaces; recompute after the",
     "geyser-sweep arc before pinning any baseline theta.",
+    "FAIL-REGISTERED (2026-10-07): every eval_reclassification item carries",
+    "fail_registered + a triage verdict (true-no-decision | engine-semantics-",
+    "gap | null-degenerate-observable); excluded from pass rate, counted in",
+    "the summary — a registered FAIL stays visible, it is never deleted.",
 ]
 
 
@@ -511,6 +531,8 @@ def main(argv: list[str] | None = None) -> int:
         f"items={s['items']} l1_ready={s['l1_ready']} "
         f"punish_inaction={s['punish_inaction']} "
         f"no_discrimination={s['no_discrimination']} "
+        f"fail_registered={s['fail_registered']} "
+        f"{s['fail_registered_by_verdict']} "
         f"mean_random={s['random_vs_oracle']['mean_random']} "
         f"({dt:.1f}s, {s['rollouts_per_item']} rollouts/item)"
     )

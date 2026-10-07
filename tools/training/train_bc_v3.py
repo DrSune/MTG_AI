@@ -509,13 +509,20 @@ def main(argv: list[str] | None = None) -> int:
     rows = eval_rows(model, eval_ds, device, eval_families, bcs_of)
     certified = [r for r in rows if r["cert"]]
     slices = {
-        "gold_lines_all": gate_stats(rows),
-        "train_families": gate_stats([r for r in certified if not r["eval_family"]]),
-        "eval_families": gate_stats([r for r in certified if r["eval_family"]]),
-        "l1_certified": gate_stats([r for r in certified if r["cert"]["l1_ready"]]),
+        "gold_lines_all": gate_stats(rows, args.seed),
+        "train_families": gate_stats(
+            [r for r in certified if not r["eval_family"]], args.seed
+        ),
+        "eval_families": gate_stats(
+            [r for r in certified if r["eval_family"]], args.seed
+        ),
+        "l1_certified": gate_stats(
+            [r for r in certified if r["cert"]["l1_ready"]], args.seed
+        ),
     }
     g = slices["eval_families"]
     margin = g.get("vs_random", {}).get("beat_margin_se", -99)
+    margin_boot = g.get("vs_random", {}).get("margin_bootstrap_se", -99)
     batch2: dict[str, Any] = {"available": False}
     with contextlib.suppress(OSError, KeyError, TypeError):
         b2 = json.loads(BC2_REPORT.read_text())["gates"]["eval_families"]
@@ -549,10 +556,13 @@ def main(argv: list[str] | None = None) -> int:
         "device": str(device),
         "gates": slices,
         "eval_margin_se": margin,
+        "eval_margin_bootstrap_se": margin_boot,
         "gate_verdict": {
-            "gate": "eval-family gold lines vs random floor, >3 SE one-sided",
+            "gate": "eval-family gold lines vs random floor, >3 SE one-sided "
+            "on BOTH iid binomial AND card-cluster bootstrap (KNOWLEDGE 2026-10-07/26)",
             "beats_random_floor_by_3SE": margin > 3.0,
-            "verdict": "PASS" if margin > 3.0 else "NULL",
+            "beats_random_floor_by_3SE_bootstrap": margin_boot > 3.0,
+            "verdict": "PASS" if margin > 3.0 and margin_boot > 3.0 else "NULL",
         },
         "batch2_comparison": batch2,
         "eval_rows": [

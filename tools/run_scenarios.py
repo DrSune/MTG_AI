@@ -830,8 +830,48 @@ class ScenarioRunner:
         return fails
 
 
+# FAIL-REGISTERED convention (owner 2026-10-07): a reclassification is a
+# REGISTERED FAIL, never a silent exemption — every eval_reclassification
+# must carry a triage verdict plus evidence, and it stays counted in the
+# puzzle_cert summary (fail_registered). Un-triaged reclassifications are
+# how engine bugs hid (the 2026-10-07 feat_of_resistance false-premise audit).
+RECLASS_VERDICTS = (
+    "true-no-decision",
+    "engine-semantics-gap",
+    "null-degenerate-observable",
+)
+
+
+def _triage_check(pack: dict) -> list[str]:
+    bad: list[str] = []
+    decls = [("pack", pack.get("eval_reclassification"))]
+    for i, step in enumerate(pack.get("steps", [])):
+        decls.append((f"step {i}", step.get("eval_reclassification")))
+    for where, decl in decls:
+        if decl is None:
+            continue
+        if not isinstance(decl, dict):
+            bad.append(
+                f"{where}: eval_reclassification needs {{reason, verdict}} — "
+                f"bare strings are un-triaged (verdicts: {RECLASS_VERDICTS})"
+            )
+            continue
+        if decl.get("verdict") not in RECLASS_VERDICTS:
+            bad.append(
+                f"{where}: eval_reclassification verdict {decl.get('verdict')!r} "
+                f"not in {RECLASS_VERDICTS}"
+            )
+        reasons = [decl.get("reason", ""), *decl.get("by_ask_kind", {}).values()]
+        if not any(str(r).strip() for r in reasons):
+            bad.append(f"{where}: eval_reclassification needs a non-empty reason")
+    return bad
+
+
 def run_pack(path: Path, supply) -> list[str]:
     pack = json.loads(path.read_text())
+    bad = _triage_check(pack)
+    if bad:
+        return bad
     try:
         runner = ScenarioRunner(pack, supply)
     except PackError as e:
