@@ -183,3 +183,20 @@ task(
   direction} — direction must have ONE encoding (today split between event.controller fields
   and FAtomPred.CONTROLLER_IS in subject filters: unify per merge ledger E1). Keywords (FLYING 40 goldens, TRAMPLE 13)
   ARE already shared atoms with multiple consumers — keep them that way.
+
+## 10. Menu-visibility law — atomized components never leave the model blind (owner 2026-10-07)
+- Every decision atom's encoding MUST expose every axis the model will face in practice, with
+  the SAME vocabulary statically (card/tree encoder) and dynamically (ask/observation):
+  {operation, quantity WITH live bound values, menu (full list | zone+filter descriptor),
+  per-choice effects}. {heal X} without showing heal-what-menu-actually-exists = blindness;
+  the model cannot choose well and a transfer gap opens between card-encoder information
+  and presented options.
+- Two violation classes, same sin: BLINDNESS (a real decision exists dynamically but the
+  static encoding has no trace, or the ask hides axes: silent CHOOSE picks, attack-as-N-
+  binars instead of visible attacker-set, scry within-order hidden, mana amount never
+  askable) and PHANTOM (encoding/ask presents a choice that has no consequence or the
+  engine resolves anyway: gold:false dead asks, single-candidate "decisions").
+- A node the engine resolves without asking must be ENCODED as no-decision (never phantom);
+  a node that asks must be traceable in the card's static encoding (never blind).
+- Every atom ships with a blindness audit (static tokens <-> dynamic ask shape). New sets
+  (§8) and the T4 atomization rewrite must pass it; eval items failing it are evidence.
