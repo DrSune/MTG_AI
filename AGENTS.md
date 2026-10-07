@@ -200,3 +200,15 @@ task(
   a node that asks must be traceable in the card's static encoding (never blind).
 - Every atom ships with a blindness audit (static tokens <-> dynamic ask shape). New sets
   (§8) and the T4 atomization rewrite must pass it; eval items failing it are evidence.
+
+## 11. Board-separation + zero-loss encoding law (owner 2026-10-07)
+- A card's encoding contains ONLY that card's own components (the choices they create).
+  Interaction-acquired restrictions are NEVER encoded into the restricted card ("card A says
+  creatures can't attack" is A's component; card B's encoding stays untouched). The engine
+  computes live legality; the observation menu presents the true options at decision time.
+  Board interaction is the model's complexity target, not an encoding concern.
+- Zero-loss goal: the components must capture ALL semantically significant information of a
+  card. SIGNIFICANCE CRITERION: text is significant iff it can alter legal options or state
+  outcomes. Anything significant that fits no component is a GAP REPORT — distinguishing
+  (i) mis-encoded card (fix encoding) from (ii) component-coverage hole (new atom or
+  rewrite). The rewrite (T4) ships a gap ledger, not just a compile rate.

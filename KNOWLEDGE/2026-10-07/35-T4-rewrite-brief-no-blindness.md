@@ -30,3 +30,9 @@ recovery count; per-atom volume census (owner's volume hypothesis, /30 transfer 
 §8 protocol updated with blindness audit per set.
 Cost honesty: P1-P2 is the biggest single program of the campaign; T3 must land first
 (household legality unification is a P0 input).
+
+AMENDED 13:47 owner clarifications (binding): (a) board-separation law (AGENTS §11) — no
+cross-card interaction in card encodings, live menus carry interaction truth; (b) every T4
+stage MUST report what doesn't fit current components (gap ledger with significance
+criterion: alters legal options or state outcomes) — gaps identify component coverage as
+much as card encoding errors. Zero semantic loss is the target, zero is acceptable.
