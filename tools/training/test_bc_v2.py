@@ -39,11 +39,11 @@ def dataset(episodes, vocab):
 
 
 # ----------------------------------------------------------------- integrity
-def test_joins_the_static_corpus_at_155(dataset):
+def test_joins_the_static_corpus_at_156(dataset):
     """Authoritative law: every v2 gold line maps to a corpus item. The OLD
     episodes.jsonl is stale (pre corpus-v2) — join to the corpus is truth."""
     corpus = __import__("json").loads(CORPUS.read_text(encoding="utf-8"))
-    assert v2.join_corpus(dataset, corpus["items"]) == 155  # v4 regen 2026-10-07
+    assert v2.join_corpus(dataset, corpus["items"]) == 156  # doc 29② regen 2026-10-07
 
 
 # ------------------------------------------------------------- schema laws

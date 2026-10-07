@@ -166,7 +166,8 @@ class TestC3CompilerPins(unittest.TestCase):
         cards = search.args.get("cards")
         assert isinstance(cards, Selector)
         self.assertEqual(cards.count, QConst(1))
-        self.assertIs(cards.mode, SelectorMode.CHOOSE)
+        # Doc 29 ②: the up-to-one search pick asks the ONE_OF channel.
+        self.assertIs(cards.mode, SelectorMode.ONE_OF)
         flt = cards.filter
         assert isinstance(flt, FAtom)
         self.assertIs(flt.pred, FAtomPred.TYPE_EQ)

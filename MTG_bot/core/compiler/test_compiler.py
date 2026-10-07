@@ -200,9 +200,11 @@ def _search_atom() -> Atom:
             pairs=(
                 (
                     "cards",
+                    # Doc 29 ②: up-to-one SEARCH picks compile to the ONE_OF
+                    # asking channel (was the silent CHOOSE stand-in).
                     Selector(
                         QConst(1),
-                        SelectorMode.CHOOSE,
+                        SelectorMode.ONE_OF,
                         FAnd(children=()),
                         Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),
                     ),
@@ -2418,6 +2420,43 @@ class TestChooseOpener(unittest.TestCase):
                 ),
             ),
         )
+
+    def test_spell_choose_two_uses_count_two(self) -> None:
+        raw = _raw_card(
+            "I",
+            1,
+            sentences=(
+                "Choose two —",
+                "• Draw a card.",
+                "• Destroy target artifact.",
+                "• Draw a card.",
+            ),
+        )
+        reg = TemplateRegistry()
+        _choose_option_templates(reg)
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        choose = _choose(_spell(res.card.abilities[0]).effect)
+        self.assertEqual(choose.count, QConst(2))
+        self.assertEqual(len(choose.options), 3)
+
+    def test_spell_choose_three_uses_count_three(self) -> None:
+        raw = _raw_card(
+            "I",
+            1,
+            sentences=(
+                "Choose three —",
+                "• Draw a card.",
+                "• Destroy target artifact.",
+                "• Draw a card.",
+            ),
+        )
+        reg = TemplateRegistry()
+        _choose_option_templates(reg)
+        res = compile_card(raw, reg)
+        self.assertEqual(res.unparsed, ())
+        choose = _choose(_spell(res.card.abilities[0]).effect)
+        self.assertEqual(choose.count, QConst(3))
 
     def test_spell_choose_one_or_more_uses_unbounded(self) -> None:
         raw = _raw_card(

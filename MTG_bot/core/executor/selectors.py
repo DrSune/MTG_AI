@@ -29,6 +29,8 @@ from MTG_bot.core.ability_tree import (
     FNot,
     FOr,
     Quantity,
+    QAtMost,
+    QConst,
     QUnbounded,
     Selector,
     SelectorMode,
@@ -432,20 +434,66 @@ def resolve_selector(
         # one filler is legal; an empty population chooses NOTHING (C17
         # clamp — there is nothing to pick, and no decision to consume);
         # an exhaustion raise means no lane answered — never a default.
+        # T2 k-of-n (doc 30 K-OF-N SPEC): the partition asks WANT times
+        # over the shrinking menu — binding.py's designation loop (1376)
+        # is the shape precedent (QConst exact / QAtMost + NONE-stop, the
+        # first pick mandatory both). want==1 stays the BYTE lane: every
+        # golden that exists today is QConst(1) and its replay pins must
+        # not move. want>1 numbers the asks AFTER the frozen kind prefix
+        # ("one_of:…:1of2:…") so bc_data's site-kind law (frozen prefix,
+        # bc_data.py:92-106) needs no new vocabulary.
+        count = sel.count
+        if isinstance(count, QConst):
+            want = count.value
+            optional_stop = False
+        elif isinstance(count, QAtMost):
+            want = count.n
+            optional_stop = True  # C17: first mandatory, later stoppable
+        else:
+            raise NotImplementedError(
+                f"executor: ONE_OF count {count!r} is not a QConst/QAtMost "
+                "partition shape (flag, never guess)"
+            )
         ordered = sorted(candidates)
         if not ordered:
             return []
-        if len(ordered) == 1:
-            ctx.one_of_pick = ordered[0]  # §1.4 auto-fill: one legal answer
-            result = ordered
+        if want == 1:
+            # the frozen lane, byte-for-byte: one ask over the whole menu
+            # (QAtMost(1) never offers NONE either — binding.py's own
+            # k=1 loop never reaches the stoppable branch).
+            if len(ordered) == 1:
+                ctx.one_of_picks = (ordered[0],)  # §1.4 auto-fill
+                result = ordered
+            else:
+                vocab = tuple(str(h) for h in ordered)
+                answer = ctx.take_decision(
+                    vocab, f"one_of:{ctx.source}:{site_digest(vocab)}"
+                )
+                pick = next(h for h in ordered if str(h) == answer)
+                ctx.one_of_picks = (pick,)
+                result = [pick]
         else:
-            vocab = tuple(str(h) for h in ordered)
-            answer = ctx.take_decision(
-                vocab, f"one_of:{ctx.source}:{site_digest(vocab)}"
-            )
-            pick = next(h for h in ordered if str(h) == answer)
-            ctx.one_of_pick = pick
-            result = [pick]
+            k = min(want, len(ordered))
+            picks: list[Handle] = []
+            pool = list(ordered)
+            for pick_no in range(k):
+                if len(pool) == 1 and not (optional_stop and pick_no > 0):
+                    picks.append(pool[0])  # §1.4 auto-fill: one legal filler
+                    break
+                vocab = tuple(str(h) for h in pool)
+                if optional_stop and pick_no > 0:
+                    vocab = vocab + ("NONE",)
+                answer = ctx.take_decision(
+                    vocab,
+                    f"one_of:{ctx.source}:{pick_no + 1}of{k}:{site_digest(vocab)}",
+                )
+                if answer == "NONE":
+                    break
+                pick = next(h for h in pool if str(h) == answer)
+                picks.append(pick)
+                pool.remove(pick)
+            ctx.one_of_picks = tuple(picks)
+            result = picks
         _emit_partition_journal(ctx, sel, result, journal_partition)
         return result
     if sel.mode is SelectorMode.REST:
@@ -455,8 +503,9 @@ def resolve_selector(
         # pick out of the zone, so the re-enumeration here already lacks
         # it; the subtraction covers the same-zone split.
         ordered = sorted(candidates)
-        if ctx.one_of_pick is not None:
-            ordered = [h for h in ordered if h != ctx.one_of_pick]
+        if ctx.one_of_picks:
+            picked = set(ctx.one_of_picks)
+            ordered = [h for h in ordered if h not in picked]
         _emit_partition_journal(ctx, sel, ordered, journal_partition)
         return ordered
     raise NotImplementedError(

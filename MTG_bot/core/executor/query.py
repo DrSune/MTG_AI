@@ -166,7 +166,9 @@ class TargetSlot:
     * ``ALL``                      — the whole population, forced;
     * ``RANDOM``                   — engine-side: forced for the player
       (the seeded rng picks at resolution, never a model decision);
-    * ``ONE_OF``                   — exactly 1 of the partition population;
+    * ``ONE_OF``                   — ``want`` of the partition population
+      (T2 k-of-n: QConst exact, QAtMost 1..want with a NONE stop after
+      the mandatory first pick; the frozen goldens are all want==1);
     * ``REST``                     — the remainder: forced (engine takes
       everything the ONE_OF pick left — :func:`rest_of`)."""
 
@@ -315,8 +317,31 @@ def legal_targets(
         min_count = max_count = min(want, n)
         forced = True  # the seeded rng designates, not the model
     elif mode is SelectorMode.ONE_OF:
-        min_count, max_count = 1, min(1, n)  # n=0 → infeasible (max<min)
-        forced = n == 1
+        # T2 k-of-n (doc 30): the query mirrors the resolve_selector ask
+        # loop — one ask per pick over the shrinking menu. want==1 stays
+        # the frozen exactly-one report (replay pins); k>1 is EXACT for
+        # QConst (the auto-filled last filler still lands) and 1..k for
+        # QAtMost (NONE may stop it after the mandatory first pick).
+        count = selector.count
+        if isinstance(count, QConst):
+            want = count.value
+        elif isinstance(count, QAtMost):
+            want = count.n
+        else:
+            raise NotImplementedError(
+                f"query: ONE_OF count {count!r} is not a QConst/QAtMost "
+                "partition shape (mirrors the resolve_selector raise)"
+            )
+        if want == 1:
+            min_count, max_count = 1, min(1, n)  # n=0 → infeasible (max<min)
+            forced = n == 1
+        elif isinstance(count, QAtMost):
+            min_count = 1 if n else 0
+            max_count = min(want, n)
+            forced = n <= 1  # zero/one candidate: nothing to ask
+        else:
+            min_count = max_count = min(want, n)
+            forced = n <= 1
     elif mode is SelectorMode.REST:
         # The remainder after the ONE_OF pick: count ignored (like ALL),
         # engine-side complement — see rest_of().
@@ -414,12 +439,16 @@ def validate_target_selection(slot: TargetSlot, chosen: Sequence[Handle]) -> str
     return None
 
 
-def rest_of(slot: TargetSlot, one_of_pick: Handle) -> tuple[Handle, ...]:
-    """The REST partition of a ONE_OF/REST split, given the pick — the
-    deterministic complement (§5.5-sorted), i.e. everything the exactly-1
-    choice left ("put one of them in your hand, the rest into your
-    graveyard")."""
-    return tuple(h for h in slot.candidates if h != one_of_pick)
+def rest_of(
+    slot: TargetSlot, one_of_picks: Handle | tuple[Handle, ...]
+) -> tuple[Handle, ...]:
+    """The REST partition of a ONE_OF/REST split, given the pick(s) — the
+    deterministic complement (§5.5-sorted), i.e. everything the choices
+    left ("put one of them in your hand, the rest into your graveyard").
+    T2 k-of-n (doc 30): accepts a single Handle (frozen legacy callers)
+    or the resolution's pick tuple — REST subtracts EVERY pick."""
+    picked = {one_of_picks} if isinstance(one_of_picks, Handle) else set(one_of_picks)
+    return tuple(h for h in slot.candidates if h not in picked)
 
 
 # --------------------------------------------------------------- options

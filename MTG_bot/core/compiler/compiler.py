@@ -16,8 +16,8 @@ Public API:
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, replace
-from typing import Any
+from dataclasses import dataclass, fields, is_dataclass, replace
+from typing import Any, cast, get_args
 
 from MTG_bot.core.ability_tree import (
     QX,
@@ -50,6 +50,7 @@ from MTG_bot.core.ability_tree import (
     OptionalEffect,
     QConst,
     QUnbounded,
+    Quantity,
     Repeat,
     Selector,
     SelectorMode,
@@ -236,9 +237,19 @@ def _phase_in_prevention_effect() -> Atom:
 #   sharing the same Choose effect — the grammar has no composite
 #   "attacks or blocks" EventSpec.  A creature cannot attack and block in
 #   the same turn, so the decomposition is behaviourally equivalent.
+#
+# Modal "Choose two/three —" openers (tokenizer refinement 2026-10-07, doc
+# 29): the same fold, with the Choose combinator's EXISTING ``count`` slot
+# carrying the modal cardinality (no grammar extension — the count axis is
+# already orthogonal to the operation).  The current M21 pool contains no
+# such card (measured: grep of cards.text over the 397-card corpus finds
+# only "Choose one"/"Choose one or more"); this is tokenizer readiness for
+# the next sets, per the AGENTS.md §8 tokenizer law.
 # ---------------------------------------------------------------------------
 
 _CHOOSE_ONE_RE = re.compile(r"^Choose one —$")
+_CHOOSE_TWO_RE = re.compile(r"^Choose two —$")
+_CHOOSE_THREE_RE = re.compile(r"^Choose three —$")
 _CHOOSE_ONE_OR_MORE_RE = re.compile(r"^Choose one or more —$")
 _CHOOSE_ETB_RE = re.compile(r"^When this creature enters, choose one —$")
 _CHOOSE_ATTACK_BLOCK_RE = re.compile(
@@ -250,6 +261,8 @@ _OPTION_BULLET_PREFIX = "• "
 
 # Opener kinds.
 _CHOOSE_SPELL_ONE = "spell_one"
+_CHOOSE_SPELL_TWO = "spell_two"
+_CHOOSE_SPELL_THREE = "spell_three"
 _CHOOSE_SPELL_ONE_OR_MORE = "spell_one_or_more"
 _CHOOSE_ETB_ONE = "etb_one"
 _CHOOSE_ATTACK_BLOCK_ONE = "attack_block_one"
@@ -287,10 +300,23 @@ _OPTION_CONSUMED = _OptionConsumed()
 _OutcomeSlot = SentenceOutcome | _ChooseOpenerOutcome | _OptionConsumed | None
 
 
+# Modal spell openers and their Choose counts (doc 29 refinement ①:
+# same fold as "Choose one —", count axis carried by the existing slot).
+_CHOOSE_SPELL_COUNTS: dict[str, Quantity] = {
+    _CHOOSE_SPELL_ONE: QConst(1),
+    _CHOOSE_SPELL_TWO: QConst(2),
+    _CHOOSE_SPELL_THREE: QConst(3),
+}
+
+
 def _choose_opener_kind(sentence: str) -> str | None:
     """Classify an anchored choose-opener sentence; None if not one."""
     if _CHOOSE_ONE_RE.match(sentence):
         return _CHOOSE_SPELL_ONE
+    if _CHOOSE_TWO_RE.match(sentence):
+        return _CHOOSE_SPELL_TWO
+    if _CHOOSE_THREE_RE.match(sentence):
+        return _CHOOSE_SPELL_THREE
     if _CHOOSE_ONE_OR_MORE_RE.match(sentence):
         return _CHOOSE_SPELL_ONE_OR_MORE
     if _CHOOSE_ETB_RE.match(sentence):
@@ -363,9 +389,16 @@ def _expand_choose_opener(
     assembly folds it into the SpellAbility); the trigger openers emit
     TriggeredAbility nodes into ``abilities``.
     """
-    count = QUnbounded() if outcome.kind == _CHOOSE_SPELL_ONE_OR_MORE else QConst(1)
+    count = (
+        QUnbounded()
+        if outcome.kind == _CHOOSE_SPELL_ONE_OR_MORE
+        else _CHOOSE_SPELL_COUNTS.get(outcome.kind, QConst(1))
+    )
     choose = Choose(count=count, options=outcome.options)
-    if outcome.kind in (_CHOOSE_SPELL_ONE, _CHOOSE_SPELL_ONE_OR_MORE):
+    if (
+        outcome.kind in _CHOOSE_SPELL_COUNTS
+        or outcome.kind == _CHOOSE_SPELL_ONE_OR_MORE
+    ):
         effects.append(choose)
     elif outcome.kind == _CHOOSE_ETB_ONE:
         abilities.append(
@@ -1055,6 +1088,64 @@ def _is_result_anaphoric_cast_permission(ability: Ability) -> bool:
     return isinstance(src, Selector) and src.referent == "result"
 
 
+def _one_of_search_picks(node: object) -> object:
+    """Doc 29 refinement ②: recompile the search-pick CHOOSE selector to
+    the EXISTING 14c ONE_OF asking channel.
+
+    A SEARCH atom whose ``cards`` role is the up-to-one pick
+    (``Selector(QConst(1), CHOOSE, …)``) silently resolved the *which card
+    did you find* decision through the deterministic 12a first-of-sort
+    stand-in (selectors.py) — the measured silent-choice fail-core. ONE_OF
+    asks the vocabulary-addressed channel with the Handle-sorted candidate
+    list; single-candidate populations auto-fill (§1.4) exactly as the old
+    stand-in did, and exhaustion stays loud (C15). QConst(2) picks
+    (Cultivate/Alpine Houndmaster) and QUnbounded whole-zone finds are
+    NOT rewritten: ONE_OF is exactly-one, so a multi-pick ask is a
+    REGISTERED GRAMMAR GAP (doc 29), not something this pass extends.
+    """
+    if type(node) is tuple:
+        rebuilt = tuple(_one_of_search_picks(v) for v in node)
+        return (
+            rebuilt
+            if any(a is not b for a, b in zip(rebuilt, node, strict=True))
+            else node
+        )
+    if not (is_dataclass(node) and not isinstance(node, type)):
+        return node
+    if isinstance(node, Atom) and node.verb is Verb.SEARCH:
+        flipped = False
+        pairs: list[tuple[str, object]] = []
+        for key, value in node.args.pairs:
+            if (
+                key == "cards"
+                and isinstance(value, Selector)
+                and value.mode is SelectorMode.CHOOSE
+                and value.count == QConst(1)
+            ):
+                value = replace(value, mode=SelectorMode.ONE_OF)
+                flipped = True
+            pairs.append((key, value))
+        if flipped:
+            node = replace(node, args=replace(node.args, pairs=tuple(pairs)))
+    updates = {
+        f.name: _one_of_search_picks(getattr(node, f.name)) for f in fields(node)
+    }
+    if any(updates[f.name] is not getattr(node, f.name) for f in fields(node)):
+        return replace(node, **updates)
+    return node
+
+
+def _flip_search_picks_in(ability: Ability) -> Ability:
+    """Typed wrapper: the rewrite rebuilds nodes in place and never
+    changes a node's type, so the Ability in is an Ability out."""
+    flipped = _one_of_search_picks(ability)
+    if not isinstance(flipped, get_args(Ability)):  # pragma: no cover — invariant
+        raise StateCorruptionError(
+            "compile_card: search-pick rewrite changed an Ability node type"
+        )
+    return cast(Ability, flipped)
+
+
 def compile_card(
     raw: RawCard,
     registry: TemplateRegistry,
@@ -1665,6 +1756,11 @@ def compile_card(
         if gate.condition is not None:
             updates["condition"] = gate.condition
         abilities[target] = replace(abilities[target], **updates)
+
+    # -- Search-pick observability rewrite (doc 29 refinement ②) -----------
+    # Up-to-one SEARCH picks ask the ONE_OF channel instead of resolving
+    # silently through the 12a stand-in; see _one_of_search_picks.
+    abilities = [_flip_search_picks_in(ab) for ab in abilities]
 
     # -- Build CardRecord ----------------------------------------------------
     card = CardRecord(

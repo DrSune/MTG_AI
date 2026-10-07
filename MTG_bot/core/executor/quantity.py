@@ -137,17 +137,19 @@ class ExecCtx:
     # unbound flag), so every pre-13b path is byte-unchanged; cast() binds
     # it from its x parameter, effect-side CASTs default it to 0.
     x_value: int | None = None
-    # 14c (B-13): the most recent ONE_OF pick made in THIS resolution — the
-    # partition anchor the sibling REST atom subtracts ("put one of them
+    # 14c (B-13): the ONE_OF picks made in THIS resolution — the
+    # partition anchors the sibling REST atom subtracts ("put one of them
     # in your hand, the rest into your graveyard"). The re-search idiom
     # usually makes the subtraction a no-op (the picked card already left
     # the zone); it matters for a same-zone split. Seq order pairs the
-    # nearest preceding ONE_OF with its REST.
-    one_of_pick: Handle | None = None
+    # nearest preceding ONE_OF with its REST. T2 k-of-n (doc 30): a TUPLE
+    # — a want>1 partition asks k times and REST subtracts EVERY pick;
+    # the want==1 lane keeps the old single-element tuple behaviour.
+    one_of_picks: tuple[Handle, ...] = ()
     # r19b (See the Truth): the windowed candidate list a library-TOP
     # ONE_OF partition resolved from — the sibling REST atom's population
     # after run_atom has closed the raw look window at the ONE_OF atom's
-    # completion. Same lifetime and pairing rule as one_of_pick (Seq order
+    # completion. Same lifetime and pairing rule as one_of_picks (Seq order
     # pairs a REST with its nearest preceding ONE_OF).
     one_of_window: tuple[Handle, ...] = ()
     # 12d: damage replacements consume the event and queue their ACTION;

@@ -232,7 +232,7 @@ class LookWindowTest(BindingCase):
         # at the ONE_OF's completion — its anchor is ctx.one_of_window.
         # Same-zone split: the pick moves to the library TOP, so it STAYS
         # live and the REST complement can only come from the stashed
-        # window with ctx.one_of_pick subtracted.
+        # window with ctx.one_of_picks subtracted.
         self.ex.apply_effect(
             Seq(
                 (

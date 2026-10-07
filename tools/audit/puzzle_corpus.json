@@ -7,10 +7,10 @@
  "summary": {
   "packs_scanned": 373,
   "packs_with_decisions": 151,
-  "items": 155,
+  "items": 156,
   "punish_inaction": 144,
   "l1_ready": 16,
-  "no_discrimination": 0,
+  "no_discrimination": 1,
   "reclassified": 11,
   "fail_registered": 11,
   "fail_registered_by_verdict": {
@@ -18,7 +18,16 @@
    "null-degenerate-observable": 3,
    "true-no-decision": 7
   },
-  "null_gt0_offenders": [],
+  "null_gt0_offenders": [
+   {
+    "card": "Fierce Empath",
+    "pack": "empath_big_game_pick.json",
+    "ask_kind": "may",
+    "gold": "fire",
+    "null_pick": "skip",
+    "why": "expect-insensitive (gold call not needed by any lane)"
+   }
+  ],
   "broken_packs": [],
   "designation_lane_packs": [
    "bad_deal.json",
@@ -31,7 +40,6 @@
    "cw_priority_burns.json",
    "cw_pump_threshold.json",
    "cw_single_round.json",
-   "empath_big_game_pick.json",
    "experimental_overload.json",
    "experimental_overload_x_garruk_unleashed.json",
    "fabled_passage.json",
@@ -61,14 +69,14 @@
    "transmogrify.json"
   ],
   "random_vs_oracle": {
-   "mean_random": 0.3447,
+   "mean_random": 0.3489,
    "max_random": 1.0,
    "items_random_le_0.05": 16,
    "histogram_random": {
     "0-0.05": 15,
     "0.05-0.25": 41,
     "0.25-0.5": 58,
-    "0.5-1.0": 41
+    "0.5-1.0": 42
    }
   },
   "rollouts_per_item": 200,
@@ -952,6 +960,33 @@
    "fail_verdict": "",
    "reclass_reason": "",
    "null_gt0_reason": "",
+   "l1_ready": false
+  },
+  {
+   "card": "Fierce Empath",
+   "pack": "empath_big_game_pick.json",
+   "ask_kind": "may",
+   "ask_site": "may:card:0",
+   "step": 0,
+   "candidates_n": 2,
+   "candidates": [
+    "fire",
+    "skip"
+   ],
+   "gold": "fire",
+   "gold_script": "fire",
+   "null": 1.0,
+   "null_pick": "skip",
+   "random": 1.0,
+   "oracle": 1.0,
+   "rollouts": 200,
+   "punish_inaction": false,
+   "no_discrimination": true,
+   "reclassified": false,
+   "fail_registered": false,
+   "fail_verdict": "",
+   "reclass_reason": "",
+   "null_gt0_reason": "expect-insensitive (gold call not needed by any lane)",
    "l1_ready": false
   },
   {

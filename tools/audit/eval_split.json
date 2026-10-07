@@ -84,7 +84,7 @@
   "Warden of the Woods"
  ],
  "eval_items": 51,
- "train_items": 104,
+ "train_items": 105,
  "eval_l1_ready": 3,
  "new_families_assigned": [],
  "per_family": [
@@ -193,7 +193,7 @@
   {
    "family": "Fierce Empath",
    "side": "train",
-   "items": 1,
+   "items": 2,
    "l1_ready": 0
   },
   {
