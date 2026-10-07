@@ -37,14 +37,16 @@
    "real": "Experimental Overload",
    "key": "eo",
    "decisions": [
-    "Jolt"
+    "fire",
+    "card:2"
    ]
   }
  ],
  "expect": {
   "zone": {
    "eo": "exile",
-   "jt": "hand"
+   "zp": "hand",
+   "jt": "graveyard"
   },
   "tokens": {
    "Weird": 1

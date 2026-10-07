@@ -983,3 +983,21 @@
 - (2026-10-07, P1a) Never run `ruff format` over a file list that can include golden
   .json — a `ruff format $(git diff --name-only)` sweep mangled 305 goldens mid-task;
   repair was a deterministic write_goldens rerun. Scope formatters to *.py explicitly.
+
+## 2026-10-07 — T4 P1b (docs/T4_PICK_ENUMERATION.md)
+- **r20c exemption is CHOOSE-MODE-GATED** (`selectors.py:648`): flipping an
+  IS_SOURCE-filtered selector to ONE_OF silently drops the cost-hijack
+  exemption → effect resolves against the wrong population (14 phantom
+  "trigger-swallow" failures in the first probe were ALL this). Never lift
+  self-ref; any future lift requires making the exemption mode-invariant first.
+- **Decision lanes consume independently** (`quantity.py:214` take_decision):
+  per-op lane-1 pool matches RAW vocab words only (pack keys DO NOT resolve
+  there — use `card:N`, cultivate precedent); the provider lane pops its own
+  copy of the step's `decisions` list. A lane-1-matched may-offer is invisible
+  to `asks_seen`. Verify discriminability by null-twin REPLAY, not ask logs.
+- **vocab[0] fallback accidents**: a decisions word absent from the vocab is
+  silently answered vocab[0]; several legacy "green" packs (e.g. old
+  experimental_overload 'Jolt') were passing with ZERO discrimination.
+  Gold word must be ≠ vocab[0] AND the expect must pin the pick's consequence.
+
+- FINAL-STATE GATE LAW (3rd seam recurrence, 2026-10-07): a batch that regenerates corpus/episodes/split MUST re-run the FULL tools suite as its LAST command and report that summary — pins measured mid-batch are stale the moment the next regen lands. Orchestrator: never trust reported gate lines from before the final artifact write; re-run mine.

@@ -3300,3 +3300,9 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - Verb partition shipped: OPERATION 6 / POLICY 7 / EFFECT 36 (= 49). Live dispatch set 46→43 (MILL/DISCARD/EXILE retired; V1 contract frozen untouched).
 - Golden churn: **36/305 files × 1 line** (predicted 39 records/36 files — hit); full diff audited verb+slot-only.
 - Gates: core pytest **2460 passed / 0 failed**; scenarios **373/373**; journal/replay 47; tools audit+training 153; episodes items **157 / no_discrimination 0**; eval split families 77 unchanged.
+
+## 2026-10-07 — T4 P1b pick-enumeration + ask-pilot (commands: `/tmp/opencode/p1b/enumerate.py`; `tools/run_scenarios.py`; `pytest MTG_bot/core -q`; `tools/audit/puzzle_cert.py --dir tools/scenarios --rollouts 200`; HEAD-worktree baseline diff)
+- CHOOSE census: **155 surfaces / 113 cards**; liftable core **22** (21 pack-mentioned); IS_SOURCE self-ref 69; cost-victim 26; anaphoric 37; k>1/search 31.
+- Pilot allowlist 8 cards → honest runtime blast radius **5 packs, 0 silent changes**; goldens 8 files re-generated (verify diff 0).
+- Gates: scenarios **373/373**; core pytest **2466 passed + 2 subtests** (5 new pins); tools **153**.
+- Eval loop: items **157→164** (+7), families **77→80**, eval items **51→54**, gold_rows_with_ground **79→84**, candidate_ground **246/495** (was 229/474); no_discrimination **0**; fail_registered 11 unchanged.

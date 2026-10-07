@@ -11,6 +11,20 @@
    "real": "Rain of Revelation",
    "zone": "hand",
    "controller": 0
+  },
+  {
+   "key": "alpha",
+   "name": "Alpha Card",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "beta",
+   "name": "Beta Card",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 0
   }
  ],
  "mana": {
@@ -26,15 +40,19 @@
   {
    "op": "cast",
    "real": "Rain of Revelation",
-   "key": "sp"
+   "key": "sp",
+   "decisions": ["beta"]
   }
  ],
  "expect": {
   "zone": {
-   "sp": "graveyard"
+   "sp": "graveyard",
+   "beta": "graveyard",
+   "alpha": "hand"
   },
   "hand": {
-   "0": 2
+   "0": 4
   }
- }
+ },
+ "notes": "T4-P1b: 'Draw three cards, then discard a card.' The discard is a REAL decision (ONE_OF ask, doc 29 channel). Gold answer 'beta' is NOT the vocab-first candidate (Alpha sorts first): the null replay discards Alpha and falsifies the pin (T4 falsifiable twin). Net hand = 2 named + 3 drawn - 1 discarded = 4."
 }

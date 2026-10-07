@@ -88,7 +88,8 @@
    "key": "eo",
    "controller": 1,
    "decisions": [
-    "Jolt"
+    "fire",
+    "card:6"
    ]
   }
  ],
@@ -110,7 +111,8 @@
   },
   "zone": {
    "eo": "exile",
-   "jt": "hand"
+   "zp": "hand",
+   "jt": "graveyard"
   },
   "life": {
    "0": 20,

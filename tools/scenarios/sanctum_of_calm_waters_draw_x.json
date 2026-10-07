@@ -11,6 +11,13 @@
    "zone": "hand"
   },
   {
+   "key": "early",
+   "name": "Early Card",
+   "type": "Instant",
+   "controller": 0,
+   "zone": "hand"
+  },
+  {
    "key": "d",
    "name": "Discard Me",
    "type": "Creature",
@@ -38,7 +45,12 @@
  ],
  "expect": {
   "hand": {
-   "0": 2
+   "0": 3
+  },
+  "graveyard": {
+   "0": [
+    "Discard Me"
+   ]
   },
   "library": {
    "0": [

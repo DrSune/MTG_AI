@@ -45,6 +45,8 @@ from MTG_bot.core.ability_tree import (
     FAtom,
     FAtomPred,
     Filter,
+    FNot,
+    FOr,
     Keyword,
     KeywordAbility,
     OptionalEffect,
@@ -1154,6 +1156,112 @@ def _flip_search_picks_in(ability: Ability) -> Ability:
     return cast(Ability, flipped)
 
 
+# T4 P1b pilot allowlist (docs/T4_PICK_ENUMERATION.md): (card name, effect
+# verb) pairs whose QConst(1) entity CHOOSE selector is a REAL controller
+# decision the 12a stand-in resolved silently — all are "choose one card
+# from your own zone" (discard / return / creature-discard / draw-then-
+# discard). Each pair is unique per card (pinned by test_pick_ask_
+# promotions); the ordinal lane is therefore not needed while the pilot
+# stays one-surface-per-verb.
+PICK_ASK_ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
+    {
+        ("Rain of Revelation", "MOVE_ZONE"),
+        ("Rousing Read", "MOVE_ZONE"),
+        ("Sanctum of Calm Waters", "MOVE_ZONE"),
+        ("Jeskai Elder", "MOVE_ZONE"),
+        ("Teferi's Protege", "MOVE_ZONE"),
+        ("Obsessive Stitcher", "MOVE_ZONE"),
+        ("Experimental Overload", "MOVE_ZONE"),
+        ("Crypt Lurker", "MOVE_ZONE"),
+    }
+)
+
+
+def _filter_carries_is_source(filter_: Filter | None) -> bool:
+    """Mirror of executor.selectors._filter_is_self_referential (kept local:
+    the compiler layer must not import the executor). An IS_SOURCE atom
+    anywhere in the tree means the selector denotes the ability's OWN
+    source (CR 602.2c self-designation) — never a player decision, and the
+    binding.py exemption for it is CHOOSE-mode-gated (r20c), so lifting one
+    silently mis-resolves. Loud raise guards the allowlist instead."""
+    if isinstance(filter_, FAtom):
+        return filter_.pred is FAtomPred.IS_SOURCE
+    if isinstance(filter_, (FAnd, FOr)):
+        return any(_filter_carries_is_source(c) for c in filter_.children)
+    if isinstance(filter_, FNot):
+        return _filter_carries_is_source(filter_.inner)
+    return False
+
+
+def _pick_ask_promotions(
+    node: object, name: str, seen: dict[str, int], in_cost: bool, verb: str | None
+) -> object:
+    """T4 P1b: entity-shape twin of _one_of_search_picks. A NON-search
+    effect atom carrying a QConst(1) entity CHOOSE selector with no
+    anaphoric referent resolved "which card?" silently through the 12a
+    first-of-sort stand-in (the measured blind spot, docs/
+    T4_PICK_ENUMERATION.md). Allowlisted cards get the EXISTING 14c ONE_OF
+    asking channel instead: Handle-sorted population, singleton auto-fill
+    (§1.4), exhaustion loud (C15). Cost selectors (r22a sacrifice lane
+    already asks) and IS_SOURCE self-designations never lift — an
+    allowlist hit on either shape is a loud StateCorruptionError, never a
+    silent skip."""
+    if type(node) is tuple:
+        rebuilt = tuple(
+            _pick_ask_promotions(v, name, seen, in_cost, verb) for v in node
+        )
+        return (
+            rebuilt
+            if any(a is not b for a, b in zip(rebuilt, node, strict=True))
+            else node
+        )
+    if not (is_dataclass(node) and not isinstance(node, type)):
+        return node
+    if type(node).__name__.startswith("Cost") and type(node).__name__ != "CostLoyalty":
+        in_cost = True
+    if isinstance(node, Atom):
+        verb = node.verb.name
+    if (
+        isinstance(node, Selector)
+        and node.mode is SelectorMode.CHOOSE
+        and node.count == QConst(1)
+        and node.referent is None
+    ):
+        ordinal = seen.get(verb or "", 0)
+        seen[verb or ""] = ordinal + 1
+        if ordinal == 0 and (name, verb or "") in PICK_ASK_ALLOWLIST:
+            if in_cost or _filter_carries_is_source(node.filter):
+                raise StateCorruptionError(
+                    f"compile_card({name}): PICK_ASK_ALLOWLIST verb {verb} hit a "
+                    "cost/self-designation selector — allowlist stale"
+                )
+            return replace(node, mode=SelectorMode.ONE_OF)
+        return node
+    updates = {
+        f.name: _pick_ask_promotions(getattr(node, f.name), name, seen, in_cost, verb)
+        for f in fields(node)
+    }
+    if any(updates[f.name] is not getattr(node, f.name) for f in fields(node)):
+        return replace(node, **updates)
+    return node
+
+
+def _promote_pilot_picks(abilities: list[Ability], name: str) -> list[Ability]:
+    """Card-level wrapper: ordinals count per (card, verb) across ALL of
+    the card's abilities in compile order (the pass runs per-ability but
+    shares the counter dict); type-pinned like _flip_search_picks_in."""
+    seen: dict[str, int] = {}
+    out: list[Ability] = []
+    for ab in abilities:
+        promoted = _pick_ask_promotions(ab, name, seen, False, None)
+        if not isinstance(promoted, get_args(Ability)):  # pragma: no cover
+            raise StateCorruptionError(
+                f"compile_card({name}): pick-ask promotion changed node type"
+            )
+        out.append(cast(Ability, promoted))
+    return out
+
+
 def compile_card(
     raw: RawCard,
     registry: TemplateRegistry,
@@ -1769,6 +1877,11 @@ def compile_card(
     # Up-to-one SEARCH picks ask the ONE_OF channel instead of resolving
     # silently through the 12a stand-in; see _one_of_search_picks.
     abilities = [_flip_search_picks_in(ab) for ab in abilities]
+
+    # -- PICK-ask promotion (T4 P1b pilot) -----------------------------------
+    # Entity CHOOSE picks on allowlisted cards ask the ONE_OF channel too;
+    # see _pick_ask_promotions / docs/T4_PICK_ENUMERATION.md.
+    abilities = _promote_pilot_picks(abilities, raw.identity.name)
 
     # -- Build CardRecord ----------------------------------------------------
     card = CardRecord(

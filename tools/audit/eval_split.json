@@ -1,7 +1,7 @@
 {
  "rule": "family-wise deterministic: sort distinct card names, index%5 in {0,1} -> eval (2 of every 5). Frozen prior assignments win; new families take the rule in the regenerated sort.",
  "seed_rule": "no RNG",
- "n_families": 77,
+ "n_families": 80,
  "eval_families": [
   "Alchemist's Gift",
   "Alpine Houndmaster",
@@ -10,6 +10,7 @@
   "Conspicuous Snoop",
   "Crypt Lurker",
   "Duress",
+  "Experimental Overload",
   "Feat of Resistance",
   "Garruk's Harbinger",
   "Garruk's Warsteed",
@@ -62,8 +63,10 @@
   "Pestilent Haze",
   "Pitchburn Devils",
   "Pridemalkin",
+  "Rain of Revelation",
   "Riddleform",
   "Rin and Seri, Inseparable",
+  "Rousing Read",
   "Runed Halo",
   "Sanctum of Fruitful Harvest",
   "Secure the Scene",
@@ -83,10 +86,14 @@
   "Wall of Runes",
   "Warden of the Woods"
  ],
- "eval_items": 51,
- "train_items": 106,
+ "eval_items": 54,
+ "train_items": 110,
  "eval_l1_ready": 3,
- "new_families_assigned": [],
+ "new_families_assigned": [
+  "Experimental Overload",
+  "Rain of Revelation",
+  "Rousing Read"
+ ],
  "per_family": [
   {
    "family": "Alchemist's Gift",
@@ -185,6 +192,12 @@
    "l1_ready": 0
   },
   {
+   "family": "Experimental Overload",
+   "side": "eval",
+   "items": 2,
+   "l1_ready": 0
+  },
+  {
    "family": "Feat of Resistance",
    "side": "eval",
    "items": 3,
@@ -223,7 +236,7 @@
   {
    "family": "Garruk, Unleashed",
    "side": "train",
-   "items": 3,
+   "items": 5,
    "l1_ready": 0
   },
   {
@@ -347,6 +360,12 @@
    "l1_ready": 0
   },
   {
+   "family": "Rain of Revelation",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
    "family": "Read the Tides",
    "side": "eval",
    "items": 2,
@@ -365,6 +384,12 @@
    "l1_ready": 1
   },
   {
+   "family": "Rousing Read",
+   "side": "train",
+   "items": 1,
+   "l1_ready": 0
+  },
+  {
    "family": "Runed Halo",
    "side": "train",
    "items": 1,
@@ -379,7 +404,7 @@
   {
    "family": "Sanctum of Calm Waters",
    "side": "eval",
-   "items": 1,
+   "items": 2,
    "l1_ready": 0
   },
   {

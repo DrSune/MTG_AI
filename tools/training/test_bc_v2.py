@@ -39,13 +39,13 @@ def dataset(episodes, vocab):
 
 
 # ----------------------------------------------------------------- integrity
-def test_joins_the_static_corpus_at_157(dataset):
+def test_joins_the_static_corpus_at_164(dataset):
     """Authoritative law: every v2 gold line maps to a corpus item. The OLD
     episodes.jsonl is stale (pre corpus-v2) — join to the corpus is truth."""
     corpus = __import__("json").loads(CORPUS.read_text(encoding="utf-8"))
-    # doc 36 regen 2026-10-07: the garruk emblem one_of ask became a
-    # scripted (gold) item when its dead-ask gold:false row died.
-    assert v2.join_corpus(dataset, corpus["items"]) == 157
+    # P1b pilot regen: PICK-lift added 7 real items (164). Earlier: garruk
+    # emblem one_of became a scripted (gold) item when its dead-ask died.
+    assert v2.join_corpus(dataset, corpus["items"]) == 164
 
 
 # ------------------------------------------------------------- schema laws
@@ -121,7 +121,7 @@ def test_handle_grounding_coverage(episodes):
             elif c.isdigit() and r["what"].startswith("choose:"):
                 ch += 1
                 ch_ok += grounded(r, ci)
-    assert (hs_ok, hs) == (163, 195), "handle grounding drifted"  # doc 36 regen
+    assert (hs_ok, hs) == (180, 212), "handle grounding drifted"  # P1b pilot regen
     assert (ch_ok, ch) == (66, 69), (
         "choose-digit grounding drifted"
     )  # v3 regen 2026-10-07

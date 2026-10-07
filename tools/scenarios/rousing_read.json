@@ -18,13 +18,28 @@
    "type": "Creature",
    "zone": "battlefield",
    "controller": 0
+  },
+  {
+   "key": "alpha",
+   "name": "Alpha Card",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "beta",
+   "name": "Beta Card",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 0
   }
  ],
  "steps": [
   {
    "op": "enchant",
    "aura": "a",
-   "host": "host"
+   "host": "host",
+   "decisions": ["beta"]
   },
   {
    "op": "end_turn"
@@ -32,15 +47,12 @@
  ],
  "expect": {
   "zone": {
-   "a": "battlefield"
+   "a": "battlefield",
+   "beta": "graveyard",
+   "alpha": "hand"
   },
   "hand": {
-   "0": 1
-  },
-  "graveyard": {
-   "0": [
-    "Library 4"
-   ]
+   "0": 3
   },
   "library": {
    "0": [
