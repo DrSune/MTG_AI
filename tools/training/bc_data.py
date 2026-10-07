@@ -39,6 +39,11 @@ SITE_KINDS = (
     "quantity",
     "draw",
     "roll",
+    # 2026-10-07 /38: promoted search picks (/29) + k-of-n (/31) + sacrifice costs
+    # reached the ask channel but were tokenizing site:? — §10 blindness defect fixed;
+    # additive kinds only (first-seen vocab order extends; episodes re-encoded).
+    "one_of",
+    "sacrifice",
 )
 
 _WORD = re.compile(r"[^0-9a-z']+")
