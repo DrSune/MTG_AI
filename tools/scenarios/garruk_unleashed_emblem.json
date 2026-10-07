@@ -3,7 +3,7 @@
   "life": 20,
   "seed": 7
  },
- "notes": "wave5a trigger/replacement cohort | emblem (Scryfall-printed): beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle. Minted by the -7 (Garruk then hits 0 loyalty and leaves). The search designation takes the engine's first legal creature from the library; the mandated shuffle leaves the slot order unknown so the library lane pins the SET with wildcards.",
+ "notes": "wave5a trigger/replacement cohort | emblem (Scryfall-printed): beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle. Minted by the -7 (Garruk then hits 0 loyalty and leaves). T3 fix (doc 36, item 2): the old scripted word 'pick' is not in the partition vocab, so the provider's vocab[0] fallback answered card:1 and puzzle_cert recorded the one_of ask as a gold:false DEAD-ASK ROW. The scripted answer now NAMEs its creature (card:3 = the rig filler 'Library 2') and the battlefield_pt lane pins exactly that body on the battlefield, so the pick is lane-falsifiable: the null word (vocab[0] = 'Library 0') and every other random filler fail it. The mandated shuffle leaves library slot order unknown, so the library lane pins the SET with wildcards.",
  "cards": [
   {
    "key": "ga",
@@ -28,7 +28,7 @@
    "op": "end_turn",
    "decisions": [
     "fire",
-    "pick"
+    "card:3"
    ]
   }
  ],
@@ -49,6 +49,12 @@
   },
   "hand": {
    "0": 0
+  },
+  "battlefield_pt": {
+   "Library 2": [
+    1,
+    1
+   ]
   }
  }
 }

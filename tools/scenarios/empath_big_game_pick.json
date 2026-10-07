@@ -11,16 +11,6 @@
    "controller": 0
   },
   {
-   "key": "c2",
-   "name": "Small Two",
-   "type": "Creature",
-   "power": "2",
-   "toughness": "2",
-   "zone": "library",
-   "controller": 0,
-   "cmc": 2
-  },
-  {
    "key": "c6",
    "name": "Giant Six",
    "type": "Creature",
@@ -29,6 +19,16 @@
    "zone": "library",
    "controller": 0,
    "cmc": 6
+  },
+  {
+   "key": "c2",
+   "name": "Small Two",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "library",
+   "controller": 0,
+   "cmc": 2
   }
  ],
  "mana": {
@@ -52,11 +52,11 @@
  "expect": {
   "zone": {
    "c6": "hand",
-   "c2": "library"
+   "c2": "hand"
   },
   "hand": {
-   "0": 1
+   "0": 2
   }
  },
- "notes": "blindspot-twin (Solemn Simulacrum may-tutor): the may ask fire/skip - null skips and nothing enters hand (zone/hand lanes falsify); the search auto-take is engine-deterministic, so this pack scripts the single decision ask only."
+ "notes": "blindspot-twin (Solemn Simulacrum may-tutor): the may ask fire/skip. T3 fix (doc 36, item 3): the ScenarioRunner opens the clock with begin_turn, whose draw took the OLD top-of-library Giant Six (last pack card) into hand regardless of the answer \u2014 the skip null picked into the SAME state (corpus: no_discrimination, expect-insensitive). Pack order now puts Small Two (cmc 2, NOT a legal search target) on top: the setup draw is decision-independent, and the lanes now pin what the MAY decision actually controls \u2014 Giant Six in hand and the hand count of two falsify under skip. The search itself is the single-candidate ONE_OF auto-take (no ask), so this pack scripts the one may offer only."
 }

@@ -90,6 +90,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    count_semantics,
     walk,
 )
 from MTG_bot.core.compiler.compiler import PoolCompile
@@ -1374,18 +1375,25 @@ class TriggerBinder:
             ctx.bindings["target"] = []  # CR 603.4: resolves doing nothing
             return
         count = selector.count
-        if isinstance(count, QConst):
-            wanted = count.value
-            optional_stop = False
-        elif isinstance(count, QAtMost):
-            wanted = min(count.n, len(candidates))
-            optional_stop = True  # C17 first pick mandatory, later ones stoppable
-        else:
+        if not isinstance(count, (QConst, QAtMost)):
             raise NotImplementedError(
                 f"executor: trigger TARGET count {count!r} designates "
                 "through the 12c prompt (QX/QAtLeast in a trigger TARGET "
                 "is not a frozen-IR shape)"
             )
+        # T3 legality unification (doc 36, CR 601.2c): ONE answer for the
+        # count axis — QConst is EXACT, never clamped. A trigger that
+        # cannot complete its full-size designation has no announce gate
+        # to reject it, so it rides the empty-slot lane above: designate
+        # NOTHING, resolve doing nothing (603.4 sibling of the zero-
+        # candidate return). Asking over fewer than stated (the old
+        # unclamped loop running the menu dry) was the third divergent
+        # answer of the legality triad.
+        optional_stop = isinstance(count, QAtMost)  # C17 first mandatory
+        announceable, wanted = count_semantics(count, len(candidates))
+        if not announceable:
+            ctx.bindings["target"] = []
+            return
         picks: list[Handle] = []
         pool = list(candidates)
         for pick_no in range(wanted):

@@ -340,6 +340,61 @@ class TestPtLedger(ExecutorCase):
             (5, 2),
         )
 
+    def test_current_pt_timestamp_behavior(self):
+        # CHARACTERIZATION (doc 36 item 5, probe 2026-10-07): the ledger
+        # folds SET_PT and MODIFY_PT deltas in PURE TIMESTAMP order —
+        # later change wins the overwrite, earlier delta is buried under a
+        # later SET. Order A: +1/+1 (from the 2/2 print) then SET_PT 3/3
+        # lands at 3/3 (the delta folded first, then overwritten); Order
+        # B: SET_PT 3/3 then +1/+1 lands at 4/4. Real MTG splits these
+        # into fixed layers (613.3b set BEFORE 613.3c modify), so a CR
+        # oracle says 4/4 for BOTH orders — the engine's answer is
+        # order-DEPENDENT (this test is the pin for whichever way T4's
+        # layer-model work lands, so the move is a loud diff, not a
+        # silent one). Flagged to the T4 ledger note in
+        # KNOWLEDGE/2026-10-07/34.
+        from MTG_bot.core.ability_tree import DurationEot
+
+        for expect, ops in {
+            (3, 3): (
+                (
+                    Verb.MODIFY_PT,
+                    PtDelta(PtDirection.INCREASE, QConst(1)),
+                    PtDelta(PtDirection.INCREASE, QConst(1)),
+                ),
+                (Verb.SET_PT, QConst(3), QConst(3)),
+            ),
+            (4, 4): (
+                (Verb.SET_PT, QConst(3), QConst(3)),
+                (
+                    Verb.MODIFY_PT,
+                    PtDelta(PtDirection.INCREASE, QConst(1)),
+                    PtDelta(PtDirection.INCREASE, QConst(1)),
+                ),
+            ),
+        }.items():
+            self.ex.begin_turn(self.p0)  # opens a fresh EOT window per case
+            for verb, first, second in ops:
+                self.ex.execute(
+                    atom(
+                        verb,
+                        target=target_sel(),
+                        duration=DurationEot(),
+                        power=first,
+                        toughness=second,
+                    ),
+                    source=self.alpha,
+                    controller=self.p0,
+                    bindings={"target": self.alpha},
+                )
+            self.assertEqual(
+                self.ex.ledger.effective_pt(
+                    self.world.cards[self.alpha].identity, self.alpha
+                ),
+                expect,
+            )
+            self.ex.ledger.sweep_at_eot()
+
     def test_eot_sweep_reverts_eot_keeps_permanent(self):
         from MTG_bot.core.ability_tree import DurationEot
 

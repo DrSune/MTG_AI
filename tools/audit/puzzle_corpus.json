@@ -7,10 +7,10 @@
  "summary": {
   "packs_scanned": 373,
   "packs_with_decisions": 151,
-  "items": 156,
-  "punish_inaction": 144,
+  "items": 157,
+  "punish_inaction": 146,
   "l1_ready": 16,
-  "no_discrimination": 1,
+  "no_discrimination": 0,
   "reclassified": 11,
   "fail_registered": 11,
   "fail_registered_by_verdict": {
@@ -18,16 +18,7 @@
    "null-degenerate-observable": 3,
    "true-no-decision": 7
   },
-  "null_gt0_offenders": [
-   {
-    "card": "Fierce Empath",
-    "pack": "empath_big_game_pick.json",
-    "ask_kind": "may",
-    "gold": "fire",
-    "null_pick": "skip",
-    "why": "expect-insensitive (gold call not needed by any lane)"
-   }
-  ],
+  "null_gt0_offenders": [],
   "broken_packs": [],
   "designation_lane_packs": [
    "bad_deal.json",
@@ -69,14 +60,14 @@
    "transmogrify.json"
   ],
   "random_vs_oracle": {
-   "mean_random": 0.3489,
+   "mean_random": 0.3414,
    "max_random": 1.0,
    "items_random_le_0.05": 16,
    "histogram_random": {
     "0-0.05": 15,
-    "0.05-0.25": 41,
-    "0.25-0.5": 58,
-    "0.5-1.0": 42
+    "0.05-0.25": 43,
+    "0.25-0.5": 59,
+    "0.5-1.0": 40
    }
   },
   "rollouts_per_item": 200,
@@ -975,18 +966,18 @@
    ],
    "gold": "fire",
    "gold_script": "fire",
-   "null": 1.0,
+   "null": 0.0,
    "null_pick": "skip",
-   "random": 1.0,
+   "random": 0.46,
    "oracle": 1.0,
    "rollouts": 200,
-   "punish_inaction": false,
-   "no_discrimination": true,
+   "punish_inaction": true,
+   "no_discrimination": false,
    "reclassified": false,
    "fail_registered": false,
    "fail_verdict": "",
    "reclass_reason": "",
-   "null_gt0_reason": "expect-insensitive (gold call not needed by any lane)",
+   "null_gt0_reason": "",
    "l1_ready": false
   },
   {
@@ -1205,7 +1196,38 @@
    "gold_script": "fire",
    "null": 0.0,
    "null_pick": "skip",
-   "random": 0.51,
+   "random": 0.075,
+   "oracle": 1.0,
+   "rollouts": 200,
+   "punish_inaction": true,
+   "no_discrimination": false,
+   "reclassified": false,
+   "fail_registered": false,
+   "fail_verdict": "",
+   "reclass_reason": "",
+   "null_gt0_reason": "",
+   "l1_ready": false
+  },
+  {
+   "card": "Garruk, Unleashed",
+   "pack": "garruk_unleashed_emblem.json",
+   "ask_kind": "one_of",
+   "ask_site": "one_of:emblem:0:37f45023b4e2",
+   "step": 2,
+   "candidates_n": 6,
+   "candidates": [
+    "card:1",
+    "card:2",
+    "card:3",
+    "card:4",
+    "card:5",
+    "card:6"
+   ],
+   "gold": "card:3",
+   "gold_script": "card:3",
+   "null": 0.0,
+   "null_pick": "card:1",
+   "random": 0.145,
    "oracle": 1.0,
    "rollouts": 200,
    "punish_inaction": true,

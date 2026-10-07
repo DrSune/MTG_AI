@@ -90,6 +90,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    count_semantics,
     walk,
 )
 from MTG_bot.core.executor.legality import (
@@ -335,38 +336,52 @@ def legal_targets(
         if want == 1:
             min_count, max_count = 1, min(1, n)  # n=0 → infeasible (max<min)
             forced = n == 1
-        elif isinstance(count, QAtMost):
-            min_count = 1 if n else 0
-            max_count = min(want, n)
-            forced = n <= 1  # zero/one candidate: nothing to ask
         else:
-            min_count = max_count = min(want, n)
-            forced = n <= 1
+            # T3 legality unification (doc 36): the shared count_semantics
+            # gives the ANNOUNCE-TIME answer here — a QConst partition is
+            # EXACT (CR 601.2c): min=max=N past an under-size population
+            # means INFEASIBLE (announce-time rejection), the same answer
+            # the TARGET branch below gives; the old min(want, n) clamp
+            # was the legality triad's third divergent reading. The
+            # resolve_selector loop keeps its 608.2c mid-loop best-effort
+            # lane; this slot is where the full-size law is enforced.
+            announceable, k = count_semantics(count, n)
+            if isinstance(count, QAtMost):
+                min_count = 1 if announceable else 0
+                max_count = k
+            else:
+                min_count = max_count = k
+            forced = n <= 1  # zero/one candidate: nothing to ask
     elif mode is SelectorMode.REST:
         # The remainder after the ONE_OF pick: count ignored (like ALL),
         # engine-side complement — see rest_of().
         min_count, max_count, forced = n, n, True
     elif mode is SelectorMode.TARGET:
         count = selector.count
-        if isinstance(count, QAtMost):
-            # C17: the DESIGNATION range is 1..n — an empty population
-            # leaves the slot infeasible (min 1 > max 0), which is the
-            # whole point of the pin: 0 is NOT a legal TARGET declaration.
-            min_count = 1
-            max_count = min(count.n, n)
-        elif isinstance(count, QAtLeast):
-            min_count, max_count = count.n, n
-        elif isinstance(count, QConst):
-            # exact designation: min = max = k even past the population —
-            # an under-populated TARGET slot is simply infeasible (any
-            # selection fails validation); resolution clamping is QAtMost
-            # territory only.
-            min_count = max_count = count.value
-            forced = count.value == n  # unique filler = whole population
+        if isinstance(count, (QConst, QAtMost, QAtLeast)):
+            # T3 (doc 36): same shared answer as the ONE_OF branch and
+            # the executor loops — see ability_tree.count_semantics.
+            announceable, k = count_semantics(count, n)
+            if isinstance(count, QAtMost):
+                # C17: the DESIGNATION range is 1..n — an empty population
+                # leaves the slot infeasible (min 1 > max 0), which is the
+                # whole point of the pin: 0 is NOT a legal TARGET declaration.
+                min_count = 1
+                max_count = k
+            elif isinstance(count, QAtLeast):
+                min_count, max_count = count.n, k
+            else:
+                # exact designation (QConst): min = max = k even past the
+                # population — an under-populated TARGET slot is simply
+                # infeasible (any selection fails validation, 601.2c);
+                # resolution clamping is QAtMost territory only.
+                min_count = max_count = k
+                forced = k == n  # unique filler = whole population
         else:
             want = resolve(count, ctx)  # QX raises cleanly (X_VALUE)
-            min_count = max_count = want
-            forced = want == n
+            announceable, k = count_semantics(QConst(want), n)
+            min_count = max_count = k
+            forced = k == n
     else:  # CHOOSE — up-to, resolution-time, the EMPTY set is legal
         count = selector.count
         if isinstance(count, QUnbounded):

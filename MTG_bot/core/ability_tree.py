@@ -936,6 +936,48 @@ Quantity = (
 )
 
 
+def count_semantics(count: Quantity, n_legal: int) -> tuple[bool, int]:
+    """THE legality/count answer for one Quantity over a live population
+    (T3 unification, doc 36; owner §9: the {menu} axis gets ONE answer).
+
+    Returns ``(announceable, effective_k)`` where ANNOUNCEABILITY is the
+    full-size law of CR 601.2c — "the number of targets must be exactly
+    the number stated" — and ``effective_k`` is the ask/designate ceiling
+    the executor loop runs against. The three former sites (binding.py
+    TARGET, selectors.py ONE_OF, query.py feasibility) all call THIS; a
+    site may layer its documented resolve-time lane on top (mid-loop
+    depletion resolves as much as possible, 608.2c) but may not re-decide
+    the announce-time answer:
+
+    * QConst(N)   — "N targets" EXACT: unannounceable with fewer than N
+      legal objects. Clamping (asking over fewer) is WRONG here. k = N,
+      never clamped.
+    * QAtMost(N)  — "up to N": clamps against the population with the
+      NONE stoppable lane; announceable iff at least one legal object
+      exists (C17 designation law: a nonempty TARGET slot must designate
+      >= 1; an empty population designates nothing and resolves doing
+      nothing, 603.4). k = min(N, n_legal).
+    * QAtLeast(N) — "N or more": announceable iff n_legal >= N; the loop
+      takes the ceiling. k = n_legal.
+    * QUnbounded  — "any number": always announceable (the EMPTY set is a
+      legal choice). k = n_legal.
+
+    QX/QCount/... must be RESOLVED by the caller to a QConst before this
+    call — raising here is the loud flag, never a guess."""
+    if isinstance(count, QConst):
+        return n_legal >= count.value, count.value
+    if isinstance(count, QAtMost):
+        return n_legal >= 1, min(count.n, n_legal)
+    if isinstance(count, QAtLeast):
+        return n_legal >= count.n, n_legal
+    if isinstance(count, QUnbounded):
+        return True, n_legal
+    raise NotImplementedError(
+        f"count_semantics: unresolved quantity {count!r} — resolve QX-class"
+        " counts to QConst at the call site before asking (flag, never guess)"
+    )
+
+
 # ---- Zones and the selector ----
 
 

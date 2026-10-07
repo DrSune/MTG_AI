@@ -17,11 +17,14 @@ from __future__ import annotations
 import unittest
 
 from MTG_bot.core.ability_tree import (
+    CounterKind,
     FAtom,
     FAtomPred,
+    QAtLeast,
     QAtMost,
     QConst,
     QUnbounded,
+    count_semantics,
     Selector,
     SelectorMode,
     Seq,
@@ -40,12 +43,16 @@ from MTG_bot.core.state import (
     GameWorld,
 )
 from MTG_bot.core.test_executor_binding import (
+    BF_OWNER,
     BF_YOU,
     HAND_YOU,
     LIB_YOU,
     UNIV,
     atom,
     card_id,
+    enter,
+    etb_trigger,
+    record_of,
     reset_oracle_ids,
 )
 
@@ -260,21 +267,30 @@ class TestQueryMirror(KOfNCase):
         slot = self._slot(QConst(2))
         self.assertEqual((slot.min_count, slot.max_count, slot.forced), (2, 2, False))
 
-    def test_const2_single_candidate_forced(self):
+    def test_const2_single_candidate_infeasible(self):
+        # T3 unification (doc 36): QConst is EXACT, never clamped. Over a
+        # population of ONE the slot demands TWO (min=max=2 > n) — the
+        # announce-time rejection lane, same answer TARGET already gave.
+        # forced=True mirrors the resolve loop's 608.2c mid-loop
+        # best-effort auto-fill, which is a different lane (see below).
         for h in (self.pl, self.sw):
             self.world.move_card(h, self.world.players[self.p0].zone(ZONE_HAND))
         slot = self._slot(QConst(2))
-        self.assertEqual((slot.min_count, slot.max_count, slot.forced), (1, 1, True))
+        self.assertEqual((slot.min_count, slot.max_count, slot.forced), (2, 2, True))
+        self.assertGreater(slot.min_count, 1)  # infeasible past n_legal=1
 
     def test_qatmost2_slot_range(self):
         slot = self._slot(QAtMost(2))
         self.assertEqual((slot.min_count, slot.max_count, slot.forced), (1, 2, False))
 
-    def test_empty_population_const_feasible_zero(self):
+    def test_empty_population_const_infeasible(self):
+        # T3 unification: the empty QConst(2) slot is NOT quietly resized
+        # to zero — min=max=2 over zero candidates is INFEASIBLE (the
+        # same shape the want==1 frozen pin reports as min 1 > max 0).
         for h in (self.fo, self.pl, self.sw):
             self.world.move_card(h, self.world.players[self.p0].zone(ZONE_HAND))
         slot = self._slot(QConst(2))
-        self.assertEqual((slot.min_count, slot.max_count), (0, 0))
+        self.assertEqual((slot.min_count, slot.max_count), (2, 2))
 
     def test_frozen_zero_population_stays_infeasible_for_want1(self):
         for h in (self.fo, self.pl, self.sw):
@@ -288,6 +304,168 @@ class TestQueryMirror(KOfNCase):
         self.assertEqual(rest, (self.sw,))
         # the legacy single-Handle call keeps working (frozen callers)
         self.assertEqual(rest_of(slot, self.sw), tuple(sorted([self.fo, self.pl])))
+
+
+CREATURE = FAtom(FAtomPred.TYPE_EQ, string_value="Creature")
+
+
+class TestCountSemanticsMatrix(unittest.TestCase):
+    """T3 (doc 36): the shared helper's full matrix — every tag over
+    n_legal in {0, 1, k-1, k, k+1} (k=2; 1 and k-1 coincide)."""
+
+    def test_qconst_exact_never_clamped(self):
+        self.assertEqual(
+            [count_semantics(QConst(2), n) for n in range(4)],
+            [(False, 2), (False, 2), (True, 2), (True, 2)],
+        )
+
+    def test_qatmost_clamps_and_needs_one(self):
+        self.assertEqual(
+            [count_semantics(QAtMost(2), n) for n in range(4)],
+            [(False, 0), (True, 1), (True, 2), (True, 2)],
+        )
+
+    def test_qatleast_needs_floor_takes_ceiling(self):
+        self.assertEqual(
+            [count_semantics(QAtLeast(2), n) for n in range(4)],
+            [(False, 0), (False, 1), (True, 2), (True, 3)],
+        )
+
+    def test_qunbounded_always(self):
+        self.assertEqual(
+            [count_semantics(QUnbounded(), n) for n in range(4)],
+            [(True, n) for n in range(4)],
+        )
+
+    def test_unresolved_quantity_raises_never_guesses(self):
+        from MTG_bot.core.ability_tree import QX
+
+        with self.assertRaises(NotImplementedError):
+            count_semantics(QX(), 3)
+
+
+class TestQueryLegalityMatrix(KOfNCase):
+    """The query slot answers through count_semantics for BOTH modes."""
+
+    def _hide(self, *hs):
+        for h in hs:
+            self.world.move_card(h, self.world.players[self.p0].zone(ZONE_HAND))
+
+    def _slot(self, count, mode):
+        return legal_targets(
+            self.world,
+            self.ex,
+            Selector(count, mode, LAND, LIB_YOU),
+            source=self.spell,
+            controller=self.p0,
+        )
+
+    def _population(self, n):
+        # n lands remain legal in p0's library (population is exactly 3)
+        for h in (self.fo, self.pl, self.sw)[n:]:
+            self._hide(h)
+
+    def test_one_of_qconst_full_matrix(self):
+        for n, want in [(0, 2), (1, 2), (2, 2), (3, 2)]:
+            self.setUp()  # fresh world per n
+            self._population(n)
+            slot = self._slot(QConst(2), SelectorMode.ONE_OF)
+            self.assertEqual((slot.min_count, slot.max_count), (want, want))
+            self.assertEqual(slot.min_count > n, n < 2)  # infeasible iff n<k
+
+    def test_one_of_qatmost_full_matrix(self):
+        for n, (lo, hi) in [(0, (0, 0)), (1, (1, 1)), (2, (1, 2)), (3, (1, 2))]:
+            self.setUp()
+            self._population(n)
+            slot = self._slot(QAtMost(2), SelectorMode.ONE_OF)
+            self.assertEqual((slot.min_count, slot.max_count), (lo, hi))
+
+    def test_target_qconst_exact_past_population(self):
+        for n in range(4):
+            self.setUp()
+            self._population(n)
+            slot = self._slot(QConst(2), SelectorMode.TARGET)
+            self.assertEqual((slot.min_count, slot.max_count), (2, 2))
+            self.assertEqual(slot.forced, n == 2)
+
+    def test_target_qatmost_and_qatleast_ranges(self):
+        for n, am, al in [
+            (0, (1, 0), (2, 0)),
+            (1, (1, 1), (2, 1)),
+            (2, (1, 2), (2, 2)),
+            (3, (1, 2), (2, 3)),
+        ]:
+            self.setUp()
+            self._population(n)
+            got_am = self._slot(QAtMost(2), SelectorMode.TARGET)
+            got_al = self._slot(QAtLeast(2), SelectorMode.TARGET)
+            self.assertEqual((got_am.min_count, got_am.max_count), am)
+            self.assertEqual((got_al.min_count, got_al.max_count), al)
+
+
+class TestBindingDesignationLegality(KOfNCase):
+    """The binding (trigger TARGET) loop answers through the SAME helper:
+    a QConst designation that cannot complete designates NOTHING —
+    resolves doing nothing (603.4 sibling of the zero-candidate lane) —
+    instead of asking over fewer or crashing on an exhausted pool."""
+
+    ETB_CARRIER = None
+
+    def _carrier_with_targets(self, *dummy_names):
+        carrier = self.world.add_card(card_id("Carrier", "2", "2"), self.p0, ZONE_HAND)
+        self.asks = []
+
+        def prov(vocab, what):
+            self.asks.append((tuple(vocab), what))
+            return vocab[0]
+
+        self.ex.decisions.provider = prov
+        self.ex.attach_card(
+            carrier,
+            record_of(
+                [
+                    etb_trigger(
+                        atom(
+                            Verb.PUT_COUNTER,
+                            counter_kind=CounterKind.PLUS_1_PLUS_1,
+                            count=QConst(1),
+                            target=Selector(
+                                QConst(2), SelectorMode.TARGET, CREATURE, BF_YOU
+                            ),
+                        )
+                    )
+                ],
+                name="Carrier",
+                oid=self.world.cards[carrier].identity.oracle_id,
+            ),
+        )
+        dummies = [
+            self.world.add_card(card_id(nm, "2", "2"), self.p0, ZONE_BATTLEFIELD)
+            for nm in dummy_names
+        ]
+        self.ex.execute(
+            enter(BF_OWNER),
+            source=carrier,
+            controller=self.p0,
+            bindings={"cards": carrier},
+        )
+        return carrier, dummies
+
+    def test_qconst2_over_one_creature_designates_nothing(self):
+        # ONLY the carrier is a creature: QConst(2) cannot complete.
+        carrier, _ = self._carrier_with_targets()
+        self.assertEqual(self.asks, [])  # no question over an under-menu
+        self.assertEqual(dict(self.world.cards[carrier].counters), {})
+
+    def test_qconst2_over_two_completes_with_autofill(self):
+        # carrier + one dummy = exactly 2: ask once, last filler silent.
+        carrier, (d1,) = self._carrier_with_targets("Dummy")
+        self.assertEqual(len(self.asks), 1)
+        self.assertEqual(dict(self.world.cards[d1].counters), {"PLUS_1_PLUS_1": 1})
+
+    def test_qconst2_over_three_asks_twice(self):
+        carrier, (d1, d2) = self._carrier_with_targets("Dummy One", "Dummy Two")
+        self.assertEqual(len(self.asks), 2)
 
 
 if __name__ == "__main__":

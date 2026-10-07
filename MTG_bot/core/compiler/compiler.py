@@ -115,8 +115,16 @@ _KEYWORD_STRING_TO_ENUM: dict[str, Keyword] = {
 
 # Keywords whose _KEYWORD_PARAMS signatures all require ≥1 param —
 # cannot be built from a bare identity string alone.
-# # KNOWN-GAP: SCRY/MILL/BATTALION need a Quantity; PROTECTION needs a Filter.
-#   The compiler skips them unless a template supplies the params.
+# KNOWN-GAP (restated 2026-10-07, doc 36): the GRAMMAR models all four
+#   shapes fine — Verb.SCRY/MILL/BATTALION carry a Quantity and
+#   Keyword.PROTECTION a Filter, and the Quantity/Filter grammar itself
+#   is rich (10 Quantity forms, full FAnd/FOr/FNot). The real gap is
+#   UPSTREAM of the grammar: the identity keyword pipeline delivers bare
+#   strings ("Scry", "Mill") with no number/filter attached, and no
+#   oracle-text extraction feeds _KEYWORD_PARAMS for them, so the
+#   compiler skips them (reported via CompileResult.known_gaps) unless a
+#   template supplies the params. Wiring identity → params is the fix;
+#   extending the atomics is not.
 _KEYWORDS_BARE_UNBUILDABLE: frozenset[Keyword] = frozenset(
     {Keyword.SCRY, Keyword.MILL, Keyword.BATTALION, Keyword.PROTECTION}
 )

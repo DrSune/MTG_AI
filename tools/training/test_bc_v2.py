@@ -39,11 +39,13 @@ def dataset(episodes, vocab):
 
 
 # ----------------------------------------------------------------- integrity
-def test_joins_the_static_corpus_at_156(dataset):
+def test_joins_the_static_corpus_at_157(dataset):
     """Authoritative law: every v2 gold line maps to a corpus item. The OLD
     episodes.jsonl is stale (pre corpus-v2) — join to the corpus is truth."""
     corpus = __import__("json").loads(CORPUS.read_text(encoding="utf-8"))
-    assert v2.join_corpus(dataset, corpus["items"]) == 156  # doc 29② regen 2026-10-07
+    # doc 36 regen 2026-10-07: the garruk emblem one_of ask became a
+    # scripted (gold) item when its dead-ask gold:false row died.
+    assert v2.join_corpus(dataset, corpus["items"]) == 157
 
 
 # ------------------------------------------------------------- schema laws
@@ -99,9 +101,10 @@ def test_cand_ids_keep_the_v1_vocab_prefix(dataset, vocab):
 # ---------------------------------------------------------------- grounding
 def test_handle_grounding_coverage(episodes):
     """Pinned measurements (this file, deterministic replay; v4 regen
-    2026-10-07 after FoR/spellgorger un-reclassification): of the 189
-    handle-shaped gold candidates, 157 resolve through world.cards;
-    66/69 choose-digit candidates recover (was 59/62 pre-v4)."""
+    2026-10-07 after FoR/spellgorger un-reclassification; doc 36 regen:
+    the garruk one_of scripted ask adds its 6-candidate handle menu. Of
+    the 195 handle-shaped gold candidates, 163 resolve through
+    world.cards; 66/69 choose-digit candidates recover."""
     rows_g = [r for e in episodes for r in e["asks"] if r["gold"]]
 
     def grounded(r, ci):
@@ -118,13 +121,13 @@ def test_handle_grounding_coverage(episodes):
             elif c.isdigit() and r["what"].startswith("choose:"):
                 ch += 1
                 ch_ok += grounded(r, ci)
-    assert (hs_ok, hs) == (157, 189), "handle grounding drifted"  # v3 regen 2026-10-07
+    assert (hs_ok, hs) == (163, 195), "handle grounding drifted"  # doc 36 regen
     assert (ch_ok, ch) == (66, 69), (
         "choose-digit grounding drifted"
     )  # v3 regen 2026-10-07
     assert (
-        sum(1 for r in rows_g if any(g for g in (r.get("ground") or []))) == 78
-    )  # v3 regen 2026-10-07
+        sum(1 for r in rows_g if any(g for g in (r.get("ground") or []))) == 79
+    )  # doc 36 regen 2026-10-07
 
 
 def test_content_candidates_stay_bare(episodes):

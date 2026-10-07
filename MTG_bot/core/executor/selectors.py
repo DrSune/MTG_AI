@@ -28,9 +28,9 @@ from MTG_bot.core.ability_tree import (
     FAtomPred,
     FNot,
     FOr,
-    Quantity,
     QAtMost,
     QConst,
+    Quantity,
     QUnbounded,
     Selector,
     SelectorMode,
@@ -38,6 +38,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
     ZonePosition,
+    count_semantics,
 )
 from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
@@ -457,6 +458,16 @@ def resolve_selector(
         ordered = sorted(candidates)
         if not ordered:
             return []
+        # T3 legality unification (doc 36): the count axis answers through
+        # the shared count_semantics — this loop is the RESOLVE-TIME lane.
+        # A QConst over an under-size population is announced-rejected at
+        # the query slot (min=max=N exceeds the population); arriving here
+        # short of population mid-effect is the documented 608.2c rule —
+        # resolve as much as possible with what exists, NOT a second
+        # announce-time answer (that verdict lives in query.py).
+        announceable, k = count_semantics(count, len(ordered))
+        if not announceable:
+            k = len(ordered)  # resolve-time best effort, see above
         if want == 1:
             # the frozen lane, byte-for-byte: one ask over the whole menu
             # (QAtMost(1) never offers NONE either — binding.py's own
@@ -473,7 +484,6 @@ def resolve_selector(
                 ctx.one_of_picks = (pick,)
                 result = [pick]
         else:
-            k = min(want, len(ordered))
             picks: list[Handle] = []
             pool = list(ordered)
             for pick_no in range(k):

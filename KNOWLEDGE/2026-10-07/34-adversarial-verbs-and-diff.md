@@ -41,3 +41,10 @@ T4 (owner review BEFORE touching): verb ontology split {operation | effect | pol
 zone-verb unification (MILL/DISCARD/EXILE -> MOVE_ZONE+params) — a REWRITE per §9, affects
 goldens+vocab: exactly the "first 20 sets change the atomics" case, needs owner sign-off
 plus re-vocab + re-cert + full revalidation.
+
+ADDENDUM (doc 36 ⑤, 2026-10-07): the PT timestamp probe LANDED and the
+characterized smell is real — the ledger folds SET_PT and MODIFY_PT deltas in
+PURE TIMESTAMP order: [+1/+1 then SET_PT 3/3] ⇒ 3/3, [SET_PT 3/3 then +1/+1]
+⇒ 4/4. CR (fixed layers 613.3b set BEFORE 613.3c modify) says 4/4 for BOTH
+orders. Pinned as test_current_pt_timestamp_behavior (test_executor_verbs.py);
+T4's layer-model work must take this test as the loud diff it intends to move.
