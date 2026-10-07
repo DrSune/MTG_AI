@@ -3306,3 +3306,8 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - Pilot allowlist 8 cards → honest runtime blast radius **5 packs, 0 silent changes**; goldens 8 files re-generated (verify diff 0).
 - Gates: scenarios **373/373**; core pytest **2466 passed + 2 subtests** (5 new pins); tools **153**.
 - Eval loop: items **157→164** (+7), families **77→80**, eval items **51→54**, gold_rows_with_ground **79→84**, candidate_ground **246/495** (was 229/474); no_discrimination **0**; fail_registered 11 unchanged.
+
+## 2026-10-07 — T4 P1b stage-2 structural promotion rule (commands: `pytest MTG_bot/core/compiler/test_promotion_predicate.py -q`; `tools/run_scenarios.py`; take_decision probe predicate-off-vs-on; `tools/audit/puzzle_cert.py --rollouts 200`; `make_eval_split.py`; `packrec_v2`)
+- Distinct CHOOSE surfaces **154** (stage-1 155 = emblem double-count); disjoint partition core 22 / self-ref 55 / referent 36 / cost 26 / k≠1 15.
+- Structural rule promotes 22−8 = **14 live surfaces / 13 cards**; 8 FORCE_SILENT (L-27/28/29). Scripted-lane asks: still exactly **5 packs**; items/families/grounding **unchanged** (164/80/84/246-of-495), no_discrimination **0**.
+- Goldens 305 full regen, verify 0-diff, 6 cards drifted. Gates (final): core **2471 +2st**, scenarios **373/373**, tools **153**.

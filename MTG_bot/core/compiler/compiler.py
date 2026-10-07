@@ -1156,23 +1156,47 @@ def _flip_search_picks_in(ability: Ability) -> Ability:
     return cast(Ability, flipped)
 
 
-# T4 P1b pilot allowlist (docs/T4_PICK_ENUMERATION.md): (card name, effect
-# verb) pairs whose QConst(1) entity CHOOSE selector is a REAL controller
-# decision the 12a stand-in resolved silently — all are "choose one card
-# from your own zone" (discard / return / creature-discard / draw-then-
-# discard). Each pair is unique per card (pinned by test_pick_ask_
-# promotions); the ordinal lane is therefore not needed while the pilot
-# stays one-surface-per-verb.
-PICK_ASK_ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
+# T4 P1b stage 2 — the STRUCTURAL PROMOTION RULE (docs/T4_PICK_ENUMERATION.md
+# §2'): a QConst(1), referent-less entity CHOOSE selector that sits outside a
+# cost and is not an IS_SOURCE self-designation IS a real controller decision
+# and is promoted AUTOMATICALLY onto the asking ONE_OF channel (doc-29 lane).
+# Future sets need no registration; test_promotion_predicate.py pins the
+# per-class census of the rule as the §9/§10 contract. The two frozensets
+# below are the only registrations left — documented override escape hatches.
+PICK_ASK_FORCE_ASK: frozenset[tuple[str, str]] = frozenset()
+#   (card name, effect verb) TRIPWIRE rows — the hatch has no promotion
+#   lane and every hit is LOUD by design (review fix 2026-10-07): a hit on
+#   a COST or IS_SOURCE self-designation is a stale override and raises
+#   StateCorruptionError (r20c mode-gate, enumeration doc §4); a hit on any
+#   other predicate-declined near-miss raises NotImplementedError — a
+#   referent-bound surface CANNOT ride ONE_OF at all (Selector convention
+#   C2), and surfaces whose rules-decider is not the effect controller are
+#   gap-ledger L-27 (the ask channel is controller-seat only; provider-seat
+#   routing not implemented). Rows on surfaces the structural predicate
+#   already lifts are redundant no-ops (the structural branch fires first).
+PICK_ASK_FORCE_SILENT: frozenset[tuple[str, str]] = frozenset(
     {
-        ("Rain of Revelation", "MOVE_ZONE"),
-        ("Rousing Read", "MOVE_ZONE"),
-        ("Sanctum of Calm Waters", "MOVE_ZONE"),
-        ("Jeskai Elder", "MOVE_ZONE"),
-        ("Teferi's Protege", "MOVE_ZONE"),
-        ("Obsessive Stitcher", "MOVE_ZONE"),
-        ("Experimental Overload", "MOVE_ZONE"),
-        ("Crypt Lurker", "MOVE_ZONE"),
+        # L-27 — no opponent/player-seat decision channel: the decider is
+        # NOT the effect controller (CR 701.8a "that player chooses";
+        # Goremand/Run Afoul "of their choice"), so the controller-primed
+        # ONE_OF lane cannot answer these honestly.
+        ("Goremand", "SACRIFICE"),  # "each opponent sacrifices"
+        ("Run Afoul", "SACRIFICE"),  # "of their choice with flying"
+        ("Liliana's Steward", "MOVE_ZONE"),  # "target opponent discards"
+        ("Liliana, Waker of the Dead", "MOVE_ZONE"),  # "+1 each player discards"
+        ("Keral Keep Disciples", "DEAL_DAMAGE"),
+        # ^ forced-direction node: "1 damage to each opponent" is NO
+        # decision at all — the singleton PLAYER pick auto-fills (§1.4), so
+        # the encoded ask is pure phantom (§10).
+        # L-28 — card-NAME value menu absent (protection never reads the
+        # selector; _v_grant resolves ability/duration roles only).
+        ("Runed Halo", "GRANT_ABILITY"),
+        # L-29 — top-of-library POSITION semantics, not an entity menu:
+        # _v_move_zone pop_order=TOP never resolves the selector, _v_cast
+        # designates via the look-at binding; an ask would offer a
+        # library-wide menu the rules never grant.
+        ("Furious Rise", "MOVE_ZONE"),
+        ("Radha, Heart of Keld", "CAST"),
     }
 )
 
@@ -1193,23 +1217,41 @@ def _filter_carries_is_source(filter_: Filter | None) -> bool:
     return False
 
 
+def _is_liftable_pick(node: Selector, in_cost: bool) -> bool:
+    """THE structural promotion predicate (T4 P1b stage 2 — the tokenizer
+    requirement, AGENTS.md §8-§10; census + per-class contract:
+    test_promotion_predicate.py). Every axis here is orthogonal (§9):
+    {shape} QConst(1) entity CHOOSE with no anaphoric referent (a
+    referent-bound pick already follows a binding the 12a lane serves —
+    enumeration doc §1: 37 anaphoric surfaces stay), {context} not a cost
+    victim (r22a's sacrifice lane already asks; 26 cost surfaces stay),
+    {denotation} not an IS_SOURCE self-designation (CR 602.2c — 55
+    surfaces, 44% of the census, are NOT decisions, and the r20c binding
+    exemption is CHOOSE-mode-gated so flipping one silently mis-resolves,
+    enumeration doc §4)."""
+    return (
+        node.mode is SelectorMode.CHOOSE
+        and node.count == QConst(1)
+        and node.referent is None
+        and not in_cost
+        and not _filter_carries_is_source(node.filter)
+    )
+
+
 def _pick_ask_promotions(
-    node: object, name: str, seen: dict[str, int], in_cost: bool, verb: str | None
+    node: object, name: str, in_cost: bool, verb: str | None
 ) -> object:
-    """T4 P1b: entity-shape twin of _one_of_search_picks. A NON-search
-    effect atom carrying a QConst(1) entity CHOOSE selector with no
-    anaphoric referent resolved "which card?" silently through the 12a
-    first-of-sort stand-in (the measured blind spot, docs/
-    T4_PICK_ENUMERATION.md). Allowlisted cards get the EXISTING 14c ONE_OF
-    asking channel instead: Handle-sorted population, singleton auto-fill
-    (§1.4), exhaustion loud (C15). Cost selectors (r22a sacrifice lane
-    already asks) and IS_SOURCE self-designations never lift — an
-    allowlist hit on either shape is a loud StateCorruptionError, never a
-    silent skip."""
+    """T4 P1b: entity-shape twin of _one_of_search_picks, now driven by the
+    STRUCTURAL predicate _is_liftable_pick instead of a card registration
+    (stage-2). A matching surface gets the EXISTING 14c ONE_OF asking
+    channel: Handle-sorted population, singleton auto-fill (§1.4),
+    exhaustion loud (C15). PICK_ASK_FORCE_SILENT exempts surfaces whose ask
+    has no answerable lane (gap ledger L-27..L-29); PICK_ASK_FORCE_ASK is a
+    loud tripwire only — a hit on the cost/self-designation line raises
+    StateCorruptionError, a hit on any other predicate-declined shape
+    raises NotImplementedError (L-27 provider-seat routing absent)."""
     if type(node) is tuple:
-        rebuilt = tuple(
-            _pick_ask_promotions(v, name, seen, in_cost, verb) for v in node
-        )
+        rebuilt = tuple(_pick_ask_promotions(v, name, in_cost, verb) for v in node)
         return (
             rebuilt
             if any(a is not b for a, b in zip(rebuilt, node, strict=True))
@@ -1221,24 +1263,41 @@ def _pick_ask_promotions(
         in_cost = True
     if isinstance(node, Atom):
         verb = node.verb.name
-    if (
-        isinstance(node, Selector)
-        and node.mode is SelectorMode.CHOOSE
-        and node.count == QConst(1)
-        and node.referent is None
-    ):
-        ordinal = seen.get(verb or "", 0)
-        seen[verb or ""] = ordinal + 1
-        if ordinal == 0 and (name, verb or "") in PICK_ASK_ALLOWLIST:
+    if isinstance(node, Selector):
+        key = (name, verb or "")
+        if key in PICK_ASK_FORCE_SILENT:
+            return node
+        shape = (
+            node.mode is SelectorMode.CHOOSE
+            and node.count == QConst(1)
+            and node.referent is None
+        )
+        if shape and _is_liftable_pick(node, in_cost):
+            return replace(node, mode=SelectorMode.ONE_OF)
+        # FORCE_ASK tripwire: gated on CHOOSE (not on the predicate's own
+        # shape), so a row for the near-miss surface it documents can no
+        # longer pass UNSEEN under the shape gate — the old branch only
+        # ever reached its guard (shape-complete + declined ⇒ always
+        # cost/self-ref), its "promotion" line was unreachable, and the
+        # documented referent/count near-miss rows silently no-opped.
+        if node.mode is SelectorMode.CHOOSE and key in PICK_ASK_FORCE_ASK:
             if in_cost or _filter_carries_is_source(node.filter):
                 raise StateCorruptionError(
-                    f"compile_card({name}): PICK_ASK_ALLOWLIST verb {verb} hit a "
-                    "cost/self-designation selector — allowlist stale"
+                    f"compile_card({name}): PICK_ASK_FORCE_ASK verb {verb} hit a "
+                    "cost/self-designation selector — override stale"
                 )
-            return replace(node, mode=SelectorMode.ONE_OF)
+            raise NotImplementedError(
+                f"compile_card({name}): PICK_ASK_FORCE_ASK row ({name}, {verb}) "
+                "hit a predicate-declined near-miss selector and the force-ask "
+                "hatch has no honest lane: referent surfaces cannot ride ONE_OF "
+                "(Selector convention C2) and non-controller deciders are "
+                "gap-ledger L-27 (controller-seat-only ask, provider-seat "
+                "routing absent) — a forced ask there is a §10 phantom. Drop "
+                "the row or land the routing first."
+            )
         return node
     updates = {
-        f.name: _pick_ask_promotions(getattr(node, f.name), name, seen, in_cost, verb)
+        f.name: _pick_ask_promotions(getattr(node, f.name), name, in_cost, verb)
         for f in fields(node)
     }
     if any(updates[f.name] is not getattr(node, f.name) for f in fields(node)):
@@ -1246,14 +1305,13 @@ def _pick_ask_promotions(
     return node
 
 
-def _promote_pilot_picks(abilities: list[Ability], name: str) -> list[Ability]:
-    """Card-level wrapper: ordinals count per (card, verb) across ALL of
-    the card's abilities in compile order (the pass runs per-ability but
-    shares the counter dict); type-pinned like _flip_search_picks_in."""
-    seen: dict[str, int] = {}
+def _promote_liftable_picks(abilities: list[Ability], name: str) -> list[Ability]:
+    """Card-level wrapper for the structural promotion pass (the pass runs
+    per-ability; the rule is shape-driven so nothing is counted across
+    abilities); type-pinned like _flip_search_picks_in."""
     out: list[Ability] = []
     for ab in abilities:
-        promoted = _pick_ask_promotions(ab, name, seen, False, None)
+        promoted = _pick_ask_promotions(ab, name, False, None)
         if not isinstance(promoted, get_args(Ability)):  # pragma: no cover
             raise StateCorruptionError(
                 f"compile_card({name}): pick-ask promotion changed node type"
@@ -1878,10 +1936,11 @@ def compile_card(
     # silently through the 12a stand-in; see _one_of_search_picks.
     abilities = [_flip_search_picks_in(ab) for ab in abilities]
 
-    # -- PICK-ask promotion (T4 P1b pilot) -----------------------------------
-    # Entity CHOOSE picks on allowlisted cards ask the ONE_OF channel too;
-    # see _pick_ask_promotions / docs/T4_PICK_ENUMERATION.md.
-    abilities = _promote_pilot_picks(abilities, raw.identity.name)
+    # -- PICK-ask promotion (T4 P1b stage 2, structural rule) -----------------
+    # Every QConst(1) referent-less non-cost non-self-ref entity CHOOSE
+    # asks the ONE_OF channel automatically; see _is_liftable_pick /
+    # docs/T4_PICK_ENUMERATION.md.
+    abilities = _promote_liftable_picks(abilities, raw.identity.name)
 
     # -- Build CardRecord ----------------------------------------------------
     card = CardRecord(

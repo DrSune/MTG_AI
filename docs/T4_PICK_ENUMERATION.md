@@ -20,7 +20,9 @@ string "CHOOSE" only through `Verb.CHOOSE`, not a CHOOSE-mode selector).
 | other (loyalty etc.) | 2 | n/a |
 
 Liftable-core predicate: `mode CHOOSE ∧ count QConst(1) ∧ referent is None ∧
-¬IS_SOURCE-in-filter ∧ ¬cost`.
+¬IS_SOURCE-in-filter ∧ ¬cost`. (The table above OVERLAPS — e.g. cost victims
+with k>1 sit in two rows; §6 records the disjoint decision-order partition
+`test_promotion_predicate.py` pins.)
 
 ## 2. The pilot (compiler `PICK_ASK_ALLOWLIST`, 8 rows, all (name, MOVE_ZONE))
 
@@ -48,6 +50,10 @@ candidate_ground 229/474→**246/495**; fail_registered unchanged 11 (same
 Rousing Read.
 
 ## 3. Deferred from the liftable core (gap ledger, NOT pilot scope)
+
+> Resolved by §6: Idol + Primal Might + Tutelage lifted after handler
+> inspection; the opponent/name/position rows became FORCE_SILENT ledger
+> rows L-27..L-29. Kept verbatim as the stage-1 disposition record.
 
 - **Opponent-direction picks** (Goremand ETB reveal, Run Afoul, Liliana's
   Steward, Liliana Waker +1): the ask must go to the OTHER seat — the
@@ -90,3 +96,40 @@ lane-1 never pops from the provider queue. A may-offer matched by lane-1 is
 invisible to `asks_seen` (cultivate precedent for raw-handle decision words).
 Pilot packs use whichever lane the ask's op actually takes; discriminability
 is verified by null-twin replay in every case, not by ask logs.
+
+## 6. STAGE 2 — the structural rule replaces the allowlist (2026-10-07)
+
+`PICK_ASK_ALLOWLIST` is GONE. `_is_liftable_pick` (compiler) is now the
+sole promotion rule: `CHOOSE ∧ QConst(1) ∧ referent None ∧ ¬IS_SOURCE ∧
+¬cost` promotes **every** matching selector of **every** card — future
+sets promote automatically (§8 tokenizer law). Overrides are two escape
+hatches only: `PICK_ASK_FORCE_SILENT` (8 rows, ledger L-27..L-29) and
+`PICK_ASK_FORCE_ASK` (empty; loud mode-gate §4).
+
+Disjoint census (decision order cost > referent > self-ref > count;
+pinned by `test_promotion_predicate.py` against the live M21 compile):
+**total 154** = core 22 + self-ref 55 + referent 36 + cost 26 + k≠1 15.
+(The stage-1 155 double-counted Liliana's emblem — embedded in the
+parent record AND compiled standalone; one surface, two rows.)
+
+Of the 22 core surfaces, 14 lift live across 13 cards (Crypt Lurker's
+SACRIFICE sibling included — the pilot's (name, MOVE_ZONE) keying had
+missed it); 8 stay silent as ledger rows: Goremand/Run Afoul/
+Steward/Waker/Keral (L-27 opponent-seat decider or forced-direction),
+Runed Halo (L-28), Furious Rise/Radha (L-29 position, not menu).
+Idol of Endurance and Primal Might were RETAINED as promotes after
+handler inspection: `_v_fight` resolves the ONE_OF once through
+`resolve_selector` (no double ask), Idol's exile cast is a genuine
+controller menu.
+
+Runtime blast radius, measured (take_decision instrumentation, 373
+packs, predicate-off vs on): the SAME 5 pilot packs hold the ask sites;
+the 14 new lifts fire ZERO scripted-lane asks (singleton auto-fill
+§1.4 / unexercised lanes). Goldens: 305 regenerated, verify clean, only
+6 cards drifted (the pilot's 5 were already at ONE_OF bytes). Eval
+chain byte-reproduced the pilot: items **164**, punish_inaction 153,
+no_discrimination **0**, gold_rows_with_ground 84, candidate_ground
+246/495, split new-assigned []. The widening is a TOKENIZER move —
+encodings now declare every real decision; existing lanes answer the
+same way. Gates: core pytest 2471 +2 subtests, 373/373 scenarios,
+tools audit+training 153 zero-fail.

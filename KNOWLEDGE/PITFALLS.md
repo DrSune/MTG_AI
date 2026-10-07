@@ -1001,3 +1001,5 @@
   Gold word must be ≠ vocab[0] AND the expect must pin the pick's consequence.
 
 - FINAL-STATE GATE LAW (3rd seam recurrence, 2026-10-07): a batch that regenerates corpus/episodes/split MUST re-run the FULL tools suite as its LAST command and report that summary — pins measured mid-batch are stale the moment the next regen lands. Orchestrator: never trust reported gate lines from before the final artifact write; re-run mine.
+
+- ENUMERATION double-count trap (2026-10-07, /41): a planeswalker's emblem exists BOTH embedded in the parent CardRecord (.emblem) AND as a standalone pool raw — a pool-wide surface census that walks parent records AND raws counts every emblem surface twice (stage-1 "155" -> true 154). Dedup by (record, site) or attribute emblem rows to exactly one owner.

@@ -89,11 +89,7 @@
  "eval_items": 54,
  "train_items": 110,
  "eval_l1_ready": 3,
- "new_families_assigned": [
-  "Experimental Overload",
-  "Rain of Revelation",
-  "Rousing Read"
- ],
+ "new_families_assigned": [],
  "per_family": [
   {
    "family": "Alchemist's Gift",
