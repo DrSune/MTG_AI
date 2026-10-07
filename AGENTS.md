@@ -149,3 +149,16 @@ task(
   not the reasoning that produced them (use the adversarial/analyst subagents for this).
 - Keep prompts and prompts-to-subagents short: a few explicit rules outperform a wall of
   style guidance on a local model. Verification first, style detail last.
+
+## 8. Tokenizer Law — atomic-structure re-evaluation on every set integration (owner 2026-10-07)
+- The atomic subcomponents (ability-tree vocabulary, effect/ask grammar, zones) ARE our
+  tokenizer: they determine how nuanced the model can see the game and how it analogizes to
+  unseen cards. A lossy or coarse tokenizer caps generalization no matter how good the data
+  or model.
+- Therefore EVERY set integration MUST include a fundamental re-evaluation of whether the
+  atomic structure still fits the TOTAL card pool — not just parses the new set. Minimum
+  evidence per integration: compile rate + top non-representable patterns, ask-kind coverage
+  of the new pool vs eval needs, new effect shapes missing from the vocabulary, and any
+  eval-item mechanics that remain un-askable (see KNOWLEDGE/2026-10-07/24 fail-core).
+- The first ~20 sets are expected to CHANGE the atomics materially — treat early integrations
+  as tokenizer refinement opportunities, not just data pickups. Numbers go to NUMBERS.md.
