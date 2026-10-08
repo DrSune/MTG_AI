@@ -3336,3 +3336,13 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - 2400 games total, swap-paired, draws=0.5, seed=cluster bootstrap + pooled Wilson
 - densified ladder (2026-10-08 13:00, 21/21 PASS): instability onset ~10M (range 0.017 -> 0.052-0.121), mean plateau 0.747 from 0.17M; era-confounded (168 vs 180 corpus) -> batch7 unified re-baseline queued
 - batch7 unified (2026-10-08 14:35, 21/21 PASS, wall 3105s): 0.17M 0.776|0.000, plateau ~0.76-0.78 all sizes, 35M 0.736|0.069 only unstable; wave-gain +0.029; onset-10M (from /46) retracted as era confound
+
+## 2026-10-08 — Batch-7 CI-grade pairwise winrates vs S0 baseline (command: `.venv/bin/python tools/training/elo_batch7_run.py --games-per-pair 200` ; out tools/training/elo_batch7.json; schema batch7-cluster-bootstrap-v1)
+- 4 pairs x 3 training seeds x 200 swap-paired duels = 2400 games on the frozen unified 180-item corpus (eval_file binding episodes_v2.jsonl, no data regenerated). Law: admissible iff 95% CI excludes 0.5 (/26).
+- Pooled (decisive Wilson + swap-paired-score cluster bootstrap, all agree):
+  - S3a vs S0: 0.5426 [0.5025,0.5821] boot=[0.5325,0.555] n=600 -> ADMISSIBLE (S3a > S0)
+  - S3  vs S0: 0.5442 [0.5042,0.5837] boot=[0.5375,0.550] n=600 -> ADMISSIBLE (S3 > S0)
+  - S3b vs S0: 0.5417 [0.5017,0.5811] boot=[0.5350,0.545] n=600 -> ADMISSIBLE (S3b > S0)
+  - S4  vs S0: 0.5453 [0.5052,0.5849] boot=[0.5275,0.5575] n=600 -> ADMISSIBLE (S4 > S0)
+- Per-seed decisive winrates all 0.528-0.558 (no seed outlier); crashes<=3/200, draws<=1/200, seat_balance_ok all true.
+- Read: on the unified 180-item corpus ALL four capacity arms beat S0 with CIs excluding 0.5, but the arms are INDISTINGUISHABLE from each other (~0.542-0.545 spread) — capacity 9.98M(S3a)->35M(S4) is flat vs baseline uplift; consistent with batch6 "plateau ~0.76-0.78 all sizes" (unified re-baseline, /48+). Note batch6's S4-vs-S0 0.492 (era-confounded corpus) is superseded by this unified measurement.

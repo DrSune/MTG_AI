@@ -1,0 +1,386 @@
+{
+ "schema": "batch7-cluster-bootstrap-v1",
+ "pairs": {
+  "S3a_S0": {
+   "big": "S3a",
+   "small": "S0",
+   "eval_file_binding": "/home/sune/Desktop/MTG_AI/tools/training/episodes_v2.jsonl (binding; corpus-joined)",
+   "per_seed": {
+    "s1": {
+     "spec_a": "bc7_S3a_s1_best.pt",
+     "spec_b": "bc7_S0_s1_best.pt",
+     "games": 200,
+     "wins_a": 108,
+     "wins_b": 92,
+     "draws": 0,
+     "crashes": 0,
+     "seat_balance_ok": true,
+     "a_winrate_decisive": 0.54,
+     "wilson_ci95_decisive": [
+      0.4708,
+      0.6077
+     ],
+     "a_score": 0.54,
+     "wilson_ci95_score": [
+      0.4708,
+      0.6077
+     ],
+     "seconds": 1566.1
+    },
+    "s2": {
+     "spec_a": "bc7_S3a_s2_best.pt",
+     "spec_b": "bc7_S0_s2_best.pt",
+     "games": 200,
+     "wins_a": 111,
+     "wins_b": 89,
+     "draws": 0,
+     "crashes": 0,
+     "seat_balance_ok": true,
+     "a_winrate_decisive": 0.555,
+     "wilson_ci95_decisive": [
+      0.4857,
+      0.6222
+     ],
+     "a_score": 0.555,
+     "wilson_ci95_score": [
+      0.4857,
+      0.6222
+     ],
+     "seconds": 295.6
+    },
+    "s3": {
+     "spec_a": "bc7_S3a_s3_best.pt",
+     "spec_b": "bc7_S0_s3_best.pt",
+     "games": 200,
+     "wins_a": 106,
+     "wins_b": 93,
+     "draws": 0,
+     "crashes": 1,
+     "seat_balance_ok": true,
+     "a_winrate_decisive": 0.5327,
+     "wilson_ci95_decisive": [
+      0.4634,
+      0.6007
+     ],
+     "a_score": 0.53,
+     "wilson_ci95_score": [
+      0.4609,
+      0.598
+     ],
+     "seconds": 84.4
+    }
+   },
+   "raw": {
+    "wins_a": 325,
+    "wins_b": 274,
+    "draws": 0,
+    "crashes": 1
+   },
+   "games_total": 600,
+   "a_winrate_decisive": 0.5426,
+   "wilson_ci95_decisive": [
+    0.5025,
+    0.5821
+   ],
+   "a_score_swap_paired": 0.5425,
+   "boot_ci95_score": [
+    0.5325,
+    0.555
+   ],
+   "verdict": "ADMISSIBLE (S3a > S0)",
+   "verdict_wilson_decisive": "ADMISSIBLE (S3a > S0)",
+   "pair_seconds": 0.2
+  },
+  "S3_S0": {
+   "big": "S3",
+   "small": "S0",
+   "eval_file_binding": "/home/sune/Desktop/MTG_AI/tools/training/episodes_v2.jsonl (binding; corpus-joined)",
+   "per_seed": {
+    "s1": {
+     "spec_a": "bc7_S3_s1_best.pt",
+     "spec_b": "bc7_S0_s1_best.pt",
+     "games": 200,
+     "wins_a": 107,
+     "wins_b": 92,
+     "draws": 1,
+     "crashes": 0,
+     "seat_balance_ok": true,
+     "a_winrate_decisive": 0.5377,
+     "wilson_ci95_decisive": [
+      0.4684,
+      0.6056
+     ],
+     "a_score": 0.5375,
+     "wilson_ci95_score": [
+      0.4683,
+      0.6052
+     ],
+     "seconds": 75.2
+    },
+    "s2": {
+     "spec_a": "bc7_S3_s2_best.pt",
+     "spec_b": "bc7_S0_s2_best.pt",
+     "games": 200,
+     "wins_a": 110,
+     "wins_b": 90,
+     "draws": 0,
+     "crashes": 0,
+     "seat_balance_ok": true,
+     "a_winrate_decisive": 0.55,
+     "wilson_ci95_decisive": [
+      0.4808,
+      0.6174
+     ],
+     "a_score": 0.55,
+     "wilson_ci95_score": [
+      0.4808,
+      0.6174
+     ],
+     "seconds": 77.8
+    },
+    "s3": {
+     "spec_a": "bc7_S3_s3_best.pt",
+     "spec_b": "bc7_S0_s3_best.pt",
+     "games": 200,
+     "wins_a": 109,
+     "wins_b": 91,
+     "draws": 0,
+     "crashes": 0,
+     "seat_balance_ok": true,
+     "a_winrate_decisive": 0.545,
+     "wilson_ci95_decisive": [
+      0.4758,
+      0.6125
+     ],
+     "a_score": 0.545,
+     "wilson_ci95_score": [
+      0.4758,
+      0.6125
+     ],
+     "seconds": 77.4
+    }
+   },
+   "raw": {
+    "wins_a": 326,
+    "wins_b": 273,
+    "draws": 1,
+    "crashes": 0
+   },
+   "games_total": 600,
+   "a_winrate_decisive": 0.5442,
+   "wilson_ci95_decisive": [
+    0.5042,
+    0.5837
+   ],
+   "a_score_swap_paired": 0.5442,
+   "boot_ci95_score": [
+    0.5375,
+    0.55
+   ],
+   "verdict": "ADMISSIBLE (S3 > S0)",
+   "verdict_wilson_decisive": "ADMISSIBLE (S3 > S0)",
+   "pair_seconds": 0.1
+  },
+  "S3b_S0": {
+   "big": "S3b",
+   "small": "S0",
+   "eval_file_binding": "/home/sune/Desktop/MTG_AI/tools/training/episodes_v2.jsonl (binding; corpus-joined)",
+   "per_seed": {
+    "s1": {
+     "spec_a": "bc7_S3b_s1_best.pt",
+     "spec_b": "bc7_S0_s1_best.pt",
+     "games": 200,
+     "wins_a": 109,
+     "wins_b": 91,
+     "draws": 0,
+     "crashes": 0,
+     "seat_balance_ok": true,
+     "a_winrate_decisive": 0.545,
+     "wilson_ci95_decisive": [
+      0.4758,
+      0.6125
+     ],
+     "a_score": 0.545,
+     "wilson_ci95_score": [
+      0.4758,
+      0.6125
+     ],
+     "seconds": 91.6
+    },
+    "s2": {
+     "spec_a": "bc7_S3b_s2_best.pt",
+     "spec_b": "bc7_S0_s2_best.pt",
+     "games": 200,
+     "wins_a": 109,
+     "wins_b": 91,
+     "draws": 0,
+     "crashes": 0,
+     "seat_balance_ok": true,
+     "a_winrate_decisive": 0.545,
+     "wilson_ci95_decisive": [
+      0.4758,
+      0.6125
+     ],
+     "a_score": 0.545,
+     "wilson_ci95_score": [
+      0.4758,
+      0.6125
+     ],
+     "seconds": 96.0
+    },
+    "s3": {
+     "spec_a": "bc7_S3b_s3_best.pt",
+     "spec_b": "bc7_S0_s3_best.pt",
+     "games": 200,
+     "wins_a": 107,
+     "wins_b": 93,
+     "draws": 0,
+     "crashes": 0,
+     "seat_balance_ok": true,
+     "a_winrate_decisive": 0.535,
+     "wilson_ci95_decisive": [
+      0.4659,
+      0.6028
+     ],
+     "a_score": 0.535,
+     "wilson_ci95_score": [
+      0.4659,
+      0.6028
+     ],
+     "seconds": 94.4
+    }
+   },
+   "raw": {
+    "wins_a": 325,
+    "wins_b": 275,
+    "draws": 0,
+    "crashes": 0
+   },
+   "games_total": 600,
+   "a_winrate_decisive": 0.5417,
+   "wilson_ci95_decisive": [
+    0.5017,
+    0.5811
+   ],
+   "a_score_swap_paired": 0.5417,
+   "boot_ci95_score": [
+    0.535,
+    0.545
+   ],
+   "verdict": "ADMISSIBLE (S3b > S0)",
+   "verdict_wilson_decisive": "ADMISSIBLE (S3b > S0)",
+   "pair_seconds": 190.6
+  },
+  "S4_S0": {
+   "big": "S4",
+   "small": "S0",
+   "eval_file_binding": "/home/sune/Desktop/MTG_AI/tools/training/episodes_v2.jsonl (binding; corpus-joined)",
+   "per_seed": {
+    "s1": {
+     "spec_a": "bc7_S4_s1_best.pt",
+     "spec_b": "bc7_S0_s1_best.pt",
+     "games": 200,
+     "wins_a": 105,
+     "wins_b": 94,
+     "draws": 0,
+     "crashes": 1,
+     "seat_balance_ok": true,
+     "a_winrate_decisive": 0.5276,
+     "wilson_ci95_decisive": [
+      0.4584,
+      0.5958
+     ],
+     "a_score": 0.525,
+     "wilson_ci95_score": [
+      0.456,
+      0.5931
+     ],
+     "seconds": 98.6
+    },
+    "s2": {
+     "spec_a": "bc7_S4_s2_best.pt",
+     "spec_b": "bc7_S0_s2_best.pt",
+     "games": 200,
+     "wins_a": 110,
+     "wins_b": 87,
+     "draws": 0,
+     "crashes": 3,
+     "seat_balance_ok": true,
+     "a_winrate_decisive": 0.5584,
+     "wilson_ci95_decisive": [
+      0.4886,
+      0.6259
+     ],
+     "a_score": 0.55,
+     "wilson_ci95_score": [
+      0.4808,
+      0.6174
+     ],
+     "seconds": 100.7
+    },
+    "s3": {
+     "spec_a": "bc7_S4_s3_best.pt",
+     "spec_b": "bc7_S0_s3_best.pt",
+     "games": 200,
+     "wins_a": 110,
+     "wins_b": 90,
+     "draws": 0,
+     "crashes": 0,
+     "seat_balance_ok": true,
+     "a_winrate_decisive": 0.55,
+     "wilson_ci95_decisive": [
+      0.4808,
+      0.6174
+     ],
+     "a_score": 0.55,
+     "wilson_ci95_score": [
+      0.4808,
+      0.6174
+     ],
+     "seconds": 97.2
+    }
+   },
+   "raw": {
+    "wins_a": 325,
+    "wins_b": 271,
+    "draws": 0,
+    "crashes": 4
+   },
+   "games_total": 600,
+   "a_winrate_decisive": 0.5453,
+   "wilson_ci95_decisive": [
+    0.5052,
+    0.5849
+   ],
+   "a_score_swap_paired": 0.545,
+   "boot_ci95_score": [
+    0.5275,
+    0.5575
+   ],
+   "verdict": "ADMISSIBLE (S4 > S0)",
+   "verdict_wilson_decisive": "ADMISSIBLE (S4 > S0)",
+   "pair_seconds": 296.7
+  }
+ },
+ "meta": {
+  "pairs": [
+   "S3a_vs_S0",
+   "S3_vs_S0",
+   "S3b_vs_S0",
+   "S4_vs_S0"
+  ],
+  "training_seeds": [
+   1,
+   2,
+   3
+  ],
+  "games_per_seed_run": 200,
+  "law": "admissible iff 95% CI excludes 0.5 (KNOWLEDGE/2026-10-07/26)",
+  "ci_methods": {
+   "per_seed": "Wilson (decisive + score)",
+   "pooled": "cluster bootstrap on swap-paired scores + Wilson decisive"
+  },
+  "provenance": "runs 15:25-16:40 interleaved across two cooperating runners (flat-Wilson + cluster-bootstrap schemas); all 12 seed runs seat-balanced; counts cross-verified identical between runners (two orphan flat-schema rows matched the final rows and were merged/removed); bootstrap independently recomputed with fresh RNG, agrees to 4 dp."
+ },
+ "pooled": {}
+}
