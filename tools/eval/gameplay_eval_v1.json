@@ -1,0 +1,7328 @@
+{
+ "meta": {
+  "date": "2026-10-08 21:51",
+  "policy": "/home/sune/Desktop/MTG_AI/tools/training/bc7_S3_s1_best.pt",
+  "pool_mode": "engine",
+  "pool_cards": 285,
+  "turn_cap": 60,
+  "games_per_matchup": 120,
+  "seeds": [
+   1,
+   120
+  ],
+  "deck_pairs_seed": 1409,
+  "device": "cpu",
+  "workers": 4,
+  "seconds": 324.3,
+  "pack_denominator": "0/386 scenario packs support 2-seat full games (all are steps/expect puzzle rigs); games = seeded deck-pair games of the games.py campaign rig, round-robin seeds",
+  "provider_lane_caveat": "policy answers engine ask-sites only; the act side (cast/attack choices) is the shared seeded RandomPolicy driver, identical for both seats and matchups (paired design)"
+ },
+ "matchups": {
+  "vs_random": {
+   "games": 120,
+   "policy": "bc7_S3_s1_best.pt",
+   "baseline": "random",
+   "policy_wins": 58,
+   "policy_losses": 57,
+   "draws": {
+    "stall": 0,
+    "cap": 4,
+    "other": 0
+   },
+   "crashes": 1,
+   "decisive_rate": 0.9583,
+   "winrate_decisive": 0.5043,
+   "wilson_decisive": [
+    0.4143,
+    0.5941
+   ],
+   "avg_turns_played": 31.47,
+   "illegal_action_attempts": 0,
+   "engine_exceptions": 1,
+   "exception_types": [
+    "AssertionError"
+   ],
+   "model_errors": 0,
+   "asks_presented": 5889,
+   "asks_answered": 5782,
+   "asks_auto_resolved": 107,
+   "seat_swap_games": 60,
+   "policy_asks": {
+    "asks": 2848,
+    "v0": 1303,
+    "passes": 6,
+    "illegal": 0,
+    "model_errors": 0,
+    "trunc": 2388,
+    "v0_rate": 0.4575,
+    "pass_rate": 0.0021
+   },
+   "baseline_asks": {
+    "asks": 2934,
+    "v0": 1488,
+    "passes": 44,
+    "illegal": 0,
+    "model_errors": 0,
+    "trunc": 0,
+    "v0_rate": 0.5072,
+    "pass_rate": 0.015
+   }
+  },
+  "vs_teacher": {
+   "games": 120,
+   "policy": "bc7_S3_s1_best.pt",
+   "baseline": "teacher",
+   "policy_wins": 61,
+   "policy_losses": 58,
+   "draws": {
+    "stall": 0,
+    "cap": 0,
+    "other": 0
+   },
+   "crashes": 1,
+   "decisive_rate": 0.9917,
+   "winrate_decisive": 0.5126,
+   "wilson_decisive": [
+    0.4238,
+    0.6006
+   ],
+   "avg_turns_played": 26.83,
+   "illegal_action_attempts": 0,
+   "engine_exceptions": 1,
+   "exception_types": [
+    "AssertionError"
+   ],
+   "model_errors": 0,
+   "asks_presented": 4290,
+   "asks_answered": 4235,
+   "asks_auto_resolved": 55,
+   "seat_swap_games": 60,
+   "policy_asks": {
+    "asks": 2122,
+    "v0": 1036,
+    "passes": 3,
+    "illegal": 0,
+    "model_errors": 0,
+    "trunc": 1674,
+    "v0_rate": 0.4882,
+    "pass_rate": 0.0014
+   },
+   "baseline_asks": {
+    "asks": 2113,
+    "v0": 2070,
+    "passes": 0,
+    "illegal": 0,
+    "model_errors": 0,
+    "trunc": 0,
+    "v0_rate": 0.9796,
+    "pass_rate": 0.0
+   }
+  }
+ },
+ "records": {
+  "vs_random": [
+   {
+    "seed": 1,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 22,
+    "ask_log_total": 22,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 21,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 17
+     },
+     "1": {
+      "asks": 1,
+      "v0": 1,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 2,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 31,
+    "ask_log_total": 31,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 6,
+      "v0": 3,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 25,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 21
+     }
+    }
+   },
+   {
+    "seed": 3,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 41,
+    "ask_log_total": 41,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 16,
+      "v0": 4,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 12
+     },
+     "1": {
+      "asks": 25,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 4,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 35,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 76,
+    "ask_log_total": 73,
+    "auto_resolved": 3,
+    "seat_stats": {
+     "0": {
+      "asks": 38,
+      "v0": 19,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 35,
+      "v0": 20,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 31
+     }
+    }
+   },
+   {
+    "seed": 5,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 54,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 75,
+    "ask_log_total": 72,
+    "auto_resolved": 3,
+    "seat_stats": {
+     "0": {
+      "asks": 40,
+      "v0": 19,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 36
+     },
+     "1": {
+      "asks": 32,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 6,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 31,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 25,
+    "ask_log_total": 25,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 25,
+      "v0": 12,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 7,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 30,
+    "ask_log_total": 30,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 3,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 27,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 8,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 44,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 34,
+    "ask_log_total": 33,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 12,
+      "v0": 4,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 21,
+      "v0": 16,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 18
+     }
+    }
+   },
+   {
+    "seed": 9,
+    "swap": false,
+    "outcome": "crash",
+    "reason": "crash:AssertionError: ",
+    "turns": 18,
+    "crash": "AssertionError",
+    "illegal": 0,
+    "journal_total": 15,
+    "ask_log_total": 15,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 8,
+      "v0": 4,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 4
+     },
+     "1": {
+      "asks": 7,
+      "v0": 4,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 10,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 31,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 52,
+    "ask_log_total": 50,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 33,
+      "v0": 17,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 17,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 14
+     }
+    }
+   },
+   {
+    "seed": 11,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 24,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 28,
+    "ask_log_total": 28,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 5,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 1
+     },
+     "1": {
+      "asks": 23,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 12,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 29,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 34,
+    "ask_log_total": 32,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 15,
+      "v0": 10,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 17,
+      "v0": 4,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 13
+     }
+    }
+   },
+   {
+    "seed": 13,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 35,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 46,
+    "ask_log_total": 46,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 25,
+      "v0": 16,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 21
+     },
+     "1": {
+      "asks": 21,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 14,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 36,
+    "ask_log_total": 35,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 22,
+      "v0": 16,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 13,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 9
+     }
+    }
+   },
+   {
+    "seed": 15,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 28,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 35,
+    "ask_log_total": 35,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 15,
+      "v0": 3,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 11
+     },
+     "1": {
+      "asks": 20,
+      "v0": 16,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 16,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 25,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 32,
+    "ask_log_total": 32,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 27,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 5,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 2
+     }
+    }
+   },
+   {
+    "seed": 17,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 34,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 76,
+    "ask_log_total": 72,
+    "auto_resolved": 4,
+    "seat_stats": {
+     "0": {
+      "asks": 21,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 17
+     },
+     "1": {
+      "asks": 51,
+      "v0": 24,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 18,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 55,
+    "ask_log_total": 55,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 35,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 20,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 16
+     }
+    }
+   },
+   {
+    "seed": 19,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 44,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 54,
+    "ask_log_total": 54,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 5,
+      "v0": 3,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 2
+     },
+     "1": {
+      "asks": 49,
+      "v0": 19,
+      "passes": 3,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 20,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 21,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 22,
+    "ask_log_total": 22,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 22,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 21,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 41,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 39,
+    "ask_log_total": 39,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 20,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 16
+     },
+     "1": {
+      "asks": 19,
+      "v0": 9,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 22,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 18,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 36,
+    "ask_log_total": 36,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 15,
+      "v0": 9,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 21,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 17
+     }
+    }
+   },
+   {
+    "seed": 23,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 34,
+    "ask_log_total": 34,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 26,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 21
+     },
+     "1": {
+      "asks": 8,
+      "v0": 1,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 24,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 32,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 50,
+    "ask_log_total": 49,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 23,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 26,
+      "v0": 17,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 22
+     }
+    }
+   },
+   {
+    "seed": 25,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 40,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 97,
+    "ask_log_total": 95,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 52,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 47
+     },
+     "1": {
+      "asks": 43,
+      "v0": 21,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 26,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 37,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 51,
+    "ask_log_total": 50,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 36,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 14,
+      "v0": 3,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 11
+     }
+    }
+   },
+   {
+    "seed": 27,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 24,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 63,
+    "ask_log_total": 59,
+    "auto_resolved": 4,
+    "seat_stats": {
+     "0": {
+      "asks": 27,
+      "v0": 16,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 22
+     },
+     "1": {
+      "asks": 32,
+      "v0": 17,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 28,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 20,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 9,
+    "ask_log_total": 9,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 1,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 8,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 5
+     }
+    }
+   },
+   {
+    "seed": 29,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 48,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 133,
+    "ask_log_total": 128,
+    "auto_resolved": 5,
+    "seat_stats": {
+     "0": {
+      "asks": 61,
+      "v0": 23,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 57
+     },
+     "1": {
+      "asks": 67,
+      "v0": 34,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 30,
+    "swap": true,
+    "outcome": "draw-cap",
+    "reason": "turn cap 60 reached (no loser)",
+    "turns": 60,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 111,
+    "ask_log_total": 110,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 69,
+      "v0": 38,
+      "passes": 2,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 41,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 37
+     }
+    }
+   },
+   {
+    "seed": 31,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 28,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 32,
+    "ask_log_total": 32,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 9,
+      "v0": 2,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 5
+     },
+     "1": {
+      "asks": 23,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 32,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 56,
+    "ask_log_total": 55,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 40,
+      "v0": 24,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 15,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 11
+     }
+    }
+   },
+   {
+    "seed": 33,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 49,
+    "ask_log_total": 49,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 14,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 10
+     },
+     "1": {
+      "asks": 35,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 34,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 12,
+    "ask_log_total": 12,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 12,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 8
+     }
+    }
+   },
+   {
+    "seed": 35,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 48,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 73,
+    "ask_log_total": 73,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 43,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 39
+     },
+     "1": {
+      "asks": 30,
+      "v0": 19,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 36,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 49,
+    "ask_log_total": 49,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 47,
+      "v0": 21,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 2,
+      "v0": 1,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 37,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 28,
+    "ask_log_total": 28,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 18,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 14
+     },
+     "1": {
+      "asks": 10,
+      "v0": 3,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 38,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 20,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 25,
+    "ask_log_total": 25,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 5,
+      "v0": 1,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 20,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 16
+     }
+    }
+   },
+   {
+    "seed": 39,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 30,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 23,
+    "ask_log_total": 23,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 2,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 21,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 40,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 80,
+    "ask_log_total": 78,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 44,
+      "v0": 20,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 34,
+      "v0": 17,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 30
+     }
+    }
+   },
+   {
+    "seed": 41,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 32,
+    "ask_log_total": 24,
+    "auto_resolved": 8,
+    "seat_stats": {
+     "0": {
+      "asks": 7,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 4
+     },
+     "1": {
+      "asks": 17,
+      "v0": 9,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 42,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 44,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 78,
+    "ask_log_total": 78,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 37,
+      "v0": 20,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 41,
+      "v0": 16,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 37
+     }
+    }
+   },
+   {
+    "seed": 43,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 19,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 23,
+    "ask_log_total": 23,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 16,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 12
+     },
+     "1": {
+      "asks": 7,
+      "v0": 3,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 44,
+    "swap": true,
+    "outcome": "draw-cap",
+    "reason": "turn cap 60 reached (no loser)",
+    "turns": 60,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 111,
+    "ask_log_total": 111,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 45,
+      "v0": 26,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 66,
+      "v0": 22,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 62
+     }
+    }
+   },
+   {
+    "seed": 45,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 20,
+    "ask_log_total": 20,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 16,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 11
+     },
+     "1": {
+      "asks": 4,
+      "v0": 3,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 46,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 39,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 133,
+    "ask_log_total": 129,
+    "auto_resolved": 4,
+    "seat_stats": {
+     "0": {
+      "asks": 68,
+      "v0": 35,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 61,
+      "v0": 26,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 57
+     }
+    }
+   },
+   {
+    "seed": 47,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 41,
+    "ask_log_total": 40,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 24,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 20
+     },
+     "1": {
+      "asks": 16,
+      "v0": 10,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 48,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 23,
+    "ask_log_total": 23,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 23,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 19
+     }
+    }
+   },
+   {
+    "seed": 49,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 17,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 24,
+    "ask_log_total": 24,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 17,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 13
+     },
+     "1": {
+      "asks": 7,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 50,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 46,
+    "ask_log_total": 46,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 18,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 28,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 24
+     }
+    }
+   },
+   {
+    "seed": 51,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 29,
+    "ask_log_total": 29,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 19,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 15
+     },
+     "1": {
+      "asks": 10,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 52,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 41,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 56,
+    "ask_log_total": 55,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 28,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 27,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 23
+     }
+    }
+   },
+   {
+    "seed": 53,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 43,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 54,
+    "ask_log_total": 53,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 35,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 31
+     },
+     "1": {
+      "asks": 18,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 54,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 37,
+    "ask_log_total": 37,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 31,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 6,
+      "v0": 4,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 3
+     }
+    }
+   },
+   {
+    "seed": 55,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 21,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 53,
+    "ask_log_total": 52,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 25,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 21
+     },
+     "1": {
+      "asks": 27,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 56,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 30,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 53,
+    "ask_log_total": 53,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 23,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 30,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 26
+     }
+    }
+   },
+   {
+    "seed": 57,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 31,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 33,
+    "ask_log_total": 33,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 30,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 26
+     },
+     "1": {
+      "asks": 3,
+      "v0": 2,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 58,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 40,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 67,
+    "ask_log_total": 66,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 33,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 33,
+      "v0": 17,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 29
+     }
+    }
+   },
+   {
+    "seed": 59,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 24,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 28,
+    "ask_log_total": 28,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 1,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 27,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 60,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 41,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 52,
+    "ask_log_total": 52,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 36,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 16,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 12
+     }
+    }
+   },
+   {
+    "seed": 61,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 48,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 108,
+    "ask_log_total": 103,
+    "auto_resolved": 5,
+    "seat_stats": {
+     "0": {
+      "asks": 70,
+      "v0": 26,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 65
+     },
+     "1": {
+      "asks": 33,
+      "v0": 19,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 62,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 35,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 63,
+    "ask_log_total": 62,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 41,
+      "v0": 20,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 21,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 17
+     }
+    }
+   },
+   {
+    "seed": 63,
+    "swap": false,
+    "outcome": "draw-cap",
+    "reason": "turn cap 60 reached (no loser)",
+    "turns": 60,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 109,
+    "ask_log_total": 107,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 40,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 37
+     },
+     "1": {
+      "asks": 67,
+      "v0": 32,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 64,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 58,
+    "ask_log_total": 58,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 12,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 46,
+      "v0": 21,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 42
+     }
+    }
+   },
+   {
+    "seed": 65,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 34,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 57,
+    "ask_log_total": 57,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 24,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 19
+     },
+     "1": {
+      "asks": 33,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 66,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 24,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 23,
+    "ask_log_total": 23,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 1,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 22,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 18
+     }
+    }
+   },
+   {
+    "seed": 67,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 21,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 24,
+    "ask_log_total": 24,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 12,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 8
+     },
+     "1": {
+      "asks": 12,
+      "v0": 3,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 68,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 24,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 35,
+    "ask_log_total": 35,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 12,
+      "v0": 7,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 23,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 19
+     }
+    }
+   },
+   {
+    "seed": 69,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 30,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 76,
+    "ask_log_total": 74,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 26,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 23
+     },
+     "1": {
+      "asks": 48,
+      "v0": 21,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 70,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 29,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 42,
+    "ask_log_total": 42,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 31,
+      "v0": 18,
+      "passes": 2,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 11,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 7
+     }
+    }
+   },
+   {
+    "seed": 71,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 19,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 22,
+    "ask_log_total": 22,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 22,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 17
+     },
+     "1": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 72,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 21,
+    "ask_log_total": 21,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 21,
+      "v0": 20,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 17
+     }
+    }
+   },
+   {
+    "seed": 73,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 32,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 56,
+    "ask_log_total": 55,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 18,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 14
+     },
+     "1": {
+      "asks": 37,
+      "v0": 16,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 74,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 36,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 54,
+    "ask_log_total": 54,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 17,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 37,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 33
+     }
+    }
+   },
+   {
+    "seed": 75,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 52,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 54,
+    "ask_log_total": 52,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 18,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 14
+     },
+     "1": {
+      "asks": 34,
+      "v0": 16,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 76,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 49,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 116,
+    "ask_log_total": 113,
+    "auto_resolved": 3,
+    "seat_stats": {
+     "0": {
+      "asks": 64,
+      "v0": 32,
+      "passes": 4,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 49,
+      "v0": 21,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 45
+     }
+    }
+   },
+   {
+    "seed": 77,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 42,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 101,
+    "ask_log_total": 100,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 41,
+      "v0": 22,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 36
+     },
+     "1": {
+      "asks": 59,
+      "v0": 34,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 78,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 21,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 31,
+    "ask_log_total": 31,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 28,
+      "v0": 15,
+      "passes": 2,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 3,
+      "v0": 3,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 79,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 29,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 39,
+    "ask_log_total": 38,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 31,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 26
+     },
+     "1": {
+      "asks": 7,
+      "v0": 5,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 80,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 32,
+    "ask_log_total": 32,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 32,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 28
+     }
+    }
+   },
+   {
+    "seed": 81,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 34,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 65,
+    "ask_log_total": 65,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 33,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 29
+     },
+     "1": {
+      "asks": 32,
+      "v0": 17,
+      "passes": 4,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 82,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 14,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 17,
+    "ask_log_total": 17,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 1,
+      "v0": 1,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 16,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 11
+     }
+    }
+   },
+   {
+    "seed": 83,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 34,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 65,
+    "ask_log_total": 65,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 41,
+      "v0": 27,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 36
+     },
+     "1": {
+      "asks": 24,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 84,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 20,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 36,
+    "ask_log_total": 35,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 17,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 18,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 14
+     }
+    }
+   },
+   {
+    "seed": 85,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 35,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 69,
+    "ask_log_total": 67,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 43,
+      "v0": 20,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 38
+     },
+     "1": {
+      "asks": 24,
+      "v0": 15,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 86,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 50,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 76,
+    "ask_log_total": 75,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 15,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 60,
+      "v0": 32,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 56
+     }
+    }
+   },
+   {
+    "seed": 87,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 21,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 14,
+    "ask_log_total": 14,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 13,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 9
+     },
+     "1": {
+      "asks": 1,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 88,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 30,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 39,
+    "ask_log_total": 39,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 20,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 19,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 15
+     }
+    }
+   },
+   {
+    "seed": 89,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 36,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 52,
+    "ask_log_total": 52,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 18,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 14
+     },
+     "1": {
+      "asks": 34,
+      "v0": 21,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 90,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 30,
+    "ask_log_total": 30,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 13,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 17,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 13
+     }
+    }
+   },
+   {
+    "seed": 91,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 38,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 74,
+    "ask_log_total": 70,
+    "auto_resolved": 4,
+    "seat_stats": {
+     "0": {
+      "asks": 32,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 28
+     },
+     "1": {
+      "asks": 38,
+      "v0": 21,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 92,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 32,
+    "ask_log_total": 32,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 6,
+      "v0": 2,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 26,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 21
+     }
+    }
+   },
+   {
+    "seed": 93,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 22,
+    "ask_log_total": 22,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 13,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 10
+     },
+     "1": {
+      "asks": 9,
+      "v0": 4,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 94,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 39,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 84,
+    "ask_log_total": 81,
+    "auto_resolved": 3,
+    "seat_stats": {
+     "0": {
+      "asks": 63,
+      "v0": 31,
+      "passes": 2,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 18,
+      "v0": 9,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 14
+     }
+    }
+   },
+   {
+    "seed": 95,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 18,
+    "ask_log_total": 18,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 3,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 15,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 96,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 44,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 86,
+    "ask_log_total": 85,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 39,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 46,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 42
+     }
+    }
+   },
+   {
+    "seed": 97,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 41,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 71,
+    "ask_log_total": 69,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 27,
+      "v0": 19,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 24
+     },
+     "1": {
+      "asks": 42,
+      "v0": 26,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 98,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 24,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 14,
+    "ask_log_total": 14,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 2,
+      "v0": 2,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 12,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 8
+     }
+    }
+   },
+   {
+    "seed": 99,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 33,
+    "ask_log_total": 30,
+    "auto_resolved": 3,
+    "seat_stats": {
+     "0": {
+      "asks": 19,
+      "v0": 2,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 15
+     },
+     "1": {
+      "asks": 11,
+      "v0": 2,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 100,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 25,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 53,
+    "ask_log_total": 53,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 33,
+      "v0": 16,
+      "passes": 2,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 20,
+      "v0": 2,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 16
+     }
+    }
+   },
+   {
+    "seed": 101,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 25,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 14,
+    "ask_log_total": 14,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 14,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 10
+     },
+     "1": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 102,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 19,
+    "ask_log_total": 18,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 8,
+      "v0": 4,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 10,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 7
+     }
+    }
+   },
+   {
+    "seed": 103,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 50,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 110,
+    "ask_log_total": 106,
+    "auto_resolved": 4,
+    "seat_stats": {
+     "0": {
+      "asks": 39,
+      "v0": 24,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 36
+     },
+     "1": {
+      "asks": 67,
+      "v0": 31,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 104,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 60,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 132,
+    "ask_log_total": 128,
+    "auto_resolved": 4,
+    "seat_stats": {
+     "0": {
+      "asks": 61,
+      "v0": 29,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 67,
+      "v0": 28,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 64
+     }
+    }
+   },
+   {
+    "seed": 105,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 46,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 128,
+    "ask_log_total": 125,
+    "auto_resolved": 3,
+    "seat_stats": {
+     "0": {
+      "asks": 73,
+      "v0": 26,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 68
+     },
+     "1": {
+      "asks": 52,
+      "v0": 22,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 106,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 29,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 25,
+    "ask_log_total": 25,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 24,
+      "v0": 13,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 1,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 107,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 34,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 54,
+    "ask_log_total": 53,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 23,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 19
+     },
+     "1": {
+      "asks": 30,
+      "v0": 16,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 108,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 38,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 48,
+    "ask_log_total": 46,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 7,
+      "v0": 4,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 39,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 35
+     }
+    }
+   },
+   {
+    "seed": 109,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 40,
+    "ask_log_total": 39,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 21,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 16
+     },
+     "1": {
+      "asks": 18,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 110,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 18,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 16,
+    "ask_log_total": 16,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 16,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 11
+     }
+    }
+   },
+   {
+    "seed": 111,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 29,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 44,
+    "ask_log_total": 44,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 18,
+      "v0": 17,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 14
+     },
+     "1": {
+      "asks": 26,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 112,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 16,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 15,
+    "ask_log_total": 15,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 5,
+      "v0": 4,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 10,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 5
+     }
+    }
+   },
+   {
+    "seed": 113,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 34,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 50,
+    "ask_log_total": 50,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 12,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 8
+     },
+     "1": {
+      "asks": 38,
+      "v0": 20,
+      "passes": 2,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 114,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 13,
+    "ask_log_total": 13,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 13,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 9
+     }
+    }
+   },
+   {
+    "seed": 115,
+    "swap": false,
+    "outcome": "draw-cap",
+    "reason": "turn cap 60 reached (no loser)",
+    "turns": 60,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 73,
+    "ask_log_total": 71,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 21,
+      "v0": 16,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 17
+     },
+     "1": {
+      "asks": 50,
+      "v0": 23,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 116,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 32,
+    "ask_log_total": 32,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 29,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 3,
+      "v0": 2,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 117,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 19,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 22,
+    "ask_log_total": 22,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 22,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 17
+     },
+     "1": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 118,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 48,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 57,
+    "ask_log_total": 55,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 9,
+      "v0": 3,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 46,
+      "v0": 21,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 43
+     }
+    }
+   },
+   {
+    "seed": 119,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 34,
+    "ask_log_total": 32,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 17,
+      "v0": 12,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 13
+     },
+     "1": {
+      "asks": 15,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 120,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 32,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 30,
+    "ask_log_total": 30,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 6,
+      "v0": 3,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 24,
+      "v0": 14,
+      "passes": 2,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 20
+     }
+    }
+   }
+  ],
+  "vs_teacher": [
+   {
+    "seed": 1,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 22,
+    "ask_log_total": 22,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 21,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 17
+     },
+     "1": {
+      "asks": 1,
+      "v0": 1,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 2,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 30,
+    "ask_log_total": 30,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 5,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 25,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 21
+     }
+    }
+   },
+   {
+    "seed": 3,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 18,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 28,
+    "ask_log_total": 28,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 11,
+      "v0": 4,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 7
+     },
+     "1": {
+      "asks": 17,
+      "v0": 17,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 4,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 25,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 48,
+    "ask_log_total": 47,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 24,
+      "v0": 24,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 23,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 19
+     }
+    }
+   },
+   {
+    "seed": 5,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 30,
+    "ask_log_total": 30,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 19,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 15
+     },
+     "1": {
+      "asks": 11,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 6,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 14,
+    "ask_log_total": 14,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 14,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 7,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 20,
+    "ask_log_total": 20,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 1,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 19,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 8,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 48,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 37,
+    "ask_log_total": 37,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 14,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 23,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 20
+     }
+    }
+   },
+   {
+    "seed": 9,
+    "swap": false,
+    "outcome": "crash",
+    "reason": "crash:AssertionError: ",
+    "turns": 14,
+    "crash": "AssertionError",
+    "illegal": 0,
+    "journal_total": 9,
+    "ask_log_total": 9,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 4,
+      "v0": 1,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 5,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 10,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 25,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 30,
+    "ask_log_total": 30,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 26,
+      "v0": 25,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 4,
+      "v0": 1,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 1
+     }
+    }
+   },
+   {
+    "seed": 11,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 25,
+    "ask_log_total": 25,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 6,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 2
+     },
+     "1": {
+      "asks": 19,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 12,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 29,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 26,
+    "ask_log_total": 26,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 16,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 10,
+      "v0": 1,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 6
+     }
+    }
+   },
+   {
+    "seed": 13,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 28,
+    "ask_log_total": 28,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 14,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 10
+     },
+     "1": {
+      "asks": 14,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 14,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 44,
+    "ask_log_total": 43,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 24,
+      "v0": 24,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 19,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 15
+     }
+    }
+   },
+   {
+    "seed": 15,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 30,
+    "ask_log_total": 30,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 12,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 8
+     },
+     "1": {
+      "asks": 18,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 16,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 21,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 40,
+    "ask_log_total": 40,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 25,
+      "v0": 25,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 15,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 11
+     }
+    }
+   },
+   {
+    "seed": 17,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 40,
+    "ask_log_total": 40,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 13,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 9
+     },
+     "1": {
+      "asks": 27,
+      "v0": 27,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 18,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 19,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 37,
+    "ask_log_total": 37,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 24,
+      "v0": 24,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 13,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 9
+     }
+    }
+   },
+   {
+    "seed": 19,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 30,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 46,
+    "ask_log_total": 46,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 5,
+      "v0": 3,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 2
+     },
+     "1": {
+      "asks": 41,
+      "v0": 41,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 20,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 19,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 10,
+    "ask_log_total": 10,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 10,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 21,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 17,
+    "ask_log_total": 17,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 7,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 3
+     },
+     "1": {
+      "asks": 10,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 22,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 31,
+    "ask_log_total": 31,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 9,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 22,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 18
+     }
+    }
+   },
+   {
+    "seed": 23,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 38,
+    "ask_log_total": 37,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 24,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 19
+     },
+     "1": {
+      "asks": 13,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 24,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 31,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 35,
+    "ask_log_total": 35,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 27,
+      "v0": 26,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 8,
+      "v0": 1,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 5
+     }
+    }
+   },
+   {
+    "seed": 25,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 61,
+    "ask_log_total": 60,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 40,
+      "v0": 17,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 35
+     },
+     "1": {
+      "asks": 20,
+      "v0": 20,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 26,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 23,
+    "ask_log_total": 22,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 19,
+      "v0": 19,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 3,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 27,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 20,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 49,
+    "ask_log_total": 48,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 22,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 17
+     },
+     "1": {
+      "asks": 26,
+      "v0": 25,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 28,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 20,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 9,
+    "ask_log_total": 9,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 1,
+      "v0": 1,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 8,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 5
+     }
+    }
+   },
+   {
+    "seed": 29,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 30,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 72,
+    "ask_log_total": 71,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 30,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 26
+     },
+     "1": {
+      "asks": 41,
+      "v0": 41,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 30,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 39,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 82,
+    "ask_log_total": 82,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 65,
+      "v0": 62,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 17,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 13
+     }
+    }
+   },
+   {
+    "seed": 31,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 21,
+    "ask_log_total": 21,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 10,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 6
+     },
+     "1": {
+      "asks": 11,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 32,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 33,
+    "ask_log_total": 33,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 21,
+      "v0": 21,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 12,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 8
+     }
+    }
+   },
+   {
+    "seed": 33,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 25,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 51,
+    "ask_log_total": 50,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 24,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 20
+     },
+     "1": {
+      "asks": 26,
+      "v0": 26,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 34,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 12,
+    "ask_log_total": 12,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 12,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 8
+     }
+    }
+   },
+   {
+    "seed": 35,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 25,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 25,
+    "ask_log_total": 25,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 17,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 13
+     },
+     "1": {
+      "asks": 8,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 36,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 19,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 25,
+    "ask_log_total": 25,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 24,
+      "v0": 24,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 1,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 37,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 30,
+    "ask_log_total": 30,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 18,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 14
+     },
+     "1": {
+      "asks": 12,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 38,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 24,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 39,
+    "ask_log_total": 39,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 15,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 24,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 20
+     }
+    }
+   },
+   {
+    "seed": 39,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 38,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 24,
+    "ask_log_total": 24,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 4,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 1
+     },
+     "1": {
+      "asks": 20,
+      "v0": 20,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 40,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 28,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 59,
+    "ask_log_total": 58,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 29,
+      "v0": 29,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 29,
+      "v0": 16,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 25
+     }
+    }
+   },
+   {
+    "seed": 41,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 32,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 44,
+    "ask_log_total": 28,
+    "auto_resolved": 16,
+    "seat_stats": {
+     "0": {
+      "asks": 7,
+      "v0": 4,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 4
+     },
+     "1": {
+      "asks": 21,
+      "v0": 20,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 42,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 26,
+    "ask_log_total": 26,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 12,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 14,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 10
+     }
+    }
+   },
+   {
+    "seed": 43,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 35,
+    "ask_log_total": 35,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 14,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 10
+     },
+     "1": {
+      "asks": 21,
+      "v0": 20,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 44,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 37,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 87,
+    "ask_log_total": 86,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 48,
+      "v0": 48,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 38,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 34
+     }
+    }
+   },
+   {
+    "seed": 45,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 20,
+    "ask_log_total": 20,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 16,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 11
+     },
+     "1": {
+      "asks": 4,
+      "v0": 4,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 46,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 33,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 97,
+    "ask_log_total": 95,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 53,
+      "v0": 53,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 42,
+      "v0": 20,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 38
+     }
+    }
+   },
+   {
+    "seed": 47,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 25,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 26,
+    "ask_log_total": 26,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 12,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 8
+     },
+     "1": {
+      "asks": 14,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 48,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 23,
+    "ask_log_total": 23,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 23,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 19
+     }
+    }
+   },
+   {
+    "seed": 49,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 17,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 25,
+    "ask_log_total": 25,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 14,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 10
+     },
+     "1": {
+      "asks": 11,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 50,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 20,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 37,
+    "ask_log_total": 37,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 13,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 24,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 20
+     }
+    }
+   },
+   {
+    "seed": 51,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 37,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 28,
+    "ask_log_total": 28,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 20,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 16
+     },
+     "1": {
+      "asks": 8,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 52,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 35,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 46,
+    "ask_log_total": 46,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 19,
+      "v0": 19,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 27,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 23
+     }
+    }
+   },
+   {
+    "seed": 53,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 44,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 58,
+    "ask_log_total": 58,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 24,
+      "v0": 3,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 20
+     },
+     "1": {
+      "asks": 34,
+      "v0": 32,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 54,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 25,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 29,
+    "ask_log_total": 28,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 26,
+      "v0": 24,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 2,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 55,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 21,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 44,
+    "ask_log_total": 44,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 20,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 16
+     },
+     "1": {
+      "asks": 24,
+      "v0": 24,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 56,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 29,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 67,
+    "ask_log_total": 66,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 36,
+      "v0": 36,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 30,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 26
+     }
+    }
+   },
+   {
+    "seed": 57,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 31,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 33,
+    "ask_log_total": 33,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 30,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 26
+     },
+     "1": {
+      "asks": 3,
+      "v0": 3,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 58,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 21,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 28,
+    "ask_log_total": 28,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 15,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 13,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 9
+     }
+    }
+   },
+   {
+    "seed": 59,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 21,
+    "ask_log_total": 19,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 1,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 18,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 60,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 38,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 45,
+    "ask_log_total": 45,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 20,
+      "v0": 19,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 25,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 22
+     }
+    }
+   },
+   {
+    "seed": 61,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 36,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 73,
+    "ask_log_total": 69,
+    "auto_resolved": 4,
+    "seat_stats": {
+     "0": {
+      "asks": 51,
+      "v0": 22,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 46
+     },
+     "1": {
+      "asks": 18,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 62,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 26,
+    "ask_log_total": 26,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 21,
+      "v0": 21,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 5,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 1
+     }
+    }
+   },
+   {
+    "seed": 63,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 51,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 84,
+    "ask_log_total": 84,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 30,
+      "v0": 17,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 27
+     },
+     "1": {
+      "asks": 54,
+      "v0": 54,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 64,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 42,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 77,
+    "ask_log_total": 77,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 28,
+      "v0": 28,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 49,
+      "v0": 25,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 45
+     }
+    }
+   },
+   {
+    "seed": 65,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 46,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 55,
+    "ask_log_total": 55,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 27,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 22
+     },
+     "1": {
+      "asks": 28,
+      "v0": 26,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 66,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 24,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 23,
+    "ask_log_total": 23,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 1,
+      "v0": 1,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 22,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 18
+     }
+    }
+   },
+   {
+    "seed": 67,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 50,
+    "ask_log_total": 49,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 32,
+      "v0": 22,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 28
+     },
+     "1": {
+      "asks": 17,
+      "v0": 17,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 68,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 28,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 35,
+    "ask_log_total": 35,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 5,
+      "v0": 4,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 30,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 26
+     }
+    }
+   },
+   {
+    "seed": 69,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 28,
+    "ask_log_total": 28,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 1,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 27,
+      "v0": 27,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 70,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 25,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 29,
+    "ask_log_total": 29,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 22,
+      "v0": 22,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 7,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 3
+     }
+    }
+   },
+   {
+    "seed": 71,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 19,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 22,
+    "ask_log_total": 22,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 22,
+      "v0": 15,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 17
+     },
+     "1": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 72,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 21,
+    "ask_log_total": 21,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 21,
+      "v0": 20,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 17
+     }
+    }
+   },
+   {
+    "seed": 73,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 18,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 29,
+    "ask_log_total": 29,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 6,
+      "v0": 3,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 2
+     },
+     "1": {
+      "asks": 23,
+      "v0": 23,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 74,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 29,
+    "ask_log_total": 29,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 9,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 20,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 16
+     }
+    }
+   },
+   {
+    "seed": 75,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 36,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 32,
+    "ask_log_total": 30,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 16,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 12
+     },
+     "1": {
+      "asks": 14,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 76,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 33,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 57,
+    "ask_log_total": 57,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 37,
+      "v0": 37,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 20,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 16
+     }
+    }
+   },
+   {
+    "seed": 77,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 36,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 67,
+    "ask_log_total": 67,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 29,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 24
+     },
+     "1": {
+      "asks": 38,
+      "v0": 38,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 78,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 33,
+    "ask_log_total": 32,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 32,
+      "v0": 31,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 79,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 25,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 31,
+    "ask_log_total": 30,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 26,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 21
+     },
+     "1": {
+      "asks": 4,
+      "v0": 2,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 80,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 32,
+    "ask_log_total": 32,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 32,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 28
+     }
+    }
+   },
+   {
+    "seed": 81,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 36,
+    "ask_log_total": 36,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 13,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 9
+     },
+     "1": {
+      "asks": 23,
+      "v0": 22,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 82,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 14,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 17,
+    "ask_log_total": 17,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 1,
+      "v0": 1,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 16,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 11
+     }
+    }
+   },
+   {
+    "seed": 83,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 25,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 52,
+    "ask_log_total": 50,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 41,
+      "v0": 24,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 36
+     },
+     "1": {
+      "asks": 9,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 84,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 41,
+    "ask_log_total": 41,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 21,
+      "v0": 21,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 20,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 16
+     }
+    }
+   },
+   {
+    "seed": 85,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 24,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 46,
+    "ask_log_total": 46,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 19,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 14
+     },
+     "1": {
+      "asks": 27,
+      "v0": 26,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 86,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 32,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 55,
+    "ask_log_total": 55,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 20,
+      "v0": 19,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 35,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 31
+     }
+    }
+   },
+   {
+    "seed": 87,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 21,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 14,
+    "ask_log_total": 14,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 13,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 9
+     },
+     "1": {
+      "asks": 1,
+      "v0": 1,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 88,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 32,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 51,
+    "ask_log_total": 50,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 25,
+      "v0": 25,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 25,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 21
+     }
+    }
+   },
+   {
+    "seed": 89,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 32,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 46,
+    "ask_log_total": 46,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 20,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 16
+     },
+     "1": {
+      "asks": 26,
+      "v0": 24,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 90,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 26,
+    "ask_log_total": 26,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 9,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 17,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 13
+     }
+    }
+   },
+   {
+    "seed": 91,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 22,
+    "ask_log_total": 22,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 17,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 13
+     },
+     "1": {
+      "asks": 5,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 92,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 22,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 32,
+    "ask_log_total": 32,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 6,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 26,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 21
+     }
+    }
+   },
+   {
+    "seed": 93,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 25,
+    "ask_log_total": 25,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 15,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 11
+     },
+     "1": {
+      "asks": 10,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 94,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 21,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 47,
+    "ask_log_total": 47,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 26,
+      "v0": 26,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 21,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 17
+     }
+    }
+   },
+   {
+    "seed": 95,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 18,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 9,
+    "ask_log_total": 9,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 1,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 8,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 96,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 28,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 39,
+    "ask_log_total": 39,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 17,
+      "v0": 17,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 22,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 18
+     }
+    }
+   },
+   {
+    "seed": 97,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 20,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 22,
+    "ask_log_total": 22,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 4,
+      "v0": 4,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 1
+     },
+     "1": {
+      "asks": 18,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 98,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 24,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 14,
+    "ask_log_total": 14,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 2,
+      "v0": 2,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 12,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 8
+     }
+    }
+   },
+   {
+    "seed": 99,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 31,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 29,
+    "ask_log_total": 29,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 13,
+      "v0": 3,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 9
+     },
+     "1": {
+      "asks": 16,
+      "v0": 16,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 100,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 39,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 98,
+    "ask_log_total": 95,
+    "auto_resolved": 3,
+    "seat_stats": {
+     "0": {
+      "asks": 45,
+      "v0": 42,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 50,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 46
+     }
+    }
+   },
+   {
+    "seed": 101,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 25,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 14,
+    "ask_log_total": 14,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 14,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 10
+     },
+     "1": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 102,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 30,
+    "ask_log_total": 29,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 25,
+      "v0": 23,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 4,
+      "v0": 2,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 1
+     }
+    }
+   },
+   {
+    "seed": 103,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 33,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 40,
+    "ask_log_total": 39,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 21,
+      "v0": 17,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 18
+     },
+     "1": {
+      "asks": 18,
+      "v0": 18,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 104,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 19,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 19,
+    "ask_log_total": 19,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 14,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 5,
+      "v0": 3,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 2
+     }
+    }
+   },
+   {
+    "seed": 105,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 19,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 34,
+    "ask_log_total": 34,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 25,
+      "v0": 10,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 20
+     },
+     "1": {
+      "asks": 9,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 106,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 31,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 32,
+    "ask_log_total": 31,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 28,
+      "v0": 26,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 3,
+      "v0": 1,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 1
+     }
+    }
+   },
+   {
+    "seed": 107,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 35,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 32,
+    "ask_log_total": 32,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 24,
+      "v0": 11,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 20
+     },
+     "1": {
+      "asks": 8,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 108,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 38,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 54,
+    "ask_log_total": 52,
+    "auto_resolved": 2,
+    "seat_stats": {
+     "0": {
+      "asks": 7,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 45,
+      "v0": 17,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 41
+     }
+    }
+   },
+   {
+    "seed": 109,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 28,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 43,
+    "ask_log_total": 43,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 20,
+      "v0": 9,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 15
+     },
+     "1": {
+      "asks": 23,
+      "v0": 22,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 110,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 18,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 16,
+    "ask_log_total": 16,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 16,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 11
+     }
+    }
+   },
+   {
+    "seed": 111,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 27,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 40,
+    "ask_log_total": 39,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 14,
+      "v0": 12,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 10
+     },
+     "1": {
+      "asks": 25,
+      "v0": 25,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 112,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 16,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 15,
+    "ask_log_total": 15,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 5,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 10,
+      "v0": 5,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 5
+     }
+    }
+   },
+   {
+    "seed": 113,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 20,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 28,
+    "ask_log_total": 28,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 7,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 3
+     },
+     "1": {
+      "asks": 21,
+      "v0": 21,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 114,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 13,
+    "ask_log_total": 13,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 13,
+      "v0": 13,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 9
+     }
+    }
+   },
+   {
+    "seed": 115,
+    "swap": false,
+    "outcome": "b",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 26,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 37,
+    "ask_log_total": 37,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 1,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 36,
+      "v0": 36,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 116,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 28,
+    "ask_log_total": 28,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 21,
+      "v0": 20,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 7,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 4
+     }
+    }
+   },
+   {
+    "seed": 117,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 19,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 22,
+    "ask_log_total": 22,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 22,
+      "v0": 7,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 17
+     },
+     "1": {
+      "asks": 0,
+      "v0": 0,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 118,
+    "swap": true,
+    "outcome": "b",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 45,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 37,
+    "ask_log_total": 37,
+    "auto_resolved": 0,
+    "seat_stats": {
+     "0": {
+      "asks": 8,
+      "v0": 8,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 29,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 26
+     }
+    }
+   },
+   {
+    "seed": 119,
+    "swap": false,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 23,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 26,
+    "ask_log_total": 25,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 11,
+      "v0": 8,
+      "passes": 1,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 7
+     },
+     "1": {
+      "asks": 14,
+      "v0": 14,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     }
+    }
+   },
+   {
+    "seed": 120,
+    "swap": true,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 32,
+    "crash": null,
+    "illegal": 0,
+    "journal_total": 27,
+    "ask_log_total": 26,
+    "auto_resolved": 1,
+    "seat_stats": {
+     "0": {
+      "asks": 7,
+      "v0": 6,
+      "passes": 0,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 0
+     },
+     "1": {
+      "asks": 19,
+      "v0": 9,
+      "passes": 2,
+      "illegal": 0,
+      "model_errors": 0,
+      "trunc": 15
+     }
+    }
+   }
+  ]
+ }
+}
