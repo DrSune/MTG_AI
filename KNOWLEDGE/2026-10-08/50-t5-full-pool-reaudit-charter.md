@@ -29,3 +29,14 @@ B clause audit (tools/audit/clause_audit.py, all 305): ZERO-LOSS 97.1% (4678/480
 14 token-definition artifacts (FALSE, my initial read), 17 REAL GAPS -> Phase C worklist.
 Real-gap 17 = the honest answer to owner's "ALL functionality": NOT yet all — 17 named
 gaps + EQUIP enforcement + E1 merge + L-27/28/29 seats are the remaining path to it.
+
+## INTEGRITY RETRACTION (18:5x, Phase-C coder's premise audit)
+The "17 gaps" enumerated table circulated in chat + the 'REAL=17' classification are
+RETRACTED: cards fabricated by context-assembly (foreign-set names + inventions); the
+compiler guard referenced does not exist; blast-radius ~300 impossible (true two-leg-
+removal shape count in M21 = 4). DISK TRUTH: clause audit was ad-hoc (/tmp/opencode/clause/),
+tool NOT persisted, ~50 residuals UNCLASSIFIED (mostly heuristic false positives),
+97.1% figure currently NOT reproducible. Rebuild: persist tools/audit/clause_audit.py,
+finish classification with evidence per residual, THEN Phase C from that table only.
+Owner's 3-way taxonomy stands as the target schema: {missing-expressiveness |
+missing-encoding | clause-not-encoded}.
