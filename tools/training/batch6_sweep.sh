@@ -18,7 +18,7 @@ for arm in S0 S1 S2 S3 S4; do
   for seed in 1 2 3; do
     pref="bc6_${arm}_s${seed}"
     [ -f "tools/training/${pref}_report.json" ] && { echo "skip $pref"; continue; }
-    .venv/bin/python tools/training/run_train.py --phase "batch6-${pref}" --timeout 3600 -- \
+    .venv/bin/python tools/training/run_train.py --phase "batch6-${pref}" --timeout 3600 --ignore-prev -- \
       .venv/bin/python -m tools.training.train_bc_v3 --arm "$arm" --seed "$seed" --prefix "$pref" \
       || echo "FAIL $pref"
   done

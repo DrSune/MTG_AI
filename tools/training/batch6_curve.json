@@ -17,15 +17,160 @@
    "iid": 7.23,
    "boot": 5.09,
    "verdict": "PASS"
+  },
+  {
+   "arm": "S0",
+   "seed": "3",
+   "params": 0,
+   "acc": 0.7414,
+   "iid": 6.95,
+   "boot": 4.73,
+   "verdict": "PASS"
+  },
+  {
+   "arm": "S1",
+   "seed": "1",
+   "params": 0,
+   "acc": 0.7586,
+   "iid": 7.23,
+   "boot": 5.06,
+   "verdict": "PASS"
+  },
+  {
+   "arm": "S1",
+   "seed": "2",
+   "params": 0,
+   "acc": 0.7414,
+   "iid": 6.95,
+   "boot": 4.73,
+   "verdict": "PASS"
+  },
+  {
+   "arm": "S1",
+   "seed": "3",
+   "params": 0,
+   "acc": 0.7414,
+   "iid": 6.95,
+   "boot": 4.73,
+   "verdict": "PASS"
+  },
+  {
+   "arm": "S2",
+   "seed": "1",
+   "params": 0,
+   "acc": 0.7414,
+   "iid": 6.95,
+   "boot": 4.89,
+   "verdict": "PASS"
+  },
+  {
+   "arm": "S2",
+   "seed": "2",
+   "params": 0,
+   "acc": 0.7414,
+   "iid": 6.95,
+   "boot": 4.93,
+   "verdict": "PASS"
+  },
+  {
+   "arm": "S2",
+   "seed": "3",
+   "params": 0,
+   "acc": 0.7241,
+   "iid": 6.67,
+   "boot": 4.54,
+   "verdict": "PASS"
+  },
+  {
+   "arm": "S3",
+   "seed": "1",
+   "params": 0,
+   "acc": 0.7414,
+   "iid": 6.95,
+   "boot": 5.36,
+   "verdict": "PASS"
+  },
+  {
+   "arm": "S3",
+   "seed": "2",
+   "params": 0,
+   "acc": 0.7414,
+   "iid": 6.95,
+   "boot": 4.93,
+   "verdict": "PASS"
+  },
+  {
+   "arm": "S3",
+   "seed": "3",
+   "params": 0,
+   "acc": 0.7586,
+   "iid": 7.23,
+   "boot": 5.05,
+   "verdict": "PASS"
+  },
+  {
+   "arm": "S4",
+   "seed": "1",
+   "params": 0,
+   "acc": 0.6034,
+   "iid": 4.69,
+   "boot": 4.19,
+   "verdict": "PASS"
+  },
+  {
+   "arm": "S4",
+   "seed": "2",
+   "params": 0,
+   "acc": 0.7241,
+   "iid": 6.67,
+   "boot": 4.56,
+   "verdict": "PASS"
+  },
+  {
+   "arm": "S4",
+   "seed": "3",
+   "params": 0,
+   "acc": 0.6897,
+   "iid": 6.11,
+   "boot": 3.93,
+   "verdict": "PASS"
   }
  ],
  "summary": {
   "S0": {
-   "acc_mean": 0.75,
+   "acc_mean": 0.7471,
    "acc_range": 0.0172,
-   "boot_mean": 4.89,
-   "pass_count": 2,
-   "n": 2
+   "boot_mean": 4.84,
+   "pass_count": 3,
+   "n": 3
+  },
+  "S1": {
+   "acc_mean": 0.7471,
+   "acc_range": 0.0172,
+   "boot_mean": 4.84,
+   "pass_count": 3,
+   "n": 3
+  },
+  "S2": {
+   "acc_mean": 0.7356,
+   "acc_range": 0.0173,
+   "boot_mean": 4.79,
+   "pass_count": 3,
+   "n": 3
+  },
+  "S3": {
+   "acc_mean": 0.7471,
+   "acc_range": 0.0172,
+   "boot_mean": 5.11,
+   "pass_count": 3,
+   "n": 3
+  },
+  "S4": {
+   "acc_mean": 0.6724,
+   "acc_range": 0.1207,
+   "boot_mean": 4.23,
+   "pass_count": 3,
+   "n": 3
   }
  }
 }
