@@ -1,0 +1,65 @@
+{
+ "name": "meteorite_mana_tap.json",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "m",
+   "real": "Meteorite",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "kg",
+   "real": "Keen Glidemaster",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "m",
+   "idx": 1,
+   "seat": 0,
+   "decisions": [
+    "U"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Keen Glidemaster",
+   "key": "kg"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "m": "battlefield",
+   "kg": "battlefield"
+  },
+  "tapped": {
+   "m": true
+  },
+  "power": {
+   "kg": 2
+  },
+  "toughness": {
+   "kg": 1
+  },
+  "hand": {
+   "0": 0
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "Meteorite's UNTESTED second head (2026-10-08 Part-2 set): the printed {T}: 'Add one mana of any color' ask \u2014 the existing meteorite.json only exercises the ETB damage target. Answered 'U' (vocab[1] \u2260 vocab[0] W): seeded 1C + the asked blue pays Keen Glidemaster's {1}{U}; null W leaves the 2/1 uncast (zone/hand falsify) and the tap lane holds regardless. Meteorite starts on the battlefield (its ETB damage already 'happened' \u2014 prior turn), so this pack isolates the mana ask. Same frozen EVAL family as meteorite.json."
+}

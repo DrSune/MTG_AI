@@ -1,0 +1,77 @@
+{
+ "name": "traitorous_greed_g_spinner.json",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "gr",
+   "real": "Traitorous Greed",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sn",
+   "real": "Snarespinner",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Turncoat Ogre",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 4,
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Traitorous Greed",
+   "key": "gr",
+   "targets": [
+    "ogre"
+   ],
+   "decisions": [
+    "G"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Snarespinner",
+   "key": "sn"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "gr": "graveyard",
+   "sn": "battlefield",
+   "ogre": "battlefield"
+  },
+  "tapped": {
+   "ogre": false
+  },
+  "battlefield_keywords": {
+   "Turncoat Ogre": [
+    "HASTE"
+   ]
+  },
+  "hand": {
+   "0": 0
+  }
+ },
+ "notes": "MANA-COLOR twin of traitorous_greed.json (2026-10-08 Part-2 set): the any-one-color PAIR is answered 'G' (vocab[4] \u2260 vocab[0] W). Chain: seeded {R:4,C:1} pays Greed's {R}{3} exactly; the added 2G completes Snarespinner's {1}{G} (1C+1G) \u2014 under the null's W the spinner sits uncast in hand (zone/hand lanes falsify). Green twist vs the eval twin's red/Shock line; same frozen EVAL family side. No extra asks (vanilla-ish cast chain)."
+}

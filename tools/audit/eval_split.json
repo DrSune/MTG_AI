@@ -86,16 +86,16 @@
   "Wall of Runes",
   "Warden of the Woods"
  ],
- "eval_items": 54,
+ "eval_items": 58,
  "train_items": 110,
- "eval_l1_ready": 3,
+ "eval_l1_ready": 5,
  "new_families_assigned": [],
  "per_family": [
   {
    "family": "Alchemist's Gift",
    "side": "eval",
    "items": 2,
-   "l1_ready": 0
+   "l1_ready": 2
   },
   {
    "family": "Alpine Houndmaster",
@@ -298,7 +298,7 @@
   {
    "family": "Meteorite",
    "side": "eval",
-   "items": 1,
+   "items": 2,
    "l1_ready": 0
   },
   {
@@ -352,7 +352,7 @@
   {
    "family": "Prismite",
    "side": "eval",
-   "items": 1,
+   "items": 3,
    "l1_ready": 0
   },
   {
@@ -526,7 +526,7 @@
   {
    "family": "Traitorous Greed",
    "side": "eval",
-   "items": 1,
+   "items": 2,
    "l1_ready": 0
   },
   {

@@ -24,7 +24,16 @@
   },
   {
    "key": "plB",
-   "real": "Plains",
+   "real": "Island",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "bait",
+   "name": "Draw Bait",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
    "zone": "library",
    "controller": 0
   }
@@ -34,7 +43,7 @@
    "op": "enter",
    "key": "s1",
    "decisions": [
-    "skip"
+    "fire"
    ]
   },
   {
@@ -50,10 +59,12 @@
    "s1": "battlefield",
    "s2": "battlefield",
    "plA": "battlefield",
-   "plB": "hand"
+   "plB": "battlefield",
+   "bait": "hand"
   },
   "tapped": {
-   "plA": true
+   "plA": true,
+   "plB": true
   },
   "hand": {
    "0": 1
@@ -69,5 +80,5 @@
    ]
   }
  },
- "notes": "Printed: 'you may search your library for a basic land card, put that card onto the battlefield tapped, then shuffle.' begin_turn draw eats last-added plB (hand 1); s1 skips (may declined, nothing moves); s2 fires: plA found -> battlefield TAPPED, library shuffled to exactly the 6 fake cards (set asserted, order wildcarded). Both may branches."
+ "notes": "Printed: 'you may search your library for a basic land card, put that card onto the battlefield tapped, then shuffle.' 2026-10-08 repair v2: both ETB may-asks now carry a REAL land (Plains + Island under the draw-bait), so BOTH golds are 'fire' (the only correct play \u2014 the old pack's s1-skip gold taught a wrong play whose twin-symmetry was arbitrary). Each search is falsifiable INDEPENDENTLY under null replay (skip): the skipping simulacrum leaves the second land in the library, so the plA+plB-both-battlefield-tapped lanes kill every null. Lands are distinct names but the lanes are swap-tolerant: they assert both lands on the battlefield tapped regardless of which Simulacrum fetched which. Search+shuffle \u2192 library is the 6 fakes, wildcarded."
 }

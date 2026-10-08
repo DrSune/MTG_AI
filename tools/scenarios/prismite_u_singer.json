@@ -1,0 +1,62 @@
+{
+ "name": "prismite_u_singer.json",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "p",
+   "real": "Prismite",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ms",
+   "real": "Mistral Singer",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "p",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "U"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Mistral Singer",
+   "key": "ms"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ms": "battlefield",
+   "p": "battlefield"
+  },
+  "power": {
+   "ms": 2
+  },
+  "toughness": {
+   "ms": 2
+  },
+  "hand": {
+   "0": 0
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "MANA-COLOR twin #2 of prismite.json (2026-10-08 Part-2 set): any-color ask answered 'U' (vocab[1] != vocab[0]); null W leaves Mistral Singer's {2}{U} unpayable (zone/hand lanes falsify). {2} drains 2C of seeded 4C; the asked BLUE mana completes the 2/2 vanilla \u2014 zero extra asks. Frozen EVAL family side with prismite.json / prismite_g_spinner.json."
+}

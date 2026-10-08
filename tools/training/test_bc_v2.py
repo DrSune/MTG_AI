@@ -39,13 +39,14 @@ def dataset(episodes, vocab):
 
 
 # ----------------------------------------------------------------- integrity
-def test_joins_the_static_corpus_at_164(dataset):
+def test_joins_the_static_corpus_at_168(dataset):
     """Authoritative law: every v2 gold line maps to a corpus item. The OLD
     episodes.jsonl is stale (pre corpus-v2) — join to the corpus is truth."""
     corpus = __import__("json").loads(CORPUS.read_text(encoding="utf-8"))
-    # P1b pilot regen: PICK-lift added 7 real items (164). Earlier: garruk
-    # emblem one_of became a scripted (gold) item when its dead-ask died.
-    assert v2.join_corpus(dataset, corpus["items"]) == 164
+    # 2026-10-08 Part-2 mana-color set: +4 any-color items (prismite x2,
+    # greed, meteorite {T}) on top of the P1b 164. Harbinger ONE_OFs are now
+    # filtered 2-creature menus; blind-candidate asks retired.
+    assert v2.join_corpus(dataset, corpus["items"]) == 168
 
 
 # ------------------------------------------------------------- schema laws
@@ -121,12 +122,16 @@ def test_handle_grounding_coverage(episodes):
             elif c.isdigit() and r["what"].startswith("choose:"):
                 ch += 1
                 ch_ok += grounded(r, ci)
-    assert (hs_ok, hs) == (180, 212), "handle grounding drifted"  # P1b pilot regen
-    assert (ch_ok, ch) == (66, 69), (
+    # 2026-10-08 regen: 212->206 handle asks (opaque Harbinger ONE_OF menus
+    # replaced by filtered typed-creature menus), grounding rate unchanged
+    # (180/212 = 84.9% -> 174/206 = 84.5%).
+    assert (hs_ok, hs) == (174, 206), "handle grounding drifted"
+    assert (ch_ok, ch) == (67, 70), (
         "choose-digit grounding drifted"
-    )  # v3 regen 2026-10-07
+    )  # 2026-10-08 duress repair adds the '2' zero-row choose digit (66/69 -> 67/70)
     assert (
-        sum(1 for r in rows_g if any(g for g in (r.get("ground") or []))) == 84  # P1b pilot regen
+        sum(1 for r in rows_g if any(g for g in (r.get("ground") or [])))
+        == 84  # P1b pilot regen
     )  # doc 36 regen 2026-10-07
 
 

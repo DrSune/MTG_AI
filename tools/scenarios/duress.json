@@ -24,6 +24,12 @@
    "type": "Creature",
    "zone": "hand",
    "controller": 1
+  },
+  {
+   "key": "sk",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
   }
  ],
  "mana": {
@@ -31,22 +37,23 @@
    "B": 1
   }
  },
- "steps": [
-  {
-   "op": "cast",
-   "real": "Duress",
-   "key": "du",
-   "decisions": [
-    "1"
-   ]
-  }
- ],
- "expect": {
-  "zone": {
-   "du": "graveyard",
-   "prey": "hand",
-   "sheep": "hand"
-  },
+  "steps": [
+   {
+    "op": "cast",
+    "real": "Duress",
+    "key": "du",
+    "decisions": [
+     "1"
+    ]
+   }
+  ],
+  "expect": {
+   "zone": {
+    "du": "graveyard",
+    "prey": "hand",
+    "sheep": "hand",
+    "sk": "graveyard"
+   },
   "library": {
    "0": [
     "Library 5",
@@ -69,16 +76,18 @@
    "0": 0,
    "1": 2
   },
-  "graveyard": {
-   "0": [
-    "Duress"
-   ],
-   "1": []
-  },
+   "graveyard": {
+    "0": [
+     "Duress"
+    ],
+    "1": [
+     "Shock"
+    ]
+   },
   "life": {
    "0": 20,
    "1": 20
   }
  },
- "notes": " eval-granularity 2026-10-05: gold '1' = discard the Sheep; the menu ('0','1','card:1') maps '0' to Opt \u2014\nthe null replay discards the Instant and the exact graveyard/hand/zone lanes falsify\n(random ~0.33)."
+  "notes": " C1 re-audit 2026-10-08: the old note's premise was FALSE \u2014 the engine CHOOSE\nfilter WORKS (the creature Sheep is never offered; verified by word-replay:\n'0'/'card:1' discard Opt, '1' was the zero-row = discard NOTHING, the pack's\nlanes had PINNED that no-op as gold). Data-only repair: opponent hand gains a\nsecond noncreature nonland (Shock), so the pool has 2 rows, gold '1' = discard\nShock, null takes '0' = discard Opt, and the graveyard/hand/zone lanes falsify\nthe alternative. The engine still appends a zero row even when the pool is\nfull (a separate CHOOSE phantom outside C1's filter scope \u2014 registered here)."
 }

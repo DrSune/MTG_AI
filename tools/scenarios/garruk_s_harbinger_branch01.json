@@ -1,13 +1,55 @@
 {
  "world": {
   "life": 20,
-  "seed": 7
+  "seed": 7,
+  "library_top": true
  },
  "cards": [
   {
    "key": "h",
    "real": "Garruk's Harbinger",
    "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "Scout Report",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "c",
+   "name": "Chaff Spell",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "kit",
+   "name": "Runt Kit",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "alpha",
+   "name": "Snarling Alpha",
+   "power": "4",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "bait",
+   "name": "Draw Bait",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "library",
    "controller": 0
   }
  ],
@@ -22,7 +64,7 @@
     "h": true
    },
    "decisions": [
-    "card:4"
+    "alpha"
    ]
   },
   {
@@ -31,18 +73,24 @@
  ],
  "expect": {
   "zone": {
-   "h": "battlefield"
+   "h": "battlefield",
+   "alpha": "hand",
+   "bait": "hand"
   },
   "tapped": {
    "h": true
   },
   "library": {
    "0": [
-    "Library 1",
-    "Library 0",
     "Library 5",
     "Library 4",
-    "Library 2"
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "*",
+    "*",
+    "*"
    ],
    "1": [
     "Library 5",
@@ -54,7 +102,7 @@
    ]
   },
   "hand": {
-   "0": 1,
+   "0": 2,
    "1": 0
   },
   "graveyard": {
@@ -66,6 +114,5 @@
    "1": 16
   }
  },
- "notes": "Branch garruk_s_harbinger:02 (OptionalEffect accept side, heat 32). The may-reveal offer is ACCEPTED via the combat provider (may map); REVEAL + ONE_OF-to-hand run without asks (auto-designation), exactly one card lands in hand and the 4-damage attack lands (life 16). Decline twin = the existing green garruks_harbinger.json (hand 0, all four to bottom). The REST half of this same resolution is the garruk_s_harbinger_branch01 SUSPECT: the accept path does not move the rest to the bottom (printed text makes the rest clause unconditional). eval-granularity 2026-10-05: ONE_OF gold moved off vocab[0] (card:3=Library 2 = the null replay's pick):\n'card:4' takes Library 3 to hand, REST preserves the rest to the BOTTOM \u2014 the exact\ntop-first library lane falsifies the null partition (random 0.25).",
- "adjudication": "H4 2026-10-04: fixed in verbs._look. On the accept path, the REVEAL atom inside the LOOK_AT sentence was treated as a fresh top-library look and collapsed the partition window to one card. A REVEAL following an open look window is now anaphoric to that window, so ONE_OF sees the full looked-at population and REST receives the complement."
+ "notes": "Branch garruk_s_harbinger:01 (OptionalEffect accept side). 2026-10-08 BLINDNESS repair: the looked-at four were opaque 'Library N' filler; the world.library_top knob now puts four TYPED cards on top (Scout Report Instant, Chaff Spell Instant, Runt Kit 1/1, Snarling Alpha 4/4). The engine FILTERS the reveal ONE_OF to the printed clause (creature or Garruk planeswalker): with one legal creature it auto-resolves WITHOUT an ask (single-candidate phantom closed); with two it asks over exactly the two creatures \u2014 no instants offered. Gold takes Snarling Alpha (vocab[1]); the null replay takes vocab[0] Runt Kit and the zone/library lanes falsify it (the 4/4 line is the value-maximal pick; both are legal reveals). REST goes to the BOTTOM in RANDOM ORDER (printed text) \u2192 three wildcarded '*' slots. Decline twin = garruks_harbinger.json. Draw Bait is consumed by the begin_turn draw."
 }

@@ -1,0 +1,62 @@
+{
+ "name": "prismite_g_spinner.json",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "p",
+   "real": "Prismite",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "sn",
+   "real": "Snarespinner",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "p",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "G"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Snarespinner",
+   "key": "sn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sn": "battlefield",
+   "p": "battlefield"
+  },
+  "power": {
+   "sn": 1
+  },
+  "toughness": {
+   "sn": 3
+  },
+  "hand": {
+   "0": 0
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "MANA-COLOR twin of prismite.json (2026-10-08 Part-2 set): Prismite's any-color ask is answered 'G' (vocab[4], != vocab[0] W, so the null replay picks W and the Snarespinner cast becomes unpayable \u2014 the {1}{G} spell stays in hand, falsifying the zone/hand lanes). PROOF BY CHAIN: {2} drains 2C of the seeded 3C, the asked GREEN mana is the only thing that completes Snarespinner's {1}{G}. Snarespinner cast adds no further ask (no phantom items). Same family as prismite.json (frozen EVAL side)."
+}

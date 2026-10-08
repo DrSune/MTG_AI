@@ -1,13 +1,50 @@
 {
  "world": {
   "life": 20,
-  "seed": 7
+  "seed": 7,
+  "library_top": true
  },
  "cards": [
   {
    "key": "sp",
    "real": "Track Down",
    "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "pl",
+   "real": "Plains",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "j3",
+   "name": "Chaff Three",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "j2",
+   "name": "Chaff Two",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "j1",
+   "name": "Chaff One",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "bait",
+   "name": "Draw Bait",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "library",
    "controller": 0
   }
  ],
@@ -26,7 +63,7 @@
    "real": "Track Down",
    "key": "sp",
    "decisions": [
-    "top",
+    "bottom",
     "bottom",
     "bottom"
    ]
@@ -34,20 +71,34 @@
  ],
  "expect": {
   "zone": {
-   "sp": "graveyard"
+   "sp": "graveyard",
+   "pl": "hand",
+   "j1": "library",
+   "j2": "library",
+   "j3": "library",
+   "bait": "hand"
   },
   "hand": {
-   "0": 1
+   "0": 2
   },
   "library": {
    "0": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
     "Library 2",
     "Library 1",
     "Library 0",
-    "Library 4",
-    "Library 3"
+    "Chaff One",
+    "Chaff Two",
+    "Chaff Three"
+   ]
+  },
+  "graveyard": {
+   "0": [
+    "Track Down"
    ]
   }
  },
- "notes": " | EVAL-GRANULARITY REPAIR 2026-10-05: gold top,bottom,bottom scripted; all 8 decision outcomes produce DISTINCT libraries (probe), so every chained item is null-failing with random 0.125/0.25/0.5."
+ "notes": " 2026-10-08 BLINDNESS + null-degeneracy repair: the old pack scryed three\nopaque 'Library N' filler cards and two of its three asks had gold = 'top' =\nvocab[0] = the null replay pick (null_score 1.0, no_discrimination). The runner's\nnew opt-in world.library_top knob raises the pack's typed library cards above\nthe filler, so all THREE scry asks present Chaff One / Chaff Two / Chaff Three\n(instants \u2014 revealing them draws nothing), and the fourth library card, Plains,\nsits just under the window. Gold bottom,bottom,bottom buries the whole chaff\nwindow, exposing the Plains \u2014 the reveal fires the promised draw (Plains in\nhand). Every ask's gold is now 'bottom' != vocab[0]: any null 'top' keeps chaff\non top, reveals an Instant, and draws nothing \u2014 falsified by the hand/zone/library\nlanes."
 }

@@ -20,8 +20,8 @@
    "key": "f1",
    "name": "Fodder One",
    "type": "Creature",
-   "power": "1",
-   "toughness": "1",
+   "power": "2",
+   "toughness": "2",
    "zone": "battlefield",
    "controller": 0
   },
@@ -35,7 +35,7 @@
    "controller": 0
   },
   {
-   "key": "v1",
+   "key": "vT",
    "name": "Victim One",
    "type": "Creature",
    "power": "5",
@@ -44,11 +44,11 @@
    "controller": 1
   },
   {
-   "key": "v2",
+   "key": "vK",
    "name": "Victim Two",
    "type": "Creature",
    "power": "5",
-   "toughness": "5",
+   "toughness": "1",
    "zone": "battlefield",
    "controller": 1
   }
@@ -66,7 +66,7 @@
    "seat": 0,
    "decisions": [
     "f2",
-    "v1"
+    "vK"
    ]
   },
   {
@@ -76,7 +76,7 @@
    "seat": 0,
    "decisions": [
     "f1",
-    "v2"
+    "vT"
    ]
   }
  ],
@@ -89,12 +89,21 @@
   "zone": {
    "f1": "graveyard",
    "f2": "graveyard",
-   "jes": "battlefield"
+   "jes": "battlefield",
+   "vT": "battlefield",
+   "vK": "graveyard"
+  },
+  "power": {
+   "f1": 2,
+   "f2": 1
   },
   "damage": {
-   "v1": 1,
-   "v2": 1
+   "vT": 1
+  },
+  "life": {
+   "0": 20,
+   "1": 20
   }
  },
- "notes": "LADDER (4 chained asks): two Hobblefiend activations; the first sacrifice-victim ask has TWO fodder candidates (gold f2 != null vocab[0]) and each Jester-less burn trigger asks its target (gold v1 then v2 != first candidate); the second sac has a single victim (auto-take, not an ask)."
+ "notes": "LADDER, 2026-10-08 asymmetry repair: the old board had two identical 1/1 fodders and two identical 5/5 victims, so every choice here was arbitrary (and the sac-order swap under null replay was unobservable). Now Fodder One is 2/2 vs Fodder Two 1/1 \u2014 the sac ask's gold (f2, vocab[1]) sacrifices the SMALLER creature, and null vocab[0] eats the 2/2. Victim Two is 5/1: the first Jester burn (gold vK) KILLS it (removes a 5-power threat for 1 damage; victim order puts the tanky Victim One at vocab[0], so null burns the 5/5 and Victim Two survives \u2014 falsified by the zone lane). Second activation: single fodder + single surviving victim \u2192 both auto-taken, no ask (no phantom decisions)."
 }

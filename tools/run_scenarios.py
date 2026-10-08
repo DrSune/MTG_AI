@@ -224,20 +224,40 @@ class ScenarioRunner:
         # engine made, as (tag, vocab, ANSWER) triples — the expect lanes
         # window_asks / kickback_asks / window_vocab read these.
         self.rung1_asks: list[tuple[str, tuple[str, ...], str]] = []
+        # 2026-10-08 library-top knob: the filler below always lands ON TOP
+        # of a pack's typed library cards, so library-peek/scry asks would
+        # present opaque "Library N" strings as their candidates — the §10
+        # BLINDNESS the T4 audit flags. A pack that sets
+        # ``"world": {"library_top": true}`` re-raises its OWN library-zone
+        # cards above the filler after the filler is dealt (relative order
+        # preserved). Packs without the key are byte-identical.
+        filler = []
         for seat_idx in (0, 1):
             for i in range(6):
-                self.world.add_card(
-                    CardIdentity(
-                        oracle_id=f"9f00000{i}-0000-0000-0000-00000000000{seat_idx}",
-                        name=f"Library {i}",
-                        type_line="Creature",
-                        power="1",
-                        toughness="1",
-                        cmc=1,
-                    ),
-                    self.seats[seat_idx],
-                    ZONE_LIBRARY,
+                filler.append(
+                    self.world.add_card(
+                        CardIdentity(
+                            oracle_id=f"9f00000{i}-0000-0000-0000-00000000000{seat_idx}",
+                            name=f"Library {i}",
+                            type_line="Creature",
+                            power="1",
+                            toughness="1",
+                            cmc=1,
+                        ),
+                        self.seats[seat_idx],
+                        ZONE_LIBRARY,
+                    )
                 )
+        if pack.get("world", {}).get("library_top"):
+            for key, handle in self.handles.items():
+                if self.world.zone_of(handle).kind != ZONE_LIBRARY:
+                    continue
+                if handle in filler:  # cannot happen (keys only name pack cards)
+                    continue
+                pl = self.world.players[self.world.controller_of(handle)]
+                entries = pl.zone(ZONE_LIBRARY).entries
+                entries.remove(handle)
+                entries.append(handle)
 
     def run_step(self, step: dict) -> None:
         if step.get("decisions") and step["op"] != "combat":

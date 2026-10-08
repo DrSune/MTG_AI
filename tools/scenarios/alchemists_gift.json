@@ -1,6 +1,6 @@
 {
   "world": {
-    "life": 20,
+    "life": 7,
     "seed": 7
   },
   "cards": [
@@ -33,6 +33,15 @@
       "type": "Creature",
       "zone": "battlefield",
       "controller": 0
+    },
+    {
+      "key": "foe",
+      "name": "Foe",
+      "power": 3,
+      "toughness": 3,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
     }
   ],
   "mana": {
@@ -46,10 +55,10 @@
       "real": "Alchemist's Gift",
       "key": "ag",
       "targets": [
-        "knife"
+        "leech"
       ],
       "decisions": [
-        "0"
+        "1"
       ]
     },
     {
@@ -57,36 +66,57 @@
       "real": "Alchemist's Gift",
       "key": "ag2",
       "targets": [
-        "leech"
+        "knife"
       ],
       "decisions": [
-        "1"
+        "0"
       ]
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "knife": true,
+        "leech": true
+      },
+      "block": {
+        "foe": "knife"
+      }
     }
   ],
   "expect": {
     "zone": {
       "ag": "graveyard",
-      "ag2": "graveyard"
+      "ag2": "graveyard",
+      "knife": "graveyard",
+      "foe": "graveyard",
+      "leech": "battlefield"
     },
     "battlefield_keywords": {
-      "Knife Hand": [
-        "DEATHTOUCH"
-      ],
       "Leech Biter": [
         "LIFELINK"
       ]
     },
     "power": {
-      "knife": 2,
       "leech": 2
     },
     "toughness": {
-      "knife": 2,
       "leech": 2
     },
+    "graveyard": {
+      "0": [
+        "Alchemist's Gift",
+        "Alchemist's Gift",
+        "Knife Hand"
+      ],
+      "1": [
+        "Foe"
+      ]
+    },
     "life": {
-      "0": 20
+      "0": 9,
+      "1": 5
     }
-  }
+  },
+  "notes": " 2026-10-08 keyword-observability repair: the old pack had two identical\n1/1 bodies and no board state, so WHICH creature got deathtouch vs lifelink was\narbitrary-by-lane-pin. Now the board makes each choice observable: Leech Biter\nattacks UNBLOCKED at low life (lifelink shows in the life lanes 7+2/7-2; the\ndeathtouch pick gains nothing and falsifies), Knife Hand attacks the 3/3 blocker\nand is BLOCKED (deathtouch kills Foe with 2 damage \u2014 graveyard[1] ['Foe']\nfalsifies the lifelink pick, where Foe survives at 1 remaining toughness while\nKnife Hand dies either way). Item 1 (Leech's keyword) gold '1' != vocab[0];\nitem 2 (Knife's keyword) gold '0' = vocab[0] is the engine's fixed list order\n(deathtouch first in the oracle text) \u2014 random rollouts falsify via Foe's\ngraveyard."
 }
