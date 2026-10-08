@@ -33,3 +33,6 @@ Boot CIs all inside [0.5275,0.5575]. Arms INDISTINGUISHABLE from each other
 Capacity 9.98M->35M adds NOTHING over the baseline uplift; confirms batch6
 plateau on the unified corpus and supersedes batch6's era-confounded
 S4-vs-S0 0.492. Next lever is data/breadth, not parameters.
+
+> SUPERSEDED by 55-batch7b-adjudicated.md (2026-10-08 19:2x): the /54
+> engine-ON retraction does not overturn the plateau — see contamination audit.

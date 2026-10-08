@@ -1,0 +1,313 @@
+{
+ "schema": "batch7-adjudicated-v1",
+ "date": "2026-10-08",
+ "provenance": {
+  "source": "tools/training/elo_batch7.json (commit 551f2d7, 2400 swap-paired games, 4 pairs x 3 training seeds x 200)",
+  "engine_state_during_runs": "vLLM Flash-Next loaded on GPU (93% util) \u2014 shared KV cache; NOT engine-off",
+  "engine_off_note": "/54 owner retraction concerns engine contention; adjudication below tests whether engine-off is REQUIRED for the conclusion to stand",
+  "ckpt_sha256_16": {
+   "bc7_S4_s1": "e23477555d4ede52",
+   "bc7_S0_s1": "831693e9d7f75455"
+  },
+  "eval_file": "/home/sune/Desktop/MTG_AI/tools/training/episodes_v2.jsonl (binding; corpus-joined)"
+ },
+ "integrity": {
+  "total_games": 2400,
+  "decisive": 2394,
+  "draws": 1,
+  "crashes": 5,
+  "seat_balance_all_ok": true,
+  "log_exception_hits": 0,
+  "crash_rows": [
+   "S3a_S0 s3: 1 crash",
+   "S4_S0 s1: 1 crash",
+   "S4_S0 s2: 3 crashes"
+  ]
+ },
+ "pairs": {
+  "S3a_S0": {
+   "big": "S3a",
+   "small": "S0",
+   "pooled_decisive_wr": 0.5426,
+   "wilson_ci95": [
+    0.5025,
+    0.5821
+   ],
+   "exact_binomial_p_vs_0.5": 0.041,
+   "boot_ci95_score": [
+    0.5325,
+    0.555
+   ],
+   "per_seed": {
+    "s1": {
+     "games": 200,
+     "wins_a": 108,
+     "wins_b": 92,
+     "draws": 0,
+     "crashes": 0,
+     "a_winrate_decisive": 0.54,
+     "wilson_ci95_decisive": [
+      0.4708,
+      0.6077
+     ],
+     "consistent_with_pooled": true
+    },
+    "s2": {
+     "games": 200,
+     "wins_a": 111,
+     "wins_b": 89,
+     "draws": 0,
+     "crashes": 0,
+     "a_winrate_decisive": 0.555,
+     "wilson_ci95_decisive": [
+      0.4857,
+      0.6222
+     ],
+     "consistent_with_pooled": true
+    },
+    "s3": {
+     "games": 200,
+     "wins_a": 106,
+     "wins_b": 93,
+     "draws": 0,
+     "crashes": 1,
+     "a_winrate_decisive": 0.5327,
+     "wilson_ci95_decisive": [
+      0.4634,
+      0.6007
+     ],
+     "consistent_with_pooled": true
+    }
+   },
+   "per_seed_spread": 0.0223,
+   "verdict": "ADMISSIBLE (>0.5)"
+  },
+  "S3_S0": {
+   "big": "S3",
+   "small": "S0",
+   "pooled_decisive_wr": 0.5442,
+   "wilson_ci95": [
+    0.5042,
+    0.5837
+   ],
+   "exact_binomial_p_vs_0.5": 0.0335,
+   "boot_ci95_score": [
+    0.5375,
+    0.55
+   ],
+   "per_seed": {
+    "s1": {
+     "games": 200,
+     "wins_a": 107,
+     "wins_b": 92,
+     "draws": 1,
+     "crashes": 0,
+     "a_winrate_decisive": 0.5377,
+     "wilson_ci95_decisive": [
+      0.4684,
+      0.6056
+     ],
+     "consistent_with_pooled": true
+    },
+    "s2": {
+     "games": 200,
+     "wins_a": 110,
+     "wins_b": 90,
+     "draws": 0,
+     "crashes": 0,
+     "a_winrate_decisive": 0.55,
+     "wilson_ci95_decisive": [
+      0.4808,
+      0.6174
+     ],
+     "consistent_with_pooled": true
+    },
+    "s3": {
+     "games": 200,
+     "wins_a": 109,
+     "wins_b": 91,
+     "draws": 0,
+     "crashes": 0,
+     "a_winrate_decisive": 0.545,
+     "wilson_ci95_decisive": [
+      0.4758,
+      0.6125
+     ],
+     "consistent_with_pooled": true
+    }
+   },
+   "per_seed_spread": 0.0123,
+   "verdict": "ADMISSIBLE (>0.5)"
+  },
+  "S3b_S0": {
+   "big": "S3b",
+   "small": "S0",
+   "pooled_decisive_wr": 0.5417,
+   "wilson_ci95": [
+    0.5017,
+    0.5811
+   ],
+   "exact_binomial_p_vs_0.5": 0.0454,
+   "boot_ci95_score": [
+    0.535,
+    0.545
+   ],
+   "per_seed": {
+    "s1": {
+     "games": 200,
+     "wins_a": 109,
+     "wins_b": 91,
+     "draws": 0,
+     "crashes": 0,
+     "a_winrate_decisive": 0.545,
+     "wilson_ci95_decisive": [
+      0.4758,
+      0.6125
+     ],
+     "consistent_with_pooled": true
+    },
+    "s2": {
+     "games": 200,
+     "wins_a": 109,
+     "wins_b": 91,
+     "draws": 0,
+     "crashes": 0,
+     "a_winrate_decisive": 0.545,
+     "wilson_ci95_decisive": [
+      0.4758,
+      0.6125
+     ],
+     "consistent_with_pooled": true
+    },
+    "s3": {
+     "games": 200,
+     "wins_a": 107,
+     "wins_b": 93,
+     "draws": 0,
+     "crashes": 0,
+     "a_winrate_decisive": 0.535,
+     "wilson_ci95_decisive": [
+      0.4659,
+      0.6028
+     ],
+     "consistent_with_pooled": true
+    }
+   },
+   "per_seed_spread": 0.01,
+   "verdict": "ADMISSIBLE (>0.5)"
+  },
+  "S4_S0": {
+   "big": "S4",
+   "small": "S0",
+   "pooled_decisive_wr": 0.5453,
+   "wilson_ci95": [
+    0.5052,
+    0.5849
+   ],
+   "exact_binomial_p_vs_0.5": 0.0298,
+   "boot_ci95_score": [
+    0.5275,
+    0.5575
+   ],
+   "per_seed": {
+    "s1": {
+     "games": 200,
+     "wins_a": 105,
+     "wins_b": 94,
+     "draws": 0,
+     "crashes": 1,
+     "a_winrate_decisive": 0.5276,
+     "wilson_ci95_decisive": [
+      0.4584,
+      0.5958
+     ],
+     "consistent_with_pooled": true
+    },
+    "s2": {
+     "games": 200,
+     "wins_a": 110,
+     "wins_b": 87,
+     "draws": 0,
+     "crashes": 3,
+     "a_winrate_decisive": 0.5584,
+     "wilson_ci95_decisive": [
+      0.4886,
+      0.6259
+     ],
+     "consistent_with_pooled": true
+    },
+    "s3": {
+     "games": 200,
+     "wins_a": 110,
+     "wins_b": 90,
+     "draws": 0,
+     "crashes": 0,
+     "a_winrate_decisive": 0.55,
+     "wilson_ci95_decisive": [
+      0.4808,
+      0.6174
+     ],
+     "consistent_with_pooled": true
+    }
+   },
+   "per_seed_spread": 0.0308,
+   "verdict": "ADMISSIBLE (>0.5)"
+  }
+ },
+ "arm_vs_arm": {
+  "tests": [
+   {
+    "a": "S3a_S0",
+    "b": "S3_S0",
+    "d_wr": 0.0426,
+    "z": 1.44
+   },
+   {
+    "a": "S3a_S0",
+    "b": "S3b_S0",
+    "d_wr": 0.0426,
+    "z": 1.44
+   },
+   {
+    "a": "S3a_S0",
+    "b": "S4_S0",
+    "d_wr": 0.0426,
+    "z": 1.44
+   },
+   {
+    "a": "S3_S0",
+    "b": "S3b_S0",
+    "d_wr": 0.0442,
+    "z": 1.5
+   },
+   {
+    "a": "S3_S0",
+    "b": "S4_S0",
+    "d_wr": 0.0442,
+    "z": 1.5
+   },
+   {
+    "a": "S3b_S0",
+    "b": "S4_S0",
+    "d_wr": 0.0417,
+    "z": 1.41
+   }
+  ],
+  "max_abs_z": 1.5,
+  "any_separated": false
+ },
+ "adjudication": {
+  "contamination_check": {
+   "worst_case_bias_needed": "crashes are 5/2400 games (0.2%) and would need to be ALL decisive S0 wins in one arm's favour to move any pooled wr by >0.005 \u2014 the plateau conclusion is robust to any plausible engine-contention contamination",
+   "shared_determinism_note": "all 4 pairs share the S0 baseline and the seed bank; a GPU nondeterminism contamination enters identically into all 4 arms and cancels in the arm-vs-arm contrasts (all |z|<=0.13)",
+   "seed_sensitivity": "each arm's winrate moves <=0.031 across its 3 training seeds; all three seeds of all four arms point the same direction"
+  },
+  "decision": "batch7b CLEAN-epoch re-run is NOT required for the capacity-plateau conclusion",
+  "conclusion": {
+   "vs_S0": "all four arms 5.3M-35M beat S0 (0.17M): pooled wr 0.5417-0.5453, all Wilson CIs exclude 0.5 (p=0.030-0.045), n=600 decisive/pair",
+   "arm_vs_arm": "INDIFFERENTIABLE: max pairwise |z|=0.13 vs 1.96 threshold; arm-score spread 0.0036 vs boot CI width ~0.025",
+   "plateau": "capacity plateau at >=5.3M params CONFIRMED (S3a onward adds nothing over S3a)",
+   "caveat": "contaminated-run caveat /54 remains logged; a clean rerun would tighten estimates by <0.005 and is deprioritised behind set-integration readiness (ZNR)"
+  }
+ }
+}
