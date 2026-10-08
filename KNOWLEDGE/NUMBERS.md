@@ -3361,3 +3361,7 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - Arm-vs-arm: max |z| = 0.13 (threshold 1.96) across all 6 pairwise tests; INDISTINGUISHABLE. Per-seed spreads 0.010-0.031, all 12 seed-runs same direction.
 - Contamination worst-case: even adjudicating all 5 crashes as decisive S0 wins moves pooled wr ≤0.005; shared-baseline contention enters all arms identically and cancels in arm-vs-arm contrasts.
 - Decision: /54 engine-ON retraction does NOT overturn 49; plateau at ≥5.3M CONFIRMED; clean rerun deprioritised (max shift <0.005). Supersedes: 49-blocked note, 3356 OWNER CORRECTION for the capacity conclusion (accuracy-table lines remain valid).
+
+## 2026-10-08 — T5-B clause audit v1 (command: `python tools/audit/clause_audit.py`; gates: `.venv/bin/python -m pytest tools/audit -q` = 87 passed)
+- 305 golden trees / 589 oracle clauses / 584 mapped = **99.15% zero-loss**, 5 residuals (NOT-ENCODED 3: Conspicuous Snoop conditional GRANT_ABILITY, Makeshift Battalion phantom KW:BATTALION w/o PUT_COUNTER leg, Transmogrify reveal-until loop; MISSING-EXPRESSIVENESS 2: rounding-policy "Round up each time", additional-trigger-count "triggers an additional time"; MISSING-ENCODING 0, BOILERPLATE 0).
+- Ground truths executed: 5/5 add-any-mana clauses map; two-leg-removal-shape detector finds exactly {Angelic Ascension, Liliana Death Mage, Secure the Scene, Transmogrify}; keyword reminder lines map to Keyword atoms; Gadrak Treasure parenthetical stripped. Detail: 2026-10-08/56-clause-audit-v1.md

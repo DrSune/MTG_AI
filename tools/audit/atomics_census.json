@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated": "2026-10-08T17:11:12.501360+00:00",
+  "generated": "2026-10-08T19:10:59.500106+00:00",
   "golden_trees": 305,
   "engine": "reuses compiler._is_liftable_pick + ability_tree.from_dict",
   "charter": "KNOWLEDGE/2026-10-08/50-t5-full-pool-reaudit-charter.md"

@@ -1,0 +1,5395 @@
+{
+ "meta": {
+  "tool": "clause_audit v1",
+  "golden_trees": 305,
+  "oracle_source": "MTG_bot/data/M21.json via ingest_pool",
+  "vocab": {
+   "verbs": 49,
+   "keywords": 23
+  }
+ },
+ "summary": {
+  "clauses": 589,
+  "mapped": 584,
+  "coverage_pct": 99.15,
+  "residuals": 5,
+  "class_counts": {
+   "BOILERPLATE-NOTSIGNIFICANT": 0,
+   "NOT-ENCODED": 3,
+   "MISSING-ENCODING": 0,
+   "MISSING-EXPRESSIVENESS": 2
+  }
+ },
+ "per_card": [
+  {
+   "card": "Adherent of Hope",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "At the beginning of combat on your turn, if you control a Basri planeswalker, put a +1/+1 counter on this creature.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Alchemist's Gift",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Target creature gets +1/+1 and gains your choice of deathtouch or lifelink until end of turn.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Alpine Houndmaster",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "When this creature enters, you may search your library for a card named Alpine Watchdog and/or a card named Igneous Cur, reveal them, put them into your hand, then shuffle.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Whenever this creature attacks, it gets +X/+0 until end of turn, where X is the number of other attacking creatures.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Alpine Watchdog",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Vigilance",
+     "mechanism": "keyword",
+     "evidence": "KW:VIGILANCE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Angel",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Angelic Ascension",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Exile target creature or planeswalker.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "Its controller creates a 4/4 white Angel creature token with flying.",
+     "mechanism": "verb",
+     "evidence": "V:CREATE_TOKEN"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Animal Sanctuary",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "{2}, {T}: Put a +1/+1 counter on target Bird, Cat, Dog, Goat, Ox, or Snake.",
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Anointed Chorister",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Lifelink",
+     "mechanism": "keyword",
+     "evidence": "KW:LIFELINK"
+    },
+    {
+     "text": "{4}{W}: This creature gets +3/+3 until end of turn.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Archfiend's Vessel",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Lifelink",
+     "mechanism": "keyword",
+     "evidence": "KW:LIFELINK"
+    },
+    {
+     "text": "When this creature enters, if it entered from your graveyard or you cast it from your graveyard, exile it.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "If you do, create a 5/5 black Demon creature token with flying.",
+     "mechanism": "verb",
+     "evidence": "V:CREATE_TOKEN"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Aven Gagglemaster",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "When this creature enters, you gain 2 life for each creature you control with flying.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Azusa, Lost but Seeking",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "You may play two additional lands on each of your turns.",
+     "mechanism": "verb",
+     "evidence": "T:SpellAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Bad Deal",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "You draw two cards and each opponent discards two cards.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    },
+    {
+     "text": "Each player loses 2 life.",
+     "mechanism": "verb",
+     "evidence": "V:LOSE_LIFE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Baneslayer Angel",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Flying, first strike, lifelink, protection from Demons and from Dragons",
+     "mechanism": "keyword",
+     "evidence": "KW:PROTECTION"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Barrin, Tolarian Archmage",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "When Barrin enters, return up to one other target creature or planeswalker to its owner's hand.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "At the beginning of your end step, if a permanent was put into your hand from the battlefield this turn, draw a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Basri Ket",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "Put a +1/+1 counter on up to one target creature.",
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
+    },
+    {
+     "text": "It gains indestructible until end of turn.",
+     "mechanism": "keyword",
+     "evidence": "KW:INDESTRUCTIBLE"
+    },
+    {
+     "text": "Whenever one or more nontoken creatures attack this turn, create that many 1/1 white Soldier creature tokens that are tapped and attacking.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "You get an emblem with \"At the beginning of combat on your turn, create a 1/1 white Soldier creature token, then put a +1/+1 counter on each creature you control.\"",
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Basri Ket Emblem",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "At the beginning of combat on your turn, create a 1/1 white Soldier creature token, then put a +1/+1 counter on each creature you control.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Basri's Acolyte",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Lifelink",
+     "mechanism": "keyword",
+     "evidence": "KW:LIFELINK"
+    },
+    {
+     "text": "When this creature enters, put a +1/+1 counter on each of up to two other target creatures you control.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Basri's Aegis",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Put a +1/+1 counter on each of up to two target creatures.",
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
+    },
+    {
+     "text": "You may search your library and/or graveyard for a card named Basri, Devoted Paladin, reveal it, and put it into your hand.",
+     "mechanism": "verb",
+     "evidence": "V:SEARCH"
+    },
+    {
+     "text": "If you search your library this way, shuffle.",
+     "mechanism": "verb",
+     "evidence": "V:SEARCH"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Basri's Lieutenant",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Vigilance, protection from multicolored",
+     "mechanism": "keyword",
+     "evidence": "KW:PROTECTION"
+    },
+    {
+     "text": "When this creature enters, put a +1/+1 counter on target creature you control.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Whenever this creature or another creature you control dies, if it had a +1/+1 counter on it, create a 2/2 white Knight creature token with vigilance.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Basri's Solidarity",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Put a +1/+1 counter on each creature you control.",
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Basri, Devoted Paladin",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "Put a +1/+1 counter on up to one target creature.",
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
+    },
+    {
+     "text": "It gains vigilance until end of turn.",
+     "mechanism": "keyword",
+     "evidence": "KW:VIGILANCE"
+    },
+    {
+     "text": "Whenever a creature attacks this turn, put a +1/+1 counter on it.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Creatures you control get +2/+2 and gain flying until end of turn.",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Battle-Rattle Shaman",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "At the beginning of combat on your turn, you may have target creature get +2/+0 until end of turn.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Beast",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Bird",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Blood Glutton",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Lifelink",
+     "mechanism": "keyword",
+     "evidence": "KW:LIFELINK"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Bloodfell Caves",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This land enters tapped.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this land enters, you gain 1 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{T}: Add {B} or {R}.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Blossoming Sands",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This land enters tapped.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this land enters, you gain 1 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{T}: Add {G} or {W}.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Bolt Hound",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Haste",
+     "mechanism": "keyword",
+     "evidence": "KW:HASTE"
+    },
+    {
+     "text": "Whenever this creature attacks, other creatures you control get +1/+0 until end of turn.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Bone Pit Brute",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Menace",
+     "mechanism": "keyword",
+     "evidence": "KW:MENACE"
+    },
+    {
+     "text": "When this creature enters, target creature gets +4/+0 until end of turn.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Brash Taunter",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Indestructible",
+     "mechanism": "keyword",
+     "evidence": "KW:INDESTRUCTIBLE"
+    },
+    {
+     "text": "Whenever this creature is dealt damage, it deals that much damage to target opponent.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{2}{R}, {T}: This creature fights another target creature.",
+     "mechanism": "verb",
+     "evidence": "V:FIGHT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Burlfist Oak",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Whenever you draw a card, this creature gets +2/+2 until end of turn.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Burn Bright",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Creatures you control get +2/+0 until end of turn.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Caged Zombie",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "{1}{B}, {T}: Each opponent loses 2 life.",
+     "mechanism": "verb",
+     "evidence": "V:LOSE_LIFE"
+    },
+    {
+     "text": "Activate only if a creature died this turn.",
+     "mechanism": "shape",
+     "evidence": "S:condition"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Cancel",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Counter target spell.",
+     "mechanism": "verb",
+     "evidence": "V:COUNTER_SPELL"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Canopy Stalker",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "This creature must be blocked if able.",
+     "mechanism": "verb",
+     "evidence": "V:MANDATE_BLOCK"
+    },
+    {
+     "text": "When this creature dies, you gain 1 life for each creature that died this turn.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Capture Sphere",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "Flash",
+     "mechanism": "keyword",
+     "evidence": "KW:FLASH"
+    },
+    {
+     "text": "Enchant creature",
+     "mechanism": "keyword",
+     "evidence": "KW:ENCHANT"
+    },
+    {
+     "text": "When this Aura enters, tap enchanted creature.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Enchanted creature doesn't untap during its controller's untap step.",
+     "mechanism": "shape",
+     "evidence": "S:PREVENT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Carrion Grub",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "This creature gets +X/+0, where X is the greatest power among creature cards in your graveyard.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    },
+    {
+     "text": "When this creature enters, mill four cards.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Cat",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Cat",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Celestial Enforcer",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "{1}{W}, {T}: Tap target creature.",
+     "mechanism": "verb",
+     "evidence": "V:TAP"
+    },
+    {
+     "text": "Activate only if you control a creature with flying.",
+     "mechanism": "shape",
+     "evidence": "S:condition"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Chandra's Firemaw",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Haste",
+     "mechanism": "keyword",
+     "evidence": "KW:HASTE"
+    },
+    {
+     "text": "When this creature enters, you may search your library and/or graveyard for a card named Chandra, Flame's Catalyst, reveal it, and put it into your hand.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "If you search your library this way, shuffle.",
+     "mechanism": "verb",
+     "evidence": "V:SEARCH"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Chandra's Incinerator",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This spell costs {X} less to cast, where X is the total amount of noncombat damage dealt to your opponents this turn.",
+     "mechanism": "shape",
+     "evidence": "S:CostDeltaReduce"
+    },
+    {
+     "text": "Trample",
+     "mechanism": "keyword",
+     "evidence": "KW:TRAMPLE"
+    },
+    {
+     "text": "Whenever a source you control deals noncombat damage to an opponent, this creature deals that much damage to target creature or planeswalker that player controls.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Chandra's Magmutt",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "{T}: This creature deals 1 damage to target player or planeswalker.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Chandra's Pyreling",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Whenever a source you control deals noncombat damage to an opponent, this creature gets +1/+0 and gains double strike until end of turn.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Chandra, Flame's Catalyst",
+   "clauses": 5,
+   "mapped": 5,
+   "mapped_clauses": [
+    {
+     "text": "Chandra deals 3 damage to each opponent.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    },
+    {
+     "text": "You may cast target red instant or sorcery card from your graveyard.",
+     "mechanism": "verb",
+     "evidence": "V:CAST"
+    },
+    {
+     "text": "If that spell would be put into your graveyard, exile it instead.",
+     "mechanism": "shape",
+     "evidence": "T:ReplacementAbility"
+    },
+    {
+     "text": "Discard your hand, then draw seven cards.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    },
+    {
+     "text": "Until end of turn, you may cast spells from your hand without paying their mana costs.",
+     "mechanism": "verb",
+     "evidence": "V:CAST"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Chandra, Heart of Fire",
+   "clauses": 6,
+   "mapped": 6,
+   "mapped_clauses": [
+    {
+     "text": "Discard your hand, then exile the top three cards of your library.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "Until end of turn, you may play cards exiled this way.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "Chandra deals 2 damage to any target.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    },
+    {
+     "text": "Search your graveyard and library for any number of red instant and/or sorcery cards, exile them, then shuffle.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "You may cast them this turn.",
+     "mechanism": "verb",
+     "evidence": "V:CAST"
+    },
+    {
+     "text": "Add six {R}.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Chromatic Orrery",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "You may spend mana as though it were mana of any color.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    },
+    {
+     "text": "{T}: Add {C}{C}{C}{C}{C}.",
+     "mechanism": "shape",
+     "evidence": "S:CostTap"
+    },
+    {
+     "text": "{5}, {T}: Draw a card for each color among permanents you control.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Chrome Replicator",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "When this creature enters, if you control two or more nonland, nontoken permanents with the same name as one another, create a 4/4 colorless Construct artifact creature token.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Colossal Dreadmaw",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Trample",
+     "mechanism": "keyword",
+     "evidence": "KW:TRAMPLE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Conclave Mentor",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "If one or more +1/+1 counters would be put on a creature you control, that many plus one +1/+1 counters are put on that creature instead.",
+     "mechanism": "shape",
+     "evidence": "T:ReplacementAbility"
+    },
+    {
+     "text": "When this creature dies, you gain life equal to its power.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Concordia Pegasus",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Conspicuous Snoop",
+   "clauses": 3,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Play with the top card of your library revealed.",
+     "mechanism": "verb",
+     "evidence": "V:CAST"
+    },
+    {
+     "text": "You may cast Goblin spells from the top of your library.",
+     "mechanism": "verb",
+     "evidence": "V:CAST"
+    }
+   ],
+   "residuals": [
+    {
+     "text": "As long as the top card of your library is a Goblin card, this creature has all activated abilities of that card.",
+     "class": "NOT-ENCODED",
+     "evidence": "engine atom exists (['GRANT_ABILITY', 'GRANT_TYPE']), tree lacks it; compiler sites: GRANT_ABILITY->compiler.py::_flip_search_picks_in, GRANT_TYPE->templates_b2b.py::_build_riddleform; grep: compiler.py::<module> (grep 'library')"
+    }
+   ]
+  },
+  {
+   "card": "Construct",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Containment Priest",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Flash",
+     "mechanism": "keyword",
+     "evidence": "KW:FLASH"
+    },
+    {
+     "text": "If a nontoken creature would enter and it wasn't cast, exile it instead.",
+     "mechanism": "shape",
+     "evidence": "T:ReplacementAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Crash Through",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Creatures you control gain trample until end of turn.",
+     "mechanism": "keyword",
+     "evidence": "KW:TRAMPLE"
+    },
+    {
+     "text": "Draw a card.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Crypt Lurker",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "When this creature enters, you may sacrifice a creature or discard a creature card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "If you do, draw a card.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Cultivate",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Search your library for up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle.",
+     "mechanism": "verb",
+     "evidence": "V:SEARCH"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Daybreak Charger",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "When this creature enters, target creature gets +2/+0 until end of turn.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Deathbloom Thallid",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "When this creature dies, create a 1/1 green Saproling creature token.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Defiant Strike",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Target creature gets +1/+0 until end of turn.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    },
+    {
+     "text": "Draw a card.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Demon",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Demonic Embrace",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Enchant creature",
+     "mechanism": "keyword",
+     "evidence": "KW:ENCHANT"
+    },
+    {
+     "text": "Enchanted creature gets +3/+1, has flying, and is a Demon in addition to its other types.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    },
+    {
+     "text": "You may cast this card from your graveyard by paying 3 life and discarding a card in addition to paying its other costs.",
+     "mechanism": "verb",
+     "evidence": "V:CAST"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Destructive Tampering",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Choose one \u2014",
+     "mechanism": "shape",
+     "evidence": "S:Choose"
+    },
+    {
+     "text": "Destroy target artifact.",
+     "mechanism": "verb",
+     "evidence": "V:DESTROY"
+    },
+    {
+     "text": "Creatures without flying can't block this turn.",
+     "mechanism": "verb",
+     "evidence": "V:PREVENT_EFFECT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Dire Fleet Warmonger",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "At the beginning of combat on your turn, you may sacrifice another creature.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "If you do, this creature gets +2/+2 and gains trample until end of turn.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Discontinuity",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "During your turn, this spell costs {2}{U}{U} less to cast.",
+     "mechanism": "shape",
+     "evidence": "S:CostDeltaReduce"
+    },
+    {
+     "text": "End the turn.",
+     "mechanism": "verb",
+     "evidence": "V:END_TURN"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Dismal Backwater",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This land enters tapped.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this land enters, you gain 1 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{T}: Add {U} or {B}.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Dog",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Double Vision",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Whenever you cast your first instant or sorcery spell each turn, copy that spell.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "You may choose new targets for the copy.",
+     "mechanism": "shape",
+     "evidence": "S:CHOOSE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Drowsing Tyrannodon",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Defender",
+     "mechanism": "keyword",
+     "evidence": "KW:DEFENDER"
+    },
+    {
+     "text": "As long as you control a creature with power 4 or greater, this creature can attack as though it didn't have defender.",
+     "mechanism": "keyword",
+     "evidence": "KW:DEFENDER"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Dub",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Enchant creature",
+     "mechanism": "keyword",
+     "evidence": "KW:ENCHANT"
+    },
+    {
+     "text": "Enchanted creature gets +2/+2, has first strike, and is a Knight in addition to its other types.",
+     "mechanism": "keyword",
+     "evidence": "KW:FIRST_STRIKE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Duress",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Target opponent reveals their hand.",
+     "mechanism": "verb",
+     "evidence": "V:REVEAL"
+    },
+    {
+     "text": "You choose a noncreature, nonland card from it.",
+     "mechanism": "shape",
+     "evidence": "S:CHOOSE"
+    },
+    {
+     "text": "That player discards that card.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Elder Gargaroth",
+   "clauses": 5,
+   "mapped": 5,
+   "mapped_clauses": [
+    {
+     "text": "Vigilance, reach, trample",
+     "mechanism": "keyword",
+     "evidence": "KW:VIGILANCE,REACH,TRAMPLE"
+    },
+    {
+     "text": "Whenever this creature attacks or blocks, choose one \u2014",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Create a 3/3 green Beast creature token.",
+     "mechanism": "verb",
+     "evidence": "V:CREATE_TOKEN"
+    },
+    {
+     "text": "You gain 3 life.",
+     "mechanism": "verb",
+     "evidence": "V:GAIN_LIFE"
+    },
+    {
+     "text": "Draw a card.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Eliminate",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Destroy target creature or planeswalker with mana value 3 or less.",
+     "mechanism": "verb",
+     "evidence": "V:DESTROY"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Enthralling Hold",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Enchant creature",
+     "mechanism": "keyword",
+     "evidence": "KW:ENCHANT"
+    },
+    {
+     "text": "You can't choose an untapped creature as this spell's target as you cast it.",
+     "mechanism": "shape",
+     "evidence": "S:PREVENT"
+    },
+    {
+     "text": "You control enchanted creature.",
+     "mechanism": "verb",
+     "evidence": "V:GAIN_CONTROL"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Epitaph Golem",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "{2}: Put target card from your graveyard on the bottom of your library.",
+     "mechanism": "shape",
+     "evidence": "V:MOVE_ZONE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Experimental Overload",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Create an X/X blue and red Weird creature token, where X is the number of instant and sorcery cards in your graveyard.",
+     "mechanism": "verb",
+     "evidence": "V:CREATE_TOKEN"
+    },
+    {
+     "text": "Then you may return an instant or sorcery card from your graveyard to your hand.",
+     "mechanism": "shape",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "Exile Experimental Overload.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Fabled Passage",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.",
+     "mechanism": "verb",
+     "evidence": "S:CostSacrifice"
+    },
+    {
+     "text": "Then if you control four or more lands, untap that land.",
+     "mechanism": "verb",
+     "evidence": "V:UNTAP"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Faith's Fetters",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Enchant permanent",
+     "mechanism": "keyword",
+     "evidence": "KW:ENCHANT"
+    },
+    {
+     "text": "When this Aura enters, you gain 4 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Enchanted permanent can't attack or block, and its activated abilities can't be activated unless they're mana abilities.",
+     "mechanism": "verb",
+     "evidence": "V:PREVENT_EFFECT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Falconer Adept",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Whenever this creature attacks, create a 1/1 white Bird creature token with flying that's tapped and attacking.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Feat of Resistance",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Put a +1/+1 counter on target creature you control.",
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
+    },
+    {
+     "text": "It gains protection from the color of your choice until end of turn.",
+     "mechanism": "keyword",
+     "evidence": "KW:PROTECTION"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Feline Sovereign",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Other Cats you control get +1/+1 and have protection from Dogs.",
+     "mechanism": "keyword",
+     "evidence": "KW:PROTECTION"
+    },
+    {
+     "text": "Whenever one or more Cats you control deal combat damage to a player, destroy up to one target artifact or enchantment that player controls.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Fetid Imp",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "{B}: This creature gains deathtouch until end of turn.",
+     "mechanism": "shape",
+     "evidence": "S:Eot"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Fierce Empath",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "When this creature enters, you may search your library for a creature card with mana value 6 or greater, reveal it, put it into your hand, then shuffle.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Fiery Emancipation",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "If a source you control would deal damage to a permanent or player, it deals triple that damage to that permanent or player instead.",
+     "mechanism": "shape",
+     "evidence": "T:ReplacementAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Finishing Blow",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Destroy target creature or planeswalker.",
+     "mechanism": "verb",
+     "evidence": "V:DESTROY"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Forest",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Forgotten Sentinel",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "This creature enters tapped.",
+     "mechanism": "shape",
+     "evidence": "T:EtBState"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Frantic Inventory",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Draw a card, then draw cards equal to the number of cards named Frantic Inventory in your graveyard.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Frost Breath",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Tap up to two target creatures.",
+     "mechanism": "verb",
+     "evidence": "V:TAP"
+    },
+    {
+     "text": "Those creatures don't untap during their controller's next untap step.",
+     "mechanism": "shape",
+     "evidence": "S:PREVENT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Fungal Rebirth",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Return target permanent card from your graveyard to your hand.",
+     "mechanism": "shape",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "If a creature died this turn, create two 1/1 green Saproling creature tokens.",
+     "mechanism": "verb",
+     "evidence": "V:CREATE_TOKEN"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Furious Rise",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "At the beginning of your end step, if you control a creature with power 4 or greater, exile the top card of your library.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "You may play that card until you exile another card with this enchantment.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Furor of the Bitten",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Enchant creature",
+     "mechanism": "keyword",
+     "evidence": "KW:ENCHANT"
+    },
+    {
+     "text": "Enchanted creature gets +2/+2 and attacks each combat if able.",
+     "mechanism": "verb",
+     "evidence": "V:MANDATE_ATTACK"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Gadrak, the Crown-Scourge",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "Gadrak can't attack unless you control four or more artifacts.",
+     "mechanism": "verb",
+     "evidence": "V:PREVENT_EFFECT"
+    },
+    {
+     "text": "At the beginning of your end step, create a Treasure token for each nontoken creature that died this turn.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Gale Swooper",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "When this creature enters, target creature gains flying until end of turn.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Garruk's Gorehorn",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Garruk's Harbinger",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "Hexproof from black",
+     "mechanism": "keyword",
+     "evidence": "KW:HEXPROOF"
+    },
+    {
+     "text": "Whenever this creature deals combat damage to a player or planeswalker, look at that many cards from the top of your library.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "You may reveal a creature card or Garruk planeswalker card from among them and put it into your hand.",
+     "mechanism": "verb",
+     "evidence": "V:REVEAL"
+    },
+    {
+     "text": "Put the rest on the bottom of your library in a random order.",
+     "mechanism": "shape",
+     "evidence": "V:MOVE_ZONE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Garruk's Uprising",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "When this enchantment enters, if you control a creature with power 4 or greater, draw a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Creatures you control have trample.",
+     "mechanism": "keyword",
+     "evidence": "KW:TRAMPLE"
+    },
+    {
+     "text": "Whenever a creature you control with power 4 or greater enters, draw a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Garruk's Warsteed",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Vigilance",
+     "mechanism": "keyword",
+     "evidence": "KW:VIGILANCE"
+    },
+    {
+     "text": "When this creature enters, you may search your library and/or graveyard for a card named Garruk, Savage Herald, reveal it, and put it into your hand.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "If you search your library this way, shuffle.",
+     "mechanism": "verb",
+     "evidence": "V:SEARCH"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Garruk, Savage Herald",
+   "clauses": 5,
+   "mapped": 5,
+   "mapped_clauses": [
+    {
+     "text": "Reveal the top card of your library.",
+     "mechanism": "verb",
+     "evidence": "V:REVEAL"
+    },
+    {
+     "text": "If it's a creature card, put it into your hand.",
+     "mechanism": "shape",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "Otherwise, put it on the bottom of your library.",
+     "mechanism": "shape",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "Target creature you control deals damage equal to its power to another target creature.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    },
+    {
+     "text": "Until end of turn, creatures you control gain \"You may have this creature assign its combat damage as though it weren't blocked.\"",
+     "mechanism": "verb",
+     "evidence": "V:DAMAGE_ASSIGN_POLICY"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Garruk, Unleashed",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "Up to one target creature gets +3/+3 and gains trample until end of turn.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    },
+    {
+     "text": "Create a 3/3 green Beast creature token.",
+     "mechanism": "verb",
+     "evidence": "V:CREATE_TOKEN"
+    },
+    {
+     "text": "Then if an opponent controls more creatures than you, put a loyalty counter on Garruk.",
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
+    },
+    {
+     "text": "You get an emblem with \"At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle.\"",
+     "mechanism": "verb",
+     "evidence": "V:SEARCH"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Garruk, Unleashed Emblem",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle your library.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Ghostly Pilferer",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "Whenever this creature becomes untapped, you may pay {2}.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "If you do, draw a card.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    },
+    {
+     "text": "Whenever an opponent casts a spell from anywhere other than their hand, draw a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Discard a card: This creature can't be blocked this turn.",
+     "mechanism": "verb",
+     "evidence": "V:PREVENT_EFFECT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Gloom Sower",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Whenever this creature becomes blocked by a creature, that creature's controller loses 2 life and you gain 2 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Glorious Anthem",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Creatures you control get +1/+1.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Gnarled Sage",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Reach",
+     "mechanism": "keyword",
+     "evidence": "KW:REACH"
+    },
+    {
+     "text": "As long as you've drawn two or more cards this turn, this creature gets +0/+2 and has vigilance.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Goblin Arsonist",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "When this creature dies, you may have it deal 1 damage to any target.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Goblin Wizard",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Prowess",
+     "mechanism": "keyword",
+     "evidence": "KW:PROWESS"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Goblin Wizardry",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Create two 1/1 red Goblin Wizard creature tokens with prowess.",
+     "mechanism": "verb",
+     "evidence": "V:CREATE_TOKEN"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Goremand",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "As an additional cost to cast this spell, sacrifice a creature.",
+     "mechanism": "verb",
+     "evidence": "V:SACRIFICE"
+    },
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "Trample",
+     "mechanism": "keyword",
+     "evidence": "KW:TRAMPLE"
+    },
+    {
+     "text": "When this creature enters, each opponent sacrifices a creature.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Grasp of Darkness",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Target creature gets -4/-4 until end of turn.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Griffin",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Griffin Aerie",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "At the beginning of your end step, if you gained 3 or more life this turn, create a 2/2 white Griffin creature token with flying.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Grim Tutor",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Search your library for a card, put that card into your hand, then shuffle.",
+     "mechanism": "verb",
+     "evidence": "V:SEARCH"
+    },
+    {
+     "text": "You lose 3 life.",
+     "mechanism": "verb",
+     "evidence": "V:LOSE_LIFE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Havoc Jester",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Whenever you sacrifice a permanent, this creature deals 1 damage to any target.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Heartfire Immolator",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Prowess",
+     "mechanism": "keyword",
+     "evidence": "KW:PROWESS"
+    },
+    {
+     "text": "{R}, Sacrifice this creature: It deals damage equal to its power to target creature or planeswalker.",
+     "mechanism": "verb",
+     "evidence": "S:CostSacrifice"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Hellkite Punisher",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "{R}: This creature gets +1/+0 until end of turn.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Heroic Intervention",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Permanents you control gain hexproof and indestructible until end of turn.",
+     "mechanism": "keyword",
+     "evidence": "KW:HEXPROOF"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Historian of Zhalfir",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Whenever this creature attacks, if you control a Teferi planeswalker, draw a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Hobblefiend",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Trample",
+     "mechanism": "keyword",
+     "evidence": "KW:TRAMPLE"
+    },
+    {
+     "text": "{1}, Sacrifice another creature: Put a +1/+1 counter on this creature.",
+     "mechanism": "verb",
+     "evidence": "S:CostSacrifice"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Hooded Blightfang",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Deathtouch",
+     "mechanism": "keyword",
+     "evidence": "KW:DEATHTOUCH"
+    },
+    {
+     "text": "Whenever a creature you control with deathtouch attacks, each opponent loses 1 life and you gain 1 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Whenever a creature you control with deathtouch deals damage to a planeswalker, destroy that planeswalker.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Hunter's Edge",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Put a +1/+1 counter on target creature you control.",
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
+    },
+    {
+     "text": "Then that creature deals damage equal to its power to target creature you don't control.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Idol of Endurance",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "When this artifact enters, exile all creature cards with mana value 3 or less from your graveyard until this artifact leaves the battlefield.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{1}{W}, {T}: Until end of turn, you may cast a creature spell from among cards exiled with this artifact without paying its mana cost.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Igneous Cur",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "{1}{R}: This creature gets +2/+0 until end of turn.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Indulging Patrician",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "Lifelink",
+     "mechanism": "keyword",
+     "evidence": "KW:LIFELINK"
+    },
+    {
+     "text": "At the beginning of your end step, if you gained 3 or more life this turn, each opponent loses 3 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Infernal Scarring",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Enchant creature",
+     "mechanism": "keyword",
+     "evidence": "KW:ENCHANT"
+    },
+    {
+     "text": "Enchanted creature gets +2/+0 and has \"When this creature dies, draw a card.\"",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Invigorating Surge",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Put a +1/+1 counter on target creature you control, then double the number of +1/+1 counters on that creature.",
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Island",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Jeskai Elder",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Prowess",
+     "mechanism": "keyword",
+     "evidence": "KW:PROWESS"
+    },
+    {
+     "text": "Whenever this creature deals combat damage to a player, you may draw a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "If you do, discard a card.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Jolrael, Mwonvuli Recluse",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Whenever you draw your second card each turn, create a 2/2 green Cat creature token.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{4}{G}{G}: Until end of turn, creatures you control have base power and toughness X/X, where X is the number of cards in your hand.",
+     "mechanism": "shape",
+     "evidence": "S:Eot"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Jungle Hollow",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This land enters tapped.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this land enters, you gain 1 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{T}: Add {B} or {G}.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Kaervek, the Spiteful",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Other creatures get -1/-1.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Keen Glidemaster",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "{2}{U}: Target creature gains flying until end of turn.",
+     "mechanism": "shape",
+     "evidence": "S:Eot"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Keral Keep Disciples",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Whenever you activate a loyalty ability of a Chandra planeswalker, this creature deals 1 damage to each opponent.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Kinetic Augur",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Trample",
+     "mechanism": "keyword",
+     "evidence": "KW:TRAMPLE"
+    },
+    {
+     "text": "Kinetic Augur's power is equal to the number of instant and sorcery cards in your graveyard.",
+     "mechanism": "verb",
+     "evidence": "V:SET_PT"
+    },
+    {
+     "text": "When this creature enters, discard up to two cards, then draw that many cards.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Kitesail Freebooter",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "When this creature enters, target opponent reveals their hand.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "You choose a noncreature, nonland card from it.",
+     "mechanism": "shape",
+     "evidence": "S:CHOOSE"
+    },
+    {
+     "text": "Exile that card until this creature leaves the battlefield.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Knight",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Vigilance",
+     "mechanism": "keyword",
+     "evidence": "KW:VIGILANCE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Leafkin Avenger",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "{T}: Add {G} for each creature with power 4 or greater you control.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    },
+    {
+     "text": "{7}{R}: This creature deals damage equal to its power to target player or planeswalker.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Legion's Judgment",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Destroy target creature with power 4 or greater.",
+     "mechanism": "verb",
+     "evidence": "V:DESTROY"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Library Larcenist",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Whenever this creature attacks, draw a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Life Goes On",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "You gain 4 life.",
+     "mechanism": "verb",
+     "evidence": "V:GAIN_LIFE"
+    },
+    {
+     "text": "If a creature died this turn, you gain 8 life instead.",
+     "mechanism": "shape",
+     "evidence": "T:ReplacementAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Light of Promise",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Enchant creature",
+     "mechanism": "keyword",
+     "evidence": "KW:ENCHANT"
+    },
+    {
+     "text": "Enchanted creature has \"Whenever you gain life, put that many +1/+1 counters on this creature.\"",
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Liliana's Devotee",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Zombies you control get +1/+0.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    },
+    {
+     "text": "At the beginning of your end step, if a creature died this turn, you may pay {1}{B}.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "If you do, create a 2/2 black Zombie creature token.",
+     "mechanism": "verb",
+     "evidence": "V:CREATE_TOKEN"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Liliana's Scorn",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Destroy target creature.",
+     "mechanism": "verb",
+     "evidence": "V:DESTROY"
+    },
+    {
+     "text": "You may search your library and/or graveyard for a card named Liliana, Death Mage, reveal it, and put it into your hand.",
+     "mechanism": "verb",
+     "evidence": "V:SEARCH"
+    },
+    {
+     "text": "If you search your library this way, shuffle.",
+     "mechanism": "verb",
+     "evidence": "V:SEARCH"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Liliana's Scrounger",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "At the beginning of each end step, if a creature died this turn, you may put a loyalty counter on a Liliana planeswalker you control.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Liliana's Standard Bearer",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Flash",
+     "mechanism": "keyword",
+     "evidence": "KW:FLASH"
+    },
+    {
+     "text": "When this creature enters, draw X cards, where X is the number of creatures that died under your control this turn.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Liliana's Steward",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "{T}, Sacrifice this creature: Target opponent discards a card.",
+     "mechanism": "verb",
+     "evidence": "S:CostSacrifice"
+    },
+    {
+     "text": "Activate only as a sorcery.",
+     "mechanism": "shape",
+     "evidence": "S:ActivationWindow"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Liliana, Death Mage",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "Return up to one target creature card from your graveyard to your hand.",
+     "mechanism": "shape",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "Destroy target creature.",
+     "mechanism": "verb",
+     "evidence": "V:DESTROY"
+    },
+    {
+     "text": "Its controller loses 2 life.",
+     "mechanism": "verb",
+     "evidence": "V:LOSE_LIFE"
+    },
+    {
+     "text": "Target opponent loses 2 life for each creature card in their graveyard.",
+     "mechanism": "verb",
+     "evidence": "V:LOSE_LIFE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Liliana, Waker of the Dead",
+   "clauses": 5,
+   "mapped": 5,
+   "mapped_clauses": [
+    {
+     "text": "Each player discards a card.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "Each opponent who can't loses 3 life.",
+     "mechanism": "shape",
+     "evidence": "T:FNot"
+    },
+    {
+     "text": "Target creature gets -X/-X until end of turn, where X is the number of cards in your graveyard.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    },
+    {
+     "text": "You get an emblem with \"At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control.",
+     "mechanism": "verb",
+     "evidence": "V:GET_EMBLEM"
+    },
+    {
+     "text": "It gains haste.\"",
+     "mechanism": "keyword",
+     "evidence": "KW:HASTE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Liliana, Waker of the Dead Emblem",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "It gains haste.",
+     "mechanism": "keyword",
+     "evidence": "KW:HASTE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Llanowar Visionary",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "When this creature enters, draw a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Lofty Denial",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Counter target spell unless its controller pays {1}.",
+     "mechanism": "verb",
+     "evidence": "V:COUNTER_SPELL"
+    },
+    {
+     "text": "If you control a creature with flying, counter that spell unless its controller pays {4} instead.",
+     "mechanism": "verb",
+     "evidence": "V:COUNTER_SPELL"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Lorescale Coatl",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Whenever you draw a card, put a +1/+1 counter on this creature.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Makeshift Battalion",
+   "clauses": 1,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": [
+    {
+     "text": "Battalion \u2014 Whenever this creature and at least two other creatures attack, put a +1/+1 counter on this creature.",
+     "class": "NOT-ENCODED",
+     "evidence": "engine atom exists (['MODIFY_PT', 'PUT_COUNTER', 'REMOVE_COUNTER', 'SET_PT']), tree lacks it; compiler sites: MODIFY_PT->compiler.py::_if_do_merge, PUT_COUNTER->templates_b2a.py::_build_basri_ket, REMOVE_COUNTER->templates_b5c.py::_build_bullet_remove_loyalty, SET_PT->compiler.py::_if_do_merge; grep: templates_b5a.py::_build_battalion (grep 'battalion')"
+    }
+   ]
+  },
+  {
+   "card": "Malefic Scythe",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This Equipment enters with a soul counter on it.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Equipped creature gets +1/+1 for each soul counter on this Equipment.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    },
+    {
+     "text": "Whenever equipped creature dies, put a soul counter on this Equipment.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Mangara, the Diplomat",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Lifelink",
+     "mechanism": "keyword",
+     "evidence": "KW:LIFELINK"
+    },
+    {
+     "text": "Whenever an opponent attacks with creatures, if two or more of those creatures are attacking you and/or planeswalkers you control, draw a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Whenever an opponent casts their second spell each turn, draw a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Masked Blackguard",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Flash",
+     "mechanism": "keyword",
+     "evidence": "KW:FLASH"
+    },
+    {
+     "text": "{2}{B}: This creature gets +1/+1 until end of turn.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Massacre Wurm",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "When this creature enters, creatures your opponents control get -2/-2 until end of turn.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Whenever a creature an opponent controls dies, that player loses 2 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Mazemind Tome",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "{T}, Put a page counter on this artifact: Scry 1.",
+     "mechanism": "verb",
+     "evidence": "S:CounterKind"
+    },
+    {
+     "text": "{2}, {T}, Put a page counter on this artifact: Draw a card.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    },
+    {
+     "text": "When there are four or more page counters on this artifact, exile it.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "If you do, you gain 4 life.",
+     "mechanism": "verb",
+     "evidence": "V:GAIN_LIFE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Meteorite",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "When this artifact enters, it deals 2 damage to any target.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{T}: Add one mana of any color.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Mind Rot",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Target player discards two cards.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Miscast",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Counter target instant or sorcery spell unless its controller pays {3}.",
+     "mechanism": "verb",
+     "evidence": "V:COUNTER_SPELL"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Mistral Singer",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "Prowess",
+     "mechanism": "keyword",
+     "evidence": "KW:PROWESS"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Mountain",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Mystic Skyfish",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Whenever you draw your second card each turn, this creature gains flying until end of turn.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Necromentia",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Choose a card name other than a basic land card name.",
+     "mechanism": "verb",
+     "evidence": "V:CHOOSE_NAME"
+    },
+    {
+     "text": "Search target opponent's graveyard, hand, and library for any number of cards with that name and exile them.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "That player shuffles, then creates a 2/2 black Zombie creature token for each card exiled from their hand this way.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Niambi, Esteemed Speaker",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "Flash",
+     "mechanism": "keyword",
+     "evidence": "KW:FLASH"
+    },
+    {
+     "text": "When Niambi enters, you may return another target creature you control to its owner's hand.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "If you do, you gain life equal to that creature's mana value.",
+     "mechanism": "verb",
+     "evidence": "V:GAIN_LIFE"
+    },
+    {
+     "text": "{1}{W}{U}, {T}, Discard a legendary card: Draw two cards.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Nine Lives",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "Hexproof",
+     "mechanism": "keyword",
+     "evidence": "KW:HEXPROOF"
+    },
+    {
+     "text": "If a source would deal damage to you, prevent that damage and put an incarnation counter on this enchantment.",
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
+    },
+    {
+     "text": "When there are nine or more incarnation counters on this enchantment, exile it.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this enchantment leaves the battlefield, you lose the game.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Obsessive Stitcher",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "{T}: Draw a card, then discard a card.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    },
+    {
+     "text": "{2}{U}{B}, {T}, Sacrifice this creature: Return target creature card from your graveyard to the battlefield.",
+     "mechanism": "verb",
+     "evidence": "S:CostSacrifice"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Onakke Ogre",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Opt",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Draw a card.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Ornery Dilophosaur",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Deathtouch",
+     "mechanism": "keyword",
+     "evidence": "KW:DEATHTOUCH"
+    },
+    {
+     "text": "Whenever this creature attacks, if you control a creature with power 4 or greater, this creature gets +2/+2 until end of turn.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Pack Leader",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Other Dogs you control get +1/+1.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    },
+    {
+     "text": "Whenever this creature attacks, prevent all combat damage that would be dealt this turn to Dogs you control.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Palladium Myr",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "{T}: Add {C}{C}.",
+     "mechanism": "shape",
+     "evidence": "S:CostTap"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Peer into the Abyss",
+   "clauses": 2,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Target player draws cards equal to half the number of cards in their library and loses half their life.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": [
+    {
+     "text": "Round up each time.",
+     "class": "MISSING-EXPRESSIVENESS",
+     "evidence": "no engine Verb/Keyword candidate fits; missing concept: rounding-policy (half-value round-up); grep: compiler.py::_phase_in_prevention_effect (grep 'round')"
+    }
+   ]
+  },
+  {
+   "card": "Pestilent Haze",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Choose one \u2014",
+     "mechanism": "shape",
+     "evidence": "S:Choose"
+    },
+    {
+     "text": "All creatures get -2/-2 until end of turn.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    },
+    {
+     "text": "Remove two loyalty counters from each planeswalker.",
+     "mechanism": "verb",
+     "evidence": "V:REMOVE_COUNTER"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Pirate",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "This creature can't block.",
+     "mechanism": "verb",
+     "evidence": "V:PREVENT_EFFECT"
+    },
+    {
+     "text": "Creatures you control attack each combat if able.",
+     "mechanism": "verb",
+     "evidence": "V:MANDATE_ATTACK"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Pitchburn Devils",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "When this creature dies, it deals 3 damage to any target.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Plains",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Portcullis Vine",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Defender",
+     "mechanism": "keyword",
+     "evidence": "KW:DEFENDER"
+    },
+    {
+     "text": "{2}, {T}, Sacrifice a creature with defender: Draw a card.",
+     "mechanism": "verb",
+     "evidence": "S:CostSacrifice"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Predatory Wurm",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Vigilance",
+     "mechanism": "keyword",
+     "evidence": "KW:VIGILANCE"
+    },
+    {
+     "text": "This creature gets +2/+2 as long as you control a Garruk planeswalker.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Pridemalkin",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "When this creature enters, put a +1/+1 counter on target creature you control.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Each creature you control with a +1/+1 counter on it has trample.",
+     "mechanism": "keyword",
+     "evidence": "KW:TRAMPLE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Primal Might",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Target creature you control gets +X/+X until end of turn.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    },
+    {
+     "text": "Then it fights up to one target creature you don't control.",
+     "mechanism": "verb",
+     "evidence": "V:FIGHT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Prismite",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "{2}: Add one mana of any color.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Pursued Whale",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "When this creature enters, each opponent creates a 1/1 red Pirate creature token with \"This token can't block\" and \"Creatures you control attack each combat if able.\"",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Spells your opponents cast that target this creature cost {3} more to cast.",
+     "mechanism": "verb",
+     "evidence": "T:SpellAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Quirion Dryad",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Whenever you cast a spell that's white, blue, black, or red, put a +1/+1 counter on this creature.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Radha, Heart of Keld",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "During your turn, Radha has first strike.",
+     "mechanism": "keyword",
+     "evidence": "KW:FIRST_STRIKE"
+    },
+    {
+     "text": "You may look at the top card of your library any time, and you may play lands from the top of your library.",
+     "mechanism": "verb",
+     "evidence": "V:LOOK_AT"
+    },
+    {
+     "text": "{4}{R}{G}: Radha gets +X/+X until end of turn, where X is the number of lands you control.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Radiant Fountain",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "When this land enters, you gain 2 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Rain of Revelation",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Draw three cards, then discard a card.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Rambunctious Mutt",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "When this creature enters, destroy target artifact or enchantment an opponent controls.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Ranger's Guile",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Target creature you control gets +1/+1 and gains hexproof until end of turn.",
+     "mechanism": "keyword",
+     "evidence": "KW:HEXPROOF"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Read the Tides",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Choose one \u2014",
+     "mechanism": "shape",
+     "evidence": "S:Choose"
+    },
+    {
+     "text": "Draw three cards.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    },
+    {
+     "text": "Return up to two target creatures to their owners' hands.",
+     "mechanism": "shape",
+     "evidence": "V:MOVE_ZONE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Return to Nature",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "Choose one \u2014",
+     "mechanism": "shape",
+     "evidence": "S:Choose"
+    },
+    {
+     "text": "Destroy target artifact.",
+     "mechanism": "verb",
+     "evidence": "V:DESTROY"
+    },
+    {
+     "text": "Destroy target enchantment.",
+     "mechanism": "verb",
+     "evidence": "V:DESTROY"
+    },
+    {
+     "text": "Exile target card from a graveyard.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Revitalize",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "You gain 3 life.",
+     "mechanism": "verb",
+     "evidence": "V:GAIN_LIFE"
+    },
+    {
+     "text": "Draw a card.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Rewind",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Counter target spell.",
+     "mechanism": "verb",
+     "evidence": "V:COUNTER_SPELL"
+    },
+    {
+     "text": "Untap up to four lands.",
+     "mechanism": "verb",
+     "evidence": "V:UNTAP"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Riddleform",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Whenever you cast a noncreature spell, you may have this enchantment become a 3/3 Sphinx creature with flying in addition to its other types until end of turn.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Rin and Seri, Inseparable",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "Whenever you cast a Dog spell, create a 1/1 green Cat creature token.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Whenever you cast a Cat spell, create a 1/1 white Dog creature token.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{R}{G}{W}, {T}: Rin and Seri deals damage to any target equal to the number of Dogs you control.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    },
+    {
+     "text": "You gain life equal to the number of Cats you control.",
+     "mechanism": "verb",
+     "evidence": "V:GAIN_LIFE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Rise Again",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Return target creature card from your graveyard to the battlefield.",
+     "mechanism": "shape",
+     "evidence": "V:MOVE_ZONE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Roaming Ghostlight",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "When this creature enters, return up to one target non-Spirit creature to its owner's hand.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Rookie Mistake",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Until end of turn, target creature gets +0/+2 and another target creature gets -2/-0.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Rousing Read",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Enchant creature",
+     "mechanism": "keyword",
+     "evidence": "KW:ENCHANT"
+    },
+    {
+     "text": "When this Aura enters, draw two cards, then discard a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Enchanted creature gets +1/+1 and has flying.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Rugged Highlands",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This land enters tapped.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this land enters, you gain 1 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{T}: Add {R} or {G}.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Run Afoul",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Target opponent sacrifices a creature of their choice with flying.",
+     "mechanism": "verb",
+     "evidence": "V:SACRIFICE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Runed Halo",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "As this enchantment enters, choose a card name.",
+     "mechanism": "verb",
+     "evidence": "V:CHOOSE_NAME"
+    },
+    {
+     "text": "You have protection from the chosen card name.",
+     "mechanism": "keyword",
+     "evidence": "KW:PROTECTION"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Sabertooth Mauler",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "At the beginning of your end step, if a creature died this turn, put a +1/+1 counter on this creature and untap it.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Sanctum of All",
+   "clauses": 3,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "At the beginning of your upkeep, you may search your library and/or graveyard for a Shrine card and put it onto the battlefield.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "If you search your library this way, shuffle.",
+     "mechanism": "verb",
+     "evidence": "V:SEARCH"
+    }
+   ],
+   "residuals": [
+    {
+     "text": "If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.",
+     "class": "MISSING-EXPRESSIVENESS",
+     "evidence": "no engine Verb/Keyword candidate fits; missing concept: additional-trigger-count; grep: compiler.py::<module> (grep 'ability')"
+    }
+   ]
+  },
+  {
+   "card": "Sanctum of Calm Waters",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "At the beginning of your first main phase, you may draw X cards, where X is the number of Shrines you control.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "If you do, discard a card.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Sanctum of Fruitful Harvest",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "At the beginning of your first main phase, add X mana of any one color, where X is the number of Shrines you control.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Sanctum of Shattered Heights",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "{1}, Discard a land card or Shrine card: Sanctum of Shattered Heights deals X damage to target creature or planeswalker, where X is the number of Shrines you control.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Sanctum of Stone Fangs",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "At the beginning of your first main phase, each opponent loses X life and you gain X life, where X is the number of Shrines you control.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Sanctum of Tranquil Light",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "{5}{W}: Tap target creature.",
+     "mechanism": "verb",
+     "evidence": "V:TAP"
+    },
+    {
+     "text": "This ability costs {1} less to activate for each Shrine you control.",
+     "mechanism": "shape",
+     "evidence": "S:CostDeltaReduce"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Sanguine Indulgence",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "This spell costs {3} less to cast if you've gained 3 or more life this turn.",
+     "mechanism": "shape",
+     "evidence": "S:CostDeltaReduce"
+    },
+    {
+     "text": "Return up to two target creature cards from your graveyard to your hand.",
+     "mechanism": "shape",
+     "evidence": "V:MOVE_ZONE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Saproling",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Scavenging Ooze",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "{G}: Exile target card from a graveyard.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "If it was a creature card, put a +1/+1 counter on this creature and you gain 1 life.",
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Scorching Dragonfire",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Scorching Dragonfire deals 3 damage to target creature or planeswalker.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    },
+    {
+     "text": "If that creature or planeswalker would die this turn, exile it instead.",
+     "mechanism": "shape",
+     "evidence": "T:ReplacementAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Scoured Barrens",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This land enters tapped.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this land enters, you gain 1 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{T}: Add {W} or {B}.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Seasoned Hallowblade",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Discard a card: Tap this creature.",
+     "mechanism": "verb",
+     "evidence": "V:TAP"
+    },
+    {
+     "text": "It gains indestructible until end of turn.",
+     "mechanism": "keyword",
+     "evidence": "KW:INDESTRUCTIBLE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Secure the Scene",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Exile target nonland permanent.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "Its controller creates a 1/1 white Soldier creature token.",
+     "mechanism": "verb",
+     "evidence": "V:CREATE_TOKEN"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "See the Truth",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Look at the top three cards of your library.",
+     "mechanism": "verb",
+     "evidence": "V:LOOK_AT"
+    },
+    {
+     "text": "Put one of those cards into your hand and the rest on the bottom of your library in any order.",
+     "mechanism": "shape",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead.",
+     "mechanism": "verb",
+     "evidence": "T:SpellAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Selfless Savior",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Sacrifice this creature: Another target creature you control gains indestructible until end of turn.",
+     "mechanism": "keyword",
+     "evidence": "KW:INDESTRUCTIBLE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Setessan Training",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Enchant creature you control",
+     "mechanism": "keyword",
+     "evidence": "KW:ENCHANT"
+    },
+    {
+     "text": "When this Aura enters, draw a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Enchanted creature gets +1/+0 and has trample.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Shacklegeist",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "This creature can block only creatures with flying.",
+     "mechanism": "verb",
+     "evidence": "V:PREVENT_EFFECT"
+    },
+    {
+     "text": "Tap two untapped Spirits you control: Tap target creature you don't control.",
+     "mechanism": "verb",
+     "evidence": "V:TAP"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Shipwreck Dowser",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Prowess",
+     "mechanism": "keyword",
+     "evidence": "KW:PROWESS"
+    },
+    {
+     "text": "When this creature enters, return target instant or sorcery card from your graveyard to your hand.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Shock",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Shock deals 2 damage to any target.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Short Sword",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Equipped creature gets +1/+1.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Siege Striker",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Double strike",
+     "mechanism": "keyword",
+     "evidence": "KW:DOUBLE_STRIKE"
+    },
+    {
+     "text": "Whenever this creature attacks, you may tap any number of untapped creatures you control.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "This creature gets +1/+1 until end of turn for each creature tapped this way.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Sigiled Contender",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "This creature has lifelink as long as it has a +1/+1 counter on it.",
+     "mechanism": "keyword",
+     "evidence": "KW:LIFELINK"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Silent Dart",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "{4}, {T}, Sacrifice this artifact: It deals 3 damage to target creature.",
+     "mechanism": "verb",
+     "evidence": "S:CostSacrifice"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Silversmote Ghoul",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "At the beginning of your end step, if you gained 3 or more life this turn, return this card from your graveyard to the battlefield tapped.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{1}{B}, Sacrifice this creature: Draw a card.",
+     "mechanism": "verb",
+     "evidence": "S:CostSacrifice"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Skeleton Archer",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "When this creature enters, it deals 1 damage to any target.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Skyscanner",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "When this creature enters, draw a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Skyway Sniper",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Reach",
+     "mechanism": "keyword",
+     "evidence": "KW:REACH"
+    },
+    {
+     "text": "{2}{G}: This creature deals 1 damage to target creature with flying.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Snarespinner",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Reach",
+     "mechanism": "keyword",
+     "evidence": "KW:REACH"
+    },
+    {
+     "text": "Whenever this creature blocks a creature with flying, this creature gets +2/+0 until end of turn.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Soldier",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Solemn Simulacrum",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "When this creature enters, you may search your library for a basic land card, put that card onto the battlefield tapped, then shuffle.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this creature dies, you may draw a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Soul Sear",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Soul Sear deals 5 damage to target creature or planeswalker.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    },
+    {
+     "text": "That permanent loses indestructible until end of turn.",
+     "mechanism": "keyword",
+     "evidence": "KW:INDESTRUCTIBLE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Sparkhunter Masticore",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "As an additional cost to cast this spell, discard a card.",
+     "mechanism": "verb",
+     "evidence": "T:SpellAbility"
+    },
+    {
+     "text": "Protection from planeswalkers",
+     "mechanism": "keyword",
+     "evidence": "KW:PROTECTION"
+    },
+    {
+     "text": "{1}: This creature deals 1 damage to target planeswalker.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    },
+    {
+     "text": "{3}: This creature gains indestructible until end of turn.",
+     "mechanism": "keyword",
+     "evidence": "KW:INDESTRUCTIBLE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Speaker of the Heavens",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Vigilance, lifelink",
+     "mechanism": "keyword",
+     "evidence": "KW:VIGILANCE,LIFELINK"
+    },
+    {
+     "text": "{T}: Create a 4/4 white Angel creature token with flying.",
+     "mechanism": "verb",
+     "evidence": "V:CREATE_TOKEN"
+    },
+    {
+     "text": "Activate only if you have at least 7 life more than your starting life total and only as a sorcery.",
+     "mechanism": "shape",
+     "evidence": "S:condition"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Spellgorger Weird",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Whenever you cast a noncreature spell, put a +1/+1 counter on this creature.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Spined Megalodon",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Hexproof",
+     "mechanism": "keyword",
+     "evidence": "KW:HEXPROOF"
+    },
+    {
+     "text": "Whenever this creature attacks, scry 1.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Spirit of Malevolence",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "When this creature dies, each opponent loses 1 life and you gain 1 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Sporeweb Weaver",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Reach, hexproof from blue",
+     "mechanism": "keyword",
+     "evidence": "KW:HEXPROOF"
+    },
+    {
+     "text": "Whenever this creature is dealt damage, you gain 1 life and create a 1/1 green Saproling creature token.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Staunch Shieldmate",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Storm Caller",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "When this creature enters, it deals 2 damage to each opponent.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Stormwing Entity",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "This spell costs {2}{U} less to cast if you've cast an instant or sorcery spell this turn.",
+     "mechanism": "shape",
+     "evidence": "S:CostDeltaReduce"
+    },
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "Prowess",
+     "mechanism": "keyword",
+     "evidence": "KW:PROWESS"
+    },
+    {
+     "text": "When this creature enters, scry 2.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Subira, Tulzidi Caravanner",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Haste",
+     "mechanism": "keyword",
+     "evidence": "KW:HASTE"
+    },
+    {
+     "text": "{1}: Another target creature with power 2 or less can't be blocked this turn.",
+     "mechanism": "verb",
+     "evidence": "V:PREVENT_EFFECT"
+    },
+    {
+     "text": "{1}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power 2 or less deals combat damage to a player, draw a card.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Sublime Epiphany",
+   "clauses": 6,
+   "mapped": 6,
+   "mapped_clauses": [
+    {
+     "text": "Choose one or more \u2014",
+     "mechanism": "shape",
+     "evidence": "S:Choose"
+    },
+    {
+     "text": "Counter target spell.",
+     "mechanism": "verb",
+     "evidence": "V:COUNTER_SPELL"
+    },
+    {
+     "text": "Counter target activated or triggered ability.",
+     "mechanism": "verb",
+     "evidence": "V:COUNTER_SPELL"
+    },
+    {
+     "text": "Return target nonland permanent to its owner's hand.",
+     "mechanism": "shape",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "Create a token that's a copy of target creature you control.",
+     "mechanism": "verb",
+     "evidence": "V:COPY"
+    },
+    {
+     "text": "Target player draws a card.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Sure Strike",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Target creature gets +3/+0 and gains first strike until end of turn.",
+     "mechanism": "keyword",
+     "evidence": "KW:FIRST_STRIKE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Swamp",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Swift Response",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Destroy target tapped creature.",
+     "mechanism": "verb",
+     "evidence": "V:DESTROY"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Swiftwater Cliffs",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This land enters tapped.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this land enters, you gain 1 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{T}: Add {U} or {R}.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Tavern Swindler",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "{T}, Pay 3 life: Flip a coin.",
+     "mechanism": "verb",
+     "evidence": "V:FLIP_COIN"
+    },
+    {
+     "text": "If you win the flip, you gain 6 life.",
+     "mechanism": "verb",
+     "evidence": "V:GAIN_LIFE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Teferi's Ageless Insight",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "If you would draw a card except the first one you draw in each of your draw steps, draw two cards instead.",
+     "mechanism": "shape",
+     "evidence": "T:ReplacementAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Teferi's Protege",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "{1}{U}, {T}: Draw a card, then discard a card.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Teferi's Tutelage",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "When this enchantment enters, draw a card, then discard a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Whenever you draw a card, target opponent mills two cards.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Teferi's Wavecaster",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Flash",
+     "mechanism": "keyword",
+     "evidence": "KW:FLASH"
+    },
+    {
+     "text": "When this creature enters, you may search your library and/or graveyard for a card named Teferi, Timeless Voyager, reveal it, and put it into your hand.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "If you search your library this way, shuffle.",
+     "mechanism": "verb",
+     "evidence": "V:SEARCH"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Teferi, Master of Time",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "You may activate loyalty abilities of Teferi on any player's turn any time you could cast an instant.",
+     "mechanism": "shape",
+     "evidence": "S:Optional"
+    },
+    {
+     "text": "Draw a card, then discard a card.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    },
+    {
+     "text": "Target creature you don't control phases out.",
+     "mechanism": "verb",
+     "evidence": "V:PHASE_OUT"
+    },
+    {
+     "text": "Take two extra turns after this one.",
+     "mechanism": "verb",
+     "evidence": "V:EXTRA_TURN"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Teferi, Timeless Voyager",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "Draw a card.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    },
+    {
+     "text": "Put target creature on top of its owner's library.",
+     "mechanism": "shape",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "Each creature target opponent controls phases out.",
+     "mechanism": "verb",
+     "evidence": "V:PHASE_OUT"
+    },
+    {
+     "text": "Until the end of your next turn, they can't phase in.",
+     "mechanism": "shape",
+     "evidence": "S:PREVENT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Tempered Veteran",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "{W}, {T}: Put a +1/+1 counter on target creature with a +1/+1 counter on it.",
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
+    },
+    {
+     "text": "{4}{W}{W}, {T}: Put a +1/+1 counter on target creature.",
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Temple of Epiphany",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This land enters tapped.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this land enters, scry 1.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{T}: Add {U} or {R}.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Temple of Malady",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This land enters tapped.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this land enters, scry 1.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{T}: Add {B} or {G}.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Temple of Mystery",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This land enters tapped.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this land enters, scry 1.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{T}: Add {G} or {U}.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Temple of Silence",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This land enters tapped.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this land enters, scry 1.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{T}: Add {W} or {B}.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Temple of Triumph",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This land enters tapped.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this land enters, scry 1.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{T}: Add {R} or {W}.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Terror of the Peaks",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "Spells your opponents cast that target this creature cost an additional 3 life to cast.",
+     "mechanism": "verb",
+     "evidence": "T:SpellAbility"
+    },
+    {
+     "text": "Whenever another creature you control enters, this creature deals damage equal to that creature's power to any target.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Thieves' Guild Enforcer",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Flash",
+     "mechanism": "keyword",
+     "evidence": "KW:FLASH"
+    },
+    {
+     "text": "Whenever this creature or another Rogue you control enters, each opponent mills two cards.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "As long as an opponent has eight or more cards in their graveyard, this creature gets +2/+1 and has deathtouch.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Thornwood Falls",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This land enters tapped.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this land enters, you gain 1 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{T}: Add {G} or {U}.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Thrashing Brontodon",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "{1}, Sacrifice this creature: Destroy target artifact or enchantment.",
+     "mechanism": "verb",
+     "evidence": "V:DESTROY"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Thrill of Possibility",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "As an additional cost to cast this spell, discard a card.",
+     "mechanism": "verb",
+     "evidence": "T:SpellAbility"
+    },
+    {
+     "text": "Draw two cards.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Tide Skimmer",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "Whenever you attack with two or more creatures with flying, draw a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Titanic Growth",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Target creature gets +4/+4 until end of turn.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Tolarian Kraken",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Whenever you draw a card, you may pay {1}.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When you do, you may tap or untap target creature.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Tome Anima",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "This creature can't be blocked as long as you've drawn two or more cards this turn.",
+     "mechanism": "verb",
+     "evidence": "V:PREVENT_EFFECT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Tormod's Crypt",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "{T}, Sacrifice this artifact: Exile target player's graveyard.",
+     "mechanism": "verb",
+     "evidence": "S:CostSacrifice"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Track Down",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Scry 3, then reveal the top card of your library.",
+     "mechanism": "verb",
+     "evidence": "V:REVEAL"
+    },
+    {
+     "text": "If it's a creature or land card, draw a card.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Traitorous Greed",
+   "clauses": 4,
+   "mapped": 4,
+   "mapped_clauses": [
+    {
+     "text": "Gain control of target creature until end of turn.",
+     "mechanism": "verb",
+     "evidence": "V:GAIN_CONTROL"
+    },
+    {
+     "text": "Untap that creature.",
+     "mechanism": "verb",
+     "evidence": "V:UNTAP"
+    },
+    {
+     "text": "It gains haste until end of turn.",
+     "mechanism": "keyword",
+     "evidence": "KW:HASTE"
+    },
+    {
+     "text": "Add two mana of any one color.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Tranquil Cove",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This land enters tapped.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this land enters, you gain 1 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{T}: Add {W} or {U}.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Transmogrify",
+   "clauses": 3,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Exile target creature.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "That player puts that card onto the battlefield, then shuffles the rest into their library.",
+     "mechanism": "verb",
+     "evidence": "V:SHUFFLE"
+    }
+   ],
+   "residuals": [
+    {
+     "text": "That creature's controller reveals cards from the top of their library until they reveal a creature card.",
+     "class": "NOT-ENCODED",
+     "evidence": "engine atom exists (['LOOK_AT', 'REVEAL']), tree lacks it; compiler sites: LOOK_AT->templates_b2b.py::_build_garruks_harbinger, REVEAL->templates_b2a.py::_build_kitesail_freebooter; grep: compiler.py::_search_shuffle_effect (grep 'controller')"
+    }
+   ]
+  },
+  {
+   "card": "Treasure",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "{T}, Sacrifice this token: Add one mana of any color.",
+     "mechanism": "verb",
+     "evidence": "S:CostSacrifice"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Trufflesnout",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "When this creature enters, choose one \u2014",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Put a +1/+1 counter on this creature.",
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
+    },
+    {
+     "text": "You gain 4 life.",
+     "mechanism": "verb",
+     "evidence": "V:GAIN_LIFE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Turn to Slag",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Turn to Slag deals 5 damage to target creature.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    },
+    {
+     "text": "Destroy all Equipment attached to that creature.",
+     "mechanism": "verb",
+     "evidence": "V:DESTROY"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Turret Ogre",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Reach",
+     "mechanism": "keyword",
+     "evidence": "KW:REACH"
+    },
+    {
+     "text": "When this creature enters, if you control another creature with power 4 or greater, this creature deals 2 damage to each opponent.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Twinblade Assassins",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "At the beginning of your end step, if a creature died this turn, draw a card.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Ugin, the Spirit Dragon",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Ugin deals 3 damage to any target.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    },
+    {
+     "text": "[\u2212X]: Exile each permanent with mana value X or less that's one or more colors.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "You gain 7 life, draw seven cards, then put up to seven permanent cards from your hand onto the battlefield.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Unleash Fury",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Double the power of target creature until end of turn.",
+     "mechanism": "shape",
+     "evidence": "S:Eot"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Unsubstantiate",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Return target spell or creature to its owner's hand.",
+     "mechanism": "shape",
+     "evidence": "V:MOVE_ZONE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Valorous Steed",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Vigilance",
+     "mechanism": "keyword",
+     "evidence": "KW:VIGILANCE"
+    },
+    {
+     "text": "When this creature enters, create a 2/2 white Knight creature token with vigilance.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Village Rites",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "As an additional cost to cast this spell, sacrifice a creature.",
+     "mechanism": "verb",
+     "evidence": "S:CostSacrifice"
+    },
+    {
+     "text": "Draw two cards.",
+     "mechanism": "verb",
+     "evidence": "V:DRAW"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Vito, Thorn of the Dusk Rose",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Whenever you gain life, target opponent loses that much life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{3}{B}{B}: Creatures you control gain lifelink until end of turn.",
+     "mechanism": "shape",
+     "evidence": "S:Eot"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Vodalian Arcanist",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Spend this mana only to cast an instant or sorcery spell.",
+     "mechanism": "verb",
+     "evidence": "V:MANA_POLICY"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Volcanic Geyser",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Volcanic Geyser deals X damage to any target.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Volcanic Salvo",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "This spell costs {X} less to cast, where X is the total power of creatures you control.",
+     "mechanism": "shape",
+     "evidence": "S:CostDeltaReduce"
+    },
+    {
+     "text": "Volcanic Salvo deals 6 damage to each of up to two target creatures and/or planeswalkers.",
+     "mechanism": "verb",
+     "evidence": "V:DEAL_DAMAGE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Vryn Wingmare",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "Noncreature spells cost {1} more to cast.",
+     "mechanism": "verb",
+     "evidence": "T:SpellAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Waker of Waves",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Creatures your opponents control get -1/-0.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    },
+    {
+     "text": "{1}{U}, Discard this card: Look at the top two cards of your library.",
+     "mechanism": "verb",
+     "evidence": "V:MOVE_ZONE"
+    },
+    {
+     "text": "Put one of them into your hand and the other into your graveyard.",
+     "mechanism": "shape",
+     "evidence": "V:MOVE_ZONE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Walking Corpse",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Wall of Runes",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Defender",
+     "mechanism": "keyword",
+     "evidence": "KW:DEFENDER"
+    },
+    {
+     "text": "When this creature enters, scry 1.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Warded Battlements",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Defender",
+     "mechanism": "keyword",
+     "evidence": "KW:DEFENDER"
+    },
+    {
+     "text": "Attacking creatures you control get +1/+0.",
+     "mechanism": "verb",
+     "evidence": "V:MODIFY_PT"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Warden of the Woods",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "Vigilance",
+     "mechanism": "keyword",
+     "evidence": "KW:VIGILANCE"
+    },
+    {
+     "text": "Whenever this creature becomes the target of a spell or ability an opponent controls, you may draw two cards.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Watcher of the Spheres",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "Flying",
+     "mechanism": "keyword",
+     "evidence": "KW:FLYING"
+    },
+    {
+     "text": "Creature spells with flying you cast cost {1} less to cast.",
+     "mechanism": "verb",
+     "evidence": "T:SpellAbility"
+    },
+    {
+     "text": "Whenever another creature you control with flying enters, this creature gets +1/+1 until end of turn.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Weird",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Wildwood Patrol",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "Trample",
+     "mechanism": "keyword",
+     "evidence": "KW:TRAMPLE"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Wildwood Scourge",
+   "clauses": 2,
+   "mapped": 2,
+   "mapped_clauses": [
+    {
+     "text": "This creature enters with X +1/+1 counters on it.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "Whenever one or more +1/+1 counters are put on another non-Hydra creature you control, put a +1/+1 counter on this creature.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Wind-Scarred Crag",
+   "clauses": 3,
+   "mapped": 3,
+   "mapped_clauses": [
+    {
+     "text": "This land enters tapped.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "When this land enters, you gain 1 life.",
+     "mechanism": "shape",
+     "evidence": "T:TriggeredAbility"
+    },
+    {
+     "text": "{T}: Add {R} or {W}.",
+     "mechanism": "verb",
+     "evidence": "V:ADD_MANA"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Wishcoin Crab",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  },
+  {
+   "card": "Witch's Cauldron",
+   "clauses": 1,
+   "mapped": 1,
+   "mapped_clauses": [
+    {
+     "text": "{1}{B}, {T}, Sacrifice a creature: You gain 1 life and draw a card.",
+     "mechanism": "verb",
+     "evidence": "S:CostSacrifice"
+    }
+   ],
+   "residuals": []
+  },
+  {
+   "card": "Zombie",
+   "clauses": 0,
+   "mapped": 0,
+   "mapped_clauses": [],
+   "residuals": []
+  }
+ ]
+}
