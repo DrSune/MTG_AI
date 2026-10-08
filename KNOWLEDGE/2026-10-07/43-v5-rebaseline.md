@@ -10,3 +10,17 @@ vs S0's 12, 7 big-specific (Crypt Lurker/Heartfire/Skeleton Archer/Solemn Sim. e
 loss lowest (0.180) = overfit signature resurfacing under richer inputs. Single-seed caveat:
 seedvar batch launched (S0/S4 x seeds 2,3) — claims pending variance.
 Interim: at 164 lines the efficient frontier is 0.17M-5.3M; 35M pays the overfit tax again.
+
+## CORRECTION (2026-10-08 03:25) — "S4 NULL" was a seed artifact (n=1 overclaim retracted)
+S4 seeds {1,2,3}: 0.574/+2.88 NULL, 0.667/+3.74 PASS, 0.685/+4.01 PASS — spread 0.111,
+mean 0.642. s2/s3 fail-sets are STRICT SUBSETS of s1's (0 new items) — seed 1, the
+headline run, was the unlucky draw. 35M DOES pass the honest gate 2/3 seeds.
+CONTRAST: S0 variance EXACTLY zero (0.704 x3, identical fails) => instability is a
+LARGE-MODEL property at 110 train lines, not general seed noise.
+HONEST CAPACITY CLAIM (all arms, 3 seeds where multi-run): 0.17M-35M statistically
+INDISTINGUISHABLE at 164 lines — data volume is the sole lever; note v4's "35M best
+0.725" was ALSO n=1 and is hereby demoted to same-claim status.
+SEED LAW (binding): model-comparison claims require >=3 seeds (or boot CI over seeds);
+single-seed arms are diagnostics only. Cheap here (5 min engine-off).
+STABLE FAIL-CORE (all 6 model x seed runs, 164-item corpus): 12 items — the exact
+volume-wave shopping list (names in seedvar record below).
