@@ -92,7 +92,14 @@ class CombatCase(unittest.TestCase):
 
     def provider(self, vocab, what):
         self.seen_asks.append((tuple(vocab), what))
-        answer = self.answers.get(what, self.default_answer)
+        # Site tags are PREFIX-matched (run_scenarios/blockers convention):
+        # T5-F1 may-offers carry a per-offer digest suffix on the site key,
+        # so the pack-side answer is keyed by its handle prefix.
+        answer = self.default_answer
+        for key, value in self.answers.items():
+            if what == key or what.startswith(key + ":"):
+                answer = value
+                break
         if answer in vocab:
             return answer
         # An answer the site does not offer: may-offers default to the
@@ -110,6 +117,22 @@ class CombatCase(unittest.TestCase):
     def asks_for(self, handle) -> list[tuple[tuple[str, ...], str]]:
         tag = f"attack:{handle}:"
         return [a for a in self.seen_asks if a[1].startswith(tag)]
+
+    def forced_attack(self, handle) -> str:
+        """T5-F1 (§10): a mandated attacker's one-word ATTACK surface is
+        auto-picked and journalled by the phantom gate — no ask reaches a
+        provider (the old narrowed-vocab ASK pins live here now)."""
+        tag = f"attack:{handle}:"
+        self.assertEqual(
+            [a for a in self.seen_asks if a[1].startswith(tag)],
+            [],
+            f"{handle} was ASKED, though its surface was forced",
+        )
+        hits = [a for what, a in self.ex.decisions.journal if what.startswith(tag)]
+        self.assertEqual(
+            hits, ["ATTACK"], f"expected one journalled forced ATTACK, got {hits}"
+        )
+        return hits[0]
 
     def enter_battlefield(self, handle, seat, tapped=False) -> None:
         """The scenario move a real game does with a resolution: a
@@ -408,7 +431,7 @@ class TestMandates(CombatCase):
         self.ex.mandates.add(alpha)  # the dispatched shape
         self.default_answer = "DECLINE"
         self.ex.combat_step(self.p0)
-        self.assertEqual(self.asks_for(alpha)[0][0], ("ATTACK",))  # narrowed
+        self.forced_attack(alpha)  # mandated: consumed, never asked (T5-F1)
         self.assertEqual(self.asks_for(beta)[0][0], ("ATTACK", "DECLINE"))
         self.assertTrue(self.world.cards[alpha].tapped)  # attacked anyway
         self.assertFalse(self.world.cards[beta].tapped)  # declined
@@ -423,8 +446,9 @@ class TestMandates(CombatCase):
         self.ex.begin_turn(self.p0)
         self.default_answer = "DECLINE"
         self.ex.combat_step(self.p0)
-        # the mandate half: host narrows to ATTACK-only and attacks
-        self.assertEqual(self.asks_for(host)[0][0], ("ATTACK",))
+        # the mandate half: ATTACK is the only word — T5-F1 consumes the
+        # forced surface silently (journal evidence), and the host attacks.
+        self.forced_attack(host)
         self.assertTrue(self.world.cards[host].tapped)
         # the PT half: +2/+2 materialized -> 5 damage, not 3
         self.assertEqual(self.world.players[self.p1].life, 15)
@@ -460,9 +484,7 @@ class TestMandates(CombatCase):
         self.ex.begin_turn(self.p0)
         self.enter_battlefield(whale, self.p0)  # no raise: the 16b proof
         pirates = [
-            h
-            for h in self.world.cards
-            if self.world.cards[h].identity.name == "Pirate"
+            h for h in self.world.cards if self.world.cards[h].identity.name == "Pirate"
         ]
         self.assertEqual(len(pirates), 1)  # EachPlayer: p1 got theirs
         self.assertEqual(self.world.controller_of(pirates[0]), self.p1)

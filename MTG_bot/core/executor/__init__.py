@@ -119,6 +119,7 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.compiler.compiler import PoolCompile
 from MTG_bot.core.executor.binding import MAX_TRIGGER_FIRES, TriggerBinder
 from MTG_bot.core.executor.decisions import DecisionStream, site_digest
+from MTG_bot.core.executor.offers import offer_or_autopick
 from MTG_bot.core.executor.durations import DurationLedger, PtChange
 from MTG_bot.core.executor.events import (
     KIND_COMBAT_DAMAGE,
@@ -803,10 +804,14 @@ class Executor:
         elif isinstance(effect, OptionalEffect):
             # 14b (B-5, query/runtime identity): the ASK vocabulary is the
             # query surface's own narrowed optional_offer — the policy gets
-            # exactly what a query would answer ("may pay {2}" with an empty
-            # pool offers only skip, CR 117.3, so a provider can never
+            # exactly what a query would answer ("may pay {2}" with an
+            # empty pool offers only skip, CR 117.3, so a provider can never
             # answer fire where firing is illegal). The site tag keys the
-            # answer to THIS ability's offer (B-4 vocabulary addressing).
+            # answer to THIS ability's offer (B-4 vocabulary addressing):
+            # T5-F1 adds the OFFER digest, so two may-offers on ONE source
+            # are two sites (the source-only tag mispaired their FIFO
+            # primings), and a skip-narrowed surface is auto-consumed by
+            # the shared phantom gate instead of billed as a decision.
             offer = optional_offer(
                 self,
                 effect,
@@ -814,7 +819,10 @@ class Executor:
                 controller=ctx.controller,
                 bindings=ctx.bindings,
             )
-            if ctx.take_decision(offer, f"may:{ctx.source}") == "fire":
+            if (
+                offer_or_autopick(ctx, offer, f"may:{ctx.source}:{site_digest(effect)}")
+                == "fire"
+            ):
                 self._run_effect(effect.inner, ctx)
         elif isinstance(effect, Conditional):
             # r19b (Track Down): the compiler's sentence convention
@@ -857,7 +865,13 @@ class Executor:
                         f"executor: choose: declared mode {pick!r} not in {vocab}"
                     )
             else:
-                pick = ctx.take_decision(
+                # T5-F1 (CR 601.2b, stack.py:442's rule in the decision
+                # channel): a menu whose bounds clamp to ONE option set
+                # ("choose two" over two options) is FORCED — the shared
+                # phantom gate consumes it silently and journals the pick;
+                # a 1-candidate ask is a §10 phantom, never a decision.
+                pick = offer_or_autopick(
+                    ctx,
                     vocab,
                     f"choose:{ctx.source}:{site_digest(tuple(o.option_idxs for o in opts))}",
                 )
@@ -1450,9 +1464,13 @@ class Executor:
         mandated = mandated_attackers(self, seat) & set(candidates)
         chosen: list[Handle] = []
         for card in candidates:
+            # T5-F1 (§10): a MANDATED attacker (furor/must-attack) has a
+            # one-word surface — not a decision. The phantom gate consumes
+            # ATTACK silently and journals it; the pack/provider cannot
+            # decline what CR forces, and no 1-candidate ask is billed.
             vocab = ("ATTACK",) if card in mandated else ("ATTACK", "DECLINE")
             ctx = self._ctx(source=card, controller=seat, bindings=None, decisions=())
-            if ctx.take_decision(vocab, f"attack:{card}:{world.turn}") == "ATTACK":
+            if offer_or_autopick(ctx, vocab, f"attack:{card}:{world.turn}") == "ATTACK":
                 chosen.append(card)
         # Whole-set validation of the ASSEMBLED set. The asks mutate no
         # state, so re-deriving legality is a re-check and the mandate
@@ -1576,7 +1594,10 @@ class Executor:
             ctx = self._ctx(
                 source=blocker, controller=defender, bindings=None, decisions=()
             )
-            answer = ctx.take_decision(vocab, f"block:{blocker}:{world.turn}")
+            # T5-F1 (§10): the menace/must-block narrowing can leave ONE
+            # legal pair with no NONE word — a forced block is consumed by
+            # the phantom gate, not presented as a decision.
+            answer = offer_or_autopick(ctx, vocab, f"block:{blocker}:{world.turn}")
             if answer == "NONE":
                 continue
             attacker = by_word[answer]
@@ -1795,7 +1816,12 @@ class Executor:
                     bindings=None,
                     decisions=(),
                 )
-                answer = ctx.take_decision(vocab, f"order:{dealer}:{slot}:{world.turn}")
+                # T5-F1 (§10): the LAST slot has exactly one remaining
+                # creature — the phantom gate consumes the trivial "0"
+                # instead of asking for the obvious.
+                answer = offer_or_autopick(
+                    ctx, vocab, f"order:{dealer}:{slot}:{world.turn}"
+                )
                 chosen = remaining[int(answer)]
                 picked.append(chosen)
                 remaining.remove(chosen)

@@ -247,13 +247,16 @@ class DecisionSurfaceTest(unittest.TestCase):
         self.source = self.world.add_card(card_id("Anchor"), self.p0, ZONE_HAND)
         self.policy = RandomPolicy(0)
 
-    def test_may_offer_narrowing_is_enforced_at_the_ask(self) -> None:
+    def test_may_offer_narrowing_autopicks_the_forced_answer(self) -> None:
         # "You may pay {2}" with an empty pool: query.py narrows the offer
-        # to skip (CR 117.3). 14b: the RUNTIME asks with that narrowed
-        # vocabulary, so even a policy that blindly answers 'fire' CANNOT
-        # make the illegal decision — it raises out of the decision channel
-        # before _v_pay is ever reached. C15's offer enumeration, now
-        # enforced at the site that consumes it.
+        # to skip (CR 117.3). AMENDED T5-F1 (§10 phantom class): a
+        # skip-only surface is NOT an ask — the shared phantom gate
+        # (offers.offer_or_autopick, stack.py:442's rule) consumes it
+        # silently, so a blind "fire" provider is never consulted and
+        # the illegal decision CANNOT be made (stronger than the 14b
+        # channel-rejection this replaced: nothing is offered at all).
+        # The consumption is journalled, not asked: answered() — the
+        # public ask lane BC consumes — stays empty.
         effect = OptionalEffect(
             _atom(Verb.PAY, cost=Cost(parts=(CostManaGeneric(QConst(2)),)))
         )
@@ -263,16 +266,23 @@ class DecisionSurfaceTest(unittest.TestCase):
             ),
             ("skip",),
         )
-        self.executor.decisions.provider = lambda vocab, what: "fire"
-        with self.assertRaises(ValueError) as cm:
-            self.executor.apply_effect(effect, source=self.source, controller=self.p0)
-        self.assertIn("not in ('skip',)", str(cm.exception))
-        # and the legal answer needs no enumeration by the policy at all:
-        self.executor.decisions.provider = self.policy.answer
+        consulted: list[tuple[tuple[str, ...], str]] = []
+
+        def blind(vocab, what):
+            consulted.append((tuple(vocab), what))
+            return "fire"
+
+        self.executor.decisions.provider = blind
         self.executor.apply_effect(effect, source=self.source, controller=self.p0)
-        self.assertEqual(
-            self.executor.decisions.answered(),
-            ((f"may:{self.source}", "skip"),),
+        self.assertEqual(consulted, [], "forced surface was presented")
+        self.assertEqual(self.executor.decisions.answered(), ())
+        site = f"may:{self.source}"
+        self.assertTrue(
+            any(
+                w == site or w.startswith(f"{site}:")
+                for w, a in self.executor.decisions.journal
+            ),
+            "the forced skip was not journalled",
         )
 
     def test_choose_ask_vocabulary_is_the_query_enumeration(self) -> None:
@@ -1844,13 +1854,17 @@ class StallRuleTest(unittest.TestCase):
         self.assertEqual(rows[0][5], f"({REPEAT_ROUNDS},)")
 
     def test_long_decisive_corpus_game_untouched(self) -> None:
-        # Seed 73, full engine pool: the longest decisive corpus game (56
-        # turns).  It grinds through many rounds but its world genuinely
-        # changes every round, so the stall rule must not fire.  Pinned at
-        # HEAD with the stall rule present (baseline reports/games_2026-10-05).
+        # Seed 73, full engine pool: the longest decisive corpus game.
+        # It grinds through many rounds but its world genuinely changes
+        # every round, so the stall rule must not fire.  Pinned at HEAD
+        # with the stall rule present (baseline reports/games_2026-10-05);
+        # RE-ANCHORED 2026-10-08 T5-F1: mandated attackers are auto-picked
+        # (phantom gate) instead of billing the policy RNG one draw each,
+        # so the seeded trajectory shifts — still decisive, same loser,
+        # 50 turns.
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 56)
+        self.assertEqual(game.turns, 50)
         self.assertEqual(game.reason, "game over: player:0(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:

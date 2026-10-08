@@ -51,9 +51,9 @@
       "other": false
     },
     "asks": {
-      "host": "ATTACK",
       "other": "ATTACK,DECLINE"
     },
+    "not_asked": ["host"],
     "tapped": {
       "host": true,
       "other": false

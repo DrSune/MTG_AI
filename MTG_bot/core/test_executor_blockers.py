@@ -64,6 +64,37 @@ class BlockerCase(CombatCase):
         assert len(seen) == 1, f"expected one block ask for {handle}, got {seen}"
         return seen[0]
 
+    def forced_attack(self, handle) -> str:
+        """T5-F1 (§10): a MANDATED attacker's one-word ATTACK surface is
+        auto-picked and journalled, never asked (phantom gate)."""
+        tag = f"attack:{handle}:"
+        self.assertEqual(
+            [a for a in self.seen_asks if a[1].startswith(tag)],
+            [],
+            f"{handle} was ASKED, though its surface was forced",
+        )
+        hits = [a for what, a in self.ex.decisions.journal if what.startswith(tag)]
+        self.assertEqual(
+            hits, ["ATTACK"], f"expected one journalled forced ATTACK, got {hits}"
+        )
+        return hits[0]
+
+    def forced_block(self, handle) -> str:
+        """T5-F1 (§10): a block surface narrowed to ONE legal word is
+        auto-picked by the phantom gate — NOT asked. Proves the absence of
+        the ask and returns the journalled forced answer."""
+        tag = f"block:{handle}:"
+        self.assertEqual(
+            [w for _, w in self.seen_asks if w.startswith(tag)],
+            [],
+            f"{handle} was ASKED, though its surface was forced",
+        )
+        hits = [a for what, a in self.ex.decisions.journal if what.startswith(tag)]
+        self.assertEqual(
+            len(hits), 1, f"expected one forced-block row for {handle}, got {hits}"
+        )
+        return hits[0]
+
     def blocked_map(self) -> dict[str, list[str]]:
         out: dict[str, list[str]] = {}
         for row in self.rows("DECLARE_BLOCKERS"):
@@ -385,9 +416,10 @@ class TestMenaceAndMandate(BlockerCase):
         self.ex.combat_step(self.p0)
         # one blocker in front of menace: CR 702.113 - the pair alone is
         # illegal (the inclusion rule needs a second blocker), and the
-        # honest vocabulary collapses to NONE (C15 - only the emptiness
-        # is legal here)
-        self.assertEqual(self.vocab_for(solo), ("NONE",))
+        # honest space collapses to NONE alone — T5-F1: a one-word surface
+        # is a FORCED outcome consumed by the phantom gate, not a §10
+        # phantom ask (journal row proves the resolve).
+        self.assertEqual(self.forced_block(solo), "NONE")
         self.assertEqual(self.world.players[self.p1].life, 16)
 
     def test_menace_repairs_to_two_blockers_and_the_order_decides(self):
@@ -400,8 +432,8 @@ class TestMenaceAndMandate(BlockerCase):
         # one gets no NONE word (C15: the legal space is just the attacker)
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
-        vocab = self.vocab_for(second)
-        self.assertNotIn("NONE", vocab)
+        # T5-F1: the forced pair is auto-picked (journalled), not asked
+        self.assertEqual(self.forced_block(second), str(brute))
         self.assertEqual(self.blocked_map(), {str(brute): [str(first), str(second)]})
         # 4 damage in Handle order: 2 lethal each - both blockers die, the
         # brute takes 4 and survives on 1
@@ -420,8 +452,9 @@ class TestMenaceAndMandate(BlockerCase):
         self.begin()
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
-        vocab = self.vocab_for(blocker)
-        self.assertEqual(vocab, (str(stalker),))
+        # T5-F1: the mandate narrowed the space to the stalker alone —
+        # the phantom gate consumes the forced block, journalling it.
+        self.assertEqual(self.forced_block(blocker), str(stalker))
         self.assertEqual(self.blocked_map(), {str(stalker): [str(blocker)]})
         # stalker (4) buries the 2/2, the blocker's 2 bury the stalker;
         # Alpha lands 2 on the player
@@ -510,12 +543,9 @@ class TestTokenBinder(BlockerCase):
         self.ex.begin_turn(self.p1)
         self.ex.combat_step(self.p1)
         for creature in (token, vanilla):
-            sites = [
-                v
-                for v, what in self.seen_asks
-                if what.startswith(f"attack:{creature}:")
-            ]
-            self.assertEqual(sites, [("ATTACK",)], f"{creature} was not forced")
+            # T5-F1: the mandate makes ATTACK the only word — the phantom
+            # gate consumes it silently; the journal is the evidence.
+            self.forced_attack(creature)
         self.assertEqual(self.world.players[self.p0].life, 20 - 3)
 
 

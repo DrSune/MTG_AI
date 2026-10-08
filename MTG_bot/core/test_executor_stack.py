@@ -832,28 +832,29 @@ class TestEffectCast(StackCase):
             )
 
     def test_cast_land_designation_raises(self):
-        # AMENDED r23a (Radha batch): with a LAND bound as the CAST atom's
-        # source, the may-offer now honestly narrows to skip — CR 117.3
-        # removes an action whose population holds no SpellAbility
-        # carrier, and the gate reads the SAME routed population the
-        # runtime would cast (query/runtime identity). Loudness survives
-        # in two layers: a 'fire' decision against the skip-only offer is
-        # rejected at the decision channel, and a BARE (non-may) CAST
-        # atom on a land still raises the no-SpellAbility flag verbatim.
+        # AMENDED r23a (Radha batch) → T5-F1: with a LAND bound as the
+        # CAST atom's source, the may-offer now honestly narrows to skip
+        # — CR 117.3 removes an action whose population holds no
+        # SpellAbility carrier, and the gate reads the SAME routed
+        # population the runtime would cast (query/runtime identity).
+        # T5-F1 (§10): the skip-only surface is a FORCED outcome, not a
+        # decision — the phantom gate auto-skips (no channel raise, the
+        # scripted 'fire' stays parked) and the land verifiably stays
+        # put. Loudness for the ILLEGAL request survives in the BARE
+        # (non-may) CAST layer below, unchanged.
         land_id = card_id("Wasteland", type_line="Land")
         land = self.world.add_card(land_id, self.p0, ZONE_EXILE)
         self.ex.attach_card(
             land, record_of([], name="Wasteland", oid=land_id.oracle_id)
         )
-        with self.assertRaises(ValueError) as cm:
-            self.ex.apply_effect(
-                self.waiver(),
-                source=self.caster("Caster4"),
-                controller=self.p0,
-                bindings={"source": land},
-                decisions=("fire",),
-            )
-        self.assertIn("not in", str(cm.exception))
+        self.ex.apply_effect(
+            self.waiver(),
+            source=self.caster("Caster4"),
+            controller=self.p0,
+            bindings={"source": land},
+            decisions=("fire",),
+        )
+        self.assertEqual(self.world.zone_of(land).kind, ZONE_EXILE)  # never cast
         bare = Atom(
             verb=Verb.CAST,
             args=AtomArgs(
@@ -898,22 +899,41 @@ class TestPayVerb(StackCase):
         )
         self.assertNotIn("G", self.world.players[self.p0].mana_pool)  # paid
 
-    def test_fire_on_unpayable_raises(self):
-        """AMENDED 14b (B-5 query/runtime identity): the runtime now ASKS
-        with the query-narrowed offer vocab, so an unpayable 'fire' is
-        rejected AT THE DECISION CHANNEL ('fire' is not in the vocabulary
-        at all) instead of reaching _v_pay. Same loud ValueError, one
-        station earlier — the illegal decision can no longer be made."""
+    def test_fire_on_unpayable_autopicks_skip_and_parks_supply(self):
+        """AMENDED T5-F1 (§10 phantom class): the 14b channel-rejection
+        ('fire' not in the skip-only vocab) was loud but PHANTOM — a
+        skip-only surface is not a decision. The shared phantom gate
+        (offers.offer_or_autopick) consumes the forced skip BEFORE any
+        supply lane, so the scripted 'fire' is never consumed and stays
+        parked for the next REAL site (r19c parked-word semantics):
+        inside the Seq the pay-offer auto-skips and 'fire' still fires
+        the following payable offer. The illegal decision cannot even be
+        offered now."""
         src = self.world.add_card(card_id("Urns2", "1", "1"), self.p0, ZONE_BATTLEFIELD)
-        with self.assertRaises(ValueError) as cm:
-            self.ex.apply_effect(
-                self.pay_offer(CostManaColor("G", QConst(2))),
-                source=src,
-                controller=self.p0,
-                decisions=("fire",),
-            )
-        self.assertIn("not in", str(cm.exception))
-        self.assertIn("skip", str(cm.exception))
+        unpayable = self.pay_offer(CostManaColor("G", QConst(2)))
+        self.ex.apply_effect(
+            Seq(
+                steps=(
+                    unpayable,
+                    OptionalEffect(
+                        atom(
+                            Verb.GAIN_LIFE,
+                            controller=ControllerRef.YOU,
+                            amount=QConst(5),
+                        )
+                    ),
+                )
+            ),
+            source=src,
+            controller=self.p0,
+            decisions=("fire",),
+        )
+        self.assertEqual(self.world.players[self.p0].life, 25)  # skipped, FIRED
+        self.assertEqual(
+            [(w.split(":")[0], a) for w, a in self.ex.decisions.ask_log],
+            [("may", "fire")],
+            "the forced skip must not reach the public ask lane",
+        )
 
 
 class TestChooseVerb(StackCase):

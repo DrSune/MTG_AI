@@ -234,6 +234,7 @@ class ExecCtx:
                 self.decision_idx += 1
                 if self.stream is not None:
                     self.stream.ask_log.append((what, choice))
+                    self.stream.journal.append((what, choice))
                 return choice
             # r19c (Duress / Experimental Overload): the next pool word does
             # not answer THIS site — a may-offer cannot eat a card name, a
@@ -949,10 +950,23 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 "executor: MAY_DONE needs the executor's decision channel "
                 "(bare ExecCtx has no may-offer log)"
             )
+        # T5-F1: the site tag carries the per-site offer digest
+        # (``may:<source>:<digest>``) and a FORCED offer (query-narrowed
+        # skip-only) is auto-picked into the JOURNAL, never asked into
+        # ask_log — so the guard reads the journal (asked + auto-picked,
+        # occurrence order), prefix-matching the site. The ask_log pass is
+        # the patched-lane legacy mirror (puzzle_cert/dagger append there
+        # without a journal row); consulted only when the journal holds
+        # nothing for the site.
         site = f"may:{ctx.source}"
-        for what, answer in reversed(ex.decisions.ask_log):
-            if what == site:
-                return answer == "fire"
+
+        def at_site(what: str) -> bool:
+            return what == site or what.startswith(f"{site}:")
+
+        for log in (ex.decisions.journal, ex.decisions.ask_log):
+            for what, answer in reversed(log):
+                if at_site(what):
+                    return answer == "fire"
         raise NotImplementedError(
             f"executor: MAY_DONE has no may-offer record for {site} — the "
             "conditional has no antecedent (unanswered question, flagged "

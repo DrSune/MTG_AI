@@ -61,9 +61,7 @@
     }
   ],
   "expect": {
-    "block_asks": {
-      "corpse": "<stalker>"
-    },
+    "not_asked_to_block": ["corpse"],
     "blocked": {
       "stalker": [
         "corpse"

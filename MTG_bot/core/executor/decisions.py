@@ -79,8 +79,15 @@ class DecisionStream:
     def __init__(self) -> None:
         self._fifo: dict[DecisionKey, deque[str]] = {}
         #: (what, answer) per consumed decision, in ask order — the
-        #: channel's own audit row (digests, C15 proof tests).
+        #: channel's own audit row (digests, C15 proof tests). PUBLIC
+        #: lane: only genuine asks land here (T5-F1 — a forced
+        #: single-option surface is auto-picked, never asked).
         self.ask_log: list[tuple[str, str]] = []
+        #: (what, answer) per resolved demand in occurrence order, ASKED
+        #: or silently auto-picked (offers.py T5-F1). History guards
+        #: (MAY_DONE's "if you do") read this, so a forced skip still
+        #: answers its rider instead of going loud.
+        self.journal: list[tuple[str, str]] = []
         #: externally supplied answers for demands nothing pre-primed;
         #: None means exhaustion raises (C15: no hidden default).
         self.provider: DecisionProvider | None = None
@@ -122,6 +129,7 @@ class DecisionStream:
         if answer not in vocab:
             raise ValueError(f"executor: {what} decision {answer!r} not in {vocab}")
         self.ask_log.append((what, answer))
+        self.journal.append((what, answer))
         return answer
 
     def answered(self) -> tuple[tuple[str, str], ...]:

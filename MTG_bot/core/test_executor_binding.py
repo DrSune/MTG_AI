@@ -65,6 +65,7 @@ from MTG_bot.core.compiler.coverage import build_full_registry
 from MTG_bot.core.compiler.test_compiler import _oid, _raw_card
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.binding import MAX_TRIGGER_FIRES
+from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -762,8 +763,17 @@ class TestMayAndDeterminism(BindingCase):
                 e, self.record_for(e, [etb_trigger(OptionalEffect(gain(2)))])
             )
         both = sorted([first, second])
-        self.ex.decisions.push(("fire", "skip"), f"may:{both[0]}", "fire")
-        self.ex.decisions.push(("fire", "skip"), f"may:{both[1]}", "skip")
+        # AMENDED T5-F1: the may site tag carries the offer digest, so two
+        # may-offers on one source are two keys (a source-only tag
+        # mispaired their primings). The digest is value-based, so the
+        # structurally identical trigger effect re-digests here.
+        offer = OptionalEffect(gain(2))
+        self.ex.decisions.push(
+            ("fire", "skip"), f"may:{both[0]}:{site_digest(offer)}", "fire"
+        )
+        self.ex.decisions.push(
+            ("fire", "skip"), f"may:{both[1]}:{site_digest(offer)}", "skip"
+        )
         self.ex.execute(
             enter(BF_YOU),
             source=both[0],
