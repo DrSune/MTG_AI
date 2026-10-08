@@ -1,0 +1,59 @@
+{
+ "world": {
+  "life": 3,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t1",
+   "real": "Trufflesnout",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "foe",
+   "name": "Grim Foe",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "t1",
+   "decisions": [
+    "1"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "foe": true
+   }
+  }
+ ],
+ "expect": {
+  "zone": {
+   "t1": "battlefield",
+   "foe": "battlefield"
+  },
+  "power": {
+   "t1": 2
+  },
+  "life": {
+   "0": 4,
+   "1": 3
+  }
+ },
+ "notes": "Gift-style PAIR-CHOICE with asymmetric outcomes ladder 2 (2026-10-08 volume wave): the SAME Trufflesnout mode ask at life 3, life-as-survival-value framing. Gold '1' banks +4 (3->7), then the scripted unblocked 3/3 hit lands (7->4); the null replay takes vocab[0]='0' (counter), never gains, and the SAME hit lands 3->0 \u2014 TWO falsifying lanes: life (4 vs 0) and power (gold stays 2/2, counter-lane is 3/3). Block is unspecified in the runner (defaults NONE, not scripted, so no phantom item). Teaches the pair-choice atom that the life mode can be the survival play while the stat mode is cosmetic."
+}

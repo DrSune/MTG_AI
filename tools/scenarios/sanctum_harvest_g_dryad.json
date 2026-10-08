@@ -1,0 +1,57 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "h",
+   "real": "Sanctum of Fruitful Harvest",
+   "controller": 0,
+   "zone": "hand"
+  },
+  {
+   "key": "s",
+   "real": "Sanctum of Shattered Heights",
+   "controller": 0,
+   "zone": "battlefield"
+  },
+  {
+   "key": "dr",
+   "real": "Quirion Dryad",
+   "controller": 0,
+   "zone": "hand"
+  }
+ ],
+ "mana": {},
+ "steps": [
+  {
+   "op": "enter",
+   "key": "h"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "G"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "dr",
+   "decisions": []
+  }
+ ],
+ "expect": {
+  "zone": {
+   "h": "battlefield",
+   "dr": "battlefield"
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "TRAIN mana-atom twin (eval fail-core: Prismite/Myr/Greed/Feat). Sanctum X=2 trigger asks the color set; gold G (never W=null-word default) is chain-proved by paying {1}{G} Quirion Dryad SAME window. Null replay adds {W:2}: Dryad unpayable -> raise. Sibling of sanctum_of_fruitful_harvest_add_x (R) / sanctum_harvest_u_not_w (U)."
+}

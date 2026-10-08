@@ -1,0 +1,53 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t1",
+   "real": "Trufflesnout",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sk",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "t1",
+   "decisions": [
+    "1"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "sk",
+   "targets": [
+    "t1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "t1": "graveyard",
+   "sk": "graveyard"
+  },
+  "life": {
+   "0": 24,
+   "1": 20
+  }
+ },
+ "notes": "Gift-style PAIR-CHOICE with asymmetric outcomes ladder 1 (2026-10-08 volume wave, fail-core 45: Alchemist's Gift a1 eval-side; Trufflesnout is the TRAIN-side choose-one family \u2014 'When this creature enters, choose one \u2014 Put a +1/+1 counter on this creature / You gain 4 life', mode vocab ('0','1')). The snout is doomed: scripted own Shock (4 damage) kills it in BOTH lanes (3/3 counter-lane dies too), so the counter is PURE WASTE; gold '1' banks 4 life first (life 24), the null replay picks vocab[0]='0' and lands life 20 \u2014 the life lane falsifies. Asymmetry is domain-crossing: P/T vs life total."
+}

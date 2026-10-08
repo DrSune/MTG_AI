@@ -1,0 +1,63 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t1",
+   "real": "Treasure",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "sk",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "small",
+   "name": "Small Prey",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {},
+ "steps": [
+  {
+   "op": "activate",
+   "key": "t1",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "R"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "sk",
+   "targets": [
+    "small"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "t1": "graveyard",
+   "sk": "graveyard",
+   "small": "graveyard"
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "hand": {
+   "0": 0
+  }
+ },
+ "notes": "MANA-COLOR TRAIN twin (2026-10-08 volume wave, fail-core 45): the any-color Treasure ask answered 'R' (vocab[3], != vocab[0] W). PROOF BY CHAIN: pool starts EMPTY, Shock's {R} is payable ONLY with the asked RED mana \u2014 null 'W' makes the SAME cast illegal (legality raise falsifies zone/hand lanes: Shock stays in hand, Small Prey stays on battlefield). Zero seeded mana, zero extra asks. Gold colors taught so far in this atom: W/U/B/U (treasure packs), U (sanctum); this pack adds R."
+}

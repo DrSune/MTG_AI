@@ -1,0 +1,67 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "fe",
+   "real": "Fierce Empath",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sx",
+   "name": "Six Fiend",
+   "type": "Creature",
+   "power": "6",
+   "toughness": "6",
+   "cmc": 6,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "dm",
+   "real": "Colossal Dreadmaw",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "st",
+   "name": "Small Two",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "cmc": 2,
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "fe",
+   "decisions": [
+    "fire",
+    "dm"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "fe": "battlefield",
+   "dm": "hand",
+   "sx": "library",
+   "st": "hand"
+  },
+  "hand": {
+   "0": 2
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "Harbinger-style TYPED-LIBRARY CREATURE-CHOICE ladder item 2 (2026-10-08 volume wave): same ask shape as empath_ladder_take_big but the gold candidate is the REAL printed card Colossal Dreadmaw (6/6, mana value 6 \u2014 legal for Fierce Empath's MV>=6 filter) alongside synthetic Six Fiend. Candidate vocab order = pack order [sx, dm]; gold = dm (vocab[1]), null takes Six Fiend \u2014 zone/hand lanes falsify. Small Two (cmc 2, illegal) sits last = the decision-independent begin_turn draw. Teaches the atom over a real-card candidate, not only typed synthetics."
+}

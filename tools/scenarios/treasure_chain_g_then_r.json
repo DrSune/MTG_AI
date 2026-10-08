@@ -1,0 +1,89 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t1",
+   "real": "Treasure",
+   "controller": 0,
+   "zone": "battlefield"
+  },
+  {
+   "key": "t2",
+   "real": "Treasure",
+   "controller": 0,
+   "zone": "battlefield"
+  },
+  {
+   "key": "v",
+   "real": "Portcullis Vine",
+   "controller": 0,
+   "zone": "hand"
+  },
+  {
+   "key": "foe",
+   "name": "Foe Beast",
+   "controller": 1,
+   "power": "4",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "battlefield"
+  },
+  {
+   "key": "sk",
+   "real": "Shock",
+   "controller": 0,
+   "zone": "hand"
+  }
+ ],
+ "mana": {},
+ "steps": [
+  {
+   "op": "activate",
+   "key": "t1",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "G"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Portcullis Vine",
+   "key": "v",
+   "decisions": []
+  },
+  {
+   "op": "activate",
+   "key": "t2",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "R"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "sk",
+   "targets": [
+    "foe"
+   ],
+   "decisions": []
+  }
+ ],
+ "expect": {
+  "zone": {
+   "t1": "graveyard",
+   "t2": "graveyard",
+   "v": "battlefield",
+   "sk": "graveyard"
+  },
+  "damage": {
+   "foe": 2
+  }
+ },
+ "notes": "TRAIN mana-atom, TWO independent color decisions on one board: t1 gold G -> Vine, t2 gold R -> Shock. Two corpus items; each null individually falsified (respective spell unpayable). Teaches per-tap color choice, not a single memorized answer."
+}

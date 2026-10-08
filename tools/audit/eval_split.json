@@ -87,7 +87,7 @@
   "Warden of the Woods"
  ],
  "eval_items": 58,
- "train_items": 110,
+ "train_items": 122,
  "eval_l1_ready": 5,
  "new_families_assigned": [],
  "per_family": [
@@ -202,7 +202,7 @@
   {
    "family": "Fierce Empath",
    "side": "train",
-   "items": 2,
+   "items": 6,
    "l1_ready": 0
   },
   {
@@ -406,7 +406,7 @@
   {
    "family": "Sanctum of Fruitful Harvest",
    "side": "train",
-   "items": 3,
+   "items": 5,
    "l1_ready": 0
   },
   {
@@ -532,13 +532,13 @@
   {
    "family": "Treasure",
    "side": "train",
-   "items": 4,
-   "l1_ready": 2
+   "items": 8,
+   "l1_ready": 3
   },
   {
    "family": "Trufflesnout",
    "side": "train",
-   "items": 13,
+   "items": 15,
    "l1_ready": 5
   },
   {

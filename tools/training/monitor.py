@@ -486,6 +486,11 @@ def render_page(paths: Paths, now: float | None = None, live: bool = True) -> st
         f"<h1>MTG_AI status board <small>refresh {REFRESH_S}s · "
         f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(now))}</small></h1>"
     )
+    out.append(
+        "<div style='margin:-8px 0 10px'>"
+        "<a href='/progress.html' style='color:#79c0ff'>Progress board &rarr;</a>"
+        "</div>"
+    )
 
     # ---------------------------------------------------------- PANEL 1: NOW
     out.append("<h2>1 · NOW</h2><div class='now'>")
@@ -736,6 +741,15 @@ class Handler(BaseHTTPRequestHandler):
                     uptime_s=round(time.time() - self.started, 1),
                 )
                 self._send(200, "application/json", json.dumps(payload).encode())
+            elif self.path in ("/progress", "/progress.html"):
+                sys.path.insert(0, str(self.paths.repo / "tools" / "board"))
+                import make_progress
+
+                self._send(
+                    200,
+                    "text/html; charset=utf-8",
+                    make_progress.render_html(self.paths.repo).encode(),
+                )
             elif self.path in ("/ha", "/ha.json"):
                 payload = ha_state(self.paths)
                 if self.path == "/ha":

@@ -39,14 +39,16 @@ def dataset(episodes, vocab):
 
 
 # ----------------------------------------------------------------- integrity
-def test_joins_the_static_corpus_at_168(dataset):
+def test_joins_the_static_corpus_at_180(dataset):
     """Authoritative law: every v2 gold line maps to a corpus item. The OLD
     episodes.jsonl is stale (pre corpus-v2) — join to the corpus is truth."""
     corpus = __import__("json").loads(CORPUS.read_text(encoding="utf-8"))
-    # 2026-10-08 Part-2 mana-color set: +4 any-color items (prismite x2,
-    # greed, meteorite {T}) on top of the P1b 164. Harbinger ONE_OFs are now
-    # filtered 2-creature menus; blind-candidate asks retired.
-    assert v2.join_corpus(dataset, corpus["items"]) == 168
+    # 2026-10-08 volume wave (fail-core 45): +9 TRAIN items (mana-color R/G/B
+    # chain twins x3, Fierce Empath typed-library ONE_OF ladders x4,
+    # Trufflesnout choose-one ladders x2) on top of the Part-2 168.
+    # 2026-10-08b (mana-atom closure): +3 TRAIN items on top of the 177
+    # (Sanctum G-at-X=2 twin x1, Treasure two-source G-then-R pair x2).
+    assert v2.join_corpus(dataset, corpus["items"]) == 180
 
 
 # ------------------------------------------------------------- schema laws
@@ -122,17 +124,22 @@ def test_handle_grounding_coverage(episodes):
             elif c.isdigit() and r["what"].startswith("choose:"):
                 ch += 1
                 ch_ok += grounded(r, ci)
-    # 2026-10-08 regen: 212->206 handle asks (opaque Harbinger ONE_OF menus
-    # replaced by filtered typed-creature menus), grounding rate unchanged
-    # (180/212 = 84.9% -> 174/206 = 84.5%).
-    assert (hs_ok, hs) == (174, 206), "handle grounding drifted"
-    assert (ch_ok, ch) == (67, 70), (
+    # 2026-10-08 volume wave regen: 206->210 handle candidates, 174->178
+    # grounded (84.5% -> 84.8%) — the two empath ladders' one_of typed-creature
+    # menus contribute 4 handle candidates (2 menus x 2 creatures), all
+    # grounded.
+    assert (hs_ok, hs) == (178, 210), "handle grounding drifted"
+    assert (ch_ok, ch) == (71, 74), (
         "choose-digit grounding drifted"
-    )  # 2026-10-08 duress repair adds the '2' zero-row choose digit (66/69 -> 67/70)
+    )  # 2026-10-08 volume wave regen: +4 digit candidates (2 new Trufflesnout
+    # choose-one asks x ('0','1')), all grounded (67/70 -> 71/74).
     assert (
         sum(1 for r in rows_g if any(g for g in (r.get("ground") or [])))
-        == 84  # P1b pilot regen
-    )  # doc 36 regen 2026-10-07
+        == 88  # P1b pilot regen
+    )  # doc 36 regen 2026-10-07; 2026-10-08 volume wave regen 84->88
+    # (+4 gold rows with any grounded candidate: the 2 empath one_of creature
+    # menus + the 2 Trufflesnout mode rows; the may/mana-color rows ship empty
+    # ground lists by design).
 
 
 def test_content_candidates_stay_bare(episodes):

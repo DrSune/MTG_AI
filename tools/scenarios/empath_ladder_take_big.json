@@ -1,0 +1,71 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "fe",
+   "real": "Fierce Empath",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sx",
+   "name": "Six Fiend",
+   "type": "Creature",
+   "power": "6",
+   "toughness": "6",
+   "cmc": 6,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "bg",
+   "name": "Big Eight",
+   "type": "Creature",
+   "power": "8",
+   "toughness": "8",
+   "cmc": 8,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "st",
+   "name": "Small Two",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "cmc": 2,
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "fe",
+   "decisions": [
+    "fire",
+    "bg"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "fe": "battlefield",
+   "bg": "hand",
+   "sx": "library",
+   "st": "hand"
+  },
+  "hand": {
+   "0": 2
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "Harbinger-style TYPED-LIBRARY CREATURE-CHOICE ladder item 1 (2026-10-08 volume wave, fail-core 45: Harbinger a2 is eval-side; Fierce Empath is the TRAIN-side family with the same shape \u2014 search the library for a creature card with mana value 6 or greater). With TWO legal MV>=6 candidates the engine ASKS a ONE_OF over exactly them (single-candidate auto-take per empath_big_game_pick law). library_top knob raises the typed cards above filler; pack ORDER = candidate vocab order [sx, bg], and the LAST pack card (Small Two, cmc 2, NOT legal) is the top the begin_turn draw consumes, so the setup draw is decision-independent. Gold takes Big Eight (vocab[1]); the null replay takes vocab[0] Six Fiend and the zone/hand lanes falsify. The may-ask fire word is its own scripted item (skip falsifies the same lanes)."
+}

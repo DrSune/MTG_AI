@@ -212,3 +212,39 @@ task(
   outcomes. Anything significant that fits no component is a GAP REPORT — distinguishing
   (i) mis-encoded card (fix encoding) from (ii) component-coverage hole (new atom or
   rewrite). The rewrite (T4) ships a gap ledger, not just a compile rate.
+
+---
+
+## 12. Critical Reasoning, Dynamic Allocation & The Adversarial Gate (MANDATORY)
+
+Local models naturally tend toward *satisficing*—prematurely concluding tasks as soon as trivial tests pass. In MTG_AI, this previously caused component incompleteness (implementing common keywords but missing dense card text) and confounded benchmark conclusions (concluding larger models are worse without scaling data volume).
+
+### 1. Dynamic Allocation (Decoupling Compute from Domains)
+- **Context Length**: Allocated strictly by the *working set* (number of files, tracebacks, AST dumps) needed for the turn.
+- **Reasoning Effort**: Sized strictly by *logical complexity and ambiguity*:
+  - `instant` / `low`: Fast AST checks, running pytest suites (`tester`, `reader`), trivial 5-line diffs.
+  - `medium`: Standard atom implementation or test creation (`coder`).
+  - `xhigh`: Formal layer interactions, replacement effect rules, root-cause architecture, benchmark auditing (`analyst`, `ultra`, `adversarial`).
+
+### 2. Orchestrator Meta-Cognitive Directives
+When delegating via `task(...)`, the orchestrator MUST NOT give generic instructions. Inject domain constraints into subagent tasks:
+- **For MTG Rules / Component Atomization**:
+  > *"CRITICAL ZERO-LOSS COMPLETENESS: Never stop at obvious keywords. Atoms must be orthogonal primitives (Trigger, Condition, Scope, Subject, Transformation, Effect). Prove that the representation expresses the top 5 most rule-dense, multi-clause, conditional cards in the target set before declaring completion."*
+- **For Model Training & Benchmarking**:
+  > *"CRITICAL ML RIGOR: Evaluate across a 2D matrix of [Model Capacity] × [Data Volume & Complexity]. Never conclude smaller models are better based on a single small or homogeneous dataset. Output train vs. validation loss curves. Verify synthetic distributions against real priors across higher-order moments."*
+
+### 3. The Adversarial Gate (Type-1 Decision Rule)
+- **TRIGGER**: Whenever the orchestrator is about to make or accept a **Type-1 (Irreversible / High-Blast-Radius) Decision** (e.g. concluding larger models are worse, finalizing atom schemas, abandoning an architectural direction, declaring the T4 rewrite complete).
+- **ACTION**: The orchestrator MUST dispatch a dedicated turn to the `adversarial` subagent (`local-64k-xhigh`, read-only):
+  ```python
+  task(
+      agent="adversarial",
+      task="Review this proposed conclusion/architecture: [summary]. "
+           "Act as an adversarial principal engineer. Hunt for: "
+           "(1) biased sample priors, (2) un-isolated confounders (volume vs capacity), "
+           "(3) missing pathological card mechanics / rule interactions, and (4) high-blast-radius assumptions. "
+           "Try to break this proposal."
+  )
+  ```
+- **RESOLUTION**: Address all concrete failure modes identified by `adversarial` before committing.
+

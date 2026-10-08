@@ -1,0 +1,68 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Sanctum of Fruitful Harvest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "el",
+   "real": "Eliminate",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "small",
+   "name": "Small Prey",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "s"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "B"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Eliminate",
+   "key": "el",
+   "targets": [
+    "small"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "s": "battlefield",
+   "el": "graveyard",
+   "small": "graveyard"
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "MANA-COLOR TRAIN twin (2026-10-08 volume wave, fail-core 45): Sanctum's first-main-phase add-X color ask, one Shrine so X=1, answered 'B' (vocab[2]). PROOF BY CHAIN: seeded {C:1} pays Eliminate's {1}, the asked BLACK mana pays its {B} \u2014 null 'W' leaves {C,W} and the {1}{B} cast is illegal (legality raise falsifies the zone lanes: Eliminate stays in hand, Small Prey stays on battlefield). No scry/extra asks on this lane. Adds BLACK to the atom's taught golds alongside the new treasure R/G packs (existing sanctum gold: U)."
+}

@@ -1,0 +1,440 @@
+{
+ "pairs": {
+  "S4_S0_s1": {
+   "spec_a": "bc6_S4_s1_best.pt",
+   "spec_b": "bc6_S0_s1_best.pt",
+   "games": 200,
+   "raw": {
+    "wins_a": 89,
+    "wins_b": 105,
+    "draws": {
+     "stall": 0,
+     "cap": 4,
+     "other": 0
+    },
+    "crashes": 2
+   },
+   "a_winrate_score": 0.46,
+   "boot_ci95": [
+    0.3925,
+    0.5275
+   ],
+   "boot_sd": 0.0344,
+   "wilson_ci": [
+    0.3778,
+    0.5143
+   ],
+   "seeds_used": [
+    67,
+    266
+   ],
+   "seconds": 163.2,
+   "verdict": "A-side INADMISSIBLE"
+  },
+  "S4_S0_s2": {
+   "spec_a": "bc6_S4_s2_best.pt",
+   "spec_b": "bc6_S0_s2_best.pt",
+   "games": 200,
+   "raw": {
+    "wins_a": 109,
+    "wins_b": 91,
+    "draws": {
+     "stall": 0,
+     "cap": 0,
+     "other": 0
+    },
+    "crashes": 0
+   },
+   "a_winrate_score": 0.545,
+   "boot_ci95": [
+    0.475,
+    0.615
+   ],
+   "boot_sd": 0.0356,
+   "wilson_ci": [
+    0.4758,
+    0.6125
+   ],
+   "seeds_used": [
+    1,
+    200
+   ],
+   "seconds": 117.2,
+   "verdict": "A-side INADMISSIBLE"
+  },
+  "S4_S0_s3": {
+   "spec_a": "bc6_S4_s3_best.pt",
+   "spec_b": "bc6_S0_s3_best.pt",
+   "games": 200,
+   "raw": {
+    "wins_a": 92,
+    "wins_b": 104,
+    "draws": {
+     "stall": 0,
+     "cap": 3,
+     "other": 0
+    },
+    "crashes": 1
+   },
+   "a_winrate_score": 0.47,
+   "boot_ci95": [
+    0.4,
+    0.54
+   ],
+   "boot_sd": 0.0356,
+   "wilson_ci": [
+    0.3923,
+    0.5292
+   ],
+   "seeds_used": [
+    1,
+    200
+   ],
+   "seconds": 143.3,
+   "verdict": "A-side INADMISSIBLE"
+  },
+  "S3_S0_s1": {
+   "spec_a": "bc6_S3_s1_best.pt",
+   "spec_b": "bc6_S0_s1_best.pt",
+   "games": 200,
+   "raw": {
+    "wins_a": 110,
+    "wins_b": 89,
+    "draws": {
+     "stall": 0,
+     "cap": 0,
+     "other": 0
+    },
+    "crashes": 1
+   },
+   "a_winrate_score": 0.5525,
+   "boot_ci95": [
+    0.4825,
+    0.62
+   ],
+   "boot_sd": 0.0348,
+   "wilson_ci": [
+    0.4808,
+    0.6174
+   ],
+   "seeds_used": [
+    21,
+    220
+   ],
+   "seconds": 73.8,
+   "verdict": "A-side INADMISSIBLE"
+  },
+  "S3_S0_s2": {
+   "spec_a": "bc6_S3_s2_best.pt",
+   "spec_b": "bc6_S0_s2_best.pt",
+   "games": 200,
+   "raw": {
+    "wins_a": 111,
+    "wins_b": 89,
+    "draws": {
+     "stall": 0,
+     "cap": 0,
+     "other": 0
+    },
+    "crashes": 0
+   },
+   "a_winrate_score": 0.555,
+   "boot_ci95": [
+    0.485,
+    0.625
+   ],
+   "boot_sd": 0.0356,
+   "wilson_ci": [
+    0.4857,
+    0.6222
+   ],
+   "seeds_used": [
+    1,
+    200
+   ],
+   "seconds": 72.8,
+   "verdict": "A-side INADMISSIBLE"
+  },
+  "S3_S0_s3": {
+   "spec_a": "bc6_S3_s3_best.pt",
+   "spec_b": "bc6_S0_s3_best.pt",
+   "games": 200,
+   "raw": {
+    "wins_a": 111,
+    "wins_b": 89,
+    "draws": {
+     "stall": 0,
+     "cap": 0,
+     "other": 0
+    },
+    "crashes": 0
+   },
+   "a_winrate_score": 0.555,
+   "boot_ci95": [
+    0.485,
+    0.625
+   ],
+   "boot_sd": 0.0356,
+   "wilson_ci": [
+    0.4857,
+    0.6222
+   ],
+   "seeds_used": [
+    1,
+    200
+   ],
+   "seconds": 71.8,
+   "verdict": "A-side INADMISSIBLE"
+  },
+  "S4_S3_s1": {
+   "spec_a": "bc6_S4_s1_best.pt",
+   "spec_b": "bc6_S3_s1_best.pt",
+   "games": 200,
+   "raw": {
+    "wins_a": 85,
+    "wins_b": 107,
+    "draws": {
+     "stall": 0,
+     "cap": 7,
+     "other": 0
+    },
+    "crashes": 1
+   },
+   "a_winrate_score": 0.445,
+   "boot_ci95": [
+    0.3775,
+    0.5125
+   ],
+   "boot_sd": 0.0346,
+   "wilson_ci": [
+    0.3585,
+    0.4943
+   ],
+   "seeds_used": [
+    1,
+    200
+   ],
+   "seconds": 215.5,
+   "verdict": "A-side INADMISSIBLE"
+  },
+  "S4_S3_s2": {
+   "spec_a": "bc6_S4_s2_best.pt",
+   "spec_b": "bc6_S3_s2_best.pt",
+   "games": 200,
+   "raw": {
+    "wins_a": 109,
+    "wins_b": 91,
+    "draws": {
+     "stall": 0,
+     "cap": 0,
+     "other": 0
+    },
+    "crashes": 0
+   },
+   "a_winrate_score": 0.545,
+   "boot_ci95": [
+    0.475,
+    0.615
+   ],
+   "boot_sd": 0.0356,
+   "wilson_ci": [
+    0.4758,
+    0.6125
+   ],
+   "seeds_used": [
+    1,
+    200
+   ],
+   "seconds": 134.4,
+   "verdict": "A-side INADMISSIBLE"
+  },
+  "S4_S3_s3": {
+   "spec_a": "bc6_S4_s3_best.pt",
+   "spec_b": "bc6_S3_s3_best.pt",
+   "games": 200,
+   "raw": {
+    "wins_a": 93,
+    "wins_b": 102,
+    "draws": {
+     "stall": 0,
+     "cap": 4,
+     "other": 0
+    },
+    "crashes": 1
+   },
+   "a_winrate_score": 0.4775,
+   "boot_ci95": [
+    0.41,
+    0.545
+   ],
+   "boot_sd": 0.0354,
+   "wilson_ci": [
+    0.3972,
+    0.5341
+   ],
+   "seeds_used": [
+    1,
+    200
+   ],
+   "seconds": 156.7,
+   "verdict": "A-side INADMISSIBLE"
+  },
+  "S4_S0_pooled": {
+   "spec_a": "bc6_S4_s1_best.pt",
+   "spec_b": "bc6_S0_s2_best.pt",
+   "games": 200,
+   "raw": {
+    "wins_a": 87,
+    "wins_b": 104,
+    "draws": {
+     "stall": 0,
+     "cap": 7,
+     "other": 0
+    },
+    "crashes": 2
+   },
+   "a_winrate_score": 0.4575,
+   "boot_ci95": [
+    0.39,
+    0.525
+   ],
+   "boot_sd": 0.0345,
+   "wilson_ci": [
+    0.3682,
+    0.5043
+   ],
+   "seeds_used": [
+    1,
+    200
+   ],
+   "seconds": 164.3,
+   "verdict": "A-side INADMISSIBLE"
+  },
+  "S3_S0_pooled": {
+   "spec_a": "bc6_S3_s1_best.pt",
+   "spec_b": "bc6_S0_s2_best.pt",
+   "games": 200,
+   "raw": {
+    "wins_a": 108,
+    "wins_b": 92,
+    "draws": {
+     "stall": 0,
+     "cap": 0,
+     "other": 0
+    },
+    "crashes": 0
+   },
+   "a_winrate_score": 0.54,
+   "boot_ci95": [
+    0.47,
+    0.61
+   ],
+   "boot_sd": 0.0356,
+   "wilson_ci": [
+    0.4708,
+    0.6077
+   ],
+   "seeds_used": [
+    1,
+    200
+   ],
+   "seconds": 67.0,
+   "verdict": "A-side INADMISSIBLE"
+  },
+  "S4_S3_pooled": {
+   "spec_a": "bc6_S4_s1_best.pt",
+   "spec_b": "bc6_S3_s2_best.pt",
+   "games": 200,
+   "raw": {
+    "wins_a": 89,
+    "wins_b": 104,
+    "draws": {
+     "stall": 0,
+     "cap": 7,
+     "other": 0
+    },
+    "crashes": 0
+   },
+   "a_winrate_score": 0.4625,
+   "boot_ci95": [
+    0.395,
+    0.53
+   ],
+   "boot_sd": 0.0345,
+   "wilson_ci": [
+    0.3778,
+    0.5143
+   ],
+   "seeds_used": [
+    1,
+    200
+   ],
+   "seconds": 214.2,
+   "verdict": "A-side INADMISSIBLE"
+  },
+  "S4_S0": {
+   "big": "S4",
+   "small": "S0",
+   "games": 597,
+   "a_winrate": 0.4916,
+   "wilson_ci95": [
+    0.4525,
+    0.5325
+   ],
+   "cross_seed_check": {
+    "games": 200,
+    "a_winrate": 0.4575,
+    "boot_ci95": [
+     0.39,
+     0.525
+    ]
+   },
+   "verdict": "S4 vs S0: INADMISSIBLE"
+  },
+  "S3_S0": {
+   "big": "S3",
+   "small": "S0",
+   "games": 599,
+   "a_winrate": 0.5543,
+   "wilson_ci95": [
+    0.5142,
+    0.5936
+   ],
+   "cross_seed_check": {
+    "games": 200,
+    "a_winrate": 0.54,
+    "boot_ci95": [
+     0.47,
+     0.61
+    ]
+   },
+   "verdict": "S3 vs S0: ADMISSIBLE"
+  },
+  "S4_S3": {
+   "big": "S4",
+   "small": "S3",
+   "games": 598,
+   "a_winrate": 0.4891,
+   "wilson_ci95": [
+    0.4501,
+    0.53
+   ],
+   "cross_seed_check": {
+    "games": 200,
+    "a_winrate": 0.4625,
+    "boot_ci95": [
+     0.395,
+     0.53
+    ]
+   },
+   "verdict": "S4 vs S3: INADMISSIBLE"
+  }
+ },
+ "meta": {
+  "games_total": 2400,
+  "device": "cuda (GB10, shared with vllm engine)",
+  "workers": 6,
+  "method": "run_duel swap-paired duels, seed=cluster; per-seed boot CI + pooled Wilson CI",
+  "law": "ADMISSIBLE iff CI excludes 0.5 (KNOWLEDGE/2026-10-07/26)"
+ }
+}

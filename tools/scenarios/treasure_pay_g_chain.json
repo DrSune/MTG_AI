@@ -1,0 +1,60 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t1",
+   "real": "Treasure",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "sn",
+   "real": "Snarespinner",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "t1",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "G"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Snarespinner",
+   "key": "sn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "t1": "graveyard",
+   "sn": "battlefield"
+  },
+  "power": {
+   "sn": 1
+  },
+  "toughness": {
+   "sn": 3
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "hand": {
+   "0": 0
+  }
+ },
+ "notes": "MANA-COLOR TRAIN twin (2026-10-08 volume wave, fail-core 45): Treasure's any-color ask answered 'G' (vocab[4]). PROOF BY CHAIN: seeded {C:1} pays Snarespinner's {1}, the asked GREEN mana is the ONLY thing that pays its {G} \u2014 null 'W' leaves {C,W}, making the {1}{G} cast illegal (legality raise falsifies zone/hand/P-T lanes). Snarespinner enters with no further ask (no phantom). This pack adds GREEN to the atom's taught golds (existing: W/U/B/U + sanctum U)."
+}
