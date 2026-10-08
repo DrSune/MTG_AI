@@ -107,7 +107,7 @@ def _verdict(v: Any) -> str:
 # ---------------------------------------------------------------------------
 def panel_headline(repo: Path) -> str:
     out = ["<h2>1 · HEADLINE — eval accuracy (batch 6, 3 seeds)</h2>"]
-    curve = _read_json(repo / "tools" / "training" / "batch6_curve.json")
+    curve = _read_json(repo / "tools" / "training" / "batch7_curve.json")
     runs = curve.get("runs") if isinstance(curve, dict) else None
     if runs:
         out.append(
@@ -152,7 +152,7 @@ def panel_headline(repo: Path) -> str:
                 )
             out.append("</table>")
         else:
-            out.append("<div class='note'>batch6_curve.json unavailable.</div>")
+            out.append("<div class='note'>batch7_curve.json unavailable.</div>")
 
     # Historical curves (archive dirs).
     hist_rows: list[str] = []

@@ -3335,3 +3335,4 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - S4 vs S0: 0.492 [0.453,0.532] ; S4 vs S3: 0.489 [0.450,0.530] → INADMISSIBLE (d512 flat: eval-acc collapse = data-starved overfit, not capacity)
 - 2400 games total, swap-paired, draws=0.5, seed=cluster bootstrap + pooled Wilson
 - densified ladder (2026-10-08 13:00, 21/21 PASS): instability onset ~10M (range 0.017 -> 0.052-0.121), mean plateau 0.747 from 0.17M; era-confounded (168 vs 180 corpus) -> batch7 unified re-baseline queued
+- batch7 unified (2026-10-08 14:35, 21/21 PASS, wall 3105s): 0.17M 0.776|0.000, plateau ~0.76-0.78 all sizes, 35M 0.736|0.069 only unstable; wave-gain +0.029; onset-10M (from /46) retracted as era confound
