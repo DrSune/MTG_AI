@@ -55,12 +55,14 @@ def test_arm_configs_are_the_pre_registered_ones():
 def test_size_ladder_is_the_pre_registered_table():
     # Knob sets exactly as pre-registered (KNOWLEDGE/2026-10-06/21 dispatch);
     # S0 is batch-3 arm B exactly, S4 is batch-3 arm A exactly.
-    assert v3.SIZE_LADDER == ("S0", "S1", "S2", "S3", "S4")
+    assert v3.SIZE_LADDER == ("S0", "S1", "S2", "S3", "S3a", "S3b", "S4")
     ladder = {
         "S0": {"d": 64, "layers": 2, "heads": 4, "ff": 128},
         "S1": {"d": 128, "layers": 3, "heads": 4, "ff": 256},
         "S2": {"d": 192, "layers": 4, "heads": 6, "ff": 512},
         "S3": {"d": 256, "layers": 6, "heads": 8, "ff": 1024},
+        "S3a": {"d": 320, "layers": 7, "heads": 8, "ff": 1408},
+        "S3b": {"d": 384, "layers": 8, "heads": 8, "ff": 2816},
         "S4": {"d": 512, "layers": 8, "heads": 8, "ff": 3072},
     }
     for name, knobs in ladder.items():
@@ -82,10 +84,12 @@ def test_size_ladder_computed_params_monotonic_exact_endpoints():
         model = PointerBC(380, **v3.ARMS[name])
         counts.append(sum(p.numel() for p in model.parameters()))
     assert counts[0] == 169_474 and counts[-1] == 35_124_226  # == batch-3 B/A
-    assert counts == sorted(counts) and len(set(counts)) == 5
+    assert counts == sorted(counts) and len(set(counts)) == 7
     assert 500_000 < counts[1] < 800_000  # ~0.66M nominal
     assert 1_500_000 < counts[2] < 2_000_000  # ~2.5M nominal (actual 1.77M)
     assert 4_500_000 < counts[3] < 6_000_000  # ~10M nominal (actual 5.3M)
+    assert 9_000_000 < counts[4] < 11_000_000  # S3a ~10M (actual 9.96M @ 380)
+    assert 22_000_000 < counts[5] < 24_000_000  # S3b ~23M (actual 23.05M @ 380)
 
 
 def test_ratio_block_carries_the_trio_and_survives_zero_lines():

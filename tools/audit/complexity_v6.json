@@ -1,0 +1,244 @@
+{
+  "episodes": 131,
+  "distinct_cards": 80,
+  "distinct_packs": 131,
+  "total_asks": 214,
+  "asks_per_episode": 1.634,
+  "ask_kinds": [
+    "attack",
+    "block",
+    "choose",
+    "mana",
+    "may",
+    "name",
+    "one_of",
+    "sacrifice",
+    "scry",
+    "target"
+  ],
+  "menu_width_overall": {
+    "n": 214,
+    "mean": 2.972,
+    "median": 2.0,
+    "p90": 6,
+    "max": 9
+  },
+  "menu_width_by_kind": {
+    "attack": {
+      "n": 16,
+      "mean": 2.0,
+      "median": 2.0,
+      "p90": 2,
+      "max": 2
+    },
+    "block": {
+      "n": 10,
+      "mean": 2.6,
+      "median": 3.0,
+      "p90": 3,
+      "max": 3
+    },
+    "choose": {
+      "n": 32,
+      "mean": 2.562,
+      "median": 2.0,
+      "p90": 5,
+      "max": 5
+    },
+    "mana": {
+      "n": 20,
+      "mean": 6.0,
+      "median": 6.0,
+      "p90": 6,
+      "max": 6
+    },
+    "may": {
+      "n": 47,
+      "mean": 2.0,
+      "median": 2,
+      "p90": 2,
+      "max": 2
+    },
+    "name": {
+      "n": 2,
+      "mean": 8.5,
+      "median": 8.5,
+      "p90": 8,
+      "max": 9
+    },
+    "one_of": {
+      "n": 18,
+      "mean": 2.833,
+      "median": 2.0,
+      "p90": 4,
+      "max": 6
+    },
+    "sacrifice": {
+      "n": 6,
+      "mean": 2.167,
+      "median": 2.0,
+      "p90": 2,
+      "max": 3
+    },
+    "scry": {
+      "n": 29,
+      "mean": 2.0,
+      "median": 2,
+      "p90": 2,
+      "max": 2
+    },
+    "target": {
+      "n": 34,
+      "mean": 4.206,
+      "median": 4.0,
+      "p90": 7,
+      "max": 9
+    }
+  },
+  "decision_entropy": {
+    "mean_uniform_bits": 1.4048,
+    "PROXY_gold_bits_required": 1.1374,
+    "PROXY_note": "proxy: bits REQUIRED to beat a vocab[0]-first prior; 0 when gold_idx==0, full log2(|menu|) otherwise (honest positional shortcut measure, not a learned-model entropy)",
+    "PROXY_fraction_gold_is_first_candidate": 0.2383
+  },
+  "task_size_reports": {
+    "v4": {
+      "head": "a742c19",
+      "date": "2026-10-07",
+      "vocab_size": 404,
+      "seq_len_median": 115,
+      "seq_len_max": 1008,
+      "gold_lines_eval_joined": 153,
+      "train_episodes": 111
+    },
+    "v5": {
+      "head": "b361ce2",
+      "date": "2026-10-07",
+      "vocab_size": 420,
+      "seq_len_median": 119,
+      "seq_len_max": 1008,
+      "gold_lines_eval_joined": 164,
+      "train_episodes": 118
+    },
+    "v6": {
+      "head": "aa882e1",
+      "date": "2026-10-08",
+      "vocab_size": 432,
+      "seq_len_median": 116,
+      "seq_len_max": 1008,
+      "gold_lines_eval_joined": 168,
+      "train_episodes": 122
+    }
+  },
+  "coverage_vs_exam": {
+    "train_families_with_episodes": 47,
+    "eval_families_with_episodes": 33,
+    "train_ask_kinds": [
+      "attack",
+      "block",
+      "choose",
+      "mana",
+      "may",
+      "name",
+      "one_of",
+      "sacrifice",
+      "scry",
+      "target"
+    ],
+    "eval_only_ask_kinds_COVERAGE_HOLES": [],
+    "hole_count": 0,
+    "eval_families_per_hole": {}
+  },
+  "drafter_load": {
+    "packs": 386,
+    "scripted_decisions_per_pack": {
+      "n": 386,
+      "mean": 0.583,
+      "median": 0.0,
+      "p90": 2,
+      "max": 4
+    },
+    "distinct_expect_lanes_per_pack": {
+      "n": 386,
+      "mean": 3.202,
+      "median": 3.0,
+      "p90": 5,
+      "max": 8
+    },
+    "lane_marker_vocab_size": 26,
+    "PROXY_note": "asks = step.decisions queues; lanes = distinct expect-block keys (packs are JSON, not yaml)"
+  },
+  "interaction_complexity": {
+    "instrumented": true,
+    "veto_tests": 350,
+    "candidates_vetoed": 0,
+    "veto_rate_per_candidate_tested": 0.0,
+    "vetoed_share_of_raw_candidates": 0.0,
+    "enumerate_calls": 889,
+    "packs_with_at_least_one_veto": 0,
+    "note": "counts hexproof/shroud/protection vetoes in enumerate_candidates (proxy; all selector kinds, not only target asks). VALIDITY: the same wrapper sees 12 real vetoes in MTG_bot/core/test_executor_hexproof.py, so a 0 here means the scenario-pack set today has no board where a hexproof target is chosen (coverage lives in unit tests); the meter starts counting as sets add hexproof boards to packs. Legality veto instrumentation is a harness-side monkeypatch of MTG_bot/core/executor/legality.py:_hexproof_vetoes_target (applied at enumerate_candidates, legality.py:520). A permanent counter hook belongs at that line (file:symbol legality.py:enumerate_candidates)."
+  },
+  "era_trend_v4_v5_v6": {
+    "v4": {
+      "episodes": 111,
+      "total_asks": 177,
+      "asks_per_episode": 1.595,
+      "menu_mean": 2.893,
+      "menu_p90": 6,
+      "mean_uniform_bits": 1.3756,
+      "ask_kinds": [
+        "attack",
+        "block",
+        "choose",
+        "mana",
+        "may",
+        "name",
+        "one_of",
+        "sacrifice",
+        "scry",
+        "target"
+      ]
+    },
+    "v5": {
+      "episodes": 118,
+      "total_asks": 192,
+      "asks_per_episode": 1.627,
+      "menu_mean": 2.896,
+      "menu_p90": 6,
+      "mean_uniform_bits": 1.3787,
+      "ask_kinds": [
+        "attack",
+        "block",
+        "choose",
+        "mana",
+        "may",
+        "name",
+        "one_of",
+        "sacrifice",
+        "scry",
+        "target"
+      ]
+    },
+    "v6": {
+      "episodes": 131,
+      "total_asks": 214,
+      "asks_per_episode": 1.634,
+      "menu_mean": 2.972,
+      "menu_p90": 6,
+      "mean_uniform_bits": 1.4048,
+      "ask_kinds": [
+        "attack",
+        "block",
+        "choose",
+        "mana",
+        "may",
+        "name",
+        "one_of",
+        "sacrifice",
+        "scry",
+        "target"
+      ]
+    }
+  },
+  "notes": []
+}

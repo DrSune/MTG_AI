@@ -30,7 +30,7 @@ Laws kept binding (do not silently change):
 
 Run::
 
-    .venv/bin/python -m tools.training.train_bc_v3 --arm A|B|dagger|S0|S1|S2|S3|S4 \
+    .venv/bin/python -m tools.training.train_bc_v3 --arm A|B|dagger|S0|S1|S2|S3|S3a|S3b|S4 \
         [--episodes FILE] [--prefix bc3_A] [--smoke] [--device auto] \
         [--out-dir DIR] [--fresh]
 
@@ -92,8 +92,9 @@ ARMS: dict[str, dict[str, Any]] = {
     # --- batch-5 size ladder (KNOWLEDGE/2026-10-06/21). Knob sets are exactly
     # as pre-registered; nominal labels are the owner's estimates, computed
     # params are printed and reported. grad_checkpoint is a memory knob only
-    # (use_reentrant=False recomputes bit-identical forwards), so S3/S4 turn
-    # it on to stay under the 4 GiB budget without moving any number.
+    # (use_reentrant=False recomputes bit-identical forwards), so S3 and every
+    # larger arm turn it on to stay under the 4 GiB budget without moving any
+    # number.
     "S0": {  # == arm B exactly (~0.17M; computed 169,474 @ vocab 380)
         "d": 64,
         "layers": 2,
@@ -126,6 +127,26 @@ ARMS: dict[str, dict[str, Any]] = {
         "dropout": 0.1,
         "grad_checkpoint": True,
     },
+    # --- batch-7 densification (owner 2026-10-08): the 5.3M->35M rung is too
+    # coarse to localise where instability starts. S3a/S3b insert between S3
+    # and S4; ONLY size knobs move (dropout stays 0.1 as in S0-S3 — S4's 0.0
+    # is inherited verbatim from arm A, an already-known S3->S4 confound).
+    "S3a": {  # nominal ~10M (computed 9,963,458 @ vocab 380; 9,980,098 @ 432)
+        "d": 320,
+        "layers": 7,
+        "heads": 8,
+        "ff": 1408,
+        "dropout": 0.1,
+        "grad_checkpoint": True,
+    },
+    "S3b": {  # nominal ~23M (computed 23,054,082 @ vocab 380; 23,074,050 @ 432)
+        "d": 384,
+        "layers": 8,
+        "heads": 8,
+        "ff": 2816,
+        "dropout": 0.1,
+        "grad_checkpoint": True,
+    },
     "S4": {  # == arm A exactly (~35M; computed 35,124,226 @ vocab 380)
         "d": 512,
         "layers": 8,
@@ -135,7 +156,7 @@ ARMS: dict[str, dict[str, Any]] = {
         "grad_checkpoint": True,
     },
 }
-SIZE_LADDER = ("S0", "S1", "S2", "S3", "S4")
+SIZE_LADDER = ("S0", "S1", "S2", "S3", "S3a", "S3b", "S4")
 ARM_DATA: dict[str, Path] = {
     "A": EPISODES,
     "B": EPISODES,

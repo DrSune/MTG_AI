@@ -14,7 +14,7 @@ for _try in 1 2; do
 done
 echo $$ > "$LOCK/pid"
 trap 'rm -rf "$LOCK" 2>/dev/null' EXIT
-for arm in S0 S1 S2 S3 S4; do
+for arm in S0 S1 S2 S3 S3a S3b S4; do
   for seed in 1 2 3; do
     pref="bc6_${arm}_s${seed}"
     [ -f "tools/training/${pref}_report.json" ] && { echo "skip $pref"; continue; }
