@@ -17,3 +17,15 @@ C REWRITE: recompile trees where atoms must be rewritten (owner authorizes atomi
 D PROVE: evidence pack (compile rate, coverage %, census deltas, blind/phantom=0, atom
   census volumes) + ADVERSARIAL GATE before any "all functionality captured" claim (Type-1).
 Owner capacity position recorded in NUMBERS (regime-scoped plateau; keep big arms live).
+
+## Phase A + B RESULTS (17:4x, gates mine-run: core 2491+2, 386/386, tools 154)
+A census: pool CLEANER than feared — 0 promotable-CHOOSE survivors (P1b persisted on disk),
+0 MOVE leftovers, 0 unknown site kinds, tripwires silent. Real residue: EQUIP+TREASURE
+decorative keywords (EQUIP = engine-semantics gap, registered), E1 direction has a THIRD
+dominant style (Zone.controller x375) — merge must retarget; 8 legacy k>1 CHOOSES (fixed
+in F2: now canonical ONE_OF loops, 305 trees byte-verified except the 8 intended).
+B clause audit (tools/audit/clause_audit.py, all 305): ZERO-LOSS 97.1% (4678/4809 chars);
+131 residual clauses classified: 58 covered-by-different-node, 42 benign (rules boilerplate),
+14 token-definition artifacts (FALSE, my initial read), 17 REAL GAPS -> Phase C worklist.
+Real-gap 17 = the honest answer to owner's "ALL functionality": NOT yet all — 17 named
+gaps + EQUIP enforcement + E1 merge + L-27/28/29 seats are the remaining path to it.
