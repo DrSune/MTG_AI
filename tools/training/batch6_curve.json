@@ -1,0 +1,31 @@
+{
+ "runs": [
+  {
+   "arm": "S0",
+   "seed": "1",
+   "params": 0,
+   "acc": 0.7414,
+   "iid": 6.95,
+   "boot": 4.7,
+   "verdict": "PASS"
+  },
+  {
+   "arm": "S0",
+   "seed": "2",
+   "params": 0,
+   "acc": 0.7586,
+   "iid": 7.23,
+   "boot": 5.09,
+   "verdict": "PASS"
+  }
+ ],
+ "summary": {
+  "S0": {
+   "acc_mean": 0.75,
+   "acc_range": 0.0172,
+   "boot_mean": 4.89,
+   "pass_count": 2,
+   "n": 2
+  }
+ }
+}
