@@ -1,0 +1,93 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "veteran",
+      "real": "Tempered Veteran",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "wall",
+      "name": "Runeward",
+      "type": "Creature",
+      "power": "0",
+      "toughness": "6",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "brute",
+      "name": "Gorge Brute",
+      "type": "Creature",
+      "power": "5",
+      "toughness": "2",
+      "zone": "battlefield",
+      "controller": 1
+    },
+    {
+      "key": "pup",
+      "name": "War Pup",
+      "type": "Creature",
+      "power": "2",
+      "toughness": "2",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {},
+  "steps": [
+    {
+      "op": "life",
+      "seat": 0,
+      "set": 3
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 1,
+      "attack": {
+        "brute": true,
+        "pup": true
+      },
+      "block": {
+        "veteran": "pup"
+      },
+      "decisions": [
+        "brute"
+      ]
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 3
+    },
+    "zone": {
+      "veteran": "graveyard",
+      "wall": "battlefield",
+      "brute": "battlefield",
+      "pup": "battlefield"
+    },
+    "blocked": {
+      "brute": [
+        "wall"
+      ],
+      "pup": [
+        "veteran"
+      ]
+    },
+    "block_asks": {
+      "wall": "<brute>,<pup>,NONE"
+    },
+    "damage": {
+      "wall": 5,
+      "pup": 1
+    }
+  },
+  "notes": "BLOCK-SENSE (blocking lethal is forced): at 3 life the Gorge Brute 5/2 IS the lethal swing; the Runeward 0/6 takes it alive (5 damage, toughness 6) while the Veteran trades into the War Pup and dies. The gold word is the attacker token 'brute' on the Runeward's block ask; null answers NONE and the face eats 5 (life lane + zone lane falsify). Block-vocab pin proves the ask surfaced with both attacker handles + NONE."
+}

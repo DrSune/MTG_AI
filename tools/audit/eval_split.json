@@ -87,7 +87,7 @@
   "Warden of the Woods"
  ],
  "eval_items": 58,
- "train_items": 122,
+ "train_items": 141,
  "eval_l1_ready": 5,
  "new_families_assigned": [],
  "per_family": [
@@ -172,8 +172,8 @@
   {
    "family": "Daybreak Charger",
    "side": "train",
-   "items": 1,
-   "l1_ready": 0
+   "items": 2,
+   "l1_ready": 1
   },
   {
    "family": "Destructive Tampering",
@@ -304,8 +304,8 @@
   {
    "family": "Mistral Singer",
    "side": "train",
-   "items": 2,
-   "l1_ready": 0
+   "items": 7,
+   "l1_ready": 5
   },
   {
    "family": "Necromentia",
@@ -340,14 +340,14 @@
   {
    "family": "Pitchburn Devils",
    "side": "train",
-   "items": 5,
-   "l1_ready": 2
+   "items": 7,
+   "l1_ready": 4
   },
   {
    "family": "Pridemalkin",
    "side": "train",
-   "items": 2,
-   "l1_ready": 0
+   "items": 4,
+   "l1_ready": 2
   },
   {
    "family": "Prismite",
@@ -442,7 +442,7 @@
   {
    "family": "Spellgorger Weird",
    "side": "train",
-   "items": 1,
+   "items": 2,
    "l1_ready": 0
   },
   {
@@ -454,8 +454,8 @@
   {
    "family": "Stormwing Entity",
    "side": "train",
-   "items": 2,
-   "l1_ready": 0
+   "items": 4,
+   "l1_ready": 2
   },
   {
    "family": "Stray Aurochs",
@@ -472,8 +472,8 @@
   {
    "family": "Tempered Veteran",
    "side": "train",
-   "items": 1,
-   "l1_ready": 0
+   "items": 4,
+   "l1_ready": 3
   },
   {
    "family": "Temple of Epiphany",
@@ -538,8 +538,8 @@
   {
    "family": "Trufflesnout",
    "side": "train",
-   "items": 15,
-   "l1_ready": 5
+   "items": 18,
+   "l1_ready": 7
   },
   {
    "family": "Vodalian Arcanist",

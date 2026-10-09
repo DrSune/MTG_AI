@@ -1,0 +1,78 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "charger",
+      "real": "Daybreak Charger",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "veteran",
+      "real": "Tempered Veteran",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "ogre",
+      "name": "Marsh Ogre",
+      "type": "Creature",
+      "power": "4",
+      "toughness": "2",
+      "zone": "battlefield",
+      "controller": 1
+    },
+    {
+      "key": "guard",
+      "name": "Pit Guard",
+      "type": "Creature",
+      "power": "2",
+      "toughness": "2",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {},
+  "steps": [
+    {
+      "op": "life",
+      "seat": 1,
+      "set": 14
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "veteran": true
+      },
+      "block": {
+        "ogre": null,
+        "guard": null
+      },
+      "decisions": [
+        "DECLINE"
+      ]
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 13
+    },
+    "zone": {
+      "charger": "battlefield",
+      "veteran": "battlefield",
+      "ogre": "battlefield"
+    },
+    "attackers": {
+      "charger": false,
+      "veteran": true
+    },
+    "asks": {
+      "charger": "ATTACK,DECLINE"
+    }
+  },
+  "notes": "ATTACK-SENSE (suicide swing): Daybreak Charger 3/1 into Marsh Ogre 4/2 dies for nothing (the counterfactual: the Ogre blocks, takes 3, lives; the Charger hits the graveyard). The gold word here is DECLINE \u2014 honest about its cert: a null replay answers DECLINE too, so falsifiability comes DOWNSTREAM, from the map-claimed Tempered Veteran swing the null line also silently declines (life lane 13 vs 14). BC still trains the DECLINE row; the punish-inaction flag holds on the downstream lane."
+}

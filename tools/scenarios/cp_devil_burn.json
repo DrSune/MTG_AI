@@ -1,0 +1,23 @@
+{
+  "world": { "life": 20, "seed": 7 },
+  "cards": [
+    { "key": "devil", "real": "Pitchburn Devils", "zone": "battlefield", "controller": 0 },
+    { "key": "hobble", "real": "Hobblefiend", "zone": "battlefield", "controller": 0 },
+    { "key": "foal", "name": "Kennel Runt", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0 },
+    { "key": "guard", "name": "Pit Guard", "type": "Creature", "power": "3", "toughness": "4", "zone": "battlefield", "controller": 1 }
+  ],
+  "mana": { "0": { "R": 2 } },
+  "steps": [
+    { "op": "life", "seat": 1, "set": 3 },
+    { "op": "activate", "key": "hobble", "idx": 0, "seat": 0, "targets": ["devil"], "decisions": ["devil", "player:1"] },
+    { "op": "combat", "seat": 0, "attack": { "hobble": true }, "block": { "guard": "hobble" } }
+  ],
+  "expect": {
+    "life": { "1": 0 },
+    "zone": { "devil": "graveyard", "hobble": "graveyard", "foal": "battlefield", "guard": "battlefield" },
+    "damage": { "guard": 3 },
+    "attackers": { "hobble": true },
+    "blocked": { "hobble": ["guard"] }
+  },
+  "notes": "CAST-PRIORITY (engine burn before the swing): Hobblefiend's {1}{R} activation SACRIFICES the Pitchburn Devils — the devil's death-burn (3 damage to any target) resolves FIRST, and the gold sends it to the FACE (exactly lethal at 3). Null answers vocab[0] — the sorted first living creature (Hobblefiend itself dies instead, face stays at 3, no guard damage row, no attacker: life/zone/damage lanes all falsify). The counter-granted trample makes the follow-up swing unplayable-around: Pit Guard 3/4 eats the 3/2 alive. The sacrifice-cost pick is itself an ask (two own creatures qualify) and is scripted first."
+}

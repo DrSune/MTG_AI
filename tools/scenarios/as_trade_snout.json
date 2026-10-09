@@ -1,0 +1,95 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "singer",
+      "real": "Mistral Singer",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "snout",
+      "real": "Trufflesnout",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "charger",
+      "real": "Daybreak Charger",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "ogre",
+      "name": "Marsh Ogre",
+      "type": "Creature",
+      "power": "4",
+      "toughness": "2",
+      "zone": "battlefield",
+      "controller": 1
+    },
+    {
+      "key": "guard",
+      "name": "Pit Guard",
+      "type": "Creature",
+      "power": "2",
+      "toughness": "2",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {},
+  "steps": [
+    {
+      "op": "life",
+      "seat": 1,
+      "set": 14
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "singer": false,
+        "charger": false
+      },
+      "block": {
+        "ogre": null,
+        "guard": "snout"
+      },
+      "decisions": [
+        "ATTACK"
+      ]
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 14
+    },
+    "zone": {
+      "singer": "battlefield",
+      "snout": "graveyard",
+      "charger": "battlefield",
+      "ogre": "battlefield",
+      "guard": "graveyard"
+    },
+    "attackers": {
+      "snout": true,
+      "singer": false
+    },
+    "blocked": {
+      "snout": [
+        "guard"
+      ]
+    },
+    "asks": {
+      "snout": "ATTACK,DECLINE"
+    },
+    "block_asks": {
+      "guard": "<snout>,NONE"
+    }
+  },
+  "notes": "ATTACK-SENSE ( favourable trade): Trufflesnout 2/2 attacks INTO the Pit Guard 2/2 \u2014 it dies, but it takes the blocker with it; the gold ATTACK row is falsified on the zone lane (null DECLINEs the swing and the Pit Guard stays on the battlefield). The other two attackers are scripted off (attack map) so the trade is the only live question."
+}

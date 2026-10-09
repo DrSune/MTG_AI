@@ -1,0 +1,88 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "veteran",
+      "real": "Tempered Veteran",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "sage",
+      "real": "Gnarled Sage",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "foal",
+      "name": "Rabid Foal",
+      "type": "Creature",
+      "power": "1",
+      "toughness": "1",
+      "zone": "battlefield",
+      "controller": 1
+    },
+    {
+      "key": "brute",
+      "name": "River Brute",
+      "type": "Creature",
+      "power": "3",
+      "toughness": "3",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {},
+  "steps": [
+    {
+      "op": "life",
+      "seat": 0,
+      "set": 10
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 1,
+      "attack": {
+        "foal": true,
+        "brute": true
+      },
+      "decisions": [
+        "NONE",
+        "brute"
+      ]
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 9
+    },
+    "zone": {
+      "veteran": "battlefield",
+      "sage": "battlefield",
+      "foal": "battlefield",
+      "brute": "graveyard"
+    },
+    "power": {
+      "sage": 4
+    },
+    "blocked": {
+      "brute": [
+        "sage"
+      ]
+    },
+    "block_asks": {
+      "veteran": "<foal>,<brute>,NONE",
+      "sage": "<foal>,<brute>,NONE"
+    },
+    "damage": {
+      "sage": 3
+    }
+  },
+  "notes": "BLOCK-SENSE (bait swing): the Rabid Foal 1/1 is thrown in so you waste the Gnarled Sage on it and let the River Brute 3/3 through. Gold line: the Veteran (asked first, lower handle) DECLINES to block the bait \u2014 the 1 chip is the accepted price \u2014 and the Sage kills the Brute, surviving at 4/4. The NONE row is a gold word too: a null replay answers NONE there as well, so it falsifies DOWNSTREAM (null also NONEs the Sage: 3 through, life 7, Brute lives on the zone lane). The punish-inaction flag holds via the downstream lane."
+}

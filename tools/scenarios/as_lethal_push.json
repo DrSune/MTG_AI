@@ -1,0 +1,89 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "singer",
+      "real": "Mistral Singer",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "charger",
+      "real": "Daybreak Charger",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "veteran",
+      "real": "Tempered Veteran",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "wall",
+      "name": "Runewall",
+      "type": "Creature",
+      "power": "0",
+      "toughness": "4",
+      "zone": "battlefield",
+      "controller": 1
+    },
+    {
+      "key": "guard",
+      "name": "Pit Guard",
+      "type": "Creature",
+      "power": "2",
+      "toughness": "2",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {},
+  "steps": [
+    {
+      "op": "life",
+      "seat": 1,
+      "set": 5
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "veteran": false
+      },
+      "block": {
+        "wall": null,
+        "guard": null
+      },
+      "decisions": [
+        "ATTACK",
+        "ATTACK"
+      ]
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 0
+    },
+    "zone": {
+      "singer": "battlefield",
+      "charger": "battlefield",
+      "veteran": "battlefield",
+      "wall": "battlefield",
+      "guard": "battlefield"
+    },
+    "attackers": {
+      "singer": true,
+      "charger": true,
+      "veteran": false
+    },
+    "asks": {
+      "singer": "ATTACK,DECLINE",
+      "charger": "ATTACK,DECLINE"
+    }
+  },
+  "notes": "ATTACK-SENSE (closing the game): opponent at 5: the Singer is unpunishable for 2 and the Charger walks in unblocked for 3 = exactly 0. Two gold ATTACK rows; each falsifies on the life lane \u2014 nulling the Singer ask declines the whole line (5 stays), nulling the Charger ask keeps the Singer's 2 but loses the closer (lands at 3)."
+}

@@ -1,0 +1,95 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "singer",
+      "real": "Mistral Singer",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "snout",
+      "real": "Trufflesnout",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "charger",
+      "real": "Daybreak Charger",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "ogre",
+      "name": "Marsh Ogre",
+      "type": "Creature",
+      "power": "4",
+      "toughness": "2",
+      "zone": "battlefield",
+      "controller": 1
+    },
+    {
+      "key": "guard",
+      "name": "Pit Guard",
+      "type": "Creature",
+      "power": "2",
+      "toughness": "2",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {},
+  "steps": [
+    {
+      "op": "life",
+      "seat": 1,
+      "set": 14
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "snout": true,
+        "charger": false
+      },
+      "block": {
+        "ogre": null,
+        "guard": "snout"
+      },
+      "decisions": [
+        "ATTACK"
+      ]
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 12
+    },
+    "zone": {
+      "singer": "battlefield",
+      "snout": "graveyard",
+      "charger": "battlefield",
+      "ogre": "battlefield",
+      "guard": "graveyard"
+    },
+    "attackers": {
+      "singer": true,
+      "charger": false
+    },
+    "blocked": {
+      "snout": [
+        "guard"
+      ]
+    },
+    "asks": {
+      "singer": "ATTACK,DECLINE"
+    },
+    "block_asks": {
+      "guard": "<snout>,NONE"
+    }
+  },
+  "notes": "ATTACK-SENSE (free attacker): a mid-game board \u2014 Mistral Singer is the only flyer, so the opponent's two ground bodies cannot touch it; the free lane MUST be swung (gold ATTACK via the decisions lane, falsifiable on the life lane: null DECLINEs it AND silently DECLINEs every later map-claimed ask, so seat1 stays at 14). The Pit Guard trade is scripted context (block map), not a gold row."
+}

@@ -1,0 +1,93 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "singer",
+      "real": "Mistral Singer",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "bulwark",
+      "name": "Riverbulwark",
+      "type": "Creature",
+      "power": "0",
+      "toughness": "7",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "colossus",
+      "name": "Quarry Colossus",
+      "type": "Creature",
+      "power": "6",
+      "toughness": "5",
+      "zone": "battlefield",
+      "controller": 1
+    },
+    {
+      "key": "runt",
+      "name": "Kennel Runt",
+      "type": "Creature",
+      "power": "1",
+      "toughness": "1",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {},
+  "steps": [
+    {
+      "op": "life",
+      "seat": 0,
+      "set": 4
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 1,
+      "attack": {
+        "colossus": true,
+        "runt": true
+      },
+      "block": {
+        "singer": "runt"
+      },
+      "decisions": [
+        "colossus"
+      ]
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 4
+    },
+    "zone": {
+      "singer": "battlefield",
+      "bulwark": "battlefield",
+      "colossus": "battlefield",
+      "runt": "graveyard"
+    },
+    "blocked": {
+      "colossus": [
+        "bulwark"
+      ],
+      "runt": [
+        "singer"
+      ]
+    },
+    "block_asks": {
+      "bulwark": "<colossus>,<runt>,NONE"
+    },
+    "damage": {
+      "bulwark": 6,
+      "singer": 1
+    }
+  },
+  "notes": "BLOCK-SENSE (chump only where the margin demands): at 4 life the Quarry Colossus 6/5 must be eaten by the Riverbulwark 0/7 (it survives the 6); the Mistral Singer \u2014 worth keeping \u2014 kills the 1/1 Runt instead of dipping into the Colossus (the counterfactual: the Singer dies to 6, the wall still blocks, the Runt gets through \u2014 strictly worse on every lane). Gold word: the Colossus token on the bulwark's ask; null NONEs it and the face eats 6 (life lane falsifies; runt-zone stays)."
+}

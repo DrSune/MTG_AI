@@ -48,7 +48,9 @@ def test_joins_the_static_corpus_at_180(dataset):
     # Trufflesnout choose-one ladders x2) on top of the Part-2 168.
     # 2026-10-08b (mana-atom closure): +3 TRAIN items on top of the 177
     # (Sanctum G-at-X=2 twin x1, Treasure two-source G-then-R pair x2).
-    assert v2.join_corpus(dataset, corpus["items"]) == 180
+    # 2026-10-10 act-sense wave: +19 TRAIN items (attack-sense x5,
+    # block-sense x4, cast-priority x5, may-fire-realistic x5) on top of 180.
+    assert v2.join_corpus(dataset, corpus["items"]) == 199
 
 
 # ------------------------------------------------------------- schema laws
@@ -128,18 +130,25 @@ def test_handle_grounding_coverage(episodes):
     # grounded (84.5% -> 84.8%) — the two empath ladders' one_of typed-creature
     # menus contribute 4 handle candidates (2 menus x 2 creatures), all
     # grounded.
-    assert (hs_ok, hs) == (178, 210), "handle grounding drifted"
-    assert (ch_ok, ch) == (71, 74), (
+    # 2026-10-10 act-sense wave regen: 210->230 handle candidates, 178->196
+    # grounded (84.8% -> 85.2%) — the block/target/sac/one_of menus of the
+    # 12 new act-sense packs contribute 20 candidates, 18 grounded.
+    assert (hs_ok, hs) == (196, 230), "handle grounding drifted"
+    assert (ch_ok, ch) == (75, 78), (
         "choose-digit grounding drifted"
     )  # 2026-10-08 volume wave regen: +4 digit candidates (2 new Trufflesnout
     # choose-one asks x ('0','1')), all grounded (67/70 -> 71/74).
+    # 2026-10-10 act-sense wave: +4 more (tempo ladder's two choose-ones),
+    # all grounded (71/74 -> 75/78).
     assert (
         sum(1 for r in rows_g if any(g for g in (r.get("ground") or [])))
-        == 88  # P1b pilot regen
+        == 98  # P1b pilot regen
     )  # doc 36 regen 2026-10-07; 2026-10-08 volume wave regen 84->88
     # (+4 gold rows with any grounded candidate: the 2 empath one_of creature
     # menus + the 2 Trufflesnout mode rows; the may/mana-color rows ship empty
     # ground lists by design).
+    # 2026-10-10 act-sense wave regen 88->98 (+10: the 12 new packs'
+    # block/target/sac/one_of/attack gold rows carrying grounded candidates).
 
 
 def test_content_candidates_stay_bare(episodes):

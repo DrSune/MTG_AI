@@ -1,0 +1,90 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "storm",
+      "real": "Stormwing Entity",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "guard",
+      "name": "Pit Guard",
+      "type": "Creature",
+      "power": "2",
+      "toughness": "4",
+      "zone": "battlefield",
+      "controller": 1
+    },
+    {
+      "key": "sage",
+      "name": "Dune Sage",
+      "type": "Creature",
+      "power": "2",
+      "toughness": "2",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {
+    "0": {
+      "U": 3
+    }
+  },
+  "steps": [
+    {
+      "op": "enter",
+      "key": "storm",
+      "decisions": [
+        "top",
+        "bottom"
+      ]
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "storm": true
+      },
+      "block": {
+        "guard": null,
+        "sage": null
+      }
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 17
+    },
+    "zone": {
+      "storm": "battlefield",
+      "guard": "battlefield",
+      "sage": "battlefield"
+    },
+    "power": {
+      "storm": 3
+    },
+    "attackers": {
+      "storm": true
+    },
+    "asks": {
+      "storm": "ATTACK,DECLINE"
+    }
+  },
+  "notes": "MAY-FIRE (realistic tempo board, no scaffolding): Stormwing Entity's enters-the-battlefield scry 2 keeps the fly on top of the library ('top','bottom') and then the 3/3 flyer attacks into a 2/4 that can never answer it for exactly 3. The scry rows are gold: a null replay answers the engine's vocab[0] and the ATTACK row is falsified downstream (null DECLINEs the map-claimed swing \u2014 the life lane pins the difference). Real mid-game shape: three creatures, flyer ETB dig, one swing."
+}

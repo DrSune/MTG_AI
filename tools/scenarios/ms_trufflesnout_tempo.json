@@ -1,0 +1,127 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "sn1",
+      "real": "Trufflesnout",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "sn2",
+      "real": "Trufflesnout",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "guard",
+      "name": "Pit Guard",
+      "type": "Creature",
+      "power": "2",
+      "toughness": "2",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {},
+  "steps": [
+    {
+      "op": "life",
+      "seat": 0,
+      "set": 12
+    },
+    {
+      "op": "enter",
+      "key": "sn1",
+      "decisions": [
+        "1"
+      ]
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 1,
+      "attack": {
+        "guard": true
+      }
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "enter",
+      "key": "sn2",
+      "decisions": [
+        "0"
+      ]
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "sn1": true
+      },
+      "block": {
+        "guard": "sn2"
+      },
+      "decisions": [
+        "ATTACK"
+      ]
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 14,
+      "1": 18
+    },
+    "counters": {
+      "sn2": {
+        "PLUS_1_PLUS_1": 1
+      }
+    },
+    "power": {
+      "sn2": 3
+    },
+    "zone": {
+      "sn1": "battlefield",
+      "sn2": "battlefield",
+      "guard": "graveyard"
+    },
+    "damage": {
+      "sn2": 2
+    },
+    "attackers": {
+      "sn1": true,
+      "sn2": true
+    },
+    "blocked": {
+      "sn2": [
+        "guard"
+      ]
+    }
+  },
+  "notes": "MAY-FIRE (tempo read on the same card twice): under the Pit Guard's eye the FIRST Trufflesnout buys stabilization ('1' = 4 life \u2014 falsified at its own ordinal: null takes vocab[0] = the counter branch and life[0] never matches). A swing later the SECOND one commits ('0' = the +1/+1 counter, growing 3/3 through the Guard): its choice row is null-equivalent at its own ordinal, so it is falsified downstream \u2014 the null replay DECLINEs the scripted swing AND the map-claimed first swing (life[1] stays 20, Guard lives). One card, two right answers, decided by the board. (The Guard's death clears its damage marks \u2014 CR 120.6 \u2014 so the mark ledger pins only the living snout's 2.)"
+}

@@ -1,0 +1,98 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "malkin",
+      "real": "Pridemalkin",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "charger",
+      "real": "Daybreak Charger",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "wall",
+      "name": "Runewall",
+      "type": "Creature",
+      "power": "2",
+      "toughness": "4",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "mana": {},
+  "steps": [
+    {
+      "op": "life",
+      "seat": 1,
+      "set": 6
+    },
+    {
+      "op": "enter",
+      "key": "malkin",
+      "decisions": [
+        "charger"
+      ]
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "end_turn"
+    },
+    {
+      "op": "advance_turn"
+    },
+    {
+      "op": "combat",
+      "seat": 0,
+      "block": {
+        "wall": "malkin"
+      },
+      "decisions": [
+        "ATTACK"
+      ],
+      "attack": {
+        "charger": true
+      }
+    }
+  ],
+  "expect": {
+    "life": {
+      "1": 2
+    },
+    "counters": {
+      "charger": {
+        "PLUS_1_PLUS_1": 1
+      }
+    },
+    "power": {
+      "charger": 4
+    },
+    "zone": {
+      "malkin": "graveyard",
+      "charger": "battlefield",
+      "wall": "battlefield"
+    },
+    "damage": {
+      "wall": 2
+    },
+    "attackers": {
+      "malkin": true,
+      "charger": true
+    },
+    "asks": {
+      "malkin": "ATTACK,DECLINE"
+    }
+  },
+  "notes": "CAST-PRIORITY (counter before the swing): Pridemalkin's enters-the-battlefield ask puts its +1/+1 counter on the Daybreak Charger \u2014 the counter is what grants TRAMPLE (Pridemalkin's static), and trample is what lets the pumped 4/2 drive 4 through the Runewall while the untrampled Pridemalkin is eaten by its 2 power. The ETB TARGET gold 'charger' falsifies immediately (null takes vocab[0] = Pridemalkin itself, different counter/power/life lanes) and the malkin ATTACK row falsifies downstream (null DECLINEs both swings, life stays 6)."
+}

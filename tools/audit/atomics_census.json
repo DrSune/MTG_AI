@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated": "2026-10-08T19:10:59.500106+00:00",
+  "generated": "2026-10-09T22:04:23.775209+00:00",
   "golden_trees": 305,
   "engine": "reuses compiler._is_liftable_pick + ability_tree.from_dict",
   "charter": "KNOWLEDGE/2026-10-08/50-t5-full-pool-reaudit-charter.md"
@@ -619,7 +619,7 @@
    "tree_count": 0,
    "trees": [],
    "severity": "info",
-   "note": "214 asks scanned in episodes_v2.jsonl; unknown site kinds: NONE"
+   "note": "267 asks scanned in episodes_v2.jsonl; unknown site kinds: NONE"
   }
  },
  "rewrite_ledger": [
