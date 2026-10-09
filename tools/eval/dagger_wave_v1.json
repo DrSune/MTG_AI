@@ -1,0 +1,3682 @@
+{
+ "meta": {
+  "date": "2026-10-09 22:31",
+  "version": "dagger-wave-v1",
+  "policy_a": "/home/sune/Desktop/MTG_AI/tools/training/bc7_S3_s1_best.pt",
+  "policy_b": "/home/sune/Desktop/MTG_AI/tools/training/bc7_S3_s3_best.pt",
+  "pool_mode": "engine",
+  "turn_cap": 60,
+  "games": 60,
+  "seats_policy_both": true,
+  "seeds": [
+   700001,
+   700060
+  ],
+  "deck_pairs_seed": 1409,
+  "device": "cpu",
+  "workers": 4,
+  "seconds": 415.9,
+  "teacher_lanes": "pack lane = unique content-word gold for (card-from-site-tag, ask-kind) in puzzle_corpus, kinds may/scry/attack only, ambiguous keys off, live null re-falsification required (fallback = heuristic pick); otherwise the v2 heuristic probe. Scry sites carry no source card in-game, so scry labels are heuristic-only by tag law. Eval-family diver-gences are dropped as leak (counted), never labelled."
+ },
+ "totals": {
+  "asks": 5950,
+  "divergences": 3597,
+  "div_pack": 0,
+  "div_heur": 3597,
+  "pack_hit": 77,
+  "pack_miss": 770,
+  "pack_ambiguous": 0,
+  "pack_gold_illegal": 0,
+  "dropped_eval_family": 332,
+  "model_errors": 0,
+  "illegal_idx": 0
+ },
+ "divergence_rate": 0.6045,
+ "per_kind": {
+  "act": {
+   "asks": 3363,
+   "div": 1997,
+   "pack_teacher": 0,
+   "div_rate": 0.5938
+  },
+  "attack": {
+   "asks": 771,
+   "div": 71,
+   "pack_teacher": 0,
+   "div_rate": 0.0921
+  },
+  "block": {
+   "asks": 138,
+   "div": 83,
+   "pack_teacher": 0,
+   "div_rate": 0.6014
+  },
+  "choose": {
+   "asks": 1120,
+   "div": 1116,
+   "pack_teacher": 0,
+   "div_rate": 0.9964
+  },
+  "cw": {
+   "asks": 2,
+   "div": 0,
+   "pack_teacher": 0,
+   "div_rate": 0.0
+  },
+  "may": {
+   "asks": 94,
+   "div": 0,
+   "pack_teacher": 0,
+   "div_rate": 0.0
+  },
+  "order": {
+   "asks": 8,
+   "div": 8,
+   "pack_teacher": 0,
+   "div_rate": 1.0
+  },
+  "other": {
+   "asks": 190,
+   "div": 164,
+   "pack_teacher": 0,
+   "div_rate": 0.8632
+  },
+  "scry": {
+   "asks": 84,
+   "div": 84,
+   "pack_teacher": 0,
+   "div_rate": 1.0
+  },
+  "target": {
+   "asks": 171,
+   "div": 65,
+   "pack_teacher": 0,
+   "div_rate": 0.3801
+  },
+  "trample": {
+   "asks": 9,
+   "div": 9,
+   "pack_teacher": 0,
+   "div_rate": 1.0
+  }
+ },
+ "biggest_disagreement": {
+  "kind": "act",
+  "asks": 3363,
+  "div": 1997,
+  "pack_teacher": 0
+ },
+ "certification": {
+  "backing_items": 0,
+  "falsified": 0,
+  "not_falsified": 0,
+  "episodes_demoted": 0,
+  "gold_rows_demoted": 0,
+  "gold_rows_dropped_agreed": 0,
+  "episodes_dropped_empty": 0
+ },
+ "truncation": {
+  "gold_row_overflow": 0
+ },
+ "crashes": [
+  700016,
+  700024,
+  700060
+ ],
+ "outcomes": {
+  "a": 21,
+  "b": 36,
+  "crash": 3
+ },
+ "files": {
+  "episodes_dagger": {
+   "path": "/home/sune/Desktop/MTG_AI/tools/training/episodes_dagger.jsonl",
+   "episodes": 131,
+   "original_base_lines": 131,
+   "certified_dagger_episodes": 0,
+   "certified_gold_rows": 0
+  },
+  "episodes_dagger_heuristic": {
+   "path": "/home/sune/Desktop/MTG_AI/tools/training/episodes_dagger_heuristic.jsonl",
+   "episodes": 1337,
+   "heuristic_gold_rows": 3265
+  }
+ },
+ "records": [
+  {
+   "seed": 700001,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 44,
+    "divergences": 22,
+    "div_pack": 0,
+    "div_heur": 22,
+    "pack_hit": 0,
+    "pack_miss": 11,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 7,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 21,
+     "div": 12,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 11,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 6,
+     "div": 6,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 2,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 3,
+     "div": 2,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 7
+  },
+  {
+   "seed": 700002,
+   "swap": true,
+   "outcome": "a",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 49,
+    "divergences": 22,
+    "div_pack": 0,
+    "div_heur": 22,
+    "pack_hit": 0,
+    "pack_miss": 10,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 30,
+     "div": 14,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 10,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 6,
+     "div": 6,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 2,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 10
+  },
+  {
+   "seed": 700003,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 15,
+    "divergences": 6,
+    "div_pack": 0,
+    "div_heur": 6,
+    "pack_hit": 0,
+    "pack_miss": 5,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 4,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 6,
+     "div": 6,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 5,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 3
+  },
+  {
+   "seed": 700004,
+   "swap": true,
+   "outcome": "a",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 73,
+    "divergences": 33,
+    "div_pack": 0,
+    "div_heur": 33,
+    "pack_hit": 1,
+    "pack_miss": 13,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 1,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 39,
+     "div": 17,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 3,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 13,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 12,
+     "div": 12,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 2,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 14
+  },
+  {
+   "seed": 700005,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 96,
+    "divergences": 60,
+    "div_pack": 0,
+    "div_heur": 60,
+    "pack_hit": 2,
+    "pack_miss": 16,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 3,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 41,
+     "div": 24,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 5,
+     "div": 5,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 16,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 5,
+     "div": 4,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 23,
+     "div": 23,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 3,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 2,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 26
+  },
+  {
+   "seed": 700006,
+   "swap": true,
+   "outcome": "b",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 93,
+    "divergences": 55,
+    "div_pack": 0,
+    "div_heur": 55,
+    "pack_hit": 4,
+    "pack_miss": 17,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 17,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 20,
+     "div": 5,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 5,
+     "div": 5,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 25,
+     "div": 25,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 16,
+     "div": 15,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 20,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 5,
+     "div": 3,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 19
+  },
+  {
+   "seed": 700007,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 57,
+    "divergences": 25,
+    "div_pack": 0,
+    "div_heur": 25,
+    "pack_hit": 1,
+    "pack_miss": 17,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 2,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 20,
+     "div": 8,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 17,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 14,
+     "div": 14,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 2,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 9
+  },
+  {
+   "seed": 700008,
+   "swap": true,
+   "outcome": "b",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 92,
+    "divergences": 62,
+    "div_pack": 0,
+    "div_heur": 62,
+    "pack_hit": 0,
+    "pack_miss": 12,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 14,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 31,
+     "div": 15,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 32,
+     "div": 32,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 6,
+     "div": 5,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 12,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 3,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 5,
+     "div": 5,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 3,
+     "div": 2,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 23
+  },
+  {
+   "seed": 700009,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 109,
+    "divergences": 84,
+    "div_pack": 0,
+    "div_heur": 84,
+    "pack_hit": 0,
+    "pack_miss": 11,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 1,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 69,
+     "div": 57,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 20,
+     "div": 20,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 5,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 11,
+     "div": 4,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 2,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 31
+  },
+  {
+   "seed": 700010,
+   "swap": true,
+   "outcome": "b",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 165,
+    "divergences": 133,
+    "div_pack": 0,
+    "div_heur": 133,
+    "pack_hit": 1,
+    "pack_miss": 12,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 114,
+     "div": 99,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 32,
+     "div": 32,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 5,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 12,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 43
+  },
+  {
+   "seed": 700011,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 323,
+    "divergences": 257,
+    "div_pack": 0,
+    "div_heur": 257,
+    "pack_hit": 4,
+    "pack_miss": 14,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 24,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 255,
+     "div": 214,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 5,
+     "div": 5,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 23,
+     "div": 23,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 6,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 14,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 6,
+     "div": 5,
+     "pack_teacher": 0
+    },
+    "cw": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "trample": {
+     "asks": 5,
+     "div": 5,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 4,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 3,
+     "div": 3,
+     "pack_teacher": 0
+    },
+    "order": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 103
+  },
+  {
+   "seed": 700012,
+   "swap": true,
+   "outcome": "b",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 68,
+    "divergences": 47,
+    "div_pack": 0,
+    "div_heur": 47,
+    "pack_hit": 0,
+    "pack_miss": 9,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 45,
+     "div": 35,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 10,
+     "div": 10,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 2,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 9,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 13
+  },
+  {
+   "seed": 700013,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 36,
+    "divergences": 18,
+    "div_pack": 0,
+    "div_heur": 18,
+    "pack_hit": 0,
+    "pack_miss": 7,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 6,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 16,
+     "div": 6,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 11,
+     "div": 11,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 7,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 6
+  },
+  {
+   "seed": 700014,
+   "swap": true,
+   "outcome": "b",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 74,
+    "divergences": 45,
+    "div_pack": 0,
+    "div_heur": 45,
+    "pack_hit": 0,
+    "pack_miss": 9,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 39,
+     "div": 23,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 21,
+     "div": 20,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 3,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 9,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 18
+  },
+  {
+   "seed": 700015,
+   "swap": false,
+   "outcome": "a",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 202,
+    "divergences": 114,
+    "div_pack": 0,
+    "div_heur": 114,
+    "pack_hit": 37,
+    "pack_miss": 20,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 2,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 81,
+     "div": 54,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 47,
+     "div": 47,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 20,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 3,
+     "div": 3,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 37,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 10,
+     "div": 6,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "trample": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 49
+  },
+  {
+   "seed": 700016,
+   "swap": true,
+   "outcome": "crash",
+   "reason": "crash:AssertionError: ",
+   "crash": "AssertionError",
+   "counters": {
+    "asks": 10,
+    "divergences": 6,
+    "div_pack": 0,
+    "div_heur": 6,
+    "pack_hit": 0,
+    "pack_miss": 0,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 4,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 5,
+     "div": 5,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 2
+  },
+  {
+   "seed": 700017,
+   "swap": false,
+   "outcome": "a",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 83,
+    "divergences": 59,
+    "div_pack": 0,
+    "div_heur": 59,
+    "pack_hit": 0,
+    "pack_miss": 9,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 1,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 16,
+     "div": 4,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 52,
+     "div": 52,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 4,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 9,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 24
+  },
+  {
+   "seed": 700018,
+   "swap": true,
+   "outcome": "b",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 55,
+    "divergences": 23,
+    "div_pack": 0,
+    "div_heur": 23,
+    "pack_hit": 0,
+    "pack_miss": 20,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 1,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 17,
+     "div": 3,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 9,
+     "div": 9,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 2,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 21,
+     "div": 4,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 4,
+     "div": 4,
+     "pack_teacher": 0
+    },
+    "order": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 9
+  },
+  {
+   "seed": 700019,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 56,
+    "divergences": 29,
+    "div_pack": 0,
+    "div_heur": 29,
+    "pack_hit": 0,
+    "pack_miss": 13,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 6,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 17,
+     "div": 6,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 20,
+     "div": 20,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 2,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 13,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 3,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 9
+  },
+  {
+   "seed": 700020,
+   "swap": true,
+   "outcome": "b",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 82,
+    "divergences": 46,
+    "div_pack": 0,
+    "div_heur": 46,
+    "pack_hit": 0,
+    "pack_miss": 25,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 8,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 26,
+     "div": 15,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 17,
+     "div": 17,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 24,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 4,
+     "div": 3,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 7,
+     "div": 6,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 16
+  },
+  {
+   "seed": 700021,
+   "swap": false,
+   "outcome": "a",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 23,
+    "divergences": 11,
+    "div_pack": 0,
+    "div_heur": 11,
+    "pack_hit": 1,
+    "pack_miss": 6,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 4,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 9,
+     "div": 4,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 6,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 4,
+     "div": 4,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 4
+  },
+  {
+   "seed": 700022,
+   "swap": true,
+   "outcome": "b",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 66,
+    "divergences": 42,
+    "div_pack": 0,
+    "div_heur": 42,
+    "pack_hit": 0,
+    "pack_miss": 12,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 1,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 24,
+     "div": 13,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 6,
+     "div": 6,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 16,
+     "div": 16,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 12,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 3,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 5,
+     "div": 3,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 16
+  },
+  {
+   "seed": 700023,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 53,
+    "divergences": 31,
+    "div_pack": 0,
+    "div_heur": 31,
+    "pack_hit": 0,
+    "pack_miss": 12,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 3,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 20,
+     "div": 12,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 15,
+     "div": 15,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 12,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 3,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 11
+  },
+  {
+   "seed": 700024,
+   "swap": true,
+   "outcome": "crash",
+   "reason": "crash:AssertionError: ",
+   "crash": "AssertionError",
+   "counters": {
+    "asks": 5,
+    "divergences": 2,
+    "div_pack": 0,
+    "div_heur": 2,
+    "pack_hit": 0,
+    "pack_miss": 0,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 5,
+     "div": 2,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 1
+  },
+  {
+   "seed": 700025,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 171,
+    "divergences": 84,
+    "div_pack": 0,
+    "div_heur": 84,
+    "pack_hit": 9,
+    "pack_miss": 21,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 2,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 111,
+     "div": 60,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 19,
+     "div": 19,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 21,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 6,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 3,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 9,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 2,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 41
+  },
+  {
+   "seed": 700026,
+   "swap": true,
+   "outcome": "a",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 108,
+    "divergences": 70,
+    "div_pack": 0,
+    "div_heur": 70,
+    "pack_hit": 0,
+    "pack_miss": 12,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 1,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 46,
+     "div": 28,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 34,
+     "div": 34,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 12,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 8,
+     "div": 4,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 5,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "trample": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 36
+  },
+  {
+   "seed": 700027,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 99,
+    "divergences": 34,
+    "div_pack": 0,
+    "div_heur": 34,
+    "pack_hit": 0,
+    "pack_miss": 15,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 57,
+     "div": 7,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 22,
+     "div": 22,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 2,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 15,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 14
+  },
+  {
+   "seed": 700028,
+   "swap": true,
+   "outcome": "a",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 128,
+    "divergences": 73,
+    "div_pack": 0,
+    "div_heur": 73,
+    "pack_hit": 0,
+    "pack_miss": 14,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 1,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 96,
+     "div": 60,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 9,
+     "div": 6,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 16,
+     "div": 3,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 4,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 32
+  },
+  {
+   "seed": 700029,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 69,
+    "divergences": 45,
+    "div_pack": 0,
+    "div_heur": 45,
+    "pack_hit": 0,
+    "pack_miss": 7,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 38,
+     "div": 21,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 20,
+     "div": 20,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 7,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "trample": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 15
+  },
+  {
+   "seed": 700030,
+   "swap": true,
+   "outcome": "a",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 82,
+    "divergences": 48,
+    "div_pack": 0,
+    "div_heur": 48,
+    "pack_hit": 1,
+    "pack_miss": 14,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 4,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 38,
+     "div": 23,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 16,
+     "div": 16,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 3,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 14,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 3,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 5,
+     "div": 4,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 18
+  },
+  {
+   "seed": 700031,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 34,
+    "divergences": 14,
+    "div_pack": 0,
+    "div_heur": 14,
+    "pack_hit": 0,
+    "pack_miss": 7,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 7,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 14,
+     "div": 4,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 2,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 8,
+     "div": 8,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 7,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 2,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 4
+  },
+  {
+   "seed": 700032,
+   "swap": true,
+   "outcome": "a",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 70,
+    "divergences": 45,
+    "div_pack": 0,
+    "div_heur": 45,
+    "pack_hit": 1,
+    "pack_miss": 8,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 1,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 55,
+     "div": 43,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 3,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 8,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 14
+  },
+  {
+   "seed": 700033,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 57,
+    "divergences": 24,
+    "div_pack": 0,
+    "div_heur": 24,
+    "pack_hit": 1,
+    "pack_miss": 18,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 21,
+     "div": 7,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 18,
+     "div": 7,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 7,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 7,
+     "div": 7,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 13
+  },
+  {
+   "seed": 700034,
+   "swap": true,
+   "outcome": "a",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 73,
+    "divergences": 51,
+    "div_pack": 0,
+    "div_heur": 51,
+    "pack_hit": 0,
+    "pack_miss": 17,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 48,
+     "div": 43,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 17,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 6,
+     "div": 6,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 18
+  },
+  {
+   "seed": 700035,
+   "swap": false,
+   "outcome": "a",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 169,
+    "divergences": 131,
+    "div_pack": 0,
+    "div_heur": 131,
+    "pack_hit": 0,
+    "pack_miss": 3,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 1,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 99,
+     "div": 73,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 50,
+     "div": 50,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 3,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 3,
+     "div": 3,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 4,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 9,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 43
+  },
+  {
+   "seed": 700036,
+   "swap": true,
+   "outcome": "b",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 153,
+    "divergences": 34,
+    "div_pack": 0,
+    "div_heur": 34,
+    "pack_hit": 0,
+    "pack_miss": 10,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 11,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 129,
+     "div": 21,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 11,
+     "div": 11,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 10,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 2,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 9
+  },
+  {
+   "seed": 700037,
+   "swap": false,
+   "outcome": "a",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 202,
+    "divergences": 115,
+    "div_pack": 0,
+    "div_heur": 115,
+    "pack_hit": 0,
+    "pack_miss": 13,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 10,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 127,
+     "div": 55,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 57,
+     "div": 57,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 13,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 2,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 39
+  },
+  {
+   "seed": 700038,
+   "swap": true,
+   "outcome": "a",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 425,
+    "divergences": 332,
+    "div_pack": 0,
+    "div_heur": 332,
+    "pack_hit": 0,
+    "pack_miss": 24,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 27,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 231,
+     "div": 173,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 103,
+     "div": 103,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 24,
+     "div": 5,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 7,
+     "div": 5,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 27,
+     "div": 14,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 29,
+     "div": 29,
+     "pack_teacher": 0
+    },
+    "cw": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "order": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 127
+  },
+  {
+   "seed": 700039,
+   "swap": false,
+   "outcome": "a",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 165,
+    "divergences": 146,
+    "div_pack": 0,
+    "div_heur": 146,
+    "pack_hit": 0,
+    "pack_miss": 8,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 139,
+     "div": 128,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 15,
+     "div": 15,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 8,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 44
+  },
+  {
+   "seed": 700040,
+   "swap": true,
+   "outcome": "b",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 81,
+    "divergences": 62,
+    "div_pack": 0,
+    "div_heur": 62,
+    "pack_hit": 0,
+    "pack_miss": 7,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 22,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 27,
+     "div": 17,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 13,
+     "div": 11,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 31,
+     "div": 31,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 7,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 17
+  },
+  {
+   "seed": 700041,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 118,
+    "divergences": 88,
+    "div_pack": 0,
+    "div_heur": 88,
+    "pack_hit": 0,
+    "pack_miss": 15,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 46,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 42,
+     "div": 29,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 15,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 3,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 21,
+     "div": 21,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 34,
+     "div": 34,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 22
+  },
+  {
+   "seed": 700042,
+   "swap": true,
+   "outcome": "a",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 45,
+    "divergences": 19,
+    "div_pack": 0,
+    "div_heur": 19,
+    "pack_hit": 0,
+    "pack_miss": 14,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 2,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 13,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 15,
+     "div": 15,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 14,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 2,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 9
+  },
+  {
+   "seed": 700043,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 129,
+    "divergences": 74,
+    "div_pack": 0,
+    "div_heur": 74,
+    "pack_hit": 0,
+    "pack_miss": 8,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 111,
+     "div": 65,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 9,
+     "div": 9,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 8,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 21
+  },
+  {
+   "seed": 700044,
+   "swap": true,
+   "outcome": "b",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 202,
+    "divergences": 104,
+    "div_pack": 0,
+    "div_heur": 104,
+    "pack_hit": 2,
+    "pack_miss": 31,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 2,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 112,
+     "div": 54,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 31,
+     "div": 31,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 36,
+     "div": 4,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 13,
+     "div": 11,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 6,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "order": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 45
+  },
+  {
+   "seed": 700045,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 51,
+    "divergences": 26,
+    "div_pack": 0,
+    "div_heur": 26,
+    "pack_hit": 0,
+    "pack_miss": 16,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 21,
+     "div": 12,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 14,
+     "div": 14,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 16,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 11
+  },
+  {
+   "seed": 700046,
+   "swap": true,
+   "outcome": "a",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 113,
+    "divergences": 89,
+    "div_pack": 0,
+    "div_heur": 89,
+    "pack_hit": 1,
+    "pack_miss": 12,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 7,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 79,
+     "div": 68,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 16,
+     "div": 16,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 3,
+     "div": 3,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 12,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 27
+  },
+  {
+   "seed": 700047,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 42,
+    "divergences": 9,
+    "div_pack": 0,
+    "div_heur": 9,
+    "pack_hit": 0,
+    "pack_miss": 18,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 4,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 13,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 8,
+     "div": 5,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 12,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 6,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 3,
+     "div": 3,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 5
+  },
+  {
+   "seed": 700048,
+   "swap": true,
+   "outcome": "b",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 32,
+    "divergences": 14,
+    "div_pack": 0,
+    "div_heur": 14,
+    "pack_hit": 0,
+    "pack_miss": 8,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 11,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 10,
+     "div": 10,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 8,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 2,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 6
+  },
+  {
+   "seed": 700049,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 89,
+    "divergences": 55,
+    "div_pack": 0,
+    "div_heur": 55,
+    "pack_hit": 0,
+    "pack_miss": 12,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 50,
+     "div": 29,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 20,
+     "div": 20,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 3,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 12,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "order": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 21
+  },
+  {
+   "seed": 700050,
+   "swap": true,
+   "outcome": "b",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 34,
+    "divergences": 16,
+    "div_pack": 0,
+    "div_heur": 16,
+    "pack_hit": 1,
+    "pack_miss": 10,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 2,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 12,
+     "div": 6,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 9,
+     "div": 9,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 10,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 6
+  },
+  {
+   "seed": 700051,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 186,
+    "divergences": 103,
+    "div_pack": 0,
+    "div_heur": 103,
+    "pack_hit": 0,
+    "pack_miss": 21,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 6,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 139,
+     "div": 80,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 21,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 5,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 16,
+     "div": 16,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 4,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 35
+  },
+  {
+   "seed": 700052,
+   "swap": true,
+   "outcome": "b",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 67,
+    "divergences": 40,
+    "div_pack": 0,
+    "div_heur": 40,
+    "pack_hit": 2,
+    "pack_miss": 14,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 11,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 19,
+     "div": 12,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 19,
+     "div": 19,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 3,
+     "div": 3,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 9,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 7,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 8,
+     "div": 5,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 14
+  },
+  {
+   "seed": 700053,
+   "swap": false,
+   "outcome": "b",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 118,
+    "divergences": 48,
+    "div_pack": 0,
+    "div_heur": 48,
+    "pack_hit": 0,
+    "pack_miss": 19,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 8,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 74,
+     "div": 25,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 17,
+     "div": 17,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 2,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 19,
+     "div": 3,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 3,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 2,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 19
+  },
+  {
+   "seed": 700054,
+   "swap": true,
+   "outcome": "a",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 107,
+    "divergences": 62,
+    "div_pack": 0,
+    "div_heur": 62,
+    "pack_hit": 1,
+    "pack_miss": 24,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 19,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 47,
+     "div": 31,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 12,
+     "div": 10,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 4,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 24,
+     "div": 3,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 10,
+     "div": 10,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 7,
+     "div": 4,
+     "pack_teacher": 0
+    },
+    "order": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 23
+  },
+  {
+   "seed": 700055,
+   "swap": false,
+   "outcome": "a",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 220,
+    "divergences": 172,
+    "div_pack": 0,
+    "div_heur": 172,
+    "pack_hit": 5,
+    "pack_miss": 15,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 24,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 145,
+     "div": 127,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 5,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 4,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 15,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 7,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 4,
+     "div": 4,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 36,
+     "div": 35,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 4,
+     "div": 3,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 70
+  },
+  {
+   "seed": 700056,
+   "swap": true,
+   "outcome": "a",
+   "reason": "game over: player:0(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 101,
+    "divergences": 56,
+    "div_pack": 0,
+    "div_heur": 56,
+    "pack_hit": 0,
+    "pack_miss": 9,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 8,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 78,
+     "div": 43,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 4,
+     "div": 4,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 8,
+     "div": 8,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 9,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 16
+  },
+  {
+   "seed": 700057,
+   "swap": false,
+   "outcome": "a",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 98,
+    "divergences": 15,
+    "div_pack": 0,
+    "div_heur": 15,
+    "pack_hit": 0,
+    "pack_miss": 18,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 1,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 70,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 18,
+     "div": 5,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 4,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 4,
+     "div": 4,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 7
+  },
+  {
+   "seed": 700058,
+   "swap": true,
+   "outcome": "b",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 89,
+    "divergences": 28,
+    "div_pack": 0,
+    "div_heur": 28,
+    "pack_hit": 0,
+    "pack_miss": 16,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 1,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 45,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 12,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 18,
+     "div": 18,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 5,
+     "div": 4,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 3,
+     "div": 3,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 4,
+     "div": 0,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 13
+  },
+  {
+   "seed": 700059,
+   "swap": false,
+   "outcome": "a",
+   "reason": "game over: player:1(life<=0)",
+   "crash": null,
+   "counters": {
+    "asks": 85,
+    "divergences": 35,
+    "div_pack": 0,
+    "div_heur": 35,
+    "pack_hit": 2,
+    "pack_miss": 12,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 3,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 37,
+     "div": 3,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 20,
+     "div": 20,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 5,
+     "div": 5,
+     "pack_teacher": 0
+    },
+    "target": {
+     "asks": 1,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "may": {
+     "asks": 2,
+     "div": 0,
+     "pack_teacher": 0
+    },
+    "attack": {
+     "asks": 12,
+     "div": 3,
+     "pack_teacher": 0
+    },
+    "block": {
+     "asks": 5,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "order": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "other": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 15
+  },
+  {
+   "seed": 700060,
+   "swap": true,
+   "outcome": "crash",
+   "reason": "crash:AssertionError: ",
+   "crash": "AssertionError",
+   "counters": {
+    "asks": 9,
+    "divergences": 4,
+    "div_pack": 0,
+    "div_heur": 4,
+    "pack_hit": 0,
+    "pack_miss": 0,
+    "pack_ambiguous": 0,
+    "pack_gold_illegal": 0,
+    "dropped_eval_family": 0,
+    "model_errors": 0,
+    "illegal_idx": 0
+   },
+   "kinds": {
+    "act": {
+     "asks": 6,
+     "div": 1,
+     "pack_teacher": 0
+    },
+    "scry": {
+     "asks": 2,
+     "div": 2,
+     "pack_teacher": 0
+    },
+    "choose": {
+     "asks": 1,
+     "div": 1,
+     "pack_teacher": 0
+    }
+   },
+   "trunc": {
+    "gold_row_overflow": 0
+   },
+   "episodes_pack": 0,
+   "episodes_heur": 2
+  }
+ ]
+}
