@@ -129,6 +129,27 @@ bring_engine_back() { # runs inside trap; never clobbers the original rc
   stop_training_child
   wait_for_gpu_idle 60 || true
 
+  # Reclaim page cache from training outputs so unified memory is free for engine startup
+  sync
+  "$PY" -c '
+import os, glob
+for path in glob.glob("'"$REPO"'/**/*", recursive=True):
+    if os.path.isfile(path):
+        try:
+            fd = os.open(path, os.O_RDONLY)
+            os.posix_fadvise(fd, 0, 0, os.POSIX_FADV_DONTNEED)
+            os.close(fd)
+        except OSError:
+            pass
+' 2>/dev/null || true
+
+  local mem_waited=0
+  while [ "$(mem_avail | awk '{print ($1 < m) ? 1 : 0}' m="85")" = 1 ] && [ "$mem_waited" -lt 60 ]; do
+    op "waiting for memory to settle before engine switch (avail: $(mem_avail) GiB, waited: ${mem_waited}s)"
+    sleep 3
+    mem_waited=$((mem_waited + 3))
+  done
+
   while [ "$switch_attempts" -lt "$max_switch_attempts" ]; do
     switch_attempts=$((switch_attempts + 1))
     op "bring-engine-back (attempt $switch_attempts/$max_switch_attempts): switching to $TARGET via engine-guard"
