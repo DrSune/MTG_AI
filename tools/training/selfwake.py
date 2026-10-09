@@ -134,8 +134,29 @@ def wake_tmux(sid: str) -> bool:
 
 def inject(sid: str, text: str) -> bool:
     wake_tmux(sid)
+
+    # 1. Primary: If session is running in an interactive tmux pane, inject keys directly
+    try:
+        res = subprocess.run(
+            ["tmux", "list-panes", "-a", "-F", "#{pane_id}|#{session_name}:#{window_index}.#{pane_index}|#{pane_current_path}"],
+            capture_output=True, text=True, timeout=5
+        )
+        if res.returncode == 0:
+            for line in res.stdout.strip().splitlines():
+                parts = line.split("|")
+                if len(parts) == 3:
+                    pane_id, target, cwd = parts
+                    if str(DIRECTORY) in cwd or target.startswith("MTG:"):
+                        time.sleep(1.0)
+                        subprocess.run(["tmux", "send-keys", "-t", pane_id, text, "Enter"])
+                        log(f"injected prompt directly into tmux pane {target} ({pane_id})")
+                        return True
+    except Exception as exc:  # noqa: BLE001
+        log(f"tmux send-keys injection error: {exc}")
+
+    # 2. Fallback: Post to local OpenCode server API
     body = json.dumps({"parts": [{"type": "text", "text": text}]}).encode()
-    for ep in ("prompt_async", "message"):  # try async endpoint first, then message
+    for ep in ("prompt_async", "message"):
         req = urllib.request.Request(
             f"{SERVER}/session/{sid}/{ep}",
             data=body,
