@@ -97,7 +97,18 @@ def _make_seat(spec: Any, seed: Any) -> Any:
 class _StepComplete(BaseException):
     """Clean rig-side unwind: raised from a policy ``decide()`` at the
     target seat's next rig ask after the forced option was played.
-    BaseException so no future rig-side ``except Exception`` can eat it."""
+    BaseException so no future rig-side ``except Exception`` can eat it.
+
+    Carries the ask that triggered the unwind (``rec``/``ctx``): the game
+    is suspended EXACTLY at that ask, so it is provably the globally first
+    future ask of the branch — the walk can adopt it as its next search
+    root without a throwaway re-probe (probe cache, /69 cost postscript)."""
+
+    def __init__(
+        self, rec: AskRec | None = None, ctx: AskContext | None = None
+    ) -> None:
+        super().__init__("step complete")
+        self.rec, self.ctx = rec, ctx
 
 
 class _AskFound(BaseException):
@@ -234,7 +245,9 @@ class _Routing:
                 # target:select ask is NOT a stop — designating is part of
                 # completing the applied act; it rides the default and is
                 # recorded as a continuation.
-                raise _StepComplete()
+                raise _StepComplete(
+                    AskRec(g, ctx.vocab, kind, self.seat, d.lane, "?"), ctx
+                )
             idx = self.policy.decide(ctx)
         d.ask_count += 1
         d.log.append(AskRec(g, ctx.vocab, kind, self.seat, d.lane, ctx.candidates[idx]))

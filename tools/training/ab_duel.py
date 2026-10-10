@@ -378,7 +378,22 @@ class BcAsk:
         return None
 
     def _decide(self, torch: Any, ctx: AskContext) -> int:
+        return int(self._forward_menu(torch, ctx).argmax(-1)[0])
 
+    def menu_probs(self, ctx: AskContext) -> list[float]:
+        """Full-menu softmax probabilities for THIS seat's next ask. Shares
+        the stream mechanics and the model call of :meth:`decide` (softmax
+        is argmax-preserving, ties included), so from one fresh stream state
+        ``argmax(menu_probs(ctx)) == decide(ctx)``. Consumed by the
+        AlphaZero-style root expansion in tools/search/mcts.py."""
+        import torch  # lazy: floors never pay the torch import
+
+        out = self._forward_menu(torch, ctx)
+        return [float(x) for x in torch.softmax(out.float(), dim=-1)[0]]
+
+    def _forward_menu(self, torch: Any, ctx: AskContext):
+        """One scored forward over the candidate menu; appends the ask block
+        to this seat's causal stream exactly as the legacy ``_decide`` did."""
         vocab = self.vocab
         unk = vocab[bc_data.UNK]
         v2 = self.schema == "v2"
@@ -450,7 +465,7 @@ class BcAsk:
                 cand_mask.to(device),
                 is_pass.to(device),
             )
-        return int(out.argmax(-1)[0])
+        return out
 
 
 # ------------------------------------------------------- duel game runner
