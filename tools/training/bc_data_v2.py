@@ -91,6 +91,26 @@ def obs_words_v2(obs: dict[str, Any]) -> list[str]:
     return bc_data.obs_words(obs) + zone_rows_v2(obs)
 
 
+def zone_groups_v2(obs: dict[str, Any]) -> list[bc_data.Group]:
+    """Row-grouped view of :func:`zone_rows_v2`: one lane group per
+    (tag, seat) with a ``[tag, seat]`` marker fragment and one fragment per
+    card row keyed by its handle. Empty lanes emit no group — flattening
+    reproduces :func:`zone_rows_v2` exactly."""
+    groups: list[bc_data.Group] = []
+    for tag, key in (("lib", "library"), ("gyr", "graveyard_rows"), ("exl", "exile")):
+        for i, rows in enumerate(obs.get(key, [])):
+            if rows:
+                frags: list[tuple[str | None, list[str]]] = [(None, [tag, str(i)])]
+                frags += [bc_data._row_frag(r) for r in rows]
+                groups.append((tag, i, frags))
+    return groups
+
+
+def obs_groups_v2(obs: dict[str, Any]) -> list[bc_data.Group]:
+    """Row-grouped :func:`obs_words_v2` (v1 groups + zone lane groups)."""
+    return bc_data.obs_groups(obs) + zone_groups_v2(obs)
+
+
 # ------------------------------------------------------------- grounding
 def _handle_of(token: str) -> Handle | None:
     """``"card:17"`` -> ``Handle("card", 17)`` (world.cards keys Handles,

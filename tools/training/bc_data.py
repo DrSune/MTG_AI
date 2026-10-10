@@ -94,6 +94,71 @@ def obs_words(obs: dict[str, Any]) -> list[str]:
     return words
 
 
+#: row-grouped context: (class, seat, [(handle, words)]). Card-row word
+#: fragments carry their trailing ``;``; section words do not.
+Group = tuple[str, int | None, list[tuple[str | None, list[str]]]]
+
+
+def flatten_groups(groups: list[Group]) -> list[str]:
+    return [w for _k, _s, rows in groups for _h, ws in rows for w in ws]
+
+
+def _row_frag(row: list[str]) -> tuple[str | None, list[str]]:
+    words: list[str] = []
+    for part in row:
+        words += tokenize(part)
+    words.append(";")
+    return (str(row[0]) if row else None, words)
+
+
+def obs_groups(obs: dict[str, Any]) -> list[Group]:
+    """Row-grouped view of :func:`obs_words`: ``flatten_groups(obs_groups(o))
+    == obs_words(o)`` for every obs (verified by test). Classes: ``hdr``
+    (turn/act/seat/src — never a drop candidate), ``pmark``/``life``/``gycnt``
+    /``mana`` (per-seat scalars, tiny, never dropped), ``hand`` and ``bf``
+    (card-row groups, one row per fragment)."""
+    groups: list[Group] = []
+    hdr: list[tuple[str | None, list[str]]] = [(None, ["t", str(obs.get("turn", "?"))])]
+    for tag, key in (("act", "active"), ("seat", "seat")):
+        v = obs.get(key)
+        hdr.append((None, [tag, "?" if v is None else str(v)]))
+    src = obs.get("source")
+    if isinstance(src, list):
+        hdr.append((None, ["src"]))
+        h, ws = _row_frag(src)
+        hdr.append((h, ws))
+    else:
+        hdr.append((None, ["src"]))
+    groups.append(("hdr", None, hdr))
+    lives = obs.get("lives", [])
+    hands = obs.get("hand", [])
+    mana = obs.get("mana", [])
+    bfs = obs.get("battlefield", [])
+    gys = obs.get("graveyard", [])
+    for i in range(max(len(lives), len(bfs), 1)):
+        scal: list[Group] = [("pmark", i, [(None, ["p", str(i)])])]
+        if i < len(lives):
+            scal.append(("life", i, [(None, ["life", str(lives[i])])]))
+        if i < len(gys):
+            scal.append(("gycnt", i, [(None, ["gy", str(gys[i])])]))
+        if i < len(mana) and mana[i]:
+            scal.append(
+                (
+                    "mana",
+                    i,
+                    [(None, ["mana"] + [f"{c}{n}" for c, n in mana[i].items()])],
+                )
+            )
+        groups.extend(scal)
+        if i < len(hands):
+            groups.append(
+                ("hand", i, [(None, ["hand"])] + [_row_frag(r) for r in hands[i]])
+            )
+        if i < len(bfs):
+            groups.append(("bf", i, [(None, ["on"])] + [_row_frag(r) for r in bfs[i]]))
+    return groups
+
+
 def site_words(what: str) -> list[str]:
     kind = what.split(":", 1)[0]
     return [f"site:{kind}" if kind in SITE_KINDS else "site:?"]

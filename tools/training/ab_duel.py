@@ -178,6 +178,70 @@ def seat_swaps(games: int) -> list[bool]:
 # ---------------------------------------------------------- BC adapter
 _MODEL_CACHE: dict[tuple[str, str], Any] = {}
 
+# ------------------------------------------- relevance-first row budget
+# One ask's context contribution is a BLOCK of id-resolved row groups,
+# (ASK, site, obs-groups..., SEP), built from bc_data.obs_groups(_v2).
+# With zero drops the flattened ids are BYTE-IDENTICAL to the legacy word
+# stream (scenario/pack encoding untouched); under budget pressure whole
+# groups drop in a deterministic relevance order instead of a blind token
+# window (gameplay_eval v4, 2026-10-10: legacy truncation ate hand rows 45%
+# and library lanes 27% of every event).
+_Group = tuple[str, int | None, tuple[tuple[str | None, tuple[int, ...]], ...]]
+_Block = tuple[_Group, ...]
+
+_ZONE_KINDS = ("lib", "gyr", "exl")
+
+
+def _block_len(block: _Block) -> int:
+    return sum(len(ws) for _k, _s, rows in block for _h, ws in rows)
+
+
+def _block_ids(block: _Block) -> list[int]:
+    return [t for _k, _s, rows in block for _h, ws in rows for t in ws]
+
+
+def _build_block(groups: list[Any], vocab: dict[str, int], unk: int) -> _Block:
+    return tuple(
+        (k, s, tuple((h, tuple(vocab.get(w, unk) for w in ws)) for h, ws in rows))
+        for k, s, rows in groups
+    )
+
+
+def _referenced(h: str | None, cand_strs: list[str]) -> bool:
+    """Menu-referenced: a row's handle token occurs in some candidate string
+    (``"card:1" in "card:17"`` over-includes -> keeps MORE rows: safe)."""
+    return h is not None and any(h in c for c in cand_strs)
+
+
+def _collapse_zones(
+    block: _Block, vocab: dict[str, int], unk: int, cand_strs: list[str]
+) -> _Block:
+    """Far-zone bulk -> ``[tag, seat, count]`` + menu-referenced rows only."""
+    out: list[_Group] = []
+    for k, s, rows in block:
+        if k not in _ZONE_KINDS or len(rows) <= 1:
+            out.append((k, s, rows))
+            continue
+        head = rows[0][1][:2]
+        cards = rows[1:]
+        keep = tuple((h, ws) for h, ws in cards if _referenced(h, cand_strs))
+        cnt = vocab.get(str(len(cards)), unk)
+        out.append((k, s, ((None, head + (cnt,)),) + keep))
+    return tuple(out)
+
+
+def _drop_opp_hand(block: _Block, cand_strs: list[str], asking_seat: int) -> _Block:
+    """Repeated stack noise (last resort): opponent hand rows unreferenced by
+    the menu; own hand, marker words and every non-hand group are untouched."""
+    out: list[_Group] = []
+    for k, s, rows in block:
+        if k != "hand" or s is None or s == asking_seat:
+            out.append((k, s, rows))
+            continue
+        keep = tuple((h, ws) for h, ws in rows[1:] if _referenced(h, cand_strs))
+        out.append((k, s, (rows[0],) + keep))
+    return tuple(out)
+
 
 class BcAsk:
     """Closed-loop BC policy: the checkpoint scores each of ITS OWN seat's
@@ -195,9 +259,15 @@ class BcAsk:
     identically for both duel seats (symmetric) — D10 masked ablation
     remains the disqualification gate for any claimed skill gain.
 
-    Streams longer than the model's ``max_len`` keep BOS + the most recent
-    window (training never saw >1024; any choice here is off-distribution)
-    and bump ``truncations`` so the duel record says so honestly.
+    Streams longer than the model's ``max_len`` get a relevance-first row
+    budget instead of a blind token window: zero drops when the episode fits
+    (byte-identical to the legacy stream — pack/scenario encodings untouched);
+    under pressure whole row-groups drop oldest-first, then the current block's
+    far-zone lanes collapse to counts (menu-referenced rows kept), then
+    unreferenced opponent-hand rows. ASK/SEP/site, per-seat scalars,
+    battlefields, own hand and the menu are never dropped. ANY drop bumps
+    ``truncations`` (legacy per-ask semantics kept honest); ``ctx_stats``
+    breaks the drops down by stage.
 
     v2 checkpoints (``blob["schema"] == "v2"``) additionally serialize the
     zone lanes and ground candidates exactly as the RECORDER did
@@ -215,6 +285,14 @@ class BcAsk:
         self.schema = schema
         self.truncations = 0
         self.seq: list[int] = [vocab[bc_data.BOS]]
+        self.blocks: list[_Block] = []
+        self.ctx_stats = {
+            "dups": 0,
+            "blocks_dropped": 0,
+            "zones_collapsed": 0,
+            "hands_dropped": 0,
+            "tail_fallbacks": 0,
+        }
 
     @classmethod
     def fresh(cls, spec: str, device: str = "auto") -> BcAsk:
@@ -248,21 +326,95 @@ class BcAsk:
 
         return self._decide(torch, ctx)
 
+    def _assemble(
+        self, current: _Block, cand_strs: list[str], asking: int | None
+    ) -> tuple[list[_Block], _Block, str, int, int] | None:
+        """Relevance-first ladder. Returns ``(kept_history, current_variant,
+        stage, dups, blocks_dropped)``, or None when even the severest current
+        variant alone exceeds the budget (caller: legacy tail window). Drop
+        order under pressure: byte-duplicate history blocks (zero marginal
+        info), then oldest history block ("old journal"), then the current
+        block's zone lanes ("far-zone bulk"), then unreferenced opponent-hand
+        rows ("repeated stack noise"). Deterministic: no RNG, fixed order."""
+        budget = self.max_len - 1  # BOS
+        variants: list[tuple[str, _Block]] = [("intact", current)]
+        if self.schema == "v2":
+            variants.append(
+                (
+                    "zones",
+                    _collapse_zones(
+                        current, self.vocab, self.vocab[bc_data.UNK], cand_strs
+                    ),
+                )
+            )
+        if asking is not None:
+            variants.append(
+                ("hands", _drop_opp_hand(variants[-1][1], cand_strs, asking))
+            )
+        for sev, cur in variants:
+            hist = list(self.blocks)
+            cur_len = _block_len(cur)
+            over = 1 + cur_len + sum(_block_len(b) for b in hist) - budget
+            dups = blocks = 0
+            while over > 0 and hist:
+                dup = next(
+                    (i for i, b in enumerate(hist) if b in set(hist[i + 1 :])), None
+                )
+                victim = 0 if dup is None else dup
+                over -= _block_len(hist.pop(victim))
+                if dup is None:
+                    blocks += 1
+                else:
+                    dups += 1
+            if over > 0:
+                continue  # this variant alone cannot fit: escalate
+            self.ctx_stats["dups"] += dups
+            self.ctx_stats["blocks_dropped"] += blocks
+            if sev != "intact":
+                self.ctx_stats[
+                    "zones_collapsed" if sev == "zones" else "hands_dropped"
+                ] += 1
+            return hist, cur, sev, dups, blocks
+        return None
+
     def _decide(self, torch: Any, ctx: AskContext) -> int:
 
         vocab = self.vocab
         unk = vocab[bc_data.UNK]
         v2 = self.schema == "v2"
-        self.seq.append(vocab[bc_data.ASK])
-        site_obs = bc_data.site_words(ctx.vocab) + (
-            bc_data_v2.obs_words_v2(ctx.world) if v2 else bc_data.obs_words(ctx.world)
+        groups = (
+            [
+                ("ask", None, [(None, [bc_data.ASK])]),
+                ("site", None, [(None, bc_data.site_words(ctx.vocab))]),
+            ]
+            + (
+                bc_data_v2.obs_groups_v2(ctx.world)
+                if v2
+                else bc_data.obs_groups(ctx.world)
+            )
+            + [("sep", None, [(None, [bc_data.SEP])])]
         )
-        for w in site_obs:
-            self.seq.append(vocab.get(w, unk))
-        self.seq.append(vocab[bc_data.SEP])
-        if len(self.seq) > self.max_len:
-            self.seq = [vocab[bc_data.BOS]] + self.seq[-(self.max_len - 1) :]
+        current = _build_block(groups, vocab, unk)
+
+        asking = ctx.world.get("_seat", ctx.world.get("seat"))
+        if not isinstance(asking, int):
+            asking = None
+        fit = self._assemble(current, list(ctx.candidates), asking)
+        if fit is None:  # stage D: legacy tail window (never observed in-game)
+            flat = [t for b in self.blocks + [current] for t in _block_ids(b)]
+            self.seq = [vocab[bc_data.BOS]] + flat[-(self.max_len - 1) :]
             self.truncations += 1
+            self.ctx_stats["tail_fallbacks"] += 1
+        else:
+            hist, cur, sev, _dups, _blocks = fit
+            # per-ASK legacy semantics: this ask dropped something -> count it
+            if sev != "intact" or len(hist) != len(self.blocks):
+                self.truncations += 1
+            self.blocks = hist + [cur]
+            self.seq = [vocab[bc_data.BOS]] + [
+                t for b in self.blocks for t in _block_ids(b)
+            ]
+            assert len(self.seq) <= self.max_len
         sep = len(self.seq) - 1
 
         cands = ctx.candidates

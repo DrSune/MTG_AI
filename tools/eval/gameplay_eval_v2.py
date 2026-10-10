@@ -530,6 +530,8 @@ def run_v2_game(
                 **{k: v for k, v in stats[str(seat)].items() if k != "kinds"},
                 "kinds": stats[str(seat)]["kinds"],
                 "trunc": getattr(agents[seat], "truncations", 0),
+                # v4: which budget stage actually fired for this seat
+                "ctx": dict(getattr(agents[seat], "ctx_stats", {}) or {}),
             }
             for seat in (0, 1)
         },
