@@ -3427,3 +3427,4 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - batch9 (2026-10-10, engine-off sweep bc10_*, 21/21 PASS): S0 0.759 | S3 0.764 | S3a 0.766 | S3b 0.757 | S4 35M 0.827 (spread 0.075) — first arm separation on the universal gate (S4-S0 +0.068, ~2.6 SE, suggestive); producer: batch9_sweep.sh over 199-line E1 corpus.
 - E1 merged 2026-10-10 (commit 230def7): CONTROLLER_IS sole direction axis; census tripwires 0; clause audit 589/589 100%; act-sense wave 199 items/398 packs (commit 928e2fd); T5 zero-loss closed (0588ad9).
 - v5 (2026-10-10, bc10_S4_s3, 200g): vs teacher 0.3105 CI[.249,.380], vs random 0.4737 CI[.404,.545] — puzzle-acc/gameplay DIVERGENCE proven; outcome meter now first-class gate. Producer: gameplay_eval_v5_bc10S4.json.
+- search substrate (2026-10-10): fork 5.95ms | expand 61.4ms/option | rollout 536.8ms | 1.86/s/core, 37/s x20 cores (tools/search/rollout.py bench).

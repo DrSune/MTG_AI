@@ -961,6 +961,14 @@ class Game:
     # world fingerprint, identical-observation streak so far). A round trip
     # with ANY net change anywhere resets the streak to 1.
     stall_seen: dict[Handle, tuple[tuple, int]] = field(default_factory=dict)
+    # Search substrate (KNOWLEDGE/2026-10-10/67): a fork resumed with
+    # ``_play(..., resumed=True)`` at a boundary INSIDE an open turn sets one
+    # of these so the loop re-enters at exactly the stop point — PRE_COMBAT
+    # (acts played) skips one take_acts call, POST_COMBAT (combat done) skips
+    # one combat_step call. Defaults False keep every historical game
+    # byte-identical.
+    skip_next_acts: bool = False
+    skip_next_combat: bool = False
 
     @property
     def world(self) -> GameWorld:
@@ -1250,10 +1258,28 @@ def _stall_fingerprint(executor: Executor) -> tuple:
     return (tuple(seats), len(executor.stack.frames) == 0)
 
 
-def _play(game: Game, policy: RandomPolicy, order: list[Handle], turn_cap: int) -> None:
+def _play(
+    game: Game,
+    policy: RandomPolicy,
+    order: list[Handle],
+    turn_cap: int,
+    resumed: bool = False,
+    stop_after: Any = None,
+) -> None:
     """The turn loop. Turn 1 opens with ``begin_turn``; every later turn goes
     through ``advance_turn`` so the CR 500.7 extra-turn queue is popped (and the
     seat is the ENGINE's choice, read back off ``active_player``, not ours).
+
+    Search substrate (KNOWLEDGE/2026-10-10/67, purely additive: every default
+    keeps historical games byte-identical): ``resumed=True`` starts the loop on
+    an ALREADY-OPEN turn (a fork taken at a turn-top boundary, i.e. after the
+    acting seat's ``begin_turn``/draw step, before its acts);
+    ``stop_after(game, boundary)`` is consulted at the CLEAN boundaries — the
+    three points where no executor call is in flight: ``"turn_top"`` (a seat's
+    turn has just opened, pre-stall-check, pre-acts), ``"pre_combat"`` (that
+    seat's acts are done, its combat has not started) and ``"post_combat"``
+    (its combat ended, still its turn). Returning True returns from the loop
+    right there with the position consistent.
 
     The stall rule (KNOWLEDGE/2026-10-05/11) rides at the top of every turn:
     one :func:`_stall_fingerprint` per turn, compared against the SAME
@@ -1269,28 +1295,42 @@ def _play(game: Game, policy: RandomPolicy, order: list[Handle], turn_cap: int) 
     # registration lives HERE so every driver (play_game and --repro)
     # gets it.
     executor.decisions.provider = policy.answer
-    executor.begin_turn(order[0])
-    game.note_draw_step(order[0])
+    if not resumed:
+        executor.begin_turn(order[0])
+        game.note_draw_step(order[0])
     while True:
         seat = world.active_player
         assert seat is not None  # begin_turn/advance_turn always set it
-        # --- stall rule: per-seat round fingerprint streak (CR 104.4b) ---
-        fingerprint = _stall_fingerprint(executor)
-        previous, streak = game.stall_seen.get(seat, (None, 0))
-        streak = streak + 1 if fingerprint == previous else 1
-        game.stall_seen[seat] = (fingerprint, streak)
-        if streak >= REPEAT_ROUNDS:
-            game.turns = world.turn
-            executor.journal.emit(
-                KIND_STALL_BREAK, None, seat, "STALL", (REPEAT_ROUNDS,)
-            )
-            game.reason = (
-                f"STALL (CR 104.4b repeated-loop draw: world fingerprint "
-                f"unchanged for {REPEAT_ROUNDS} consecutive rounds)"
-            )
+        # The synthetic first iteration of an IN-TURN resume (skip flags set)
+        # is the re-entered boundary itself, never a fresh turn top: neither
+        # the turn_top stop nor the stall bookkeeping double-fires there.
+        resuming = game.skip_next_acts or game.skip_next_combat
+        if not resuming and stop_after is not None and stop_after(game, "turn_top"):
             return
-        policy.take_acts(game, seat)
-        if executor.turn_open:
+        if game.skip_next_acts:
+            game.skip_next_acts = False  # a PRE_COMBAT resume skips one act pass
+        else:
+            # --- stall rule: per-seat round fingerprint streak (CR 104.4b) ---
+            fingerprint = _stall_fingerprint(executor)
+            previous, streak = game.stall_seen.get(seat, (None, 0))
+            streak = streak + 1 if fingerprint == previous else 1
+            game.stall_seen[seat] = (fingerprint, streak)
+            if streak >= REPEAT_ROUNDS:
+                game.turns = world.turn
+                executor.journal.emit(
+                    KIND_STALL_BREAK, None, seat, "STALL", (REPEAT_ROUNDS,)
+                )
+                game.reason = (
+                    f"STALL (CR 104.4b repeated-loop draw: world fingerprint "
+                    f"unchanged for {REPEAT_ROUNDS} consecutive rounds)"
+                )
+                return
+            policy.take_acts(game, seat)
+        if game.skip_next_combat:
+            game.skip_next_combat = False  # a POST_COMBAT resume skips one phase
+        elif executor.turn_open:
+            if stop_after is not None and stop_after(game, "pre_combat"):
+                return
             # 16b: the COMBAT phase rides between the main phase and the
             # end step - guarded on turn_open because an END_TURN atom
             # played during take_acts already closed the turn (no combat
@@ -1302,6 +1342,9 @@ def _play(game: Game, policy: RandomPolicy, order: list[Handle], turn_cap: int) 
             for s, life in before.items():
                 if life > 0 and world.players[s].life <= 0:
                     game.combat_losses += 1
+            if stop_after is not None and stop_after(game, "post_combat"):
+                return
+        game.skip_next_combat = False  # turn was closed before any combat skip
         game.turns = world.turn
         reason = game.over_reason()
         if reason is not None:
