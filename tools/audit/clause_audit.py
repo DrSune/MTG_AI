@@ -204,6 +204,11 @@ RULES: list[tuple[str, str, list[str]]] = [
         "shape",
         ["S:ADDITIONAL", "S:additional", "S:AdditionalTrigger"],
     ),
+    (
+        r"\bround(?:s|ed|ing)? (?:up|down)\b",
+        "shape",
+        ["S:rounding", "S:CEIL", "S:FLOOR"],
+    ),
     # --- keyword lines / grants
     (
         r"^(?:creatures?|permanents?|this creature|it)\b.*\b(?:have|has|gains?)\b",

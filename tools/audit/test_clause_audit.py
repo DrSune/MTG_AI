@@ -58,12 +58,26 @@ def test_every_residual_is_classified_with_evidence(report):
         "MISSING-EXPRESSIVENESS",
     }
     n = 0
+    evidences: set[str] = set()
+    mapped_total = 0
     for card in report["per_card"]:
         for r in card["residuals"]:
             n += 1
             assert r["class"] in taxonomy, (card["card"], r)
             assert r["evidence"].strip(), (card["card"], r)
-    assert n > 0  # audit must not report a vacuous perfect zero-loss
+        for m in card["mapped_clauses"]:
+            mapped_total += 1
+            evidences.add(m["evidence"])
+    # T5-E (2026-10-10): residuals reached a LEGITIMATE zero (all three
+    # NOT-ENCODED legs compiled — Battalion trigger, Snoop conditional
+    # grant, Transmogrify REVEAL). The old ``n > 0`` tripwire guarded
+    # against a vacuous perfect score by demanding residuals exist; that
+    # guard is replaced by demanding the score be STRUCTURED: every clause
+    # mapped, and the mapping spread over a diverse evidence vocabulary
+    # (a matcher broken into vacuous match-everything collapses to a
+    # handful of rules; the true corpus uses many).
+    assert mapped_total == 589, mapped_total
+    assert len(evidences) > 40, f"evidence vocabulary collapsed: {len(evidences)}"
 
 
 @pytest.mark.parametrize(

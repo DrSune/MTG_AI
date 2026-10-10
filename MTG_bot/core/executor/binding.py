@@ -48,6 +48,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
+    AbilityTriggerEvent,
     Atom,
     AtomArgs,
     BecomesBlockedEvent,
@@ -97,6 +98,7 @@ from MTG_bot.core.compiler.compiler import PoolCompile
 from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.durations_min import duration_tag
 from MTG_bot.core.executor.events import (
+    KIND_ABILITY_TRIGGERED,
     KIND_CARD_DRAWN,
     KIND_CAST,
     KIND_COMBAT_DAMAGE,
@@ -658,14 +660,17 @@ class TriggerBinder:
         controller: Handle,
         node: _AnyTrigger,
         event: GameEvent,
+        additional: bool = False,
     ) -> None:
         if source in self.quarantined:
             # r23a tripwire guard: a flagged loop source never queues
             # again this game (its firing was already recorded loudly in
             # executor.trigger_loops).
             return
-        if event.kind == KIND_DECLARE_ATTACKERS and isinstance(
-            node.event, DeclareAttackersEvent
+        if (
+            not additional
+            and event.kind == KIND_DECLARE_ATTACKERS
+            and isinstance(node.event, DeclareAttackersEvent)
         ):
             # CR 603.2 once-per-declaration (16b): the per-attacker row
             # fan-out must queue ONE instance per ability per declare
@@ -680,9 +685,56 @@ class TriggerBinder:
         instance = self.world.queue_trigger(
             source, controller, f"{event.kind}#{self._seq}"
         )
-        self.firings[instance.clock] = _Firing(
+        payload = _Firing(
             source=source, controller=controller, node=node, event=event, seq=self._seq
         )
+        self.firings[instance.clock] = payload
+        if not additional:
+            # T5-D (Sanctum of All "whenever another Shrine you control's
+            # ability triggers"): an ordinary queued firing feeds every
+            # AbilityTriggerEvent subscriber in a SYNTHETIC match pass --
+            # no journal row is written (fingerprints byte-stable), and
+            # `additional` firings (CR 603.2e: an extra trigger has no
+            # triggering event) never feed it again, which is what keeps
+            # two extra-trigger carriers from chasing each other.
+            self._fan_ability_triggers(payload)
+
+    def _fan_ability_triggers(self, payload: _Firing) -> None:
+        """T5-D: queue one firing per AbilityTriggerEvent subscriber whose
+        filter matches the triggering ability's SOURCE permanent, in the
+        subscriber's coordinates (IS_SOURCE = the subscriber, so "another"
+        is the filter's own FNot(IS_SOURCE)). The synthetic event carries
+        the matched payload so the TRIGGER_ADDITIONAL verb can re-queue
+        it; the subscriber's condition (Sanctum's "six or more Shrines")
+        gates at _fire time like any other trigger. CR 603.2e: an
+        extra-trigger carrier's OWN firings never fan out — the family's
+        effect does not apply to instances of itself, which is what keeps
+        two carriers from chasing each other (each adds its one extra per
+        ORIGINAL firing; the extras carry no triggering event)."""
+        effect = getattr(payload.node, "effect", None)
+        if isinstance(effect, Atom) and effect.verb is Verb.TRIGGER_ADDITIONAL:
+            return
+        subscribers = [
+            (handle, ability)
+            for (handle, _idx), ability in sorted(
+                self.attached.items(), key=lambda kv: (str(kv[0][0]), kv[0][1])
+            )
+            if isinstance(ability.event, AbilityTriggerEvent)
+            and handle != payload.source
+        ]
+        for handle, ability in subscribers:
+            ctrl = self._controller_of(handle)
+            synth = GameEvent(
+                clock=-1,
+                kind=KIND_ABILITY_TRIGGERED,
+                subject=payload.source,
+                cause=handle,
+                cause_verb="TRIGGER",
+                data=(payload,),
+            )
+            ctx = self._match_ctx(handle, ctrl, synth)
+            if eval_filter(ability.event.filter, payload.source, ctx):
+                self._queue(handle, ctrl, ability, synth)
 
     def _keyword_node(self, family: str, handle: Handle) -> TriggeredAbility:
         """r20a: the canonical compiled-shape node for a printed keyword

@@ -4,20 +4,20 @@
   "golden_trees": 305,
   "oracle_source": "MTG_bot/data/M21.json via ingest_pool",
   "vocab": {
-   "verbs": 49,
+   "verbs": 50,
    "keywords": 23
   }
  },
  "summary": {
   "clauses": 589,
-  "mapped": 584,
-  "coverage_pct": 99.15,
-  "residuals": 5,
+  "mapped": 589,
+  "coverage_pct": 100.0,
+  "residuals": 0,
   "class_counts": {
    "BOILERPLATE-NOTSIGNIFICANT": 0,
-   "NOT-ENCODED": 3,
+   "NOT-ENCODED": 0,
    "MISSING-ENCODING": 0,
-   "MISSING-EXPRESSIVENESS": 2
+   "MISSING-EXPRESSIVENESS": 0
   }
  },
  "per_card": [
@@ -919,7 +919,7 @@
   {
    "card": "Conspicuous Snoop",
    "clauses": 3,
-   "mapped": 2,
+   "mapped": 3,
    "mapped_clauses": [
     {
      "text": "Play with the top card of your library revealed.",
@@ -930,15 +930,14 @@
      "text": "You may cast Goblin spells from the top of your library.",
      "mechanism": "verb",
      "evidence": "V:CAST"
-    }
-   ],
-   "residuals": [
+    },
     {
      "text": "As long as the top card of your library is a Goblin card, this creature has all activated abilities of that card.",
-     "class": "NOT-ENCODED",
-     "evidence": "engine atom exists (['GRANT_ABILITY', 'GRANT_TYPE']), tree lacks it; compiler sites: GRANT_ABILITY->compiler.py::_flip_search_picks_in, GRANT_TYPE->templates_b2b.py::_build_riddleform; grep: compiler.py::<module> (grep 'library')"
+     "mechanism": "shape",
+     "evidence": "V:GRANT_ABILITY"
     }
-   ]
+   ],
+   "residuals": []
   },
   {
    "card": "Construct",
@@ -2703,15 +2702,15 @@
   {
    "card": "Makeshift Battalion",
    "clauses": 1,
-   "mapped": 0,
-   "mapped_clauses": [],
-   "residuals": [
+   "mapped": 1,
+   "mapped_clauses": [
     {
      "text": "Battalion \u2014 Whenever this creature and at least two other creatures attack, put a +1/+1 counter on this creature.",
-     "class": "NOT-ENCODED",
-     "evidence": "engine atom exists (['MODIFY_PT', 'PUT_COUNTER', 'REMOVE_COUNTER', 'SET_PT']), tree lacks it; compiler sites: MODIFY_PT->compiler.py::_if_do_merge, PUT_COUNTER->templates_b2a.py::_build_basri_ket, REMOVE_COUNTER->templates_b5c.py::_build_bullet_remove_loyalty, SET_PT->compiler.py::_if_do_merge; grep: templates_b5a.py::_build_battalion (grep 'battalion')"
+     "mechanism": "verb",
+     "evidence": "V:PUT_COUNTER"
     }
-   ]
+   ],
+   "residuals": []
   },
   {
    "card": "Malefic Scythe",
@@ -3074,21 +3073,20 @@
   {
    "card": "Peer into the Abyss",
    "clauses": 2,
-   "mapped": 1,
+   "mapped": 2,
    "mapped_clauses": [
     {
      "text": "Target player draws cards equal to half the number of cards in their library and loses half their life.",
      "mechanism": "verb",
      "evidence": "V:DRAW"
-    }
-   ],
-   "residuals": [
+    },
     {
      "text": "Round up each time.",
-     "class": "MISSING-EXPRESSIVENESS",
-     "evidence": "no engine Verb/Keyword candidate fits; missing concept: rounding-policy (half-value round-up); grep: compiler.py::_phase_in_prevention_effect (grep 'round')"
+     "mechanism": "shape",
+     "evidence": "S:rounding"
     }
-   ]
+   ],
+   "residuals": []
   },
   {
    "card": "Pestilent Haze",
@@ -3607,7 +3605,7 @@
   {
    "card": "Sanctum of All",
    "clauses": 3,
-   "mapped": 2,
+   "mapped": 3,
    "mapped_clauses": [
     {
      "text": "At the beginning of your upkeep, you may search your library and/or graveyard for a Shrine card and put it onto the battlefield.",
@@ -3618,15 +3616,14 @@
      "text": "If you search your library this way, shuffle.",
      "mechanism": "verb",
      "evidence": "V:SEARCH"
-    }
-   ],
-   "residuals": [
+    },
     {
      "text": "If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.",
-     "class": "MISSING-EXPRESSIVENESS",
-     "evidence": "no engine Verb/Keyword candidate fits; missing concept: additional-trigger-count; grep: compiler.py::<module> (grep 'ability')"
+     "mechanism": "shape",
+     "evidence": "S:ADDITIONAL"
     }
-   ]
+   ],
+   "residuals": []
   },
   {
    "card": "Sanctum of Calm Waters",
@@ -4925,7 +4922,7 @@
   {
    "card": "Transmogrify",
    "clauses": 3,
-   "mapped": 2,
+   "mapped": 3,
    "mapped_clauses": [
     {
      "text": "Exile target creature.",
@@ -4933,18 +4930,17 @@
      "evidence": "V:MOVE_ZONE"
     },
     {
+     "text": "That creature's controller reveals cards from the top of their library until they reveal a creature card.",
+     "mechanism": "verb",
+     "evidence": "V:REVEAL"
+    },
+    {
      "text": "That player puts that card onto the battlefield, then shuffles the rest into their library.",
      "mechanism": "verb",
      "evidence": "V:SHUFFLE"
     }
    ],
-   "residuals": [
-    {
-     "text": "That creature's controller reveals cards from the top of their library until they reveal a creature card.",
-     "class": "NOT-ENCODED",
-     "evidence": "engine atom exists (['LOOK_AT', 'REVEAL']), tree lacks it; compiler sites: LOOK_AT->templates_b2b.py::_build_garruks_harbinger, REVEAL->templates_b2a.py::_build_kitesail_freebooter; grep: compiler.py::_search_shuffle_effect (grep 'controller')"
-    }
-   ]
+   "residuals": []
   },
   {
    "card": "Treasure",

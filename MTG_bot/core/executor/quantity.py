@@ -46,6 +46,7 @@ from MTG_bot.core.ability_tree import (
     QAtMost,
     QBin,
     QBinOp,
+    Rounding,
     QConst,
     QCount,
     QDistinctColorCount,
@@ -55,6 +56,7 @@ from MTG_bot.core.ability_tree import (
     Quantity,
     QUnbounded,
     Selector,
+    ZonePosition,
 )
 from MTG_bot.core.executor.decisions import DecisionStream
 from MTG_bot.core.executor.durations_min import DurationLedger
@@ -302,6 +304,10 @@ def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
         if quantity.op is QBinOp.DIV:
             if right == 0:
                 raise ValueError("executor: QBin DIV by zero")
+            if quantity.rounding is Rounding.CEIL:
+                # T5-D (Peer into the Abyss "Round up each time.", CR 107.1a):
+                # ceiling division; FLOOR/NONE/None keep the standing floor.
+                return -(-left // right)
             return left // right
         if quantity.op is QBinOp.MAX:
             return max(left, right)
@@ -1070,9 +1076,23 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 "ControllerRef nor a Selector (R6-2 closed vocabulary)"
             )
         for player in players:
+            entries = ctx.world.players[player].zone(state_kind).entries
+            # T5-E (Conspicuous Snoop s3): the Zone enum's OPTIONAL position
+            # now bounds the population — TOP counts only the top entry,
+            # mirroring the selector-side idiom (selectors.py "top of library
+            # = last entry"). ZONE_TOP_IS becomes expressible as this
+            # predicate with position=TOP and count=1. Every corpus user to
+            # date (R6-2) carries an unpositioned Zone, so their counts are
+            # byte-identical; a positioned zone was previously and silently
+            # a whole-zone count, which the R10 note flags as a lie.
+            position = zone_ir.position
+            if position is ZonePosition.TOP:
+                entries = entries[-1:]
+            elif position is ZonePosition.BOTTOM:
+                entries = entries[:1]
             counted = sum(
                 1
-                for h in ctx.world.players[player].zone(state_kind).entries
+                for h in entries
                 if atom.inner_filter is None or eval_filter(atom.inner_filter, h, ctx)
             )
             if counted >= threshold:

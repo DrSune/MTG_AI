@@ -48,9 +48,9 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 # the planeswalker record with its EMBEDDED emblem AND the emblem raw
 # standalone — Liliana's emblem CHOOSE(referent='result') was counted
 # twice. The pool's distinct surface multiset is 154.
-TOTAL_SURFACES = 154
+TOTAL_SURFACES = 156
 CORE_LIFTABLE = 22
-SELF_DESIGNATION = 55
+SELF_DESIGNATION = 57
 ANAPHORIC_REFERENT = 36
 COST_VICTIM = 26
 COUNT_NOT_ONE = 15

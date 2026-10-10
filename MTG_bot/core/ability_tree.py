@@ -300,6 +300,15 @@ class Verb(Enum):
     # holds OptionalEffect(Atom(DAMAGE_ASSIGN_POLICY, ...))). Executor
     # deferred per the MANA_POLICY / ADD_LAND_PLAY orphan precedent.
     DAMAGE_ASSIGN_POLICY = "DAMAGE_ASSIGN_POLICY"
+    # TRIGGER_ADDITIONAL (T5-D, Sanctum of All "that ability triggers an
+    # additional time"): the {count} axis of the extra-trigger family — the
+    # AbilityTriggerEvent firing re-triggers the ability it matched
+    # `count` more times. CR 603.2e: those extra triggers are created
+    # WITHOUT a triggering event, so they never re-arm an
+    # AbilityTriggerEvent (the executor marks and skips them). Shared
+    # encoding for the whole pool family (Panharmonicon, a derived
+    # self-count carrier): one verb, reusable count Quantity.
+    TRIGGER_ADDITIONAL = "TRIGGER_ADDITIONAL"
 
 
 class VerbClass(Enum):
@@ -335,7 +344,7 @@ VERB_CLASS: dict[Verb, VerbClass] = {
     Verb.ADD_LAND_PLAY: VerbClass.POLICY,
     Verb.MANDATE_ATTACK: VerbClass.POLICY,
     Verb.MANDATE_BLOCK: VerbClass.POLICY,
-    # EFFECT (36)
+    # EFFECT (37)
     Verb.DEAL_DAMAGE: VerbClass.EFFECT,
     Verb.DESTROY: VerbClass.EFFECT,
     Verb.EXILE: VerbClass.EFFECT,
@@ -372,6 +381,9 @@ VERB_CLASS: dict[Verb, VerbClass] = {
     Verb.FIGHT: VerbClass.EFFECT,
     Verb.LOSE_ABILITY: VerbClass.EFFECT,
     Verb.GET_EMBLEM: VerbClass.EFFECT,
+    # T5-D: extra-trigger creation is an EFFECT — it puts new trigger
+    # instances on the stack (CR 603.2e), not a standing policy.
+    Verb.TRIGGER_ADDITIONAL: VerbClass.EFFECT,
 }
 
 
@@ -485,8 +497,11 @@ class QAgg(Enum):
 
 
 class QBinOp(Enum):
-    """Quantity arithmetic. DIV is floor division (//); round-up-half is
-    expressed as (n + 1) // 2, keeping the operator set closed."""
+    """Quantity arithmetic. DIV is floor division (//) unless the node
+    carries a ``rounding`` policy (T5-D, see Rounding); the historical
+    (n + 1) // 2 round-up-half idiom stays valid, but new encodings state
+    the policy explicitly (Peer into the Abyss), keeping the operator set
+    closed."""
 
     ADD = "ADD"
     SUB = "SUB"
@@ -494,6 +509,20 @@ class QBinOp(Enum):
     DIV = "DIV"
     MAX = "MAX"
     MIN = "MIN"
+
+
+class Rounding(Enum):
+    """T5-D (Peer into the Abyss "Round up each time."): the explicit
+    rounding POLICY of a QBin DIV — the axis the (n + 1) // 2 idiom had to
+    smuggle through arithmetic before. NONE is "the text states no
+    rounding" (behaves as FLOOR, the operator's standing default); CEIL is
+    the MTG rule rounding (CR 107.1a, always round up); FLOOR is an
+    explicit "rounded down" text. The field rides QBin's DIV only —
+    attaching it to any other op raises."""
+
+    NONE = "NONE"
+    CEIL = "CEIL"
+    FLOOR = "FLOOR"
 
 
 class ThisTurnKind(Enum):
@@ -936,11 +965,16 @@ class QProp:
 
 @dataclass(frozen=True)
 class QBin:
-    """Quantity arithmetic: ADD / SUB / MUL / DIV (floor) / MAX / MIN."""
+    """Quantity arithmetic: ADD / SUB / MUL / DIV (floor) / MAX / MIN.
+
+    T5-D: DIV carries an optional ``rounding`` policy (see Rounding); the
+    field is empty-default and omitted from the serialization, so every
+    pre-T5-D QBin keeps its exact golden bytes."""
 
     op: QBinOp
     left: Quantity
     right: Quantity
+    rounding: "Rounding | None" = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.op, QBinOp):
@@ -949,6 +983,15 @@ class QBin:
             if not _is_quantity(side):
                 raise ValueError(
                     f"QBin: operand must be a Quantity, got {type(side).__name__}"
+                )
+        if self.rounding is not None:
+            if not isinstance(self.rounding, Rounding):
+                raise ValueError(
+                    f"QBin: rounding must be a Rounding or None, got {self.rounding!r}"
+                )
+            if self.op is not QBinOp.DIV:
+                raise ValueError(
+                    f"QBin: rounding is only legal on DIV, got op={self.op.name}"
                 )
 
 
@@ -1757,6 +1800,27 @@ class TapStateEvent:
         if not _is_filter(self.filter):
             raise ValueError(
                 f"TapStateEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class AbilityTriggerEvent:
+    """T5-D (Sanctum of All "whenever another Shrine you control's
+    ability triggers"): an ability TRIGGERED — the {when-event} atom of
+    the §9 decomposition, with the same {subject filter} axis as every
+    other event class, evaluated over the TRIGGERING ability's source
+    permanent ("another Shrine you control" = SUBTYPE_EQ + CONTROLLER_IS
+    + FNot(IS_SOURCE)). The quantity axis rides the effect: the
+    TRIGGER_ADDITIONAL verb's `count` (an "additional time" is +1, a
+    "…for each category" self-repeat is a derived Quantity)."""
+
+    filter: Filter
+
+    def __post_init__(self) -> None:
+        if not _is_filter(self.filter):
+            raise ValueError(
+                f"AbilityTriggerEvent: filter must be a Filter, got "
+                f"{type(self.filter).__name__}"
             )
 
 
@@ -3130,6 +3194,7 @@ _EV_CLASSES = (
     CreatureDiesEvent,
     BecomesBlockedEvent,
     TapStateEvent,
+    AbilityTriggerEvent,
     TurnPhaseEvent,
     StepEvent,
     DamageDealtEvent,
@@ -3470,6 +3535,10 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     # value is a ControllerRef or referent Selector (LOSE_LIFE-controller
     # precedent, Gloom-Sower/Death-Mage lanes).
     Verb.CREATE_TOKEN: {"tokens": True, "count": False, "controller": False},
+    # T5-D (Sanctum of All): how many EXTRA times the matched ability
+    # triggers — a full Quantity (QConst 1 for "an additional time", a
+    # derived QBin/QCount for a per-category self-repeat).
+    Verb.TRIGGER_ADDITIONAL: {"count": True},
     Verb.PUT_COUNTER: {"target": True, "counter_kind": True, "count": True},
     Verb.REMOVE_COUNTER: {"target": True, "counter_kind": True, "count": True},
     Verb.MODIFY_PT: {
@@ -3666,6 +3735,7 @@ _ENUMS: dict[str, type[Enum]] = {
     "QPropField": QPropField,
     "QAgg": QAgg,
     "QBinOp": QBinOp,
+    "Rounding": Rounding,
     "ThisTurnKind": ThisTurnKind,
     "FAtomPred": FAtomPred,
     "CounterKind": CounterKind,
@@ -3709,6 +3779,7 @@ _DATACLASSES: tuple[type, ...] = (
     CreatureDiesEvent,
     BecomesBlockedEvent,
     TapStateEvent,
+    AbilityTriggerEvent,
     TurnPhaseEvent,
     StepEvent,
     DamageDealtEvent,
@@ -3775,7 +3846,14 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("field", "enum:QPropField"),
         ("agg", "enum:QAgg"),
     ),
-    "QBin": (("op", "enum:QBinOp"), ("left", "quantity"), ("right", "quantity")),
+    "QBin": (
+        ("op", "enum:QBinOp"),
+        ("left", "quantity"),
+        ("right", "quantity"),
+        # T5-D rounding policy: omitted at the None default (_OMIT_IF_EMPTY
+        # row) - every pre-T5-D QBin keeps its golden bytes.
+        ("rounding", "opt:enum:Rounding"),
+    ),
     "QThisTurn": (("kind", "enum:ThisTurnKind"), ("referent", "enum:ControllerRef")),
     "QAtLeast": (("n", "int"),),
     "QAtMost": (("n", "int"),),
@@ -3862,6 +3940,9 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "CreatureDiesEvent": (("filter", "filter"),),
     "BecomesBlockedEvent": (("filter", "filter"),),
     "TapStateEvent": (("tapped", "bool"), ("filter", "filter")),
+    # T5-D: the Sanctum-of-All family event atom (subject = the
+    # triggering ability's source permanent).
+    "AbilityTriggerEvent": (("filter", "filter"),),
     "TurnPhaseEvent": (("phase", "enum:Phase"), ("controller", "enum:ControllerRef")),
     "StepEvent": (
         ("phase", "enum:Phase"),
@@ -4053,6 +4134,7 @@ _EVENT_TAGS = frozenset(
         "CreatureDiesEvent",
         "BecomesBlockedEvent",
         "TapStateEvent",
+        "AbilityTriggerEvent",
         "TurnPhaseEvent",
         "StepEvent",
         "DamageDealtEvent",
@@ -4151,6 +4233,8 @@ _UNION_CONVS: dict[str, frozenset[str]] = {
 # present. This table is the only place a spec field may be absent from
 # the tagged dict.
 _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
+    # rounding (T5-D): omit when None - byte-stable.
+    "QBin": frozenset({"rounding"}),
     # referent (grammar round 4): omit when None — byte-stable.
     "Selector": frozenset({"zones", "referent"}),
     "Zone": frozenset({"position"}),

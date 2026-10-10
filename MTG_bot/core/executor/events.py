@@ -118,6 +118,10 @@ KIND_TARGETING = "TARGETING"
 # Chandra planeswalker"); cause = the activating player (the node's
 # controller scope); data carries the paid delta for the audit trail.
 KIND_LOYALTY_ACTIVATED = "LOYALTY_ACTIVATED"
+# T5-D (Sanctum of All family): an ability TRIGGERED. SYNTHETIC-ONLY
+# kind — never journalled (the matcher feeds AbilityTriggerEvent nodes
+# from _queue at firing-queue time), so no golden/fingerprint bytes move.
+KIND_ABILITY_TRIGGERED = "ABILITY_TRIGGERED"
 # RUNG-1 (response-window arc, /11 §13b follow-through): the counter-
 # window feed. WINDOW_OPEN carries ONE row per seat that was ASKED for a
 # response to a stack frame (subject = the framed spell, cause = the

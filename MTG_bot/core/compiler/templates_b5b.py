@@ -109,6 +109,7 @@ from typing import Final
 
 from MTG_bot.core.ability_tree import (
     QX,
+    AbilityTriggerEvent,
     ActivatedAbility,
     Atom,
     AtomArgs,
@@ -137,6 +138,7 @@ from MTG_bot.core.ability_tree import (
     FOr,
     Keyword,
     KeywordAbility,
+    TriggeredAbility,
     LifeGainedEvent,
     PtDelta,
     PtDirection,
@@ -145,6 +147,7 @@ from MTG_bot.core.ability_tree import (
     QAtMost,
     QBin,
     QBinOp,
+    Rounding,
     QConst,
     QCount,
     QProp,
@@ -1964,9 +1967,32 @@ def _build_transmog_reveal_creature(m: re.Match[str]) -> SentenceOutcome:
     bottom-of-library draw; ``ControllerRef.TARGET_PLAYER`` carries "that
     creature's controller" (bound by the s1 exile's target).
     DIVERGENCE: a non-creature top card finds nothing instead of scanning
-    deeper — the grammar has no reveal-until iterator; documented.  The
-    literal REVEAL is the SEARCH verb's built-in disclosure (b2b
-    convention)."""
+    deeper — the grammar has no reveal-until iterator; documented.
+    T5-E (2026-10-10, clause-audit residual closure): the disclosure is
+    now TRACEABLE — a REVEAL(controller=TARGET_PLAYER, count=QUnbounded)
+    step trails the Seq (the ``_build_reveal_hand`` whole-zone atom, 13a
+    "counts the whole zone" idiom = the closest existing encoding of the
+    unbounded "reveals cards ... until a creature" loop; the recorded
+    no-op executor lane ``_look`` journals the disclosure, nothing
+    moves).  It TRAILS the dig on purpose: a REVEAL opens the r19b look
+    window, and the dig's promoted ONE_OF+LIBRARY-TOP Selector re-scopes
+    its menu to the open window (selectors.py:364), so leading here
+    turned the dig population into the whole library (transmogrify pack
+    regression, caught by the 398 gate).  Trailing keeps the dig menu
+    byte-identical and the window dies in the s3 SHUFFLE (non-look
+    verbs close it).  ORDER divergence (disclosure journalled after the
+    put) is the price of the no-iterator grammar; documented alongside
+    the existing "non-creature top finds nothing" one.  The dig itself
+    stays the SEARCH-top atom."""
+    reveal = Atom(
+        verb=Verb.REVEAL,
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.TARGET_PLAYER),
+                ("count", QUnbounded()),
+            )
+        ),
+    )
     search = Atom(
         verb=Verb.SEARCH,
         args=AtomArgs(
@@ -1992,7 +2018,7 @@ def _build_transmog_reveal_creature(m: re.Match[str]) -> SentenceOutcome:
             )
         ),
     )
-    return EffectOutcome(effect=search)
+    return EffectOutcome(effect=Seq(steps=(search, reveal)))
 
 
 def _build_transmog_shuffle_rest(m: re.Match[str]) -> SentenceOutcome:
@@ -2438,10 +2464,11 @@ def _build_peer_half_library(m: re.Match[str]) -> SentenceOutcome:
     QCount(Selector(ALL, QUnbounded, universal filter,
     Zone(LIBRARY, TARGET_PLAYER))), not QProp CARDS_IN_LIBRARY (that
     field is pinned to the ability controller, QProp validator).
-    Round-up = the closed QBinOp idiom (n + 1) // 2 (QBinOp docstring —
-    "Peer needs NO new op", grammar-round-8 grounding) — the companion
-    row ``Round up each time.`` is consumed as the rounding directive
-    (B5b-peer-round-up-each-time).
+    Round-up = the explicit T5-D rounding policy: DIV carries
+    rounding=Rounding.CEIL (the (n + 1) // 2 idiom stays legal, but the
+    policy is now a first-class axis — the companion row ``Round up
+    each time.`` is consumed as the rounding directive
+    (B5b-peer-round-up-each-time) and the tree shows Rounding.CEIL.
 
     Lossy (C11 class, verbatim): the life-loss half — the grammar has NO
     life-total quantity (no QPropField.LIFE; QCount counts zone objects,
@@ -2460,8 +2487,9 @@ def _build_peer_half_library(m: re.Match[str]) -> SentenceOutcome:
     )
     half_rounded = QBin(
         op=QBinOp.DIV,
-        left=QBin(op=QBinOp.ADD, left=library_count, right=QConst(1)),
+        left=library_count,
         right=QConst(2),
+        rounding=Rounding.CEIL,
     )
     return EffectOutcome(
         effect=Atom(
@@ -2481,10 +2509,9 @@ def _build_peer_round_up_each_time(m: re.Match[str]) -> SentenceOutcome:
     directive consumed as a RuleReminderOutcome, the landed precedent for
     anaphoric instruction rows being matched rather than defaulted
     (B2b-double-vision-new-targets, reason 'anaphoric_continuation').
-    The rounding itself is already the shape of the s1 amount:
-    QBinOp.DIV is floor, round-up-half is (n+1)//2 — the closed-operator
-    idiom (QBinOp docstring), so this row carries no residual payload and
-    must NOT spawn a duplicate draw/lose step.  "each time" = both
+    The rounding itself is the s1 amount's policy: the DIV carries
+    rounding=Rounding.CEIL (T5-D), so this row carries no residual
+    payload and must NOT spawn a duplicate draw/lose step.  "each time" = both
     half-computations of s1 (library draw; the life half is dropped
     lossy — see _build_peer_half_library).
     C16: none — computation directive, fully forced."""
@@ -2665,6 +2692,43 @@ def _build_play_top_revealed(m: re.Match[str]) -> SentenceOutcome:
 # ---------------------------------------------------------------------------
 # Template registry
 # ---------------------------------------------------------------------------
+
+
+def _build_sanctum_all_extra_trigger(m: re.Match[str]) -> SentenceOutcome:
+    """``If an ability of another Shrine you control triggers while you
+    control six or more Shrines, that ability triggers an additional
+    time.`` (Sanctum of All s2) — T5-D: the AbilityTriggerEvent atom
+    (the when-event of the extra-trigger family) over the triggering
+    ability's SOURCE permanent: SUBTYPE_EQ Shrine + CONTROLLER_IS YOU +
+    FNot(IS_SOURCE) for "another" (the B2a convention, doc line 40); the
+    "while you control six or more Shrines" clause is the ability's
+    CONDITION (CONTROLLER_COUNT_GE, Gadrak's vocabulary); the effect is
+    the reusable TRIGGER_ADDITIONAL verb carrying the {count} axis —
+    QConst(1) for "an additional time" (a derived Quantity for a
+    per-category carrier rides the SAME verb, §9 orthogonality)."""
+    return AbilityOutcome(
+        ability=TriggeredAbility(
+            event=AbilityTriggerEvent(
+                filter=FAnd(
+                    children=(
+                        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Shrine"),
+                        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                        FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
+                    )
+                )
+            ),
+            condition=FAtom(
+                pred=FAtomPred.CONTROLLER_COUNT_GE,
+                count=QConst(6),
+                inner_filter=FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Shrine"),
+            ),
+            effect=Atom(
+                verb=Verb.TRIGGER_ADDITIONAL,
+                args=AtomArgs(pairs=(("count", QConst(1)),)),
+            ),
+        )
+    )
+
 
 TEMPLATES: tuple[Template, ...] = (
     Template(
@@ -3474,13 +3538,21 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_transmog_shuffle_rest,
     ),
+    Template(
+        tid="B5b-sanctum-all-extra-trigger",
+        name="Sanctum-of-All extra-trigger (AbilityTriggerEvent + TRIGGER_ADDITIONAL, T5-D)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^If an ability of another Shrine you control triggers while "
+            r"you control six or more Shrines, that ability triggers an "
+            r"additional time\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_sanctum_all_extra_trigger,
+    ),
 )
 
 UNCOVERED: tuple[tuple[str, str], ...] = (
-    (
-        "If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.",
-        "Additional trigger with shrine-count gate",
-    ),
     (
         "If you search your library this way, shuffle.",
         "Conditional shuffle on library-search trigger",

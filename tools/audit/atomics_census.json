@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated": "2026-10-09T22:04:23.775209+00:00",
+  "generated": "2026-10-10T01:05:29.324740+00:00",
   "golden_trees": 305,
   "engine": "reuses compiler._is_liftable_pick + ability_tree.from_dict",
   "charter": "KNOWLEDGE/2026-10-08/50-t5-full-pool-reaudit-charter.md"
@@ -45,7 +45,7 @@
    "note": "T4 canonical asking pick"
   },
   "event_direction_zone_field": {
-   "count": 375,
+   "count": 376,
    "tree_count": 165,
    "trees": [
     "Solemn Simulacrum",
@@ -218,8 +218,8 @@
    "note": "zone.controller (dominant 'you control' filter) \u2014 E1 census context"
   },
   "event_direction_controllers_is": {
-   "count": 88,
-   "tree_count": 62,
+   "count": 89,
+   "tree_count": 63,
    "trees": [
     "Feline Sovereign",
     "Malefic Scythe",
@@ -248,6 +248,7 @@
     "Liliana's Scrounger",
     "Invigorating Surge",
     "Bolt Hound",
+    "Sanctum of All",
     "Basri's Solidarity",
     "Ranger's Guile",
     "Pursued Whale",
@@ -392,8 +393,8 @@
    "note": "style A: event.controller field carries direction (E1 merge pending)"
   },
   "choose_silent_is_source_lane": {
-   "count": 55,
-   "tree_count": 45,
+   "count": 57,
+   "tree_count": 47,
    "trees": [
     "Malefic Scythe",
     "Snarespinner",
@@ -417,6 +418,7 @@
     "Sigiled Contender",
     "Alpine Houndmaster",
     "Trufflesnout",
+    "Makeshift Battalion",
     "Radha, Heart of Keld",
     "Burlfist Oak",
     "Basri's Aegis",
@@ -439,7 +441,8 @@
     "Dire Fleet Warmonger",
     "Drowsing Tyrannodon",
     "Hobblefiend",
-    "Quirion Dryad"
+    "Quirion Dryad",
+    "Conspicuous Snoop"
    ],
    "severity": "info",
    "note": "IS_SOURCE self-designation (CR 602.2c) \u2014 legit lane"
@@ -568,8 +571,8 @@
    "note": "0 = no ad-hoc bound shapes; tripwire"
   },
   "event_direction_both_styles": {
-   "count": 9,
-   "tree_count": 9,
+   "count": 10,
+   "tree_count": 10,
    "trees": [
     "Adherent of Hope",
     "Basri Ket",
@@ -579,10 +582,11 @@
     "Garruk, Unleashed",
     "Liliana's Devotee",
     "Mangara, the Diplomat",
-    "Rin and Seri, Inseparable"
+    "Rin and Seri, Inseparable",
+    "Sanctum of All"
    ],
    "severity": "medium",
-   "note": "9 trees encode controller-direction with BOTH an event field and CONTROLLER_IS \u2014 E1 unification must rewrite these: ['Adherent of Hope', 'Basri Ket', 'Basri Ket Emblem', 'Dire Fleet Warmonger', 'Furious Rise', 'Garruk, Unleashed', \"Liliana's Devotee\", 'Mangara, the Diplomat', 'Rin and Seri, Inseparable']"
+   "note": "10 trees encode controller-direction with BOTH an event field and CONTROLLER_IS \u2014 E1 unification must rewrite these: ['Adherent of Hope', 'Basri Ket', 'Basri Ket Emblem', 'Dire Fleet Warmonger', 'Furious Rise', 'Garruk, Unleashed', \"Liliana's Devotee\", 'Mangara, the Diplomat', 'Rin and Seri, Inseparable', 'Sanctum of All']"
   },
   "keyword_decorative": {
    "count": 3,
@@ -600,7 +604,7 @@
    "tree_count": 0,
    "trees": [],
    "severity": "info",
-   "note": "{\n \"FLYING\": [\n  \"direct\",\n  \"executor/legality.py:1733\"\n ],\n \"SCRY\": [\n  \"direct\",\n  \"executor/verbs.py:1053\"\n ],\n \"VIGILANCE\": [\n  \"direct\",\n  \"executor/__init__.py:1499\"\n ],\n \"LIFELINK\": [\n  \"direct\",\n  \"executor/verbs.py:382\"\n ],\n \"FLASH\": [\n  \"direct\",\n  \"executor/legality.py:1229\"\n ],\n \"ENCHANT\": [\n  \"direct\",\n  \"executor/__init__.py:1062\"\n ],\n \"TRAMPLE\": [\n  \"direct\",\n  \"executor/__init__.py:1839\"\n ],\n \"PROWESS\": [\n  \"direct\",\n  \"executor/binding.py:579\"\n ],\n \"REACH\": [\n  \"direct\",\n  \"executor/legality.py:1734\"\n ],\n \"HEXPROOF\": [\n  \"direct\",\n  \"executor/layers.py:1138\"\n ],\n \"PROTECTION\": [\n  \"direct\",\n  \"executor/layers.py:1098\"\n ],\n \"MILL\": [\n  \"delegated\",\n  \"executor/verbs.py Verb.MILL shape (107/133) via MOVE_ZONE\"\n ],\n \"DEFENDER\": [\n  \"direct\",\n  \"executor/legality.py:1623\"\n ],\n \"HASTE\": [\n  \"direct\",\n  \"executor/legality.py:1625\"\n ],\n \"FIGHT\": [\n  \"direct\",\n  \"executor/verbs.py:609\"\n ],\n \"DEATHTOUCH\": [\n  \"direct\",\n  \"executor/__init__.py:1829\"\n ],\n \"FIRST_STRIKE\": [\n  \"direct\",\n  \"executor/__init__.py:1704\"\n ],\n \"DOUBLE_STRIKE\": [\n  \"direct\",\n  \"executor/__init__.py:1706\"\n ],\n \"EQUIP\": [\n  \"DECORATIVE\",\n  \"no enforcement site found in executor\"\n ],\n \"INDESTRUCTIBLE\": [\n  \"direct\",\n  \"executor/__init__.py:1042\"\n ],\n \"TREASURE\": [\n  \"DECORATIVE\",\n  \"no enforcement site found in executor\"\n ],\n \"BATTALION\": [\n  \"direct\",\n  \"executor/binding.py:579\"\n ],\n \"MENACE\": [\n  \"direct\",\n  \"executor/__init__.py:1560\"\n ]\n}"
+   "note": "{\n \"FLYING\": [\n  \"direct\",\n  \"executor/legality.py:1733\"\n ],\n \"SCRY\": [\n  \"direct\",\n  \"executor/verbs.py:1086\"\n ],\n \"VIGILANCE\": [\n  \"direct\",\n  \"executor/__init__.py:1499\"\n ],\n \"LIFELINK\": [\n  \"direct\",\n  \"executor/verbs.py:383\"\n ],\n \"FLASH\": [\n  \"direct\",\n  \"executor/legality.py:1229\"\n ],\n \"ENCHANT\": [\n  \"direct\",\n  \"executor/__init__.py:1062\"\n ],\n \"TRAMPLE\": [\n  \"direct\",\n  \"executor/__init__.py:1839\"\n ],\n \"PROWESS\": [\n  \"direct\",\n  \"executor/binding.py:581\"\n ],\n \"REACH\": [\n  \"direct\",\n  \"executor/legality.py:1734\"\n ],\n \"HEXPROOF\": [\n  \"direct\",\n  \"executor/layers.py:1138\"\n ],\n \"PROTECTION\": [\n  \"direct\",\n  \"executor/layers.py:1098\"\n ],\n \"MILL\": [\n  \"delegated\",\n  \"executor/verbs.py Verb.MILL shape (107/133) via MOVE_ZONE\"\n ],\n \"DEFENDER\": [\n  \"direct\",\n  \"executor/legality.py:1623\"\n ],\n \"HASTE\": [\n  \"direct\",\n  \"executor/legality.py:1625\"\n ],\n \"FIGHT\": [\n  \"direct\",\n  \"executor/verbs.py:642\"\n ],\n \"DEATHTOUCH\": [\n  \"direct\",\n  \"executor/__init__.py:1829\"\n ],\n \"FIRST_STRIKE\": [\n  \"direct\",\n  \"executor/__init__.py:1704\"\n ],\n \"DOUBLE_STRIKE\": [\n  \"direct\",\n  \"executor/__init__.py:1706\"\n ],\n \"EQUIP\": [\n  \"DECORATIVE\",\n  \"no enforcement site found in executor\"\n ],\n \"INDESTRUCTIBLE\": [\n  \"direct\",\n  \"executor/__init__.py:1042\"\n ],\n \"TREASURE\": [\n  \"DECORATIVE\",\n  \"no enforcement site found in executor\"\n ],\n \"BATTALION\": [\n  \"direct\",\n  \"executor/binding.py:581\"\n ],\n \"MENACE\": [\n  \"direct\",\n  \"executor/__init__.py:1560\"\n ]\n}"
   },
   "count_semantics_surfaces": {
    "count": 15,

@@ -87,6 +87,7 @@ from MTG_bot.core.ability_tree import (
     DeclareAttackersEvent,
     DeclareBlockersEvent,
     DurationEot,
+    DurationPermanent,
     DurationWhileCondition,
     EachPlayer,
     FAnd,
@@ -118,6 +119,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    ZonePosition,
 )
 from MTG_bot.core.compiler.templates import (
     AdditionalCostOutcome,
@@ -478,10 +480,55 @@ def _build_keyword_reminder(
 
 
 def _build_battalion(m: re.Match[str]) -> SentenceOutcome:
-    # Battalion is a keyword ability; the compiler skips bare Battalion
-    # keywords (see _KEYWORDS_BARE_UNBUILDABLE), so this template is the
-    # sole source of the trigger params.
-    return KeywordOutcome(keyword=Keyword.BATTALION, params=(QConst(2),))
+    # T5-E (2026-10-10, clause-audit residual closure): the printed
+    # trigger leg COMPILES. This sentence used to emit only a
+    # KeywordOutcome token whose trigger the r20a binder synthesised
+    # behind the encoding (a §10 phantom: token visible, semantics
+    # hidden in executor code). The leg mirrors
+    # ``binding._keyword_node("BATTALION")`` — DeclareAttackersEvent
+    # (IS_SOURCE) -> PUT_COUNTER +1/+1 on self — and carries the
+    # CR 508.2 group-of-three as the trigger CONDITION
+    # (CONTROLLER_COUNT_GE over attacking creatures; the binder gated
+    # the same declaration population at queue time by journal read).
+    # No keyword token is emitted, so the record's keywords stay free
+    # of BATTALION and the binder's synthetic keyword lane stays inert
+    # for this card (no double-fire).
+    return AbilityOutcome(
+        ability=TriggeredAbility(
+            event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
+            condition=FAtom(
+                pred=FAtomPred.CONTROLLER_COUNT_GE,
+                inner_filter=FAnd(
+                    children=(
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                        FAtom(pred=FAtomPred.IS_ATTACKING),
+                    )
+                ),
+                count=QConst(3),
+            ),
+            effect=Atom(
+                verb=Verb.PUT_COUNTER,
+                args=AtomArgs(
+                    pairs=(
+                        ("count", QConst(1)),
+                        ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                        (
+                            "target",
+                            Selector(
+                                count=QConst(1),
+                                mode=SelectorMode.CHOOSE,
+                                filter=FAtom(pred=FAtomPred.IS_SOURCE),
+                                zone=Zone(
+                                    kind=ZoneKind.BATTLEFIELD,
+                                    controller=ControllerRef.ANY,
+                                ),
+                            ),
+                        ),
+                    )
+                ),
+            ),
+        )
+    )
 
 
 def _build_destroy(m: re.Match[str], f: Filter, zone: Zone) -> SentenceOutcome:
@@ -962,6 +1009,74 @@ _PLUS_1_PLUS_1 = CounterKind.PLUS_1_PLUS_1
 
 def _bf_any() -> Zone:
     return Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY)
+
+
+def _build_snoop_top_goblin_abilities(m: re.Match[str]) -> SentenceOutcome:
+    """As long as the top card of your library is a Goblin card, this
+    creature has all activated abilities of that card.  (Conspicuous
+    Snoop s3; T5-E closure of the R10 ability-introspection DEFER.)
+
+    The gate is the R6-2 ZONE_COUNT_GE predicate bounded to the library's
+    TOP entry (T5-E gave the evaluator its OPTIONAL ``Zone.position``
+    window, mirroring the selector idiom) with ``count=1`` — "the top
+    card is a Goblin card".  The conditional-static half is the T3
+    round-4 ``StaticAbility.condition`` lane (C9: the "as long as"
+    predicate lives in the condition, never a duration approximation)
+    exactly as the R10 note anticipated; only the GRANT_ABILITY payload
+    had no vocabulary then.
+
+    Payload materialization (gap ledger, doc /11 §DEFER stays open): the
+    true reading grants the ABILITY SET of a dynamically-referenced card,
+    which the closed IR cannot enumerate (no card→ability introspection
+    atom; a live ActivatedAbility payload is also ruled out on runtime
+    grounds — ``query.legal_activations`` surfaces granted rows in the
+    ACTIVATE menu, which would re-pin the scenario/eval packs against an
+    ability the top card may not even have).  The payload is therefore a
+    registered-INERT static mirror of the card's own top-reveal static
+    (s1, templates_b5b): a valid ``ability``-slot node (§8.3), invisible
+    to ``granted_activated`` (filters to ActivatedAbility) and to the
+    binder's granted-trigger drain (TriggeredAbility only).  The clause's
+    observable content — the engine's free top-Goblin cast — stays owned
+    by the s2 lane; the grant keeps the STATIC↔DYNAMIC trace (§10): the
+    static encoding exists wherever the ask presents the top-Goblin cast."""
+    top_goblin = FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Goblin")
+    reveal_static = StaticAbility(
+        effect=Atom(
+            verb=Verb.REVEAL,
+            args=AtomArgs(
+                pairs=(
+                    ("controller", ControllerRef.YOU),
+                    ("count", QConst(1)),
+                    ("duration", DurationPermanent()),
+                )
+            ),
+        )
+    )
+    grant = Atom(
+        verb=Verb.GRANT_ABILITY,
+        args=AtomArgs(
+            pairs=(
+                ("target", _self_selector(_bf_any())),
+                ("ability", reveal_static),
+            )
+        ),
+    )
+    return AbilityOutcome(
+        ability=StaticAbility(
+            effect=grant,
+            condition=FAtom(
+                pred=FAtomPred.ZONE_COUNT_GE,
+                who=ControllerRef.YOU,
+                zone=Zone(
+                    kind=ZoneKind.LIBRARY,
+                    controller=ControllerRef.YOU,
+                    position=ZonePosition.TOP,
+                ),
+                inner_filter=top_goblin,
+                count=QConst(1),
+            ),
+        )
+    )
 
 
 def _build_aslong_opp_gy_count(m: re.Match[str]) -> SentenceOutcome:
@@ -2060,6 +2175,17 @@ TEMPLATES: tuple[Template, ...] = (
         build=_build_aslong_attack_despite_defender,
     ),
     Template(
+        tid="B5a-snoop-top-goblin-abilities",
+        name="top-Goblin ability grant (Snoop s3, T5-E closure of R10 DEFER)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^As long as the top card of your library is a Goblin card, "
+            r"this creature has all activated abilities of that card\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_snoop_top_goblin_abilities,
+    ),
+    Template(
         tid="B5a-activate-sorcery-gate",
         name="activation gate: bare sorcery-timing window (R10-1, C25)",
         bucket=_BUCKET,
@@ -2078,16 +2204,12 @@ TEMPLATES: tuple[Template, ...] = (
     ),
 )
 
-# UNCOVERED — 3 normalized-key rows
+# UNCOVERED — 2 normalized-key rows
 #
 # Each row is (shape_key, reason).  shape_key is the B5a.json normalized
 # key (digits → "N").  Sorted alphabetically by shape_key.  The T4 test
 # pins this set against the SHAPES table.
 UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
-    (
-        "As long as the top card of your library is a Goblin card, this creature has all activated abilities of that card.",
-        "ability-introspection family (R10): granting ALL activated abilities of a dynamically-referenced card needs a card→ability-set lookup; the conditional-static half shipped round 4 (StaticAbility.condition) and the library-top type predicate exists — only the dynamic ability-set grant is missing (Snoop, doc /11 §DEFER).",
-    ),
     (
         "Choose one or more —",
         "handled by the compiler's choose-opener built-in (compiler._wrap_choose_openers), not a template",

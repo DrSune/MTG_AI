@@ -38,6 +38,7 @@ from MTG_bot.core.ability_tree import (
     FAtomPred,
     FNot,
     QConst,
+    QUnbounded,
     Seq,
     Selector,
     SelectorMode,
@@ -144,19 +145,29 @@ class TestC3CompilerPins(unittest.TestCase):
     # ---- transmogrify: top-of-library SEARCH + TARGET_PLAYER SHUFFLE ----
 
     def test_transmog_spell_folds_to_three_step_seq(self) -> None:
-        """MOVE_ZONE (exile shape), SEARCH, SHUFFLE — the three plain
-        sentence effects fold into the SpellAbility's single Seq at card
-        assembly (no continuation prefixes involved)."""
+        """MOVE_ZONE (exile shape), Seq(SEARCH, REVEAL), SHUFFLE — the
+        three plain sentence effects fold into the SpellAbility's single
+        Seq at card assembly (no continuation prefixes involved).
+        T5-E: s2 contributes the nested Seq — the dig plus the traceable
+        disclosure REVEAL (the sibling one-sentence-Seq precedent, e.g.
+        the Cultivate-family builder); the executor walks nested Seqs
+        and the transmogrify scenario pack is byte-green."""
         res = self._compile(_TRANSMOG)
         (spell,) = res.card.abilities
         assert isinstance(spell, SpellAbility)
         assert isinstance(spell.effect, Seq)
-        atoms = [s for s in spell.effect.steps if isinstance(s, Atom)]
-        self.assertEqual(len(atoms), len(spell.effect.steps))
+        steps = spell.effect.steps
+        self.assertEqual(len(steps), 3)
         # T4 P1a: the old EXILE row is the merged MOVE_ZONE atom.
+        head, mid, tail = steps
+        assert isinstance(head, Atom) and isinstance(tail, Atom)
+        self.assertIs(head.verb, Verb.MOVE_ZONE)
+        assert isinstance(mid, Seq)
         self.assertEqual(
-            [a.verb for a in atoms], [Verb.MOVE_ZONE, Verb.SEARCH, Verb.SHUFFLE]
+            [s.verb for s in mid.steps if isinstance(s, Atom)],
+            [Verb.SEARCH, Verb.REVEAL],
         )
+        self.assertIs(tail.verb, Verb.SHUFFLE)
 
     def test_transmog_search_is_top_scoped_target_player(self) -> None:
         """SEARCH cards = Selector(QConst(1), CHOOSE, TYPE_EQ Creature,
@@ -167,8 +178,15 @@ class TestC3CompilerPins(unittest.TestCase):
         res = self._compile(_TRANSMOG)
         (spell,) = res.card.abilities
         assert isinstance(spell, SpellAbility) and isinstance(spell.effect, Seq)
-        search = spell.effect.steps[1]
-        assert isinstance(search, Atom)
+        mid = spell.effect.steps[1]
+        # T5-E: s2 is the Seq(SEARCH, REVEAL) — the dig leads so its
+        # ONE_OF menu never sees the disclosure's look window.
+        assert isinstance(mid, Seq)
+        search, disclosure = mid.steps
+        assert isinstance(search, Atom) and isinstance(disclosure, Atom)
+        self.assertIs(disclosure.verb, Verb.REVEAL)
+        self.assertIs(disclosure.args.get("controller"), ControllerRef.TARGET_PLAYER)
+        self.assertIsInstance(disclosure.args.get("count"), QUnbounded)
         cards = search.args.get("cards")
         assert isinstance(cards, Selector)
         self.assertEqual(cards.count, QConst(1))

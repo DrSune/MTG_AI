@@ -1,9 +1,9 @@
 """Tests for B5a bucket templates (templates_b5a.py).
 
 Covers all 90 shapes in ``/tmp/opencode/phase1_buckets/B5a.json``:
-- 64 template-covered (60 templates; B5a-land-add matches 5 basic-land shapes)
+- 65 template-covered (61 templates; B5a-land-add matches 5 basic-land shapes)
 - 23 rule-reminder pre-consumed by the compiler
-- 3 UNCOVERED (no expressible/attachable construct; recorded in UNCOVERED and pinned)
+- 2 UNCOVERED (no expressible/attachable construct; recorded in UNCOVERED and pinned)
 
 PC-3: every concrete sentence fullmatches at most one template.
 """
@@ -66,6 +66,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    ZonePosition,
     canonical_json,
 )
 from MTG_bot.core.compiler.compiler import _is_rule_reminder, compile_card
@@ -252,8 +253,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     # shape 38
     (
         "As long as the top card of your library is a Goblin card, this creature has all activated abilities of that card.",
-        "UNCOV",
-        "",
+        "COVERED",
+        "B5a-snoop-top-goblin-abilities",
     ),
     # shape 39
     (
@@ -621,7 +622,7 @@ class TestTemplateInventory(unittest.TestCase):
     """Verify the B5a template collection is well-formed."""
 
     def test_56_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 60)
+        self.assertEqual(len(TEMPLATES), 61)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -637,7 +638,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 60)
+        self.assertEqual(len(reg), 61)
 
 
 # ---------------------------------------------------------------------------
@@ -660,14 +661,14 @@ class TestShapeTable(unittest.TestCase):
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
         self.assertEqual(rr, 23, f"RR count {rr} != 23")
-        self.assertEqual(covered, 64, f"COVERED count {covered} != 64")
-        self.assertEqual(uncov, 3, f"UNCOV count {uncov} != 3")
+        self.assertEqual(covered, 65, f"COVERED count {covered} != 65")
+        self.assertEqual(uncov, 2, f"UNCOV count {uncov} != 2")
 
     def test_covered_tids_valid_and_unique_58(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
-            len(unique_tids), 60, f"expected 60 unique tids, got {len(unique_tids)}"
+            len(unique_tids), 61, f"expected 61 unique tids, got {len(unique_tids)}"
         )
         # All tids start with B5a-
         for tid in unique_tids:
@@ -697,7 +698,7 @@ class TestUncovered(unittest.TestCase):
     """Verify the UNCOVERED attribute is well-formed and pinned to SHAPES."""
 
     def test_7_rows(self) -> None:
-        self.assertEqual(len(UNCOVERED), 3)
+        self.assertEqual(len(UNCOVERED), 2)
 
     def test_unique_sorted_keys(self) -> None:
         keys = [k for k, _ in UNCOVERED]
@@ -1291,15 +1292,63 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertIsInstance(p["toughness"], PtDelta)
 
     def test_battalion(self) -> None:
-        """B5a-battalion: KeywordOutcome with BATTALION keyword, QConst(2)."""
+        """B5a-battalion (T5-E): full TriggeredAbility leg — attack event,
+        CR 508.2 group-of-three CONDITION, PUT_COUNTER +1/+1 on self.
+        Superseded the old KeywordOutcome pin (phantom keyword, §10)."""
         outcome = self._match_outcome("B5a-battalion")
-        kw = _as_keyword(outcome)
-        self.assertEqual(kw.keyword, Keyword.BATTALION)
-        self.assertEqual(len(kw.params), 1)
-        self.assertIsInstance(kw.params[0], QConst)
-        if not isinstance(kw.params[0], QConst):
-            self.fail(f"expected QConst, got {type(kw.params[0])}")
-        self.assertEqual(kw.params[0].value, 2)
+        if not isinstance(outcome, AbilityOutcome):
+            self.fail(f"expected AbilityOutcome, got {type(outcome).__name__}")
+        ability = outcome.ability
+        if not isinstance(ability, TriggeredAbility):
+            self.fail(f"expected TriggeredAbility, got {type(ability).__name__}")
+        self.assertIsInstance(ability.event, DeclareAttackersEvent)
+        cond = ability.condition
+        if (
+            not isinstance(cond, FAtom)
+            or cond.pred is not FAtomPred.CONTROLLER_COUNT_GE
+        ):
+            self.fail(f"expected CONTROLLER_COUNT_GE condition, got {cond!r}")
+        if not isinstance(cond.count, QConst) or cond.count.value != 3:
+            self.fail(f"expected group-of-three gate, got {cond.count!r}")
+        atom = _as_atom(ability.effect)
+        self.assertEqual(atom.verb, Verb.PUT_COUNTER)
+        p = _pairs_dict(atom)
+        self.assertEqual(p["counter_kind"], CounterKind.PLUS_1_PLUS_1)
+
+    def test_snoop_top_goblin_grant(self) -> None:
+        """B5a-snoop-top-goblin-abilities (T5-E, R10 DEFER lifted):
+        StaticAbility whose condition is the ZONE_COUNT_GE predicate
+        bounded to the library TOP (count=1, inner_filter Goblin-subtype)
+        and whose effect is a GRANT_ABILITY on self. The payload is a
+        registered-inert StaticAbility mirror (gap-ledger materialization
+        — a live ActivatedAbility payload would add phantom ACTIVATE rows
+        to every top-Goblin state; see builder docstring)."""
+        outcome = self._match_outcome("B5a-snoop-top-goblin-abilities")
+        if not isinstance(outcome, AbilityOutcome):
+            self.fail(f"expected AbilityOutcome, got {type(outcome).__name__}")
+        ability = outcome.ability
+        if not isinstance(ability, StaticAbility):
+            self.fail(f"expected StaticAbility, got {type(ability).__name__}")
+        cond = ability.condition
+        if not isinstance(cond, FAtom) or cond.pred is not FAtomPred.ZONE_COUNT_GE:
+            self.fail(f"expected ZONE_COUNT_GE condition, got {cond!r}")
+        assert cond.zone is not None and cond.count is not None
+        self.assertIs(cond.zone.kind, ZoneKind.LIBRARY)
+        self.assertIs(cond.zone.position, ZonePosition.TOP)
+        if not isinstance(cond.count, QConst) or cond.count.value != 1:
+            self.fail(f"expected TOP-window count 1, got {cond.count!r}")
+        assert cond.inner_filter is not None
+        assert isinstance(cond.inner_filter, FAtom)
+        self.assertIs(cond.inner_filter.pred, FAtomPred.SUBTYPE_EQ)
+        self.assertEqual(cond.inner_filter.string_value, "Goblin")
+        atom = _as_atom(ability.effect)
+        self.assertEqual(atom.verb, Verb.GRANT_ABILITY)
+        p = _pairs_dict(atom)
+        payload = p["ability"]
+        if not isinstance(payload, StaticAbility):
+            self.fail(
+                f"expected inert StaticAbility payload, got {type(payload).__name__}"
+            )
 
     def test_destroy_power_ge(self) -> None:
         """B5a-destroy-power-ge: EffectOutcome, DESTROY verb, POWER_GE filter."""
@@ -1809,7 +1858,7 @@ class TestCanonicalStability(unittest.TestCase):
                 f"canonical instability for {tid} ({sent[:40]})",
             )
             seen.add(tid)
-        self.assertEqual(len(seen), 60, f"only {len(seen)} unique tids tested")
+        self.assertEqual(len(seen), 61, f"only {len(seen)} unique tids tested")
 
 
 # ---------------------------------------------------------------------------

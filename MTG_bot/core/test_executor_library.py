@@ -725,6 +725,9 @@ class TestCapabilitySurface(unittest.TestCase):
             # the stack.cast response window (Cancel, Miscast, Rewind,
             # Lofty Denial leave deferral).
             Verb.COUNTER_SPELL,
+            # T5-D (Sanctum of All family): the extra-trigger verb joins
+            # with the AbilityTriggerEvent fan-out.
+            Verb.TRIGGER_ADDITIONAL,
         }
         self.assertEqual(SUPPORTED_VERBS_V2 - SUPPORTED_VERBS_V1, new)
         self.assertNotIn(Verb.DRAW, SUPPORTED_VERBS_V1)  # the round-12 freeze
@@ -732,7 +735,7 @@ class TestCapabilitySurface(unittest.TestCase):
         # T4 P1a: 46 -> 43 — EXILE/DISCARD/MILL moved off the live HANDLERS
         # set onto the merged MOVE_ZONE dispatch (enum members kept for
         # legacy decode only).
-        self.assertEqual(len(SUPPORTED_VERBS_V2), 43)
+        self.assertEqual(len(SUPPORTED_VERBS_V2), 44)
 
     def test_turn_ledger_fields_in_state_fingerprint(self):
         reset_oracle_ids()

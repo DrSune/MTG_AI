@@ -34,7 +34,7 @@ def test_verb_class_partitions_the_full_enum_exactly_once() -> None:
     assert counts == {
         VerbClass.OPERATION: 6,
         VerbClass.POLICY: 7,
-        VerbClass.EFFECT: 36,
+        VerbClass.EFFECT: 37,
     }
     # Embedded rulings: mandates are legality policies; the legacy
     # move-shape twins of the merged MOVE stay EFFECTs beside it.

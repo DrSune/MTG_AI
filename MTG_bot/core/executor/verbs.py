@@ -25,6 +25,7 @@ import hashlib
 from collections.abc import Callable
 from dataclasses import replace
 
+from MTG_bot.core.executor.events import KIND_ABILITY_TRIGGERED
 from MTG_bot.core.ability_tree import (
     Ability,
     ActivationWindow,
@@ -386,6 +387,38 @@ def _lifelink_gain(ctx: ExecCtx, n: int) -> None:
         args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("amount", QConst(n)))),
     )
     _v_gain_life(replace(ctx, controller=ctx.executor.controller_of(ctx.source)), atom)
+
+
+def _v_trigger_additional(ctx: ExecCtx, atom: Atom) -> None:
+    """T5-D (Sanctum of All): re-queue the ability THIS firing matched
+    `count` extra times. The AbilityTriggerEvent fan-out stored the matched
+    firing payload in the synthetic event's data; the re-queued firings are
+    marked additional=True — CR 603.2e: an extra trigger is created without
+    a triggering event, so it never re-arms an AbilityTriggerEvent (this is
+    what keeps two extra-trigger carriers, or a self-counting carrier,
+    from chasing each other forever). Each re-queued firing is a FULL
+    resolution: its own targets, its own may-asks."""
+    event = ctx.event
+    if (
+        event is None
+        or getattr(event, "kind", None) != KIND_ABILITY_TRIGGERED
+        or not event.data
+    ):  # pragma: no cover - only a mis-compiled card can dispatch here
+        raise ValueError(
+            "executor: TRIGGER_ADDITIONAL outside an ability-triggered firing"
+        )
+    original = event.data[0]
+    if ctx.executor is None:  # pragma: no cover - bare-ctx guard
+        raise ValueError("executor: TRIGGER_ADDITIONAL needs the executor binder")
+    extra = amount(ctx, atom, "count")
+    for _ in range(extra):
+        ctx.executor.binder._queue(
+            original.source,
+            original.controller,
+            original.node,
+            original.event,
+            additional=True,
+        )
 
 
 def _v_lose_life(ctx: ExecCtx, atom: Atom) -> None:
@@ -1992,6 +2025,10 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     # 43 -> 45, the library pin is amended dated.
     Verb.GAIN_CONTROL: _v_gain_control,
     Verb.ATTACH: _v_attach,
+    # T5-D (Sanctum of All family): the extra-trigger verb, live with the
+    # AbilityTriggerEvent fan-out. SUPPORTED_VERBS_V2 derives from THIS
+    # table.
+    Verb.TRIGGER_ADDITIONAL: _v_trigger_additional,
 }
 
 
