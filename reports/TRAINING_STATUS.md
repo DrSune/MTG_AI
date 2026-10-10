@@ -1,10 +1,10 @@
 # TRAINING STATUS — COMPLETE
 
-- updated: 2026-10-09 12:37:12
-- shell pid: 2408638
+- updated: 2026-10-10 08:53:04
+- shell pid: 835749
 - state: **COMPLETE**
-- what: --timeout 86400 bash tools/training/batch8_sweep.sh
+- what: --timeout 86400 bash tools/training/batch9_sweep.sh
 - engine target on exit: flash-next
-- detail: run_train completed; engine restored and healthy on port 8002/8000; stop-cause: complete 2948.97
+- detail: run_train completed; engine flash-next restored and gateway healthy; selfwake armed (injects STOP-REVIEW prompt when engine warm); stop-cause: complete 3686.86
 
 Ops log: reports/training_ops.log | Runs jsonl: reports/training_runs.jsonl
