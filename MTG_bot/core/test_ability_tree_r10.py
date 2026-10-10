@@ -364,7 +364,11 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
         "delay_bad_duration",
         lambda: at.DelayedTrigger(
             duration=at.QConst(1),  # type: ignore[arg-type]
-            event=at.CardDrawnEvent(controller=at.ControllerRef.YOU),
+            event=at.CardDrawnEvent(
+                actor=at.FAtom(
+                    pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU
+                )
+            ),
             condition=None,
             effect=_draw_atom(1),
         ),
@@ -382,7 +386,11 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
         "delay_bad_condition",
         lambda: at.DelayedTrigger(
             duration=at.DurationEot(),
-            event=at.CardDrawnEvent(controller=at.ControllerRef.YOU),
+            event=at.CardDrawnEvent(
+                actor=at.FAtom(
+                    pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU
+                )
+            ),
             condition="nope",  # type: ignore[arg-type]
             effect=_draw_atom(1),
         ),
@@ -391,7 +399,11 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
         "delay_bad_effect",
         lambda: at.DelayedTrigger(
             duration=at.DurationEot(),
-            event=at.CardDrawnEvent(controller=at.ControllerRef.YOU),
+            event=at.CardDrawnEvent(
+                actor=at.FAtom(
+                    pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU
+                )
+            ),
             condition=None,
             effect=_CREATURE,  # type: ignore[arg-type]
         ),
@@ -550,7 +562,9 @@ def test_delayed_trigger_null_condition_roundtrip() -> None:
 def test_delayed_trigger_conditioned_roundtrip() -> None:
     dt = at.DelayedTrigger(
         duration=at.DurationEot(),
-        event=at.CardDrawnEvent(controller=at.ControllerRef.YOU),
+        event=at.CardDrawnEvent(
+            actor=at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU)
+        ),
         condition=_CREATURE,
         effect=_tap_target(),
     )
@@ -674,7 +688,11 @@ def test_contains_pay_atom_nested_traversal() -> None:
     assert _contains_pay_atom(
         at.DelayedTrigger(
             duration=at.DurationEot(),
-            event=at.CardDrawnEvent(controller=at.ControllerRef.YOU),
+            event=at.CardDrawnEvent(
+                actor=at.FAtom(
+                    pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU
+                )
+            ),
             condition=None,
             effect=pay_opt,
         )
@@ -843,7 +861,11 @@ def test_compile_do_continuation_into_triggered() -> None:
             r"^When you draw a card, you may pay \{1\}\.$",
             lambda m: AbilityOutcome(
                 ability=at.TriggeredAbility(
-                    event=at.CardDrawnEvent(controller=at.ControllerRef.YOU),
+                    event=at.CardDrawnEvent(
+                        actor=at.FAtom(
+                            pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU
+                        )
+                    ),
                     condition=None,
                     effect=at.OptionalEffect(inner=_pay_atom()),
                 )

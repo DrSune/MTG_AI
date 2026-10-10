@@ -230,7 +230,7 @@ def _creatures_you_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
     )
 
 
@@ -246,7 +246,7 @@ def _other_creatures_you_control() -> Selector:
                 FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
             )
         ),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
     )
 
 
@@ -278,7 +278,7 @@ def _untapped_creatures_you_control() -> Selector:
                 FAtom(pred=FAtomPred.IS_UNTAPPED),
             )
         ),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
     )
 
 
@@ -1083,7 +1083,7 @@ def _build_mangara_second_spell(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
         CastSpellEvent(
             filter=FAnd(children=()),
-            controller=ControllerRef.OPPONENT,
+            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
             ordinal=2,
         ),
         Atom(
@@ -1236,7 +1236,7 @@ def _cast_subtype_token_builder(trigger_subtype: str):
                         FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value=trigger_subtype),
                     )
                 ),
-                controller=ControllerRef.YOU,
+                actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             ),
             Atom(
                 verb=Verb.CREATE_TOKEN,
@@ -1271,7 +1271,7 @@ def _build_spellgorger_weird_counter(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
         CastSpellEvent(
             filter=FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")),
-            controller=ControllerRef.YOU,
+            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
         ),
         Atom(
             verb=Verb.PUT_COUNTER,
@@ -1331,7 +1331,7 @@ def _build_riddleform(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
         CastSpellEvent(
             filter=FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")),
-            controller=ControllerRef.YOU,
+            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
         ),
         OptionalEffect(inner=seq),
     )
@@ -1342,7 +1342,7 @@ def _build_quirion_dryad_colored(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
         CastSpellEvent(
             filter=FAtom(pred=FAtomPred.COLOR_IN, colors=("W", "U", "B", "R")),
-            controller=ControllerRef.YOU,
+            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
         ),
         Atom(
             verb=Verb.PUT_COUNTER,
@@ -1361,7 +1361,9 @@ def _build_lorescale_coatl_draw_counter(m: re.Match[str]) -> SentenceOutcome:
     """#55: draw a card, put a +1/+1 counter on this creature."""
     count = _plus1_counter(m)
     return _ability(
-        CardDrawnEvent(controller=ControllerRef.YOU),
+        CardDrawnEvent(
+            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+        ),
         Atom(
             verb=Verb.PUT_COUNTER,
             args=AtomArgs(
@@ -1378,7 +1380,9 @@ def _build_lorescale_coatl_draw_counter(m: re.Match[str]) -> SentenceOutcome:
 def _build_teferis_tutelage_draw_mill(m: re.Match[str]) -> SentenceOutcome:
     """#56: draw a card, target opponent mills two cards."""
     return _ability(
-        CardDrawnEvent(controller=ControllerRef.YOU),
+        CardDrawnEvent(
+            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+        ),
         Atom(
             verb=Verb.MOVE_ZONE,
             args=AtomArgs(
@@ -1403,7 +1407,9 @@ def _build_burlfist_oak_draw_boost(m: re.Match[str]) -> SentenceOutcome:
     p = _n(m, 1)
     t = _n(m, 2)
     return _ability(
-        CardDrawnEvent(controller=ControllerRef.YOU),
+        CardDrawnEvent(
+            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+        ),
         Atom(
             verb=Verb.MODIFY_PT,
             args=AtomArgs(
@@ -1422,7 +1428,9 @@ def _build_tolarian_kraken_draw_pay(m: re.Match[str]) -> SentenceOutcome:
     """#58: draw a card, you may pay {N}."""
     n = _n(m, 1)
     return _ability(
-        CardDrawnEvent(controller=ControllerRef.YOU),
+        CardDrawnEvent(
+            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+        ),
         OptionalEffect(
             inner=Atom(
                 verb=Verb.PAY,
@@ -1443,7 +1451,9 @@ def _build_havoc_jester_sacrifice(m: re.Match[str]) -> SentenceOutcome:
     """#62: sacrifice a permanent, this creature deals N damage to any target."""
     n = _n(m, 1)
     return _ability(
-        SacrificeEvent(controller=ControllerRef.YOU),
+        SacrificeEvent(
+            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+        ),
         Atom(
             verb=Verb.DEAL_DAMAGE,
             args=AtomArgs(pairs=(("target", _any_target()), ("amount", QConst(n)))),
@@ -1644,7 +1654,9 @@ def _build_tide_skimmer_two_flying(m: re.Match[str]) -> SentenceOutcome:
 def _build_vito_gain_life_lose_life(m: re.Match[str]) -> SentenceOutcome:
     """#61: whenever you gain life, target opponent loses that much life."""
     return _ability(
-        LifeGainedEvent(controller=ControllerRef.YOU),
+        LifeGainedEvent(
+            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+        ),
         Atom(
             verb=Verb.LOSE_LIFE,
             args=AtomArgs(
@@ -1960,7 +1972,7 @@ def _build_ghostly_pilferer_cast(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
         CastSpellEvent(
             filter=FAnd(children=()),
-            controller=ControllerRef.OPPONENT,
+            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
             from_zone_not=Zone(ZoneKind.HAND, ControllerRef.OPPONENT),
         ),
         Atom(
@@ -1990,7 +2002,7 @@ def _build_double_vision_copy(m: re.Match[str]) -> SentenceOutcome:
                     FAtom(pred=FAtomPred.TYPE_EQ, string_value="Sorcery"),
                 )
             ),
-            controller=ControllerRef.YOU,
+            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             ordinal=1,
         ),
         Atom(
@@ -2049,7 +2061,9 @@ def _build_jolrael_cat_token(m: re.Match[str]) -> SentenceOutcome:
     p = _n(m, 1)
     t = _n(m, 2)
     return _ability(
-        CardDrawnEvent(controller=ControllerRef.YOU, ordinal=2),
+        CardDrawnEvent(
+            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU), ordinal=2
+        ),
         Atom(
             verb=Verb.CREATE_TOKEN,
             args=AtomArgs(pairs=(("tokens", _cat_token(p, t)), ("count", QConst(1)))),
@@ -2061,7 +2075,9 @@ def _build_mystic_skyfish(m: re.Match[str]) -> SentenceOutcome:
     """Round 4 row #15: you draw your second card each turn, this creature
     gains flying until end of turn."""
     return _ability(
-        CardDrawnEvent(controller=ControllerRef.YOU, ordinal=2),
+        CardDrawnEvent(
+            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU), ordinal=2
+        ),
         Atom(
             verb=Verb.GRANT_ABILITY,
             args=AtomArgs(
@@ -2091,7 +2107,10 @@ def _build_keral_keep_disciples(m: re.Match[str]) -> SentenceOutcome:
         )
     )
     return _ability(
-        LoyaltyActivatedEvent(controller=ControllerRef.YOU, filter=chandra),
+        LoyaltyActivatedEvent(
+            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            filter=chandra,
+        ),
         EachPlayer(
             ref=ControllerRef.ALL_OPPONENTS,
             effect=Atom(

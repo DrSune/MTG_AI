@@ -254,7 +254,7 @@ class LifeReplacementTest(BindingCase):
         rec = record_of(
             [
                 ReplacementAbility(
-                    event=LifeGainedEvent(ControllerRef.YOU),
+                    event=LifeGainedEvent(actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),
                     condition=condition,
                     action=_gain(gain),
                 )

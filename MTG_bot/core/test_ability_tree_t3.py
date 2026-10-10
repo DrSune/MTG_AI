@@ -85,12 +85,12 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
     (
         "planeswalker_emblem",
         T._pw_with_emblem,
-        "a714acc403cc003d938b5d24f82b7644a6351d2aea6094f9230bfaa572f7d1bf",
+        "27858ab53a13b3f0b6eba85a30f89e2eb02072d0715ae726cc0f0c79780c32c1",
     ),
     (
         "token_creator",
         T._token_creator,
-        "77b3c7713172bb961d21395135f68e50ce04e0e9d106c257ec10b4cf6a81ddb4",
+        "99b26af6d005649de387448043d326471f27632e75c3afc97fd583ff94816f93",
     ),
     (
         "walk_sample",
@@ -173,7 +173,7 @@ _OMIT_KEYS: dict[str, tuple[str, ...]] = {
     "Selector": ("zones",),
     "Zone": ("position",),
     "ZoneChangeEvent": ("subject",),
-    "CastSpellEvent": ("controller", "from_zone", "ordinal"),
+    "CastSpellEvent": ("actor", "from_zone", "ordinal"),
     "DamageDealtEvent": ("source", "combat"),
 }
 
@@ -259,7 +259,10 @@ def _pay_generic() -> at.Atom:
 
 def _emblem_triggered() -> at.EmblemAbility:
     emb = at.TriggeredAbility(
-        at.TurnPhaseEvent(at.Phase.END_TURN, at.ControllerRef.YOU),
+        at.TurnPhaseEvent(
+            at.Phase.END_TURN,
+            at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU),
+        ),
         None,
         _atom_mill(),
     )
@@ -304,13 +307,16 @@ _NEW_NODES: list[tuple[str, Callable[[], object]]] = [
     # F) event extensions + new events
     (
         "cast_evt_controller",
-        lambda: at.CastSpellEvent(_PERM, at.ControllerRef.OPPONENT),
+        lambda: at.CastSpellEvent(
+            _PERM,
+            at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.OPPONENT),
+        ),
     ),
     (
         "cast_evt_full",
         lambda: at.CastSpellEvent(
             _PERM,
-            at.ControllerRef.YOU,
+            at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU),
             at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY),
             2,
         ),
@@ -332,20 +338,33 @@ _NEW_NODES: list[tuple[str, Callable[[], object]]] = [
             at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature"),
         ),
     ),
-    ("card_drawn_you", lambda: at.CardDrawnEvent(at.ControllerRef.YOU)),
+    (
+        "card_drawn_you",
+        lambda: at.CardDrawnEvent(
+            at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU)
+        ),
+    ),
     (
         "card_drawn_opp",
-        lambda: at.CardDrawnEvent(at.ControllerRef.OPPONENT),
+        lambda: at.CardDrawnEvent(
+            at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.OPPONENT)
+        ),
     ),
     (
         "life_gained_opp",
-        lambda: at.LifeGainedEvent(at.ControllerRef.OPPONENT),
+        lambda: at.LifeGainedEvent(
+            at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.OPPONENT)
+        ),
     ),
-    ("sacrifice_any", lambda: at.SacrificeEvent(at.ControllerRef.ANY)),
+    ("sacrifice_any", lambda: at.SacrificeEvent()),
     (
         "triggered_card_drawn",
         lambda: at.TriggeredAbility(
-            at.CardDrawnEvent(at.ControllerRef.YOU), None, _atom_mill()
+            at.CardDrawnEvent(
+                at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU)
+            ),
+            None,
+            _atom_mill(),
         ),
     ),
     # G) Verb.LOSE_GAME
@@ -782,9 +801,16 @@ def test_omit_keys_present_when_set() -> None:
     assert at.to_dict(
         at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU, at.ZonePosition.TOP)
     )["position"] == {"tag": "ZonePosition", "name": "TOP"}
-    d = at.to_dict(at.CastSpellEvent(_PERM, at.ControllerRef.YOU, None, 2))
+    d = at.to_dict(
+        at.CastSpellEvent(
+            _PERM,
+            at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU),
+            None,
+            2,
+        )
+    )
     assert d["ordinal"] == 2
-    assert d["controller"] == {"tag": "ControllerRef", "name": "YOU"}
+    assert d["actor"]["who"] == {"tag": "ControllerRef", "name": "YOU"}
     assert "from_zone" not in d
     d = at.to_dict(at.DamageDealtEvent(at.QConst(2), _SRC, None, False))
     assert d["combat"] is False

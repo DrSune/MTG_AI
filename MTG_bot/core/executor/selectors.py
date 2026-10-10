@@ -126,6 +126,36 @@ def controller_matches(
     return who is ControllerRef.ANY
 
 
+def filter_reads_bound_player(filter_: object) -> bool:
+    """E1 FIX-2 (/65): does this Filter read the designated TARGET_PLAYER
+    seat through ``CONTROLLER_IS``? After FOLD B a folded BATTLEFIELD seat
+    expresses its seat ONLY as this atom (zone=BF-ANY +
+    ``FAtom(CONTROLLER_IS, TARGET_PLAYER)``), so every designation scan
+    (binding._designate, the query cast/activation lanes) must consult
+    FILTERS — not just raw ControllerRef/Zone pair values — or the flag
+    silently flips off. The scope to filters is deliberate: a Selector or
+    Verb-role ZONE carrying TARGET_PLAYER is anaphoric (Brash Taunter's
+    "that creature or player") or a container read (Tormod's Crypt's
+    graveyard sweep) — those must NOT open a designation lane (the
+    multi-lane guard would raise)."""
+    if isinstance(filter_, FAtom):
+        if (
+            filter_.pred is FAtomPred.CONTROLLER_IS
+            and filter_.who is ControllerRef.TARGET_PLAYER
+        ):
+            return True
+        return any(
+            filter_reads_bound_player(inner)
+            for inner in (filter_.inner_filter, filter_.right_inner_filter)
+            if inner is not None
+        )
+    if isinstance(filter_, (FAnd, FOr)):
+        return any(filter_reads_bound_player(c) for c in filter_.children)
+    if isinstance(filter_, FNot):
+        return filter_reads_bound_player(filter_.inner)
+    return False
+
+
 def zone_owner(ctx: ExecCtx, zone_ir: Zone, owner: Handle | None) -> Handle:
     """The single player who owns a destination/movement zone IR."""
     ref = zone_ir.controller

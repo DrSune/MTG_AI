@@ -67,6 +67,7 @@ from MTG_bot.core.executor.selectors import enumerate_zone, resolve_selector
 from MTG_bot.core.state import (
     PLAYER_ZONES,
     ZONE_BATTLEFIELD,
+    ZONE_EXILE,
     ZONE_GRAVEYARD,
     ZONE_HAND,
     ZONE_LIBRARY,
@@ -331,7 +332,7 @@ class TestTargetPlayerRouting(DesignationCase):
         self.attach(
             dower,
             TriggeredAbility(
-                event=CardDrawnEvent(ControllerRef.YOU),
+                event=CardDrawnEvent(actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),
                 condition=None,
                 effect=atom(
                     Verb.MOVE_ZONE,
@@ -592,3 +593,125 @@ class TestQueryLanePredParity(DesignationCase):
                 ctx,
             )
         self.assertIn("THAT_MANY_COUNT", str(cm.exception))
+
+
+class TestE1ControllerAxis(DesignationCase):
+    """E1 merge (KNOWLEDGE/2026-10-10/65): CONTROLLER_IS is the ONE
+    direction axis, judged through the live ``controller_of`` read — a
+    GAIN_CONTROL override moves it — while the OWNER axis stays purely
+    positional (the zone seat). The folded BF/ANY selector shape (seat
+    in the zone dropped, direction as a filter atom) must agree."""
+
+    def _stolen(self):
+        prey = self.world.add_card(
+            card_id("Prey", "1", "1"), self.p1, ZONE_BATTLEFIELD
+        )
+        anchor = self.world.add_card(
+            card_id("Anchor", "1", "1"), self.p0, ZONE_BATTLEFIELD
+        )
+        self.assertTrue(self.ex.gain_control(prey, self.p0, "Anchor", anchor))
+        return prey, anchor
+
+    def test_controller_is_follows_the_overlay(self):
+        prey, anchor = self._stolen()
+        ctx = ctx_for(self.ex, source=anchor, controller=self.p0)
+        you = FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+        opp = FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT)
+        self.assertTrue(eval_filter(you, prey, ctx))
+        self.assertFalse(eval_filter(opp, prey, ctx))
+
+    def test_owner_axis_stays_positional(self):
+        prey, anchor = self._stolen()
+        # a stolen permanent still sits on its owner's battlefield (CR 400.7e)
+        self.assertEqual(self.ex.controller_of(prey), self.p0)
+        self.assertEqual(self.world.controller_of(prey), self.p1)
+        self.assertEqual(self.world.zone_of(prey).controller, self.p1)
+
+    def test_folded_bf_any_selector_reads_the_overlay(self):
+        prey, anchor = self._stolen()
+        own = self.world.add_card(
+            card_id("Mine", "1", "1"), self.p0, ZONE_BATTLEFIELD
+        )
+        sel = Selector(
+            QConst(1),
+            SelectorMode.ALL,
+            FAnd(
+                (
+                    CREATURE_ONLY,
+                    FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                )
+            ),
+            BF_ANY,
+        )
+        mine_ctx = ctx_for(self.ex, source=anchor, controller=self.p0)
+        got = resolve_selector(sel, mine_ctx)
+        self.assertIn(prey, got, "the fold routes enumeration through controller_of")
+        self.assertIn(own, got)
+        theirs_ctx = ctx_for(self.ex, source=prey, controller=self.p1)
+        self.assertNotIn(prey, resolve_selector(sel, theirs_ctx))
+
+
+class TestTargetPlayerNestedFilter(DesignationCase):
+    """FIX-2 (65-e1-merge): the designation scan reads CONTROLLER_IS
+    TARGET_PLAYER THROUGH an FAnd bundle — pre-fold the wrapped atom was
+    invisible to the scan (Teferi, Timeless Voyager's verdict was
+    ``(0, False)``, the lane never opened); post-fold the opponent seat
+    is designated and the filter-bound selector enumerates through it."""
+
+    def _tp_wrapped(self, mode):
+        dower = self.carrier(self.p0)
+        theirs = self.world.add_card(
+            card_id("Theirs", "1", "1"), self.p1, ZONE_BATTLEFIELD
+        )
+        mine = self.world.add_card(
+            card_id("Mine", "1", "1"), self.p0, ZONE_BATTLEFIELD
+        )
+        self.attach(
+            dower,
+            etb_trigger(
+                atom(
+                    Verb.MOVE_ZONE,
+                    amount=QConst(1),
+                    **{
+                        "destination": Zone(
+                            ZoneKind.EXILE, ControllerRef.TARGET_PLAYER
+                        ),
+                    },
+                    cards=Selector(
+                        QConst(1),
+                        mode,
+                        FAnd(
+                            (
+                                CREATURE_ONLY,
+                                FAtom(
+                                    FAtomPred.CONTROLLER_IS,
+                                    who=ControllerRef.TARGET_PLAYER,
+                                ),
+                            )
+                        ),
+                        BF_ANY,
+                    ),
+                )
+            ),
+        )
+        return dower, theirs, mine
+
+    def test_wrapped_player_filter_opens_the_lane(self):
+        # Teferi TV's (0, True) shape: no TARGET-mode selector, the ONLY
+        # TARGET_PLAYER touchpoint is the filter wrapped in FAnd.
+        dower, theirs, mine = self._tp_wrapped(SelectorMode.CHOOSE)
+        self.never_ask()  # duel: one opponent seat -> forced auto-fill
+        self.enter(dower)
+        self.assertEqual(
+            self.world.zone_of(theirs).kind,
+            ZONE_EXILE,
+            "the wrapped filter bound through the designated seat",
+        )
+        self.assertEqual(self.world.zone_of(mine).kind, ZONE_BATTLEFIELD)
+
+    def test_target_slot_plus_player_lane_stays_loud(self):
+        # the arc-3 boundary: a TARGET-mode selector AND a separate
+        # TARGET_PLAYER read is two slots — never guess-bind the second.
+        dower, _theirs, _mine = self._tp_wrapped(SelectorMode.TARGET)
+        with self.assertRaises(NotImplementedError):
+            self.enter(dower)

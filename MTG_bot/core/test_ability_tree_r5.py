@@ -5,7 +5,7 @@ Round-5 scope (spec: KNOWLEDGE/2026-09-24/05-grammar-round4-decision.md):
 - R4-1: ``CardDrawnEvent.ordinal: int | None = None`` — "whenever you draw
   your second card each turn" (Jolrael, Mwonvuli Recluse; Mystic Skyfish);
   ``opt:int`` + omit-if-empty; mirrors ``CastSpellEvent.ordinal``.
-- R4-2: new event ``LoyaltyActivatedEvent(controller, filter)`` — "whenever
+- R4-2: new event ``LoyaltyActivatedEvent(filter, actor)`` — "whenever
   you activate a loyalty ability of a Chandra planeswalker" (Keral Keep
   Disciples); added to the ``EventSpec`` union + serialization tag; filter
   required; convention C5 (the loyalty trigger compiles as the effect of the
@@ -64,17 +64,24 @@ def _chandra_filter() -> at.FAnd:
 
 def _cd_bare() -> at.CardDrawnEvent:
     """Pre-round-5 shape: no ordinal key in the serialization."""
-    return at.CardDrawnEvent(at.ControllerRef.YOU)
+    return at.CardDrawnEvent(
+        at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU)
+    )
 
 
 def _cd_second() -> at.CardDrawnEvent:
     """R4-1: 'your second card each turn' (Jolrael, Mystic Skyfish)."""
-    return at.CardDrawnEvent(at.ControllerRef.YOU, ordinal=2)
+    return at.CardDrawnEvent(
+        at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU), ordinal=2
+    )
 
 
 def _loyalty() -> at.LoyaltyActivatedEvent:
     """R4-2: 'you activate a loyalty ability of a Chandra planeswalker'."""
-    return at.LoyaltyActivatedEvent(at.ControllerRef.YOU, _chandra_filter())
+    return at.LoyaltyActivatedEvent(
+        _chandra_filter(),
+        actor=at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU),
+    )
 
 
 def _cast_bare() -> at.CastSpellEvent:
@@ -85,7 +92,9 @@ def _cast_bare() -> at.CastSpellEvent:
 def _cast_from_hand() -> at.CastSpellEvent:
     """Pre-round-5 shape: the affirmative from_zone scope."""
     return at.CastSpellEvent(
-        _UNIVERSAL, controller=at.ControllerRef.OPPONENT, from_zone=_HAND_YOU
+        _UNIVERSAL,
+        actor=at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.OPPONENT),
+        from_zone=_HAND_YOU,
     )
 
 
@@ -93,7 +102,7 @@ def _cast_not_hand() -> at.CastSpellEvent:
     """R4-3: 'an opponent casts a spell from anywhere other than their hand'."""
     return at.CastSpellEvent(
         _UNIVERSAL,
-        controller=at.ControllerRef.OPPONENT,
+        actor=at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.OPPONENT),
         from_zone_not=_HAND_YOU,
     )
 
@@ -161,17 +170,17 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "cd_bare",
         _cd_bare,
-        "2e6033c6809af3422101fe723ee884dc26148d96be5d338f53e84357d7b468fa",
+        "33fcfb2b9b961b3518a12e1a413b25ab16f05d038d0e93961058bf6e7d1635dc",
     ),
     (
         "cd_second",
         _cd_second,
-        "683d614b00f7a75244c59236cc79ca6d74111b3c003930aa2539aed77acf6f97",
+        "88d96d8de636ca82d3978353101531bf7e5449f6856650c295ca764cec350431",
     ),
     (
         "loyalty",
         _loyalty,
-        "85a8407ae398bf277e7e0f402188b188b551bac791dc53d0539246b9dab7c60f",
+        "a91d56dd470a01e979e6bdfecbf77b81fae89ef0c15cfd0dfc01b0a3af2ffd82",
     ),
     (
         "cast_bare",
@@ -181,12 +190,12 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "cast_from_hand",
         _cast_from_hand,
-        "47992a6c86adaefeaf8343b9371029ba74fbbe8b505dfda029831648d94de6e0",
+        "9cfd6e70171a0e232e733e292776109af5cfb28dd46f0bcb8896037c954088fa",
     ),
     (
         "cast_not_hand",
         _cast_not_hand,
-        "b515e37f91d4f21bedf451bef5025fee399bc8f69a97a5829034dfea5e24de02",
+        "e7911664ff47fa0acc257d7ee4b39597304d808599fb676fa3e342022c5463e5",
     ),
     (
         "fatom_entered_gy",
@@ -256,7 +265,7 @@ def test_r5_roundtrip(name: str, build: Callable[[], object], fp: str) -> None:
 
 def test_carddrawn_omits_ordinal_when_none() -> None:
     d = at.to_dict(_cd_bare())
-    assert set(d.keys()) == {"tag", "controller"}, (
+    assert set(d.keys()) == {"tag", "actor"}, (
         f"bare CardDrawnEvent must omit 'ordinal': {sorted(d)}"
     )
     d = at.to_dict(_cd_second())
@@ -264,7 +273,10 @@ def test_carddrawn_omits_ordinal_when_none() -> None:
 
 
 def test_carddrawn_explicit_none_equals_default() -> None:
-    explicit = at.CardDrawnEvent(at.ControllerRef.YOU, ordinal=None)
+    explicit = at.CardDrawnEvent(
+        at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU),
+        ordinal=None,
+    )
     default = _cd_bare()
     assert explicit == default
     assert at.to_dict(explicit) == at.to_dict(default)
@@ -369,28 +381,45 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
         # R4-1: CardDrawnEvent.ordinal validation
         (
             "cd_ordinal_zero",
-            lambda: at.CardDrawnEvent(at.ControllerRef.YOU, ordinal=0),
+            lambda: at.CardDrawnEvent(
+                at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU),
+                ordinal=0,
+            ),
         ),
         (
             "cd_ordinal_negative",
-            lambda: at.CardDrawnEvent(at.ControllerRef.YOU, ordinal=-1),
+            lambda: at.CardDrawnEvent(
+                at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU),
+                ordinal=-1,
+            ),
         ),
         (
             "cd_ordinal_bool",
-            lambda: at.CardDrawnEvent(at.ControllerRef.YOU, ordinal=True),  # type: ignore[arg-type]
+            lambda: at.CardDrawnEvent(
+                at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU),
+                ordinal=True,
+            ),  # type: ignore[arg-type]
         ),
         (
             "cd_ordinal_str",
-            lambda: at.CardDrawnEvent(at.ControllerRef.YOU, ordinal="2"),  # type: ignore[arg-type]
+            lambda: at.CardDrawnEvent(
+                at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU),
+                ordinal="2",
+            ),  # type: ignore[arg-type]
         ),
-        # R4-2: LoyaltyActivatedEvent validation
+        # R4-2: LoyaltyActivatedEvent validation (E1: actor slot)
         (
-            "loyalty_bad_controller",
-            lambda: at.LoyaltyActivatedEvent("you", _chandra_filter()),  # type: ignore[arg-type]
+            "loyalty_bad_actor",
+            lambda: at.LoyaltyActivatedEvent(_chandra_filter(), "you"),  # type: ignore[arg-type]
         ),
         (
             "loyalty_bad_filter",
-            lambda: at.LoyaltyActivatedEvent(at.ControllerRef.YOU, "Chandra"),  # type: ignore[arg-type]
+            lambda: at.LoyaltyActivatedEvent(
+                "Chandra",
+                actor=at.FAtom(
+                    pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU
+                ),
+            ),  # type: ignore[arg-type]
         ),
         # R4-3: CastSpellEvent.from_zone_not mutual exclusion
         (

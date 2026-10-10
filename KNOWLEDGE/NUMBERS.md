@@ -5,6 +5,38 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-10-10 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **1.0000** (305/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **1.0000** (639/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, refreshed) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.327 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **4** / max share **0.1265** (MOVE_ZONE) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-10-10 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **1.0000** (305/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **1.0000** (639/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, refreshed) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.334 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **4** / max share **0.1265** (MOVE_ZONE) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
 ## 2026-10-07 (T5 — Phase-1 grammar measurement harness)
 
 | Number | Value | Command | Notes |
@@ -3390,3 +3422,5 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 ## 2026-10-10 — T5-E clause closure: residuals 3->0, clause audit 589/589 mapped = 100.0% zero-loss, all four classes 0 (commands: `.venv/bin/python tools/audit/clause_audit.py`; `pytest MTG_bot/core -q` = 2516+2st; `.venv/bin/python tools/run_scenarios.py` = 398/398; `pytest tools/audit tools/training -q` = 164; goldens verify_goldens=[] with 3 T5-E rewrites Battalion/Snoop/Transmogrify + 2 pre-existing T5-D Peer/Sanctum; correction: T5-C's "fixed" claim for the 3 residuals was runtime-only — commit 0daa6c2 touched no compiler code; detail: 2026-10-10/63-t5e-clause-closure.md)
 - Snoop gate = ZONE_COUNT_GE with Zone.position=TOP + count=1 — quantity.py evaluator now honors position (pre-T5-E positioned zones silently counted whole zones; unpositioned corpus users byte-identical, 19 lane tests unchanged). Payload registered-inert StaticAbility mirror: 0 observable delta (398/398 byte-stable asks); dynamic card->ability-set grant stays in the gap ledger.
 - Audit vacuity tripwire rewritten (n>0 impossible at legit zero): mapped_total==589 AND distinct-evidence vocabulary >40 (measured 73). Promotion census selfref 55->57, total 154->156 — attributed to exactly Battalion PUT_COUNTER + Snoop GRANT self-selectors, both stay CHOOSE in live.
+
+## 2026-10-10 — E1 controller-direction merge lands: census event_direction_field 42/41 trees -> 0 (tripwire), both_styles 10 -> 0, controllers_is 89/63 -> 173/121 (sole direction encoding), zone seats reclassified zone_container_seat 376/165 -> 302/128, NEW battlefield_zone_seat_drift tripwire 0; gates `pytest MTG_bot/core tools/audit tools/training -q` = 2685+2st, run_scenarios = 398/398 (traitorous_greed trio byte-stable), clause_audit = 589/589 zero-loss; 91 goldens + 7 fingerprint pins re-pinned via builder recompute; corpus re-encode required (vocab unchanged); detail: 2026-10-10/65-e1-merge.md

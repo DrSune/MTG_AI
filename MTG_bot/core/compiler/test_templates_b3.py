@@ -259,7 +259,7 @@ class TestB3EffectStructure(unittest.TestCase):
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.ALL)
         self.assertIs(target.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(target.zone.controller, ControllerRef.YOU)
+        self.assertIs(target.zone.controller, ControllerRef.ANY)
         keyword_ability = _keyword_ability(atom, "ability")
         self.assertIs(keyword_ability.keyword, Keyword.DEATHTOUCH)
         duration = atom.args.get("duration")
@@ -483,7 +483,7 @@ class TestB3EffectStructure(unittest.TestCase):
         amount = atom.args.get("amount")
         assert isinstance(amount, QCount)
         self.assertIs(amount.selector.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(amount.selector.zone.controller, ControllerRef.YOU)
+        self.assertIs(amount.selector.zone.controller, ControllerRef.ANY)
 
     def test_create_token_builds_flying_angel_token(self) -> None:
         ability = _ability(
@@ -585,9 +585,17 @@ class TestB3EffectStructure(unittest.TestCase):
         assert isinstance(amount, QDistinctColorCount)
         sel = amount.selector
         self.assertIs(sel.mode, SelectorMode.ALL)
-        self.assertEqual(sel.filter, FAtom(pred=FAtomPred.IS_PERMANENT))
+        self.assertEqual(
+            sel.filter,
+            FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.IS_PERMANENT),
+                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                )
+            ),
+        )
         self.assertIs(sel.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(sel.zone.controller, ControllerRef.YOU)
+        self.assertIs(sel.zone.controller, ControllerRef.ANY)
         # cost tokens parse through the shared _parse_cost ({5}, {T})
         parts = ability.cost.parts
         self.assertEqual(parts[0], CostManaGeneric(QConst(5)))

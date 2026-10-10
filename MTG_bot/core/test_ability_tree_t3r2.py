@@ -241,12 +241,12 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
     (
         "planeswalker_emblem",
         T._pw_with_emblem,
-        "a714acc403cc003d938b5d24f82b7644a6351d2aea6094f9230bfaa572f7d1bf",
+        "27858ab53a13b3f0b6eba85a30f89e2eb02072d0715ae726cc0f0c79780c32c1",
     ),
     (
         "token_creator",
         T._token_creator,
-        "77b3c7713172bb961d21395135f68e50ce04e0e9d106c257ec10b4cf6a81ddb4",
+        "99b26af6d005649de387448043d326471f27632e75c3afc97fd583ff94816f93",
     ),
     (
         "cost_loyalty_bare",

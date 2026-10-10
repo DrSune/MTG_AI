@@ -101,6 +101,7 @@ from MTG_bot.core.executor.legality import (
     spell_castable,
 )
 from MTG_bot.core.executor.quantity import Binding, Quantity, resolve
+from MTG_bot.core.executor.selectors import filter_reads_bound_player
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import GameWorld
 
@@ -817,6 +818,9 @@ def spell_target_slots(
                 value is ControllerRef.TARGET_PLAYER
                 or isinstance(value, Zone)
                 and value.controller is ControllerRef.TARGET_PLAYER
+                or isinstance(value, Selector)
+                and filter_reads_bound_player(value.filter)
+                or filter_reads_bound_player(value)
             ):
                 reads_target_player = True
             if not isinstance(value, Selector) or value.mode is not SelectorMode.TARGET:
@@ -912,6 +916,9 @@ def activation_target_slots(
                 value is ControllerRef.TARGET_PLAYER
                 or isinstance(value, Zone)
                 and value.controller is ControllerRef.TARGET_PLAYER
+                or isinstance(value, Selector)
+                and filter_reads_bound_player(value.filter)
+                or filter_reads_bound_player(value)
             ):
                 reads_target_player = True
             if not isinstance(value, Selector) or value.mode is not SelectorMode.TARGET:

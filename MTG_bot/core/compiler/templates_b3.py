@@ -105,8 +105,13 @@ def _sel_self() -> Selector:
     return Selector(
         count=QConst(1),
         mode=SelectorMode.ALL,
-        filter=FAtom(pred=FAtomPred.IS_SOURCE),
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+        filter=FAnd(
+            children=(
+                FAtom(pred=FAtomPred.IS_SOURCE),
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            )
+        ),
+        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 
@@ -204,8 +209,13 @@ def _sel_creatures_you_control() -> Selector:
     return Selector(
         count=QUnbounded(),
         mode=SelectorMode.ALL,
-        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+        filter=FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            )
+        ),
+        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 
@@ -214,8 +224,13 @@ def _sel_lands_you_control() -> Selector:
     return Selector(
         count=QUnbounded(),
         mode=SelectorMode.ALL,
-        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land"),
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+        filter=FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land"),
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            )
+        ),
+        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 
@@ -228,9 +243,10 @@ def _sel_dogs_you_control() -> Selector:
             children=(
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                 FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Dog"),
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 
@@ -661,9 +677,17 @@ def _build_draw_per_distinct_color(m: re.Match[str]) -> AbilityOutcome:
                         Selector(
                             count=QUnbounded(),
                             mode=SelectorMode.ALL,
-                            filter=FAtom(pred=FAtomPred.IS_PERMANENT),
+                            filter=FAnd(
+                                children=(
+                                    FAtom(pred=FAtomPred.IS_PERMANENT),
+                                    FAtom(
+                                        pred=FAtomPred.CONTROLLER_IS,
+                                        who=ControllerRef.YOU,
+                                    ),
+                                )
+                            ),
                             zone=Zone(
-                                kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU
+                                kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY
                             ),
                         )
                     ),
@@ -785,9 +809,10 @@ def _build_add_mana_g_per_power_ge_creatures_you(m: re.Match[str]) -> AbilityOut
             children=(
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                 FAtom(pred=FAtomPred.POWER_GE, count=QConst(n)),
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
     effect = Atom(
         verb=Verb.ADD_MANA,

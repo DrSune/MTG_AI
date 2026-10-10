@@ -69,6 +69,7 @@ from MTG_bot.core.ability_tree import (
     EventSpec,
     FAnd,
     FAtom,
+    FAtomPred,
     Filter,
     FNot,
     FOr,
@@ -521,9 +522,11 @@ class ReplacementRegistry:
                 continue
             if rec.status != "live" or rec.seq in ctx.replaced_seq:
                 continue
-            if event.controller is not ControllerRef.YOU:
+            if event.actor != FAtom(
+                pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU
+            ):
                 raise NotImplementedError(
-                    "executor: LifeGainedEvent with a non-YOU controller "
+                    "executor: LifeGainedEvent with a non-YOU actor "
                     "reference is not in the corpus (flag, not guess)"
                 )
             if player != rec.controller:
@@ -564,10 +567,12 @@ class ReplacementRegistry:
                 continue
             if rec.status != "live" or rec.seq in ctx.replaced_seq:
                 continue
-            if event.controller is not ControllerRef.YOU:
+            if event.actor != FAtom(
+                pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU
+            ):
                 raise NotImplementedError(
                     "executor: CardDrawnEvent replacement with a non-YOU "
-                    "controller reference is not in the corpus (flag, not "
+                    "actor reference is not in the corpus (flag, not "
                     "guess)"
                 )
             if drawer != rec.controller:

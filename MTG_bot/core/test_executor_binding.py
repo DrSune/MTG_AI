@@ -254,7 +254,12 @@ class TestAttachment(BindingCase):
             [
                 etb_trigger(gain(1)),
                 TriggeredAbility(
-                    TurnPhaseEvent(Phase.UPKEEP, ControllerRef.YOU), None, gain(1)
+                    TurnPhaseEvent(
+                        Phase.UPKEEP,
+                        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                    ),
+                    None,
+                    gain(1),
                 ),
             ],
         )
@@ -389,7 +394,11 @@ class TestEventKinds(BindingCase):
 
     def test_draw_ordinal_trigger(self):
         self.attach_trigger(  # second card drawn this turn -> +1
-            self.watch, CardDrawnEvent(ControllerRef.YOU, ordinal=2), gain(1)
+            self.watch,
+            CardDrawnEvent(
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU), ordinal=2
+            ),
+            gain(1),
         )
         self.ex.execute(draw_one(), source=self.watch, controller=self.p0)
         self.assertEqual(self.life(self.p0), 20)
@@ -454,7 +463,11 @@ class TestEventKinds(BindingCase):
     def test_life_gained_feed_is_one_way(self):
         # LifeGained's effect mills (a life-gaining effect would re-trigger
         # its own life event — the drain's tripwire would rightly catch it).
-        self.attach_trigger(self.watch, LifeGainedEvent(ControllerRef.YOU), mill_one())
+        self.attach_trigger(
+            self.watch,
+            LifeGainedEvent(FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),
+            mill_one(),
+        )
         self.ex.execute(gain(2), source=self.watch, controller=self.p0)
         self.assertEqual(self.life(self.p0), 22)
         self.assertEqual(len(self.zone(self.p0, ZONE_LIBRARY)), 3)  # milled once
@@ -468,7 +481,13 @@ class TestEventKinds(BindingCase):
                     TriggeredAbility(
                         DamageDealtEvent(QConst(1), IS_SOURCE), None, gain(2)
                     ),
-                    TriggeredAbility(SacrificeEvent(ControllerRef.YOU), None, gain(1)),
+                    TriggeredAbility(
+                        SacrificeEvent(
+                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+                        ),
+                        None,
+                        gain(1),
+                    ),
                 ],
             ),
         )
@@ -500,10 +519,18 @@ class TestEventKinds(BindingCase):
                 self.watch,
                 [
                     TriggeredAbility(
-                        TurnPhaseEvent(Phase.UPKEEP, ControllerRef.YOU), None, gain(1)
+                        TurnPhaseEvent(
+                            Phase.UPKEEP,
+                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                        ),
+                        None,
+                        gain(1),
                     ),
                     TriggeredAbility(
-                        TurnPhaseEvent(Phase.END_TURN, ControllerRef.YOU),
+                        TurnPhaseEvent(
+                            Phase.END_TURN,
+                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                        ),
                         None,
                         atom(
                             Verb.MODIFY_PT,
@@ -804,7 +831,15 @@ class TestMayAndDeterminism(BindingCase):
             watcher,
             rec(
                 watcher,
-                [TriggeredAbility(CardDrawnEvent(ControllerRef.YOU), None, mill_one())],
+                [
+                    TriggeredAbility(
+                        CardDrawnEvent(
+                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+                        ),
+                        None,
+                        mill_one(),
+                    )
+                ],
             ),
         )
         ex.attach_card(trigger_card, rec(trigger_card, [etb_trigger(draw_one())]))

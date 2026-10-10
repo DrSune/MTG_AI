@@ -105,7 +105,7 @@ def fangs_trigger() -> TriggeredAbility:
     """Sanctum of Stone Fangs, life-numbers flattened to 1 so the
     multiplier's arithmetic is the only variable under test."""
     return TriggeredAbility(
-        event=TurnPhaseEvent(Phase.UPKEEP, ControllerRef.YOU),
+        event=TurnPhaseEvent(Phase.UPKEEP, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),
         condition=None,
         effect=Seq(
             steps=(
@@ -184,7 +184,7 @@ class TestMultiplierEngine(T5DEngineCase):
         self.carrier(
             self.p0,
             extra_ability=TriggeredAbility(
-                event=TurnPhaseEvent(Phase.UPKEEP, ControllerRef.YOU),
+                event=TurnPhaseEvent(Phase.UPKEEP, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),
                 condition=None,
                 effect=atom(
                     Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(1)
@@ -247,7 +247,7 @@ class TestMultiplierEngine(T5DEngineCase):
             beast,
             [
                 TriggeredAbility(
-                    event=TurnPhaseEvent(Phase.UPKEEP, ControllerRef.YOU),
+                    event=TurnPhaseEvent(Phase.UPKEEP, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),
                     condition=None,
                     effect=atom(
                         Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(5)

@@ -511,7 +511,7 @@ def garruk_emblem():
         EMBLEM_OID,
         [
             TriggeredAbility(
-                TurnPhaseEvent(Phase.END_TURN, ControllerRef.YOU), None, gain(2)
+                TurnPhaseEvent(Phase.END_TURN, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)), None, gain(2)
             )
         ],
         type_line="Emblem",
@@ -660,7 +660,7 @@ class TestEmblems(PermCase):
                         EMBLEM_OID,
                         [
                             TriggeredAbility(
-                                TurnPhaseEvent(Phase.END_TURN, ControllerRef.YOU),
+                                TurnPhaseEvent(Phase.END_TURN, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),
                                 None,
                                 gain(2),
                             )

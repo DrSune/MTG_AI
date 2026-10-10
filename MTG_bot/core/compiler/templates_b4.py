@@ -174,7 +174,7 @@ def _creatures_you_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 
@@ -189,7 +189,7 @@ def _creatures_opponents_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ALL_OPPONENTS),
+        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 
@@ -221,7 +221,7 @@ def _other_creatures_you_control(subtype: str) -> Selector:
                 FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 
@@ -247,7 +247,7 @@ def _cats_you_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 

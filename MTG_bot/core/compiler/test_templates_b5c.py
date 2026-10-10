@@ -1349,8 +1349,16 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertIs(grant.verb, Verb.GRANT_ABILITY)
         target = _pairs(grant)["target"]
         self.assertIs(target.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(target.zone.controller, ControllerRef.YOU)
-        self.assertIs(target.filter.pred, FAtomPred.IS_SOURCE)
+        self.assertIs(target.zone.controller, ControllerRef.ANY)
+        self.assertEqual(
+            target.filter,
+            FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.IS_SOURCE),
+                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                )
+            ),
+        )
         self.assertIsInstance(grant.args.get("duration"), DurationEot)
         triggered = grant.args.get("ability")
         if not isinstance(triggered, TriggeredAbility):
@@ -1825,7 +1833,7 @@ class TestB5cRound10Herald(unittest.TestCase):
         assert isinstance(target, Selector)
         self.assertIs(target.mode, SelectorMode.ALL)
         self.assertIsInstance(target.count, QUnbounded)
-        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
+        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         assert isinstance(target.filter, FAnd)
         kind_a, controller_a = target.filter.children
         assert isinstance(kind_a, FAtom) and isinstance(controller_a, FAtom)

@@ -1349,7 +1349,7 @@ class TestStructuralAssertions(unittest.TestCase):
         ab = _as_replacement(_as_ability(outcome).ability)
         event = ab.event
         assert isinstance(event, LifeGainedEvent)
-        self.assertEqual(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
         cond = ab.condition
         assert isinstance(cond, FAtom)
         self.assertEqual(cond.pred, FAtomPred.DIED_THIS_TURN)
@@ -1538,7 +1538,7 @@ class TestStructuralAssertions(unittest.TestCase):
         ab = _as_replacement(_as_ability(outcome).ability)
         event = ab.event
         assert isinstance(event, CardDrawnEvent)
-        self.assertEqual(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
         cond = ab.condition
         assert isinstance(cond, FAtom)
         self.assertEqual(cond.pred, FAtomPred.NOT_FIRST_DRAW_THIS_STEP)

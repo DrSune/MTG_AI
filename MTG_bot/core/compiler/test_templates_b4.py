@@ -645,7 +645,7 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertIs(cards.mode, SelectorMode.ALL)
         self.assertIsInstance(cards.count, QUnbounded)
         self.assertIs(cards.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(cards.zone.controller, ControllerRef.YOU)
+        self.assertIs(cards.zone.controller, ControllerRef.ANY)
         _find_atom(cards.filter, FAtomPred.TYPE_EQ, string_value="Creature")
         _find_atom(cards.filter, FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
         self.assertIs(_pairs(atom).get("controller"), ControllerRef.YOU)
@@ -665,7 +665,7 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertIsInstance(duration, DurationEot)
         target = _selector(atom, "target")
         self.assertIs(target.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(target.zone.controller, ControllerRef.YOU)
+        self.assertIs(target.zone.controller, ControllerRef.ANY)
 
     def test_modify_pt_eot_you(self) -> None:
         outcome = _as_effect(
@@ -729,7 +729,7 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertEqual(_qconst(toughness.magnitude).value, 0)
         target = _selector(atom, "target")
         self.assertIs(target.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(target.zone.controller, ControllerRef.ALL_OPPONENTS)
+        self.assertIs(target.zone.controller, ControllerRef.ANY)
         _find_atom(target.filter, FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT)
         self.assertNotIn("duration", _pairs(atom))
 
@@ -748,7 +748,7 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertIs(atom_pt.verb, Verb.MODIFY_PT)
         target = _selector(atom_pt, "target")
         self.assertIs(target.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(target.zone.controller, ControllerRef.YOU)
+        self.assertIs(target.zone.controller, ControllerRef.ANY)
         _find_atom(target.filter, FAtomPred.TYPE_EQ, string_value="Creature")
         _find_atom(target.filter, FAtomPred.SUBTYPE_EQ, string_value="Cat")
         _find_atom(target.filter, FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
@@ -777,7 +777,7 @@ class TestB4IrStructure(unittest.TestCase):
         _find_atom(target.filter, FAtomPred.SUBTYPE_EQ, string_value="Dog")
         _find_atom(target.filter, FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
         _find_fnot(target.filter)
-        self.assertIs(target.zone.controller, ControllerRef.YOU)
+        self.assertIs(target.zone.controller, ControllerRef.ANY)
         power = _pt_delta(atom, "power")
         self.assertIs(power.direction, PtDirection.INCREASE)
         self.assertEqual(_qconst(power.magnitude).value, 1)
@@ -946,7 +946,7 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertIs(selector.mode, SelectorMode.ALL)
         self.assertIsInstance(selector.count, QUnbounded)
         self.assertIs(selector.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(selector.zone.controller, ControllerRef.YOU)
+        self.assertIs(selector.zone.controller, ControllerRef.ANY)
         _find_atom(selector.filter, FAtomPred.TYPE_EQ, string_value="Creature")
         _find_atom(selector.filter, FAtomPred.SUBTYPE_EQ, string_value="Cat")
         _find_atom(selector.filter, FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
@@ -995,7 +995,7 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertIs(qprop.agg, QAgg.SUM)
         referent = _as_selector(qprop.referent)
         self.assertIs(referent.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(referent.zone.controller, ControllerRef.YOU)
+        self.assertIs(referent.zone.controller, ControllerRef.ANY)
         _find_atom(referent.filter, FAtomPred.TYPE_EQ, string_value="Creature")
         _find_atom(referent.filter, FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
         # filter is IS_SOURCE

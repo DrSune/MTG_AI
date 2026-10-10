@@ -1092,7 +1092,9 @@ def _build_repl_died_gain_life(m: re.Match[str]) -> SentenceOutcome:
     """
     return AbilityOutcome(
         ability=ReplacementAbility(
-            event=LifeGainedEvent(controller=ControllerRef.YOU),
+            event=LifeGainedEvent(
+                actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+            ),
             condition=FAtom(pred=FAtomPred.DIED_THIS_TURN),
             action=Atom(
                 verb=Verb.GAIN_LIFE,
@@ -1325,7 +1327,9 @@ def _build_repl_draw_not_first(m: re.Match[str]) -> SentenceOutcome:
     """
     return AbilityOutcome(
         ability=ReplacementAbility(
-            event=CardDrawnEvent(controller=ControllerRef.YOU),
+            event=CardDrawnEvent(
+                actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+            ),
             condition=FAtom(
                 pred=FAtomPred.NOT_FIRST_DRAW_THIS_STEP, who=ControllerRef.YOU
             ),
@@ -2605,9 +2609,17 @@ def _build_then_if_opponent_more_creatures(m: re.Match[str]) -> SentenceOutcome:
                         Selector(
                             QConst(1),
                             SelectorMode.CHOOSE,
-                            FAtom(pred=FAtomPred.IS_SOURCE),
+                            FAnd(
+                                children=(
+                                    FAtom(pred=FAtomPred.IS_SOURCE),
+                                    FAtom(
+                                        pred=FAtomPred.CONTROLLER_IS,
+                                        who=ControllerRef.YOU,
+                                    ),
+                                )
+                            ),
                             Zone(
-                                kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU
+                                kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY
                             ),
                         ),
                     ),

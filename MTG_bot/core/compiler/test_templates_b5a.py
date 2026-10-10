@@ -923,13 +923,28 @@ class TestStructuralAssertions(unittest.TestCase):
         sel = cs.target
         self.assertEqual(sel.count, QConst(1))
         self.assertEqual(sel.mode, SelectorMode.CHOOSE)
+        # E1 fold: BF seat moved out of the zone onto the filter as a
+        # CONTROLLER_IS atom, so the filter is an FAnd bundle.
         flt = sel.filter
-        if not isinstance(flt, FAtom):
-            self.fail(f"expected FAtom filter, got {type(flt)}")
-        self.assertEqual(flt.pred, FAtomPred.TYPE_EQ)
-        self.assertEqual(flt.string_value, "Creature")
+        if not isinstance(flt, FAnd):
+            self.fail(f"expected FAnd filter, got {type(flt)}")
+        atoms = [a for a in flt.children if isinstance(a, FAtom)]
+        self.assertTrue(
+            any(
+                a.pred is FAtomPred.TYPE_EQ and a.string_value == "Creature"
+                for a in atoms
+            ),
+            f"missing TYPE_EQ Creature atom in {flt}",
+        )
+        self.assertTrue(
+            any(
+                a.pred is FAtomPred.CONTROLLER_IS and a.who is ControllerRef.YOU
+                for a in atoms
+            ),
+            f"missing CONTROLLER_IS YOU atom in {flt}",
+        )
         self.assertEqual(sel.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertEqual(sel.zone.controller, ControllerRef.YOU)
+        self.assertEqual(sel.zone.controller, ControllerRef.ANY)
 
     def test_add_six_r(self) -> None:
         """B5a-add-six-r: EffectOutcome, ADD_MANA amount=6 color=R."""
@@ -1418,7 +1433,7 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertIsInstance(ability.event, LifeGainedEvent)
         if not isinstance(ability.event, LifeGainedEvent):
             self.fail(f"expected LifeGainedEvent, got {type(ability.event)}")
-        self.assertEqual(ability.event.controller, ControllerRef.YOU)
+        self.assertIs(ability.event.actor.who, ControllerRef.YOU)
         # Effect should be PUT_COUNTER with QProp(event, AMOUNT)
         eff_atom = _as_atom(ability.effect)
         self.assertEqual(eff_atom.verb, Verb.PUT_COUNTER)

@@ -105,22 +105,22 @@ class Findings:
         return out
 
 
-def _iter_tagged(node: object, in_cost: bool, verb: str):
-    """Yield (dict, in_cost, verb) for every tagged dict, mirroring the
+def _iter_tagged(node: object, in_cost: bool, verb: str, parent_tag: str = ""):
+    """Yield (dict, in_cost, verb, parent_tag) for every tagged dict, mirroring the
     compiler's own traversal context rules: entering a Cost* node (except
     CostLoyalty) flips in_cost; entering an Atom sets the verb context."""
     if isinstance(node, dict):
         tag = node.get("tag")
-        yield node, in_cost, verb
+        yield node, in_cost, verb, parent_tag
         child_cost = in_cost or (
             isinstance(tag, str) and tag.startswith("Cost") and tag != "CostLoyalty"
         )
         child_verb = node["verb"]["name"] if tag == "Atom" else verb
         for v in node.values():
-            yield from _iter_tagged(v, child_cost, child_verb)
+            yield from _iter_tagged(v, child_cost, child_verb, tag or "")
     elif isinstance(node, list):
         for v in node:
-            yield from _iter_tagged(v, in_cost, verb)
+            yield from _iter_tagged(v, in_cost, verb, parent_tag)
 
 
 def _is_qconst1(count: dict) -> bool:
@@ -132,7 +132,7 @@ def scan_tree(card: dict, F: Findings) -> None:
     tree = card.get("name", "?")
     # emblem (if any) is a node tree too (charter /29 probe lesson) — the
     # generic walk below starts at the whole record, so it is covered.
-    for node, in_cost, verb in _iter_tagged(card, False, ""):
+    for node, in_cost, verb, parent_tag in _iter_tagged(card, False, ""):
         tag = node.get("tag")
 
         # ---- (1) duplicate {choose} encodings -------------------------------
@@ -266,11 +266,23 @@ def scan_tree(card: dict, F: Findings) -> None:
             ctl = node.get("controller") or {}
             if ctl.get("name") not in (None, "ANY"):
                 F.add(
-                    "event_direction_zone_field",
+                    "zone_container_seat",
                     tree,
                     "info",
-                    "zone.controller (dominant 'you control' filter) — E1 census context",
+                    "zone.controller container seat (post-E1: controller direction "
+                    "lives in CONTROLLER_IS atoms; a BATTLEFIELD seat here is drift)",
                 )
+                if (
+                    node.get("kind", {}).get("name") == "BATTLEFIELD"
+                    and parent_tag == "Selector"
+                ):
+                    F.add(
+                        "battlefield_zone_seat_drift",
+                        tree,
+                        "high",
+                        "post-E1 a BF selector seat must be ANY; direction belongs "
+                        "to the CONTROLLER_IS filter",
+                    )
 
         # ---- (6) keywords on the card record --------------------------------
         if tag == "Keyword":
@@ -373,6 +385,15 @@ def build() -> dict:
         "no on-disk silent-CHOOSE duplicate survives; tripwire",
     )
     F.ensure("move_verb_leftover", "critical", "0 = P1a clean; tripwire")
+    F.ensure(
+        EVENT_STYLE_A_TREES_KEY,
+        "medium",
+        "0 = E1 merged: no event carries a controller-direction field; the axis "
+        "is CONTROLLER_IS actor atoms",
+    )
+    F.ensure(
+        "battlefield_zone_seat_drift", "high", "0 = E1 clean; BF seats folded to ANY"
+    )
     F.ensure("verb_outside_partition", "critical", "0 = partition complete; tripwire")
     F.ensure("count_adhoc_bound_shape", "high", "0 = no ad-hoc bound shapes; tripwire")
 

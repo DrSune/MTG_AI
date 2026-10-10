@@ -162,7 +162,7 @@ class R22bCase(unittest.TestCase):
         self._attach(
             handle,
             ReplacementAbility(
-                event=CardDrawnEvent(controller=ControllerRef.YOU),
+                event=CardDrawnEvent(actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),
                 condition=FAtom(
                     pred=FAtomPred.NOT_FIRST_DRAW_THIS_STEP,
                     who=ControllerRef.YOU,

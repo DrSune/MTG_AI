@@ -1611,16 +1611,18 @@ class ZoneChangeEvent:
 @dataclass(frozen=True)
 class CastSpellEvent:
     """A spell was cast (filter over the spell: type/subtype/name).
-    T3 round F optional scoping: ``controller`` = whose cast (None = any
-    — "an opponent casts"), ``from_zone`` = the source zone (None = any),
-    ``ordinal`` = the Nth cast by that controller this turn (None = every
+    E1 (2026-10-10, /65) merged the direction axis: ``actor`` = a Filter over
+    the CASTING player (None = any — "an opponent casts" compiles as
+    ``actor=FAtom(CONTROLLER_IS, OPPONENT)``; the old ``controller``
+    ControllerRef field is gone), ``from_zone`` = the source zone (None =
+    any), ``ordinal`` = the Nth cast by that caster this turn (None = every
     cast; 2 = "your second spell each turn"). Grammar round 4 adds
     ``from_zone_not`` = exclusion: the cast came from anywhere OTHER than
     this zone ("from anywhere other than their hand" — Ghostly Pilferer;
     mutually exclusive with ``from_zone``)."""
 
     filter: Filter
-    controller: ControllerRef | None = None
+    actor: Filter | None = None
     from_zone: Zone | None = None
     ordinal: int | None = None
     from_zone_not: Zone | None = None
@@ -1630,12 +1632,10 @@ class CastSpellEvent:
             raise ValueError(
                 f"CastSpellEvent: filter must be a Filter, got {type(self.filter).__name__}"
             )
-        if self.controller is not None and not isinstance(
-            self.controller, ControllerRef
-        ):
+        if self.actor is not None and not _is_filter(self.actor):
             raise ValueError(
-                "CastSpellEvent: controller must be a ControllerRef, got "
-                f"{type(self.controller).__name__}"
+                "CastSpellEvent: actor must be a Filter, got "
+                f"{type(self.actor).__name__}"
             )
         if self.from_zone is not None and not isinstance(self.from_zone, Zone):
             raise ValueError(
@@ -1826,18 +1826,24 @@ class AbilityTriggerEvent:
 
 @dataclass(frozen=True)
 class TurnPhaseEvent:
-    """A turn phase began for `controller` (see Phase for pool citations)."""
+    """A turn phase began (see Phase for pool citations). E1 (/65): the
+    direction axis is the ``actor`` Filter, evaluated over the ACTIVE
+    PLAYER of the journalled phase (None = any player's phase; "at the
+    beginning of your end step" = ``actor=FAtom(CONTROLLER_IS, YOU)``).
+    The old ``controller`` ControllerRef field is gone."""
 
     phase: Phase
-    controller: ControllerRef
+    actor: Filter | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.phase, Phase):
             raise ValueError(
                 f"TurnPhaseEvent: phase must be a Phase, got {self.phase!r}"
             )
-        if not isinstance(self.controller, ControllerRef):
-            raise ValueError(f"TurnPhaseEvent: controller must be a ControllerRef")
+        if self.actor is not None and not _is_filter(self.actor):
+            raise ValueError(
+                f"TurnPhaseEvent: actor must be a Filter, got {type(self.actor).__name__}"
+            )
 
 
 @dataclass(frozen=True)
@@ -1908,21 +1914,24 @@ class TargetingEvent:
 
 @dataclass(frozen=True)
 class CardDrawnEvent:
-    """A card was drawn by `controller` (T3 round F: "whenever you draw a
+    """A card was drawn (T3 round F: "whenever you draw a
     card", "whenever an opponent draws a card"). The drawn card is the
     event subject — a TriggeredAbility `condition` Filter narrows it.
     ``ordinal`` (grammar round 4) = the Nth card drawn by that controller
     this turn (None = every draw) — "whenever you draw your second card
     each turn" (Jolrael, Mwonvuli Recluse; Mystic Skyfish). Mirrors
-    CastSpellEvent.ordinal."""
+    CastSpellEvent.ordinal. E1 (/65): direction is the ``actor`` Filter,
+    evaluated over the DRAWER journalled on the event row (None = any
+    player's draw; "whenever you draw" = ``actor=FAtom(CONTROLLER_IS,
+    YOU)``). The old ``controller`` ControllerRef field is gone."""
 
-    controller: ControllerRef
+    actor: Filter | None = None
     ordinal: int | None = None
 
     def __post_init__(self) -> None:
-        if not isinstance(self.controller, ControllerRef):
+        if self.actor is not None and not _is_filter(self.actor):
             raise ValueError(
-                f"CardDrawnEvent: controller must be a ControllerRef, got {type(self.controller).__name__}"
+                f"CardDrawnEvent: actor must be a Filter, got {type(self.actor).__name__}"
             )
         if self.ordinal is not None and (
             isinstance(self.ordinal, bool)
@@ -1936,56 +1945,66 @@ class CardDrawnEvent:
 
 @dataclass(frozen=True)
 class LifeGainedEvent:
-    """`controller` gained life (T3 round F: "whenever you gain life,
-    target opponent loses that much life")."""
+    """Life was gained (T3 round F: "whenever you gain life,
+    target opponent loses that much life"). E1 (/65): the ``actor`` Filter
+    is evaluated over the GAINING PLAYER journalled as the event subject
+    (None = any player; "whenever you gain life" =
+    ``actor=FAtom(CONTROLLER_IS, YOU)``). The old ``controller`` field is
+    gone."""
 
-    controller: ControllerRef
+    actor: Filter | None = None
 
     def __post_init__(self) -> None:
-        if not isinstance(self.controller, ControllerRef):
+        if self.actor is not None and not _is_filter(self.actor):
             raise ValueError(
-                f"LifeGainedEvent: controller must be a ControllerRef, got {type(self.controller).__name__}"
+                f"LifeGainedEvent: actor must be a Filter, got {type(self.actor).__name__}"
             )
 
 
 @dataclass(frozen=True)
 class SacrificeEvent:
-    """`controller` sacrificed a permanent (T3 round F: "whenever you
+    """A permanent was sacrificed (T3 round F: "whenever you
     sacrifice a permanent"). The sacrificed permanent is the event
     subject — a TriggeredAbility `condition` Filter narrows it (e.g. a
-    creature filter)."""
+    creature filter). E1 (/65): the ``actor`` Filter is evaluated over the
+    SACRIFICER = the journalled ``owner_before`` of the sacrifice move —
+    whose sacrifice it is even under a control effect. The old
+    ``controller`` field is gone."""
 
-    controller: ControllerRef
+    actor: Filter | None = None
 
     def __post_init__(self) -> None:
-        if not isinstance(self.controller, ControllerRef):
+        if self.actor is not None and not _is_filter(self.actor):
             raise ValueError(
-                f"SacrificeEvent: controller must be a ControllerRef, got {type(self.controller).__name__}"
+                f"SacrificeEvent: actor must be a Filter, got {type(self.actor).__name__}"
             )
 
 
 @dataclass(frozen=True)
 class LoyaltyActivatedEvent:
-    """`controller` activated a loyalty ability on a planeswalker (grammar
+    """A loyalty ability was activated on a planeswalker (grammar
     round 4: Keral Keep Disciples' "whenever you activate a loyalty ability
     of a Chandra planeswalker"). ``filter`` selects the planeswalker whose
     loyalty ability was activated (e.g. subtype Chandra + type Planeswalker);
     it is required — a bare "any loyalty ability" trigger is never expressible.
     Convention C5: loyalty triggers compile as the EFFECT of the
     ActivatedAbility whose cost is the loyalty part, not as a standalone
-    TriggeredAbility, so this event tags that activation."""
+    TriggeredAbility, so this event tags that activation. E1 (/65): the
+    ``actor`` Filter is evaluated over the ACTIVATOR journalled as the
+    event's cause (CR 606.3: only the controller may activate — the cause
+    handle is the activator's seat). The old ``controller`` field is gone."""
 
-    controller: ControllerRef
     filter: Filter
+    actor: Filter | None = None
 
     def __post_init__(self) -> None:
-        if not isinstance(self.controller, ControllerRef):
-            raise ValueError(  # noqa: TRY004 — module convention, tests pin ValueError
-                f"LoyaltyActivatedEvent: controller must be a ControllerRef, got {type(self.controller).__name__}"
-            )
         if not _is_filter(self.filter):
             raise ValueError(
                 f"LoyaltyActivatedEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+        if self.actor is not None and not _is_filter(self.actor):
+            raise ValueError(
+                f"LoyaltyActivatedEvent: actor must be a Filter, got {type(self.actor).__name__}"
             )
 
 
@@ -3910,7 +3929,7 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "CastSpellEvent": (
         ("filter", "filter"),
-        ("controller", "opt:enum:ControllerRef"),
+        ("actor", "opt:filter"),
         ("from_zone", "opt:zone"),
         ("ordinal", "opt:int"),
         # from_zone_not (grammar round 4): "from anywhere other than the
@@ -3943,7 +3962,7 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     # T5-D: the Sanctum-of-All family event atom (subject = the
     # triggering ability's source permanent).
     "AbilityTriggerEvent": (("filter", "filter"),),
-    "TurnPhaseEvent": (("phase", "enum:Phase"), ("controller", "enum:ControllerRef")),
+    "TurnPhaseEvent": (("phase", "enum:Phase"), ("actor", "opt:filter")),
     "StepEvent": (
         ("phase", "enum:Phase"),
         ("step", "enum:Step"),
@@ -3957,14 +3976,14 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "TargetingEvent": (("filter", "filter"),),
     "CardDrawnEvent": (
-        ("controller", "enum:ControllerRef"),
+        ("actor", "opt:filter"),
         ("ordinal", "opt:int"),
     ),
-    "LifeGainedEvent": (("controller", "enum:ControllerRef"),),
-    "SacrificeEvent": (("controller", "enum:ControllerRef"),),
+    "LifeGainedEvent": (("actor", "opt:filter"),),
+    "SacrificeEvent": (("actor", "opt:filter"),),
     "LoyaltyActivatedEvent": (
-        ("controller", "enum:ControllerRef"),
         ("filter", "filter"),
+        ("actor", "opt:filter"),
     ),
     "LiteralName": (("name", "str"),),
     "PtDelta": (("direction", "enum:PtDirection"), ("magnitude", "quantity")),
@@ -4243,12 +4262,17 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     "DeclareAttackersEvent": frozenset({"attacked"}),
     # subject (r3b) + blocked (grammar round 6, R6-4): omit when None.
     "DeclareBlockersEvent": frozenset({"subject", "blocked"}),
-    # from_zone_not (grammar round 4): omit when None.
-    "CastSpellEvent": frozenset(
-        {"controller", "from_zone", "ordinal", "from_zone_not"}
-    ),
+    # from_zone_not (grammar round 4): omit when None. actor (E1, /65):
+    # omit when None — byte-stable re-encode discipline.
+    "CastSpellEvent": frozenset({"actor", "from_zone", "ordinal", "from_zone_not"}),
     # ordinal (grammar round 4): omit when None.
-    "CardDrawnEvent": frozenset({"ordinal"}),
+    "CardDrawnEvent": frozenset({"ordinal", "actor"}),
+    # actor (E1, /65): the single direction axis omits when None on every
+    # event row that carries it.
+    "TurnPhaseEvent": frozenset({"actor"}),
+    "LifeGainedEvent": frozenset({"actor"}),
+    "SacrificeEvent": frozenset({"actor"}),
+    "LoyaltyActivatedEvent": frozenset({"actor"}),
     # count (grammar round 5, R5-2): omit when None.
     "CounterPlacedEvent": frozenset({"count"}),
     # zone/from_zone/to_zone (grammar round 4, R4-4): omit when None. Every

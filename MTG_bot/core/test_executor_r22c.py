@@ -131,7 +131,7 @@ class LoyaltyFeedCase(unittest.TestCase):
                 [
                     TriggeredAbility(
                         event=LoyaltyActivatedEvent(
-                            controller=ControllerRef.YOU,
+                            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
                             filter=FAtom(FAtomPred.SUBTYPE_EQ, string_value="Chandra"),
                         ),
                         condition=None,

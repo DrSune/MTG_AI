@@ -256,22 +256,86 @@ def _conditional_bare() -> at.Conditional:
 # ---- pinned fingerprints (captured after the round-7 edits) ----------------
 
 _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
-    ("atom_choose", _atom_choose, "e8e5f1a33805867d6bb955c000088a438e899aaf7caae4e6efa0d1447792253f"),
-    ("atom_choose_name_bare", _atom_choose_name_bare, "05432a45ef231d79d2d0ea9068d4ed104385c062d1fe5daf8017e0edb397374e"),
-    ("atom_choose_name_filtered", _atom_choose_name_filtered, "92d17275ac1f705e6b9f9eea83fcad14e1d5316edd3030bd99cb1d7ecb5ef1d2"),
-    ("atom_fight", _atom_fight, "3a227ef67167d13063b10cb3ee746197f693b90927deb5675e2241f9a16b4118"),
-    ("atom_lose_ability", _atom_lose_ability, "e7604dbc1fb49a1a59e2075dece0a82780568750ef7ee6edab6fae343392e195"),
-    ("atom_gain_control_duration", _atom_gain_control_duration, "3e9a82d056210786cc92830b44626fd45a858c00aafce30709192426f3323b57"),
-    ("dur_until_leaves", _dur_until_leaves, "f03c5dfa7b84e55340aab71ae2710757a6e90e4a9bcf501ba80d018ad32d865b"),
-    ("dur_until_leaves_result", _dur_until_leaves_result, "125059b68d5ca9053d19f73a1dcf7eb878e7b5327bedf86b4d1a12cd6545cb5a"),
-    ("sel_one_of", _sel_one_of, "f579f21b8bf7648e0a897c2262c3c87e040a230544a3c874ea9773c3c20c9dfb"),
-    ("sel_rest", _sel_rest, "8fd5be5191ffce82b90a3e283832d8481954a5ff51e61bb5221878d88baf63ef"),
-    ("fatom_is_attached", _fatom_is_attached, "9c2d5b2f8948631ec98e43fa49fccb841310883a0eb3c655a9a018a38dd426d4"),
-    ("fatom_name_chosen", _fatom_name_chosen, "588d22c798d76e5d401b8136ef5c4fa5d7804ca5e7098b40d0a15e2c35458c40"),
-    ("qprop_this_way", _qprop_this_way, "2672b389a355956a60f28bc38a0c28faa3efdb1290839d259e9437585a91af62"),
-    ("qprop_that_many", _qprop_that_many, "6cb5885392efeebf80491ea2fa4b85aacdcd82e8dbaf8b002fb23c36e9d23cd0"),
-    ("qprop_cc_source", _qprop_cc_source, "2bb58241fc49dbc462ae4229fa74f108dea15d6e0d0fcee4cfae60a6e785288c"),
-    ("conditional_else", _conditional_else, "81e573b85eb3eae597a10973a5bc134e286e37ba92a39f22cc070fb1dd598241"),
+    (
+        "atom_choose",
+        _atom_choose,
+        "e8e5f1a33805867d6bb955c000088a438e899aaf7caae4e6efa0d1447792253f",
+    ),
+    (
+        "atom_choose_name_bare",
+        _atom_choose_name_bare,
+        "05432a45ef231d79d2d0ea9068d4ed104385c062d1fe5daf8017e0edb397374e",
+    ),
+    (
+        "atom_choose_name_filtered",
+        _atom_choose_name_filtered,
+        "92d17275ac1f705e6b9f9eea83fcad14e1d5316edd3030bd99cb1d7ecb5ef1d2",
+    ),
+    (
+        "atom_fight",
+        _atom_fight,
+        "3a227ef67167d13063b10cb3ee746197f693b90927deb5675e2241f9a16b4118",
+    ),
+    (
+        "atom_lose_ability",
+        _atom_lose_ability,
+        "e7604dbc1fb49a1a59e2075dece0a82780568750ef7ee6edab6fae343392e195",
+    ),
+    (
+        "atom_gain_control_duration",
+        _atom_gain_control_duration,
+        "3e9a82d056210786cc92830b44626fd45a858c00aafce30709192426f3323b57",
+    ),
+    (
+        "dur_until_leaves",
+        _dur_until_leaves,
+        "f03c5dfa7b84e55340aab71ae2710757a6e90e4a9bcf501ba80d018ad32d865b",
+    ),
+    (
+        "dur_until_leaves_result",
+        _dur_until_leaves_result,
+        "125059b68d5ca9053d19f73a1dcf7eb878e7b5327bedf86b4d1a12cd6545cb5a",
+    ),
+    (
+        "sel_one_of",
+        _sel_one_of,
+        "f579f21b8bf7648e0a897c2262c3c87e040a230544a3c874ea9773c3c20c9dfb",
+    ),
+    (
+        "sel_rest",
+        _sel_rest,
+        "8fd5be5191ffce82b90a3e283832d8481954a5ff51e61bb5221878d88baf63ef",
+    ),
+    (
+        "fatom_is_attached",
+        _fatom_is_attached,
+        "9c2d5b2f8948631ec98e43fa49fccb841310883a0eb3c655a9a018a38dd426d4",
+    ),
+    (
+        "fatom_name_chosen",
+        _fatom_name_chosen,
+        "588d22c798d76e5d401b8136ef5c4fa5d7804ca5e7098b40d0a15e2c35458c40",
+    ),
+    (
+        "qprop_this_way",
+        _qprop_this_way,
+        "2672b389a355956a60f28bc38a0c28faa3efdb1290839d259e9437585a91af62",
+    ),
+    (
+        "qprop_that_many",
+        _qprop_that_many,
+        "6cb5885392efeebf80491ea2fa4b85aacdcd82e8dbaf8b002fb23c36e9d23cd0",
+    ),
+    (
+        "qprop_cc_source",
+        _qprop_cc_source,
+        "2bb58241fc49dbc462ae4229fa74f108dea15d6e0d0fcee4cfae60a6e785288c",
+    ),
+    (
+        "conditional_else",
+        _conditional_else,
+        "81e573b85eb3eae597a10973a5bc134e286e37ba92a39f22cc070fb1dd598241",
+    ),
 ]
 
 
@@ -344,10 +408,7 @@ def test_verb_role_tables_r7() -> None:
     }
     assert at._VERB_ROLES[at.Verb.FIGHT] == {"target": True}
     # R9a: exact mirror of GRANT_ABILITY
-    assert (
-        at._VERB_ROLES[at.Verb.LOSE_ABILITY]
-        == at._VERB_ROLES[at.Verb.GRANT_ABILITY]
-    )
+    assert at._VERB_ROLES[at.Verb.LOSE_ABILITY] == at._VERB_ROLES[at.Verb.GRANT_ABILITY]
     # R7-2: GAIN_CONTROL widened, previous required roles unchanged
     assert at._VERB_ROLES[at.Verb.GAIN_CONTROL] == {
         "target": True,

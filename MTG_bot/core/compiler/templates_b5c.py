@@ -144,11 +144,24 @@ _PRIORITY = 100
 
 
 def _self_selector(zone: Zone) -> Selector:
-    """Selector for ``this <permanent>`` — the source of the ability."""
+    """Selector for ``this <permanent>`` — the source of the ability.
+
+    E1 FOLD-B (/65): a BATTLEFIELD seat passed here folds onto the shared
+    CONTROLLER_IS axis exactly like an inline Selector zone — BF-ANY plus
+    the seat atom, so the idiom keeps one encoding shape."""
+    filt = FAtom(pred=FAtomPred.IS_SOURCE)
+    if zone.kind is ZoneKind.BATTLEFIELD and zone.controller is not ControllerRef.ANY:
+        filt = FAnd(
+            children=(
+                filt,
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=zone.controller),
+            )
+        )
+        zone = Zone(kind=zone.kind, controller=ControllerRef.ANY)
     return Selector(
         QConst(1),
         SelectorMode.CHOOSE,
-        FAtom(pred=FAtomPred.IS_SOURCE),
+        filt,
         zone,
     )
 
@@ -289,7 +302,7 @@ def _creatures_you_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 
@@ -304,7 +317,7 @@ def _zombies_you_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 
@@ -319,7 +332,7 @@ def _target_opponent_creatures() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.TARGET_PLAYER),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.TARGET_PLAYER),
+        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 
@@ -333,7 +346,7 @@ def _target_creature_you_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
 
@@ -1174,7 +1187,7 @@ def _build_loyalty_dmg_power(m: re.Match[str]) -> SentenceOutcome:
                     FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
                 )
             ),
-            Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+            Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
         ),
         field=QPropField.POWER,
         agg=QAgg.FIRST,
@@ -1333,8 +1346,13 @@ def _build_cost_shrine_dmg(m: re.Match[str]) -> SentenceOutcome:
         Selector(
             QUnbounded(),
             SelectorMode.ALL,
-            FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Shrine"),
-            Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+            FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Shrine"),
+                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                )
+            ),
+            Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
         )
     )
     atom = Atom(
@@ -1462,9 +1480,10 @@ def _build_cost_sacrifice_defender(m: re.Match[str]) -> SentenceOutcome:
                         children=(
                             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                             FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.DEFENDER),
+                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
                         )
                     ),
-                    Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+                    Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
                 )
             ),
         )
@@ -1539,8 +1558,13 @@ def _build_cost_b_tap_gain_draw(m: re.Match[str]) -> SentenceOutcome:
                 Selector(
                     QConst(1),
                     SelectorMode.CHOOSE,
-                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                    Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+                    FAnd(
+                        children=(
+                            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                        )
+                    ),
+                    Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
                 )
             ),
         )
@@ -1941,8 +1965,15 @@ def _build_bullet_copy_token(m: re.Match[str]) -> SentenceOutcome:
                     Selector(
                         QConst(1),
                         SelectorMode.TARGET,
-                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+                        FAnd(
+                            children=(
+                                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                                FAtom(
+                                    pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU
+                                ),
+                            )
+                        ),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
                     ),
                 ),
             )
@@ -2566,8 +2597,15 @@ def _build_shrine_activation_cost_reduction(m: re.Match[str]) -> SentenceOutcome
                     Selector(
                         QUnbounded(),
                         SelectorMode.ALL,
-                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Shrine"),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+                        FAnd(
+                            children=(
+                                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Shrine"),
+                                FAtom(
+                                    pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU
+                                ),
+                            )
+                        ),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
                     )
                 ),
             )

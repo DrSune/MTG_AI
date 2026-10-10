@@ -141,11 +141,24 @@ _PRIORITY = 50
 
 
 def _self_selector(zone: Zone) -> Selector:
-    """Selector for ``this <permanent>`` — the source of the ability."""
+    """Selector for ``this <permanent>`` — the source of the ability.
+
+    E1 FOLD-B (/65): a BATTLEFIELD seat passed here folds onto the shared
+    CONTROLLER_IS axis exactly like an inline Selector zone — BF-ANY plus
+    the seat atom, so the idiom keeps one encoding shape."""
+    filt = FAtom(pred=FAtomPred.IS_SOURCE)
+    if zone.kind is ZoneKind.BATTLEFIELD and zone.controller is not ControllerRef.ANY:
+        filt = FAnd(
+            children=(
+                filt,
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=zone.controller),
+            )
+        )
+        zone = Zone(kind=zone.kind, controller=ControllerRef.ANY)
     return Selector(
         QConst(1),
         SelectorMode.CHOOSE,
-        FAtom(pred=FAtomPred.IS_SOURCE),
+        filt,
         zone,
     )
 
@@ -249,7 +262,7 @@ def _build_attacking_pt(m: re.Match[str]) -> SentenceOutcome:
                                 ),
                             )
                         ),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
                     ),
                 ),
                 ("power", _pt_delta(m, 1)),
@@ -730,7 +743,7 @@ def _build_trample_counter(m: re.Match[str]) -> SentenceOutcome:
                                 ),
                             )
                         ),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
                     ),
                 ),
                 ("ability", KeywordAbility(keyword=Keyword.TRAMPLE, params=())),
@@ -850,7 +863,9 @@ def _build_enchant_gain_life(m: re.Match[str]) -> SentenceOutcome:
     # that many +1/+1 counters on this creature."
     # IS_SOURCE inside the granted ability = the enchanted creature.
     trigger = TriggeredAbility(
-        event=LifeGainedEvent(controller=ControllerRef.YOU),
+        event=LifeGainedEvent(
+            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+        ),
         condition=None,
         effect=Atom(
             verb=Verb.PUT_COUNTER,
@@ -1984,10 +1999,20 @@ TEMPLATES: tuple[Template, ...] = (
                         target=Selector(
                             QConst(1),
                             SelectorMode.CHOOSE,
-                            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                            FAnd(
+                                children=(
+                                    FAtom(
+                                        pred=FAtomPred.TYPE_EQ, string_value="Creature"
+                                    ),
+                                    FAtom(
+                                        pred=FAtomPred.CONTROLLER_IS,
+                                        who=ControllerRef.YOU,
+                                    ),
+                                )
+                            ),
                             Zone(
                                 kind=ZoneKind.BATTLEFIELD,
-                                controller=ControllerRef.YOU,
+                                controller=ControllerRef.ANY,
                             ),
                         )
                     ),

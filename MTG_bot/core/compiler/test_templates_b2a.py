@@ -669,7 +669,7 @@ class TestB2aTriggerEvents(unittest.TestCase):
         event = ability.event
         assert isinstance(event, TurnPhaseEvent)
         self.assertIs(event.phase, Phase.COMBAT)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
 
     def test_gadrak_is_end_turn_turn_phase(self) -> None:
         ability = _ability(
@@ -682,7 +682,7 @@ class TestB2aTriggerEvents(unittest.TestCase):
         event = ability.event
         assert isinstance(event, TurnPhaseEvent)
         self.assertIs(event.phase, Phase.END_TURN)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
 
     def test_sanctum_is_first_main_turn_phase(self) -> None:
         ability = _ability(
@@ -695,7 +695,7 @@ class TestB2aTriggerEvents(unittest.TestCase):
         event = ability.event
         assert isinstance(event, TurnPhaseEvent)
         self.assertIs(event.phase, Phase.FIRST_MAIN)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
 
     def test_etb_is_zone_change_to_battlefield(self) -> None:
         ability = _ability(
@@ -766,7 +766,7 @@ class TestB2aTriggerEvents(unittest.TestCase):
         event = ability.event
         assert isinstance(event, TurnPhaseEvent)
         self.assertIs(event.phase, Phase.COMBAT)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
         # C2 (batch 1, 2026-10-02) AMENDED: the "if you control a Basri
         # planeswalker" existence claim is a CONTROLLER_COUNT_GE(count=1)
         # census whose inner filter carries the per-card test (r18a
@@ -828,7 +828,7 @@ class TestB2aTriggerEvents(unittest.TestCase):
         event = ability.event
         assert isinstance(event, TurnPhaseEvent)
         self.assertIs(event.phase, Phase.UPKEEP)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
 
     def test_goremand_is_etb_zone_change(self) -> None:
         ability = _ability(
@@ -962,7 +962,7 @@ class TestB2aTriggerEvents(unittest.TestCase):
         assert isinstance(event, TurnPhaseEvent)
         self.assertIs(event.phase, Phase.END_TURN)
         # 'each end step' = both players' end steps in a two-player game.
-        self.assertIs(event.controller, ControllerRef.ANY)
+        self.assertIsNone(event.actor)
         condition = ability.condition
         assert isinstance(condition, FAtom)
         self.assertIs(condition.pred, FAtomPred.DIED_THIS_TURN)
@@ -978,7 +978,7 @@ class TestB2aTriggerEvents(unittest.TestCase):
         event = ability.event
         assert isinstance(event, TurnPhaseEvent)
         self.assertIs(event.phase, Phase.END_TURN)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
         condition = ability.condition
         assert isinstance(condition, FAtom)
         self.assertIs(condition.pred, FAtomPred.MOVED_TO_ZONE_THIS_TURN)
@@ -1019,7 +1019,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(put.args.get("counter_kind"), CounterKind.PLUS_1_PLUS_1)
         target = _selector(put, "target")
         self.assertIs(target.mode, SelectorMode.ALL)
-        self.assertEqual(_zone(target.zone), (ZoneKind.BATTLEFIELD, ControllerRef.YOU))
+        self.assertEqual(_zone(target.zone), (ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         self.assertEqual(
             _find_atom(target.filter, FAtomPred.TYPE_EQ).string_value, "Creature"
         )
@@ -1207,7 +1207,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         qcount = _qcount(atom, "amount")
         selector = qcount.selector
         self.assertIs(selector.mode, SelectorMode.ALL)
-        self.assertEqual(selector.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
+        self.assertEqual(selector.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         self.assertEqual(
             _find_atom(selector.filter, FAtomPred.TYPE_EQ).string_value, "Shrine"
         )
@@ -1508,7 +1508,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(target.mode, SelectorMode.TARGET)
         self.assertEqual(target.count, QAtMost(2))  # C17 (round 8)
         self.assertTrue(_contains_not(target.filter, FAtomPred.IS_SOURCE))
-        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
+        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
 
     def test_basris_lieutenant_put_counter_on_target(self) -> None:
         ability = _ability(
@@ -1562,7 +1562,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         right = qbin.right
         assert isinstance(right, QCount)
         self.assertEqual(
-            right.selector.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)
+            right.selector.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
         )
         keyword_atom = _find_atom(right.selector.filter, FAtomPred.KEYWORD_HAS)
         self.assertIs(keyword_atom.keyword, Keyword.FLYING)
@@ -1582,7 +1582,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(sacrifice.verb, Verb.SACRIFICE)
         self.assertEqual(
             _selector(sacrifice, "target").zone,
-            Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+            Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
         )
         discard = choose.options[1]
         assert isinstance(discard, Atom)
@@ -1711,7 +1711,7 @@ class TestB2aEffectStructure(unittest.TestCase):
             _find_atom(cards.filter, FAtomPred.CONTROLLER_IS).who, ControllerRef.YOU
         )
         self.assertTrue(_contains_not(cards.filter, FAtomPred.IS_SOURCE))
-        self.assertEqual(cards.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
+        self.assertEqual(cards.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         self.assertEqual(
             atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.ANY)
         )
@@ -1894,7 +1894,7 @@ class TestB2aEffectStructure(unittest.TestCase):
             _find_atom(target.filter, FAtomPred.CONTROLLER_IS).who,
             ControllerRef.YOU,
         )
-        self.assertEqual(_zone(target.zone), (ZoneKind.BATTLEFIELD, ControllerRef.YOU))
+        self.assertEqual(_zone(target.zone), (ZoneKind.BATTLEFIELD, ControllerRef.ANY))
 
     def test_turret_ogre_deals_two_to_each_opponent(self) -> None:
         ability = _ability(
@@ -2003,7 +2003,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(atom.args.get("counter_kind"), CounterKind.LOYALTY)
         self.assertEqual(_qconst(atom, "count").value, 1)
         target = _selector(atom, "target")
-        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
+        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         assert isinstance(target.filter, FAnd)
         name = _find_atom(target.filter, FAtomPred.NAME_CONTAINS)
         self.assertEqual(name.string_value, "Liliana")

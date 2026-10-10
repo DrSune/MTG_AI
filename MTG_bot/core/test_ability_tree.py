@@ -137,7 +137,9 @@ def _emblem_record() -> at.CardRecord:
     )
     shuffle = at.Atom(
         at.Verb.SHUFFLE,
-        at.AtomArgs(pairs=(("zone", at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU)),)),
+        at.AtomArgs(
+            pairs=(("zone", at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU)),)
+        ),
     )
     return at.CardRecord(
         oracle_id=_OID2B,
@@ -156,7 +158,10 @@ def _emblem_record() -> at.CardRecord:
         keywords=(),
         abilities=(
             at.TriggeredAbility(
-                at.TurnPhaseEvent(at.Phase.END_TURN, at.ControllerRef.YOU),
+                at.TurnPhaseEvent(
+                    at.Phase.END_TURN,
+                    at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU),
+                ),
                 None,
                 at.OptionalEffect(at.Seq((search, shuffle))),
             ),
@@ -244,7 +249,10 @@ def _token_creator() -> at.CardRecord:
                         at.CostTap(),
                         at.CostSacrifice(
                             at.Selector(
-                                at.QConst(1), at.SelectorMode.ALL, at.FAtom(at.FAtomPred.IS_SOURCE), _BF_YOU
+                                at.QConst(1),
+                                at.SelectorMode.ALL,
+                                at.FAtom(at.FAtomPred.IS_SOURCE),
+                                _BF_YOU,
                             )
                         ),
                     )
@@ -281,7 +289,10 @@ def _token_creator() -> at.CardRecord:
         count=at.QConst(4),
     )
     trigger = at.TriggeredAbility(
-        at.TurnPhaseEvent(at.Phase.END_TURN, at.ControllerRef.YOU),
+        at.TurnPhaseEvent(
+            at.Phase.END_TURN,
+            at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU),
+        ),
         condition,
         at.Atom(
             at.Verb.CREATE_TOKEN,
@@ -294,7 +305,10 @@ def _token_creator() -> at.CardRecord:
             at.AtomArgs(
                 pairs=(
                     ("condition", at.FAtom(at.FAtomPred.IS_SOURCE)),
-                    ("event", at.DeclareAttackersEvent(at.FAtom(at.FAtomPred.IS_SOURCE))),
+                    (
+                        "event",
+                        at.DeclareAttackersEvent(at.FAtom(at.FAtomPred.IS_SOURCE)),
+                    ),
                 )
             ),
         )
@@ -370,7 +384,9 @@ def _walk_sample() -> at.CardRecord:
         toughness=at.QConst(1),
         loyalty=None,
         keywords=(at.KeywordAbility(at.Keyword.DEFENDER, ()),),
-        abilities=(at.StaticAbility(at.Seq((draw_atom(), at.OptionalEffect(draw_atom())))),),
+        abilities=(
+            at.StaticAbility(at.Seq((draw_atom(), at.OptionalEffect(draw_atom())))),
+        ),
         is_token=False,
     )
 
@@ -387,7 +403,9 @@ def _all_nodes() -> list[tuple[str, object]]:
     untap = at.Atom(at.Verb.UNTAP, at.AtomArgs(pairs=(("target", src),)))
     mill = at.Atom(
         at.Verb.MILL,
-        at.AtomArgs(pairs=(("controller", at.ControllerRef.YOU), ("amount", at.QConst(4)))),
+        at.AtomArgs(
+            pairs=(("controller", at.ControllerRef.YOU), ("amount", at.QConst(4)))
+        ),
     )
     nodes: list[tuple[str, object]] = [
         # quantities — all six variants
@@ -402,47 +420,132 @@ def _all_nodes() -> list[tuple[str, object]]:
         ("QBin-add", at.QBin(at.QBinOp.ADD, at.QConst(1), at.QX())),
         (
             "QBin-nested",
-            at.QBin(at.QBinOp.DIV, at.QBin(at.QBinOp.ADD, at.QConst(3), at.QConst(1)), at.QConst(2)),
+            at.QBin(
+                at.QBinOp.DIV,
+                at.QBin(at.QBinOp.ADD, at.QConst(3), at.QConst(1)),
+                at.QConst(2),
+            ),
         ),
-        ("QBin-min", at.QBin(at.QBinOp.MIN, at.QProp("controller", at.QPropField.CARDS_IN_LIBRARY), at.QConst(7))),
+        (
+            "QBin-min",
+            at.QBin(
+                at.QBinOp.MIN,
+                at.QProp("controller", at.QPropField.CARDS_IN_LIBRARY),
+                at.QConst(7),
+            ),
+        ),
         # zones — every ZoneKind
         *(
             (f"Zone-{kind.name}", at.Zone(kind, at.ControllerRef.ANY))
             for kind in at.ZoneKind
         ),
         ("Zone-you", at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.YOU)),
-        ("Zone-all-opponents", at.Zone(at.ZoneKind.HAND, at.ControllerRef.ALL_OPPONENTS)),
+        (
+            "Zone-all-opponents",
+            at.Zone(at.ZoneKind.HAND, at.ControllerRef.ALL_OPPONENTS),
+        ),
         # selectors — every mode
-        ("Selector-TARGET", at.Selector(at.QConst(2), at.SelectorMode.TARGET, at.FAtom(at.FAtomPred.IS_PERMANENT), _BF_ANY)),
-        ("Selector-CHOOSE", at.Selector(at.QConst(3), at.SelectorMode.CHOOSE, at.FAtom(at.FAtomPred.IS_PERMANENT), _BF_ANY)),
-        ("Selector-ALL", at.Selector(at.QConst(1), at.SelectorMode.ALL, at.FAnd(()), _BF_ANY)),
-        ("Selector-RANDOM", at.Selector(at.QConst(1), at.SelectorMode.RANDOM, at.FAtom(at.FAtomPred.IS_PERMANENT), at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.ANY))),
-        ("Selector-unbounded", at.Selector(at.QUnbounded(), at.SelectorMode.CHOOSE, at.FAtom(at.FAtomPred.NAME_EQ, string_value="Frantic Inventory"), lib)),
-        ("Selector-target-player", at.Selector(at.QConst(1), at.SelectorMode.TARGET, at.FAnd(()), at.Zone(at.ZoneKind.PLAYER, at.ControllerRef.ANY))),
+        (
+            "Selector-TARGET",
+            at.Selector(
+                at.QConst(2),
+                at.SelectorMode.TARGET,
+                at.FAtom(at.FAtomPred.IS_PERMANENT),
+                _BF_ANY,
+            ),
+        ),
+        (
+            "Selector-CHOOSE",
+            at.Selector(
+                at.QConst(3),
+                at.SelectorMode.CHOOSE,
+                at.FAtom(at.FAtomPred.IS_PERMANENT),
+                _BF_ANY,
+            ),
+        ),
+        (
+            "Selector-ALL",
+            at.Selector(at.QConst(1), at.SelectorMode.ALL, at.FAnd(()), _BF_ANY),
+        ),
+        (
+            "Selector-RANDOM",
+            at.Selector(
+                at.QConst(1),
+                at.SelectorMode.RANDOM,
+                at.FAtom(at.FAtomPred.IS_PERMANENT),
+                at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.ANY),
+            ),
+        ),
+        (
+            "Selector-unbounded",
+            at.Selector(
+                at.QUnbounded(),
+                at.SelectorMode.CHOOSE,
+                at.FAtom(at.FAtomPred.NAME_EQ, string_value="Frantic Inventory"),
+                lib,
+            ),
+        ),
+        (
+            "Selector-target-player",
+            at.Selector(
+                at.QConst(1),
+                at.SelectorMode.TARGET,
+                at.FAnd(()),
+                at.Zone(at.ZoneKind.PLAYER, at.ControllerRef.ANY),
+            ),
+        ),
         # filters — every atom predicate plus combinators
         ("FAtom-TYPE_EQ", at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature")),
         ("FAtom-SUBTYPE_EQ", at.FAtom(at.FAtomPred.SUBTYPE_EQ, string_value="Bird")),
-        ("FAtom-SUPERTYPE_EQ", at.FAtom(at.FAtomPred.SUPERTYPE_EQ, string_value="Legendary")),
+        (
+            "FAtom-SUPERTYPE_EQ",
+            at.FAtom(at.FAtomPred.SUPERTYPE_EQ, string_value="Legendary"),
+        ),
         ("FAtom-COLOR_HAS", at.FAtom(at.FAtomPred.COLOR_HAS, color="B")),
         ("FAtom-COLOR_IN", at.FAtom(at.FAtomPred.COLOR_IN, colors=("W", "U"))),
-        ("FAtom-COLOR_COUNT_GE", at.FAtom(at.FAtomPred.COLOR_COUNT_GE, count=at.QConst(2))),
+        (
+            "FAtom-COLOR_COUNT_GE",
+            at.FAtom(at.FAtomPred.COLOR_COUNT_GE, count=at.QConst(2)),
+        ),
         ("FAtom-CMC_LE", at.FAtom(at.FAtomPred.CMC_LE, count=at.QConst(3))),
         ("FAtom-CMC_GE", at.FAtom(at.FAtomPred.CMC_GE, count=at.QConst(6))),
         ("FAtom-PT_LE", at.FAtom(at.FAtomPred.PT_LE, count=at.QConst(2))),
         ("FAtom-PT_GE", at.FAtom(at.FAtomPred.PT_GE, count=at.QConst(1))),
-        ("FAtom-KEYWORD_HAS", at.FAtom(at.FAtomPred.KEYWORD_HAS, keyword=at.Keyword.FLYING)),
-        ("FAtom-NAME_EQ", at.FAtom(at.FAtomPred.NAME_EQ, string_value="Frantic Inventory")),
+        (
+            "FAtom-KEYWORD_HAS",
+            at.FAtom(at.FAtomPred.KEYWORD_HAS, keyword=at.Keyword.FLYING),
+        ),
+        (
+            "FAtom-NAME_EQ",
+            at.FAtom(at.FAtomPred.NAME_EQ, string_value="Frantic Inventory"),
+        ),
         ("FAtom-IS_TAPPED", at.FAtom(at.FAtomPred.IS_TAPPED)),
         ("FAtom-IS_UNTAPPED", at.FAtom(at.FAtomPred.IS_UNTAPPED)),
         ("FAtom-IS_ATTACKING", at.FAtom(at.FAtomPred.IS_ATTACKING)),
         ("FAtom-IS_BLOCKING", at.FAtom(at.FAtomPred.IS_BLOCKING)),
         (
             "FAtom-HAS_COUNTER",
-            at.FAtom(at.FAtomPred.HAS_COUNTER, counter_kind=at.CounterKind.PAGE, count=at.QConst(4)),
+            at.FAtom(
+                at.FAtomPred.HAS_COUNTER,
+                counter_kind=at.CounterKind.PAGE,
+                count=at.QConst(4),
+            ),
         ),
-        ("FAtom-CONTROLLER_IS", at.FAtom(at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU)),
-        ("FAtom-CONTROLLER_IS-target-player", at.FAtom(at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.TARGET_PLAYER)),
-        ("FAtom-CMC_LE-dynamic-count", at.FAtom(at.FAtomPred.CMC_LE, count=at.QProp("controller", at.QPropField.CARDS_IN_HAND))),
+        (
+            "FAtom-CONTROLLER_IS",
+            at.FAtom(at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU),
+        ),
+        (
+            "FAtom-CONTROLLER_IS-target-player",
+            at.FAtom(at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.TARGET_PLAYER),
+        ),
+        (
+            "FAtom-CMC_LE-dynamic-count",
+            at.FAtom(
+                at.FAtomPred.CMC_LE,
+                count=at.QProp("controller", at.QPropField.CARDS_IN_HAND),
+            ),
+        ),
         (
             "FAtom-CONTROLLER_COUNT_GE",
             at.FAtom(
@@ -465,31 +568,86 @@ def _all_nodes() -> list[tuple[str, object]]:
         ("FAtom-IS_TOKEN", at.FAtom(at.FAtomPred.IS_TOKEN)),
         ("FAtom-DIED_THIS_TURN", at.FAtom(at.FAtomPred.DIED_THIS_TURN)),
         ("FAtom-IS_ATTACHED_TO_SOURCE", at.FAtom(at.FAtomPred.IS_ATTACHED_TO_SOURCE)),
-        ("FAnd", at.FAnd((at.FAtom(at.FAtomPred.IS_PERMANENT), at.FAtom(at.FAtomPred.IS_TAPPED)))),
+        (
+            "FAnd",
+            at.FAnd(
+                (at.FAtom(at.FAtomPred.IS_PERMANENT), at.FAtom(at.FAtomPred.IS_TAPPED))
+            ),
+        ),
         ("FAnd-universal", at.FAnd(())),
-        ("FOr", at.FOr((at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Instant"), at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Sorcery")))),
+        (
+            "FOr",
+            at.FOr(
+                (
+                    at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Instant"),
+                    at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Sorcery"),
+                )
+            ),
+        ),
         ("FNot", at.FNot(at.FAtom(at.FAtomPred.IS_TOKEN))),
         # durations — all four
         ("DurationEot", at.DurationEot()),
         ("DurationPermanent", at.DurationPermanent()),
         ("DurationUntilNextTurn", at.DurationUntilNextTurn()),
-        ("DurationWhileCondition", at.DurationWhileCondition(at.FAtom(at.FAtomPred.IS_TAPPED))),
+        (
+            "DurationWhileCondition",
+            at.DurationWhileCondition(at.FAtom(at.FAtomPred.IS_TAPPED)),
+        ),
         # events — all thirteen
         (
             "ZoneChangeEvent",
-            at.ZoneChangeEvent(at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY), at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU)),
+            at.ZoneChangeEvent(
+                at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY),
+                at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU),
+            ),
         ),
-        ("CastSpellEvent", at.CastSpellEvent(at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Enchantment"))),
-        ("DeclareAttackersEvent", at.DeclareAttackersEvent(at.FAtom(at.FAtomPred.IS_SOURCE))),
-        ("DeclareBlockersEvent", at.DeclareBlockersEvent(at.FAtom(at.FAtomPred.IS_SOURCE))),
+        (
+            "CastSpellEvent",
+            at.CastSpellEvent(
+                at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Enchantment")
+            ),
+        ),
+        (
+            "DeclareAttackersEvent",
+            at.DeclareAttackersEvent(at.FAtom(at.FAtomPred.IS_SOURCE)),
+        ),
+        (
+            "DeclareBlockersEvent",
+            at.DeclareBlockersEvent(at.FAtom(at.FAtomPred.IS_SOURCE)),
+        ),
         ("CombatDamageEvent", at.CombatDamageEvent(at.FAtom(at.FAtomPred.IS_SOURCE))),
-        ("CounterPlacedEvent", at.CounterPlacedEvent(at.CounterKind.PLUS_1_PLUS_1, at.FAtom(at.FAtomPred.IS_SOURCE))),
-        ("CreatureDiesEvent", at.CreatureDiesEvent(at.FAtom(at.FAtomPred.IS_ATTACHED_TO_SOURCE))),
-        ("BecomesBlockedEvent", at.BecomesBlockedEvent(at.FAtom(at.FAtomPred.IS_PERMANENT))),
+        (
+            "CounterPlacedEvent",
+            at.CounterPlacedEvent(
+                at.CounterKind.PLUS_1_PLUS_1, at.FAtom(at.FAtomPred.IS_SOURCE)
+            ),
+        ),
+        (
+            "CreatureDiesEvent",
+            at.CreatureDiesEvent(at.FAtom(at.FAtomPred.IS_ATTACHED_TO_SOURCE)),
+        ),
+        (
+            "BecomesBlockedEvent",
+            at.BecomesBlockedEvent(at.FAtom(at.FAtomPred.IS_PERMANENT)),
+        ),
         ("TapStateEvent", at.TapStateEvent(False, at.FAtom(at.FAtomPred.IS_SOURCE))),
-        ("TurnPhaseEvent", at.TurnPhaseEvent(at.Phase.END_TURN, at.ControllerRef.YOU)),
-        ("StepEvent", at.StepEvent(at.Phase.COMBAT, at.Step.DECLARE_ATTACKERS, at.ControllerRef.YOU)),
-        ("DamageDealtEvent", at.DamageDealtEvent(at.QConst(2), at.FAtom(at.FAtomPred.IS_SOURCE))),
+        (
+            "TurnPhaseEvent",
+            at.TurnPhaseEvent(
+                at.Phase.END_TURN,
+                at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU),
+            ),
+        ),
+        (
+            "StepEvent",
+            at.StepEvent(
+                at.Phase.COMBAT, at.Step.DECLARE_ATTACKERS, at.ControllerRef.YOU
+            ),
+        ),
+        (
+            "DamageDealtEvent",
+            at.DamageDealtEvent(at.QConst(2), at.FAtom(at.FAtomPred.IS_SOURCE)),
+        ),
         ("TargetingEvent", at.TargetingEvent(at.FAtom(at.FAtomPred.IS_SOURCE))),
         # leaf value types
         ("LiteralName", at.LiteralName("Frantic Inventory")),
@@ -515,17 +673,42 @@ def _all_nodes() -> list[tuple[str, object]]:
         ("CostManaHybrid", at.CostManaHybrid(("W", "U"), at.QConst(2))),
         ("CostLife", at.CostLife(at.QConst(2))),
         ("CostSacrifice", at.CostSacrifice(src)),
-        ("CostDiscard", at.CostDiscard(at.Selector(at.QConst(1), at.SelectorMode.CHOOSE, at.FAnd(()), at.Zone(at.ZoneKind.HAND, at.ControllerRef.YOU)))),
+        (
+            "CostDiscard",
+            at.CostDiscard(
+                at.Selector(
+                    at.QConst(1),
+                    at.SelectorMode.CHOOSE,
+                    at.FAnd(()),
+                    at.Zone(at.ZoneKind.HAND, at.ControllerRef.YOU),
+                )
+            ),
+        ),
         ("CostPutCounter", at.CostPutCounter(at.CounterKind.PAGE, src)),
         ("CostLoyalty", at.CostLoyalty(-7)),
-        ("Cost", at.Cost(parts=(at.CostManaGeneric(at.QConst(1)), at.CostManaColor("B", at.QConst(1)), at.CostTap()))),
+        (
+            "Cost",
+            at.Cost(
+                parts=(
+                    at.CostManaGeneric(at.QConst(1)),
+                    at.CostManaColor("B", at.QConst(1)),
+                    at.CostTap(),
+                )
+            ),
+        ),
         ("Cost-empty", at.Cost()),
         # effects — all six, several atoms
         ("Seq", at.Seq((tap, untap))),
         ("Choose", at.Choose(at.QConst(1), (tap, untap))),
         ("OptionalEffect", at.OptionalEffect(mill)),
-        ("Conditional-no-else", at.Conditional(at.FAtom(at.FAtomPred.IS_PERMANENT), mill, None)),
-        ("Conditional-else", at.Conditional(at.FAtom(at.FAtomPred.IS_PERMANENT), mill, untap)),
+        (
+            "Conditional-no-else",
+            at.Conditional(at.FAtom(at.FAtomPred.IS_PERMANENT), mill, None),
+        ),
+        (
+            "Conditional-else",
+            at.Conditional(at.FAtom(at.FAtomPred.IS_PERMANENT), mill, untap),
+        ),
         ("Repeat", at.Repeat(at.QConst(4), mill)),
         (
             "Atom-DEAL_DAMAGE-event-amount",
@@ -547,7 +730,10 @@ def _all_nodes() -> list[tuple[str, object]]:
                     pairs=(
                         ("target", src),
                         ("power", at.PtDelta(at.PtDirection.DECREASE, at.QConst(2))),
-                        ("toughness", at.PtDelta(at.PtDirection.DECREASE, at.QConst(2))),
+                        (
+                            "toughness",
+                            at.PtDelta(at.PtDirection.DECREASE, at.QConst(2)),
+                        ),
                         ("duration", at.DurationEot()),
                     )
                 ),
@@ -573,7 +759,10 @@ def _all_nodes() -> list[tuple[str, object]]:
                 at.AtomArgs(
                     pairs=(
                         ("condition", at.FAtom(at.FAtomPred.IS_SOURCE)),
-                        ("event", at.DeclareBlockersEvent(at.FAtom(at.FAtomPred.IS_SOURCE))),
+                        (
+                            "event",
+                            at.DeclareBlockersEvent(at.FAtom(at.FAtomPred.IS_SOURCE)),
+                        ),
                         ("controller", at.ControllerRef.OPPONENT),
                     )
                 ),
@@ -641,22 +830,41 @@ def _all_nodes() -> list[tuple[str, object]]:
             ),
         ),
         # abilities — all six
-        ("StaticAbility", at.StaticAbility(
-            at.Atom(
-                at.Verb.MODIFY_PT,
-                at.AtomArgs(
-                    pairs=(
-                        ("target", at.Selector(at.QConst(1), at.SelectorMode.ALL, at.FAnd(()), _BF_YOU)),
-                        ("power", at.QProp("controller", at.QPropField.CARDS_IN_GRAVEYARD)),
-                    )
-                ),
-            )
-        )),
-        ("TriggeredAbility", at.TriggeredAbility(
-            at.CombatDamageEvent(at.FAtom(at.FAtomPred.IS_SOURCE)),
-            None,
-            at.OptionalEffect(mill),
-        )),
+        (
+            "StaticAbility",
+            at.StaticAbility(
+                at.Atom(
+                    at.Verb.MODIFY_PT,
+                    at.AtomArgs(
+                        pairs=(
+                            (
+                                "target",
+                                at.Selector(
+                                    at.QConst(1),
+                                    at.SelectorMode.ALL,
+                                    at.FAnd(()),
+                                    _BF_YOU,
+                                ),
+                            ),
+                            (
+                                "power",
+                                at.QProp(
+                                    "controller", at.QPropField.CARDS_IN_GRAVEYARD
+                                ),
+                            ),
+                        )
+                    ),
+                )
+            ),
+        ),
+        (
+            "TriggeredAbility",
+            at.TriggeredAbility(
+                at.CombatDamageEvent(at.FAtom(at.FAtomPred.IS_SOURCE)),
+                None,
+                at.OptionalEffect(mill),
+            ),
+        ),
         ("ActivatedAbility", at.ActivatedAbility(at.Cost(parts=(at.CostTap(),)), mill)),
         ("SpellAbility", at.SpellAbility(at.SpellKind.SORCERY, at.Seq((mill, untap)))),
         ("KeywordAbility-SCRY", at.KeywordAbility(at.Keyword.SCRY, (at.QConst(3),))),
@@ -688,7 +896,10 @@ def _all_nodes() -> list[tuple[str, object]]:
                     at.AtomArgs(
                         pairs=(
                             ("cards", src),
-                            ("destination", at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU)),
+                            (
+                                "destination",
+                                at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU),
+                            ),
                         )
                     ),
                 ),
@@ -718,7 +929,9 @@ def test_roundtrip_every_node_type(name: str, node: object) -> None:
     assert "tag" in d
     back = at.from_dict(str(d["tag"]), d)
     assert back == node, f"{name}: from_dict(to_dict(x)) != x"
-    assert at.canonical_json(back) == at.canonical_json(node), f"{name}: canonical_json unstable"
+    assert at.canonical_json(back) == at.canonical_json(node), (
+        f"{name}: canonical_json unstable"
+    )
     assert at.fingerprint(back) == at.fingerprint(node), f"{name}: fingerprint unstable"
 
 
@@ -735,8 +948,14 @@ def test_canonical_json_construction_order_independent() -> None:
     # AtomArgs roles inserted in different orders -> identical canonical form
     src = _src_sel()
     q = at.QConst(1)
-    a = at.Atom(at.Verb.DRAW, at.AtomArgs(pairs=(("controller", at.ControllerRef.YOU), ("amount", q))))
-    b = at.Atom(at.Verb.DRAW, at.AtomArgs(pairs=(("amount", q), ("controller", at.ControllerRef.YOU))))
+    a = at.Atom(
+        at.Verb.DRAW,
+        at.AtomArgs(pairs=(("controller", at.ControllerRef.YOU), ("amount", q))),
+    )
+    b = at.Atom(
+        at.Verb.DRAW,
+        at.AtomArgs(pairs=(("amount", q), ("controller", at.ControllerRef.YOU))),
+    )
     assert a == b
     assert at.canonical_json(a) == at.canonical_json(b)
     assert at.fingerprint(a) == at.fingerprint(b)
@@ -750,12 +969,12 @@ def test_fingerprint_changes_when_any_leaf_changes() -> None:
     # direct leaf changes
     assert at.fingerprint(at.QConst(1)) != at.fingerprint(at.QConst(2))
     assert at.fingerprint(at.QX()) != at.fingerprint(at.QUnbounded())
-    assert at.fingerprint(at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU)) != at.fingerprint(
-        at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.OPPONENT)
-    )
-    assert at.fingerprint(at.FAtom(at.FAtomPred.SUBTYPE_EQ, string_value="Bird")) != at.fingerprint(
-        at.FAtom(at.FAtomPred.SUBTYPE_EQ, string_value="Angel")
-    )
+    assert at.fingerprint(
+        at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU)
+    ) != at.fingerprint(at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.OPPONENT))
+    assert at.fingerprint(
+        at.FAtom(at.FAtomPred.SUBTYPE_EQ, string_value="Bird")
+    ) != at.fingerprint(at.FAtom(at.FAtomPred.SUBTYPE_EQ, string_value="Angel"))
     # a deep leaf change inside a full card record
     base = _tarmogoyf_like(subtype="Bird")
     changed = _tarmogoyf_like(subtype="Angel")
@@ -791,7 +1010,9 @@ def test_walk_visits_every_node_exactly_once() -> None:
     # 1 Seq, then per draw atom (x2): 1 Atom, 1 AtomArgs, 1 QCount,
     # 1 Selector, 1 FAnd, 2 FAtom, 1 FNot, 1 Zone, plus 1 OptionalEffect
     assert len(visited) == 30, f"expected 30 nodes, got {len(visited)}"
-    assert len({id(v) for v in visited}) == len(visited), "a node was visited twice (object identity)"
+    assert len({id(v) for v in visited}) == len(visited), (
+        "a node was visited twice (object identity)"
+    )
     assert visited[0] is node, "the card record must come first"
     # every yielded object is a dataclass grammar node
     for v in visited:
@@ -840,66 +1061,419 @@ def _validation_cases() -> list[tuple[str, Callable[[], object]]]:
         ("Seq with non-effect", lambda: at.Seq((q,))),  # type: ignore[arg-type]
         ("Zone with raw kind", lambda: at.Zone("library", at.ControllerRef.YOU)),  # type: ignore[arg-type]
         ("Zone with raw controller", lambda: at.Zone(at.ZoneKind.LIBRARY, "you")),  # type: ignore[arg-type]
-        ("Selector with raw count", lambda: at.Selector("2", at.SelectorMode.TARGET, at.FAtom(at.FAtomPred.IS_PERMANENT), _BF_ANY)),  # type: ignore[arg-type]
-        ("Selector TARGET with QUnbounded", lambda: at.Selector(at.QUnbounded(), at.SelectorMode.TARGET, at.FAtom(at.FAtomPred.IS_PERMANENT), _BF_ANY)),
+        (
+            "Selector with raw count",
+            lambda: at.Selector(
+                "2",
+                at.SelectorMode.TARGET,
+                at.FAtom(at.FAtomPred.IS_PERMANENT),
+                _BF_ANY,
+            ),
+        ),  # type: ignore[arg-type]
+        (
+            "Selector TARGET with QUnbounded",
+            lambda: at.Selector(
+                at.QUnbounded(),
+                at.SelectorMode.TARGET,
+                at.FAtom(at.FAtomPred.IS_PERMANENT),
+                _BF_ANY,
+            ),
+        ),
         ("QBin with non-quantity operand", lambda: at.QBin(at.QBinOp.ADD, "x", q)),  # type: ignore[arg-type]
-        ("QProp AMOUNT with wrong referent", lambda: at.QProp("controller", at.QPropField.AMOUNT)),
-        ("QProp player-field with non-controller", lambda: at.QProp("event", at.QPropField.CARDS_IN_HAND)),
-        ("QProp bad referent type", lambda: at.QProp(at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY), at.QPropField.POWER)),  # type: ignore[arg-type]
-        ("QProp aggregation on singular referent", lambda: at.QProp("controller", at.QPropField.CARDS_IN_HAND, at.QAgg.MAX)),
+        (
+            "QProp AMOUNT with wrong referent",
+            lambda: at.QProp("controller", at.QPropField.AMOUNT),
+        ),
+        (
+            "QProp player-field with non-controller",
+            lambda: at.QProp("event", at.QPropField.CARDS_IN_HAND),
+        ),
+        (
+            "QProp bad referent type",
+            lambda: at.QProp(
+                at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY), at.QPropField.POWER
+            ),
+        ),  # type: ignore[arg-type]
+        (
+            "QProp aggregation on singular referent",
+            lambda: at.QProp("controller", at.QPropField.CARDS_IN_HAND, at.QAgg.MAX),
+        ),
         ("QCount with non-selector", lambda: at.QCount(at.QConst(1))),  # type: ignore[arg-type]
         ("FAtom missing required slot", lambda: at.FAtom(at.FAtomPred.TYPE_EQ)),
-        ("FAtom empty string_value", lambda: at.FAtom(at.FAtomPred.TYPE_EQ, string_value="  ")),
-        ("FAtom foreign slot", lambda: at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature", color="W")),
-        ("FAtom HAS_COUNTER missing kind", lambda: at.FAtom(at.FAtomPred.HAS_COUNTER, count=at.QConst(1))),
-        ("FAtom HAS_COUNTER count 0", lambda: at.FAtom(at.FAtomPred.HAS_COUNTER, counter_kind=at.CounterKind.PAGE, count=at.QConst(0))),
-        ("FAtom CONTROLLER_IS with ANY", lambda: at.FAtom(at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.ANY)),
-        ("FAtom CONTROLLER_IS with ALL_OPPONENTS", lambda: at.FAtom(at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.ALL_OPPONENTS)),
+        (
+            "FAtom empty string_value",
+            lambda: at.FAtom(at.FAtomPred.TYPE_EQ, string_value="  "),
+        ),
+        (
+            "FAtom foreign slot",
+            lambda: at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature", color="W"),
+        ),
+        (
+            "FAtom HAS_COUNTER missing kind",
+            lambda: at.FAtom(at.FAtomPred.HAS_COUNTER, count=at.QConst(1)),
+        ),
+        (
+            "FAtom HAS_COUNTER count 0",
+            lambda: at.FAtom(
+                at.FAtomPred.HAS_COUNTER,
+                counter_kind=at.CounterKind.PAGE,
+                count=at.QConst(0),
+            ),
+        ),
+        (
+            "FAtom CONTROLLER_IS with ANY",
+            lambda: at.FAtom(at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.ANY),
+        ),
+        (
+            "FAtom CONTROLLER_IS with ALL_OPPONENTS",
+            lambda: at.FAtom(
+                at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.ALL_OPPONENTS
+            ),
+        ),
         ("FAtom COLOR_IN empty", lambda: at.FAtom(at.FAtomPred.COLOR_IN)),
-        ("FAtom COLOR_IN bad colour", lambda: at.FAtom(at.FAtomPred.COLOR_IN, colors=("W", "X"))),
-        ("FAtom COLOR_COUNT_GE zero", lambda: at.FAtom(at.FAtomPred.COLOR_COUNT_GE, count=at.QConst(0))),
+        (
+            "FAtom COLOR_IN bad colour",
+            lambda: at.FAtom(at.FAtomPred.COLOR_IN, colors=("W", "X")),
+        ),
+        (
+            "FAtom COLOR_COUNT_GE zero",
+            lambda: at.FAtom(at.FAtomPred.COLOR_COUNT_GE, count=at.QConst(0)),
+        ),
         ("FAtom non-quantity count", lambda: at.FAtom(at.FAtomPred.CMC_LE, count="2")),  # type: ignore[arg-type]
-        ("FAtom bad inner_filter", lambda: at.FAtom(at.FAtomPred.CONTROLLER_COUNT_GE, inner_filter="x", count=at.QConst(1))),  # type: ignore[arg-type]
-        ("Atom missing required role", lambda: at.Atom(at.Verb.DRAW, at.AtomArgs(pairs=(("target", src),)))),
-        ("Atom missing amount", lambda: at.Atom(at.Verb.DEAL_DAMAGE, at.AtomArgs(pairs=(("target", src),)))),
-        ("Atom extra role", lambda: at.Atom(at.Verb.END_TURN, at.AtomArgs(pairs=(("target", src),)))),
-        ("Atom MODIFY_PT without P/T", lambda: at.Atom(at.Verb.MODIFY_PT, at.AtomArgs(pairs=(("target", src),)))),
+        (
+            "FAtom bad inner_filter",
+            lambda: at.FAtom(
+                at.FAtomPred.CONTROLLER_COUNT_GE, inner_filter="x", count=at.QConst(1)
+            ),
+        ),  # type: ignore[arg-type]
+        (
+            "Atom missing required role",
+            lambda: at.Atom(at.Verb.DRAW, at.AtomArgs(pairs=(("target", src),))),
+        ),
+        (
+            "Atom missing amount",
+            lambda: at.Atom(at.Verb.DEAL_DAMAGE, at.AtomArgs(pairs=(("target", src),))),
+        ),
+        (
+            "Atom extra role",
+            lambda: at.Atom(at.Verb.END_TURN, at.AtomArgs(pairs=(("target", src),))),
+        ),
+        (
+            "Atom MODIFY_PT without P/T",
+            lambda: at.Atom(at.Verb.MODIFY_PT, at.AtomArgs(pairs=(("target", src),))),
+        ),
         ("AtomArgs unknown role", lambda: at.AtomArgs(pairs=(("bogus", q),))),
-        ("AtomArgs duplicate role", lambda: at.AtomArgs(pairs=(("amount", q), ("amount", at.QConst(2))))),
-        ("AtomArgs wrong value type for role", lambda: at.AtomArgs(pairs=(("target", at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY)),))),
+        (
+            "AtomArgs duplicate role",
+            lambda: at.AtomArgs(pairs=(("amount", q), ("amount", at.QConst(2)))),
+        ),
+        (
+            "AtomArgs wrong value type for role",
+            lambda: at.AtomArgs(
+                pairs=(("target", at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY)),)
+            ),
+        ),
         ("AtomArgs bad color value", lambda: at.AtomArgs(pairs=(("color", "Q"),))),
-        ("AtomArgs non-str types tuple", lambda: at.AtomArgs(pairs=(("types", (at.QConst(1),)),))),  # type: ignore[arg-type]
-        ("TokenSpec creature without P/T", lambda: at.TokenSpec(name="X", type_line="Creature — X", types=("Creature",), subtypes=("X",), power=None, toughness=None, keywords=(), abilities=())),
-        ("TokenSpec artifact with P/T", lambda: at.TokenSpec(name="X", type_line="Artifact", types=("Artifact",), subtypes=(), power=q, toughness=None, keywords=(), abilities=())),
-        ("TokenSpec empty types", lambda: at.TokenSpec(name="X", type_line="Artifact", types=(), subtypes=(), power=None, toughness=None, keywords=(), abilities=())),
-        ("KeywordAbility SCRY without param", lambda: at.KeywordAbility(at.Keyword.SCRY)),
-        ("KeywordAbility FLYING with param", lambda: at.KeywordAbility(at.Keyword.FLYING, (q,))),
-        ("KeywordAbility PROTECTION with non-filter", lambda: at.KeywordAbility(at.Keyword.PROTECTION, (q,))),
-        ("KeywordAbility two params for PROTECTION", lambda: at.KeywordAbility(at.Keyword.PROTECTION, (at.FAtom(at.FAtomPred.IS_PERMANENT), at.FAtom(at.FAtomPred.IS_PERMANENT)))),
+        (
+            "AtomArgs non-str types tuple",
+            lambda: at.AtomArgs(pairs=(("types", (at.QConst(1),)),)),
+        ),  # type: ignore[arg-type]
+        (
+            "TokenSpec creature without P/T",
+            lambda: at.TokenSpec(
+                name="X",
+                type_line="Creature — X",
+                types=("Creature",),
+                subtypes=("X",),
+                power=None,
+                toughness=None,
+                keywords=(),
+                abilities=(),
+            ),
+        ),
+        (
+            "TokenSpec artifact with P/T",
+            lambda: at.TokenSpec(
+                name="X",
+                type_line="Artifact",
+                types=("Artifact",),
+                subtypes=(),
+                power=q,
+                toughness=None,
+                keywords=(),
+                abilities=(),
+            ),
+        ),
+        (
+            "TokenSpec empty types",
+            lambda: at.TokenSpec(
+                name="X",
+                type_line="Artifact",
+                types=(),
+                subtypes=(),
+                power=None,
+                toughness=None,
+                keywords=(),
+                abilities=(),
+            ),
+        ),
+        (
+            "KeywordAbility SCRY without param",
+            lambda: at.KeywordAbility(at.Keyword.SCRY),
+        ),
+        (
+            "KeywordAbility FLYING with param",
+            lambda: at.KeywordAbility(at.Keyword.FLYING, (q,)),
+        ),
+        (
+            "KeywordAbility PROTECTION with non-filter",
+            lambda: at.KeywordAbility(at.Keyword.PROTECTION, (q,)),
+        ),
+        (
+            "KeywordAbility two params for PROTECTION",
+            lambda: at.KeywordAbility(
+                at.Keyword.PROTECTION,
+                (
+                    at.FAtom(at.FAtomPred.IS_PERMANENT),
+                    at.FAtom(at.FAtomPred.IS_PERMANENT),
+                ),
+            ),
+        ),
         ("CostLoyalty zero", lambda: at.CostLoyalty(0)),
         ("CostManaHybrid same colour", lambda: at.CostManaHybrid(("W", "W"), q)),
         ("CostManaHybrid bad colour", lambda: at.CostManaHybrid(("W", "X"), q)),
         ("CostManaColor bad colour", lambda: at.CostManaColor("Q", q)),
         ("Cost with non-part", lambda: at.Cost(parts=(q,))),  # type: ignore[arg-type]
-        ("DurationWhileCondition non-filter", lambda: at.DurationWhileCondition("nope")),  # type: ignore[arg-type]
-        ("TriggeredAbility raw event", lambda: at.TriggeredAbility("ZoneChange", None, at.Atom(at.Verb.END_TURN, at.AtomArgs(pairs=())))),  # type: ignore[arg-type]
-        ("TriggeredAbility bad condition", lambda: at.TriggeredAbility(at.CombatDamageEvent(at.FAtom(at.FAtomPred.IS_PERMANENT)), "x", at.Atom(at.Verb.END_TURN, at.AtomArgs(pairs=())))),  # type: ignore[arg-type]
-        ("SpellAbility raw kind", lambda: at.SpellAbility("instant", at.Atom(at.Verb.END_TURN, at.AtomArgs(pairs=())))),  # type: ignore[arg-type]
-        ("ZoneChangeEvent non-zone", lambda: at.ZoneChangeEvent("any", at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU))),  # type: ignore[arg-type]
-        ("DamageDealtEvent non-quantity", lambda: at.DamageDealtEvent("x", at.FAtom(at.FAtomPred.IS_PERMANENT))),  # type: ignore[arg-type]
-        ("CardRecord bad oracle id", lambda: at.CardRecord(oracle_id="not-a-uuid", name="X", type_line="Land", types=("Land",), subtypes=(), supertypes=(), colors=(), color_identity=frozenset(), mana_cost=None, mana_value=0, power=None, toughness=None, loyalty=None, keywords=(), abilities=(), is_token=False)),
-        ("CardRecord P/T on non-creature", lambda: at.CardRecord(oracle_id=_OID1, name="X", type_line="Land — Plains", types=("Basic", "Land"), subtypes=("Plains",), supertypes=("Basic",), colors=(), color_identity=frozenset(), mana_cost=None, mana_value=0, power=q, toughness=None, loyalty=None, keywords=(), abilities=(), is_token=False)),
-        ("CardRecord loyalty on non-PW", lambda: at.CardRecord(oracle_id=_OID1, name="X", type_line="Creature — Cat", types=("Creature",), subtypes=("Cat",), supertypes=(), colors=(), color_identity=frozenset(), mana_cost=None, mana_value=0, power=q, toughness=q, loyalty=3, keywords=(), abilities=(), is_token=False)),
-        ("CardRecord PW without loyalty", lambda: at.CardRecord(oracle_id=_OID1, name="X", type_line="Planeswalker", types=("Planeswalker",), subtypes=(), supertypes=(), colors=(), color_identity=frozenset(), mana_cost=None, mana_value=0, power=None, toughness=None, loyalty=None, keywords=(), abilities=(), is_token=False)),
-        ("CardRecord negative loyalty", lambda: at.CardRecord(oracle_id=_OID1, name="X", type_line="Planeswalker", types=("Planeswalker",), subtypes=(), supertypes=(), colors=(), color_identity=frozenset(), mana_cost=None, mana_value=0, power=None, toughness=None, loyalty=-2, keywords=(), abilities=(), is_token=False)),
-        ("CardRecord emblem on non-PW", lambda: at.CardRecord(oracle_id=_OID1, name="X", type_line="Creature — Cat", types=("Creature",), subtypes=("Cat",), supertypes=(), colors=(), color_identity=frozenset(), mana_cost=None, mana_value=0, power=q, toughness=q, loyalty=None, keywords=(), abilities=(), is_token=False, emblem=_emblem_record())),
-        ("CardRecord bad colour", lambda: at.CardRecord(oracle_id=_OID1, name="X", type_line="Land — Plains", types=("Land",), subtypes=("Plains",), supertypes=(), colors=("Q",), color_identity=frozenset(), mana_cost=None, mana_value=0, power=None, toughness=None, loyalty=None, keywords=(), abilities=(), is_token=False)),
-        ("CardRecord negative mana value", lambda: at.CardRecord(oracle_id=_OID1, name="X", type_line="Land — Plains", types=("Land",), subtypes=("Plains",), supertypes=(), colors=(), color_identity=frozenset(), mana_cost=None, mana_value=-1, power=None, toughness=None, loyalty=None, keywords=(), abilities=(), is_token=False)),
-        ("CardRecord empty name", lambda: at.CardRecord(oracle_id=_OID1, name="  ", type_line="Land", types=("Land",), subtypes=(), supertypes=(), colors=(), color_identity=frozenset(), mana_cost=None, mana_value=0, power=None, toughness=None, loyalty=None, keywords=(), abilities=(), is_token=False)),
+        (
+            "DurationWhileCondition non-filter",
+            lambda: at.DurationWhileCondition("nope"),
+        ),  # type: ignore[arg-type]
+        (
+            "TriggeredAbility raw event",
+            lambda: at.TriggeredAbility(
+                "ZoneChange", None, at.Atom(at.Verb.END_TURN, at.AtomArgs(pairs=()))
+            ),
+        ),  # type: ignore[arg-type]
+        (
+            "TriggeredAbility bad condition",
+            lambda: at.TriggeredAbility(
+                at.CombatDamageEvent(at.FAtom(at.FAtomPred.IS_PERMANENT)),
+                "x",
+                at.Atom(at.Verb.END_TURN, at.AtomArgs(pairs=())),
+            ),
+        ),  # type: ignore[arg-type]
+        (
+            "SpellAbility raw kind",
+            lambda: at.SpellAbility(
+                "instant", at.Atom(at.Verb.END_TURN, at.AtomArgs(pairs=()))
+            ),
+        ),  # type: ignore[arg-type]
+        (
+            "ZoneChangeEvent non-zone",
+            lambda: at.ZoneChangeEvent(
+                "any", at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU)
+            ),
+        ),  # type: ignore[arg-type]
+        (
+            "DamageDealtEvent non-quantity",
+            lambda: at.DamageDealtEvent("x", at.FAtom(at.FAtomPred.IS_PERMANENT)),
+        ),  # type: ignore[arg-type]
+        (
+            "CardRecord bad oracle id",
+            lambda: at.CardRecord(
+                oracle_id="not-a-uuid",
+                name="X",
+                type_line="Land",
+                types=("Land",),
+                subtypes=(),
+                supertypes=(),
+                colors=(),
+                color_identity=frozenset(),
+                mana_cost=None,
+                mana_value=0,
+                power=None,
+                toughness=None,
+                loyalty=None,
+                keywords=(),
+                abilities=(),
+                is_token=False,
+            ),
+        ),
+        (
+            "CardRecord P/T on non-creature",
+            lambda: at.CardRecord(
+                oracle_id=_OID1,
+                name="X",
+                type_line="Land — Plains",
+                types=("Basic", "Land"),
+                subtypes=("Plains",),
+                supertypes=("Basic",),
+                colors=(),
+                color_identity=frozenset(),
+                mana_cost=None,
+                mana_value=0,
+                power=q,
+                toughness=None,
+                loyalty=None,
+                keywords=(),
+                abilities=(),
+                is_token=False,
+            ),
+        ),
+        (
+            "CardRecord loyalty on non-PW",
+            lambda: at.CardRecord(
+                oracle_id=_OID1,
+                name="X",
+                type_line="Creature — Cat",
+                types=("Creature",),
+                subtypes=("Cat",),
+                supertypes=(),
+                colors=(),
+                color_identity=frozenset(),
+                mana_cost=None,
+                mana_value=0,
+                power=q,
+                toughness=q,
+                loyalty=3,
+                keywords=(),
+                abilities=(),
+                is_token=False,
+            ),
+        ),
+        (
+            "CardRecord PW without loyalty",
+            lambda: at.CardRecord(
+                oracle_id=_OID1,
+                name="X",
+                type_line="Planeswalker",
+                types=("Planeswalker",),
+                subtypes=(),
+                supertypes=(),
+                colors=(),
+                color_identity=frozenset(),
+                mana_cost=None,
+                mana_value=0,
+                power=None,
+                toughness=None,
+                loyalty=None,
+                keywords=(),
+                abilities=(),
+                is_token=False,
+            ),
+        ),
+        (
+            "CardRecord negative loyalty",
+            lambda: at.CardRecord(
+                oracle_id=_OID1,
+                name="X",
+                type_line="Planeswalker",
+                types=("Planeswalker",),
+                subtypes=(),
+                supertypes=(),
+                colors=(),
+                color_identity=frozenset(),
+                mana_cost=None,
+                mana_value=0,
+                power=None,
+                toughness=None,
+                loyalty=-2,
+                keywords=(),
+                abilities=(),
+                is_token=False,
+            ),
+        ),
+        (
+            "CardRecord emblem on non-PW",
+            lambda: at.CardRecord(
+                oracle_id=_OID1,
+                name="X",
+                type_line="Creature — Cat",
+                types=("Creature",),
+                subtypes=("Cat",),
+                supertypes=(),
+                colors=(),
+                color_identity=frozenset(),
+                mana_cost=None,
+                mana_value=0,
+                power=q,
+                toughness=q,
+                loyalty=None,
+                keywords=(),
+                abilities=(),
+                is_token=False,
+                emblem=_emblem_record(),
+            ),
+        ),
+        (
+            "CardRecord bad colour",
+            lambda: at.CardRecord(
+                oracle_id=_OID1,
+                name="X",
+                type_line="Land — Plains",
+                types=("Land",),
+                subtypes=("Plains",),
+                supertypes=(),
+                colors=("Q",),
+                color_identity=frozenset(),
+                mana_cost=None,
+                mana_value=0,
+                power=None,
+                toughness=None,
+                loyalty=None,
+                keywords=(),
+                abilities=(),
+                is_token=False,
+            ),
+        ),
+        (
+            "CardRecord negative mana value",
+            lambda: at.CardRecord(
+                oracle_id=_OID1,
+                name="X",
+                type_line="Land — Plains",
+                types=("Land",),
+                subtypes=("Plains",),
+                supertypes=(),
+                colors=(),
+                color_identity=frozenset(),
+                mana_cost=None,
+                mana_value=-1,
+                power=None,
+                toughness=None,
+                loyalty=None,
+                keywords=(),
+                abilities=(),
+                is_token=False,
+            ),
+        ),
+        (
+            "CardRecord empty name",
+            lambda: at.CardRecord(
+                oracle_id=_OID1,
+                name="  ",
+                type_line="Land",
+                types=("Land",),
+                subtypes=(),
+                supertypes=(),
+                colors=(),
+                color_identity=frozenset(),
+                mana_cost=None,
+                mana_value=0,
+                power=None,
+                toughness=None,
+                loyalty=None,
+                keywords=(),
+                abilities=(),
+                is_token=False,
+            ),
+        ),
     ]
 
 
-@pytest.mark.parametrize("name,fn", _validation_cases(), ids=[n for n, _ in _validation_cases()])
+@pytest.mark.parametrize(
+    "name,fn", _validation_cases(), ids=[n for n, _ in _validation_cases()]
+)
 def test_validation_failures(name: str, fn: Callable[[], object]) -> None:
     with pytest.raises(ValueError):
         fn()
@@ -937,9 +1511,25 @@ def test_from_dict_wrong_value_type() -> None:
     with pytest.raises(ValueError):
         at.from_dict("QConst", {"tag": "QConst", "value": "1"})
     with pytest.raises(ValueError):
-        at.from_dict("Zone", {"tag": "Zone", "kind": {"tag": "ZoneKind", "name": "LIBRARY"}, "controller": {"tag": "ControllerRef", "name": "NOT_A_MEMBER"}})
+        at.from_dict(
+            "Zone",
+            {
+                "tag": "Zone",
+                "kind": {"tag": "ZoneKind", "name": "LIBRARY"},
+                "controller": {"tag": "ControllerRef", "name": "NOT_A_MEMBER"},
+            },
+        )
     with pytest.raises(ValueError):
-        at.from_dict("QBin", {"tag": "QBin", "op": {"tag": "QBinOp", "name": "ADD"}, "left": {"tag": "QX"}, "right": {"tag": "QConst", "value": 1}, "bogus": 1})
+        at.from_dict(
+            "QBin",
+            {
+                "tag": "QBin",
+                "op": {"tag": "QBinOp", "name": "ADD"},
+                "left": {"tag": "QX"},
+                "right": {"tag": "QConst", "value": 1},
+                "bogus": 1,
+            },
+        )
 
 
 def test_from_dict_non_dict() -> None:
@@ -1055,8 +1645,12 @@ def test_synthetic_planeswalker_with_emblem() -> None:
     # loyalty costs in both directions
     costs = [a.cost for a in card.abilities if isinstance(a, at.ActivatedAbility)]
     assert len(costs) == 2
-    assert any(isinstance(p, at.CostLoyalty) and p.delta == 1 for c in costs for p in c.parts)
-    assert any(isinstance(p, at.CostLoyalty) and p.delta == -2 for c in costs for p in c.parts)
+    assert any(
+        isinstance(p, at.CostLoyalty) and p.delta == 1 for c in costs for p in c.parts
+    )
+    assert any(
+        isinstance(p, at.CostLoyalty) and p.delta == -2 for c in costs for p in c.parts
+    )
     # round-trip (including the nested emblem) + stable fingerprint
     d = at.to_dict(card)
     back = at.from_dict("CardRecord", d)

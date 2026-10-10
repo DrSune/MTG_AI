@@ -847,7 +847,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         assert isinstance(event, CastSpellEvent)
-        self.assertIs(event.controller, ControllerRef.OPPONENT)
+        self.assertIs(event.actor.who, ControllerRef.OPPONENT)
         self.assertEqual(event.ordinal, 2)
         assert isinstance(event.filter, FAnd)
         self.assertEqual(len(event.filter.children), 0)
@@ -932,7 +932,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         assert isinstance(event, CastSpellEvent)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
         assert isinstance(event.filter, FAnd)
         self._assert_has_type_eq_creature(event.filter)
         self._assert_has_subtype_cat(event.filter)
@@ -946,7 +946,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         assert isinstance(event, CastSpellEvent)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
         assert isinstance(event.filter, FAnd)
         self._assert_has_type_eq_creature(event.filter)
         self._assert_has_subtype_dog(event.filter)
@@ -961,7 +961,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         assert isinstance(event, CastSpellEvent)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
         self.assertTrue(
             _contains_not(event.filter, FAtomPred.TYPE_EQ),
             "expected FNot(TYPE_EQ Creature) filter",
@@ -978,7 +978,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         assert isinstance(event, CastSpellEvent)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
         assert isinstance(event.filter, FAtom)
         self.assertIs(event.filter.pred, FAtomPred.COLOR_IN)
         self.assertEqual(event.filter.colors, ("W", "U", "B", "R"))
@@ -992,7 +992,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         assert isinstance(event, CardDrawnEvent)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
 
     def test_havoc_jester_is_sacrifice_you(self) -> None:
         ability = _ability(
@@ -1004,7 +1004,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         assert isinstance(event, SacrificeEvent)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
 
     def test_noncreature_counter_rejects_wrong_counter_size(self) -> None:
         with self.assertRaises(ValueError):
@@ -1134,7 +1134,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         assert isinstance(event, LifeGainedEvent)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
         self.assertIsNone(ability.condition)
 
     # --- Round 5 (grammar round 4/5 shapes) ---
@@ -1286,7 +1286,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         assert isinstance(event, CastSpellEvent)
-        self.assertIs(event.controller, ControllerRef.OPPONENT)
+        self.assertIs(event.actor.who, ControllerRef.OPPONENT)
         self.assertIsNone(event.from_zone)
         self.assertEqual(
             event.from_zone_not, Zone(ZoneKind.HAND, ControllerRef.OPPONENT)
@@ -1302,7 +1302,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         assert isinstance(event, CastSpellEvent)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
         self.assertEqual(event.ordinal, 1)
         assert isinstance(event.filter, FOr)
         self.assertEqual(len(event.filter.children), 2)
@@ -1333,7 +1333,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         assert isinstance(event, CardDrawnEvent)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
         self.assertEqual(event.ordinal, 2)
 
     def test_mystic_skyfish_is_second_draw_event(self) -> None:
@@ -1346,7 +1346,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         assert isinstance(event, CardDrawnEvent)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
         self.assertEqual(event.ordinal, 2)
 
     def test_keral_keep_is_loyalty_activation_event(self) -> None:
@@ -1360,7 +1360,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         assert isinstance(event, LoyaltyActivatedEvent)
-        self.assertIs(event.controller, ControllerRef.YOU)
+        self.assertIs(event.actor.who, ControllerRef.YOU)
         assert isinstance(event.filter, FAnd)
         subtype = _find_atom(event.filter, FAtomPred.SUBTYPE_EQ)
         self.assertEqual(subtype.string_value, "Chandra")

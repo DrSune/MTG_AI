@@ -119,6 +119,7 @@ from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     controller_matches,
+    filter_reads_bound_player,
     players_for_ref,
 )
 from MTG_bot.core.identity import Handle
@@ -763,7 +764,7 @@ class TriggerBinder:
                     filter=FNot(
                         inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
                     ),
-                    controller=ControllerRef.YOU,
+                    actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
                 ),
                 condition=None,
                 effect=Atom(
@@ -841,7 +842,7 @@ class TriggerBinder:
         if kind == KIND_CARD_DRAWN and isinstance(node, CardDrawnEvent):
             ctx = self._match_ctx(source, controller, event)
             drawer, ordinal = event.draw
-            if not controller_matches(node.controller, drawer, ctx):
+            if node.actor is not None and not eval_filter(node.actor, drawer, ctx):
                 return False
             return node.ordinal is None or node.ordinal == ordinal
         if kind == KIND_COUNTER_PLACED and isinstance(node, CounterPlacedEvent):
@@ -857,7 +858,7 @@ class TriggerBinder:
             if node.phase.name != phase_name:
                 return False
             ctx = self._match_ctx(source, controller, event)
-            return controller_matches(node.controller, active, ctx)
+            return node.actor is None or eval_filter(node.actor, active, ctx)
         if kind == KIND_DECLARE_ATTACKERS and isinstance(node, DeclareAttackersEvent):
             # 16b: the attack feed. The filter reads the DECLARED creature
             # (IS_SOURCE = "whenever this creature attacks"); the optional
@@ -914,7 +915,7 @@ class TriggerBinder:
         if kind == KIND_LIFE_GAINED and isinstance(node, LifeGainedEvent):
             assert event.subject is not None  # the gaining player
             ctx = self._match_ctx(source, controller, event)
-            return controller_matches(node.controller, event.subject, ctx)
+            return node.actor is None or eval_filter(node.actor, event.subject, ctx)
         if kind == KIND_CAST and isinstance(node, CastSpellEvent):
             return self._match_cast(node, event, source, controller)
         if (
@@ -947,7 +948,7 @@ class TriggerBinder:
             assert event.subject is not None  # the row names the permanent
             assert event.cause is not None  # the row names its activator
             ctx = self._match_ctx(source, controller, event)
-            if not controller_matches(node.controller, event.cause, ctx):
+            if node.actor is not None and not eval_filter(node.actor, event.cause, ctx):
                 return False
             return eval_filter(node.filter, event.subject, ctx)
         return False  # no subscriber shape for this journalled kind
@@ -972,9 +973,7 @@ class TriggerBinder:
         filter (COLOR_IN WUBR = non-empty subset, quantity.py 13b)."""
         caster, ordinal, _kind, from_zone, _x = event.cast
         ctx = self._match_ctx(source, controller, event)
-        if node.controller is not None and not controller_matches(
-            node.controller, caster, ctx
-        ):
+        if node.actor is not None and not eval_filter(node.actor, caster, ctx):
             return False
         if node.ordinal is not None and node.ordinal != ordinal:
             return False
@@ -1064,7 +1063,7 @@ class TriggerBinder:
             return False
         assert owner_before is not None  # a battlefield move has an owner
         ctx = self._match_ctx(source, controller, event)
-        return controller_matches(node.controller, owner_before, ctx)
+        return node.actor is None or eval_filter(node.actor, owner_before, ctx)
 
     def _match_counter(
         self,
@@ -1343,6 +1342,9 @@ class TriggerBinder:
                     value is ControllerRef.TARGET_PLAYER
                     or isinstance(value, Zone)
                     and value.controller is ControllerRef.TARGET_PLAYER
+                    or isinstance(value, Selector)
+                    and filter_reads_bound_player(value.filter)
+                    or filter_reads_bound_player(value)
                 ):
                     reads_target_player = True
                 if (

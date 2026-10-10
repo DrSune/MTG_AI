@@ -151,7 +151,7 @@ def _creatures_you_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
     )
 
 
@@ -212,8 +212,13 @@ def _shrine_count() -> QCount:
         Selector(
             QUnbounded(),
             SelectorMode.ALL,
-            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Shrine"),
-            Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+            FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Shrine"),
+                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                )
+            ),
+            Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
         )
     )
 
@@ -290,22 +295,34 @@ def _etb_event(subject: Filter) -> ZoneChangeEvent:
 
 def _combat_event() -> TurnPhaseEvent:
     """Turn-phase event for ``At the beginning of combat on your turn``."""
-    return TurnPhaseEvent(phase=Phase.COMBAT, controller=ControllerRef.YOU)
+    return TurnPhaseEvent(
+        phase=Phase.COMBAT,
+        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+    )
 
 
 def _end_step_event() -> TurnPhaseEvent:
     """Turn-phase event for ``At the beginning of your end step``."""
-    return TurnPhaseEvent(phase=Phase.END_TURN, controller=ControllerRef.YOU)
+    return TurnPhaseEvent(
+        phase=Phase.END_TURN,
+        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+    )
 
 
 def _first_main_event() -> TurnPhaseEvent:
     """Turn-phase event for ``At the beginning of your first main phase``."""
-    return TurnPhaseEvent(phase=Phase.FIRST_MAIN, controller=ControllerRef.YOU)
+    return TurnPhaseEvent(
+        phase=Phase.FIRST_MAIN,
+        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+    )
 
 
 def _upkeep_event() -> TurnPhaseEvent:
     """Turn-phase event for ``At the beginning of your upkeep``."""
-    return TurnPhaseEvent(phase=Phase.UPKEEP, controller=ControllerRef.YOU)
+    return TurnPhaseEvent(
+        phase=Phase.UPKEEP,
+        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+    )
 
 
 def _dies_event() -> CreatureDiesEvent:
@@ -574,7 +591,7 @@ def _build_dire_fleet_warmonger(m: re.Match[str]) -> SentenceOutcome:
                                         FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
                                     )
                                 ),
-                                Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                                Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
                             ),
                         ),
                     )
@@ -830,7 +847,7 @@ def _build_niambi_etb(m: re.Match[str]) -> SentenceOutcome:
                                         FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
                                     )
                                 ),
-                                Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                                Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
                             ),
                         ),
                         ("destination", Zone(ZoneKind.HAND, ControllerRef.ANY)),
@@ -1333,7 +1350,7 @@ def _build_basris_acolyte(m: re.Match[str]) -> SentenceOutcome:
                                     FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
                                 )
                             ),
-                            Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                            Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
                         ),
                     ),
                     ("counter_kind", CounterKind.PLUS_1_PLUS_1),
@@ -1374,7 +1391,7 @@ def _build_basris_lieutenant(m: re.Match[str]) -> SentenceOutcome:
                                     ),
                                 )
                             ),
-                            Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                            Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
                         ),
                     ),
                     ("counter_kind", CounterKind.PLUS_1_PLUS_1),
@@ -1540,7 +1557,7 @@ def _build_aven_gagglemaster(m: re.Match[str]) -> SentenceOutcome:
                 FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
             )
         ),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
     )
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
@@ -1579,11 +1596,19 @@ def _build_crypt_lurker(m: re.Match[str]) -> SentenceOutcome:
                                     Selector(
                                         QConst(1),
                                         SelectorMode.CHOOSE,
-                                        FAtom(
-                                            pred=FAtomPred.TYPE_EQ,
-                                            string_value="Creature",
+                                        FAnd(
+                                            children=(
+                                                FAtom(
+                                                    pred=FAtomPred.TYPE_EQ,
+                                                    string_value="Creature",
+                                                ),
+                                                FAtom(
+                                                    pred=FAtomPred.CONTROLLER_IS,
+                                                    who=ControllerRef.YOU,
+                                                ),
+                                            )
                                         ),
-                                        Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                                        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
                                     ),
                                 ),
                             )
@@ -1793,7 +1818,7 @@ def _build_goremand(m: re.Match[str]) -> SentenceOutcome:
                                         ),
                                     )
                                 ),
-                                Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                                Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
                             ),
                         ),
                     )
@@ -1979,10 +2004,10 @@ def _build_lilianas_scrounger(m: re.Match[str]) -> SentenceOutcome:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
     )
     return _ability(
-        TurnPhaseEvent(phase=Phase.END_TURN, controller=ControllerRef.ANY),
+        TurnPhaseEvent(phase=Phase.END_TURN),
         OptionalEffect(
             inner=Atom(
                 verb=Verb.PUT_COUNTER,
