@@ -51,6 +51,7 @@ from pathlib import Path
 from typing import Any
 
 import torch
+import torch.nn.functional as F
 
 from tools.training import bc_data_v2
 from tools.training.bc_model import PointerBC, collate
@@ -161,8 +162,10 @@ ARM_DATA: dict[str, Path] = {
     "A": EPISODES,
     "B": EPISODES,
     "dagger": REPO / "tools" / "training" / "episodes_dagger.jsonl",
+    "search": REPO / "tools" / "training" / "episodes_search.jsonl",
     **{name: EPISODES for name in SIZE_LADDER},
 }
+MIXES = ("v2", "search", "search+v2")
 DAGGER_ARM = "dagger"  # arch resolved at runtime from --base-arm
 
 
@@ -188,6 +191,18 @@ def ratio_block(
 
 
 # --------------------------------------------------------------------- data
+def eval_side(vocab: dict[str, int], smoke: bool) -> tuple[list[dict[str, Any]], int]:
+    """EVAL dataset always from the binding ``episodes_v2.jsonl`` WITH the
+    corpus join (attaches cert floors). Universal gate — never mixed."""
+    corpus = json.loads(CORPUS.read_text(encoding="utf-8"))
+    eval_eps = bc_data_v2.load_episodes(EPISODES)
+    if smoke:
+        eval_eps = eval_eps[:8]
+    eval_ds = bc_data_v2.build_dataset_v2(eval_eps, vocab)
+    joined = bc_data_v2.join_corpus(eval_ds, corpus["items"])
+    return eval_ds, joined
+
+
 def load_side(
     train_file: Path,
     eval_families: set[str],
@@ -195,17 +210,74 @@ def load_side(
     smoke: bool,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], int]:
     """Train dataset from ``train_file`` (no corpus join — the dagger file
-    intentionally breaks that assert); EVAL dataset always from the binding
-    ``episodes_v2.jsonl`` WITH the corpus join (attaches cert floors)."""
-    corpus = json.loads(CORPUS.read_text(encoding="utf-8"))
+    intentionally breaks that assert)."""
     train_eps = bc_data_v2.load_episodes(train_file)
-    eval_eps = bc_data_v2.load_episodes(EPISODES)
     if smoke:
-        train_eps, eval_eps = train_eps[:8], eval_eps[:8]
+        train_eps = train_eps[:8]
     train_ds = bc_data_v2.build_dataset_v2(train_eps, vocab)
-    eval_ds = bc_data_v2.build_dataset_v2(eval_eps, vocab)
-    joined = bc_data_v2.join_corpus(eval_ds, corpus["items"])
+    eval_ds, joined = eval_side(vocab, smoke)
     return train_ds, eval_ds, joined
+
+
+def _train_eligible_rows(ep: dict[str, Any], eval_families: set[str]) -> int:
+    if is_eval_family(ep["card"], eval_families):
+        return 0
+    return sum(1 for a in ep["asks"] if a.get("gold"))
+
+
+def _scale_stream(
+    eps: list[dict[str, Any]], target_rows: int, rows: int
+) -> list[dict[str, Any]]:
+    """Reach ``target_rows`` by whole-episode replication (>=1 pass) or a
+    deterministic stride downsample (<1 pass). No per-row dropout."""
+    if rows <= 0 or not eps:
+        return list(eps)
+    if target_rows >= rows:
+        return list(eps) * max(1, round(target_rows / rows))
+    # downsample whole episodes (row target is then an upper bound)
+    step = len(eps) / target_rows
+    return [eps[min(int(k * step), len(eps) - 1)] for k in range(target_rows)]
+
+
+def mixed_train_eps(
+    arm: str, mix: str, search_weight: float, eval_families: set[str]
+) -> list[tuple[str, list[dict[str, Any]]]]:
+    """Train streams for --mix. ``search+v2`` fuses the AlphaZero search
+    targets (episodes_search.jsonl, soft pi rows) with the certified v2
+    lanes (anti-forgetting anchor). ``search_weight`` sets the stream ratio
+    by ELIGIBLE GOLD ROWS (search:v2 = w:1); the larger native stream is
+    kept whole and the other is replicated/strided to the ratio.
+    w = inf means search-only (anchor off) — the ablation arm. Stamped
+    ``source`` feeds the data_mix report bucket."""
+    v2_eps = bc_data_v2.load_episodes(ARM_DATA[arm])
+    if mix == "v2":
+        return [("v2", v2_eps)]
+    s_eps = bc_data_v2.load_episodes(ARM_DATA["search"])
+    s_eps = [{**ep, "source": "search"} for ep in s_eps]
+    if mix == "search" or search_weight == float("inf"):
+        return [("search", s_eps)]
+    s_rows = sum(_train_eligible_rows(ep, eval_families) for ep in s_eps)
+    v_rows = sum(_train_eligible_rows(ep, eval_families) for ep in v2_eps)
+    if search_weight * v_rows <= s_rows:
+        # search stream stays whole; replicate/stride the v2 anchor to w:1
+        return [
+            ("search", s_eps),
+            ("v2", _scale_stream(v2_eps, int(round(s_rows / search_weight)), v_rows)),
+        ]
+    return [
+        ("search", _scale_stream(s_eps, int(round(search_weight * v_rows)), s_rows)),
+        ("v2", v2_eps),
+    ]
+
+
+def build_mixed_train_ds(
+    streams: list[tuple[str, list[dict[str, Any]]]], vocab: dict[str, int]
+) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    for name, eps in streams:
+        for rec in bc_data_v2.build_dataset_v2(eps, vocab):
+            out.append({**rec, "source": rec.get("source", name)})
+    return out
 
 
 def data_mix(train_ds: list[dict[str, Any]], eval_families: set[str]) -> dict[str, int]:
@@ -254,6 +326,54 @@ def save_ckpt(
         },
         path,
     )
+
+
+# ---------------------------------------------------------- soft-target law
+def gold_pi_batch(
+    episodes: list[dict[str, Any]], g_max: int, device: torch.device
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Teacher pi aligned to the collate row order
+    ([(i, g) for i, ep in enumerate(eps) for g in ep["gold"]]), padded to
+    g_max candidate slots with pi=0. ``has_pi`` marks distilled rows."""
+    rows = [g for ep in episodes for g in ep["gold"]]
+    pi = torch.zeros(len(rows), g_max, dtype=torch.float32)
+    has = torch.zeros(len(rows), dtype=torch.bool)
+    for gi, g in enumerate(rows):
+        p = g.get("pi")
+        if p:
+            has[gi] = True
+            pi[gi, : len(p)] = torch.tensor(p, dtype=torch.float32)
+    return pi.to(device), has.to(device)
+
+
+def soft_target_loss(
+    logits: torch.Tensor,
+    gold_idx: torch.Tensor,
+    pi: torch.Tensor,
+    has_pi: torch.Tensor,
+) -> torch.Tensor:
+    """AlphaZero distillation law: a row carrying teacher pi gets
+    KL(pi || softmax(z)); unexpanded options have pi=0 and contribute 0 —
+    NO label smoothing (zeros ARE the search's evidence). Rows without pi
+    (v2 certified lanes) keep hard CE. Mean over rows keeps the loss
+    scale row-comparable with the pure-CE loop."""
+    logp = F.log_softmax(logits.float(), dim=-1)
+    n = logits.shape[0]
+    assert has_pi.dim() == 1 and has_pi.shape[0] == n == pi.shape[0], (
+        "has_pi must be a 1-D per-ROW mask aligned with logits rows"
+    )
+    if n == 0:
+        return logits.new_zeros(())
+    total = logits.new_zeros(())
+    if bool(has_pi.any()):
+        p = pi[has_pi]
+        total = total + (p * (p.clamp_min(1e-9).log() - logp[has_pi])).sum()
+    hard = ~has_pi
+    if bool(hard.any()):
+        total = total + F.cross_entropy(
+            logits[hard].float(), gold_idx[hard], reduction="sum"
+        )
+    return total / n
 
 
 # -------------------------------------------------------------------- train
@@ -352,12 +472,13 @@ def train_arm(
         for i in range(0, len(order), args.batch):
             eps = [train_eps[j] for j in order[i : i + args.batch]]
             b = collate(eps, len(vocab), device)
+            pi, has_pi = gold_pi_batch(eps, b["cand_ids"].shape[1], device)
             with torch.autocast(
                 device_type=device.type,
                 dtype=torch.bfloat16,
                 enabled=device.type == "cuda",
             ):
-                loss = model.loss(
+                logits = model(
                     b["tokens"],
                     b["pad_mask"],
                     b["gold_batch"],
@@ -365,8 +486,8 @@ def train_arm(
                     b["cand_ids"],
                     b["cand_mask"],
                     b["is_pass"],
-                    b["gold_idx"],
                 )
+                loss = soft_target_loss(logits, b["gold_idx"], pi, has_pi)
             opt.zero_grad(set_to_none=True)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -445,6 +566,19 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="train-episode file (default per arm)",
     )
+    ap.add_argument(
+        "--mix",
+        default="v2",
+        choices=MIXES,
+        help="train streams: v2 only (default, legacy) | search only | "
+        "search+v2 (AlphaZero distill with the certified anchor)",
+    )
+    ap.add_argument(
+        "--search-weight",
+        default="1.0",
+        help="search:v2 stream ratio by GOLD ROWS for --mix search+v2 "
+        "(default 1.0); 'inf' = search-only (anchor-off ablation)",
+    )
     ap.add_argument("--prefix", default=None, help="output stem, default bc3_<arm>")
     ap.add_argument("--out-dir", type=Path, default=None)
     ap.add_argument("--device", default="auto", choices=("auto", "cuda", "cpu"))
@@ -500,16 +634,30 @@ def main(argv: list[str] | None = None) -> int:
         name: m["bcs"] for name, m in json.loads(BCS.read_text())["cards"].items()
     }
 
-    eps_all = bc_data_v2.load_episodes(train_file)
-    vocab = bc_data_v2.build_vocab_v2(eps_all[:8] if args.smoke else eps_all)
-    train_ds, eval_ds, joined = load_side(train_file, eval_families, vocab, args.smoke)
+    search_weight = float(args.search_weight)  # 'inf' parses to math.inf
+    streams: list[tuple[str, list[dict[str, Any]]]] | None = None
+    if args.mix == "v2":
+        eps_all = bc_data_v2.load_episodes(train_file)
+        vocab = bc_data_v2.build_vocab_v2(eps_all[:8] if args.smoke else eps_all)
+        train_ds, eval_ds, joined = load_side(
+            train_file, eval_families, vocab, args.smoke
+        )
+    else:
+        streams = mixed_train_eps(args.arm, args.mix, search_weight, eval_families)
+        if args.smoke:
+            streams = [(n, eps[:8]) for n, eps in streams]
+        eps_all = [ep for _name, eps in streams for ep in eps]
+        vocab = bc_data_v2.build_vocab_v2(eps_all)
+        train_ds = build_mixed_train_ds(streams, vocab)
+        eval_ds, joined = eval_side(vocab, args.smoke)
     for ep in train_ds:
         if len(ep["seq"]) > 1024:
             raise SystemExit(f"{ep['pack']}: seq {len(ep['seq'])} > pos table 1024")
     mix = data_mix(train_ds, eval_families)
     print(
-        f"arm={args.arm} episodes={len(train_ds)} vocab={len(vocab)} "
-        f"eval_joined={joined} mix={mix}"
+        f"arm={args.arm} mix={args.mix} w={args.search_weight} "
+        f"episodes={len(train_ds)} vocab={len(vocab)} "
+        f"eval_joined={joined} mix_rows={mix}"
     )
 
     resume = best_path.exists() and not args.fresh
@@ -560,7 +708,12 @@ def main(argv: list[str] | None = None) -> int:
         "head": _head(),
         "date": time.strftime("%Y-%m-%d"),
         "schema": "v2 encoder; batch-3 arm (KNOWLEDGE/2026-10-06 pre-registration)",
-        "train_file": str(train_file),
+        "train_file": (
+            str(train_file)
+            if args.mix == "v2"
+            else f"mix={args.mix} search_weight={args.search_weight} "
+            f"(search={ARM_DATA['search'].name}, v2={ARM_DATA[args.arm].name})"
+        ),
         "eval_file": f"{EPISODES} (binding; corpus-joined)",
         "counts": {
             "train_episodes": len(train_ds),

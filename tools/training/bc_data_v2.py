@@ -361,17 +361,18 @@ def encode_episode_v2(ep: dict[str, Any], vocab: dict[str, int]) -> dict[str, An
                 g = ground[ci] if ci < len(ground) else []
                 ids = [vocab.get(w, unk) for w in cand_words_v2(cand, g)] or [unk]
                 cands.append(ids)
-            gold_rows.append(
-                {
-                    "pos": len(seq) - 1,
-                    "ordinal": row["ordinal"],
-                    "what": row["what"],
-                    "candidates": row["candidates"],
-                    "cand_ids": cands,
-                    "is_pass": [c == "PASS" for c in row["candidates"]],
-                    "gold_idx": row["gold_idx"],
-                }
-            )
+            entry = {
+                "pos": len(seq) - 1,
+                "ordinal": row["ordinal"],
+                "what": row["what"],
+                "candidates": row["candidates"],
+                "cand_ids": cands,
+                "is_pass": [c == "PASS" for c in row["candidates"]],
+                "gold_idx": row["gold_idx"],
+            }
+            if row.get("pi"):  # search-distill rows only (v2 rows stay hard)
+                entry["pi"] = [float(x) for x in row["pi"]]
+            gold_rows.append(entry)
     return {"pack": ep["pack"], "card": ep["card"], "seq": seq, "gold": gold_rows}
 
 

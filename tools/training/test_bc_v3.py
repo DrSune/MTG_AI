@@ -300,3 +300,107 @@ def test_ladder_arm_smoke_writes_bc5_prefix_with_ratio_block(tmp_path):
     )
     rebuilt = PointerBC(rep["vocab_size"], **v3.ARMS["S1"])
     assert rb["params"] == sum(p.numel() for p in rebuilt.parameters())
+
+
+# ------------------------------------------------- search-distillation law
+def _logsoftmax(z):
+    import math
+
+    m = max(z)
+    lse = m + math.log(sum(math.exp(x - m) for x in z))
+    return [x - lse for x in z]
+
+
+def test_soft_target_loss_matches_manual_kl_plus_hard_ce():
+    """KL row loss matches manual on a toy: row0 distilled (KL), rows 1-2
+    hard CE, mean over rows. Unexpanded options carry pi=0 and are NOT
+    smoothed (AlphaZero law)."""
+    import math
+
+    logits = torch.tensor([[2.0, 0.0, -1.0], [0.5, 1.5, -2.0], [1.0, 2.0, 3.0]])
+    gold_idx = torch.tensor([0, 2, 1])
+    pi = torch.tensor([[0.0, 0.7, 0.3], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
+    has = torch.tensor([True, False, False])
+    lp = _logsoftmax(logits[0].tolist())
+    kl0 = sum(p * (math.log(p) - l) for p, l in zip([0.7, 0.3], lp[1:]))
+    ce1 = -_logsoftmax(logits[1].tolist())[2]
+    ce2 = -_logsoftmax(logits[2].tolist())[1]
+    manual = (kl0 + ce1 + ce2) / 3
+    got = float(v3.soft_target_loss(logits, gold_idx, pi, has))
+    assert abs(got - manual) < 1e-5, (got, manual)
+
+
+def test_soft_target_loss_respects_masked_slots_and_onehot_equals_ce():
+    import math
+
+    # finfo-min slot (invalid candidate) must not produce NaN via 0*log0.
+    z = torch.tensor([[1.0, -2.0, torch.finfo(torch.float32).min]])
+    pi = torch.tensor([[0.5, 0.5, 0.0]])
+    has = torch.tensor([True])
+    loss = float(v3.soft_target_loss(z, torch.tensor([0]), pi, has))
+    assert math.isfinite(loss)
+    # one-hot pi is exactly hard CE on the same row.
+    pi1 = torch.tensor([[0.0, 1.0, 0.0]])
+    kl = float(v3.soft_target_loss(z, torch.tensor([1]), pi1, torch.tensor([True])))
+    ce = float(torch.nn.functional.cross_entropy(z, torch.tensor([1])))
+    assert abs(kl - ce) < 1e-5
+
+
+def _tiny_ep(pack: str, rows: int) -> dict:
+    return {
+        "pack": pack,
+        "card": pack,
+        "asks": [
+            {
+                "ordinal": i,
+                "what": "act:main",
+                "gold": True,
+                "gold_idx": 0,
+                "candidates": ["PASS", "X"],
+                "obs": {"turn": 1, "lives": [20, 20], "battlefield": [[], []]},
+            }
+            for i in range(rows)
+        ],
+    }
+
+
+def test_mixed_train_eps_balances_streams_by_gold_rows(tmp_path, monkeypatch):
+    v2f, sf = tmp_path / "v2.jsonl", tmp_path / "s.jsonl"
+    v2f.write_text("".join(json.dumps(_tiny_ep(f"v{i}", 2)) + "\n" for i in range(3)))
+    sf.write_text("".join(json.dumps(_tiny_ep(f"s{i}", 3)) + "\n" for i in range(4)))
+    monkeypatch.setitem(v3.ARM_DATA, "B", v2f)
+    monkeypatch.setitem(v3.ARM_DATA, "search", sf)
+    streams = v3.mixed_train_eps("B", "search+v2", 1.0, set())
+    by = dict(streams)
+    s_rows = sum(len(e["asks"]) for e in by["search"])  # 12
+    v_rows = sum(len(e["asks"]) for e in by["v2"])  # 6 x2 reps = 12
+    assert s_rows == 12 and v_rows == 12
+    # w=inf -> anchor off, search-only, no replication
+    only = v3.mixed_train_eps("B", "search+v2", float("inf"), set())
+    assert [n for n, _ in only] == ["search"] and len(only[0][1]) == 4
+    # stamped source feeds the data_mix report bucket
+    vocab = v2.build_vocab_v2([e for _n, eps in streams for e in eps])
+    ds = v3.build_mixed_train_ds(streams, vocab)
+    assert {e.get("source") for e in ds} == {"search", "v2"}
+
+
+def test_search_mix_smoke_end_to_end_on_cpu(tmp_path):
+    rc = v3.main(
+        [
+            "--arm",
+            "B",
+            "--mix",
+            "search+v2",
+            "--smoke",
+            "--device",
+            "cpu",
+            "--out-dir",
+            str(tmp_path),
+            "--prefix",
+            "bsd_smoke",
+        ]
+    )
+    assert rc == 0
+    rep = json.loads((tmp_path / "bsd_smoke_report.json").read_text())
+    assert "mix=search+v2" in rep["train_file"]
+    assert rep["counts"]["data_mix"].get("search", 0) > 0
