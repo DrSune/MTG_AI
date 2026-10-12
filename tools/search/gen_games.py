@@ -122,6 +122,8 @@ def main(argv: list[str] | None = None) -> int:
         help="rollout seats greedy/random only; "
         "net used for root menu_probs pruning alone",
     )
+    ap.add_argument("--out-episodes", type=Path, default=OUT_EPISODES)
+    ap.add_argument("--out-stats", type=Path, default=OUT_STATS)
     args = ap.parse_args(argv)
     knobs = (args.k, args.n, args.cap, args.cheap_rollout)
     t0 = time.time()
@@ -181,11 +183,11 @@ def main(argv: list[str] | None = None) -> int:
                 p.terminate()
             pool.shutdown(wait=False, cancel_futures=True)
 
-    n_eps = _flush(OUT_EPISODES, done)
+    n_eps = _flush(args.out_episodes, done)
     agg = _aggregate(done, time.time() - t0, n_eps)
-    OUT_STATS.write_text(json.dumps(agg, indent=1))
+    args.out_stats.write_text(json.dumps(agg, indent=1))
     print(json.dumps(agg["headline"], indent=1))
-    print(f"wrote {n_eps} episodes -> {OUT_EPISODES.name}; stats -> {OUT_STATS.name}")
+    print(f"wrote {n_eps} episodes -> {args.out_episodes.name}; stats -> {args.out_stats.name}")
     return 0
 
 

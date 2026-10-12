@@ -162,7 +162,7 @@ ARM_DATA: dict[str, Path] = {
     "A": EPISODES,
     "B": EPISODES,
     "dagger": REPO / "tools" / "training" / "episodes_dagger.jsonl",
-    "search": REPO / "tools" / "training" / "episodes_search.jsonl",
+    "search": REPO / "tools" / "training" / "episodes_search_v2.jsonl",
     **{name: EPISODES for name in SIZE_LADDER},
 }
 MIXES = ("v2", "search", "search+v2")
