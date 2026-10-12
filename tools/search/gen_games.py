@@ -32,7 +32,15 @@ BUDGET_MIN_DEFAULT = 90.0
 GRACE_MIN = 3.0  # an in-flight game may land after the deadline
 
 
-def _worker(seed: int, k: int, n: int, cap: int, cheap: bool) -> dict:
+def _worker(
+    seed: int,
+    k: int,
+    n: int,
+    cap: int,
+    cheap: bool,
+    net_spec: str,
+    rollout_mix: str,
+) -> dict:
     """Run one game in a worker process; returns JSON-safe per-game stats.
 
     Episodes are streamed to disk by the parent, so only aggregate numbers
@@ -44,7 +52,15 @@ def _worker(seed: int, k: int, n: int, cap: int, cheap: bool) -> dict:
     from tools.search import mcts
 
     t0 = time.time()
-    r = mcts.gen_game(seed, k=k, n_rollouts=n, turn_cap=cap, cheap_rollout=cheap)
+    r = mcts.gen_game(
+        seed,
+        k=k,
+        n_rollouts=n,
+        turn_cap=cap,
+        cheap_rollout=cheap,
+        net_spec=net_spec,
+        rollout_mix=rollout_mix,
+    )
     s = r["stats"]
     return {
         "seed": seed,
@@ -124,8 +140,28 @@ def main(argv: list[str] | None = None) -> int:
     )
     ap.add_argument("--out-episodes", type=Path, default=OUT_EPISODES)
     ap.add_argument("--out-stats", type=Path, default=OUT_STATS)
+    ap.add_argument(
+        "--net",
+        default=mcts.NET_SPEC,
+        help="root policy checkpoint (AZ-v3: the current adopted azg net)",
+    )
+    ap.add_argument(
+        "--rollout-mix",
+        choices=mcts.ROLLOUT_MIXES,
+        default="greedy",
+        help="greedy (default, /72 AZ-v3): both rollout seats run the "
+        "greedy teacher -- random drivers contaminated values; "
+        "mixed = legacy 50/50 greedy/random (or net with --no-cheap-rollout)",
+    )
     args = ap.parse_args(argv)
-    knobs = (args.k, args.n, args.cap, args.cheap_rollout)
+    knobs = (
+        args.k,
+        args.n,
+        args.cap,
+        args.cheap_rollout,
+        args.net,
+        args.rollout_mix,
+    )
     t0 = time.time()
 
     if args.smoke:
@@ -187,7 +223,9 @@ def main(argv: list[str] | None = None) -> int:
     agg = _aggregate(done, time.time() - t0, n_eps)
     args.out_stats.write_text(json.dumps(agg, indent=1))
     print(json.dumps(agg["headline"], indent=1))
-    print(f"wrote {n_eps} episodes -> {args.out_episodes.name}; stats -> {args.out_stats.name}")
+    print(
+        f"wrote {n_eps} episodes -> {args.out_episodes.name}; stats -> {args.out_stats.name}"
+    )
     return 0
 
 

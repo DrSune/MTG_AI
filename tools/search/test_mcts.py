@@ -136,6 +136,44 @@ def test_mini_rows_pi_value_contract(mini_game):
                 )
 
 
+def test_pi_mix_math_blends_and_keeps_net_mass():
+    """AZ-v3 target law: 0.75*visits + 0.25*net over the FULL menu. Both
+    inputs sum to 1 so the blend sums to 1 exactly; an option the search
+    never visits keeps 0.25*net mass (never a hard zero)."""
+    mix = mcts.pi_mix_of([0.5, 0.5, 0.0], [0.2, 0.3, 0.5])
+    assert mix == pytest.approx([0.5 * 0.75 + 0.25 * 0.2, 0.45, 0.125])
+    assert sum(mix) == pytest.approx(1.0, abs=1e-12)
+    assert all(x > 0.0 for x in mix)
+    flat = mcts.pi_mix_of([1.0, 0.0], [0.5, 0.5])
+    assert flat == pytest.approx([0.875, 0.125])
+    with pytest.raises(ValueError):
+        mcts.pi_mix_of([0.5, 0.5], [1.0])
+
+
+@pytest.fixture(scope="module")
+def mini_game_greedy():
+    return mcts.gen_game(9001, k=1, n_rollouts=1, turn_cap=3, rollout_mix="greedy")
+
+
+@E2E_TIMEOUT
+def test_mini_game_greedy_rollout_mix(mini_game_greedy):
+    """/72 AZ-v3: rollout_mix="greedy" drives BOTH seats greedy — no random
+    or net draws in the policy ledger — and every row carries a menu-aligned
+    pi_mix whose strictly-positive mass is the anti-brittleness property."""
+    gg = mini_game_greedy
+    assert gg["crash"] is None, gg["reason"]
+    assert gg["stats"].policy_mix.get("random", 0) == 0
+    assert gg["stats"].policy_mix.get("net", 0) == 0
+    assert gg["stats"].policy_mix["greedy"] >= 2 * gg["stats"].asks_searched
+    for seat in (0, 1):
+        for ep in gg["episodes"][seat]:
+            for r in ep["asks"]:
+                assert len(r["pi_mix"]) == len(r["candidates"])
+                assert abs(sum(r["pi_mix"]) - 1.0) < 1e-6
+                assert all(p > 0.0 for p in r["pi_mix"])
+                assert r["gold_idx"] == r["pi"].index(max(r["pi"]))
+
+
 @E2E_TIMEOUT
 def test_mini_game_reproducible(mini_game):
     again = mcts.gen_game(9001, k=1, n_rollouts=1, turn_cap=3)

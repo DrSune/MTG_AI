@@ -370,8 +370,11 @@ def encode_episode_v2(ep: dict[str, Any], vocab: dict[str, int]) -> dict[str, An
                 "is_pass": [c == "PASS" for c in row["candidates"]],
                 "gold_idx": row["gold_idx"],
             }
-            if row.get("pi"):  # search-distill rows only (v2 rows stay hard)
-                entry["pi"] = [float(x) for x in row["pi"]]
+            # AZ-v3 (/72): distill the visit+net blend when present; fall
+            # back to raw visit fracs (AZ-v2 rows), else hard gold (v2 rows).
+            soft = row.get("pi_mix") or row.get("pi")
+            if soft:  # search-distill rows only (v2 rows stay hard)
+                entry["pi"] = [float(x) for x in soft]
             gold_rows.append(entry)
     return {"pack": ep["pack"], "card": ep["card"], "seq": seq, "gold": gold_rows}
 

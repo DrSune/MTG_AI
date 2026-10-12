@@ -440,11 +440,11 @@ def train_arm(
         start_epoch = int(ti.get("written_at_epoch", 0)) + 1
         curve = list(ti.get("curve", [])) or [float("nan")] * start_epoch
         curve_eval = list(ti.get("curve_eval", []))
-        best = (
-            float(ti["best_train_loss"]),
-            {k: v.detach().clone() for k, v in model.state_dict().items()},
-            int(ti["best_epoch"]),
-        )
+        # AZ-v3 warm-start law (/72): best re-bases on the CURRENT stream.
+        # The checkpoint's best_train_loss is an optimum on a DIFFERENT
+        # dataset; no fresh-stream epoch can reliably undercut it, and the
+        # loop would ship the copied weights unchanged (silent no-op chain).
+        best = None
         resumed_from = str(best_path)
         with warnings.catch_warnings():  # fast-forward the cosine schedule
             warnings.simplefilter("ignore")
@@ -452,8 +452,9 @@ def train_arm(
                 sched.step()
         if not quiet:
             print(
-                f"resumed {best_path}: best {best[0]:.5f} @ {best[2]}, "
-                f"continuing at epoch {start_epoch}"
+                f"resumed {best_path}: prev best "
+                f"{float(ti.get('best_train_loss', float('nan'))):.5f} "
+                f"@ {ti.get('best_epoch')}, continuing at epoch {start_epoch}"
             )
     holdout = [
         {
@@ -529,7 +530,12 @@ def train_arm(
             if not quiet:
                 print(f"plateau at epoch {epoch} (best {best[0]:.5f} @ {best[2]})")
             break
-    assert best is not None
+    if best is None:  # zero fresh epochs ran: the resumed weights ARE best
+        best = (
+            float(curve[-1]) if curve and curve[-1] == curve[-1] else 0.0,
+            {k: v.detach().clone() for k, v in model.state_dict().items()},
+            max(start_epoch - 1, 0),
+        )
     model.load_state_dict(best[1])
     peak_bytes = torch.cuda.max_memory_allocated() if device.type == "cuda" else 0
     info = {
@@ -578,6 +584,13 @@ def main(argv: list[str] | None = None) -> int:
         default="1.0",
         help="search:v2 stream ratio by GOLD ROWS for --mix search+v2 "
         "(default 1.0); 'inf' = search-only (anchor-off ablation)",
+    )
+    ap.add_argument(
+        "--search-data",
+        type=Path,
+        default=None,
+        help="override the search stream file (AZ-v3 per-generation "
+        "episodes; default episodes_search_v2.jsonl)",
     )
     ap.add_argument("--prefix", default=None, help="output stem, default bc3_<arm>")
     ap.add_argument("--out-dir", type=Path, default=None)
@@ -635,19 +648,49 @@ def main(argv: list[str] | None = None) -> int:
     }
 
     search_weight = float(args.search_weight)  # 'inf' parses to math.inf
+    if args.search_data:  # AZ-v3: per-generation self-play stream
+        ARM_DATA["search"] = args.search_data
+    # Warm-start law (/72 AZ-v3): the model keeps the vocabulary it was
+    # trained on. build_vocab_v2 ids depend on stream order/content, so a
+    # rebuild over a DIFFERENT stream would shift embeddings; OOV words
+    # encode to <unk> exactly like the closed-loop BcAsk inference lane.
+    resume = best_path.exists() and not args.fresh
+    resume_blob = (
+        torch.load(best_path, map_location="cpu", weights_only=False)
+        if resume
+        else None
+    )
     streams: list[tuple[str, list[dict[str, Any]]]] | None = None
     if args.mix == "v2":
         eps_all = bc_data_v2.load_episodes(train_file)
         vocab = bc_data_v2.build_vocab_v2(eps_all[:8] if args.smoke else eps_all)
-        train_ds, eval_ds, joined = load_side(
-            train_file, eval_families, vocab, args.smoke
-        )
     else:
         streams = mixed_train_eps(args.arm, args.mix, search_weight, eval_families)
         if args.smoke:
             streams = [(n, eps[:8]) for n, eps in streams]
         eps_all = [ep for _name, eps in streams for ep in eps]
         vocab = bc_data_v2.build_vocab_v2(eps_all)
+    if resume_blob is not None:
+        ck_vocab = resume_blob["vocab"]
+        stream_words = {
+            w
+            for ep in eps_all
+            for row in ep["asks"]
+            for w in bc_data_v2.site_words(row["what"])
+            + bc_data_v2.obs_words_v2(row["obs"])
+        }
+        oov = sum(1 for w in stream_words if w not in ck_vocab)
+        print(
+            f"resume: reusing checkpoint vocab ({len(ck_vocab)} tokens, "
+            f"stream rebuild was {len(vocab)}); {oov} stream words -> <unk>"
+        )
+        vocab = ck_vocab
+    if args.mix == "v2":
+        train_ds, eval_ds, joined = load_side(
+            train_file, eval_families, vocab, args.smoke
+        )
+    else:
+        assert streams is not None  # built in the mix branch above
         train_ds = build_mixed_train_ds(streams, vocab)
         eval_ds, joined = eval_side(vocab, args.smoke)
     for ep in train_ds:
@@ -660,7 +703,6 @@ def main(argv: list[str] | None = None) -> int:
         f"eval_joined={joined} mix_rows={mix}"
     )
 
-    resume = best_path.exists() and not args.fresh
     model, tinfo = train_arm(
         cfg,
         train_ds,

@@ -90,6 +90,8 @@ K_DEFAULT = 3
 N_ROLLOUTS_DEFAULT = 6
 TURN_CAP_DEFAULT = 60  # rollout()'s own default cap
 ROLL_CAP_DEFAULT = 25  # /69 cost wave: short AlphaZero-style rollouts
+PI_MIX_VISIT_WEIGHT = 0.75  # /72 AZ-v3: pi_mix = w*visits + (1-w)*net probs
+ROLLOUT_MIXES = ("greedy", "mixed")  # /72: random drivers contaminated values
 DECK_PAIRS_SEED = 1409  # the v2 rig pairing
 DISCOVER_HORIZON = 8  # turns a probe may run to reach the next ask
 WALK_STEP_CAP = 1500  # pathological-loop guard for one self-play game
@@ -164,6 +166,20 @@ class Ucb1:
             for a, c in self.n.items():
                 pi[a] = c / tot
         return pi
+
+
+def pi_mix_of(
+    visits: list[float], probs: list[float], w: float = PI_MIX_VISIT_WEIGHT
+) -> list[float]:
+    """/72 AZ-v3 distill target: ``w*visit_fracs + (1-w)*net_menu_probs`` over
+    the FULL menu. Unexpanded options keep ``(1-w)*p_net`` instead of a hard
+    zero — the hard-zero brittleness hardened visit noise into the /72 pi
+    targets. Renormalised exactly so the sum==1 verify law holds."""
+    if not visits or len(visits) != len(probs):
+        raise ValueError("pi_mix_of: menu-length mismatch")
+    mix = [w * v + (1.0 - w) * p for v, p in zip(visits, probs)]
+    tot = sum(mix)
+    return [x / tot for x in mix] if tot > 0 else [1.0 / len(mix)] * len(mix)
 
 
 # ------------------------------------------------- discovery / apply forks
@@ -338,6 +354,7 @@ class SearchOutcome:
     rollout_ms: float = 0.0
     net_fwd: int = 1  # menu_probs is the root's only net forward
     net_fwd_ms: float = 0.0
+    pi_mix: list[float] = field(default_factory=list)  # /72 AZ-v3 blend target
     branches: dict[int, Branch] = field(default_factory=dict, repr=False)
 
 
@@ -355,12 +372,15 @@ def root_search(
     net_spec: str = NET_SPEC,
     policy_rng: random.Random | None = None,
     cheap_rollout: bool = True,
+    rollout_mix: str = "mixed",
 ) -> SearchOutcome:
     """One searched ask: root probs -> top-k arms -> UCB1 allocation of N
     rollouts -> soft pi + backed value. ``net`` (the seat's root instance)
     sees this ask exactly once in its causal stream (menu_probs appends the
     same block ``decide`` would). With ``cheap_rollout`` (default) the net
-    never plays a rollout: seats draw greedy vs RANDOM 50/50."""
+    never plays a rollout: seats draw greedy vs RANDOM 50/50.
+    ``rollout_mix="greedy"`` (/72 AZ-v3) drives BOTH rollout seats with the
+    greedy teacher — random drivers contaminated the backed values."""
     rng = policy_rng or random.Random(stable_int("ucb", game_seed, seat, ask_ordinal))
     t_fwd = time.perf_counter()
     probs = net.menu_probs(ctx)
@@ -392,7 +412,10 @@ def root_search(
         arm = ucb.pick()
         pols = {}
         for s in range(2):
-            if rng.random() < 0.5:
+            if rollout_mix == "greedy":
+                pols[s] = "greedy"
+                mix["greedy"] += 1
+            elif rng.random() < 0.5:
                 pols[s] = "greedy"
                 mix["greedy"] += 1
             elif cheap_rollout:
@@ -409,6 +432,7 @@ def root_search(
     rollout_ms = (time.perf_counter() - t_roll) * 1000
 
     pi = ucb.visit_fracs(len(menu))
+    pi_mix = pi_mix_of(pi, list(probs))
     value = sum(ucb.q.values()) / max(1, sum(ucb.n.values()))
     chosen = max(ucb.n, key=lambda a: (ucb.n[a], -a))
     chosen_cache = branches[chosen].next_ask is not None
@@ -431,6 +455,7 @@ def root_search(
         apply_ms=apply_ms,
         rollout_ms=rollout_ms,
         net_fwd_ms=fwd_ms,
+        pi_mix=pi_mix,
         branches=branches,
     )
 
@@ -480,6 +505,7 @@ def _row_of(
         "gold": True,
         "gold_idx": out.chosen,
         "pi": list(out.pi),  # NOT rounded: sum==1 +-1e-6 must hold exactly
+        "pi_mix": list(out.pi_mix),  # /72 AZ-v3 blend target (same law)
         "value": round(out.value, 6),
         "net_idx": out.net_idx,
         "heur_idx": out.heur_idx,
@@ -502,6 +528,10 @@ def verify_episode(ep: dict[str, Any]) -> None:
         assert len(src["ground"]) == len(src["candidates"])
         assert len(src["pi"]) == len(src["candidates"])
         assert abs(sum(src["pi"]) - 1.0) < 1e-6, (ep["pack"], src["what"])
+        if "pi_mix" in src:  # /72 AZ-v3 rows: blend target menu-aligned
+            assert len(src["pi_mix"]) == len(src["candidates"])
+            assert abs(sum(src["pi_mix"]) - 1.0) < 1e-6, (ep["pack"], src["what"])
+            assert all(p >= 0.0 for p in src["pi_mix"])
         assert 0.0 <= src["value"] <= 1.0
         assert 0 <= src["gold_idx"] < len(src["candidates"])
 
@@ -515,6 +545,7 @@ def gen_game(
     net_spec: str = NET_SPEC,
     device: str = "cpu",
     cheap_rollout: bool = True,
+    rollout_mix: str = "mixed",
 ) -> dict[str, Any]:
     """One AlphaZero-style self-play game: both seats root-search with the
     same net (independent UCB streams by seed derivation). Returns episodes
@@ -603,6 +634,7 @@ def gen_game(
                 turn_cap=turn_cap,
                 net_spec=net_spec,
                 cheap_rollout=cheap_rollout,
+                rollout_mix=rollout_mix,
             )
             ask_ordinal[seat] += 1
             stats.asks_searched += 1
