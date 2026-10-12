@@ -6,8 +6,8 @@ L=/tmp/opencode/night_az.log
 for s in 1 2 3; do
   p="bsz_S3a_s${s}"
   [ -f "tools/training/${p}_report.json" ] && continue
-  OMP_NUM_THREADS=3 timeout 18000 .venv/bin/python -m tools.training.train_bc_v3 \
-    --arm S3a --seed "$s" --prefix "$p" --mix search --epochs 50 --device cpu \
+  timeout 18000 .venv/bin/python -m tools.training.train_bc_v3 \
+    --arm S3a --seed "$s" --prefix "$p" --mix search --epochs 50 --device auto \
     >>"$L" 2>&1 && echo "[$(date +%H:%M:%S)] B2 ok $p" >>"$L" || echo "[$(date +%H:%M:%S)] B2 FAIL $p" >>"$L" &
 done
 wait
