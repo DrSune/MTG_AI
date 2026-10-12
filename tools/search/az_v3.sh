@@ -12,7 +12,7 @@ say(){ echo "[$(date '+%m-%d %H:%M:%S')] $*" | tee -a "$L"; }
 PY=.venv/bin/python
 T=tools/training
 E=tools/eval
-SEED_NET=$T/bc10_S3a_s2_best.pt   # S3a arm, vocab 455 — the warm-start chain head
+SEED_NET=$T/bc10_S3a_s1_best.pt   # s2 PROBED 0.0 (collapsed argmin-0) /72 addendum; s1 probed 0.342
 GAMES=64; WORKERS=10; K=4; N=10; CAP=40; TOL=0.02; EXTRA_EPOCHS=15
 
 wr(){ $PY -c "import json,sys;m=json.load(open(sys.argv[1]))['matchups'];print(list(m.values())[0].get('winrate_decisive'))" "$1" 2>/dev/null; }
@@ -30,7 +30,7 @@ ADOPT=$SEED_NET; BEST=$(gate "$ADOPT" $E/gameplay_azv3_g0.json 3000)
 [ "$BEST" = "None" ] && BEST=0
 say "G0 gate on ${ADOPT##*/}: WR=$BEST (chain head)"
 
-for g in 1 2 3 4; do
+for g in 1 2 3; do
   say "=== GEN $g: 64g k$K/n$N/cap$CAP greedy-mix net=${ADOPT##*/} ==="
   rm -f $T/eps_g$g.jsonl
   timeout 108000 $PY tools/search/gen_games.py --games $GAMES \
