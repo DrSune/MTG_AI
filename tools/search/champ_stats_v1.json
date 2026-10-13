@@ -1,0 +1,161 @@
+{
+ "ckpt": "/home/sune/Desktop/MTG_AI/tools/training/bc9_S3_s1_best.pt",
+ "wall_seconds": 201.4,
+ "games": 48,
+ "asks_captured": 2424,
+ "asks_per_game": 50.5,
+ "episodes": 778,
+ "ep_tokens_max": 1024,
+ "ep_tokens_mean": 857.8,
+ "results": {
+  "b": 25,
+  "a": 22,
+  "crash": 1
+ },
+ "per_opponent": {
+  "teacher": {
+   "games": 16,
+   "results": {
+    "b": 7,
+    "a": 8,
+    "crash": 1
+   },
+   "crashes": [
+    7725
+   ]
+  },
+  "random": {
+   "games": 16,
+   "results": {
+    "b": 8,
+    "a": 8
+   },
+   "crashes": []
+  },
+  "champ": {
+   "games": 16,
+   "results": {
+    "b": 10,
+    "a": 6
+   },
+   "crashes": []
+  }
+ },
+ "crashes": [
+  7725
+ ],
+ "model_errors": 0,
+ "illegal_idx": 0,
+ "gold_row_overflow": 0,
+ "unk_rows": {
+  "stream_tokens": 661710,
+  "stream_unk": 218648,
+  "stream_unk_rate": 0.3304,
+  "cand_tokens": 49533,
+  "cand_unk": 13581,
+  "cand_unk_rate": 0.2742,
+  "top_oov": [
+   [
+    "swamp",
+    1242
+   ],
+   [
+    "mountain",
+    1035
+   ],
+   [
+    "21",
+    963
+   ],
+   [
+    "22",
+    892
+   ],
+   [
+    "25",
+    598
+   ],
+   [
+    "spirit",
+    523
+   ],
+   [
+    "radiant",
+    490
+   ],
+   [
+    "rugged",
+    471
+   ],
+   [
+    "highlands",
+    471
+   ],
+   [
+    "32",
+    451
+   ]
+  ]
+ },
+ "by_kind": {
+  "act": {
+   "asks": 2239,
+   "v0": 185,
+   "declines": 185
+  },
+  "attack": {
+   "asks": 726,
+   "v0": 661,
+   "declines": 65
+  },
+  "block": {
+   "asks": 141,
+   "v0": 104,
+   "declines": 20
+  },
+  "choose": {
+   "asks": 971,
+   "v0": 212,
+   "declines": 0
+  },
+  "cw": {
+   "asks": 14,
+   "v0": 7,
+   "declines": 7
+  },
+  "may": {
+   "asks": 143,
+   "v0": 134,
+   "declines": 9
+  },
+  "order": {
+   "asks": 11,
+   "v0": 4,
+   "declines": 0
+  },
+  "other": {
+   "asks": 229,
+   "v0": 45,
+   "declines": 1
+  },
+  "scry": {
+   "asks": 80,
+   "v0": 11,
+   "declines": 0
+  },
+  "target": {
+   "asks": 115,
+   "v0": 85,
+   "declines": 0
+  },
+  "trample": {
+   "asks": 6,
+   "v0": 3,
+   "declines": 0
+  }
+ },
+ "seconds_per_game": {
+  "min": 1.4,
+  "max": 125.7
+ }
+}
