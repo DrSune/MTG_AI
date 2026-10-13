@@ -1,0 +1,629 @@
+{
+ "chain": "tools/training/azg1_best.pt",
+ "matchups": {
+  "teacher:azg1_best.pt_vs_teacher": {
+   "games": 200,
+   "policy": "azg1_best.pt",
+   "baseline": "teacher",
+   "policy_wins": 60,
+   "policy_losses": 134,
+   "draws": {
+    "stall": 0,
+    "cap": 1,
+    "other": 0
+   },
+   "crashes": 5,
+   "decisive_rate": 0.97,
+   "winrate_decisive": 0.3093,
+   "wilson_decisive": [
+    0.2485,
+    0.3775
+   ],
+   "avg_turns_played": 21.53,
+   "illegal_action_attempts": 0,
+   "engine_exceptions": 5,
+   "exception_types": [
+    "AssertionError",
+    "ValueError"
+   ],
+   "model_errors": 0,
+   "asks_presented": 8931,
+   "asks_answered": 8569,
+   "asks_auto_resolved": 362,
+   "seat_swap_games": 100,
+   "policy_asks": {
+    "asks": 8818,
+    "v0": 2006,
+    "declines": 677,
+    "illegal": 0,
+    "model_errors": 0,
+    "trunc": 7898,
+    "v0_rate": 0.2275,
+    "decline_rate": 0.0768,
+    "per_kind": {
+     "act": {
+      "asks": 5317,
+      "v0_rate": 0.1196,
+      "decline_rate": 0.1196,
+      "agree_heur_rate": 0.2776
+     },
+     "choose": {
+      "asks": 1773,
+      "v0_rate": 0.0023,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0023
+     },
+     "block": {
+      "asks": 146,
+      "v0_rate": 0.7877,
+      "decline_rate": 0.0411,
+      "agree_heur_rate": 0.3014
+     },
+     "may": {
+      "asks": 81,
+      "v0_rate": 1.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 1.0
+     },
+     "other": {
+      "asks": 151,
+      "v0_rate": 0.1258,
+      "decline_rate": 0.0132,
+      "agree_heur_rate": 0.1987
+     },
+     "target": {
+      "asks": 171,
+      "v0_rate": 0.6959,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.6959
+     },
+     "attack": {
+      "asks": 999,
+      "v0_rate": 1.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.8729
+     },
+     "order": {
+      "asks": 27,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0
+     },
+     "scry": {
+      "asks": 112,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0
+     },
+     "cw": {
+      "asks": 38,
+      "v0_rate": 0.8684,
+      "decline_rate": 0.8684,
+      "agree_heur_rate": 0.0263
+     },
+     "trample": {
+      "asks": 3,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0
+     }
+    }
+   },
+   "baseline_asks": {
+    "asks": 10054,
+    "v0": 5044,
+    "declines": 382,
+    "illegal": 0,
+    "model_errors": 0,
+    "trunc": 0,
+    "v0_rate": 0.5017,
+    "decline_rate": 0.038,
+    "per_kind": {
+     "act": {
+      "asks": 4569,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 1.0
+     },
+     "attack": {
+      "asks": 1834,
+      "v0_rate": 0.9019,
+      "decline_rate": 0.0981,
+      "agree_heur_rate": 1.0
+     },
+     "may": {
+      "asks": 291,
+      "v0_rate": 1.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 1.0
+     },
+     "choose": {
+      "asks": 2217,
+      "v0_rate": 1.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 1.0
+     },
+     "other": {
+      "asks": 317,
+      "v0_rate": 0.9716,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 1.0
+     },
+     "target": {
+      "asks": 320,
+      "v0_rate": 1.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 1.0
+     },
+     "block": {
+      "asks": 352,
+      "v0_rate": 0.3011,
+      "decline_rate": 0.5739,
+      "agree_heur_rate": 1.0
+     },
+     "scry": {
+      "asks": 136,
+      "v0_rate": 1.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 1.0
+     },
+     "cw": {
+      "asks": 6,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 1.0
+     },
+     "trample": {
+      "asks": 8,
+      "v0_rate": 1.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 1.0
+     },
+     "order": {
+      "asks": 4,
+      "v0_rate": 1.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 1.0
+     }
+    }
+   },
+   "leverage": {
+    "rounds": {
+     "4": {
+      "policy_lead_rate": 0.0923,
+      "lead_predicts_win_rate": 0.6907,
+      "n_decisive": 194
+     },
+     "7": {
+      "policy_lead_rate": 0.3026,
+      "lead_predicts_win_rate": 0.7887,
+      "n_decisive": 194
+     },
+     "10": {
+      "policy_lead_rate": 0.3179,
+      "lead_predicts_win_rate": 0.866,
+      "n_decisive": 194
+     }
+    },
+    "final_dmg_diff_mean": -6.78,
+    "n": 195
+   }
+  },
+  "mirror:azg1_best.pt_vs_bc10_S4_s2_b": {
+   "games": 200,
+   "policy": "azg1_best.pt",
+   "baseline": "/home/sune/Desktop/MTG_AI/tools/training/bc10_S4_s2_best.pt",
+   "policy_wins": 99,
+   "policy_losses": 88,
+   "draws": {
+    "stall": 0,
+    "cap": 4,
+    "other": 2
+   },
+   "crashes": 7,
+   "decisive_rate": 0.935,
+   "winrate_decisive": 0.5294,
+   "wilson_decisive": [
+    0.458,
+    0.5996
+   ],
+   "avg_turns_played": 25.73,
+   "illegal_action_attempts": 0,
+   "engine_exceptions": 7,
+   "exception_types": [
+    "AssertionError",
+    "ValueError"
+   ],
+   "model_errors": 0,
+   "asks_presented": 8535,
+   "asks_answered": 8000,
+   "asks_auto_resolved": 535,
+   "seat_swap_games": 100,
+   "policy_asks": {
+    "asks": 12577,
+    "v0": 2598,
+    "declines": 796,
+    "illegal": 0,
+    "model_errors": 0,
+    "trunc": 11639,
+    "v0_rate": 0.2066,
+    "decline_rate": 0.0633,
+    "per_kind": {
+     "act": {
+      "asks": 8001,
+      "v0_rate": 0.0964,
+      "decline_rate": 0.0964,
+      "agree_heur_rate": 0.2398
+     },
+     "target": {
+      "asks": 231,
+      "v0_rate": 0.7186,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.7186
+     },
+     "choose": {
+      "asks": 2366,
+      "v0_rate": 0.0008,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0008
+     },
+     "block": {
+      "asks": 172,
+      "v0_rate": 0.8372,
+      "decline_rate": 0.0174,
+      "agree_heur_rate": 0.5
+     },
+     "scry": {
+      "asks": 128,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0
+     },
+     "attack": {
+      "asks": 1225,
+      "v0_rate": 1.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.9094
+     },
+     "other": {
+      "asks": 162,
+      "v0_rate": 0.0926,
+      "decline_rate": 0.0185,
+      "agree_heur_rate": 0.1975
+     },
+     "may": {
+      "asks": 256,
+      "v0_rate": 1.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 1.0
+     },
+     "cw": {
+      "asks": 21,
+      "v0_rate": 0.9048,
+      "decline_rate": 0.9048,
+      "agree_heur_rate": 0.0476
+     },
+     "order": {
+      "asks": 12,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0
+     },
+     "trample": {
+      "asks": 3,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0
+     }
+    }
+   },
+   "baseline_asks": {
+    "asks": 10730,
+    "v0": 2555,
+    "declines": 1082,
+    "illegal": 0,
+    "model_errors": 0,
+    "trunc": 9771,
+    "v0_rate": 0.2381,
+    "decline_rate": 0.1008,
+    "per_kind": {
+     "act": {
+      "asks": 6920,
+      "v0_rate": 0.149,
+      "decline_rate": 0.149,
+      "agree_heur_rate": 0.2048
+     },
+     "choose": {
+      "asks": 1935,
+      "v0_rate": 0.014,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.014
+     },
+     "attack": {
+      "asks": 1044,
+      "v0_rate": 0.9923,
+      "decline_rate": 0.0077,
+      "agree_heur_rate": 0.9157
+     },
+     "target": {
+      "asks": 201,
+      "v0_rate": 0.7164,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.7164
+     },
+     "order": {
+      "asks": 14,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0
+     },
+     "block": {
+      "asks": 183,
+      "v0_rate": 0.8907,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.3934
+     },
+     "other": {
+      "asks": 220,
+      "v0_rate": 0.1318,
+      "decline_rate": 0.0364,
+      "agree_heur_rate": 0.1364
+     },
+     "scry": {
+      "asks": 82,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0
+     },
+     "may": {
+      "asks": 94,
+      "v0_rate": 0.9787,
+      "decline_rate": 0.0213,
+      "agree_heur_rate": 0.9787
+     },
+     "trample": {
+      "asks": 2,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0
+     },
+     "cw": {
+      "asks": 35,
+      "v0_rate": 0.9429,
+      "decline_rate": 0.9429,
+      "agree_heur_rate": 0.0286
+     }
+    }
+   },
+   "leverage": {
+    "rounds": {
+     "4": {
+      "policy_lead_rate": 0.0829,
+      "lead_predicts_win_rate": 0.492,
+      "n_decisive": 187
+     },
+     "7": {
+      "policy_lead_rate": 0.3161,
+      "lead_predicts_win_rate": 0.7059,
+      "n_decisive": 187
+     },
+     "10": {
+      "policy_lead_rate": 0.4456,
+      "lead_predicts_win_rate": 0.8503,
+      "n_decisive": 187
+     }
+    },
+    "final_dmg_diff_mean": 1.1,
+    "n": 193
+   }
+  },
+  "mirror:azg1_best.pt_vs_bc9_S3_s1_be": {
+   "games": 200,
+   "policy": "azg1_best.pt",
+   "baseline": "/home/sune/Desktop/MTG_AI/tools/training/bc9_S3_s1_best.pt",
+   "policy_wins": 83,
+   "policy_losses": 108,
+   "draws": {
+    "stall": 0,
+    "cap": 2,
+    "other": 0
+   },
+   "crashes": 7,
+   "decisive_rate": 0.955,
+   "winrate_decisive": 0.4346,
+   "wilson_decisive": [
+    0.3662,
+    0.5055
+   ],
+   "avg_turns_played": 23.97,
+   "illegal_action_attempts": 0,
+   "engine_exceptions": 7,
+   "exception_types": [
+    "AssertionError",
+    "ValueError"
+   ],
+   "model_errors": 0,
+   "asks_presented": 8690,
+   "asks_answered": 8331,
+   "asks_auto_resolved": 359,
+   "seat_swap_games": 100,
+   "policy_asks": {
+    "asks": 10949,
+    "v0": 2236,
+    "declines": 736,
+    "illegal": 0,
+    "model_errors": 0,
+    "trunc": 10025,
+    "v0_rate": 0.2042,
+    "decline_rate": 0.0672,
+    "per_kind": {
+     "act": {
+      "asks": 6892,
+      "v0_rate": 0.1026,
+      "decline_rate": 0.1026,
+      "agree_heur_rate": 0.2584
+     },
+     "target": {
+      "asks": 199,
+      "v0_rate": 0.6985,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.6985
+     },
+     "choose": {
+      "asks": 2065,
+      "v0_rate": 0.001,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.001
+     },
+     "block": {
+      "asks": 191,
+      "v0_rate": 0.8115,
+      "decline_rate": 0.0262,
+      "agree_heur_rate": 0.4188
+     },
+     "scry": {
+      "asks": 135,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0
+     },
+     "attack": {
+      "asks": 1049,
+      "v0_rate": 1.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.8866
+     },
+     "may": {
+      "asks": 146,
+      "v0_rate": 1.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 1.0
+     },
+     "other": {
+      "asks": 223,
+      "v0_rate": 0.0897,
+      "decline_rate": 0.0269,
+      "agree_heur_rate": 0.157
+     },
+     "order": {
+      "asks": 24,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0
+     },
+     "cw": {
+      "asks": 20,
+      "v0_rate": 0.9,
+      "decline_rate": 0.9,
+      "agree_heur_rate": 0.05
+     },
+     "trample": {
+      "asks": 5,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0
+     }
+    }
+   },
+   "baseline_asks": {
+    "asks": 11189,
+    "v0": 2279,
+    "declines": 440,
+    "illegal": 0,
+    "model_errors": 0,
+    "trunc": 10236,
+    "v0_rate": 0.2037,
+    "decline_rate": 0.0393,
+    "per_kind": {
+     "act": {
+      "asks": 6513,
+      "v0_rate": 0.0616,
+      "decline_rate": 0.0616,
+      "agree_heur_rate": 0.3491
+     },
+     "choose": {
+      "asks": 2279,
+      "v0_rate": 0.0004,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0004
+     },
+     "attack": {
+      "asks": 1315,
+      "v0_rate": 1.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.9247
+     },
+     "target": {
+      "asks": 255,
+      "v0_rate": 0.6471,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.6471
+     },
+     "scry": {
+      "asks": 147,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0
+     },
+     "other": {
+      "asks": 266,
+      "v0_rate": 0.1842,
+      "decline_rate": 0.0301,
+      "agree_heur_rate": 0.1955
+     },
+     "block": {
+      "asks": 217,
+      "v0_rate": 0.8664,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.4055
+     },
+     "may": {
+      "asks": 129,
+      "v0_rate": 1.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 1.0
+     },
+     "trample": {
+      "asks": 12,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0
+     },
+     "cw": {
+      "asks": 35,
+      "v0_rate": 0.8857,
+      "decline_rate": 0.8857,
+      "agree_heur_rate": 0.0857
+     },
+     "order": {
+      "asks": 21,
+      "v0_rate": 0.0,
+      "decline_rate": 0.0,
+      "agree_heur_rate": 0.0
+     }
+    }
+   },
+   "leverage": {
+    "rounds": {
+     "4": {
+      "policy_lead_rate": 0.0725,
+      "lead_predicts_win_rate": 0.5759,
+      "n_decisive": 191
+     },
+     "7": {
+      "policy_lead_rate": 0.2487,
+      "lead_predicts_win_rate": 0.7644,
+      "n_decisive": 191
+     },
+     "10": {
+      "policy_lead_rate": 0.3627,
+      "lead_predicts_win_rate": 0.8691,
+      "n_decisive": 191
+     }
+    },
+    "final_dmg_diff_mean": -2.93,
+    "n": 193
+   }
+  }
+ }
+}
