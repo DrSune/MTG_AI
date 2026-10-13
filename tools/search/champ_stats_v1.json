@@ -1,161 +1,169 @@
 {
- "ckpt": "/home/sune/Desktop/MTG_AI/tools/training/bc9_S3_s1_best.pt",
- "wall_seconds": 201.4,
- "games": 48,
- "asks_captured": 2424,
- "asks_per_game": 50.5,
- "episodes": 778,
- "ep_tokens_max": 1024,
- "ep_tokens_mean": 857.8,
+ "ckpt": "tools/training/bsh_S3a_s1_best.pt",
+ "wall_seconds": 431.3,
+ "games": 64,
+ "asks_captured": 3144,
+ "asks_per_game": 49.1,
+ "episodes": 990,
+ "ep_tokens_max": 1023,
+ "ep_tokens_mean": 849.1,
  "results": {
-  "b": 25,
-  "a": 22,
-  "crash": 1
+  "b": 23,
+  "crash": 3,
+  "a": 37,
+  "draw-other": 1
  },
  "per_opponent": {
   "teacher": {
-   "games": 16,
+   "games": 21,
    "results": {
-    "b": 7,
-    "a": 8,
+    "b": 8,
+    "a": 13
+   },
+   "crashes": []
+  },
+  "random": {
+   "games": 22,
+   "results": {
+    "b": 6,
+    "a": 14,
+    "draw-other": 1,
     "crash": 1
    },
    "crashes": [
-    7725
+    7960
    ]
   },
-  "random": {
-   "games": 16,
-   "results": {
-    "b": 8,
-    "a": 8
-   },
-   "crashes": []
-  },
   "champ": {
-   "games": 16,
+   "games": 21,
    "results": {
-    "b": 10,
-    "a": 6
+    "crash": 2,
+    "a": 10,
+    "b": 9
    },
-   "crashes": []
+   "crashes": [
+    7913,
+    7907
+   ]
   }
  },
  "crashes": [
-  7725
+  7913,
+  7907,
+  7960
  ],
  "model_errors": 0,
  "illegal_idx": 0,
  "gold_row_overflow": 0,
  "unk_rows": {
-  "stream_tokens": 661710,
-  "stream_unk": 218648,
-  "stream_unk_rate": 0.3304,
-  "cand_tokens": 49533,
-  "cand_unk": 13581,
-  "cand_unk_rate": 0.2742,
+  "stream_tokens": 833296,
+  "stream_unk": 348,
+  "stream_unk_rate": 0.0004,
+  "cand_tokens": 67185,
+  "cand_unk": 22,
+  "cand_unk_rate": 0.0003,
   "top_oov": [
    [
-    "swamp",
-    1242
+    "bird",
+    83
    ],
    [
-    "mountain",
-    1035
+    "C14",
+    37
    ],
    [
-    "21",
-    963
+    "B26",
+    26
    ],
    [
-    "22",
-    892
+    "C16",
+    25
    ],
    [
-    "25",
-    598
+    "B29",
+    18
    ],
    [
-    "spirit",
-    523
+    "U16",
+    17
    ],
    [
-    "radiant",
-    490
+    "R17",
+    11
    ],
    [
-    "rugged",
-    471
+    "B27",
+    10
    ],
    [
-    "highlands",
-    471
+    "B20",
+    10
    ],
    [
-    "32",
-    451
+    "B22",
+    10
    ]
   ]
  },
  "by_kind": {
   "act": {
-   "asks": 2239,
-   "v0": 185,
-   "declines": 185
+   "asks": 3196,
+   "v0": 333,
+   "declines": 333
   },
   "attack": {
-   "asks": 726,
-   "v0": 661,
-   "declines": 65
+   "asks": 914,
+   "v0": 819,
+   "declines": 95
   },
   "block": {
-   "asks": 141,
-   "v0": 104,
-   "declines": 20
+   "asks": 175,
+   "v0": 130,
+   "declines": 22
   },
   "choose": {
-   "asks": 971,
-   "v0": 212,
+   "asks": 1371,
+   "v0": 416,
    "declines": 0
   },
   "cw": {
-   "asks": 14,
-   "v0": 7,
-   "declines": 7
+   "asks": 16,
+   "v0": 6,
+   "declines": 6
   },
   "may": {
-   "asks": 143,
-   "v0": 134,
+   "asks": 92,
+   "v0": 83,
    "declines": 9
   },
   "order": {
-   "asks": 11,
-   "v0": 4,
+   "asks": 22,
+   "v0": 5,
    "declines": 0
   },
   "other": {
-   "asks": 229,
-   "v0": 45,
-   "declines": 1
+   "asks": 235,
+   "v0": 83,
+   "declines": 2
   },
   "scry": {
-   "asks": 80,
-   "v0": 11,
+   "asks": 98,
+   "v0": 34,
    "declines": 0
   },
   "target": {
-   "asks": 115,
-   "v0": 85,
+   "asks": 161,
+   "v0": 116,
    "declines": 0
   },
   "trample": {
-   "asks": 6,
-   "v0": 3,
+   "asks": 2,
+   "v0": 0,
    "declines": 0
   }
  },
  "seconds_per_game": {
-  "min": 1.4,
-  "max": 125.7
+  "min": 0.8,
+  "max": 252.6
  }
 }
