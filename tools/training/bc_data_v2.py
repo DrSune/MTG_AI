@@ -45,7 +45,7 @@ from MTG_bot.core.executor import query as _query
 from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.identity import Handle
 
-from tools.training import bc_data
+from tools.training import bc_data, numlane
 from tools.training.bc_data import (  # re-export the v1 primitives
     ASK,
     BOS,
@@ -87,8 +87,12 @@ def zone_rows_v2(obs: dict[str, Any]) -> list[str]:
 
 
 def obs_words_v2(obs: dict[str, Any]) -> list[str]:
-    """v1 serialization (untouched) followed by the v2 zone delta."""
-    return bc_data.obs_words(obs) + zone_rows_v2(obs)
+    """v1 serialization (untouched) followed by the v2 zone delta.
+    NUMTOK=1 (/76 digit-lane cure) rewrites standalone numeric world-lane
+    words as ``dnum d#…`` compositions; default OFF keeps every gate
+    byte-identical."""
+    words = bc_data.obs_words(obs) + zone_rows_v2(obs)
+    return numlane.transform_words(words) if numlane.numtok_on() else words
 
 
 def zone_groups_v2(obs: dict[str, Any]) -> list[bc_data.Group]:
@@ -107,8 +111,11 @@ def zone_groups_v2(obs: dict[str, Any]) -> list[bc_data.Group]:
 
 
 def obs_groups_v2(obs: dict[str, Any]) -> list[bc_data.Group]:
-    """Row-grouped :func:`obs_words_v2` (v1 groups + zone lane groups)."""
-    return bc_data.obs_groups(obs) + zone_groups_v2(obs)
+    """Row-grouped :func:`obs_words_v2` (v1 groups + zone lane groups).
+    Same NUMTOK=1 digit-lane hook as :func:`obs_words_v2` (BcAsk live lane;
+    flatten equivalence with obs_words_v2 is preserved: both transform)."""
+    groups = bc_data.obs_groups(obs) + zone_groups_v2(obs)
+    return numlane.transform_groups(groups) if numlane.numtok_on() else groups
 
 
 # ------------------------------------------------------------- grounding
@@ -318,10 +325,15 @@ def stash_rows_for(what: str) -> tuple[list[list[str]], bool] | None:
 
 # ------------------------------------------------------------- encoding
 def cand_words_v2(cand: str, ground: list[list[str]]) -> list[str]:
-    """Candidate span words: the v1 tokens, then ``ref`` + referent rows."""
+    """Candidate span words: the v1 tokens, then ``ref`` + referent rows.
+    Under NUMTOK=1 the MENU tokens stay literal (positional labels, /76
+    scope law) but the REF section — duplicated world content — gets the
+    digit-lane transform, so handle-shaped candidates still bind to their
+    (digitized) obs rows through the ref subsection."""
     words = tokenize(cand) or [UNK]
     if ground:
-        words += [REF] + _row_words(ground)
+        ref = _row_words(ground)
+        words += [REF] + (numlane.transform_words(ref) if numlane.numtok_on() else ref)
     return words
 
 

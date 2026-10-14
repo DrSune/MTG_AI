@@ -1,159 +1,157 @@
 {
  "ckpt": "tools/training/bsh_S3a_s1_best.pt",
- "wall_seconds": 431.3,
+ "wall_seconds": 589.5,
  "games": 64,
- "asks_captured": 3144,
- "asks_per_game": 49.1,
- "episodes": 990,
- "ep_tokens_max": 1023,
- "ep_tokens_mean": 849.1,
+ "asks_captured": 3305,
+ "asks_per_game": 51.6,
+ "episodes": 1116,
+ "ep_tokens_max": 1024,
+ "ep_tokens_mean": 829.6,
  "results": {
-  "b": 23,
-  "crash": 3,
   "a": 37,
+  "b": 24,
+  "crash": 2,
   "draw-other": 1
  },
  "per_opponent": {
   "teacher": {
-   "games": 21,
-   "results": {
-    "b": 8,
-    "a": 13
-   },
-   "crashes": []
-  },
-  "random": {
    "games": 22,
    "results": {
-    "b": 6,
-    "a": 14,
-    "draw-other": 1,
+    "b": 8,
+    "a": 12,
+    "crash": 1,
+    "draw-other": 1
+   },
+   "crashes": [
+    8124
+   ]
+  },
+  "random": {
+   "games": 21,
+   "results": {
+    "a": 13,
+    "b": 7,
     "crash": 1
    },
    "crashes": [
-    7960
+    8119
    ]
   },
   "champ": {
    "games": 21,
    "results": {
-    "crash": 2,
-    "a": 10,
-    "b": 9
+    "b": 9,
+    "a": 12
    },
-   "crashes": [
-    7913,
-    7907
-   ]
+   "crashes": []
   }
  },
  "crashes": [
-  7913,
-  7907,
-  7960
+  8119,
+  8124
  ],
  "model_errors": 0,
  "illegal_idx": 0,
  "gold_row_overflow": 0,
  "unk_rows": {
-  "stream_tokens": 833296,
-  "stream_unk": 348,
-  "stream_unk_rate": 0.0004,
-  "cand_tokens": 67185,
-  "cand_unk": 22,
-  "cand_unk_rate": 0.0003,
+  "stream_tokens": 918085,
+  "stream_unk": 485,
+  "stream_unk_rate": 0.0005,
+  "cand_tokens": 70469,
+  "cand_unk": 14,
+  "cand_unk_rate": 0.0002,
   "top_oov": [
    [
-    "bird",
-    83
-   ],
-   [
-    "C14",
-    37
-   ],
-   [
-    "B26",
-    26
-   ],
-   [
-    "C16",
-    25
-   ],
-   [
-    "B29",
-    18
+    "soldier",
+    138
    ],
    [
     "U16",
-    17
+    46
    ],
    [
-    "R17",
-    11
+    "U15",
+    45
    ],
    [
-    "B27",
-    10
+    "pirate",
+    41
    ],
    [
-    "B20",
-    10
+    "C14",
+    25
    ],
    [
-    "B22",
-    10
+    "U17",
+    23
+   ],
+   [
+    "C16",
+    21
+   ],
+   [
+    "bird",
+    19
+   ],
+   [
+    "U19",
+    16
+   ],
+   [
+    "U20",
+    15
    ]
   ]
  },
  "by_kind": {
   "act": {
-   "asks": 3196,
-   "v0": 333,
-   "declines": 333
+   "asks": 3232,
+   "v0": 306,
+   "declines": 306
   },
   "attack": {
-   "asks": 914,
-   "v0": 819,
-   "declines": 95
+   "asks": 943,
+   "v0": 832,
+   "declines": 111
   },
   "block": {
-   "asks": 175,
-   "v0": 130,
-   "declines": 22
+   "asks": 211,
+   "v0": 160,
+   "declines": 35
   },
   "choose": {
-   "asks": 1371,
-   "v0": 416,
+   "asks": 1439,
+   "v0": 443,
    "declines": 0
   },
   "cw": {
-   "asks": 16,
-   "v0": 6,
-   "declines": 6
+   "asks": 13,
+   "v0": 7,
+   "declines": 7
   },
   "may": {
-   "asks": 92,
-   "v0": 83,
-   "declines": 9
+   "asks": 99,
+   "v0": 94,
+   "declines": 5
   },
   "order": {
-   "asks": 22,
-   "v0": 5,
+   "asks": 23,
+   "v0": 8,
    "declines": 0
   },
   "other": {
-   "asks": 235,
-   "v0": 83,
+   "asks": 211,
+   "v0": 36,
    "declines": 2
   },
   "scry": {
-   "asks": 98,
-   "v0": 34,
+   "asks": 89,
+   "v0": 37,
    "declines": 0
   },
   "target": {
-   "asks": 161,
-   "v0": 116,
+   "asks": 159,
+   "v0": 98,
    "declines": 0
   },
   "trample": {
@@ -163,7 +161,7 @@
   }
  },
  "seconds_per_game": {
-  "min": 0.8,
-  "max": 252.6
+  "min": 0.6,
+  "max": 225.4
  }
 }

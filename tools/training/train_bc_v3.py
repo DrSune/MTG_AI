@@ -53,7 +53,7 @@ from typing import Any
 import torch
 import torch.nn.functional as F
 
-from tools.training import bc_data_v2
+from tools.training import bc_data_v2, numlane
 from tools.training.bc_model import PointerBC, collate
 from tools.training.train_bc import gate_stats
 from tools.training.train_bc_v2 import (
@@ -388,6 +388,7 @@ def train_arm(
     bcs_of: dict[str, int],
     best_path: Path,
     resume: bool,
+    warm: dict[str, Any] | None = None,
     quiet: bool = False,
 ) -> tuple[PointerBC, dict[str, Any]]:
     """Same flat shuffled loop, AdamW/cosine/clip as batch 2 — only the
@@ -420,6 +421,35 @@ def train_arm(
             train_eps.append({**ep, "gold": kept})
     if device.type == "cuda":
         torch.cuda.reset_peak_memory_stats()
+    # /76 TRANSPLANT lane: an OLD-vocab checkpoint seeds a NEW-vocab model —
+    # tok_emb is widened (old rows at identical ids, digit rows from the
+    # donor init of numlane.resize_model_embeddings) then loaded strict.
+    # Must run BEFORE the optimizer so AdamW sees the final tensors.
+    warm_from = None
+    if warm is not None:
+        wcfg = dict(warm["config"])
+        cfg_now = dict(ckpt_config(model, len(warm["vocab"]), cfg))
+        wcfg.pop("vocab_size", None)
+        cfg_now.pop("vocab_size", None)
+        # the only tolerated architecture delta is a WIDER pos table
+        # (digit lanes inflate streams; transplant_state widens pos_emb)
+        warm_pos, now_pos = wcfg.pop("max_len", 1024), cfg_now.pop("max_len", 1024)
+        if int(warm_pos) > int(now_pos):
+            raise SystemExit(
+                f"warm-start pos table shrink unsupported: {warm_pos} -> {now_pos}"
+            )
+        if wcfg != cfg_now:
+            raise SystemExit(f"warm-start architecture mismatch: {wcfg} != {cfg_now}")
+        numlane.transplant_state(
+            model, warm["vocab"], vocab, warm["state"], seed=args.seed
+        )
+        warm_from = str(warm.get("ckpt_path", "warm"))
+        if not quiet:
+            print(
+                f"warm-start {warm_from}: vocab {len(warm['vocab'])} -> "
+                f"{len(vocab)} (+{len(vocab) - len(warm['vocab'])} rows, "
+                f"prev best {float((warm.get('train_info') or {}).get('best_train_loss', float('nan'))):.5f})"
+            )
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=0.01)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=args.epochs)
     rng = torch.Generator().manual_seed(args.seed)
@@ -548,6 +578,7 @@ def train_arm(
         "curve_eval": curve_eval,
         "peak_gpu_mib": round(peak_bytes / 2**20, 1),
         "resumed_from": resumed_from,
+        "warm_start": warm_from,
     }
     return model, info
 
@@ -601,7 +632,21 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--patience", type=int, default=60)
     ap.add_argument(
+        "--max-len",
+        type=int,
+        default=None,
+        help="pos table size (default 1024); /76 digit cure needs 1536",
+    )
+    ap.add_argument(
         "--fresh", action="store_true", help="ignore any existing best checkpoint"
+    )
+    ap.add_argument(
+        "--warm-start",
+        type=Path,
+        default=None,
+        help="transplant weights+vocab from another checkpoint (/76 numlane): "
+        "tok_emb is widened for in-flight appended tokens (digit lanes); "
+        "combine with NUMTOK=1 env and a NEW --prefix (train_info records it)",
     )
     ap.add_argument(
         "--smoke",
@@ -619,6 +664,8 @@ def main(argv: list[str] | None = None) -> int:
             )
 
     cfg = arm_config(args.arm, args.base_arm)
+    if args.max_len:  # /76 cure: digit lanes inflate streams past 1024
+        cfg = {**cfg, "max_len": args.max_len}
     train_file = args.episodes or ARM_DATA[args.arm]
     if args.arm == DAGGER_ARM and not train_file.exists():
         raise SystemExit(f"dagger data {train_file} missing — rollout stage first")
@@ -685,6 +732,23 @@ def main(argv: list[str] | None = None) -> int:
             f"stream rebuild was {len(vocab)}); {oov} stream words -> <unk>"
         )
         vocab = ck_vocab
+    warm_blob: dict[str, Any] | None = None
+    if args.warm_start is not None:
+        if resume:
+            raise SystemExit(
+                "--warm-start with an existing best checkpoint is ambiguous "
+                "(resume vs transplant) — pass --fresh to force the transplant"
+            )
+        blob: dict[str, Any] = torch.load(
+            args.warm_start, map_location="cpu", weights_only=False
+        )
+        blob["ckpt_path"] = str(args.warm_start)
+        warm_blob = blob
+        vocab, added = numlane.extend_vocab(blob["vocab"], vocab.keys())
+        print(
+            f"warm-start {args.warm_start}: vocab {len(blob['vocab'])} "
+            f"-> {len(vocab)}; appended {added}"
+        )
     if args.mix == "v2":
         train_ds, eval_ds, joined = load_side(
             train_file, eval_families, vocab, args.smoke
@@ -693,9 +757,12 @@ def main(argv: list[str] | None = None) -> int:
         assert streams is not None  # built in the mix branch above
         train_ds = build_mixed_train_ds(streams, vocab)
         eval_ds, joined = eval_side(vocab, args.smoke)
+    pos_limit = cfg.get("max_len", 1024)
     for ep in train_ds:
-        if len(ep["seq"]) > 1024:
-            raise SystemExit(f"{ep['pack']}: seq {len(ep['seq'])} > pos table 1024")
+        if len(ep["seq"]) > pos_limit:
+            raise SystemExit(
+                f"{ep['pack']}: seq {len(ep['seq'])} > pos table {pos_limit}"
+            )
     mix = data_mix(train_ds, eval_families)
     print(
         f"arm={args.arm} mix={args.mix} w={args.search_weight} "
@@ -714,6 +781,7 @@ def main(argv: list[str] | None = None) -> int:
         bcs_of,
         best_path,
         resume,
+        warm=warm_blob,
     )
     tinfo["data_mix"] = mix
 

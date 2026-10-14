@@ -43,6 +43,7 @@ import argparse
 import json
 import math
 import multiprocessing
+import os
 import sys
 import time
 from pathlib import Path
@@ -67,7 +68,7 @@ from MTG_bot.core.state import (
     ZONE_GRAVEYARD,
     ZONE_LIBRARY,
 )
-from tools.training import bc_data, bc_data_v2
+from tools.training import bc_data, bc_data_v2, numlane
 from tools.training.collector import (
     AskContext,
     FirstAsk,
@@ -225,8 +226,15 @@ def _collapse_zones(
         head = rows[0][1][:2]
         cards = rows[1:]
         keep = tuple((h, ws) for h, ws in cards if _referenced(h, cand_strs))
-        cnt = vocab.get(str(len(cards)), unk)
-        out.append((k, s, ((None, head + (cnt,)),) + keep))
+        if numlane.numtok_on() and numlane.NUM_MARKER in vocab:
+            # digit language (KNOWLEDGE/78): the collapsed count lane must
+            # encode in the SAME atoms the stream uses, never a raw literal
+            cnt: tuple[int, ...] = (vocab[numlane.NUM_MARKER],) + tuple(
+                vocab[f"{numlane.DIGIT_PREFIX}{c}"] for c in str(len(cards))
+            )
+        else:
+            cnt = (vocab.get(str(len(cards)), unk),)
+        out.append((k, s, ((None, head + cnt),) + keep))
     return tuple(out)
 
 
@@ -281,6 +289,7 @@ class BcAsk:
     ) -> None:
         self.model = model
         self.vocab = vocab
+        self.numtok = numlane.NUM_MARKER in vocab  # per-policy language
         self.max_len = max_len
         self.schema = schema
         self.truncations = 0
@@ -393,7 +402,27 @@ class BcAsk:
 
     def _forward_menu(self, torch: Any, ctx: AskContext):
         """One scored forward over the candidate menu; appends the ask block
-        to this seat's causal stream exactly as the legacy ``_decide`` did."""
+        to this seat's causal stream exactly as the legacy ``_decide`` did.
+
+        Per-policy language (KNOWLEDGE/78): a checkpoint whose vocab carries
+        the digit lanes (``dnum``) must be shown digitized obs/candidate
+        spans even when the duel process runs legacy, and vice versa — the
+        env flag is swapped around the encoding and restored. Encoding is
+        per-ask sequential within a worker process, so the swap is safe."""
+        prev = os.environ.get(numlane.NUMTOK_ENV)
+        if self.numtok:
+            os.environ[numlane.NUMTOK_ENV] = "1"
+        else:
+            os.environ.pop(numlane.NUMTOK_ENV, None)
+        try:
+            return self._forward_menu_enc(torch, ctx)
+        finally:
+            if prev is None:
+                os.environ.pop(numlane.NUMTOK_ENV, None)
+            else:
+                os.environ[numlane.NUMTOK_ENV] = prev
+
+    def _forward_menu_enc(self, torch: Any, ctx: AskContext):
         vocab = self.vocab
         unk = vocab[bc_data.UNK]
         v2 = self.schema == "v2"
