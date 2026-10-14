@@ -17,8 +17,10 @@ import argparse
 import concurrent.futures as cf
 import json
 import os
+import re
 import sys
 import time
+import traceback as _traceback
 from collections import Counter
 from pathlib import Path
 
@@ -30,6 +32,42 @@ OUT_EPISODES = REPO / "tools" / "training" / "episodes_search.jsonl"
 OUT_STATS = Path(__file__).resolve().parent / "gen_stats_v1.json"
 BUDGET_MIN_DEFAULT = 90.0
 GRACE_MIN = 3.0  # an in-flight game may land after the deadline
+# /79 OOM law: every worker pays a CUDA context BEFORE its first forward; a
+# refused run is honest, a swallowed worker death in the pool is not.
+MIN_BYTES_PER_WORKER = int(1.2 * 2**30)
+_FRAME_RE = re.compile(r'File "(.+?)", line (\d+), in (.+)$', re.M)
+
+
+def _cuda_free_bytes() -> int | None:
+    """Free device bytes via a THROWAWAY subprocess — the parent must stay
+    torch-free until workers fork (they pin their own thread counts)."""
+    import subprocess
+
+    try:
+        out = subprocess.run(
+            [sys.executable, "-c", "import torch; print(torch.cuda.mem_get_info()[0])"],
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+        return int(out.stdout.strip()) if out.returncode == 0 else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _gpu_guard(device: str, workers: int = 1) -> None:
+    """Worker-side hard floor (also races the precheck: another job may grab
+    the card between parent probe and our first alloc)."""
+    if device != "cuda":
+        return
+    import torch
+
+    free, _ = torch.cuda.mem_get_info()
+    if free < MIN_BYTES_PER_WORKER * workers:
+        raise RuntimeError(
+            f"cuda guard: free {free / 2**30:.2f} GiB < "
+            f"{MIN_BYTES_PER_WORKER * workers / 2**30:.2f} GiB needed"
+        )
 
 
 def _worker(
@@ -50,6 +88,7 @@ def _worker(
     import torch
 
     torch.set_num_threads(1)
+    _gpu_guard(rollout_device)  # /79: OOM here RAISES -> parent records it
     from tools.search import mcts
 
     t0 = time.time()
@@ -197,14 +236,33 @@ def main(argv: list[str] | None = None) -> int:
                 f"smoke seed={seed} {g['seconds']}s result={g['result']} "
                 f"asks={g['asks_searched']} rollouts={g['rollouts']} "
                 f"swallow={g['swallowed']} crash_buckets={g['buckets'].get('crash', 0)} "
-                f"eps={g['n_eps']}"
+                f"eps={g['n_eps']} "
+                f"roll_ms_per_ask={g['rollout_ms'] / max(1, g['asks_searched']):.0f}"
+            )
+        if args.rollout_device == "cuda":  # cost-gate evidence: where the card stands
+            free = _cuda_free_bytes()
+            print(
+                f"cuda free after smoke: {None if free is None else f'{free / 2**30:.2f} GiB'}"
             )
         print("SMOKE OK")
         return 0
 
     deadline = t0 + args.budget_min * 60.0
     seeds = list(range(args.seeds, args.seeds + args.games))
+    if args.rollout_device == "cuda":  # /79 parent-side precheck (subprocess:
+        free = _cuda_free_bytes()  # the parent must not init CUDA before fork)
+        need = MIN_BYTES_PER_WORKER * args.workers
+        if free is None or free < need:
+            print(
+                f"REFUSED: cuda rollout wants {need / 2**30:.1f} GiB free "
+                f"({args.workers} workers x 1.2 GiB CUDA context); "
+                f"probe says {None if free is None else f'{free / 2**30:.1f} GiB'}."
+                " Fewer --workers or free the card.",
+                flush=True,
+            )
+            return 2
     done: list[dict] = []
+    failed: list[dict] = []  # /79: worker death surfaces in stats, never stdout-only
     with cf.ProcessPoolExecutor(max_workers=args.workers) as pool:
         futs = {pool.submit(_worker, s, *knobs): s for s in seeds}
         pending = set(futs)
@@ -232,6 +290,29 @@ def main(argv: list[str] | None = None) -> int:
                             flush=True,
                         )
                     except BaseException as e:  # noqa: BLE001
+                        # a pool re-raise loses the worker's frames, but the
+                        # pickled _RemoteTraceback renders them into the
+                        # formatted chain as "File ..., line N, in name"
+                        chain = "".join(_traceback.format_exception(e))
+                        # the WORKER's frames are in the remote section, i.e.
+                        # before the "direct cause" separator; after it sit
+                        # only the parent's re-raise plumbing
+                        remote = chain.split("The above exception")[0]
+                        dead = ""
+                        for m in _FRAME_RE.finditer(remote):
+                            if "concurrent/futures" not in m.group(1):
+                                dead = (
+                                    f"{m.group(1).rsplit('/', 1)[-1]}:"
+                                    f"{m.group(2)} in {m.group(3)}"
+                                )
+                        failed.append(
+                            {
+                                "seed": futs[fut],
+                                "type": type(e).__name__,
+                                "msg": str(e)[:400],
+                                "first_frame": dead,
+                            }
+                        )
                         print(
                             f"worker died seed={futs[fut]}: {type(e).__name__}: {e}",
                             flush=True,
@@ -242,9 +323,13 @@ def main(argv: list[str] | None = None) -> int:
             for p in list(pool._processes.values()):
                 p.terminate()
             pool.shutdown(wait=False, cancel_futures=True)
+    for fut in pending:  # budget cut: unfinished games are missing data, say so
+        failed.append(
+            {"seed": futs[fut], "type": "budget_cutoff", "msg": "", "first_frame": ""}
+        )
 
     n_eps = _flush(args.out_episodes, done)
-    agg = _aggregate(done, time.time() - t0, n_eps)
+    agg = _aggregate(done, time.time() - t0, n_eps, failed)
     args.out_stats.write_text(json.dumps(agg, indent=1))
     print(json.dumps(agg["headline"], indent=1))
     print(
@@ -261,8 +346,11 @@ def _mix_total(games: list[dict]) -> Counter:
     return total
 
 
-def _aggregate(games: list[dict], wall: float, n_eps: int) -> dict:
+def _aggregate(
+    games: list[dict], wall: float, n_eps: int, failed: list[dict] | None = None
+) -> dict:
     n = len(games)
+    failed = failed or []
     asks = sum(g["asks_searched"] for g in games)
     rolls = sum(g["rollouts"] for g in games)
     buck: Counter = Counter()
@@ -329,9 +417,17 @@ def _aggregate(games: list[dict], wall: float, n_eps: int) -> dict:
             "net_fwd": sum(g["net_fwd"] for g in games),
             "net_fwd_ms": round(sum(g["net_fwd_ms"] for g in games), 1),
             "policy_mix": dict(_mix_total(games)),
-            "seconds_per_game_min": round(min(g["seconds"] for g in games), 1),
-            "seconds_per_game_max": round(max(g["seconds"] for g in games), 1),
+            "seconds_per_game_min": round(
+                min((g["seconds"] for g in games), default=0.0), 1
+            ),
+            "seconds_per_game_max": round(
+                max((g["seconds"] for g in games), default=0.0), 1
+            ),
         },
+        # /79: a dead worker is DATA, not just a stdout line — OOM/killed
+        # games must be countable against the requested fleet.
+        "failed_games": failed,
+        "n_failed": len(failed),
     }
 
 

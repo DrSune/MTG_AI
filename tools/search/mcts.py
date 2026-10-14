@@ -349,6 +349,62 @@ def _apply_word(pos: Position, info: AskRec, word: str, idx: int, seat: int) -> 
 # -------------------------------------------------------------- root search
 
 
+def _net_pulls(
+    branches: dict[int, Branch],
+    supply: Supply,
+    net_spec: str,
+    device: str,
+    game_seed: int,
+    seat: int,
+    ask_ordinal: int,
+    n_rollouts: int,
+    turn_cap: int,
+    ucb: Ucb1,
+    buckets: Counter,
+    mix: Counter,
+) -> None:
+    """Allocate + play the ``rollout_mix="net"`` pulls (/79 cost gate).
+
+    UCB allocation stays EXACTLY sequential: the first ``min(n, arms)``
+    pulls are the unvisited-index picks Ucb1 makes with an empty ledger —
+    values cannot influence them — so they play CONCURRENTLY on forked
+    branches and every parked net decision across the group is scored in ONE
+    batched forward per rollout step (one model instance per process,
+    ``tools/search/batch_net``). Pull k+1 needs values 1..k backed, so the
+    tail stays serial by necessity; its single-seat forwards are dim-1
+    batches on the same weights. Values are pushed in pull order either way.
+    Same seed derivation, same fresh-per-pull-seat streams as the legacy loop."""
+    from tools.search import batch_net
+
+    arms = sorted(branches)
+    prefix = min(n_rollouts, len(arms))
+    BcAsk.fresh(net_spec, device)  # warm on THIS thread: no lazy CUDA load in workers
+    bn = batch_net.NetBatcher()
+
+    def rseed_of(t: int, arm: int) -> int:
+        return stable_int("roll", game_seed, seat, ask_ordinal, arm, t)
+
+    states = [fork(branches[arms[t]].game, supply) for t in range(prefix)]
+    specs = [{s: BcAsk.fresh(net_spec, device) for s in (0, 1)} for _ in range(prefix)]
+    seeds = [rseed_of(t, arms[t]) for t in range(prefix)]
+
+    def record(arm: int, res: RolloutResult) -> None:
+        v, bucket = rollout_value(res, seat)
+        buckets[bucket] += 1
+        mix["net"] += 2
+        ucb.push(arm, v)
+
+    for t, res in enumerate(batch_net.rollout_many(states, specs, seeds, turn_cap, bn)):
+        record(arms[t], res)  # prefix values backed BEFORE any tail pick
+    for t in range(prefix, n_rollouts):  # tail: exact UCB needs all prior values
+        arm = ucb.pick()  # ledger here == exactly the sequential loop's state
+        pols = {s: BcAsk.fresh(net_spec, device) for s in (0, 1)}
+        record(
+            arm,
+            rollout(fork(branches[arm].game, supply), pols, rseed_of(t, arm), turn_cap),
+        )
+
+
 @dataclass
 class SearchOutcome:
     pi: list[float]  # visit fractions over the FULL menu
@@ -426,31 +482,46 @@ def root_search(
     buckets: Counter = Counter()
     mix: Counter = Counter()
     t_roll = time.perf_counter()
-    for t in range(n_rollouts):
-        arm = ucb.pick()
-        pols = {}
-        for s in range(2):
-            if rollout_mix == "greedy":
-                pols[s] = "greedy"
-                mix["greedy"] += 1
-            elif rollout_mix == "net":
-                # /74 §5: fresh root-net instance per seat (cached weights)
-                pols[s] = BcAsk.fresh(net_spec, rollout_device)
-                mix["net"] += 1
-            elif rng.random() < 0.5:
-                pols[s] = "greedy"
-                mix["greedy"] += 1
-            elif cheap_rollout:
-                pols[s] = "random"
-                mix["random"] += 1
-            else:
-                pols[s] = BcAsk.fresh(net_spec, rollout_device)
-                mix["net"] += 1
-        rseed = stable_int("roll", game_seed, seat, ask_ordinal, arm, t)
-        res = rollout(fork(branches[arm].game, pos.supply), pols, rseed, turn_cap)
-        v, bucket = rollout_value(res, seat)
-        buckets[bucket] += 1
-        ucb.push(arm, v)
+    if rollout_mix == "net":
+        # /79 cost gate: BATCHED on-policy rollouts — one model instance per
+        # process, all parked seats scored in one forward per rollout step
+        # (tools/search/batch_net). UCB allocation stays exact-sequential.
+        _net_pulls(
+            branches,
+            pos.supply,
+            net_spec,
+            rollout_device,
+            game_seed,
+            seat,
+            ask_ordinal,
+            n_rollouts,
+            turn_cap,
+            ucb,
+            buckets,
+            mix,
+        )
+    else:
+        for t in range(n_rollouts):
+            arm = ucb.pick()
+            pols = {}
+            for s in range(2):
+                if rollout_mix == "greedy":
+                    pols[s] = "greedy"
+                    mix["greedy"] += 1
+                elif rng.random() < 0.5:
+                    pols[s] = "greedy"
+                    mix["greedy"] += 1
+                elif cheap_rollout:
+                    pols[s] = "random"
+                    mix["random"] += 1
+                else:
+                    pols[s] = BcAsk.fresh(net_spec, rollout_device)
+                    mix["net"] += 1
+            rseed = stable_int("roll", game_seed, seat, ask_ordinal, arm, t)
+            res = rollout(fork(branches[arm].game, pos.supply), pols, rseed, turn_cap)
+            v, bucket = rollout_value(res, seat)
+            buckets[bucket] += 1
+            ucb.push(arm, v)
     rollout_ms = (time.perf_counter() - t_roll) * 1000
 
     pi = ucb.visit_fracs(len(menu))
