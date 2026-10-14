@@ -40,6 +40,7 @@ def _worker(
     cheap: bool,
     net_spec: str,
     rollout_mix: str,
+    rollout_device: str = "cpu",
 ) -> dict:
     """Run one game in a worker process; returns JSON-safe per-game stats.
 
@@ -60,6 +61,7 @@ def _worker(
         cheap_rollout=cheap,
         net_spec=net_spec,
         rollout_mix=rollout_mix,
+        rollout_device=rollout_device,
     )
     s = r["stats"]
     return {
@@ -78,6 +80,10 @@ def _worker(
         "top1_visit_sum": s.top1_visit_sum,
         "abs_value_dev_sum": s.abs_value_dev_sum,
         "net_disagree": s.net_disagree,
+        "adv_mix_sum": s.adv_mix_sum,
+        "abs_adv_mix_sum": s.abs_adv_mix_sum,
+        "adv_gt01": s.adv_gt01,
+        "adv_on_disagree_sum": s.adv_on_disagree_sum,
         "by_kind": {k: dict(v) for k, v in s.by_kind.items()},
         "kind_top1": s.kind_top1,
         "kind_dev": s.kind_dev,
@@ -151,7 +157,14 @@ def main(argv: list[str] | None = None) -> int:
         default="greedy",
         help="greedy (default, /72 AZ-v3): both rollout seats run the "
         "greedy teacher -- random drivers contaminated values; "
-        "mixed = legacy 50/50 greedy/random (or net with --no-cheap-rollout)",
+        "mixed = legacy 50/50 greedy/random (or net with --no-cheap-rollout); "
+        "net (/74 §5 IMPROVEMENT): both rollout seats are fresh instances "
+        "of the root net -- on-policy values",
+    )
+    ap.add_argument(
+        "--rollout-device",
+        default="cpu",
+        help="device for rollout net seats (default cpu: GPU busy with training waves)",
     )
     args = ap.parse_args(argv)
     knobs = (
@@ -161,6 +174,7 @@ def main(argv: list[str] | None = None) -> int:
         args.cheap_rollout,
         args.net,
         args.rollout_mix,
+        args.rollout_device,
     )
     t0 = time.time()
 
@@ -169,6 +183,16 @@ def main(argv: list[str] | None = None) -> int:
             g = _worker(seed, *knobs)
             assert g["crash"] is None, f"smoke crash {seed}: {g['reason']}"
             assert g["asks_searched"] >= 3, f"smoke degenerate {seed}"
+            if args.rollout_mix == "net":
+                # rollouts must be driven by the net (BcAsk instances), NOT
+                # the heuristic/random seats: the ledger is the probe.
+                pm = g["policy_mix"]
+                assert pm.get("net", 0) == 2 * g["rollouts"], pm
+                assert not pm.get("greedy") and not pm.get("random"), pm
+            for seat_eps in g["episodes"].values():
+                for ep in seat_eps:  # verify_episode ran; belt + adv range
+                    for r in ep["asks"]:
+                        assert -1.0 <= r["adv_mix"] <= 1.0, (seed, r["what"])
             print(
                 f"smoke seed={seed} {g['seconds']}s result={g['result']} "
                 f"asks={g['asks_searched']} rollouts={g['rollouts']} "
@@ -248,6 +272,8 @@ def _aggregate(games: list[dict], wall: float, n_eps: int) -> dict:
         for k, v in g["by_kind"].items():
             kinds.setdefault(k, Counter()).update(v)
     dev_shaping = buck["shaping"] / max(1, rolls)
+    disagree = sum(g["net_disagree"] for g in games)
+    adv_sum = sum(g.get("adv_mix_sum", 0.0) for g in games)
     return {
         "wall_seconds": round(wall, 1),
         "seconds_per_game_serialised": round(
@@ -274,6 +300,21 @@ def _aggregate(games: list[dict], wall: float, n_eps: int) -> dict:
             "swallowed_asks": sum(g["swallowed"] for g in games),
             "net_disagree_rate": round(
                 sum(g["net_disagree"] for g in games) / max(1, asks), 3
+            ),
+            # /74 §5 IMPROVEMENT addendum: cold-feet map WITH on-policy
+            # values. disagree = net argmax != search top-1; adv_mix is the
+            # search pick's backed-value edge over the net's (champion) pick.
+            "mean_adv_mix": round(adv_sum / max(1, asks), 4),
+            "mean_abs_adv_mix": round(
+                sum(g.get("abs_adv_mix_sum", 0.0) for g in games) / max(1, asks), 4
+            ),
+            "share_adv_gt_0.1": round(
+                sum(g.get("adv_gt01", 0) for g in games) / max(1, asks), 4
+            ),
+            "mean_adv_on_disagree": round(
+                sum(g.get("adv_on_disagree_sum", 0.0) for g in games)
+                / max(1, disagree),
+                4,
             ),
         },
         "buckets": dict(buck),

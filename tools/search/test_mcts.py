@@ -99,6 +99,20 @@ def test_value_shaping_clamped_and_seat_flipped():
     )
 
 
+def test_adv_mix_math_root_seat_edge_over_champion_pick():
+    """/74 §5 IMPROVEMENT label: value(search-top1) - value(net-argmax
+    champion pick); 0 when either arm was never evaluated or they coincide;
+    bounded by the [0,1] backed values."""
+    means = {0: 0.7, 1: 0.3, 2: 0.5}
+    assert mcts.adv_mix_of(means, 0, 1) == pytest.approx(0.4)
+    assert mcts.adv_mix_of(means, 1, 0) == pytest.approx(-0.4)
+    assert mcts.adv_mix_of(means, 2, 2) == 0.0  # search pick IS the champion
+    assert mcts.adv_mix_of({0: 1.0}, 0, 5) == 0.0  # champion arm apply-crashed
+    assert mcts.adv_mix_of({1: 0.2}, 7, 1) == 0.0  # search pick unevaluated
+    assert mcts.adv_mix_of({0: 1.0, 1: 0.0}, 0, 1) == 1.0  # endpoints
+    assert mcts.adv_mix_of({0: 0.0, 1: 1.0}, 0, 1) == -1.0
+
+
 # ----------------------------------------------------------- end to end
 # These run real net forwards on a shared CPU; under pool load one call can
 # blow past the repo's global 120 s pytest-timeout, which would be caught by
@@ -266,3 +280,50 @@ def test_branch_next_ask_matches_discovery():
         if checked >= 2:
             break
     assert checked >= 1, "no mid_act branch exercised"
+
+
+class _CountingNet:
+    """Pass-through wrapper proving a rollout seat's decisions really came
+    from the net (call counter) while keeping BcAsk's stream semantics."""
+
+    def __init__(self, net):
+        self.net, self.calls = net, 0
+
+    def decide(self, ctx):
+        self.calls += 1
+        return self.net.decide(ctx)
+
+
+@E2E_TIMEOUT
+def test_net_spec_rollouts_deterministic_under_seed():
+    """/74 §5 IMPROVEMENT: a rollout seat driven by a FRESH root-net instance
+    (a) actually plays (decide() called; the seat is a BcAsk, NOT the
+    HeuristicTeacher class), and (b) is fully deterministic under the same
+    seed — two forks + fresh streams replay the identical game — and the
+    net line differs from the greedy line (the mix is not a no-op)."""
+    from tools.eval.gameplay_eval_v2 import HeuristicTeacher
+    from tools.search.fork import fork
+    from tools.search.rollout import play_position, rollout
+    from tools.training.ab_duel import BcAsk
+
+    pos = None
+    for turn in (6, 8, 10, 12):
+        try:
+            pos = play_position(20261010, at_turn=turn)
+            break
+        except RuntimeError:  # game ended before the requested turn
+            continue
+    assert pos is not None
+
+    def net_seats():
+        return {s: _CountingNet(BcAsk.fresh(mcts.NET_SPEC, "cpu")) for s in (0, 1)}
+
+    a, b = net_seats(), net_seats()
+    r1 = rollout(fork(pos.game, pos.supply), a, 555, turn_cap=6)
+    r2 = rollout(fork(pos.game, pos.supply), b, 555, turn_cap=6)
+    assert all(not isinstance(w, HeuristicTeacher) for w in a.values())
+    assert sum(w.calls for w in a.values()) > 0  # the net really drove seats
+    assert r1.fingerprint and r1.result == r2.result
+    assert r1.fingerprint == r2.fingerprint
+    rg = rollout(fork(pos.game, pos.supply), "greedy", 555, turn_cap=6)
+    assert rg.fingerprint != r1.fingerprint  # net seats != greedy seats

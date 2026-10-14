@@ -91,7 +91,8 @@ N_ROLLOUTS_DEFAULT = 6
 TURN_CAP_DEFAULT = 60  # rollout()'s own default cap
 ROLL_CAP_DEFAULT = 25  # /69 cost wave: short AlphaZero-style rollouts
 PI_MIX_VISIT_WEIGHT = 0.75  # /72 AZ-v3: pi_mix = w*visits + (1-w)*net probs
-ROLLOUT_MIXES = ("greedy", "mixed")  # /72: random drivers contaminated values
+ROLLOUT_MIXES = ("greedy", "mixed", "net")  # /72: random drivers contaminated
+# values; /74 §5 "net": ON-POLICY rollouts — the root net drives both seats
 DECK_PAIRS_SEED = 1409  # the v2 rig pairing
 DISCOVER_HORIZON = 8  # turns a probe may run to reach the next ask
 WALK_STEP_CAP = 1500  # pathological-loop guard for one self-play game
@@ -180,6 +181,17 @@ def pi_mix_of(
     mix = [w * v + (1.0 - w) * p for v, p in zip(visits, probs)]
     tot = sum(mix)
     return [x / tot for x in mix] if tot > 0 else [1.0 / len(mix)] * len(mix)
+
+
+def adv_mix_of(means: dict[int, float], chosen: int, net_idx: int) -> float:
+    """IMPROVEMENT label (/74 §5, on-policy values): ``value(search-top1
+    option) - value(champion-pick option)`` — the root net's own argmax pick
+    is the champion — from the ROOT SEAT's view, over arm mean backed
+    values. In [-1, 1] by construction. 0.0 when the champion pick is the
+    search pick itself or was never evaluated (its apply fork crashed)."""
+    if chosen == net_idx or chosen not in means or net_idx not in means:
+        return 0.0
+    return max(-1.0, min(1.0, means[chosen] - means[net_idx]))
 
 
 # ------------------------------------------------- discovery / apply forks
@@ -355,6 +367,7 @@ class SearchOutcome:
     net_fwd: int = 1  # menu_probs is the root's only net forward
     net_fwd_ms: float = 0.0
     pi_mix: list[float] = field(default_factory=list)  # /72 AZ-v3 blend target
+    adv_mix: float = 0.0  # /74 §5 IMPROVEMENT label (see adv_mix_of)
     branches: dict[int, Branch] = field(default_factory=dict, repr=False)
 
 
@@ -373,6 +386,7 @@ def root_search(
     policy_rng: random.Random | None = None,
     cheap_rollout: bool = True,
     rollout_mix: str = "mixed",
+    rollout_device: str = "cpu",
 ) -> SearchOutcome:
     """One searched ask: root probs -> top-k arms -> UCB1 allocation of N
     rollouts -> soft pi + backed value. ``net`` (the seat's root instance)
@@ -380,7 +394,11 @@ def root_search(
     same block ``decide`` would). With ``cheap_rollout`` (default) the net
     never plays a rollout: seats draw greedy vs RANDOM 50/50.
     ``rollout_mix="greedy"`` (/72 AZ-v3) drives BOTH rollout seats with the
-    greedy teacher — random drivers contaminated the backed values."""
+    greedy teacher — random drivers contaminated the backed values.
+    ``rollout_mix="net"`` (/74 §5 IMPROVEMENT) drives BOTH seats with a
+    FRESH instance of the root net on ``rollout_device`` (weights shared
+    per-process via BcAsk's model cache) — on-policy values;
+    ``cheap_rollout`` is then irrelevant."""
     rng = policy_rng or random.Random(stable_int("ucb", game_seed, seat, ask_ordinal))
     t_fwd = time.perf_counter()
     probs = net.menu_probs(ctx)
@@ -415,6 +433,10 @@ def root_search(
             if rollout_mix == "greedy":
                 pols[s] = "greedy"
                 mix["greedy"] += 1
+            elif rollout_mix == "net":
+                # /74 §5: fresh root-net instance per seat (cached weights)
+                pols[s] = BcAsk.fresh(net_spec, rollout_device)
+                mix["net"] += 1
             elif rng.random() < 0.5:
                 pols[s] = "greedy"
                 mix["greedy"] += 1
@@ -422,7 +444,7 @@ def root_search(
                 pols[s] = "random"
                 mix["random"] += 1
             else:
-                pols[s] = BcAsk.fresh(net_spec, "cpu")  # root net as full agent
+                pols[s] = BcAsk.fresh(net_spec, rollout_device)
                 mix["net"] += 1
         rseed = stable_int("roll", game_seed, seat, ask_ordinal, arm, t)
         res = rollout(fork(branches[arm].game, pos.supply), pols, rseed, turn_cap)
@@ -435,6 +457,8 @@ def root_search(
     pi_mix = pi_mix_of(pi, list(probs))
     value = sum(ucb.q.values()) / max(1, sum(ucb.n.values()))
     chosen = max(ucb.n, key=lambda a: (ucb.n[a], -a))
+    means = {a: ucb.q[a] / ucb.n[a] for a in ucb.n if ucb.n[a]}
+    adv_mix = adv_mix_of(means, chosen, net_idx)
     chosen_cache = branches[chosen].next_ask is not None
     heur = HeuristicTeacher()
     heur_idx = heur.decide(ctx)
@@ -456,6 +480,7 @@ def root_search(
         rollout_ms=rollout_ms,
         net_fwd_ms=fwd_ms,
         pi_mix=pi_mix,
+        adv_mix=adv_mix,
         branches=branches,
     )
 
@@ -473,6 +498,10 @@ class GameStats:
     top1_visit_sum: float = 0.0
     abs_value_dev_sum: float = 0.0
     net_disagree: int = 0
+    adv_mix_sum: float = 0.0  # /74 §5 IMPROVEMENT-label aggregates
+    abs_adv_mix_sum: float = 0.0
+    adv_gt01: int = 0  # asks where search-top1 beat the champion pick by >0.1
+    adv_on_disagree_sum: float = 0.0  # cold-feet map: adv on net-disagree asks
     by_kind: dict[str, Counter] = field(default_factory=dict)
     setup_asks: int = 0
     # cost instrumentation (/69): where the CPU-minutes actually go
@@ -507,6 +536,7 @@ def _row_of(
         "pi": list(out.pi),  # NOT rounded: sum==1 +-1e-6 must hold exactly
         "pi_mix": list(out.pi_mix),  # /72 AZ-v3 blend target (same law)
         "value": round(out.value, 6),
+        "adv_mix": round(out.adv_mix, 6),  # /74 §5 IMPROVEMENT label
         "net_idx": out.net_idx,
         "heur_idx": out.heur_idx,
     }
@@ -533,6 +563,8 @@ def verify_episode(ep: dict[str, Any]) -> None:
             assert abs(sum(src["pi_mix"]) - 1.0) < 1e-6, (ep["pack"], src["what"])
             assert all(p >= 0.0 for p in src["pi_mix"])
         assert 0.0 <= src["value"] <= 1.0
+        if "adv_mix" in src:  # /74 §5 rows: improvement label in [-1, 1]
+            assert -1.0 <= src["adv_mix"] <= 1.0, (ep["pack"], src["what"])
         assert 0 <= src["gold_idx"] < len(src["candidates"])
 
 
@@ -546,6 +578,7 @@ def gen_game(
     device: str = "cpu",
     cheap_rollout: bool = True,
     rollout_mix: str = "mixed",
+    rollout_device: str = "cpu",
 ) -> dict[str, Any]:
     """One AlphaZero-style self-play game: both seats root-search with the
     same net (independent UCB streams by seed derivation). Returns episodes
@@ -635,6 +668,7 @@ def gen_game(
                 net_spec=net_spec,
                 cheap_rollout=cheap_rollout,
                 rollout_mix=rollout_mix,
+                rollout_device=rollout_device,
             )
             ask_ordinal[seat] += 1
             stats.asks_searched += 1
@@ -644,6 +678,11 @@ def gen_game(
             stats.top1_visit_sum += max(out.pi) if out.pi else 0.0
             stats.abs_value_dev_sum += abs(out.value - 0.5)
             stats.net_disagree += int(out.chosen != out.net_idx)
+            stats.adv_mix_sum += out.adv_mix
+            stats.abs_adv_mix_sum += abs(out.adv_mix)
+            stats.adv_gt01 += int(out.adv_mix > 0.1)
+            if out.chosen != out.net_idx:
+                stats.adv_on_disagree_sum += out.adv_mix
             stats.apply_ms += out.apply_ms
             stats.rollout_ms += out.rollout_ms
             stats.net_fwd += out.net_fwd
