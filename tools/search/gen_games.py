@@ -62,12 +62,17 @@ def _gpu_guard(device: str, workers: int = 1) -> None:
         return
     import torch
 
-    free, _ = torch.cuda.mem_get_info()
+    free, total = torch.cuda.mem_get_info()
     if free < MIN_BYTES_PER_WORKER * workers:
         raise RuntimeError(
             f"cuda guard: free {free / 2**30:.2f} GiB < "
             f"{MIN_BYTES_PER_WORKER * workers / 2**30:.2f} GiB needed"
         )
+    # P0 law (KNOWLEDGE/PITFALLS 2026-10-14, owner): CUDA allocs are not
+    # cgroup-charged; behind the engine's ~98 GiB the box OOM-killed itself.
+    # Cap THIS process' allocator to a fair share of remaining headroom.
+    share = max(0.02, min(0.15, (free - 3 * 2**30) / total / max(workers, 1)))
+    torch.cuda.set_per_process_memory_fraction(share)
 
 
 def _worker(
@@ -251,7 +256,7 @@ def main(argv: list[str] | None = None) -> int:
     seeds = list(range(args.seeds, args.seeds + args.games))
     if args.rollout_device == "cuda":  # /79 parent-side precheck (subprocess:
         free = _cuda_free_bytes()  # the parent must not init CUDA before fork)
-        need = MIN_BYTES_PER_WORKER * args.workers
+        need = MIN_BYTES_PER_WORKER * args.workers + 3 * 2**30  # P0 engine margin
         if free is None or free < need:
             print(
                 f"REFUSED: cuda rollout wants {need / 2**30:.1f} GiB free "
