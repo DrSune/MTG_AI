@@ -1,0 +1,171 @@
+{
+ "wall_seconds": 4080.0,
+ "seconds_per_game_serialised": 468.9,
+ "games": 7,
+ "results": {
+  "draw": 1,
+  "seat0": 5,
+  "seat1": 1
+ },
+ "crashes": [],
+ "episodes": 131,
+ "asks_searched": 411,
+ "asks_per_game": 58.7,
+ "rollouts": 3288,
+ "rollouts_per_ask": 8.0,
+ "rollout_fail_rate": 0.0024,
+ "headline": {
+  "top1_visit_share": 0.389,
+  "mean_abs_value_dev": 0.405,
+  "shaping_share": 0.235,
+  "decided_share": 0.762,
+  "swallowed_asks": 180,
+  "net_disagree_rate": 0.815,
+  "mean_adv_mix": 0.0344,
+  "mean_abs_adv_mix": 0.0464,
+  "share_adv_gt_0.1": 0.0681,
+  "mean_adv_on_disagree": 0.0422
+ },
+ "buckets": {
+  "shaping": 773,
+  "decided": 2507,
+  "crash": 8
+ },
+ "by_kind": {
+  "act": {
+   "asks": 280,
+   "rollouts": 2240,
+   "decided": 1544,
+   "shaping": 688,
+   "crash": 8,
+   "net_disagree": 249
+  },
+  "attack": {
+   "asks": 45,
+   "rollouts": 360,
+   "decided": 355,
+   "shaping": 5,
+   "crash": 0,
+   "net_disagree": 1
+  },
+  "choose": {
+   "asks": 83,
+   "rollouts": 664,
+   "decided": 584,
+   "shaping": 80,
+   "crash": 0,
+   "net_disagree": 82
+  },
+  "other": {
+   "asks": 1,
+   "rollouts": 8,
+   "decided": 8,
+   "shaping": 0,
+   "crash": 0,
+   "net_disagree": 1
+  },
+  "target": {
+   "asks": 2,
+   "rollouts": 16,
+   "decided": 16,
+   "shaping": 0,
+   "crash": 0,
+   "net_disagree": 2
+  }
+ },
+ "cost": {
+  "probes": 241,
+  "probe_cache_hits": 170,
+  "probe_ms": 4067.0,
+  "apply_ms": 23804.5,
+  "rollout_ms": 3119044.4,
+  "net_fwd": 411,
+  "net_fwd_ms": 134749.5,
+  "policy_mix": {
+   "net": 6576
+  },
+  "seconds_per_game_min": 124.4,
+  "seconds_per_game_max": 803.4
+ },
+ "failed_games": [
+  {
+   "seed": 9112,
+   "type": "budget_cutoff",
+   "msg": "",
+   "first_frame": ""
+  },
+  {
+   "seed": 9116,
+   "type": "budget_cutoff",
+   "msg": "",
+   "first_frame": ""
+  },
+  {
+   "seed": 9110,
+   "type": "budget_cutoff",
+   "msg": "",
+   "first_frame": ""
+  },
+  {
+   "seed": 9107,
+   "type": "budget_cutoff",
+   "msg": "",
+   "first_frame": ""
+  },
+  {
+   "seed": 9113,
+   "type": "budget_cutoff",
+   "msg": "",
+   "first_frame": ""
+  },
+  {
+   "seed": 9117,
+   "type": "budget_cutoff",
+   "msg": "",
+   "first_frame": ""
+  },
+  {
+   "seed": 9108,
+   "type": "budget_cutoff",
+   "msg": "",
+   "first_frame": ""
+  },
+  {
+   "seed": 9114,
+   "type": "budget_cutoff",
+   "msg": "",
+   "first_frame": ""
+  },
+  {
+   "seed": 9118,
+   "type": "budget_cutoff",
+   "msg": "",
+   "first_frame": ""
+  },
+  {
+   "seed": 9111,
+   "type": "budget_cutoff",
+   "msg": "",
+   "first_frame": ""
+  },
+  {
+   "seed": 9109,
+   "type": "budget_cutoff",
+   "msg": "",
+   "first_frame": ""
+  },
+  {
+   "seed": 9115,
+   "type": "budget_cutoff",
+   "msg": "",
+   "first_frame": ""
+  },
+  {
+   "seed": 9119,
+   "type": "budget_cutoff",
+   "msg": "",
+   "first_frame": ""
+  }
+ ],
+ "n_failed": 13
+}

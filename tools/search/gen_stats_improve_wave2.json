@@ -1,0 +1,84 @@
+{
+ "wall_seconds": 8983.5,
+ "seconds_per_game_serialised": 449.0,
+ "games": 20,
+ "results": {
+  "seat1": 6,
+  "draw": 10,
+  "seat0": 4
+ },
+ "crashes": [],
+ "episodes": 381,
+ "asks_searched": 1112,
+ "asks_per_game": 55.6,
+ "rollouts": 8896,
+ "rollouts_per_ask": 8.0,
+ "rollout_fail_rate": 0.0432,
+ "headline": {
+  "top1_visit_share": 0.368,
+  "mean_abs_value_dev": 0.385,
+  "shaping_share": 0.253,
+  "decided_share": 0.703,
+  "swallowed_asks": 345,
+  "net_disagree_rate": 0.832,
+  "mean_adv_mix": 0.0146,
+  "mean_abs_adv_mix": 0.0246,
+  "share_adv_gt_0.1": 0.0432,
+  "mean_adv_on_disagree": 0.0175
+ },
+ "buckets": {
+  "shaping": 2254,
+  "decided": 6258,
+  "crash": 384
+ },
+ "by_kind": {
+  "act": {
+   "asks": 830,
+   "rollouts": 6640,
+   "decided": 4333,
+   "shaping": 2012,
+   "crash": 295,
+   "net_disagree": 730
+  },
+  "attack": {
+   "asks": 85,
+   "rollouts": 680,
+   "decided": 601,
+   "shaping": 47,
+   "crash": 32,
+   "net_disagree": 4
+  },
+  "choose": {
+   "asks": 193,
+   "rollouts": 1544,
+   "decided": 1294,
+   "shaping": 195,
+   "crash": 55,
+   "net_disagree": 187
+  },
+  "other": {
+   "asks": 4,
+   "rollouts": 32,
+   "decided": 30,
+   "shaping": 0,
+   "crash": 2,
+   "net_disagree": 4
+  }
+ },
+ "cost": {
+  "probes": 705,
+  "probe_cache_hits": 407,
+  "probe_ms": 11799.2,
+  "apply_ms": 67156.0,
+  "rollout_ms": 8540244.4,
+  "net_fwd": 1112,
+  "net_fwd_ms": 360013.3,
+  "policy_mix": {
+   "net": 17792
+  },
+  "seconds_per_game_min": 179.0,
+  "seconds_per_game_max": 944.2
+ },
+ "failed_games": [],
+ "n_failed": 0
+}
