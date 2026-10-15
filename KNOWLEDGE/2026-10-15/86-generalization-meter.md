@@ -60,3 +60,6 @@ the card split above is the honest proxy, and the shadow line's family-filter no
 P1 audit item for every live-data clone.
 
 Producer: `.venv/bin/python -m tools.eval.holdout_report --ckpts tools/training/bc9_S3_s1_best.pt,tools/training/bsh_S3a_s1_best.pt,tools/training/bc10_S3a_s1_best.pt --split card --out tools/eval/holdout_report.json` (set-mode degeneracy: same cmd `--split set`, json → /tmp/opencode/holdout_set_mode.json).
+
+## Disposition of the P1 audit item (orchestrator, same day)
+Shadow clones train on LIVE games which contain nearly every pool card (77/80 gate cards in obs) — family exclusion is STRUCTURALLY meaningless for live-data regimes; their puzzle-gate acc (0.643) is train-overlap-contaminated => REPORTING rule: shadow clones are judged by WR ONLY; puzzle-gate comparisons across exposure regimes are invalid (meter supports --split card only for era nets). True set-level generalization awaits set #2 (ZNR) — first-ever measurable instance, meter ready (--split set --fresh-sets ZNR).
