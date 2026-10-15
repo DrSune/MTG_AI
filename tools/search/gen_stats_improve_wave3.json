@@ -1,0 +1,141 @@
+{
+ "wall_seconds": 4501.7,
+ "seconds_per_game_serialised": 225.0,
+ "games": 20,
+ "results": {
+  "seat1": 3,
+  "seat0": 7,
+  "draw": 10
+ },
+ "crashes": [],
+ "episodes": 228,
+ "asks_searched": 773,
+ "asks_per_game": 38.6,
+ "rollouts": 6184,
+ "rollouts_per_ask": 8.0,
+ "rollout_fail_rate": 0.0031,
+ "headline": {
+  "top1_visit_share": 0.439,
+  "mean_abs_value_dev": 0.424,
+  "shaping_share": 0.179,
+  "decided_share": 0.818,
+  "swallowed_asks": 299,
+  "net_disagree_rate": 0.612,
+  "mean_adv_mix": 0.0386,
+  "mean_abs_adv_mix": 0.0386,
+  "share_adv_gt_0.1": 0.0802,
+  "mean_adv_on_disagree": 0.0591,
+  "gold_idx0_share": 0.203,
+  "gold_decided_share": 0.092,
+  "mean_adv_mix_boot_se": 0.0054
+ },
+ "buckets": {
+  "decided": 5060,
+  "shaping": 1105,
+  "crash": 19
+ },
+ "by_kind": {
+  "act": {
+   "asks": 478,
+   "rollouts": 3824,
+   "decided": 2923,
+   "shaping": 890,
+   "crash": 11,
+   "net_disagree": 304,
+   "gold_idx0": 20,
+   "gold_value": 39
+  },
+  "attack": {
+   "asks": 130,
+   "rollouts": 1040,
+   "decided": 961,
+   "shaping": 79,
+   "crash": 0,
+   "net_disagree": 78,
+   "gold_idx0": 125,
+   "gold_value": 12
+  },
+  "choose": {
+   "asks": 160,
+   "rollouts": 1280,
+   "decided": 1136,
+   "shaping": 136,
+   "crash": 8,
+   "net_disagree": 90,
+   "gold_idx0": 10,
+   "gold_value": 20
+  },
+  "may": {
+   "asks": 2,
+   "rollouts": 16,
+   "decided": 16,
+   "shaping": 0,
+   "crash": 0,
+   "net_disagree": 0,
+   "gold_idx0": 2,
+   "gold_value": 0
+  },
+  "other": {
+   "asks": 2,
+   "rollouts": 16,
+   "decided": 16,
+   "shaping": 0,
+   "crash": 0,
+   "net_disagree": 1,
+   "gold_idx0": 0,
+   "gold_value": 0
+  },
+  "target": {
+   "asks": 1,
+   "rollouts": 8,
+   "decided": 8,
+   "shaping": 0,
+   "crash": 0,
+   "net_disagree": 0,
+   "gold_idx0": 0,
+   "gold_value": 0
+  }
+ },
+ "kind_gold_shares": {
+  "act": {
+   "gold_idx0_share": 0.042,
+   "gold_value_share": 0.082
+  },
+  "attack": {
+   "gold_idx0_share": 0.962,
+   "gold_value_share": 0.092
+  },
+  "choose": {
+   "gold_idx0_share": 0.062,
+   "gold_value_share": 0.125
+  },
+  "may": {
+   "gold_idx0_share": 1.0,
+   "gold_value_share": 0.0
+  },
+  "other": {
+   "gold_idx0_share": 0.0,
+   "gold_value_share": 0.0
+  },
+  "target": {
+   "gold_idx0_share": 0.0,
+   "gold_value_share": 0.0
+  }
+ },
+ "cost": {
+  "probes": 457,
+  "probe_cache_hits": 316,
+  "probe_ms": 7721.8,
+  "apply_ms": 37433.4,
+  "rollout_ms": 4202986.2,
+  "net_fwd": 773,
+  "net_fwd_ms": 250868.5,
+  "policy_mix": {
+   "net": 12368
+  },
+  "seconds_per_game_min": 30.1,
+  "seconds_per_game_max": 461.7
+ },
+ "failed_games": [],
+ "n_failed": 0
+}

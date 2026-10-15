@@ -1,0 +1,6 @@
+# 84 — Wave3: first LEGITIMATE improvement-label run (value-gold pipeline, /83-superseded fixes) — design = 9.2% value-gold dose test
+
+Date: 2026-10-15. 20/20 games, 0 failures (wave1/2's pool-budget misuse and UCB-noise pipeline both retired). Monitors: gold_idx0_share 0.203 (was 0.73 — prior gravity gone), VALUE-decided share 0.092 (gate: vgap>0.05, visits>=2, N>=2*menu), net_disagree 0.612, adv_mix 0.0386 +- 0.0054 (bootstrap SE — first adv number WITH an error bar; nonzero at >7 SE but small).
+Guard note: my 250-eps floor aborted the auto-chain at 228 eps; override rationale: floor was calibrated on the noisy pipeline's inflated yields; 228 clean eps >= the 131 that produced parity earlier; volume ruled out anyway (/80). Type-2 reversible.
+Design reading: corpus = 91% net-pick shaping + 9% value-gold. If value labels HELP, mirror vs bsh_s1 (expert-only clone) should rise (or teacher WR > band); if they HARM even at 9%, improvement-line dies legitimately this time. Ambiguity risks acknowledged: 228x40 vs 778x60 dose difference (bidirectional confound w/ /80); a τ=0.02 regen (bigger dose ~25%) or 40-game volume is the pre-authorized escalation if the dose test is borderline.
+Chain: bsi_S3a_s3 (mixed-228, 40 ep) -> mirror vs bsh_S3a_s1 + teacher, 200g, seed-base 9900.
