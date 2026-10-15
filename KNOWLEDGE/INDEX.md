@@ -159,3 +159,18 @@ A number not recorded in `NUMBERS.md` with a date and its producing command does
 - `2026-10-07/42-p1c-hexproof.md` **T4 P1c EXECUTED — L-4 CLOSED**: hexproof_of row oracle (bare=None | quality=Filter) + single TARGET-mode chokepoint in enumerate_candidates (cast validator/asks/sweepers pinned); fresh-eyes MAJOR fixed: stacked spells source keyword rows from the compiled binder record (`_printed_stack_rows`) — "hexproof from {quality}" no longer collapses to bare on the stack (CR 702.11b/113.10); TREASURE stays decorative; tests 13->18 in test_executor_hexproof.py; gates 2491+2st / 373 / 153
 - `2026-10-09/61-dagger-wave-v1.md` **DAgger wave v1 EXECUTED**: 60 BC-vs-BC games, dual teacher (pack-gold + heuristic fallback); pack lane 77/77 agreement -> 0 certified new rows (file = 131 originals); heuristic harvest 3,265 rows SEPARATE file (never merge unadjudicated); encode law exact-verified on output; chunk-budget bug found+fixed (PITFALLS)
 - `2026-10-10/62-act-sense-wave.md` **act-sense wave EXECUTED**: 12 new packs (attack/block/cast-priority/may-realistic), 398/398 scenario PASS, corpus 199 items (+19, no_discrimination=0), Riddleform=Enchantment self-pump (retired), Spellgorger IS_SOURCE auto-counter, block-map null law + damage-mark-clearing pinned, gates 2502+2st / 164
+
+## 2026-10-13 -> 15 (gameplay era: era-audit -> shadow frontier -> falsification ledger)
+- `2026-10-13/75-era-regression-audit.md` **era audit**: batch9 hidden gameplay regression confirmed (0.349); act-sense exonerated; WR-probe admission law
+- `2026-10-13/76-numeric-lane-tokenizer-gap.md` **live-UNK 33.5%** numeric-lane tokenizer gap; 3 fix candidates
+- `2026-10-13/77-shadow1-frontier.md` **SHADOW-1 FRONTIER** 0.4256 teacher; DAgger cure confirmed; drift closed 0.0007
+- `2026-10-13/78-digit-cure-implementation.md` NUMTOK cure finals: no premium (scratch 0.4308 band-top); containment suffices
+- `2026-10-13/79-net-rollouts-cost-gate.md` on-policy rollouts: rollout SPEED is the bottleneck law
+- `2026-10-14/80-volume-law-negative.md` **volume NEGATIVE** 5.9x data no gain (adversarial: stands, gradient-pass-matched)
+- `2026-10-14/81-day-memo-plateau-incident.md` day memo; **box-OOM incident owned**, P0 memory laws (single CUDA worker, fraction caps, scopes)
+- `2026-10-14/82-improvement-signal.md` first improve-signal (small-n, later corrected)
+- `2026-10-15/83-improvement-labels-negative.md` negative -> **SUPERSEDED: adversarial COLLAPSE** (UCB-noise gold, tiebreak bug); fixes implemented (value-gold, 39 tests)
+- `2026-10-15/84-wave3-dose-test.md` legit dose test: 9.2% value-gold = NEUTRAL (0.487/0.405)
+- `2026-10-15/85-plateau-fork-owner-memo.md` **FORK**: volume/tokens/labels falsified; R1 window / R2 RL / R3 freeze-pivot; rec = R3+R1
+- `2026-10-15/86-generalization-meter.md` **generalization meter**: unseen-card gap undetectable BY STRUCTURE (one set ever); armed for ZNR; clones = WR-only judging
+- `reports/FRONTIER.md` **checkpoint ledger** (single source: every ckpt, claim, admission status)
