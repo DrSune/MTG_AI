@@ -31,9 +31,12 @@ continuations) BECOMES the real game. Every real ask is therefore either a
 search root or a counted SWALLOWED ask (never silently lost — the stats
 break swallowed asks down by kind).
 
-Episode rows are ``bc_data_v2``-compatible with three added fields per row:
-``pi`` (visit fractions over the FULL menu, unexpanded options 0), ``value``
-(mean backed value) and episode ``label_class="search"``; chunking reuses
+Episode rows are ``bc_data_v2``-compatible with added fields per row:
+``pi`` (visit fractions over the FULL menu, unexpanded options 0 — /83 fix:
+DIAGNOSTIC only), ``value`` (mean backed value), ``gold_idx``/``label_src``
+(the gold rule: backed-value top1 when the decided gates pass, else the
+root-net pick — never visit argmax) and episode ``label_class="search"``;
+chunking reuses
 ``dagger_wave.chunk_seat`` so the encode-exactness asserts (n_tokens == the
 encoded stream, <= max_len) ride verbatim. Rows go ONLY to
 ``tools/training/episodes_search.jsonl`` (fresh file, never mixed into the
@@ -131,28 +134,43 @@ def rollout_value(res: RolloutResult, root_seat: int) -> tuple[float, str]:
 
 
 class Ucb1:
-    """Plain UCB1 over a fixed arm set: unvisited arms first (index order),
-    then argmax(Q_i + sqrt(2 ln t / n_i)); ties resolve to the lowest index,
-    so allocation is fully deterministic given the backed values."""
+    """Plain UCB1 over a fixed arm set: unvisited arms first (index order —
+    the ``_net_pulls`` batched prefix depends on that order being the ledger
+    alone), then argmax(Q_i + sqrt(2 ln t / n_i)). /83 SUPERSEDED fix: with
+    a seeded ``rng`` an EXACT UCB tie (or an exact visits tie in :meth:`best`)
+    draws uniformly among the tied arms instead of falling to the lowest
+    index — the old ``>`` tie-break gave every tie to arm 0 (73% index-0
+    gold concentration). Without ``rng``: the legacy deterministic contract,
+    ties to the lowest index."""
 
-    def __init__(self, arms: list[int]) -> None:
+    def __init__(self, arms: list[int], rng: random.Random | None = None) -> None:
         if not arms:
             raise ValueError("Ucb1: no arms")
         self.arms = list(arms)
         self.n = {a: 0 for a in self.arms}
         self.q = {a: 0.0 for a in self.arms}
         self.t = 0
+        self.rng = rng
+
+    def _tie(self, ties: list[int]) -> int:
+        return ties[0] if self.rng is None or len(ties) == 1 else self.rng.choice(ties)
 
     def pick(self) -> int:
-        for a in self.arms:  # unvisited first, deterministic
+        for a in self.arms:  # unvisited first, deterministic index order
             if self.n[a] == 0:
                 return a
-        best, best_v = self.arms[0], -math.inf
-        for a in self.arms:
-            v = self.q[a] / self.n[a] + math.sqrt(2.0 * math.log(self.t) / self.n[a])
-            if v > best_v:
-                best, best_v = a, v
-        return best
+        vals = {
+            a: self.q[a] / self.n[a] + math.sqrt(2.0 * math.log(self.t) / self.n[a])
+            for a in self.arms
+        }
+        best_v = max(vals.values())
+        return self._tie([a for a in self.arms if vals[a] == best_v])
+
+    def best(self) -> int:
+        """Most-visited arm; an exact visits tie draws from ``rng`` (the
+        played-arm pick must not inherit index-0 gravity either)."""
+        mx = max(self.n.values())
+        return self._tie([a for a in self.arms if self.n[a] == mx])
 
     def push(self, arm: int, value: float) -> None:
         self.n[arm] += 1
@@ -184,14 +202,64 @@ def pi_mix_of(
 
 
 def adv_mix_of(means: dict[int, float], chosen: int, net_idx: int) -> float:
-    """IMPROVEMENT label (/74 §5, on-policy values): ``value(search-top1
+    """IMPROVEMENT label (/74 §5, on-policy values; /83 fix: ``chosen`` is
+    now the VALUE-top1 arm, not the visit-top1 arm): ``value(value-top1
     option) - value(champion-pick option)`` — the root net's own argmax pick
     is the champion — from the ROOT SEAT's view, over arm mean backed
     values. In [-1, 1] by construction. 0.0 when the champion pick is the
-    search pick itself or was never evaluated (its apply fork crashed)."""
+    value top1 itself or was never evaluated (its apply fork crashed)."""
     if chosen == net_idx or chosen not in means or net_idx not in means:
         return 0.0
     return max(-1.0, min(1.0, means[chosen] - means[net_idx]))
+
+
+# ---------------------------------------------------------------- gold labelling
+# /83 SUPERSEDED fix: episode gold derives from BACKED VALUES, never from raw
+# UCB visit fractions (the old visit-argmax gold concentrated 73% on menu
+# index 0: the ``>`` UCB tie-break plus index-order prefix pulls leave the
+# lowest evaluated index permanently a pull ahead). An ask is labelled
+# ``"value"`` (gold = value-top1 arm) only when ALL THREE gates hold, else
+# ``"net"`` (gold = root-net argmax, the honest expert pick):
+#   * margin  — mean(value-top1) - mean(value-top2) > 0.05. That is half the
+#     shaping nudge quantum (a +-2 life diff moves a cap-out value by 0.05):
+#     anything smaller is inside the resolution of short-horizon rollouts.
+#   * support — the value-top1 arm has >= 2 pulls; one rollout is a single
+#     0/0.5/1 sample and cannot back a mean.
+#   * coverage — N total pulls >= 2 * menu size. Under unvisited-first
+#     allocation that means EVERY legal option was rolled out at least twice,
+#     so value-top1 never outranks an arm that was never evaluated.
+# Visit counts survive only as diagnostics (pi / top1_visit_share).
+GOLD_VALUE_MARGIN = 0.05
+GOLD_ARM_MIN_VISITS = 2
+GOLD_MIN_N_PER_ARM = 2
+
+
+def gold_from_values(
+    means: dict[int, float],
+    visits: dict[int, int],
+    n_total: int,
+    menu_len: int,
+    net_idx: int,
+    rng: random.Random | None = None,
+) -> tuple[int, str, int]:
+    """(/83 fix) ``(gold_idx, label_src, value_top1)`` with ``label_src`` in
+    ``{'value', 'net'}``. Only EVALUATED arms (a mean backed value exists)
+    are ranked; ``rng`` breaks value ties so no arm gets index-0 gravity.
+    ``value_top1`` is the ranked winner regardless of the gates (the adv_mix
+    diagnostic consumes it)."""
+    if not means:
+        return net_idx, "net", net_idx
+    arms = sorted(means)
+    top_v = max(means.values())
+    tie = [a for a in arms if means[a] == top_v]
+    top = tie[0] if rng is None or len(tie) == 1 else rng.choice(tie)
+    rest = [means[a] for a in arms if a != top]
+    decided = (
+        (not rest or means[top] - max(rest) > GOLD_VALUE_MARGIN)
+        and visits.get(top, 0) >= GOLD_ARM_MIN_VISITS
+        and n_total >= GOLD_MIN_N_PER_ARM * menu_len
+    )
+    return (top, "value", top) if decided else (net_idx, "net", top)
 
 
 # ------------------------------------------------- discovery / apply forks
@@ -407,9 +475,11 @@ def _net_pulls(
 
 @dataclass
 class SearchOutcome:
-    pi: list[float]  # visit fractions over the FULL menu
+    pi: list[float]  # visit fractions over the FULL menu (diagnostic only)
     value: float  # mean backed value over all N pulls
-    chosen: int  # argmax visits, ties -> lowest index (played + gold_idx)
+    chosen: int  # argmax visits, ties -> seeded rng (the PLAYED arm)
+    gold_idx: int  # episode label (/83 fix, gold_from_values)
+    label_src: str  # 'value' | 'net' (which rule produced gold_idx)
     net_idx: int  # root-net argmax (top-1 of menu_probs)
     heur_idx: int  # greedy teacher pick at the same ask
     visits: dict[int, int]
@@ -478,7 +548,7 @@ def root_search(
     if not branches:
         raise SearchError(f"all {len(want)} apply forks crashed at {info.site!r}")
 
-    ucb = Ucb1(sorted(branches))
+    ucb = Ucb1(sorted(branches), rng=rng)
     buckets: Counter = Counter()
     mix: Counter = Counter()
     t_roll = time.perf_counter()
@@ -527,9 +597,13 @@ def root_search(
     pi = ucb.visit_fracs(len(menu))
     pi_mix = pi_mix_of(pi, list(probs))
     value = sum(ucb.q.values()) / max(1, sum(ucb.n.values()))
-    chosen = max(ucb.n, key=lambda a: (ucb.n[a], -a))
+    chosen = ucb.best()  # PLAYED arm: visit-argmax, ties via the seeded rng
     means = {a: ucb.q[a] / ucb.n[a] for a in ucb.n if ucb.n[a]}
-    adv_mix = adv_mix_of(means, chosen, net_idx)
+    # /83 fix: the episode GOLD comes from backed values, not visit fractions
+    gold_idx, label_src, value_top1 = gold_from_values(
+        means, dict(ucb.n), sum(ucb.n.values()), len(menu), net_idx, rng
+    )
+    adv_mix = adv_mix_of(means, value_top1, net_idx)
     chosen_cache = branches[chosen].next_ask is not None
     heur = HeuristicTeacher()
     heur_idx = heur.decide(ctx)
@@ -539,6 +613,8 @@ def root_search(
         pi=pi,
         value=value,
         chosen=chosen,
+        gold_idx=gold_idx,
+        label_src=label_src,
         net_idx=net_idx,
         heur_idx=heur_idx,
         visits={a: c for a, c in ucb.n.items() if c},
@@ -571,8 +647,14 @@ class GameStats:
     net_disagree: int = 0
     adv_mix_sum: float = 0.0  # /74 §5 IMPROVEMENT-label aggregates
     abs_adv_mix_sum: float = 0.0
-    adv_gt01: int = 0  # asks where search-top1 beat the champion pick by >0.1
+    adv_gt01: int = 0  # asks where value-top1 beat the champion pick by >0.1
     adv_on_disagree_sum: float = 0.0  # cold-feet map: adv on net-disagree asks
+    # /83 fix monitors: gold must not concentrate on menu index 0 (target:
+    # ~1/mean menu size, was 0.73 via visit-argmax) and the value-rule must
+    # report its own coverage; adv per-ask list feeds a bootstrap SE.
+    gold_idx0_asks: int = 0
+    gold_value_asks: int = 0  # asks whose label_src == 'value' (decided)
+    adv_values: list[float] = field(default_factory=list)
     by_kind: dict[str, Counter] = field(default_factory=dict)
     setup_asks: int = 0
     # cost instrumentation (/69): where the CPU-minutes actually go
@@ -603,7 +685,8 @@ def _row_of(
             for g in bc_data_v2.ground_with(_cards_rows_of(obs), what, list(cands))
         ],
         "gold": True,
-        "gold_idx": out.chosen,
+        "gold_idx": out.gold_idx,  # /83 fix: value/net rule, not visit argmax
+        "label_src": out.label_src,  # 'value' | 'net' — which rule labelled it
         "pi": list(out.pi),  # NOT rounded: sum==1 +-1e-6 must hold exactly
         "pi_mix": list(out.pi_mix),  # /72 AZ-v3 blend target (same law)
         "value": round(out.value, 6),
@@ -637,6 +720,12 @@ def verify_episode(ep: dict[str, Any]) -> None:
         if "adv_mix" in src:  # /74 §5 rows: improvement label in [-1, 1]
             assert -1.0 <= src["adv_mix"] <= 1.0, (ep["pack"], src["what"])
         assert 0 <= src["gold_idx"] < len(src["candidates"])
+        if "label_src" in src:  # /83 fix rows: the gold rule is recorded
+            assert src["label_src"] in ("value", "net"), (ep["pack"], src["what"])
+    for m in ep["gold_meta"]:  # meta must agree with the row it points at
+        assert m["gold_idx"] == ep["asks"][m["pos"]]["gold_idx"], ep["pack"]
+        if "label_src" in m:
+            assert m["label_src"] == ep["asks"][m["pos"]]["label_src"], ep["pack"]
 
 
 def gen_game(
@@ -752,6 +841,9 @@ def gen_game(
             stats.adv_mix_sum += out.adv_mix
             stats.abs_adv_mix_sum += abs(out.adv_mix)
             stats.adv_gt01 += int(out.adv_mix > 0.1)
+            stats.gold_idx0_asks += int(out.gold_idx == 0)
+            stats.gold_value_asks += int(out.label_src == "value")
+            stats.adv_values.append(out.adv_mix)
             if out.chosen != out.net_idx:
                 stats.adv_on_disagree_sum += out.adv_mix
             stats.apply_ms += out.apply_ms
@@ -766,6 +858,8 @@ def gen_game(
             kd["shaping"] += out.buckets["shaping"]
             kd["crash"] += out.buckets["crash"]
             kd["net_disagree"] += int(out.chosen != out.net_idx)
+            kd["gold_idx0"] += int(out.gold_idx == 0)
+            kd["gold_value"] += int(out.label_src == "value")
             stats.kind_top1[info.kind] = stats.kind_top1.get(info.kind, 0.0) + (
                 max(out.pi) if out.pi else 0.0
             )
@@ -779,7 +873,8 @@ def gen_game(
                 {
                     "row": n_gold,
                     "kind": info.kind,
-                    "gold_idx": out.chosen,
+                    "gold_idx": out.gold_idx,  # /83 fix: value/net gold rule
+                    "label_src": out.label_src,
                     "heur_idx": out.heur_idx,
                     "policy_idx": out.net_idx,
                     "backings": [],

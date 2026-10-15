@@ -31,6 +31,39 @@ def test_ucb_unvisited_first_deterministic():
     assert u.pick() == 2
 
 
+def test_ucb_seeded_tiebreak_splits_uniformly():
+    """/83 fix: an EXACT UCB tie (equal means, equal pulls) draws uniformly
+    from the tied arms under a seeded rng instead of falling to index 0.
+    Ledger is frozen after the three prefix pulls, so all 10k picks are true
+    ties; chi-square-lite: each arm within ~6 sigma of n/3."""
+    import random as _random
+
+    u = mcts.Ucb1([0, 1, 2], rng=_random.Random(11))
+    for a in (0, 1, 2):
+        u.push(a, 0.5)  # equal means, equal visits -> every pick is a tie
+    counts = {0: 0, 1: 0, 2: 0}
+    for _ in range(10000):
+        counts[u.pick()] += 1
+    assert all(2900 <= c <= 3700 for c in counts.values()), counts
+    # determinism: same seed, same split
+    a1 = mcts.Ucb1([0, 1, 2], rng=_random.Random(5))
+    a2 = mcts.Ucb1([0, 1, 2], rng=_random.Random(5))
+    for x in (a1, a2):
+        for arm in (0, 1, 2):
+            x.push(arm, 0.5)
+    assert [a1.pick() for _ in range(500)] == [a2.pick() for _ in range(500)]
+    # best() (played arm) obeys the same law on an exact visits tie
+    b1 = mcts.Ucb1([0, 1, 2], rng=_random.Random(3))
+    for arm in (0, 1, 2):
+        b1.push(arm, 0.4)
+    assert len({b1.best() for _ in range(300)}) == 3
+    # legacy no-rng contract: ties still go to the lowest index
+    b2 = mcts.Ucb1([0, 1, 2])
+    for arm in (0, 1, 2):
+        b2.push(arm, 0.4)
+    assert b2.best() == 0 and b2.pick() == 0
+
+
 def test_ucb_exploits_better_arm_and_totals():
     u = mcts.Ucb1([0, 1])
     for _ in range(8):
@@ -99,6 +132,64 @@ def test_value_shaping_clamped_and_seat_flipped():
     )
 
 
+# -------------------------------------------------------------- gold rule
+def test_gold_from_values_gates():
+    """/83 fix: gold = VALUE-top1 only when margin>0.05 AND top1 visits>=2
+    AND N>=2*menu (every option rolled at least twice); else the net pick.
+    Unevaluated arms never rank; ties break by rng, not by index."""
+    # clean decided case: margin 0.07, support 3, coverage 9 >= 2*3
+    means = {0: 0.62, 1: 0.50, 2: 0.55}
+    assert mcts.gold_from_values(means, {0: 3, 1: 3, 2: 3}, 9, 3, 1) == (0, "value", 0)
+    # margin below the threshold (0.04 <= 0.05) -> net, value_top1 still reported
+    assert mcts.gold_from_values({0: 0.54, 1: 0.50}, {0: 5, 1: 5}, 10, 2, 1) == (
+        1,
+        "net",
+        0,
+    )
+    # support gate: a single pull cannot back a mean
+    assert mcts.gold_from_values({0: 1.0, 1: 0.0}, {0: 1, 1: 5}, 6, 2, 1) == (
+        1,
+        "net",
+        0,
+    )
+    # coverage gate: N < 2*menu => some option was never evaluated twice
+    assert mcts.gold_from_values({0: 1.0, 1: 0.0}, {0: 3, 1: 3}, 6, 4, 1) == (
+        1,
+        "net",
+        0,
+    )
+    # unevaluated arms excluded: arm 3 (menu index 3) never ranked
+    assert mcts.gold_from_values({1: 0.9, 2: 0.2}, {1: 3, 2: 3}, 8, 4, 2) == (
+        1,
+        "value",
+        1,
+    )
+    # net_idx may point at an apply-crashed (unevaluated) arm: still legal
+    assert mcts.gold_from_values({1: 0.5}, {1: 4}, 4, 1, 7) == (1, "value", 1)
+    # no evaluated arm at all -> net fallback
+    assert mcts.gold_from_values({}, {}, 0, 3, 2) == (2, "net", 2)
+    # rng tie-breaks: clear winner is stable; a tie spreads over the tied arms
+    import random as _random
+
+    golds = {
+        mcts.gold_from_values(
+            {0: 0.5, 1: 0.9}, {0: 3, 1: 3}, 6, 2, 0, _random.Random(s)
+        )[0]
+        for s in range(40)
+    }
+    assert golds == {1}  # clear winner: no rng needed
+    # exact value tie: the margin gate can never pass a tie, so gold falls
+    # to net -- but the reported value_top1 (adv_mix's arm) is rng-broken,
+    # not index-0: across seeds BOTH tied arms appear.
+    tops = {
+        mcts.gold_from_values(
+            {0: 0.7, 1: 0.7}, {0: 3, 1: 3}, 6, 2, 0, _random.Random(s)
+        )[2]
+        for s in range(40)
+    }
+    assert tops == {0, 1}  # tie -> rng, no index-0 gravity
+
+
 def test_adv_mix_math_root_seat_edge_over_champion_pick():
     """/74 §5 IMPROVEMENT label: value(search-top1) - value(net-argmax
     champion pick); 0 when either arm was never evaluated or they coincide;
@@ -145,9 +236,11 @@ def test_mini_rows_pi_value_contract(mini_game):
                 assert all(p >= 0.0 for p in r["pi"])
                 assert 0.0 <= r["value"] <= 1.0
                 assert 0 <= r["gold_idx"] < len(r["candidates"])
-                assert r["gold_idx"] == max(
-                    range(len(r["pi"])), key=lambda i: (r["pi"][i], -i)
-                )
+                # /83 fix: gold is the value/net rule's, NO LONGER the visit
+                # argmax; a 'net'-labelled row's gold is exactly the net pick
+                assert r["label_src"] in ("value", "net")
+                if r["label_src"] == "net":
+                    assert r["gold_idx"] == r["net_idx"]
 
 
 def test_pi_mix_math_blends_and_keeps_net_mass():
@@ -185,7 +278,25 @@ def test_mini_game_greedy_rollout_mix(mini_game_greedy):
                 assert len(r["pi_mix"]) == len(r["candidates"])
                 assert abs(sum(r["pi_mix"]) - 1.0) < 1e-6
                 assert all(p > 0.0 for p in r["pi_mix"])
-                assert r["gold_idx"] == r["pi"].index(max(r["pi"]))
+
+
+@E2E_TIMEOUT
+def test_mini_rows_emit_label_src(mini_game):
+    """Writer law (/83 fix): every gold row AND its gold_meta entry carry
+    label_src, and the two agree with the row they point at. With mini knobs
+    (N=1 < 2*menu) every label must honestly report 'net' — the decided
+    gates cannot pass, so no value-gold is fabricated."""
+    checked = 0
+    for seat in (0, 1):
+        for ep in mini_game["episodes"][seat]:
+            for m in ep["gold_meta"]:
+                assert m["label_src"] in ("value", "net")
+                assert m["label_src"] == "net"  # mini knobs cannot pass coverage
+                row = ep["asks"][m["pos"]]
+                assert row["label_src"] == m["label_src"]
+                assert row["gold_idx"] == m["gold_idx"] == row["net_idx"]
+                checked += 1
+    assert checked > 0, "no gold_meta exercised"
 
 
 @E2E_TIMEOUT

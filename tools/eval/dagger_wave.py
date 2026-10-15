@@ -271,6 +271,9 @@ def chunk_seat(
                         "gold_idx": g["gold_idx"],
                         "heur_idx": g["heur_idx"],
                         "policy_idx": g["policy_idx"],
+                        # /83 fix: mcts search golds carry their label rule;
+                        # optional so dagger waves' gold dicts are untouched
+                        **({"label_src": g["label_src"]} if "label_src" in g else {}),
                     }
                     for g in golds[i:j]
                 ],

@@ -128,6 +128,9 @@ def _worker(
         "abs_adv_mix_sum": s.abs_adv_mix_sum,
         "adv_gt01": s.adv_gt01,
         "adv_on_disagree_sum": s.adv_on_disagree_sum,
+        "adv_values": list(s.adv_values),  # per-ask adv, for the bootstrap SE
+        "gold_idx0_asks": s.gold_idx0_asks,
+        "gold_value_asks": s.gold_value_asks,
         "by_kind": {k: dict(v) for k, v in s.by_kind.items()},
         "kind_top1": s.kind_top1,
         "kind_dev": s.kind_dev,
@@ -242,6 +245,8 @@ def main(argv: list[str] | None = None) -> int:
                 f"asks={g['asks_searched']} rollouts={g['rollouts']} "
                 f"swallow={g['swallowed']} crash_buckets={g['buckets'].get('crash', 0)} "
                 f"eps={g['n_eps']} "
+                f"gold_idx0_share={g['gold_idx0_asks'] / max(1, g['asks_searched']):.3f} "
+                f"gold_value_share={g['gold_value_asks'] / max(1, g['asks_searched']):.3f} "
                 f"roll_ms_per_ask={g['rollout_ms'] / max(1, g['asks_searched']):.0f}"
             )
         if args.rollout_device == "cuda":  # cost-gate evidence: where the card stands
@@ -351,6 +356,22 @@ def _mix_total(games: list[dict]) -> Counter:
     return total
 
 
+def _bootstrap_se(vals: list[float], n_res: int = 2000, seed: int = 20261015) -> float:
+    """SE of the mean by percentile-free bootstrap over asks (seeded: the
+    number is reproducible run to run, like every other seed law here)."""
+    import random
+    import statistics
+
+    if len(vals) < 2:
+        return 0.0
+    rng = random.Random(seed)
+    m = len(vals)
+    means = [
+        statistics.fmean(rng.choices(vals, weights=None, k=m)) for _ in range(n_res)
+    ]
+    return statistics.stdev(means)
+
+
 def _aggregate(
     games: list[dict], wall: float, n_eps: int, failed: list[dict] | None = None
 ) -> dict:
@@ -367,6 +388,18 @@ def _aggregate(
     dev_shaping = buck["shaping"] / max(1, rolls)
     disagree = sum(g["net_disagree"] for g in games)
     adv_sum = sum(g.get("adv_mix_sum", 0.0) for g in games)
+    adv_vals = [v for g in games for v in g.get("adv_values", [])]
+    gold_idx0 = sum(g.get("gold_idx0_asks", 0) for g in games)
+    gold_value = sum(g.get("gold_value_asks", 0) for g in games)
+    # /83 monitors per ask-kind: gold index-0 share (target ~1/menu, was 0.73
+    # corpus-wide via visit-argmax) and value-rule label coverage.
+    kind_shares = {
+        k: {
+            "gold_idx0_share": round(v["gold_idx0"] / max(1, v["asks"]), 3),
+            "gold_value_share": round(v["gold_value"] / max(1, v["asks"]), 3),
+        }
+        for k, v in sorted(kinds.items())
+    }
     return {
         "wall_seconds": round(wall, 1),
         "seconds_per_game_serialised": round(
@@ -409,9 +442,16 @@ def _aggregate(
                 / max(1, disagree),
                 4,
             ),
+            # /83 fix monitors: gold now comes from gold_from_values (backed
+            # value when the decided gates pass, else the net pick), never
+            # visit argmax. idx0 share should sit near 1/mean menu size.
+            "gold_idx0_share": round(gold_idx0 / max(1, asks), 3),
+            "gold_decided_share": round(gold_value / max(1, asks), 3),
+            "mean_adv_mix_boot_se": round(_bootstrap_se(adv_vals), 4),
         },
         "buckets": dict(buck),
         "by_kind": {k: dict(v) for k, v in sorted(kinds.items())},
+        "kind_gold_shares": kind_shares,
         "cost": {
             # cost ledger (breakdown gate): where the CPU actually went
             "probes": sum(g["probes"] for g in games),
