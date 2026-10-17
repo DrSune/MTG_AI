@@ -1,8 +1,8 @@
-# FRONTIER LEDGER (single source of truth; update on every admission; last: 2026-10-15)
+# FRONTIER LEDGER (single source of truth; update on every admission; last: 2026-10-17)
 
 | ckpt | recipe / data | teacher-WR (200g unless noted) | mirror claims | puzzle acc | admission status |
 |---|---|---|---|---|---|
-| **bsh_S3a_s1** | shadow of bc9 champ, 778 live eps, 60ep | **0.4256 [.358,.496]** | 0.5288 vs champ; **0.4649 [.416,.515] @400g = PARITY champ** | 0.643* | **FRONTIER** (WR-admitted; *acc contaminated-by-exposure, report-only /86) |
+| **bsh_S3a_s1** | shadow of bc9 champ, 778 live eps, 60ep | **0.4256 [.358,.496]** | 0.5288 vs champ; **0.4649 [.416,.515] @400g; **OP2 0.4858 [.436,.536] @400g = PARITY x2**** | 0.643* | **FRONTIER** (WR-admitted; *acc contaminated-by-exposure, report-only /86) |
 | bc9_S3_s1 | batch9 curated, era-best | 0.3927 (rig-era) | retired: live-UNK 0.3355 (drift) | 0.766 best / final lower | retired (era drift), still gen-expert |
 | bshb_S3a_s1 | same, 4.6k eps 10ep | 0.3594 | 0.4821 vs bsh_s1 | — | volume-law-NEGATIVE evidence /80 |
 | bsi_S3a_s3 | wave3 mixed 228 eps (9.2% value-gold) | 0.4051 | 0.4872 vs bsh_s1 | — | dose-test NEUTRAL /84 |
