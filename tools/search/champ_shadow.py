@@ -36,18 +36,18 @@ import os
 import sys
 import time
 from collections import Counter
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 REPO = Path(__file__).resolve().parents[2]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
 from MTG_bot.core.executor.games import TURN_CAP, Supply, get_supply
-
 from tools.eval import gameplay_eval_v2 as gv2
-from tools.eval.gameplay_eval_v2 import KIND_DECLINE_WORD, V2_REFUSE, site_kind
 from tools.eval.dagger_wave import _renumber, chunk_seat
+from tools.eval.gameplay_eval_v2 import KIND_DECLINE_WORD, V2_REFUSE, site_kind
 from tools.training import bc_data, bc_data_v2
 from tools.training.ab_duel import (
     _cards_rows_of,

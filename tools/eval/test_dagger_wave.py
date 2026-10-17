@@ -141,6 +141,8 @@ def test_certify_backings_demotes_with_heuristic_fallback(monkeypatch) -> None:
             return (None, not pack["falsifies"])
 
     monkeypatch.setitem(sys.modules, "tools.audit.puzzle_cert", FakePCert)
+    import tools.audit
+    monkeypatch.setattr(tools.audit, "puzzle_cert", FakePCert, raising=False)
 
     def fake_read_text(self, **kw):
         if self.suffix == ".json":

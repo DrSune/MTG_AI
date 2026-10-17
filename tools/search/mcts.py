@@ -74,14 +74,14 @@ from tools.eval.dagger_wave import chunk_seat
 from tools.eval.gameplay_eval_v2 import HeuristicTeacher, site_kind
 from tools.search.fork import fork
 from tools.search.rollout import (
-    _AskFound,
-    _run,
-    _StepComplete,
-    _wire,
     AskRec,
     Position,
     RolloutResult,
     SearchDriver,
+    _AskFound,
+    _run,
+    _StepComplete,
+    _wire,
     rollout,
 )
 from tools.training import bc_data_v2
@@ -326,7 +326,7 @@ def _probe(pos: Position) -> Probe:
         _run(probe, drv, probe.world.turn + DISCOVER_HORIZON, pos.boundary)
     except _AskFound as exc:
         return Probe(probe, (exc.rec, exc.ctx))
-    except BaseException as error:  # noqa: BLE001 - probe is throwaway
+    except BaseException as error:
         raise SearchError(
             f"discover crashed: {type(error).__name__}: {error}"
         ) from error
@@ -575,10 +575,7 @@ def root_search(
             arm = ucb.pick()
             pols = {}
             for s in range(2):
-                if rollout_mix == "greedy":
-                    pols[s] = "greedy"
-                    mix["greedy"] += 1
-                elif rng.random() < 0.5:
+                if rollout_mix == "greedy" or rng.random() < 0.5:
                     pols[s] = "greedy"
                     mix["greedy"] += 1
                 elif cheap_rollout:

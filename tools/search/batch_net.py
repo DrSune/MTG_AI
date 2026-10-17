@@ -49,7 +49,6 @@ from tools.search.rollout import RolloutResult, rollout
 from tools.training import bc_data, bc_data_v2, numlane
 from tools.training.ab_duel import BcAsk, _block_ids, _build_block, _cards_rows_of
 
-
 # ----------------------------------------------------------------- row build
 
 
@@ -129,7 +128,7 @@ def _collate(torch: Any, rows: list[dict], device: Any) -> dict:
             cand_mask[i, ci, : len(t)] = True
         for ci, p in enumerate(r["is_pass"]):
             is_pass[i, ci] = p
-    to = lambda x: x.to(device)  # noqa: E731
+    to = lambda x: x.to(device)
     return {
         "tokens": to(tokens),
         "pad_mask": to(pad_mask),
@@ -182,7 +181,7 @@ def batch_decide(items: list[tuple[BcAsk, Any]]) -> list[int]:
 
 
 class _Slot:
-    __slots__ = ("res", "err")
+    __slots__ = ("err", "res")
 
     def __init__(self) -> None:
         self.res: int | None = None

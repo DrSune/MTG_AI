@@ -12,10 +12,9 @@ from __future__ import annotations
 import pytest
 
 from MTG_bot.core.executor.games import get_supply
-
 from tools.search.champ_shadow import (
-    OPPONENTS,
     DEFAULT_CKPT,
+    OPPONENTS,
     opponent_for_seed,
     run_champ_game,
     verify_episodes,

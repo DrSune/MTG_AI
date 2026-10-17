@@ -35,7 +35,7 @@ GRACE_MIN = 3.0  # an in-flight game may land after the deadline
 # /79 OOM law: every worker pays a CUDA context BEFORE its first forward; a
 # refused run is honest, a swallowed worker death in the pool is not.
 MIN_BYTES_PER_WORKER = int(1.2 * 2**30)
-_FRAME_RE = re.compile(r'File "(.+?)", line (\d+), in (.+)$', re.M)
+_FRAME_RE = re.compile(r'File "(.+?)", line (\d+), in (.+)$', re.MULTILINE)
 
 
 def _cuda_free_bytes() -> int | None:

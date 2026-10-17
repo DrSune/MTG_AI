@@ -17,10 +17,9 @@ from typing import Any
 
 import torch
 
-from tools.training import bc_data_v2
 from tools.training.bc_model import PointerBC
 from tools.training.train_bc import gate_stats
-from tools.training.train_bc_v3 import SPLIT, BCS, eval_rows, eval_side
+from tools.training.train_bc_v3 import BCS, SPLIT, eval_rows, eval_side
 
 
 def score_ckpt(ckpt: Path, device_str: str, seed: int = 1) -> dict[str, Any]:

@@ -328,6 +328,7 @@ def test_resume_stall_guard_mirrors_engine():
     """_resume_stalls must agree with what _play ACTUALLY does on the first
     loop iteration of a resume (seed 9100 turn 8: the probe-cache handover
     skipped the stall rule and all 3 apply forks stalled out)."""
+    from MTG_bot.core.executor.games import REPEAT_ROUNDS, _stall_fingerprint
     from tools.search.rollout import (
         GREEDY_TEACHER,
         SearchDriver,
@@ -335,7 +336,6 @@ def test_resume_stall_guard_mirrors_engine():
         _wire,
         play_position,
     )
-    from MTG_bot.core.executor.games import _stall_fingerprint, REPEAT_ROUNDS
 
     pos = None
     for turn in (5, 6, 7, 8):

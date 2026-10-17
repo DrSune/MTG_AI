@@ -51,9 +51,9 @@ from typing import Any
 
 import torch
 
-from tools.training.bc_model import PointerBC
 from tools.training import bc_data_v2
-from tools.training.train_bc_v2 import EPISODES, SPLIT, eval_rows
+from tools.training.bc_model import PointerBC
+from tools.training.train_bc_v2 import SPLIT, eval_rows
 from tools.training.train_bc_v3 import eval_side
 
 REPO = Path(__file__).resolve().parents[2]
@@ -243,7 +243,7 @@ def main(argv: list[str] | None = None) -> int:
         print(
             f"{r['ckpt']:28s} {s['acc']!s:>9s} {s['n_items']:>4d} "
             f"{f['acc']!s:>9s} {f['n_items']:>4d} {r['gap']!s:>7s} "
-            f"{r['gap_boot_se']!s:>7s} {str(r['gap_ci95']):>18s}"
+            f"{r['gap_boot_se']!s:>7s} {r['gap_ci95']!s:>18s}"
         )
     for r in report["results"]:
         print(

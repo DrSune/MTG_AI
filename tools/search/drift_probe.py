@@ -43,10 +43,9 @@ if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
 from MTG_bot.core.executor.games import get_supply
-
 from tools.search.champ_shadow import (
-    DEFAULT_CKPT,
     DECK_PAIRS_SEED,
+    DEFAULT_CKPT,
     run_champ_game,
     stream_words,
 )
