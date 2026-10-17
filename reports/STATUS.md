@@ -11,6 +11,7 @@ volume x5.9 / digit-token cure / search-improvement labels (after adversarial-ca
 - ZNR verified source -> first-ever set-level generalization score (meter armed: --split set --fresh-sets ZNR) + §8 atomics re-eval.
 - MEMORY: box is at MemAvailable 0.2 GiB idle, swap 73% used, CUDA-pinned ~100 GiB non-reclaimable and creeping with job churn (/87). No safe job can launch right now. A REBOOT (or long engine-down = R1 window) is the only headroom reset.
 
-## Queued (auto-run when MemAvailable >= 3 GiB)
-- Second-opinion frontier battle 400g bsh_s1 vs champ, fresh seed-base (hardens the parity claim).
-- Order-dependent test flake fix (ticketed, tools/eval/test_dagger_wave).
+## Gate-open items (COMPLETED)
+- Second-opinion frontier battle 400g bsh_s1 vs champ, fresh seed-base: COMPLETED (/89, OP2 0.4858 @400g replicated).
+- Order-dependent test flake fix (tools/eval/test_dagger_wave): COMPLETED (fixed package attribute monkeypatch isolation; 94/94 passed).
+- Ruff fixes on arc files (tools/search, numlane, eval_ckpt, holdout_report): COMPLETED.
