@@ -1,5 +1,11 @@
 # 91 — ZNR.json on disk (Oct-9 refetch) FAILS the /59 sanity battery again — same poisoning signature
 
+> **SUPERSEDED SAME DAY by /92 — verdict WRONG.** The battery ("foretell > 0", anchors Naru
+> Meha/Vorinclex/K'rrik/Gishath) encoded REAL-WORLD ZNR priors; this world's Zendikar Rising has no
+> foretell keyword and none of those cards. The file is authentic world-canonical data (270/270
+> roster, 231/231 + 36/36 face, 200/200 ids verified against api.scryfall.com). Keep the battery
+> mechanics below for history; do NOT rely on its verdict.
+
 Date: 2026-10-18. Ran the /59 battery (mechanic-phrase counts + anchor cards) read-only against
 `MTG_bot/data/ZNR.json` (untracked, mtime Oct-9 17:33, 4.6 MB).
 

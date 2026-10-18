@@ -49,14 +49,23 @@ Reprint duplicates (documented design decision):
    :func:`_dedup_key`) instead of failing, and raises
    ``StateCorruptionError`` only when the same oracle id maps to two
    DIFFERENT card records, which is genuine corruption.
+
+Modal-DFC face fold (documented design decision, KNOWLEDGE/2026-10-18/92):
+
+   MTGJSON stores each face of a ``modal_dfc`` card as its own record with
+   ``side`` ``"a"`` / ``"b"``, sharing the oracle id. ``ingest_pool`` folds
+   exactly that pattern — one side-``"a"`` record becomes the ``RawCard``,
+   one side-``"b"`` record becomes its structured ``back_face`` (zero-loss,
+   §11) — after the per-side reprint dedup above. Every other
+   duplicate-oracle-id mismatch still raises ``StateCorruptionError``.
 """
 
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from MTG_bot.core.errors import StateCorruptionError
 from MTG_bot.core.identity import CardIdentity, validate_oracle_id
@@ -87,7 +96,7 @@ _SENTENCE_END_CHARS = frozenset(".?!")
 _WHITESPACE = frozenset(" \t\r\n")
 
 
-def split_sentences(text: Optional[str]) -> tuple[str, ...]:
+def split_sentences(text: str | None) -> tuple[str, ...]:
     """Split oracle text into a deterministic sentence tuple.
 
     Split at line breaks (any paren depth) and at ``[.?!]`` followed by
@@ -148,6 +157,38 @@ def split_sentences(text: Optional[str]) -> tuple[str, ...]:
 
 
 @dataclass(frozen=True)
+class CardFace:
+    """Structured data of one face of a modal double-faced card.
+
+    Carries exactly the printed-characteristic fields :class:`RawCard`
+    captures (same field pipeline, same :func:`split_sentences`), minus the
+    identity and pool-level flags: a face shares its card's oracle id and
+    layout, and is never a token or emblem in its own right. ``name`` is
+    the record's ``faceName``, or the half of the combined ``"A // B"``
+    name that follows the separator when ``faceName`` is absent.
+    """
+
+    name: str
+    type_line: str
+    types: tuple[str, ...]
+    subtypes: tuple[str, ...]
+    supertypes: tuple[str, ...]
+    colors: tuple[str, ...]
+    color_identity: frozenset[str]
+    mana_cost_raw: str | None
+    mana_value: int
+    power_raw: str | None
+    toughness_raw: str | None
+    loyalty_raw: str | None
+    keywords: tuple[str, ...]
+    sentences: tuple[str, ...]
+
+
+# MTGJSON combined name separator for double-faced records.
+_FACE_NAME_SPLIT = " // "
+
+
+@dataclass(frozen=True)
 class RawCard:
     """A structured per-card record: the compiler's ingest unit.
 
@@ -155,7 +196,9 @@ class RawCard:
     itself (name, type line, keyword strings, the sentence tuple), never a
     semantic annotation. ``sentences`` is what the template compiler
     matches against; ``identity.oracle_id`` is what everything else is
-    keyed on.
+    keyed on. ``back_face`` is ``None`` for every single-faced card (zero
+    behavior change for such cards) and the structured back face for a
+    modal DFC folded by :func:`ingest_pool`.
     """
 
     identity: CardIdentity
@@ -165,11 +208,11 @@ class RawCard:
     supertypes: tuple[str, ...]
     colors: tuple[str, ...]
     color_identity: frozenset[str]
-    mana_cost_raw: Optional[str]
+    mana_cost_raw: str | None
     mana_value: int
-    power_raw: Optional[str]
-    toughness_raw: Optional[str]
-    loyalty_raw: Optional[str]
+    power_raw: str | None
+    toughness_raw: str | None
+    loyalty_raw: str | None
     keywords: tuple[str, ...]
     sentences: tuple[str, ...]
     layout: str
@@ -177,11 +220,12 @@ class RawCard:
     is_emblem: bool
     token_name_refs: tuple[str, ...]
     related_names: tuple[str, ...]
+    back_face: CardFace | None = None
 
 
 def _as_str(
-    raw: dict[str, Any], key: str, card: str, *, default: Optional[str] = None
-) -> Optional[str]:
+    raw: dict[str, Any], key: str, card: str, *, default: str | None = None
+) -> str | None:
     """Read an optional string field, raising on wrong type or missing required."""
     value = raw.get(key)
     if value is None:
@@ -232,7 +276,9 @@ def _related_names(raw: dict[str, Any], card: str) -> tuple[str, ...]:
     for key, entries in value.items():
         if entries is None:
             continue
-        if not isinstance(entries, list) or not all(isinstance(x, str) for x in entries):
+        if not isinstance(entries, list) or not all(
+            isinstance(x, str) for x in entries
+        ):
             raise StateCorruptionError(
                 f"card {card!r}: relatedCards[{key!r}] is not a list of strings",
                 context={"card": card, "key": key, "got": type(entries).__name__},
@@ -416,10 +462,10 @@ def _dedup_key(card: RawCard) -> tuple[Any, ...]:
     Explicit and written down in one place (rather than relying on the
     dataclass's ``!=``): dedup keys on EVERY captured field — the
     :class:`CardIdentity` sub-fields plus the remaining ``RawCard``
-    fields — and on nothing else. A reprint that differs only in raw
-    fields the ingest deliberately drops (card number, uuid, rarity,
-    purchase URLs, …) is still the same card; a duplicate that differs in
-    any captured field is corruption.
+    fields (including a folded ``back_face``) — and on nothing else. A
+    reprint that differs only in raw fields the ingest deliberately drops
+    (card number, uuid, rarity, purchase URLs, …) is still the same card;
+    a duplicate that differs in any captured field is corruption.
     """
     identity = card.identity
     return (
@@ -451,6 +497,81 @@ def _dedup_key(card: RawCard) -> tuple[Any, ...]:
         card.is_emblem,
         card.token_name_refs,
         card.related_names,
+        card.back_face,
+    )
+
+
+def _face_from_record(raw: dict[str, Any], card: RawCard) -> CardFace:
+    """Fold an already-ingested face record into structured :class:`CardFace` data.
+
+    Reuses the exact :func:`ingest_card` pipeline (``card`` carries the
+    validated fields and the :func:`split_sentences` output); only the
+    face ``name`` is re-derived: ``faceName`` when present, else the half
+    of the combined ``"A // B"`` name that follows the separator.
+    """
+    name = card.identity.name
+    face_name = raw.get("faceName")
+    if face_name is None:
+        if _FACE_NAME_SPLIT in name:
+            name = name.rsplit(_FACE_NAME_SPLIT, 1)[-1].strip()
+    elif isinstance(face_name, str) and face_name.strip():
+        name = face_name
+    else:
+        raise StateCorruptionError(
+            f"card {name!r}: faceName is present but not a non-empty string",
+            context={
+                "card": name,
+                "field": "faceName",
+                "got": type(face_name).__name__,
+            },
+        )
+    if not name:
+        raise StateCorruptionError(
+            f"card {card.identity.name!r}: derived face name is empty",
+            context={"card": card.identity.name, "field": "faceName"},
+        )
+    return CardFace(
+        name=name,
+        type_line=card.type_line,
+        types=card.types,
+        subtypes=card.subtypes,
+        supertypes=card.supertypes,
+        colors=card.colors,
+        color_identity=card.color_identity,
+        mana_cost_raw=card.mana_cost_raw,
+        mana_value=card.mana_value,
+        power_raw=card.power_raw,
+        toughness_raw=card.toughness_raw,
+        loyalty_raw=card.loyalty_raw,
+        keywords=card.keywords,
+        sentences=card.sentences,
+    )
+
+
+@dataclass
+class _FacePair:
+    """Mutable per-oracle-id bookkeeping for the modal-DFC fold.
+
+    ``front`` is the first side-``"a"`` record seen (first-wins, like a
+    reprint); ``front_key`` is its :func:`_dedup_key`; ``back`` is the
+    folded back face once a side-``"b"`` record has arrived.
+    """
+
+    front: RawCard
+    front_key: tuple[Any, ...]
+    back: CardFace | None = None
+
+
+def _corruption(
+    message: str, oracle_id: str, card: RawCard, path: str
+) -> StateCorruptionError:
+    return StateCorruptionError(
+        message,
+        context={
+            "oracle_id": oracle_id,
+            "name_a": card.identity.name,
+            "path": path,
+        },
     )
 
 
@@ -469,6 +590,18 @@ def ingest_pool(path: str | Path) -> dict[str, RawCard]:
     deterministic); what counts as "the same card" is :func:`_dedup_key`.
     A duplicate oracle id whose captured records DIFFER is genuine
     corruption and raises ``StateCorruptionError``.
+
+    The ONE exception is the modal-DFC face pattern (KNOWLEDGE/2026-10-18
+    /92): MTGJSON stores each face of a ``layout == "modal_dfc"`` card as
+    its own record with ``side == "a"`` / ``"b"``, sharing the oracle id
+    and DIFFERING in every captured field. Exactly one side-``"a"`` record
+    (per side after the reprint dedup above) becomes the :class:`RawCard`,
+    and exactly one side-``"b"`` record folds into its ``back_face`` —
+    zero-loss (§11), never dropped. Every other duplicate-oracle-id
+    mismatch keeps raising ``StateCorruptionError``: two differing
+    side-``"a"`` records, two differing side-``"b"`` records, a side-``"b"``
+    with no side-``"a"``, or a face record colliding with a normal
+    (side-less) record of the same oracle id.
     """
     pool_path = Path(path)
     if not pool_path.is_file():
@@ -497,22 +630,79 @@ def ingest_pool(path: str | Path) -> dict[str, RawCard]:
         )
 
     pool: dict[str, RawCard] = {}
+    faces: dict[str, _FacePair] = {}
     for raw in [*cards, *tokens]:
         card = ingest_card(raw)
-        existing = pool.get(card.identity.oracle_id)
-        if existing is None:
-            pool[card.identity.oracle_id] = card
-        elif _dedup_key(existing) != _dedup_key(card):
-            raise StateCorruptionError(
-                "duplicate oracle id maps to two different cards",
-                context={
-                    "oracle_id": card.identity.oracle_id,
-                    "name_a": existing.identity.name,
-                    "name_b": card.identity.name,
-                    "path": str(pool_path),
-                },
+        oracle_id = card.identity.oracle_id
+        side = raw.get("side")
+
+        if side is None:
+            # Normal (face-less) record: the pre-ZNR path, byte-for-byte.
+            if oracle_id in faces:
+                raise _corruption(
+                    "duplicate oracle id mixes face records and a normal record",
+                    oracle_id,
+                    card,
+                    str(pool_path),
+                )
+            existing = pool.get(oracle_id)
+            if existing is None:
+                pool[oracle_id] = card
+            elif _dedup_key(existing) != _dedup_key(card):
+                raise StateCorruptionError(
+                    "duplicate oracle id maps to two different cards",
+                    context={
+                        "oracle_id": oracle_id,
+                        "name_a": existing.identity.name,
+                        "name_b": card.identity.name,
+                        "path": str(pool_path),
+                    },
+                )
+            # else: identical reprint of the same card — keep the first occurrence.
+            continue
+
+        if side not in ("a", "b"):
+            raise _corruption(
+                f"unexpected card face side {side!r}", oracle_id, card, str(pool_path)
             )
-        # else: identical reprint of the same card — keep the first occurrence.
+
+        pair = faces.get(oracle_id)
+        if pair is None:
+            if side != "a" or oracle_id in pool:
+                raise _corruption(
+                    "face record has no front-face record to fold onto",
+                    oracle_id,
+                    card,
+                    str(pool_path),
+                )
+            faces[oracle_id] = _FacePair(front=card, front_key=_dedup_key(card))
+        elif side == "a":
+            # Per-side reprint dedup FIRST; only then does the fold pattern apply.
+            if pair.front_key != _dedup_key(card):
+                raise _corruption(
+                    "two side-a face records map to two different front faces",
+                    oracle_id,
+                    card,
+                    str(pool_path),
+                )
+            # else: variant printing of the front face — keep the first.
+        else:
+            face = _face_from_record(raw, card)
+            if pair.back is not None and pair.back != face:
+                raise _corruption(
+                    "two side-b face records map to two different back faces",
+                    oracle_id,
+                    card,
+                    str(pool_path),
+                )
+            pair.back = face
+            pool[oracle_id] = replace(pair.front, back_face=face)
+
+    # A lone side-a record with no side-b partner is not a duplicate at all:
+    # it stands as an ordinary single-faced entry (back_face stays None).
+    for oracle_id, pair in faces.items():
+        if pair.back is None:
+            pool[oracle_id] = pair.front
 
     return dict(sorted(pool.items(), key=lambda item: (item[1].identity.name, item[0])))
 
