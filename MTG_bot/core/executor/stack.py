@@ -731,8 +731,11 @@ def cast(
        cast with an ordinary shortage), the choice rides the SpellObject
        frame AND the journalled CAST row, and WAS_KICKED reads the row
        back for every later judge (spell arm, ETB trigger condition,
-       gated EtBState). Kicking a card without a kicker, or an X-kicker
-       (deferred, /95), is an illegal-cast REASON, never a guess.
+       gated EtBState). Kicking a card without a kicker is an
+       illegal-cast REASON, never a guess; an X-kicker (ZND-1g) prices
+       {X} with the cast's X declaration — the same zero-floor law as an
+       X-spell (CR 107.1; an explicit ``x`` wins), and the declared X
+       lands on the frame and the CAST row.
     6. **push** (601.2h) — park in the stack zone, push the frame, emit
        the journalled ``CAST`` event (the cast-trigger feed, ordinals
        included) and settle — cast triggers resolve ABOVE the spell.
@@ -758,10 +761,24 @@ def cast(
     # sat in an effect quantity instead of the cost. An explicit x still
     # wins; a spell without X keeps x_value None (the 12c unbound flag
     # outside casting is untouched).
+    # ZND-1g (X-kicker, /95 closed): the kicker cost joins the total when
+    # the kick was declared, so an X-KICKER announces X exactly like an
+    # X-spell — the same zero-floor rule must land the value on the
+    # frame and the CAST row, or the fold pays {X}=0 while the journal
+    # claims no declaration was made (the Primal Might bug, cost-side).
     if x is None:
-        from MTG_bot.core.executor.legality import _cost_has_x, spell_cost
+        from MTG_bot.core.executor.legality import (
+            _cost_has_x,
+            kicker_of,
+            spell_cost,
+        )
 
-        if _cost_has_x(spell_cost(_record, node.additional_costs)):
+        declared_extra = tuple(node.additional_costs)
+        if kicked:
+            kicker = kicker_of(_record)
+            if kicker is not None:
+                declared_extra = declared_extra + (kicker.cost,)
+        if _cost_has_x(spell_cost(_record, declared_extra)):
             x = 0
 
     # 2-3: declaration — r19c: modes (601.2b) then targets (601.2c) through

@@ -252,10 +252,12 @@ class ShapeGapSupplyExclusionTest(unittest.TestCase):
 class KickerLaneTest(unittest.TestCase):
     """ZND-1e (cast/cost lane): a KickerAbility is a cast OPTION, not a
     second spell. The legality fold charges printed + kicker cost when
-    ``kicked=True``, rejects the flag on non-kickers, refuses X-kickers
-    honestly, and the compiler carries a kicker-only noncreature head
-    (Roost of Drakes: no effect sentence, so no SpellAbility node was
-    ever built — the card was ``cast:not_a_spell``)."""
+    ``kicked=True``, rejects the flag on non-kickers, and the compiler
+    carries a kicker-only noncreature head (Roost of Drakes: no effect
+    sentence, so no SpellAbility node was
+    ever built — the card was ``cast:not_a_spell``).
+    (ZND-1g amended: the X-kicker refusal was replaced by a real priced
+    lane — see XKickerLaneTest below.)"""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -333,6 +335,106 @@ class KickerLaneTest(unittest.TestCase):
             if row.handle == handle
         }
         self.assertEqual(kicks, {True, False}, "CR 601.2b: the choice, both ways")
+
+
+class XKickerLaneTest(unittest.TestCase):
+    """ZND-1g (X-valued kicker PLAYABLE, /95 closed): Thieving Skydiver
+    ``Kicker {X}. X can't be 0.`` Its printed cost {1}{U} carries no X, so
+    the kicker {X} is the spell's ONLY X — CR 107.4a gives ONE declared
+    value per object, feeding both the cost fold and the ETB filter. The
+    cast's ``x`` IS that single announcement (no separate kicker-X slot).
+
+    Adopted X-law = the engine's STANDING zero-floor precedent (CR 107.1):
+    X=0 is a legal declaration, so a kick with X=0 pays {0} and IS a legal
+    kick. The printed "X can't be 0." is UNPARSED (the frozen grammar has
+    no X-bound atom), so the engine cannot enforce a constraint it cannot
+    see — a REGISTERED effect gap, never a silent side-channel check. The
+    card stays engine-UNSUPPORTED (its gated ETB control-gain effect is
+    unparsed), so it is addressed from the ``all`` supply."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.supply = get_supply("all", "ZNR")
+
+    def setUp(self) -> None:
+        reset_oracle_ids()
+        self.world = GameWorld(num_players=2, start_life=20, master_seed=3)
+        self.executor = Executor(self.world)
+        self.executor.attach_pool(self.supply.pool)
+        self.p0, _p1 = self.world.player_order
+        self.world.active_player = self.p0
+        self.executor.turn_open = True
+        self.executor.phase = "FIRST_MAIN"
+
+    def _hand(self, mana: int):
+        record = _record_named(self.supply, "Thieving Skydiver")
+        handle = self.world.add_card(identity_of(record), self.p0, ZONE_HAND)
+        self.world.players[self.p0].mana_pool.clear()
+        self.world.players[self.p0].mana_pool["U"] = mana
+        return handle
+
+    def test_x_kicker_fold_prices_the_announced_x(self) -> None:
+        # {1}{U} + {X}: X=2 -> 3 generic + 1 colored = 4 from the U pool.
+        handle = self._hand(6)
+        reason, _node, _rec, plan = spell_castable(
+            self.executor, self.p0, handle, x=2, kicked=True
+        )
+        self.assertIsNone(reason, str(reason))
+        assert plan is not None
+        self.assertEqual(plan.mana, (("U", 4),), plan.mana)
+
+    def test_x_kicker_zero_floor_is_a_legal_kick(self) -> None:
+        # Adopted law (CR 107.1): X=0 pays {0} yet still marks the cast
+        # kicked — {1}{U}{0} = 2 total, same as the un-kicked base.
+        handle = self._hand(6)
+        reason, _node, _rec, plan = spell_castable(
+            self.executor, self.p0, handle, x=0, kicked=True
+        )
+        self.assertIsNone(reason, str(reason))
+        assert plan is not None
+        self.assertEqual(plan.mana, (("U", 2),), plan.mana)
+
+    def test_x_kicker_too_big_x_is_a_shortage_not_a_raise(self) -> None:
+        handle = self._hand(2)  # only 2 mana available
+        reason = spell_castable(self.executor, self.p0, handle, x=5, kicked=True)[0]
+        assert reason is not None
+        self.assertIn("cost:mana", reason)
+
+    def test_legal_casts_prices_the_x_kicker_both_ways(self) -> None:
+        # base {1}{U} and the X=0 kick witness share a cost, so BOTH rows
+        # ride the surface even on a base-priced pool; a caller asking X=3
+        # on a 2-mana pool keeps only the base row (an honest shortage).
+        handle = self._hand(2)
+        both = {
+            row.kicked
+            for row in legal_casts(self.world, self.executor, self.p0)
+            if row.handle == handle
+        }
+        self.assertEqual(both, {True, False}, "CR 601.2b: both, at the X=0 floor")
+        big = {
+            row.kicked
+            for row in legal_casts(self.world, self.executor, self.p0, x=3)
+            if row.handle == handle
+        }
+        self.assertEqual(big, {False}, "an unaffordable X-kick disappears")
+
+    def test_was_kicked_window_sees_the_x_kicked_cast(self) -> None:
+        handle = self._hand(6)
+        frame = cast(self.executor, self.p0, handle, x=2, kicked=True)
+        self.assertEqual(frame.x_value, 2)
+        self.assertTrue(frame.kicked)
+        [row] = [
+            e
+            for e in self.executor.journal.events
+            if e.kind == "CAST" and e.subject == handle
+        ]
+        self.assertEqual(row.cast[4], 2, "journalled declared X")
+        self.assertTrue(row.kicked, "journalled paid-kick flag")
+        ctx = ctx_for(self.executor, source=handle, controller=self.p0)
+        self.assertTrue(
+            eval_filter(FAtom(FAtomPred.WAS_KICKED), handle, ctx),
+            "the window read must see the X-kicked cast",
+        )
 
 
 class ReplayDeterminismTest(unittest.TestCase):

@@ -1,0 +1,62 @@
+{
+  "set": "ZNR",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "mana": {
+    "0": {
+      "U": 8
+    }
+  },
+  "cards": [
+    {
+      "key": "skydiver_kicked",
+      "real": "Thieving Skydiver",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "skydiver_plain",
+      "real": "Thieving Skydiver",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Thieving Skydiver",
+      "key": "skydiver_kicked",
+      "kicked": true,
+      "x": 2
+    },
+    {
+      "op": "cast",
+      "real": "Thieving Skydiver",
+      "key": "skydiver_plain"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "skydiver_kicked": "battlefield",
+      "skydiver_plain": "battlefield"
+    },
+    "mana_pool": {
+      "0": {
+        "U": 2
+      }
+    },
+    "kick_rows": {
+      "skydiver_kicked": {
+        "kicked": true,
+        "x": 2
+      },
+      "skydiver_plain": {
+        "kicked": false,
+        "x": null
+      }
+    }
+  },
+  "notes": "ZND-1g X-KICKER cast/cost lane, Thieving Skydiver {1}{U} with\n'Kicker {X}. X can't be 0.' The printed cost carries no X, so the kicker's\n{X} is the spell's ONLY X: CR 107.4a gives ONE declared value per object\n(the cast's x IS the kicker's announcement, no separate kicker-X slot).\nKicked cast x=2: the CR 601.2f fold charges {1}{U}+{2}=3 generic + 1 blue,\n4 U from the pool, and the journalled CAST row carries BOTH the paid-kick\nflag and the declared X (kick_rows lane reads the same 6-tuple WAS_KICKED\nconsumes). Un-kicked second cast: {1}{U}=2, kicked=False, x=None (the X\ndeclaration is a real choice, absent when the kick is declined). Mana math:\n8 - 4 - 2 = 2. THE EFFECT LANE IS NOT EXERCISED: the gated ETB control-gain\n('gain control of target artifact with mana value X or less') and 'X can't\nbe 0.' are UNPARSED (no X-bound atom / no gated control-gain carrier in the\nfrozen grammar), so the card stays engine-UNSUPPORTED and the cast settles\nas a vanilla body — the honest gate holds, the effect gap is REGISTERED\n(KNOWLEDGE/2026-10-18/105), never silently claimed."
+}

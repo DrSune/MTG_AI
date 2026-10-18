@@ -719,9 +719,14 @@ def legal_casts(
                 # ZND-1e (CR 601.2b + C15): a priced kicker means the
                 # SAME card is legally castable two ways — enumerate the
                 # kicked row too when the total (printed + kicker) is
-                # payable. An X-kicker or a card without a kicker yields
-                # no second row (honest reason from the fold, swallowed
-                # here exactly like an unaffordable base cast).
+                # payable. A card without a kicker yields no second row
+                # (honest reason from the fold, swallowed here exactly
+                # like an unaffordable base cast). ZND-1g: an X-kicker
+                # rides this lane too — its kicked row folds {X} at the
+                # caller's x (the X=0 witness when none was passed), so
+                # an X-kicker shows BOTH rows even on a base-priced
+                # pool: the zero-floor kick is a legal declaration, and
+                # the priced-to-x kicked row disappears on shortage.
                 kreason, _kn, _kr, kplan = spell_castable(
                     executor, seat, handle, x=x, kicked=True
                 )

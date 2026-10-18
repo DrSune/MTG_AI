@@ -80,6 +80,12 @@ Pack vocabulary (all keys required as noted):
              "mana_pool": {"0": {"W": 1}},  r24a: the PlayerState.mana_pool
                                             totals (frozen _v_add_mana write;
                                             zero-equivalence both sides)
+             "kick_rows": {key: {"kicked": bool, "x": int|null}},
+                                        ZND-1g: the LAST CAST journal row of
+                                        the key's card (the same 6-tuple
+                                        WAS_KICKED reads: paid flag + the
+                                        declared X). A never-cast key FAILS
+                                        loudly — no row, no silent False.
              "counters": {key: {"KIND": n}},  17a: the counter table,
              "power": {key: int},             17a: ledger effective_pt,
              "toughness": {key: int},         17a: (base->timestamp fold),
@@ -110,7 +116,7 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
 )
 from MTG_bot.core.executor import Executor
-from MTG_bot.core.executor.events import KIND_DAMAGE
+from MTG_bot.core.executor.events import KIND_CAST, KIND_DAMAGE
 from MTG_bot.core.executor.games import get_supply, identity_of
 from MTG_bot.core.executor.stack import cast, play_land
 from MTG_bot.core.identity import CardIdentity
@@ -703,6 +709,29 @@ class ScenarioRunner:
             want_pool = {k: v for k, v in dict(colors).items() if v}
             if got_pool != want_pool:
                 fails.append(f"mana_pool[{seat}]: expected {want_pool}, got {got_pool}")
+        # ZND-1g KICK_ROWS LANE: read the LAST CAST journal row per key — the
+        # exact 6-tuple WAS_KICKED consumes (kicked flag + declared X). Proves
+        # an X-kicker cast journalled BOTH the paid kick and its X
+        # announcement, and an un-kicked cast journalled kicked=False. A key
+        # with no CAST row fails loudly (never a silent False).
+        for key, want in expect.get("kick_rows", {}).items():
+            handle = self.handles[key]
+            rows = [
+                e
+                for e in self.ex.journal.events
+                if e.kind == KIND_CAST and e.subject == handle
+            ]
+            if not rows:
+                fails.append(f"kick_rows[{key}]: no CAST row journalled")
+                continue
+            _caster, _ord, _kind, _from, got_x, got_kicked = rows[-1].cast
+            if "kicked" in want and bool(got_kicked) != bool(want["kicked"]):
+                fails.append(
+                    f"kick_rows[{key}].kicked: expected {want['kicked']}, "
+                    f"got {bool(got_kicked)}"
+                )
+            if "x" in want and got_x != want["x"]:
+                fails.append(f"kick_rows[{key}].x: expected {want['x']}, got {got_x}")
         # Rung-1 lanes (2026-10-05 response-window arc) ----------------------
         # window_asks / kickback_asks: per SEAT, the ordered ANSWERS the
         # pack gave to the engine's counter:/pay: tags (a pack key names

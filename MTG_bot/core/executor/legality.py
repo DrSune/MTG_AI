@@ -1251,13 +1251,24 @@ def spell_castable(
         # — the kicker cost joins the 601.2f fold, so the plan (and every
         # later re-check) prices the spell WITH the extra cost. A card
         # without a kicker cannot be kicked (reason, never a silent
-        # downgrade to the base cost); an X-kicker is not yet priced by
-        # the executor (deferred, /95) — an honest reason too.
+        # downgrade to the base cost).
+        # ZND-1g (X-kicker lane delivered, /95 closed): a kicker cost
+        # containing {X} rides the SAME fold — the cast's ``x`` IS the
+        # kicker's announcement. Thieving Skydiver is the resolving
+        # card ("Kicker {X}. X can't be 0."): the spell's printed cost
+        # {1}{U} carries no X, so the kicker's {X} is the spell's ONLY X
+        # — CR 107.4a gives one declared value per object, consumed by
+        # the cost AND the (uncompiled) ETB filter alike. ONE announcement
+        # therefore serves both roles here; no separate kicker-X slot.
+        # The zero-floor law stays the engine's standing X precedent (CR
+        # 107.1, x=0 folds below): an X=0 kick pays zero and IS a legal
+        # kick. This card's printed "X can't be 0." is UNPARSED — the
+        # frozen grammar has no X-bound atom, so the engine cannot
+        # enforce a constraint it cannot see (registered effect gap,
+        # KNOWLEDGE/2026-10-18/105; never a silent side-channel check).
         kicker = kicker_of(record)
         if kicker is None:
             return f"cast:not_a_kicker:{handle}", None, None, None
-        if _cost_has_x(kicker.cost):
-            return f"cast:kicker_with_x_unsupported:{handle}", None, None, None
         additional = tuple(additional) + (kicker.cost,)
     cost = spell_cost(record, additional)
     if _cost_has_x(cost) and x is None:
