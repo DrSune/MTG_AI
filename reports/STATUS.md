@@ -1,17 +1,13 @@
-# STATUS (auto, 2026-10-15 17:5x)
+# STATUS (auto, 2026-10-18 13:1x)
 
-## Frontier (unchanged, admitted)
-bsh_S3a_s1: teacher WR 0.4256, champion-PARITY at 400g (0.4649 [.416,.515]), live-UNK 0.0007. Ledger: reports/FRONTIER.md.
+## Owner decisions IN FORCE (/94, binding)
+FORK = R3 (ZNR generalization program = main line) + opportunistic R1 (capacity trio auto-fires via /tmp/opencode/r1_window_watcher.sh the moment engine is down >=60 GiB free). O1 = play lane perspective-masked (v3c + public-info belief lanes, anti-leak law); omniscient = labeled non-play mode only.
 
-## Falsified today-class levers (each in KNOWLEDGE/2026-10-15/85)
-volume x5.9 / digit-token cure / search-improvement labels (after adversarial-caught invalid-pipeline fix + legit re-test = neutral). Plateau 0.36-0.43 = expert-class cap.
+## Today's ledger (all committed)
+ZNR vindicated vs world-canonical Scryfall (/92) + tracked (8e636f3) | ingest face capture, pool 282 (48dfa0f) | first census: PC-1 .142 PC-2 .281, 471-sentence register (/93) | gate law corrected (scoped CPU jobs safe at ~0 avail, /90) | KICKER round merged green on /95 spec carrier: PC-2 .346 (sibling session; merge-verified 865+176+24) | un-askable audit: 0/58 eval-side, /25 backlog dead (/97) | box rebooted 10:1x; engine auto-started (R1 door closed, watcher now guards it).
 
-## Owner decisions pending (all Type-1)
-- FORK: R1 capacity-window (2-3h engine-down; also fixes 55M-arm testability) | R2 RL-from-outcome (3-5 days, needs memory headroom below) | R3 freeze+pivot to generalization program. REC: R3 + opportunistic R1.
-- ZNR verified source -> first-ever set-level generalization score (meter armed: --split set --fresh-sets ZNR) + §8 atomics re-eval.
-- MEMORY: box is at MemAvailable 0.2 GiB idle, swap 73% used, CUDA-pinned ~100 GiB non-reclaimable and creeping with job churn (/87). No safe job can launch right now. A REBOOT (or long engine-down = R1 window) is the only headroom reset.
+## Live lanes (no collisions per coordination law)
+Sibling session: compiler/grammar waves (landfall next per /95 order?; Basri Ket designation lane ticketed; goldens for ZNR pending). My lane: watchers (R1 window armed), eval/audit tools, bookkeeping, shadow-clone pipeline (unlocks at playbook step 4 = compile-rate-gated).
 
-## Gate-open items (COMPLETED)
-- Second-opinion frontier battle 400g bsh_s1 vs champ, fresh seed-base: COMPLETED (/89, OP2 0.4858 @400g replicated).
-- Order-dependent test flake fix (tools/eval/test_dagger_wave): COMPLETED (fixed package attribute monkeypatch isolation; 94/94 passed).
-- Ruff fixes on arc files (tools/search, numlane, eval_ckpt, holdout_report): COMPLETED.
+## Owner items
+Next reboot: keep engine unit stopped ~night (or let r1 watcher catch the window) = the R1 capacity measurement. ZNR nothing further needed.
