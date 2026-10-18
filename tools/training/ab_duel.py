@@ -572,12 +572,26 @@ def snapshot_obs(world: Any, a_handle: Any) -> dict[str, Any]:
 
 def _cards_rows_of(world: dict[str, Any]):
     """Snapshot-side handle grounding: ``"card:17"`` -> its row in the
-    private ``_cards`` table (mirror of bc_data_v2.card_row_lookup)."""
+    private ``_cards`` table (mirror of bc_data_v2.card_row_lookup).
+    ZND-1f: a ``+kick`` candidate grounds to the base row (when the table
+    carries it) plus ``["kick"] + obs["_kick"][token]`` — the private,
+    underscore-inert cost table the rig installs for kicked cast rows.
+    A suffixed token with no card row and no cost entry grounds to
+    nothing, exactly like an unknown handle; UN-suffixed tokens resolve
+    EXACTLY as before (additive-only, /102)."""
     table = world.get("_cards", {})
+    kicks = world.get("_kick", {})
 
     def rows_of(token: str):
-        handle = bc_data_v2._handle_of(token)
-        return table.get(str(handle)) if handle is not None else None
+        base, kicked = bc_data_v2.split_kick(token)
+        handle = bc_data_v2._handle_of(base)
+        row = table.get(str(handle)) if handle is not None else None
+        if not kicked:
+            return row
+        grounding = ["kick"] + list(kicks.get(token, ()))
+        if row is None:
+            return grounding if len(grounding) > 1 else None
+        return list(row) + grounding
 
     return rows_of
 

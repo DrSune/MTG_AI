@@ -79,6 +79,7 @@ from MTG_bot.core.executor.games import (
     legal_casts,
 )
 from tools.eval.gameplay_eval import REFUSE_TOKENS, make_eval_policy
+from tools.training import bc_data_v2
 from tools.training.ab_duel import (
     classify_outcome,
     seat_swaps,
@@ -223,7 +224,20 @@ class HeuristicTeacher:
             if lands:
                 return cands.index(lands[0])
             if casts:
-                return cands.index(max(casts, key=lambda h: (cmc.get(h, 0), h)))
+                # ZND-1f gate: base-before-kicked in TIE-BREAK too — "+kick"
+                # sorts lexicographically ABOVE the base handle, so the bare
+                # (cmc, h) key made the teacher always over-kick (gate probe:
+                # order-independent). Preference order: cmc, UNKICKED, handle.
+                return cands.index(
+                    max(
+                        casts,
+                        key=lambda h: (
+                            cmc.get(h, 0),
+                            not bc_data_v2.split_kick(h)[1],
+                            h,
+                        ),
+                    )
+                )
             if acts:
                 return cands.index(acts[0])
             return cands.index("PASS")
@@ -342,7 +356,13 @@ class PolicyActDriver(RandomPolicy):
         picked: dict[str, tuple[str, Any]] = {}
         for kind, group in (("land", lands), ("cast", spells)):
             for r in group:
-                tok = str(r.handle)
+                # ZND-1f (/102): both priced rows are presented. The kicked
+                # row's token carries the +kick suffix; legality already
+                # sorted base-before-kicked (CastOption.order_key), the
+                # dedupe below can no longer collapse the pair because the
+                # tokens differ. Anti-phantom: rows come from legal_casts
+                # only — a kick row is never synthesized here (decision 5).
+                tok = bc_data_v2.kick_token(str(r.handle), kind == "cast" and r.kicked)
                 if tok not in picked:
                     picked[tok] = (kind, r)
                     menu.append(tok)
@@ -368,6 +388,24 @@ class PolicyActDriver(RandomPolicy):
         }
         obs["_lands"] = [t for t, (k, _) in rows.items() if k == "land"]
         obs["_acts"] = [t for t, (k, _) in rows.items() if k == "act"]
+        # ZND-1f (/102 decision 2): static kicker-cost grounding for the
+        # +kick tokens in this menu (same static-tree name-bag vocabulary
+        # as the option-set rows). Underscore-inert: obs_words never
+        # serializes it, so base candidate spans are byte-unchanged.
+        # Gate hardening: a presented +kick row with EMPTY grounding words
+        # would be exactly the §10 blindness /102 forbids — impossible on
+        # every probed pool, so make it loud, never silently under-grounded.
+        kick_grounding: dict[str, list[str]] = {}
+        for tok, (kind, r) in rows.items():
+            if kind == "cast" and r.kicked:
+                words = bc_data_v2.kicker_cost_words(game.executor, r.handle)
+                if not words:
+                    raise AssertionError(
+                        f"ZND-1f: +kick candidate {tok} has no kicker-cost "
+                        "grounding (would present an ungrounded decision)"
+                    )
+                kick_grounding[tok] = words
+        obs["_kick"] = kick_grounding
         return obs
 
     # -- single-slot target designation by policy; parent rng fallback

@@ -131,13 +131,62 @@ def _handle_of(token: str) -> Handle | None:
         return None
 
 
-def card_row_lookup(world: Any) -> Callable[[str], list[str] | None]:
+# ZND-1f (/102 decision 1): the KICKED priced cast of a handle-shaped
+# candidate is ``"card:17+kick"``. Additive-only tokenizer (§8): pools
+# without a priced kicker never emit the suffix, so every existing
+# candidate string and span stays byte-identical.
+KICK_SUFFIX = "+kick"
+
+
+def split_kick(token: str) -> tuple[str, bool]:
+    """``"card:17+kick"`` -> ``("card:17", True)``; every other token
+    passes through unchanged (``(token, False)``)."""
+    if token.endswith(KICK_SUFFIX) and len(token) > len(KICK_SUFFIX):
+        return token[: -len(KICK_SUFFIX)], True
+    return token, False
+
+
+def kick_token(handle: str, kicked: bool) -> str:
+    """Canonical candidate token for one priced-cast row (/102 decision 3):
+    the base handle never carries a marker, base sorts before kicked —
+    the order ``legal_casts`` already emits (``CastOption.order_key``)."""
+    return handle + KICK_SUFFIX if kicked else handle
+
+
+def kicker_cost_words(executor: Any, handle: Any) -> list[str]:
+    """/102 decision 2 grounding: the card's compiled KickerAbility cost
+    serialized through :func:`effect_words` — the same class/enum name
+    vocabulary the option-set rows use, read from static tree data
+    (``spell_record`` → ``kicker_of`` → ``cost``). ``[]`` when no priced
+    kicker exists: this is the grounding mirror of legality, never a
+    legality source (decision 5: only rows legality emitted are shown)."""
+    from MTG_bot.core.executor.legality import kicker_of, spell_record
+
+    record = spell_record(executor, handle)
+    if record is None:
+        return []
+    kicker = kicker_of(record)
+    return effect_words(kicker.cost) if kicker is not None else []
+
+
+def card_row_lookup(
+    world: Any,
+    kick_words: Callable[[str], list[str]] | None = None,
+) -> Callable[[str], list[str] | None]:
     """Handle token -> card row over the WHOLE world (zone-independent):
     ``world.cards`` knows every handle, so a hidden-zone candidate still
-    grounds to ``[handle, name, tapped?, counters…]``."""
+    grounds to ``[handle, name, tapped?, counters…]``.
+
+    A ``+kick`` candidate (ZND-1f) grounds to the SAME referent row plus
+    ``["kick"] + cost_words`` — the suffix never loses the referent, and
+    the span stays visibly distinct from the base row. ``kick_words`` is
+    the pool-side cost-word provider (from :func:`kicker_cost_words`);
+    without it the suffix still grounds and stays distinct, minus the
+    cost words."""
 
     def rows_of(token: str) -> list[str] | None:
-        handle = _handle_of(token)
+        base, kicked = split_kick(token)
+        handle = _handle_of(base)
         if handle is None:
             return None
         state = world.cards.get(handle)
@@ -148,6 +197,8 @@ def card_row_lookup(world: Any) -> Callable[[str], list[str] | None]:
             row.append("tapped")
         for k, v in sorted(state.counters.items()):
             row.append(f"{k}={v}")
+        if kicked:
+            row = row + ["kick"] + (list(kick_words(str(handle))) if kick_words else [])
         return row
 
     return rows_of
@@ -194,13 +245,18 @@ def ground_with(
 
 
 def ground_candidates(
-    world: Any, what: str, candidates: list[str] | tuple[str, ...]
+    world: Any,
+    what: str,
+    candidates: list[str] | tuple[str, ...],
+    kick_words: Callable[[str], list[str]] | None = None,
 ) -> list[list[list[str]]]:
     """Recorder-side convenience: grounding straight off a live ExecCtx
-    world (the duel uses :func:`ground_with` over a snapshot card table)."""
+    world (the duel uses :func:`ground_with` over a snapshot card table).
+    ``kick_words`` is forwarded to :func:`card_row_lookup` for ``+kick``
+    candidates (ZND-1f)."""
     if world is None:
         return [[] for _ in candidates]
-    return ground_with(card_row_lookup(world), what, candidates)
+    return ground_with(card_row_lookup(world, kick_words), what, candidates)
 
 
 # --------------------------------------------------- choose digest stash
