@@ -1,7 +1,7 @@
 # FRONTIER LEDGER (single source of truth; update on every admission; last: 2026-10-17)
 
-| ckpt | recipe / data | teacher-WR (200g unless noted) | mirror claims | puzzle acc | admission status |
-|---|---|---|---|---|---|
+| ckpt | OBS MODE (/94 O1) | recipe / data | teacher-WR (200g unless noted) | mirror claims | puzzle acc | admission status |
+|---|---|---|---|---|---|---|
 | **bsh_S3a_s1** | shadow of bc9 champ, 778 live eps, 60ep | **0.4256 [.358,.496]** | 0.5288 vs champ; **0.4649 [.416,.515] @400g; **OP2 0.4858 [.436,.536] @400g = PARITY x2**** | 0.643* | **FRONTIER** (WR-admitted; *acc contaminated-by-exposure, report-only /86) |
 | bc9_S3_s1 | batch9 curated, era-best | 0.3927 (rig-era) | retired: live-UNK 0.3355 (drift) | 0.766 best / final lower | retired (era drift), still gen-expert |
 | bshb_S3a_s1 | same, 4.6k eps 10ep | 0.3594 | 0.4821 vs bsh_s1 | — | volume-law-NEGATIVE evidence /80 |
@@ -13,4 +13,4 @@
 | azg1_best | AZ-v3 G1 | 0.3093 | 0.4346 vs bsh-era bar | — | AZ PARKED /74 |
 | bc10_* batch9 arms | era nets | 0.22–0.34 dashboard | mirror 0.349 vs champ | .76–.83 | era-regression cohort /75 |
 | bc10_S3a_s2 best.pt | — | 0.0 (collapsed argmin-0) | — | 0.766 | COLLAPSED — exhibit for best.pt degeneracy law |
-Standing laws: WR-probe admission on every cited ckpt; best.pt = pre-final; shadow clones judged by WR only; plateau 0.36–0.43 = expert-class cap (falsification ledger /85).
+Obs-mode admission (/94): ALL rows above are `obs-omniscient`-frame nets (encoded before the perspective-mask law). Any future `obs-perspective` (v3c + belief lanes) net enters with its mode declared IN its row; cross-mode WR comparisons are invalid. Standing laws: WR-probe admission on every cited ckpt; best.pt = pre-final; shadow clones judged by WR only; plateau 0.36–0.43 = expert-class cap (falsification ledger /85).
