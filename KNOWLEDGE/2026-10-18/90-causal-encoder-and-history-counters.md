@@ -31,6 +31,10 @@ independently by the gate. Trigger: owner conceptual input (post-/89, pre-FORK).
 - Cost reality (/79): 90.9 s/ask = 90.8 s CPU rollout forwards + 66 ms root + 31 ms engine stepping.
 
 ## O1 — OWNER DECISION (C4 finding): does encoding stay omniscient or become True North?
+**RESOLVED 2026-10-18 by owner (see /94): B for the play lane** — omniscient obs survives ONLY as a
+labeled non-play mode (analysis/teacher/audit); the play encoding becomes perspective-masked (v3c)
+with belief features derived from PUBLIC information only (registered lists/pool − public record),
+never computed from hidden zones (anti-leak law in /94 §2).
 The age lane only fully makes sense relative to an observer; today's encoder ships hidden info the
 model is *not* entitled to see (enemy hand names, library orders). Adding knowledge-labeled ages on
 top of leaking lanes is the incoherent middle ground ("partial mask = learnable noise + shortcut via
