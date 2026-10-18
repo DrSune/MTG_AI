@@ -1597,9 +1597,16 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B4-enters-tapped-creature",
-        name="this creature enters tapped",
+        # ZND-2 T3: widened to the non-land permanent nouns, DISJOINT from
+        # B4-enters-tapped-land below (one noun, one template — identical
+        # overlap on two patterns would be a tolerated-but-ugnoy double
+        # claim; the tree is type-independent: EtBState(tapped=True)).
+        # M21 census 2026-10-18: zero "This artifact/enchantment enters
+        # tapped." sentences (buckets and goldens stay byte-identical);
+        # ZNR gains Spare Supplies.
+        name="this creature/artifact/enchantment enters tapped",
         bucket=_BUCKET,
-        pattern=re.compile(r"^This creature enters tapped\.$"),
+        pattern=re.compile(r"^This (?:creature|artifact|enchantment) enters tapped\.$"),
         priority=_PRIORITY,
         build=_build_enters_tapped,
     ),

@@ -241,6 +241,25 @@ def _git_head() -> str:
         return "unknown"
 
 
+def _replace_numbers_section(path: Path, date: str, set_name: str, section: str) -> str:
+    """Swap the day's existing `set_name` section for the freshly-built one.
+
+    The section runs from its `## {date} ({set_name} —` header to just before
+    the next `## ` header (or EOF). Everything else in NUMBERS.md is byte-kept,
+    and the file's `Latest entry first` position of the section is preserved.
+    """
+    header = f"## {date} ({set_name} —"
+    lines = path.read_text(encoding="utf-8").split("\n")
+    start = next(i for i, line in enumerate(lines) if line.startswith(header))
+    end = next(
+        (i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")),
+        len(lines),
+    )
+    lines[start:end] = section.split("\n")
+    path.write_text("\n".join(lines), encoding="utf-8")
+    return "section replaced"
+
+
 def _append_numbers_md(
     path: Path,
     date: str,
@@ -282,13 +301,19 @@ def _append_numbers_md(
     )
     text = path.read_text(encoding="utf-8")
     if f"## {date} ({set_name} —" in text:
-        # Same-date same-set rerun: headline already recorded — do not append
-        # duplicates (gate ZND-1e F2: the date-blind header duplicated 19x).
-        return
+        # Same-date same-set rerun: REPLACE the existing section in place —
+        # the headline is the LATEST measurement, and a stale table under a
+        # "Latest entry first" banner misstates the project (gate ZND-2 FM2:
+        # after the landfall round landed, the dedup-return left the OLD
+        # 478/0.1879/0.3416 headline while the report held 448/0.2411/0.3829).
+        # Replacement (not a second section) keeps gate ZND-1e F2's law: one
+        # dated header per set per day.
+        return _replace_numbers_section(path, date, set_name, section)
     lines = text.split("\n")
     insert_at = next(i for i, line in enumerate(lines) if line.startswith("## "))
     lines[insert_at:insert_at] = section.split("\n")
     path.write_text("\n".join(lines), encoding="utf-8")
+    return "inserted"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -507,7 +532,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # -- NUMBERS.md headline rows (top of file, above newest section) --------
     numbers_path = REPO / "KNOWLEDGE" / "NUMBERS.md"
-    _append_numbers_md(
+    numbers_action = _append_numbers_md(
         numbers_path,
         date,
         set_name,
@@ -588,7 +613,7 @@ def main(argv: list[str] | None = None) -> int:
         f"{'PASS' if pcs['PC-10']['pass'] else 'FAIL'}"
     )
     print(f"report                   {report_path}")
-    print(f"NUMBERS.md               row appended ({date})")
+    print(f"NUMBERS.md               {numbers_action} ({date})")
 
     if failed:
         print(f"FAILED TARGETS: {', '.join(failed)}", file=sys.stderr)

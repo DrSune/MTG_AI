@@ -1,7 +1,7 @@
 {
   "set": "ZNR",
-  "generated": "2026-10-18T19:15:24+02:00",
-  "git_head": "df44c49282dd915d2e9d4b387fd44424273fdafc",
+  "generated": "2026-10-18T21:48:49+02:00",
+  "git_head": "d549af6d162c97f0510ac5f94b6862670a64cd50",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -54,18 +54,18 @@
   "pcs": {
     "PC-1": {
       "name": "card_coverage",
-      "cards_zero_unparsed": 53,
+      "cards_zero_unparsed": 68,
       "denominator": 282,
-      "value": 0.187943,
+      "value": 0.241135,
       "target": ">=0.90",
       "stretch": ">=0.95",
       "pass": false
     },
     "PC-2": {
       "name": "sentence_coverage",
-      "sentences_matched": 248,
+      "sentences_matched": 278,
       "denominator": 726,
-      "value": 0.341598,
+      "value": 0.38292,
       "target": ">=0.95",
       "stretch": ">=0.98",
       "pass": false
@@ -87,15 +87,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.222,
+      "value": 0.231,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.222,
-        0.221,
-        0.221
+        0.231,
+        0.23,
+        0.23
       ]
     },
     "PC-6": {
@@ -138,33 +138,33 @@
         ]
       },
       "max_verb_share": {
-        "value": 0.206186,
+        "value": 0.166667,
         "target": "<0.20",
-        "pass": false
+        "pass": true
       },
       "pass": false,
-      "atom_total": 97,
+      "atom_total": 126,
       "max_share_verb": "ADD_MANA",
       "verb_histogram": {
-        "ADD_MANA": 20,
-        "ATTACH": 3,
+        "ADD_MANA": 21,
+        "ATTACH": 11,
         "COUNTER_SPELL": 1,
-        "CREATE_TOKEN": 2,
-        "DEAL_DAMAGE": 2,
+        "CREATE_TOKEN": 3,
+        "DEAL_DAMAGE": 3,
         "DESTROY": 6,
         "DISCARD": 1,
         "DRAW": 12,
         "GAIN_CONTROL": 1,
-        "GAIN_LIFE": 3,
-        "GRANT_ABILITY": 5,
+        "GAIN_LIFE": 4,
+        "GRANT_ABILITY": 6,
         "LOSE_LIFE": 2,
-        "MODIFY_PT": 12,
-        "MOVE_ZONE": 14,
+        "MODIFY_PT": 19,
+        "MOVE_ZONE": 17,
         "PREVENT_EFFECT": 3,
-        "PUT_COUNTER": 3,
+        "PUT_COUNTER": 8,
         "REVEAL": 2,
         "SCRY": 2,
-        "TAP": 2,
+        "TAP": 3,
         "UNTAP": 1
       }
     },
@@ -177,9 +177,9 @@
     },
     "PC-8": {
       "name": "targetable_card_fraction",
-      "targetable_entries": 21,
+      "targetable_entries": 29,
       "denominator": 282,
-      "value": 0.074468,
+      "value": 0.102837,
       "target": ">=0.40",
       "stretch": ">=0.50",
       "pass": false
@@ -276,12 +276,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "05074b68-6b31-4f9f-b3ec-bffe3e7eab47",
-      "name": "Akoum Hellhound",
-      "sentence": "Landfall — Whenever a land you control enters, this creature gets +2/+2 until end of turn.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "07e5f59e-3a98-4e01-a368-0be60e0463ba",
       "name": "Acquisitions Expert",
       "sentence": "When this creature enters, target opponent reveals a number of cards from their hand equal to the number of creatures in your party.",
@@ -321,18 +315,6 @@
       "oracle_id": "088a1f56-198c-41a1-b244-ec1c7a771041",
       "name": "Maul of the Skyclaves",
       "sentence": "Equipped creature gets +2/+2 and has flying and first strike.(It deals combat damage before creatures without first strike.)",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "088a1f56-198c-41a1-b244-ec1c7a771041",
-      "name": "Maul of the Skyclaves",
-      "sentence": "When this Equipment enters, attach it to target creature you control.",
-      "bucket_hint": "triggered"
-    },
-    {
-      "oracle_id": "088fb5dc-65eb-42bf-8a32-76fa6b79b79f",
-      "name": "Spare Supplies",
-      "sentence": "This artifact enters tapped.",
       "bucket_hint": "spell-effect"
     },
     {
@@ -506,12 +488,6 @@
     {
       "oracle_id": "15e3e226-0dd1-4c9b-a7ec-af67509cbfc5",
       "name": "Nissa of Shadowed Boughs",
-      "sentence": "Landfall — Whenever a land you control enters, put a loyalty counter on Nissa.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "15e3e226-0dd1-4c9b-a7ec-af67509cbfc5",
-      "name": "Nissa of Shadowed Boughs",
       "sentence": "You may have it become a 3/3 Elemental creature with haste and menace until end of turn.",
       "bucket_hint": "spell-effect"
     },
@@ -660,18 +636,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "254d4918-de40-4ac4-b542-f5c67a5e21eb",
-      "name": "Canyon Jerboa",
-      "sentence": "Landfall — Whenever a land you control enters, creatures you control get +1/+1 until end of turn.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "263b526c-8b81-44ee-a7c4-5c24bf9b42a4",
-      "name": "Kazandu Nectarpot",
-      "sentence": "Landfall — Whenever a land you control enters, you gain 1 life.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "26a55f91-91a1-4a1e-86fe-6551fd64ea87",
       "name": "Sizzling Barrage",
       "sentence": "Sizzling Barrage deals 4 damage to target creature that blocked this turn.",
@@ -682,12 +646,6 @@
       "name": "Nimana Skydancer",
       "sentence": "When this creature enters, target opponent mills two cards.",
       "bucket_hint": "triggered"
-    },
-    {
-      "oracle_id": "2ac1c95c-2a9d-40bc-9cad-9cadfa3f19f7",
-      "name": "Kazandu Mammoth // Kazandu Valley",
-      "sentence": "Landfall — Whenever a land you control enters, this creature gets +2/+2 until end of turn.",
-      "bucket_hint": "spell-effect"
     },
     {
       "oracle_id": "2ac1c95c-2a9d-40bc-9cad-9cadfa3f19f7",
@@ -706,12 +664,6 @@
       "name": "Scavenged Blade",
       "sentence": "Equip {2}{R} ({2}{R}: Attach to target creature you control. Equip only as a sorcery.)",
       "bucket_hint": "keyword"
-    },
-    {
-      "oracle_id": "2e7b4df3-7c36-469f-8db8-b3081a2c5691",
-      "name": "Scavenged Blade",
-      "sentence": "When this Equipment enters, attach it to target creature you control.",
-      "bucket_hint": "triggered"
     },
     {
       "oracle_id": "301d36e7-06ff-48ed-a7e8-c7d3c72e1e2f",
@@ -956,12 +908,6 @@
     {
       "oracle_id": "3d79cbe2-cf1b-4313-ab47-0118fcdbfc6c",
       "name": "Phylath, World Sculptor",
-      "sentence": "Landfall — Whenever a land you control enters, put four +1/+1 counters on target Plant you control.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "3d79cbe2-cf1b-4313-ab47-0118fcdbfc6c",
-      "name": "Phylath, World Sculptor",
       "sentence": "When Phylath enters, create a 0/1 green Plant creature token for each basic land you control.",
       "bucket_hint": "triggered"
     },
@@ -1042,12 +988,6 @@
       "name": "Ardent Electromancer",
       "sentence": "When this creature enters, add {R} for each creature in your party.",
       "bucket_hint": "triggered"
-    },
-    {
-      "oracle_id": "4493828f-144f-49cf-9fd2-61de86e632ec",
-      "name": "Canopy Baloth",
-      "sentence": "Landfall — Whenever a land you control enters, this creature gets +2/+2 until end of turn.",
-      "bucket_hint": "spell-effect"
     },
     {
       "oracle_id": "4728e320-d29b-4019-8ab5-e45319c77c40",
@@ -1332,12 +1272,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "65d6eae4-4318-4dbe-af7a-9f57bb587605",
-      "name": "Mind Carver",
-      "sentence": "When this Equipment enters, attach it to target creature you control.",
-      "bucket_hint": "triggered"
-    },
-    {
       "oracle_id": "675de007-a71e-4036-8204-140c67871b7f",
       "name": "Sea Gate Stormcaller",
       "sentence": "If this creature was kicked, copy that spell twice instead.",
@@ -1386,12 +1320,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "68fb8f21-4403-4829-8826-f2418664197e",
-      "name": "Cliffhaven Kitesail",
-      "sentence": "When this Equipment enters, attach it to target creature you control.",
-      "bucket_hint": "triggered"
-    },
-    {
       "oracle_id": "69f9a2fc-4873-4d7f-8405-3fb9a2091de5",
       "name": "Kabira Outrider",
       "sentence": "When this creature enters, target creature gets +1/+1 until end of turn for each creature in your party.",
@@ -1426,18 +1354,6 @@
       "name": "Skyclave Pick-Axe",
       "sentence": "Equip {2}{G} ({2}{G}: Attach to target creature you control. Equip only as a sorcery.)",
       "bucket_hint": "keyword"
-    },
-    {
-      "oracle_id": "6d2cf8b4-1468-4e00-94ca-65ef0c564b09",
-      "name": "Skyclave Pick-Axe",
-      "sentence": "Landfall — Whenever a land you control enters, equipped creature gets +2/+2 until end of turn.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "6d2cf8b4-1468-4e00-94ca-65ef0c564b09",
-      "name": "Skyclave Pick-Axe",
-      "sentence": "When this Equipment enters, attach it to target creature you control.",
-      "bucket_hint": "triggered"
     },
     {
       "oracle_id": "6d5dc34b-3eea-4b77-8db7-94bc30b14c4c",
@@ -1512,12 +1428,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "7215ca87-bbff-4c14-a1f5-de5ddd97c875",
-      "name": "Spitfire Lagac",
-      "sentence": "Landfall — Whenever a land you control enters, this creature deals 1 damage to each opponent.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "727ca426-f4cc-4218-8ae5-8c427af2e816",
       "name": "Cragcrown Pathway // Timbercrown Pathway [face B]",
       "sentence": "{T}: Add {G}.",
@@ -1545,18 +1455,6 @@
       "oracle_id": "75ae9b87-7137-47a0-b3e1-8915ccd0edf1",
       "name": "Fearless Fledgling",
       "sentence": "It gains flying until end of turn.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "75ae9b87-7137-47a0-b3e1-8915ccd0edf1",
-      "name": "Fearless Fledgling",
-      "sentence": "Landfall — Whenever a land you control enters, put a +1/+1 counter on this creature.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "75d38954-6148-4d95-bf4b-cb82efcbe8df",
-      "name": "Territorial Scythecat",
-      "sentence": "Landfall — Whenever a land you control enters, put a +1/+1 counter on this creature.",
       "bucket_hint": "spell-effect"
     },
     {
@@ -1830,18 +1728,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "8ad91f64-ccab-4edc-bd54-b2ee9267d614",
-      "name": "Lotus Cobra",
-      "sentence": "Landfall — Whenever a land you control enters, add one mana of any color.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "8afc00d4-a1c6-4329-af2c-a7f58a0c33e7",
-      "name": "Ruin Crab",
-      "sentence": "Landfall — Whenever a land you control enters, each opponent mills three cards.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "8ba2a7ad-a09b-4f52-9c76-c70510dc4feb",
       "name": "Vastwood Surge",
       "sentence": "Search your library for up to two basic land cards, put them onto the battlefield tapped, then shuffle.",
@@ -1980,12 +1866,6 @@
       "bucket_hint": "triggered"
     },
     {
-      "oracle_id": "9feb7600-f844-4573-bcb7-d6b34473517b",
-      "name": "Dreadwurm",
-      "sentence": "Landfall — Whenever a land you control enters, this creature gains indestructible until end of turn.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "a2375a23-a1f0-4514-87a0-e699f91acd7d",
       "name": "Zagras, Thief of Heartbeats",
       "sentence": "Flying, deathtouch, haste",
@@ -2115,12 +1995,6 @@
       "oracle_id": "aa854d50-444c-49d9-bfb1-5476b33c1c0b",
       "name": "Scute Swarm",
       "sentence": "If you control six or more lands, create a token that's a copy of this creature instead.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "aa854d50-444c-49d9-bfb1-5476b33c1c0b",
-      "name": "Scute Swarm",
-      "sentence": "Landfall — Whenever a land you control enters, create a 1/1 green Insect creature token.",
       "bucket_hint": "spell-effect"
     },
     {
@@ -2270,12 +2144,6 @@
     {
       "oracle_id": "b33a7ec6-b22b-41cf-9312-65add1529b51",
       "name": "Brushfire Elemental",
-      "sentence": "Landfall — Whenever a land you control enters, this creature gets +2/+2 until end of turn.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "b33a7ec6-b22b-41cf-9312-65add1529b51",
-      "name": "Brushfire Elemental",
       "sentence": "This creature can't be blocked by creatures with power 2 or less.",
       "bucket_hint": "spell-effect"
     },
@@ -2302,12 +2170,6 @@
       "name": "Thwart the Grave",
       "sentence": "This spell costs {1} less to cast for each creature in your party.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "b546c78c-5180-46c3-8594-b9d5ad9c3988",
-      "name": "Utility Knife",
-      "sentence": "When this Equipment enters, attach it to target creature you control.",
-      "bucket_hint": "triggered"
     },
     {
       "oracle_id": "bd6bc87d-fc75-43bc-a7d7-49d89dabcd3a",
@@ -2648,12 +2510,6 @@
     {
       "oracle_id": "d6861319-ae16-4e6c-af87-a264f667d694",
       "name": "Valakut Exploration",
-      "sentence": "Landfall — Whenever a land you control enters, exile the top card of your library.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "d6861319-ae16-4e6c-af87-a264f667d694",
-      "name": "Valakut Exploration",
       "sentence": "You may play that card for as long as it remains exiled.",
       "bucket_hint": "spell-effect"
     },
@@ -2686,12 +2542,6 @@
       "name": "Relic Axe",
       "sentence": "If it's a Warrior, it gets +2/+1 instead.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "d851312f-8b4e-4d8e-bfee-c470853be930",
-      "name": "Relic Axe",
-      "sentence": "When this Equipment enters, attach it to target creature you control.",
-      "bucket_hint": "triggered"
     },
     {
       "oracle_id": "d85e5398-fa97-4bcd-8b93-008f3f435e22",
@@ -2778,12 +2628,6 @@
       "bucket_hint": "activated"
     },
     {
-      "oracle_id": "dfa8c557-f2f5-4763-85c7-e2ec14d9e6b6",
-      "name": "Murasa Sproutling",
-      "sentence": "When this creature enters, if it was kicked, return target card with a kicker ability from your graveyard to your hand.",
-      "bucket_hint": "triggered"
-    },
-    {
       "oracle_id": "dfe1a112-97aa-4e81-8431-81552ba2cdcf",
       "name": "Crawling Barrens",
       "sentence": "It's still a land.",
@@ -2800,12 +2644,6 @@
       "name": "Crawling Barrens",
       "sentence": "{4}: Put two +1/+1 counters on this land.",
       "bucket_hint": "activated"
-    },
-    {
-      "oracle_id": "e00d601f-ac73-47a6-8920-779d71b482c9",
-      "name": "Skyclave Geopede",
-      "sentence": "Landfall — Whenever a land you control enters, this creature gets +2/+2 until end of turn.",
-      "bucket_hint": "spell-effect"
     },
     {
       "oracle_id": "e0f0f290-c83f-4d97-9f5d-786c7136b0d1",
@@ -2830,12 +2668,6 @@
       "name": "Fissure Wizard",
       "sentence": "When this creature enters, you may discard a card.",
       "bucket_hint": "triggered"
-    },
-    {
-      "oracle_id": "e4f0fa12-542b-485f-a792-3a8aba933522",
-      "name": "Makindi Ox",
-      "sentence": "Landfall — Whenever a land you control enters, tap target creature an opponent controls.",
-      "bucket_hint": "spell-effect"
     },
     {
       "oracle_id": "e6108735-8370-4611-ad59-d7da7fd0323f",
@@ -2904,12 +2736,6 @@
       "bucket_hint": "triggered"
     },
     {
-      "oracle_id": "ed26f6bf-fcd6-4cf4-9b65-a492cb79f2df",
-      "name": "Prowling Felidar",
-      "sentence": "Landfall — Whenever a land you control enters, put a +1/+1 counter on this creature.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "edf0e7c0-d9a1-4d29-9cee-5267d3a3978f",
       "name": "Moss-Pit Skeleton",
       "sentence": "Whenever one or more +1/+1 counters are put on a creature you control, if this card is in your graveyard, you may put this card on top of your library.",
@@ -2932,12 +2758,6 @@
       "name": "Ravager's Mace",
       "sentence": "Equipped creature gets +1/+0 for each creature in your party and has menace.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "f3e0aaa1-f624-4dc7-a425-7dbf27cba1ce",
-      "name": "Ravager's Mace",
-      "sentence": "When this Equipment enters, attach it to target creature you control.",
-      "bucket_hint": "triggered"
     },
     {
       "oracle_id": "f46c72b8-e2e8-42e6-a2e7-ffa5810a9bf3",
@@ -3084,7 +2904,7 @@
       "bucket_hint": "BFACE"
     }
   ],
-  "unparsed_count": 478,
+  "unparsed_count": 448,
   "shape_gaps": [
     {
       "card": "379ed4ec-8f2e-448b-9ed2-a3181e2f877e",

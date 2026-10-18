@@ -1,0 +1,65 @@
+{
+  "set": "ZNR",
+  "world": {
+    "life": 20,
+    "seed": 11
+  },
+  "cards": [
+    {
+      "key": "baloth",
+      "real": "Canopy Baloth",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "forest_you",
+      "real": "Forest",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "forest_opp",
+      "real": "Forest",
+      "zone": "hand",
+      "controller": 1
+    },
+    {
+      "key": "brute",
+      "real": "Cliffhaven Sell-Sword",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "play",
+      "key": "forest_you",
+      "seat": 0
+    },
+    {
+      "op": "enter",
+      "key": "forest_opp"
+    },
+    {
+      "op": "enter",
+      "key": "brute"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "baloth": "battlefield",
+      "forest_you": "battlefield",
+      "forest_opp": "battlefield",
+      "brute": "battlefield"
+    },
+    "power": {
+      "baloth": 6,
+      "brute": 3
+    },
+    "toughness": {
+      "baloth": 5,
+      "brute": 1
+    }
+  },
+  "notes": "ZND-2 landfall direction + one-fire lock (CR 603.8b). Canopy Baloth's compiled Landfall trigger is the ONLY +2/+2 source in the pack, so the EOT grant doubles as the trigger-fire counter. (1) Own land drop (op 'play', the real CR 305.1 lane): exactly ONE fire -> 4/3 becomes 6/5; an 8 would be the double-fire bug (e.g. an event that matches both the drop and a re-settle). (2) Opponent's land enters (seat 1): the event's to_zone controller YOU and the subject CONTROLLER_IS YOU filter each independently reject the seat-1 entry -> baloth stays 6; a bump to 8 is the direction bug (spec /101 FM2 direction falsifier). (3) A NON-LAND creature (vanilla Cliffhaven Sell-Sword, no rules text, no triggers of its own) enters under seat 0: the subject filter TYPE_EQ 'Land' rejects it -> still 6/5; the Sell-Sword's own 3/1 proves nothing else granted PT. No end_turn: the grant is deliberately still inside its 'until end of turn' window at assertion time."
+}

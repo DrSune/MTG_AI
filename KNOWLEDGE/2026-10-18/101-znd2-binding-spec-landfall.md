@@ -101,8 +101,10 @@ residual). Any card flipping OUTSIDE the 16-name set, or the register landing ou
 registered finding (flip-set bug or template over-reach), not a rounding error.
 
 ## Gates (binding exit criteria, /95 form)
-M21: PC-4 0 diffs AND report content byte-identical vs `/tmp/opencode/grammar_m21_prechange.json`
-(timestamp/latency/git_head exempt); T3/T4 disjointness argument must be test-pinned (M21
+M21: PC-4 0 diffs AND report **deterministic fields identical vs committed HEAD's report**
+([G-FM4 correction, gate ran same day: the original "byte-identical vs /tmp/opencode/
+grammar_m21_prechange.json" pin is UNSATISFIABLE — PC-5 is wall-clock noise (0.349 vs 0.329 ms on
+the pin itself); pin = HEAD blob, exemptions: PC-5/generated/git_head]). T3/T4 disjointness argument must be test-pinned (M21
 enters-tapped bytes). Core suite green (baseline 2579+23subtests, sibling ZND-1e); pyright 0 on
 touched files; ruff Δ0; bucket module count 9→10 with `build_full_registry` registration
 (coverage.py:95) + gen_buckets pins per house law; ZNR deterministic two-run (PC-9); register

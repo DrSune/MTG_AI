@@ -37,7 +37,8 @@ UNCOVERED on purpose (gap ledger 2026-10-18, honest residue):
   internal kick test), Jace copy-exception token, ``has base power and
   toughness 5/5`` (no BASE_PT atom), ``those creatures get +2/+1``
   (whole-set anaphor of a static grant — no plural referent),
-  ``…with a kicker ability`` (needs HAS_KICKER), ``all creatures able to
+  ``…with a kicker ability`` (covered by ZND-2 T4: the Murasa Sproutling
+  tail now compiles via HAS_KICKER), ``all creatures able to
   block target creature this turn do so.`` (Taunting Arbormage —
   MANDATE_BLOCK is subject-scoped {cards}+{controller}+{duration} only
   (R6-5) and the 16c executor enforces CR 509.1h "must be blocked if
@@ -64,6 +65,7 @@ from MTG_bot.core.ability_tree import (
     Cost,
     CounterKind,
     DurationEot,
+    EachPlayer,
     Effect,
     EtBState,
     FAnd,
@@ -87,6 +89,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    ZonePosition,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -587,6 +590,284 @@ def _return_two_creature_cards_hand() -> Atom:
     )
 
 
+def _opponent_players() -> Selector:
+    """``each opponent`` as effect targets — the b2a idiom (ALL mode over
+    the opponent player zone), byte-identical shape."""
+    return Selector(
+        QUnbounded(),
+        SelectorMode.ALL,
+        FAnd(children=()),
+        Zone(ZoneKind.PLAYER, ControllerRef.OPPONENT),
+    )
+
+
+def _pt_self_eot(p: int, t: int) -> Atom:
+    """``this creature gets +P/+T until end of turn.`` — MODIFY_PT on the
+    self selector with the EOT duration (b4 grant shape, class-A self)."""
+    return Atom(
+        verb=Verb.MODIFY_PT,
+        args=AtomArgs(
+            pairs=(
+                ("target", _self_selector()),
+                ("power", PtDelta(PtDirection.INCREASE, QConst(p))),
+                ("toughness", PtDelta(PtDirection.INCREASE, QConst(t))),
+                ("duration", DurationEot()),
+            )
+        ),
+    )
+
+
+def _pt_you_control_eot(p: int, t: int) -> Atom:
+    """``creatures you control get +P/+T until end of turn.`` — the exact
+    b4 B4-modify-pt-eot-you tree (same selector, same deltas, EOT)."""
+    return Atom(
+        verb=Verb.MODIFY_PT,
+        args=AtomArgs(
+            pairs=(
+                ("target", _creatures_you_control()),
+                ("power", PtDelta(PtDirection.INCREASE, QConst(p))),
+                ("toughness", PtDelta(PtDirection.INCREASE, QConst(t))),
+                ("duration", DurationEot()),
+            )
+        ),
+    )
+
+
+def _equipped_creature() -> Selector:
+    """``equipped creature`` — the source's attachment host, the exact
+    b4 ``_enchanted_creature`` shape with the Creature type word."""
+    return Selector(
+        QUnbounded(),
+        SelectorMode.ALL,
+        FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),
+            )
+        ),
+        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+    )
+
+
+def _pt_equipped_creature_eot(p: int, t: int) -> Atom:
+    """``equipped creature gets +P/+T until end of turn.``"""
+    return Atom(
+        verb=Verb.MODIFY_PT,
+        args=AtomArgs(
+            pairs=(
+                ("target", _equipped_creature()),
+                ("power", PtDelta(PtDirection.INCREASE, QConst(p))),
+                ("toughness", PtDelta(PtDirection.INCREASE, QConst(t))),
+                ("duration", DurationEot()),
+            )
+        ),
+    )
+
+
+def _dmg1_each_opponent() -> Atom:
+    """``this creature deals 1 damage to each opponent.`` — b2a
+    ``_opponent_players`` DEAL_DAMAGE shape (source is the trigger's
+    source by engine convention, no slot needed)."""
+    return Atom(
+        verb=Verb.DEAL_DAMAGE,
+        args=AtomArgs(
+            pairs=(
+                ("target", _opponent_players()),
+                ("amount", QConst(1)),
+            )
+        ),
+    )
+
+
+def _it_gains_indestructible_eot() -> Atom:
+    """``this creature gains indestructible until end of turn.`` — the
+    _it_gains_haste_eot idiom with the INDESTRUCTIBLE keyword."""
+    return Atom(
+        verb=Verb.GRANT_ABILITY,
+        args=AtomArgs(
+            pairs=(
+                ("target", _self_selector()),
+                ("ability", KeywordAbility(keyword=Keyword.INDESTRUCTIBLE)),
+                ("duration", DurationEot()),
+            )
+        ),
+    )
+
+
+def _mill_each_opponent(n: int) -> EachPlayer:
+    """``each opponent mills N cards.`` — b2b #45 rebinding contract:
+    EachPlayer(ALL_OPPONENTS) with the mill rebound to the iterated
+    opponent (YOU-relative slots rotate; PITFALLS 2026-09-22)."""
+    return EachPlayer(
+        ref=ControllerRef.ALL_OPPONENTS,
+        effect=Atom(
+            verb=Verb.MOVE_ZONE,
+            args=AtomArgs(
+                pairs=(
+                    ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+                    ("from", Zone(ZoneKind.LIBRARY, ControllerRef.YOU)),
+                    ("journal_kind", "MILL"),
+                    ("pop_order", "TOP"),
+                    ("controller", ControllerRef.YOU),
+                    ("amount", QConst(n)),
+                )
+            ),
+        ),
+    )
+
+
+def _insect_token() -> Atom:
+    """``create a 1/1 green Insect creature token.`` — the _drake_token
+    TokenSpec idiom."""
+    return Atom(
+        verb=Verb.CREATE_TOKEN,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "tokens",
+                    TokenSpec(
+                        name="Insect",
+                        type_line="Creature — Insect",
+                        types=("Creature",),
+                        subtypes=("Insect",),
+                        power=QConst(1),
+                        toughness=QConst(1),
+                        keywords=(),
+                        abilities=(),
+                        color="G",
+                    ),
+                ),
+                ("count", QConst(1)),
+            )
+        ),
+    )
+
+
+def _add_mana_any() -> Atom:
+    """``add one mana of any color.`` — the b3 R8-3 shape (color "ANY",
+    never colorless)."""
+    return Atom(
+        verb=Verb.ADD_MANA,
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.YOU),
+                ("amount", QConst(1)),
+                ("color", "ANY"),
+            )
+        ),
+    )
+
+
+def _exile_top_library() -> Atom:
+    """``exile the top card of your library.`` — the b2a furious-rise
+    MOVE_ZONE shape (ZonePosition.TOP chooser, EXILE/OWNER)."""
+    return Atom(
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAnd(children=()),
+                        Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),
+                    ),
+                ),
+            )
+        ),
+    )
+
+
+def _tap_target_opp_creature() -> Atom:
+    """``tap target creature an opponent controls.`` — TARGET selector
+    (b4 ``creature an opponent controls`` filter idiom)."""
+    return Atom(
+        verb=Verb.TAP,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.TARGET,
+                        FAnd(
+                            children=(
+                                FAtom(
+                                    pred=FAtomPred.TYPE_EQ,
+                                    string_value="Creature",
+                                ),
+                                FAtom(
+                                    pred=FAtomPred.CONTROLLER_IS,
+                                    who=ControllerRef.OPPONENT,
+                                ),
+                            )
+                        ),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                    ),
+                ),
+            )
+        ),
+    )
+
+
+def _put_counters_target_filtered(n: int, subtype: str) -> Atom:
+    """``put N +1/+1 counters on target <subtype> you control.``"""
+    return Atom(
+        verb=Verb.PUT_COUNTER,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.TARGET,
+                        FAnd(
+                            children=(
+                                FAtom(
+                                    pred=FAtomPred.SUBTYPE_EQ,
+                                    string_value=subtype,
+                                ),
+                                FAtom(
+                                    pred=FAtomPred.CONTROLLER_IS,
+                                    who=ControllerRef.YOU,
+                                ),
+                            )
+                        ),
+                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                    ),
+                ),
+                ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                ("count", QConst(n)),
+            )
+        ),
+    )
+
+
+def _return_kicker_card_hand() -> Atom:
+    """``return target card with a kicker ability from your graveyard to
+    your hand.`` — the _return_two_creature_cards_hand MOVE_ZONE shape,
+    count 1, with the HAS_KICKER identity filter (ZND-2 T4)."""
+    return Atom(
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.TARGET,
+                        FAtom(pred=FAtomPred.HAS_KICKER),
+                        Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
+                    ),
+                ),
+                ("destination", Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)),
+            )
+        ),
+    )
+
+
 _TAIL_BUILDERS: dict[str, Callable[[], Effect]] = {
     # effect tails shared by the ETB-trigger and cast-trigger families and
     # by the class-E spell arms — one encoding per tail, every consumer
@@ -617,6 +898,32 @@ _TAIL_BUILDERS: dict[str, Callable[[], Effect]] = {
     "that creature gets +5/+5 until end of turn.": _that_creature_5_5_eot,
     "return two target creature cards from your graveyard to your hand.": (
         _return_two_creature_cards_hand
+    ),
+    # ZND-2 (2026-10-18): the landfall + kicker-ETB tails. One encoding per
+    # tail sentence, shared with every future consumer (FM6 shared-tail
+    # law — b7 imports this table, it never forks these trees).
+    "this creature gets +2/+2 until end of turn.": lambda: _pt_self_eot(2, 2),
+    "creatures you control get +1/+1 until end of turn.": (
+        lambda: _pt_you_control_eot(1, 1)
+    ),
+    "you gain 1 life.": lambda: _gain_life(1),
+    "this creature deals 1 damage to each opponent.": _dmg1_each_opponent,
+    "this creature gains indestructible until end of turn.": (
+        _it_gains_indestructible_eot
+    ),
+    "each opponent mills three cards.": lambda: _mill_each_opponent(3),
+    "create a 1/1 green Insect creature token.": _insect_token,
+    "add one mana of any color.": _add_mana_any,
+    "exile the top card of your library.": _exile_top_library,
+    "tap target creature an opponent controls.": _tap_target_opp_creature,
+    "equipped creature gets +2/+2 until end of turn.": (
+        lambda: _pt_equipped_creature_eot(2, 2)
+    ),
+    "put four +1/+1 counters on target Plant you control.": (
+        lambda: _put_counters_target_filtered(4, "Plant")
+    ),
+    "return target card with a kicker ability from your graveyard to your hand.": (
+        _return_kicker_card_hand
     ),
 }
 
@@ -739,6 +1046,10 @@ _ETB_TAILS = [
     _TAIL_RETURN_CREATURE_BF,
     _TAIL_HASTE,
     _TAIL_TAP_ENCHANTED,
+    # ZND-2 T4: the Murasa Sproutling tail (register row is the SELF
+    # anaphor — "When this creature enters, if it was kicked, return
+    # target card with a kicker ability …").
+    "return target card with a kicker ability from your graveyard to your hand.",
 ]
 _CAST_TAILS = [
     "you gain 2 life.",
@@ -785,6 +1096,18 @@ TEMPLATES: tuple[Template, ...] = (
         r"enters, if it was kicked, (?P<tail>" + _alts(_ETB_TAILS) + r")$",
         _build_etb_kicked_trigger,
     ),
+    # ZND-2 T4 name-referent twin ("When <name> enters, if <name> was kicked,
+    # …") NOT registered — pre-commit adversarial gate FM1 (/101): it matches
+    # 0 of 726 ZNR sentences and was attributed 0 of the 30 rows this round
+    # clears ⇒ §10 PHANTOM. Its only register row ("When Jace enters, if Jace
+    # was kicked, create a token that's a copy of Jace, …") has a copy-exception
+    # tail that is NOT encodable under the frozen grammar (Verb.COPY slots are
+    # {source}-only), so a zero-consumer head would defend a blind spot rather
+    # than close one — the /98 T4-withdrawal precedent, not the HAS_KICKER one
+    # (that was a spec-mandated G2 vocabulary pre-registration with named
+    # ZND-2 consumers). Lands WITH its consumer when the copy-exception tail
+    # lands; use the `backref`-shaped pattern then, so a half-renamed sentence
+    # stays unmatched (PC-3). See the b6 module gap ledger.
     _template(
         "B6-cast-kicked-trigger",
         "Whenever you cast a kicked spell, <effect>",
