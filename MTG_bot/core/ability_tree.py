@@ -574,6 +574,10 @@ class FAtomPred(Enum):
     IS_PERMANENT = "IS_PERMANENT"  # on the battlefield, vs a card in a zone
     IS_TOKEN = "IS_TOKEN"  # Gadrak: "nontoken creature that died this turn"
     DIED_THIS_TURN = "DIED_THIS_TURN"  # turn-scoped; Carrion Grub, Gadrak
+    WAS_KICKED = (
+        "WAS_KICKED"  # ZNR kicker: "if it/this spell was kicked"; evaluated
+        # against the judged spell handle; no slots (precedent DIED_THIS_TURN)
+    )
     IS_ATTACHED_TO_SOURCE = (
         "IS_ATTACHED_TO_SOURCE"  # Malefic Scythe's "equipped creature"
     )
@@ -705,6 +709,13 @@ class FAtomPred(Enum):
         # ``who`` is a ControllerRef or referent Selector (CONTROLLER_IS
         # precedent); the two-player harness answers "the seats that are
         # not who's side are its opponents" (controller_matches mirror).
+    )
+    HAS_KICKER = (
+        "HAS_KICKER"  # ZNR kicker: the card HAS a kicker cost (printed,
+        # paid or not) — "a card with a kicker ability" menus (Coralhelm
+        # Chronicler, /95 G2). No slots (precedent: WAS_KICKED). Registered
+        # this round; its template consumers arrive with the reveal-menu
+        # shapes (gap ledger). CR 608.2f: distinct from WAS_KICKED.
     )
 
 
@@ -2989,8 +3000,15 @@ class EtBState:
 
     tapped: bool = False
     initial_counters: tuple[tuple[CounterKind, Quantity], ...] = ()
+    # ZNR kicker: "if it was kicked, it enters with a +1/+1 counter" — an
+    # optional gate on the entering state (omit-if-EMPTY: M21 bytes stable).
+    condition: Filter | None = None
 
     def __post_init__(self) -> None:
+        if self.condition is not None and not isinstance(self.condition, Filter):
+            raise ValueError(
+                f"EtBState: condition must be a Filter or None, got {self.condition!r}"
+            )
         if not isinstance(self.tapped, bool):
             raise ValueError(f"EtBState: tapped must be a bool, got {self.tapped!r}")
         if not isinstance(self.initial_counters, tuple):
@@ -3033,6 +3051,28 @@ class EmblemAbility:
             )
 
 
+@dataclass(frozen=True)
+class KickerAbility:
+    """A kicker head sentence (ZNR, ~57 spells): the optional extra cost a
+    spell may be cast for. NOT a CostModifier — the printed cost is never
+    raised; the extra cost is an optional alternative paid at cast time,
+    whose payment is observed by the card's other components via
+    ``FAtomPred.WAS_KICKED``. The kicker's effect arm is encoded as the
+    spell's own conditional effect (compiler fold), never fused into this
+    node: {cost-variant} and {effect} stay orthogonal axes (§9)."""
+
+    cost: Cost
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.cost, Cost):
+            # ValueError, not TypeError: from_dict across this whole module
+            # contracts on ValueError for malformed payloads (49 sibling
+            # sites); TRY004 would break that caller-facing contract.
+            raise ValueError(  # noqa: TRY004
+                f"KickerAbility: cost must be a Cost, got {type(self.cost).__name__}"
+            )
+
+
 Ability = (
     StaticAbility
     | TriggeredAbility
@@ -3043,6 +3083,7 @@ Ability = (
     | CostModifier
     | EtBState
     | EmblemAbility
+    | KickerAbility
 )
 
 
@@ -3202,6 +3243,7 @@ _A_CLASSES = (
     CostModifier,
     EtBState,
     EmblemAbility,
+    KickerAbility,
 )
 _EV_CLASSES = (
     ZoneChangeEvent,
@@ -3319,6 +3361,11 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     FAtomPred.IS_PERMANENT: (frozenset(), frozenset()),
     FAtomPred.IS_TOKEN: (frozenset(), frozenset()),
     FAtomPred.DIED_THIS_TURN: (frozenset(), frozenset()),
+    # WAS_KICKED (ZNR kicker): contextual against the judged spell handle;
+    # no slots (precedent: DIED_THIS_TURN).
+    FAtomPred.WAS_KICKED: (frozenset(), frozenset()),
+    # HAS_KICKER (ZND-1 G2, /95): the card HAS a kicker cost. No slots.
+    FAtomPred.HAS_KICKER: (frozenset(), frozenset()),
     FAtomPred.IS_ATTACHED_TO_SOURCE: (frozenset(), frozenset()),
     FAtomPred.POWER_LE: (frozenset({"count"}), frozenset({"count"})),
     FAtomPred.POWER_GE: (frozenset({"count"}), frozenset({"count"})),
@@ -3843,6 +3890,7 @@ _DATACLASSES: tuple[type, ...] = (
     CostModifier,
     EtBState,
     EmblemAbility,
+    KickerAbility,
     CardRecord,
 )
 
@@ -4079,7 +4127,9 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "EtBState": (
         ("tapped", "bool"),
         ("initial_counters", "tup:counter_placement"),
+        ("condition", "opt:filter"),
     ),
+    "KickerAbility": (("cost", "cost"),),
     "EmblemAbility": (("embedded", "ability"),),
     "CardRecord": (
         ("oracle_id", "str"),
@@ -4140,6 +4190,7 @@ _ABILITY_TAGS = frozenset(
         "CostModifier",
         "EtBState",
         "EmblemAbility",
+        "KickerAbility",
     }
 )
 _EVENT_TAGS = frozenset(
@@ -4253,6 +4304,8 @@ _UNION_CONVS: dict[str, frozenset[str]] = {
 # the tagged dict.
 _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     # rounding (T5-D): omit when None - byte-stable.
+    # ZNR kicker EtBState condition: omit when None — M21 bytes unchanged.
+    "EtBState": frozenset({"condition"}),
     "QBin": frozenset({"rounding"}),
     # referent (grammar round 4): omit when None — byte-stable.
     "Selector": frozenset({"zones", "referent"}),

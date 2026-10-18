@@ -971,6 +971,13 @@ class Executor:
         for node in record.abilities:
             if not isinstance(node, EtBState):
                 continue
+            if node.condition is not None:
+                # ZNR kicker EtB gate: evaluation needs the judged-cast
+                # context (WAS_KICKED is a contextual pred); honest raise.
+                raise NotImplementedError(
+                    "executor: conditional EtBState (gated entering state, "
+                    "e.g. kicker counters) is not implemented"
+                )
             if node.tapped:
                 self.world.cards[card].tapped = True
             for kind, quantity in node.initial_counters:

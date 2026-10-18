@@ -8,6 +8,8 @@ on in-memory synthetic cards only.
 
 from __future__ import annotations
 
+import dataclasses
+import json
 import unittest
 from pathlib import Path
 
@@ -20,7 +22,7 @@ from MTG_bot.core.compiler.coverage import (
     check_pinned_denominators,
     measure_pool,
 )
-from MTG_bot.core.compiler.ingest import RawCard, ingest_pool, pool_stats
+from MTG_bot.core.compiler.ingest import CardFace, RawCard, ingest_pool, pool_stats
 from MTG_bot.core.identity import CardIdentity
 
 _M21 = Path(__file__).resolve().parents[2] / "data" / "M21.json"
@@ -57,6 +59,26 @@ def _synthetic_raw(
     )
 
 
+def _synthetic_face(sentences: tuple[str, ...], name: str = "Back Side") -> CardFace:
+    """Minimal synthetic back face (field pipeline mirrors :class:`CardFace`)."""
+    return CardFace(
+        name=name,
+        type_line="Creature — Spirit",
+        types=("Creature",),
+        subtypes=("Spirit",),
+        supertypes=(),
+        colors=(),
+        color_identity=frozenset(),
+        mana_cost_raw=None,
+        mana_value=0,
+        power_raw="2",
+        toughness_raw="2",
+        loyalty_raw=None,
+        keywords=(),
+        sentences=sentences,
+    )
+
+
 class TestPinnedDenominators(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -82,12 +104,12 @@ class TestPinnedDenominators(unittest.TestCase):
 
 
 class TestRegistry(unittest.TestCase):
-    def test_all_eight_buckets_registered(self) -> None:
+    def test_all_buckets_registered(self) -> None:
         registry = build_full_registry()
         buckets = {t.bucket for t in registry.all()}
         self.assertEqual(
             buckets,
-            {"B1", "B2a", "B2b", "B3", "B4", "B5a", "B5b", "B5c"},
+            {"B1", "B2a", "B2b", "B3", "B4", "B5a", "B5b", "B5c", "B6"},
         )
 
     def test_registry_is_nonempty(self) -> None:
@@ -169,6 +191,17 @@ class TestMeasurePool(unittest.TestCase):
         self.assertEqual(len(data["unparsed_queue"]), self.report.unparsed_count)
         # OMIT-IF-EMPTY law: a zero-gap pool gains no "shape_gaps" key.
         self.assertNotIn("shape_gaps", data)
+        # Same law for the back-face census: M21 has no modal faces, so the
+        # real-JSON report gains NO "backface" key and the queue has no
+        # "BFACE" rows.
+        self.assertNotIn("backface", data)
+        self.assertIsNone(self.report.backface_summary)
+        self.assertEqual(
+            self.report.sentence_total, self.report.pool_stats["sentence_total"]
+        )
+        self.assertFalse(
+            any(e.bucket_hint == "BFACE" for e in self.report.unparsed_queue)
+        )
 
 
 class TestPC10NullTest(unittest.TestCase):
@@ -258,6 +291,124 @@ class TestShapeGaps(unittest.TestCase):
         report = measure_pool({good.identity.oracle_id: good}, self.registry)
         self.assertEqual(report.shape_gaps, ())
         self.assertNotIn("shape_gaps", report.to_json())
+
+
+class TestBackFaceCensus(unittest.TestCase):
+    """Blindspot (a) closure (KNOWLEDGE/2026-10-18/93): back-face sentences
+    enter the PC-2 denominator and the unparsed register, tagged
+    "[face B]" / "BFACE".  Measurement-only: the compiler must NOT compile
+    faces yet, so EVERY back-face sentence is an unparsed row by
+    construction — even one a front-face template would match."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.registry = build_full_registry()
+
+    def test_backface_rows_enter_register_and_grow_denominator(self) -> None:
+        card = _synthetic_raw(
+            "00000000-0000-0000-0000-000000000010",
+            "Modal Mite",
+            ("Draw a card.",),  # front: fully parseable
+        )
+        card = dataclasses.replace(
+            card,
+            back_face=_synthetic_face(("Draw two cards.", "Draw a card.")),
+        )
+        report = measure_pool({card.identity.oracle_id: card}, self.registry)
+        # Denominator = front (1) + back (2); ALL back sentences unparsed —
+        # even "Draw a card.", which a template matches on the FRONT: the
+        # compiler never reads the face yet (measurement-only wave).
+        self.assertEqual(report.sentence_total, 3)
+        self.assertEqual(report.unparsed_count, 2)
+        self.assertEqual(report.sentences_matched, 1)
+        self.assertAlmostEqual(report.pc2_sentence_coverage, 1.0 / 3.0)
+        rows = [e for e in report.unparsed_queue if e.bucket_hint == "BFACE"]
+        self.assertEqual(len(rows), 2)
+        for row in rows:
+            self.assertEqual(row.oracle_id, card.identity.oracle_id)
+            self.assertEqual(row.name, "Modal Mite [face B]")
+        self.assertEqual(
+            sorted(e.sentence for e in rows), ["Draw a card.", "Draw two cards."]
+        )
+        # PC-1 formula untouched: a clean FRONT still counts as compiled.
+        self.assertEqual(report.cards_zero_unparsed, 1)
+        self.assertEqual(report.pc1_card_coverage, 1.0)
+
+    def test_faceless_card_report_shape_unchanged(self) -> None:
+        card = _synthetic_raw(
+            "00000000-0000-0000-0000-000000000011", "Plain", ("Draw a card.",)
+        )
+        report = measure_pool({card.identity.oracle_id: card}, self.registry)
+        self.assertIsNone(report.backface_summary)
+        data = report.to_json()
+        self.assertNotIn("backface", data)
+        self.assertEqual(report.sentence_total, 1)
+        self.assertEqual(report.unparsed_queue, ())
+        self.assertEqual(report.pc2_sentence_coverage, 1.0)
+
+    def test_backface_summary_counts_and_determinism(self) -> None:
+        first = dataclasses.replace(
+            _synthetic_raw(
+                "00000000-0000-0000-0000-000000000012",
+                "A // B",
+                ("Whenever A dies, draw a card.",),
+            ),
+            back_face=_synthetic_face(
+                (
+                    "Create a 2/2 Spirit creature token.",
+                    "Spirits you control get +1/+1.",
+                )
+            ),
+        )
+        second = dataclasses.replace(
+            _synthetic_raw(
+                "00000000-0000-0000-0000-000000000013",
+                "Solo",
+                ("Draw a card.",),
+            ),
+            back_face=_synthetic_face(("Scry 1.",)),
+        )
+        pool = {
+            second.identity.oracle_id: second,
+            first.identity.oracle_id: first,
+        }
+        report = measure_pool(pool, self.registry)
+        self.assertEqual(
+            report.backface_summary,
+            {"cards_with_faces": 2, "sentence_total": 3, "unparsed_rows": 3},
+        )
+        data = report.to_json()
+        self.assertEqual(data["backface"], report.backface_summary)
+        # Deterministic ordering: identical inputs give byte-identical JSON,
+        # and the queue is in total (oracle_id, sentence) order.
+        again = measure_pool(dict(reversed(list(pool.items()))), self.registry)
+        self.assertEqual(
+            json.dumps(again.to_json()),
+            json.dumps(data),
+        )
+        keys = [(e.oracle_id, e.sentence) for e in report.unparsed_queue]
+        self.assertEqual(keys, sorted(keys))
+
+    def test_gap_card_backface_still_counted(self) -> None:
+        # A card whose FRONT shape fails to compile still contributes its
+        # back-face sentences to the denominator and the register (honesty
+        # law: a gap counts against coverage, never shrinks the sample).
+        gap = dataclasses.replace(
+            _synthetic_raw(
+                "00000000-0000-0000-0000-000000000014",
+                "Gap Face",
+                ("Draw a card.",),
+                power_raw="1+*",
+            ),
+            back_face=_synthetic_face(("Flip a coin.",)),
+        )
+        report = measure_pool({gap.identity.oracle_id: gap}, self.registry)
+        self.assertEqual(len(report.shape_gaps), 1)
+        self.assertEqual(report.sentence_total, 2)  # 1 front + 1 back
+        self.assertEqual(report.unparsed_count, 1)  # the BFACE row
+        row = report.unparsed_queue[0]
+        self.assertEqual(row.bucket_hint, "BFACE")
+        self.assertEqual(row.name, "Gap Face [face B]")
 
 
 if __name__ == "__main__":

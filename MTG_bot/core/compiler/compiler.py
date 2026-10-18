@@ -74,6 +74,7 @@ from MTG_bot.core.compiler.templates import (
     AdditionalCostOutcome,
     AmbiguityRecord,
     EffectOutcome,
+    KickerEffectOutcome,
     KeywordOutcome,
     MetaOutcome,
     RuleReminderOutcome,
@@ -1320,6 +1321,57 @@ def _promote_liftable_picks(abilities: list[Ability], name: str) -> list[Ability
     return out
 
 
+def _kicker_slot_effect(slot: object) -> Effect | None:
+    """The mergeable effect of a processed slot for the kicker fold
+    (mirrors the continuation search's mergeability rule)."""
+    if isinstance(slot, EffectOutcome):
+        return slot.effect
+    if isinstance(slot, AbilityOutcome):
+        ab = slot.ability
+        if isinstance(
+            ab, (StaticAbility, ActivatedAbility, TriggeredAbility, SpellAbility)
+        ):
+            return ab.effect
+    return None
+
+
+def _kicker_slot_with_effect(slot: _OutcomeSlot, new_effect: Effect) -> _OutcomeSlot:
+    """Rebuild a processed slot carrying ``new_effect`` (field-preserving,
+    mirrors the continuation merge rebuilds)."""
+    if isinstance(slot, EffectOutcome):
+        return EffectOutcome(effect=new_effect)
+    if not isinstance(slot, AbilityOutcome):  # pragma: no cover - defensive
+        raise StateCorruptionError(
+            "kicker fold: unmergeable slot " + type(slot).__name__
+        )
+    ab = slot.ability
+    if isinstance(ab, StaticAbility):
+        return AbilityOutcome(ability=StaticAbility(effect=new_effect))
+    if isinstance(ab, ActivatedAbility):
+        return AbilityOutcome(
+            ability=ActivatedAbility(
+                cost=ab.cost,
+                effect=new_effect,
+                condition=ab.condition,
+                timing=ab.timing,
+            )
+        )
+    if isinstance(ab, SpellAbility):
+        return AbilityOutcome(
+            ability=SpellAbility(
+                kind=ab.kind,
+                effect=new_effect,
+                additional_costs=ab.additional_costs,
+            )
+        )
+    assert isinstance(ab, TriggeredAbility)
+    return AbilityOutcome(
+        ability=TriggeredAbility(
+            event=ab.event, condition=ab.condition, effect=new_effect
+        )
+    )
+
+
 def compile_card(
     raw: RawCard,
     registry: TemplateRegistry,
@@ -1429,6 +1481,82 @@ def compile_card(
     # anchor to the sentence that produced each ability.
     processed_sentence_idx: list[int] = []
     for i, outcome in enumerate(outcomes):
+        # ZNR kicker tail ("If this spell/it was kicked, [instead] X"):
+        # fold the WAS_KICKED-gated arm onto the previous effect-bearing
+        # slot — additive append, or "instead" replacement (the arm wins,
+        # the base moves to the Conditional's else_effect).
+        if isinstance(outcome, KickerEffectOutcome):
+            j: int | None = None
+            base: Effect | None = None
+            saw_unparsed_base = False
+            for jj in range(len(processed) - 1, -1, -1):
+                prev = processed[jj]
+                if prev is None:
+                    # An unmatched sentence: the base clause IS there in
+                    # the text, it just compiled to residue.  That failed
+                    # clause IS the base — searching past it would attach
+                    # the arm to an UNRELATED earlier effect (F2 fix:
+                    # the ZND-1 fold law stopped here).
+                    saw_unparsed_base = True
+                    break
+                if isinstance(prev, RuleReminderOutcome):
+                    continue
+                prev_effect = _kicker_slot_effect(prev)
+                if prev_effect is not None:
+                    j = jj
+                    base = prev_effect
+                    break
+            if j is None or base is None:
+                if outcome.replaces and not saw_unparsed_base:
+                    # Corrupt fold: an "instead" arm as the card's first
+                    # effect content — no base clause exists in the text
+                    # at all; never silently drop the clause.
+                    raise StateCorruptionError(
+                        "compile_card: kicker 'instead' arm has no "
+                        "preceding base effect to replace it",
+                        context={"sentence": raw.sentences[i]},
+                    )
+                if outcome.replaces:
+                    # F1 fix (supersedes ZND-1 fold law): a REPLACEMENT
+                    # arm whose base compiled to residue must NOT fold
+                    # standalone — Conditional(WAS_KICKED, then=arm) with
+                    # no else encodes "un-kicked → no effect", which is
+                    # rules-wrong (un-kicked Roil Eruption still deals 3
+                    # damage) and contradicts the register's "base is
+                    # residue" (§11).  Leave the arm in the register as
+                    # honest residue too: both clauses are uncovered.
+                    unparsed.append((raw.sentences[i], _bucket_hint(raw.sentences[i])))
+                    continue
+                # No mergeable slot. Additive arms fold standalone (the
+                # SpellAbility assembly Seq-fold yields the same tree).
+                processed.append(
+                    EffectOutcome(
+                        effect=Conditional(
+                            pred=FAtom(pred=FAtomPred.WAS_KICKED),
+                            then_effect=outcome.effect,
+                        )
+                    )
+                )
+                processed_sentence_idx.append(i)
+                continue
+            merged = (
+                Conditional(
+                    pred=FAtom(pred=FAtomPred.WAS_KICKED),
+                    then_effect=outcome.effect,
+                    else_effect=base,
+                )
+                if outcome.replaces
+                else _append_mandatory_to_seq(
+                    base,
+                    Conditional(
+                        pred=FAtom(pred=FAtomPred.WAS_KICKED),
+                        then_effect=outcome.effect,
+                    ),
+                )
+            )
+            processed[j] = _kicker_slot_with_effect(processed[j], merged)
+            # The kicker tail is consumed — not appended.
+            continue
         # Non-effect entries pass through unchanged.
         if outcome is None or not isinstance(outcome, EffectOutcome):
             processed.append(outcome)

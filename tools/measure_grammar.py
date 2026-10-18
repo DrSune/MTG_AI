@@ -483,6 +483,10 @@ def main(argv: list[str] | None = None) -> int:
     report_json = report.to_json()
     if "shape_gaps" in report_json:
         full_report["shape_gaps"] = report_json["shape_gaps"]
+    # Same OMIT-IF-EMPTY passthrough for the back-face census (blindspot (a)):
+    # faceless pools (M21) gain no key; pools with faces surface the summary.
+    if "backface" in report_json:
+        full_report["backface"] = report_json["backface"]
     if engine is not None:
         full_report["engine_support"] = engine
 

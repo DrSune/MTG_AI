@@ -26,7 +26,11 @@ M21 ingest denominators 305/639):
 * PC-2 sentence_coverage — matched oracle sentences / total oracle
   sentences.  A sentence is *matched* when it is not in the compiler's
   unparsed queue: rule-reminder and keyword sentences are recognised
-  outcomes and count as matched.
+  outcomes and count as matched.  The denominator is FRONT + BACK-FACE
+  sentences (blindspot (a) closure, KNOWLEDGE/2026-10-18/93): the
+  compiler does not read ``back_face`` yet (measurement-only wave), so
+  every back-face sentence is unparsed by construction and enters the
+  register tagged ``bucket_hint="BFACE"`` with ``name="<card> [face B]"``.
 * PC-3 ambiguity — entries whose text matched >= 2 distinct template
   outcomes producing different trees (the compiler's own ambiguity
   records).
@@ -55,6 +59,7 @@ from MTG_bot.core.compiler import (
     templates_b5a,
     templates_b5b,
     templates_b5c,
+    templates_b6,
 )
 from MTG_bot.core.compiler.compiler import CompileResult, compile_card
 from MTG_bot.core.compiler.ingest import RawCard, pool_stats
@@ -71,7 +76,7 @@ PINNED_ENTRIES = 305
 PINNED_SENTENCES = 639
 PINNED_SENTENCES_UNIQUE = 510
 
-#: The eight bucket modules, in registration order.  Explicit by design —
+#: The nine bucket modules, in registration order.  Explicit by design —
 #: a new bucket module must be added here (and to NUMBERS.md) before its
 #: templates participate in measurement.
 _BUCKET_MODULES: tuple[types.ModuleType, ...] = (
@@ -83,11 +88,12 @@ _BUCKET_MODULES: tuple[types.ModuleType, ...] = (
     templates_b5a,
     templates_b5b,
     templates_b5c,
+    templates_b6,
 )
 
 
 def build_full_registry() -> TemplateRegistry:
-    """A TemplateRegistry holding every template of all 8 bucket modules."""
+    """A TemplateRegistry holding every template of all bucket modules."""
     registry = TemplateRegistry()
     for module in _BUCKET_MODULES:
         for template in module.TEMPLATES:
@@ -211,6 +217,10 @@ class CoverageReport:
     targetable_entries: int
     unparsed_queue: tuple[UnparsedEntry, ...]
     shape_gaps: tuple[ShapeGap, ...] = ()
+    #: Back-face census summary (blindspot (a), KNOWLEDGE/2026-10-18/93):
+    #: ``None`` for a pool with no modal faces (M21) so ``to_json`` adds no
+    #: "backface" key — OMIT-IF-EMPTY house law, M21 report byte-identical.
+    backface_summary: dict[str, Any] | None = None
 
     # -- PC-1 ----------------------------------------------------------------
     @property
@@ -287,6 +297,10 @@ class CoverageReport:
         # gap-free pool (M21) keeps a byte-identical report.
         if self.shape_gaps:
             data["shape_gaps"] = [g.to_json() for g in self.shape_gaps]
+        # Same law for the back-face census: no modal faces in the pool
+        # (M21) means no "backface" key at all.
+        if self.backface_summary is not None:
+            data["backface"] = dict(self.backface_summary)
         return data
 
 
@@ -353,6 +367,14 @@ def measure_pool(
     ``shape_gaps`` and excluded from compiled-result metrics, but every
     PC denominator stays the FULL pool (honesty law: a gap card counts
     against coverage, never shrinks the sample).
+
+    Back-face census (blindspot (a) closure, KNOWLEDGE/2026-10-18/93):
+    PC-2's denominator is FRONT + BACK-FACE sentences.  The compiler does
+    not read ``RawCard.back_face`` yet (measurement-only wave), so every
+    back-face sentence is unparsed BY CONSTRUCTION and enters the register
+    as an ``UnparsedEntry`` with ``name="<card> [face B]"`` and
+    ``bucket_hint="BFACE"``.  PC-1's formula is untouched: it still counts
+    front-face compile results only.
     """
     stats = pool_stats(pool)
     results, gaps = _compile_pool_tolerant(pool, registry)
@@ -393,13 +415,43 @@ def measure_pool(
         if has_target_selector:
             targetable_entries += 1
 
-    sentence_total = int(stats["sentence_total"])
+    # -- back-face census (blindspot (a), KNOWLEDGE/2026-10-18/93) -----------
+    # The compiler never reads ``RawCard.back_face`` yet (measurement-only
+    # wave), so every back-face sentence is unparsed BY CONSTRUCTION: it
+    # enters the PC-2 denominator AND the register, tagged "[face B]" /
+    # "BFACE".  Deterministic: pool iteration is by sorted oracle id, face
+    # sentences keep their ingest split order, and the queue is sorted
+    # below.  PC-1's formula is untouched.
+    backface_rows: list[UnparsedEntry] = []
+    backface_sentences = 0
+    cards_with_faces = 0
+    for oid in sorted(pool):
+        face = pool[oid].back_face
+        if face is None:
+            continue
+        cards_with_faces += 1
+        backface_sentences += len(face.sentences)
+        name = pool[oid].identity.name
+        for sentence in face.sentences:
+            backface_rows.append(
+                UnparsedEntry(oid, f"{name} [face B]", sentence, "BFACE")
+            )
+    unparsed_queue.extend(backface_rows)
+
+    sentence_total = int(stats["sentence_total"]) + backface_sentences
     unparsed_count = len(unparsed_queue)
     atom_total = sum(verb_counts.values())
     max_verb_share = max(verb_counts.values()) / atom_total if atom_total else 0.0
     orphan_verbs = tuple(
         sorted(v.name for v in Verb if verb_counts.get(v.name, 0) == 0)
     )
+    backface_summary: dict[str, Any] | None = None
+    if cards_with_faces:
+        backface_summary = {
+            "cards_with_faces": cards_with_faces,
+            "sentence_total": backface_sentences,
+            "unparsed_rows": len(backface_rows),
+        }
 
     return CoverageReport(
         set_name=set_name,
@@ -418,11 +470,14 @@ def measure_pool(
         targetable_entries=targetable_entries,
         unparsed_queue=tuple(sorted(unparsed_queue, key=_unparsed_key)),
         shape_gaps=tuple(sorted(gaps, key=lambda g: (g.card, g.name, g.error))),
+        backface_summary=backface_summary,
     )
 
 
-def _unparsed_key(entry: UnparsedEntry) -> tuple[str, str]:
-    return (entry.oracle_id, entry.sentence)
+def _unparsed_key(entry: UnparsedEntry) -> tuple[str, str, str, str]:
+    # name/bucket_hint are trailing tiebreakers: the queue is a TOTAL order
+    # even when a front and a back sentence coincide (fully deterministic).
+    return (entry.oracle_id, entry.sentence, entry.name, entry.bucket_hint)
 
 
 def _amb_key(entry: AmbiguityEntry) -> tuple[str, str]:

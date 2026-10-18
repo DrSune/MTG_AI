@@ -102,6 +102,7 @@ class AdditionalCostOutcome:
     cost: Cost
 
 
+
 @dataclass(frozen=True)
 class ActivationGateOutcome:
     """An activation-gate sentence: "Activate only if <condition>." or
@@ -128,11 +129,27 @@ class ActivationGateOutcome:
             )
 
 
+@dataclass(frozen=True)
+class KickerEffectOutcome:
+    """A "If this spell/it was kicked, [instead] X" sentence (ZNR).
+
+    The compiler folds it onto the previous effect-bearing slot:
+    ``replaces=False`` appends ``Conditional(WAS_KICKED, X)`` to the base
+    effect (additive kicker); ``replaces=True`` makes the arm replace the
+    base effect: ``Conditional(WAS_KICKED, X, else=base)`` (CR 601.2f
+    alternative resolution).
+    """
+
+    effect: Effect
+    replaces: bool = False
+
+
 SentenceOutcome = Union[
     KeywordOutcome,
     RuleReminderOutcome,
     AbilityOutcome,
     EffectOutcome,
+    KickerEffectOutcome,
     MetaOutcome,
     AdditionalCostOutcome,
     ActivationGateOutcome,
