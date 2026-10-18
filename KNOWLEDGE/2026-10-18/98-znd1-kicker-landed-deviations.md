@@ -96,3 +96,8 @@ two-tier instead rule) · `templates.py` (KickerEffectOutcome + SentenceOutcome 
   date only, so a same-day `--set ZNR` OVERWROTE the M21 re-cert artifact
   (`reports/grammar_2026-10-18.json` now holds ZNR). Re-cert proofs survive in session records;
   one-line tool fix (set-qualified filename) = ZND-2 chore.
+  **FIXED same day (ZND-1e gate F1/F2):** harness now emits `grammar_<date>_<SET>.json`, the
+  NUMBERS auto-append header is set-qualified with a same-date-same-set dedup guard, and the row
+  command column shows the run's real set (was hardcoded `--set M21` — evidence-law violation on
+  ZNR rows). Legacy date-only file removed; today's artifacts: `grammar_2026-10-18_M21.json` +
+  `grammar_2026-10-18_ZNR.json`. The 20 pre-existing duplicate T5 headers stay (append-only law).

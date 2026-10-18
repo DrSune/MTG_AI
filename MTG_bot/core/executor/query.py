@@ -661,15 +661,24 @@ class CastOption:
 
     ``order_key`` is the bare Handle: rows sort Handle-first (ruling 5),
     spells and lands interleaved by their card handle — the world's own
-    object order, stable across replays."""
+    object order, stable across replays.
+
+    ``kicked`` (ZND-1e, CR 601.2b): a card with a KickerAbility the
+    executor can price appears TWICE on the surface when both totals are
+    payable — the base row (``kicked=False``) and the kicked row
+    (``kicked=True``, its payment folded WITH the kicker cost). Rows sort
+    Handle-first, base before kicked (the CR's natural order: the cheaper
+    declaration first), so the surface enumerates every legal way to
+    cast without hiding the optional-cost action (C15)."""
 
     handle: Handle
     node: SpellAbility | None
     land: bool
     payment: PaymentPlan | None
+    kicked: bool = False
 
-    def order_key(self) -> Handle:
-        return self.handle
+    def order_key(self) -> tuple[Handle, int]:
+        return (self.handle, 1 if self.kicked else 0)
 
 
 def legal_casts(
@@ -707,6 +716,25 @@ def legal_casts(
                 rows.append(
                     CastOption(handle=handle, node=node, land=False, payment=plan)
                 )
+                # ZND-1e (CR 601.2b + C15): a priced kicker means the
+                # SAME card is legally castable two ways — enumerate the
+                # kicked row too when the total (printed + kicker) is
+                # payable. An X-kicker or a card without a kicker yields
+                # no second row (honest reason from the fold, swallowed
+                # here exactly like an unaffordable base cast).
+                kreason, _kn, _kr, kplan = spell_castable(
+                    executor, seat, handle, x=x, kicked=True
+                )
+                if kreason is None and kplan is not None:
+                    rows.append(
+                        CastOption(
+                            handle=handle,
+                            node=node,
+                            land=False,
+                            payment=kplan,
+                            kicked=True,
+                        )
+                    )
     rows.sort(key=CastOption.order_key)
     return rows
 

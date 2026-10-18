@@ -5,6 +5,70 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-10-18 (ZNR — T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **0.1879** (53/282) | `python tools/measure_grammar.py --set ZNR` | target >= 0.90 / stretch >= 0.95 — FAIL |
+| PC-2 sentence_coverage | **0.3416** (248/726) | `python tools/measure_grammar.py --set ZNR` | target >= 0.95 / stretch >= 0.98 — FAIL |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set ZNR` | target 0 — PASS |
+| PC-4 golden_stability | **N/A** (no golden trees for set ZNR) | `python tools/measure_grammar.py --set ZNR` | target 0 — N/A (not evaluated) |
+| PC-5 compile_latency p99 | **0.222 ms/card** (3 runs) | `python tools/measure_grammar.py --set ZNR` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **30** / max share **0.2062** (ADD_MANA) | `python tools/measure_grammar.py --set ZNR` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set ZNR` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.0745** (21/282) | `python tools/measure_grammar.py --set ZNR` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set ZNR` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set ZNR` | synthetic in-memory cards — PASS |
+
+
+## 2026-10-18 (M21 — T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **1.0000** (305/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **1.0000** (639/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.329 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **4** / max share **0.1265** (MOVE_ZONE) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-10-18 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **1.0000** (305/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **1.0000** (639/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.315 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **4** / max share **0.1265** (MOVE_ZONE) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
+## 2026-10-18 (T5 — Phase-1 grammar measurement harness)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| PC-1 card_coverage | **1.0000** (305/305) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — PASS |
+| PC-2 sentence_coverage | **1.0000** (639/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
+| PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
+| PC-5 compile_latency p99 | **0.302 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **4** / max share **0.1265** (MOVE_ZONE) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
+| PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-9 determinism | **stable** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |
+| PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — PASS |
+
+
 ## 2026-10-18 (T5 — Phase-1 grammar measurement harness)
 
 | Number | Value | Command | Notes |
@@ -3757,3 +3821,4 @@ Fixes that the IR forced (docs 13): CONTROLLER_IS player-handle branch; QProp TH
 - GENERALIZATION METER v1 (2026-10-15, /86): card-seetiness split of the 199-gate -> era gaps (fresh-held58 minus train141): bc9_S3_s1 +0.041 CI[-.23,+.31], bc10_S3a_s1 +0.024 CI[-.26,+.30] = NO detectable unseen-card penalty (resolution +-0.28 at n_fresh=58). Set-level split EMPTY: only M21 integrated (ZNR pending verified source). Contamination VERIFIED: 141/199 gate items are the era ckpts' own train rows; family filter is a no-op on live rollout files (bsh saw 77/80 gate cards in train obs; fresh half n=6 invalid). Cmd: python -m tools.eval.holdout_report --split card (json tools/eval/holdout_report.json).
 - Frontier parity REPLICATED (2026-10-17, /89): OP2 0.4858 [.436,.536] @400g fresh seeds; pooled 800g ~0.475 vs champ. Expert-CLASS admission, surpass NOT claimed. Autonomy pattern: armed watcher fired nightly by itself.
 - ZNR FIRST CENSUS (2026-10-18, /93): pool ingests 282 (270 cards + 12 tokens; 36 modal-DFC folded w/ back_face). Grammar first-touch (tools/measure_grammar.py --set ZNR): PC-1 0.1418 (40/282) / PC-2 0.2809 (184/655) / PC-3 0 / PC-4 N/A (no goldens) / PC-6 orphans 33 max ADD_MANA 0.26 / PC-8 0.0603 / PC-9,10 PASS; shape_gaps 1 (Nighthawk Scavenger power '1+*', class exhausted — pool's only non-digit P/T); UNPARSED 471 sentences / 241 cards / 311 distinct shapes — top: landfall-triggers 25, kicker-cluster ~57, enters-if 18+. BLINDSPOT registered: 71 modal-DFC BACK-FACE sentences sit OUTSIDE the 655 denominator (compiler never reads back_face). File verified authentic vs api.scryfall.com (/92); M21 unchanged (PC-4 0 diffs, report byte-ident, pool 305).
+- ZND-1e KICKER PLAYABLE (2026-10-18, /100): CAST journal row 6-tuple w/ kicked column; WAS_KICKED reads turn-window CAST row (no row=False); legal_casts enumerates kick BOTH ways (CR 601.2b); honest gate flips EXACTLY Thieving Skydiver: ZNR engine-supported 268->267, deckable 268->267; packs 402/402 (4 real-ZNR kicker packs incl. CR-603.2 self-cast probe + Kitesail designation ask); core 2579 passed; M21 pins 301/281/285 + PC-4 0 diffs (305 files) hold. Cmds: tools/run_scenarios.py; pytest MTG_bot/core -q; tools/measure_grammar.py --set M21. Deferred: ask-lane kick? presentation; blink window caveat.

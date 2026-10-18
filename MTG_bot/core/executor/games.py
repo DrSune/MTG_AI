@@ -92,8 +92,13 @@ from MTG_bot.core.ability_tree import (
     walk,
 )
 from MTG_bot.core.compiler.compiler import PoolCompile, compile_pool
-from MTG_bot.core.compiler.coverage import build_full_registry
+from MTG_bot.core.compiler.coverage import (
+    ShapeGap,
+    _compile_pool_tolerant,
+    build_full_registry,
+)
 from MTG_bot.core.compiler.ingest import ingest_pool
+from MTG_bot.core.errors import StateCorruptionError
 from MTG_bot.core.executor import SUPPORTED_VERBS_V2, Executor, activate
 from MTG_bot.core.executor.events import KIND_STALL_BREAK
 from MTG_bot.core.executor.query import (
@@ -198,6 +203,14 @@ class Supply:
     engine_ids: frozenset[str]
     playable_engine_ids: frozenset[str]
     pool_seconds: float
+    #: /99: pool entries whose PRINTED SHAPE raises ``StateCorruptionError``
+    #: (the strict compile has no tolerance). Census-consistent ``ShapeGap``
+    #: rows — the same ledger the coverage report writes — so an excluded
+    #: card is REGISTERED here, never silent. Empty for every clean pool
+    #: (all of M21; ZNR carries exactly one: Nighthawk Scavenger, P/T "1+*",
+    #: whose power is defined by a card-type census the current quantity
+    #: grammar cannot express — see KNOWLEDGE/2026-10-18/99).
+    shape_gaps: tuple[ShapeGap, ...] = ()
 
 
 _SUPPLY_CACHE: dict[str, Supply] = {}
@@ -228,7 +241,32 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
     started = time.perf_counter()
     raw = ingest_pool(REPO / "MTG_bot" / "data" / f"{set_code}.json")
     registry = build_full_registry()
-    pool = compile_pool(raw, registry)
+    # /99 (KNOWLEDGE/2026-10-18/99): a card whose PRINTED SHAPE the compiler
+    # honestly refuses (StateCorruptionError — today the whole ZNR supply
+    # hangs on exactly one: Nighthawk Scavenger, power "1+*", defined as
+    # "1 plus the number of card types among cards in your opponents'
+    # graveyards" — a derived census quantity the frozen Quantity grammar
+    # has no atom for; implementing it is a grammar round, NOT a parse
+    # kludge that would silently misstate the card). The strict compile
+    # stays strict — a raise inside a game is still always a bug — but the
+    # SUPPLY excludes the refusing shape and registers it as census-
+    # consistent ShapeGap rows (the coverage-report ledger, never a silent
+    # drop). M21 has zero shape gaps: the fast path below runs unchanged
+    # and its supply stays byte-identical.
+    shape_gaps: tuple[ShapeGap, ...] = ()
+    try:
+        pool = compile_pool(raw, registry)
+    except StateCorruptionError:
+        _tolerated, gap_rows = _compile_pool_tolerant(raw, registry)
+        dropped = {gap.card for gap in gap_rows}
+        raw = {oid: rc for oid, rc in raw.items() if oid not in dropped}
+        pool = compile_pool(raw, registry)
+        shape_gaps = tuple(gap_rows)
+        for gap in gap_rows:
+            print(
+                f"supply[{set_code}]: shape-gap exclusion {gap.name!r}: {gap.error}",
+                file=sys.stderr,
+            )
     # The 12e second pass, exactly as tools/measure_grammar.py runs it: the
     # ungated pass stamps every card supported (the template's True default),
     # so the 286 number ONLY exists in the gated fold.
@@ -274,6 +312,7 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
         engine_ids=engine_ids,
         playable_engine_ids=playable_engine,
         pool_seconds=time.perf_counter() - started,
+        shape_gaps=shape_gaps,
     )
 
 
@@ -532,7 +571,13 @@ class RandomPolicy:
         # the designation above came from the slot like any other.
         if any(slot.synthetic for slot in slots):
             game.player_target_designations += 1
-        cast(executor, seat, row.handle, targets=tuple(targets))
+        cast(
+            executor,
+            seat,
+            row.handle,
+            kicked=row.kicked,
+            targets=tuple(targets),
+        )
         self._log(game, "cast", name, f"{len(targets)}t")
         if game.trace is not None:
             game.trace.record_action(

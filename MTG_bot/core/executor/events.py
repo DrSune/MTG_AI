@@ -173,7 +173,9 @@ class GameEvent:
         delta after the verb's 0-clamp)
       * TURN_PHASE    — ``(phase_name, active_player)``, subject None.
       * CAST          — ``(caster, ordinal_this_turn, spell_kind,
-        from_zone, x_value)``, subject the spell card (13b).
+        from_zone, x_value, kicked)`` (ZND-1e appended the paid/not-paid
+        flag, CR 702.27a — WAS_KICKED's carrier), subject the spell
+        card (13b).
       * GAME_LOST     — ``(reason,)`` , subject the player (13b audit row).
       * STALL_BREAK   — ``(repeat_rounds,)``, subject None, cause the seat
         whose streak fired (stall-rule audit row, 2026-10-05/11).
@@ -257,10 +259,18 @@ class GameEvent:
         return cast("tuple[str, Handle]", self.data)
 
     @property
-    def cast(self) -> tuple[Handle, int, str, str | None, int | None]:
+    def cast(self) -> tuple[Handle, int, str, str | None, int | None, bool]:
         """CAST payload: (caster, ordinal_this_turn, spell_kind,
-        from_zone, x_value) — the 13b cast feed."""
-        return cast("tuple[Handle, int, str, str | None, int | None]", self.data)
+        from_zone, x_value, kicked) — the 13b cast feed with the ZND-1e
+        paid/not-paid flag (CR 702.27a)."""
+        return cast("tuple[Handle, int, str, str | None, int | None, bool]", self.data)
+
+    @property
+    def kicked(self) -> bool:
+        """CAST rows only (ZND-1e, CR 702.27a): was the kicker cost paid?
+        A short (pre-ZND-1e) payload reads False — a spell with no kicker
+        cost was never kicked, which is the truth."""
+        return len(self.data) > 5 and bool(self.data[5])
 
     @property
     def declare_group(self) -> int:
@@ -363,19 +373,33 @@ class EventJournal:
         spell_kind: str,
         from_zone: str | None,
         x_value: int | None,
+        kicked: bool = False,
     ) -> GameEvent:
         """The CAST row (13b): emitted by the casting pipeline at 601.2h —
         after payment, before resolution — so "whenever you cast" triggers
         queue ABOVE the spell (they resolve first, CR 603.2). The ordinal
         is per-caster per-turn (the CastSpellEvent.ordinal vocabulary),
-        journalled IN the row so a replay re-derives the same ordinals."""
+        journalled IN the row so a replay re-derives the same ordinals.
+
+        ZND-1e: the trailing ``kicked`` flag journals CR 702.27a's choice
+        (paid / not paid) with the row itself — WAS_KICKED reads it back
+        from the judged object's own CAST row, so a replay re-derives the
+        same answer. ``False`` keeps the pre-ZND-1e row shape's meaning
+        (a non-kicker spell was never kicked, CR 702.27a)."""
         self.cast_counts[caster] = self.cast_counts.get(caster, 0) + 1
         return self._emit(
             KIND_CAST,
             spell,
             spell,
             "CAST",
-            (caster, self.cast_counts[caster], spell_kind, from_zone, x_value),
+            (
+                caster,
+                self.cast_counts[caster],
+                spell_kind,
+                from_zone,
+                x_value,
+                bool(kicked),
+            ),
         )
 
     def emit_targeting(

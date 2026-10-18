@@ -1,0 +1,80 @@
+{
+  "set": "ZNR",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "mana": {
+    "0": {
+      "W": 6
+    }
+  },
+  "cards": [
+    {
+      "key": "cleric_kicked",
+      "real": "Kitesail Cleric",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "cleric_plain",
+      "real": "Kitesail Cleric",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "sheep",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Pen Sheep",
+      "power": 1,
+      "toughness": 2,
+      "type": "Creature"
+    },
+    {
+      "key": "wolf",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Dire Wolf",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Kitesail Cleric",
+      "key": "cleric_kicked",
+      "kicked": true,
+      "decisions": [
+        "sheep",
+        "wolf"
+      ]
+    },
+    {
+      "op": "cast",
+      "real": "Kitesail Cleric",
+      "key": "cleric_plain"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "cleric_kicked": "battlefield",
+      "cleric_plain": "battlefield"
+    },
+    "tapped": {
+      "sheep": true,
+      "wolf": true
+    },
+    "mana_pool": {
+      "0": {
+        "W": 1
+      }
+    },
+    "hand": {
+      "0": 0
+    }
+  },
+  "notes": "ZND-1e kicker slice, the ETB-TRIGGER + designation lane. Kitesail\nCleric {W}, kicker {2}{W}: 'When this creature enters, if it was kicked, tap\nup to two target creatures.' Kicked cast: the gated TriggeredAbility fires\n(condition WAS_KICKED reads the CAST row's kicked column) and the QAtMost(2)\nTARGET selector DESIGNATES through the ask channel \u2014 pack keys as answers\n(18b lane). Un-kicked second cast: condition False -> NO ask at all (the\nstep runs on the quiet provider, which RAISES on any unprimed ask, so the\nlane itself falsifies a phantom choice). Both stay untapped, mana 6W - 4W -\n1W = 1W, hand empties. Section 10 blindness check: the kicked cast's\ndesignation asks are the dynamic shape of the static WAS_KICKED gate."
+}

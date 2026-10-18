@@ -972,12 +972,22 @@ class Executor:
             if not isinstance(node, EtBState):
                 continue
             if node.condition is not None:
-                # ZNR kicker EtB gate: evaluation needs the judged-cast
-                # context (WAS_KICKED is a contextual pred); honest raise.
-                raise NotImplementedError(
-                    "executor: conditional EtBState (gated entering state, "
-                    "e.g. kicker counters) is not implemented"
+                # ZND-1e (CR 614.1c): gated entering state — "if this
+                # creature entered the battlefield kicked ..." (Cragplate
+                # Baloth's 4 +1/+1 counters). The judged handle is the
+                # entering permanent itself: WAS_KICKED reads the card's
+                # own CAST row from the journal, so the gate is honest
+                # for cast-enters and False for put-enters/tokens.
+                from MTG_bot.core.executor.legality import ctx_for
+
+                ctx = ctx_for(
+                    self,
+                    source=card,
+                    controller=self.world.controller_of(card),
+                    x_value=self.etb_x.get(card),
                 )
+                if not eval_filter(node.condition, card, ctx):
+                    continue
             if node.tapped:
                 self.world.cards[card].tapped = True
             for kind, quantity in node.initial_counters:

@@ -118,7 +118,11 @@ class SpellObject:
       sequence alignment is the caller's contract, pinned by cast()'s
       pass-through;
     * ``payment`` — the determined-and-locked plan (601.2f's total);
-    * ``declared_clock`` — the journal clock the frame was pushed at.
+    * ``declared_clock`` — the journal clock the frame was pushed at;
+    * ``kicked`` — ZND-1e (CR 702.27a): was the optional kicker cost paid
+      with the total cost? The same truth rides the journalled CAST row
+      (the durable carrier WAS_KICKED reads); the frame keeps it visible
+      on the stack for the response window and the diagnostics dump.
     """
 
     handle: Handle
@@ -131,6 +135,7 @@ class SpellObject:
     payment: PaymentPlan | None = None
     declared_clock: int = 0
     from_zone: str | None = None
+    kicked: bool = False
     # RUNG-1: the counter flag. Set by the COUNTER_SPELL handler when a
     # response-window cast interrupts THIS frame; the popper sees it and
     # returns without running the effect (CR 601.4's interrupted
@@ -173,6 +178,7 @@ class SpellStack:
                 repr(f.payment) if f.payment is not None else None,
                 f.declared_clock,
                 f.from_zone,
+                f.kicked,
             )
             for i, f in enumerate(self.frames)
         )
@@ -693,6 +699,7 @@ def cast(
     handle: Handle,
     *,
     x: int | None = None,
+    kicked: bool = False,
     mode_choices: tuple[int, ...] = (),
     targets: tuple[Handle, ...] = (),
     decisions: tuple[str, ...] = (),
@@ -718,6 +725,14 @@ def cast(
     5. **payment** (601.2g) — ``pay_costs``, mana segments consumed
        untagged-first with THIS_MANA restrictions honoured for THIS
        spell as the use subject.
+    5b. **kick** (601.2b, ZND-1e / CR 702.27a) — ``kicked=True`` declares
+       the optional extra cost PAID: the kicker Cost joins the 601.2f
+       fold inside ``spell_castable`` (a too-poor pool disappears the
+       cast with an ordinary shortage), the choice rides the SpellObject
+       frame AND the journalled CAST row, and WAS_KICKED reads the row
+       back for every later judge (spell arm, ETB trigger condition,
+       gated EtBState). Kicking a card without a kicker, or an X-kicker
+       (deferred, /95), is an illegal-cast REASON, never a guess.
     6. **push** (601.2h) — park in the stack zone, push the frame, emit
        the journalled ``CAST`` event (the cast-trigger feed, ordinals
        included) and settle — cast triggers resolve ABOVE the spell.
@@ -729,7 +744,9 @@ def cast(
        ETB event).
     """
     world = executor.world
-    reason, node, _record, plan = spell_castable(executor, seat, handle, x=x)
+    reason, node, _record, plan = spell_castable(
+        executor, seat, handle, x=x, kicked=kicked
+    )
     if reason is not None or node is None or plan is None:
         raise ValueError(f"executor: illegal cast: {reason}")
 
@@ -782,6 +799,7 @@ def cast(
         payment=plan,
         declared_clock=executor.journal.clock,
         from_zone="hand",
+        kicked=kicked,
     )
     before = executor.journal.snapshot()
     start = len(executor.events)
@@ -796,7 +814,7 @@ def cast(
     executor.journal.record_atom(before, handle, "CAST", list(executor.events[start:]))
     executor.stack.push(frame)
     assert executor.stack.top() is frame  # LIFO: this cast is the top frame
-    executor.journal.emit_cast(handle, seat, node.kind.name, "hand", x)
+    executor.journal.emit_cast(handle, seat, node.kind.name, "hand", x, kicked)
     executor._settle()  # cast triggers resolve first
 
     # 6b (RUNG-1, CR 608.2's first slice): the RESPONSE WINDOW. Every

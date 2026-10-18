@@ -1229,7 +1229,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         for e in _turn_rows(ctx, pred.name):
             if e.kind != KIND_CAST or e.subject != handle:
                 continue
-            caster, _ordinal, _kind, row_from, _x = e.cast
+            caster, _ordinal, _kind, row_from, _x, _kicked = e.cast
             if row_from != from_state:
                 continue
             if not controller_matches(atom.who, caster, ctx):
@@ -1262,6 +1262,25 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             if controller_matches(atom.who, caster, ctx):
                 return True
         return False
+    if pred is FAtomPred.WAS_KICKED:
+        # ZND-1e (CR 702.27a): "if it was kicked" reads the LAST CAST row
+        # of the judged object in the current turn window — the row's
+        # trailing kicked column (journal.emit_cast) is the single carrier
+        # of the paid/not-paid choice, so the same answer is available to
+        # every consumer lane: the spell-on-stack Conditional (Into the
+        # Roil's arm), a TriggeredAbility.condition judged against the
+        # event subject (Roost of Drakes / Kitesail Cleric ETB), and the
+        # gated EtBState the engine applies on entry (Cragplate Baloth).
+        # No CAST row (a put-onto-battlefield creature, a token) or an
+        # un-kicked cast reads False — CR 702.27a: a spell with no kicker
+        # cost was never kicked.
+        from MTG_bot.core.executor.events import KIND_CAST
+
+        kicked = False
+        for e in _turn_rows(ctx, pred.name):
+            if e.kind == KIND_CAST and e.subject == handle:
+                kicked = e.kicked
+        return kicked
     if pred is FAtomPred.DIED_THIS_TURN:
         # 14d (B-7): the C18 row. CREATURE_DIES carries the was-snapshot
         # (type line + effective P/T AT EVENT TIME), which is exactly how a
@@ -1484,7 +1503,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         for row in _turn_rows(ctx, pred.name):
             if row.kind != KIND_CAST:
                 continue
-            caster, _ordinal, kind, _from, _x = row.cast
+            caster, _ordinal, kind, _from, _x, _kicked = row.cast
             if kind in ("INSTANT", "SORCERY") and controller_matches(
                 atom.who, caster, ctx
             ):

@@ -261,12 +261,13 @@ class TestCastPipeline(StackCase):
         self.assertEqual(len(evs), 1)
         ev = evs[0]
         self.assertEqual(ev.subject, shock)  # the SPELL card is the subject
-        caster, ordinal, kind, from_zone, xval = ev.cast
+        caster, ordinal, kind, from_zone, xval, kicked = ev.cast
         self.assertEqual(caster, self.p0)
         self.assertEqual(ordinal, 1)  # first cast this turn
         self.assertEqual(kind, "INSTANT")
         self.assertEqual(from_zone, "hand")
         self.assertIsNone(xval)
+        self.assertFalse(kicked)  # ZND-1e: Shock has no kicker
         # the park AND the put both ride the journal: hand->stack (601.2h)
         # then stack->graveyard (601.2j). The stack zone is visible to the
         # journal even though the WORLD fingerprint skips it.
@@ -664,7 +665,13 @@ class TestCastTriggerFeed(StackCase):
         )
 
     def test_ordinal_scoped_to_the_caster_and_turn(self):
-        self.watch(CastSpellEvent(UNIV, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU), ordinal=2))
+        self.watch(
+            CastSpellEvent(
+                UNIV,
+                actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                ordinal=2,
+            )
+        )
         life0 = self.world.players[self.p0].life
         cast(self.ex, self.p0, self.tiny("A"))  # 1st: watch stays silent
         self.assertEqual(self.world.players[self.p0].life, life0)
@@ -677,7 +684,13 @@ class TestCastTriggerFeed(StackCase):
         self.assertEqual(self.world.players[self.p0].life, life0 + 1)  # NOT +2
 
     def test_opponent_second_spell_mangara_shape(self):
-        self.watch(CastSpellEvent(UNIV, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT), ordinal=2))
+        self.watch(
+            CastSpellEvent(
+                UNIV,
+                actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
+                ordinal=2,
+            )
+        )
         life0 = self.world.players[self.p0].life
         self.ex.end_turn()
         self.ex.begin_turn(self.p1)  # now the watched player casts twice
@@ -688,7 +701,11 @@ class TestCastTriggerFeed(StackCase):
 
     def test_color_in_filter_quirion_shape(self):
         blue = FAtom(FAtomPred.COLOR_IN, colors=("U", "B"))
-        self.watch(CastSpellEvent(blue, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)))
+        self.watch(
+            CastSpellEvent(
+                blue, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+            )
+        )
         life0 = self.world.players[self.p0].life
         cast(self.ex, self.p0, self.tiny("Colorless"))
         self.assertEqual(self.world.players[self.p0].life, life0)  # no fire
@@ -716,7 +733,11 @@ class TestCastTriggerFeed(StackCase):
 
     def test_cast_trigger_resolves_above_the_spell(self):
         # the trigger's GAIN_LIFE row must land BEFORE the spell's DAMAGE
-        self.watch(CastSpellEvent(UNIV, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)))
+        self.watch(
+            CastSpellEvent(
+                UNIV, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+            )
+        )
         shock = self.shock()
         self.mana(self.p0, R=1)
         cast(self.ex, self.p0, shock, targets=(self.p1,))

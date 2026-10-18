@@ -45,6 +45,7 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     Seq,
     SpellAbility,
+    SpellKind,
     TokenSpec,
     TriggeredAbility,
     Verb,
@@ -785,7 +786,15 @@ class TestHandCertifiedGoldens(unittest.TestCase):
         self.assertEqual(canonical_json(got), canonical_json(expected))
 
     def test_roost_of_drakes(self) -> None:
-        """Head + gated ETB trigger (drake) + cast-trigger (drake)."""
+        """Head + gated ETB trigger (drake) + cast-trigger (drake).
+
+        ZND-1e: the expected tuple GAINS the effect-less SpellAbility
+        carrier. A kicker-only noncreature head has no effect sentence, so
+        pre-ZND-1e it compiled with no SpellAbility node at all — and was
+        therefore ``cast:not_a_spell``: the kick could never be exercised.
+        The carrier (Goremand precedent, legality.py spell_castable) is
+        what makes the card and its kicker PLAYABLE, so the certified
+        shape now includes it."""
         raw = _raw(
             "Roost of Drakes",
             (
@@ -824,6 +833,7 @@ class TestHandCertifiedGoldens(unittest.TestCase):
                 condition=None,
                 effect=_drake_token(1),
             ),
+            SpellAbility(kind=SpellKind.ENCHANTMENT),
         )
         self.assertEqual(
             canonical_json(tuple(res.card.abilities)), canonical_json(expected)

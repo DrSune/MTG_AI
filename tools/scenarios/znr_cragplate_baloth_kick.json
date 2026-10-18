@@ -1,0 +1,65 @@
+{
+  "set": "ZNR",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "mana": {
+    "0": {
+      "G": 20
+    }
+  },
+  "cards": [
+    {
+      "key": "crag_kicked",
+      "real": "Cragplate Baloth",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "crag_plain",
+      "real": "Cragplate Baloth",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Cragplate Baloth",
+      "key": "crag_kicked",
+      "kicked": true
+    },
+    {
+      "op": "cast",
+      "real": "Cragplate Baloth",
+      "key": "crag_plain"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "crag_kicked": "battlefield",
+      "crag_plain": "battlefield"
+    },
+    "counters": {
+      "crag_kicked": {
+        "PLUS_1_PLUS_1": 4
+      },
+      "crag_plain": {}
+    },
+    "power": {
+      "crag_kicked": 10,
+      "crag_plain": 6
+    },
+    "toughness": {
+      "crag_kicked": 10,
+      "crag_plain": 6
+    },
+    "mana_pool": {
+      "0": {
+        "G": 3
+      }
+    }
+  },
+  "notes": "ZND-1e kicker vertical slice, gated-EtBState branch (CR 702.27a + 614.1c).\nCragplate Baloth {5}{G}{G}, kicker {2}{G}: enters with four +1/+1 counters IF\nit was kicked. Two identical-oracle copies, one world, two casts: the kick\nchoice rides the CAST journal row (paid vs not paid), the EtBState gate reads\nit through WAS_KICKED, and the counters appear on the kicked permanent ONLY.\nThe mana lane prices both totals: 20G - (5G generic + 2GG + kicker 2G + G =\n10G) - (5G generic + 2G = 7G) leaves exactly 3G, so the kicked cast paid the\nFULL combined cost (an unpriced kick would leave 6G and falsify the pool).\nPower/toughness 10/10 vs 6/6 is the counter effect seen through the layer\nledger, not just the counter table."
+}

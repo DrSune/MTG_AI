@@ -244,6 +244,7 @@ def _git_head() -> str:
 def _append_numbers_md(
     path: Path,
     date: str,
+    set_name: str,
     pcs: dict,
     golden_files: int,
     diffs: list[str],
@@ -255,31 +256,35 @@ def _append_numbers_md(
     rows = [
         "| Number | Value | Command | Notes |",
         "|---|---|---|---|",
-        f"| PC-1 card_coverage | **{pcs['PC-1']['value']:.4f}** ({pcs['PC-1']['cards_zero_unparsed']}/{pcs['PC-1']['denominator']}) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — {'PASS' if pcs['PC-1']['pass'] else 'FAIL'} |",
-        f"| PC-2 sentence_coverage | **{pcs['PC-2']['value']:.4f}** ({pcs['PC-2']['sentences_matched']}/{pcs['PC-2']['denominator']}) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — {'PASS' if pcs['PC-2']['pass'] else 'FAIL'} |",
-        f"| PC-3 ambiguity | **{pcs['PC-3']['value']}** entries | `python tools/measure_grammar.py --set M21` | target 0 — {'PASS' if pcs['PC-3']['pass'] else 'FAIL'} |",
+        f"| PC-1 card_coverage | **{pcs['PC-1']['value']:.4f}** ({pcs['PC-1']['cards_zero_unparsed']}/{pcs['PC-1']['denominator']}) | `python tools/measure_grammar.py --set {set_name}` | target >= 0.90 / stretch >= 0.95 — {'PASS' if pcs['PC-1']['pass'] else 'FAIL'} |",
+        f"| PC-2 sentence_coverage | **{pcs['PC-2']['value']:.4f}** ({pcs['PC-2']['sentences_matched']}/{pcs['PC-2']['denominator']}) | `python tools/measure_grammar.py --set {set_name}` | target >= 0.95 / stretch >= 0.98 — {'PASS' if pcs['PC-2']['pass'] else 'FAIL'} |",
+        f"| PC-3 ambiguity | **{pcs['PC-3']['value']}** entries | `python tools/measure_grammar.py --set {set_name}` | target 0 — {'PASS' if pcs['PC-3']['pass'] else 'FAIL'} |",
         (
-            f"| PC-4 golden_stability | **N/A** ({pcs['PC-4'].get('note', 'no golden trees')}) | `python tools/measure_grammar.py --set M21` | target 0 — N/A (not evaluated) |"
+            f"| PC-4 golden_stability | **N/A** ({pcs['PC-4'].get('note', 'no golden trees')}) | `python tools/measure_grammar.py --set {set_name}` | target 0 — N/A (not evaluated) |"
             if pcs["PC-4"]["pass"] is None
-            else f"| PC-4 golden_stability | **{len(diffs)} diffs** ({golden_files} files, {golden_mode}) | `python tools/measure_grammar.py --set M21` | target 0 — {'PASS' if pcs['PC-4']['pass'] else 'FAIL'} |"
+            else f"| PC-4 golden_stability | **{len(diffs)} diffs** ({golden_files} files, {golden_mode}) | `python tools/measure_grammar.py --set {set_name}` | target 0 — {'PASS' if pcs['PC-4']['pass'] else 'FAIL'} |"
         ),
-        f"| PC-5 compile_latency p99 | **{pcs['PC-5']['value']} ms/card** ({pcs['PC-5']['runs']} runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — {'PASS' if pcs['PC-5']['pass'] else 'FAIL'} |",
-        f"| PC-6 vocabulary_health | orphans **{pcs['PC-6']['orphan_verbs']['value']}** / max share **{pcs['PC-6']['max_verb_share']['value']:.4f}** ({pcs['PC-6']['max_share_verb']}) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — {'PASS' if pcs['PC-6']['pass'] else 'FAIL'} |",
-        f"| PC-7 executor_coverage | **{pcs['PC-7']['status']}** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |",
-        f"| PC-8 targetable_fraction | **{pcs['PC-8']['value']:.4f}** ({pcs['PC-8']['targetable_entries']}/{pcs['PC-8']['denominator']}) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — {'PASS' if pcs['PC-8']['pass'] else 'FAIL'} |",
-        f"| PC-9 determinism | **{'stable' if pcs['PC-9']['pass'] else 'UNSTABLE'}** | `python tools/measure_grammar.py --set M21` | 2 independent compilations, identical fingerprint multiset |",
-        f"| PC-10 null_test | **{pcs['PC-10']['good_card_coverage']:.0%} / {pcs['PC-10']['bad_card_coverage']:.0%}**, unparsed exact | `python tools/measure_grammar.py --set M21` | synthetic in-memory cards — {'PASS' if pcs['PC-10']['pass'] else 'FAIL'} |",
+        f"| PC-5 compile_latency p99 | **{pcs['PC-5']['value']} ms/card** ({pcs['PC-5']['runs']} runs) | `python tools/measure_grammar.py --set {set_name}` | target < 50 / stretch < 20 — {'PASS' if pcs['PC-5']['pass'] else 'FAIL'} |",
+        f"| PC-6 vocabulary_health | orphans **{pcs['PC-6']['orphan_verbs']['value']}** / max share **{pcs['PC-6']['max_verb_share']['value']:.4f}** ({pcs['PC-6']['max_share_verb']}) | `python tools/measure_grammar.py --set {set_name}` | target orphans 0 + max share < 0.20 — {'PASS' if pcs['PC-6']['pass'] else 'FAIL'} |",
+        f"| PC-7 executor_coverage | **{pcs['PC-7']['status']}** | `python tools/measure_grammar.py --set {set_name}` | deferred to T6 (core/executor.py) — not evaluated |",
+        f"| PC-8 targetable_fraction | **{pcs['PC-8']['value']:.4f}** ({pcs['PC-8']['targetable_entries']}/{pcs['PC-8']['denominator']}) | `python tools/measure_grammar.py --set {set_name}` | target >= 0.40 / stretch >= 0.50 — {'PASS' if pcs['PC-8']['pass'] else 'FAIL'} |",
+        f"| PC-9 determinism | **{'stable' if pcs['PC-9']['pass'] else 'UNSTABLE'}** | `python tools/measure_grammar.py --set {set_name}` | 2 independent compilations, identical fingerprint multiset |",
+        f"| PC-10 null_test | **{pcs['PC-10']['good_card_coverage']:.0%} / {pcs['PC-10']['bad_card_coverage']:.0%}**, unparsed exact | `python tools/measure_grammar.py --set {set_name}` | synthetic in-memory cards — {'PASS' if pcs['PC-10']['pass'] else 'FAIL'} |",
     ]
     if engine is not None:
         rows.append(
             f"| PC-7 engine_supported_cards | **{engine['engine_supported_cards']}/{engine['of_total']}** ({engine['engine_supported_cards'] / engine['of_total']:.4f}) | `python tools/measure_grammar.py --with-engine-flags` | T6 executor dispatch over {len(engine['supported_verbs'])} verbs (SUPPORTED_VERBS_V2) — honest flag, not a target |"
         )
     section = (
-        f"## {date} (T5 — Phase-1 grammar measurement harness)\n\n"
+        f"## {date} ({set_name} — T5 — Phase-1 grammar measurement harness)\n\n"
         + "\n".join(rows)
         + "\n\n"
     )
     text = path.read_text(encoding="utf-8")
+    if f"## {date} ({set_name} —" in text:
+        # Same-date same-set rerun: headline already recorded — do not append
+        # duplicates (gate ZND-1e F2: the date-blind header duplicated 19x).
+        return
     lines = text.split("\n")
     insert_at = next(i for i, line in enumerate(lines) if line.startswith("## "))
     lines[insert_at:insert_at] = section.split("\n")
@@ -492,7 +497,9 @@ def main(argv: list[str] | None = None) -> int:
 
     reports_dir = REPO / "reports"
     reports_dir.mkdir(parents=True, exist_ok=True)
-    report_path = reports_dir / f"grammar_{date}.json"
+    # Set-qualified: a same-day run of another set must never overwrite
+    # this set's artifact (gate ZND-1e F1 / trap recorded in /98).
+    report_path = reports_dir / f"grammar_{date}_{set_name}.json"
     report_path.write_text(
         json.dumps(full_report, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
@@ -501,7 +508,14 @@ def main(argv: list[str] | None = None) -> int:
     # -- NUMBERS.md headline rows (top of file, above newest section) --------
     numbers_path = REPO / "KNOWLEDGE" / "NUMBERS.md"
     _append_numbers_md(
-        numbers_path, date, pcs, golden_files, golden_diffs, golden_mode, engine
+        numbers_path,
+        date,
+        set_name,
+        pcs,
+        golden_files,
+        golden_diffs,
+        golden_mode,
+        engine,
     )
 
     # -- human summary --------------------------------------------------------

@@ -100,6 +100,7 @@ from MTG_bot.core.ability_tree import (
     Filter,
     Keyword,
     KeywordAbility,
+    KickerAbility,
     Phase,
     QBin,
     QConst,
@@ -1095,6 +1096,14 @@ def spell_record(executor: Executor, handle: Handle):
     return binder.records.get(state.identity.oracle_id)
 
 
+def kicker_of(record):
+    """ZND-1e (CR 702.27a): the card's KickerAbility node, or None. The
+    cast lane, ``legal_casts``' kicked row and the engine-supported gate
+    all ask the same question through this one accessor (one encoding per
+    concept, §9)."""
+    return next((a for a in record.abilities if isinstance(a, KickerAbility)), None)
+
+
 def spell_cost(record, additional: tuple[Cost, ...] = ()) -> Cost:
     """The spell's total printed cost: CardRecord.mana_cost (the frozen
     grammar keeps the printed cost on the record, NOT on SpellAbility)
@@ -1193,6 +1202,7 @@ def spell_castable(
     handle: Handle,
     *,
     x: int | None = None,
+    kicked: bool = False,
 ) -> tuple[str | None, SpellAbility | None, object, PaymentPlan | None]:
     """The CAST legality fold — re-checkable from the API at any time
     (§8.3: same answer as the one ``legal_casts`` gave, until the world
@@ -1235,7 +1245,21 @@ def spell_castable(
     window = spell_window_reason(executor, seat, node.kind, flash=flash)
     if window is not None:
         return window, None, None, None
-    cost = spell_cost(record, node.additional_costs)
+    additional = node.additional_costs
+    if kicked:
+        # ZND-1e (CR 601.2b): the kick choice is MADE with the total cost
+        # — the kicker cost joins the 601.2f fold, so the plan (and every
+        # later re-check) prices the spell WITH the extra cost. A card
+        # without a kicker cannot be kicked (reason, never a silent
+        # downgrade to the base cost); an X-kicker is not yet priced by
+        # the executor (deferred, /95) — an honest reason too.
+        kicker = kicker_of(record)
+        if kicker is None:
+            return f"cast:not_a_kicker:{handle}", None, None, None
+        if _cost_has_x(kicker.cost):
+            return f"cast:kicker_with_x_unsupported:{handle}", None, None, None
+        additional = tuple(additional) + (kicker.cost,)
+    cost = spell_cost(record, additional)
     if _cost_has_x(cost) and x is None:
         # The declaration is the caller's; X=0 is legal (CR 107.1) — the
         # SURFACE enumerates at 0, an explicit x reaches the fold.

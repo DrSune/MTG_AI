@@ -54,6 +54,7 @@ from MTG_bot.core.ability_tree import (
     FAtomPred,
     Keyword,
     KeywordAbility,
+    KickerAbility,
     OptionalEffect,
     QConst,
     QUnbounded,
@@ -209,6 +210,129 @@ class DeckSupplyTest(unittest.TestCase):
         # losses. Deckable unchanged: all four are instants, the castable
         # lane; the window now answers for them when they are cast.
         self.assertEqual(len(self.supply.engine_ids), 301)
+
+
+class ShapeGapSupplyExclusionTest(unittest.TestCase):
+    """/99 (KNOWLEDGE/2026-10-18/99): the ZNR supply used to CRASH on one
+    printed shape — Nighthawk Scavenger, P/T "1+*" — whose '*' is defined
+    by "the number of card types among cards in your opponents' graveyards"
+    (a derived census the frozen Quantity grammar cannot express; encoding
+    it is a grammar round, not a parse kludge). The supply path now
+    EXCLUDES the refusing shape and registers it as census-consistent
+    ShapeGap rows — loud (stderr line + ledger), never silent."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.supply = get_supply("engine", "ZNR")
+
+    def test_znr_engine_supply_builds(self) -> None:
+        self.assertTrue(self.supply.deckable)
+
+    def test_nighthawk_excluded_and_registered_not_silent(self) -> None:
+        names = {meta.name for meta in self.supply.metas.values()}
+        self.assertNotIn("Nighthawk Scavenger", names)
+        gap_names = {gap.name for gap in self.supply.shape_gaps}
+        self.assertEqual(gap_names, {"Nighthawk Scavenger"})
+        [gap] = self.supply.shape_gaps
+        self.assertIn("parse_pt", gap.error)
+        self.assertIn("1+*", gap.error)
+
+    def test_exclusion_is_the_only_one(self) -> None:
+        # /93 certified Nighthawk as the ONLY non-digit P/T in ZNR; a second
+        # gap row means a new shape crash got swallowed — that is a finding.
+        self.assertEqual(len(self.supply.shape_gaps), 1)
+
+    def test_m21_supply_untouched_by_the_lane(self) -> None:
+        m21 = get_supply("engine")
+        self.assertEqual(m21.shape_gaps, ())
+        self.assertEqual(len(m21.engine_ids), 301)
+        self.assertEqual(len(m21.deckable), 281)
+
+
+class KickerLaneTest(unittest.TestCase):
+    """ZND-1e (cast/cost lane): a KickerAbility is a cast OPTION, not a
+    second spell. The legality fold charges printed + kicker cost when
+    ``kicked=True``, rejects the flag on non-kickers, refuses X-kickers
+    honestly, and the compiler carries a kicker-only noncreature head
+    (Roost of Drakes: no effect sentence, so no SpellAbility node was
+    ever built — the card was ``cast:not_a_spell``)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.supply = get_supply("engine", "ZNR")
+
+    def setUp(self) -> None:
+        reset_oracle_ids()
+        self.world = GameWorld(num_players=2, start_life=20, master_seed=3)
+        self.executor = Executor(self.world)
+        self.executor.attach_pool(self.supply.pool)
+        self.p0, _p1 = self.world.player_order
+        self.world.active_player = self.p0
+        self.executor.turn_open = True
+        self.executor.phase = "FIRST_MAIN"
+
+    def _castable(self, name: str, *, kicked: bool, mana: int):
+        record = _record_named(self.supply, name)
+        handle = self.world.add_card(identity_of(record), self.p0, ZONE_HAND)
+        self.world.players[self.p0].mana_pool.clear()
+        self.world.players[self.p0].mana_pool["U"] = mana
+        return spell_castable(self.executor, self.p0, handle, kicked=kicked)
+
+    def test_kicker_head_gets_a_spell_carrier(self) -> None:
+        record = _record_named(self.supply, "Roost of Drakes")
+        spell = next(a for a in record.abilities if isinstance(a, SpellAbility))
+        self.assertIsNone(spell.effect, "carrier only — no effect sentence")
+        self.assertEqual(spell.kind, SpellKind.ENCHANTMENT)
+        self.assertTrue(
+            any(isinstance(a, KickerAbility) for a in record.abilities),
+            "the carrier joins, it does not replace the kicker",
+        )
+
+    def test_kicked_cast_folds_the_kicker_cost(self) -> None:
+        # printed {U}; kicker {2}{U} -> kicked fold needs 4U, plain 1U
+        reason, node, _record, plan = self._castable(
+            "Roost of Drakes", kicked=True, mana=4
+        )
+        self.assertIsNone(reason, str(reason))
+        self.assertIsNotNone(node)
+        self.assertIsNotNone(plan)
+        short = self._castable("Roost of Drakes", kicked=True, mana=3)
+        assert short[0] is not None
+        self.assertIn("cost:mana", short[0])
+        plain = self._castable("Roost of Drakes", kicked=False, mana=1)
+        self.assertIsNone(plain[0], str(plain[0]))
+
+    def test_kick_flag_on_a_non_kicker_is_rejected(self) -> None:
+        # Find a plain ZNR instant that is castable at all (some instants
+        # have no SpellAbility: unparsed effect side), then reject the flag.
+        for meta in self.supply.metas.values():
+            if "Instant" not in meta.type_line:
+                continue
+            record = self.supply.pool.results[meta.oracle_id].card
+            if any(isinstance(a, KickerAbility) for a in record.abilities):
+                continue
+            handle = self.world.add_card(identity_of(record), self.p0, ZONE_HAND)
+            self.world.players[self.p0].mana_pool.clear()
+            self.world.players[self.p0].mana_pool["U"] = 10
+            if spell_castable(self.executor, self.p0, handle)[0] is not None:
+                continue  # uncastable for another reason (no spell node...)
+            reason = spell_castable(self.executor, self.p0, handle, kicked=True)[0]
+            assert reason is not None
+            self.assertTrue(reason.startswith("cast:not_a_kicker"), reason)
+            return
+        self.fail("no castable non-kicker instant in the ZNR engine pool")
+
+    def test_legal_casts_enumerates_kicker_both_ways(self) -> None:
+        record = _record_named(self.supply, "Roost of Drakes")
+        handle = self.world.add_card(identity_of(record), self.p0, ZONE_HAND)
+        self.world.players[self.p0].mana_pool.clear()
+        self.world.players[self.p0].mana_pool["U"] = 4
+        kicks = {
+            row.kicked
+            for row in legal_casts(self.world, self.executor, self.p0)
+            if row.handle == handle
+        }
+        self.assertEqual(kicks, {True, False}, "CR 601.2b: the choice, both ways")
 
 
 class ReplayDeterminismTest(unittest.TestCase):

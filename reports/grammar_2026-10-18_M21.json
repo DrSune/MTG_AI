@@ -1,0 +1,230 @@
+{
+  "set": "M21",
+  "generated": "2026-10-18T19:15:09+02:00",
+  "git_head": "df44c49282dd915d2e9d4b387fd44424273fdafc",
+  "python_version": "3.12.3",
+  "pinned_denominators": {
+    "entries": 305,
+    "sentences": 639,
+    "unique": 510
+  },
+  "pool_stats": {
+    "total": 305,
+    "with_text": 291,
+    "sentence_total": 639,
+    "sentence_unique": 510,
+    "keywords": {
+      "Battalion": 1,
+      "Deathtouch": 2,
+      "Defender": 4,
+      "Double strike": 1,
+      "Enchant": 10,
+      "Equip": 2,
+      "Fight": 2,
+      "First strike": 1,
+      "Flash": 7,
+      "Flying": 23,
+      "Haste": 3,
+      "Hexproof": 4,
+      "Hexproof from": 2,
+      "Indestructible": 1,
+      "Lifelink": 8,
+      "Menace": 1,
+      "Mill": 3,
+      "Protection": 3,
+      "Prowess": 6,
+      "Reach": 6,
+      "Scry": 12,
+      "Trample": 7,
+      "Treasure": 1,
+      "Vigilance": 9
+    },
+    "layouts": {
+      "emblem": 3,
+      "normal": 285,
+      "token": 17
+    },
+    "mana_value": {
+      "0": 44,
+      "1": 30,
+      "2": 63,
+      "3": 68,
+      "4": 43,
+      "5+": 57
+    },
+    "emblems": 3,
+    "emblem_owners": {
+      "56c1893f-1382-4a31-a28a-ea604677fcdb": [
+        "Liliana, Waker of the Dead"
+      ],
+      "8a908da7-b41c-4712-b7dc-8c6027875d36": [
+        "Garruk, Unleashed"
+      ],
+      "ab67e4ec-9392-4130-970f-6ad65656e5c1": [
+        "Basri Ket",
+        "Soldier"
+      ]
+    }
+  },
+  "pcs": {
+    "PC-1": {
+      "name": "card_coverage",
+      "cards_zero_unparsed": 305,
+      "denominator": 305,
+      "value": 1.0,
+      "target": ">=0.90",
+      "stretch": ">=0.95",
+      "pass": true
+    },
+    "PC-2": {
+      "name": "sentence_coverage",
+      "sentences_matched": 639,
+      "denominator": 639,
+      "value": 1.0,
+      "target": ">=0.95",
+      "stretch": ">=0.98",
+      "pass": true
+    },
+    "PC-3": {
+      "name": "ambiguity",
+      "value": 0,
+      "target": "0",
+      "pass": true,
+      "entries": []
+    },
+    "PC-4": {
+      "name": "golden_stability",
+      "value": 0,
+      "target": "0",
+      "pass": true,
+      "diffs": []
+    },
+    "PC-5": {
+      "name": "compile_latency_p99_ms_per_card",
+      "value": 0.329,
+      "target": "<50",
+      "stretch": "<20",
+      "pass": true,
+      "runs": 3,
+      "per_card_ms": [
+        0.311,
+        0.329,
+        0.289
+      ]
+    },
+    "PC-6": {
+      "name": "vocabulary_health",
+      "orphan_verbs": {
+        "value": 4,
+        "target": "0",
+        "pass": false,
+        "verbs": [
+          "DISCARD",
+          "EXILE",
+          "MILL",
+          "PHASE_IN"
+        ]
+      },
+      "max_verb_share": {
+        "value": 0.126496,
+        "target": "<0.20",
+        "pass": true
+      },
+      "pass": false,
+      "atom_total": 585,
+      "max_share_verb": "MOVE_ZONE",
+      "verb_histogram": {
+        "ADD_LAND_PLAY": 1,
+        "ADD_MANA": 49,
+        "ATTACH": 2,
+        "CAST": 8,
+        "CHOOSE": 2,
+        "CHOOSE_NAME": 2,
+        "COPY": 2,
+        "COUNTER_SPELL": 6,
+        "CREATE_TOKEN": 27,
+        "DAMAGE_ASSIGN_POLICY": 1,
+        "DEAL_DAMAGE": 31,
+        "DESTROY": 14,
+        "DRAW": 54,
+        "END_TURN": 1,
+        "EXTRA_TURN": 1,
+        "FIGHT": 2,
+        "FLIP_COIN": 1,
+        "GAIN_CONTROL": 2,
+        "GAIN_LIFE": 33,
+        "GET_EMBLEM": 3,
+        "GRANT_ABILITY": 48,
+        "GRANT_ACTIVATION": 1,
+        "GRANT_TYPE": 3,
+        "LOOK_AT": 4,
+        "LOSE_ABILITY": 2,
+        "LOSE_GAME": 1,
+        "LOSE_LIFE": 13,
+        "MANA_POLICY": 2,
+        "MANDATE_ATTACK": 3,
+        "MANDATE_BLOCK": 1,
+        "MODIFY_PT": 51,
+        "MOVE_ZONE": 74,
+        "PAY": 3,
+        "PHASE_OUT": 2,
+        "PREVENT_EFFECT": 15,
+        "PUT_COUNTER": 34,
+        "REMOVE_COUNTER": 1,
+        "REVEAL": 16,
+        "SACRIFICE": 4,
+        "SCRY": 12,
+        "SEARCH": 18,
+        "SET_PT": 4,
+        "SHUFFLE": 17,
+        "TAP": 8,
+        "TRIGGER_ADDITIONAL": 1,
+        "UNTAP": 5
+      }
+    },
+    "PC-7": {
+      "name": "executor_coverage",
+      "status": "pending_executor",
+      "target": "25/25; >=0.70",
+      "pass": null,
+      "note": "core/executor.py ships in T6 — not stubbed by this harness"
+    },
+    "PC-8": {
+      "name": "targetable_card_fraction",
+      "targetable_entries": 98,
+      "denominator": 305,
+      "value": 0.321311,
+      "target": ">=0.40",
+      "stretch": ">=0.50",
+      "pass": false
+    },
+    "PC-9": {
+      "name": "determinism",
+      "value": true,
+      "target": "identical fingerprint multiset",
+      "pass": true
+    },
+    "PC-10": {
+      "name": "instrument_null_test",
+      "good_card_coverage": 1.0,
+      "bad_card_coverage": 0.0,
+      "bad_unparsed_sentence": "Nobody understands this.",
+      "target": "100% / 0% respectively, unparsed queue exact",
+      "pass": true
+    }
+  },
+  "failed_targets": [
+    "PC-6",
+    "PC-8"
+  ],
+  "golden": {
+    "dir": "/home/sune/Desktop/MTG_AI/MTG_bot/core/golden/M21",
+    "files": 305,
+    "diffs": [],
+    "stable": true,
+    "goldens": "verified",
+    "baseline": "VCS-tracked (committed goldens; verify-only by default)"
+  },
+  "unparsed_queue": [],
+  "unparsed_count": 0
+}

@@ -8,7 +8,7 @@ connected only through the contextual ``FAtomPred.WAS_KICKED`` predicate.
 Cost and effect never fuse into one atom (§9 axis orthogonality).
 
 Shapes covered (sentences as they appear in the committed 2026-10-18
-work register, ``reports/grammar_2026-10-18.json``):
+work register, ``reports/grammar_ZNR_2026-10-18_census.json``):
 
 - Kicker heads: ``Kicker {2}{U} (You may pay an additional {2}{U} as you
   cast this spell.)``, bare ``Kicker {2}{G}`` / ``Kicker {X}.`` — one

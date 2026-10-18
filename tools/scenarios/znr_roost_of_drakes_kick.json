@@ -1,0 +1,70 @@
+{
+  "set": "ZNR",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "mana": {
+    "0": {
+      "U": 10
+    }
+  },
+  "cards": [
+    {
+      "key": "roost_kicked",
+      "real": "Roost of Drakes",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "roil",
+      "real": "Into the Roil",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "roost_plain",
+      "real": "Roost of Drakes",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Roost of Drakes",
+      "key": "roost_kicked",
+      "kicked": true
+    },
+    {
+      "op": "cast",
+      "real": "Into the Roil",
+      "key": "roil",
+      "kicked": true
+    },
+    {
+      "op": "cast",
+      "real": "Roost of Drakes",
+      "key": "roost_plain"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "roost_kicked": "battlefield",
+      "roost_plain": "battlefield",
+      "roil": "graveyard"
+    },
+    "tokens": {
+      "Drake": 2
+    },
+    "mana_pool": {
+      "0": {
+        "U": 1
+      }
+    },
+    "hand": {
+      "0": 1
+    }
+  },
+  "notes": "ZND-1e kicker slice, the two TRIGGERED lanes (CR 603.2 over the CAST row).\nRoost of Drakes {U}, kicker {2}{U}: (a) ETB trigger gated on WAS_KICKED and\n(b) 'whenever you cast a kicked spell, create a 2/2 Drake' with the\nCastSpellEvent filter reading the cast row's kicked column. Kicked Roost:\nexactly 1 Drake — the ETB fires, and the cast trigger must NOT fire on the\nspell that carried Roost itself (CR 603.2: the ability did not exist on the\nbattlefield when its spell was cast). 2 here would be the always-fires bug.\nKicked Into the Roil (the cast ITSELF is kicked): cast trigger fires -> 2nd\nDrake, and the spell's own Conditional(WAS_KICKED) arm draws a card (hand\nlane: 3 - 3 casts + 1 draw = 1). Un-kicked Roost: condition False on both\narms -> silent (2 stays, falsifies any always-fires encoding). Mana:\n10U - 4U (kicked Roost) - 4U (kicked Roil) - 1U (plain Roost) = 1U."
+}

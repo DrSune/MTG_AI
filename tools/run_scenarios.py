@@ -350,6 +350,7 @@ class ScenarioRunner:
                 self.seats[step.get("controller", 0)],
                 self.handles[spell_key],
                 x=step.get("x"),
+                kicked=bool(step.get("kicked", False)),
                 targets=tuple(targets),
                 decisions=tuple(step.get("decisions", ())),
             )
@@ -929,10 +930,23 @@ def main(argv=None) -> int:
     if not packs:
         print(f"error: no packs in {args.dir}", file=sys.stderr)
         return 2
-    supply = get_supply("all")
+    # ZND-1e: packs name their OWN set with a top-level "set" key
+    # (ZNR kicker packs); the default stays the M21 supply every existing
+    # pack ran on, byte-identically. Supplies are compiled once per set.
+    supplies: dict[str, object] = {}
+
+    def supply_for(code: str):
+        if code not in supplies:
+            supplies[code] = get_supply("all", code)
+        return supplies[code]
+
     failures = 0
     for path in packs:
-        fails = run_pack(path, supply)
+        try:
+            set_code = str(json.loads(path.read_text()).get("set", "M21"))
+        except (OSError, ValueError):
+            set_code = "M21"  # run_pack reports the malformed pack itself
+        fails = run_pack(path, supply_for(set_code))
         if fails:
             failures += 1
             print(f"FAIL {path.name}")

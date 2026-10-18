@@ -1,7 +1,7 @@
 {
   "set": "ZNR",
-  "generated": "2026-10-18T14:23:40+02:00",
-  "git_head": "04791197a2d00dff56b5ac9da550069352b05db7",
+  "generated": "2026-10-18T19:15:24+02:00",
+  "git_head": "df44c49282dd915d2e9d4b387fd44424273fdafc",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -87,15 +87,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.215,
+      "value": 0.222,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.215,
-        0.214,
-        0.214
+        0.222,
+        0.221,
+        0.221
       ]
     },
     "PC-6": {

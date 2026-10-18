@@ -41,6 +41,7 @@ from MTG_bot.core.ability_tree import (
     DurationUntilNextTurn,
     EachPlayer,
     Effect,
+    EtBState,
     FAnd,
     FAtom,
     FAtomPred,
@@ -49,7 +50,9 @@ from MTG_bot.core.ability_tree import (
     FOr,
     Keyword,
     KeywordAbility,
+    KickerAbility,
     OptionalEffect,
+    QBin,
     QConst,
     QUnbounded,
     Quantity,
@@ -1372,6 +1375,26 @@ def _kicker_slot_with_effect(slot: _OutcomeSlot, new_effect: Effect) -> _Outcome
     )
 
 
+def _cost_has_x_quantity(cost: Cost) -> bool:
+    """ZND-1e engine-gate helper: does this Cost price anything with X
+    (a QX amount, or a QBin tree carrying one)? Mirrors the executor's
+    legality._cost_has_x — duplicated, not imported, because the compiler
+    must not depend on the executor package."""
+
+    def has_x(q: object) -> bool:
+        if isinstance(q, QX):
+            return True
+        if isinstance(q, QBin):
+            return has_x(q.left) or has_x(q.right)
+        return False
+
+    return any(
+        isinstance(p, (CostManaColor, CostManaGeneric, CostManaHybrid))
+        and has_x(p.amount)
+        for p in cost.parts
+    )
+
+
 def compile_card(
     raw: RawCard,
     registry: TemplateRegistry,
@@ -2023,6 +2046,29 @@ def compile_card(
                 for ab in abilities
             ]
 
+    # -- Kicker head carrier -------------------------------------------------
+    # ZND-1e (Roost of Drakes): a noncreature spell whose every loaded
+    # sentence compiled to a NON-effect ability (bare "Kicker {2}{U}." head
+    # + triggered abilities, no effect sentence) assembled no SpellAbility
+    # at all — and the cast lane's spell_castable answers
+    # ``cast:not_a_spell``, making the card uncastable BY CONSTRUCTION.
+    # The kicker head is a cast-time declaration (CR 702.27a: "this spell"
+    # may be kicked — it is plainly a spell), so it earns the effect-less
+    # carrier exactly as the additional-cost path above (Goremand) and the
+    # creature branch do. The fold never fires for cards that already carry
+    # a SpellAbility, and M21 has zero KickerAbility nodes — the M21
+    # compiled output is byte-unchanged by construction.
+    if (
+        not is_land
+        and not is_token
+        and not is_emblem
+        and any(isinstance(ab, KickerAbility) for ab in abilities)
+        and not any(isinstance(ab, SpellAbility) for ab in abilities)
+    ):
+        abilities.append(SpellAbility(kind=_spell_kind_from_types(types, False)))
+        # Synthetic carrier, not tied to a sentence (last-index convention).
+        ability_srcs.append(len(raw.sentences) - 1)
+
     # -- Attach activation gates ---------------------------------------------
     # Each gate binds its slots (window and/or condition) slot-disjointly
     # (R10-1, C25) to the nearest preceding ActivatedAbility (source
@@ -2134,6 +2180,32 @@ def compile_card(
             if isinstance(node, Atom) and node.verb not in supported_verbs:
                 engine_supported = False
                 break
+        # ZND-1e SHAPE gates (the verb-only fold was dishonest for the
+        # kicker family: it marked 41 of ZNR's 42 kicker cards supported
+        # while the executor raised on every gated lane). The delivered
+        # lanes — KickerAbility priced into the cast, WAS_KICKED read
+        # from the CAST journal row, gated EtBState with constant
+        # counters — stay SUPPORTED; what remains unplayable is marked
+        # unsupported here, honestly:
+        #   * an X-kicker ({X} in the optional cost): no producer wires
+        #     the kick choice to an X declaration (deferred, /95);
+        #   * a gated EtBState whose counters are not constants: the
+        #     engine's entering-state stamp is QConst-only.
+        if engine_supported:
+            for node in walk(card):
+                if isinstance(node, KickerAbility) and _cost_has_x_quantity(node.cost):
+                    engine_supported = False
+                    break
+                if (
+                    isinstance(node, EtBState)
+                    and node.condition is not None
+                    and any(
+                        not isinstance(qty, QConst)
+                        for _kind, qty in node.initial_counters
+                    )
+                ):
+                    engine_supported = False
+                    break
 
     legality = LegalityFlags(
         format_legal=True,
