@@ -1,7 +1,7 @@
 {
   "set": "ZNR",
-  "generated": "2026-10-18T21:48:49+02:00",
-  "git_head": "d549af6d162c97f0510ac5f94b6862670a64cd50",
+  "generated": "2026-10-18T23:52:20+02:00",
+  "git_head": "67c7cca857b73a5cdc8ae99ed2df18e212530df3",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -63,9 +63,9 @@
     },
     "PC-2": {
       "name": "sentence_coverage",
-      "sentences_matched": 278,
+      "sentences_matched": 339,
       "denominator": 726,
-      "value": 0.38292,
+      "value": 0.466942,
       "target": ">=0.95",
       "stretch": ">=0.98",
       "pass": false
@@ -87,15 +87,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.231,
+      "value": 0.278,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.231,
-        0.23,
-        0.23
+        0.278,
+        0.273,
+        0.268
       ]
     },
     "PC-6": {
@@ -360,18 +360,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "0bb73c07-0220-4ba9-8d85-3c357c223833",
-      "name": "Kabira Takedown // Kabira Plateau [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "0bb73c07-0220-4ba9-8d85-3c357c223833",
-      "name": "Kabira Takedown // Kabira Plateau [face B]",
-      "sentence": "{T}: Add {W}.",
-      "bucket_hint": "BFACE"
-    },
-    {
       "oracle_id": "0bf299da-1854-4153-baea-3cee2eb01ee8",
       "name": "Lithoform Engine",
       "sentence": "{2}, {T}: Copy target activated or triggered ability you control.",
@@ -424,12 +412,6 @@
       "name": "Scale the Heights",
       "sentence": "You may play an additional land this turn.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "144119bc-7fd1-45c5-9e29-f742e7c255ac",
-      "name": "Clearwater Pathway // Murkwater Pathway [face B]",
-      "sentence": "{T}: Add {B}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "14d9bb24-df7b-4f41-aeca-aad639b280db",
@@ -510,18 +492,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "15fc4e74-300e-4c2d-8ed7-004553b2f7c2",
-      "name": "Ondu Inversion // Ondu Skyruins [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "15fc4e74-300e-4c2d-8ed7-004553b2f7c2",
-      "name": "Ondu Inversion // Ondu Skyruins [face B]",
-      "sentence": "{T}: Add {W}.",
-      "bucket_hint": "BFACE"
-    },
-    {
       "oracle_id": "162572f2-1757-42e9-bd97-e6bd9a762c0e",
       "name": "Ashaya, Soul of the Wild",
       "sentence": "Ashaya's power and toughness are each equal to the number of lands you control.",
@@ -600,12 +570,6 @@
       "bucket_hint": "triggered"
     },
     {
-      "oracle_id": "1c633e02-95ef-445e-b4e0-fbfbc5ed9cc9",
-      "name": "Brightclimb Pathway // Grimclimb Pathway [face B]",
-      "sentence": "{T}: Add {B}.",
-      "bucket_hint": "BFACE"
-    },
-    {
       "oracle_id": "2019004c-ebcf-4665-8736-f01ce7d8fcd2",
       "name": "Shatterskull Minotaur",
       "sentence": "This spell costs {1} less to cast for each creature in your party.",
@@ -646,18 +610,6 @@
       "name": "Nimana Skydancer",
       "sentence": "When this creature enters, target opponent mills two cards.",
       "bucket_hint": "triggered"
-    },
-    {
-      "oracle_id": "2ac1c95c-2a9d-40bc-9cad-9cadfa3f19f7",
-      "name": "Kazandu Mammoth // Kazandu Valley [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "2ac1c95c-2a9d-40bc-9cad-9cadfa3f19f7",
-      "name": "Kazandu Mammoth // Kazandu Valley [face B]",
-      "sentence": "{T}: Add {G}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "2e7b4df3-7c36-469f-8db8-b3081a2c5691",
@@ -720,34 +672,10 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "342e08f9-d4d0-4408-8621-66e087058616",
-      "name": "Makindi Stampede // Makindi Mesas [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "342e08f9-d4d0-4408-8621-66e087058616",
-      "name": "Makindi Stampede // Makindi Mesas [face B]",
-      "sentence": "{T}: Add {W}.",
-      "bucket_hint": "BFACE"
-    },
-    {
       "oracle_id": "34320ebf-da97-44a4-bbeb-a9da06548289",
       "name": "Blackbloom Rogue // Blackbloom Bog",
       "sentence": "This creature gets +3/+0 as long as an opponent has eight or more cards in their graveyard.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "34320ebf-da97-44a4-bbeb-a9da06548289",
-      "name": "Blackbloom Rogue // Blackbloom Bog [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "34320ebf-da97-44a4-bbeb-a9da06548289",
-      "name": "Blackbloom Rogue // Blackbloom Bog [face B]",
-      "sentence": "{T}: Add {B}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "34f83b7a-45a7-40a8-abcb-31d7aae4cea1",
@@ -775,39 +703,15 @@
     },
     {
       "oracle_id": "37783ce6-af58-4ef6-8ab4-587079970307",
-      "name": "Hagra Mauling // Hagra Broodpit [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "37783ce6-af58-4ef6-8ab4-587079970307",
       "name": "Hagra Mauling // Hagra Broodpit",
       "sentence": "This spell costs {1} less to cast if an opponent controls no basic lands.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "37783ce6-af58-4ef6-8ab4-587079970307",
-      "name": "Hagra Mauling // Hagra Broodpit [face B]",
-      "sentence": "{T}: Add {B}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "37a55560-6e32-4f54-b9a8-fd157aea6eb5",
       "name": "Khalni Ambush // Khalni Territory",
       "sentence": "Target creature you control fights target creature you don't control.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "37a55560-6e32-4f54-b9a8-fd157aea6eb5",
-      "name": "Khalni Ambush // Khalni Territory [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "37a55560-6e32-4f54-b9a8-fd157aea6eb5",
-      "name": "Khalni Ambush // Khalni Territory [face B]",
-      "sentence": "{T}: Add {G}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "382267da-c63c-432e-8a11-f803cf0e3a3a",
@@ -966,12 +870,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "403b59f3-7ade-4bc2-a3e6-de0c3c700f18",
-      "name": "Turntimber Symbiosis // Turntimber, Serpentine Wood [face B]",
-      "sentence": "{T}: Add {G}.",
-      "bucket_hint": "BFACE"
-    },
-    {
       "oracle_id": "41fbf835-baee-4530-9155-e2c1b9045567",
       "name": "Base Camp",
       "sentence": "Spend this mana only to cast a Cleric, Rogue, Warrior, or Wizard spell or to activate an ability of a Cleric, Rogue, Warrior, or Wizard.",
@@ -1008,12 +906,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "4924b3a4-a218-4783-8a4d-82361fdecc78",
-      "name": "Riverglide Pathway // Lavaglide Pathway [face B]",
-      "sentence": "{T}: Add {R}.",
-      "bucket_hint": "BFACE"
-    },
-    {
       "oracle_id": "4a3cc4f6-037f-461d-a3b7-9f9e24c4b8cf",
       "name": "Vanquish the Weak",
       "sentence": "Destroy target creature with power 3 or less.",
@@ -1044,12 +936,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "4a8d41fe-e04d-484b-a7d1-19be311e6ca7",
-      "name": "Sea Gate Restoration // Sea Gate, Reborn [face B]",
-      "sentence": "{T}: Add {U}.",
-      "bucket_hint": "BFACE"
-    },
-    {
       "oracle_id": "4d83ad77-dbac-4a03-8034-43d950d0a18c",
       "name": "Fireblade Charger",
       "sentence": "As long as this creature is equipped, it has haste.",
@@ -1072,18 +958,6 @@
       "name": "Oblivion's Hunger",
       "sentence": "Target creature you control gains indestructible until end of turn.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "53542c79-a62a-4d6a-97db-5296e9c68302",
-      "name": "Tangled Florahedron // Tangled Vale [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "53542c79-a62a-4d6a-97db-5296e9c68302",
-      "name": "Tangled Florahedron // Tangled Vale [face B]",
-      "sentence": "{T}: Add {G}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "56204530-7ab5-4610-9570-fba2673725ad",
@@ -1120,12 +994,6 @@
       "name": "Agadeem's Awakening // Agadeem, the Undercrypt",
       "sentence": "Return from your graveyard to the battlefield any number of target creature cards that each have a different mana value X or less.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "562d71b9-1646-474e-9293-55da6947a758",
-      "name": "Agadeem's Awakening // Agadeem, the Undercrypt [face B]",
-      "sentence": "{T}: Add {B}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "563e9574-3f60-4558-88cb-aaf97caa7515",
@@ -1333,21 +1201,9 @@
     },
     {
       "oracle_id": "6bc668f4-8fc7-4aaf-891b-277d8328b376",
-      "name": "Umara Wizard // Umara Skyfalls [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "6bc668f4-8fc7-4aaf-891b-277d8328b376",
       "name": "Umara Wizard // Umara Skyfalls",
       "sentence": "Whenever you cast an instant, sorcery, or Wizard spell, this creature gains flying until end of turn.",
       "bucket_hint": "triggered"
-    },
-    {
-      "oracle_id": "6bc668f4-8fc7-4aaf-891b-277d8328b376",
-      "name": "Umara Wizard // Umara Skyfalls [face B]",
-      "sentence": "{T}: Add {U}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "6d2cf8b4-1468-4e00-94ca-65ef0c564b09",
@@ -1398,12 +1254,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "6ec2a242-9068-4ee2-8ac8-8341cc570f56",
-      "name": "Emeria's Call // Emeria, Shattered Skyclave [face B]",
-      "sentence": "{T}: Add {W}.",
-      "bucket_hint": "BFACE"
-    },
-    {
       "oracle_id": "70235727-e330-46fa-b057-ddbb55cd1ac3",
       "name": "Adventure Awaits",
       "sentence": "If you didn't put a card into your hand this way, draw a card.",
@@ -1426,12 +1276,6 @@
       "name": "Ghastly Gloomhunter",
       "sentence": "Flying, lifelink",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "727ca426-f4cc-4218-8ae5-8c427af2e816",
-      "name": "Cragcrown Pathway // Timbercrown Pathway [face B]",
-      "sentence": "{T}: Add {G}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "72b10cba-0f46-4b99-9634-e7173ac4c259",
@@ -1542,12 +1386,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "78301998-fd9b-4cd5-afad-dbcb43cac2a7",
-      "name": "Shatterskull Smashing // Shatterskull, the Hammer Pass [face B]",
-      "sentence": "{T}: Add {R}.",
-      "bucket_hint": "BFACE"
-    },
-    {
       "oracle_id": "78e65286-204d-43ab-8929-b8e2191b1fce",
       "name": "Windrider Wizard",
       "sentence": "Whenever you cast an instant, sorcery, or Wizard spell, you may draw a card.",
@@ -1570,12 +1408,6 @@
       "name": "Master of Winds",
       "sentence": "Whenever you cast an instant, sorcery, or Wizard spell, you may have this creature's base power and toughness become 4/1 or 1/4 until end of turn.",
       "bucket_hint": "triggered"
-    },
-    {
-      "oracle_id": "7c304547-a4b1-46c9-baed-16d2bfbe16eb",
-      "name": "Branchloft Pathway // Boulderloft Pathway [face B]",
-      "sentence": "{T}: Add {W}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "7ca99e2f-faf2-4301-a0ae-7cb880ba965b",
@@ -1644,34 +1476,10 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "81036c9f-fe0a-45a7-bcd5-0d344f31055a",
-      "name": "Spikefield Hazard // Spikefield Cave [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "81036c9f-fe0a-45a7-bcd5-0d344f31055a",
-      "name": "Spikefield Hazard // Spikefield Cave [face B]",
-      "sentence": "{T}: Add {R}.",
-      "bucket_hint": "BFACE"
-    },
-    {
       "oracle_id": "814b87fe-2a75-4ff2-8637-7e69e3fb285b",
       "name": "Marauding Blight-Priest",
       "sentence": "Whenever you gain life, each opponent loses 1 life.",
       "bucket_hint": "triggered"
-    },
-    {
-      "oracle_id": "81b61770-2ed5-4a50-84d0-97790002fc5a",
-      "name": "Song-Mad Treachery // Song-Mad Ruins [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "81b61770-2ed5-4a50-84d0-97790002fc5a",
-      "name": "Song-Mad Treachery // Song-Mad Ruins [face B]",
-      "sentence": "{T}: Add {R}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "8371dee1-5f4a-410a-8b7c-e4110cdbe9bd",
@@ -1768,18 +1576,6 @@
       "name": "Blood Price",
       "sentence": "Put two of them into your hand and the rest on the bottom of your library in any order.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "941a4b14-ea2a-4bd0-8cc2-d609f80df32c",
-      "name": "Jwari Disruption // Jwari Ruins [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "941a4b14-ea2a-4bd0-8cc2-d609f80df32c",
-      "name": "Jwari Disruption // Jwari Ruins [face B]",
-      "sentence": "{T}: Add {U}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "9442a18b-9093-4a10-ab61-6962f5af3bb6",
@@ -1939,21 +1735,9 @@
     },
     {
       "oracle_id": "a731e87b-8d99-4b64-8ee3-8e540d652366",
-      "name": "Malakir Rebirth // Malakir Mire [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "a731e87b-8d99-4b64-8ee3-8e540d652366",
       "name": "Malakir Rebirth // Malakir Mire",
       "sentence": "Until end of turn, that creature gains \"When this creature dies, return it to the battlefield tapped under its owner's control.\"",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "a731e87b-8d99-4b64-8ee3-8e540d652366",
-      "name": "Malakir Rebirth // Malakir Mire [face B]",
-      "sentence": "{T}: Add {B}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "a786e495-ae3a-4e15-ab32-661d524e2b2d",
@@ -1984,12 +1768,6 @@
       "name": "Vine Gecko",
       "sentence": "The first kicked spell you cast each turn costs {1} less to cast.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "a9b8d020-4d72-4934-8942-df29ef19fc1d",
-      "name": "Needleverge Pathway // Pillarverge Pathway [face B]",
-      "sentence": "{T}: Add {W}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "aa854d50-444c-49d9-bfb1-5476b33c1c0b",
@@ -2034,18 +1812,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "afedce7b-0e18-40ad-a26a-1933fddb560d",
-      "name": "Akoum Warrior // Akoum Teeth [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "afedce7b-0e18-40ad-a26a-1933fddb560d",
-      "name": "Akoum Warrior // Akoum Teeth [face B]",
-      "sentence": "{T}: Add {R}.",
-      "bucket_hint": "BFACE"
-    },
-    {
       "oracle_id": "b0182ca0-f353-4012-9121-6f4ac9f7a046",
       "name": "Silundi Vision // Silundi Isle",
       "sentence": "Look at the top six cards of your library.",
@@ -2053,21 +1819,9 @@
     },
     {
       "oracle_id": "b0182ca0-f353-4012-9121-6f4ac9f7a046",
-      "name": "Silundi Vision // Silundi Isle [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "b0182ca0-f353-4012-9121-6f4ac9f7a046",
       "name": "Silundi Vision // Silundi Isle",
       "sentence": "You may reveal an instant or sorcery card from among them and put it into your hand.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "b0182ca0-f353-4012-9121-6f4ac9f7a046",
-      "name": "Silundi Vision // Silundi Isle [face B]",
-      "sentence": "{T}: Add {U}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "b03a9d03-4853-4856-8cfa-ad4085e0e3e3",
@@ -2088,34 +1842,10 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "b03de49d-246f-44e2-9487-9e4e43ec7be4",
-      "name": "Beyeen Veil // Beyeen Coast [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "b03de49d-246f-44e2-9487-9e4e43ec7be4",
-      "name": "Beyeen Veil // Beyeen Coast [face B]",
-      "sentence": "{T}: Add {U}.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "b0fd6889-20b4-439b-aa97-2e90aca1675a",
-      "name": "Pelakka Predation // Pelakka Caverns [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
       "oracle_id": "b0fd6889-20b4-439b-aa97-2e90aca1675a",
       "name": "Pelakka Predation // Pelakka Caverns",
       "sentence": "You choose a card from it with mana value 3 or greater.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "b0fd6889-20b4-439b-aa97-2e90aca1675a",
-      "name": "Pelakka Predation // Pelakka Caverns [face B]",
-      "sentence": "{T}: Add {B}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "b2151d51-39f6-49cc-a5cc-8202dd028336",
@@ -2221,21 +1951,9 @@
     },
     {
       "oracle_id": "c178953c-3888-4edd-9d0c-265bd82b1d24",
-      "name": "Glasspool Mimic // Glasspool Shore [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "c178953c-3888-4edd-9d0c-265bd82b1d24",
       "name": "Glasspool Mimic // Glasspool Shore",
       "sentence": "You may have this creature enter as a copy of a creature you control, except it's a Shapeshifter Rogue in addition to its other types.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "c178953c-3888-4edd-9d0c-265bd82b1d24",
-      "name": "Glasspool Mimic // Glasspool Shore [face B]",
-      "sentence": "{T}: Add {U}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "c2898bbd-82a4-4d26-b6ee-169b0ebe71b4",
@@ -2364,18 +2082,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "ce148a0c-6c63-49d5-a156-99efae4e367a",
-      "name": "Vastwood Fortification // Vastwood Thicket [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "ce148a0c-6c63-49d5-a156-99efae4e367a",
-      "name": "Vastwood Fortification // Vastwood Thicket [face B]",
-      "sentence": "{T}: Add {G}.",
-      "bucket_hint": "BFACE"
-    },
-    {
       "oracle_id": "ce6f3c67-8806-416d-9156-6f5bb63d5f4c",
       "name": "Reclaim the Wastes",
       "sentence": "If this spell was kicked, search your library for two basic land cards instead of one.",
@@ -2424,18 +2130,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "d2075f58-b0e9-4e85-b7e6-0523a27a1d5b",
-      "name": "Bala Ged Recovery // Bala Ged Sanctuary [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "d2075f58-b0e9-4e85-b7e6-0523a27a1d5b",
-      "name": "Bala Ged Recovery // Bala Ged Sanctuary [face B]",
-      "sentence": "{T}: Add {G}.",
-      "bucket_hint": "BFACE"
-    },
-    {
       "oracle_id": "d2d5f9b8-7caf-42c8-934b-3f4b81468914",
       "name": "Skyclave Plunder",
       "sentence": "Look at the top X cards of your library, where X is three plus the number of creatures in your party.",
@@ -2482,18 +2176,6 @@
       "name": "Sejiri Shelter // Sejiri Glacier",
       "sentence": "Target creature you control gains protection from the color of your choice until end of turn.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "d54e4e37-042b-44a5-918d-757308545d4d",
-      "name": "Sejiri Shelter // Sejiri Glacier [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "d54e4e37-042b-44a5-918d-757308545d4d",
-      "name": "Sejiri Shelter // Sejiri Glacier [face B]",
-      "sentence": "{T}: Add {W}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "d5a33091-a348-4b13-8dbd-79ab0ad99afe",
@@ -2586,34 +2268,10 @@
       "bucket_hint": "static"
     },
     {
-      "oracle_id": "d9f11985-e460-425d-b083-9cb0edf1983a",
-      "name": "Zof Consumption // Zof Bloodbog [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "d9f11985-e460-425d-b083-9cb0edf1983a",
-      "name": "Zof Consumption // Zof Bloodbog [face B]",
-      "sentence": "{T}: Add {B}.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "da9e3910-9a1c-43a9-9138-ca971b2bccae",
-      "name": "Skyclave Cleric // Skyclave Basilica [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
       "oracle_id": "da9e3910-9a1c-43a9-9138-ca971b2bccae",
       "name": "Skyclave Cleric // Skyclave Basilica",
       "sentence": "When this creature enters, you gain 2 life.",
       "bucket_hint": "triggered"
-    },
-    {
-      "oracle_id": "da9e3910-9a1c-43a9-9138-ca971b2bccae",
-      "name": "Skyclave Cleric // Skyclave Basilica [face B]",
-      "sentence": "{T}: Add {W}.",
-      "bucket_hint": "BFACE"
     },
     {
       "oracle_id": "dc665ddc-4326-4860-94ba-c40ced8b0af6",
@@ -2814,18 +2472,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "f8410804-632b-4f18-9a73-6dccc7e4582d",
-      "name": "Kazuul's Fury // Kazuul's Cliffs [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "f8410804-632b-4f18-9a73-6dccc7e4582d",
-      "name": "Kazuul's Fury // Kazuul's Cliffs [face B]",
-      "sentence": "{T}: Add {R}.",
-      "bucket_hint": "BFACE"
-    },
-    {
       "oracle_id": "f86b9a01-62fc-4120-8914-5054ed48d37e",
       "name": "Confounding Conundrum",
       "sentence": "When this enchantment enters, draw a card.",
@@ -2890,21 +2536,9 @@
       "name": "Valakut Awakening // Valakut Stoneforge",
       "sentence": "Put any number of cards from your hand on the bottom of your library, then draw that many cards plus one.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "ff0ab867-b710-4b1a-baed-95fc3cf68f79",
-      "name": "Valakut Awakening // Valakut Stoneforge [face B]",
-      "sentence": "This land enters tapped.",
-      "bucket_hint": "BFACE"
-    },
-    {
-      "oracle_id": "ff0ab867-b710-4b1a-baed-95fc3cf68f79",
-      "name": "Valakut Awakening // Valakut Stoneforge [face B]",
-      "sentence": "{T}: Add {R}.",
-      "bucket_hint": "BFACE"
     }
   ],
-  "unparsed_count": 448,
+  "unparsed_count": 387,
   "shape_gaps": [
     {
       "card": "379ed4ec-8f2e-448b-9ed2-a3181e2f877e",
@@ -2915,6 +2549,10 @@
   "backface": {
     "cards_with_faces": 36,
     "sentence_total": 71,
-    "unparsed_rows": 71
+    "unparsed_rows": 10,
+    "cards_face_whole": 31,
+    "verb_histogram": {
+      "ADD_MANA": 36
+    }
   }
 }

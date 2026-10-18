@@ -137,7 +137,7 @@ import json
 from collections.abc import Iterator
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import Any, get_args
 
 from MTG_bot.core.identity import validate_oracle_id
 
@@ -3073,6 +3073,38 @@ class KickerAbility:
             )
 
 
+@dataclass(frozen=True)
+class BackFace:
+    """ZND-2f (KNOWLEDGE/2026-10-18/106): a card's own back face as an
+    encoded ability-tree member.
+
+    The face is part of the card's OWN component set (§11 zero-loss): its
+    sentences alter outcomes if the face ever enters, so they are encoded
+    here rather than dropped. ``abilities`` is the same tolerant compile
+    of the face's sentences through the same vocabulary — no new atoms.
+    The ENGINE never reads this subtree: every ``walk()`` consumer gate
+    (executor produces_mana, compiler engine_support, coverage verb
+    histograms) skips it explicitly — a face ability is not a playable
+    engine capability until the owner-gated face-playability wave lands
+    (spec §6). The nested abilities are validated as Ability members; the
+    face's own name is the printed face name, never the combined
+    ``"A // B"`` name.
+    """
+
+    face_name: str
+    abilities: tuple[Ability, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.face_name, str) or not self.face_name.strip():
+            raise ValueError(
+                f"BackFace: face_name must be a non-empty str, got {self.face_name!r}"
+            )
+        if not isinstance(self.abilities, tuple) or any(
+            not isinstance(ab, get_args(Ability)) for ab in self.abilities
+        ):
+            raise ValueError("BackFace: abilities must be a tuple of Ability members")
+
+
 Ability = (
     StaticAbility
     | TriggeredAbility
@@ -3084,6 +3116,7 @@ Ability = (
     | EtBState
     | EmblemAbility
     | KickerAbility
+    | BackFace
 )
 
 
@@ -3244,6 +3277,7 @@ _A_CLASSES = (
     EtBState,
     EmblemAbility,
     KickerAbility,
+    BackFace,
 )
 _EV_CLASSES = (
     ZoneChangeEvent,
@@ -3891,6 +3925,7 @@ _DATACLASSES: tuple[type, ...] = (
     EtBState,
     EmblemAbility,
     KickerAbility,
+    BackFace,
     CardRecord,
 )
 
@@ -4131,6 +4166,10 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "KickerAbility": (("cost", "cost"),),
     "EmblemAbility": (("embedded", "ability"),),
+    # ZND-2f: the face's abilities omit when empty (the silent no-op face
+    # of the pay-3-life pair serializes as {face_name} only — the residue
+    # lives in the unparsed register, never in a fake tree).
+    "BackFace": (("face_name", "str"), ("abilities", "tup:ability")),
     "CardRecord": (
         ("oracle_id", "str"),
         ("name", "str"),
@@ -4191,6 +4230,7 @@ _ABILITY_TAGS = frozenset(
         "EtBState",
         "EmblemAbility",
         "KickerAbility",
+        "BackFace",
     }
 )
 _EVENT_TAGS = frozenset(
@@ -4306,6 +4346,8 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     # rounding (T5-D): omit when None - byte-stable.
     # ZNR kicker EtBState condition: omit when None — M21 bytes unchanged.
     "EtBState": frozenset({"condition"}),
+    # ZND-2f: BackFace.abilities omits at the () default — byte-stable.
+    "BackFace": frozenset({"abilities"}),
     "QBin": frozenset({"rounding"}),
     # referent (grammar round 4): omit when None — byte-stable.
     "Selector": frozenset({"zones", "referent"}),
@@ -4605,26 +4647,35 @@ def fingerprint(node: Any) -> str:
     return hashlib.sha256(canonical_json(node).encode("utf-8")).hexdigest()
 
 
-def walk(node: Any) -> Iterator[Any]:
+def walk(node: Any, *, skip: type | tuple[type, ...] = ()) -> Iterator[Any]:
     """Yield every dataclass grammar node in `node`'s tree, pre-order —
     the card record first, then every child node (effects, selectors,
     zones, quantities, filters, events, costs, tokens, the emblem). Enum
     and scalar leaves are not yielded (their parent handles them). This is
     the instrument both the executor and the EC-2 unhandled-node-rate
     measurement (METRICS.md §3) walk the tree with.
+
+    `skip` (ZND-2f, /106 §3): a node type (or tuple of types) whose
+    SUBTREE is not descended — the node itself is still yielded. Every
+    consumer that computes a card-level VERDICT from the tree (executor
+    produces_mana, compiler engine_support, coverage verb histograms)
+    passes skip=BackFace: an unplayable back face's abilities must never
+    reach a front-face verdict (§10 phantom defense).
     """
     yield node
+    if skip and isinstance(node, skip):
+        return
     if dataclasses.is_dataclass(node) and not isinstance(node, type):
         for field in dataclasses.fields(node):
-            yield from _walk_value(getattr(node, field.name))
+            yield from _walk_value(getattr(node, field.name), skip)
 
 
-def _walk_value(value: Any) -> Iterator[Any]:
+def _walk_value(value: Any, skip: type | tuple[type, ...] = ()) -> Iterator[Any]:
     if dataclasses.is_dataclass(value) and not isinstance(value, type):
-        yield from walk(value)
+        yield from walk(value, skip=skip)
     elif isinstance(value, tuple):
         for item in value:
-            yield from _walk_value(item)
+            yield from _walk_value(item, skip)
     elif isinstance(value, frozenset):
         for item in value:
-            yield from _walk_value(item)
+            yield from _walk_value(item, skip)

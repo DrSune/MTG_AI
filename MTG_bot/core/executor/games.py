@@ -81,6 +81,7 @@ from typing import Any
 from MTG_bot.core.ability_tree import (
     Atom,
     AtomArgs,
+    BackFace,
     CardRecord,
     ControllerRef,
     QConst,
@@ -279,7 +280,13 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
         record = res.card
         if oid in pool.emblems or record.is_token:
             continue  # emblems and tokens are created, never dealt
-        verbs = frozenset(node.verb for node in walk(record) if isinstance(node, Atom))
+        # ZND-2f §3 (phantom defense, /106 amendment 3): the BackFace
+        # subtree is EXCLUDED — an UNPLAYABLE face's {T}: Add {B} must
+        # never set produces_mana for the card (gold:false-shaped phantom
+        # mana). The face-playability wave (owner-gated) revisits this.
+        verbs = frozenset(
+            node.verb for node in walk(record, skip=BackFace) if isinstance(node, Atom)
+        )
         metas[oid] = CardMeta(
             oracle_id=oid,
             name=record.name,

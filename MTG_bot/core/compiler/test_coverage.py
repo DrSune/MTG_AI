@@ -294,11 +294,12 @@ class TestShapeGaps(unittest.TestCase):
 
 
 class TestBackFaceCensus(unittest.TestCase):
-    """Blindspot (a) closure (KNOWLEDGE/2026-10-18/93): back-face sentences
-    enter the PC-2 denominator and the unparsed register, tagged
-    "[face B]" / "BFACE".  Measurement-only: the compiler must NOT compile
-    faces yet, so EVERY back-face sentence is an unparsed row by
-    construction — even one a front-face template would match."""
+    """Back-face census under ZND-2f (supersedes the /93 measurement-only
+    census, KNOWLEDGE/2026-10-18/106 amendment 2): the compiler now READS
+    ``RawCard.back_face`` — matched face sentences are covered for real and
+    ride in the tree's BackFace node; ONLY unmatched face sentences enter
+    the PC-2 denominator's register as "[face B]"/"BFACE" rows. Face verbs
+    are TAGGED separately and never merge into the front histogram."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -312,27 +313,31 @@ class TestBackFaceCensus(unittest.TestCase):
         )
         card = dataclasses.replace(
             card,
-            back_face=_synthetic_face(("Draw two cards.", "Draw a card.")),
+            # "Draw two cards." MATCHES a front template — ZND-2f means the
+            # face compile covers it, so it is NO LONGER a forced row.
+            # "Flip a coin." stays unmatched residue.
+            back_face=_synthetic_face(("Draw two cards.", "Flip a coin.")),
         )
         report = measure_pool({card.identity.oracle_id: card}, self.registry)
-        # Denominator = front (1) + back (2); ALL back sentences unparsed —
-        # even "Draw a card.", which a template matches on the FRONT: the
-        # compiler never reads the face yet (measurement-only wave).
+        # Denominator = front (1) + back (2); only the UNMATCHED face
+        # sentence is a register row (TRUTH LAW in both directions).
         self.assertEqual(report.sentence_total, 3)
-        self.assertEqual(report.unparsed_count, 2)
-        self.assertEqual(report.sentences_matched, 1)
-        self.assertAlmostEqual(report.pc2_sentence_coverage, 1.0 / 3.0)
+        self.assertEqual(report.unparsed_count, 1)
+        self.assertEqual(report.sentences_matched, 2)
+        self.assertAlmostEqual(report.pc2_sentence_coverage, 2.0 / 3.0)
         rows = [e for e in report.unparsed_queue if e.bucket_hint == "BFACE"]
-        self.assertEqual(len(rows), 2)
-        for row in rows:
-            self.assertEqual(row.oracle_id, card.identity.oracle_id)
-            self.assertEqual(row.name, "Modal Mite [face B]")
-        self.assertEqual(
-            sorted(e.sentence for e in rows), ["Draw a card.", "Draw two cards."]
-        )
-        # PC-1 formula untouched: a clean FRONT still counts as compiled.
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0].oracle_id, card.identity.oracle_id)
+        self.assertEqual(rows[0].name, "Modal Mite [face B]")
+        self.assertEqual(rows[0].sentence, "Flip a coin.")
+        # PC-1 formula untouched (/96 law): a clean FRONT still counts as
+        # compiled even with face residue in the register.
         self.assertEqual(report.cards_zero_unparsed, 1)
         self.assertEqual(report.pc1_card_coverage, 1.0)
+        summary = report.backface_summary
+        assert summary is not None
+        self.assertEqual(summary["unparsed_rows"], 1)
+        self.assertEqual(summary["cards_face_whole"], 0)
 
     def test_faceless_card_report_shape_unchanged(self) -> None:
         card = _synthetic_raw(
@@ -375,7 +380,16 @@ class TestBackFaceCensus(unittest.TestCase):
         report = measure_pool(pool, self.registry)
         self.assertEqual(
             report.backface_summary,
-            {"cards_with_faces": 2, "sentence_total": 3, "unparsed_rows": 3},
+            {
+                "cards_with_faces": 2,
+                "sentence_total": 3,
+                # ZND-2f: both Spirit sentences are unmatched residue; the
+                # Scry face compiles whole (cards_face_whole) and its verb
+                # is TAGGED in the face histogram, not the front one.
+                "unparsed_rows": 2,
+                "cards_face_whole": 1,
+                "verb_histogram": {"SCRY": 1},
+            },
         )
         data = report.to_json()
         self.assertEqual(data["backface"], report.backface_summary)

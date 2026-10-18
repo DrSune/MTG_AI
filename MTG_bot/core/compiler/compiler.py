@@ -25,6 +25,7 @@ from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     Atom,
     AtomArgs,
+    BackFace,
     CardRecord,
     Choose,
     Conditional,
@@ -646,6 +647,9 @@ class CompileResult:
     ``ambiguities``   — AmbiguityRecords for multi-match sentences.
     ``rule_reminders``— RuleReminderOutcome instances detected.
     ``known_gaps``    — human-readable KNOWN-GAP notes.
+    ``back_face_unparsed`` — ZND-2f (/106): (sentence, hint) pairs for
+    UNMATCHED back-face sentences only; ``unparsed`` stays the front-face
+    register (PC-1's formula stays front-face compile results, /96 law).
     """
 
     card: CardRecord
@@ -654,6 +658,7 @@ class CompileResult:
     ambiguities: tuple[AmbiguityRecord, ...] = ()
     rule_reminders: tuple[RuleReminderOutcome, ...] = ()
     known_gaps: tuple[str, ...] = ()
+    back_face_unparsed: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -1395,6 +1400,40 @@ def _cost_has_x_quantity(cost: Cost) -> bool:
     )
 
 
+def _as_single_faced(raw: RawCard) -> RawCard:
+    """Synthetic single-faced RawCard carrying ONLY the folded back face's
+    printed data (ZND-2f, /106). Same oracle id (the face IS this card's
+    second face), the face's own name, and ``back_face=None`` so the
+    recursive compile_card pass terminates immediately. Pool-level flags
+    are cleared: a face is never a token/emblem in its own right (the
+    ingest CardFace docstring states the same law)."""
+    face = raw.back_face
+    assert face is not None  # caller's guard; keeps the return typed
+    return replace(
+        raw,
+        identity=replace(raw.identity, name=face.name),
+        type_line=face.type_line,
+        types=face.types,
+        subtypes=face.subtypes,
+        supertypes=face.supertypes,
+        colors=face.colors,
+        color_identity=face.color_identity,
+        mana_cost_raw=face.mana_cost_raw,
+        mana_value=face.mana_value,
+        power_raw=face.power_raw,
+        toughness_raw=face.toughness_raw,
+        loyalty_raw=face.loyalty_raw,
+        keywords=face.keywords,
+        sentences=face.sentences,
+        layout="normal",
+        is_token=False,
+        is_emblem=False,
+        token_name_refs=(),
+        related_names=(),
+        back_face=None,
+    )
+
+
 def compile_card(
     raw: RawCard,
     registry: TemplateRegistry,
@@ -2116,6 +2155,40 @@ def compile_card(
     # docs/T4_PICK_ENUMERATION.md.
     abilities = _promote_liftable_picks(abilities, raw.identity.name)
 
+    # -- Back-face fold (ZND-2f, KNOWLEDGE/2026-10-18/106) --------------------
+    # A modal double-faced card's back face is the CARD'S OWN second face
+    # (§11 zero-loss): its sentences are compiled through the SAME tolerant
+    # machinery (a synthetic single-faced RawCard carrying the face's
+    # printed data — same split, same templates, same unparsed queue) and
+    # the results fold into one BackFace ability node. Unmatched face
+    # sentences enter CompileResult.back_face_unparsed — the honest
+    # residual register (coverage.py rows them "[face B]"), NEVER counted
+    # as covered (the pay-3-life pair is ZND-2f2 residue, /106 amendment 1).
+    # The node is ENCODED ONLY: every walk()-consumer verdict gate below
+    # skips the BackFace subtree (§10 phantom defense, /106 amendment 3).
+    # None for every single-faced card: zero behavior change, M21 bytes
+    # untouched.
+    back_face_unparsed: tuple[tuple[str, str], ...] = ()
+    if raw.back_face is not None:
+        # Gate F1 (/106 review): the face field surface was UNREACHABLE code
+        # until this wave; a malformed face (bad type_line/loyalty) must
+        # degrade to face-unparsed — it may NEVER crash the pool pass or
+        # sacrifice the playable FRONT card.
+        try:
+            face_result = compile_card(_as_single_faced(raw), registry)
+        except (ValueError, StateCorruptionError):
+            face_result = None
+            back_face_unparsed = tuple(
+                (s, "face-compile-failed") for s in raw.back_face.sentences
+            )
+        else:
+            abilities.append(BackFace(raw.back_face.name, face_result.card.abilities))
+            # Face-level ambiguities and rule reminders are the card's own
+            # text facts — surface them in the card's report.
+            ambiguities.extend(face_result.ambiguities)
+            rule_reminders.extend(face_result.rule_reminders)
+            back_face_unparsed = face_result.unparsed
+
     # -- Build CardRecord ----------------------------------------------------
     card = CardRecord(
         oracle_id=raw.identity.oracle_id,
@@ -2153,7 +2226,7 @@ def compile_card(
     )
     if needs_set_pt:
         has_set_pt = False
-        for node in walk(card):
+        for node in walk(card, skip=BackFace):
             if isinstance(node, Atom) and node.verb in (
                 Verb.SET_PT,
                 Verb.MODIFY_PT,
@@ -2176,7 +2249,12 @@ def compile_card(
         engine_supported = True
     else:
         engine_supported = True
-        for node in walk(card):
+        # ZND-2f §3 (phantom defense, /106 amendment 3): the BackFace
+        # subtree is EXCLUDED — the engine never plays a face (owner-gated,
+        # spec §6), so a face-only verb must never flip a front-face-
+        # supported card's verdict (and a face-unsupported verb must never
+        # silently drop a front-face-supported card from engine supply).
+        for node in walk(card, skip=BackFace):
             if isinstance(node, Atom) and node.verb not in supported_verbs:
                 engine_supported = False
                 break
@@ -2192,7 +2270,7 @@ def compile_card(
         #   * a gated EtBState whose counters are not constants: the
         #     engine's entering-state stamp is QConst-only.
         if engine_supported:
-            for node in walk(card):
+            for node in walk(card, skip=BackFace):
                 if isinstance(node, KickerAbility) and _cost_has_x_quantity(node.cost):
                     engine_supported = False
                     break
@@ -2219,6 +2297,7 @@ def compile_card(
         ambiguities=tuple(ambiguities),
         rule_reminders=tuple(rule_reminders),
         known_gaps=tuple(known_gaps),
+        back_face_unparsed=back_face_unparsed,
     )
 
 
@@ -2309,15 +2388,20 @@ def compile_pool(
     for oid, result in results.items():
         if oid in emblem_oids:
             continue  # emblems excluded from card-level stats
-        if not result.unparsed and not result.ambiguities:
+        # ZND-2f: back-face residue is honest residue — a card whose only
+        # unparsed text is its face is NOT fully compiled.
+        if not (result.unparsed or result.ambiguities or result.back_face_unparsed):
             fully_compiled += 1
         else:
             partially_compiled += 1
         ambiguity_count += len(result.ambiguities)
-        unparsed_count += len(result.unparsed)
+        unparsed_count += len(result.unparsed) + len(result.back_face_unparsed)
         known_gap_count += len(result.known_gaps)
 
-        for node in walk(result.card):
+        # ZND-2f §3: the pool verb histogram stays FRONT-ONLY (face verbs
+        # are census-tagged in coverage.py's backface summary, never
+        # merged untagged here).
+        for node in walk(result.card, skip=BackFace):
             if isinstance(node, Atom):
                 vname = node.verb.name
                 verb_histogram[vname] = verb_histogram.get(vname, 0) + 1

@@ -27,10 +27,10 @@ M21 ingest denominators 305/639):
   sentences.  A sentence is *matched* when it is not in the compiler's
   unparsed queue: rule-reminder and keyword sentences are recognised
   outcomes and count as matched.  The denominator is FRONT + BACK-FACE
-  sentences (blindspot (a) closure, KNOWLEDGE/2026-10-18/93): the
-  compiler does not read ``back_face`` yet (measurement-only wave), so
-  every back-face sentence is unparsed by construction and enters the
-  register tagged ``bucket_hint="BFACE"`` with ``name="<card> [face B]"``.
+  sentences (blindspot (a) closure, KNOWLEDGE/2026-10-18/93; ENCODED by
+  ZND-2f /106: the compiler compiles ``back_face`` sentences into a
+  BackFace node).  Unmatched face sentences enter the register tagged
+  ``bucket_hint="BFACE"`` with ``name="<card> [face B]"``.
 * PC-3 ambiguity — entries whose text matched >= 2 distinct template
   outcomes producing different trees (the compiler's own ambiguity
   records).
@@ -49,7 +49,14 @@ import types
 from dataclasses import dataclass, replace
 from typing import Any
 
-from MTG_bot.core.ability_tree import Atom, Selector, SelectorMode, Verb, walk
+from MTG_bot.core.ability_tree import (
+    Atom,
+    BackFace,
+    Selector,
+    SelectorMode,
+    Verb,
+    walk,
+)
 from MTG_bot.core.compiler import (
     templates_b1,
     templates_b2a,
@@ -370,13 +377,19 @@ def measure_pool(
     PC denominator stays the FULL pool (honesty law: a gap card counts
     against coverage, never shrinks the sample).
 
-    Back-face census (blindspot (a) closure, KNOWLEDGE/2026-10-18/93):
-    PC-2's denominator is FRONT + BACK-FACE sentences.  The compiler does
-    not read ``RawCard.back_face`` yet (measurement-only wave), so every
-    back-face sentence is unparsed BY CONSTRUCTION and enters the register
-    as an ``UnparsedEntry`` with ``name="<card> [face B]"`` and
-    ``bucket_hint="BFACE"``.  PC-1's formula is untouched: it still counts
-    front-face compile results only.
+    BackFace stats (ZND-2f closure of the /96 blindspot, superseding the
+    /93 measurement-only census): PC-2's denominator is FRONT + BACK-FACE
+    sentences.  The compiler now READS ``RawCard.back_face`` (ZND-2f):
+    face sentences that compile ride in the tree's BackFace node, and the
+    MATCHED ones are covered for real.  Only face sentences the tolerant
+    compile did NOT match (``CompileResult.back_face_unparsed`` — today
+    the 10 pay-3-life sentences of ZND-2f2) enter the register as
+    ``UnparsedEntry`` rows with ``name="<card> [face B]"`` and
+    ``bucket_hint="BFACE"``.  Face-subtree verbs are TAGGED in
+    ``backface_summary["verb_histogram"]`` and NEVER merged into
+    ``verb_counts`` (PC-6/PC-8 stay front-only, /106 amendment 2).
+    PC-1's formula is untouched: it still counts front-face compile
+    results only (/96 law).
     """
     stats = pool_stats(pool)
     results, gaps = _compile_pool_tolerant(pool, registry)
@@ -386,12 +399,21 @@ def measure_pool(
     cards_zero_unparsed = 0
     targetable_entries = 0
     verb_counts: dict[str, int] = {}
+    # ZND-2f tagged face census: face-subtree verbs and residual rows are
+    # kept SEPARATE from the front-face folds below (/106 amendment 2).
+    face_verb_counts: dict[str, int] = {}
+    backface_rows: list[UnparsedEntry] = []
+    backface_sentences = 0
+    cards_with_faces = 0
+    cards_face_whole = 0
 
     for oid in sorted(results):
         raw = pool[oid]
         result = results[oid]
         name = raw.identity.name
 
+        # PC-1: FRONT-face compile results only (/96 law — face residue
+        # is ledgered in the register below, it does not touch this).
         if not result.unparsed:
             cards_zero_unparsed += 1
         for sentence, hint in result.unparsed:
@@ -408,36 +430,56 @@ def measure_pool(
             )
 
         has_target_selector = False
-        for node in walk(result.card):
+        face_nodes: list[BackFace] = []
+        for node in walk(result.card, skip=BackFace):
             if isinstance(node, Selector) and node.mode is SelectorMode.TARGET:
                 has_target_selector = True
             if isinstance(node, Atom):
                 vname = node.verb.name
                 verb_counts[vname] = verb_counts.get(vname, 0) + 1
+            elif isinstance(node, BackFace):
+                face_nodes.append(node)
         if has_target_selector:
             targetable_entries += 1
 
-    # -- back-face census (blindspot (a), KNOWLEDGE/2026-10-18/93) -----------
-    # The compiler never reads ``RawCard.back_face`` yet (measurement-only
-    # wave), so every back-face sentence is unparsed BY CONSTRUCTION: it
-    # enters the PC-2 denominator AND the register, tagged "[face B]" /
-    # "BFACE".  Deterministic: pool iteration is by sorted oracle id, face
-    # sentences keep their ingest split order, and the queue is sorted
-    # below.  PC-1's formula is untouched.
-    backface_rows: list[UnparsedEntry] = []
-    backface_sentences = 0
-    cards_with_faces = 0
-    for oid in sorted(pool):
-        face = pool[oid].back_face
+        # -- back face (ZND-2f): tagged census + honest residual register --
+        face = raw.back_face
         if face is None:
             continue
         cards_with_faces += 1
         backface_sentences += len(face.sentences)
-        name = pool[oid].identity.name
-        for sentence in face.sentences:
+        if not result.back_face_unparsed:
+            cards_face_whole += 1
+        for sentence, _hint in result.back_face_unparsed:
+            # Unmatched face sentence: register row, tagged as in the /93
+            # census shape. The compiler's own bucket hint is deliberately
+            # replaced by "BFACE" so the census bucket stays stable.
             backface_rows.append(
                 UnparsedEntry(oid, f"{name} [face B]", sentence, "BFACE")
             )
+        for bf in face_nodes:
+            for face_node in walk(bf):
+                if isinstance(face_node, Atom):
+                    vname = face_node.verb.name
+                    face_verb_counts[vname] = face_verb_counts.get(vname, 0) + 1
+
+    # ZND-2f honesty law (/93 census precedent, /106 amendment 2): a
+    # shape-gap card has NO compile result, so none of its face sentences
+    # can have been matched — every one is residue. It must still count in
+    # the face census, the PC-2 denominator, and the register; a failing
+    # shape never shrinks the sample.
+    for gap in gaps:
+        gap_raw = pool.get(gap.card)
+        if gap_raw is None or gap_raw.back_face is None:
+            continue
+        face = gap_raw.back_face
+        cards_with_faces += 1
+        backface_sentences += len(face.sentences)
+        for sentence in face.sentences:
+            backface_rows.append(
+                UnparsedEntry(gap.card, f"{gap.name} [face B]", sentence, "BFACE")
+            )
+
     unparsed_queue.extend(backface_rows)
 
     sentence_total = int(stats["sentence_total"]) + backface_sentences
@@ -453,6 +495,12 @@ def measure_pool(
             "cards_with_faces": cards_with_faces,
             "sentence_total": backface_sentences,
             "unparsed_rows": len(backface_rows),
+            # ZND-2f: faces whose every sentence compiled (their BackFace
+            # node is complete) and the TAGGED face-verb census — kept out
+            # of verb_counts so PC-6 max-share and PC-8 never see face
+            # atoms untagged (/106 amendment 2).
+            "cards_face_whole": cards_face_whole,
+            "verb_histogram": dict(sorted(face_verb_counts.items())),
         }
 
     return CoverageReport(
