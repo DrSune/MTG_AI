@@ -3,9 +3,12 @@
 Read-only measurement layer on top of ``ingest`` + ``compile``:
 
 * ``build_full_registry`` — assembles the full 8-bucket TemplateRegistry.
-* ``measure_pool``        — one ``compile_pool`` pass over a whole pool,
-  reduced to the pre-registered Phase-1 numbers PC-1, PC-2, PC-3, PC-6,
-  PC-8 plus the exact unparsed/ambiguity queues (PC-10 harness input).
+* ``measure_pool``        — one per-card ``compile_card`` pass over a whole
+  pool, reduced to the pre-registered Phase-1 numbers PC-1, PC-2, PC-3,
+  PC-6, PC-8 plus the exact unparsed/ambiguity queues (PC-10 harness input).
+  Cards whose printed shape raises ``StateCorruptionError`` are recorded as
+  ``shape_gaps`` ledger rows (§8/§11: a gap is REPORTED, never a crash,
+  never a silent drop) and stay in every PC denominator.
 * ``check_pinned_denominators`` — fails loudly if the M21 ingest no longer
   yields the pinned 305 entries / 639 sentences / 510 unique sentences.
 
@@ -39,7 +42,7 @@ M21 ingest denominators 305/639):
 from __future__ import annotations
 
 import types
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 from MTG_bot.core.ability_tree import Atom, Selector, SelectorMode, Verb, walk
@@ -53,9 +56,10 @@ from MTG_bot.core.compiler import (
     templates_b5b,
     templates_b5c,
 )
-from MTG_bot.core.compiler.compiler import compile_pool
+from MTG_bot.core.compiler.compiler import CompileResult, compile_card
 from MTG_bot.core.compiler.ingest import RawCard, pool_stats
 from MTG_bot.core.compiler.templates import TemplateRegistry
+from MTG_bot.core.errors import StateCorruptionError
 
 # ---------------------------------------------------------------------------
 # Pinned denominators (M21) — NUMBERS.md 2026-09-15/02 re-measurement.
@@ -164,12 +168,31 @@ class AmbiguityEntry:
 
 
 @dataclass(frozen=True)
+class ShapeGap:
+    """One pool entry whose printed shape raised ``StateCorruptionError``.
+
+    Per §8/§11 this is a REPORTED ledger row, not a crash and not a silent
+    drop: the card is excluded from compiled-result metrics but stays in
+    every PC denominator, and the error message is recorded verbatim
+    (truncated to 160 chars).
+    """
+
+    card: str  # oracle_id
+    name: str
+    error: str
+
+    def to_json(self) -> dict[str, str]:
+        return {"card": self.card, "name": self.name, "error": self.error}
+
+
+@dataclass(frozen=True)
 class CoverageReport:
     """The reduced Phase-1 measurement of one compiled pool.
 
     ``pool_stats`` is ``ingest.pool_stats`` output verbatim (the pinned
     denominators live in it); the PC fields below are derived from a
-    single ``compile_pool`` pass over the same pool.
+    single per-card compile pass over the same pool (cards that raise
+    ``StateCorruptionError`` appear in ``shape_gaps`` instead).
     """
 
     set_name: str
@@ -187,6 +210,7 @@ class CoverageReport:
     max_verb_share: float
     targetable_entries: int
     unparsed_queue: tuple[UnparsedEntry, ...]
+    shape_gaps: tuple[ShapeGap, ...] = ()
 
     # -- PC-1 ----------------------------------------------------------------
     @property
@@ -224,7 +248,7 @@ class CoverageReport:
 
     def to_json(self) -> dict[str, Any]:
         """JSON-safe dict of every report field (queues fully expanded)."""
-        return {
+        data: dict[str, Any] = {
             "set": self.set_name,
             "pool_stats": self.pool_stats,
             "entry_count": self.entry_count,
@@ -259,6 +283,11 @@ class CoverageReport:
             "unparsed_queue": [e.to_json() for e in self.unparsed_queue],
             "unparsed_count": self.unparsed_count,
         }
+        # House OMIT-IF-EMPTY law: zero shape failures adds NO new key, so a
+        # gap-free pool (M21) keeps a byte-identical report.
+        if self.shape_gaps:
+            data["shape_gaps"] = [g.to_json() for g in self.shape_gaps]
+        return data
 
 
 # ---------------------------------------------------------------------------
@@ -266,21 +295,67 @@ class CoverageReport:
 # ---------------------------------------------------------------------------
 
 
+def _compile_pool_tolerant(
+    pool: dict[str, RawCard],
+    registry: TemplateRegistry,
+) -> tuple[dict[str, CompileResult], list[ShapeGap]]:
+    """Per-card ``compile_card`` pass mirroring ``compile_pool`` semantics.
+
+    Identical to ``compile_pool`` except that a card whose printed shape
+    raises ``StateCorruptionError`` is reported as a ``ShapeGap`` row
+    (excluded from ``results``) instead of crashing the whole pass (§8/§11).
+    Emblem attachment mirrors ``compiler.compile_pool`` exactly (owner
+    lookup by ``related_names``, later same-named entries win) restricted
+    to the successfully compiled subset, so the M21 walk semantics —
+    emblem atoms reachable both via the owner's record and via the emblem's
+    own result entry — are preserved byte-for-byte.
+    """
+    results: dict[str, CompileResult] = {}
+    gaps: list[ShapeGap] = []
+    for oid, raw in pool.items():
+        try:
+            results[oid] = compile_card(raw, registry, None)
+        except StateCorruptionError as exc:
+            gaps.append(ShapeGap(oid, raw.identity.name, str(exc)[:160]))
+
+    name_to_oid: dict[str, str] = {}
+    for oid, raw in pool.items():
+        if not raw.is_emblem and oid in results:
+            name_to_oid[raw.identity.name] = oid
+    for oid, raw in pool.items():
+        if not (raw.is_emblem and oid in results):
+            continue
+        owner_oid = next(
+            (name_to_oid[n] for n in raw.related_names if n in name_to_oid), None
+        )
+        if owner_oid is not None:
+            owner_result = results[owner_oid]
+            results[owner_oid] = replace(
+                owner_result, card=replace(owner_result.card, emblem=results[oid].card)
+            )
+    return results, gaps
+
+
 def measure_pool(
     pool: dict[str, RawCard],
     registry: TemplateRegistry,
     set_name: str = "M21",
 ) -> CoverageReport:
-    """One ``compile_pool`` pass over ``pool``, reduced to a CoverageReport.
+    """One per-card ``compile_card`` pass over ``pool``, reduced to a
+    CoverageReport.
 
     Every pool entry (emblems included) is walked for PC-6 atoms and
     PC-8 selectors; the unparsed queue is the exact per-entry list of
     (oracle_id, name, sentence, bucket_hint) — the instrument that PC-10
     probes in both directions.
+
+    Cards that raise ``StateCorruptionError`` are recorded under
+    ``shape_gaps`` and excluded from compiled-result metrics, but every
+    PC denominator stays the FULL pool (honesty law: a gap card counts
+    against coverage, never shrinks the sample).
     """
     stats = pool_stats(pool)
-    compiled = compile_pool(pool, registry)
-    results = compiled.results
+    results, gaps = _compile_pool_tolerant(pool, registry)
 
     unparsed_queue: list[UnparsedEntry] = []
     ambiguous_entries: list[AmbiguityEntry] = []
@@ -342,6 +417,7 @@ def measure_pool(
         max_verb_share=max_verb_share,
         targetable_entries=targetable_entries,
         unparsed_queue=tuple(sorted(unparsed_queue, key=_unparsed_key)),
+        shape_gaps=tuple(sorted(gaps, key=lambda g: (g.card, g.name, g.error))),
     )
 
 

@@ -21,6 +21,8 @@ missing or drifted golden file is reported as a diff, never silently
 repaired.  ``--refresh-goldens`` is the explicit re-baselining action
 (full regenerate before verify); the report JSON then notes
 ``"goldens": "refreshed"`` instead of ``"goldens": "verified"``.
+A set with no golden directory (e.g. a fresh pool) reports PC-4 as N/A —
+not evaluated, never a crash, never a fabricated file count.
 """
 
 from __future__ import annotations
@@ -33,26 +35,25 @@ import platform
 import subprocess
 import sys
 import time
+from collections import Counter
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
+from MTG_bot.core.ability_tree import fingerprint
 from MTG_bot.core.compiler.compiler import compile_pool
 from MTG_bot.core.compiler.coverage import (
     PINNED_ENTRIES,
     PINNED_SENTENCES,
     PINNED_SENTENCES_UNIQUE,
+    _compile_pool_tolerant,
     build_full_registry,
     check_pinned_denominators,
     measure_pool,
 )
-from MTG_bot.core.compiler.golden import (
-    fingerprint_multiset,
-    verify_goldens,
-    write_goldens,
-)
+from MTG_bot.core.compiler.golden import verify_goldens, write_goldens
 from MTG_bot.core.compiler.ingest import RawCard, ingest_pool
 from MTG_bot.core.identity import CardIdentity
 
@@ -187,6 +188,16 @@ def _p99_nearest_rank(values: list[float]) -> float:
     return ordered[rank - 1]
 
 
+def _fingerprint_multiset_tolerant(pool, registry) -> Counter[str]:
+    """Same multiset as ``golden.fingerprint_multiset`` but over the
+    tolerant per-card compile (coverage._compile_pool_tolerant): a card
+    whose printed shape raises is a reported ShapeGap, never a harness
+    crash (§8/§11).  On a gap-free pool (M21) the counted record set is
+    identical to the strict pass."""
+    results, _ = _compile_pool_tolerant(pool, registry)
+    return Counter(fingerprint(result.card) for result in results.values())
+
+
 def _latency_and_determinism(pool, registry, runs: int) -> dict:
     """Run >= 3 full pool compilations; per-card p99 latency (PC-5) and
     fingerprint multisets from two independent runs (PC-9)."""
@@ -195,11 +206,11 @@ def _latency_and_determinism(pool, registry, runs: int) -> dict:
     entries = len(pool)
     for _ in range(runs):
         start = time.perf_counter()
-        compile_pool(pool, registry)
+        _compile_pool_tolerant(pool, registry)
         per_card_ms.append((time.perf_counter() - start) * 1000.0 / entries)
     # Two independent compilations (first and last run) for PC-9.
-    multisets.append(fingerprint_multiset(pool, registry))
-    multisets.append(fingerprint_multiset(pool, registry))
+    multisets.append(_fingerprint_multiset_tolerant(pool, registry))
+    multisets.append(_fingerprint_multiset_tolerant(pool, registry))
     p99_ms = _p99_nearest_rank(per_card_ms)
     deterministic = multisets[0] == multisets[1]
     return {
@@ -247,7 +258,11 @@ def _append_numbers_md(
         f"| PC-1 card_coverage | **{pcs['PC-1']['value']:.4f}** ({pcs['PC-1']['cards_zero_unparsed']}/{pcs['PC-1']['denominator']}) | `python tools/measure_grammar.py --set M21` | target >= 0.90 / stretch >= 0.95 — {'PASS' if pcs['PC-1']['pass'] else 'FAIL'} |",
         f"| PC-2 sentence_coverage | **{pcs['PC-2']['value']:.4f}** ({pcs['PC-2']['sentences_matched']}/{pcs['PC-2']['denominator']}) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — {'PASS' if pcs['PC-2']['pass'] else 'FAIL'} |",
         f"| PC-3 ambiguity | **{pcs['PC-3']['value']}** entries | `python tools/measure_grammar.py --set M21` | target 0 — {'PASS' if pcs['PC-3']['pass'] else 'FAIL'} |",
-        f"| PC-4 golden_stability | **{len(diffs)} diffs** ({golden_files} files, {golden_mode}) | `python tools/measure_grammar.py --set M21` | target 0 — {'PASS' if pcs['PC-4']['pass'] else 'FAIL'} |",
+        (
+            f"| PC-4 golden_stability | **N/A** ({pcs['PC-4'].get('note', 'no golden trees')}) | `python tools/measure_grammar.py --set M21` | target 0 — N/A (not evaluated) |"
+            if pcs["PC-4"]["pass"] is None
+            else f"| PC-4 golden_stability | **{len(diffs)} diffs** ({golden_files} files, {golden_mode}) | `python tools/measure_grammar.py --set M21` | target 0 — {'PASS' if pcs['PC-4']['pass'] else 'FAIL'} |"
+        ),
         f"| PC-5 compile_latency p99 | **{pcs['PC-5']['value']} ms/card** ({pcs['PC-5']['runs']} runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — {'PASS' if pcs['PC-5']['pass'] else 'FAIL'} |",
         f"| PC-6 vocabulary_health | orphans **{pcs['PC-6']['orphan_verbs']['value']}** / max share **{pcs['PC-6']['max_verb_share']['value']:.4f}** ({pcs['PC-6']['max_share_verb']}) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — {'PASS' if pcs['PC-6']['pass'] else 'FAIL'} |",
         f"| PC-7 executor_coverage | **{pcs['PC-7']['status']}** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |",
@@ -310,17 +325,25 @@ def main(argv: list[str] | None = None) -> int:
 
     golden_dir = REPO / "MTG_bot" / "core" / "golden" / set_name
     golden_mode = "refreshed" if args.refresh_goldens else "verified"
+    golden_na = False
     if args.refresh_goldens:
         # Explicit re-baseline: full regenerate, then verify what was written.
         golden_files = write_goldens(pool, registry, set_name)
         golden_diffs = verify_goldens(pool, registry, set_name)
+    elif not golden_dir.is_dir():
+        # No committed golden baseline for this set: PC-4 is NOT EVALUATED
+        # (same policy as PC-7 pending).  Never crash, never fabricate a
+        # file count.  verify_goldens() is deliberately not called: its
+        # strict recompile would die on un-compilable printed shapes.
+        golden_na = True
+        golden_diffs = []
+        golden_files = 0
+        golden_mode = "not_applicable"
     else:
         # Default measurement path: read-only verify against the committed
         # (VCS-tracked) baseline; nothing is written, ever.
         golden_diffs = verify_goldens(pool, registry, set_name)
-        golden_files = (
-            len(list(golden_dir.glob("*.json"))) if golden_dir.is_dir() else 0
-        )
+        golden_files = len(list(golden_dir.glob("*.json")))
 
     latency = _latency_and_determinism(pool, registry, args.runs)
     pc10 = _pc10_null_test(registry)
@@ -353,13 +376,24 @@ def main(argv: list[str] | None = None) -> int:
             "pass": report.pc3_ambiguous_entries == 0,
             "entries": [e.to_json() for e in report.ambiguous_entries],
         },
-        "PC-4": {
-            "name": "golden_stability",
-            "value": len(golden_diffs),
-            "target": "0",
-            "pass": not golden_diffs,
-            "diffs": golden_diffs,
-        },
+        "PC-4": (
+            {
+                "name": "golden_stability",
+                "value": "N/A",
+                "target": "0",
+                "pass": None,
+                "diffs": [],
+                "note": f"no golden trees for set {set_name}",
+            }
+            if golden_na
+            else {
+                "name": "golden_stability",
+                "value": len(golden_diffs),
+                "target": "0",
+                "pass": not golden_diffs,
+                "diffs": golden_diffs,
+            }
+        ),
         "PC-5": {
             "name": "compile_latency_p99_ms_per_card",
             "value": latency["p99_ms_per_card"],
@@ -434,13 +468,21 @@ def main(argv: list[str] | None = None) -> int:
             "dir": str(REPO / "MTG_bot" / "core" / "golden" / set_name),
             "files": golden_files,
             "diffs": golden_diffs,
-            "stable": not golden_diffs,
+            "stable": None if golden_na else not golden_diffs,
             "goldens": golden_mode,
             "baseline": "VCS-tracked (committed goldens; verify-only by default)",
         },
         "unparsed_queue": [e.to_json() for e in report.unparsed_queue],
         "unparsed_count": report.unparsed_count,
     }
+    if golden_na:
+        full_report["golden"]["status"] = f"no golden trees for set {set_name}"
+    # OMIT-IF-EMPTY (house law, mirrors CoverageReport.to_json): a gap-free
+    # pool adds NO new key, so M21's report stays byte-identical; a pool
+    # with printed-shape failures surfaces the ledger instead of hiding it.
+    report_json = report.to_json()
+    if "shape_gaps" in report_json:
+        full_report["shape_gaps"] = report_json["shape_gaps"]
     if engine is not None:
         full_report["engine_support"] = engine
 
@@ -477,11 +519,17 @@ def main(argv: list[str] | None = None) -> int:
         f"PC-3 ambiguity           {pcs['PC-3']['value']}  "
         f"target 0  {'PASS' if pcs['PC-3']['pass'] else 'FAIL'}"
     )
-    print(
-        f"PC-4 golden_stability    {len(golden_diffs)} diffs "
-        f"({golden_files} files, {golden_mode})  "
-        f"target 0  {'PASS' if pcs['PC-4']['pass'] else 'FAIL'}"
-    )
+    if golden_na:
+        print(
+            f"PC-4 golden_stability    N/A — no golden trees for set {set_name} "
+            "(not evaluated)"
+        )
+    else:
+        print(
+            f"PC-4 golden_stability    {len(golden_diffs)} diffs "
+            f"({golden_files} files, {golden_mode})  "
+            f"target 0  {'PASS' if pcs['PC-4']['pass'] else 'FAIL'}"
+        )
     print(
         f"PC-5 latency p99         {pcs['PC-5']['value']} ms/card "
         f"({pcs['PC-5']['runs']} runs)  target <50  "

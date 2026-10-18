@@ -28,7 +28,12 @@ _M21 = Path(__file__).resolve().parents[2] / "data" / "M21.json"
 PLANTED_UNPARSED = "Nobody understands this."
 
 
-def _synthetic_raw(oid: str, name: str, sentences: tuple[str, ...]) -> RawCard:
+def _synthetic_raw(
+    oid: str,
+    name: str,
+    sentences: tuple[str, ...],
+    power_raw: str | None = None,
+) -> RawCard:
     return RawCard(
         identity=CardIdentity(oracle_id=oid, name=name),
         type_line="Instant",
@@ -39,7 +44,7 @@ def _synthetic_raw(oid: str, name: str, sentences: tuple[str, ...]) -> RawCard:
         color_identity=frozenset(),
         mana_cost_raw=None,
         mana_value=0,
-        power_raw=None,
+        power_raw=power_raw,
         toughness_raw=None,
         loyalty_raw=None,
         keywords=(),
@@ -162,6 +167,8 @@ class TestMeasurePool(unittest.TestCase):
         ):
             self.assertIn(key, data)
         self.assertEqual(len(data["unparsed_queue"]), self.report.unparsed_count)
+        # OMIT-IF-EMPTY law: a zero-gap pool gains no "shape_gaps" key.
+        self.assertNotIn("shape_gaps", data)
 
 
 class TestPC10NullTest(unittest.TestCase):
@@ -192,6 +199,65 @@ class TestPC10NullTest(unittest.TestCase):
         self.assertEqual(entry.sentence, PLANTED_UNPARSED)
         self.assertEqual(entry.oracle_id, bad.identity.oracle_id)
         self.assertEqual(entry.name, "Null Bad")
+
+
+class TestShapeGaps(unittest.TestCase):
+    """§8/§11 gap-ledger law: unparsable printed shapes are REPORTED rows,
+    never a crash, never a silent drop; denominators stay the full pool."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.registry = build_full_registry()
+
+    def test_unparsable_shape_is_reported_not_crash(self) -> None:
+        gap = _synthetic_raw(
+            "00000000-0000-0000-0000-000000000003",
+            "Gap Walker",
+            ("Draw a card.",),
+            power_raw="1+*",
+        )
+        # must not raise
+        report = measure_pool({gap.identity.oracle_id: gap}, self.registry)
+        self.assertEqual(len(report.shape_gaps), 1)
+        row = report.shape_gaps[0]
+        self.assertEqual(row.card, gap.identity.oracle_id)
+        self.assertEqual(row.name, "Gap Walker")
+        self.assertIn("parse_pt: unexpected value '1+*'", row.error)
+        self.assertLessEqual(len(row.error), 160)
+        # excluded from compiled metrics, counted AGAINST coverage:
+        self.assertEqual(report.cards_zero_unparsed, 0)
+        self.assertEqual(report.entry_count, 1)
+        self.assertEqual(report.pc1_card_coverage, 0.0)
+        self.assertEqual(report.pc8_targetable_fraction, 0.0)
+        self.assertEqual(report.atom_total, 0)  # no compiled atoms walked
+        data = report.to_json()
+        self.assertIn("shape_gaps", data)
+        self.assertEqual(data["shape_gaps"][0]["card"], gap.identity.oracle_id)
+
+    def test_gap_mixed_with_good_keeps_full_denominator(self) -> None:
+        good = _synthetic_raw(
+            "00000000-0000-0000-0000-000000000004", "Good", ("Draw a card.",)
+        )
+        gap = _synthetic_raw(
+            "00000000-0000-0000-0000-000000000005",
+            "Gap",
+            ("Draw a card.",),
+            power_raw="1+*",
+        )
+        pool = {good.identity.oracle_id: good, gap.identity.oracle_id: gap}
+        report = measure_pool(pool, self.registry)
+        self.assertEqual(report.entry_count, 2)  # denominator NOT shrunk
+        self.assertEqual(len(report.shape_gaps), 1)
+        self.assertEqual(report.cards_zero_unparsed, 1)
+        self.assertEqual(report.pc1_card_coverage, 0.5)
+
+    def test_clean_pool_has_no_shape_gaps_key(self) -> None:
+        good = _synthetic_raw(
+            "00000000-0000-0000-0000-000000000006", "Clean", ("Draw a card.",)
+        )
+        report = measure_pool({good.identity.oracle_id: good}, self.registry)
+        self.assertEqual(report.shape_gaps, ())
+        self.assertNotIn("shape_gaps", report.to_json())
 
 
 if __name__ == "__main__":
