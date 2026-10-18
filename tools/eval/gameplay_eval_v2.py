@@ -67,6 +67,7 @@ if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
 from MTG_bot.core.executor.games import (
+    SET_CODE,
     TURN_CAP,
     RandomPolicy,
     Supply,
@@ -542,11 +543,13 @@ def run_v2_game(
 _G: dict[str, Any] = {}
 
 
-def _init_worker(pool_mode: str, specs: tuple[str, ...], device: str) -> None:
+def _init_worker(
+    pool_mode: str, set_code: str, specs: tuple[str, ...], device: str
+) -> None:
     import torch
 
     torch.set_num_threads(1)
-    _G["supply"] = get_supply(pool_mode)
+    _G["supply"] = get_supply(pool_mode, set_code)
     for spec in specs:
         if spec.endswith(".pt"):
             from tools.training.ab_duel import BcAsk
@@ -737,6 +740,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--games", type=int, default=200, help="games PER matchup")
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--pool", default="engine", choices=("all", "engine", "castable"))
+    ap.add_argument(
+        "--set",
+        dest="set_code",
+        default=SET_CODE,
+        help="card pool set (default M21; ZNR once compiled — empty pool fails loudly)",
+    )
     ap.add_argument("--deck-pairs-seed", type=int, default=1409)
     ap.add_argument("--turn-cap", type=int, default=TURN_CAP)
     ap.add_argument("--seed-base", type=int, default=0)
@@ -756,7 +765,7 @@ def main(argv: list[str] | None = None) -> int:
 
     seeds = list(range(args.seed_base + 1, args.seed_base + 1 + args.games))
     swaps = seat_swaps(args.games)
-    supply = get_supply(args.pool)
+    supply = get_supply(args.pool, args.set_code)
     dev = args.device
     if dev == "auto":
         import torch
@@ -779,7 +788,7 @@ def main(argv: list[str] | None = None) -> int:
     started = time.perf_counter()
     specs = tuple({policy_a, *{b for _, b in baselines if b.endswith(".pt")}})
     if args.workers <= 1:
-        _init_worker(args.pool, specs, dev)
+        _init_worker(args.pool, args.set_code, specs, dev)
         records = [_worker(j) for j in jobs]
     else:
         ctx = multiprocessing.get_context("spawn")
