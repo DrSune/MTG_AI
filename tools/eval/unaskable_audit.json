@@ -1,0 +1,942 @@
+{
+ "tool": "tools/eval/unaskable_audit.py",
+ "corpus_items": 199,
+ "eval_families": 33,
+ "eval_items": 58,
+ "dynamic_lane_ran": true,
+ "packs_replayed": 44,
+ "packs_replay_failed": [],
+ "verdicts": {
+  "askable": 58
+ },
+ "basis": {
+  "dynamic": 58
+ },
+ "by_ask_kind": {
+  "attack": {
+   "askable": 1,
+   "unaskable": 0,
+   "n_a": 0
+  },
+  "choose": {
+   "askable": 9,
+   "unaskable": 0,
+   "n_a": 0
+  },
+  "mana": {
+   "askable": 7,
+   "unaskable": 0,
+   "n_a": 0
+  },
+  "may": {
+   "askable": 13,
+   "unaskable": 0,
+   "n_a": 0
+  },
+  "one_of": {
+   "askable": 6,
+   "unaskable": 0,
+   "n_a": 0
+  },
+  "sacrifice": {
+   "askable": 2,
+   "unaskable": 0,
+   "n_a": 0
+  },
+  "scry": {
+   "askable": 13,
+   "unaskable": 0,
+   "n_a": 0
+  },
+  "target": {
+   "askable": 7,
+   "unaskable": 0,
+   "n_a": 0
+  }
+ },
+ "items": [
+  {
+   "id": "Alchemist's Gift|alchemists_gift.json|step0|choose#0",
+   "card": "Alchemist's Gift",
+   "pack": "alchemists_gift.json",
+   "ask_kind": "choose",
+   "candidates_n": 2,
+   "gold": "1",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Alchemist's Gift|alchemists_gift.json|step1|choose#0",
+   "card": "Alchemist's Gift",
+   "pack": "alchemists_gift.json",
+   "ask_kind": "choose",
+   "candidates_n": 2,
+   "gold": "0",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Alpine Houndmaster|alpine_houndmaster.json|step0|may#0",
+   "card": "Alpine Houndmaster",
+   "pack": "alpine_houndmaster.json",
+   "ask_kind": "may",
+   "candidates_n": 2,
+   "gold": "fire",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Feat of Resistance|basri_ket_x_feat_of_resistance.json|step2|choose#0",
+   "card": "Feat of Resistance",
+   "pack": "basri_ket_x_feat_of_resistance.json",
+   "ask_kind": "choose",
+   "candidates_n": 5,
+   "gold": "1",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Bone Pit Brute|bone_pit_brute.json|step0|target#0",
+   "card": "Bone Pit Brute",
+   "pack": "bone_pit_brute.json",
+   "ask_kind": "target",
+   "candidates_n": 2,
+   "gold": "card:1",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Chandra's Firemaw|chandras_firemaw.json|step0|may#0",
+   "card": "Chandra's Firemaw",
+   "pack": "chandras_firemaw.json",
+   "ask_kind": "may",
+   "candidates_n": 2,
+   "gold": "fire",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Conspicuous Snoop|conspicuous_snoop.json|step13|may#0",
+   "card": "Conspicuous Snoop",
+   "pack": "conspicuous_snoop.json",
+   "ask_kind": "may",
+   "candidates_n": 2,
+   "gold": "fire",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Crypt Lurker|crypt_lurker_discard.json|step0|may#0",
+   "card": "Crypt Lurker",
+   "pack": "crypt_lurker_discard.json",
+   "ask_kind": "may",
+   "candidates_n": 2,
+   "gold": "fire",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Crypt Lurker|crypt_lurker_discard.json|step0|choose#0",
+   "card": "Crypt Lurker",
+   "pack": "crypt_lurker_discard.json",
+   "ask_kind": "choose",
+   "candidates_n": 2,
+   "gold": "1",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Crypt Lurker|crypt_lurker_skip.json|step0|may#0",
+   "card": "Crypt Lurker",
+   "pack": "crypt_lurker_skip.json",
+   "ask_kind": "may",
+   "candidates_n": 2,
+   "gold": "fire",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Duress|duress.json|step0|choose#0",
+   "card": "Duress",
+   "pack": "duress.json",
+   "ask_kind": "choose",
+   "candidates_n": 5,
+   "gold": "1",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Experimental Overload|experimental_overload.json|step0|may#0",
+   "card": "Experimental Overload",
+   "pack": "experimental_overload.json",
+   "ask_kind": "may",
+   "candidates_n": 2,
+   "gold": "fire",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Experimental Overload|experimental_overload.json|step0|one_of#0",
+   "card": "Experimental Overload",
+   "pack": "experimental_overload.json",
+   "ask_kind": "one_of",
+   "candidates_n": 2,
+   "gold": "card:2",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Feat of Resistance|feat_of_resistance.json|step0|choose#0",
+   "card": "Feat of Resistance",
+   "pack": "feat_of_resistance.json",
+   "ask_kind": "choose",
+   "candidates_n": 5,
+   "gold": "1",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Feat of Resistance|feat_of_resistance_blocked_twin.json|step0|choose#0",
+   "card": "Feat of Resistance",
+   "pack": "feat_of_resistance_blocked_twin.json",
+   "ask_kind": "choose",
+   "candidates_n": 5,
+   "gold": "0",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Garruk's Harbinger|garruk_s_harbinger_branch01.json|step0|one_of#0",
+   "card": "Garruk's Harbinger",
+   "pack": "garruk_s_harbinger_branch01.json",
+   "ask_kind": "one_of",
+   "candidates_n": 2,
+   "gold": "card:4",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Garruk's Harbinger|garruk_s_harbinger_branch02.json|step0|one_of#0",
+   "card": "Garruk's Harbinger",
+   "pack": "garruk_s_harbinger_branch02.json",
+   "ask_kind": "one_of",
+   "candidates_n": 2,
+   "gold": "card:4",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Garruk's Harbinger|garruk_s_harbinger_branch03.json|step0|one_of#0",
+   "card": "Garruk's Harbinger",
+   "pack": "garruk_s_harbinger_branch03.json",
+   "ask_kind": "one_of",
+   "candidates_n": 2,
+   "gold": "card:4",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Garruk's Warsteed|garruks_warsteed.json|step0|may#0",
+   "card": "Garruk's Warsteed",
+   "pack": "garruks_warsteed.json",
+   "ask_kind": "may",
+   "candidates_n": 2,
+   "gold": "fire",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Heartfire Immolator|heartfire_immolator.json|step1|scry#0",
+   "card": "Heartfire Immolator",
+   "pack": "heartfire_immolator.json",
+   "ask_kind": "scry",
+   "candidates_n": 2,
+   "gold": "bottom",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Heartfire Immolator|heartfire_immolator.json|step2|scry#0",
+   "card": "Heartfire Immolator",
+   "pack": "heartfire_immolator.json",
+   "ask_kind": "scry",
+   "candidates_n": 2,
+   "gold": "bottom",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Jeskai Elder|jeskai_elder.json|step1|scry#0",
+   "card": "Jeskai Elder",
+   "pack": "jeskai_elder.json",
+   "ask_kind": "scry",
+   "candidates_n": 2,
+   "gold": "bottom",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Jeskai Elder|jeskai_elder.json|step2|scry#0",
+   "card": "Jeskai Elder",
+   "pack": "jeskai_elder.json",
+   "ask_kind": "scry",
+   "candidates_n": 2,
+   "gold": "bottom",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Havoc Jester|ladder_jester_double_sac.json|step0|sacrifice#0",
+   "card": "Havoc Jester",
+   "pack": "ladder_jester_double_sac.json",
+   "ask_kind": "sacrifice",
+   "candidates_n": 3,
+   "gold": "card:3",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Havoc Jester|ladder_jester_double_sac.json|step0|target#0",
+   "card": "Havoc Jester",
+   "pack": "ladder_jester_double_sac.json",
+   "ask_kind": "target",
+   "candidates_n": 7,
+   "gold": "card:5",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Havoc Jester|ladder_jester_double_sac.json|step1|sacrifice#0",
+   "card": "Havoc Jester",
+   "pack": "ladder_jester_double_sac.json",
+   "ask_kind": "sacrifice",
+   "candidates_n": 2,
+   "gold": "card:2",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Havoc Jester|ladder_jester_double_sac.json|step1|target#0",
+   "card": "Havoc Jester",
+   "pack": "ladder_jester_double_sac.json",
+   "ask_kind": "target",
+   "candidates_n": 5,
+   "gold": "card:4",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Mazemind Tome|mazemind_tome.json|step5|scry#0",
+   "card": "Mazemind Tome",
+   "pack": "mazemind_tome.json",
+   "ask_kind": "scry",
+   "candidates_n": 2,
+   "gold": "bottom",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Spined Megalodon|megalodon_attack_sculpt.json|step2|attack#0",
+   "card": "Spined Megalodon",
+   "pack": "megalodon_attack_sculpt.json",
+   "ask_kind": "attack",
+   "candidates_n": 2,
+   "gold": "ATTACK",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Spined Megalodon|megalodon_attack_sculpt.json|step2|scry#0",
+   "card": "Spined Megalodon",
+   "pack": "megalodon_attack_sculpt.json",
+   "ask_kind": "scry",
+   "candidates_n": 2,
+   "gold": "bottom",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Meteorite|meteorite.json|step0|target#0",
+   "card": "Meteorite",
+   "pack": "meteorite.json",
+   "ask_kind": "target",
+   "candidates_n": 3,
+   "gold": "player:1",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Meteorite|meteorite_mana_tap.json|step0|mana#0",
+   "card": "Meteorite",
+   "pack": "meteorite_mana_tap.json",
+   "ask_kind": "mana",
+   "candidates_n": 6,
+   "gold": "U",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Opt|opt.json|step0|scry#0",
+   "card": "Opt",
+   "pack": "opt.json",
+   "ask_kind": "scry",
+   "candidates_n": 2,
+   "gold": "bottom",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Palladium Myr|palladium_myr.json|step1|mana#0",
+   "card": "Palladium Myr",
+   "pack": "palladium_myr.json",
+   "ask_kind": "mana",
+   "candidates_n": 6,
+   "gold": "G",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Prismite|prismite.json|step0|mana#0",
+   "card": "Prismite",
+   "pack": "prismite.json",
+   "ask_kind": "mana",
+   "candidates_n": 6,
+   "gold": "B",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Prismite|prismite_g_spinner.json|step0|mana#0",
+   "card": "Prismite",
+   "pack": "prismite_g_spinner.json",
+   "ask_kind": "mana",
+   "candidates_n": 6,
+   "gold": "G",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Prismite|prismite_u_singer.json|step0|mana#0",
+   "card": "Prismite",
+   "pack": "prismite_u_singer.json",
+   "ask_kind": "mana",
+   "candidates_n": 6,
+   "gold": "U",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Read the Tides|read_the_tides.json|step0|choose#0",
+   "card": "Read the Tides",
+   "pack": "read_the_tides.json",
+   "ask_kind": "choose",
+   "candidates_n": 2,
+   "gold": "0",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Read the Tides|read_the_tides.json|step1|choose#0",
+   "card": "Read the Tides",
+   "pack": "read_the_tides.json",
+   "ask_kind": "choose",
+   "candidates_n": 2,
+   "gold": "1",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Stray Aurochs|rin_and_seri_cast_triggers.json|step1|target#0",
+   "card": "Stray Aurochs",
+   "pack": "rin_and_seri_cast_triggers.json",
+   "ask_kind": "target",
+   "candidates_n": 6,
+   "gold": "card:1",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Sanctum of All|sanctum_of_all_search_fire.json|step2|may#0",
+   "card": "Sanctum of All",
+   "pack": "sanctum_of_all_search_fire.json",
+   "ask_kind": "may",
+   "candidates_n": 2,
+   "gold": "fire",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Sanctum of All|sanctum_of_all_search_skip.json|step2|may#0",
+   "card": "Sanctum of All",
+   "pack": "sanctum_of_all_search_skip.json",
+   "ask_kind": "may",
+   "candidates_n": 2,
+   "gold": "fire",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Sanctum of Calm Waters|sanctum_of_calm_waters_draw_x.json|step2|may#0",
+   "card": "Sanctum of Calm Waters",
+   "pack": "sanctum_of_calm_waters_draw_x.json",
+   "ask_kind": "may",
+   "candidates_n": 2,
+   "gold": "fire",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Sanctum of Calm Waters|sanctum_of_calm_waters_draw_x.json|step2|one_of#0",
+   "card": "Sanctum of Calm Waters",
+   "pack": "sanctum_of_calm_waters_draw_x.json",
+   "ask_kind": "one_of",
+   "candidates_n": 4,
+   "gold": "card:2",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Stray Aurochs|sigiled_contender.json|step0|target#0",
+   "card": "Stray Aurochs",
+   "pack": "sigiled_contender.json",
+   "ask_kind": "target",
+   "candidates_n": 3,
+   "gold": "card:1",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Skeleton Archer|skeleton_archer.json|step0|target#0",
+   "card": "Skeleton Archer",
+   "pack": "skeleton_archer.json",
+   "ask_kind": "target",
+   "candidates_n": 3,
+   "gold": "player:1",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Solemn Simulacrum|solemn_simulacrum.json|step0|may#0",
+   "card": "Solemn Simulacrum",
+   "pack": "solemn_simulacrum.json",
+   "ask_kind": "may",
+   "candidates_n": 2,
+   "gold": "fire",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Solemn Simulacrum|solemn_simulacrum.json|step1|may#0",
+   "card": "Solemn Simulacrum",
+   "pack": "solemn_simulacrum.json",
+   "ask_kind": "may",
+   "candidates_n": 2,
+   "gold": "fire",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Teferi's Wavecaster|teferis_wavecaster.json|step0|may#0",
+   "card": "Teferi's Wavecaster",
+   "pack": "teferis_wavecaster.json",
+   "ask_kind": "may",
+   "candidates_n": 2,
+   "gold": "fire",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Temple of Mystery|temple_of_mystery.json|step0|scry#0",
+   "card": "Temple of Mystery",
+   "pack": "temple_of_mystery.json",
+   "ask_kind": "scry",
+   "candidates_n": 2,
+   "gold": "bottom",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Temple of Silence|temple_of_silence.json|step0|scry#0",
+   "card": "Temple of Silence",
+   "pack": "temple_of_silence.json",
+   "ask_kind": "scry",
+   "candidates_n": 2,
+   "gold": "bottom",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Track Down|track_down.json|step0|scry#0",
+   "card": "Track Down",
+   "pack": "track_down.json",
+   "ask_kind": "scry",
+   "candidates_n": 2,
+   "gold": "bottom",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Track Down|track_down.json|step0|scry#1",
+   "card": "Track Down",
+   "pack": "track_down.json",
+   "ask_kind": "scry",
+   "candidates_n": 2,
+   "gold": "bottom",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Track Down|track_down.json|step0|scry#2",
+   "card": "Track Down",
+   "pack": "track_down.json",
+   "ask_kind": "scry",
+   "candidates_n": 2,
+   "gold": "bottom",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Traitorous Greed|traitorous_greed.json|step0|mana#0",
+   "card": "Traitorous Greed",
+   "pack": "traitorous_greed.json",
+   "ask_kind": "mana",
+   "candidates_n": 6,
+   "gold": "R",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Traitorous Greed|traitorous_greed_g_spinner.json|step0|mana#0",
+   "card": "Traitorous Greed",
+   "pack": "traitorous_greed_g_spinner.json",
+   "ask_kind": "mana",
+   "candidates_n": 6,
+   "gold": "G",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Vryn Wingmare|vryn_wingmare.json|step0|scry#0",
+   "card": "Vryn Wingmare",
+   "pack": "vryn_wingmare.json",
+   "ask_kind": "scry",
+   "candidates_n": 2,
+   "gold": "bottom",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  },
+  {
+   "id": "Waker of Waves|waker_of_waves_activation.json|step0|one_of#0",
+   "card": "Waker of Waves",
+   "pack": "waker_of_waves_activation.json",
+   "ask_kind": "one_of",
+   "candidates_n": 2,
+   "gold": "card:7",
+   "eval_side": true,
+   "verdict": "askable",
+   "reason": "",
+   "basis": "dynamic",
+   "gold_still_matches": true
+  }
+ ],
+ "unaskable_backlog_registered": [
+  {
+   "card": "Chandra, Flame's Catalyst",
+   "pack": "chandra_flame_s_catalyst_branch01_twin.json",
+   "ask_kind": "may",
+   "verdict": "true-no-decision",
+   "reason": "branch-coverage negative twin of chandra_flame_s_catalyst_branch01: the fire path is certified by the sibling pack; this pack pins the SKIP branch (hand-0 lane). Flipping would erase skip-branch coverage, so the skip ask is not a ladder candidate. True-no-decision for the ladder: 'skip' is the null word (PASS_WORDS, tools/audit/puzzle_cert.py:75-85), so the null replay IS the gold line by design; this twin pins the decline branch only.",
+   "eval_side": false
+  },
+  {
+   "card": "Chandra, Flame's Catalyst",
+   "pack": "chandra_flame_s_catalyst_branch02_twin.json",
+   "ask_kind": "may",
+   "verdict": "true-no-decision",
+   "reason": "branch-coverage negative twin of chandra_flame_s_catalyst_branch02: free-cast fire path certified by the sibling pack; this pack pins the SKIP branch (Crash Through stays in hand). True-no-decision for the ladder: 'skip' is the null word (PASS_WORDS, tools/audit/puzzle_cert.py:75-85), so the null replay IS the gold line by design; this twin pins the decline branch only.",
+   "eval_side": false
+  },
+  {
+   "card": "Chandra, Heart of Fire",
+   "pack": "chandra_heart_of_fire_branch01_twin.json",
+   "ask_kind": "may",
+   "verdict": "true-no-decision",
+   "reason": "branch-coverage negative twin of chandra_heart_of_fire_branch01: fire path certified by the sibling pack; this pack pins the SKIP branch (Crash Through stays exiled, hand 0). True-no-decision for the ladder: 'skip' is the null word (PASS_WORDS, tools/audit/puzzle_cert.py:75-85), so the null replay IS the gold line by design; this twin pins the decline branch only.",
+   "eval_side": false
+  },
+  {
+   "card": "Chandra, Heart of Fire",
+   "pack": "chandra_heart_of_fire_branch02_twin.json",
+   "ask_kind": "may",
+   "verdict": "true-no-decision",
+   "reason": "branch-coverage negative twin of chandra_heart_of_fire_branch02: ultimate fire path certified by the sibling pack; this pack pins the idx4 SKIP branch. True-no-decision for the ladder: 'skip' is the null word (PASS_WORDS, tools/audit/puzzle_cert.py:75-85), so the null replay IS the gold line by design; this twin pins the decline branch only.",
+   "eval_side": false
+  },
+  {
+   "card": "Liliana's Devotee",
+   "pack": "liliana_s_devotee_branch01_twin.json",
+   "ask_kind": "may",
+   "verdict": "true-no-decision",
+   "reason": "branch-coverage negative twin of liliana_s_devotee_branch01: fire path certified by the sibling pack; this pack pins the SKIP false-branch (tokens 0 lane). True-no-decision for the ladder: 'skip' is the null word (PASS_WORDS, tools/audit/puzzle_cert.py:75-85), so the null replay IS the gold line by design; this twin pins the decline branch only.",
+   "eval_side": false
+  },
+  {
+   "card": "Runed Halo",
+   "pack": "runed_halo.json",
+   "ask_kind": "name",
+   "verdict": "engine-semantics-gap",
+   "reason": "Golden is correct per print ('As this enchantment enters, choose a card name. You have protection from the chosen card name.'). The engine gap is in the PROTECTION keyword itself: layers.protections_of has exactly ONE consumer, block_pair_blocked_reason (MTG_bot/core/executor/legality.py:1634-1686) \u2014 the 702.16c dealt-damage / can't-target / can't-enchant facets are unimplemented in the executor (verbs DEAL_DAMAGE consults only ctx.replacements/PREVENT_EFFECT, never protection keywords), so the deal_damage op legitimately bypasses the named choice and NO lane can observe it. FAIL REGISTERED pending the executor damage facet; then a life-lane pack certifies the name choose. Also null-degenerate today: gold 'Cow' is vocab[0] (puzzle_cert.py:78-85).",
+   "eval_side": false
+  },
+  {
+   "card": "Destructive Tampering",
+   "pack": "tampering_destroy_artifact.json",
+   "ask_kind": "choose",
+   "verdict": "null-degenerate-observable",
+   "reason": "Compiled choose options are (DESTROY target artifact, PREVENT non-Flying blockers EoT). The pack's destroy-the-target premise forces option '0', which is vocab[0], so the null replay equals gold by construction; option '1' is a blocker-prevention effect unobservable without a combat lane (probe: decisions ['1'] leaves the cog on the battlefield \u2014 the options ARE distinct, so flipping gold is impossible without a different premise). Modal choose is REAL (options compiled distinct); the destroy premise pins option '0' = vocab[0] = null word (puzzle_cert.py:78-85) so null replay == gold. Option '1' ('creatures without flying can't block this turn') is now observable IN PRINCIPLE via the not_asked_to_block combat lane (built for feat_of_resistance 2026-10-07; executor/legality.py:1694) \u2014 certifiable with an option-1 combat twin: TODO.",
+   "eval_side": false
+  },
+  {
+   "card": "Tempered Veteran",
+   "pack": "tempered_veteran.json",
+   "ask_kind": "choose",
+   "verdict": "null-degenerate-observable",
+   "reason": "Numeric choose maps '0' stably to the Trufflesnout token target regardless of added creatures, so the null pick equals the gold call by construction; counter assignment is designator-independent. Trufflesnout ETB is a modal Choose (PUT_COUNTER | GAIN_LIFE 4 \u2014 golden M21/8a15841a); the inner counter-target selector IS single-candidate auto-filled (executor/selectors.py:438, true no-decision) but the MODAL ask is real and observable via life/counters lanes. The veteran premise (idx0 requires a creature WITH a counter) pins option '0'=vocab[0]=null word (puzzle_cert.py:78-85). The life branch is certified by the trufflesnout_etb_life_twin twin.",
+   "eval_side": false
+  },
+  {
+   "card": "Tolarian Kraken",
+   "pack": "tolarian_kraken_skip_payment.json",
+   "ask_kind": "target",
+   "verdict": "true-no-decision",
+   "reason": "branch-coverage negative twin of tolarian_kraken_tap (fire chain certified there, l1_ready): when the may-pay SKIPs, the 'when you do' target and tap/untap asks never arrive, so both step0 asks are structurally unobservable here; the untapped lane pins the short-circuit. Null word 'skip' (puzzle_cert.py:75-85) IS this pack's gold decline line; the fire path's real decisions are certified by tolarian_kraken_tap (l1_ready ladder).",
+   "eval_side": false
+  },
+  {
+   "card": "Tolarian Kraken",
+   "pack": "tolarian_kraken_skip_payment.json",
+   "ask_kind": "may",
+   "verdict": "true-no-decision",
+   "reason": "branch-coverage negative twin of tolarian_kraken_tap (fire chain certified there, l1_ready): when the may-pay SKIPs, the 'when you do' target and tap/untap asks never arrive, so both step0 asks are structurally unobservable here; the untapped lane pins the short-circuit. Null word 'skip' (puzzle_cert.py:75-85) IS this pack's gold decline line; the fire path's real decisions are certified by tolarian_kraken_tap (l1_ready ladder).",
+   "eval_side": false
+  },
+  {
+   "card": "Tolarian Kraken",
+   "pack": "tolarian_kraken_tap.json",
+   "ask_kind": "choose",
+   "verdict": "null-degenerate-observable",
+   "reason": "The tap/untap mode ask: tap='0' IS vocab[0]=null word (puzzle_cert.py:78-85) and the fire-chain premise pins the tap; the tapped lane observes the untap branch \u2014 certifiable with an untap-premise twin (TODO). Same step's target and both may-pay items punish null and stay on the ladder.",
+   "eval_side": false
+  }
+ ],
+ "followup_24_named": {
+  "Meteorite": {
+   "eval_side": true,
+   "items": [
+    "askable",
+    "askable"
+   ]
+  },
+  "Read the Tides": {
+   "eval_side": true,
+   "items": [
+    "askable",
+    "askable"
+   ]
+  },
+  "Waker of Waves": {
+   "eval_side": true,
+   "items": [
+    "askable"
+   ]
+  },
+  "Havoc Jester": {
+   "eval_side": true,
+   "items": [
+    "askable",
+    "askable",
+    "askable",
+    "askable"
+   ]
+  }
+ },
+ "designation_lane_eval_cards": [
+  {
+   "pack": "basri_ket_x_experimental_overload.json",
+   "eval_cards": [
+    "Experimental Overload"
+   ]
+  }
+ ]
+}
