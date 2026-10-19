@@ -335,3 +335,33 @@ These are forks, not tasks. See the report that accompanied this audit.
 - B-21: strategic_brain + test_full_system: 21 further failures, legacy.
 - B-22: campaign gate scope decision: does M21 campaign ever run repo-wide pytest, or is
   core+tools the permanent contract? (Owner; affects §7 review completeness claims.)
+
+## Tickets 2026-10-19 (OWNER DIRECTIVE — generalization & training program; model lane, parked until the atom-ontology lane closes its R-rounds)
+- T-G1 FAIR generalization measurement: the random-choice baseline is too weak to be
+  trusted (owner). Protocol to design: solid-volume self-play training PER SET
+  (~100k-game scale or whatever is demonstrably converged — volume unknown until T-G3),
+  then cross-play: M21-dedicated vs ZNR-dedicated models on the ZNR-only pool (and
+  reverse). Reuses the /123 era-parity control machinery (frozen bsh_S3a_s3 2×2 grid).
+- T-G2 multi-set fairness design: with 3+ sets, per-set dedicated models AND a combined
+  main model at BALANCED per-set training volume; acceptance law = the more sets the
+  main model trained on, the higher its ELO vs a one-set dedicated model.
+- T-G3 set-mastery cost curve: measure compute-per-set-to-mastery (vs good opponents,
+  full complexity) once a couple of sets ARE mastered; only then can time-saved from
+  atomization be quantified.
+- T-G4 keep per-set SPECIALIZED models as first-class artifacts (may be optimal for
+  set-restricted games).
+- T-G5 ELO/puzzle-system audit for set-transfer fairness (opponent control, pool
+  separation, no era confounders) — decide before running the T-G1 matrix.
+- T-G6 owner question, needs an answered audit: do our implementations use the 128 GB
+  unified memory + compute throughput optimally? Is there any current size class where
+  NVFP4 GEMM implementations pay off for speedup?
+- T-G7 parallel training on the 128 GB box (multiple runs at once) — feasibility +
+  throughput measurement; likely speedup for the T-G1 matrix.
+- T-G8 capability-ceiling probes: CONTINUALLY train longer runs to find where ELO
+  plateaus; when more complex play styles/techniques stop being learnable, that is the
+  parameter-scaling signal (recurring law, not a one-off).
+- T-G9 drafting + niche-deck play: still untouched by design (basics first) — stays queued.
+- OWNER'S END-GAME CRITERION (context for the atom program): when a NEW set needs only
+  atomized-subcomponent implementation + one-or-a-few keyword/mechanic adds + a little
+  RL to master, the model is GENUINELY general — that is what the ontology R-rounds are
+  building toward (§8 tokenizer law).
