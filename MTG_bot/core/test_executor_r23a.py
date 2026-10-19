@@ -193,16 +193,29 @@ class TestMayOfferCastGate(R23ACase):
         )
 
     def test_a_spell_carrier_restores_the_full_offer(self):
+        # AMENDED /125 (shadow seed 777003 lane): the CHOOSE(1) stand-in
+        # casts the sorted-FIRST candidate, so the carrier must be the
+        # card the designation lane actually takes. The fixture's
+        # Titanic Growth (an instant, card:1) sorts FIRST in the library,
+        # so the pre-amendment shape — only Bolt registered — offered
+        # fire on a population whose designee was the UNREGISTERED
+        # Titanic Growth: the runtime cast_card raises there ('no
+        # compiled record'), a phantom fire (no-phantom law /10). The
+        # pin's intent stands — a spell carrier the designee lane will
+        # actually cast restores the full offer — now carried by the
+        # designee itself. Land-first/impossible-designee narrowing is
+        # pinned in test_executor_cast_payability.py.
         self.world.add_card(card_id("Island", type_line="Land"), self.p0, ZONE_LIBRARY)
         bolt = self.world.add_card(
             card_id("Lightning Bolt", type_line="Instant"), self.p0, ZONE_LIBRARY
         )
-        oid = self.world.cards[bolt].identity.oracle_id
-        self.ex.binder.records[oid] = record_of(
-            [SpellAbility(kind=SpellKind.INSTANT, effect=None)],
-            name="Lightning Bolt",
-            oid=oid,
-        )
+        for card, name in ((self.spell, "Titanic Growth"), (bolt, "Lightning Bolt")):
+            oid = self.world.cards[card].identity.oracle_id
+            self.ex.binder.records[oid] = record_of(
+                [SpellAbility(kind=SpellKind.INSTANT, effect=None)],
+                name=name,
+                oid=oid,
+            )
         self.assertEqual(
             optional_offer(
                 self.ex, self._may_cast_library(), source=self.urn, controller=self.p0

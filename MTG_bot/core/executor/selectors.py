@@ -20,9 +20,12 @@ takes min(count, candidates)); C12 referents are the closed strings.
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from MTG_bot.core.ability_tree import (
     Atom,
     ControllerRef,
+    Cost,
     FAnd,
     FAtom,
     FAtomPred,
@@ -362,7 +365,11 @@ def referent_absent(exc: BaseException) -> bool:
 
 
 def resolve_selector(
-    sel: Selector, ctx: ExecCtx, *, journal_partition: bool = False
+    sel: Selector,
+    ctx: ExecCtx,
+    *,
+    journal_partition: bool = False,
+    ok: Callable[[Handle], bool] | None = None,
 ) -> list[Handle]:
     """A Selector IR -> concrete handles.
 
@@ -382,6 +389,27 @@ def resolve_selector(
     makes the subtraction usually a no-op). C15: an ONE_OF ask no lane
     can answer RAISES (never a default); an empty ONE_OF population
     chooses nothing (C17 clamp).
+
+    ``ok`` (CAST-lane designee predicate, /125 gate rounds) clamps with
+    THREE shapes, one law per menu kind: POPULATION menus (ALL,
+    CHOOSE-QUnbounded, ONE_OF's ask vocabulary, RANDOM, TARGET's
+    legality set) are legal-set enumerations clamped over the whole
+    population — the designation falls through to the next payable
+    carrier (B1: an unpayable head must not be designated and re-raised;
+    offer gate, ask vocabulary and runtime read ONE predicate). The
+    finite CHOOSE positional slice is NOT pre-clamped: it slices the RAW
+    population first, then checks the HEAD — a failing head refuses the
+    whole effect (no cast, no pool spend, a loud ledger row; NEVER a
+    silent re-pick onto the next payable spell, which would violate the
+    "first ``count`` of the Handle-sorted candidates" law above and the
+    verbs.py CAST "deterministic first-n stand-in" law). BOUND TARGET
+    designations drop with the legality clamp but register a ledger row
+    naming the card (an explicit designation never leaves silently). The
+    referent lane (12a's "cast THIS card") is never clamped: the
+    per-card :class:`stack.FaceCastAbsentError` / missing-record raise
+    stays the loud miscompile flag, and the typed face-shape survives
+    every population clamp for ``cast_card``'s own guard+ledger lane
+    (/115 contract).
 
     H4 Scope C: callers that are actually applying the selected set pass
     ``journal_partition=True``. That emits audit TARGETING rows for
@@ -451,6 +479,77 @@ def resolve_selector(
     if partition_window is not None and sel.mode is SelectorMode.ONE_OF:
         ctx.one_of_window = tuple(partition_window)
     candidates = [h for h in candidates if eval_filter(sel.filter, h, ctx)]
+
+    # B1 (gate round, /125) + F2 (re-gate round 3, /125): the CAST-lane
+    # predicate arrives as ``ok``. THREE clamp shapes, one law per menu
+    # kind. POPULATION menus (ALL / CHOOSE-QUnbounded / ONE_OF / RANDOM /
+    # TARGET legality sets) are legal-set enumerations: the clamp consumes
+    # the WHOLE population before any mode folds it (a land is not a
+    # spell; CR 601.2e the payment must exist — an uncastable member
+    # never enters a legal-set designation, B2: the ask vocabulary is
+    # clamped too). TWO lanes keep the RAW population because their
+    # designation is POSITIONAL or EXPLICIT, not a set:
+    # * finite CHOOSE — the positional law (the gate's finite branch,
+    #   this docstring's "first ``count`` of the Handle-sorted
+    #   candidates", verbs.py:1421 "deterministic first-n stand-in")
+    #   slices RAW first, so the clamp runs over the HEAD only. A bad
+    #   head CANNOT EXECUTE: no cast, no pool spend, a ledger row —
+    #   NEVER a silent pay-down onto the next payable spell (the
+    #   round-2 pre-slice clamp committed exactly that re-pick; the
+    #   re-gate's p1_probe falsified it).
+    # * TARGET designations — an explicit binding is never dropped
+    #   silently (B1 comment contract): the legality-set clamp stays
+    #   (CR 603.3 mode), but every clamp-drop of a BOUND designation
+    #   registers a ledger row naming the card.
+    # Referent lanes stay fully OUT: "cast THAT card" keeps its per-card
+    # raise as the loud miscompile flag.
+    def cast_ok(h: Handle) -> bool:
+        return ok is None or ok(h)
+
+    pre_clamp = candidates
+    executor = ctx.executor  # branch-guarded non-None below; local narrows
+    positional = (
+        ok is not None
+        and executor is not None
+        and sel.referent is None
+        and sel.mode is SelectorMode.CHOOSE
+        and not isinstance(sel.count, QUnbounded)
+    )
+    if ok is not None and executor is not None and sel.referent is None:
+        if not positional:
+            candidates = [h for h in candidates if cast_ok(h)]
+        else:
+            head = sorted(pre_clamp)[: resolve(sel.count, ctx)]
+            bad = [h for h in head if not cast_ok(h)]
+            if bad:
+                # Refusal, not re-pick: the positional designee fails the
+                # cast gate, so the effect has no legal designation and
+                # casts NOTHING (the empty list keeps every downstream
+                # lane — _v_cast's loop, the pool — untouched). The loud
+                # ledger row is the honest flag (never a silent no-op
+                # faking the cast, and never the raise-trap the B2 law
+                # forbids); it mirrors _clamp_cast_target_slot's
+                # include_zero answer: an illegal designation IS the
+                # rules answer (CR 601.2e).
+                # Same package, lazy: the module import graph stays
+                # acyclic (query imports selectors inside its functions).
+                from MTG_bot.core.executor.query import (
+                    cast_refusal_note,
+                    register_cast_gap,
+                )
+
+                register_cast_gap(
+                    executor,
+                    ctx.source,
+                    "finite CAST head cannot execute: "
+                    + cast_refusal_note(executor, ctx.source, bad),
+                )
+                candidates = []
+            # Clean head: leave the RAW population to the mode fold
+            # below, which performs the positional slice itself (one
+            # resolve, the identical pre-F2 code path — the check above
+            # changed nothing except that an unlawful head can no longer
+            # slip through).
     if sel.mode is SelectorMode.ALL:
         return candidates  # zone order — designated order-preserving slot
     if sel.mode is SelectorMode.CHOOSE:
@@ -459,6 +558,15 @@ def resolve_selector(
             return ordered
         return ordered[: resolve(sel.count, ctx)]  # C17: ceiling vs availability
     if sel.mode is SelectorMode.RANDOM:
+        # F2(3) honest note (re-gate, /125): for the CAST lane the pool
+        # here is the CLAMPED population, so the draw is uniform over the
+        # cards the cast lane can actually run, NOT over the raw zone
+        # population. That is a DISTRIBUTION BIAS vs the unclamped RANDOM
+        # idiom (a "randomly cast" hand full of unpayable spells skews to
+        # the payable ones — the unpayable ones could never be cast
+        # anyway, so the raw draw only ever reached the raise-trap the
+        # B1/B2 laws retire; the offer gate already refuses such fires).
+        # Known, intended, documented — not silently different.
         count = resolve(sel.count, ctx)
         pool = sorted(candidates)
         rng = ctx.rng("RANDOM")
@@ -481,6 +589,28 @@ def resolve_selector(
                 "executor: TARGET selector has no designation "
                 "(pass bindings={'target': ...})"
             )
+        if ok is not None and executor is not None and sel.referent is None:
+            # F2(4) (re-gate, /125): a BOUND designation the CAST clamp
+            # removes is an explicit designation being refused — it must
+            # not leave silently (the round-2 comment promised a loud
+            # lane for explicit designations; the SILENCE was the bug,
+            # the legality-set drop itself stays CR 603.3-mode).
+            # Membership in the raw filtered zone population separates a
+            # clamp-drop (passes filter+zone, fails ``ok``) from the
+            # pre-existing zone/filter drops above (untouched behaviour).
+            from MTG_bot.core.executor.query import (
+                cast_refusal_note,
+                register_cast_gap,
+            )
+
+            dropped = [h for h in bound if h in pre_clamp and not cast_ok(h)]
+            if dropped:
+                register_cast_gap(
+                    executor,
+                    ctx.source,
+                    "CAST TARGET designation left the legal set: "
+                    + cast_refusal_note(executor, ctx.source, dropped),
+                )
         if sel.zone.kind is ZoneKind.PLAYER:
             # 16a: a CARD designation on a PLAYER-side designation means
             # its controller — players_for_ref's TARGET_PLAYER rule (the
@@ -764,6 +894,34 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
     ):
         return bound
     if isinstance(value, Selector):
+        if (
+            atom.verb is Verb.CAST
+            and role == "source"
+            and value.referent is None
+            and ctx.executor is not None
+        ):
+            # /125 gate rounds (B1 + F2 re-gate): THE single choke point
+            # where CAST atoms read populations. The execution-acceptance
+            # predicate (:func:`query.cast_designee_ok` — the offer gate's
+            # own law, so menu == acceptance) is threaded INTO selector
+            # resolution; the clamp shapes it applies there follow the
+            # three-law split documented on :func:`resolve_selector`
+            # (population menus clamp; the finite CHOOSE slice is checked
+            # HEAD-first, refusing loudly; TARGET-bound drops ledger).
+            # Explicit designations (the bound lane above, referent
+            # selectors) stay raw: a designated card the cast lane cannot
+            # run stays the LOUD per-card raise.
+            from MTG_bot.core.executor.query import cast_designee_ok
+
+            cost_override = atom.args.get("cost")
+            if not isinstance(cost_override, Cost):
+                cost_override = None  # printed cost, or a Ref the fold reads
+            executor = ctx.executor  # branch-guarded non-None; local narrows
+
+            def ok(handle: Handle) -> bool:
+                return cast_designee_ok(executor, ctx, handle, cost_override)
+
+            return sorted(resolve_selector(value, ctx, ok=ok))
         return sorted(resolve_selector(value, ctx))
     if bound is not None:
         return bound

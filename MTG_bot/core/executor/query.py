@@ -107,6 +107,7 @@ from MTG_bot.core.state import GameWorld
 
 if TYPE_CHECKING:  # pragma: no cover - import cycle guard only
     from MTG_bot.core.executor import Executor
+    from MTG_bot.core.executor.quantity import ExecCtx
 
 __all__ = [
     "ActivationOption",
@@ -114,6 +115,8 @@ __all__ = [
     "OptionChoice",
     "TargetSlot",
     "activation_target_slots",
+    "cast_carrier",
+    "cast_designee_ok",
     "choose_options",
     "legal_activations",
     "legal_casts",
@@ -607,32 +610,257 @@ def optional_offer(
     # designated population holds NOTHING the cast lane can run, CR 117.3
     # narrows the may-offer to skip — the same "no candidates, no action"
     # rule that gates the empty-hand discard above, read through the
-    # castability structure (does a SpellAbility carrier exist) rather than
-    # mana (a spell too expensive to pay is still ACTIONABLE, CR 117.3
-    # removes only impossible actions, and the PAY part is its own atom).
+    # castability structure (does a SpellAbility carrier exist) AND — the
+    # /125 asymmetry fix — MANA payability: the runtime cast lane raises
+    # LOUD at stack.cast_card when the designated card's total cost cannot
+    # be paid (seed 777003: Conspicuous Snoop's may-offer fired with a
+    # {3}{R} top-card over a {R:3} pool), so an offer whose designees are
+    # all unpayable is an impossible action (CR 117.3) and narrows to
+    # skip — one payment oracle, the SAME build_payment_plan the engine
+    # folds, never a second affordability arithmetic.
     for node in walk(effect.inner):
         if isinstance(node, Atom) and node.verb is Verb.CAST:
             sel = node.args.get("source")
             if sel is not None and getattr(sel, "referent", "") in ("event", "result"):
                 continue  # produced mid-effect (Snoop's "cast THAT card"):
                 # nothing enumerable pre-execution — NOT inactionability
-            if isinstance(sel, Selector):
-                from MTG_bot.core.executor.legality import spell_record
-
-                # A 12a role binding routes the CAST atom's source to the
-                # designated card (the waiver shape) — the gate reads the
-                # SAME population the runtime would cast, query/runtime
-                # identity; else the selector's zone.
-                cands = ctx.binding_handles("source")
-                if cands is None:
-                    cands = enumerate_candidates(sel, ctx)
-                if not any(
-                    (rec := spell_record(executor, c)) is not None
-                    and any(isinstance(a, SpellAbility) for a in rec.abilities)
-                    for c in cands
-                ):
-                    return MAY_VOCAB[1:]
+            if isinstance(sel, Selector) and not _cast_effect_actionable(
+                executor, node, sel, ctx
+            ):
+                return MAY_VOCAB[1:]
     return MAY_VOCAB
+
+
+def _cast_option_payable(
+    executor: Executor, ctx: ExecCtx, handle: Handle, cost_override: Cost | None
+) -> bool:
+    """Can the effect-CAST of ``handle`` be PAID right now — the exact fold
+    :func:`~MTG_bot.core.executor.stack.cast_card` performs at resolution:
+    the atom's ``cost`` role when present (an EMPTY Cost is the corpus
+    cost-waiver idiom, CR 498.2 "without paying its mana cost" — nothing
+    to fold, always payable; a real Cost REPLACES the printed cost), else
+    the card's printed cost. The fold runs with cast_card's own context
+    shape (source=the card, the effect cast's declared X default 0, CR
+    107.4) and the same ``mana_use`` restriction read. One source of
+    truth: this is literally the same :func:`build_payment_plan` call
+    stack.py:1093 makes — legality and execution can never disagree."""
+    from MTG_bot.core.executor.legality import spell_record
+
+    record = spell_record(executor, handle)
+    cost = (
+        cost_override
+        if cost_override is not None
+        else (record.mana_cost if record is not None else None)
+    )
+    if cost is None or not cost.parts:
+        return True  # waiver (CR 498.2) / costless: nothing to fold
+    plan, _why = build_payment_plan(
+        executor.world,
+        ctx_for(
+            executor,
+            source=handle,
+            controller=ctx.controller,
+            x_value=ctx.x_value if ctx.x_value is not None else 0,
+        ),
+        cost,
+        mana_use=handle,
+    )
+    return plan is not None
+
+
+def cast_carrier(executor: Executor, handle: Handle):
+    """The record of ``handle`` IF it is a SpellAbility carrier — the card
+    the CAST lane can RUN at all (a land, an unregistered card: CR 305's
+    play is a special action, never a cast). None = not a carrier."""
+    from MTG_bot.core.executor.legality import spell_record
+
+    rec = spell_record(executor, handle)
+    if rec is None or not any(isinstance(a, SpellAbility) for a in rec.abilities):
+        return None
+    return rec
+
+
+def cast_run_gap(executor: Executor, handle: Handle) -> bool:
+    """The /115 TYPED face-cast shape: a compiled record whose every
+    ability sits behind a ``BackFace`` (the front text never reached the
+    spell grammar — all 20 ZNR spell-front MDFCs). This is NOT a clamp
+    member: the designated card still OWNS the typed refusal, so the
+    clamp must preserve it — ``cast_card`` raises ``FaceCastAbsentError``
+    and the guarded resolution lane SKIPS and LEDGERS it (never silent,
+    never a fabricated face cast)."""
+    from MTG_bot.core.ability_tree import BackFace
+    from MTG_bot.core.executor.legality import spell_record
+
+    rec = spell_record(executor, handle)
+    if rec is None or any(isinstance(a, SpellAbility) for a in rec.abilities):
+        return False
+    return any(isinstance(a, BackFace) for a in rec.abilities)
+
+
+def cast_designee_ok(
+    executor: Executor,
+    ctx: ExecCtx,
+    handle: Handle,
+    cost_override: Cost | None = None,
+) -> bool:
+    """B1/B2 designee law (/125 gate round): the execution-acceptance
+    predicate for one CAST designee — carrier (a land is not a spell:
+    CAST designee sets RANGE OVER SPELLS) AND payable (CR 601.2e: the
+    payment fold the engine itself performs) — OR the /115 typed
+    face-cast gap, which the guard lane must still RUN into (its skip
+    is LOUD and LEDGERED, never a silent clamp-drop). THE single choke
+    point: the offer gate (here) AND the runtime designation read
+    (:func:`selectors.role_handles`, CAST branch → the three-shape clamp
+    of :func:`selectors.resolve_selector`: population menus clamp, the
+    finite CHOOSE head is CHECKED positionally, TARGET-bound drops
+    ledger) evaluate THIS predicate, so the model-visible menu and what
+    execution accepts are the same computation (§10 menu-visibility,
+    /114 one-oracle law)."""
+    if cast_run_gap(executor, handle):
+        return True  # the typed guard owns it: fires, raises, ledgers
+    return cast_carrier(executor, handle) is not None and _cast_option_payable(
+        executor, ctx, handle, cost_override
+    )
+
+
+def _register_cast_gap(executor: Executor, flag: str) -> None:
+    """B3 (/112 ledger pattern): a CAST-shape gap the gate had to work
+    around is REGISTERED — one-time, deduped, queryable on
+    ``executor.unresolved_effects`` — never silently silenced. The gate
+    keeps the honest skip; the compiler lane gets the ledger."""
+    counts = executor.unresolved_effect_counts
+    if flag in counts:
+        counts[flag] += 1
+    else:
+        counts[flag] = 1
+        executor.unresolved_effects.append(flag)
+
+
+def register_cast_gap(executor: Executor, host: Handle, note: str) -> None:
+    """Public B3 lane for RUNTIME-side cast refusals (F2, re-gate round 3
+    /125): composes the standard ``cast-gap <host>: <note>`` flag and
+    writes it into the deduped ledger, so the positional-head refusal and
+    the TARGET designation drop are QUERYABLE rows — never silent no-ops,
+    never raise-traps (:meth:`selectors.resolve_selector` is the caller)."""
+    from MTG_bot.core.executor.legality import spell_record
+
+    rec = spell_record(executor, host)
+    name = getattr(rec, "name", None) or str(host)
+    _register_cast_gap(executor, f"cast-gap {name}: {note}")
+
+
+def cast_refusal_note(executor: Executor, host: Handle, bad: Sequence[Handle]) -> str:
+    """Ledger text naming each refused CAST designee WITH its reason (F2,
+    /125), read through the same primitives the gate uses:
+    ``not a SpellAbility carrier`` (land / face-shape outside the cast
+    lane) vs ``cannot be paid for right now`` (a carrier whose payment
+    failed the host cost fold — ``ok`` is only False on a carrier when
+    payability fails, so no re-check is needed)."""
+    parts: list[str] = []
+    for h in bad:
+        card = executor.world.cards.get(h)
+        name = card.identity.name if card is not None else str(h)
+        why = (
+            "cannot be paid for right now"
+            if cast_carrier(executor, h) is not None
+            else "not a SpellAbility carrier"
+        )
+        parts.append(f"{name} ({why})")
+    return ", ".join(parts)
+
+
+def _cast_effect_actionable(
+    executor: Executor, node: Atom, sel: Selector, ctx: ExecCtx
+) -> bool:
+    """Is one CAST atom fireable — would the card(s) the DESIGNATION lane
+    actually feed ``_v_cast`` RUN (carrier) and be PAID (CR 601.2e)? B1
+    (gate round): the lanes cast WHOLE slices / populations, so the gate
+    prices the designation set with the same per-candidate law the
+    runtime applies (:func:`cast_designee_ok`), lane by lane:
+
+    * 12a SOURCE BINDINGS — an explicit designation casting ALL bound
+      cards (the waiver shape): every bound card must pass the law;
+      a non-carrier binding stays the runtime's LOUD raise (never a
+      silently dropped designation), so the branch fires only when the
+      WHOLE bound set is runnable-and-payable;
+    * CHOOSE (deterministic stand-in, :func:`resolve_selector`) — the
+      finite-count lane DESIGNATES POSITIONALLY (sorted[:count], "the
+      top card"): the slice itself must pass the law — an unpayable or
+      non-carrier member of the slice is an impossible fire (skip), and
+      NO re-picking of a later card (that would cast a card the text
+      never designated); QUnbounded is a POPULATION quantifier: the
+      offered set clamps to spell carriers and every one of them must
+      be payable (the runtime mirrors both halves).
+    * TARGET / ONE_OF — ONE designee the seat picks: the branch is
+      actionable iff at least one candidate passes (r18a: merely
+      undersupplied menus keep their branch), and the ASK VOCABULARY
+      is clamped to exactly the passing candidates (B2: the seat is
+      never offered an option execution would raise on).
+    """
+    from MTG_bot.core.executor.legality import enumerate_candidates, spell_record
+
+    cost_override = node.args.get("cost")
+    if not isinstance(cost_override, Cost):
+        cost_override = None  # no cost role, or a 12a Ref (resolved at runtime)
+
+    def ok(handle: Handle) -> bool:
+        return cast_designee_ok(executor, ctx, handle, cost_override)
+
+    bound = ctx.binding_handles("source")
+    if bound is not None:
+        return bool(bound) and all(ok(h) for h in bound)
+    cands = enumerate_candidates(sel, ctx)
+    carriers = [c for c in cands if cast_carrier(executor, c) is not None]
+    gaps = [c for c in cands if cast_run_gap(executor, c)]
+    host_rec = spell_record(executor, ctx.source)
+    host = getattr(host_rec, "name", None) or str(ctx.source)
+    if cands and not carriers:
+        # B3: the selector's filter admits ZERO runnable spell designees.
+        if gaps:
+            # the /115 face-cast-absent population (DFC front text never
+            # compiled): the typed guard owns the RUN lanes, but a may-
+            # offer that can only ever guard-skip is registered here so
+            # the may-lane gap is never silent either.
+            _register_cast_gap(
+                executor,
+                f"cast-gap {host}: CAST population face-cast-absent only "
+                f"({len(gaps)} BackFace-only cards) sel={sel!r}",
+            )
+            return False
+        # Radha: PLAY_LAND miscompiled to a CAST filtered TYPE_EQ Land.
+        # The skip is honest — a land is never a legal CAST designee —
+        # but the mis-shapen atom is the compiler lane's, so it registers.
+        _register_cast_gap(
+            executor,
+            f"cast-gap {host}: filter admits 0 spell designees "
+            f"(population={len(cands)}) sel={sel!r}",
+        )
+        return False
+    if sel.mode in (SelectorMode.TARGET, SelectorMode.ONE_OF):
+        return any(ok(c) for c in cands)  # ask vocab clamped at its surface
+    if isinstance(sel.count, QUnbounded):
+        # population quantifier: the offered set CLAMPS to spell designees
+        # (a land never joins a CAST population — the runtime applies the
+        # same clamp at role_handles, so lands stay put and the spells
+        # cast: play stays alive, no raise), and the WHOLE clamped set is
+        # cast, so every carrier must be payable — never any(). The /115
+        # run-gap members are NOT clamped (their typed guard stays in
+        # front of the payment fold), so they do not count as drops.
+        dropped = len(cands) - len(carriers) - len(gaps)
+        if dropped:
+            # compiler filter-omission ledger: the population quantifier
+            # ranges over spells, but the compiled filter admits non-spell
+            # members (Catalyst FAnd(()) hand, Heart of Fire unfiltered
+            # exile pop). The clamp keeps play safe; the atom shape is the
+            # compiler lane's.
+            _register_cast_gap(
+                executor,
+                f"cast-gap {host}: CAST population "
+                f"admits {dropped} non-spell designees sel={sel!r}",
+            )
+        return all(ok(c) for c in carriers)
+    designees = sorted(cands)[: resolve(sel.count, ctx)]  # mirror the stand-in
+    return all(ok(c) for c in designees)
 
 
 # ------------------------------------------------------------------ casting
@@ -887,6 +1115,9 @@ def spell_target_slots(
             widened = _widen_any_target(executor, value, slot)
             if widened is not None:
                 slot = widened
+            slot = _clamp_cast_target_slot(
+                executor, inner, _role, slot, spell_handle, seat
+            )
             slots.append(slot)
     if not slots and not reads_target_player:
         # 16e (CR 702.5a): an AURA spell carries no TARGET-mode selector
@@ -980,6 +1211,7 @@ def activation_target_slots(
             widened = _widen_any_target(executor, value, slot)
             if widened is not None:
                 slot = widened
+            slot = _clamp_cast_target_slot(executor, inner, _role, slot, source, seat)
             slots.append(slot)
     if reads_target_player:
         # Same synthesized opponent-seat slot as the spell lane (CR
@@ -1002,6 +1234,40 @@ def activation_target_slots(
             )
         )
     return slots
+
+
+def _clamp_cast_target_slot(
+    executor: Executor,
+    atom: object,
+    role: str,
+    slot: TargetSlot,
+    host: Handle,
+    seat: Handle,
+) -> TargetSlot:
+    """B2 (gate round — /10 menu-visibility, never a raise-trap): a TARGET
+    slot whose OWNER atom is a Verb.CAST and whose role is the cast's
+    ``source`` designation ranges over SPELLS the seat can actually pay
+    for RIGHT NOW (CR 601.2b designations must be legal at announcement,
+    CR 601.2e the payment must exist). A land or a cost-short card in the
+    menu is an option execution refuses — the vocabulary is clamped
+    through the SAME :func:`cast_designee_ok` the offer gate and the
+    runtime read use. The cardinality range stays the Selector's own: a
+    slot clamped to zero candidates makes the announcement illegal, which
+    IS the rules answer (CR 601.2b), not a silent option."""
+    if role != "source" or not isinstance(atom, Atom) or atom.verb is not Verb.CAST:
+        return slot
+    cost_override = atom.args.get("cost")
+    if not isinstance(cost_override, Cost):
+        cost_override = None
+    gate_ctx = ctx_for(executor, source=host, controller=seat)
+    keep = tuple(
+        c
+        for c in slot.candidates
+        if cast_designee_ok(executor, gate_ctx, c, cost_override)
+    )
+    if len(keep) == len(slot.candidates):
+        return slot
+    return replace(slot, candidates=keep, forced=len(keep) == 1)
 
 
 def _is_universal(filter_: object) -> bool:

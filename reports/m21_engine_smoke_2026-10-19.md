@@ -1,14 +1,14 @@
 # M21 engine smoke fuzz — 2026-10-19
 
-- games completed: **1000** / 1000 (workers=4, wall 184.4s, cap 45.0s/game)
-- turn cap 400, deck-pairs seed 201019
+- games completed: **300** / 300 (workers=4, wall 57.4s, cap 45.0s/game)
+- turn cap 150, deck-pairs seed 201019
 - crashed: **0** (crash rate **0.0%)
 - distinct signatures: **0**
-- exploration depth: median 71.0 acts, 34.0 turns per game
+- exploration depth: median 73.0 acts, 34.0 turns per game
 
 ## BackFace reach probe
 
-- verdict: **PASS** over 6 games (13713 intercepted walk calls, 0 correctly skipped)
+- verdict: **PASS** over 6 games (13922 intercepted walk calls, 0 correctly skipped)
 - walk violations (face subtree descended by an engine consumer): 0
 - registry hits (face object registered on executor/binder): 0
 - battlefield permanents legitimately CARRYING a BackFace node: 0
