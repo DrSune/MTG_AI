@@ -422,6 +422,35 @@ class TestMenaceAndMandate(BlockerCase):
         self.assertEqual(self.forced_block(solo), "NONE")
         self.assertEqual(self.world.players[self.p1].life, 16)
 
+    def test_seed1269_first_blocker_never_offered_an_unpairable_menace(self):
+        # the fuzz crash (ZNR seed 1269, RuntimeError@1721): the OLD ask
+        # gated the first menace word on remaining CANDIDATES
+        # (remaining_after >= 1), not on pair-LEGAL completions. Alpha
+        # got the Brute word because a second blocker existed — but that
+        # second blocker was the Shacklegeist, which "blocks only
+        # creatures with flying" and can NEVER pair behind the non-flying
+        # menace. The committed assignment stranded the Brute at one
+        # blocker and the final CR 702.113 invariant raised.
+        brute = self.real("Bone Pit Brute", self.p0)  # 4/5 menace
+        self.real("Baneslayer Angel", self.p0)  # 5/5 flying (blocks: flying only)
+        gamma = self.synth("Gamma", 1, 1, self.p0)  # plain third attacker
+        alpha = self.synth("Alpha", 2, 2, self.p1)  # blocks non-flying only
+        self.real("Shacklegeist", self.p1)  # blocks flying only
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self.ex.combat_step(self.p0)
+        # /115: the Brute word is GONE from Alpha's vocabulary — the tail
+        # has no creature that can legally pair behind it (Kuhn matching);
+        # the plain attacker and NONE remain and the ask still exists.
+        v = self.vocab_for(alpha)
+        self.assertNotIn(str(brute), v)
+        self.assertIn(str(gamma), v)
+        self.assertIn("NONE", v)
+        # with the default NONE answers nothing is blocked and NOTHING
+        # raises: 4 (brute) + 5 (angel) + 1 (gamma) into face.
+        self.assertEqual(self.blocked_map(), {})
+        self.assertEqual(self.world.players[self.p1].life, 20 - 4 - 5 - 1)
+
     def test_menace_repairs_to_two_blockers_and_the_order_decides(self):
         brute = self.real("Bone Pit Brute", self.p0)  # 4/5 menace
         first = self.synth("First", 2, 2, self.p1)

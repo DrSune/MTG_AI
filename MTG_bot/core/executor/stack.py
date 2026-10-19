@@ -53,6 +53,7 @@ from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
     Atom,
+    BackFace,
     Cost,
     SpellAbility,
     SpellKind,
@@ -994,6 +995,41 @@ def cast(
     return frame
 
 
+def _face_cast_msg(name: str) -> str:
+    return (
+        f"executor: CAST {name}: no SpellAbility on the card — the "
+        "compiled record carries only a BackFace (the front text never "
+        "reached the spell grammar)"
+    )
+
+
+class FaceCastAbsentError(ValueError):
+    """/115 (ZNR fuzz seed 1715): an effect-designated MDFC whose compiled
+    record has NO SpellAbility — every ability of it sits behind a
+    ``BackFace`` node (all 20 ZNR spell-front MDFCs compile this way: the
+    front text is unparsed at template level, so the cast producer like
+    Coveted Prize picks a card that cannot legally be cast). The refusal
+    is LOUD and TYPED (r24a law: dedicated type + byte-exact message, so
+    the live-game guard skips ONLY this site); a plain land/creature
+    designation keeps the original byte-identical ValueError. The card is
+    never silently cast as its BACK face — /106 owner-gates back-face
+    casting."""
+
+    def __init__(self, name: str) -> None:
+        super().__init__(_face_cast_msg(name))
+        self.face_name = name
+
+
+def face_cast_absent(exc: BaseException) -> bool:
+    """True iff ``exc`` IS cast_card's face-cast refusal — dedicated type
+    AND byte-exact message rebuilt from the stored name. Look-alikes
+    (the plain no-SpellAbility land ValueError, any other text) return
+    False and PROPAGATE."""
+    return isinstance(exc, FaceCastAbsentError) and str(exc) == _face_cast_msg(
+        exc.face_name
+    )
+
+
 def cast_card(
     executor: Executor,
     caster: Handle,
@@ -1037,6 +1073,12 @@ def cast_card(
         )
     node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None)
     if node is None:
+        if any(isinstance(a, BackFace) for a in record.abilities):
+            # /115 seed 1715: the designated card is a model DFC whose
+            # ONLY compiled abilities live on the far face — the front
+            # was never compiled into a SpellAbility. Refuse TYPED (the
+            # guard lane skips + ledgers it); never fabricate a face cast.
+            raise FaceCastAbsentError(record.name)
         raise ValueError(f"executor: CAST {record.name}: no SpellAbility on the card")
     _validate_spell_targets(executor, caster, handle, node, targets)
     # r20b: TARGETING feed — same 601.2c contract as cast(): declare, then

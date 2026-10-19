@@ -749,6 +749,7 @@ class Executor:
         lane the tests pin.
         """
         from MTG_bot.core.executor.selectors import referent_absent
+        from MTG_bot.core.executor.stack import face_cast_absent
 
         steps = effect.steps if isinstance(effect, Seq) else (effect,)
         saved_partition = ctx.search_partition
@@ -764,7 +765,7 @@ class Executor:
                 try:
                     self._run_effect(step, ctx)
                 except (NotImplementedError, ValueError) as exc:
-                    if not referent_absent(exc):
+                    if not (referent_absent(exc) or face_cast_absent(exc)):
                         raise
                     src = ctx.source
                     name = (
@@ -772,6 +773,8 @@ class Executor:
                         if src in self.world.cards
                         else "?"
                     )
+                    # /115: the ledger entry IS the trace (r24a pattern —
+                    # a guard skip journals nothing, it registers).
                     flag = f"{lane} {name}: {exc}"
                     if flag not in self.unresolved_effect_counts:
                         self.unresolved_effects.append(flag)
@@ -1624,12 +1627,19 @@ class Executor:
         blocker, reach/menace/protection and the PREVENT_EFFECT restrictions
         — Tome Anima "can't be blocked", Pirate "can't block", Shacklegeist
         "can block only creatures with flying", Subira's activated target)
-        plus the NONE option. The NONE word is DROPPED only when dropping
-        it keeps the assembled assignment CR-legal (a must-be-blocked
-        attacker this blocker may take — Canopy Stalker, CR 509.1h; or the
-        last unasked blocker in front of a menace attacker stuck at one
-        blocker, CR 702.113) — never when the answer would merely be
-        inadvisable (C15). Tapped/defender creatures are never asked; a
+        plus the NONE option. /115 (seed 1269): a word is offered ONLY
+        when committing it keeps the WHOLE assignment completable — a
+        bipartite match exists assigning the not-yet-asked candidates so
+        every menace attacker ends at 0 or 2+ blockers (CR 702.113) and
+        every must-be-blocked attacker ends blocked (CR 509.1h); NONE is
+        offered under exactly the same test. The old gate counted
+        remaining CANDIDATES instead of pair-LEGAL completions and so
+        offered a lone blocker the menace word no later blocker could
+        legally pair behind. A blocker with NO completable word is
+        skipped silently (no ask, no phantom); a must-block attacker it
+        can still legally take is salvaged instead. Never dropped when
+        the answer would merely be inadvisable (C15). Tapped/defender
+        creatures are never asked; a
         creature legal against nothing is never asked. Each committed pair
         emits one DECLARE_BLOCKERS row (subject = the blocker — the
         DeclareBlockersEvent feed: filter/subject read the blocker, blocked
@@ -1654,17 +1664,78 @@ class Executor:
             return 0
         mandated = mandated_to_be_blocked(self) & set(attackers)
         by_word = {str(a): a for a in attackers}
-        asked: set[Handle] = set()
-        for position, blocker in enumerate(candidates):
-            remaining_after = len(candidates) - position - 1
-            legal = [
+        # /115 (seed 1269): the pair matrix is precomputed once — asks
+        # mutate no state, so the legality picture is fixed for the step.
+        pair_ok: dict[Handle, set[Handle]] = {
+            blocker: {
                 attacker
                 for attacker in attackers
                 if block_pair_blocked_reason(self, blocker, attacker) is None
-                and (
-                    not self.layers.keyword_of(attacker, Keyword.MENACE)
-                    or len(assigned.get(attacker, ())) >= 1
-                    or remaining_after >= 1
+            }
+            for blocker in candidates
+        }
+        menace = {
+            attacker
+            for attacker in attackers
+            if self.layers.keyword_of(attacker, Keyword.MENACE)
+        }
+
+        def completable(
+            partial: dict[Handle, list[Handle]], tail: list[Handle]
+        ) -> bool:
+            """CR-legal completion exists: can every candidate still
+            uncommitted (this blocker's tail included) still be assigned
+            or held so that each menace attacker ends at 0 or 2+ blockers
+            and every mandated attacker ends blocked? Reduced to bipartite
+            matching (Kuhn): an unassigned mandated non-menace attacker
+            demands ONE slot, a mandated menace at 0 demands TWO, an
+            in-progress menace demands its SECOND; free slots absorb the
+            rest."""
+            need: dict[Handle, int] = {}
+            for attacker in attackers:
+                count = len(partial.get(attacker, ()))
+                if attacker in mandated and count == 0:
+                    need[attacker] = 2 if attacker in menace else 1
+                elif attacker in menace and count == 1:
+                    need[attacker] = 1
+            slots = [attacker for blocker in tail for attacker in pair_ok[blocker]]
+            for attacker, quota in need.items():
+                if slots.count(attacker) < quota:
+                    return False
+            match: dict[Handle, Handle] = {}  # attacker -> matched blocker
+            reach: set[Handle] = set()
+
+            def augment(attacker: Handle) -> bool:
+                for blocker in tail:
+                    if blocker in reach or attacker not in pair_ok[blocker]:
+                        continue
+                    reach.add(blocker)
+                    if blocker not in match:
+                        match[blocker] = attacker
+                        return True
+                    if augment(match[blocker]):
+                        match[blocker] = attacker
+                        return True
+                return False
+
+            for attacker, quota in need.items():
+                for _ in range(quota):
+                    reach.clear()
+                    if not augment(attacker):
+                        return False
+            return True
+
+        asked: set[Handle] = set()
+        skipped: set[Handle] = set()
+        for position, blocker in enumerate(candidates):
+            tail = candidates[position + 1 :]
+            legal = [
+                attacker
+                for attacker in attackers
+                if attacker in pair_ok[blocker]
+                and completable(
+                    {**assigned, attacker: [*assigned.get(attacker, []), blocker]},
+                    tail,
                 )
             ]
             forced = [
@@ -1676,25 +1747,29 @@ class Executor:
                 vocab = tuple(str(a) for a in forced)
             else:
                 words = [str(a) for a in legal]
-                repair = any(
-                    self.layers.keyword_of(attacker, Keyword.MENACE)
-                    and len(assigned.get(attacker, ())) == 1
-                    for attacker in attackers
-                )
-                if not (repair and remaining_after == 0):
+                if completable(assigned, tail):
                     words.append("NONE")
-                if not words:
-                    raise RuntimeError(
-                        f"executor: blocker ask for {blocker} narrowed to "
-                        "nothing - the menace/must-block narrowing left an "
-                        "unrepairable assignment (engine invariant)"
-                    )
                 vocab = tuple(words)
-            if not legal and "NONE" not in vocab:
-                raise RuntimeError(
-                    f"executor: blocker ask for {blocker} forces an illegal "
-                    f"pair {vocab} (engine invariant)"
-                )
+                if not words:
+                    # No word for this blocker: nothing it could do keeps
+                    # the assignment CR-completable. Salvage first — a
+                    # mandated attacker it can legally take, if any.
+                    salvage = [
+                        attacker
+                        for attacker in attackers
+                        if attacker in pair_ok[blocker]
+                        and attacker in mandated
+                        and not assigned.get(attacker)
+                        and attacker not in menace
+                    ]
+                    if salvage:
+                        vocab = tuple(str(a) for a in salvage)
+                    else:
+                        # Silent skip: no ask, no assignment, no journal
+                        # row. The blocker simply has no legal voice in
+                        # this step (seed 1269's lone blocker vs menace).
+                        skipped.add(blocker)
+                        continue
             asked.add(blocker)
             ctx = self._ctx(
                 source=blocker, controller=defender, bindings=None, decisions=()
@@ -1732,10 +1807,17 @@ class Executor:
                 for card in asked
                 if block_pair_blocked_reason(self, card, attacker) is None
             }
-            if assignable - {b for bs in assigned.values() for b in bs}:
+            free = assignable - {b for bs in assigned.values() for b in bs}
+            # /115 menace-aware: a mandated MENACE attacker is only
+            # "assignable" where TWO free blockers exist — one free
+            # blocker is not a violated mandate, it is CR 702.113 making
+            # the mandate unfulfillable (must-block reads "if able").
+            need = 2 if attacker in menace else 1
+            if len(free) >= need:
                 raise RuntimeError(
                     f"executor: MANDATE_BLOCK violated - {attacker} had to be "
-                    "blocked and an unassigned legal blocker existed"
+                    f"blocked and {len(free)} free legal blocker"
+                    f"s existed (need {need})"
                 )
         fired = 0
         for attacker in sorted(assigned):
