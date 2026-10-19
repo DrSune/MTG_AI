@@ -68,7 +68,7 @@ def _qatmost() -> at.QAtMost:
 def _sel_target_atmost() -> at.Selector:
     """R8-1/C17: "up to two target creatures" = TARGET + QAtMost — a
     legal designation of 1..2, resolved on 0..remaining."""
-    return at.Selector(at.QAtMost(2), at.SelectorMode.TARGET, _CREATURE, _BF_YOU)
+    return at.Selector(at.QAtMost(2), at.SelectorMode.TARGET, _CREATURE, zones=(_BF_YOU,))
 
 
 def _token_bare() -> at.TokenSpec:
@@ -126,7 +126,7 @@ def _deal_roles() -> at.Atom:
                 (
                     "target",
                     at.Selector(
-                        at.QConst(1), at.SelectorMode.TARGET, _CREATURE, _BF_YOU
+                        at.QConst(1), at.SelectorMode.TARGET, _CREATURE, zones=(_BF_YOU,)
                     ),
                 ),
                 ("amount", at.QConst(2)),
@@ -189,7 +189,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "sel_target_atmost",
         _sel_target_atmost,
-        "b45616123446f4c857daa80098fd73baae3bfcfa88cc34a6d64345de59e95559",
+        "c3a5ddafb372d3a1d453a5b982eefa6f5d867f8dc5c2e166789733808d119707",
     ),
     (
         "token_bare",
@@ -209,7 +209,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "deal_roles",
         _deal_roles,
-        "a9062a4f5626001f91a4ae57e29dfbb09dcc05abd62f865e2bc1e19ee45fd242",
+        "dae91ba7012ceb1313060772032366e281f67c565f838c63a0b82aa894c30335",
     ),
     (
         "fatom_exiled_with_source",
@@ -316,7 +316,7 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
                     (
                         "target",
                         at.Selector(
-                            at.QConst(1), at.SelectorMode.TARGET, _CREATURE, _BF_YOU
+                            at.QConst(1), at.SelectorMode.TARGET, _CREATURE, zones=(_BF_YOU,)
                         ),
                     ),
                     ("amount", at.QConst(2)),
@@ -340,7 +340,7 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
                     (
                         "target",
                         at.Selector(
-                            at.QConst(1), at.SelectorMode.TARGET, _UNIVERSAL, _NEUTRAL
+                            at.QConst(1), at.SelectorMode.TARGET, _UNIVERSAL, zones=(_NEUTRAL,)
                         ),
                     ),
                 )
@@ -422,9 +422,9 @@ def test_qatmost_roundtrip_and_selector() -> None:
     assert isinstance(sel.count, at.QAtMost)
     # QUnbounded is STILL rejected on TARGET-mode selectors (r3b rule).
     with pytest.raises(ValueError, match="needs a concrete count"):
-        at.Selector(at.QUnbounded(), at.SelectorMode.TARGET, _CREATURE, _BF_YOU)
+        at.Selector(at.QUnbounded(), at.SelectorMode.TARGET, _CREATURE, zones=(_BF_YOU,))
     # CHOOSE keeps the resolution-time up-to reading unchanged (C17).
-    choose = at.Selector(at.QConst(2), at.SelectorMode.CHOOSE, _CREATURE, _BF_YOU)
+    choose = at.Selector(at.QConst(2), at.SelectorMode.CHOOSE, _CREATURE, zones=(_BF_YOU,))
     assert at.to_dict(choose.count) == {"tag": "QConst", "value": 2}
 
 
@@ -475,7 +475,7 @@ def test_deal_damage_without_roles_still_builds() -> None:
                 (
                     "target",
                     at.Selector(
-                        at.QConst(1), at.SelectorMode.TARGET, _CREATURE, _BF_YOU
+                        at.QConst(1), at.SelectorMode.TARGET, _CREATURE, zones=(_BF_YOU,)
                     ),
                 ),
                 ("amount", at.QConst(3)),

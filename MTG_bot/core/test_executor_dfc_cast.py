@@ -96,7 +96,7 @@ class DFCCastCase(StackCase):
     def waiver(self, tag):
         """A PrizeClone: an instant whose whole effect is the corpus'
         cost-waiver CAST of the (single) exiled card."""
-        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, EXILE_YOU)
+        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(EXILE_YOU,))
         return self.give(
             f"PrizeClone{tag}",
             SpellKind.INSTANT,
@@ -195,7 +195,7 @@ class TestGuardedLane(DFCCastCase):
                                     QConst(1),
                                     SelectorMode.CHOOSE,
                                     UNIV,
-                                    EXILE_YOU,
+                                    zones=(EXILE_YOU,),
                                 ),
                             ),
                             ("cost", Cost(())),

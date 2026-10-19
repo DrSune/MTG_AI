@@ -96,7 +96,7 @@ def self_pump(**roles) -> Atom:
     selector), with any extra roles (the duration lane) bolted on."""
     return atom(
         Verb.MODIFY_PT,
-        target=Selector(QConst(1), SelectorMode.CHOOSE, IS_SELF, BF_ANY),
+        target=Selector(QConst(1), SelectorMode.CHOOSE, IS_SELF, zones=(BF_ANY,)),
         power=PtDelta(PtDirection.INCREASE, QConst(1)),
         **roles,
     )

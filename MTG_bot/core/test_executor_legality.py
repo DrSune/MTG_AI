@@ -144,7 +144,7 @@ class TestTapCost(LegalityCase):
         # A tap COST over a selection (Siege-Striker-shaped "tap any number"
         # stand-in, count 2): the candidate floor is CR 117.3 resource
         # arithmetic — tapped permanents never count.
-        sel = Selector(QConst(2), SelectorMode.CHOOSE, UNIV, BF_YOU)
+        sel = Selector(QConst(2), SelectorMode.CHOOSE, UNIV, zones=(BF_YOU,))
         self.attach([ability(cost(CostTap(target=sel)))])
         self.assertEqual(
             ability_playable(self.world, self.ex, self.alpha, 0, seat=self.p0),
@@ -286,7 +286,7 @@ class TestSelectorCosts(LegalityCase):
     def test_sacrifice_candidate_floor_and_canonical_pick(self):
         # "Sacrifice a creature" (CHOOSE 1 of your creatures): floor = 1
         # candidate; the canonical plan picks the FIRST sorted handle.
-        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, BF_YOU)
+        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(BF_YOU,))
         self.attach([ability(cost(CostSacrifice(sel)))])
         ctx = ctx_for(self.ex, source=self.alpha, controller=self.p0)
         plan, reason = build_payment_plan(self.world, ctx, cost(CostSacrifice(sel)))
@@ -301,7 +301,7 @@ class TestSelectorCosts(LegalityCase):
         self.assertIn("sacrifice:insufficient_candidates", reason)
 
     def test_discard_cost_needs_hand_cards(self):
-        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, HAND_YOU)
+        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(HAND_YOU,))
         cost_ir = cost(CostDiscard(sel))
         ctx = ctx_for(self.ex, source=self.alpha, controller=self.p0)
         plan, reason = build_payment_plan(self.world, ctx, cost_ir)
@@ -314,7 +314,7 @@ class TestSelectorCosts(LegalityCase):
         self.assertEqual((plan.discard, reason), ((hand,), None))
 
     def test_put_counter_cost(self):
-        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, BF_YOU)
+        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(BF_YOU,))
         cost_ir = cost(CostPutCounter(CounterKind.PAGE, sel, QConst(2)))
         ctx = ctx_for(self.ex, source=self.alpha, controller=self.p0)
         plan, reason = build_payment_plan(self.world, ctx, cost_ir)
@@ -414,7 +414,7 @@ class TestPayCosts(LegalityCase):
                 CostTap(),
                 CostManaColor("G", QConst(2)),
                 CostLife(QConst(3)),
-                CostDiscard(Selector(QConst(1), SelectorMode.CHOOSE, UNIV, HAND_YOU)),
+                CostDiscard(Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(HAND_YOU,))),
             ),
         )
         assert plan is not None
@@ -461,7 +461,7 @@ class TestActivateFold(LegalityCase):
         self.assertIn("source_tapped", str(caught.exception))
 
     def test_sac_cost_self_sacrifice_moves_the_permanent(self):
-        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, BF_YOU)
+        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(BF_YOU,))
         self.attach([ability(cost(CostTap(), CostSacrifice(sel)))])
         activate(self.ex, self.alpha, 0, seat=self.p0)
         self.assertEqual(self.world.zone_of(self.alpha).kind, ZONE_GRAVEYARD)

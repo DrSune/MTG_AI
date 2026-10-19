@@ -152,7 +152,7 @@ class TestActivationTargetPlayerSlots(R23ACase):
     def test_target_player_coordinate_synthesizes_the_opponent_slot(self):
         effect = atom(
             Verb.DISCARD,
-            cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, HAND_YOU),
+            cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(HAND_YOU,)),
             controller=ControllerRef.TARGET_PLAYER,
         )
         slots = activation_target_slots(self.ex, effect, source=self.urn, seat=self.p0)
@@ -179,7 +179,7 @@ class TestMayOfferCastGate(R23ACase):
         return OptionalEffect(
             inner=atom(
                 Verb.CAST,
-                source=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, LIB_YOU),
+                source=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(LIB_YOU,)),
             )
         )
 

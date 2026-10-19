@@ -229,7 +229,7 @@ def _tap_up_to_two() -> Atom:
                         QAtMost(2),
                         SelectorMode.TARGET,
                         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                     ),
                 ),
             )
@@ -296,7 +296,7 @@ def _destroy_cw_pw(mv_le: int | None) -> Atom:
                         QConst(1),
                         SelectorMode.TARGET,
                         FOr(children=(arm("Creature"), arm("Planeswalker"))),
-                        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                     ),
                 ),
             )

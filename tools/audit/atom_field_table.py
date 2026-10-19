@@ -72,8 +72,9 @@ CLASSIFY: dict[tuple[str, str], str] = {
     ("Selector", "zones"): "SET-R0",
     ("KeywordAbility", "params"): "OPERATOR",
     ("CostModifier", "extra_deltas"): "OPERATOR-AUDIT",
-    # NOTE: ('Selector', 'zone') is a SCALAR Zone field — NOT a container,
-    # hence absent here; R0 will delete it.
+    # NOTE: ('Selector', 'zone') was the pre-R0 SCALAR Zone field — never a
+    # container, never CLASSIFY-tracked; the R0 zone-fold deleted it, and
+    # ('Selector', 'zones') above is now the sole zone carrier (SET-R0).
 }
 
 

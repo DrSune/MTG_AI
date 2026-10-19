@@ -83,13 +83,19 @@ def _result_sel() -> at.Selector:
     """R7-1: the anaphoric "it/them" — a referent="result" selector
     (convention C2: CHOOSE + QConst(1) + the neutral zone)."""
     return at.Selector(
-        at.QConst(1), at.SelectorMode.CHOOSE, _UNIVERSAL, _NEUTRAL, referent="result"
+        at.QConst(1),
+        at.SelectorMode.CHOOSE,
+        _UNIVERSAL,
+        zones=(_NEUTRAL,),
+        referent="result",
     )
 
 
 def _pool_sel() -> at.Selector:
     """CHOOSE's pool role: "from it" = the opponent's library (Duress)."""
-    return at.Selector(at.QUnbounded(), at.SelectorMode.ALL, _UNIVERSAL, _LIB_OPP)
+    return at.Selector(
+        at.QUnbounded(), at.SelectorMode.ALL, _UNIVERSAL, zones=(_LIB_OPP,)
+    )
 
 
 def _target_sel() -> at.Selector:
@@ -98,7 +104,7 @@ def _target_sel() -> at.Selector:
         at.QConst(1),
         at.SelectorMode.TARGET,
         at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature"),
-        _BF_YOU,
+        zones=(_BF_YOU,),
     )
 
 
@@ -196,13 +202,15 @@ def _dur_until_leaves_result() -> at.DurationUntilLeaves:
 
 def _sel_one_of() -> at.Selector:
     """R7-7: "put one of them in your hand" (Waker of Waves)."""
-    return at.Selector(at.QConst(1), at.SelectorMode.ONE_OF, _UNIVERSAL, _BF_YOU)
+    return at.Selector(
+        at.QConst(1), at.SelectorMode.ONE_OF, _UNIVERSAL, zones=(_BF_YOU,)
+    )
 
 
 def _sel_rest() -> at.Selector:
     """R7-7: "put the rest on the bottom" (See the Truth) — count ignored
     like ALL."""
-    return at.Selector(at.QConst(1), at.SelectorMode.REST, _UNIVERSAL, _BF_YOU)
+    return at.Selector(at.QConst(1), at.SelectorMode.REST, _UNIVERSAL, zones=(_BF_YOU,))
 
 
 def _fatom_is_attached() -> at.FAtom:
@@ -259,7 +267,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "atom_choose",
         _atom_choose,
-        "e8e5f1a33805867d6bb955c000088a438e899aaf7caae4e6efa0d1447792253f",
+        "535dc2eb26a6e49f60595d5dd8b3150e5c79417a72f9ffdeef50177e65e63e97",
     ),
     (
         "atom_choose_name_bare",
@@ -274,17 +282,17 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "atom_fight",
         _atom_fight,
-        "3a227ef67167d13063b10cb3ee746197f693b90927deb5675e2241f9a16b4118",
+        "8a1ec6695dc167a9eab0311d7e3ea85a7adaf4741458eb5f02a0d7a6e5c182d5",
     ),
     (
         "atom_lose_ability",
         _atom_lose_ability,
-        "e7604dbc1fb49a1a59e2075dece0a82780568750ef7ee6edab6fae343392e195",
+        "bee5363275653d4c8a48d60451380cd6264262beed0abd1df028d8865a7307fd",
     ),
     (
         "atom_gain_control_duration",
         _atom_gain_control_duration,
-        "3e9a82d056210786cc92830b44626fd45a858c00aafce30709192426f3323b57",
+        "eaee1b9e50ba78b34eb51c0de4fde2552b1e8e8a1cf86d6e9cbbb46c9bba3c56",
     ),
     (
         "dur_until_leaves",
@@ -299,12 +307,12 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "sel_one_of",
         _sel_one_of,
-        "f579f21b8bf7648e0a897c2262c3c87e040a230544a3c874ea9773c3c20c9dfb",
+        "a5f71bcb2a39848039caa27f454cb304d8d6b86f6c2489c0d9900472850ec9dd",
     ),
     (
         "sel_rest",
         _sel_rest,
-        "8fd5be5191ffce82b90a3e283832d8481954a5ff51e61bb5221878d88baf63ef",
+        "43569a8a3da560eb70461ea605d0b14d5d4558591b87d3b3fb87233274a8b800",
     ),
     (
         "fatom_is_attached",
@@ -474,11 +482,15 @@ def test_result_referent_plain_string_byte_pins() -> None:
         "count": {"tag": "QConst", "value": 1},
         "mode": {"tag": "SelectorMode", "name": "CHOOSE"},
         "filter": {"tag": "FAnd", "children": []},
-        "zone": {
-            "tag": "Zone",
-            "kind": {"tag": "ZoneKind", "name": "ANY"},
-            "controller": {"tag": "ControllerRef", "name": "ANY"},
-        },
+        # R0 zone-fold: single required zones SET (C2 referent ⇒ the
+        # neutral Zone(ANY, ANY) alone). The scalar 'zone' key is deleted.
+        "zones": [
+            {
+                "tag": "Zone",
+                "kind": {"tag": "ZoneKind", "name": "ANY"},
+                "controller": {"tag": "ControllerRef", "name": "ANY"},
+            }
+        ],
         "referent": "result",
     }
     q = at.QProp(referent="result", field=at.QPropField.POWER)
@@ -496,11 +508,15 @@ def test_selector_mode_family_validation() -> None:
     """R7-7: ONE_OF belongs to the TARGET count family (concrete count
     required); REST to the ALL family (count ignored, separate test)."""
     with pytest.raises(ValueError):
-        at.Selector(at.QUnbounded(), at.SelectorMode.ONE_OF, _UNIVERSAL, _BF_YOU)
+        at.Selector(
+            at.QUnbounded(), at.SelectorMode.ONE_OF, _UNIVERSAL, zones=(_BF_YOU,)
+        )
 
 
 def test_rest_ignores_unbounded_count() -> None:
-    rest = at.Selector(at.QUnbounded(), at.SelectorMode.REST, _UNIVERSAL, _BF_YOU)
+    rest = at.Selector(
+        at.QUnbounded(), at.SelectorMode.REST, _UNIVERSAL, zones=(_BF_YOU,)
+    )
     assert rest.mode is at.SelectorMode.REST
 
 
@@ -756,7 +772,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
         (
             "one_of_unbounded",
             lambda: at.Selector(
-                at.QUnbounded(), at.SelectorMode.ONE_OF, _UNIVERSAL, _BF_YOU
+                at.QUnbounded(), at.SelectorMode.ONE_OF, _UNIVERSAL, zones=(_BF_YOU,)
             ),
         ),
         # R7-7: referent selectors keep convention C2 (mode CHOOSE only)
@@ -766,7 +782,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 at.QConst(1),
                 at.SelectorMode.REST,
                 _UNIVERSAL,
-                _NEUTRAL,
+                zones=(_NEUTRAL,),
                 referent="result",
             ),
         ),

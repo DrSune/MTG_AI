@@ -506,9 +506,9 @@ def enumerate_candidates(sel: Selector, ctx: ExecCtx) -> list[Handle]:
         else:
             candidates = resolve_selector(sel, ctx)  # raises cleanly (12b reg)
     else:
-        candidates = list(_zone_handles(ctx, sel.zone))
-        for extra in sel.zones:
-            candidates.extend(_zone_handles(ctx, extra))
+        candidates = []
+        for zone_spec in sel.zones:  # R0: the zones field IS the legal-zone set
+            candidates.extend(_zone_handles(ctx, zone_spec))
     handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))
     if sel.mode is SelectorMode.TARGET:
         # T4-P1c (CR 702.11b): the ONE hexproof chokepoint. Every target
@@ -947,7 +947,13 @@ def _ability_discards_its_source(ability: ActivatedAbility) -> bool:
     return any(
         isinstance(part, CostDiscard)
         and part.target is not None
-        and part.target.zone.kind is ZoneKind.HAND
+        # R0 zone-fold (/129 §2 L6): SINGLETON-HAND predicate on the zone
+        # set — the printed "Discard this card:" window opens for a cost
+        # that discards from the hand ALONE, never for a widened
+        # hand-or-graveyard cost shape (∃-HAND would widen the activation
+        # window silently — same law as the L3/L5 singleton guards).
+        and len(part.target.zones) == 1
+        and part.target.zones[0].kind is ZoneKind.HAND
         and _filter_is_self_referential(part.target.filter)
         for part in ability.cost.parts
     )
@@ -1304,7 +1310,7 @@ def _binding_atom(verb: Verb, role: str, handles: Sequence[Handle], **extra) -> 
         QConst(max(1, len(handles))),
         SelectorMode.TARGET,
         FAnd(()),
-        Zone(ZoneKind.ANY, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
     )
     return Atom(verb=verb, args=AtomArgs(pairs=tuple(pairs.items())))
 

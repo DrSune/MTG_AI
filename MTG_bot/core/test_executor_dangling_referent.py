@@ -99,7 +99,7 @@ CREATURE_F = FAtom(FAtomPred.TYPE_EQ, string_value="Creature")
 
 def referent_sel(referent: str, filter_: Filter = UNIV) -> Selector:
     return Selector(
-        QConst(1), SelectorMode.CHOOSE, filter_, ANY_ZONE, referent=referent
+        QConst(1), SelectorMode.CHOOSE, filter_, zones=(ANY_ZONE,), referent=referent
     )
 
 
@@ -261,7 +261,7 @@ class ProducerStillResolvesTest(StackCase):
                     atom(
                         Verb.TAP,
                         target=Selector(
-                            QConst(1), SelectorMode.CHOOSE, CREATURE_F, BF_YOU
+                            QConst(1), SelectorMode.CHOOSE, CREATURE_F, zones=(BF_YOU,)
                         ),
                     ),
                     atom(
@@ -379,7 +379,7 @@ class LookAlikePropagatesTest(StackCase):
             effect=atom(
                 Verb.MOVE_ZONE,
                 destination=Zone(ZoneKind.EXILE, ControllerRef.ANY),
-                cards=Selector(QConst(1), SelectorMode.CHOOSE, CREATURE_F, BF_YOU),
+                cards=Selector(QConst(1), SelectorMode.CHOOSE, CREATURE_F, zones=(BF_YOU,)),
             ),
         )
         self.world.add_card(card_id("Victim", "1", "1"), self.p0, ZONE_BATTLEFIELD)
@@ -411,7 +411,7 @@ class QPropRefusalStaysLoudTest(StackCase):
             SpellKind.INSTANT,
             effect=atom(
                 Verb.DEAL_DAMAGE,
-                target=Selector(QConst(1), SelectorMode.CHOOSE, CREATURE_F, BF_YOU),
+                target=Selector(QConst(1), SelectorMode.CHOOSE, CREATURE_F, zones=(BF_YOU,)),
                 amount=QProp(referent="target", field=QPropField.CMC),
             ),
         )
@@ -436,7 +436,7 @@ class SeqMidStepTest(StackCase):
             (
                 atom(
                     Verb.TAP,
-                    target=Selector(QConst(1), SelectorMode.CHOOSE, CREATURE_F, BF_YOU),
+                    target=Selector(QConst(1), SelectorMode.CHOOSE, CREATURE_F, zones=(BF_YOU,)),
                 ),
                 atom(
                     Verb.MOVE_ZONE,
@@ -445,7 +445,7 @@ class SeqMidStepTest(StackCase):
                 ),
                 atom(
                     Verb.DEAL_DAMAGE,
-                    target=Selector(QConst(1), SelectorMode.CHOOSE, CREATURE_F, BF_YOU),
+                    target=Selector(QConst(1), SelectorMode.CHOOSE, CREATURE_F, zones=(BF_YOU,)),
                     amount=QConst(1),
                 ),
             )
@@ -493,7 +493,7 @@ class SeqMidStepTest(StackCase):
                                     QConst(1),
                                     SelectorMode.CHOOSE,
                                     CREATURE_F,
-                                    BF_YOU,
+                                    zones=(BF_YOU,),
                                 ),
                                 amount=QConst(1),
                             ),

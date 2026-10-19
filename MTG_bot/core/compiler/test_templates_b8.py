@@ -420,7 +420,7 @@ class TestQPartyCountNode(unittest.TestCase):
         self.assertIsInstance(q, AT_QPartyCount)
         self.assertIsInstance(q, Quantity)
         self.assertEqual(q.selector.mode, SelectorMode.ALL)
-        self.assertEqual(q.selector.zone.kind, ZoneKind.BATTLEFIELD)
+        self.assertEqual(q.selector.zones[0].kind, ZoneKind.BATTLEFIELD)
 
     def test_selector_axis_is_the_pinned_population(self) -> None:
         """Spec /107 §3.1: TYPE_EQ Creature ∧ CONTROLLER_IS YOU ∧
@@ -444,7 +444,7 @@ class TestQPartyCountNode(unittest.TestCase):
         self.assertEqual(len(atoms), 2)
         self.assertEqual(atoms[FAtomPred.TYPE_EQ].string_value, "Creature")
         self.assertEqual(atoms[FAtomPred.CONTROLLER_IS].who, ControllerRef.YOU)
-        self.assertEqual(_party_count().selector.zone.kind, ZoneKind.BATTLEFIELD)
+        self.assertEqual(_party_count().selector.zones[0].kind, ZoneKind.BATTLEFIELD)
 
 
 class TestPartyCensusEdgeLaws(PartyCase):

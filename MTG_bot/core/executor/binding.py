@@ -756,7 +756,7 @@ class TriggerBinder:
             count=QConst(1),
             mode=SelectorMode.CHOOSE,
             filter=FAtom(pred=FAtomPred.IS_SOURCE),
-            zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
         )
         if family == "PROWESS":
             node = TriggeredAbility(

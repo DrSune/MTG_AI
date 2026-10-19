@@ -166,7 +166,7 @@ def _any_target() -> Selector:
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Player"),
             )
         ),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
     )
 
 
@@ -314,7 +314,7 @@ def _build_counter_unless_cw_pw(m: re.Match[str]) -> SentenceOutcome:
                             QConst(1),
                             SelectorMode.TARGET,
                             filter_,
-                            Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),
+                            zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
                         ),
                     ),
                     (

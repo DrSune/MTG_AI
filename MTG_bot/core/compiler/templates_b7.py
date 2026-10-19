@@ -152,7 +152,7 @@ def _loyalty_self_selector(name: str) -> Selector:
                 FAtom(pred=FAtomPred.NAME_CONTAINS, string_value=name),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -199,7 +199,7 @@ def _build_equip_etb(m: re.Match[str]) -> SentenceOutcome:
                         QConst(1),
                         SelectorMode.CHOOSE,
                         FAtom(pred=FAtomPred.IS_SOURCE),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
                     ),
                 ),
                 (
@@ -219,7 +219,7 @@ def _build_equip_etb(m: re.Match[str]) -> SentenceOutcome:
                                 ),
                             )
                         ),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
                     ),
                 ),
             )

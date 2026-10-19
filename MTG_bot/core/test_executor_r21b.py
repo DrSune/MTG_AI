@@ -349,7 +349,7 @@ class GraveyardSweepTest(BindingCase):
                 QConst(9),
                 mode,
                 FAnd(()),
-                Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER),
+                zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER),),
             ),
         )
 

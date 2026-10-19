@@ -197,7 +197,7 @@ class TestC3CompilerPins(unittest.TestCase):
         self.assertIs(flt.pred, FAtomPred.TYPE_EQ)
         self.assertEqual(flt.string_value, "Creature")
         self.assertEqual(
-            cards.zone,
+            cards.zones[0],
             Zone(
                 kind=ZoneKind.LIBRARY,
                 controller=ControllerRef.TARGET_PLAYER,

@@ -75,7 +75,7 @@ def test_mill_shape_is_slots_on_the_one_move_operation() -> None:
             QConst(1),
             SelectorMode.TARGET,
             UNIV,
-            Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
         ),
     )
     assert exile.args.get("journal_kind") is None
@@ -106,7 +106,7 @@ def test_legacy_move_shapes_still_construct() -> None:
                         QConst(1),
                         SelectorMode.CHOOSE,
                         UNIV,
-                        Zone(ZoneKind.HAND, ControllerRef.YOU),
+                        zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
                     ),
                 ),
             )

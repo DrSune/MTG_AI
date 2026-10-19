@@ -136,7 +136,7 @@ def _self_selector() -> Selector:
         QConst(1),
         SelectorMode.CHOOSE,
         FAtom(pred=FAtomPred.IS_SOURCE),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
     )
 
 
@@ -151,7 +151,7 @@ def _creatures_you_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
     )
 
 
@@ -166,7 +166,7 @@ def _creatures_opponents_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
             )
         ),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
     )
 
 
@@ -192,7 +192,7 @@ def _creatures_died_this_turn(
         QUnbounded(),
         SelectorMode.ALL,
         FAnd(children=tuple(children)),
-        Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY),),
     )
 
 
@@ -218,7 +218,7 @@ def _shrine_count() -> QCount:
                     FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
                 )
             ),
-            Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
         )
     )
 
@@ -251,7 +251,7 @@ def _any_target() -> Selector:
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Player"),
             )
         ),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
     )
 
 
@@ -261,7 +261,7 @@ def _target_creature() -> Selector:
         QConst(1),
         SelectorMode.TARGET,
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
     )
 
 
@@ -271,7 +271,7 @@ def _opponent_players() -> Selector:
         QUnbounded(),
         SelectorMode.ALL,
         FAnd(children=()),
-        Zone(ZoneKind.PLAYER, ControllerRef.OPPONENT),
+        zones=(Zone(ZoneKind.PLAYER, ControllerRef.OPPONENT),),
     )
 
 
@@ -527,7 +527,7 @@ def _build_liliana_waker(m: re.Match[str]) -> SentenceOutcome:
                             QConst(1),
                             SelectorMode.TARGET,
                             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                            Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY),
+                            zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY),),
                         ),
                     ),
                     (
@@ -591,7 +591,7 @@ def _build_dire_fleet_warmonger(m: re.Match[str]) -> SentenceOutcome:
                                         FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
                                     )
                                 ),
-                                Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                                zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                             ),
                         ),
                     )
@@ -682,7 +682,7 @@ def _build_garruk_emblem(m: re.Match[str]) -> SentenceOutcome:
                                             pred=FAtomPred.TYPE_EQ,
                                             string_value="Creature",
                                         ),
-                                        Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+                                        zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),),
                                     ),
                                 ),
                                 (
@@ -811,7 +811,7 @@ def _build_barrin_etb(m: re.Match[str]) -> SentenceOutcome:
                                     FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
                                 )
                             ),
-                            Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                         ),
                     ),
                     ("destination", Zone(ZoneKind.HAND, ControllerRef.ANY)),
@@ -847,7 +847,7 @@ def _build_niambi_etb(m: re.Match[str]) -> SentenceOutcome:
                                         FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
                                     )
                                 ),
-                                Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                                zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                             ),
                         ),
                         ("destination", Zone(ZoneKind.HAND, ControllerRef.ANY)),
@@ -946,7 +946,7 @@ def _build_rousing_read(m: re.Match[str]) -> SentenceOutcome:
                                     QConst(1),
                                     SelectorMode.CHOOSE,
                                     FAnd(children=()),
-                                    Zone(ZoneKind.HAND, ControllerRef.YOU),
+                                    zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
                                 ),
                             ),
                         )
@@ -978,7 +978,7 @@ def _build_capture_sphere(m: re.Match[str]) -> SentenceOutcome:
                                     FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),
                                 )
                             ),
-                            Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                         ),
                     ),
                 )
@@ -1225,7 +1225,7 @@ def _build_rambunctious_mutt(m: re.Match[str]) -> SentenceOutcome:
                                     ),
                                 )
                             ),
-                            Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                         ),
                     ),
                 )
@@ -1350,7 +1350,7 @@ def _build_basris_acolyte(m: re.Match[str]) -> SentenceOutcome:
                                     FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
                                 )
                             ),
-                            Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                         ),
                     ),
                     ("counter_kind", CounterKind.PLUS_1_PLUS_1),
@@ -1391,7 +1391,7 @@ def _build_basris_lieutenant(m: re.Match[str]) -> SentenceOutcome:
                                     ),
                                 )
                             ),
-                            Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                         ),
                     ),
                     ("counter_kind", CounterKind.PLUS_1_PLUS_1),
@@ -1426,7 +1426,7 @@ def _build_shipwreck_dowser(m: re.Match[str]) -> SentenceOutcome:
                                     ),
                                 )
                             ),
-                            Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                            zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),),
                         ),
                     ),
                     ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
@@ -1464,7 +1464,7 @@ def _build_roaming_ghostlight(m: re.Match[str]) -> SentenceOutcome:
                                     ),
                                 )
                             ),
-                            Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                         ),
                     ),
                     ("destination", Zone(ZoneKind.HAND, ControllerRef.ANY)),
@@ -1557,7 +1557,7 @@ def _build_aven_gagglemaster(m: re.Match[str]) -> SentenceOutcome:
                 FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
             )
         ),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
     )
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
@@ -1608,7 +1608,7 @@ def _build_crypt_lurker(m: re.Match[str]) -> SentenceOutcome:
                                                 ),
                                             )
                                         ),
-                                        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                                        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                                     ),
                                 ),
                             )
@@ -1633,7 +1633,7 @@ def _build_crypt_lurker(m: re.Match[str]) -> SentenceOutcome:
                                             pred=FAtomPred.TYPE_EQ,
                                             string_value="Creature",
                                         ),
-                                        Zone(ZoneKind.HAND, ControllerRef.YOU),
+                                        zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
                                     ),
                                 ),
                             )
@@ -1739,11 +1739,11 @@ def _build_furious_rise(m: re.Match[str]) -> SentenceOutcome:
                             QConst(1),
                             SelectorMode.CHOOSE,
                             FAnd(children=()),
-                            Zone(
+                            zones=(Zone(
                                 ZoneKind.LIBRARY,
                                 ControllerRef.YOU,
                                 ZonePosition.TOP,
-                            ),
+                            ),),
                         ),
                     ),
                 )
@@ -1773,8 +1773,7 @@ def _build_sanctum_of_all(m: re.Match[str]) -> SentenceOutcome:
                                 QConst(1),
                                 SelectorMode.CHOOSE,
                                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Shrine"),
-                                Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
-                                zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),),
+                                zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU), *(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),)),
                             ),
                         ),
                         (
@@ -1818,7 +1817,7 @@ def _build_goremand(m: re.Match[str]) -> SentenceOutcome:
                                         ),
                                     )
                                 ),
-                                Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                                zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                             ),
                         ),
                     )
@@ -1930,7 +1929,7 @@ def _build_silversmote_ghoul(m: re.Match[str]) -> SentenceOutcome:
                             QConst(1),
                             SelectorMode.CHOOSE,
                             FAtom(pred=FAtomPred.IS_SOURCE),
-                            Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                            zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),),
                         ),
                     ),
                     ("destination", Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)),
@@ -2004,7 +2003,7 @@ def _build_lilianas_scrounger(m: re.Match[str]) -> SentenceOutcome:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
     )
     return _ability(
         TurnPhaseEvent(phase=Phase.END_TURN),
@@ -2082,7 +2081,7 @@ def _build_kinetic_augur_etb(m: re.Match[str]) -> SentenceOutcome:
                         QConst(2),
                         SelectorMode.CHOOSE,
                         FAnd(children=()),
-                        Zone(ZoneKind.HAND, ControllerRef.YOU),
+                        zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
                     ),
                 ),
             )
@@ -2131,7 +2130,7 @@ def _build_idol_of_endurance_etb(m: re.Match[str]) -> SentenceOutcome:
                                 ),
                             )
                         ),
-                        Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                        zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),),
                     ),
                 ),
             )

@@ -205,7 +205,7 @@ class TestTriggerMatching(P1aMatchingCase):
         consumer = atom(
             Verb.TAP,
             target=Selector(
-                QConst(1), SelectorMode.CHOOSE, UNIV, ANY_ANY, referent="result"
+                QConst(1), SelectorMode.CHOOSE, UNIV, zones=(ANY_ANY,), referent="result"
             ),
         )
         self.ex.apply_effect(
@@ -214,7 +214,7 @@ class TestTriggerMatching(P1aMatchingCase):
                     atom(
                         Verb.MOVE_ZONE,
                         controller=ControllerRef.YOU,
-                        cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, HAND_YOU),
+                        cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(HAND_YOU,)),
                         **{"destination": GY_YOU, "from": HAND_YOU},
                     ),
                     consumer,
@@ -249,7 +249,7 @@ class TestTriggerMatching(P1aMatchingCase):
         self.ex.execute(
             atom(
                 Verb.MOVE_ZONE,
-                target=Selector(QConst(1), SelectorMode.TARGET, UNIV, BF_ANY),
+                target=Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(BF_ANY,)),
                 destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
             ),
             source=self.watch,

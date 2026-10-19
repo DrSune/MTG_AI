@@ -125,7 +125,7 @@ ANOTHER_CREATURE = FAnd((FNot(IS_SOURCE), CREATURE))
 
 def referent_sel(referent: str, filter_: Filter = UNIV) -> Selector:
     """The C2 convention referent selector (bound object, never a search)."""
-    return Selector(QConst(1), SelectorMode.CHOOSE, filter_, ANY_ANY, referent=referent)
+    return Selector(QConst(1), SelectorMode.CHOOSE, filter_, zones=(ANY_ANY,), referent=referent)
 
 
 def named_sel(name: str) -> Selector:
@@ -134,12 +134,12 @@ def named_sel(name: str) -> Selector:
         QConst(1),
         SelectorMode.CHOOSE,
         FAtom(FAtomPred.NAME_EQ, string_value=name),
-        BF_ANY,
+        zones=(BF_ANY,),
     )
 
 
 def all_bf() -> Selector:
-    return Selector(QConst(1), SelectorMode.ALL, UNIV, BF_ANY)
+    return Selector(QConst(1), SelectorMode.ALL, UNIV, zones=(BF_ANY,))
 
 
 def enter(dest: Zone) -> Atom:
@@ -148,7 +148,7 @@ def enter(dest: Zone) -> Atom:
     convention; the selector is never resolved when a binding exists)."""
     return atom(
         Verb.MOVE_ZONE,
-        cards=Selector(QConst(9), SelectorMode.ALL, UNIV, ANY_ANY),
+        cards=Selector(QConst(9), SelectorMode.ALL, UNIV, zones=(ANY_ANY,)),
         destination=dest,
     )
 
@@ -205,7 +205,7 @@ def mill_one() -> Atom:
 def draw_one() -> Atom:
     return atom(
         Verb.MOVE_ZONE,
-        cards=Selector(QConst(1), SelectorMode.ALL, UNIV, LIB_YOU),
+        cards=Selector(QConst(1), SelectorMode.ALL, UNIV, zones=(LIB_YOU,)),
         destination=HAND_YOU,
     )
 

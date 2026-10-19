@@ -46,7 +46,7 @@ def _tap(subtype: str) -> at.Atom:
         at.QConst(1),
         at.SelectorMode.TARGET,
         _fa(subtype),
-        at.Zone(kind=at.ZoneKind.BATTLEFIELD, controller=at.ControllerRef.YOU),
+        zones=(at.Zone(kind=at.ZoneKind.BATTLEFIELD, controller=at.ControllerRef.YOU),),
     )
     return at.Atom(verb=at.Verb.TAP, args=at.AtomArgs(pairs=(("target", target),)))
 
@@ -56,7 +56,7 @@ def _untap(subtype: str) -> at.Atom:
         at.QConst(1),
         at.SelectorMode.TARGET,
         _fa(subtype),
-        at.Zone(kind=at.ZoneKind.BATTLEFIELD, controller=at.ControllerRef.YOU),
+        zones=(at.Zone(kind=at.ZoneKind.BATTLEFIELD, controller=at.ControllerRef.YOU),),
     )
     return at.Atom(verb=at.Verb.UNTAP, args=at.AtomArgs(pairs=(("target", target),)))
 

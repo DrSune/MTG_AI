@@ -104,7 +104,7 @@ def _lofty_selector() -> at.Selector:
         at.QConst(1),
         at.SelectorMode.CHOOSE,
         _UNIVERSAL,
-        _NEUTRAL,
+        zones=(_NEUTRAL,),
         referent="target",
     )
 
@@ -181,7 +181,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "lofty_selector",
         _lofty_selector,
-        "3d782a84ed9ca88a3627e5b7ac8cb94545df9433b98346ece6f509bbfe319973",
+        "0a15788038321385d5fd2b9afd871544fb6971c67fe797054135c758c3fe96f6",
     ),
     (
         "lofty_cm",
@@ -192,7 +192,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
         # equal (8 leaves), so this is byte-order, not content (old value
         # e791b88db55731cebe3acd11981ef150332fb89aa1b0a59be269facc019914ee).
         # Reuses this list: test_ability_tree_r7..r11 re-pin with it.
-        "2ef580a284db9fbee7407cf943f8929d182d6941957d1517935d2898ddba3aba",
+        "b7639782a262d52df2154dc40c6717214ce724bb912136f4ffdd387c33d872cd",
     ),
     (
         "cm_plain_ref",
@@ -299,7 +299,7 @@ def test_fatom_was_cast_this_turn_rules() -> None:
         at.QConst(1),
         at.SelectorMode.CHOOSE,
         _UNIVERSAL,
-        _NEUTRAL,
+        zones=(_NEUTRAL,),
         referent="controller",
     )
     with_sel = at.FAtom(at.FAtomPred.WAS_CAST_THIS_TURN, who=sel)
@@ -418,7 +418,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                     at.QConst(1),
                     at.SelectorMode.CHOOSE,
                     _UNIVERSAL,
-                    _NEUTRAL,
+                    zones=(_NEUTRAL,),
                     referent="event",
                 ),
                 field=at.QPropField.COUNTER_COUNT,

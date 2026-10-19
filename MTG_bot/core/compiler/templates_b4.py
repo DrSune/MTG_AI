@@ -144,7 +144,7 @@ def _self_selector() -> Selector:
         QConst(1),
         SelectorMode.CHOOSE,
         FAtom(pred=FAtomPred.IS_SOURCE),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -159,7 +159,7 @@ def _enchanted_creature() -> Selector:
                 FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -174,7 +174,7 @@ def _creatures_you_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -189,7 +189,7 @@ def _creatures_opponents_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -204,7 +204,7 @@ def _other_creatures() -> Selector:
                 FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -221,7 +221,7 @@ def _other_creatures_you_control(subtype: str) -> Selector:
                 FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -231,7 +231,7 @@ def _graveyard_creature_cards() -> Selector:
         QUnbounded(),
         SelectorMode.ALL,
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-        Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
+        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),
     )
 
 
@@ -247,7 +247,7 @@ def _cats_you_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -257,7 +257,7 @@ def _discard_two_from_hand() -> Selector:
         QConst(2),
         SelectorMode.CHOOSE,
         FAnd(children=()),
-        Zone(kind=ZoneKind.HAND, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.ANY),),
     )
 
 
@@ -713,11 +713,11 @@ def _build_cast_goblin_top_library(m: re.Match[str]) -> SentenceOutcome:
                 FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Goblin"),
             )
         ),
-        Zone(
+        zones=(Zone(
             kind=ZoneKind.LIBRARY,
             controller=ControllerRef.YOU,
             position=ZonePosition.TOP,
-        ),
+        ),),
     )
     atom = Atom(
         verb=Verb.CAST,
@@ -742,7 +742,7 @@ def _build_cast_graveyard_recost(m: re.Match[str]) -> SentenceOutcome:
                     QConst(1),
                     SelectorMode.CHOOSE,
                     FAnd(children=()),
-                    Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),
+                    zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),
                 )
             ),
         )
@@ -751,7 +751,7 @@ def _build_cast_graveyard_recost(m: re.Match[str]) -> SentenceOutcome:
         QConst(1),
         SelectorMode.CHOOSE,
         FAtom(pred=FAtomPred.IS_SOURCE),
-        Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
+        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),
     )
     atom = Atom(
         verb=Verb.CAST,
@@ -783,8 +783,7 @@ def _build_search_named_card(card_name: str) -> SentenceOutcome:
         QConst(1),
         SelectorMode.CHOOSE,
         FAtom(pred=FAtomPred.NAME_EQ, string_value=card_name),
-        Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),
-        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),
+        zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU), *(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),)),
     )
     search_atom = Atom(
         verb=Verb.SEARCH,
@@ -814,11 +813,11 @@ def _build_search_named_card(card_name: str) -> SentenceOutcome:
                         QConst(1),
                         SelectorMode.CHOOSE,
                         FAtom(pred=FAtomPred.IS_SOURCE),
-                        Zone(
+                        zones=(Zone(
                             kind=ZoneKind.LIBRARY,
                             controller=ControllerRef.YOU,
                             position=ZonePosition.TOP,
-                        ),
+                        ),),
                     ),
                 ),
                 ("destination", Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)),
@@ -933,7 +932,7 @@ def _build_enters_with_x_counters(m: re.Match[str]) -> SentenceOutcome:
                         QConst(1),
                         SelectorMode.CHOOSE,
                         FAnd(children=()),
-                        Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),
                         referent="event",
                     ),
                 ),
@@ -966,7 +965,7 @@ def _you_player() -> Selector:
         QConst(1),
         SelectorMode.CHOOSE,
         FAnd(children=()),
-        Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.YOU),
+        zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.YOU),),
     )
 
 
@@ -983,7 +982,7 @@ def _noncreature_nonland_pool() -> Selector:
                 FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land")),
             )
         ),
-        Zone(kind=ZoneKind.HAND, controller=ControllerRef.TARGET_PLAYER),
+        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.TARGET_PLAYER),),
     )
 
 
@@ -1094,7 +1093,7 @@ def _build_reveal_one_from_among(m: re.Match[str]) -> SentenceOutcome:
             pairs=(
                 (
                     "cards",
-                    Selector(QConst(1), SelectorMode.ONE_OF, pick_filter, pool),
+                    Selector(QConst(1), SelectorMode.ONE_OF, pick_filter, zones=(pool,)),
                 ),
                 ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
             )
@@ -1123,7 +1122,7 @@ def _result_register_selector(count: Quantity) -> Selector:
         count,
         SelectorMode.CHOOSE,
         FAnd(children=()),
-        Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),
         referent="result",
     )
 
@@ -1170,7 +1169,7 @@ def _build_cast_them_this_turn(m: re.Match[str]) -> SentenceOutcome:
                         QUnbounded(),
                         SelectorMode.CHOOSE,
                         FAtom(pred=FAtomPred.IS_EXILED_WITH_SOURCE),
-                        Zone(kind=ZoneKind.EXILE, controller=ControllerRef.YOU),
+                        zones=(Zone(kind=ZoneKind.EXILE, controller=ControllerRef.YOU),),
                     ),
                 ),
                 ("cost", Cost(parts=())),
@@ -1222,11 +1221,11 @@ def _build_look_and_play_top_of_library(m: re.Match[str]) -> SentenceOutcome:
                             QConst(1),
                             SelectorMode.CHOOSE,
                             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land"),
-                            Zone(
+                            zones=(Zone(
                                 kind=ZoneKind.LIBRARY,
                                 controller=ControllerRef.YOU,
                                 position=ZonePosition.TOP,
-                            ),
+                            ),),
                         ),
                     ),
                 )

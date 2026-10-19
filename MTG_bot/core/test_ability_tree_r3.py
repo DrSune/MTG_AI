@@ -38,8 +38,8 @@ _CARD = at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Card")
 _CREATURE = at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature")
 _BF_YOU = at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU)
 _HAND_YOU = at.Zone(at.ZoneKind.HAND, at.ControllerRef.YOU)
-_CREATURE_BF = at.Selector(at.QConst(1), at.SelectorMode.TARGET, _CREATURE, _BF_YOU)
-_CARD_HAND = at.Selector(at.QConst(1), at.SelectorMode.CHOOSE, _CARD, _HAND_YOU)
+_CREATURE_BF = at.Selector(at.QConst(1), at.SelectorMode.TARGET, _CREATURE, zones=(_BF_YOU,))
+_CARD_HAND = at.Selector(at.QConst(1), at.SelectorMode.CHOOSE, _CARD, zones=(_HAND_YOU,))
 
 
 def _spell_effectless_sacrifice() -> at.SpellAbility:
@@ -85,12 +85,12 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
     (
         "spell_sacrifice_cost",
         T2._spell_additional_sacrifice,
-        "c41e8d568c43c3d202294180e53778cf4a2c1b40a4af5b833229df09c8c41467",
+        "db2ea464ce21b9130c49b1a5d951b3a6603d26776e68d2ac1a7abfca241edd6f",
     ),
     (
         "spell_discard_life_costs",
         T2._spell_additional_discard_life,
-        "59fb3edab4318e2dfd21018f41fd0212da75c1de8b80f31a50519379ae13962e",
+        "93dc3f1d9c8261245ee01a3ae2d050540faecd15ef31d87ae3036e0e1a373892",
     ),
 ]
 
@@ -99,12 +99,12 @@ _NEW_PINS: list[tuple[str, Callable[[], at.SpellAbility], str]] = [
     (
         "spell_effectless_sacrifice",
         _spell_effectless_sacrifice,
-        "29429f3da989de31a9cf1a32e7a7b8ed2dd5b9681ff8ee5ce336a633f025ef27",
+        "03fcfd65c7965d2f460fd2004ed79545d7ede188f5b4b1982866731d99bcb769",
     ),
     (
         "spell_effectless_discard",
         _spell_effectless_discard,
-        "92d0ef7eeeb74f1bcee6d465c511f42c1f3d4d11dde94c1c435d4537478e52d2",
+        "4d64a329dac8c1cefa56342225013c76b2a2efbfdecf78f69924a844a695123f",
     ),
     (
         "spell_effectless_bare",

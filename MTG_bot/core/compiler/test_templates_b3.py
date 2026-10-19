@@ -258,8 +258,8 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.GRANT_ABILITY)
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.ALL)
-        self.assertIs(target.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(target.zone.controller, ControllerRef.ANY)
+        self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(target.zones[0].controller, ControllerRef.ANY)
         keyword_ability = _keyword_ability(atom, "ability")
         self.assertIs(keyword_ability.keyword, Keyword.DEATHTOUCH)
         duration = atom.args.get("duration")
@@ -442,9 +442,15 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.DEAL_DAMAGE)
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.TARGET)
-        self.assertIs(target.zone.kind, ZoneKind.PLAYER)
-        self.assertEqual(len(target.zones), 1)
-        self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
+        # R0 zone-fold: player-or-planeswalker is ONE zone set;
+        # canonical order BATTLEFIELD < PLAYER.
+        self.assertEqual(
+            target.zones,
+            (
+                Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                Zone(ZoneKind.PLAYER, ControllerRef.ANY),
+            ),
+        )
         amount = atom.args.get("amount")
         assert isinstance(amount, QProp)
         self.assertEqual(amount.referent, "source")
@@ -462,9 +468,15 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.DEAL_DAMAGE)
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.TARGET)
-        self.assertIs(target.zone.kind, ZoneKind.PLAYER)
-        self.assertEqual(len(target.zones), 1)
-        self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
+        # R0 zone-fold: player-or-planeswalker is ONE zone set;
+        # canonical order BATTLEFIELD < PLAYER.
+        self.assertEqual(
+            target.zones,
+            (
+                Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                Zone(ZoneKind.PLAYER, ControllerRef.ANY),
+            ),
+        )
         self.assertEqual(_qconst(atom, "amount").value, 1)
 
     def test_add_mana_per_power_ge_creature_you_control(self) -> None:
@@ -482,8 +494,8 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertEqual(color, "G")
         amount = atom.args.get("amount")
         assert isinstance(amount, QCount)
-        self.assertIs(amount.selector.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(amount.selector.zone.controller, ControllerRef.ANY)
+        self.assertIs(amount.selector.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(amount.selector.zones[0].controller, ControllerRef.ANY)
 
     def test_create_token_builds_flying_angel_token(self) -> None:
         ability = _ability(
@@ -563,9 +575,11 @@ class TestB3EffectStructure(unittest.TestCase):
         ):
             sel = helper()
             self.assertIs(sel.mode, SelectorMode.TARGET, helper.__name__)
-            self.assertEqual(sel.zone, battlefield_any, helper.__name__)
+            self.assertEqual(sel.zones[0], battlefield_any, helper.__name__)
         any_target = templates_b3._sel_any_target()
-        self.assertEqual(any_target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(
+            any_target.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
+        )
         self.assertIsInstance(any_target.filter, FOr)
 
     def test_draw_per_distinct_color(self) -> None:
@@ -594,8 +608,8 @@ class TestB3EffectStructure(unittest.TestCase):
                 )
             ),
         )
-        self.assertIs(sel.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(sel.zone.controller, ControllerRef.ANY)
+        self.assertIs(sel.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(sel.zones[0].controller, ControllerRef.ANY)
         # cost tokens parse through the shared _parse_cost ({5}, {T})
         parts = ability.cost.parts
         self.assertEqual(parts[0], CostManaGeneric(QConst(5)))

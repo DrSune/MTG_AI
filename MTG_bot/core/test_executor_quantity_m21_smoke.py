@@ -301,7 +301,7 @@ class UndefinedPowerAggregationTest(BindingCase):
             QConst(9),
             SelectorMode.ALL,
             CREATURE,
-            Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+            zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),),
         )
 
     def _populate(self):

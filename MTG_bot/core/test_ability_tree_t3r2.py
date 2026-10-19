@@ -40,10 +40,10 @@ _GRAV_YOU = at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.YOU)
 _HAND_YOU = at.Zone(at.ZoneKind.HAND, at.ControllerRef.YOU)
 _LIB_ANY = at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY)
 _CREATURE = at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature")
-_CREATURE_BF = at.Selector(at.QConst(1), at.SelectorMode.TARGET, _CREATURE, _BF_YOU)
-_CREATURE_GRAV = at.Selector(at.QConst(1), at.SelectorMode.CHOOSE, _CREATURE, _GRAV_YOU)
-_CREATURE_LIB = at.Selector(at.QConst(1), at.SelectorMode.TARGET, _CREATURE, _LIB_ANY)
-_CREATURE_HAND = at.Selector(at.QConst(1), at.SelectorMode.TARGET, _CREATURE, _HAND_YOU)
+_CREATURE_BF = at.Selector(at.QConst(1), at.SelectorMode.TARGET, _CREATURE, zones=(_BF_YOU,))
+_CREATURE_GRAV = at.Selector(at.QConst(1), at.SelectorMode.CHOOSE, _CREATURE, zones=(_GRAV_YOU,))
+_CREATURE_LIB = at.Selector(at.QConst(1), at.SelectorMode.TARGET, _CREATURE, zones=(_LIB_ANY,))
+_CREATURE_HAND = at.Selector(at.QConst(1), at.SelectorMode.TARGET, _CREATURE, zones=(_HAND_YOU,))
 
 
 def _draw_one() -> at.Atom:
@@ -182,7 +182,7 @@ def _ugin_exile_dynamic() -> at.ActivatedAbility:
                                     ),
                                 )
                             ),
-                            _BF_YOU,
+                            zones=(_BF_YOU,),
                         ),
                     ),
                 )
@@ -236,17 +236,17 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
     (
         "tarmogoyf",
         T._tarmogoyf_like,
-        "ef2ac943913f6b8e86237746e283dd6fe7d49be5aacc856263d58f94504072ed",
+        "33c7a673d56fb484966ad1ae25efb1f1ae199c495b02ed44b67c5a11fa3f2679",
     ),
     (
         "planeswalker_emblem",
         T._pw_with_emblem,
-        "27858ab53a13b3f0b6eba85a30f89e2eb02072d0715ae726cc0f0c79780c32c1",
+        "dd59119e6b0280be53fcaaf8147f15f5d2ea3447ab3a04c44e065182d3ea913c",
     ),
     (
         "token_creator",
         T._token_creator,
-        "99b26af6d005649de387448043d326471f27632e75c3afc97fd583ff94816f93",
+        "e0f8c4901870a5f82238fb81b9ed0ac07324e5009b9fb258ce3b0f461b411f4d",
     ),
     (
         "cost_loyalty_bare",
@@ -266,7 +266,7 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
     (
         "move_zone_no_tap",
         _move_zone_base,
-        "4b35024107bb304a55dfda5d1a626f9d2010af29943290acf307f5041464f112",
+        "f65536b09d61b5296f0d6a7db1bfa6c6a324ccc647f5253b97a2792427e12446",
     ),
     (
         "qthis_turn",
@@ -645,7 +645,7 @@ def test_ugin_dynamic_loyalty_item6() -> None:
     # permutation-only: pre/post leaf multisets equal (5 leaves), so byte-order
     # not content (old value f6c6c8ee342cbaccd7e10a7c04e55aa866be7d1e699e8842ed45d0dfbc47dfca).
     assert at.fingerprint(node) == (
-        "992ebb70fd20c30fd866421b1ba2d7e59c6ab83f2f78d5df98d7fe0144106420"
+        "65b7cd4f308a8a48bab9258ac85cdc219cd7d863d23b88387619dbd55949fb5f"
     )
     back = at.from_dict("ActivatedAbility", at.to_dict(node))
     assert back == node

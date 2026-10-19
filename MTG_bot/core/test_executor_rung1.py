@@ -44,7 +44,7 @@ from MTG_bot.core.test_executor_stack import (
 )
 
 STACK_TARGET = Selector(
-    QConst(1), SelectorMode.TARGET, UNIV, Zone(ZoneKind.STACK, ControllerRef.ANY)
+    QConst(1), SelectorMode.TARGET, UNIV, zones=(Zone(ZoneKind.STACK, ControllerRef.ANY),)
 )
 
 
@@ -202,7 +202,7 @@ class TestResponseWindow(Rung1Case):
                     QConst(1),
                     SelectorMode.TARGET,
                     INSTANT_OR_SORCERY,
-                    Zone(ZoneKind.STACK, ControllerRef.ANY),
+                    zones=(Zone(ZoneKind.STACK, ControllerRef.ANY),),
                 ),
             ),
             seat=self.p1,

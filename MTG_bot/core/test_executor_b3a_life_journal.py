@@ -54,7 +54,7 @@ UNIV: Filter = FAnd(())
 
 def player_sel() -> Selector:
     return Selector(
-        QConst(1), SelectorMode.TARGET, UNIV, Zone(ZoneKind.PLAYER, ControllerRef.ANY)
+        QConst(1), SelectorMode.TARGET, UNIV, zones=(Zone(ZoneKind.PLAYER, ControllerRef.ANY),)
     )
 
 

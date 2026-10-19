@@ -341,19 +341,19 @@ class SearchPartitionTest(unittest.TestCase):
             (
                 atom(
                     Verb.SEARCH,
-                    cards=Selector(QConst(2), SelectorMode.CHOOSE, LAND, LIB_YOU),
+                    cards=Selector(QConst(2), SelectorMode.CHOOSE, LAND, zones=(LIB_YOU,)),
                     destination=BF_YOU,
                     tapped_on_enter=True,
                 ),
                 atom(
                     Verb.MOVE_ZONE,
-                    cards=Selector(QConst(1), SelectorMode.ONE_OF, LAND, LIB_YOU),
+                    cards=Selector(QConst(1), SelectorMode.ONE_OF, LAND, zones=(LIB_YOU,)),
                     destination=BF_YOU,
                     tapped_on_enter=True,
                 ),
                 atom(
                     Verb.MOVE_ZONE,
-                    cards=Selector(QConst(1), SelectorMode.REST, LAND, LIB_YOU),
+                    cards=Selector(QConst(1), SelectorMode.REST, LAND, zones=(LIB_YOU,)),
                     destination=Zone(ZoneKind.HAND, ControllerRef.YOU),
                 ),
                 atom(Verb.SHUFFLE, zone=LIB_YOU),
@@ -380,7 +380,7 @@ class SearchPartitionTest(unittest.TestCase):
         self.ex.apply_effect(
             atom(
                 Verb.SEARCH,
-                cards=Selector(QConst(1), SelectorMode.CHOOSE, LAND, LIB_YOU),
+                cards=Selector(QConst(1), SelectorMode.CHOOSE, LAND, zones=(LIB_YOU,)),
                 destination=BF_YOU,
                 tapped_on_enter=True,
             ),

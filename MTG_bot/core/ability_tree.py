@@ -1182,11 +1182,19 @@ class Selector:
     and search (DESIGN_CARD_POOL). count semantics by mode: TARGET exact
     (or 1..n designation / 0..remaining resolution with QAtMost, C17),
     CHOOSE up-to (QUnbounded = any), ALL ignores count, RANDOM exact.
-    ``zones`` additively widens the effective zone set to {zone} ∪ zones
-    (T3 round C): "target player or planeswalker" = PLAYER ∪ BATTLEFIELD,
-    "library and graveyard" search = LIBRARY ∪ GRAVEYARD, "target spell
-    or creature" = STACK ∪ BATTLEFIELD. Empty (the default) serializes
-    by omitting the key — byte-stable for every pre-T3 tree.
+    ``zones`` IS the legal-zone SET (R0 zone-fold, DESIGN_ATOM_ONTOLOGY
+    §3 SET-R0): the two pre-fold fields ``zone`` + ``zones`` (whose
+    effective set was the additive union {zone} ∪ zones, T3 round C)
+    collapse into ONE set field — "target player or planeswalker" =
+    PLAYER ∪ BATTLEFIELD, "library and graveyard" search = LIBRARY ∪
+    GRAVEYARD, "target spell or creature" = STACK ∪ BATTLEFIELD, all
+    spelled as zone SPECS kept WHOLE (kind + controller + position all
+    carry meaning) in one tuple. The set is normalized AT CONSTRUCTION
+    (O3 law, SET-R1a precedent): non-empty, deduped and sorted by
+    ``canonical_json`` (Zone is not orderable — a bare ``sorted()``
+    TypeErrors), so construction wording order is never observable and
+    worded-order twins share one encoding. The field has no empty
+    default: it always serializes.
 
     ``referent`` (grammar round 4, object anaphora) binds the selector to
     an object already in scope instead of searching: one of
@@ -1198,8 +1206,8 @@ class Selector:
     → the attacker; targeting → the new target). When set, the selector
     denotes the bound object and ``filter`` (if non-universal) acts as a
     type-check on it, not a fresh search. Convention C2: a referent
-    selector must be ``mode=CHOOSE`` + ``count=QConst(1)`` + the neutral
-    zone ``Zone(ANY, ANY)`` + ``zones=()`` (a bound object is not chosen,
+    selector must be ``mode=CHOOSE`` + ``count=QConst(1)`` +
+    ``zones == (Zone(ANY, ANY),)`` exactly (a bound object is not chosen,
     and its zone is unknown at compile time); violations raise in
     ``__post_init__``. None (the default) serializes by omitting the key
     — byte-stable for every pre-round-4 tree."""
@@ -1207,8 +1215,7 @@ class Selector:
     count: Quantity
     mode: SelectorMode
     filter: Filter
-    zone: Zone
-    zones: tuple[Zone, ...] = ()
+    zones: tuple[Zone, ...]
     referent: str | None = None
 
     def __post_init__(self) -> None:
@@ -1224,14 +1231,29 @@ class Selector:
             raise ValueError(
                 f"Selector: filter must be a Filter, got {type(self.filter).__name__}"
             )
-        if not isinstance(self.zone, Zone):
-            raise ValueError(
-                f"Selector: zone must be a Zone, got {type(self.zone).__name__}"
-            )
         if not isinstance(self.zones, tuple) or not all(
             isinstance(z, Zone) for z in self.zones
         ):
             raise ValueError("Selector: zones must be a tuple of Zone")
+        if not self.zones:
+            raise ValueError(
+                "Selector: zones must be non-empty — the R0 zone-fold replaced "
+                "the old zone+zones fields with the single zones SET field"
+            )
+        if len(self.zones) > 1:
+            # SET-R0 construction normalization (O3 law, _set_sorted :1280 /
+            # AtomArgs.pairs :2541 precedent): dedup by canonical_json, then
+            # sort by it — Zone is not natively orderable, canonical_json is
+            # the ONE total order. Construction/wording order is never
+            # observable; worded-order twins share one encoding.
+            unique: dict[str, Zone] = {}
+            for z in self.zones:
+                unique.setdefault(canonical_json(z), z)
+            object.__setattr__(
+                self,
+                "zones",
+                tuple(sorted(unique.values(), key=canonical_json)),
+            )
         if self.mode in (
             SelectorMode.TARGET,
             SelectorMode.RANDOM,
@@ -1253,17 +1275,10 @@ class Selector:
                 raise ValueError(
                     f"Selector: referent convention C2 requires count QConst(1), got {self.count!r}"
                 )
-            if not (
-                self.zone.kind is ZoneKind.ANY
-                and self.zone.controller is ControllerRef.ANY
-                and self.zone.position is None
-            ):
+            if self.zones != (Zone(ZoneKind.ANY, ControllerRef.ANY),):
                 raise ValueError(
-                    f"Selector: referent convention C2 requires the neutral zone, got {self.zone!r}"
-                )
-            if self.zones:
-                raise ValueError(
-                    f"Selector: referent convention C2 requires empty zones, got {self.zones!r}"
+                    "Selector: referent convention C2 requires the neutral "
+                    f"zone set (Zone(ANY, ANY),), got {self.zones!r}"
                 )
 
 
@@ -4072,7 +4087,9 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("count", "quantity"),
         ("mode", "enum:SelectorMode"),
         ("filter", "filter"),
-        ("zone", "zone"),
+        # R0 zone-fold: the scalar ("zone","zone") row is DELETED — the
+        # single zones SET field is the only zone carrier (it never omits:
+        # no empty default exists, see _OMIT_IF_EMPTY note).
         ("zones", "tup:zone"),
         ("referent", "opt:referent_str"),
     ),
@@ -4455,7 +4472,11 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     "BackFace": frozenset({"abilities"}),
     "QBin": frozenset({"rounding"}),
     # referent (grammar round 4): omit when None — byte-stable.
-    "Selector": frozenset({"zones", "referent"}),
+    # R0 zone-fold: zones is a REQUIRED non-empty set (no empty default),
+    # so it is no longer omit-able — a stale dict without zones (or with
+    # the deleted `zone` key) must FAIL LOUD at from_dict, never be
+    # silently defaulted.
+    "Selector": frozenset({"referent"}),
     "Zone": frozenset({"position"}),
     "ZoneChangeEvent": frozenset({"subject"}),
     # attacked (grammar round 10, R10-3): omit when None — byte-stable.
@@ -4719,6 +4740,13 @@ def from_dict(tag: str, d: Any) -> Any:
     omit = _OMIT_IF_EMPTY.get(tag, frozenset())
     extra = sorted(set(d) - set(fields) - {"tag"})
     if extra:
+        if tag == "Selector" and "zone" in extra:
+            raise ValueError(
+                "from_dict: Selector: unknown fields ['zone'] — stale "
+                "pre-R0 bytes: the R0 zone-fold replaced the scalar `zone` "
+                "key with the single `zones` set key; re-compile/re-bake "
+                "with post-fold code (no silent migration anywhere)"
+            )
         raise ValueError(f"from_dict: {tag}: unknown fields {extra}")
     # omit-if-empty fields (T3 round) may be absent: the empty default is
     # injected. Every other missing field still raises.

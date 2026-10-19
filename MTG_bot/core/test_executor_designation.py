@@ -93,7 +93,7 @@ CREATURE_ONLY = FAtom(FAtomPred.TYPE_EQ, string_value="Creature")
 
 
 def any_target(count: QConst | None = None) -> Selector:
-    return Selector(count or QConst(1), SelectorMode.TARGET, UNIV, ANY_ZONE)
+    return Selector(count or QConst(1), SelectorMode.TARGET, UNIV, zones=(ANY_ZONE,))
 
 
 class DesignationCase(unittest.TestCase):
@@ -183,7 +183,7 @@ class TestDesignateThenApply(DesignationCase):
                 atom(
                     Verb.MOVE_ZONE,
                     cards=Selector(
-                        QConst(1), SelectorMode.TARGET, CREATURE_ONLY, BF_ANY
+                        QConst(1), SelectorMode.TARGET, CREATURE_ONLY, zones=(BF_ANY,)
                     ),
                     destination=HAND_YOU,
                 )
@@ -214,7 +214,7 @@ class TestDesignateThenApply(DesignationCase):
                         QConst(1),
                         SelectorMode.TARGET,
                         FAtom(FAtomPred.TYPE_EQ, string_value="Artifact"),
-                        BF_ANY,
+                        zones=(BF_ANY,),
                     ),
                     destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
                 )
@@ -238,7 +238,7 @@ class TestDesignateThenApply(DesignationCase):
                     counter_kind=CounterKind.PLUS_1_PLUS_1,
                     count=QConst(1),
                     target=Selector(
-                        QConst(1), SelectorMode.TARGET, CREATURE_ONLY, BF_YOU
+                        QConst(1), SelectorMode.TARGET, CREATURE_ONLY, zones=(BF_YOU,)
                     ),
                 )
             ),
@@ -266,7 +266,7 @@ class TestDesignateThenApply(DesignationCase):
                     counter_kind=CounterKind.PLUS_1_PLUS_1,
                     count=QConst(1),
                     target=Selector(
-                        QAtMost(2), SelectorMode.TARGET, CREATURE_ONLY, BF_YOU
+                        QAtMost(2), SelectorMode.TARGET, CREATURE_ONLY, zones=(BF_YOU,)
                     ),
                 )
             ),
@@ -313,7 +313,7 @@ class TestTargetPlayerRouting(DesignationCase):
             atom(
                 Verb.DEAL_DAMAGE,
                 amount=QConst(3),
-                target=Selector(QConst(1), SelectorMode.TARGET, UNIV, BF_ANY),
+                target=Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(BF_ANY,)),
             ),
             source=wurm,
             controller=self.p0,
@@ -355,7 +355,7 @@ class TestTargetPlayerRouting(DesignationCase):
         self.ex.execute(
             atom(
                 Verb.MOVE_ZONE,
-                cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, LIB_YOU),
+                cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(LIB_YOU,)),
                 destination=HAND_YOU,
             ),
             source=dower,
@@ -407,7 +407,7 @@ class TestZoneAnyEnumeration(DesignationCase):
         )
         self.assertEqual(resolve_selector(any_target(), ctx), [self.p1])
         creature_only = Selector(
-            QConst(1), SelectorMode.TARGET, CREATURE_ONLY, ANY_ZONE
+            QConst(1), SelectorMode.TARGET, CREATURE_ONLY, zones=(ANY_ZONE,)
         )
         self.assertEqual(resolve_selector(creature_only, ctx), [])
 
@@ -428,7 +428,7 @@ class TestMultiSlotStaysLoud(DesignationCase):
                                 QConst(1),
                                 SelectorMode.TARGET,
                                 FAtom(FAtomPred.TYPE_EQ, string_value="Artifact"),
-                                BF_ANY,
+                                zones=(BF_ANY,),
                             ),
                         ),
                         atom(
@@ -437,7 +437,7 @@ class TestMultiSlotStaysLoud(DesignationCase):
                                 QConst(1),
                                 SelectorMode.TARGET,
                                 FAtom(FAtomPred.TYPE_EQ, string_value="Land"),
-                                BF_ANY,
+                                zones=(BF_ANY,),
                             ),
                         ),
                     )
@@ -460,7 +460,7 @@ class TestQueryLanePredParity(DesignationCase):
             card_id("Big", "6", "6", cmc=6), self.p0, ZONE_LIBRARY
         )
         pred = FAtom(FAtomPred.CMC_GE, count=QConst(6))
-        selector = Selector(QAtMost(5), SelectorMode.CHOOSE, FAnd((pred,)), LIB_YOU)
+        selector = Selector(QAtMost(5), SelectorMode.CHOOSE, FAnd((pred,)), zones=(LIB_YOU,))
         ctx = ctx_for(self.ex, source=self.p0, controller=self.p0)
         # query lane (legal_targets' population):
         self.assertEqual(enumerate_candidates(selector, ctx), [big])
@@ -544,7 +544,7 @@ class TestQueryLanePredParity(DesignationCase):
                         atom(
                             Verb.MOVE_ZONE,
                             cards=Selector(
-                                QConst(2), SelectorMode.CHOOSE, UNIV, HAND_YOU
+                                QConst(2), SelectorMode.CHOOSE, UNIV, zones=(HAND_YOU,)
                             ),
                             controller=ControllerRef.YOU,
                             **{
@@ -641,7 +641,7 @@ class TestE1ControllerAxis(DesignationCase):
                     FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
                 )
             ),
-            BF_ANY,
+            zones=(BF_ANY,),
         )
         mine_ctx = ctx_for(self.ex, source=anchor, controller=self.p0)
         got = resolve_selector(sel, mine_ctx)
@@ -689,7 +689,7 @@ class TestTargetPlayerNestedFilter(DesignationCase):
                                 ),
                             )
                         ),
-                        BF_ANY,
+                        zones=(BF_ANY,),
                     ),
                 )
             ),

@@ -101,7 +101,7 @@ def _tap_target() -> at.Atom:
                 (
                     "target",
                     at.Selector(
-                        at.QConst(1), at.SelectorMode.TARGET, _CREATURE, _BF_YOU
+                        at.QConst(1), at.SelectorMode.TARGET, _CREATURE, zones=(_BF_YOU,)
                     ),
                 ),
             )
@@ -203,7 +203,7 @@ def _orrery_draw() -> at.Atom:
                     "amount",
                     at.QDistinctColorCount(
                         at.Selector(
-                            at.QUnbounded(), at.SelectorMode.ALL, _PERMANENT, _BF_YOU
+                            at.QUnbounded(), at.SelectorMode.ALL, _PERMANENT, zones=(_BF_YOU,)
                         )
                     ),
                 ),
@@ -279,7 +279,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "orrery_draw",
         _orrery_draw,
-        "fcc1718275f98ebf1248bc14b5c0290f581defb28683c775ea95f4209d11fdeb",
+        "e0a155e3be6966390d01c8ee6bcb8e19e26e1b232170dfbba196cdf8a0c38cca",
     ),
     (
         "teferi_grant",

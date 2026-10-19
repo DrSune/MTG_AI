@@ -1044,10 +1044,22 @@ def _fold_meta_filter(effect: Effect, meta_filter: Filter) -> Effect:
                 if isinstance(value, Selector) and value.mode is SelectorMode.TARGET:
                     new_filter = FAnd(children=(value.filter, meta_filter))
                     modified = True
+                    # R0 zone-fold KEYED-LOSS fix (/129 §2, gate F6): the
+                    # rebuild carries the FULL zone set AND the referent —
+                    # the pre-fold positional rebuild silently dropped
+                    # zones (twin-loss vector; fold_meta_filter reaches 1
+                    # template with 0 live rebuilds across 586 cards, so
+                    # this is future-proofing pinned by test_ontology_r0).
                     new_pairs.append(
                         (
                             role,
-                            Selector(value.count, value.mode, new_filter, value.zone),
+                            Selector(
+                                value.count,
+                                value.mode,
+                                new_filter,
+                                zones=value.zones,
+                                referent=value.referent,
+                            ),
                         )
                     )
                 else:

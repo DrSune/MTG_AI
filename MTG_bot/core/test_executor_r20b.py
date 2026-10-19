@@ -86,7 +86,7 @@ def _bf_target() -> Selector:
         QConst(1),
         SelectorMode.TARGET,
         UNIV,
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
     )
 
 
@@ -101,7 +101,7 @@ def _event_exile() -> Atom:
             QConst(1),
             SelectorMode.CHOOSE,
             UNIV,
-            Zone(ZoneKind.ANY, ControllerRef.ANY),
+            zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
             referent="event",
         ),
     )
@@ -187,7 +187,7 @@ class R20bCase(unittest.TestCase):
                     QConst(1),
                     SelectorMode.TARGET,
                     UNIV,
-                    Zone(ZoneKind.HAND, ControllerRef.YOU),
+                    zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
                 ),
                 destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
                 tapped_on_enter=False,

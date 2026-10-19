@@ -490,7 +490,7 @@ class TestB9Trees(unittest.TestCase):
         atom_ = _effect(S_COUNTER)
         self.assertIs(atom_.verb, Verb.COUNTER_SPELL)
         selector = _pairs(atom_)["target"]
-        self.assertIs(selector.zone.kind, ZoneKind.STACK)
+        self.assertIs(selector.zones[0].kind, ZoneKind.STACK)
         # R1a canonicalization (emission-side unwrap, ontology §6 V2′): the
         # lone negation is emitted BARE — the filter IS the FNot, no 1-child
         # FAnd wrapper around it (a stronger pin than children[0] was).
@@ -585,7 +585,7 @@ def _enter_atom() -> Atom:
                         QConst(1),
                         SelectorMode.TARGET,
                         FAnd(children=()),
-                        Zone(ZoneKind.HAND, ControllerRef.YOU),
+                        zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
                     ),
                 ),
                 ("destination", Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)),
@@ -807,7 +807,7 @@ class TestExecutorAttachmentGate(LayerCase):
                                 QConst(1),
                                 SelectorMode.TARGET,
                                 FAnd(children=()),
-                                Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                                zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),),
                             ),
                         ),
                         ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),

@@ -644,8 +644,8 @@ class TestB4IrStructure(unittest.TestCase):
         cards = _selector(atom, "cards")
         self.assertIs(cards.mode, SelectorMode.ALL)
         self.assertIsInstance(cards.count, QUnbounded)
-        self.assertIs(cards.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(cards.zone.controller, ControllerRef.ANY)
+        self.assertIs(cards.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(cards.zones[0].controller, ControllerRef.ANY)
         _find_atom(cards.filter, FAtomPred.TYPE_EQ, string_value="Creature")
         _find_atom(cards.filter, FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
         self.assertIs(_pairs(atom).get("controller"), ControllerRef.YOU)
@@ -664,8 +664,8 @@ class TestB4IrStructure(unittest.TestCase):
         duration = atom.args.get("duration")
         self.assertIsInstance(duration, DurationEot)
         target = _selector(atom, "target")
-        self.assertIs(target.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(target.zone.controller, ControllerRef.ANY)
+        self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(target.zones[0].controller, ControllerRef.ANY)
 
     def test_modify_pt_eot_you(self) -> None:
         outcome = _as_effect(
@@ -728,8 +728,8 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertEqual(_qconst(power.magnitude).value, 1)
         self.assertEqual(_qconst(toughness.magnitude).value, 0)
         target = _selector(atom, "target")
-        self.assertIs(target.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(target.zone.controller, ControllerRef.ANY)
+        self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(target.zones[0].controller, ControllerRef.ANY)
         _find_atom(target.filter, FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT)
         self.assertNotIn("duration", _pairs(atom))
 
@@ -747,8 +747,8 @@ class TestB4IrStructure(unittest.TestCase):
         assert isinstance(atom_prot, Atom)
         self.assertIs(atom_pt.verb, Verb.MODIFY_PT)
         target = _selector(atom_pt, "target")
-        self.assertIs(target.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(target.zone.controller, ControllerRef.ANY)
+        self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(target.zones[0].controller, ControllerRef.ANY)
         _find_atom(target.filter, FAtomPred.TYPE_EQ, string_value="Creature")
         _find_atom(target.filter, FAtomPred.SUBTYPE_EQ, string_value="Cat")
         _find_atom(target.filter, FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
@@ -777,7 +777,7 @@ class TestB4IrStructure(unittest.TestCase):
         _find_atom(target.filter, FAtomPred.SUBTYPE_EQ, string_value="Dog")
         _find_atom(target.filter, FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
         _find_fnot(target.filter)
-        self.assertIs(target.zone.controller, ControllerRef.ANY)
+        self.assertIs(target.zones[0].controller, ControllerRef.ANY)
         power = _pt_delta(atom, "power")
         self.assertIs(power.direction, PtDirection.INCREASE)
         self.assertEqual(_qconst(power.magnitude).value, 1)
@@ -789,8 +789,8 @@ class TestB4IrStructure(unittest.TestCase):
         atom = _as_atom(_as_static(outcome.ability).effect)
         self.assertIs(atom.verb, Verb.MODIFY_PT)
         target = _selector(atom, "target")
-        self.assertIs(target.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(target.zone.controller, ControllerRef.ANY)
+        self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(target.zones[0].controller, ControllerRef.ANY)
         _find_atom(target.filter, FAtomPred.TYPE_EQ, string_value="Creature")
         _find_fnot(target.filter)
         power = _pt_delta(atom, "power")
@@ -849,8 +849,8 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertIs(magnitude.field, QPropField.POWER)
         self.assertIs(magnitude.agg, QAgg.MAX)
         referent = _as_selector(magnitude.referent)
-        self.assertIs(referent.zone.kind, ZoneKind.GRAVEYARD)
-        self.assertIs(referent.zone.controller, ControllerRef.YOU)
+        self.assertIs(referent.zones[0].kind, ZoneKind.GRAVEYARD)
+        self.assertIs(referent.zones[0].controller, ControllerRef.YOU)
         referent_filter = _as_fatom(referent.filter)
         self.assertIs(referent_filter.pred, FAtomPred.TYPE_EQ)
         self.assertEqual(referent_filter.string_value, "Creature")
@@ -886,8 +886,8 @@ class TestB4IrStructure(unittest.TestCase):
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.ALL)
         self.assertIsInstance(target.count, QUnbounded)
-        self.assertIs(target.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(target.zone.controller, ControllerRef.ANY)
+        self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(target.zones[0].controller, ControllerRef.ANY)
         _find_atom(target.filter, FAtomPred.TYPE_EQ, string_value="Creature")
         _find_atom(target.filter, FAtomPred.IS_ATTACHED_TO_SOURCE)
         self.assertIs(_pairs(atom).get("controller"), ControllerRef.YOU)
@@ -921,8 +921,8 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertIs(cards.mode, SelectorMode.CHOOSE)
         self.assertEqual(_qconst(cards.count).value, 2)
         self.assertEqual(cards.filter, FAnd(children=()))
-        self.assertIs(cards.zone.kind, ZoneKind.HAND)
-        self.assertIs(cards.zone.controller, ControllerRef.ANY)
+        self.assertIs(cards.zones[0].kind, ZoneKind.HAND)
+        self.assertIs(cards.zones[0].controller, ControllerRef.ANY)
 
     def test_gain_life_n(self) -> None:
         for sentence, life in (("You gain 4 life.", 4), ("You gain 3 life.", 3)):
@@ -945,8 +945,8 @@ class TestB4IrStructure(unittest.TestCase):
         selector = amount.selector
         self.assertIs(selector.mode, SelectorMode.ALL)
         self.assertIsInstance(selector.count, QUnbounded)
-        self.assertIs(selector.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(selector.zone.controller, ControllerRef.ANY)
+        self.assertIs(selector.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(selector.zones[0].controller, ControllerRef.ANY)
         _find_atom(selector.filter, FAtomPred.TYPE_EQ, string_value="Creature")
         _find_atom(selector.filter, FAtomPred.SUBTYPE_EQ, string_value="Cat")
         _find_atom(selector.filter, FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
@@ -994,8 +994,8 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertIs(qprop.field, QPropField.POWER)
         self.assertIs(qprop.agg, QAgg.SUM)
         referent = _as_selector(qprop.referent)
-        self.assertIs(referent.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(referent.zone.controller, ControllerRef.ANY)
+        self.assertIs(referent.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(referent.zones[0].controller, ControllerRef.ANY)
         _find_atom(referent.filter, FAtomPred.TYPE_EQ, string_value="Creature")
         _find_atom(referent.filter, FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
         # filter is IS_SOURCE
@@ -1117,9 +1117,9 @@ class TestB4IrStructure(unittest.TestCase):
         atom = _as_atom(optional.inner)
         self.assertIs(atom.verb, Verb.CAST)
         source = _selector(atom, "source")
-        self.assertIs(source.zone.kind, ZoneKind.LIBRARY)
-        self.assertIs(source.zone.controller, ControllerRef.YOU)
-        self.assertIs(source.zone.position, ZonePosition.TOP)
+        self.assertIs(source.zones[0].kind, ZoneKind.LIBRARY)
+        self.assertIs(source.zones[0].controller, ControllerRef.YOU)
+        self.assertIs(source.zones[0].position, ZonePosition.TOP)
         self.assertIsInstance(source.count, QUnbounded)
         self.assertIs(source.mode, SelectorMode.CHOOSE)
         _find_atom(source.filter, FAtomPred.TYPE_EQ, string_value="Creature")
@@ -1142,16 +1142,16 @@ class TestB4IrStructure(unittest.TestCase):
         discard_part = cost.parts[1]
         assert isinstance(discard_part, CostDiscard)
         discard_target = discard_part.target
-        self.assertIs(discard_target.zone.kind, ZoneKind.HAND)
-        self.assertIs(discard_target.zone.controller, ControllerRef.YOU)
+        self.assertIs(discard_target.zones[0].kind, ZoneKind.HAND)
+        self.assertIs(discard_target.zones[0].controller, ControllerRef.YOU)
         self.assertEqual(_qconst(discard_target.count).value, 1)
         self.assertEqual(discard_target.filter, FAnd(children=()))
         optional = _as_optional(ability.effect)
         atom = _as_atom(optional.inner)
         self.assertIs(atom.verb, Verb.CAST)
         source = _selector(atom, "source")
-        self.assertIs(source.zone.kind, ZoneKind.GRAVEYARD)
-        self.assertIs(source.zone.controller, ControllerRef.YOU)
+        self.assertIs(source.zones[0].kind, ZoneKind.GRAVEYARD)
+        self.assertIs(source.zones[0].controller, ControllerRef.YOU)
         self.assertEqual(_qconst(source.count).value, 1)
         source_filter = _as_fatom(source.filter)
         self.assertIs(source_filter.pred, FAtomPred.IS_SOURCE)
@@ -1193,11 +1193,14 @@ class TestB4IrStructure(unittest.TestCase):
         name_atom = _as_fatom(cards.filter)
         self.assertIs(name_atom.pred, FAtomPred.NAME_EQ)
         self.assertEqual(name_atom.string_value, card_name)
-        self.assertIs(cards.zone.kind, ZoneKind.LIBRARY)
-        self.assertIs(cards.zone.controller, ControllerRef.YOU)
-        self.assertEqual(len(cards.zones), 1)
-        self.assertIs(cards.zones[0].kind, ZoneKind.GRAVEYARD)
-        self.assertIs(cards.zones[0].controller, ControllerRef.YOU)
+        # R0 zone-fold: ONE set; canonical order GRAVEYARD < LIBRARY.
+        self.assertEqual(
+            cards.zones,
+            (
+                Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+            ),
+        )
         dest = search_atom.args.get("destination")
         assert isinstance(dest, Zone)
         self.assertIs(dest.kind, ZoneKind.HAND)
@@ -1251,8 +1254,8 @@ class TestB4IrStructure(unittest.TestCase):
         cards = _selector(atom, "cards")
         self.assertIs(cards.mode, SelectorMode.CHOOSE)
         self.assertEqual(_qconst(cards.count).value, 1)
-        self.assertIs(cards.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(cards.zone.controller, ControllerRef.ANY)
+        self.assertIs(cards.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(cards.zones[0].controller, ControllerRef.ANY)
         self.assertIs(_as_fatom(cards.filter).pred, FAtomPred.IS_SOURCE)
         self.assertNotIn("controller", _pairs(atom))
 
@@ -1307,7 +1310,7 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertEqual(target.referent, "event")
         self.assertIs(target.mode, SelectorMode.CHOOSE)
         self.assertEqual(_qconst(target.count).value, 1)
-        self.assertIs(target.zone.kind, ZoneKind.ANY)
+        self.assertIs(target.zones[0].kind, ZoneKind.ANY)
         self.assertEqual(target.filter, FAnd(children=()))
         self.assertIs(_pairs(atom).get("counter_kind"), CounterKind.PLUS_1_PLUS_1)
         self.assertIsInstance(_pairs(atom).get("count"), QX)
@@ -1330,8 +1333,8 @@ class TestB4Round7AnaphoraIr(unittest.TestCase):
         pool = _selector(atom, "target")
         self.assertIs(pool.mode, SelectorMode.ALL)
         self.assertIsInstance(pool.count, QUnbounded)
-        self.assertIs(pool.zone.kind, ZoneKind.HAND)
-        self.assertIs(pool.zone.controller, ControllerRef.TARGET_PLAYER)
+        self.assertIs(pool.zones[0].kind, ZoneKind.HAND)
+        self.assertIs(pool.zones[0].controller, ControllerRef.TARGET_PLAYER)
         self.assertEqual(_pairs(atom).get("count"), QConst(1))
         assert isinstance(pool.filter, FAnd)
         negs = [child for child in pool.filter.children if isinstance(child, FNot)]
@@ -1352,7 +1355,7 @@ class TestB4Round7AnaphoraIr(unittest.TestCase):
         assert isinstance(param, FAtom)
         self.assertIs(param.pred, FAtomPred.NAME_CHOSEN)
         target = _selector(atom, "target")
-        self.assertIs(target.zone.kind, ZoneKind.PLAYER)
+        self.assertIs(target.zones[0].kind, ZoneKind.PLAYER)
 
     def test_per_tapped_this_way(self) -> None:
         outcome = _as_effect(
@@ -1389,8 +1392,8 @@ class TestB4Round7AnaphoraIr(unittest.TestCase):
         cards = _selector(move, "cards")
         self.assertIs(cards.mode, SelectorMode.ONE_OF)
         self.assertIsInstance(cards.count, QConst)
-        self.assertIs(cards.zone.kind, ZoneKind.LIBRARY)
-        self.assertIs(cards.zone.position, ZonePosition.TOP)
+        self.assertIs(cards.zones[0].kind, ZoneKind.LIBRARY)
+        self.assertIs(cards.zones[0].position, ZonePosition.TOP)
 
 
 class TestB4Round9B(unittest.TestCase):
@@ -1465,9 +1468,7 @@ class TestB4Round9B(unittest.TestCase):
         assert isinstance(filt, FAnd)
         # R1a canonicalization: FAnd children construction-sorted; members by
         # pred, order by the canonicalization law.
-        self.assertEqual(
-            list(filt.children), sorted(filt.children, key=canonical_json)
-        )
+        self.assertEqual(list(filt.children), sorted(filt.children, key=canonical_json))
         by_pred = {c.pred: c for c in filt.children}
         self.assertEqual(len(by_pred), 2)
         type_a = by_pred[FAtomPred.TYPE_EQ]

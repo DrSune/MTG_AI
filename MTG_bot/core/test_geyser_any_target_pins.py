@@ -176,7 +176,7 @@ class TestGeyserHiddenZoneLeak(GeyserCase):
         sel = node.effect.args.get("target")
         assert isinstance(sel, Selector)
         self.assertIs(sel.mode, SelectorMode.TARGET)
-        self.assertEqual(sel.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(sel.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         self.assertIsInstance(sel.filter, FOr)
         idiom_filter = sel.filter
         assert isinstance(idiom_filter, FOr)
@@ -279,25 +279,25 @@ class TestTwinPredicatesAgree(unittest.TestCase):
         )
         shapes = {
             "geyser idiom over battlefield": Selector(
-                count=QConst(1), mode=SelectorMode.TARGET, filter=idiom, zone=bf
+                count=QConst(1), mode=SelectorMode.TARGET, filter=idiom, zones=(bf,)
             ),
             "legacy universal over ANY zone": Selector(
                 count=QConst(1),
                 mode=SelectorMode.TARGET,
                 filter=FAnd(()),
-                zone=any_zone,
+                zones=(any_zone,),
             ),
             "idiom but NOT battlefield-only": Selector(
-                count=QConst(1), mode=SelectorMode.TARGET, filter=idiom, zone=hand
+                count=QConst(1), mode=SelectorMode.TARGET, filter=idiom, zones=(hand,)
             ),
             "target creature or planeswalker (B5a)": Selector(
-                count=QConst(1), mode=SelectorMode.TARGET, filter=c_or_pw, zone=bf
+                count=QConst(1), mode=SelectorMode.TARGET, filter=c_or_pw, zones=(bf,)
             ),
             "non-idiom FOr": Selector(
-                count=QConst(1), mode=SelectorMode.TARGET, filter=lopsided, zone=bf
+                count=QConst(1), mode=SelectorMode.TARGET, filter=lopsided, zones=(bf,)
             ),
             "plain universal filter, no ANY zone": Selector(
-                count=QConst(1), mode=SelectorMode.TARGET, filter=FAnd(()), zone=bf
+                count=QConst(1), mode=SelectorMode.TARGET, filter=FAnd(()), zones=(bf,)
             ),
         }
         for label, sel in shapes.items():
@@ -346,7 +346,7 @@ class TestKeeperClassesStayBroad(GeyserCase):
         assert isinstance(node.effect, Atom)
         sel = node.effect.args.get("target")
         assert isinstance(sel, Selector)
-        self.assertIs(sel.zone.kind, ZoneKind.STACK)
+        self.assertIs(sel.zones[0].kind, ZoneKind.STACK)
 
 
 if __name__ == "__main__":

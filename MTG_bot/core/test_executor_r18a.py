@@ -169,7 +169,7 @@ class OfferGateTest(unittest.TestCase):
             QConst(2),
             SelectorMode.CHOOSE,
             FAtom(FAtomPred.NAME_EQ, string_value="Watchdog"),
-            LIB_YOU,
+            zones=(LIB_YOU,),
         )
         self.assertEqual(
             self.offer(
@@ -184,7 +184,7 @@ class OfferGateTest(unittest.TestCase):
 
     def test_zero_candidates_still_narrows(self):
         # CR 117.3 preserved: nothing to discard -> skip-only.
-        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, HAND_YOU)
+        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(HAND_YOU,))
         self.assertEqual(
             self.offer(atom(Verb.DISCARD, cards=sel, controller=ControllerRef.YOU)),
             ("skip",),
@@ -203,8 +203,7 @@ class OfferGateTest(unittest.TestCase):
                 QConst(1),
                 SelectorMode.CHOOSE,
                 FAtom(FAtomPred.NAME_EQ, string_value="Catalyst"),
-                LIB_YOU,
-                zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),),
+                zones=(LIB_YOU, *(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),)),
             ),
             destination=Zone(ZoneKind.HAND, ControllerRef.YOU),
         )
@@ -214,7 +213,7 @@ class OfferGateTest(unittest.TestCase):
                 QConst(1),
                 SelectorMode.CHOOSE,
                 FAtom(FAtomPred.IS_SOURCE),
-                Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+                zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),),
             ),
             destination=Zone(ZoneKind.HAND, ControllerRef.YOU),
         )
@@ -233,7 +232,7 @@ class OfferGateTest(unittest.TestCase):
                 QConst(1),
                 SelectorMode.CHOOSE,
                 FAtom(FAtomPred.NAME_EQ, string_value="Tvasa"),
-                LIB_YOU,
+                zones=(LIB_YOU,),
             ),
             destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
         )
@@ -248,7 +247,7 @@ class OfferGateTest(unittest.TestCase):
                 QConst(1),
                 SelectorMode.CHOOSE,
                 UNIV,
-                Zone(ZoneKind.ANY, ControllerRef.ANY),
+                zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
                 referent="result",
             ),
             destination=Zone(ZoneKind.HAND, ControllerRef.YOU),
@@ -283,7 +282,7 @@ class FilteredMoveTailTest(unittest.TestCase):
                     QConst(1),
                     SelectorMode.CHOOSE,
                     FAtom(FAtomPred.NAME_EQ, string_value="Nowhere"),
-                    LIB_YOU,
+                    zones=(LIB_YOU,),
                 ),
                 destination=Zone(ZoneKind.HAND, ControllerRef.YOU),
             ),
@@ -302,7 +301,7 @@ class FilteredMoveTailTest(unittest.TestCase):
         self.ex.execute(
             atom(
                 Verb.MOVE_ZONE,
-                cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, LIB_YOU),
+                cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(LIB_YOU,)),
                 destination=Zone(ZoneKind.HAND, ControllerRef.YOU),
             ),
             source=self.src,

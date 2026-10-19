@@ -225,8 +225,7 @@ class TestPlayerOrPlaneswalkerDesignation(R21aCase):
             QConst(1),
             SelectorMode.TARGET,
             PW_SHAPE,
-            Zone(ZoneKind.PLAYER, ControllerRef.ANY),
-            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
+            zones=(Zone(ZoneKind.PLAYER, ControllerRef.ANY), *(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),)),
         )
         self.ex.execute(
             atom(Verb.DEAL_DAMAGE, target=sel, amount=QConst(1)),
@@ -245,7 +244,7 @@ class TestPlayerOrPlaneswalkerDesignation(R21aCase):
             QConst(1),
             SelectorMode.TARGET,
             UNIV,
-            Zone(ZoneKind.PLAYER, ControllerRef.YOU),
+            zones=(Zone(ZoneKind.PLAYER, ControllerRef.YOU),),
         )
         self.ex.execute(
             atom(Verb.DEAL_DAMAGE, target=sel, amount=QConst(1)),

@@ -90,7 +90,7 @@ UNIV = FAnd(())
 
 
 def target_sel(filter_: Filter = CREATURE, zone: Zone = BF_ANY) -> Selector:
-    return Selector(QConst(1), SelectorMode.TARGET, filter_, zone)
+    return Selector(QConst(1), SelectorMode.TARGET, filter_, zones=(zone,))
 
 
 class ExecutorCase(unittest.TestCase):
@@ -171,7 +171,7 @@ class TestZoneVerbs(ExecutorCase):
         self.ex.execute(
             atom(
                 Verb.MOVE_ZONE,
-                cards=Selector(QConst(2), SelectorMode.ALL, UNIV, LIB_YOU),
+                cards=Selector(QConst(2), SelectorMode.ALL, UNIV, zones=(LIB_YOU,)),
                 destination=Zone(ZoneKind.HAND, ControllerRef.YOU),
             ),
             source=self.alpha,
@@ -638,7 +638,7 @@ class TestSelectors(ExecutorCase):
         self.ex.execute(
             atom(
                 Verb.DESTROY,
-                target=Selector(QConst(1), SelectorMode.ALL, CREATURE, BF_ANY),
+                target=Selector(QConst(1), SelectorMode.ALL, CREATURE, zones=(BF_ANY,)),
             ),
             source=self.alpha,
             controller=self.p0,
@@ -653,7 +653,7 @@ class TestSelectors(ExecutorCase):
             atom(
                 Verb.MOVE_ZONE,
                 controller=ControllerRef.YOU,
-                cards=Selector(QAtMost(2), SelectorMode.CHOOSE, UNIV, HAND_YOU),
+                cards=Selector(QAtMost(2), SelectorMode.CHOOSE, UNIV, zones=(HAND_YOU,)),
                 **{
                     "destination": Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
                     "from": HAND_YOU,
@@ -679,7 +679,7 @@ class TestSelectors(ExecutorCase):
         # outside a firing stay NotImplementedError.
         one_of = atom(
             Verb.DESTROY,
-            target=Selector(QConst(1), SelectorMode.ONE_OF, CREATURE, BF_ANY),
+            target=Selector(QConst(1), SelectorMode.ONE_OF, CREATURE, zones=(BF_ANY,)),
         )
         with self.assertRaises(ValueError):
             self.ex.execute(one_of, source=self.alpha, controller=self.p0)
@@ -689,7 +689,7 @@ class TestSelectors(ExecutorCase):
                 QConst(1),
                 SelectorMode.CHOOSE,
                 UNIV,
-                Zone(ZoneKind.ANY, ControllerRef.ANY),
+                zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
                 referent="result",
             ),
         )
@@ -708,7 +708,7 @@ class TestSelectors(ExecutorCase):
             ex.execute(
                 atom(
                     Verb.DESTROY,
-                    target=Selector(QConst(1), SelectorMode.RANDOM, CREATURE, BF_ANY),
+                    target=Selector(QConst(1), SelectorMode.RANDOM, CREATURE, zones=(BF_ANY,)),
                 ),
                 source=p0,
                 controller=p0,
@@ -753,7 +753,7 @@ class TestQuantityAndFilters(ExecutorCase):
                 QConst(1),
                 SelectorMode.ALL,
                 CREATURE,
-                Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),),
             ),
             field=QPropField.POWER,
             agg=QAgg.SUM,
@@ -792,7 +792,7 @@ class TestQuantityAndFilters(ExecutorCase):
                             FAtom(FAtomPred.NAME_EQ, string_value="Beta"),
                         )
                     ),
-                    BF_ANY,
+                    zones=(BF_ANY,),
                 ),
             ),
             source=self.alpha,
@@ -811,7 +811,7 @@ class TestQuantityAndFilters(ExecutorCase):
                     QConst(2),
                     SelectorMode.CHOOSE,
                     FNot(FAtom(FAtomPred.NAME_EQ, string_value="Alpha")),
-                    BF_ANY,
+                    zones=(BF_ANY,),
                 ),
             ),
             source=self.alpha,
@@ -860,7 +860,7 @@ class TestQuantityAndFilters(ExecutorCase):
                 QConst(1),
                 SelectorMode.ALL,
                 FAtom(FAtomPred.COLOR_HAS, color="W"),
-                BF_ANY,
+                zones=(BF_ANY,),
             ),
         )
         self.ex.execute(color_has, source=self.alpha, controller=self.p0)
@@ -873,7 +873,7 @@ class TestQuantityAndFilters(ExecutorCase):
                 QConst(1),
                 SelectorMode.ALL,
                 FAtom(FAtomPred.COLOR_IN, colors=("R", "G")),
-                BF_ANY,
+                zones=(BF_ANY,),
             ),
         )
         self.ex.execute(color_in, source=self.alpha, controller=self.p0)
@@ -896,7 +896,7 @@ class TestQuantityAndFilters(ExecutorCase):
                 QConst(1),
                 SelectorMode.ALL,
                 FAtom(FAtomPred.IS_ATTACKING),
-                BF_ANY,
+                zones=(BF_ANY,),
             ),
         )
         # outside combat nothing is attacking: the pred READS False, the
@@ -910,7 +910,7 @@ class TestQuantityAndFilters(ExecutorCase):
                 QConst(1),
                 SelectorMode.ALL,
                 FAtom(FAtomPred.IS_BLOCKING),
-                BF_ANY,
+                zones=(BF_ANY,),
             ),
         )
         # outside combat nothing is blocking: the pred READS False, the
@@ -923,7 +923,7 @@ class TestQuantityAndFilters(ExecutorCase):
                 QConst(1),
                 SelectorMode.ALL,
                 FAtom(FAtomPred.PT_GE),
-                BF_ANY,
+                zones=(BF_ANY,),
             ),
         )
         with self.assertRaises(NotImplementedError):

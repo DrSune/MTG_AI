@@ -182,7 +182,7 @@ class HexproofCase(LayerCase):
                 QConst(1),
                 SelectorMode.TARGET,
                 CREATURE,
-                Zone(ZoneKind.STACK, ControllerRef.ANY),
+                zones=(Zone(ZoneKind.STACK, ControllerRef.ANY),),
             ),
             source=source,
             controller=controller,
@@ -230,7 +230,7 @@ class TestHexproofLegality(HexproofCase):
         # 702.11 protects the hexproof OBJECT; "any target" still lists
         # the player who controls it (the Skeleton Archer population).
         self.hexproof_creature("Sporeweb Weaver", self.p1)
-        any_target = Selector(QConst(1), SelectorMode.TARGET, UNIV, ANY_PLAYER)
+        any_target = Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(ANY_PLAYER,))
         slot = legal_targets(
             self.world, self.ex, any_target, source=self.banner, controller=self.p0
         )
@@ -265,7 +265,7 @@ class TestHexproofLegality(HexproofCase):
                     QConst(1),
                     SelectorMode.ALL,
                     UNIV,
-                    Zone(ZoneKind.ANY, ControllerRef.ANY),
+                    zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
                 ),
                 destination=Zone(ZoneKind.GRAVEYARD, ControllerRef.OWNER),
             ),
@@ -279,7 +279,7 @@ class TestHexproofLegality(HexproofCase):
         # the zone guard must NOT veto it there — hexproof (CR 113.10,
         # 112.6) functions only on the battlefield/stack, so an over-broad
         # keyword map read would wrongly remove this ordinary target.
-        any_creature = Selector(QConst(1), SelectorMode.TARGET, CREATURE, ANY_ANY)
+        any_creature = Selector(QConst(1), SelectorMode.TARGET, CREATURE, zones=(ANY_ANY,))
         slot = legal_targets(
             self.world, self.ex, any_creature, source=bolt, controller=self.p0
         )
@@ -288,7 +288,7 @@ class TestHexproofLegality(HexproofCase):
     def test_non_targeting_sweeper_still_destroys_hexproof(self):
         weaver = self.hexproof_creature("Sporeweb Weaver", self.p1)
         plain = self.plain_creature("Horned Bash", self.p1)
-        sweep_all = Selector(QConst(99), SelectorMode.ALL, CREATURE, BF_ANY)
+        sweep_all = Selector(QConst(99), SelectorMode.ALL, CREATURE, zones=(BF_ANY,))
         self.ex.execute(
             atom(Verb.DESTROY, target=sweep_all),
             source=self.banner,
@@ -380,7 +380,7 @@ class TestHexproofLanes(HexproofCase):
                     QConst(1),
                     SelectorMode.ALL,
                     UNIV,
-                    Zone(ZoneKind.HAND, ControllerRef.YOU),
+                    zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
                 ),
                 destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.OWNER),
             ),

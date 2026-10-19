@@ -134,7 +134,7 @@ def _sel_event() -> at.Selector:
     """R4-5(a): the triggering event's subject object (Gloom Sower /
     Double Vision)."""
     return at.Selector(
-        at.QConst(1), at.SelectorMode.CHOOSE, _UNIVERSAL, _NEUTRAL, referent="event"
+        at.QConst(1), at.SelectorMode.CHOOSE, _UNIVERSAL, zones=(_NEUTRAL,), referent="event"
     )
 
 
@@ -145,7 +145,7 @@ def _sel_controller() -> at.Selector:
         at.QConst(1),
         at.SelectorMode.CHOOSE,
         _CREATURE,
-        _NEUTRAL,
+        zones=(_NEUTRAL,),
         referent="controller",
     )
 
@@ -215,22 +215,22 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "sel_event",
         _sel_event,
-        "4809cfeb0e722793cf6ea2eceaca2f83a89243f15a8dbe4b997ccc79ec530294",
+        "70cd76cc40df3d5a35a93d5b816d57c00b9328266b99cd722c9fb93148843794",
     ),
     (
         "sel_controller",
         _sel_controller,
-        "58cafbfb58e89a5073fad051c497c7b50ed49d4462a1a5bf53e49966408be211",
+        "70d138ffd4e1dd0780d5ea113fb09eda05826f98be02dec4960d020df4681e88",
     ),
     (
         "gloom_sower",
         _gloom_sower,
-        "04182cd2b336e1aaf6687667bde0c09d39c976f3944edcae160dbf46e5eb559f",
+        "a5312ea8193952b2f7b5e35203346c43497d8aa867dc774601c915aa95782e3f",
     ),
     (
         "feline_controller_is",
         _feline_controller_is,
-        "7e43df7bae24838d4ed91ef0a043a72c98ae92f9538a135ee31786c8ee8b8a4f",
+        "a271c8eb44cf0ad7f69a40ca910eda20e266609ab13e1a19f272c1f5b24de40a",
     ),
 ]
 
@@ -297,7 +297,7 @@ def test_castspell_omits_from_zone_not_when_none() -> None:
 
 
 def test_selector_omits_referent_when_none() -> None:
-    bare = at.Selector(at.QConst(1), at.SelectorMode.TARGET, _CREATURE, _BF_YOU)
+    bare = at.Selector(at.QConst(1), at.SelectorMode.TARGET, _CREATURE, zones=(_BF_YOU,))
     d = at.to_dict(bare)
     assert "referent" not in d, f"bare Selector must omit 'referent': {sorted(d)}"
     d = at.to_dict(_sel_event())
@@ -500,7 +500,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 at.QConst(1),
                 at.SelectorMode.CHOOSE,
                 _UNIVERSAL,
-                _NEUTRAL,
+                zones=(_NEUTRAL,),
                 referent="bogus",
             ),
         ),
@@ -510,7 +510,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 at.QConst(1),
                 at.SelectorMode.TARGET,
                 _UNIVERSAL,
-                _NEUTRAL,
+                zones=(_NEUTRAL,),
                 referent="event",
             ),
         ),
@@ -520,7 +520,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 at.QConst(2),
                 at.SelectorMode.CHOOSE,
                 _UNIVERSAL,
-                _NEUTRAL,
+                zones=(_NEUTRAL,),
                 referent="event",
             ),
         ),
@@ -530,7 +530,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 at.QConst(1),
                 at.SelectorMode.CHOOSE,
                 _UNIVERSAL,
-                _BF_YOU,
+                zones=(_BF_YOU,),
                 referent="event",
             ),
         ),
@@ -540,8 +540,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 at.QConst(1),
                 at.SelectorMode.CHOOSE,
                 _UNIVERSAL,
-                _NEUTRAL,
-                zones=(_BF_YOU,),
+                zones=(_NEUTRAL, *(_BF_YOU,)),
                 referent="event",
             ),
         ),
@@ -551,7 +550,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
             lambda: at.FAtom(
                 at.FAtomPred.CONTROLLER_IS,
                 who=at.Selector(
-                    at.QConst(1), at.SelectorMode.CHOOSE, _CREATURE, _BF_YOU
+                    at.QConst(1), at.SelectorMode.CHOOSE, _CREATURE, zones=(_BF_YOU,)
                 ),
             ),
         ),

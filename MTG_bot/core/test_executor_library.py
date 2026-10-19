@@ -124,7 +124,7 @@ FLIP_WON_YOU = FAtom(FAtomPred.FLIP_WON, who=ControllerRef.YOU)
 def search_atom(mode=SelectorMode.CHOOSE, count=2, destination=BF_YOU, **extra):
     return atom(
         Verb.SEARCH,
-        cards=Selector(QConst(count), mode, BASIC, LIB_YOU),
+        cards=Selector(QConst(count), mode, BASIC, zones=(LIB_YOU,)),
         destination=destination,
         **extra,
     )

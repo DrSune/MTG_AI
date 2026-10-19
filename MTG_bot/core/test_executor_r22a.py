@@ -101,7 +101,7 @@ class SacrificeVocabulary(unittest.TestCase):
 
     def test_choice_segment_asks_and_the_answer_is_the_victim(self):
         plan = self.plan_for(
-            Selector(QConst(1), SelectorMode.CHOOSE, ANOTHER_CREATURE, BF_YOU)
+            Selector(QConst(1), SelectorMode.CHOOSE, ANOTHER_CREATURE, zones=(BF_YOU,))
         )
         # The witness still carries the canonical lowest pick (a probe
         # never asks), and the FULL pool rides on the plan.
@@ -126,13 +126,13 @@ class SacrificeVocabulary(unittest.TestCase):
         # auto-fill, NO ask, no provider needed at all.
         self.world.move_to_zone(self.delta, self.p0, ZONE_GRAVEYARD)
         plan = self.plan_for(
-            Selector(QConst(1), SelectorMode.CHOOSE, ANOTHER_CREATURE, BF_YOU)
+            Selector(QConst(1), SelectorMode.CHOOSE, ANOTHER_CREATURE, zones=(BF_YOU,))
         )
         pay_costs(self.ex, plan, source=self.alpha, controller=self.p0)
         self.assertEqual(self.world.zone_of(self.gamma).kind, ZONE_GRAVEYARD)
 
     def test_self_sacrifice_never_asks(self):
-        sel = Selector(QConst(1), SelectorMode.CHOOSE, IS_SOURCE, BF_YOU)
+        sel = Selector(QConst(1), SelectorMode.CHOOSE, IS_SOURCE, zones=(BF_YOU,))
         plan = self.plan_for(sel)
         self.assertEqual(plan.sacrifice_options, (((self.alpha,), 1),))
         pay_costs(self.ex, plan, source=self.alpha, controller=self.p0)
@@ -144,7 +144,7 @@ class SacrificeVocabulary(unittest.TestCase):
         # Creature AND NOT is-source; the opponent's Beta must not ride
         # the plan pool NOR the ask vocabulary.
         plan = self.plan_for(
-            Selector(QConst(1), SelectorMode.TARGET, ANOTHER_CREATURE, BF_ANY)
+            Selector(QConst(1), SelectorMode.TARGET, ANOTHER_CREATURE, zones=(BF_ANY,))
         )
         pool, _need = plan.sacrifice_options[0]
         self.assertEqual(pool, tuple(sorted((self.gamma, self.delta))))
@@ -157,7 +157,7 @@ class SacrificeVocabulary(unittest.TestCase):
         # C15: with no lane able to answer, the ask RAISES — the frozen
         # lowest-Handle auto-pick is dead.
         plan = self.plan_for(
-            Selector(QConst(1), SelectorMode.CHOOSE, ANOTHER_CREATURE, BF_YOU)
+            Selector(QConst(1), SelectorMode.CHOOSE, ANOTHER_CREATURE, zones=(BF_YOU,))
         )
         with self.assertRaises(ValueError) as cm:
             pay_costs(self.ex, plan, source=self.alpha, controller=self.p0)
@@ -199,7 +199,7 @@ class OwnDiesTrigger(unittest.TestCase):
     def kill(self, victim):
         self.ex.execute(
             atom(
-                Verb.DESTROY, target=Selector(QConst(1), SelectorMode.ALL, UNIV, BF_ANY)
+                Verb.DESTROY, target=Selector(QConst(1), SelectorMode.ALL, UNIV, zones=(BF_ANY,))
             ),
             source=self.beater,
             controller=self.p0,
@@ -304,7 +304,7 @@ class DesignationPrebindGate(unittest.TestCase):
                         atom(
                             Verb.DEAL_DAMAGE,
                             target=Selector(
-                                QConst(1), SelectorMode.TARGET, CREATURE, BF_ANY
+                                QConst(1), SelectorMode.TARGET, CREATURE, zones=(BF_ANY,)
                             ),
                             amount=QConst(3),
                         ),
@@ -322,7 +322,7 @@ class DesignationPrebindGate(unittest.TestCase):
         self.ex.execute(
             atom(
                 Verb.DESTROY,
-                target=Selector(QConst(1), SelectorMode.ALL, UNIV, BF_ANY),
+                target=Selector(QConst(1), SelectorMode.ALL, UNIV, zones=(BF_ANY,)),
             ),
             source=self.beater,
             controller=self.p0,
@@ -360,7 +360,7 @@ class DesignationPrebindGate(unittest.TestCase):
         self.ex.execute(
             atom(
                 Verb.DESTROY,
-                target=Selector(QConst(1), SelectorMode.ALL, UNIV, BF_ANY),
+                target=Selector(QConst(1), SelectorMode.ALL, UNIV, zones=(BF_ANY,)),
             ),
             source=self.beater,
             controller=self.p0,

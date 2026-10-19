@@ -228,7 +228,7 @@ def _bf_sel():
         QConst(1),
         SelectorMode.TARGET,
         FAnd(()),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
     )
 
 
@@ -237,7 +237,7 @@ def _player_sel():
         QConst(1),
         SelectorMode.TARGET,
         FAnd(()),
-        Zone(ZoneKind.PLAYER, ControllerRef.OPPONENT),
+        zones=(Zone(ZoneKind.PLAYER, ControllerRef.OPPONENT),),
     )
 
 

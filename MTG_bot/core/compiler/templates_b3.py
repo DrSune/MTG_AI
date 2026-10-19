@@ -111,7 +111,7 @@ def _sel_self() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -126,7 +126,7 @@ def _sel_target_creature() -> Selector:
         count=QConst(1),
         mode=SelectorMode.TARGET,
         filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -158,7 +158,7 @@ def _sel_any_target() -> Selector:
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Player"),
             )
         ),
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -168,7 +168,7 @@ def _sel_target_planeswalker() -> Selector:
         count=QConst(1),
         mode=SelectorMode.TARGET,
         filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -183,8 +183,8 @@ def _sel_target_player_or_planeswalker() -> Selector:
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
             )
         ),
-        zone=Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.ANY),
-        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
+        
+        zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.ANY), *(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),)),
     )
 
 
@@ -200,7 +200,7 @@ def _sel_target_creature_flying() -> Selector:
             )
         ),
         # R11-3: creatures can only be targeted on the battlefield.
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -215,7 +215,7 @@ def _sel_creatures_you_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -230,7 +230,7 @@ def _sel_lands_you_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -246,7 +246,7 @@ def _sel_dogs_you_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -271,7 +271,7 @@ def _sel_target_bird_cat_dog_goat_ox_snake() -> Selector:
             )
         ),
         # R11-3: creatures can only be targeted on the battlefield.
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -289,7 +289,7 @@ def _sel_target_creature_with_plus1() -> Selector:
             )
         ),
         # R11-3: creatures can only be targeted on the battlefield.
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -299,7 +299,7 @@ def _sel_target_card_from_graveyard() -> Selector:
         count=QConst(1),
         mode=SelectorMode.TARGET,
         filter=FAnd(children=()),
-        zone=Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.ANY),),
     )
 
 
@@ -309,7 +309,7 @@ def _sel_cards_in_your_graveyard() -> Selector:
         count=QConst(1),
         mode=SelectorMode.TARGET,
         filter=FAnd(children=()),
-        zone=Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
+        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),
     )
 
 
@@ -319,7 +319,7 @@ def _sel_cards_in_your_hand() -> Selector:
         count=QConst(1),
         mode=SelectorMode.CHOOSE,
         filter=FAnd(children=()),
-        zone=Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),
+        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),
     )
 
 
@@ -686,9 +686,9 @@ def _build_draw_per_distinct_color(m: re.Match[str]) -> AbilityOutcome:
                                     ),
                                 )
                             ),
-                            zone=Zone(
+                            zones=(Zone(
                                 kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY
-                            ),
+                            ),),
                         )
                     ),
                 ),
@@ -812,7 +812,7 @@ def _build_add_mana_g_per_power_ge_creatures_you(m: re.Match[str]) -> AbilityOut
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
     effect = Atom(
         verb=Verb.ADD_MANA,
@@ -932,7 +932,7 @@ def _build_fight_another(m: re.Match[str]) -> SentenceOutcome:
                                 FAtom(pred=FAtomPred.IS_ANY_TARGET),
                             )
                         ),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
                     ),
                 ),
             )
@@ -975,7 +975,7 @@ def _build_may_cast_exiled_creature(m: re.Match[str]) -> SentenceOutcome:
                                     FAtom(pred=FAtomPred.IS_EXILED_WITH_SOURCE),
                                 )
                             ),
-                            Zone(kind=ZoneKind.EXILE, controller=ControllerRef.YOU),
+                            zones=(Zone(kind=ZoneKind.EXILE, controller=ControllerRef.YOU),),
                         ),
                     ),
                     ("cost", Cost(parts=())),

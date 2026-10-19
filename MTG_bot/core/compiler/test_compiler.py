@@ -160,7 +160,7 @@ def _target_selector() -> Selector:
         count=QConst(1),
         mode=SelectorMode.TARGET,
         filter=FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="creature"),
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -206,7 +206,7 @@ def _search_atom() -> Atom:
                         QConst(1),
                         SelectorMode.ONE_OF,
                         FAnd(children=()),
-                        Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),
+                        zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),
                     ),
                 ),
                 ("destination", Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)),
@@ -1336,9 +1336,9 @@ def _cast_permission_effect() -> Effect:
                             count=QUnbounded(),
                             mode=SelectorMode.CHOOSE,
                             filter=FAnd(()),
-                            zone=Zone(
+                            zones=(Zone(
                                 kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU
-                            ),
+                            ),),
                         ),
                     ),
                 )
@@ -1537,8 +1537,8 @@ class TestRound14fFidelity(unittest.TestCase):
         self.assertIsNone(selector.referent)  # NO register hop anymore
         self.assertIsInstance(selector.count, QUnbounded)  # plural "them"
         self.assertIs(selector.mode, SelectorMode.CHOOSE)
-        self.assertEqual(selector.zone.kind, ZoneKind.EXILE)
-        self.assertIs(selector.zone.controller, ControllerRef.YOU)
+        self.assertEqual(selector.zones[0].kind, ZoneKind.EXILE)
+        self.assertIs(selector.zones[0].controller, ControllerRef.YOU)
         self.assertEqual(selector.filter, FAtom(pred=FAtomPred.IS_EXILED_WITH_SOURCE))
 
     def test_corpus_scope_of_the_two_rows(self) -> None:
@@ -1768,7 +1768,7 @@ def _hand_card_selector() -> Selector:
         count=QConst(1),
         mode=SelectorMode.CHOOSE,
         filter=FAnd(children=()),
-        zone=Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),
+        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),
     )
 
 

@@ -255,7 +255,7 @@ def _self(zone: Zone) -> Selector:
         QConst(1),
         SelectorMode.CHOOSE,
         FAtom(pred=FAtomPred.IS_SOURCE),
-        zone,
+        zones=(zone,),
     )
 
 
@@ -367,7 +367,7 @@ class TestB7Trees(unittest.TestCase):
                                         ),
                                     )
                                 ),
-                                BF_ANY,
+                                zones=(BF_ANY,),
                             ),
                         ),
                         ("counter_kind", CounterKind.LOYALTY),
@@ -410,7 +410,7 @@ class TestB7Trees(unittest.TestCase):
                                         ),
                                     )
                                 ),
-                                BF_ANY,
+                                zones=(BF_ANY,),
                             ),
                         ),
                     )
@@ -510,10 +510,10 @@ class TestB6Znd2Extensions(unittest.TestCase):
                                 QConst(1),
                                 SelectorMode.TARGET,
                                 FAtom(pred=FAtomPred.HAS_KICKER),
-                                Zone(
+                                zones=(Zone(
                                     kind=ZoneKind.GRAVEYARD,
                                     controller=ControllerRef.YOU,
-                                ),
+                                ),),
                             ),
                         ),
                         (
@@ -671,7 +671,7 @@ def _enter_atom() -> Atom:
                         QConst(1),
                         SelectorMode.TARGET,
                         FAnd(children=()),
-                        Zone(ZoneKind.HAND, ControllerRef.YOU),
+                        zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
                     ),
                 ),
                 ("destination", Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)),
@@ -741,7 +741,7 @@ class LandfallExecutorCase(unittest.TestCase):
                                 QConst(1),
                                 SelectorMode.TARGET,
                                 FAnd(children=()),
-                                origin,
+                                zones=(origin,),
                             ),
                         ),
                         ("destination", destination),

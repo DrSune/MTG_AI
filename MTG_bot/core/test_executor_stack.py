@@ -151,7 +151,7 @@ def spell_rec(
 
 
 def any_target(n=1) -> Selector:
-    return Selector(QConst(n), SelectorMode.TARGET, UNIV, ANY_ZONE)
+    return Selector(QConst(n), SelectorMode.TARGET, UNIV, zones=(ANY_ZONE,))
 
 
 class StackCase(unittest.TestCase):
@@ -281,7 +281,7 @@ class TestCastPipeline(StackCase):
             SpellKind.INSTANT,
             effect=atom(
                 Verb.DEAL_DAMAGE,
-                target=Selector(QConst(1), SelectorMode.TARGET, CREATURE_F, BF_ANY),
+                target=Selector(QConst(1), SelectorMode.TARGET, CREATURE_F, zones=(BF_ANY,)),
                 amount=QConst(0),  # probe casts: the target must survive
             ),
         )
@@ -325,7 +325,7 @@ class TestCastPipeline(StackCase):
                     atom(
                         Verb.DEAL_DAMAGE,
                         target=Selector(
-                            QConst(1), SelectorMode.TARGET, CREATURE_F, BF_ANY
+                            QConst(1), SelectorMode.TARGET, CREATURE_F, zones=(BF_ANY,)
                         ),
                         amount=QConst(1),
                     ),
@@ -335,7 +335,7 @@ class TestCastPipeline(StackCase):
                             QConst(1),
                             SelectorMode.TARGET,
                             FAtom(FAtomPred.TYPE_EQ, string_value="Enchantment"),
-                            BF_ANY,
+                            zones=(BF_ANY,),
                         ),
                         amount=QConst(1),
                     ),
@@ -750,7 +750,7 @@ class TestEffectCast(StackCase):
     """The Verb.CAST atom (the finding: an EFFECT verb, cost-waiver idiom)."""
 
     def waiver(self):
-        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, ANY_ZONE)
+        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(ANY_ZONE,))
         return OptionalEffect(
             Atom(
                 verb=Verb.CAST,
@@ -759,7 +759,7 @@ class TestEffectCast(StackCase):
         )
 
     def full_cost(self):
-        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, ANY_ZONE)
+        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(ANY_ZONE,))
         return OptionalEffect(
             Atom(verb=Verb.CAST, args=AtomArgs(pairs=(("source", sel),)))
         )
@@ -843,7 +843,7 @@ class TestEffectCast(StackCase):
                     effect=atom(
                         Verb.DEAL_DAMAGE,
                         target=Selector(
-                            QConst(1), SelectorMode.TARGET, CREATURE_F, BF_ANY
+                            QConst(1), SelectorMode.TARGET, CREATURE_F, zones=(BF_ANY,)
                         ),
                         amount=QConst(1),
                     ),
@@ -882,7 +882,7 @@ class TestEffectCast(StackCase):
                 pairs=(
                     (
                         "source",
-                        Selector(QConst(1), SelectorMode.CHOOSE, UNIV, ANY_ZONE),
+                        Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(ANY_ZONE,)),
                     ),
                     ("cost", Cost(())),
                 )
@@ -959,9 +959,9 @@ class TestPayVerb(StackCase):
 
 class TestChooseVerb(StackCase):
     def duress(self, name="Duress"):
-        pool = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, HAND_OPP)
+        pool = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(HAND_OPP,))
         result = Selector(
-            QConst(1), SelectorMode.CHOOSE, UNIV, ANY_ZONE, referent="result"
+            QConst(1), SelectorMode.CHOOSE, UNIV, zones=(ANY_ZONE,), referent="result"
         )
         effect = Seq(
             (
@@ -992,7 +992,7 @@ class TestChooseVerb(StackCase):
                 pairs=(
                     (
                         "target",
-                        Selector(QConst(1), SelectorMode.CHOOSE, UNIV, HAND_OPP),
+                        Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(HAND_OPP,)),
                     ),
                 )
             ),
@@ -1009,9 +1009,9 @@ class TestChooseVerb(StackCase):
         self.assertTrue(any(e[1] == "CHOOSE" for e in self.ex.events))
 
     def test_kitesail_shape_exiles_the_pick(self):
-        pool = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, HAND_OPP)
+        pool = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(HAND_OPP,))
         result = Selector(
-            QConst(1), SelectorMode.CHOOSE, UNIV, ANY_ZONE, referent="result"
+            QConst(1), SelectorMode.CHOOSE, UNIV, zones=(ANY_ZONE,), referent="result"
         )
         effect = Seq(
             (
@@ -1080,7 +1080,7 @@ class TestChooseName(StackCase):
                         QConst(1),
                         SelectorMode.ALL,
                         FAtom(FAtomPred.NAME_CHOSEN),
-                        BF_ANY,
+                        zones=(BF_ANY,),
                     ),
                 ),
                 source=halo,
@@ -1397,7 +1397,7 @@ class TestEtBSeedPTFold(StackCase):
                 count=QX(),
                 counter_kind=CounterKind.PLUS_1_PLUS_1,
                 target=Selector(
-                    QConst(1), SelectorMode.CHOOSE, UNIV, ANY_ZONE, referent="event"
+                    QConst(1), SelectorMode.CHOOSE, UNIV, zones=(ANY_ZONE,), referent="event"
                 ),
             ),
         )

@@ -124,7 +124,7 @@ def _menu_decidable_at_active_seat(selector: Selector) -> bool:
     """Grammar-only seat check on a promoted ask site (no executor run)."""
     return all(
         zone.controller in _MENU_SEATS_AT_ACTIVE
-        for zone in (selector.zone, *selector.zones)
+        for zone in selector.zones
     )
 
 
@@ -280,7 +280,7 @@ class PromotionPredicateCensus(unittest.TestCase):
             self.assertTrue(
                 _menu_decidable_at_active_seat(sel),
                 f"L-27 class: ({name}, {verb}) promoted to an ask whose menu "
-                f"sits on {sel.zone.controller.name} seats — no candidate is "
+                f"sits on {sel.zones[0].controller.name} seats — no candidate is "
                 "answerable at the controller seat this ask fires at",
             )
         # Tripwire self-check 1 — it catches REAL L-27 arrivals: base-tree
@@ -302,7 +302,7 @@ class PromotionPredicateCensus(unittest.TestCase):
             count=QConst(1),
             mode=SelectorMode.ONE_OF,
             filter=FAnd(()),
-            zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ALL_OPPONENTS),
+            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ALL_OPPONENTS),),
         )
         self.assertFalse(_menu_decidable_at_active_seat(hostile))
 

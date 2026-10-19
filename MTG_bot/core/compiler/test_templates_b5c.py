@@ -1054,8 +1054,8 @@ class TestB5cIrStructure(unittest.TestCase):
         d = _pairs(atom)
         cards = d["cards"]
         self.assertIsInstance(cards, Selector)
-        self.assertIs(cards.zone.kind, ZoneKind.GRAVEYARD)
-        self.assertIs(cards.zone.controller, ControllerRef.YOU)
+        self.assertIs(cards.zones[0].kind, ZoneKind.GRAVEYARD)
+        self.assertIs(cards.zones[0].controller, ControllerRef.YOU)
         self.assertIsInstance(cards.filter, FOr)
         dest = d["destination"]
         self.assertIs(dest.kind, ZoneKind.HAND)
@@ -1168,8 +1168,8 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertEqual(len(by_pred), 2)
         self.assertIsInstance(by_pred[FAtomPred.CMC_LE].count, QX)
         self.assertEqual(by_pred[FAtomPred.COLOR_COUNT_GE].count, QConst(1))
-        self.assertIs(sel.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(sel.zone.controller, ControllerRef.ANY)
+        self.assertIs(sel.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(sel.zones[0].controller, ControllerRef.ANY)
 
     def test_loyalty_gain_draw_put_permanent_filter(self) -> None:
         """Ugin [−10]: put-up-to-seven selector filters permanent cards only."""
@@ -1188,8 +1188,8 @@ class TestB5cIrStructure(unittest.TestCase):
             )
         )
         self.assertEqual(sel.filter, expected)
-        self.assertIs(sel.zone.kind, ZoneKind.HAND)
-        self.assertIs(sel.zone.controller, ControllerRef.YOU)
+        self.assertIs(sel.zones[0].kind, ZoneKind.HAND)
+        self.assertIs(sel.zones[0].controller, ControllerRef.YOU)
 
     def test_loyalty_draw_discard_seq(self) -> None:
         seq = _as_seq(_activated_effect("B5c-loyalty-draw-discard"))
@@ -1260,7 +1260,7 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertEqual(amount.op, QBinOp.MUL)
         self.assertEqual(amount.left, QConst(2))
         self.assertIsInstance(amount.right, QCount)
-        self.assertIs(amount.right.selector.zone.kind, ZoneKind.GRAVEYARD)
+        self.assertIs(amount.right.selector.zones[0].kind, ZoneKind.GRAVEYARD)
 
     def test_loyalty_search_exile_seq(self) -> None:
         seq = _as_seq(_activated_effect("B5c-loyalty-search-exile"))
@@ -1288,8 +1288,8 @@ class TestB5cIrStructure(unittest.TestCase):
         cards = _pairs(discard)["cards"]
         self.assertIsInstance(cards.count, QUnbounded)
         self.assertIs(cards.mode, SelectorMode.ALL)
-        self.assertIs(cards.zone.kind, ZoneKind.HAND)
-        self.assertIs(cards.zone.controller, ControllerRef.YOU)
+        self.assertIs(cards.zones[0].kind, ZoneKind.HAND)
+        self.assertIs(cards.zones[0].controller, ControllerRef.YOU)
         # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
         self.assertIs(exile.verb, Verb.MOVE_ZONE)
         self.assertEqual(
@@ -1298,9 +1298,9 @@ class TestB5cIrStructure(unittest.TestCase):
         target = _pairs(exile)["target"]
         self.assertIs(target.mode, SelectorMode.TARGET)
         self.assertEqual(target.count, QConst(3))
-        self.assertIs(target.zone.kind, ZoneKind.LIBRARY)
-        self.assertIs(target.zone.controller, ControllerRef.YOU)
-        self.assertIs(target.zone.position, ZonePosition.TOP)
+        self.assertIs(target.zones[0].kind, ZoneKind.LIBRARY)
+        self.assertIs(target.zones[0].controller, ControllerRef.YOU)
+        self.assertIs(target.zones[0].position, ZonePosition.TOP)
 
     def test_loyalty_top_owner_library(self) -> None:
         atom = _as_atom(_activated_effect("B5c-loyalty-top-owner-library"))
@@ -1311,8 +1311,8 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertEqual(cards.count, QConst(1))
         self.assertIsInstance(cards.filter, FAtom)
         self.assertEqual(_as_fatom(cards.filter).string_value, "Creature")
-        self.assertIs(cards.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(cards.zone.controller, ControllerRef.ANY)
+        self.assertIs(cards.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(cards.zones[0].controller, ControllerRef.ANY)
         dest = d["destination"]
         self.assertIs(dest.kind, ZoneKind.LIBRARY)
         self.assertIs(dest.controller, ControllerRef.OWNER)
@@ -1328,8 +1328,8 @@ class TestB5cIrStructure(unittest.TestCase):
         source = _pairs(atom)["source"]
         self.assertIs(source.mode, SelectorMode.TARGET)
         self.assertEqual(source.count, QConst(1))
-        self.assertIs(source.zone.kind, ZoneKind.GRAVEYARD)
-        self.assertIs(source.zone.controller, ControllerRef.YOU)
+        self.assertIs(source.zones[0].kind, ZoneKind.GRAVEYARD)
+        self.assertIs(source.zones[0].controller, ControllerRef.YOU)
         # "red instant or sorcery" guard: COLOR_HAS red AND (Instant OR Sorcery).
         self.assertIsInstance(source.filter, FAnd)
         color = _as_fatom(_find_atom(source.filter, FAtomPred.COLOR_HAS))
@@ -1351,8 +1351,8 @@ class TestB5cIrStructure(unittest.TestCase):
         grant = _as_atom(ability.effect)
         self.assertIs(grant.verb, Verb.GRANT_ABILITY)
         target = _pairs(grant)["target"]
-        self.assertIs(target.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(target.zone.controller, ControllerRef.ANY)
+        self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(target.zones[0].controller, ControllerRef.ANY)
         self.assertEqual(
             target.filter,
             FAnd(
@@ -1456,7 +1456,7 @@ class TestB5cIrStructure(unittest.TestCase):
         for tid in ("B5c-bullet-counter-ability", "B5c-bullet-counter-spell"):
             atom = _as_atom(_as_effect(_match_outcome(tid)).effect)
             self.assertIs(atom.verb, Verb.COUNTER_SPELL)
-            self.assertIs(_pairs(atom)["target"].zone.kind, ZoneKind.STACK)
+            self.assertIs(_pairs(atom)["target"].zones[0].kind, ZoneKind.STACK)
 
     def test_bullet_create_token(self) -> None:
         atom = _as_atom(_as_effect(_match_outcome("B5c-bullet-create-token")).effect)
@@ -1498,7 +1498,7 @@ class TestB5cIrStructure(unittest.TestCase):
             atom = _as_atom(_as_effect(_match_outcome(tid)).effect)
             self.assertIs(atom.verb, Verb.DESTROY)
             target = _pairs(atom)["target"]
-            self.assertIs(target.zone.kind, ZoneKind.BATTLEFIELD)
+            self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
             self.assertEqual(
                 target.filter, FAtom(pred=FAtomPred.TYPE_EQ, string_value=subtype)
             )
@@ -1510,7 +1510,7 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertEqual(
             _pairs(atom)["destination"], Zone(ZoneKind.EXILE, ControllerRef.OWNER)
         )
-        self.assertIs(_pairs(atom)["target"].zone.kind, ZoneKind.GRAVEYARD)
+        self.assertIs(_pairs(atom)["target"].zones[0].kind, ZoneKind.GRAVEYARD)
 
     def test_bullet_return_nonland_hand(self) -> None:
         atom = _as_atom(
@@ -1525,8 +1525,8 @@ class TestB5cIrStructure(unittest.TestCase):
         inner = _as_fatom(cards.filter.inner)
         self.assertIs(inner.pred, FAtomPred.TYPE_EQ)
         self.assertEqual(inner.string_value, "Land")
-        self.assertIs(cards.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(cards.zone.controller, ControllerRef.ANY)
+        self.assertIs(cards.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(cards.zones[0].controller, ControllerRef.ANY)
         dest = d["destination"]
         self.assertIs(dest.kind, ZoneKind.HAND)
         self.assertIs(dest.controller, ControllerRef.OWNER)
@@ -1542,8 +1542,8 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertEqual(cards.count, QAtMost(2))
         self.assertIsInstance(cards.filter, FAtom)
         self.assertEqual(_as_fatom(cards.filter).string_value, "Creature")
-        self.assertIs(cards.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(cards.zone.controller, ControllerRef.ANY)
+        self.assertIs(cards.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(cards.zones[0].controller, ControllerRef.ANY)
         dest = d["destination"]
         self.assertIs(dest.kind, ZoneKind.HAND)
         self.assertIs(dest.controller, ControllerRef.OWNER)
@@ -1559,7 +1559,7 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertIs(target.mode, SelectorMode.CHOOSE)
         self.assertEqual(target.count, QConst(1))
         self.assertEqual(target.referent, "target")
-        self.assertIs(target.zone.kind, ZoneKind.ANY)
+        self.assertIs(target.zones[0].kind, ZoneKind.ANY)
         self.assertEqual(
             target.filter, FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
         )
@@ -1573,7 +1573,7 @@ class TestB5cIrStructure(unittest.TestCase):
         # never TARGET — the C-1 collapse fix.
         self.assertIs(target.mode, SelectorMode.CHOOSE)
         self.assertEqual(target.count, QConst(1))
-        self.assertIs(target.zone.kind, ZoneKind.BATTLEFIELD)
+        self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
         children = [c for c in target.filter.children if isinstance(c, (FAtom, FNot))]
         self.assertEqual(len(children), 2)
 
@@ -1705,7 +1705,7 @@ class TestB5cRound7BTopUps(unittest.TestCase):
         self.assertIs(target.mode, SelectorMode.CHOOSE)
         self.assertEqual(target.count, QConst(1))
         self.assertEqual(target.referent, "result")
-        self.assertIs(target.zone.kind, ZoneKind.ANY)
+        self.assertIs(target.zones[0].kind, ZoneKind.ANY)
 
     def test_damage_equal_power(self) -> None:
         """Hunter's Edge s2: DEAL_DAMAGE target = new TARGET creature-you-
@@ -1779,7 +1779,7 @@ class TestB5cRound9B(unittest.TestCase):
         assert isinstance(hand, Selector)
         self.assertIs(hand.mode, SelectorMode.ALL)
         self.assertIsInstance(hand.count, QUnbounded)
-        self.assertEqual(hand.zone, Zone(ZoneKind.HAND, ControllerRef.YOU))
+        self.assertEqual(hand.zones[0], Zone(ZoneKind.HAND, ControllerRef.YOU))
         dt = ability.effect
         assert isinstance(dt, DelayedTrigger)
         self.assertEqual(dt.duration, DurationEot())
@@ -1842,7 +1842,7 @@ class TestB5cRound10Herald(unittest.TestCase):
         assert isinstance(target, Selector)
         self.assertIs(target.mode, SelectorMode.ALL)
         self.assertIsInstance(target.count, QUnbounded)
-        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(target.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         assert isinstance(target.filter, FAnd)
         # R1a canonicalization: FAnd children construction-sorted; members by
         # pred, order by the canonicalization law.

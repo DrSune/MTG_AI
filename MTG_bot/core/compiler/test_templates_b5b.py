@@ -892,7 +892,7 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(p["controller"], ControllerRef.YOU)
         cards = p["cards"]
         self.assertIsInstance(cards, Selector)
-        self.assertEqual(cards.zone.kind, ZoneKind.HAND)
+        self.assertEqual(cards.zones[0].kind, ZoneKind.HAND)
 
     def test_cont_draw(self) -> None:
         """B5b-cont-draw: DRAW, YOU, QConst(1)."""
@@ -1165,7 +1165,7 @@ class TestStructuralAssertions(unittest.TestCase):
         # AMENDED r17-2 (geyser-FIX): "any target" is the battlefield
         # FOr(Creature, Planeswalker) idiom — hidden zones are not a
         # target population (CR 109.5); players join via widening.
-        self.assertEqual(target.zone.kind, ZoneKind.BATTLEFIELD)
+        self.assertEqual(target.zones[0].kind, ZoneKind.BATTLEFIELD)
         self.assertIsInstance(target.filter, FOr)
 
     # -- Zone moves --
@@ -1179,7 +1179,7 @@ class TestStructuralAssertions(unittest.TestCase):
         p = _pairs_dict(atom)
         cards = p["cards"]
         self.assertIsInstance(cards, Selector)
-        self.assertEqual(cards.zone.kind, ZoneKind.GRAVEYARD)
+        self.assertEqual(cards.zones[0].kind, ZoneKind.GRAVEYARD)
         dest = p["destination"]
         self.assertIsInstance(dest, Zone)
         self.assertEqual(dest.kind, ZoneKind.BATTLEFIELD)
@@ -1211,10 +1211,14 @@ class TestStructuralAssertions(unittest.TestCase):
         cards = p["cards"]
         self.assertIsInstance(cards, Selector)
         self.assertEqual(cards.mode, SelectorMode.TARGET)
-        self.assertEqual(cards.zone.kind, ZoneKind.STACK)
+        # R0 zone-fold: spell-on-stack OR permanent is ONE zone set;
+        # canonical order BATTLEFIELD < STACK.
         self.assertEqual(
             cards.zones,
-            (Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
+            (
+                Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),
+            ),
         )
         # Spell-or-creature disjunction: FOr(FNot(IS_PERMANENT), TYPE_EQ Creature)
         flt = cards.filter
@@ -1299,7 +1303,7 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(p["controller"], ControllerRef.TARGET_PLAYER)
         cards = p["cards"]
         self.assertIsInstance(cards, Selector)
-        self.assertEqual(cards.zone.kind, ZoneKind.HAND)
+        self.assertEqual(cards.zones[0].kind, ZoneKind.HAND)
 
     # -- Ability outcomes (activated abilities) --
 
@@ -1522,8 +1526,8 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(controller_ref.referent, "target")
         self.assertEqual(controller_ref.mode, SelectorMode.CHOOSE)
         self.assertEqual(controller_ref.count, QConst(1))
-        self.assertEqual(controller_ref.zone.kind, ZoneKind.ANY)
-        self.assertEqual(controller_ref.zone.controller, ControllerRef.ANY)
+        self.assertEqual(controller_ref.zones[0].kind, ZoneKind.ANY)
+        self.assertEqual(controller_ref.zones[0].controller, ControllerRef.ANY)
         delta = mod.delta
         assert isinstance(delta, CostDeltaIncreaseGeneric)
         self.assertEqual(delta.amount, QConst(3))
@@ -1616,8 +1620,8 @@ class TestStructuralAssertions(unittest.TestCase):
             self.fail(f"expected QCount power, got {type(power)}")
         cards = power.selector
         self.assertEqual(cards.mode, SelectorMode.ALL)
-        self.assertEqual(cards.zone.kind, ZoneKind.GRAVEYARD)
-        self.assertEqual(cards.zone.controller, ControllerRef.YOU)
+        self.assertEqual(cards.zones[0].kind, ZoneKind.GRAVEYARD)
+        self.assertEqual(cards.zones[0].controller, ControllerRef.YOU)
         filt = cards.filter
         if not isinstance(filt, FOr):
             self.fail(f"expected FOr filter, got {type(filt)}")
@@ -2014,7 +2018,15 @@ class TestRound7AnaphoraBatch(unittest.TestCase):
         self.assertEqual(sel.mode, SelectorMode.CHOOSE)
         self.assertIsInstance(sel.count, QUnbounded)
         self.assertIs(sel.filter.pred, FAtomPred.NAME_CHOSEN)
-        self.assertEqual(len(sel.zones), 2)
+        # R0 zone-fold: graveyard+hand+library is ONE 3-element set.
+        self.assertEqual(
+            sel.zones,
+            (
+                Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER),
+                Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER),
+                Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER),
+            ),
+        )
         exile = _as_atom(seq.steps[1])
         # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
         self.assertEqual(exile.verb, Verb.MOVE_ZONE)
@@ -2041,7 +2053,9 @@ class TestRound7AnaphoraBatch(unittest.TestCase):
         self.assertIsInstance(count, QCount)
         sel = count.selector
         self.assertIs(sel.mode, SelectorMode.ALL)
-        self.assertEqual(sel.zone, Zone(ZoneKind.EXILE, ControllerRef.TARGET_PLAYER))
+        self.assertEqual(
+            sel.zones[0], Zone(ZoneKind.EXILE, ControllerRef.TARGET_PLAYER)
+        )
         # R1a canonicalization: FAnd children construction-sorted; members by
         # pred, order by the canonicalization law.
         self.assertEqual(
@@ -2408,8 +2422,8 @@ class TestRound7BTopUps(unittest.TestCase):
         self.assertEqual(controller_sel.referent, "target")
         self.assertIs(controller_sel.mode, SelectorMode.CHOOSE)
         self.assertEqual(controller_sel.count, QConst(1))
-        self.assertIs(controller_sel.zone.kind, ZoneKind.ANY)
-        self.assertIs(controller_sel.zone.controller, ControllerRef.ANY)
+        self.assertIs(controller_sel.zones[0].kind, ZoneKind.ANY)
+        self.assertIs(controller_sel.zones[0].controller, ControllerRef.ANY)
 
 
 # ---------------------------------------------------------------------------

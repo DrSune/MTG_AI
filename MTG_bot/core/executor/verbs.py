@@ -245,7 +245,13 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         if (
             not partition
             and dest_kind == ZONE_HAND
-            and sel.zone.kind is ZoneKind.LIBRARY
+            # R0 zone-fold (/129 §2 L5): the top-n draw idiom is guarded by
+            # a SINGLETON-LIBRARY predicate on the zone set — deliberately
+            # NOT ∃: a LIBRARY∪GRAVEYARD (or HAND∪LIBRARY) selector is a
+            # SEARCH answer, and ∃-LIBRARY would let it take the blind
+            # top-n draw lane (the wave-1b firemaw over-draw class).
+            and len(sel.zones) == 1
+            and sel.zones[0].kind is ZoneKind.LIBRARY
             and sel.referent is None
             and universal
         ):

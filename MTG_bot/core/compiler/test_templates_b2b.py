@@ -1706,7 +1706,7 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.DEAL_DAMAGE)
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.TARGET)
-        assert isinstance(target.zone.kind, ZoneKind)
+        assert isinstance(target.zones[0].kind, ZoneKind)
         amount = _qprop(atom, "amount")
         self.assertEqual(amount.referent, "event")
         self.assertIs(amount.field, QPropField.AMOUNT)
@@ -1785,8 +1785,14 @@ class TestB2bEffectStructure(unittest.TestCase):
         assert isinstance(sel.filter, FAtom)
         self.assertIs(sel.filter.pred, FAtomPred.NAME_EQ)
         self.assertEqual(sel.filter.string_value, "Chandra, Flame's Catalyst")
-        self.assertEqual(sel.zone, Zone(ZoneKind.LIBRARY, ControllerRef.YOU))
-        self.assertEqual(sel.zones, (Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),))
+        # R0 zone-fold: ONE set; canonical order GRAVEYARD < LIBRARY.
+        self.assertEqual(
+            sel.zones,
+            (
+                Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+            ),
+        )
         self.assertEqual(
             search.args.get("destination"),
             Zone(ZoneKind.HAND, ControllerRef.YOU),
@@ -1804,7 +1810,7 @@ class TestB2bEffectStructure(unittest.TestCase):
         assert isinstance(move_sel.filter, FAtom)
         self.assertIs(move_sel.filter.pred, FAtomPred.IS_SOURCE)
         self.assertEqual(
-            move_sel.zone,
+            move_sel.zones[0],
             Zone(ZoneKind.LIBRARY, ControllerRef.YOU, position=ZonePosition.TOP),
         )
         self.assertEqual(
@@ -1869,7 +1875,7 @@ class TestB2bEffectStructure(unittest.TestCase):
         idiom = target.filter
         assert isinstance(idiom, FOr)
         self.assertEqual(len(idiom.children), 3)
-        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(target.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         amount = _qprop(atom, "amount")
         self.assertEqual(amount.referent, "event")
         self.assertIs(amount.field, QPropField.POWER)
@@ -2144,7 +2150,7 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertEqual(basic.string_value, "Basic")
         land = _find_atom(cards.filter, FAtomPred.TYPE_EQ)
         self.assertEqual(land.string_value, "Land")
-        self.assertEqual(cards.zone, Zone(ZoneKind.LIBRARY, ControllerRef.YOU))
+        self.assertEqual(cards.zones[0], Zone(ZoneKind.LIBRARY, ControllerRef.YOU))
         dest = search.args.get("destination")
         self.assertEqual(dest, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
         self.assertIs(search.args.get("tapped_on_enter"), True)
@@ -2242,7 +2248,7 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertEqual(selector.referent, "event")
         self.assertEqual(selector.count, QConst(1))
         self.assertIs(selector.mode, SelectorMode.CHOOSE)
-        self.assertEqual(selector.zone, Zone(ZoneKind.ANY, ControllerRef.ANY))
+        self.assertEqual(selector.zones[0], Zone(ZoneKind.ANY, ControllerRef.ANY))
         assert isinstance(selector.filter, FAnd)
         self.assertEqual(len(selector.filter.children), 0)
         return selector
@@ -2293,7 +2299,7 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIs(amount.field, QPropField.AMOUNT)
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.TARGET)
-        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(target.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         assert isinstance(target.filter, FAnd)
         self.assertEqual(len(target.filter.children), 2)
         controller_atom = _find_atom(target.filter, FAtomPred.CONTROLLER_IS)
@@ -2479,7 +2485,7 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.GRANT_ABILITY)
         target = _selector(atom, "target")
         # b2b self-reference convention: battlefield zone, ANY controller.
-        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(target.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         assert isinstance(target.filter, FAtom)
         self.assertIs(target.filter.pred, FAtomPred.IS_SOURCE)
         keyword = atom.args.get("ability")
@@ -2504,7 +2510,7 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIs(effect.verb, Verb.DEAL_DAMAGE)
         target = _selector(effect, "target")
         self.assertIs(target.mode, SelectorMode.CHOOSE)
-        self.assertEqual(target.zone, Zone(ZoneKind.PLAYER, ControllerRef.YOU))
+        self.assertEqual(target.zones[0], Zone(ZoneKind.PLAYER, ControllerRef.YOU))
         self.assertEqual(_qconst(effect, "amount").value, 1)
 
     def _assert_has_subtype_dog_like(self, a_filter: Filter) -> None:
@@ -2589,7 +2595,7 @@ class TestB2bRound9BDoContinuation(unittest.TestCase):
             count=QConst(1),
             mode=SelectorMode.TARGET,
             filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-            zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
         )
 
     def test_s2_structure_choose_one_of_two_under_may(self) -> None:

@@ -1141,7 +1141,7 @@ def spell_target_slots(
                     count=QConst(1),
                     mode=SelectorMode.TARGET,
                     filter=FAnd(()),
-                    zone=Zone(ZoneKind.PLAYER, ControllerRef.TARGET_PLAYER),
+                    zones=(Zone(ZoneKind.PLAYER, ControllerRef.TARGET_PLAYER),),
                 ),
                 candidates=opponents,
                 min_count=1,
@@ -1224,7 +1224,7 @@ def activation_target_slots(
                     count=QConst(1),
                     mode=SelectorMode.TARGET,
                     filter=FAnd(()),
-                    zone=Zone(ZoneKind.PLAYER, ControllerRef.TARGET_PLAYER),
+                    zones=(Zone(ZoneKind.PLAYER, ControllerRef.TARGET_PLAYER),),
                 ),
                 candidates=opponents,
                 min_count=1,
@@ -1312,7 +1312,7 @@ def _player_widening_applies(selector: Selector) -> bool:
     r17-2 battlefield "any target" idiom (FOr Creature/Planeswalker over
     BATTLEFIELD zones only). Both are population answers — neither
     evaluates a predicate on a player handle."""
-    zones = [selector.zone, *selector.zones]
+    zones = list(selector.zones)  # R0: the zones field IS the legal-zone set
     if _is_universal(selector.filter) and any(z.kind is ZoneKind.ANY for z in zones):
         return True
     return _is_any_target_idiom(selector.filter) and all(
@@ -1417,7 +1417,7 @@ def aura_enchant_slot(
         count=QConst(1),
         mode=SelectorMode.TARGET,
         filter=enchant_filter if enchant_filter is not None else FAnd(()),
-        zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
     )
     slot = legal_targets(
         world,

@@ -126,7 +126,7 @@ def _target_creature() -> Selector:
         QConst(1),
         SelectorMode.TARGET,
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -142,7 +142,7 @@ def _target_creature_you_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -159,7 +159,7 @@ def _target_creature_or_planeswalker() -> Selector:
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -209,7 +209,7 @@ def _creatures_you_control_all() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -225,7 +225,7 @@ def _creatures_opponents_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -241,7 +241,7 @@ def _equipped_creature() -> Selector:
                 FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -355,7 +355,7 @@ def _build_destroy_artifact_enchantment_flying(m: re.Match[str]) -> SentenceOutc
                                 ),
                             )
                         ),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
                     ),
                 ),
             )
@@ -536,7 +536,7 @@ def _build_counter_noncreature(m: re.Match[str]) -> SentenceOutcome:
                         FNot(
                             inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
                         ),
-                        Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
                     ),
                 ),
             )

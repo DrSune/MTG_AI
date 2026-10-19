@@ -1027,7 +1027,9 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(put.args.get("counter_kind"), CounterKind.PLUS_1_PLUS_1)
         target = _selector(put, "target")
         self.assertIs(target.mode, SelectorMode.ALL)
-        self.assertEqual(_zone(target.zone), (ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(
+            _zone(target.zones[0]), (ZoneKind.BATTLEFIELD, ControllerRef.ANY)
+        )
         self.assertEqual(
             _find_atom(target.filter, FAtomPred.TYPE_EQ).string_value, "Creature"
         )
@@ -1048,7 +1050,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         cards = _selector(atom, "cards")
         self.assertIs(cards.mode, SelectorMode.TARGET)
         self.assertEqual(cards.count, QConst(1))
-        self.assertEqual(cards.zone, Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY))
+        self.assertEqual(cards.zones[0], Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY))
         self.assertEqual(
             _find_atom(cards.filter, FAtomPred.TYPE_EQ).string_value, "Creature"
         )
@@ -1075,7 +1077,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         )
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.TARGET)
-        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(target.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
 
     def test_dire_fleet_sacrifices_another_not_source(self) -> None:
         ability = _ability(
@@ -1109,7 +1111,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         qcount = _qcount(create, "count")
         selector = qcount.selector
         self.assertIs(selector.mode, SelectorMode.ALL)
-        self.assertEqual(selector.zone, Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY))
+        self.assertEqual(selector.zones[0], Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY))
         self.assertEqual(
             _find_atom(selector.filter, FAtomPred.TYPE_EQ).string_value, "Creature"
         )
@@ -1141,7 +1143,7 @@ class TestB2aEffectStructure(unittest.TestCase):
                             QConst(1),
                             SelectorMode.CHOOSE,
                             FAtom(pred=FAtomPred.IS_SOURCE),
-                            Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                         )
                     ),
                 )
@@ -1188,7 +1190,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(search.verb, Verb.SEARCH)
         cards = _selector(search, "cards")
         self.assertIs(cards.mode, SelectorMode.CHOOSE)
-        self.assertEqual(cards.zone, Zone(ZoneKind.LIBRARY, ControllerRef.YOU))
+        self.assertEqual(cards.zones[0], Zone(ZoneKind.LIBRARY, ControllerRef.YOU))
         self.assertEqual(
             _find_atom(cards.filter, FAtomPred.TYPE_EQ).string_value, "Creature"
         )
@@ -1215,7 +1217,9 @@ class TestB2aEffectStructure(unittest.TestCase):
         qcount = _qcount(atom, "amount")
         selector = qcount.selector
         self.assertIs(selector.mode, SelectorMode.ALL)
-        self.assertEqual(selector.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(
+            selector.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
+        )
         self.assertEqual(
             _find_atom(selector.filter, FAtomPred.TYPE_EQ).string_value, "Shrine"
         )
@@ -1313,7 +1317,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         assert isinstance(right, QCount)
         self.assertIs(right.selector.mode, SelectorMode.ALL)
         self.assertEqual(
-            right.selector.zone, Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)
+            right.selector.zones[0], Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)
         )
         self.assertEqual(
             _find_atom(right.selector.filter, FAtomPred.TYPE_EQ).string_value,
@@ -1411,7 +1415,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         atom = _atom(ability)
         self.assertIs(atom.verb, Verb.MOVE_ZONE)
         cards = _selector(atom, "cards")
-        self.assertEqual(cards.zone, Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU))
+        self.assertEqual(cards.zones[0], Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU))
         self.assertTrue(_contains_or(cards.filter))
         self.assertEqual(
             {a.string_value for a in _leaf_atoms(cards.filter)}, {"Instant", "Sorcery"}
@@ -1481,7 +1485,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertEqual(_qconst(atom, "amount"), QConst(2))
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.ALL)
-        self.assertEqual(target.zone, Zone(ZoneKind.PLAYER, ControllerRef.OPPONENT))
+        self.assertEqual(target.zones[0], Zone(ZoneKind.PLAYER, ControllerRef.OPPONENT))
 
     def test_carrion_grub_mills_four_cards(self) -> None:
         ability = _ability(
@@ -1516,7 +1520,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(target.mode, SelectorMode.TARGET)
         self.assertEqual(target.count, QAtMost(2))  # C17 (round 8)
         self.assertTrue(_contains_not(target.filter, FAtomPred.IS_SOURCE))
-        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(target.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
 
     def test_basris_lieutenant_put_counter_on_target(self) -> None:
         ability = _ability(
@@ -1570,7 +1574,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         right = qbin.right
         assert isinstance(right, QCount)
         self.assertEqual(
-            right.selector.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
+            right.selector.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
         )
         keyword_atom = _find_atom(right.selector.filter, FAtomPred.KEYWORD_HAS)
         self.assertIs(keyword_atom.keyword, Keyword.FLYING)
@@ -1589,7 +1593,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         assert isinstance(sacrifice, Atom)
         self.assertIs(sacrifice.verb, Verb.SACRIFICE)
         self.assertEqual(
-            _selector(sacrifice, "target").zone,
+            _selector(sacrifice, "target").zones[0],
             Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
         )
         discard = choose.options[1]
@@ -1604,7 +1608,7 @@ class TestB2aEffectStructure(unittest.TestCase):
             discard.args.get("from"), Zone(ZoneKind.HAND, ControllerRef.YOU)
         )
         self.assertEqual(
-            _selector(discard, "cards").zone, Zone(ZoneKind.HAND, ControllerRef.YOU)
+            _selector(discard, "cards").zones[0], Zone(ZoneKind.HAND, ControllerRef.YOU)
         )
 
     def test_capture_sphere_taps_attached_creature(self) -> None:
@@ -1638,7 +1642,7 @@ class TestB2aEffectStructure(unittest.TestCase):
             Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
         )
         self.assertEqual(
-            _selector(discard, "cards").zone, Zone(ZoneKind.HAND, ControllerRef.YOU)
+            _selector(discard, "cards").zones[0], Zone(ZoneKind.HAND, ControllerRef.YOU)
         )
 
     def test_solemn_simulacrum_may_draw(self) -> None:
@@ -1666,7 +1670,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         # hiding in a hidden zone. The card side is the battlefield
         # population with the FOr type idiom; the player side joins via
         # the engine's idiom widening (query._widen_any_target).
-        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(target.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         self.assertIsInstance(target.filter, FOr)
 
     def test_lilianas_standard_bearer_draws_qcount(self) -> None:
@@ -1680,7 +1684,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.DRAW)
         qcount = _qcount(atom, "amount")
         self.assertEqual(
-            qcount.selector.zone, Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)
+            qcount.selector.zones[0], Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)
         )
         self.assertIn(
             FAtomPred.DIED_THIS_TURN,
@@ -1719,7 +1723,7 @@ class TestB2aEffectStructure(unittest.TestCase):
             _find_atom(cards.filter, FAtomPred.CONTROLLER_IS).who, ControllerRef.YOU
         )
         self.assertTrue(_contains_not(cards.filter, FAtomPred.IS_SOURCE))
-        self.assertEqual(cards.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(cards.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         self.assertEqual(
             atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.ANY)
         )
@@ -1761,7 +1765,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(target.mode, SelectorMode.TARGET)
         # AMENDED r17-2 (geyser-FIX): battlefield idiom shape (see the
         # Goblin Arsonist pin) — "any target" never reaches hidden zones.
-        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(target.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         self.assertIsInstance(target.filter, FOr)
 
     def test_skeleton_archer_deals_one_to_any_target(self) -> None:
@@ -1776,7 +1780,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         # AMENDED r17-2 (geyser-FIX): battlefield idiom shape (see the
         # Goblin Arsonist pin) — "any target" never reaches hidden zones.
         target = _selector(atom, "target")
-        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(target.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         self.assertIsInstance(target.filter, FOr)
 
     def test_faiths_fetters_gains_four_life(self) -> None:
@@ -1813,7 +1817,9 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertEqual(_qconst(atom, "count"), QConst(1))
         target = _selector(atom, "target")
         self.assertEqual(target.filter, FAtom(pred=FAtomPred.IS_SOURCE))
-        self.assertEqual(_zone(target.zone), (ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(
+            _zone(target.zones[0]), (ZoneKind.BATTLEFIELD, ControllerRef.ANY)
+        )
 
     def test_lilianas_devotee_may_pay_generic_plus_black(self) -> None:
         ability = _ability(
@@ -1854,7 +1860,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertEqual(target.count, QConst(1))
         self.assertEqual(target.filter, FAnd(children=()))
         self.assertEqual(
-            target.zone, Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP)
+            target.zones[0], Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP)
         )
 
     def test_sanctum_of_all_may_search_library_and_graveyard(self) -> None:
@@ -1872,8 +1878,14 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertEqual(
             _find_atom(cards.filter, FAtomPred.TYPE_EQ).string_value, "Shrine"
         )
-        self.assertEqual(cards.zone, Zone(ZoneKind.LIBRARY, ControllerRef.YOU))
-        self.assertEqual(cards.zones, (Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),))
+        # R0 zone-fold: ONE set; canonical order GRAVEYARD < LIBRARY.
+        self.assertEqual(
+            cards.zones,
+            (
+                Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+            ),
+        )
         self.assertEqual(
             atom.args.get("destination"),
             Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
@@ -1902,7 +1914,9 @@ class TestB2aEffectStructure(unittest.TestCase):
             _find_atom(target.filter, FAtomPred.CONTROLLER_IS).who,
             ControllerRef.YOU,
         )
-        self.assertEqual(_zone(target.zone), (ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(
+            _zone(target.zones[0]), (ZoneKind.BATTLEFIELD, ControllerRef.ANY)
+        )
 
     def test_turret_ogre_deals_two_to_each_opponent(self) -> None:
         ability = _ability(
@@ -1919,7 +1933,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.ALL)
         self.assertEqual(target.count, QUnbounded())
-        self.assertEqual(target.zone, Zone(ZoneKind.PLAYER, ControllerRef.OPPONENT))
+        self.assertEqual(target.zones[0], Zone(ZoneKind.PLAYER, ControllerRef.OPPONENT))
 
     def test_griffin_aerie_creates_flying_griffin_token(self) -> None:
         ability = _ability(
@@ -1970,7 +1984,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertEqual(cards.count, QConst(1))
         self.assertIs(cards.mode, SelectorMode.CHOOSE)
         self.assertEqual(cards.filter, FAtom(pred=FAtomPred.IS_SOURCE))
-        self.assertEqual(cards.zone, Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU))
+        self.assertEqual(cards.zones[0], Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU))
         self.assertEqual(
             atom.args.get("destination"), Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)
         )
@@ -2011,7 +2025,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(atom.args.get("counter_kind"), CounterKind.LOYALTY)
         self.assertEqual(_qconst(atom, "count").value, 1)
         target = _selector(atom, "target")
-        self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        self.assertEqual(target.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         assert isinstance(target.filter, FAnd)
         name = _find_atom(target.filter, FAtomPred.NAME_CONTAINS)
         self.assertEqual(name.string_value, "Liliana")
@@ -2085,8 +2099,8 @@ class TestB2aRound7Batch(unittest.TestCase):
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.ALL)
         self.assertIsInstance(target.count, QUnbounded)
-        self.assertIs(target.zone.kind, ZoneKind.GRAVEYARD)
-        self.assertIs(target.zone.controller, ControllerRef.YOU)
+        self.assertIs(target.zones[0].kind, ZoneKind.GRAVEYARD)
+        self.assertIs(target.zones[0].controller, ControllerRef.YOU)
 
 
 # ---------------------------------------------------------------------------

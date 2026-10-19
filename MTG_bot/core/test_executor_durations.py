@@ -82,7 +82,7 @@ CREATURE = FAtom(FAtomPred.TYPE_EQ, string_value="Creature")
 
 
 def target_sel(filter_=UNIV) -> Selector:
-    return Selector(QConst(1), SelectorMode.TARGET, filter_, BF_ANY)
+    return Selector(QConst(1), SelectorMode.TARGET, filter_, zones=(BF_ANY,))
 
 
 def modify_pt(delta_p=0, delta_t=0, duration=None) -> Atom:

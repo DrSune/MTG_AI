@@ -179,14 +179,14 @@ class LookWindowTest(BindingCase):
                             atom(
                                 Verb.MOVE_ZONE,
                                 cards=Selector(
-                                    QConst(1), SelectorMode.ONE_OF, UNIV, _lib_top()
+                                    QConst(1), SelectorMode.ONE_OF, UNIV, zones=(_lib_top(),)
                                 ),
                                 destination=HAND_YOU,
                             ),
                             atom(
                                 Verb.MOVE_ZONE,
                                 cards=Selector(
-                                    QConst(1), SelectorMode.REST, UNIV, _lib_top()
+                                    QConst(1), SelectorMode.REST, UNIV, zones=(_lib_top(),)
                                 ),
                                 destination=_lib_bottom(),
                             ),
@@ -216,7 +216,7 @@ class LookWindowTest(BindingCase):
                         atom(
                             Verb.MOVE_ZONE,
                             cards=Selector(
-                                QConst(1), SelectorMode.ONE_OF, UNIV, _lib_top()
+                                QConst(1), SelectorMode.ONE_OF, UNIV, zones=(_lib_top(),)
                             ),
                             destination=HAND_YOU,
                         ),
@@ -242,14 +242,14 @@ class LookWindowTest(BindingCase):
                             atom(
                                 Verb.MOVE_ZONE,
                                 cards=Selector(
-                                    QConst(1), SelectorMode.ONE_OF, UNIV, _lib_top()
+                                    QConst(1), SelectorMode.ONE_OF, UNIV, zones=(_lib_top(),)
                                 ),
                                 destination=_lib_top(),
                             ),
                             atom(
                                 Verb.MOVE_ZONE,
                                 cards=Selector(
-                                    QConst(1), SelectorMode.REST, UNIV, _lib_top()
+                                    QConst(1), SelectorMode.REST, UNIV, zones=(_lib_top(),)
                                 ),
                                 destination=_lib_bottom(),
                             ),
@@ -315,7 +315,7 @@ class AttachedAnaphoraTest(BindingCase):
                     QConst(1),
                     SelectorMode.ALL,
                     FAtom(FAtomPred.IS_ATTACHED_TO, referent="target"),
-                    BF_ANY,
+                    zones=(BF_ANY,),
                 ),
             ),
             source=self.spell,
@@ -352,7 +352,7 @@ class DiscardCostTest(unittest.TestCase):
             name,
             SpellKind.INSTANT,
             cost=Cost(
-                (CostDiscard(Selector(QConst(1), SelectorMode.ALL, UNIV, HAND_YOU)),)
+                (CostDiscard(Selector(QConst(1), SelectorMode.ALL, UNIV, zones=(HAND_YOU,))),)
             ),
             effect=atom(Verb.DRAW, controller=ControllerRef.YOU, amount=QConst(2)),
         )

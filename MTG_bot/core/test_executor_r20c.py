@@ -69,7 +69,7 @@ def self_discard_cost() -> Cost:
     """The cycling-shape printed cost: "Discard this card" — a CHOOSE
     selector over the controller's HAND filtered on IS_SOURCE."""
     return cost(
-        CostDiscard(Selector(QConst(1), SelectorMode.CHOOSE, IS_SOURCE, HAND_YOU))
+        CostDiscard(Selector(QConst(1), SelectorMode.CHOOSE, IS_SOURCE, zones=(HAND_YOU,)))
     )
 
 
@@ -132,7 +132,7 @@ class TestDiscardPaymentSelfLane(LegalityCase):
             ctx,
             cost(
                 CostDiscard(
-                    Selector(QConst(1), SelectorMode.CHOOSE, IS_SOURCE, HAND_YOU)
+                    Selector(QConst(1), SelectorMode.CHOOSE, IS_SOURCE, zones=(HAND_YOU,))
                 )
             ),
         )
@@ -160,7 +160,7 @@ class TestDiscardPaymentSelfLane(LegalityCase):
     @staticmethod
     def discard_generic() -> Cost:
         return cost(
-            CostDiscard(Selector(QConst(1), SelectorMode.CHOOSE, UNIV, HAND_YOU))
+            CostDiscard(Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(HAND_YOU,)))
         )
 
 
@@ -187,7 +187,7 @@ class TestSelfRefSelectorRole(LegalityCase):
             controller=self.p0,
             bindings={"target": [self.beta]},
         )
-        sel = Selector(QConst(1), SelectorMode.CHOOSE, IS_SOURCE, BF_YOU)
+        sel = Selector(QConst(1), SelectorMode.CHOOSE, IS_SOURCE, zones=(BF_YOU,))
         self.assertEqual(
             role_handles(ctx, self.put_counter_atom(sel), "target"), [self.alpha]
         )
@@ -200,7 +200,7 @@ class TestSelfRefSelectorRole(LegalityCase):
             controller=self.p0,
             bindings={"target": [self.beta]},
         )
-        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, BF_YOU)
+        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(BF_YOU,))
         self.assertEqual(
             role_handles(ctx, self.put_counter_atom(sel), "target"), [self.beta]
         )

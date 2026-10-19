@@ -73,13 +73,13 @@ IS_TAPPED = FAtom(FAtomPred.IS_TAPPED)
 
 
 def target_sel(filter_: object = UNIV) -> Selector:
-    return Selector(QConst(1), SelectorMode.TARGET, filter_, BF_ANY)  # pyright: ignore[reportArgumentType]
+    return Selector(QConst(1), SelectorMode.TARGET, filter_, zones=(BF_ANY,))  # pyright: ignore[reportArgumentType]
 
 
 def scope_you() -> Selector:
     """An anthem's affected set: ALL creatures you control (CHOOSE-mode
     like the compiled payloads, resolved at recompute)."""
-    return Selector(QConst(99), SelectorMode.ALL, CREATURE, BF_YOU)
+    return Selector(QConst(99), SelectorMode.ALL, CREATURE, zones=(BF_YOU,))
 
 
 def modify_all(pt_p=0, pt_t=0) -> Atom:
@@ -341,7 +341,7 @@ class TestKeywordLayers(LayerCase):
                             QConst(1),
                             SelectorMode.CHOOSE,
                             FAtom(FAtomPred.NAME_EQ, string_value="Alpha"),
-                            BF_ANY,
+                            zones=(BF_ANY,),
                         ),
                         ability=KeywordAbility(Keyword.HASTE),
                     ),

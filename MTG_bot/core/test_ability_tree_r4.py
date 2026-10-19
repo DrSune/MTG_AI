@@ -42,11 +42,11 @@ import MTG_bot.core.test_ability_tree_r3 as R3
 
 _STACK_ANY = at.Zone(at.ZoneKind.STACK, at.ControllerRef.ANY)
 _TARGET_SPELL = at.Selector(
-    at.QConst(1), at.SelectorMode.TARGET, at.FAtom(at.FAtomPred.IS_SOURCE), _STACK_ANY
+    at.QConst(1), at.SelectorMode.TARGET, at.FAtom(at.FAtomPred.IS_SOURCE), zones=(_STACK_ANY,)
 )
 _CREATURE = at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature")
 _BF_YOU = at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU)
-_CREATURE_BF = at.Selector(at.QConst(1), at.SelectorMode.TARGET, _CREATURE, _BF_YOU)
+_CREATURE_BF = at.Selector(at.QConst(1), at.SelectorMode.TARGET, _CREATURE, zones=(_BF_YOU,))
 _CM_FILTER = at.FAtom(at.FAtomPred.IS_PERMANENT)
 _CM_DELTA = at.CostDeltaReduceGeneric(at.QConst(2))
 
@@ -164,22 +164,22 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "activated_cond",
         _activated_cond,
-        "9ef3d1d71b7c0b98773dd4299f710366160955f2efa769901e9054e2bc643b55",
+        "4f09b7dc65f97a05f4aa1d0268eed05dacdf0de8bc473af7446382ff4ed9e1e1",
     ),
     (
         "activated_bare",
         _activated_bare,
-        "19003c3b8b67d6833d4e4f0679c507752ad3fbac2d0ce7f4cf18b855968bfdb7",
+        "4dbd1feb5bf348de49980e8a716609b481e935d8151a80ecbe76dee6773cfd3b",
     ),
     (
         "counter_unless",
         _counter_unless,
-        "57f0b11c2088a63ba2a3679249aa8bf54ce091b56876595fa297f5bb723e07b6",
+        "aa1736ad794ce87cce46b30ffde80554d0cccc18506fcf409de43695cc8e6d68",
     ),
     (
         "counter_bare",
         _counter_bare,
-        "97583748d416239658ff74186fd775536eed29c044acae0e07853b0280d4cc1f",
+        "5b9a95ac5d13e8e153c999adcd8c116978699b0ec7bbd2105759a3e42e78f39d",
     ),
     (
         "cm_no_extra",

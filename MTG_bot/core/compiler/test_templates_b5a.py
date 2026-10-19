@@ -907,8 +907,8 @@ class TestStructuralAssertions(unittest.TestCase):
         if not isinstance(flt, FAnd):
             self.fail(f"expected FAnd filter, got {type(flt)}")
         self.assertEqual(len(flt.children), 0)
-        self.assertEqual(sel.zone.kind, ZoneKind.HAND)
-        self.assertEqual(sel.zone.controller, ControllerRef.YOU)
+        self.assertEqual(sel.zones[0].kind, ZoneKind.HAND)
+        self.assertEqual(sel.zones[0].controller, ControllerRef.YOU)
 
     def test_additional_cost_sacrifice_structure(self) -> None:
         """B5a-addl-cost-sacrifice: AdditionalCostOutcome, CostSacrifice(Creature)."""
@@ -943,8 +943,8 @@ class TestStructuralAssertions(unittest.TestCase):
             ),
             f"missing CONTROLLER_IS YOU atom in {flt}",
         )
-        self.assertEqual(sel.zone.kind, ZoneKind.BATTLEFIELD)
-        self.assertEqual(sel.zone.controller, ControllerRef.ANY)
+        self.assertEqual(sel.zones[0].kind, ZoneKind.BATTLEFIELD)
+        self.assertEqual(sel.zones[0].controller, ControllerRef.ANY)
 
     def test_add_six_r(self) -> None:
         """B5a-add-six-r: EffectOutcome, ADD_MANA amount=6 color=R."""
@@ -998,7 +998,7 @@ class TestStructuralAssertions(unittest.TestCase):
         target = p["target"]
         self.assertIsInstance(target, Selector)
         self.assertEqual(target.mode, SelectorMode.TARGET)
-        self.assertEqual(target.zone.kind, ZoneKind.STACK)
+        self.assertEqual(target.zones[0].kind, ZoneKind.STACK)
 
     def test_weird_token(self) -> None:
         """B5a-weird-token: CREATE_TOKEN, QCount P/T, Weird TokenSpec."""
@@ -1062,7 +1062,7 @@ class TestStructuralAssertions(unittest.TestCase):
             target = p["target"]
             self.assertIsInstance(target, Selector, f"{tid}")
             self.assertEqual(target.mode, SelectorMode.TARGET, f"{tid}")
-            self.assertEqual(target.zone.kind, ZoneKind.BATTLEFIELD, f"{tid}")
+            self.assertEqual(target.zones[0].kind, ZoneKind.BATTLEFIELD, f"{tid}")
 
     def test_exile_family(self) -> None:
         """B5a-exile-*: merged MOVE_ZONE verb (T4 P1a), TARGET selector."""
@@ -1524,8 +1524,8 @@ class TestStructuralAssertions(unittest.TestCase):
         target = p["target"]
         self.assertIsInstance(target, Selector)
         self.assertEqual(target.mode, SelectorMode.TARGET)
-        self.assertEqual(target.zone.kind, ZoneKind.STACK)
-        self.assertEqual(target.zone.controller, ControllerRef.ANY)
+        self.assertEqual(target.zones[0].kind, ZoneKind.STACK)
+        self.assertEqual(target.zones[0].controller, ControllerRef.ANY)
         filt = target.filter
         self.assertIsInstance(filt, FOr)
         self.assertEqual(len(filt.children), 2)
@@ -1553,7 +1553,7 @@ class TestStructuralAssertions(unittest.TestCase):
         target = p["target"]
         self.assertIsInstance(target, Selector)
         self.assertEqual(target.mode, SelectorMode.TARGET)
-        self.assertEqual(target.zone.kind, ZoneKind.STACK)
+        self.assertEqual(target.zones[0].kind, ZoneKind.STACK)
         filt = target.filter
         self.assertIsInstance(filt, FAnd)
         self.assertEqual(len(filt.children), 0)
@@ -1732,8 +1732,8 @@ class TestStructuralAssertions(unittest.TestCase):
         cd = ab.cost.parts[0]
         if not isinstance(cd, CostDiscard):
             self.fail(f"expected CostDiscard, got {type(cd)}")
-        self.assertEqual(cd.target.zone.kind, ZoneKind.HAND)
-        self.assertEqual(cd.target.zone.controller, ControllerRef.YOU)
+        self.assertEqual(cd.target.zones[0].kind, ZoneKind.HAND)
+        self.assertEqual(cd.target.zones[0].controller, ControllerRef.YOU)
         atom = ab.effect
         if not isinstance(atom, Atom):
             self.fail(f"expected Atom effect, got {type(atom)}")

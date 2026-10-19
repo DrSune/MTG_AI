@@ -59,7 +59,7 @@ def _kicker_selector() -> Selector:
         count=QConst(1),
         mode=SelectorMode.TARGET,
         filter=FAtom(pred=FAtomPred.HAS_KICKER),
-        zone=Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
+        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),
     )
 
 

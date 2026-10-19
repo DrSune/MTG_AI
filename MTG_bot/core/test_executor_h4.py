@@ -82,10 +82,10 @@ class H4PartitionJournalTest(unittest.TestCase):
         return Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP)
 
     def _one_of_top(self) -> Selector:
-        return Selector(QConst(1), SelectorMode.ONE_OF, UNIV, self._lib_top_zone())
+        return Selector(QConst(1), SelectorMode.ONE_OF, UNIV, zones=(self._lib_top_zone(),))
 
     def _rest_top(self) -> Selector:
-        return Selector(QConst(1), SelectorMode.REST, UNIV, self._lib_top_zone())
+        return Selector(QConst(1), SelectorMode.REST, UNIV, zones=(self._lib_top_zone(),))
 
     def test_one_of_partition_emits_mode_verb_audit_row(self) -> None:
         top = self._card("Top Card", zone=ZONE_LIBRARY)
@@ -148,7 +148,7 @@ class H4PartitionJournalTest(unittest.TestCase):
                                 QConst(1),
                                 SelectorMode.CHOOSE,
                                 UNIV,
-                                Zone(ZoneKind.ANY, ControllerRef.ANY),
+                                zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
                                 referent="source",
                             ),
                         ),

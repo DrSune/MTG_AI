@@ -86,14 +86,14 @@ class PositionalMultiSlotTest(StackCase):
                     atom(
                         Verb.DEAL_DAMAGE,
                         target=Selector(
-                            QConst(1), SelectorMode.TARGET, CREATURE_F, BF_YOU
+                            QConst(1), SelectorMode.TARGET, CREATURE_F, zones=(BF_YOU,)
                         ),
                         amount=QConst(1),
                     ),
                     atom(
                         Verb.DEAL_DAMAGE,
                         target=Selector(
-                            QConst(1), SelectorMode.TARGET, CREATURE_F, BF_ANY
+                            QConst(1), SelectorMode.TARGET, CREATURE_F, zones=(BF_ANY,)
                         ),
                         amount=QConst(2),
                     ),
@@ -159,7 +159,7 @@ class ForcedAutoDesignationTest(StackCase):
             SpellKind.INSTANT,
             effect=atom(
                 Verb.DEAL_DAMAGE,
-                target=Selector(QConst(1), SelectorMode.TARGET, CREATURE_F, BF_ANY),
+                target=Selector(QConst(1), SelectorMode.TARGET, CREATURE_F, zones=(BF_ANY,)),
                 amount=QConst(0),  # probe: the target must survive
             ),
         )
@@ -175,7 +175,7 @@ class ForcedAutoDesignationTest(StackCase):
             SpellKind.INSTANT,
             effect=atom(
                 Verb.DEAL_DAMAGE,
-                target=Selector(QConst(1), SelectorMode.TARGET, CREATURE_F, BF_ANY),
+                target=Selector(QConst(1), SelectorMode.TARGET, CREATURE_F, zones=(BF_ANY,)),
                 amount=QConst(0),
             ),
         )
@@ -204,7 +204,7 @@ class SelfClauseTest(StackCase):
                     QConst(1),
                     SelectorMode.TARGET,
                     FAnd((FAtom(FAtomPred.IS_SOURCE),)),
-                    Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                    zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),),
                 ),
                 destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
             ),
@@ -255,9 +255,9 @@ class DecisionLaneTest(StackCase):
     def test_pool_word_flows_to_its_own_site(self):
         # Duress interaction end-to-end: a may-offer asked FIRST must not
         # eat the card-name token scripted for the LATER Choose site.
-        pool = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, HAND_OPP)
+        pool = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(HAND_OPP,))
         result = Selector(
-            QConst(1), SelectorMode.CHOOSE, UNIV, ANY_ZONE, referent="result"
+            QConst(1), SelectorMode.CHOOSE, UNIV, zones=(ANY_ZONE,), referent="result"
         )
         spell = self.give(
             "MayDuress",
@@ -269,7 +269,7 @@ class DecisionLaneTest(StackCase):
                         atom(
                             Verb.DEAL_DAMAGE,
                             target=Selector(
-                                QConst(1), SelectorMode.TARGET, CREATURE_F, BF_ANY
+                                QConst(1), SelectorMode.TARGET, CREATURE_F, zones=(BF_ANY,)
                             ),
                             amount=QConst(1),
                         )
@@ -307,9 +307,9 @@ class DecisionLaneTest(StackCase):
 
 class ChooseAliasTest(StackCase):
     def duress(self, name):
-        pool = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, HAND_OPP)
+        pool = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(HAND_OPP,))
         result = Selector(
-            QConst(1), SelectorMode.CHOOSE, UNIV, ANY_ZONE, referent="result"
+            QConst(1), SelectorMode.CHOOSE, UNIV, zones=(ANY_ZONE,), referent="result"
         )
         effect = Seq(
             (
@@ -372,13 +372,13 @@ class PrechosenModesTest(StackCase):
                     atom(
                         Verb.DESTROY,
                         target=Selector(
-                            QConst(1), SelectorMode.TARGET, ARTIFACT_F, BF_ANY
+                            QConst(1), SelectorMode.TARGET, ARTIFACT_F, zones=(BF_ANY,)
                         ),
                     ),
                     atom(
                         Verb.DESTROY,
                         target=Selector(
-                            QConst(1), SelectorMode.TARGET, ENCHANT_F, BF_ANY
+                            QConst(1), SelectorMode.TARGET, ENCHANT_F, zones=(BF_ANY,)
                         ),
                     ),
                 ),

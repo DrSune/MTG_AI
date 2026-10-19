@@ -139,7 +139,7 @@ def _self_selector() -> Selector:
         QConst(1),
         SelectorMode.CHOOSE,
         FAtom(pred=FAtomPred.IS_SOURCE),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
     )
 
 
@@ -150,7 +150,7 @@ def _referent_target_creature() -> Selector:
         QConst(1),
         SelectorMode.CHOOSE,
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-        Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),
         referent="target",
     )
 
@@ -160,7 +160,7 @@ def _up_to_two_target_creatures() -> Selector:
         QAtMost(2),
         SelectorMode.TARGET,
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -177,7 +177,7 @@ def _up_to_one_other_target_creature() -> Selector:
                 FAtom(pred=FAtomPred.IS_ANY_TARGET),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -191,7 +191,7 @@ def _creatures_you_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -200,7 +200,7 @@ def _all_creatures() -> Selector:
         QUnbounded(),
         SelectorMode.ALL,
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -218,7 +218,7 @@ def _any_target() -> Selector:
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Player"),
             )
         ),
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
     )
 
 
@@ -275,9 +275,9 @@ def _draw_then_discard() -> Seq:
                                 count=QConst(1),
                                 mode=SelectorMode.CHOOSE,
                                 filter=FAnd(children=()),
-                                zone=Zone(
+                                zones=(Zone(
                                     kind=ZoneKind.HAND, controller=ControllerRef.YOU
-                                ),
+                                ),),
                             ),
                         ),
                     )
@@ -400,7 +400,7 @@ def _return_instant_or_sorcery_hand() -> Atom:
                                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Sorcery"),
                             )
                         ),
-                        Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
+                        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),
                     ),
                 ),
                 ("destination", Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)),
@@ -422,7 +422,7 @@ def _return_creature_to_battlefield() -> Atom:
                         QConst(1),
                         SelectorMode.TARGET,
                         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                        Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
+                        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),
                     ),
                 ),
                 (
@@ -512,7 +512,7 @@ def _destroy_cw_pw() -> Atom:
                                 ),
                             )
                         ),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
                     ),
                 ),
             )
@@ -581,7 +581,7 @@ def _return_two_creature_cards_hand() -> Atom:
                         QConst(2),
                         SelectorMode.TARGET,
                         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                        Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
+                        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),
                     ),
                 ),
                 ("destination", Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)),
@@ -597,7 +597,7 @@ def _opponent_players() -> Selector:
         QUnbounded(),
         SelectorMode.ALL,
         FAnd(children=()),
-        Zone(ZoneKind.PLAYER, ControllerRef.OPPONENT),
+        zones=(Zone(ZoneKind.PLAYER, ControllerRef.OPPONENT),),
     )
 
 
@@ -645,7 +645,7 @@ def _equipped_creature() -> Selector:
                 FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -772,7 +772,7 @@ def _exile_top_library() -> Atom:
                         QConst(1),
                         SelectorMode.CHOOSE,
                         FAnd(children=()),
-                        Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),
+                        zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),),
                     ),
                 ),
             )
@@ -804,7 +804,7 @@ def _tap_target_opp_creature() -> Atom:
                                 ),
                             )
                         ),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
                     ),
                 ),
             )
@@ -835,7 +835,7 @@ def _put_counters_target_filtered(n: int, subtype: str) -> Atom:
                                 ),
                             )
                         ),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
                     ),
                 ),
                 ("counter_kind", CounterKind.PLUS_1_PLUS_1),
@@ -859,7 +859,7 @@ def _return_kicker_card_hand() -> Atom:
                         QConst(1),
                         SelectorMode.TARGET,
                         FAtom(pred=FAtomPred.HAS_KICKER),
-                        Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
+                        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),
                     ),
                 ),
                 ("destination", Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)),

@@ -260,7 +260,7 @@ _PLAYER_TARGET = Selector(
     QConst(1),
     SelectorMode.TARGET,
     FAnd(children=()),
-    Zone(ZoneKind.PLAYER, ControllerRef.ANY),
+    zones=(Zone(ZoneKind.PLAYER, ControllerRef.ANY),),
 )
 
 # 16c: the CARD lane of the combat-damage atom. A player-zone selector is
@@ -272,7 +272,7 @@ _CARD_TARGET = Selector(
     QConst(1),
     SelectorMode.TARGET,
     FAnd(children=()),
-    Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+    zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
 )
 
 

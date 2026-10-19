@@ -328,7 +328,7 @@ class TestRegistryLaws(unittest.TestCase):
         self.assertIs(atom.verb, Verb.COUNTER_SPELL)
         p = _pairs(atom)
         sel = p["target"]
-        self.assertIs(sel.zone.kind, ZoneKind.STACK)
+        self.assertIs(sel.zones[0].kind, ZoneKind.STACK)
         self.assertIsInstance(sel.filter, FOr)
         self.assertEqual(
             sorted(k.string_value for k in sel.filter.children),

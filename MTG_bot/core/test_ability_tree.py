@@ -44,7 +44,7 @@ def _src_sel() -> at.Selector:
         at.QConst(1),
         at.SelectorMode.ALL,
         at.FAtom(at.FAtomPred.IS_SOURCE),
-        _BF_YOU,
+        zones=(_BF_YOU,),
     )
 
 
@@ -78,7 +78,7 @@ def _tarmogoyf_like(subtype: str = "Bird") -> at.CardRecord:
         at.QConst(1),
         at.SelectorMode.ALL,
         at.FAtom(at.FAtomPred.SUBTYPE_EQ, string_value=subtype),
-        grave,
+        zones=(grave,),
     )
     set_pt = at.Atom(
         at.Verb.SET_PT,
@@ -128,7 +128,7 @@ def _emblem_record() -> at.CardRecord:
                         at.QConst(1),
                         at.SelectorMode.CHOOSE,
                         at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature"),
-                        at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU),
+                        zones=(at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU),),
                     ),
                 ),
                 ("destination", at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU)),
@@ -197,7 +197,7 @@ def _pw_with_emblem() -> at.CardRecord:
                         at.QConst(1),
                         at.SelectorMode.ALL,
                         at.FAtom(at.FAtomPred.NAME_EQ, string_value="Synthetic Garruk"),
-                        _BF_YOU,
+                        zones=(_BF_YOU,),
                     ),
                 ),
                 ("counter_kind", at.CounterKind.LOYALTY),
@@ -252,7 +252,7 @@ def _token_creator() -> at.CardRecord:
                                 at.QConst(1),
                                 at.SelectorMode.ALL,
                                 at.FAtom(at.FAtomPred.IS_SOURCE),
-                                _BF_YOU,
+                                zones=(_BF_YOU,),
                             )
                         ),
                     )
@@ -281,7 +281,7 @@ def _token_creator() -> at.CardRecord:
         at.QConst(1),
         at.SelectorMode.ALL,
         died,
-        at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.YOU),
+        zones=(at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.YOU),),
     )
     condition = at.FAtom(
         at.FAtomPred.CONTROLLER_COUNT_GE,
@@ -361,7 +361,7 @@ def _walk_sample() -> at.CardRecord:
                                         at.FNot(at.FAtom(at.FAtomPred.IS_TAPPED)),
                                     )
                                 ),
-                                at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.ANY),
+                                zones=(at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.ANY),),
                             )
                         ),
                     ),
@@ -451,7 +451,7 @@ def _all_nodes() -> list[tuple[str, object]]:
                 at.QConst(2),
                 at.SelectorMode.TARGET,
                 at.FAtom(at.FAtomPred.IS_PERMANENT),
-                _BF_ANY,
+                zones=(_BF_ANY,),
             ),
         ),
         (
@@ -460,12 +460,12 @@ def _all_nodes() -> list[tuple[str, object]]:
                 at.QConst(3),
                 at.SelectorMode.CHOOSE,
                 at.FAtom(at.FAtomPred.IS_PERMANENT),
-                _BF_ANY,
+                zones=(_BF_ANY,),
             ),
         ),
         (
             "Selector-ALL",
-            at.Selector(at.QConst(1), at.SelectorMode.ALL, at.FAnd(()), _BF_ANY),
+            at.Selector(at.QConst(1), at.SelectorMode.ALL, at.FAnd(()), zones=(_BF_ANY,)),
         ),
         (
             "Selector-RANDOM",
@@ -473,7 +473,7 @@ def _all_nodes() -> list[tuple[str, object]]:
                 at.QConst(1),
                 at.SelectorMode.RANDOM,
                 at.FAtom(at.FAtomPred.IS_PERMANENT),
-                at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.ANY),
+                zones=(at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.ANY),),
             ),
         ),
         (
@@ -482,7 +482,7 @@ def _all_nodes() -> list[tuple[str, object]]:
                 at.QUnbounded(),
                 at.SelectorMode.CHOOSE,
                 at.FAtom(at.FAtomPred.NAME_EQ, string_value="Frantic Inventory"),
-                lib,
+                zones=(lib,),
             ),
         ),
         (
@@ -491,7 +491,7 @@ def _all_nodes() -> list[tuple[str, object]]:
                 at.QConst(1),
                 at.SelectorMode.TARGET,
                 at.FAnd(()),
-                at.Zone(at.ZoneKind.PLAYER, at.ControllerRef.ANY),
+                zones=(at.Zone(at.ZoneKind.PLAYER, at.ControllerRef.ANY),),
             ),
         ),
         # filters — every atom predicate plus combinators
@@ -680,7 +680,7 @@ def _all_nodes() -> list[tuple[str, object]]:
                     at.QConst(1),
                     at.SelectorMode.CHOOSE,
                     at.FAnd(()),
-                    at.Zone(at.ZoneKind.HAND, at.ControllerRef.YOU),
+                    zones=(at.Zone(at.ZoneKind.HAND, at.ControllerRef.YOU),),
                 )
             ),
         ),
@@ -843,7 +843,7 @@ def _all_nodes() -> list[tuple[str, object]]:
                                     at.QConst(1),
                                     at.SelectorMode.ALL,
                                     at.FAnd(()),
-                                    _BF_YOU,
+                                    zones=(_BF_YOU,),
                                 ),
                             ),
                             (
@@ -1067,7 +1067,7 @@ def _validation_cases() -> list[tuple[str, Callable[[], object]]]:
                 "2",
                 at.SelectorMode.TARGET,
                 at.FAtom(at.FAtomPred.IS_PERMANENT),
-                _BF_ANY,
+                zones=(_BF_ANY,),
             ),
         ),  # type: ignore[arg-type]
         (
@@ -1076,7 +1076,7 @@ def _validation_cases() -> list[tuple[str, Callable[[], object]]]:
                 at.QUnbounded(),
                 at.SelectorMode.TARGET,
                 at.FAtom(at.FAtomPred.IS_PERMANENT),
-                _BF_ANY,
+                zones=(_BF_ANY,),
             ),
         ),
         ("QBin with non-quantity operand", lambda: at.QBin(at.QBinOp.ADD, "x", q)),  # type: ignore[arg-type]
@@ -1622,7 +1622,7 @@ def test_synthetic_tarmogoyf_like() -> None:
     assert effect.verb is at.Verb.SET_PT
     power = effect.args.get("power")
     assert isinstance(power, at.QCount)
-    assert power.selector.zone == at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.ANY)
+    assert power.selector.zones[0] == at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.ANY)
     assert isinstance(power.selector.filter, at.FAtom)
     assert power.selector.filter.pred is at.FAtomPred.SUBTYPE_EQ
     assert card.power is None and card.toughness is None  # dynamic P/T

@@ -159,7 +159,7 @@ def _self_selector(zone: Zone) -> Selector:
         QConst(1),
         SelectorMode.CHOOSE,
         filt,
-        zone,
+        zones=(zone,),
     )
 
 
@@ -174,7 +174,7 @@ def _enchanted_creature() -> Selector:
                 FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -262,7 +262,7 @@ def _build_attacking_pt(m: re.Match[str]) -> SentenceOutcome:
                                 ),
                             )
                         ),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
                     ),
                 ),
                 ("power", _pt_delta(m, 1)),
@@ -284,7 +284,7 @@ def _build_counter_spell(m: re.Match[str]) -> SentenceOutcome:
                         QConst(1),
                         SelectorMode.TARGET,
                         FAnd(children=()),
-                        Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
                     ),
                 ),
             )
@@ -365,7 +365,7 @@ def _counter_unless_atom(m: re.Match[str], target_filter: Filter) -> Atom:
                         QConst(1),
                         SelectorMode.TARGET,
                         target_filter,
-                        Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
                     ),
                 ),
                 (
@@ -422,7 +422,7 @@ def _grave_count_quantity() -> QCount:
                     FAtom(pred=FAtomPred.TYPE_EQ, string_value="Sorcery"),
                 )
             ),
-            Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
+            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),
         )
     )
 
@@ -531,10 +531,10 @@ def _build_battalion(m: re.Match[str]) -> SentenceOutcome:
                                 count=QConst(1),
                                 mode=SelectorMode.CHOOSE,
                                 filter=FAtom(pred=FAtomPred.IS_SOURCE),
-                                zone=Zone(
+                                zones=(Zone(
                                     kind=ZoneKind.BATTLEFIELD,
                                     controller=ControllerRef.ANY,
-                                ),
+                                ),),
                             ),
                         ),
                     )
@@ -551,7 +551,7 @@ def _build_destroy(m: re.Match[str], f: Filter, zone: Zone) -> SentenceOutcome:
             pairs=(
                 (
                     "target",
-                    Selector(QConst(1), SelectorMode.TARGET, f, zone),
+                    Selector(QConst(1), SelectorMode.TARGET, f, zones=(zone,)),
                 ),
             )
         ),
@@ -599,7 +599,7 @@ def _build_double_power(m: re.Match[str]) -> SentenceOutcome:
                         QConst(1),
                         SelectorMode.TARGET,
                         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
                     ),
                 ),
                 (
@@ -633,7 +633,7 @@ def _build_exile_target(m: re.Match[str], f: "object") -> SentenceOutcome:
                         QConst(1),
                         SelectorMode.TARGET,
                         f,  # type: ignore[arg-type]
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
                     ),
                 ),
             )
@@ -688,7 +688,7 @@ def _build_draw_three_then_discard(m: re.Match[str]) -> SentenceOutcome:
                         QConst(1),
                         SelectorMode.CHOOSE,
                         FAnd(children=()),
-                        Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),
+                        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),
                     ),
                 ),
             )
@@ -710,7 +710,7 @@ def _build_draw_frantic_inventory(m: re.Match[str]) -> SentenceOutcome:
             QUnbounded(),
             SelectorMode.ALL,
             FAtom(pred=FAtomPred.NAME_EQ, string_value="Frantic Inventory"),
-            Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
+            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),
         )
     )
     second = Atom(
@@ -752,7 +752,7 @@ def _build_trample_counter(m: re.Match[str]) -> SentenceOutcome:
                                 ),
                             )
                         ),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
                     ),
                 ),
                 ("ability", KeywordAbility(keyword=Keyword.TRAMPLE, params=())),
@@ -994,7 +994,7 @@ def _build_equip(m: re.Match[str]) -> SentenceOutcome:
                                 ),
                             )
                         ),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
                     ),
                 ),
             )
@@ -1277,7 +1277,7 @@ def _build_discard_cant_be_blocked(m: re.Match[str]) -> SentenceOutcome:
                     QConst(1),
                     SelectorMode.CHOOSE,
                     FAnd(children=()),
-                    Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),
+                    zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),
                 )
             ),
         )
@@ -1314,7 +1314,7 @@ def _result_selector() -> Selector:
         QConst(1),
         SelectorMode.CHOOSE,
         FAnd(children=()),
-        Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),
         referent="result",
     )
 
@@ -1447,7 +1447,7 @@ def _build_destroy_attached_equipment(m: re.Match[str]) -> SentenceOutcome:
                                 ),
                             )
                         ),
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
                     ),
                 ),
             )
@@ -1726,7 +1726,7 @@ TEMPLATES: tuple[Template, ...] = (
                                 QConst(1),
                                 SelectorMode.CHOOSE,
                                 FAnd(children=()),
-                                Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),
+                                zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),
                             )
                         ),
                     )
@@ -2006,7 +2006,7 @@ TEMPLATES: tuple[Template, ...] = (
                             QConst(1),
                             SelectorMode.CHOOSE,
                             FAnd(children=()),
-                            Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),
+                            zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),
                         )
                     ),
                 )
@@ -2039,10 +2039,10 @@ TEMPLATES: tuple[Template, ...] = (
                                     ),
                                 )
                             ),
-                            Zone(
+                            zones=(Zone(
                                 kind=ZoneKind.BATTLEFIELD,
                                 controller=ControllerRef.ANY,
-                            ),
+                            ),),
                         )
                     ),
                 )

@@ -77,11 +77,11 @@ TEFERI_GATE = FAnd((PW_EQ, TEFERI_NAMED))
 
 
 def target_sel(filter_: object = UNIV) -> Selector:
-    return Selector(QConst(1), SelectorMode.TARGET, filter_, BF_ANY)  # pyright: ignore[reportArgumentType]
+    return Selector(QConst(1), SelectorMode.TARGET, filter_, zones=(BF_ANY,))  # pyright: ignore[reportArgumentType]
 
 
 def scope_you() -> Selector:
-    return Selector(QConst(99), SelectorMode.ALL, CREATURE, BF_YOU)  # pyright: ignore[reportArgumentType]
+    return Selector(QConst(99), SelectorMode.ALL, CREATURE, zones=(BF_YOU,))  # pyright: ignore[reportArgumentType]
 
 
 def rec(name, oid, abilities=(), type_line="Creature", emblem=None) -> CardRecord:
@@ -221,7 +221,7 @@ class TestTypeOverlay(PermCase):
                     effect=atom(
                         Verb.GRANT_TYPE,
                         target=Selector(
-                            QConst(99), SelectorMode.ALL, IS_ATTACHED, BF_ANY
+                            QConst(99), SelectorMode.ALL, IS_ATTACHED, zones=(BF_ANY,)
                         ),  # pyright: ignore[reportArgumentType]
                         types=("Knight",),
                     )

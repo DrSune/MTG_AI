@@ -52,7 +52,7 @@ _IS_SOURCE = at.FAtom(at.FAtomPred.IS_SOURCE)
 
 def _src_sel() -> at.Selector:
     """The classic "this permanent" selector (r6-file idiom)."""
-    return at.Selector(at.QConst(1), at.SelectorMode.ALL, _IS_SOURCE, _BF_YOU)
+    return at.Selector(at.QConst(1), at.SelectorMode.ALL, _IS_SOURCE, zones=(_BF_YOU,))
 
 
 def _fatom_turn_of_you() -> at.FAtom:
@@ -78,7 +78,7 @@ def _target_sel() -> at.Selector:
         at.QConst(1),
         at.SelectorMode.TARGET,
         at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature"),
-        _BF_YOU,
+        zones=(_BF_YOU,),
     )
 
 
@@ -158,17 +158,17 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "set_pt_power_only",
         _set_pt_power_only,
-        "9ddb7e5753a19bd5daa8f23461a77c3486f2a8e5d7d7d0d6086a77db7008a1c4",
+        "fc035267e323ee389d36d38b2f30ce97dab89b641a9d50d6a543f9c7efb3017e",
     ),
     (
         "set_pt_toughness_only",
         _set_pt_toughness_only,
-        "6bc729e7c0d8c2a6acb386dc17d35dfec87847aed5e2f29b235b2d26ab0619cf",
+        "095d077317b9b5522136264cac1e174e81654b40967485183cfb921b30d8951d",
     ),
     (
         "set_pt_both",
         _set_pt_both,
-        "02433d43c302d7fa6083ecb495b85f6f473ae82e1c43979f862c3766fdd00374",
+        "a1eaac50d1ff4934766d70ff24f884f36b7926af3bab7e4672b755cd0dcbc0fa",
     ),
     (
         "dbe_bare",
@@ -188,7 +188,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "mandate_block",
         _mandate_block,
-        "a2b31bd8277dae34ee39b7a13246640a2e9dd3c24c948a944c8fb8f4ead03849",
+        "5e5b56b51df84f35cec57b5d22d1ef9a68e574307fb5d1ff12bca1aaa94ea395",
     ),
 ]
 
@@ -236,7 +236,7 @@ def test_fatom_turn_of_rules() -> None:
         at.QConst(1),
         at.SelectorMode.CHOOSE,
         _UNIVERSAL,
-        _NEUTRAL,
+        zones=(_NEUTRAL,),
         referent="controller",
     )
     with_sel = at.FAtom(at.FAtomPred.TURN_OF, who=sel)

@@ -233,7 +233,7 @@ class ShrineCensusCase(unittest.TestCase):
                         "amount",
                         QCount(
                             Selector(
-                                QUnbounded(), SelectorMode.ALL, census_filter, BF_YOU
+                                QUnbounded(), SelectorMode.ALL, census_filter, zones=(BF_YOU,)
                             )
                         ),
                     ),
@@ -319,7 +319,7 @@ class PyrelingFeedCase(unittest.TestCase):
         self.ex.execute(
             atom(
                 Verb.DEAL_DAMAGE,
-                target=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, BF_ANY),
+                target=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(BF_ANY,)),
                 amount=QConst(1),
             ),
             source=self.dealer,
@@ -362,7 +362,7 @@ class PyrelingFeedCase(unittest.TestCase):
         self.ex.execute(
             atom(
                 Verb.DEAL_DAMAGE,
-                target=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, BF_ANY),
+                target=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(BF_ANY,)),
                 amount=QConst(1),
             ),
             source=self.dealer,

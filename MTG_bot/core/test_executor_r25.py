@@ -60,7 +60,7 @@ def referent_target_selector() -> Selector:
         QConst(1),
         SelectorMode.CHOOSE,
         FAnd(()),
-        Zone(ZoneKind.ANY, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
         referent="target",
     )
 
@@ -151,7 +151,7 @@ class TestOpponentOfTrigger(R25Case):
         self.ex.execute(
             atom(
                 Verb.DEAL_DAMAGE,
-                target=Selector(QConst(1), SelectorMode.TARGET, UNIV, zone),
+                target=Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(zone,)),
                 amount=QConst(2),
             ),
             source=self.watch,

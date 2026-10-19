@@ -203,8 +203,8 @@ class PickAskPromotion(unittest.TestCase):
                         node,
                         mode=SelectorMode.CHOOSE,
                         referent="result",
-                        zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
-                        zones=(),
+                        # R0 zone-fold: C2 referent shape = ONE neutral zone
+                        zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
                     )
                 updates = {
                     f.name: to_near_miss(getattr(node, f.name)) for f in fields(node)

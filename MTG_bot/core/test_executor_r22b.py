@@ -67,7 +67,7 @@ ANY_ZONE = Zone(ZoneKind.ANY, ControllerRef.ANY)
 
 
 def _any_target():
-    return Selector(QConst(1), SelectorMode.TARGET, UNIV, ANY_ZONE)
+    return Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(ANY_ZONE,))
 
 
 class R22bCase(unittest.TestCase):
@@ -149,7 +149,7 @@ class R22bCase(unittest.TestCase):
                         QConst(1),
                         SelectorMode.CHOOSE,
                         UNIV,
-                        ANY_ZONE,
+                        zones=(ANY_ZONE,),
                         referent="event",
                     ),
                 ),
@@ -194,7 +194,7 @@ class R22bCase(unittest.TestCase):
                         QConst(1),
                         SelectorMode.CHOOSE,
                         UNIV,
-                        ANY_ZONE,
+                        zones=(ANY_ZONE,),
                         referent="event",
                     ),
                 ),

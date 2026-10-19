@@ -82,7 +82,7 @@ class KOfNCase(unittest.TestCase):
         return Seq((atom(Verb.MOVE_ZONE, cards=sel, destination=HAND_YOU),))
 
     def _one_of(self, count) -> Selector:
-        return Selector(count, SelectorMode.ONE_OF, LAND, LIB_YOU)
+        return Selector(count, SelectorMode.ONE_OF, LAND, zones=(LIB_YOU,))
 
     # ------------------------------------------------------ want = 2 exact
 
@@ -217,7 +217,7 @@ class KOfNCase(unittest.TestCase):
         for h in (self.fo, self.pl):
             self.world.move_card(h, self.world.players[self.p0].zone(ZONE_BATTLEFIELD))
         self.world.move_card(self.sw, self.world.players[self.p0].zone(ZONE_HAND))
-        sel = Selector(QConst(2), SelectorMode.ONE_OF, LAND, BF_YOU)
+        sel = Selector(QConst(2), SelectorMode.ONE_OF, LAND, zones=(BF_YOU,))
         self.ex.apply_effect(
             Seq((atom(Verb.TAP, target=sel),)),
             source=self.spell,
@@ -241,7 +241,7 @@ class KOfNCase(unittest.TestCase):
         picked = resolve_selector(self._one_of(QConst(2)), ctx)
         self.assertEqual(picked, sorted([self.fo, self.pl]))
         rest = resolve_selector(
-            Selector(QConst(1), SelectorMode.REST, LAND, LIB_YOU), ctx
+            Selector(QConst(1), SelectorMode.REST, LAND, zones=(LIB_YOU,)), ctx
         )
         self.assertEqual(rest, [self.sw])  # BOTH picks subtracted
         self.assertEqual(ctx.one_of_picks, tuple(sorted([self.fo, self.pl])))
@@ -355,7 +355,7 @@ class TestQueryLegalityMatrix(KOfNCase):
         return legal_targets(
             self.world,
             self.ex,
-            Selector(count, mode, LAND, LIB_YOU),
+            Selector(count, mode, LAND, zones=(LIB_YOU,)),
             source=self.spell,
             controller=self.p0,
         )
@@ -430,7 +430,7 @@ class TestBindingDesignationLegality(KOfNCase):
                             counter_kind=CounterKind.PLUS_1_PLUS_1,
                             count=QConst(1),
                             target=Selector(
-                                QConst(2), SelectorMode.TARGET, CREATURE, BF_YOU
+                                QConst(2), SelectorMode.TARGET, CREATURE, zones=(BF_YOU,)
                             ),
                         )
                     )

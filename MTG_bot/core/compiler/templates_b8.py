@@ -164,7 +164,7 @@ def _party_count() -> QPartyCount:
                     FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
                 )
             ),
-            Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
         )
     )
 
@@ -208,7 +208,7 @@ def _creatures_you_control() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -220,7 +220,7 @@ def _target_creature_on_battlefield() -> Selector:
         QConst(1),
         SelectorMode.TARGET,
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -234,7 +234,7 @@ def _target_creature_an_opponent_controls() -> Selector:
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
             )
         ),
-        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
 
@@ -588,10 +588,10 @@ def _build_full_choose_nonland(m: re.Match[str]) -> SentenceOutcome:
                                         ),
                                     )
                                 ),
-                                Zone(
+                                zones=(Zone(
                                     kind=ZoneKind.BATTLEFIELD,
                                     controller=ControllerRef.ANY,
-                                ),
+                                ),),
                             ),
                         ),
                         ("count", QConst(1)),
@@ -666,10 +666,10 @@ def _build_full_free_cast(m: re.Match[str]) -> SentenceOutcome:
                                     QConst(1),
                                     SelectorMode.CHOOSE,
                                     FAtom(pred=FAtomPred.CMC_LE, count=QConst(4)),
-                                    Zone(
+                                    zones=(Zone(
                                         kind=ZoneKind.HAND,
                                         controller=ControllerRef.YOU,
-                                    ),
+                                    ),),
                                 ),
                             ),
                             ("cost", Cost(parts=())),
@@ -721,10 +721,10 @@ def _build_up_to_two_x(m: re.Match[str]) -> SentenceOutcome:
                             QAtMost(2),
                             SelectorMode.TARGET,
                             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                            Zone(
+                            zones=(Zone(
                                 kind=ZoneKind.BATTLEFIELD,
                                 controller=ControllerRef.ANY,
-                            ),
+                            ),),
                         ),
                     ),
                     ("power", PtDelta(PtDirection.INCREASE, _party_count())),
@@ -822,10 +822,10 @@ def _build_x_to_creature_or_pw(m: re.Match[str]) -> SentenceOutcome:
                                         ),
                                     )
                                 ),
-                                Zone(
+                                zones=(Zone(
                                     kind=ZoneKind.BATTLEFIELD,
                                     controller=ControllerRef.ANY,
-                                ),
+                                ),),
                             ),
                         ),
                         ("amount", _party_count()),
@@ -867,10 +867,10 @@ def _build_four_and_x_controller(m: re.Match[str]) -> SentenceOutcome:
                                     QConst(1),
                                     SelectorMode.TARGET,
                                     FAnd(children=()),
-                                    Zone(
+                                    zones=(Zone(
                                         kind=ZoneKind.PLAYER,
                                         controller=ControllerRef.ANY,
-                                    ),
+                                    ),),
                                 ),
                             ),
                             ("amount", _party_count()),
@@ -934,10 +934,10 @@ def _build_class_signature(m: re.Match[str]) -> SentenceOutcome:
                                         ),
                                     )
                                 ),
-                                Zone(
+                                zones=(Zone(
                                     kind=ZoneKind.BATTLEFIELD,
                                     controller=ControllerRef.ANY,
-                                ),
+                                ),),
                             ),
                         ),
                         ("types", ("Cleric", "Rogue", "Warrior", "Wizard")),

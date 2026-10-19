@@ -113,7 +113,7 @@ class CastPayabilityCase(unittest.TestCase):
     ):
         roles = {
             "source": sel
-            or Selector(QConst(1) if count is None else count, mode, UNIV, LIB_YOU)
+            or Selector(QConst(1) if count is None else count, mode, UNIV, zones=(LIB_YOU,))
         }
         if cost is not None:
             roles["cost"] = cost
@@ -195,7 +195,7 @@ class CastPayabilityCase(unittest.TestCase):
         may = OptionalEffect(
             inner=atom(
                 Verb.CAST,
-                source=Selector(QConst(1), SelectorMode.ONE_OF, UNIV, LIB_YOU),
+                source=Selector(QConst(1), SelectorMode.ONE_OF, UNIV, zones=(LIB_YOU,)),
             )
         )
         self.ex.apply_effect(
@@ -222,7 +222,7 @@ class CastPayabilityCase(unittest.TestCase):
         may = OptionalEffect(
             inner=atom(
                 Verb.CAST,
-                source=Selector(QUnbounded(), SelectorMode.CHOOSE, UNIV, LIB_YOU),
+                source=Selector(QUnbounded(), SelectorMode.CHOOSE, UNIV, zones=(LIB_YOU,)),
             )
         )
         self.ex.apply_effect(
@@ -246,7 +246,7 @@ class CastPayabilityCase(unittest.TestCase):
         may = OptionalEffect(
             inner=atom(
                 Verb.CAST,
-                source=Selector(QConst(1), SelectorMode.CHOOSE, land_only, LIB_YOU),
+                source=Selector(QConst(1), SelectorMode.CHOOSE, land_only, zones=(LIB_YOU,)),
             )
         )
         self.assertEqual(
@@ -296,7 +296,7 @@ class CastPayabilityCase(unittest.TestCase):
         self.world.players[self.p0].mana_pool = {}
         cast_atom = atom(
             Verb.CAST,
-            source=Selector(QUnbounded(), SelectorMode.CHOOSE, UNIV, LIB_YOU),
+            source=Selector(QUnbounded(), SelectorMode.CHOOSE, UNIV, zones=(LIB_YOU,)),
             cost=Cost(()),
         )
         may = OptionalEffect(inner=cast_atom)
@@ -327,7 +327,7 @@ class CastPayabilityCase(unittest.TestCase):
         may = OptionalEffect(
             inner=atom(
                 Verb.CAST,
-                source=Selector(QUnbounded(), SelectorMode.CHOOSE, UNIV, LIB_YOU),
+                source=Selector(QUnbounded(), SelectorMode.CHOOSE, UNIV, zones=(LIB_YOU,)),
             )
         )
         self.assertEqual(
@@ -379,7 +379,7 @@ class CastPayabilityCase(unittest.TestCase):
         )
         effect = atom(
             Verb.CAST,
-            source=Selector(QConst(1), SelectorMode.TARGET, UNIV, grave),
+            source=Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(grave,)),
         )
         slots = activation_target_slots(self.ex, effect, source=self.src, seat=self.p0)
         self.assertEqual(len(slots), 1)
@@ -437,7 +437,7 @@ class CastPayabilityCase(unittest.TestCase):
         may = OptionalEffect(
             inner=atom(
                 Verb.CAST,
-                source=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, LIB_YOU),
+                source=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(LIB_YOU,)),
                 cost=_cost(1),
             )
         )
@@ -463,7 +463,7 @@ class CastPayabilityCase(unittest.TestCase):
         may = OptionalEffect(
             inner=atom(
                 Verb.CAST,
-                source=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, LIB_YOU),
+                source=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(LIB_YOU,)),
             )
         )
         self.ex.apply_effect(
@@ -485,7 +485,7 @@ class CastPayabilityCase(unittest.TestCase):
         may = OptionalEffect(
             inner=atom(
                 Verb.CAST,
-                source=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, LIB_YOU),
+                source=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(LIB_YOU,)),
             )
         )
         self.ex.apply_effect(
@@ -505,7 +505,7 @@ class CastPayabilityCase(unittest.TestCase):
         self.ex.apply_effect(
             atom(
                 Verb.CAST,
-                source=sel or Selector(QConst(1), mode, UNIV, LIB_YOU),
+                source=sel or Selector(QConst(1), mode, UNIV, zones=(LIB_YOU,)),
             ),
             source=self.src,
             controller=self.p0,
@@ -581,7 +581,7 @@ class CastPayabilityCase(unittest.TestCase):
         ctx = ctx_for(
             self.ex, self.src, self.p0, bindings={"target": [costly, payable]}
         )
-        sel = Selector(QConst(1), SelectorMode.TARGET, UNIV, LIB_YOU)
+        sel = Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(LIB_YOU,))
         out = resolve_selector(
             sel, ctx, ok=lambda h: cast_designee_ok(self.ex, ctx, h, None)
         )
@@ -607,7 +607,7 @@ class CastPayabilityCase(unittest.TestCase):
         payable = self.spell_in_library("Bolt", _cost(1))
         self.world.players[self.p0].mana_pool = {"C": 1}
         ctx = ctx_for(self.ex, self.src, self.p0)
-        sel = Selector(QConst(1), SelectorMode.RANDOM, UNIV, LIB_YOU)
+        sel = Selector(QConst(1), SelectorMode.RANDOM, UNIV, zones=(LIB_YOU,))
         for _ in range(12):  # every draw of the biased pool
             out = resolve_selector(
                 sel, ctx, ok=lambda h: cast_designee_ok(self.ex, ctx, h, None)

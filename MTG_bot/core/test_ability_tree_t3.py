@@ -37,6 +37,7 @@ pyright-narrowed — bind them to a local first.
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from typing import Any
 
@@ -57,7 +58,7 @@ _CREATURE = at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature")
 
 
 def _src_sel() -> at.Selector:
-    return at.Selector(at.QConst(1), at.SelectorMode.ALL, _SRC, _BF_YOU)
+    return at.Selector(at.QConst(1), at.SelectorMode.ALL, _SRC, zones=(_BF_YOU,))
 
 
 def _atom_mill() -> at.Atom:
@@ -80,27 +81,27 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
     (
         "tarmogoyf",
         T._tarmogoyf_like,
-        "ef2ac943913f6b8e86237746e283dd6fe7d49be5aacc856263d58f94504072ed",
+        "33c7a673d56fb484966ad1ae25efb1f1ae199c495b02ed44b67c5a11fa3f2679",
     ),
     (
         "planeswalker_emblem",
         T._pw_with_emblem,
-        "27858ab53a13b3f0b6eba85a30f89e2eb02072d0715ae726cc0f0c79780c32c1",
+        "dd59119e6b0280be53fcaaf8147f15f5d2ea3447ab3a04c44e065182d3ea913c",
     ),
     (
         "token_creator",
         T._token_creator,
-        "99b26af6d005649de387448043d326471f27632e75c3afc97fd583ff94816f93",
+        "e0f8c4901870a5f82238fb81b9ed0ac07324e5009b9fb258ce3b0f461b411f4d",
     ),
     (
         "walk_sample",
         T._walk_sample,
-        "9c470bcdd2a35d5cb025d3a7b56f32980070970708b843d97b188147b90c4fc7",
+        "13e2c77c7d60a54c074aea253f3346db119dec1c91c3d237389ca42da211280b",
     ),
     (
         "src_selector",
         T._src_sel,
-        "bca203742c07ad1a07c9df5869b5ba43d40ca23fee7db32dd40867c506323bdd",
+        "4ac90dbd56e4a9bfd2722dd000be01ed1e2d0c5b183976744ad6bc8d92b730f8",
     ),
     (
         "cost_empty_tap",
@@ -129,8 +130,10 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
     ),
     (
         "selector_target_battlefield",
-        lambda: at.Selector(at.QConst(2), at.SelectorMode.TARGET, _PERM, _BF_ANY),
-        "3170cef25787ab1de71709d9b11231194c1096f7deeac86473adf48a07f8a803",
+        lambda: at.Selector(
+            at.QConst(2), at.SelectorMode.TARGET, _PERM, zones=(_BF_ANY,)
+        ),
+        "74cc8b8b11341e97eddf805d7439ce92cf4b2b97fd5341ecc315468c332d12a5",
     ),
     (
         "fatom_ctrl_count_ge",
@@ -169,8 +172,10 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
 
 # The new optional fields that must be ABSENT from every pre-T3 tree's
 # serialization (the omit-if-empty rule).
+# R0 zone-fold (/129 §1): Selector.zones is NO LONGER omit-if-empty — the
+# zones SET is required and always serializes; the amendment below asserts
+# the NEW law (Selector carries `zones`, never the deleted `zone` key).
 _OMIT_KEYS: dict[str, tuple[str, ...]] = {
-    "Selector": ("zones",),
     "Zone": ("position",),
     "ZoneChangeEvent": ("subject",),
     "CastSpellEvent": ("actor", "from_zone", "ordinal"),
@@ -179,9 +184,17 @@ _OMIT_KEYS: dict[str, tuple[str, ...]] = {
 
 
 def _assert_no_t3_keys(d: Any, path: str = "root") -> None:
-    """Recursively assert no T3-omittable key appears in a pre-T3 tree."""
+    """Recursively assert no T3-omittable key appears in a pre-T3 tree.
+
+    R0 zone-fold amendment (/129): every Selector dict carries the ONE
+    required `zones` set key and NEVER the deleted scalar `zone` key."""
     if isinstance(d, dict):
         tag = d.get("tag")
+        if tag == "Selector":
+            assert "zone" not in d, f"R0: {path} carries the deleted 'zone' key"
+            assert isinstance(d.get("zones"), list) and d["zones"], (
+                f"R0: {path} Selector must carry a non-empty zones set"
+            )
         if isinstance(tag, str) and tag in _OMIT_KEYS:
             for key in _OMIT_KEYS[tag]:
                 assert key not in d, f"pre-T3 tree {path} carries new key {key!r}"
@@ -201,8 +214,7 @@ def _multi_zone_two() -> at.Selector:
         at.QConst(1),
         at.SelectorMode.TARGET,
         at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Player"),
-        at.Zone(at.ZoneKind.PLAYER, at.ControllerRef.ANY),
-        zones=(_BF_ANY,),
+        zones=(at.Zone(at.ZoneKind.PLAYER, at.ControllerRef.ANY), *(_BF_ANY,)),
     )
 
 
@@ -212,10 +224,12 @@ def _multi_zone_three() -> at.Selector:
         at.QConst(2),
         at.SelectorMode.CHOOSE,
         at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature"),
-        _LIB_ANY,
         zones=(
-            at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.ANY),
-            at.Zone(at.ZoneKind.EXILE, at.ControllerRef.ANY),
+            _LIB_ANY,
+            *(
+                at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.ANY),
+                at.Zone(at.ZoneKind.EXILE, at.ControllerRef.ANY),
+            ),
         ),
     )
 
@@ -223,14 +237,14 @@ def _multi_zone_three() -> at.Selector:
 def _cast_top_library() -> at.Atom:
     """CAST the top creature card of your library (Zone.position)."""
     top = at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU, at.ZonePosition.TOP)
-    src = at.Selector(at.QConst(1), at.SelectorMode.CHOOSE, _CREATURE, top)
+    src = at.Selector(at.QConst(1), at.SelectorMode.CHOOSE, _CREATURE, zones=(top,))
     return at.Atom(at.Verb.CAST, at.AtomArgs(pairs=(("source", src),)))
 
 
 def _cast_waiver() -> at.Atom:
     """CAST with an empty cost = the cost-waiver reading."""
     top = at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU, at.ZonePosition.TOP)
-    src = at.Selector(at.QConst(1), at.SelectorMode.CHOOSE, _PERM, top)
+    src = at.Selector(at.QConst(1), at.SelectorMode.CHOOSE, _PERM, zones=(top,))
     return at.Atom(
         at.Verb.CAST,
         at.AtomArgs(pairs=(("source", src), ("cost", at.Cost()))),
@@ -239,7 +253,7 @@ def _cast_waiver() -> at.Atom:
 
 def _cast_extra_cost() -> at.Atom:
     """CAST paying an additional 2 life beyond the spell's own cost."""
-    src = at.Selector(at.QConst(1), at.SelectorMode.CHOOSE, _PERM, _LIB_YOU)
+    src = at.Selector(at.QConst(1), at.SelectorMode.CHOOSE, _PERM, zones=(_LIB_YOU,))
     return at.Atom(
         at.Verb.CAST,
         at.AtomArgs(
@@ -523,8 +537,16 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 at.QConst(1),
                 at.SelectorMode.ALL,
                 _PERM,
-                _BF_YOU,
-                zones=[_BF_YOU],  # type: ignore[arg-type]
+                zones=[_BF_YOU],  # type: ignore[arg-type]  # R0: not a tuple
+            ),
+        ),
+        (
+            "selector_zones_empty",
+            lambda: at.Selector(
+                at.QConst(1),
+                at.SelectorMode.ALL,
+                _PERM,
+                zones=(),  # R0 zone-fold: the set is REQUIRED non-empty
             ),
         ),
         (
@@ -533,8 +555,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 at.QConst(1),
                 at.SelectorMode.ALL,
                 _PERM,
-                _BF_YOU,
-                zones=(_BF_YOU, "library"),  # type: ignore[arg-type]
+                zones=(_BF_YOU, *(_BF_YOU, "library")),  # type: ignore[arg-type]
             ),
         ),
         # D) Verb.CAST
@@ -793,11 +814,27 @@ def test_t3_rejections(name: str, fn: Callable[[], object]) -> None:
 
 def test_omit_keys_present_when_set() -> None:
     d = at.to_dict(_multi_zone_two())
-    assert "zones" in d and len(d["zones"]) == 1
-    assert at.to_dict(_multi_zone_three())["zones"] == [
-        at.to_dict(at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.ANY)),
-        at.to_dict(at.Zone(at.ZoneKind.EXILE, at.ControllerRef.ANY)),
-    ]
+    # R0 zone-fold: PLAYER ∪ BATTLEFIELD is ONE set of two (was primary
+    # + one extra); membership form — canonical order is schema-enforced.
+    assert "zones" in d and len(d["zones"]) == 2
+    by_json = lambda z: json.dumps(z, sort_keys=True)  # noqa: E731
+    assert sorted(d["zones"], key=by_json) == sorted(
+        [
+            at.to_dict(at.Zone(at.ZoneKind.PLAYER, at.ControllerRef.ANY)),
+            at.to_dict(at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.ANY)),
+        ],
+        key=by_json,
+    )
+    assert sorted(at.to_dict(_multi_zone_three())["zones"], key=by_json) == sorted(
+        [
+            # NOTE: the fixture's first member is the ANY-kind zone
+            # (_LIB_ANY = Zone(ANY, ANY)), not LIBRARY — assert truth.
+            at.to_dict(at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY)),
+            at.to_dict(at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.ANY)),
+            at.to_dict(at.Zone(at.ZoneKind.EXILE, at.ControllerRef.ANY)),
+        ],
+        key=by_json,
+    )
     assert at.to_dict(
         at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU, at.ZonePosition.TOP)
     )["position"] == {"tag": "ZonePosition", "name": "TOP"}
@@ -819,7 +856,9 @@ def test_omit_keys_present_when_set() -> None:
 
 def test_omit_keys_absent_by_default() -> None:
     d = at.to_dict(_src_sel())
-    assert "zones" not in d
+    # R0 zone-fold: zones is REQUIRED (always serialized) and the deleted
+    # scalar must stay deleted on every path.
+    assert "zone" not in d and d["zones"]
     assert "position" not in at.to_dict(_BF_YOU)
     assert "subject" not in at.to_dict(at.ZoneChangeEvent(_LIB_ANY, _BF_YOU))
     d = at.to_dict(at.CastSpellEvent(_PERM))
@@ -831,10 +870,13 @@ def test_omit_keys_absent_by_default() -> None:
 def test_explicit_empty_omit_fields_decode() -> None:
     # A hand-built tagged dict that spells the empty defaults out loud
     # must decode to the same node as the omitted form (value equality).
+    # R0 zone-fold: zones left the omit table — the explicit EMPTY form
+    # now FAILS LOUD (no silent migration of pre-R0 bytes).
     sel = _src_sel()
     d = at.to_dict(sel)
     d["zones"] = []
-    assert at.from_dict("Selector", d) == sel
+    with pytest.raises(ValueError, match="non-empty"):
+        at.from_dict("Selector", d)
     z = _BF_YOU
     d2 = at.to_dict(z)
     d2["position"] = None
@@ -873,13 +915,12 @@ def test_new_enum_members() -> None:
 
 
 def test_fingerprint_sensitivity_new_fields() -> None:
-    base = at.Selector(at.QConst(1), at.SelectorMode.TARGET, _PERM, _BF_ANY)
+    base = at.Selector(at.QConst(1), at.SelectorMode.TARGET, _PERM, zones=(_BF_ANY,))
     widened = at.Selector(
         at.QConst(1),
         at.SelectorMode.TARGET,
         _PERM,
-        _BF_ANY,
-        zones=(at.Zone(at.ZoneKind.STACK, at.ControllerRef.ANY),),
+        zones=(_BF_ANY, *(at.Zone(at.ZoneKind.STACK, at.ControllerRef.ANY),)),
     )
     assert at.fingerprint(base) != at.fingerprint(widened)
     assert at.fingerprint(
@@ -909,7 +950,7 @@ def test_cast_source_role_is_selector() -> None:
     atom = _cast_top_library()
     src = atom.args.get("source")
     assert isinstance(src, at.Selector)
-    assert src.zone == at.Zone(
+    assert src.zones[0] == at.Zone(
         at.ZoneKind.LIBRARY, at.ControllerRef.YOU, at.ZonePosition.TOP
     )
     # the optional cost role decodes as a Cost when present

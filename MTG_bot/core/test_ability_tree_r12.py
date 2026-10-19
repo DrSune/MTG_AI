@@ -37,7 +37,7 @@ def _referent_target_selector() -> at.Selector:
         at.QConst(1),
         at.SelectorMode.CHOOSE,
         at.FAnd(()),
-        at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY),
+        zones=(at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY),),
         referent="target",
     )
 
@@ -77,7 +77,7 @@ def test_opponent_of_rejects_non_referent_selector() -> None:
         at.QConst(1),
         at.SelectorMode.ALL,
         at.FAnd(()),
-        at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY),
+        zones=(at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY),),
     )
     with pytest.raises(ValueError, match="referent Selector"):
         at.FAtom(pred=at.FAtomPred.OPPONENT_OF, who=bare)

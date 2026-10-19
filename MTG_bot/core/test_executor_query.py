@@ -101,7 +101,7 @@ def atom(verb: Verb, **roles) -> Atom:
 def draw_one() -> Atom:
     return atom(
         Verb.MOVE_ZONE,
-        cards=Selector(QConst(1), SelectorMode.ALL, UNIV, LIB_YOU),
+        cards=Selector(QConst(1), SelectorMode.ALL, UNIV, zones=(LIB_YOU,)),
         destination=Zone(ZoneKind.HAND, ControllerRef.YOU),
     )
 
@@ -139,7 +139,7 @@ class TestUpToTwoTargets(QueryCase):
 
     def setUp(self):
         super().setUp()
-        self.selector = Selector(QAtMost(2), SelectorMode.TARGET, CREATURE, BF_ANY)
+        self.selector = Selector(QAtMost(2), SelectorMode.TARGET, CREATURE, zones=(BF_ANY,))
         self.slot = legal_targets(
             self.world, self.ex, self.selector, source=self.a, controller=self.p0
         )
@@ -154,7 +154,7 @@ class TestUpToTwoTargets(QueryCase):
         self.assertFalse(self.slot.forced)
 
     def test_zone_and_controller_restrict_candidates(self):
-        own = Selector(QAtMost(2), SelectorMode.TARGET, CREATURE, BF_YOU)
+        own = Selector(QAtMost(2), SelectorMode.TARGET, CREATURE, zones=(BF_YOU,))
         slot = legal_targets(
             self.world, self.ex, own, source=self.a, controller=self.p0
         )
@@ -191,7 +191,7 @@ class TestUpToTwoTargets(QueryCase):
             QAtMost(2),
             SelectorMode.TARGET,
             CREATURE,
-            Zone(ZoneKind.EXILE, ControllerRef.ANY),
+            zones=(Zone(ZoneKind.EXILE, ControllerRef.ANY),),
         )
         slot = legal_targets(
             self.world, self.ex, self.selector, source=self.a, controller=self.p0
@@ -210,7 +210,7 @@ class TestMayOffer(QueryCase):
                 (
                     atom(
                         Verb.MOVE_ZONE,
-                        cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, HAND_YOU),
+                        cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(HAND_YOU,)),
                         controller=ControllerRef.YOU,
                         **{
                             "destination": Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
@@ -322,7 +322,7 @@ class TestSplitSelections(QueryCase):
         return legal_targets(
             self.world,
             self.ex,
-            Selector(count, mode, UNIV, self.exile),
+            Selector(count, mode, UNIV, zones=(self.exile,)),
             source=self.a,
             controller=self.p0,
         )
@@ -499,14 +499,14 @@ class TestGoldenSurface(unittest.TestCase):
         slot_a = legal_targets(
             self.world,
             self.ex,
-            Selector(QAtMost(2), SelectorMode.TARGET, UNIV, BF_ANY),
+            Selector(QAtMost(2), SelectorMode.TARGET, UNIV, zones=(BF_ANY,)),
             source=self.visionary,
             controller=self.p0,
         )
         slot_b = legal_targets(
             self.world,
             self.ex,
-            Selector(QAtMost(2), SelectorMode.TARGET, UNIV, BF_ANY),
+            Selector(QAtMost(2), SelectorMode.TARGET, UNIV, zones=(BF_ANY,)),
             source=self.visionary,
             controller=self.p0,
         )

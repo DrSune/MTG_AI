@@ -278,12 +278,12 @@ def _is_any_target_idiom(filter_: object) -> bool:
 
 def _is_any_universal(sel: Selector) -> bool:
     """True for the "any target" IR shapes: the legacy universal shape (an
-    ANY-kind zone, primary or extra, with the empty FAnd filter — the 13b
-    lane) or the r17-2 battlefield idiom (FOr Creature/Planeswalker over
-    BATTLEFIELD zones only). This is query._player_widening_applies' twin
-    predicate, shared here because the runtime TARGET legality set must
+    ANY-kind zone in the selector's zone SET with the empty FAnd filter —
+    the 13b lane) or the r17-2 battlefield idiom (FOr Creature/Planeswalker
+    over BATTLEFIELD zones only). This is query._player_widening_applies'
+    twin predicate, shared here because the runtime TARGET legality set must
     widen over exactly the same population the query offers (CR 109.5)."""
-    zones = (sel.zone, *sel.zones)
+    zones = sel.zones
     if bool(
         sel.filter is not None
         and isinstance(sel.filter, FAnd)
@@ -448,13 +448,27 @@ def resolve_selector(
                 "closed C12 vocabulary"
             )
     else:
-        candidates = list(enumerate_zone(ctx, sel.zone))
-        for extra in sel.zones:
-            candidates.extend(enumerate_zone(ctx, extra))
+        candidates = []
+        for zone_spec in sel.zones:  # R0: the zones field IS the legal-zone set
+            candidates.extend(enumerate_zone(ctx, zone_spec))
+        # L1 (R0 zone-fold of the r19b lane): the TOP-window partition opens
+        # iff a MATCHED LIBRARY+TOP zone is in the SET — the matched Zone is
+        # EXTRACTED (mode ∧ kind ∧ position conjuncts) and its CONTROLLER is
+        # taken from that matched zone, never from a positional zones[0]
+        # (heterogeneous zones: an ∃-test that passes on a zone you then do
+        # not use is a silent rules change — /129 §2; corpus-unambiguous:
+        # ≤1 LIBRARY entry per selector, gate-verified).
+        matched_top_library = next(
+            (
+                z
+                for z in sel.zones
+                if z.kind is ZoneKind.LIBRARY and z.position is ZonePosition.TOP
+            ),
+            None,
+        )
         if (
             sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST)
-            and sel.zone.kind is ZoneKind.LIBRARY
-            and sel.zone.position is ZonePosition.TOP
+            and matched_top_library is not None
         ):
             # r19b (See the Truth): "Look at the top three…. Put ONE OF
             # THOSE cards into your hand" — the partition population is the
@@ -470,7 +484,7 @@ def resolve_selector(
                 ctx.one_of_window if sel.mode is SelectorMode.REST else ()
             )
             if win:
-                for player in players_for_ref(sel.zone.controller, ctx):
+                for player in players_for_ref(matched_top_library.controller, ctx):
                     live = set(ctx.world.players[player].zone(ZONE_LIBRARY).entries)
                     partition_window = [h for h in win if h in live]
                     break
@@ -551,7 +565,13 @@ def resolve_selector(
             # changed nothing except that an unlawful head can no longer
             # slip through).
     if sel.mode is SelectorMode.ALL:
-        return candidates  # zone order — designated order-preserving slot
+        # Designated order-preserving slot. R0 zone-fold drift law (/129 §2
+        # F1 clause, CLOSED BY R0): pre-fold this order followed the raw
+        # (zone, *zones) construction enumeration; post-fold the zones field
+        # is canonically sorted AT CONSTRUCTION, so multi-zone ALL slots
+        # enumerate in canonical zone order — a DETERMINISTIC, accepted
+        # drift (same-seed determinism pinned in test_ontology_r0).
+        return candidates
     if sel.mode is SelectorMode.CHOOSE:
         ordered = sorted(candidates)
         if isinstance(sel.count, QUnbounded):
@@ -611,14 +631,15 @@ def resolve_selector(
                     "CAST TARGET designation left the legal set: "
                     + cast_refusal_note(executor, ctx.source, dropped),
                 )
-        if sel.zone.kind is ZoneKind.PLAYER:
-            # 16a: a CARD designation on a PLAYER-side designation means
-            # its controller — players_for_ref's TARGET_PLAYER rule (the
-            # zone-enumeration face) mirrored onto the designation face,
-            # so the two agree. The canonical case is Brash Taunter's
-            # compiled echo: the DAMAGE trigger binds the journal cause
-            # (a card) under "target", and "target opponent" means THAT
-            # card's player — never the card itself.
+        if any(z.kind is ZoneKind.PLAYER for z in sel.zones):
+            # 16a: a CARD designation on a PLAYER-SIDE designation (∃ over
+            # the R0 zone set — PLAYER alone or PLAYER∪BATTLEFIELD both
+            # re-point) means its controller — players_for_ref's
+            # TARGET_PLAYER rule (the zone-enumeration face) mirrored onto
+            # the designation face, so the two agree. The canonical case is
+            # Brash Taunter's compiled echo: the DAMAGE trigger binds the
+            # journal cause (a card) under "target", and "target opponent"
+            # means THAT card's player — never the card itself.
             bound = [
                 h if h.namespace == "player" else controller_of(ctx, h) for h in bound
             ]
@@ -787,6 +808,33 @@ def atom_target_slot_key(atom: Atom, slot_designations: dict[str, tuple]) -> str
     return None
 
 
+def graveyard_sweep_shape(value: object, verb: object, dest: object) -> bool:
+    """The r21b whole-graveyard-sweep exemption shape (see role_handles).
+
+    R0 zone-fold law (/129 §2 L4, gate F3): the GRAVEYARD∧TARGET_PLAYER
+    clause is ONE zone spec satisfying BOTH conjuncts — a set-level
+    ``∃-kind ∧ ∃-controller`` would be satisfied by two different zones
+    (e.g. zones=(HAND/TARGET_PLAYER, GRAVEYARD/YOU)) and re-open the
+    silent-semantics hole the five-condition pin exists to close. Kept as
+    a named helper so the unit-level synthetic falsifier (test_ontology_r0)
+    exercises the PRODUCTION predicate, not a copy."""
+    return bool(
+        isinstance(value, Selector)
+        and value.mode is SelectorMode.ALL
+        # T4 P1a: EXILE merged into MOVE_ZONE — the pin is now the verb
+        # plus a destination-kind read (same five verified conditions).
+        and verb is Verb.MOVE_ZONE
+        and isinstance(dest, Zone)
+        and dest.kind is ZoneKind.EXILE
+        and isinstance(value.filter, FAnd)
+        and not value.filter.children
+        and any(
+            z.kind is ZoneKind.GRAVEYARD and z.controller is ControllerRef.TARGET_PLAYER
+            for z in value.zones
+        )
+    )
+
+
 def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
     """The handles a target/cards/equipment role acts on, Handle-sorted.
 
@@ -825,15 +873,18 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
     # Same shape as the B-16 anaphoric exemption: the Selector knows best.
     # r21a (Chandra's Magmutt / Leafkin Avenger): the exemption is for
     # PURE player selectors. The compiled "target player or planeswalker"
-    # shape is Zone(PLAYER) with zones=(BATTLEFIELD,) — a CARD handle
-    # (the walker) is a LEGAL designation there (enumerate_candidates
-    # unions both zones), and self-resolving that selector through the
-    # primary PLAYER zone alone silently re-pointed the printed damage at
-    # the player. A designation the player actually made stands.
+    # shape is a PLAYER ∪ BATTLEFIELD zone SET — a CARD handle (the walker)
+    # is a LEGAL designation there (enumerate_candidates walks the whole
+    # set), and self-resolving that selector through the PLAYER zone alone
+    # silently re-pointed the printed damage at the player. A designation
+    # the player actually made stands. R0 zone-fold (/129 §2 L3): PURE is
+    # the SINGLETON predicate len(zones)==1 ∧ PLAYER — deliberately NOT an
+    # ∃ over the set: ∃-PLAYER would re-open the r21a bug on the folded
+    # len-2 PLAYER∪BATTLEFIELD twins.
     player_side = (
         isinstance(value, Selector)
-        and value.zone.kind is ZoneKind.PLAYER
-        and not value.zones
+        and len(value.zones) == 1
+        and value.zones[0].kind is ZoneKind.PLAYER
     )
     # r19b: an ALL-mode Selector with referent-anaphora in its filter
     # denotes its own resolved population (Turn to Slag above).
@@ -857,33 +908,27 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
     )
     # r21b (Tormod's Crypt): the FOURTH self-resolving shape — the whole-
     # graveyard sweep. "Exile target player's graveyard" compiles as an
-    # ALL-mode EXILE over Zone(GRAVEYARD, TARGET_PLAYER) with a UNIVERSAL
-    # filter (empty FAnd — the zone IS the population, there is nothing to
-    # filter); the designation names a CARD in that graveyard, and the
-    # binding-first lane exiled just the designated cards — the exact
-    # silent-semantics shape (the sweep never ran, legality stayed green).
-    # The exemption is pinned to the five verified corpus conditions: ALL
-    # mode, EXILE verb, universal empty-FAnd filter, GRAVEYARD zone,
-    # TARGET_PLAYER controller — a corpus scan of every ALL+TARGET_PLAYER
-    # selector shows ONLY Tormod's Crypt matches all five (Peer into the
-    # Abyss fails verb/zone, Duress/Kitesail/Necromentia/Teferi carry non-
-    # universal filters, Death Mage's filter is an FAtom). resolve_selector
-    # folds the card designation through players_for_ref's TARGET_PLAYER
-    # lane (controller_of) and sweeps the full graveyard.
+    # ALL-mode EXILE over the single zone GRAVEYARD/TARGET_PLAYER with a
+    # UNIVERSAL filter (empty FAnd — the zone IS the population, there is
+    # nothing to filter); the designation names a CARD in that graveyard,
+    # and the binding-first lane exiled just the designated cards — the
+    # exact silent-semantics shape (the sweep never ran, legality stayed
+    # green). The exemption is pinned to the five verified corpus
+    # conditions: ALL mode, EXILE verb, universal empty-FAnd filter,
+    # GRAVEYARD zone, TARGET_PLAYER controller — a corpus scan of every
+    # ALL+TARGET_PLAYER selector shows ONLY Tormod's Crypt matches all five
+    # (Peer into the Abyss fails verb/zone, Duress/Kitesail/Necromentia/
+    # Teferi carry non-universal filters, Death Mage's filter is an FAtom).
+    # resolve_selector folds the card designation through players_for_ref's
+    # TARGET_PLAYER lane (controller_of) and sweeps the full graveyard.
+    # R0 zone-fold (/129 §2 L4, gate F3): the clause is evaluated as ONE
+    # ZONE SATISFYING BOTH kind and controller (helper below) — NOT
+    # ∃-kind ∧ ∃-controller over independently-quantified zones, which a
+    # folded mixed set like (HAND/TARGET_PLAYER, GRAVEYARD/YOU) would pass
+    # on two different zones (Necromentia's CHOOSE shape must not round
+    # into the sweep exemption).
     _dest = atom.args.get("destination")
-    graveyard_sweep = (
-        isinstance(value, Selector)
-        and value.mode is SelectorMode.ALL
-        # T4 P1a: EXILE merged into MOVE_ZONE — the pin is now the verb
-        # plus a destination-kind read (same five verified conditions).
-        and atom.verb is Verb.MOVE_ZONE
-        and isinstance(_dest, Zone)
-        and _dest.kind is ZoneKind.EXILE
-        and isinstance(value.filter, FAnd)
-        and not value.filter.children
-        and value.zone.kind is ZoneKind.GRAVEYARD
-        and value.zone.controller is ControllerRef.TARGET_PLAYER
-    )
+    graveyard_sweep = graveyard_sweep_shape(value, atom.verb, _dest)
     if (
         bound is not None
         and not anaphoric

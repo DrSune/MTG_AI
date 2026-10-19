@@ -103,8 +103,7 @@ def _selector_zones_union() -> at.Selector:
         at.QConst(1),
         at.SelectorMode.TARGET,
         _IS_SOURCE,
-        at.Zone(at.ZoneKind.PLAYER, at.ControllerRef.ANY),
-        (_ZONE_BF_ANY,),
+        zones=(at.Zone(at.ZoneKind.PLAYER, at.ControllerRef.ANY), *(_ZONE_BF_ANY,)),
     )
 
 
@@ -210,7 +209,7 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
     (
         "selector_zones_union",
         _selector_zones_union,
-        "856e641278754b671affd651d8d36aed93627c5ca71997f64ddd41f579021591",
+        "64d3fab5fcfd9239e2c832d0a8fb7852fd14d564061505597cc36409e98045df",
     ),
     (
         "spellability_effect_omitted",
@@ -401,7 +400,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                                 at.QConst(1),
                                 at.SelectorMode.TARGET,
                                 _IS_SOURCE,
-                                _ZONE_BF_ANY,
+                                zones=(_ZONE_BF_ANY,),
                             ),
                         ),
                     )
