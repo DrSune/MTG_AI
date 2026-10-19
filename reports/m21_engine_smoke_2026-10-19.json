@@ -4,84 +4,19 @@
   "pool_mode": "engine",
   "games_requested": 500,
   "games_completed": 500,
-  "games_crashed": 7,
-  "crash_rate": 0.014,
-  "distinct_signatures": 3,
+  "games_crashed": 0,
+  "crash_rate": 0.0,
+  "distinct_signatures": 0,
   "turn_cap": 150,
   "deck_pairs_seed": 201019,
   "game_timeout_s": 45.0,
   "workers": 4,
-  "wall_clock_s": 92.2,
+  "wall_clock_s": 91.3,
   "acts_median": 72.0,
   "turns_median": 34.0,
   "timed_out_seeds": []
  },
- "signatures": {
-  "AssertionError@quantity.py:880 in _eval_atom": {
-   "exc": "AssertionError",
-   "message": "",
-   "frame": "quantity.py:880 in _eval_atom",
-   "count": 5,
-   "seeds": [
-    27,
-    95,
-    239,
-    274,
-    412
-   ],
-   "turn": 14,
-   "step": 27,
-   "attempted": "act:Tempered Veteran#0",
-   "stack": [],
-   "recent_acts": [
-    "act:Mountain(#0)",
-    "act:Forest(#0)",
-    "act:Plains(#0)"
-   ],
-   "traceback": "Traceback (most recent call last):\n  File \"/home/sune/Desktop/MTG_AI/tools/eval/znr_engine_smoke.py\", line 267, in play_one\n    play_game(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1236, in play_game\n    _play(game, policy, order, turn_cap)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1380, in _play\n    policy.take_acts(game, seat)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 683, in take_acts\n    self.play_activation(game, seat, self.choose(others))\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 604, in play_activation\n    activation_target_slots(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/query.py\", line 971, in activation_target_slots\n    slot = legal_targets(\n           ^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/query.py\", line 307, in legal_targets\n    candidates = tuple(enumerate_candidates(selector, ctx))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 512, in enumerate_candidates\n    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 512, in <genexpr>\n    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))\n                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 595, in eval_filter\n    return all(eval_filter(c, handle, ctx) for c in filter_.children)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 595, in <genexpr>\n    return all(eval_filter(c, handle, ctx) for c in filter_.children)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 601, in eval_filter\n    return _eval_atom(filter_, handle, ctx)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 880, in _eval_atom\n    assert atom.count is not None and atom.counter_kind is not None\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
-   "repro": "python tools/eval/znr_engine_smoke.py --repro 27 --set M21 --deck-pairs-seed 201019 --turn-cap 150"
-  },
-  "NotImplementedError@quantity.py:373 in resolve": {
-   "exc": "NotImplementedError",
-   "message": "executor: QThisTurn(NONCOMBAT_DAMAGE) not implemented (12b turn ledger)",
-   "frame": "quantity.py:373 in resolve",
-   "count": 1,
-   "seeds": [
-    384
-   ],
-   "turn": 51,
-   "step": 111,
-   "attempted": "cast:Fungal Rebirth",
-   "stack": [],
-   "recent_acts": [
-    "act:Rugged Highlands(#2)",
-    "act:Mountain(#0)",
-    "cast:Fungal Rebirth(1t)"
-   ],
-   "traceback": "Traceback (most recent call last):\n  File \"/home/sune/Desktop/MTG_AI/tools/eval/znr_engine_smoke.py\", line 267, in play_one\n    play_game(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1236, in play_game\n    _play(game, policy, order, turn_cap)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1380, in _play\n    policy.take_acts(game, seat)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 657, in take_acts\n    rows = legal_casts(world, executor, seat)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/query.py\", line 714, in legal_casts\n    reason, node, _record, plan = spell_castable(executor, seat, handle, x=x)\n                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 1279, in spell_castable\n    plan, reason = build_payment_plan(world, ctx, cost, mana_use=handle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 700, in build_payment_plan\n    generic_cut += resolve(delta.amount, mod_ctx)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 373, in resolve\n    raise NotImplementedError(\nNotImplementedError: executor: QThisTurn(NONCOMBAT_DAMAGE) not implemented (12b turn ledger)\n",
-   "repro": "python tools/eval/znr_engine_smoke.py --repro 384 --set M21 --deck-pairs-seed 201019 --turn-cap 150"
-  },
-  "ValueError@quantity.py:417 in _prop_value": {
-   "exc": "ValueError",
-   "message": "executor: POWER undefined on handle card:61",
-   "frame": "quantity.py:417 in _prop_value",
-   "count": 1,
-   "seeds": [
-    490
-   ],
-   "turn": 45,
-   "step": 79,
-   "attempted": "cast:Carrion Grub",
-   "stack": [],
-   "recent_acts": [
-    "act:Treasure(#0)",
-    "act:Mountain(#0)",
-    "act:Temple of Epiphany(#2)"
-   ],
-   "traceback": "Traceback (most recent call last):\n  File \"/home/sune/Desktop/MTG_AI/tools/eval/znr_engine_smoke.py\", line 267, in play_one\n    play_game(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1236, in play_game\n    _play(game, policy, order, turn_cap)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1380, in _play\n    policy.take_acts(game, seat)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 679, in take_acts\n    self.play_cast(game, seat, self.pick_spell(game, spells))\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 581, in play_cast\n    cast(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/stack.py\", line 992, in cast\n    executor._settle()\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/__init__.py\", line 1306, in _settle\n    fired += self._state_checks()\n             ^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/__init__.py\", line 1212, in _state_checks\n    self.layers.recompute()  # live keywords/toughness must be current\n    ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/layers.py\", line 715, in recompute\n    changed += self._materialize_static(layer)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/layers.py\", line 744, in _materialize_static\n    p_delta, t_delta, p_set, t_set = pt_atom_delta(atom, ctx)\n                                     ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/verbs.py\", line 759, in pt_atom_delta\n    p_delta = _pt_delta_value(power_role, ctx) if power_role is not None else 0\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/verbs.py\", line 743, in _pt_delta_value\n    magnitude = resolve(quantity.magnitude, ctx)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 358, in resolve\n    return _resolve_prop(quantity, ctx)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 518, in _resolve_prop\n    _prop_value(prop.field, handle, ctx)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 417, in _prop_value\n    raise ValueError(f\"executor: {field.name} undefined on handle {handle}\")\nValueError: executor: POWER undefined on handle card:61\n",
-   "repro": "python tools/eval/znr_engine_smoke.py --repro 490 --set M21 --deck-pairs-seed 201019 --turn-cap 150"
-  }
- },
+ "signatures": {},
  "rows": [
   {
    "seed": 0,
@@ -141,7 +76,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/10L",
    "crash": null,
-   "seconds": 0.87
+   "seconds": 0.88
   },
   {
    "seed": 6,
@@ -151,7 +86,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/10L",
    "crash": null,
-   "seconds": 0.56
+   "seconds": 0.58
   },
   {
    "seed": 7,
@@ -161,7 +96,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/15L",
    "crash": null,
-   "seconds": 0.62
+   "seconds": 0.6
   },
   {
    "seed": 8,
@@ -171,7 +106,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/15L",
    "crash": null,
-   "seconds": 0.84
+   "seconds": 0.86
   },
   {
    "seed": 9,
@@ -181,7 +116,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/8L",
    "crash": null,
-   "seconds": 1.17
+   "seconds": 1.19
   },
   {
    "seed": 10,
@@ -191,7 +126,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "15L/13L",
    "crash": null,
-   "seconds": 0.53
+   "seconds": 0.5
   },
   {
    "seed": 11,
@@ -201,7 +136,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "14L/14L",
    "crash": null,
-   "seconds": 0.99
+   "seconds": 1.0
   },
   {
    "seed": 12,
@@ -211,7 +146,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/12L",
    "crash": null,
-   "seconds": 0.66
+   "seconds": 0.62
   },
   {
    "seed": 13,
@@ -221,7 +156,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "18L/12L",
    "crash": null,
-   "seconds": 0.71
+   "seconds": 0.74
   },
   {
    "seed": 14,
@@ -231,7 +166,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/10L",
    "crash": null,
-   "seconds": 0.93
+   "seconds": 0.94
   },
   {
    "seed": 15,
@@ -251,7 +186,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/16L",
    "crash": null,
-   "seconds": 0.57
+   "seconds": 0.54
   },
   {
    "seed": 17,
@@ -261,7 +196,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/11L",
    "crash": null,
-   "seconds": 1.0
+   "seconds": 1.03
   },
   {
    "seed": 18,
@@ -271,7 +206,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/13L",
    "crash": null,
-   "seconds": 1.13
+   "seconds": 1.06
   },
   {
    "seed": 19,
@@ -311,7 +246,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/12L",
    "crash": null,
-   "seconds": 0.8
+   "seconds": 0.83
   },
   {
    "seed": 23,
@@ -321,7 +256,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/10L",
    "crash": null,
-   "seconds": 0.63
+   "seconds": 0.6
   },
   {
    "seed": 24,
@@ -331,7 +266,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/10L",
    "crash": null,
-   "seconds": 0.69
+   "seconds": 0.7
   },
   {
    "seed": 25,
@@ -351,30 +286,17 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/10L",
    "crash": null,
-   "seconds": 0.52
+   "seconds": 0.53
   },
   {
    "seed": 27,
-   "turns": 14,
-   "acts": 27,
+   "turns": 25,
+   "acts": 53,
    "survived": false,
-   "reason": "crash:AssertionError",
+   "reason": "game over: player:1(life<=0)",
    "deck": "10L/10L",
-   "crash": {
-    "exc": "AssertionError",
-    "message": "",
-    "frame": "quantity.py:880 in _eval_atom",
-    "turn": 14,
-    "recent_acts": [
-     "act:Mountain(#0)",
-     "act:Forest(#0)",
-     "act:Plains(#0)"
-    ],
-    "attempted": "act:Tempered Veteran#0",
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool engine --deck-pairs-seed 201019 --turns 150 --repro 27"
-   },
-   "seconds": 0.46
+   "crash": null,
+   "seconds": 0.48
   },
   {
    "seed": 28,
@@ -384,7 +306,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/11L",
    "crash": null,
-   "seconds": 1.63
+   "seconds": 1.64
   },
   {
    "seed": 29,
@@ -394,7 +316,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/11L",
    "crash": null,
-   "seconds": 0.54
+   "seconds": 0.55
   },
   {
    "seed": 30,
@@ -404,7 +326,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "9L/9L",
    "crash": null,
-   "seconds": 0.33
+   "seconds": 0.34
   },
   {
    "seed": 31,
@@ -424,7 +346,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/11L",
    "crash": null,
-   "seconds": 0.34
+   "seconds": 0.35
   },
   {
    "seed": 33,
@@ -434,7 +356,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "9L/13L",
    "crash": null,
-   "seconds": 0.72
+   "seconds": 0.73
   },
   {
    "seed": 34,
@@ -444,7 +366,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/12L",
    "crash": null,
-   "seconds": 1.09
+   "seconds": 1.1
   },
   {
    "seed": 35,
@@ -454,7 +376,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/10L",
    "crash": null,
-   "seconds": 0.75
+   "seconds": 0.77
   },
   {
    "seed": 36,
@@ -464,7 +386,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "14L/13L",
    "crash": null,
-   "seconds": 0.75
+   "seconds": 0.76
   },
   {
    "seed": 37,
@@ -474,7 +396,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/13L",
    "crash": null,
-   "seconds": 0.87
+   "seconds": 0.88
   },
   {
    "seed": 38,
@@ -484,7 +406,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/13L",
    "crash": null,
-   "seconds": 0.49
+   "seconds": 0.51
   },
   {
    "seed": 39,
@@ -504,7 +426,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/11L",
    "crash": null,
-   "seconds": 0.31
+   "seconds": 0.32
   },
   {
    "seed": 41,
@@ -514,7 +436,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/10L",
    "crash": null,
-   "seconds": 0.86
+   "seconds": 0.85
   },
   {
    "seed": 42,
@@ -524,7 +446,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/14L",
    "crash": null,
-   "seconds": 0.48
+   "seconds": 0.49
   },
   {
    "seed": 43,
@@ -534,7 +456,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/11L",
    "crash": null,
-   "seconds": 1.39
+   "seconds": 1.44
   },
   {
    "seed": 44,
@@ -544,7 +466,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/17L",
    "crash": null,
-   "seconds": 0.86
+   "seconds": 0.87
   },
   {
    "seed": 45,
@@ -554,7 +476,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/12L",
    "crash": null,
-   "seconds": 1.66
+   "seconds": 1.67
   },
   {
    "seed": 46,
@@ -564,7 +486,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/12L",
    "crash": null,
-   "seconds": 0.43
+   "seconds": 0.42
   },
   {
    "seed": 47,
@@ -584,7 +506,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/13L",
    "crash": null,
-   "seconds": 0.68
+   "seconds": 0.69
   },
   {
    "seed": 49,
@@ -594,7 +516,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/13L",
    "crash": null,
-   "seconds": 0.67
+   "seconds": 0.68
   },
   {
    "seed": 50,
@@ -664,7 +586,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/15L",
    "crash": null,
-   "seconds": 0.48
+   "seconds": 0.46
   },
   {
    "seed": 57,
@@ -674,7 +596,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/10L",
    "crash": null,
-   "seconds": 0.59
+   "seconds": 0.6
   },
   {
    "seed": 58,
@@ -694,7 +616,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/13L",
    "crash": null,
-   "seconds": 0.73
+   "seconds": 0.68
   },
   {
    "seed": 60,
@@ -704,7 +626,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/14L",
    "crash": null,
-   "seconds": 0.72
+   "seconds": 0.71
   },
   {
    "seed": 61,
@@ -714,7 +636,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/10L",
    "crash": null,
-   "seconds": 1.21
+   "seconds": 1.16
   },
   {
    "seed": 62,
@@ -734,7 +656,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/12L",
    "crash": null,
-   "seconds": 0.83
+   "seconds": 0.78
   },
   {
    "seed": 64,
@@ -754,7 +676,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/10L",
    "crash": null,
-   "seconds": 0.49
+   "seconds": 0.5
   },
   {
    "seed": 66,
@@ -774,7 +696,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/10L",
    "crash": null,
-   "seconds": 0.82
+   "seconds": 0.78
   },
   {
    "seed": 68,
@@ -784,7 +706,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/10L",
    "crash": null,
-   "seconds": 0.56
+   "seconds": 0.53
   },
   {
    "seed": 69,
@@ -824,7 +746,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/16L",
    "crash": null,
-   "seconds": 0.85
+   "seconds": 0.79
   },
   {
    "seed": 73,
@@ -834,7 +756,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/14L",
    "crash": null,
-   "seconds": 1.09
+   "seconds": 1.04
   },
   {
    "seed": 74,
@@ -874,7 +796,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/11L",
    "crash": null,
-   "seconds": 0.42
+   "seconds": 0.39
   },
   {
    "seed": 78,
@@ -884,7 +806,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/10L",
    "crash": null,
-   "seconds": 0.53
+   "seconds": 0.51
   },
   {
    "seed": 79,
@@ -894,7 +816,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "14L/14L",
    "crash": null,
-   "seconds": 0.75
+   "seconds": 0.7
   },
   {
    "seed": 80,
@@ -914,7 +836,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "8L/8L",
    "crash": null,
-   "seconds": 0.34
+   "seconds": 0.32
   },
   {
    "seed": 82,
@@ -934,7 +856,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/12L",
    "crash": null,
-   "seconds": 0.88
+   "seconds": 0.81
   },
   {
    "seed": 84,
@@ -944,7 +866,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "16L/12L",
    "crash": null,
-   "seconds": 0.41
+   "seconds": 0.4
   },
   {
    "seed": 85,
@@ -964,7 +886,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/13L",
    "crash": null,
-   "seconds": 0.77
+   "seconds": 0.73
   },
   {
    "seed": 87,
@@ -984,7 +906,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "15L/12L",
    "crash": null,
-   "seconds": 0.41
+   "seconds": 0.4
   },
   {
    "seed": 89,
@@ -994,7 +916,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/17L",
    "crash": null,
-   "seconds": 0.83
+   "seconds": 0.78
   },
   {
    "seed": 90,
@@ -1004,7 +926,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/11L",
    "crash": null,
-   "seconds": 0.9
+   "seconds": 0.86
   },
   {
    "seed": 91,
@@ -1024,7 +946,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/14L",
    "crash": null,
-   "seconds": 0.62
+   "seconds": 0.61
   },
   {
    "seed": 93,
@@ -1034,7 +956,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "8L/15L",
    "crash": null,
-   "seconds": 0.57
+   "seconds": 0.56
   },
   {
    "seed": 94,
@@ -1044,30 +966,17 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/13L",
    "crash": null,
-   "seconds": 0.63
+   "seconds": 0.59
   },
   {
    "seed": 95,
-   "turns": 48,
-   "acts": 105,
+   "turns": 49,
+   "acts": 108,
    "survived": false,
-   "reason": "crash:AssertionError",
+   "reason": "game over: player:1(life<=0)",
    "deck": "11L/11L",
-   "crash": {
-    "exc": "AssertionError",
-    "message": "",
-    "frame": "quantity.py:880 in _eval_atom",
-    "turn": 48,
-    "recent_acts": [
-     "act:Plains(#0)",
-     "act:Radiant Fountain(#1)",
-     "act:Temple of Silence(#2)"
-    ],
-    "attempted": "act:Tempered Veteran#0",
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool engine --deck-pairs-seed 201019 --turns 150 --repro 95"
-   },
-   "seconds": 1.89
+   "crash": null,
+   "seconds": 1.0
   },
   {
    "seed": 96,
@@ -1077,7 +986,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/12L",
    "crash": null,
-   "seconds": 0.76
+   "seconds": 0.72
   },
   {
    "seed": 97,
@@ -1087,7 +996,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/11L",
    "crash": null,
-   "seconds": 0.46
+   "seconds": 0.43
   },
   {
    "seed": 98,
@@ -1107,7 +1016,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/15L",
    "crash": null,
-   "seconds": 0.64
+   "seconds": 0.65
   },
   {
    "seed": 100,
@@ -1117,7 +1026,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "15L/11L",
    "crash": null,
-   "seconds": 1.07
+   "seconds": 0.98
   },
   {
    "seed": 101,
@@ -1127,7 +1036,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/11L",
    "crash": null,
-   "seconds": 0.49
+   "seconds": 0.5
   },
   {
    "seed": 102,
@@ -1147,7 +1056,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "9L/8L",
    "crash": null,
-   "seconds": 0.62
+   "seconds": 0.56
   },
   {
    "seed": 104,
@@ -1177,7 +1086,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/10L",
    "crash": null,
-   "seconds": 0.68
+   "seconds": 0.65
   },
   {
    "seed": 107,
@@ -1197,7 +1106,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/12L",
    "crash": null,
-   "seconds": 0.76
+   "seconds": 0.73
   },
   {
    "seed": 109,
@@ -1207,7 +1116,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/11L",
    "crash": null,
-   "seconds": 1.11
+   "seconds": 1.12
   },
   {
    "seed": 110,
@@ -1217,7 +1126,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/8L",
    "crash": null,
-   "seconds": 0.53
+   "seconds": 0.52
   },
   {
    "seed": 111,
@@ -1237,7 +1146,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "14L/10L",
    "crash": null,
-   "seconds": 1.05
+   "seconds": 1.04
   },
   {
    "seed": 113,
@@ -1247,7 +1156,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "9L/16L",
    "crash": null,
-   "seconds": 0.83
+   "seconds": 0.8
   },
   {
    "seed": 114,
@@ -1267,7 +1176,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "14L/17L",
    "crash": null,
-   "seconds": 0.7
+   "seconds": 0.71
   },
   {
    "seed": 116,
@@ -1277,7 +1186,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/11L",
    "crash": null,
-   "seconds": 0.63
+   "seconds": 0.6
   },
   {
    "seed": 117,
@@ -1287,7 +1196,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "8L/12L",
    "crash": null,
-   "seconds": 1.03
+   "seconds": 1.04
   },
   {
    "seed": 118,
@@ -1307,7 +1216,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/13L",
    "crash": null,
-   "seconds": 0.43
+   "seconds": 0.44
   },
   {
    "seed": 120,
@@ -1317,7 +1226,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/11L",
    "crash": null,
-   "seconds": 1.02
+   "seconds": 0.97
   },
   {
    "seed": 121,
@@ -1327,7 +1236,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/11L",
    "crash": null,
-   "seconds": 0.48
+   "seconds": 0.51
   },
   {
    "seed": 122,
@@ -1337,7 +1246,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/16L",
    "crash": null,
-   "seconds": 0.4
+   "seconds": 0.39
   },
   {
    "seed": 123,
@@ -1357,7 +1266,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "16L/14L",
    "crash": null,
-   "seconds": 0.68
+   "seconds": 0.72
   },
   {
    "seed": 125,
@@ -1367,7 +1276,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "8L/11L",
    "crash": null,
-   "seconds": 1.07
+   "seconds": 1.09
   },
   {
    "seed": 126,
@@ -1377,7 +1286,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/9L",
    "crash": null,
-   "seconds": 0.9
+   "seconds": 0.84
   },
   {
    "seed": 127,
@@ -1387,7 +1296,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/13L",
    "crash": null,
-   "seconds": 1.12
+   "seconds": 1.19
   },
   {
    "seed": 128,
@@ -1407,7 +1316,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "15L/11L",
    "crash": null,
-   "seconds": 0.72
+   "seconds": 0.68
   },
   {
    "seed": 130,
@@ -1447,7 +1356,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/13L",
    "crash": null,
-   "seconds": 1.27
+   "seconds": 1.28
   },
   {
    "seed": 134,
@@ -1497,7 +1406,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/12L",
    "crash": null,
-   "seconds": 0.57
+   "seconds": 0.61
   },
   {
    "seed": 139,
@@ -1507,7 +1416,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/12L",
    "crash": null,
-   "seconds": 0.44
+   "seconds": 0.42
   },
   {
    "seed": 140,
@@ -1517,7 +1426,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "15L/10L",
    "crash": null,
-   "seconds": 0.89
+   "seconds": 0.9
   },
   {
    "seed": 141,
@@ -1527,7 +1436,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/13L",
    "crash": null,
-   "seconds": 0.64
+   "seconds": 0.63
   },
   {
    "seed": 142,
@@ -1537,7 +1446,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/12L",
    "crash": null,
-   "seconds": 1.24
+   "seconds": 1.17
   },
   {
    "seed": 143,
@@ -1547,7 +1456,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/10L",
    "crash": null,
-   "seconds": 1.08
+   "seconds": 1.16
   },
   {
    "seed": 144,
@@ -1557,7 +1466,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/17L",
    "crash": null,
-   "seconds": 1.04
+   "seconds": 1.06
   },
   {
    "seed": 145,
@@ -1607,7 +1516,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/13L",
    "crash": null,
-   "seconds": 0.61
+   "seconds": 0.62
   },
   {
    "seed": 150,
@@ -1617,7 +1526,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "9L/13L",
    "crash": null,
-   "seconds": 0.81
+   "seconds": 0.77
   },
   {
    "seed": 151,
@@ -1627,7 +1536,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "9L/11L",
    "crash": null,
-   "seconds": 0.74
+   "seconds": 0.73
   },
   {
    "seed": 152,
@@ -1647,7 +1556,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/11L",
    "crash": null,
-   "seconds": 0.65
+   "seconds": 0.66
   },
   {
    "seed": 154,
@@ -1667,7 +1576,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/12L",
    "crash": null,
-   "seconds": 1.33
+   "seconds": 1.26
   },
   {
    "seed": 156,
@@ -1697,7 +1606,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "15L/11L",
    "crash": null,
-   "seconds": 1.29
+   "seconds": 1.3
   },
   {
    "seed": 159,
@@ -1727,7 +1636,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/11L",
    "crash": null,
-   "seconds": 0.58
+   "seconds": 0.59
   },
   {
    "seed": 162,
@@ -1737,7 +1646,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/15L",
    "crash": null,
-   "seconds": 1.38
+   "seconds": 1.39
   },
   {
    "seed": 163,
@@ -1747,7 +1656,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "15L/10L",
    "crash": null,
-   "seconds": 0.63
+   "seconds": 0.6
   },
   {
    "seed": 164,
@@ -1757,7 +1666,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/12L",
    "crash": null,
-   "seconds": 0.66
+   "seconds": 0.67
   },
   {
    "seed": 165,
@@ -1767,7 +1676,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/12L",
    "crash": null,
-   "seconds": 0.65
+   "seconds": 0.61
   },
   {
    "seed": 166,
@@ -1787,7 +1696,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/9L",
    "crash": null,
-   "seconds": 1.18
+   "seconds": 1.17
   },
   {
    "seed": 168,
@@ -1807,7 +1716,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/10L",
    "crash": null,
-   "seconds": 1.03
+   "seconds": 0.97
   },
   {
    "seed": 170,
@@ -1847,7 +1756,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/10L",
    "crash": null,
-   "seconds": 0.31
+   "seconds": 0.32
   },
   {
    "seed": 174,
@@ -1857,7 +1766,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/13L",
    "crash": null,
-   "seconds": 0.88
+   "seconds": 0.84
   },
   {
    "seed": 175,
@@ -1877,7 +1786,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/14L",
    "crash": null,
-   "seconds": 1.08
+   "seconds": 1.09
   },
   {
    "seed": 177,
@@ -1887,7 +1796,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/15L",
    "crash": null,
-   "seconds": 0.89
+   "seconds": 0.91
   },
   {
    "seed": 178,
@@ -1897,7 +1806,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/11L",
    "crash": null,
-   "seconds": 0.57
+   "seconds": 0.56
   },
   {
    "seed": 179,
@@ -1907,7 +1816,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/16L",
    "crash": null,
-   "seconds": 0.64
+   "seconds": 0.62
   },
   {
    "seed": 180,
@@ -1917,7 +1826,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "17L/20L",
    "crash": null,
-   "seconds": 0.9
+   "seconds": 0.93
   },
   {
    "seed": 181,
@@ -1927,7 +1836,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/14L",
    "crash": null,
-   "seconds": 0.51
+   "seconds": 0.52
   },
   {
    "seed": 182,
@@ -1937,7 +1846,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/11L",
    "crash": null,
-   "seconds": 0.62
+   "seconds": 0.6
   },
   {
    "seed": 183,
@@ -1947,7 +1856,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/13L",
    "crash": null,
-   "seconds": 0.95
+   "seconds": 0.91
   },
   {
    "seed": 184,
@@ -1957,7 +1866,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/14L",
    "crash": null,
-   "seconds": 0.41
+   "seconds": 0.42
   },
   {
    "seed": 185,
@@ -1987,7 +1896,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "16L/10L",
    "crash": null,
-   "seconds": 0.51
+   "seconds": 0.52
   },
   {
    "seed": 188,
@@ -1997,7 +1906,7 @@
    "reason": "game over: player:0(draw from empty library (CR 121.3))",
    "deck": "11L/13L",
    "crash": null,
-   "seconds": 1.29
+   "seconds": 1.2
   },
   {
    "seed": 189,
@@ -2007,7 +1916,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/12L",
    "crash": null,
-   "seconds": 0.74
+   "seconds": 0.75
   },
   {
    "seed": 190,
@@ -2017,7 +1926,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "17L/11L",
    "crash": null,
-   "seconds": 0.77
+   "seconds": 0.76
   },
   {
    "seed": 191,
@@ -2027,7 +1936,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/13L",
    "crash": null,
-   "seconds": 0.48
+   "seconds": 0.49
   },
   {
    "seed": 192,
@@ -2037,7 +1946,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/12L",
    "crash": null,
-   "seconds": 0.43
+   "seconds": 0.44
   },
   {
    "seed": 193,
@@ -2047,7 +1956,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/16L",
    "crash": null,
-   "seconds": 0.61
+   "seconds": 0.63
   },
   {
    "seed": 194,
@@ -2077,7 +1986,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "17L/12L",
    "crash": null,
-   "seconds": 1.13
+   "seconds": 1.08
   },
   {
    "seed": 197,
@@ -2087,7 +1996,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/9L",
    "crash": null,
-   "seconds": 0.39
+   "seconds": 0.4
   },
   {
    "seed": 198,
@@ -2097,7 +2006,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/14L",
    "crash": null,
-   "seconds": 1.01
+   "seconds": 1.02
   },
   {
    "seed": 199,
@@ -2107,7 +2016,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "15L/11L",
    "crash": null,
-   "seconds": 0.98
+   "seconds": 1.0
   },
   {
    "seed": 200,
@@ -2117,7 +2026,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/11L",
    "crash": null,
-   "seconds": 0.72
+   "seconds": 0.73
   },
   {
    "seed": 201,
@@ -2127,7 +2036,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/12L",
    "crash": null,
-   "seconds": 0.93
+   "seconds": 0.9
   },
   {
    "seed": 202,
@@ -2147,7 +2056,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "9L/11L",
    "crash": null,
-   "seconds": 0.64
+   "seconds": 0.65
   },
   {
    "seed": 204,
@@ -2177,7 +2086,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "9L/12L",
    "crash": null,
-   "seconds": 1.01
+   "seconds": 1.02
   },
   {
    "seed": 207,
@@ -2187,7 +2096,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/11L",
    "crash": null,
-   "seconds": 2.11
+   "seconds": 2.14
   },
   {
    "seed": 208,
@@ -2207,7 +2116,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "16L/14L",
    "crash": null,
-   "seconds": 0.58
+   "seconds": 0.56
   },
   {
    "seed": 210,
@@ -2217,7 +2126,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/13L",
    "crash": null,
-   "seconds": 0.73
+   "seconds": 0.74
   },
   {
    "seed": 211,
@@ -2227,7 +2136,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/13L",
    "crash": null,
-   "seconds": 0.47
+   "seconds": 0.45
   },
   {
    "seed": 212,
@@ -2237,7 +2146,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/12L",
    "crash": null,
-   "seconds": 1.0
+   "seconds": 1.01
   },
   {
    "seed": 213,
@@ -2257,7 +2166,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "15L/16L",
    "crash": null,
-   "seconds": 0.73
+   "seconds": 0.7
   },
   {
    "seed": 215,
@@ -2267,7 +2176,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "9L/13L",
    "crash": null,
-   "seconds": 0.64
+   "seconds": 0.63
   },
   {
    "seed": 216,
@@ -2277,7 +2186,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/12L",
    "crash": null,
-   "seconds": 0.5
+   "seconds": 0.51
   },
   {
    "seed": 217,
@@ -2287,7 +2196,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/14L",
    "crash": null,
-   "seconds": 0.86
+   "seconds": 0.87
   },
   {
    "seed": 218,
@@ -2297,7 +2206,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/13L",
    "crash": null,
-   "seconds": 0.8
+   "seconds": 0.82
   },
   {
    "seed": 219,
@@ -2307,7 +2216,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/11L",
    "crash": null,
-   "seconds": 0.49
+   "seconds": 0.5
   },
   {
    "seed": 220,
@@ -2317,7 +2226,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "9L/13L",
    "crash": null,
-   "seconds": 0.83
+   "seconds": 0.81
   },
   {
    "seed": 221,
@@ -2327,7 +2236,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/12L",
    "crash": null,
-   "seconds": 0.78
+   "seconds": 0.79
   },
   {
    "seed": 222,
@@ -2337,7 +2246,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "16L/11L",
    "crash": null,
-   "seconds": 0.64
+   "seconds": 0.65
   },
   {
    "seed": 223,
@@ -2347,7 +2256,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "14L/12L",
    "crash": null,
-   "seconds": 0.97
+   "seconds": 0.99
   },
   {
    "seed": 224,
@@ -2357,7 +2266,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/18L",
    "crash": null,
-   "seconds": 0.62
+   "seconds": 0.61
   },
   {
    "seed": 225,
@@ -2377,7 +2286,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "16L/9L",
    "crash": null,
-   "seconds": 0.77
+   "seconds": 0.78
   },
   {
    "seed": 227,
@@ -2387,7 +2296,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/7L",
    "crash": null,
-   "seconds": 0.75
+   "seconds": 0.77
   },
   {
    "seed": 228,
@@ -2397,7 +2306,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/9L",
    "crash": null,
-   "seconds": 0.46
+   "seconds": 0.45
   },
   {
    "seed": 229,
@@ -2417,7 +2326,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/7L",
    "crash": null,
-   "seconds": 0.61
+   "seconds": 0.62
   },
   {
    "seed": 231,
@@ -2427,7 +2336,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/9L",
    "crash": null,
-   "seconds": 0.63
+   "seconds": 0.6
   },
   {
    "seed": 232,
@@ -2437,7 +2346,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/10L",
    "crash": null,
-   "seconds": 0.66
+   "seconds": 0.67
   },
   {
    "seed": 233,
@@ -2457,7 +2366,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/12L",
    "crash": null,
-   "seconds": 0.48
+   "seconds": 0.49
   },
   {
    "seed": 235,
@@ -2467,7 +2376,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/11L",
    "crash": null,
-   "seconds": 0.88
+   "seconds": 0.84
   },
   {
    "seed": 236,
@@ -2477,7 +2386,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/18L",
    "crash": null,
-   "seconds": 0.97
+   "seconds": 0.99
   },
   {
    "seed": 237,
@@ -2497,30 +2406,17 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "8L/12L",
    "crash": null,
-   "seconds": 0.31
+   "seconds": 0.32
   },
   {
    "seed": 239,
-   "turns": 15,
-   "acts": 19,
+   "turns": 37,
+   "acts": 53,
    "survived": false,
-   "reason": "crash:AssertionError",
+   "reason": "game over: player:1(life<=0)",
    "deck": "9L/14L",
-   "crash": {
-    "exc": "AssertionError",
-    "message": "",
-    "frame": "quantity.py:880 in _eval_atom",
-    "turn": 15,
-    "recent_acts": [
-     "act:Swamp(#0)",
-     "act:Temple of Epiphany(#2)",
-     "act:Plains(#0)"
-    ],
-    "attempted": "act:Tempered Veteran#0",
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool engine --deck-pairs-seed 201019 --turns 150 --repro 239"
-   },
-   "seconds": 0.38
+   "crash": null,
+   "seconds": 0.57
   },
   {
    "seed": 240,
@@ -2540,7 +2436,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/9L",
    "crash": null,
-   "seconds": 1.15
+   "seconds": 1.08
   },
   {
    "seed": 242,
@@ -2550,7 +2446,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "15L/12L",
    "crash": null,
-   "seconds": 0.85
+   "seconds": 0.86
   },
   {
    "seed": 243,
@@ -2560,7 +2456,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/11L",
    "crash": null,
-   "seconds": 0.44
+   "seconds": 0.45
   },
   {
    "seed": 244,
@@ -2570,7 +2466,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/11L",
    "crash": null,
-   "seconds": 0.8
+   "seconds": 0.82
   },
   {
    "seed": 245,
@@ -2580,7 +2476,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/15L",
    "crash": null,
-   "seconds": 0.76
+   "seconds": 0.78
   },
   {
    "seed": 246,
@@ -2590,7 +2486,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/10L",
    "crash": null,
-   "seconds": 0.75
+   "seconds": 0.76
   },
   {
    "seed": 247,
@@ -2600,7 +2496,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/14L",
    "crash": null,
-   "seconds": 0.47
+   "seconds": 0.48
   },
   {
    "seed": 248,
@@ -2610,7 +2506,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/13L",
    "crash": null,
-   "seconds": 0.68
+   "seconds": 0.65
   },
   {
    "seed": 249,
@@ -2620,7 +2516,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/14L",
    "crash": null,
-   "seconds": 0.71
+   "seconds": 0.72
   },
   {
    "seed": 250,
@@ -2630,7 +2526,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/15L",
    "crash": null,
-   "seconds": 0.8
+   "seconds": 0.82
   },
   {
    "seed": 251,
@@ -2650,7 +2546,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "16L/10L",
    "crash": null,
-   "seconds": 0.89
+   "seconds": 0.86
   },
   {
    "seed": 253,
@@ -2670,7 +2566,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/8L",
    "crash": null,
-   "seconds": 0.55
+   "seconds": 0.57
   },
   {
    "seed": 255,
@@ -2680,7 +2576,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "9L/13L",
    "crash": null,
-   "seconds": 0.64
+   "seconds": 0.66
   },
   {
    "seed": 256,
@@ -2690,7 +2586,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/16L",
    "crash": null,
-   "seconds": 0.68
+   "seconds": 0.65
   },
   {
    "seed": 257,
@@ -2700,7 +2596,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/12L",
    "crash": null,
-   "seconds": 0.66
+   "seconds": 0.68
   },
   {
    "seed": 258,
@@ -2710,7 +2606,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/14L",
    "crash": null,
-   "seconds": 0.39
+   "seconds": 0.37
   },
   {
    "seed": 259,
@@ -2730,7 +2626,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/13L",
    "crash": null,
-   "seconds": 0.4
+   "seconds": 0.38
   },
   {
    "seed": 261,
@@ -2740,7 +2636,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/13L",
    "crash": null,
-   "seconds": 0.89
+   "seconds": 0.91
   },
   {
    "seed": 262,
@@ -2750,7 +2646,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/12L",
    "crash": null,
-   "seconds": 0.58
+   "seconds": 0.6
   },
   {
    "seed": 263,
@@ -2760,7 +2656,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "9L/9L",
    "crash": null,
-   "seconds": 0.76
+   "seconds": 0.73
   },
   {
    "seed": 264,
@@ -2770,7 +2666,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/13L",
    "crash": null,
-   "seconds": 0.58
+   "seconds": 0.6
   },
   {
    "seed": 265,
@@ -2780,7 +2676,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/14L",
    "crash": null,
-   "seconds": 0.9
+   "seconds": 0.92
   },
   {
    "seed": 266,
@@ -2790,7 +2686,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "14L/13L",
    "crash": null,
-   "seconds": 0.63
+   "seconds": 0.64
   },
   {
    "seed": 267,
@@ -2800,7 +2696,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "15L/11L",
    "crash": null,
-   "seconds": 1.03
+   "seconds": 1.02
   },
   {
    "seed": 268,
@@ -2810,7 +2706,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "15L/16L",
    "crash": null,
-   "seconds": 0.84
+   "seconds": 0.82
   },
   {
    "seed": 269,
@@ -2820,7 +2716,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/10L",
    "crash": null,
-   "seconds": 0.46
+   "seconds": 0.47
   },
   {
    "seed": 270,
@@ -2830,7 +2726,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/11L",
    "crash": null,
-   "seconds": 1.41
+   "seconds": 1.37
   },
   {
    "seed": 271,
@@ -2840,7 +2736,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/13L",
    "crash": null,
-   "seconds": 0.88
+   "seconds": 0.93
   },
   {
    "seed": 272,
@@ -2860,30 +2756,17 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/12L",
    "crash": null,
-   "seconds": 0.8
+   "seconds": 0.79
   },
   {
    "seed": 274,
-   "turns": 14,
-   "acts": 31,
+   "turns": 24,
+   "acts": 53,
    "survived": false,
-   "reason": "crash:AssertionError",
+   "reason": "game over: player:0(life<=0)",
    "deck": "11L/13L",
-   "crash": {
-    "exc": "AssertionError",
-    "message": "",
-    "frame": "quantity.py:880 in _eval_atom",
-    "turn": 14,
-    "recent_acts": [
-     "land:Bloodfell Caves",
-     "act:Temple of Triumph(#2)",
-     "act:Plains(#0)"
-    ],
-    "attempted": "act:Tempered Veteran#0",
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool engine --deck-pairs-seed 201019 --turns 150 --repro 274"
-   },
-   "seconds": 0.52
+   "crash": null,
+   "seconds": 0.54
   },
   {
    "seed": 275,
@@ -2893,7 +2776,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/13L",
    "crash": null,
-   "seconds": 0.78
+   "seconds": 0.79
   },
   {
    "seed": 276,
@@ -2903,7 +2786,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "14L/12L",
    "crash": null,
-   "seconds": 1.43
+   "seconds": 1.33
   },
   {
    "seed": 277,
@@ -2923,7 +2806,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/9L",
    "crash": null,
-   "seconds": 1.27
+   "seconds": 1.28
   },
   {
    "seed": 279,
@@ -2933,7 +2816,7 @@
    "reason": "draw: player:0(life<=0), player:1(life<=0)",
    "deck": "10L/11L",
    "crash": null,
-   "seconds": 0.71
+   "seconds": 0.72
   },
   {
    "seed": 280,
@@ -2943,7 +2826,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/12L",
    "crash": null,
-   "seconds": 0.69
+   "seconds": 0.68
   },
   {
    "seed": 281,
@@ -2953,7 +2836,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "16L/10L",
    "crash": null,
-   "seconds": 1.14
+   "seconds": 1.16
   },
   {
    "seed": 282,
@@ -2963,7 +2846,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "19L/9L",
    "crash": null,
-   "seconds": 1.88
+   "seconds": 1.8
   },
   {
    "seed": 283,
@@ -3003,7 +2886,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/13L",
    "crash": null,
-   "seconds": 0.92
+   "seconds": 0.93
   },
   {
    "seed": 287,
@@ -3013,7 +2896,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/10L",
    "crash": null,
-   "seconds": 0.91
+   "seconds": 0.92
   },
   {
    "seed": 288,
@@ -3033,7 +2916,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "9L/11L",
    "crash": null,
-   "seconds": 0.74
+   "seconds": 0.75
   },
   {
    "seed": 290,
@@ -3043,7 +2926,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/9L",
    "crash": null,
-   "seconds": 0.31
+   "seconds": 0.3
   },
   {
    "seed": 291,
@@ -3063,7 +2946,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "8L/14L",
    "crash": null,
-   "seconds": 0.79
+   "seconds": 0.75
   },
   {
    "seed": 293,
@@ -3093,7 +2976,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/15L",
    "crash": null,
-   "seconds": 0.56
+   "seconds": 0.55
   },
   {
    "seed": 296,
@@ -3113,7 +2996,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "15L/11L",
    "crash": null,
-   "seconds": 0.69
+   "seconds": 0.7
   },
   {
    "seed": 298,
@@ -3123,7 +3006,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/12L",
    "crash": null,
-   "seconds": 0.56
+   "seconds": 0.53
   },
   {
    "seed": 299,
@@ -3133,7 +3016,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/11L",
    "crash": null,
-   "seconds": 0.34
+   "seconds": 0.33
   },
   {
    "seed": 300,
@@ -3143,7 +3026,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/17L",
    "crash": null,
-   "seconds": 0.41
+   "seconds": 0.42
   },
   {
    "seed": 301,
@@ -3153,7 +3036,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/14L",
    "crash": null,
-   "seconds": 0.38
+   "seconds": 0.37
   },
   {
    "seed": 302,
@@ -3163,7 +3046,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "14L/11L",
    "crash": null,
-   "seconds": 0.8
+   "seconds": 0.75
   },
   {
    "seed": 303,
@@ -3183,7 +3066,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/17L",
    "crash": null,
-   "seconds": 0.92
+   "seconds": 0.91
   },
   {
    "seed": 305,
@@ -3203,7 +3086,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/16L",
    "crash": null,
-   "seconds": 0.49
+   "seconds": 0.5
   },
   {
    "seed": 307,
@@ -3213,7 +3096,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "14L/15L",
    "crash": null,
-   "seconds": 0.62
+   "seconds": 0.59
   },
   {
    "seed": 308,
@@ -3243,7 +3126,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/13L",
    "crash": null,
-   "seconds": 1.28
+   "seconds": 1.25
   },
   {
    "seed": 311,
@@ -3253,7 +3136,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/13L",
    "crash": null,
-   "seconds": 1.12
+   "seconds": 1.06
   },
   {
    "seed": 312,
@@ -3273,7 +3156,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/15L",
    "crash": null,
-   "seconds": 0.81
+   "seconds": 0.82
   },
   {
    "seed": 314,
@@ -3293,7 +3176,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "14L/14L",
    "crash": null,
-   "seconds": 0.65
+   "seconds": 0.64
   },
   {
    "seed": 316,
@@ -3303,7 +3186,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/10L",
    "crash": null,
-   "seconds": 0.33
+   "seconds": 0.32
   },
   {
    "seed": 317,
@@ -3333,7 +3216,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/12L",
    "crash": null,
-   "seconds": 0.64
+   "seconds": 0.61
   },
   {
    "seed": 320,
@@ -3343,7 +3226,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "15L/17L",
    "crash": null,
-   "seconds": 1.67
+   "seconds": 1.68
   },
   {
    "seed": 321,
@@ -3353,7 +3236,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/14L",
    "crash": null,
-   "seconds": 0.82
+   "seconds": 0.8
   },
   {
    "seed": 322,
@@ -3363,7 +3246,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/9L",
    "crash": null,
-   "seconds": 0.35
+   "seconds": 0.36
   },
   {
    "seed": 323,
@@ -3373,7 +3256,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/10L",
    "crash": null,
-   "seconds": 0.94
+   "seconds": 0.89
   },
   {
    "seed": 324,
@@ -3383,7 +3266,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/12L",
    "crash": null,
-   "seconds": 1.25
+   "seconds": 1.27
   },
   {
    "seed": 325,
@@ -3393,7 +3276,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/13L",
    "crash": null,
-   "seconds": 0.39
+   "seconds": 0.38
   },
   {
    "seed": 326,
@@ -3403,7 +3286,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/13L",
    "crash": null,
-   "seconds": 1.41
+   "seconds": 1.4
   },
   {
    "seed": 327,
@@ -3413,7 +3296,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/11L",
    "crash": null,
-   "seconds": 0.72
+   "seconds": 0.68
   },
   {
    "seed": 328,
@@ -3423,7 +3306,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/12L",
    "crash": null,
-   "seconds": 0.27
+   "seconds": 0.28
   },
   {
    "seed": 329,
@@ -3433,7 +3316,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/12L",
    "crash": null,
-   "seconds": 0.96
+   "seconds": 0.98
   },
   {
    "seed": 330,
@@ -3443,7 +3326,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "15L/9L",
    "crash": null,
-   "seconds": 0.72
+   "seconds": 0.73
   },
   {
    "seed": 331,
@@ -3453,7 +3336,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/11L",
    "crash": null,
-   "seconds": 1.1
+   "seconds": 1.05
   },
   {
    "seed": 332,
@@ -3483,7 +3366,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/12L",
    "crash": null,
-   "seconds": 0.93
+   "seconds": 0.91
   },
   {
    "seed": 335,
@@ -3493,7 +3376,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/13L",
    "crash": null,
-   "seconds": 0.83
+   "seconds": 0.82
   },
   {
    "seed": 336,
@@ -3503,7 +3386,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "14L/11L",
    "crash": null,
-   "seconds": 0.81
+   "seconds": 0.76
   },
   {
    "seed": 337,
@@ -3513,7 +3396,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/14L",
    "crash": null,
-   "seconds": 0.8
+   "seconds": 0.78
   },
   {
    "seed": 338,
@@ -3523,7 +3406,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "9L/13L",
    "crash": null,
-   "seconds": 0.49
+   "seconds": 0.48
   },
   {
    "seed": 339,
@@ -3543,7 +3426,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/11L",
    "crash": null,
-   "seconds": 0.63
+   "seconds": 0.59
   },
   {
    "seed": 341,
@@ -3553,7 +3436,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "15L/11L",
    "crash": null,
-   "seconds": 0.84
+   "seconds": 0.82
   },
   {
    "seed": 342,
@@ -3573,7 +3456,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "15L/11L",
    "crash": null,
-   "seconds": 0.53
+   "seconds": 0.54
   },
   {
    "seed": 344,
@@ -3593,7 +3476,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/10L",
    "crash": null,
-   "seconds": 0.29
+   "seconds": 0.28
   },
   {
    "seed": 346,
@@ -3603,7 +3486,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/14L",
    "crash": null,
-   "seconds": 0.65
+   "seconds": 0.66
   },
   {
    "seed": 347,
@@ -3613,7 +3496,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/14L",
    "crash": null,
-   "seconds": 0.65
+   "seconds": 0.62
   },
   {
    "seed": 348,
@@ -3623,7 +3506,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "16L/13L",
    "crash": null,
-   "seconds": 1.11
+   "seconds": 1.08
   },
   {
    "seed": 349,
@@ -3643,7 +3526,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/13L",
    "crash": null,
-   "seconds": 1.55
+   "seconds": 1.58
   },
   {
    "seed": 351,
@@ -3653,7 +3536,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "15L/12L",
    "crash": null,
-   "seconds": 0.87
+   "seconds": 0.83
   },
   {
    "seed": 352,
@@ -3663,7 +3546,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/12L",
    "crash": null,
-   "seconds": 0.71
+   "seconds": 0.68
   },
   {
    "seed": 353,
@@ -3673,7 +3556,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/10L",
    "crash": null,
-   "seconds": 0.36
+   "seconds": 0.38
   },
   {
    "seed": 354,
@@ -3683,7 +3566,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/13L",
    "crash": null,
-   "seconds": 1.21
+   "seconds": 1.24
   },
   {
    "seed": 355,
@@ -3693,7 +3576,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/11L",
    "crash": null,
-   "seconds": 1.19
+   "seconds": 1.18
   },
   {
    "seed": 356,
@@ -3703,7 +3586,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "9L/15L",
    "crash": null,
-   "seconds": 1.13
+   "seconds": 1.06
   },
   {
    "seed": 357,
@@ -3713,7 +3596,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/10L",
    "crash": null,
-   "seconds": 0.94
+   "seconds": 0.99
   },
   {
    "seed": 358,
@@ -3723,7 +3606,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/12L",
    "crash": null,
-   "seconds": 0.48
+   "seconds": 0.47
   },
   {
    "seed": 359,
@@ -3733,7 +3616,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "15L/11L",
    "crash": null,
-   "seconds": 0.44
+   "seconds": 0.43
   },
   {
    "seed": 360,
@@ -3743,7 +3626,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/12L",
    "crash": null,
-   "seconds": 0.97
+   "seconds": 0.93
   },
   {
    "seed": 361,
@@ -3753,7 +3636,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/11L",
    "crash": null,
-   "seconds": 0.69
+   "seconds": 0.7
   },
   {
    "seed": 362,
@@ -3763,7 +3646,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "16L/12L",
    "crash": null,
-   "seconds": 1.11
+   "seconds": 1.07
   },
   {
    "seed": 363,
@@ -3783,7 +3666,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/11L",
    "crash": null,
-   "seconds": 1.37
+   "seconds": 1.28
   },
   {
    "seed": 365,
@@ -3793,7 +3676,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/11L",
    "crash": null,
-   "seconds": 1.68
+   "seconds": 1.7
   },
   {
    "seed": 366,
@@ -3813,7 +3696,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/12L",
    "crash": null,
-   "seconds": 0.37
+   "seconds": 0.36
   },
   {
    "seed": 368,
@@ -3833,7 +3716,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/13L",
    "crash": null,
-   "seconds": 0.49
+   "seconds": 0.47
   },
   {
    "seed": 370,
@@ -3843,7 +3726,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "14L/12L",
    "crash": null,
-   "seconds": 0.64
+   "seconds": 0.68
   },
   {
    "seed": 371,
@@ -3853,7 +3736,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/10L",
    "crash": null,
-   "seconds": 0.7
+   "seconds": 0.67
   },
   {
    "seed": 372,
@@ -3863,7 +3746,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "9L/15L",
    "crash": null,
-   "seconds": 0.79
+   "seconds": 0.76
   },
   {
    "seed": 373,
@@ -3873,7 +3756,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "9L/11L",
    "crash": null,
-   "seconds": 0.68
+   "seconds": 0.69
   },
   {
    "seed": 374,
@@ -3883,7 +3766,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/9L",
    "crash": null,
-   "seconds": 0.69
+   "seconds": 0.74
   },
   {
    "seed": 375,
@@ -3893,7 +3776,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/8L",
    "crash": null,
-   "seconds": 0.57
+   "seconds": 0.54
   },
   {
    "seed": 376,
@@ -3903,7 +3786,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "16L/11L",
    "crash": null,
-   "seconds": 1.05
+   "seconds": 1.01
   },
   {
    "seed": 377,
@@ -3913,7 +3796,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/15L",
    "crash": null,
-   "seconds": 1.21
+   "seconds": 1.22
   },
   {
    "seed": 378,
@@ -3953,7 +3836,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/14L",
    "crash": null,
-   "seconds": 1.15
+   "seconds": 1.16
   },
   {
    "seed": 382,
@@ -3963,7 +3846,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "15L/14L",
    "crash": null,
-   "seconds": 0.96
+   "seconds": 0.94
   },
   {
    "seed": 383,
@@ -3973,30 +3856,17 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/10L",
    "crash": null,
-   "seconds": 0.85
+   "seconds": 0.84
   },
   {
    "seed": 384,
-   "turns": 51,
-   "acts": 111,
+   "turns": 57,
+   "acts": 133,
    "survived": false,
-   "reason": "crash:NotImplementedError",
+   "reason": "game over: player:1(life<=0)",
    "deck": "12L/11L",
-   "crash": {
-    "exc": "NotImplementedError",
-    "message": "executor: QThisTurn(NONCOMBAT_DAMAGE) not implemented (12b turn ledger)",
-    "frame": "quantity.py:373 in resolve",
-    "turn": 51,
-    "recent_acts": [
-     "act:Rugged Highlands(#2)",
-     "act:Mountain(#0)",
-     "cast:Fungal Rebirth(1t)"
-    ],
-    "attempted": "cast:Fungal Rebirth",
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool engine --deck-pairs-seed 201019 --turns 150 --repro 384"
-   },
-   "seconds": 2.0
+   "crash": null,
+   "seconds": 1.19
   },
   {
    "seed": 385,
@@ -4006,7 +3876,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/13L",
    "crash": null,
-   "seconds": 0.48
+   "seconds": 0.45
   },
   {
    "seed": 386,
@@ -4026,7 +3896,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/14L",
    "crash": null,
-   "seconds": 0.95
+   "seconds": 0.97
   },
   {
    "seed": 388,
@@ -4046,7 +3916,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/11L",
    "crash": null,
-   "seconds": 0.69
+   "seconds": 0.65
   },
   {
    "seed": 390,
@@ -4066,7 +3936,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/11L",
    "crash": null,
-   "seconds": 0.41
+   "seconds": 0.4
   },
   {
    "seed": 392,
@@ -4076,7 +3946,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "15L/8L",
    "crash": null,
-   "seconds": 0.61
+   "seconds": 0.62
   },
   {
    "seed": 393,
@@ -4096,7 +3966,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/12L",
    "crash": null,
-   "seconds": 0.54
+   "seconds": 0.53
   },
   {
    "seed": 395,
@@ -4126,7 +3996,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "9L/11L",
    "crash": null,
-   "seconds": 0.5
+   "seconds": 0.48
   },
   {
    "seed": 398,
@@ -4136,7 +4006,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/12L",
    "crash": null,
-   "seconds": 0.57
+   "seconds": 0.58
   },
   {
    "seed": 399,
@@ -4156,7 +4026,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/12L",
    "crash": null,
-   "seconds": 0.63
+   "seconds": 0.61
   },
   {
    "seed": 401,
@@ -4166,7 +4036,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/11L",
    "crash": null,
-   "seconds": 0.88
+   "seconds": 0.84
   },
   {
    "seed": 402,
@@ -4176,7 +4046,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "17L/8L",
    "crash": null,
-   "seconds": 0.82
+   "seconds": 0.87
   },
   {
    "seed": 403,
@@ -4186,7 +4056,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/14L",
    "crash": null,
-   "seconds": 0.9
+   "seconds": 0.86
   },
   {
    "seed": 404,
@@ -4206,7 +4076,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "16L/13L",
    "crash": null,
-   "seconds": 0.36
+   "seconds": 0.34
   },
   {
    "seed": 406,
@@ -4216,7 +4086,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/11L",
    "crash": null,
-   "seconds": 0.76
+   "seconds": 0.8
   },
   {
    "seed": 407,
@@ -4226,7 +4096,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/13L",
    "crash": null,
-   "seconds": 0.55
+   "seconds": 0.52
   },
   {
    "seed": 408,
@@ -4236,7 +4106,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/10L",
    "crash": null,
-   "seconds": 0.91
+   "seconds": 0.88
   },
   {
    "seed": 409,
@@ -4246,7 +4116,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/14L",
    "crash": null,
-   "seconds": 1.02
+   "seconds": 1.1
   },
   {
    "seed": 410,
@@ -4256,7 +4126,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/9L",
    "crash": null,
-   "seconds": 0.62
+   "seconds": 0.6
   },
   {
    "seed": 411,
@@ -4266,30 +4136,17 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "15L/12L",
    "crash": null,
-   "seconds": 0.79
+   "seconds": 0.77
   },
   {
    "seed": 412,
-   "turns": 34,
-   "acts": 60,
+   "turns": 37,
+   "acts": 67,
    "survived": false,
-   "reason": "crash:AssertionError",
+   "reason": "game over: player:1(life<=0)",
    "deck": "16L/11L",
-   "crash": {
-    "exc": "AssertionError",
-    "message": "",
-    "frame": "quantity.py:880 in _eval_atom",
-    "turn": 34,
-    "recent_acts": [
-     "cast:Chrome Replicator(0t)",
-     "act:Temple of Epiphany(#2)",
-     "act:Scoured Barrens(#2)"
-    ],
-    "attempted": "act:Tempered Veteran#0",
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool engine --deck-pairs-seed 201019 --turns 150 --repro 412"
-   },
-   "seconds": 1.16
+   "crash": null,
+   "seconds": 0.64
   },
   {
    "seed": 413,
@@ -4299,7 +4156,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/12L",
    "crash": null,
-   "seconds": 0.72
+   "seconds": 0.73
   },
   {
    "seed": 414,
@@ -4309,7 +4166,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/11L",
    "crash": null,
-   "seconds": 0.59
+   "seconds": 0.63
   },
   {
    "seed": 415,
@@ -4319,7 +4176,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/12L",
    "crash": null,
-   "seconds": 0.48
+   "seconds": 0.46
   },
   {
    "seed": 416,
@@ -4329,7 +4186,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/10L",
    "crash": null,
-   "seconds": 0.58
+   "seconds": 0.59
   },
   {
    "seed": 417,
@@ -4349,7 +4206,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/10L",
    "crash": null,
-   "seconds": 0.3
+   "seconds": 0.29
   },
   {
    "seed": 419,
@@ -4359,7 +4216,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/11L",
    "crash": null,
-   "seconds": 0.5
+   "seconds": 0.51
   },
   {
    "seed": 420,
@@ -4379,7 +4236,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/12L",
    "crash": null,
-   "seconds": 0.96
+   "seconds": 0.97
   },
   {
    "seed": 422,
@@ -4399,7 +4256,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "9L/18L",
    "crash": null,
-   "seconds": 0.7
+   "seconds": 0.71
   },
   {
    "seed": 424,
@@ -4409,7 +4266,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/14L",
    "crash": null,
-   "seconds": 0.6
+   "seconds": 0.62
   },
   {
    "seed": 425,
@@ -4429,7 +4286,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/11L",
    "crash": null,
-   "seconds": 0.88
+   "seconds": 0.89
   },
   {
    "seed": 427,
@@ -4439,7 +4296,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/12L",
    "crash": null,
-   "seconds": 0.87
+   "seconds": 0.85
   },
   {
    "seed": 428,
@@ -4449,7 +4306,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "9L/10L",
    "crash": null,
-   "seconds": 0.75
+   "seconds": 0.72
   },
   {
    "seed": 429,
@@ -4459,7 +4316,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "8L/15L",
    "crash": null,
-   "seconds": 0.47
+   "seconds": 0.48
   },
   {
    "seed": 430,
@@ -4479,7 +4336,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/13L",
    "crash": null,
-   "seconds": 1.04
+   "seconds": 1.09
   },
   {
    "seed": 432,
@@ -4489,7 +4346,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/12L",
    "crash": null,
-   "seconds": 0.96
+   "seconds": 1.02
   },
   {
    "seed": 433,
@@ -4499,7 +4356,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/11L",
    "crash": null,
-   "seconds": 0.37
+   "seconds": 0.36
   },
   {
    "seed": 434,
@@ -4519,7 +4376,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/11L",
    "crash": null,
-   "seconds": 0.88
+   "seconds": 0.9
   },
   {
    "seed": 436,
@@ -4549,7 +4406,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/10L",
    "crash": null,
-   "seconds": 0.73
+   "seconds": 0.78
   },
   {
    "seed": 439,
@@ -4559,7 +4416,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/10L",
    "crash": null,
-   "seconds": 0.3
+   "seconds": 0.31
   },
   {
    "seed": 440,
@@ -4569,7 +4426,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/9L",
    "crash": null,
-   "seconds": 0.5
+   "seconds": 0.53
   },
   {
    "seed": 441,
@@ -4589,7 +4446,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "9L/10L",
    "crash": null,
-   "seconds": 1.04
+   "seconds": 1.05
   },
   {
    "seed": 443,
@@ -4599,7 +4456,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "9L/11L",
    "crash": null,
-   "seconds": 0.6
+   "seconds": 0.64
   },
   {
    "seed": 444,
@@ -4619,7 +4476,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/11L",
    "crash": null,
-   "seconds": 0.68
+   "seconds": 0.69
   },
   {
    "seed": 446,
@@ -4629,7 +4486,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/14L",
    "crash": null,
-   "seconds": 0.89
+   "seconds": 0.95
   },
   {
    "seed": 447,
@@ -4669,7 +4526,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/11L",
    "crash": null,
-   "seconds": 0.65
+   "seconds": 0.67
   },
   {
    "seed": 451,
@@ -4679,7 +4536,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/9L",
    "crash": null,
-   "seconds": 0.91
+   "seconds": 0.9
   },
   {
    "seed": 452,
@@ -4689,7 +4546,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/11L",
    "crash": null,
-   "seconds": 0.54
+   "seconds": 0.61
   },
   {
    "seed": 453,
@@ -4699,7 +4556,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/17L",
    "crash": null,
-   "seconds": 0.66
+   "seconds": 0.65
   },
   {
    "seed": 454,
@@ -4709,7 +4566,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "17L/14L",
    "crash": null,
-   "seconds": 1.43
+   "seconds": 1.44
   },
   {
    "seed": 455,
@@ -4719,7 +4576,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/9L",
    "crash": null,
-   "seconds": 0.36
+   "seconds": 0.38
   },
   {
    "seed": 456,
@@ -4729,7 +4586,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/15L",
    "crash": null,
-   "seconds": 0.74
+   "seconds": 0.73
   },
   {
    "seed": 457,
@@ -4739,7 +4596,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/11L",
    "crash": null,
-   "seconds": 0.79
+   "seconds": 0.78
   },
   {
    "seed": 458,
@@ -4749,7 +4606,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "16L/16L",
    "crash": null,
-   "seconds": 1.15
+   "seconds": 1.21
   },
   {
    "seed": 459,
@@ -4759,7 +4616,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/11L",
    "crash": null,
-   "seconds": 1.0
+   "seconds": 0.99
   },
   {
    "seed": 460,
@@ -4769,7 +4626,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/15L",
    "crash": null,
-   "seconds": 0.73
+   "seconds": 0.71
   },
   {
    "seed": 461,
@@ -4779,7 +4636,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/8L",
    "crash": null,
-   "seconds": 0.91
+   "seconds": 0.92
   },
   {
    "seed": 462,
@@ -4789,7 +4646,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "11L/11L",
    "crash": null,
-   "seconds": 0.75
+   "seconds": 0.81
   },
   {
    "seed": 463,
@@ -4809,7 +4666,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/14L",
    "crash": null,
-   "seconds": 0.68
+   "seconds": 0.67
   },
   {
    "seed": 465,
@@ -4839,7 +4696,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "15L/7L",
    "crash": null,
-   "seconds": 1.26
+   "seconds": 1.34
   },
   {
    "seed": 468,
@@ -4879,7 +4736,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/10L",
    "crash": null,
-   "seconds": 0.74
+   "seconds": 0.75
   },
   {
    "seed": 472,
@@ -4899,7 +4756,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "13L/11L",
    "crash": null,
-   "seconds": 0.48
+   "seconds": 0.47
   },
   {
    "seed": 474,
@@ -4909,7 +4766,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/13L",
    "crash": null,
-   "seconds": 0.88
+   "seconds": 0.93
   },
   {
    "seed": 475,
@@ -4939,7 +4796,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/12L",
    "crash": null,
-   "seconds": 0.63
+   "seconds": 0.65
   },
   {
    "seed": 478,
@@ -4949,7 +4806,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/11L",
    "crash": null,
-   "seconds": 1.0
+   "seconds": 1.01
   },
   {
    "seed": 479,
@@ -4979,7 +4836,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/13L",
    "crash": null,
-   "seconds": 0.56
+   "seconds": 0.55
   },
   {
    "seed": 482,
@@ -4999,7 +4856,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "10L/14L",
    "crash": null,
-   "seconds": 0.56
+   "seconds": 0.57
   },
   {
    "seed": 484,
@@ -5009,7 +4866,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "11L/12L",
    "crash": null,
-   "seconds": 1.17
+   "seconds": 1.14
   },
   {
    "seed": 485,
@@ -5029,7 +4886,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "14L/13L",
    "crash": null,
-   "seconds": 0.88
+   "seconds": 0.89
   },
   {
    "seed": 487,
@@ -5049,7 +4906,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "14L/11L",
    "crash": null,
-   "seconds": 0.68
+   "seconds": 0.67
   },
   {
    "seed": 489,
@@ -5059,30 +4916,17 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/10L",
    "crash": null,
-   "seconds": 0.42
+   "seconds": 0.41
   },
   {
    "seed": 490,
-   "turns": 45,
-   "acts": 79,
+   "turns": 64,
+   "acts": 118,
    "survived": false,
-   "reason": "crash:ValueError",
+   "reason": "game over: player:0(life<=0)",
    "deck": "15L/11L",
-   "crash": {
-    "exc": "ValueError",
-    "message": "executor: POWER undefined on handle card:61",
-    "frame": "quantity.py:417 in _prop_value",
-    "turn": 45,
-    "recent_acts": [
-     "act:Treasure(#0)",
-     "act:Mountain(#0)",
-     "act:Temple of Epiphany(#2)"
-    ],
-    "attempted": "cast:Carrion Grub",
-    "stack": [],
-    "repro": "python -m MTG_bot.core.executor.games --pool engine --deck-pairs-seed 201019 --turns 150 --repro 490"
-   },
-   "seconds": 1.71
+   "crash": null,
+   "seconds": 1.42
   },
   {
    "seed": 491,
@@ -5092,7 +4936,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "13L/9L",
    "crash": null,
-   "seconds": 0.62
+   "seconds": 0.63
   },
   {
    "seed": 492,
@@ -5102,7 +4946,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/14L",
    "crash": null,
-   "seconds": 1.05
+   "seconds": 1.06
   },
   {
    "seed": 493,
@@ -5122,7 +4966,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "10L/11L",
    "crash": null,
-   "seconds": 0.45
+   "seconds": 0.44
   },
   {
    "seed": 495,
@@ -5132,7 +4976,7 @@
    "reason": "game over: player:0(life<=0)",
    "deck": "12L/13L",
    "crash": null,
-   "seconds": 0.48
+   "seconds": 0.45
   },
   {
    "seed": 496,
@@ -5142,7 +4986,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "16L/14L",
    "crash": null,
-   "seconds": 0.55
+   "seconds": 0.56
   },
   {
    "seed": 497,
@@ -5152,7 +4996,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/10L",
    "crash": null,
-   "seconds": 0.45
+   "seconds": 0.46
   },
   {
    "seed": 498,
@@ -5162,7 +5006,7 @@
    "reason": "game over: player:1(life<=0)",
    "deck": "12L/17L",
    "crash": null,
-   "seconds": 0.63
+   "seconds": 0.59
   },
   {
    "seed": 499,
@@ -5175,15 +5019,7 @@
    "seconds": 0.58
   }
  ],
- "full_tracebacks": {
-  "27": "Traceback (most recent call last):\n  File \"/home/sune/Desktop/MTG_AI/tools/eval/znr_engine_smoke.py\", line 267, in play_one\n    play_game(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1236, in play_game\n    _play(game, policy, order, turn_cap)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1380, in _play\n    policy.take_acts(game, seat)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 683, in take_acts\n    self.play_activation(game, seat, self.choose(others))\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 604, in play_activation\n    activation_target_slots(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/query.py\", line 971, in activation_target_slots\n    slot = legal_targets(\n           ^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/query.py\", line 307, in legal_targets\n    candidates = tuple(enumerate_candidates(selector, ctx))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 512, in enumerate_candidates\n    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 512, in <genexpr>\n    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))\n                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 595, in eval_filter\n    return all(eval_filter(c, handle, ctx) for c in filter_.children)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 595, in <genexpr>\n    return all(eval_filter(c, handle, ctx) for c in filter_.children)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 601, in eval_filter\n    return _eval_atom(filter_, handle, ctx)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 880, in _eval_atom\n    assert atom.count is not None and atom.counter_kind is not None\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
-  "95": "Traceback (most recent call last):\n  File \"/home/sune/Desktop/MTG_AI/tools/eval/znr_engine_smoke.py\", line 267, in play_one\n    play_game(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1236, in play_game\n    _play(game, policy, order, turn_cap)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1380, in _play\n    policy.take_acts(game, seat)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 683, in take_acts\n    self.play_activation(game, seat, self.choose(others))\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 604, in play_activation\n    activation_target_slots(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/query.py\", line 971, in activation_target_slots\n    slot = legal_targets(\n           ^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/query.py\", line 307, in legal_targets\n    candidates = tuple(enumerate_candidates(selector, ctx))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 512, in enumerate_candidates\n    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 512, in <genexpr>\n    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))\n                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 595, in eval_filter\n    return all(eval_filter(c, handle, ctx) for c in filter_.children)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 595, in <genexpr>\n    return all(eval_filter(c, handle, ctx) for c in filter_.children)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 601, in eval_filter\n    return _eval_atom(filter_, handle, ctx)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 880, in _eval_atom\n    assert atom.count is not None and atom.counter_kind is not None\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
-  "239": "Traceback (most recent call last):\n  File \"/home/sune/Desktop/MTG_AI/tools/eval/znr_engine_smoke.py\", line 267, in play_one\n    play_game(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1236, in play_game\n    _play(game, policy, order, turn_cap)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1380, in _play\n    policy.take_acts(game, seat)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 683, in take_acts\n    self.play_activation(game, seat, self.choose(others))\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 604, in play_activation\n    activation_target_slots(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/query.py\", line 971, in activation_target_slots\n    slot = legal_targets(\n           ^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/query.py\", line 307, in legal_targets\n    candidates = tuple(enumerate_candidates(selector, ctx))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 512, in enumerate_candidates\n    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 512, in <genexpr>\n    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))\n                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 595, in eval_filter\n    return all(eval_filter(c, handle, ctx) for c in filter_.children)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 595, in <genexpr>\n    return all(eval_filter(c, handle, ctx) for c in filter_.children)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 601, in eval_filter\n    return _eval_atom(filter_, handle, ctx)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 880, in _eval_atom\n    assert atom.count is not None and atom.counter_kind is not None\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
-  "274": "Traceback (most recent call last):\n  File \"/home/sune/Desktop/MTG_AI/tools/eval/znr_engine_smoke.py\", line 267, in play_one\n    play_game(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1236, in play_game\n    _play(game, policy, order, turn_cap)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1380, in _play\n    policy.take_acts(game, seat)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 683, in take_acts\n    self.play_activation(game, seat, self.choose(others))\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 604, in play_activation\n    activation_target_slots(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/query.py\", line 971, in activation_target_slots\n    slot = legal_targets(\n           ^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/query.py\", line 307, in legal_targets\n    candidates = tuple(enumerate_candidates(selector, ctx))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 512, in enumerate_candidates\n    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 512, in <genexpr>\n    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))\n                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 595, in eval_filter\n    return all(eval_filter(c, handle, ctx) for c in filter_.children)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 595, in <genexpr>\n    return all(eval_filter(c, handle, ctx) for c in filter_.children)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 601, in eval_filter\n    return _eval_atom(filter_, handle, ctx)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 880, in _eval_atom\n    assert atom.count is not None and atom.counter_kind is not None\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
-  "384": "Traceback (most recent call last):\n  File \"/home/sune/Desktop/MTG_AI/tools/eval/znr_engine_smoke.py\", line 267, in play_one\n    play_game(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1236, in play_game\n    _play(game, policy, order, turn_cap)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1380, in _play\n    policy.take_acts(game, seat)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 657, in take_acts\n    rows = legal_casts(world, executor, seat)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/query.py\", line 714, in legal_casts\n    reason, node, _record, plan = spell_castable(executor, seat, handle, x=x)\n                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 1279, in spell_castable\n    plan, reason = build_payment_plan(world, ctx, cost, mana_use=handle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 700, in build_payment_plan\n    generic_cut += resolve(delta.amount, mod_ctx)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 373, in resolve\n    raise NotImplementedError(\nNotImplementedError: executor: QThisTurn(NONCOMBAT_DAMAGE) not implemented (12b turn ledger)\n",
-  "412": "Traceback (most recent call last):\n  File \"/home/sune/Desktop/MTG_AI/tools/eval/znr_engine_smoke.py\", line 267, in play_one\n    play_game(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1236, in play_game\n    _play(game, policy, order, turn_cap)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1380, in _play\n    policy.take_acts(game, seat)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 683, in take_acts\n    self.play_activation(game, seat, self.choose(others))\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 604, in play_activation\n    activation_target_slots(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/query.py\", line 971, in activation_target_slots\n    slot = legal_targets(\n           ^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/query.py\", line 307, in legal_targets\n    candidates = tuple(enumerate_candidates(selector, ctx))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 512, in enumerate_candidates\n    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 512, in <genexpr>\n    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))\n                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 595, in eval_filter\n    return all(eval_filter(c, handle, ctx) for c in filter_.children)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 595, in <genexpr>\n    return all(eval_filter(c, handle, ctx) for c in filter_.children)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 601, in eval_filter\n    return _eval_atom(filter_, handle, ctx)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 880, in _eval_atom\n    assert atom.count is not None and atom.counter_kind is not None\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
-  "490": "Traceback (most recent call last):\n  File \"/home/sune/Desktop/MTG_AI/tools/eval/znr_engine_smoke.py\", line 267, in play_one\n    play_game(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1236, in play_game\n    _play(game, policy, order, turn_cap)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1380, in _play\n    policy.take_acts(game, seat)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 679, in take_acts\n    self.play_cast(game, seat, self.pick_spell(game, spells))\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 581, in play_cast\n    cast(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/stack.py\", line 992, in cast\n    executor._settle()\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/__init__.py\", line 1306, in _settle\n    fired += self._state_checks()\n             ^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/__init__.py\", line 1212, in _state_checks\n    self.layers.recompute()  # live keywords/toughness must be current\n    ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/layers.py\", line 715, in recompute\n    changed += self._materialize_static(layer)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/layers.py\", line 744, in _materialize_static\n    p_delta, t_delta, p_set, t_set = pt_atom_delta(atom, ctx)\n                                     ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/verbs.py\", line 759, in pt_atom_delta\n    p_delta = _pt_delta_value(power_role, ctx) if power_role is not None else 0\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/verbs.py\", line 743, in _pt_delta_value\n    magnitude = resolve(quantity.magnitude, ctx)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 358, in resolve\n    return _resolve_prop(quantity, ctx)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 518, in _resolve_prop\n    _prop_value(prop.field, handle, ctx)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 417, in _prop_value\n    raise ValueError(f\"executor: {field.name} undefined on handle {handle}\")\nValueError: executor: POWER undefined on handle card:61\n"
- },
+ "full_tracebacks": {},
  "backface_probe": {
   "walk_calls": 13713,
   "face_yields_skipped_ok": 0,

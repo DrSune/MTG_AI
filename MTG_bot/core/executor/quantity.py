@@ -57,6 +57,7 @@ from MTG_bot.core.ability_tree import (
     Quantity,
     QUnbounded,
     Selector,
+    ThisTurnKind,
     ZonePosition,
 )
 from MTG_bot.core.executor.decisions import DecisionStream
@@ -370,8 +371,43 @@ def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
             "executor: QUnbounded not resolvable to a number (12c choice surface)"
         )
     if isinstance(quantity, QThisTurn):
-        raise NotImplementedError(
-            f"executor: QThisTurn({quantity.kind.name}) not implemented (12b turn ledger)"
+        # M21 fuzz S2 (seed 384, /109 addendum): the 12b turn ledger now
+        # carries NONCOMBAT_DAMAGE — Chandra's Incinerator's cost reducer
+        # ("This spell costs {X} less to cast, where X is the total amount
+        # of noncombat damage dealt to your opponents this turn", compiled
+        # by templates_b4 as QThisTurn(NONCOMBAT_DAMAGE, ALL_OPPONENTS)).
+        # The datum EXISTS in the journal (events.py DAMAGE rows: data is
+        # ``(amount,)``, or ``(amount, True)`` for COMBAT damage — the 16c
+        # combat-scope flag), so this is an implementation, not a refusal.
+        # Reading: sum the turn window's noncombat DAMAGE rows whose
+        # SUBJECT is a seat of the referent side. A planeswalker-recipient
+        # row never counts: "damage dealt to your opponents" names the
+        # PLAYER receiving it (CR 118.5 — damage to a planeswalker is not
+        # damage to that player), and the row's subject is the actual
+        # recipient, so the seat filter is the CR-correct scope. The
+        # window is the same journal-backed ``turn_window()`` every 14d
+        # history predicate answers against (query/runtime identity: the
+        # legality lane reads the identical rows the effect lane does).
+        if quantity.kind is not ThisTurnKind.NONCOMBAT_DAMAGE:
+            raise NotImplementedError(
+                f"executor: QThisTurn({quantity.kind.name}) not implemented "
+                "(12b turn ledger)"
+            )
+        from MTG_bot.core.executor.events import KIND_DAMAGE
+        from MTG_bot.core.executor.selectors import players_for_ref
+
+        if ctx.journal is None:
+            raise NotImplementedError(
+                "executor: QThisTurn(NONCOMBAT_DAMAGE) reads the journalled "
+                "damage feed (this ExecCtx has no journal)"
+            )
+        receivers = set(players_for_ref(quantity.referent, ctx))
+        return sum(
+            row.amount
+            for row in ctx.journal.turn_window()
+            if row.kind == KIND_DAMAGE
+            and not row.is_combat
+            and row.subject in receivers
         )
     raise NotImplementedError(
         f"executor: quantity {type(quantity).__name__} not implemented"
@@ -514,10 +550,37 @@ def _resolve_prop(prop: QProp, ctx: ExecCtx) -> int:
 
     if isinstance(prop.referent, str):
         return _prop_value(prop.field, _referent_handle(prop.referent, ctx), ctx)
-    values = [
-        _prop_value(prop.field, handle, ctx)
-        for handle in resolve_selector(prop.referent, ctx)
-    ]
+    # M21 fuzz S3 (seed 490, /109 addendum): Carrion Grub's static — "gets
+    # +X/+0, where X is the greatest power among creature cards in your
+    # graveyard" — aggregates QProp(POWER, graveyard-selector, MAX), and
+    # the graveyard held a Kinetic Augur: P/T printed "*4", whose CDA the
+    # engine does not model, so its identity power is UNDEFINED (the /99
+    # shape-gap family: ZNR's Nighthawk Scavenger "1+*", /99). The scalar
+    # read of an undefined property stays the strict ValueError above
+    # (unresolvable named quantity — never a zero, per CR an object
+    # without a P/T characteristic has NO power); but an AGGREGATION over
+    # a selector is a read over a population, and CR keeps an undefined
+    # characteristic out of the value set: an object with no power is not
+    # one of the "powers among" being maxed/summed — the same
+    # characteristic-absent rule that makes the POWER_LE/POWER_GE filters
+    # read False for such an object. Skipping keeps the MAX honest about
+    # what the engine can see (the Augur's true CDA power is a registered
+    # coverage gap, not a number to guess); an all-undefined population
+    # falls to the established empty-set 0 below.
+    aggregate_pt = isinstance(prop.referent, Selector) and prop.field in (
+        QPropField.POWER,
+        QPropField.TOUGHNESS,
+    )
+    values = []
+    for handle in resolve_selector(prop.referent, ctx):
+        if aggregate_pt:
+            power, toughness = ctx.effective_pt(handle)
+            value = power if prop.field is QPropField.POWER else toughness
+            if value is None:
+                continue
+            values.append(value)
+        else:
+            values.append(_prop_value(prop.field, handle, ctx))
     if not values:
         return 0
     if prop.agg.name == "FIRST":
@@ -877,8 +940,37 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             )
         return ctx.layers.keyword_of(handle, atom.keyword)
     if pred is FAtomPred.HAS_COUNTER:
-        assert atom.count is not None and atom.counter_kind is not None
-        threshold = resolve(atom.count, ctx)
+        # M21 fuzz S1 (seeds 27/95/239/274/412, /109 addendum): the assert
+        # used to KILL the game when the atom's count slot arrived unbound.
+        # The producing shape is the Tempered Veteran fold — "put a +1/+1
+        # counter on target creature WITH a +1/+1 counter on it" compiles
+        # (via the target-phrase template) to HAS_COUNTER(counter_kind=
+        # PLUS_1_PLUS_1, count=None): _FATOM_RULES marks count required,
+        # but FAtom.__post_init__'s required-slot enforcement list omits
+        # "count", so the shape validates and reaches BOTH lanes (the 12c
+        # query surface through enumerate_candidates — the fuzz crash —
+        # and the runtime gate). Honest readings, by slot:
+        #   * counter_kind unbound — "has a counter" without naming WHICH
+        #     counter is not answerable from the world: typed, named
+        #     refusal (the /112 flag-don't-degrade convention; the grammar
+        #     enforces this slot, so the branch is defensive for hand-
+        #     built atoms, never a silent pass).
+        #   * count unbound — the existence reading the pred's own name
+        #     states: "with a {kind} counter on it" ⇔ count >= 1. This is
+        #     NOT the phantom-counter zero-default: a threshold of 0 makes
+        #     the pred vacuously True for every object (every creature
+        #     would be a legal Tempered Veteran target — the trap); 1 is
+        #     the text's meaning, zone-true for every consumer of the
+        #     "with a K counter" phrase. A BOUND count resolves through
+        #     the ordinary quantity lane (its own refusals propagate).
+        if atom.counter_kind is None:
+            raise NotImplementedError(
+                "executor: filter pred HAS_COUNTER has no bound counter_kind "
+                "(12c query surface — which counter is asked for?)"
+            )
+        if handle.namespace != "card" or handle not in world.cards:
+            return False  # characteristic absent (the KEYWORD_HAS convention)
+        threshold = 1 if atom.count is None else resolve(atom.count, ctx)
         return world.cards[handle].counters.get(atom.counter_kind.name, 0) >= threshold
     if pred is FAtomPred.CONTROLLER_IS:
         who = atom.who
