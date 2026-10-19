@@ -841,7 +841,14 @@ def spell_target_slots(
     slots: list[TargetSlot] = []
     seen: set[str] = set()
     if node.effect is None:
-        return slots
+        # 16e hole (ZNR fuzz 2026-10-19, Bubble Snare, 21/500): an aura's
+        # SpellAbility can carry NO effect — its gameplay rides entirely on
+        # sibling ETB/static abilities — yet the cast STILL requires an
+        # enchant designation (CR 601.2c). Returning here skipped the aura
+        # ENCHANT synthesis below, so _validate_spell_targets saw a
+        # targetless spell and stack.py's resolution invariant fired.
+        aura = aura_enchant_slot(executor, node, spell_handle=spell_handle, seat=seat)
+        return [aura] if aura is not None else slots
     reads_target_player = False
     for inner in walk(node.effect):
         if not isinstance(inner, Atom):

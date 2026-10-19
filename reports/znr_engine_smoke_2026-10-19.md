@@ -1,10 +1,10 @@
 # ZNR engine smoke fuzz — 2026-10-19
 
-- games completed: **60** / 60 (workers=4, wall 9.6s, cap 45.0s/game)
+- games completed: **500** / 500 (workers=4, wall 74.9s, cap 45.0s/game)
 - turn cap 150, deck-pairs seed 201019
 - crashed: **0** (crash rate **0.0%)
 - distinct signatures: **0**
-- exploration depth: median 56.0 acts, 31.5 turns per game
+- exploration depth: median 61.0 acts, 32.5 turns per game
 
 ## BackFace reach probe
 

@@ -1,0 +1,35 @@
+{
+  "set": "ZNR",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "mana": {
+    "0": {
+      "U": 5
+    }
+  },
+  "cards": [
+    {
+      "key": "snare",
+      "real": "Bubble Snare",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Bubble Snare",
+      "key": "snare",
+      "targets": [],
+      "expect_raise": "aura_no_legal_target"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "snare": "hand"
+    }
+  },
+  "notes": "ZNR fuzz 2026-10-19 (21/500, seed 73): Bubble Snare is the effectless-aura shape — SpellAbility(effect=None), all gameplay on sibling ETB/static abilities — so spell_target_slots early-returned ZERO slots and the 16e synthesized ENCHANT designation never fired: the zero-target cast slipped past _validate_spell_targets and stack.py:910's resolution invariant raised. Fixed in the query lane (the aura enchant-slot synthesis now runs for effect=None SpellAbilities too). GREEN now: the EMPTY battlefield leaves the enchant slot with no legal designee (min=1), so the cast raises a CLEAN aura_no_legal_target legality refusal at the cast entry gate and the card stays in HAND (refusal-consistency law: a declined designation never puts the spell on the stack). Falsifier: a passing cast step or snare leaving the hand."
+}

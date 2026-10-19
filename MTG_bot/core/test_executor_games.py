@@ -2075,6 +2075,123 @@ class Round16eControlTest(unittest.TestCase):
         self.assertEqual(world.zone_of(aura).kind, ZONE_GRAVEYARD)
 
 
+_SNARE_OID = "00000000-1111-2222-3333-666666666666"
+
+
+class AuraEffectlessLegalityTest(unittest.TestCase):
+    """ZNR fuzz 2026-10-19 (21/500, seed 73, Bubble Snare): an aura whose
+    SpellAbility carries NO effect — its gameplay rides entirely on
+    sibling abilities — made :func:`spell_target_slots` early-return with
+    ZERO slots, so the 16e synthesized ENCHANT designation never fired:
+    the cast lane saw a targetless spell, legality passed the zero-target
+    cast, and stack.py:910's resolution invariant raised. The harvest
+    hole (query lane) is the root cause. Pins:
+      * an effectless aura harvests exactly one REQUIRED (min=1)
+        synthetic enchant slot (regression pin on the early return);
+      * no legal designee => spell_castable refuses AND a direct cast
+        raises before the stack push — designation refusal never casts
+        (refusal-consistency law);
+      * the policy's ask (select_targets) declines the empty population
+        and, with a designee, designates BEFORE resolution and the aura
+        resolves ATTACHED (the fuzz path that used to crash)."""
+
+    @staticmethod
+    def _snare_pool() -> PoolCompile:
+        record = CardRecord(
+            oracle_id=_SNARE_OID,
+            name="Effectless Snare",
+            type_line="Enchantment — Aura",
+            types=("Enchantment",),
+            subtypes=("Aura",),
+            supertypes=(),
+            colors=("U",),
+            color_identity=frozenset({"U"}),
+            mana_cost=None,
+            mana_value=1,
+            power=None,
+            toughness=None,
+            loyalty=None,
+            keywords=(KeywordAbility(keyword=Keyword.ENCHANT, params=()),),
+            # THE specimen shape: SpellAbility with NO effect (Bubble
+            # Snare's whole rules body compiles to sibling ETB/static
+            # abilities; the SpellAbility stays effect=None).
+            abilities=(SpellAbility(kind=SpellKind.ENCHANTMENT, effect=None),),
+            is_token=False,
+        )
+        return PoolCompile(
+            cards={_SNARE_OID: record},
+            emblems={},
+            orphan_emblems=(),
+            results={
+                _SNARE_OID: CompileResult(
+                    card=record,
+                    legality=LegalityFlags(format_legal=True, engine_supported=True),
+                )
+            },
+            summary={},
+        )
+
+    def _armed(self, seed: int = 7):
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=seed)
+        executor = Executor(world)
+        executor.attach_pool(self._snare_pool())
+        p0, _p1 = world.player_order
+        for key in ("W", "U", "B", "R", "G", "C"):
+            world.players[p0].mana_pool[key] = 20
+        world.active_player = p0
+        executor.turn_open = True
+        executor.phase = "FIRST_MAIN"
+        record = executor.binder.records[_SNARE_OID]
+        node = next(a for a in record.abilities if isinstance(a, SpellAbility))
+        aura = world.add_card(identity_of(record), p0, ZONE_HAND)
+        return world, executor, p0, node, aura
+
+    def test_effectless_aura_slot_required_refusal_never_casts(self) -> None:
+        world, executor, p0, node, aura = self._armed()
+        self.assertTrue(is_aura_spell(world, aura))
+        # The harvest pin: zero-effect aura SpellAbility still yields the
+        # one REQUIRED enchant slot (min=1) — pre-fix this returned [].
+        slots = spell_target_slots(executor, node, spell_handle=aura, seat=p0)
+        self.assertEqual(len(slots), 1)
+        self.assertTrue(slots[0].synthetic)
+        self.assertEqual((slots[0].min_count, slots[0].max_count), (1, 1))
+        self.assertEqual(slots[0].candidates, ())  # empty battlefield
+        # Legality refuses the cast (CR 601.2e), the policy's ask declines
+        # it (refusal-consistency), and a direct zero-target cast raises
+        # BEFORE the stack push — no frame, no floating aura.
+        reason, *_ = spell_castable(executor, p0, aura)
+        self.assertIsNotNone(reason)
+        assert reason is not None  # pyright narrowing
+        self.assertIn("aura_no_legal_target", reason)
+        self.assertIsNone(RandomPolicy(0).select_targets(slots))
+        with self.assertRaises(ValueError) as cm:
+            cast(executor, p0, aura)
+        self.assertIn("aura_no_legal_target", str(cm.exception))
+        self.assertEqual(world.zone_of(aura).kind, ZONE_HAND)
+        self.assertEqual(executor.stack.frames, [])
+
+    def test_effectless_aura_designates_before_resolution(self) -> None:
+        world, executor, p0, node, aura = self._armed(11)
+        host = world.add_card(
+            CardIdentity(oracle_id=_oid(311), name="Host", type_line="Land"),
+            p0,
+            ZONE_BATTLEFIELD,
+        )
+        # With a designee the slot populates, legality clears, the ASK
+        # answers from the slot BEFORE the cast, and resolution attaches
+        # (CR 303.4a) — the exact path seed 73 crashed on.
+        slots = spell_target_slots(executor, node, spell_handle=aura, seat=p0)
+        self.assertEqual(slots[0].candidates, (host,))
+        self.assertIsNone(spell_castable(executor, p0, aura)[0])
+        picked = RandomPolicy(0).select_targets(slots)
+        self.assertEqual(picked, (host,))
+        assert picked is not None  # pyright narrowing for the cast below
+        cast(executor, p0, aura, targets=picked)
+        self.assertEqual(world.zone_of(aura).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(executor.attachments.get(aura), host)
+
+
 # ---------------------------------------------------------------------------
 # Stall rule (CR 104.4b): a world fingerprint that repeats exactly across
 # REPEAT_ROUNDS consecutive per-seat round observations ends the game early
