@@ -1,0 +1,985 @@
+{
+  "sets": {
+    "M21": {
+      "changed_count": 122,
+      "total": 305,
+      "shape_gaps": 0,
+      "by_change_kind": {
+        "fand_order": 117,
+        "or_order": 9,
+        "fand_flatten_single": 0,
+        "fand_flatten_nested": 0,
+        "or_flatten_single": 0,
+        "or_flatten_nested": 0,
+        "kwds_sort": 2,
+        "tokenspec_sort": 0,
+        "fatom_colors_sort": 1,
+        "counters_sort": 0
+      },
+      "by_change_kind_card_names": {
+        "fand_order": [
+          "Adherent of Hope",
+          "Alpine Houndmaster",
+          "Animal Sanctuary",
+          "Anointed Chorister",
+          "Aven Gagglemaster",
+          "Basri Ket",
+          "Basri Ket Emblem",
+          "Basri's Acolyte",
+          "Basri's Lieutenant",
+          "Basri's Solidarity",
+          "Basri, Devoted Paladin",
+          "Bolt Hound",
+          "Brash Taunter",
+          "Burn Bright",
+          "Canopy Stalker",
+          "Capture Sphere",
+          "Chandra, Flame's Catalyst",
+          "Chandra, Heart of Fire",
+          "Chromatic Orrery",
+          "Chrome Replicator",
+          "Conclave Mentor",
+          "Conspicuous Snoop",
+          "Crash Through",
+          "Crypt Lurker",
+          "Demonic Embrace",
+          "Dire Fleet Warmonger",
+          "Dub",
+          "Enthralling Hold",
+          "Fabled Passage",
+          "Feat of Resistance",
+          "Feline Sovereign",
+          "Fetid Imp",
+          "Furious Rise",
+          "Furor of the Bitten",
+          "Gadrak, the Crown-Scourge",
+          "Garruk's Harbinger",
+          "Garruk's Uprising",
+          "Garruk, Savage Herald",
+          "Garruk, Unleashed",
+          "Glorious Anthem",
+          "Goremand",
+          "Heartfire Immolator",
+          "Hellkite Punisher",
+          "Historian of Zhalfir",
+          "Hobblefiend",
+          "Hooded Blightfang",
+          "Hunter's Edge",
+          "Idol of Endurance",
+          "Igneous Cur",
+          "Infernal Scarring",
+          "Invigorating Surge",
+          "Jolrael, Mwonvuli Recluse",
+          "Leafkin Avenger",
+          "Light of Promise",
+          "Liliana's Devotee",
+          "Liliana's Scrounger",
+          "Liliana's Standard Bearer",
+          "Liliana's Steward",
+          "Lofty Denial",
+          "Makeshift Battalion",
+          "Malefic Scythe",
+          "Mangara, the Diplomat",
+          "Masked Blackguard",
+          "Massacre Wurm",
+          "Mazemind Tome",
+          "Necromentia",
+          "Niambi, Esteemed Speaker",
+          "Obsessive Stitcher",
+          "Pack Leader",
+          "Pirate",
+          "Portcullis Vine",
+          "Predatory Wurm",
+          "Pridemalkin",
+          "Primal Might",
+          "Pursued Whale",
+          "Radha, Heart of Keld",
+          "Ranger's Guile",
+          "Rin and Seri, Inseparable",
+          "Rookie Mistake",
+          "Rousing Read",
+          "Sanctum of All",
+          "Sanctum of Calm Waters",
+          "Sanctum of Fruitful Harvest",
+          "Sanctum of Shattered Heights",
+          "Sanctum of Stone Fangs",
+          "Sanctum of Tranquil Light",
+          "Selfless Savior",
+          "Setessan Training",
+          "Shacklegeist",
+          "Short Sword",
+          "Siege Striker",
+          "Silent Dart",
+          "Silversmote Ghoul",
+          "Sparkhunter Masticore",
+          "Subira, Tulzidi Caravanner",
+          "Sublime Epiphany",
+          "Swift Response",
+          "Teferi, Master of Time",
+          "Teferi, Timeless Voyager",
+          "Terror of the Peaks",
+          "Thieves' Guild Enforcer",
+          "Thrashing Brontodon",
+          "Tide Skimmer",
+          "Tormod's Crypt",
+          "Treasure",
+          "Trufflesnout",
+          "Turn to Slag",
+          "Turret Ogre",
+          "Ugin, the Spirit Dragon",
+          "Village Rites",
+          "Vito, Thorn of the Dusk Rose",
+          "Volcanic Salvo",
+          "Waker of Waves",
+          "Warded Battlements",
+          "Watcher of the Spheres",
+          "Wildwood Scourge",
+          "Witch's Cauldron"
+        ],
+        "or_order": [
+          "Archfiend's Vessel",
+          "Chandra's Magmutt",
+          "Garruk's Harbinger",
+          "Leafkin Avenger",
+          "Mangara, the Diplomat",
+          "Sanctum of Shattered Heights",
+          "Thieves' Guild Enforcer",
+          "Ugin, the Spirit Dragon",
+          "Unsubstantiate"
+        ],
+        "fand_flatten_single": [],
+        "fand_flatten_nested": [],
+        "or_flatten_single": [],
+        "or_flatten_nested": [],
+        "kwds_sort": [
+          "Basri's Lieutenant",
+          "Sporeweb Weaver"
+        ],
+        "tokenspec_sort": [],
+        "fatom_colors_sort": [
+          "Quirion Dryad"
+        ],
+        "counters_sort": []
+      },
+      "changed_card_names": [
+        "Feline Sovereign",
+        "Malefic Scythe",
+        "Fabled Passage",
+        "Igneous Cur",
+        "Goremand",
+        "Siege Striker",
+        "Sparkhunter Masticore",
+        "Sanctum of Fruitful Harvest",
+        "Tormod's Crypt",
+        "Basri, Devoted Paladin",
+        "Sanctum of Tranquil Light",
+        "Sanctum of Calm Waters",
+        "Heartfire Immolator",
+        "Feat of Resistance",
+        "Rin and Seri, Inseparable",
+        "Garruk's Harbinger",
+        "Capture Sphere",
+        "Sporeweb Weaver",
+        "Enthralling Hold",
+        "Rousing Read",
+        "Garruk's Uprising",
+        "Garruk, Unleashed",
+        "Hooded Blightfang",
+        "Village Rites",
+        "Pack Leader",
+        "Waker of Waves",
+        "Treasure",
+        "Brash Taunter",
+        "Infernal Scarring",
+        "Setessan Training",
+        "Furor of the Bitten",
+        "Crash Through",
+        "Gadrak, the Crown-Scourge",
+        "Turn to Slag",
+        "Basri Ket",
+        "Selfless Savior",
+        "Furious Rise",
+        "Sublime Epiphany",
+        "Basri's Lieutenant",
+        "Swift Response",
+        "Chandra, Heart of Fire",
+        "Primal Might",
+        "Liliana's Scrounger",
+        "Invigorating Surge",
+        "Sanctum of Shattered Heights",
+        "Bolt Hound",
+        "Thrashing Brontodon",
+        "Anointed Chorister",
+        "Archfiend's Vessel",
+        "Sanctum of All",
+        "Light of Promise",
+        "Silversmote Ghoul",
+        "Basri's Solidarity",
+        "Ranger's Guile",
+        "Idol of Endurance",
+        "Pursued Whale",
+        "Teferi, Timeless Voyager",
+        "Vito, Thorn of the Dusk Rose",
+        "Warded Battlements",
+        "Chandra, Flame's Catalyst",
+        "Shacklegeist",
+        "Hunter's Edge",
+        "Liliana's Standard Bearer",
+        "Mazemind Tome",
+        "Thieves' Guild Enforcer",
+        "Historian of Zhalfir",
+        "Alpine Houndmaster",
+        "Trufflesnout",
+        "Makeshift Battalion",
+        "Aven Gagglemaster",
+        "Masked Blackguard",
+        "Tide Skimmer",
+        "Silent Dart",
+        "Niambi, Esteemed Speaker",
+        "Radha, Heart of Keld",
+        "Necromentia",
+        "Basri's Acolyte",
+        "Massacre Wurm",
+        "Chromatic Orrery",
+        "Predatory Wurm",
+        "Volcanic Salvo",
+        "Subira, Tulzidi Caravanner",
+        "Sanctum of Stone Fangs",
+        "Portcullis Vine",
+        "Chandra's Magmutt",
+        "Conclave Mentor",
+        "Basri Ket Emblem",
+        "Leafkin Avenger",
+        "Canopy Stalker",
+        "Liliana's Devotee",
+        "Adherent of Hope",
+        "Wildwood Scourge",
+        "Unsubstantiate",
+        "Hellkite Punisher",
+        "Witch's Cauldron",
+        "Mangara, the Diplomat",
+        "Liliana's Steward",
+        "Fetid Imp",
+        "Demonic Embrace",
+        "Watcher of the Spheres",
+        "Lofty Denial",
+        "Glorious Anthem",
+        "Dub",
+        "Rookie Mistake",
+        "Teferi, Master of Time",
+        "Obsessive Stitcher",
+        "Short Sword",
+        "Burn Bright",
+        "Dire Fleet Warmonger",
+        "Ugin, the Spirit Dragon",
+        "Crypt Lurker",
+        "Pirate",
+        "Hobblefiend",
+        "Chrome Replicator",
+        "Animal Sanctuary",
+        "Quirion Dryad",
+        "Conspicuous Snoop",
+        "Jolrael, Mwonvuli Recluse",
+        "Terror of the Peaks",
+        "Pridemalkin",
+        "Turret Ogre",
+        "Garruk, Savage Herald"
+      ],
+      "idempotence_failures": [],
+      "content_preservation_failures": [],
+      "m21_golden_map": {
+        "golden_dir": "/home/sune/Desktop/MTG_AI/MTG_bot/core/golden/M21",
+        "golden_files_total": 305,
+        "golden_files_to_rebaseline": [
+          {
+            "golden_file": "MTG_bot/core/golden/M21/05f0feb6-6783-49fd-acf6-68b44aaff846.json",
+            "card_name": "Feline Sovereign"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/0b4925d7-e2bb-4b74-a538-80fe759799ad.json",
+            "card_name": "Malefic Scythe"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/0c85b8f7-0bd0-4680-9ec5-d4b110460a54.json",
+            "card_name": "Fabled Passage"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/0d899095-cef7-43d2-aaf7-eb73b62f5ec8.json",
+            "card_name": "Igneous Cur"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/0f80f061-6304-4c7b-ab53-f406385e39df.json",
+            "card_name": "Goremand"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/12dd664c-a279-4adc-b6cb-bec22eedca5c.json",
+            "card_name": "Siege Striker"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/1306c72f-fc6b-470b-a95e-0364e0e30ac7.json",
+            "card_name": "Sparkhunter Masticore"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/132859dd-de66-45c6-8af4-ab5e202a17b0.json",
+            "card_name": "Sanctum of Fruitful Harvest"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/1573f7f9-672c-421a-b1ac-3d0d8aea59ca.json",
+            "card_name": "Tormod's Crypt"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/1601e553-31c2-4e04-9f0c-bc17e49eeff7.json",
+            "card_name": "Basri, Devoted Paladin"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/1818b0b1-0104-4673-9be8-acfc773ef87d.json",
+            "card_name": "Sanctum of Tranquil Light"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/1cd1e3a8-e09d-4b61-8244-92b317132d6a.json",
+            "card_name": "Sanctum of Calm Waters"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/1e414a4f-6e76-4cbe-9c69-d52852cd5bc0.json",
+            "card_name": "Heartfire Immolator"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/2038f505-7b03-4c63-bc44-c5139729dd05.json",
+            "card_name": "Feat of Resistance"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/28c46eb7-bdfc-44b9-b7e9-b073260851f0.json",
+            "card_name": "Rin and Seri, Inseparable"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/2dbe384b-71c4-43f9-be35-ba2894021b85.json",
+            "card_name": "Garruk's Harbinger"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/2dc59566-10cb-468a-b6a2-17d6c0186e6d.json",
+            "card_name": "Capture Sphere"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/2e7c3881-6fa6-4fd2-ae86-9e3a0fcecdbd.json",
+            "card_name": "Sporeweb Weaver"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/2f94cb83-1f48-4293-b219-67830c074aeb.json",
+            "card_name": "Enthralling Hold"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/306549ad-84c7-4983-840b-9663799e9f40.json",
+            "card_name": "Rousing Read"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/3127ae9b-a7a7-43ec-89d7-688f8445b33d.json",
+            "card_name": "Garruk's Uprising"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/32ea6b1c-d48e-4663-ad5c-d7f4a85450af.json",
+            "card_name": "Garruk, Unleashed"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/342eb666-838c-43d0-bf52-2f704f2a80e3.json",
+            "card_name": "Hooded Blightfang"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/365548fb-5acc-4a8a-b20b-26d28b7d029f.json",
+            "card_name": "Village Rites"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/3701ed34-a97c-4d7b-a15a-4faec02ef24b.json",
+            "card_name": "Pack Leader"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/3a19a959-ea83-404b-89f7-e5dbf4cb7995.json",
+            "card_name": "Waker of Waves"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/3c549374-6c37-42e0-8d88-a8555d46732d.json",
+            "card_name": "Treasure"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/3e41648f-c5a9-4b26-b97e-8176fe5e9c85.json",
+            "card_name": "Brash Taunter"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/3fc640dd-6292-4d36-82fb-bd366bc00bd3.json",
+            "card_name": "Infernal Scarring"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/3ff3b9c4-80ec-44d9-99ec-6fea3a86468b.json",
+            "card_name": "Setessan Training"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/40be0923-5d57-46fd-84ef-7f1a1fd5da42.json",
+            "card_name": "Furor of the Bitten"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/41c15160-ee8c-42e3-bc6c-593b8c8ae335.json",
+            "card_name": "Crash Through"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/42d7ec93-0943-43e2-9b65-b7edc3349410.json",
+            "card_name": "Gadrak, the Crown-Scourge"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/4339f621-8502-4433-a37a-654591ca1b43.json",
+            "card_name": "Turn to Slag"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/497d7ab8-07f1-4c8a-a45a-52b9a4d9400f.json",
+            "card_name": "Basri Ket"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/49dc3434-2501-4788-84f2-93e55730f67c.json",
+            "card_name": "Selfless Savior"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/52b3a979-3b93-4441-9237-0c8a754e5523.json",
+            "card_name": "Furious Rise"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/56148ae7-a9df-4771-8d53-d9ffb815c884.json",
+            "card_name": "Sublime Epiphany"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/57d0c688-6206-4c83-9fcb-27fd29e2a9ed.json",
+            "card_name": "Basri's Lieutenant"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/5820d760-8ed7-4abf-a959-c06ed86a3730.json",
+            "card_name": "Swift Response"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/58ad45fc-b625-4484-8d49-ebc42db9040a.json",
+            "card_name": "Chandra, Heart of Fire"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/58d7b8b3-ac47-4805-8259-4ba8e70d7dc3.json",
+            "card_name": "Primal Might"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/595f1dee-8c3b-44a6-9e71-a4bb4334b309.json",
+            "card_name": "Liliana's Scrounger"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/5daac63a-1534-4194-8cb7-506508e364f4.json",
+            "card_name": "Invigorating Surge"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/5e39d311-efb5-4f51-82cd-e8079e32907a.json",
+            "card_name": "Sanctum of Shattered Heights"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/60555f06-dc85-4a34-ae3c-fc1cdb923be7.json",
+            "card_name": "Bolt Hound"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/60bc63dc-ac9f-4a2f-aef5-c90d0aa31553.json",
+            "card_name": "Thrashing Brontodon"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/61859443-e298-41c7-a179-6e6554de91c9.json",
+            "card_name": "Anointed Chorister"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/62c240ac-f2dd-4e39-9e82-50307efa833e.json",
+            "card_name": "Archfiend's Vessel"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/63f60dfc-2bc4-411f-ae53-504156fe0102.json",
+            "card_name": "Sanctum of All"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/64c54c9f-0550-41e2-a44a-5892a199f670.json",
+            "card_name": "Light of Promise"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/67d55b4f-944e-4376-93ed-1a240bca1eae.json",
+            "card_name": "Silversmote Ghoul"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/68281e06-64e3-490b-8691-8f4169614ec0.json",
+            "card_name": "Basri's Solidarity"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/694cb93a-bcc5-44b0-a76c-19ae4a4e5e0f.json",
+            "card_name": "Ranger's Guile"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/6b946317-8a66-41b7-b902-308784d69b90.json",
+            "card_name": "Idol of Endurance"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/6de2d53c-06e3-4c56-a5cf-c9cb2db42527.json",
+            "card_name": "Pursued Whale"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/7240037f-ddea-425e-9824-866e2bb0dc84.json",
+            "card_name": "Teferi, Timeless Voyager"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/7336a541-3ae9-4ab2-acb8-f574c0a5b3a9.json",
+            "card_name": "Vito, Thorn of the Dusk Rose"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/7616dacf-44e2-4b03-b120-875cc2e50ea5.json",
+            "card_name": "Warded Battlements"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/7721e800-fba6-4ae7-855e-631b2ecc8d6b.json",
+            "card_name": "Chandra, Flame's Catalyst"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/7a1e4880-9abb-4018-84bd-91b5ec702c51.json",
+            "card_name": "Shacklegeist"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/7b428e94-8428-455f-b555-f648fcdd2127.json",
+            "card_name": "Hunter's Edge"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/7b600c0e-5ad2-48a2-a147-346ca78c8629.json",
+            "card_name": "Liliana's Standard Bearer"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/800fb917-8898-4eba-9f94-aec6e9d75236.json",
+            "card_name": "Mazemind Tome"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/84c0db59-255d-41af-a3d4-3f3548f1195f.json",
+            "card_name": "Thieves' Guild Enforcer"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/87e9065d-814a-47fa-9e92-19fb6fd6d78c.json",
+            "card_name": "Historian of Zhalfir"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/88939cb3-5f61-4857-95cb-9446c6c1f1aa.json",
+            "card_name": "Alpine Houndmaster"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/8a15841a-dcb6-454a-b865-43a067f42b4e.json",
+            "card_name": "Trufflesnout"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/8b6e2feb-9e8f-4912-ada0-1614502d9813.json",
+            "card_name": "Makeshift Battalion"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/8c601628-b1ed-467b-ba92-8572343147f8.json",
+            "card_name": "Aven Gagglemaster"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/8ccd20c7-b7fc-4ab1-a98b-3bbcc2079339.json",
+            "card_name": "Masked Blackguard"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/8d83dfb3-5662-4109-b465-bf5f257e58a5.json",
+            "card_name": "Tide Skimmer"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/912bc348-9ba3-4001-90a8-104d2bb17527.json",
+            "card_name": "Silent Dart"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/91c9dbd8-a8d8-4a4e-8408-3ad92e974d11.json",
+            "card_name": "Niambi, Esteemed Speaker"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/927fb139-0493-48be-8cc4-2c7d854d6a55.json",
+            "card_name": "Radha, Heart of Keld"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/92acbbeb-f82b-413b-b243-f7a012f5400c.json",
+            "card_name": "Necromentia"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/92c824da-2351-43bd-9fa0-d09709ad8205.json",
+            "card_name": "Basri's Acolyte"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/93cf50cf-0ecc-4d3e-abea-778c1ebacec4.json",
+            "card_name": "Massacre Wurm"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/95c3976c-33f3-490b-bfd3-7f1af2fe0416.json",
+            "card_name": "Chromatic Orrery"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/99ed6e18-7f14-4ea8-baee-ad6c081388ff.json",
+            "card_name": "Predatory Wurm"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/9c2fd3a3-96f2-4e84-85a9-77698c2f83aa.json",
+            "card_name": "Volcanic Salvo"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/9e2e3272-d4e1-4329-b1d2-f393b3511b82.json",
+            "card_name": "Subira, Tulzidi Caravanner"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/a1d8fcb9-26b2-4d09-9db7-e644294749f8.json",
+            "card_name": "Sanctum of Stone Fangs"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/a217f386-11b5-48f0-b173-3b0700ba295f.json",
+            "card_name": "Portcullis Vine"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/a2c4537e-70a6-416d-9e8b-f549ad535147.json",
+            "card_name": "Chandra's Magmutt"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/a2fe5937-212c-4e71-8d6e-f408b38100aa.json",
+            "card_name": "Conclave Mentor"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/ab67e4ec-9392-4130-970f-6ad65656e5c1.json",
+            "card_name": "Basri Ket Emblem"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/adff8c13-8909-47d0-acad-ba63597f2e96.json",
+            "card_name": "Leafkin Avenger"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/b1062763-1fcf-4605-9253-daa1687e8173.json",
+            "card_name": "Canopy Stalker"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/b3b8c7d0-46b9-4519-808a-154e503a58b6.json",
+            "card_name": "Liliana's Devotee"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/b5f5400e-f341-40e3-b935-36d9cf983a20.json",
+            "card_name": "Adherent of Hope"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/b9dec104-c636-4770-a7fc-7a3331face15.json",
+            "card_name": "Wildwood Scourge"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/c387f46f-ad91-4964-8dc6-acefe537fe3c.json",
+            "card_name": "Unsubstantiate"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/c3ea33f4-17ac-41a4-8320-361b6f8aba0d.json",
+            "card_name": "Hellkite Punisher"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/cb65ee08-bfdb-4c18-8967-8bcf31fcabfa.json",
+            "card_name": "Witch's Cauldron"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/cbcb6d9a-6ae5-4bcd-8013-2b657553764a.json",
+            "card_name": "Mangara, the Diplomat"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/cc1203cb-6758-4454-b78b-341930ff4da1.json",
+            "card_name": "Liliana's Steward"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/cdb68656-633d-436e-ad56-0fdb4814bd19.json",
+            "card_name": "Fetid Imp"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/d185c829-ef12-403a-a071-7520a0293d4a.json",
+            "card_name": "Demonic Embrace"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/d43463d2-4395-4616-acc3-c4f80ebe3242.json",
+            "card_name": "Watcher of the Spheres"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/d799a2c4-628a-45da-b9ca-0337c46e3e14.json",
+            "card_name": "Lofty Denial"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/e3886fe8-9b76-4613-8891-4ec74657c087.json",
+            "card_name": "Glorious Anthem"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/e3ca6b70-01d2-44e9-937a-a2d50bbf9d10.json",
+            "card_name": "Dub"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/e51680d1-3e6c-4d1b-9705-36f73d7328cf.json",
+            "card_name": "Rookie Mistake"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/e802fb53-7cf5-46bc-8a0b-f99cf5c20f74.json",
+            "card_name": "Teferi, Master of Time"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/e8210145-a6ac-4f84-a74c-a5799c5e9434.json",
+            "card_name": "Obsessive Stitcher"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/e842a4e5-ea0b-43ae-9ed8-93e30f4e7b8a.json",
+            "card_name": "Short Sword"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/ed14c7fa-632c-47ee-9db0-8c492771121a.json",
+            "card_name": "Burn Bright"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/ee08435b-a2c1-491a-87cb-e60789b09c25.json",
+            "card_name": "Dire Fleet Warmonger"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/eecb3047-a563-441a-9175-200421981ac3.json",
+            "card_name": "Ugin, the Spirit Dragon"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/f0cbf361-d7dc-4556-a654-71c08785095a.json",
+            "card_name": "Crypt Lurker"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/f24f68d0-6e81-4294-a084-8ec8f36fef18.json",
+            "card_name": "Pirate"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/f2b284cd-fa12-4ba1-b297-80105bb48fde.json",
+            "card_name": "Hobblefiend"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/f379fa0b-e9fc-4307-a574-a0c95e5e7f72.json",
+            "card_name": "Chrome Replicator"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/f3c40943-1d7c-4ea2-b34f-8df8b6775701.json",
+            "card_name": "Animal Sanctuary"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/f42b6510-7322-4733-85ea-7ae6bd6ca8fc.json",
+            "card_name": "Quirion Dryad"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/f5d1bd3c-0e65-4999-a810-881b2389b40e.json",
+            "card_name": "Conspicuous Snoop"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/f8640899-2458-40f2-98a3-35c402ee9a7a.json",
+            "card_name": "Jolrael, Mwonvuli Recluse"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/f8e17f4f-080d-4bba-bd05-ca27e94ccecc.json",
+            "card_name": "Terror of the Peaks"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/f9672b63-415a-448b-a3da-140df63a0f0c.json",
+            "card_name": "Pridemalkin"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/fb4a044b-f25d-47ff-b272-754e577ce50a.json",
+            "card_name": "Turret Ogre"
+          },
+          {
+            "golden_file": "MTG_bot/core/golden/M21/fc762e40-84c1-4762-82f7-a0fc4f6fd522.json",
+            "card_name": "Garruk, Savage Herald"
+          }
+        ],
+        "changed_cards_without_golden_file": []
+      }
+    },
+    "ZNR": {
+      "changed_count": 80,
+      "total": 281,
+      "shape_gaps": 1,
+      "by_change_kind": {
+        "fand_order": 72,
+        "or_order": 6,
+        "fand_flatten_single": 2,
+        "fand_flatten_nested": 0,
+        "or_flatten_single": 0,
+        "or_flatten_nested": 0,
+        "kwds_sort": 0,
+        "tokenspec_sort": 0,
+        "fatom_colors_sort": 0,
+        "counters_sort": 0
+      },
+      "by_change_kind_card_names": {
+        "fand_order": [
+          "Akoum Hellhound",
+          "Allied Assault",
+          "Angelheart Protector",
+          "Ardent Electromancer",
+          "Beyeen Veil // Beyeen Coast",
+          "Brushfire Elemental",
+          "Bubble Snare",
+          "Canopy Baloth",
+          "Canyon Jerboa",
+          "Cascade Seer",
+          "Chilling Trap",
+          "Cliffhaven Kitesail",
+          "Coveted Prize",
+          "Cunning Geysermage",
+          "Dauntless Unity",
+          "Deadly Alliance",
+          "Drana's Silencer",
+          "Dreadwurm",
+          "Emeria Captain",
+          "Expedition Champion",
+          "Expedition Healer",
+          "Expedition Skulker",
+          "Fearless Fledgling",
+          "Gnarlid Colony",
+          "Grotag Bug-Catcher",
+          "Journey to Oblivion",
+          "Kabira Outrider",
+          "Kabira Takedown // Kabira Plateau",
+          "Kazandu Mammoth // Kazandu Valley",
+          "Kazandu Nectarpot",
+          "Kazuul's Fury // Kazuul's Cliffs",
+          "Linvala, Shield of Sea Gate",
+          "Lotus Cobra",
+          "Makindi Ox",
+          "Makindi Stampede // Makindi Mesas",
+          "Malakir Blood-Priest",
+          "Maul of the Skyclaves",
+          "Mind Carver",
+          "Nimble Trapfinder",
+          "Nissa of Shadowed Boughs",
+          "Oran-Rief Ooze",
+          "Phylath, World Sculptor",
+          "Practiced Tactics",
+          "Prowling Felidar",
+          "Ravager's Mace",
+          "Relic Axe",
+          "Ruin Crab",
+          "Scavenged Blade",
+          "Scute Swarm",
+          "Sea Gate Colossus",
+          "Seafloor Stalker",
+          "Shatterskull Minotaur",
+          "Shepherd of Heroes",
+          "Skyclave Geopede",
+          "Skyclave Pick-Axe",
+          "Skyclave Plunder",
+          "Spitfire Lagac",
+          "Spoils of Adventure",
+          "Squad Commander",
+          "Strength of Solidarity",
+          "Synchronized Spellcraft",
+          "Tazri, Beacon of Unity",
+          "Teeterpeak Ambusher",
+          "Territorial Scythecat",
+          "Thundering Sparkmage",
+          "Thwart the Grave",
+          "Tuktuk Rubblefort",
+          "Utility Knife",
+          "Valakut Exploration",
+          "Vastwood Surge",
+          "Veteran Adventurer",
+          "Zagras, Thief of Heartbeats"
+        ],
+        "or_order": [
+          "Broken Wings",
+          "Relic Amulet",
+          "Rockslide Sorcerer",
+          "Umara Mystic",
+          "Umara Wizard // Umara Skyfalls",
+          "Windrider Wizard"
+        ],
+        "fand_flatten_single": [
+          "Dauntless Survivor",
+          "Negate"
+        ],
+        "fand_flatten_nested": [],
+        "or_flatten_single": [],
+        "or_flatten_nested": [],
+        "kwds_sort": [],
+        "tokenspec_sort": [],
+        "fatom_colors_sort": [],
+        "counters_sort": []
+      },
+      "changed_card_names": [
+        "Akoum Hellhound",
+        "Maul of the Skyclaves",
+        "Cascade Seer",
+        "Kabira Takedown // Kabira Plateau",
+        "Deadly Alliance",
+        "Squad Commander",
+        "Emeria Captain",
+        "Nissa of Shadowed Boughs",
+        "Grotag Bug-Catcher",
+        "Expedition Skulker",
+        "Shatterskull Minotaur",
+        "Canyon Jerboa",
+        "Kazandu Nectarpot",
+        "Kazandu Mammoth // Kazandu Valley",
+        "Scavenged Blade",
+        "Allied Assault",
+        "Journey to Oblivion",
+        "Negate",
+        "Makindi Stampede // Makindi Mesas",
+        "Malakir Blood-Priest",
+        "Phylath, World Sculptor",
+        "Angelheart Protector",
+        "Ardent Electromancer",
+        "Canopy Baloth",
+        "Tuktuk Rubblefort",
+        "Coveted Prize",
+        "Broken Wings",
+        "Practiced Tactics",
+        "Mind Carver",
+        "Cliffhaven Kitesail",
+        "Kabira Outrider",
+        "Shepherd of Heroes",
+        "Umara Wizard // Umara Skyfalls",
+        "Skyclave Pick-Axe",
+        "Spitfire Lagac",
+        "Cunning Geysermage",
+        "Fearless Fledgling",
+        "Territorial Scythecat",
+        "Windrider Wizard",
+        "Chilling Trap",
+        "Dauntless Survivor",
+        "Lotus Cobra",
+        "Ruin Crab",
+        "Vastwood Surge",
+        "Drana's Silencer",
+        "Oran-Rief Ooze",
+        "Dreadwurm",
+        "Zagras, Thief of Heartbeats",
+        "Thundering Sparkmage",
+        "Scute Swarm",
+        "Linvala, Shield of Sea Gate",
+        "Beyeen Veil // Beyeen Coast",
+        "Brushfire Elemental",
+        "Relic Amulet",
+        "Thwart the Grave",
+        "Utility Knife",
+        "Bubble Snare",
+        "Synchronized Spellcraft",
+        "Spoils of Adventure",
+        "Tazri, Beacon of Unity",
+        "Skyclave Plunder",
+        "Seafloor Stalker",
+        "Expedition Champion",
+        "Valakut Exploration",
+        "Relic Axe",
+        "Rockslide Sorcerer",
+        "Dauntless Unity",
+        "Skyclave Geopede",
+        "Umara Mystic",
+        "Makindi Ox",
+        "Gnarlid Colony",
+        "Expedition Healer",
+        "Nimble Trapfinder",
+        "Veteran Adventurer",
+        "Prowling Felidar",
+        "Sea Gate Colossus",
+        "Ravager's Mace",
+        "Kazuul's Fury // Kazuul's Cliffs",
+        "Strength of Solidarity",
+        "Teeterpeak Ambusher"
+      ],
+      "idempotence_failures": [],
+      "content_preservation_failures": []
+    }
+  },
+  "exceptions": [],
+  "atomargs_pairs_not_sorted_ctxs": []
+}

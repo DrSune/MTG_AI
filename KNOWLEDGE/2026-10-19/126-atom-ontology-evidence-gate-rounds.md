@@ -79,3 +79,34 @@ NOT-FIXED at review time (paper claim — executed by this very commit per law).
 2. O2 printed-order law stands on value-dependence + identity, NOT trigger-queue.
 3. Zone twin-field schema fold is a TYPE-1 pre-R1a round (R0), engine-visible.
 4. Emission freeze on NEW SelectorMode.CHOOSE until the R3 blindness audit.
+
+## Gate round 3 (adversarial, same day) — verdict FIX-THEN-GO, one material class
+Verified r2-fixes 2/4/5/7/8 executed; **F7 RECURRED** (R1a JSON + table generator
+lived in /tmp while the spec cited them) — executed again, v4-committed:
+`tools/audit/atom_field_table.py` (V1′ SINGLE SOURCE — detection rule: annotation
+contains tuple[|frozenset[|list[; runtime scan 25 container fields = 24 tuple + 1
+frozenset (CardRecord.color_identity); 0 unclassified, 0 stale, exit 0; emits the
+markdown table AND the checker's importable CLASSIFY dict — doc/code drift becomes
+mechanically impossible), `tools/audit/atom_sortdelta.py` →
+`reports/atom_sortdelta_2026-10-19.json`.
+**A2 FATAL**: v3 §3 table MISSED CardRecord.keywords (TokenSpec.keywords row copied,
+CardRecord's dropped in manual merge — lesson: NEVER hand-merge a generated table)
+and left the detection rule unspecified (24-vs-25 counting dispute). v4 fixes both.
+**A3 MAJOR**: SpellAbility.additional_costs folds into the SAME order-keyed payment
+planner (legality.py:1272 kicker fold — verified in code) and CostManaHybrid.colors
+keys hybrid_demands (:755/:887) — both RECLASSIFIED SET-R1b (sorting them in R1a was
+a landmine masked by corpus Δ0). **A1**: R0 migration surface enumerated — positional
+Selector build compiler.py:1050 (silent arg mis-slot risk), ~64 zone= constructors,
+binding.py:759 synthesized selector, ~111 test asserts, lane-body selectors.py:445
+matched-zone controller EXTRACTION (∃-test-then-reuse = silent rules change),
+offer-order diffs (query.py:1127) belong in R0 pre-registration. **A4**:
+TokenSpec.{types,subtypes,keywords} are compiler-EMITTED (not oracle print) →
+SET-R1a canonicalize, divergence claim dropped. **PC-6 instrument law**: gate metric
+= tools/measure_grammar.py (PRE committed: M21 orphans 1/max .1168 ADD_MANA; ZNR 26/
+.1547 MODIFY_PT); census measure_pool (4/26) demoted to proxy.
+**N-v4 MEASURED** (atom_sortdelta_2026-10-19.json): M21 122/305 + ZNR 80/281 records
+change under N (fand_order 117+72, or_order 9+6, fand_flatten_single 0+2, kwds_sort
+2+0 [Basri's Lieutenant, Sporeweb Weaver], fatom_colors_sort 1+0 [Quirion Dryad]);
+122 M21 goldens flagged (all have golden files); idempotence + leaf-multiset content
+preservation PASS; 0 exceptions. Round-3 expectation: round-4 residue bookkeeping
+only if fixes land on disk — they are, in this commit.
