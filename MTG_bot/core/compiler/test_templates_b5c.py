@@ -1161,10 +1161,13 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertIsInstance(sel.filter, FAnd)
         children = sel.filter.children
         self.assertEqual(len(children), 2)
-        self.assertIs(children[0].pred, FAtomPred.CMC_LE)
-        self.assertIsInstance(children[0].count, QX)
-        self.assertIs(children[1].pred, FAtomPred.COLOR_COUNT_GE)
-        self.assertEqual(children[1].count, QConst(1))
+        # R1a canonicalization (ontology §3 SET-R1a): children construction-
+        # sorted by canonical_json; both bounds pinned by pred, order by law.
+        self.assertEqual(list(children), sorted(children, key=canonical_json))
+        by_pred = {c.pred: c for c in children}
+        self.assertEqual(len(by_pred), 2)
+        self.assertIsInstance(by_pred[FAtomPred.CMC_LE].count, QX)
+        self.assertEqual(by_pred[FAtomPred.COLOR_COUNT_GE].count, QConst(1))
         self.assertIs(sel.zone.kind, ZoneKind.BATTLEFIELD)
         self.assertIs(sel.zone.controller, ControllerRef.ANY)
 
@@ -1790,14 +1793,20 @@ class TestB5cRound9B(unittest.TestCase):
         self.assertEqual(event.filter, FAnd(children=()))
         dealer = event.source
         assert isinstance(dealer, FAnd)
-        type_a, controller_a, power_a = dealer.children
-        assert isinstance(type_a, FAtom)
-        assert isinstance(controller_a, FAtom)
+        # R1a canonicalization: FAnd children construction-sorted; the three
+        # conjuncts pinned by pred, order by the canonicalization law.
+        self.assertEqual(
+            list(dealer.children), sorted(dealer.children, key=canonical_json)
+        )
+        by_pred = {c.pred: c for c in dealer.children}
+        self.assertEqual(len(by_pred), 3)
+        type_a = by_pred[FAtomPred.TYPE_EQ]
+        controller_a = by_pred[FAtomPred.CONTROLLER_IS]
+        power_a = by_pred[FAtomPred.POWER_LE]
+        assert isinstance(type_a, FAtom) and isinstance(controller_a, FAtom)
         assert isinstance(power_a, FAtom)
         self.assertEqual(type_a.string_value, "Creature")
-        self.assertIs(controller_a.pred, FAtomPred.CONTROLLER_IS)
         self.assertIs(controller_a.who, ControllerRef.YOU)
-        self.assertIs(power_a.pred, FAtomPred.POWER_LE)
         self.assertEqual(power_a.count, QConst(2))
         draw = _as_atom(dt.effect)
         self.assertIs(draw.verb, Verb.DRAW)
@@ -1835,10 +1844,18 @@ class TestB5cRound10Herald(unittest.TestCase):
         self.assertIsInstance(target.count, QUnbounded)
         self.assertEqual(target.zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         assert isinstance(target.filter, FAnd)
-        kind_a, controller_a = target.filter.children
+        # R1a canonicalization: FAnd children construction-sorted; members by
+        # pred, order by the canonicalization law.
+        self.assertEqual(
+            list(target.filter.children),
+            sorted(target.filter.children, key=canonical_json),
+        )
+        by_pred = {c.pred: c for c in target.filter.children}
+        self.assertEqual(len(by_pred), 2)
+        kind_a = by_pred[FAtomPred.TYPE_EQ]
+        controller_a = by_pred[FAtomPred.CONTROLLER_IS]
         assert isinstance(kind_a, FAtom) and isinstance(controller_a, FAtom)
         self.assertEqual(kind_a.string_value, "Creature")
-        self.assertIs(controller_a.pred, FAtomPred.CONTROLLER_IS)
         self.assertIs(controller_a.who, ControllerRef.YOU)
         # granted ability: continuous static, "You may" as its OWN
         # OptionalEffect layer outside the policy atom (C28)

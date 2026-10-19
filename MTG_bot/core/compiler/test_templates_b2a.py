@@ -939,11 +939,19 @@ class TestB2aTriggerEvents(unittest.TestCase):
         condition = ability.condition
         assert isinstance(condition, FOr)
         self.assertEqual(len(condition.children), 2)
-        entered = condition.children[0]
+        # R1a canonicalization (ontology §3 SET-R1a): FOr children are
+        # construction-sorted by canonical_json, not printed wording order —
+        # the members are pinned by pred, the ORDER by the law itself.
+        self.assertEqual(
+            list(condition.children), sorted(condition.children, key=canonical_json)
+        )
+        by_pred = {c.pred: c for c in condition.children}
+        self.assertEqual(len(by_pred), 2)
+        entered = by_pred[FAtomPred.ENTERED_THIS_TURN_FROM]
         assert isinstance(entered, FAtom)
         self.assertIs(entered.pred, FAtomPred.ENTERED_THIS_TURN_FROM)
         self.assertEqual(entered.zone, Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU))
-        cast = condition.children[1]
+        cast = by_pred[FAtomPred.CAST_THIS_TURN_FROM]
         assert isinstance(cast, FAtom)
         self.assertIs(cast.pred, FAtomPred.CAST_THIS_TURN_FROM)
         self.assertEqual(cast.zone, Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU))
@@ -2172,7 +2180,14 @@ class TestB2aRound10Chrome(unittest.TestCase):
         self.assertEqual(cond.count, QConst(2))
         inner = cond.inner_filter
         assert isinstance(inner, FAnd)
-        not_land, not_token = inner.children
+        # R1a canonicalization: FAnd children construction-sort; both
+        # negations are pinned by their inner pred, the order by the law.
+        self.assertEqual(
+            list(inner.children), sorted(inner.children, key=canonical_json)
+        )
+        nots = {c.inner.pred: c for c in inner.children}
+        self.assertEqual(len(nots), 2)
+        not_land, not_token = nots[FAtomPred.TYPE_EQ], nots[FAtomPred.IS_TOKEN]
         assert isinstance(not_land, FNot) and isinstance(not_token, FNot)
         assert isinstance(not_land.inner, FAtom)
         self.assertEqual(not_land.inner.pred, FAtomPred.TYPE_EQ)

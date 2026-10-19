@@ -981,7 +981,9 @@ class TestB2bTriggerEvents(unittest.TestCase):
         self.assertIs(event.actor.who, ControllerRef.YOU)
         assert isinstance(event.filter, FAtom)
         self.assertIs(event.filter.pred, FAtomPred.COLOR_IN)
-        self.assertEqual(event.filter.colors, ("W", "U", "B", "R"))
+        # R1a canonicalization (ontology §3 SET-R1a): FAtom.colors is a
+        # membership set, construction-sorted; the SET is the pinned fact.
+        self.assertEqual(event.filter.colors, ("B", "R", "U", "W"))
 
     def test_draw_counter_is_card_drawn_you(self) -> None:
         ability = _ability(
@@ -2663,7 +2665,15 @@ class TestB2bRound10Mangara(unittest.TestCase):
         event_filter = event.filter
         assert isinstance(event_filter, FAnd)
         self.assertEqual(len(event_filter.children), 2)
-        kind, controller = event_filter.children
+        # R1a canonicalization: FAnd children construction-sorted; members by
+        # pred, order by the canonicalization law.
+        self.assertEqual(
+            list(event_filter.children),
+            sorted(event_filter.children, key=canonical_json),
+        )
+        by_pred = {c.pred: c for c in event_filter.children}
+        self.assertEqual(len(by_pred), 2)
+        kind, controller = by_pred[FAtomPred.TYPE_EQ], by_pred[FAtomPred.CONTROLLER_IS]
         assert isinstance(kind, FAtom) and isinstance(controller, FAtom)
         self.assertIs(kind.pred, FAtomPred.TYPE_EQ)
         self.assertEqual(kind.string_value, "Creature")
@@ -2675,15 +2685,26 @@ class TestB2bRound10Mangara(unittest.TestCase):
         assert isinstance(attacked, FOr)
         self.assertEqual(attacked, expected_attacked)
         self.assertEqual(len(attacked.children), 2)
-        you, walkers = attacked.children
+        # R1a canonicalization: FOr/FAnd children construction-sorted, so the
+        # two sides and the conjuncts inside the planeswalker branch are
+        # pinned by IDENTITY/pred, and each order by the canonicalization law.
+        self.assertEqual(
+            list(attacked.children), sorted(attacked.children, key=canonical_json)
+        )
+        you = next(c for c in attacked.children if isinstance(c, FAtom))
+        walkers = next(c for c in attacked.children if isinstance(c, FAnd))
         assert isinstance(you, FAtom) and isinstance(walkers, FAnd)
         self.assertIs(you.pred, FAtomPred.CONTROLLER_IS)
         self.assertIs(you.who, ControllerRef.YOU)
-        pw_kind, pw_controller = walkers.children
+        self.assertEqual(
+            list(walkers.children), sorted(walkers.children, key=canonical_json)
+        )
+        pw_by_pred = {c.pred: c for c in walkers.children}
+        self.assertEqual(len(pw_by_pred), 2)
+        pw_kind = pw_by_pred[FAtomPred.TYPE_EQ]
+        pw_controller = pw_by_pred[FAtomPred.CONTROLLER_IS]
         assert isinstance(pw_kind, FAtom) and isinstance(pw_controller, FAtom)
-        self.assertIs(pw_kind.pred, FAtomPred.TYPE_EQ)
         self.assertEqual(pw_kind.string_value, "Planeswalker")
-        self.assertIs(pw_controller.pred, FAtomPred.CONTROLLER_IS)
         self.assertIs(pw_controller.who, ControllerRef.YOU)
         # condition slot: "if two or more of those creatures ..." rides
         # ATTACK_AGAINST_COUNT_GE with the same attacked-side composition

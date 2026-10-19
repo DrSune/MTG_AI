@@ -14,6 +14,13 @@ SpellAbility.additional_costs, no CostManaHybrid.colors):
        AtomArgs.pairs is already constructor-sorted: verified no-op here.
   (iii) everything else unchanged.
 
+TRUTH (R1a landing): the committed reports/atom_sortdelta_2026-10-19.json is
+the PRE-R1a baseline holding the pre-registered predictions (M21 122/ZNR 80).
+The tool measures its LIVE working tree, so re-running it AFTER R1a landed
+prints 0/305 BY DESIGN (goldens and code agree again) and OVERWRITES that
+evidence with a vacuous report — the prediction record is NON-REGENERABLE;
+do not rerun without archiving the committed file first.
+
 Pools compiled exactly like the predecessor (mk_r1a_sortdelta.py):
 ingest_pool + build_full_registry + coverage._compile_pool_tolerant.
 Checks: idempotence (N(N(c)) == N(c) by canonical_json) and content

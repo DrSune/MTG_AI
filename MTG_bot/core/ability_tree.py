@@ -1270,9 +1270,46 @@ class Selector:
 # ---- Filters ----
 
 
+def _set_sorted(items, *, keep_none: bool = False):
+    """SET-R1a construction sort (ontology §3 SET-R1a rows, O3 construction
+    law; ``AtomArgs.pairs`` :2541 precedent): sort by ``canonical_json`` —
+    the ONE total order over heterogeneous IR elements (``Zone``/enum/dataclass
+    elements are not natively orderable, so a bare ``sorted()`` TypeErrors).
+    Returns a tuple; ``None`` passes through when ``keep_none``."""
+    if items is None:
+        return None if keep_none else ()
+    items = tuple(items)
+    if len(items) < 2:
+        return items
+    return tuple(sorted(items, key=canonical_json))
+
+
+def _normalize_filter_children(cls, children):
+    """SET-R1a normalization of an ``FAnd``/``FOr`` child list: splice any
+    same-class child (flatten), then sort by ``canonical_json``.
+
+    A single-child node is KEPT: a node cannot replace itself inside its
+    parent, so the unwrap lives at the COMPILER EMISSION site (the filter
+    builders return the lone child) and checker V2′ (ontology §6) rejects
+    any new single-child emission. Empty children stay empty — ``FAnd(())``
+    is the universal filter, ``FOr(())`` matches nothing (both meaningful).
+    Splicing needs ``type(k) is cls`` (exact class, not ``isinstance``): a
+    ``FAnd`` inside a ``FOr`` is a De Morgan shape, not a duplicate layer.
+    """
+    kids = list(children)
+    while any(type(k) is cls for k in kids):
+        kids = [x for k in kids for x in (list(k.children) if type(k) is cls else [k])]
+    return _set_sorted(kids)
+
+
 @dataclass(frozen=True)
 class FAnd:
-    """Conjunction. ``FAnd(())`` is the universal filter ("any card")."""
+    """Conjunction. ``FAnd(())`` is the universal filter ("any card").
+
+    SET-R1a (ontology §3/§6): children are construction-normalized —
+    same-class children spliced, then sorted by ``canonical_json`` — so the
+    conjunction is order-free in its bytes (children are a SET; the filter
+    evaluates as one AND)."""
 
     children: tuple[Filter, ...]
 
@@ -1282,11 +1319,16 @@ class FAnd:
                 raise ValueError(
                     f"FAnd: child must be a Filter, got {type(child).__name__}"
                 )
+        kids = _normalize_filter_children(FAnd, self.children)
+        if kids != self.children:
+            object.__setattr__(self, "children", kids)
 
 
 @dataclass(frozen=True)
 class FOr:
-    """Disjunction. ``FOr(())`` is the empty filter (matches nothing)."""
+    """Disjunction. ``FOr(())`` is the empty filter (matches nothing).
+
+    SET-R1a: construction-normalized children like ``FAnd`` (ontology §3)."""
 
     children: tuple[Filter, ...]
 
@@ -1296,6 +1338,9 @@ class FOr:
                 raise ValueError(
                     f"FOr: child must be a Filter, got {type(child).__name__}"
                 )
+        kids = _normalize_filter_children(FOr, self.children)
+        if kids != self.children:
+            object.__setattr__(self, "children", kids)
 
 
 @dataclass(frozen=True)
@@ -1519,6 +1564,11 @@ class FAtom:
                 "FAtom: OPPONENT_OF who must be a ControllerRef or a referent "
                 "Selector (grammar round 11, CONTROLLER_IS precedent)"
             )
+        # SET-R1a (ontology §3): COLOR_IN's colors are a membership SET — the
+        # wording order of "green or white" must not reach the bytes.
+        colors = _set_sorted(self.colors)
+        if colors != self.colors:
+            object.__setattr__(self, "colors", colors)
 
 
 Filter = FAnd | FOr | FNot | FAtom
@@ -2164,6 +2214,15 @@ class TokenSpec:
             value = getattr(self, flag)
             if value is not None and not isinstance(value, bool):
                 raise ValueError(f"TokenSpec: {flag} must be a bool, got {value!r}")
+        # SET-R1a (ontology §3, v4 gate A4): these three containers are
+        # COMPILER-EMITTED data, not oracle-printed card text (unlike
+        # CardRecord.types/subtypes, which keep printed fidelity), so their
+        # wording order is normalized at construction. `abilities` stays
+        # IDENTITY (printed order).
+        for fld in ("types", "subtypes", "keywords"):
+            value = _set_sorted(getattr(self, fld))
+            if value != getattr(self, fld):
+                object.__setattr__(self, fld, value)
 
 
 # ---- Costs ----
@@ -3019,9 +3078,11 @@ class EtBState:
     tapped") and/or `initial_counters` ("enters with 3 +1/+1 counters",
     "this Equipment enters with a soul counter") — T3 round J, among the
     most common ETB states. An Ability node on the card record. Each
-    counter entry is a (CounterKind, Quantity) pair. A no-op state
-    (untapped, no counters) is rejected — a no-op is not a node in the
-    tree (Seq's rule)."""
+    counter entry is a (CounterKind, Quantity) pair; `initial_counters`
+    is a SET-R1a container — sorted by CounterKind at construction (the
+    kind keys the counter map, so wording order carries no semantics). A
+    no-op state (untapped, no counters) is rejected — a no-op is not a
+    node in the tree (Seq's rule)."""
 
     tapped: bool = False
     initial_counters: tuple[tuple[CounterKind, Quantity], ...] = ()
@@ -3059,6 +3120,11 @@ class EtBState:
             raise ValueError(
                 "EtBState: a no-op state is not a node (tapped or counters required)"
             )
+        # SET-R1a (ontology §3): the counters are a dict keyed by kind, so the
+        # (kind, quantity) entries are a SET — sort at construction.
+        counters = _set_sorted(self.initial_counters)
+        if counters != self.initial_counters:
+            object.__setattr__(self, "initial_counters", counters)
 
 
 @dataclass(frozen=True)
@@ -3258,6 +3324,14 @@ class CardRecord:
                 )
             if self.emblem.emblem is not None:
                 raise ValueError("CardRecord: an emblem cannot carry an emblem")
+        # SET-R1a (ontology §3, v3→v4 gate A2): granted keywords are a
+        # membership SET — ``keyword_of`` scans and same-timestamp layers
+        # re-order by layer rules (layers.py:974 ``sorted(set(names))``), so
+        # the wording order of "vigilance, trample" must not reach the bytes.
+        # ``abilities`` stays IDENTITY (printed order, §3 O2/identity row).
+        keywords = _set_sorted(self.keywords)
+        if keywords != self.keywords:
+            object.__setattr__(self, "keywords", keywords)
 
 
 # ---------------------------------------------------------------------------

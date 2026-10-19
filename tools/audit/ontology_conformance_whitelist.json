@@ -1,0 +1,4 @@
+{
+  "_comment": "ontology_conformance.py whitelist — docs/DESIGN_ATOM_ONTOLOGY.md §6. A card named here has a measured corpus shape that a dated owner decision ruled acceptable; every name is re-printed on every checker run, so a whitelist is never silent. R1a landing (2026-10-19): MEASURED EMPTY — the compiled M21+ZNR pools contain 0 Seq[1], 0 single-child FAnd/FOr and 0 Choose(count==len(options)) nodes, so V2′ exits clean with no exemptions. The single-child filters the N-v4 measurement found (Dauntless Survivor, Negate, ZNR) were fixed at the compiler emission site (templates_b9), not whitelisted.",
+  "choose_count_eq_len": []
+}

@@ -1429,11 +1429,18 @@ class TestB4Round9B(unittest.TestCase):
         self.assertIs(atom.verb, Verb.GRANT_ACTIVATION)
         holder = atom.args.get("filter")
         assert isinstance(holder, FAnd)
-        type_a, name_a = holder.children
+        # R1a canonicalization (ontology §3 SET-R1a): FAnd children are
+        # construction-sorted by canonical_json — members pinned by pred, the
+        # printed-order index replaced, the ORDER pinned by the law itself.
+        self.assertEqual(
+            list(holder.children), sorted(holder.children, key=canonical_json)
+        )
+        by_pred = {c.pred: c for c in holder.children}
+        self.assertEqual(len(by_pred), 2)
+        type_a = by_pred[FAtomPred.TYPE_EQ]
+        name_a = by_pred[FAtomPred.NAME_CONTAINS]
         assert isinstance(type_a, FAtom) and isinstance(name_a, FAtom)
-        self.assertIs(type_a.pred, FAtomPred.TYPE_EQ)
         self.assertEqual(type_a.string_value, "Planeswalker")
-        self.assertIs(name_a.pred, FAtomPred.NAME_CONTAINS)
         self.assertEqual(name_a.string_value, "Teferi")
         self.assertIs(atom.args.get("window"), ActivationWindow.INSTANT)
 
@@ -1456,11 +1463,17 @@ class TestB4Round9B(unittest.TestCase):
         assert isinstance(event, TargetingEvent)
         filt = event.filter
         assert isinstance(filt, FAnd)
-        type_a, untapped = filt.children
+        # R1a canonicalization: FAnd children construction-sorted; members by
+        # pred, order by the canonicalization law.
+        self.assertEqual(
+            list(filt.children), sorted(filt.children, key=canonical_json)
+        )
+        by_pred = {c.pred: c for c in filt.children}
+        self.assertEqual(len(by_pred), 2)
+        type_a = by_pred[FAtomPred.TYPE_EQ]
+        untapped = by_pred[FAtomPred.IS_UNTAPPED]
         assert isinstance(type_a, FAtom) and isinstance(untapped, FAtom)
-        self.assertIs(type_a.pred, FAtomPred.TYPE_EQ)
         self.assertEqual(type_a.string_value, "Creature")
-        self.assertIs(untapped.pred, FAtomPred.IS_UNTAPPED)
 
 
 if __name__ == "__main__":

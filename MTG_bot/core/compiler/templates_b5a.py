@@ -559,11 +559,20 @@ def _build_destroy(m: re.Match[str], f: Filter, zone: Zone) -> SentenceOutcome:
     return EffectOutcome(effect=atom)
 
 
-def _destroy_target_filter(m: re.Match[str], extra: tuple[Filter, ...]) -> FAnd:
+def _destroy_target_filter(m: re.Match[str], extra: tuple[Filter, ...]) -> Filter:
+    """``target creature [with extra conjuncts]`` — the AND-builder for the
+    destroy lanes.
+
+    R1a (ontology §6 V2′): a one-child ``FAnd`` is a phantom wrapper, so the
+    builder returns the LONE CONJUNCT bare. Today's only caller always adds
+    a ``POWER_GE`` conjunct, so the corpus bytes are unchanged; this is the
+    emission-site guard V2′ relies on for future callers."""
     base: list[Filter] = [
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
     ]
     base.extend(extra)
+    if len(base) == 1:
+        return base[0]
     return FAnd(children=tuple(base))
 
 

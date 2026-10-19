@@ -1681,7 +1681,13 @@ class TestStructuralAssertions(unittest.TestCase):
         if not isinstance(filt, FAnd):
             self.fail(f"expected FAnd filter, got {type(filt)}")
         preds = [c.pred for c in filt.children if isinstance(c, FAtom)]
-        self.assertEqual(preds, [FAtomPred.TYPE_EQ, FAtomPred.IS_ATTACHED_TO_SOURCE])
+        # R1a canonicalization (ontology §3 SET-R1a): children construction-
+        # sorted by canonical_json; the predicate SET stays the pinned fact and
+        # the order is pinned by the law itself.
+        self.assertEqual(
+            list(filt.children), sorted(filt.children, key=canonical_json)
+        )
+        self.assertEqual(preds, [FAtomPred.IS_ATTACHED_TO_SOURCE, FAtomPred.TYPE_EQ])
         self.assertNotIn("duration", p)
 
     def test_enchant_cant_attack_block_structure(self) -> None:

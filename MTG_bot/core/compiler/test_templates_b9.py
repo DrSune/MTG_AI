@@ -29,6 +29,7 @@ import unittest
 from typing import Any
 
 from MTG_bot.core.ability_tree import (
+    canonical_json,
     ActivatedAbility,
     Atom,
     AtomArgs,
@@ -379,10 +380,13 @@ class TestB9Trees(unittest.TestCase):
         assert isinstance(menu, FOr)
         types = [n.string_value for n in menu.children if isinstance(n, FAtom)]
         self.assertEqual(types, ["Artifact", "Enchantment"])
-        flyer = menu.children[2]
-        assert isinstance(flyer, FAnd)
-        kw: Any = flyer.children[1]
-        self.assertIs(kw.pred, FAtomPred.KEYWORD_HAS)
+        # R1a canonicalization: the disjunction's children construction-sort,
+        # so the flying-branch is found by kind, and order is pinned by law.
+        self.assertEqual(list(menu.children), sorted(menu.children, key=canonical_json))
+        flyer = next(c for c in menu.children if isinstance(c, FAnd))
+        self.assertEqual(len(menu.children), 3)
+        kw: Any = {c.pred: c for c in flyer.children}[FAtomPred.KEYWORD_HAS]
+        self.assertEqual(len(flyer.children), 2)
         self.assertIs(kw.keyword, Keyword.FLYING)
 
     def test_etb_counter_target(self):
@@ -394,7 +398,13 @@ class TestB9Trees(unittest.TestCase):
         self.assertEqual(pairs["count"], QConst(1))
         selector = pairs["target"]
         self.assertIs(selector.mode, SelectorMode.TARGET)  # DESIGNATED
-        self.assertEqual(len(selector.filter.children), 1)  # EVERY creature
+        # R1a canonicalization (emission-side unwrap, ontology §6 V2′): the
+        # lone conjunct is emitted BARE, so "target creature" IS the FAtom —
+        # a stronger pin than the old 1-child wrapper's len() == 1.
+        flt = selector.filter
+        assert isinstance(flt, FAtom)
+        self.assertIs(flt.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(flt.string_value, "Creature")  # EVERY creature
 
     def test_etb_grant_indestructible_eot(self):
         ab = _ability(S_ETB_GRANT)
@@ -481,7 +491,10 @@ class TestB9Trees(unittest.TestCase):
         self.assertIs(atom_.verb, Verb.COUNTER_SPELL)
         selector = _pairs(atom_)["target"]
         self.assertIs(selector.zone.kind, ZoneKind.STACK)
-        neg = selector.filter.children[0]
+        # R1a canonicalization (emission-side unwrap, ontology §6 V2′): the
+        # lone negation is emitted BARE — the filter IS the FNot, no 1-child
+        # FAnd wrapper around it (a stronger pin than children[0] was).
+        neg = selector.filter
         self.assertIsInstance(neg, FNot)
         self.assertIs(neg.inner.pred, FAtomPred.TYPE_EQ)
         self.assertEqual(neg.inner.string_value, "Creature")

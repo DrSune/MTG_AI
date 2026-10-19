@@ -117,11 +117,15 @@ def _template(tid: str, name: str, pattern: str, build) -> Template:
 
 def _target_creature() -> Selector:
     """``target creature`` — the b5b-sacr-grant TARGET shape without the
-    controller conjunct (Dauntless Survivor sees EVERY creature)."""
+    controller conjunct (Dauntless Survivor sees EVERY creature).
+
+    R1a (ontology §6 V2′): the lone conjunct is emitted BARE — a one-child
+    ``FAnd`` is a phantom wrapper, so the unwrap happens here at the
+    emission site, not in the frozen node."""
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
-        FAnd(children=(FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),)),
+        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
         Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
     )
 
@@ -524,18 +528,13 @@ def _build_counter_noncreature(m: re.Match[str]) -> SentenceOutcome:
             pairs=(
                 (
                     "target",
+                    # R1a (ontology §6 V2′): lone negation emitted BARE — a
+                    # one-child FAnd is a phantom wrapper (unwrap at emission).
                     Selector(
                         QConst(1),
                         SelectorMode.TARGET,
-                        FAnd(
-                            children=(
-                                FNot(
-                                    inner=FAtom(
-                                        pred=FAtomPred.TYPE_EQ,
-                                        string_value="Creature",
-                                    )
-                                ),
-                            )
+                        FNot(
+                            inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
                         ),
                         Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),
                     ),

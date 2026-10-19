@@ -22,6 +22,7 @@ import itertools
 import unittest
 
 from MTG_bot.core.ability_tree import (
+    canonical_json,
     Atom,
     AtomArgs,
     CardRecord,
@@ -429,13 +430,20 @@ class TestQPartyCountNode(unittest.TestCase):
         assert isinstance(filt, FAnd)
         preds = [c.pred for c in filt.children if isinstance(c, FAtom)]
 
-        self.assertEqual(preds, [FAtomPred.TYPE_EQ, FAtomPred.CONTROLLER_IS])
+        # R1a canonicalization (ontology §3 SET-R1a): children construction-
+        # sorted by canonical_json — the predicate SET is the pinned fact, the
+        # order is pinned by the law itself.
+        self.assertEqual(
+            list(filt.children), sorted(filt.children, key=canonical_json)
+        )
+        self.assertEqual(preds, [FAtomPred.CONTROLLER_IS, FAtomPred.TYPE_EQ])
         # Values, not just types (gate FM4): a swapped string_value or who
         # would rebuild the same predicate SHAPE while counting a
         # different population.
-        atoms = [c for c in filt.children if isinstance(c, FAtom)]
-        self.assertEqual(atoms[0].string_value, "Creature")
-        self.assertEqual(atoms[1].who, ControllerRef.YOU)
+        atoms = {c.pred: c for c in filt.children if isinstance(c, FAtom)}
+        self.assertEqual(len(atoms), 2)
+        self.assertEqual(atoms[FAtomPred.TYPE_EQ].string_value, "Creature")
+        self.assertEqual(atoms[FAtomPred.CONTROLLER_IS].who, ControllerRef.YOU)
         self.assertEqual(_party_count().selector.zone.kind, ZoneKind.BATTLEFIELD)
 
 

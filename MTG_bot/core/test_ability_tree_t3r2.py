@@ -640,8 +640,12 @@ def test_phase_in_prevention_item5() -> None:
 def test_ugin_dynamic_loyalty_item6() -> None:
     # Item 6: Ugin [−X] builds with a dynamic Quantity loyalty delta.
     node = _ugin_exile_dynamic()
+    # R1a canonicalization re-pin (2026-10-19, docs/DESIGN_ATOM_ONTOLOGY.md
+    # §3 SET-R1a): the ability's FAnd children construction-sort. Audited
+    # permutation-only: pre/post leaf multisets equal (5 leaves), so byte-order
+    # not content (old value f6c6c8ee342cbaccd7e10a7c04e55aa866be7d1e699e8842ed45d0dfbc47dfca).
     assert at.fingerprint(node) == (
-        "f6c6c8ee342cbaccd7e10a7c04e55aa866be7d1e699e8842ed45d0dfbc47dfca"
+        "992ebb70fd20c30fd866421b1ba2d7e59c6ab83f2f78d5df98d7fe0144106420"
     )
     back = at.from_dict("ActivatedAbility", at.to_dict(node))
     assert back == node

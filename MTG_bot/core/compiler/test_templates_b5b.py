@@ -1219,11 +1219,16 @@ class TestStructuralAssertions(unittest.TestCase):
         # Spell-or-creature disjunction: FOr(FNot(IS_PERMANENT), TYPE_EQ Creature)
         flt = cards.filter
         self.assertIsInstance(flt, FOr)
-        first, second = flt.children
-        self.assertIsInstance(first, FNot)
-        self.assertIsInstance(second, FAtom)
-        self.assertEqual(second.pred, FAtomPred.TYPE_EQ)
-        self.assertEqual(second.string_value, "Creature")
+        # R1a canonicalization: FOr children construction-sorted, so the two
+        # members are pinned by IDENTITY (exactly one negation + exactly one
+        # TYPE_EQ Creature atom), and the order by the canonicalization law.
+        self.assertEqual(list(flt.children), sorted(flt.children, key=canonical_json))
+        self.assertEqual(len(flt.children), 2)
+        negation = next(c for c in flt.children if isinstance(c, FNot))
+        creature = next(c for c in flt.children if isinstance(c, FAtom))
+        self.assertIs(negation.inner.pred, FAtomPred.IS_PERMANENT)
+        self.assertEqual(creature.pred, FAtomPred.TYPE_EQ)
+        self.assertEqual(creature.string_value, "Creature")
         dest = p["destination"]
         self.assertIsInstance(dest, Zone)
         self.assertEqual(dest.kind, ZoneKind.HAND)
@@ -1434,12 +1439,16 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(event.count, QAtLeast(1))
         flt = event.filter
         assert isinstance(flt, FAnd)
-        type_leaf, controller_leaf = flt.children
+        # R1a canonicalization: FAnd children construction-sorted; members by
+        # pred, order by the canonicalization law.
+        self.assertEqual(list(flt.children), sorted(flt.children, key=canonical_json))
+        by_pred = {c.pred: c for c in flt.children}
+        self.assertEqual(len(by_pred), 2)
+        type_leaf = by_pred[FAtomPred.TYPE_EQ]
+        controller_leaf = by_pred[FAtomPred.CONTROLLER_IS]
         assert isinstance(type_leaf, FAtom)
-        self.assertEqual(type_leaf.pred, FAtomPred.TYPE_EQ)
         self.assertEqual(type_leaf.string_value, "Creature")
         assert isinstance(controller_leaf, FAtom)
-        self.assertEqual(controller_leaf.pred, FAtomPred.CONTROLLER_IS)
         self.assertEqual(controller_leaf.who, ControllerRef.YOU)
         self.assertIsNone(ab.condition)
         atom = _as_atom(ab.action)
@@ -1520,15 +1529,19 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(delta.amount, QConst(3))
         cond = mod.condition
         assert isinstance(cond, FAnd)
-        type_leaf, keyword_leaf, controller_leaf = cond.children
+        # R1a canonicalization: FAnd children construction-sorted; all three
+        # conjuncts pinned by pred, order by the canonicalization law.
+        self.assertEqual(list(cond.children), sorted(cond.children, key=canonical_json))
+        by_pred = {c.pred: c for c in cond.children}
+        self.assertEqual(len(by_pred), 3)
+        type_leaf = by_pred[FAtomPred.TYPE_EQ]
+        keyword_leaf = by_pred[FAtomPred.KEYWORD_HAS]
+        controller_leaf = by_pred[FAtomPred.CONTROLLER_IS]
         assert isinstance(type_leaf, FAtom)
-        self.assertEqual(type_leaf.pred, FAtomPred.TYPE_EQ)
         self.assertEqual(type_leaf.string_value, "Creature")
         assert isinstance(keyword_leaf, FAtom)
-        self.assertEqual(keyword_leaf.pred, FAtomPred.KEYWORD_HAS)
         self.assertEqual(keyword_leaf.keyword, Keyword.FLYING)
         assert isinstance(controller_leaf, FAtom)
-        self.assertEqual(controller_leaf.pred, FAtomPred.CONTROLLER_IS)
         self.assertEqual(controller_leaf.who, ControllerRef.YOU)
 
     def test_repl_draw_not_first(self) -> None:
@@ -2029,9 +2042,16 @@ class TestRound7AnaphoraBatch(unittest.TestCase):
         sel = count.selector
         self.assertIs(sel.mode, SelectorMode.ALL)
         self.assertEqual(sel.zone, Zone(ZoneKind.EXILE, ControllerRef.TARGET_PLAYER))
-        name_f, move_f = sel.filter.children
-        self.assertIs(name_f.pred, FAtomPred.NAME_CHOSEN)
-        self.assertIs(move_f.pred, FAtomPred.MOVED_TO_ZONE_THIS_TURN)
+        # R1a canonicalization: FAnd children construction-sorted; members by
+        # pred, order by the canonicalization law.
+        self.assertEqual(
+            list(sel.filter.children),
+            sorted(sel.filter.children, key=canonical_json),
+        )
+        by_pred = {c.pred: c for c in sel.filter.children}
+        self.assertEqual(len(by_pred), 2)
+        name_f = by_pred[FAtomPred.NAME_CHOSEN]
+        move_f = by_pred[FAtomPred.MOVED_TO_ZONE_THIS_TURN]
         self.assertEqual(
             move_f.from_zone, Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER)
         )

@@ -186,7 +186,13 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "lofty_cm",
         _lofty_cm,
-        "e791b88db55731cebe3acd11981ef150332fb89aa1b0a59be269facc019914ee",
+        # R1a canonicalization re-pin (2026-10-19, docs/DESIGN_ATOM_ONTOLOGY.md
+        # §3 SET-R1a): the condition's FAnd children are construction-sorted by
+        # canonical_json. Audited permutation-only — pre/post leaf multisets are
+        # equal (8 leaves), so this is byte-order, not content (old value
+        # e791b88db55731cebe3acd11981ef150332fb89aa1b0a59be269facc019914ee).
+        # Reuses this list: test_ability_tree_r7..r11 re-pin with it.
+        "2ef580a284db9fbee7407cf943f8929d182d6941957d1517935d2898ddba3aba",
     ),
     (
         "cm_plain_ref",

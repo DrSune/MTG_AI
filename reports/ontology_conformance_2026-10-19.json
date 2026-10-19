@@ -1,0 +1,147 @@
+{
+  "sets": {
+    "M21": {
+      "compiled": 305,
+      "shape_gaps": 0
+    },
+    "ZNR": {
+      "compiled": 281,
+      "shape_gaps": 1
+    }
+  },
+  "V1": {
+    "container_fields": 25,
+    "classify_tokens": 25,
+    "unclassified": [],
+    "stale": []
+  },
+  "V2": {
+    "seq_single_child": [],
+    "filter_single_child": [],
+    "choose_count_eq_len": [],
+    "choose_count_eq_len_whitelisted": []
+  },
+  "V3": {
+    "split_seq_designations": [
+      "M21:Garruk, Unleashed: Seq steps [0, 1] re-designate the same fresh TARGET selector {\"count\":{\"n\":1,\"tag\":\"QAtMost\"},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null",
+      "M21:Ranger's Guile: Seq steps [0, 1] re-designate the same fresh TARGET selector {\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"in",
+      "M21:Sure Strike: Seq steps [0, 1] re-designate the same fresh TARGET selector {\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":n",
+      "ZNR:Archpriest of Iona: Seq steps [0, 1] re-designate the same fresh TARGET selector {\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":n"
+    ]
+  },
+  "V4": {
+    "baseline_written": false,
+    "new_emissions": [],
+    "total": {
+      "M21": 145,
+      "ZNR": 48
+    }
+  },
+  "V5": {
+    "available": true,
+    "baseline": "reports/ontology_census_2026-10-19.json",
+    "note": "live-vs-committed view: struct sigs AND branching triples are both SET-R1a-order-canonicalized; committed census rows are top-40-per-class (most_common(40)), so this view's NEW branchings are dominated by long-tail rows the census never stored \u2014 the authoritative R1a content delta is r1a_content_delta below",
+    "new_struct_sigs": [
+      "SpellAbility(kind=~,effect=Atom(verb=~,args=AtomArgs(pairs=[1]{[2]{target;Selector(count=QConst(value=<N>),mode=~,filter=FNot(inner=FAtom(pred=~,string_value=<S>,color=0,colors=[0]{},count=0,counter_kind=0,keyword=0,who=0,inner_filter=0,zone=0,from_zone=0,to_zone=0,referent=0,right_inner_filter=0)),zone=Zone(kind=~,controller=~,position=0),zones=[0]{},referent=0)}})),additional_costs=[0]{})",
+      "TriggeredAbility(event=ZoneChangeEvent(from_zone=Zone(kind=~,controller=~,position=0),to_zone=Zone(kind=~,controller=~,position=0),subject=FAtom(pred=~,string_value=0,color=0,colors=[0]{},count=0,counter_kind=0,keyword=0,who=0,inner_filter=0,zone=0,from_zone=0,to_zone=0,referent=0,right_inner_filter=0)),condition=0,effect=Atom(verb=~,args=AtomArgs(pairs=[3]{[2]{<S>;QConst(value=<N>)};[2]{<S>;~};[2]{target;Selector(count=QConst(value=<N>),mode=~,filter=FAtom(pred=~,string_value=<S>,color=0,colors=[0]{},count=0,counter_kind=0,keyword=0,who=0,inner_filter=0,zone=0,from_zone=0,to_zone=0,referent=0,right_inner_filter=0),zone=Zone(kind=~,controller=~,position=0),zones=[0]{},referent=0)}})))"
+    ],
+    "gone_struct_sigs": [
+      "SpellAbility(kind=~,effect=Atom(verb=~,args=AtomArgs(pairs=[1]{[2]{target;Selector(count=QConst(value=<N>),mode=~,filter=FAnd(children=[1]{FNot(inner=FAtom(pred=~,string_value=<S>,color=0,colors=[0]{},count=0,counter_kind=0,keyword=0,who=0,inner_filter=0,zone=0,from_zone=0,to_zone=0,referent=0,right_inner_filter=0))}),zone=Zone(kind=~,controller=~,position=0),zones=[0]{},referent=0)}})),additional_costs=[0]{})",
+      "TriggeredAbility(event=ZoneChangeEvent(from_zone=Zone(kind=~,controller=~,position=0),to_zone=Zone(kind=~,controller=~,position=0),subject=FAtom(pred=~,string_value=0,color=0,colors=[0]{},count=0,counter_kind=0,keyword=0,who=0,inner_filter=0,zone=0,from_zone=0,to_zone=0,referent=0,right_inner_filter=0)),condition=0,effect=Atom(verb=~,args=AtomArgs(pairs=[3]{[2]{<S>;QConst(value=<N>)};[2]{<S>;~};[2]{target;Selector(count=QConst(value=<N>),mode=~,filter=FAnd(children=[1]{FAtom(pred=~,string_value=<S>,color=0,colors=[0]{},count=0,counter_kind=0,keyword=0,who=0,inner_filter=0,zone=0,from_zone=0,to_zone=0,referent=0,right_inner_filter=0)}),zone=Zone(kind=~,controller=~,position=0),zones=[0]{},referent=0)}})))"
+    ],
+    "new_branchings": {
+      "Selector": [
+        "mode:ALL zone:BATTLEFIELD / QUnbounded / ['filter:FAnd(children[2]FAtom(count(QConst))|FAtom(count(QX)))']",
+        "mode:ALL zone:BATTLEFIELD / QUnbounded / ['filter:FAnd(children[2]FAtom|FNot(inner(FAtom)))']",
+        "mode:ALL zone:EXILE / QUnbounded / ['filter:FAnd(children[2]FAtom|FAtom(from_zone(Zone),to_zone(Zone)))']",
+        "mode:ALL zone:GRAVEYARD / QUnbounded / ['filter:FAnd']",
+        "mode:ALL zone:GRAVEYARD / QUnbounded / ['filter:FAnd(children[2]FAtom|FAtom(count(QConst)))']",
+        "mode:ALL zone:GRAVEYARD / QUnbounded / ['filter:FAnd(children[2]FAtom|FAtom)']",
+        "mode:ALL zone:GRAVEYARD / QUnbounded / ['filter:FAnd(children[3]FAtom|FAtom|FAtom)']",
+        "mode:ALL zone:GRAVEYARD / QUnbounded / ['filter:FAnd(children[3]FAtom|FAtom|FNot(inner(FAtom)))']",
+        "mode:ALL zone:LIBRARY / QUnbounded / ['filter:FAnd']",
+        "mode:CHOOSE zone:ANY ref:result / QConst / ['filter:FAtom']",
+        "mode:CHOOSE zone:BATTLEFIELD / QConst / ['filter:FAnd(children[3]FAtom|FAtom|FAtom)']",
+        "mode:CHOOSE zone:BATTLEFIELD / QConst / ['filter:FAnd(children[3]FAtom|FAtom|FNot(inner(FAtom)))']",
+        "mode:CHOOSE zone:BATTLEFIELD / QUnbounded / ['filter:FAnd(children[3]FAtom|FAtom|FAtom)']",
+        "mode:CHOOSE zone:GRAVEYARD / QUnbounded / ['filter:FAnd(children[2]FAtom|FOr(children[2]FAtom|FAtom))']",
+        "mode:CHOOSE zone:GRAVEYARD+z2 / QUnbounded / ['filter:FAtom']",
+        "mode:CHOOSE zone:HAND / QConst / ['filter:FAtom']",
+        "mode:CHOOSE zone:HAND / QConst / ['filter:FOr(children[2]FAtom|FAtom)']",
+        "mode:CHOOSE zone:HAND / QConst / ['filter:FOr(children[5]FAtom|FAtom|FAtom|FAtom)']",
+        "mode:CHOOSE zone:HAND / QUnbounded / ['filter:FAnd']",
+        "mode:CHOOSE zone:LIBRARY / QConst / ['filter:FAnd']",
+        "mode:CHOOSE zone:LIBRARY / QConst / ['filter:FOr(children[2]FAtom|FAtom)']",
+        "mode:CHOOSE zone:LIBRARY / QUnbounded / ['filter:FAnd(children[2]FAtom|FAtom)']",
+        "mode:CHOOSE zone:LIBRARY / QUnbounded / ['filter:FAnd(children[2]FAtom|FOr(children[2]FAtom|FAtom))']",
+        "mode:CHOOSE zone:PLAYER / QConst / ['filter:FAnd']",
+        "mode:ONE_OF zone:BATTLEFIELD / QConst / ['filter:FAnd(children[2]FAtom|FAtom)']",
+        "mode:ONE_OF zone:BATTLEFIELD / QConst / ['filter:FAnd(children[2]FAtom|FNot(inner(FAtom)))']",
+        "mode:ONE_OF zone:BATTLEFIELD / QConst / ['filter:FAnd(children[3]FAtom|FAtom|FAtom)']",
+        "mode:ONE_OF zone:EXILE / QConst / ['filter:FAnd(children[2]FAtom|FAtom)']",
+        "mode:ONE_OF zone:GRAVEYARD / QConst / ['filter:FOr(children[2]FAtom|FAtom)']",
+        "mode:ONE_OF zone:HAND / QConst / ['filter:FAtom']",
+        "mode:ONE_OF zone:HAND / QConst / ['filter:FAtom(count(QConst))']",
+        "mode:ONE_OF zone:LIBRARY / QConst / ['filter:FAnd(children[2]FAtom|FAtom(count(QConst)))']",
+        "mode:ONE_OF zone:LIBRARY / QConst / ['filter:FOr(children[2]FAnd(children[2]FAtom|FAtom)|FAtom)']",
+        "mode:REST zone:LIBRARY / QConst / ['filter:FAtom']",
+        "mode:TARGET zone:BATTLEFIELD / QAtMost / ['filter:FAnd(children[2]FAtom(who(Selector(count(QConst),filter(FAnd),zone(Zone))))|FOr(children[2]FAtom|FAtom))']",
+        "mode:TARGET zone:BATTLEFIELD / QAtMost / ['filter:FAnd(children[2]FAtom|FAtom)']",
+        "mode:TARGET zone:BATTLEFIELD / QAtMost / ['filter:FAnd(children[2]FAtom|FNot(inner(FAtom)))']",
+        "mode:TARGET zone:BATTLEFIELD / QAtMost / ['filter:FAnd(children[2]FNot(inner(FAtom))|FOr(children[2]FAtom|FAtom))']",
+        "mode:TARGET zone:BATTLEFIELD / QAtMost / ['filter:FAnd(children[3]FAtom|FAtom|FNot(inner(FAtom)))']",
+        "mode:TARGET zone:BATTLEFIELD / QAtMost / ['filter:FOr(children[2]FAtom|FAtom)']",
+        "mode:TARGET zone:BATTLEFIELD / QConst / ['filter:FAnd(children[2]FAtom(who(Selector(count(QConst),filter(FAnd),zone(Zone))))|FOr(children[2]FAtom|FAtom))']",
+        "mode:TARGET zone:BATTLEFIELD / QConst / ['filter:FAnd(children[2]FAtom|FAtom(count(QConst)))']",
+        "mode:TARGET zone:BATTLEFIELD / QConst / ['filter:FAnd(children[2]FAtom|FOr(children[2]FAtom|FAtom))']",
+        "mode:TARGET zone:BATTLEFIELD / QConst / ['filter:FAnd(children[2]FAtom|FOr(children[6]FAtom|FAtom|FAtom|FAtom))']",
+        "mode:TARGET zone:BATTLEFIELD / QConst / ['filter:FAnd(children[3]FAtom|FAtom|FNot(inner(FAtom)))']",
+        "mode:TARGET zone:BATTLEFIELD / QConst / ['filter:FNot(inner(FAtom))']",
+        "mode:TARGET zone:BATTLEFIELD / QConst / ['filter:FOr(children[3]FAnd(children[2]FAtom|FAtom)|FAtom|FAtom)']",
+        "mode:TARGET zone:GRAVEYARD / QAtMost / ['filter:FAtom']",
+        "mode:TARGET zone:GRAVEYARD / QConst / ['filter:FAnd(children[2]FAtom|FOr(children[2]FAtom|FAtom))']",
+        "mode:TARGET zone:GRAVEYARD / QConst / ['filter:FOr(children[2]FAtom|FAtom)']",
+        "mode:TARGET zone:LIBRARY / QConst / ['filter:FAnd']",
+        "mode:TARGET zone:STACK / QConst / ['filter:FNot(inner(FAtom))']",
+        "mode:TARGET zone:STACK / QConst / ['filter:FOr(children[2]FAtom|FAtom)']",
+        "mode:TARGET zone:STACK+z1 / QConst / ['filter:FOr(children[2]FAtom|FNot(inner(FAtom)))']"
+      ]
+    },
+    "gone_branchings": {},
+    "new_struct_sig_count": 2,
+    "gone_struct_sig_count": 2,
+    "new_branching_count": 54,
+    "gone_branching_count": 0,
+    "r1a_content_delta": {
+      "available": true,
+      "pre": "reports/ontology_census_2026-10-19_r1a_pre_full.json",
+      "post": "reports/ontology_census_2026-10-19_r1a_post_full.json",
+      "note": "uncapped censuses, both order-canonicalized: content delta only (the FAnd single-child unwrap at its two emission sites)",
+      "new_struct_sigs": [
+        "SpellAbility(kind=~,effect=Atom(verb=~,args=AtomArgs(pairs=[1]{[2]{target;Selector(count=QConst(value=<N>),mode=~,filter=FNot(inner=FAtom(pred=~,string_value=<S>,color=0,colors=[0]{},count=0,counter_kind=0,keyword=0,who=0,inner_filter=0,zone=0,from_zone=0,to_zone=0,referent=0,right_inner_filter=0)),zone=Zone(kind=~,controller=~,position=0),zones=[0]{},referent=0)}})),additional_costs=[0]{})",
+        "TriggeredAbility(event=ZoneChangeEvent(from_zone=Zone(kind=~,controller=~,position=0),to_zone=Zone(kind=~,controller=~,position=0),subject=FAtom(pred=~,string_value=0,color=0,colors=[0]{},count=0,counter_kind=0,keyword=0,who=0,inner_filter=0,zone=0,from_zone=0,to_zone=0,referent=0,right_inner_filter=0)),condition=0,effect=Atom(verb=~,args=AtomArgs(pairs=[3]{[2]{<S>;QConst(value=<N>)};[2]{<S>;~};[2]{target;Selector(count=QConst(value=<N>),mode=~,filter=FAtom(pred=~,string_value=<S>,color=0,colors=[0]{},count=0,counter_kind=0,keyword=0,who=0,inner_filter=0,zone=0,from_zone=0,to_zone=0,referent=0,right_inner_filter=0),zone=Zone(kind=~,controller=~,position=0),zones=[0]{},referent=0)}})))"
+      ],
+      "gone_struct_sigs": [
+        "SpellAbility(kind=~,effect=Atom(verb=~,args=AtomArgs(pairs=[1]{[2]{target;Selector(count=QConst(value=<N>),mode=~,filter=FAnd(children=[1]{FNot(inner=FAtom(pred=~,string_value=<S>,color=0,colors=[0]{},count=0,counter_kind=0,keyword=0,who=0,inner_filter=0,zone=0,from_zone=0,to_zone=0,referent=0,right_inner_filter=0))}),zone=Zone(kind=~,controller=~,position=0),zones=[0]{},referent=0)}})),additional_costs=[0]{})",
+        "TriggeredAbility(event=ZoneChangeEvent(from_zone=Zone(kind=~,controller=~,position=0),to_zone=Zone(kind=~,controller=~,position=0),subject=FAtom(pred=~,string_value=0,color=0,colors=[0]{},count=0,counter_kind=0,keyword=0,who=0,inner_filter=0,zone=0,from_zone=0,to_zone=0,referent=0,right_inner_filter=0)),condition=0,effect=Atom(verb=~,args=AtomArgs(pairs=[3]{[2]{<S>;QConst(value=<N>)};[2]{<S>;~};[2]{target;Selector(count=QConst(value=<N>),mode=~,filter=FAnd(children=[1]{FAtom(pred=~,string_value=<S>,color=0,colors=[0]{},count=0,counter_kind=0,keyword=0,who=0,inner_filter=0,zone=0,from_zone=0,to_zone=0,referent=0,right_inner_filter=0)}),zone=Zone(kind=~,controller=~,position=0),zones=[0]{},referent=0)}})))"
+      ],
+      "new_branchings": {
+        "Selector": [
+          "mode:TARGET zone:STACK / QConst / ['filter:FNot(inner(FAtom))']"
+        ]
+      },
+      "gone_branchings": {
+        "Selector": [
+          "mode:TARGET zone:BATTLEFIELD / QConst / ['filter:FAnd(children[1]FAtom)']",
+          "mode:TARGET zone:STACK / QConst / ['filter:FAnd(children[1]FNot(inner(FAtom)))']"
+        ]
+      },
+      "new_struct_sig_count": 2,
+      "gone_struct_sig_count": 2,
+      "new_branching_count": 1,
+      "gone_branching_count": 2
+    }
+  },
+  "errors": [],
+  "warn_count": 7
+}
