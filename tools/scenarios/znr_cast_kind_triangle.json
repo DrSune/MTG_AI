@@ -1,0 +1,87 @@
+{
+ "name": "znr_cast_kind_triangle",
+ "set": "ZNR",
+ "note": "ZND-5 (b10 spell-kind cast triggers): the real Umara Mystic (compiled by templates_b10) watches the cast feed. P0 casts the NON-WIZARD creature Cliffhaven Sell-Sword -> the NEGATIVE: no bump (always-fire falsified); then the INSTANT Broken Wings (destroys P1's Kitesail) -> +2/+0 (power 3, instant branch fires); then the Wizard-subtype creature Joraga Visionary -> power 5 (SUBTYPE_EQ branch fires). Triangle closes the T6-class guard on real cards. Falsified by: always-fire -> power 7; never-fire -> power 1.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mystic",
+   "real": "Umara Mystic",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wings",
+   "real": "Broken Wings",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "kite",
+   "real": "Cliffhaven Kitesail",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "sword",
+   "real": "Cliffhaven Sell-Sword",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "seer",
+   "real": "Joraga Visionary",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 10,
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Cliffhaven Sell-Sword",
+   "key": "sword"
+  },
+  {
+   "op": "cast",
+   "real": "Broken Wings",
+   "key": "wings",
+   "targets": [
+    "kite"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Joraga Visionary",
+   "key": "seer"
+  }
+ ],
+ "expect": {
+  "power": {
+   "mystic": 5,
+   "sword": 3,
+   "seer": 3
+  },
+  "toughness": {
+   "mystic": 3
+  },
+  "zone": {
+   "wings": "graveyard",
+   "sword": "battlefield",
+   "seer": "battlefield",
+   "kite": "graveyard"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

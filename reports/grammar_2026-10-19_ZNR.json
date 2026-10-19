@@ -1,7 +1,7 @@
 {
   "set": "ZNR",
-  "generated": "2026-10-19T09:01:34+02:00",
-  "git_head": "7cd61e38520a13d8707394b8fe6960698f920813",
+  "generated": "2026-10-19T10:57:40+02:00",
+  "git_head": "306f31fafb7f9299e40bf4585b714ef0c55b2e4e",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -54,18 +54,18 @@
   "pcs": {
     "PC-1": {
       "name": "card_coverage",
-      "cards_zero_unparsed": 104,
+      "cards_zero_unparsed": 108,
       "denominator": 282,
-      "value": 0.368794,
+      "value": 0.382979,
       "target": ">=0.90",
       "stretch": ">=0.95",
       "pass": false
     },
     "PC-2": {
       "name": "sentence_coverage",
-      "sentences_matched": 393,
+      "sentences_matched": 399,
       "denominator": 726,
-      "value": 0.541322,
+      "value": 0.549587,
       "target": ">=0.95",
       "stretch": ">=0.98",
       "pass": false
@@ -87,15 +87,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.284,
+      "value": 0.297,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.283,
-        0.284,
-        0.283
+        0.297,
+        0.296,
+        0.296
       ]
     },
     "PC-6": {
@@ -134,34 +134,34 @@
         ]
       },
       "max_verb_share": {
-        "value": 0.154286,
+        "value": 0.154696,
         "target": "<0.20",
         "pass": true
       },
       "pass": false,
-      "atom_total": 175,
+      "atom_total": 181,
       "max_share_verb": "MODIFY_PT",
       "verb_histogram": {
         "ADD_MANA": 22,
         "ATTACH": 13,
         "CAST": 1,
         "CHOOSE": 1,
-        "COUNTER_SPELL": 2,
+        "COUNTER_SPELL": 3,
         "CREATE_TOKEN": 4,
-        "DEAL_DAMAGE": 8,
+        "DEAL_DAMAGE": 9,
         "DESTROY": 7,
         "DISCARD": 1,
-        "DRAW": 15,
+        "DRAW": 16,
         "GAIN_CONTROL": 1,
         "GAIN_LIFE": 8,
-        "GRANT_ABILITY": 13,
+        "GRANT_ABILITY": 14,
         "GRANT_TYPE": 3,
         "LOOK_AT": 1,
         "LOSE_LIFE": 4,
-        "MODIFY_PT": 27,
+        "MODIFY_PT": 28,
         "MOVE_ZONE": 18,
         "PREVENT_EFFECT": 4,
-        "PUT_COUNTER": 12,
+        "PUT_COUNTER": 13,
         "REVEAL": 2,
         "SCRY": 4,
         "TAP": 3,
@@ -177,9 +177,9 @@
     },
     "PC-8": {
       "name": "targetable_card_fraction",
-      "targetable_entries": 42,
+      "targetable_entries": 44,
       "denominator": 282,
-      "value": 0.148936,
+      "value": 0.156028,
       "target": ">=0.40",
       "stretch": ">=0.50",
       "pass": false
@@ -782,12 +782,6 @@
     {
       "oracle_id": "4728e320-d29b-4019-8ab5-e45319c77c40",
       "name": "Anticognition",
-      "sentence": "Counter target creature or planeswalker spell unless its controller pays {2}.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "4728e320-d29b-4019-8ab5-e45319c77c40",
-      "name": "Anticognition",
       "sentence": "If an opponent has eight or more cards in their graveyard, instead counter that spell, then scry 2.",
       "bucket_hint": "spell-effect"
     },
@@ -1050,12 +1044,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "6bc668f4-8fc7-4aaf-891b-277d8328b376",
-      "name": "Umara Wizard // Umara Skyfalls",
-      "sentence": "Whenever you cast an instant, sorcery, or Wizard spell, this creature gains flying until end of turn.",
-      "bucket_hint": "triggered"
-    },
-    {
       "oracle_id": "6d5dc34b-3eea-4b77-8db7-94bc30b14c4c",
       "name": "Rabid Bite",
       "sentence": "Target creature you control deals damage equal to its power to target creature you don't control.",
@@ -1222,12 +1210,6 @@
       "name": "Shatterskull Smashing // Shatterskull, the Hammer Pass",
       "sentence": "Shatterskull Smashing deals X damage divided as you choose among up to two target creatures and/or planeswalkers.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "78e65286-204d-43ab-8929-b8e2191b1fce",
-      "name": "Windrider Wizard",
-      "sentence": "Whenever you cast an instant, sorcery, or Wizard spell, you may draw a card.",
-      "bucket_hint": "triggered"
     },
     {
       "oracle_id": "7accdc91-3140-4096-a71f-0cee38d29e96",
@@ -1652,12 +1634,6 @@
     {
       "oracle_id": "b3998d9c-56b1-486c-818c-a6882e999d54",
       "name": "Relic Amulet",
-      "sentence": "Whenever you cast an instant, sorcery, or Wizard spell, put a charge counter on this artifact.",
-      "bucket_hint": "triggered"
-    },
-    {
-      "oracle_id": "b3998d9c-56b1-486c-818c-a6882e999d54",
-      "name": "Relic Amulet",
       "sentence": "{2}, {T}, Remove all charge counters from this artifact: It deals that much damage to target creature.",
       "bucket_hint": "activated"
     },
@@ -1962,12 +1938,6 @@
       "bucket_hint": "triggered"
     },
     {
-      "oracle_id": "d8b7b78e-91b2-4ad5-aeb8-6ebdca363e71",
-      "name": "Rockslide Sorcerer",
-      "sentence": "Whenever you cast an instant, sorcery, or Wizard spell, this creature deals 1 damage to any target.",
-      "bucket_hint": "triggered"
-    },
-    {
       "oracle_id": "d90af00a-d322-4265-9954-7b1e80702e18",
       "name": "Skyclave Apparition",
       "sentence": "When this creature enters, exile up to one target nonland, nontoken permanent you don't control with mana value 4 or less.",
@@ -2026,12 +1996,6 @@
       "name": "Maddening Cacophony",
       "sentence": "If this spell was kicked, instead each opponent mills half their library, rounded up.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "e1c33cfe-1d48-463d-83bb-111374505194",
-      "name": "Umara Mystic",
-      "sentence": "Whenever you cast an instant, sorcery, or Wizard spell, this creature gets +2/+0 until end of turn.",
-      "bucket_hint": "triggered"
     },
     {
       "oracle_id": "e3474632-6d81-43a8-9329-4c7e0c631755",
@@ -2214,7 +2178,7 @@
       "bucket_hint": "spell-effect"
     }
   ],
-  "unparsed_count": 333,
+  "unparsed_count": 327,
   "shape_gaps": [
     {
       "card": "379ed4ec-8f2e-448b-9ed2-a3181e2f877e",

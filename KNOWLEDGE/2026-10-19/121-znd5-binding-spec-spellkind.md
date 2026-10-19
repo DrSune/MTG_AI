@@ -20,8 +20,12 @@ here):**
   executor/binding.py:221) — NOT the Quirion-Dryad COLOR_IN atom earlier cited. 3-branch
   type∪subtype FOr is novel but structurally trivial; **filter referent gate-verified**:
   `_match_cast` (binding.py:957–990) reads the SPELL card for TYPE_EQ/SUBTYPE_EQ/COLOR_IN —
-  "Wizard spell" = SUBTYPE_EQ (TYPE_EQ("Wizard") would silently NEVER-fire — that trap is now
-  a required falsifier axis: matching-kind positive AND negative).
+  "Wizard spell" = SUBTYPE_EQ. **[G-A1 CORRECTION, diff gate same night]** the earlier
+  draft's claim that TYPE_EQ("Wizard") "would silently NEVER-fire" is FALSE:
+  quantity.py:726 word-tests all three type predicates identically, so the atom-kind is
+  behaviorally neutral today; SUBTYPE_EQ stands as the CR-correct IR (structural pin), and
+  the required falsifier axis is the behavioral one: matching-kind positive AND
+  non-matching negative per trigger board (executed; PITFALLS 2026-10-19 entry).
 - **[G-A7] priority direction verified**: templates.py:227 sorts (−priority, tid) ⇒ b10=118 runs
   BEFORE b9/b1; regex-disjointness from Cat/Dog/noncreature heads is a MUST (probe pinned).
 - **REVISED PREDICTIONS**: Batch A **5 flips** (Umara Wizard, Windrider Wizard, Relic Amulet,
