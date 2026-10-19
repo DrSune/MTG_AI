@@ -38,7 +38,7 @@ def _atom(verb: at.Verb, subtype: str) -> at.Atom:
                 (
                     "target",
                     at.Selector(
-                        at.QConst(1), at.SelectorMode.TARGET, _fa(subtype), _BF
+                        at.QConst(1), at.SelectorMode.TARGET, _fa(subtype), zones=(_BF,)
                     ),
                 ),
             )
@@ -165,12 +165,14 @@ def _target_sel(subtype="Cat", referent=None):
     """A fresh TARGET selector, or the C2 anaphora shape (mode CHOOSE,
     referent-bound, neutral zone) that V3′ must exclude."""
     if referent is None:
-        return at.Selector(at.QConst(1), at.SelectorMode.TARGET, _fa(subtype), _BF)
+        return at.Selector(
+            at.QConst(1), at.SelectorMode.TARGET, _fa(subtype), zones=(_BF,)
+        )
     return at.Selector(
         at.QConst(1),
         at.SelectorMode.CHOOSE,
         _fa(subtype),
-        at.Zone(kind=at.ZoneKind.ANY, controller=at.ControllerRef.ANY),
+        zones=(at.Zone(kind=at.ZoneKind.ANY, controller=at.ControllerRef.ANY),),
         referent=referent,
     )
 
@@ -200,7 +202,9 @@ def test_v3_excludes_referent_and_non_target_modes():
         ),
     )
     assert oc.check_v3(_suite(a=anaphora))["split_seq_designations"] == []
-    all_mode = at.Selector(at.QUnbounded(), at.SelectorMode.ALL, _fa("Cat"), _BF)
+    all_mode = at.Selector(
+        at.QUnbounded(), at.SelectorMode.ALL, _fa("Cat"), zones=(_BF,)
+    )
     loops = _card(
         "AllLoop",
         abilities=(
@@ -310,10 +314,16 @@ def test_v5_live_new_branchings_are_all_census_tail_rows(compiled):
     if not delta.get("available"):
         pytest.skip("uncapped census artefacts absent")
     post = json.loads((oc.REPO / delta["post"]).read_text())
+
+    def fold_menu(menu: str) -> str:
+        # R0 zone-fold re-pin: the frozen R1a-era census rows predate the
+        # zone+zones fold; a single-zone menu relabels 1:1 (zone: -> zones:).
+        return menu.replace(" zone:", " zones:")
+
     tail = {
         cls: {
             (
-                oc._canon_fshape(r["menu"]),
+                fold_menu(oc._canon_fshape(r["menu"])),
                 r["count_kind"],
                 tuple(oc._canon_fshape(c) for c in r["children"]),
             )
@@ -321,6 +331,20 @@ def test_v5_live_new_branchings_are_all_census_tail_rows(compiled):
         }
         for cls, rows in post["C_branching"]["branchings"].items()
     }
+    # R0 zone-fold: fused multi-zone menus (zones:A+B) exist ONLY in the
+    # post-fold census; merge its uncapped rows when the artifact is there.
+    r0_full = oc.REPO / "reports" / "ontology_census_2026-10-19_r0_post_full.json"
+    if r0_full.exists():
+        r0 = json.loads(r0_full.read_text())
+        for cls, rows in r0["C_branching"]["branchings"].items():
+            tail.setdefault(cls, set()).update(
+                (
+                    oc._canon_fshape(r["menu"]),
+                    r["count_kind"],
+                    tuple(oc._canon_fshape(c) for c in r["children"]),
+                )
+                for r in rows
+            )
     checked = 0
     for cls, row_strs in v5["new_branchings"].items():
         for s in row_strs:

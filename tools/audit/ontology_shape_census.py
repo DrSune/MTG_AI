@@ -181,10 +181,11 @@ def classify_branch(node):
             f"pred:{type(node.condition).__name__ if node.condition else 'None'}",
         )
     elif cls == "Selector":
-        zn = node.zone.kind.name
-        if node.zones:
-            zn += "+z" + str(len(node.zones))
-        menu = f"mode:{node.mode.name} zone:{zn}" + (
+        # R0 zone-fold: the SET renders whole — canonical (construction)
+        # order, kinds joined; this is the census-side serialization shift
+        # the /129 exit battery reports (327 selector cards' struct sigs).
+        zn = "+".join(z.kind.name for z in node.zones)
+        menu = f"mode:{node.mode.name} zones:{zn}" + (
             f" ref:{node.referent}" if node.referent else ""
         )
         cnt = type(node.count).__name__
