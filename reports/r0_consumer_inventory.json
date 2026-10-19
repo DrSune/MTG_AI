@@ -1,0 +1,6062 @@
+{
+ "round": "R0 zone+zones -> zones: tuple[Zone,...] fold",
+ "spec": "docs/DESIGN_ATOM_ONTOLOGY.md \u00a73 SET-R0 + \u00a78 R0; KNOWLEDGE /126 A1",
+ "method": "AST scan of MTG_bot/core + tools (ability_tree/compiler/executor/tests/tools), value census by recompiling M21+ZNR with coverage._compile_pool_tolerant",
+ "sites": [
+  {
+   "file": "MTG_bot/core/compiler/templates_b10.py",
+   "line": 159,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_any_target",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b10.py",
+   "line": 313,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_counter_unless_cw_pw",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 135,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_self_selector",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 145,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_creatures_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 160,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_creatures_opponents_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 191,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_creatures_died_this_turn",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 212,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_shrine_count",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 238,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_any_target",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 260,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_target_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 270,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_opponent_players",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 526,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_liliana_waker",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 578,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_dire_fleet_warmonger",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 678,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_garruk_emblem",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 794,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_barrin_etb",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 834,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_niambi_etb",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 945,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_rousing_read",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 969,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_capture_sphere",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 1205,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_rambunctious_mutt",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 1336,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_basris_acolyte",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 1379,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_basris_lieutenant",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 1414,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_shipwreck_dowser",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 1450,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_roaming_ghostlight",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 1550,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_aven_gagglemaster",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 1596,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_crypt_lurker",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 1629,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_crypt_lurker",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 1738,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_furious_rise",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 1772,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-TWIN-EDIT",
+   "note": "enclosing=_build_sanctum_of_all | TWIN: also passes zones= -> fold must UNION primary+extras",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "zones"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 1806,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_goremand",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 1929,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_silversmote_ghoul",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 1997,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_lilianas_scrounger",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 2081,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_kinetic_augur_etb",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2a.py",
+   "line": 2122,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_idol_of_endurance_etb",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 214,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_self_selector",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 224,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_creatures_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 239,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_other_creatures_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 255,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_other_attacking_creatures",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 271,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_untapped_creatures_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 287,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_any_card_in_your_hand",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 297,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_target_opponent",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 317,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_any_target",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 386,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_event_reference",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "referent"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 473,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_alpine_houndmaster_etb",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 538,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_fierce_empath_etb",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 1002,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-TWIN-EDIT",
+   "note": "enclosing=_build_named_card_search_etb | TWIN: also passes zones= -> fold must UNION primary+extras",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "zones"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 1024,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_named_card_search_etb",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 1482,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_solemn_simulacrum_etb",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 1752,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_chandras_incinerator",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 1940,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_feline_sovereign",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 2122,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_keral_keep_disciples",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b2b.py",
+   "line": 2186,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_kraken_do_tap_or_untap",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 105,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_sel_self",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 125,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_sel_target_creature",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 145,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_sel_any_target",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 167,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_sel_target_planeswalker",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 177,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-TWIN-EDIT",
+   "note": "enclosing=_sel_target_player_or_planeswalker | TWIN: also passes zones= -> fold must UNION primary+extras",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone",
+     "zones"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 193,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_sel_target_creature_flying",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 209,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_sel_creatures_you_control",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 224,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_sel_lands_you_control",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 239,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_sel_dogs_you_control",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 255,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_sel_target_bird_cat_dog_goat_ox_snake",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 280,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_sel_target_creature_with_plus1",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 298,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_sel_target_card_from_graveyard",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 308,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_sel_cards_in_your_graveyard",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 318,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_sel_cards_in_your_hand",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 677,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_draw_per_distinct_color",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 805,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_add_mana_g_per_power_ge_creatures_you",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 926,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_fight_another",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b3.py",
+   "line": 966,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_may_cast_exiled_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 143,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_self_selector",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 153,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_enchanted_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 168,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_creatures_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 183,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_creatures_opponents_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 198,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_other_creatures",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 213,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_other_creatures_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 230,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_graveyard_creature_cards",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 240,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_cats_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 256,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_discard_two_from_hand",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 707,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cast_goblin_top_library",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 741,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cast_graveyard_recost",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 750,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cast_graveyard_recost",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 782,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-TWIN-EDIT",
+   "note": "enclosing=_build_search_named_card | TWIN: also passes zones= -> fold must UNION primary+extras",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "zones"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 813,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_search_named_card",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 932,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_enters_with_x_counters",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "referent"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 965,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_you_player",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 977,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_noncreature_nonland_pool",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 1097,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_reveal_one_from_among",
+   "extra": {
+    "arg4": "VAR:pool",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 1122,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_result_register_selector",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "referent"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 1169,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cast_them_this_turn",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b4.py",
+   "line": 1221,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_look_and_play_top_of_library",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 158,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_self_selector",
+   "extra": {
+    "arg4": "VAR:zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 168,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_enchanted_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 249,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_attacking_pt",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 283,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_counter_spell",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 364,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_counter_unless_atom",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 416,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_grave_count_quantity",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 530,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_battalion",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 554,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_destroy",
+   "extra": {
+    "arg4": "VAR:zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 598,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_double_power",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 632,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_exile_target",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 687,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_draw_three_then_discard",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 709,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_draw_frantic_inventory",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 735,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_trample_counter",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 982,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_equip",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 1276,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_discard_cant_be_blocked",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 1313,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_result_selector",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "referent"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 1435,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_destroy_attached_equipment",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 1725,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=<module>",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 2005,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=<module>",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5a.py",
+   "line": 2028,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=<module>",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 188,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_this_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 198,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_each_creature_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 220,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_up_to_two_target_creatures",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 230,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_target_creature_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 245,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_target_creature_or_pw",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 260,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_target_permanent_card_your_graveyard",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 274,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_up_to_two_target_creature_cards_your_graveyard",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 284,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_two_untapped_spirits_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 300,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_target_creature_not_you",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 325,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_any_target",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 347,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_each_permanent_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 434,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cont_discard",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 617,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_return_creatures_battlefield",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 645,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_return_cards_hand",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 672,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-TWIN-EDIT",
+   "note": "enclosing=_build_return_spell_creature_owner_hand | TWIN: also passes zones= -> fold must UNION primary+extras",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "zones"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 706,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_sacr_grant",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 793,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_search_shuffle",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 860,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_seq_modpt_firststrike",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 910,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_modpt_plus",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 933,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_modpt_minus",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1023,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_sacr_flying",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1053,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_discard_target_2",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1087,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_event_referent",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "referent"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1311,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_counter_unless_pays",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "referent"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1412,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_set_pt_power_gy_count",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1467,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_result_selector",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "referent"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1480,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_looked_top_library",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1654,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-TWIN-EDIT",
+   "note": "enclosing=_build_search_name_exile | TWIN: also passes zones= -> fold must UNION primary+extras",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "zones"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1715,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_shuffle_then_token_per_exiled",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1758,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_that_permanent_loses_kw",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "referent"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1785,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_one_of_other",
+   "extra": {
+    "arg4": "ATTR:zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1802,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_one_of_other",
+   "extra": {
+    "arg4": "ATTR:zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1827,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_one_of_rest_bottom",
+   "extra": {
+    "arg4": "ATTR:zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1844,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_one_of_rest_bottom",
+   "extra": {
+    "arg4": "ATTR:zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1877,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_rest_bottom_random",
+   "extra": {
+    "arg4": "ATTR:zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1914,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cultivate_search",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1938,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cultivate_search",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1956,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cultivate_search",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 2016,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_transmog_reveal_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 2107,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_gain_control_eot",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 2228,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_would_damage_incarnation",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 2285,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_choice_of_grants",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "referent"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 2298,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_choice_of_grants",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 2354,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_its_controller_token",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "referent"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 2401,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_its_controller_loses_life",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "referent"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 2442,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_if_was_creature_counter_gain",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 2495,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_peer_half_library",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 2563,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_double_counters_on_target",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "referent"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 2619,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_then_if_opponent_more_creatures",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 161,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_self_selector",
+   "extra": {
+    "arg4": "VAR:zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 215,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_any_target",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 236,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_target_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 245,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_target_creature_or_planeswalker",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 264,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_up_to_one_target_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 273,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_another_target_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 287,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_all_creatures",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 296,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_creatures_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 310,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_zombies_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 326,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_target_opponent_creatures",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 340,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_target_creature_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 354,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_target_creature_you_dont_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 368,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_each_opponent_player",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 378,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_stack_target",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 388,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_graveyard_target_player",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 397,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_hand_you_selector",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 409,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_up_to_two_target_creatures",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 448,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_then_return_is",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 497,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_untap_lands",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 621,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_event_reference",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "referent"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 761,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_loyalty_each_discard",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 798,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_loyalty_return_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 956,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_loyalty_discard_draw",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 998,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_loyalty_search_exile",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1021,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_loyalty_search_exile",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1067,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_loyalty_discard_exile_top",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1084,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_loyalty_discard_exile_top",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1133,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_loyalty_may_cast_graveyard",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1181,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_loyalty_dmg_power",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1217,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_loyalty_lose_per_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1268,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_loyalty_gain_draw_put",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1300,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_loyalty_exile_color_cmc_ux",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1331,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cost_shrine_dmg",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1346,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cost_shrine_dmg",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1375,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cost_sacrifice_counter",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1424,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cost_sacrifice_destroy",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1476,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cost_sacrifice_defender",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1558,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cost_b_tap_gain_draw",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1639,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cost_ub_sacrifice_return",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1664,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cost_wu_discard_draw",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1779,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cost_sacrifice_discard",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1824,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_cost_sacrifice_search",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 1965,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_bullet_copy_token",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 2029,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_bullet_destroy_artifact",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 2049,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_bullet_destroy_enchantment",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 2096,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_bullet_exile_graveyard",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 2135,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_bullet_remove_loyalty",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 2183,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_bullet_return_nonland_hand",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 2209,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_bullet_return_two_creatures_hand",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 2268,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_then_if_lands_untap",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "referent"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 2335,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_untap_that_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "referent"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 2365,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_then_it_fights_up_to_one",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 2519,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_waive_cast_from_hand",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 2553,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_play_cards_exiled_this_way",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 2597,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_shrine_activation_cost_reduction",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5c.py",
+   "line": 2684,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_subira_delayed_draw",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 138,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_self_selector",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 149,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_referent_target_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [
+     "referent"
+    ],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 159,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_up_to_two_target_creatures",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 171,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_up_to_one_other_target_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 185,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_creatures_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 199,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_all_creatures",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 211,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_any_target",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 274,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_draw_then_discard",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 394,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_return_instant_or_sorcery_hand",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 421,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_return_creature_to_battlefield",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 504,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_destroy_cw_pw",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 580,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_return_two_creature_cards_hand",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 596,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_opponent_players",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 639,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_equipped_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 771,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_exile_top_library",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 792,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_tap_target_opp_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 823,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_put_counters_target_filtered",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b6.py",
+   "line": 858,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_return_kicker_card_hand",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b7.py",
+   "line": 146,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_loyalty_self_selector",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b7.py",
+   "line": 198,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_equip_etb",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b7.py",
+   "line": 207,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_equip_etb",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b8.py",
+   "line": 158,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_party_count",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b8.py",
+   "line": 202,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_creatures_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b8.py",
+   "line": 219,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_target_creature_on_battlefield",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b8.py",
+   "line": 228,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_target_creature_an_opponent_controls",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b8.py",
+   "line": 574,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_full_choose_nonland",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b8.py",
+   "line": 665,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_full_free_cast",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b8.py",
+   "line": 720,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_up_to_two_x",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b8.py",
+   "line": 810,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_x_to_creature_or_pw",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b8.py",
+   "line": 866,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_four_and_x_controller",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b8.py",
+   "line": 925,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_class_signature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b9.py",
+   "line": 125,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_target_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b9.py",
+   "line": 136,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_target_creature_you_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b9.py",
+   "line": 153,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_target_creature_or_planeswalker",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b9.py",
+   "line": 203,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_creatures_you_control_all",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b9.py",
+   "line": 219,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_creatures_opponents_control",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b9.py",
+   "line": 235,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_equipped_creature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b9.py",
+   "line": 334,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_destroy_artifact_enchantment_flying",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b9.py",
+   "line": 533,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_build_counter_noncreature",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/executor/__init__.py",
+   "line": 259,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=<module>",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/executor/__init__.py",
+   "line": 271,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=<module>",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/executor/binding.py",
+   "line": 755,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=TriggerBinder/_keyword_node",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/executor/legality.py",
+   "line": 1303,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_binding_atom",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/executor/query.py",
+   "line": 1140,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=spell_target_slots",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/executor/query.py",
+   "line": 1223,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=activation_target_slots",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "MTG_bot/core/executor/query.py",
+   "line": 1416,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=aura_enchant_slot",
+   "extra": {
+    "arg4": "n/a",
+    "keywords": [
+     "count",
+     "mode",
+     "filter",
+     "zone"
+    ],
+    "npos": 0
+   }
+  },
+  {
+   "file": "tools/run_scenarios.py",
+   "line": 153,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=_bf_target",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "tools/run_scenarios.py",
+   "line": 382,
+   "kind": "CONSTRUCT-POSITIONAL",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "enclosing=ScenarioRunner/_dispatch",
+   "extra": {
+    "arg4": "CALL:Zone",
+    "keywords": [],
+    "npos": 4
+   }
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 451,
+   "kind": "READ-PRIMARY",
+   "behavior_class": "KEYED",
+   "note": "L1 r19b ONE_OF/REST window gate: `sel.zone.kind is LIBRARY and sel.zone.position is TOP`. Rewrite: `top_library = [z for z in sel.zones if z.kind is LIBRARY and z.position is TOP]` and gate on that list being non-empty."
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 456,
+   "kind": "READ-PRIMARY",
+   "behavior_class": "KEYED",
+   "note": "L1 gate clause 1 (zone.kind LIBRARY) \u2014 same \u2203-predicate as :451."
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 457,
+   "kind": "READ-PRIMARY",
+   "behavior_class": "KEYED",
+   "note": "L1 gate clause 2 (zone.position TOP) \u2014 must be the SAME matched zone as the kind test (\u2203 over one zone object, not two independent \u2203s)."
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 473,
+   "kind": "READ-PRIMARY",
+   "behavior_class": "KEYED-BODY-EXTRACTION",
+   "note": "L1 BODY: `players_for_ref(sel.zone.controller, ctx)` \u2014 must extract the controller of the MATCHED LIBRARY+TOP zone (zones[i] that satisfied the gate), NOT the first/primary slot. An \u2203-test that passes on a zone the body then ignores = silent rules change (gate A1)."
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 452,
+   "kind": "READ-ZONES",
+   "behavior_class": "PASS-THROUGH",
+   "note": "union population `for extra in sel.zones: extend(...)` \u2014 set-iterate."
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 614,
+   "kind": "READ-PRIMARY",
+   "behavior_class": "KEYED",
+   "note": "L2 (16a) PLAYER re-point: `sel.zone.kind is PLAYER` -> bind cards to their controller. Rewrite \u2203 over sel.zones ONLY IF the gate means 'denotes players'; today the corpus selector is single-zone, so `zones == (PLAYER,)` is the faithful reading (see L3 pairing)."
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 286,
+   "kind": "READ-BOTH",
+   "behavior_class": "PASS-THROUGH",
+   "note": "_is_any_universal already unions: `zones = (sel.zone, *sel.zones)` + any(ANY)/all(BATTLEFIELD). Fold: `zones = sel.zones` \u2014 semantics identical."
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 835,
+   "kind": "READ-PRIMARY",
+   "behavior_class": "KEYED",
+   "note": "L3 role_handles player_side: `value.zone.kind is PLAYER and not value.zones`. Post-fold the faithful rewrite is SINGLETON-AND-KIND (`len(zones)==1 and zones[0].kind is PLAYER`), NOT \u2203-PLAYER: a naive \u2203 resurrects the r21a Magmutt/Leafkin re-point bug (printed damage aimed at the player instead of the walker)."
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 836,
+   "kind": "READ-ZONES",
+   "behavior_class": "KEYED",
+   "note": "L3 `and not value.zones` = 'primary only' test \u2014 becomes the cardinality test of the singleton rewrite above."
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 884,
+   "kind": "READ-PRIMARY",
+   "behavior_class": "KEYED",
+   "note": "L4 role_handles graveyard_sweep: `value.zone.kind is GRAVEYARD` (Tormod's Crypt pin). Rewrite: \u2203 z in value.zones with kind GRAVEYARD; keep the 5-pin AND-structure."
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 885,
+   "kind": "READ-PRIMARY",
+   "behavior_class": "KEYED",
+   "note": "L4 second clause: `value.zone.controller is TARGET_PLAYER` \u2014 must ride on the SAME matched zone as :884 (one zone satisfying both), not an independent \u2203."
+  },
+  {
+   "file": "MTG_bot/core/executor/verbs.py",
+   "line": 248,
+   "kind": "READ-PRIMARY",
+   "behavior_class": "KEYED",
+   "note": "L5 firemaw top-draw guard: `sel.zone.kind is LIBRARY` (with dest==HAND, non-partition, referent None, universal filter). Rewrite as SINGLETON-AND-KIND or all-zones-LIBRARY; a naive \u2203-LIBRARY would let a HAND\u222aLIBRARY selector take the blind top-n DRAW lane."
+  },
+  {
+   "file": "MTG_bot/core/executor/legality.py",
+   "line": 950,
+   "kind": "READ-PRIMARY",
+   "behavior_class": "KEYED",
+   "note": "*** NEW LANE (not in the known four) *** _ability_discards_its_source: `part.target.zone.kind is HAND` over CostDiscard.target (a Selector) + IS_SOURCE filter \u2014 the 'Discard this card:' activation-legality window gate. Rewrite: any(z.kind is HAND for z in part.target.zones)."
+  },
+  {
+   "file": "MTG_bot/core/executor/legality.py",
+   "line": 509,
+   "kind": "READ-ZONES",
+   "behavior_class": "PASS-THROUGH",
+   "note": "enumerate_candidates union (`sel.zone` + `sel.zones`) then `handles = sorted(...)` \u2014 order-normalized, fold-safe."
+  },
+  {
+   "file": "MTG_bot/core/executor/legality.py",
+   "line": 510,
+   "kind": "READ-ZONES",
+   "behavior_class": "PASS-THROUGH",
+   "note": "extras loop \u2014 becomes the whole set."
+  },
+  {
+   "file": "MTG_bot/core/executor/query.py",
+   "line": 1315,
+   "kind": "READ-BOTH",
+   "behavior_class": "PASS-THROUGH",
+   "note": "_player_widening_applies unions then any(ANY)/all(BATTLEFIELD); identical shape to selectors._is_any_universal (the \u00a78.3 query/runtime twin)."
+  },
+  {
+   "file": "MTG_bot/core/compiler/compiler.py",
+   "line": 1050,
+   "kind": "CONSTRUCT-POSITIONAL+READ-PRIMARY",
+   "behavior_class": "KEYED-LOSS",
+   "note": "_fold_meta_filter rebuilds `Selector(value.count, value.mode, new_filter, value.zone)` \u2014 positional AND it DROPS value.zones (a latent union-loss bug TODAY: a meta-filtered TARGET selector loses its extra zones; corpus-blind because corpus twin TARGET selectors are not meta-filtered). Post-fold must be zones=value.zones."
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 1208,
+   "kind": "SCHEMA",
+   "behavior_class": "VALIDATION",
+   "note": "field declaration: delete `zone: Zone`, make `zones: tuple[Zone, ...]` required (no default) \u2014 every positional site then fails LOUD at construction."
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 1227,
+   "kind": "VALIDATE",
+   "behavior_class": "VALIDATION",
+   "note": "zone type check (scalar isinstance)",
+   "extra": "zone type check (scalar isinstance) [recv=self] self.zone"
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 1229,
+   "kind": "VALIDATE",
+   "behavior_class": "VALIDATION",
+   "note": "zone type check message",
+   "extra": "zone type check message [recv=self] self.zone"
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 1231,
+   "kind": "VALIDATE",
+   "behavior_class": "VALIDATION",
+   "note": "zones tuple-of-Zone check (keep)",
+   "extra": "zones tuple-of-Zone check (keep) [recv=self] self.zones"
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 1232,
+   "kind": "VALIDATE",
+   "behavior_class": "VALIDATION",
+   "note": "zones check message",
+   "extra": "zones check message [recv=self] self.zones"
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 1257,
+   "kind": "VALIDATE",
+   "behavior_class": "VALIDATION",
+   "note": "C2 referent: zone.kind is ANY",
+   "extra": "C2 referent: zone.kind is ANY [recv=self] self.zone"
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 1258,
+   "kind": "VALIDATE",
+   "behavior_class": "VALIDATION",
+   "note": "C2 referent: zone.controller is ANY",
+   "extra": "C2 referent: zone.controller is ANY [recv=self] self.zone"
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 1259,
+   "kind": "VALIDATE",
+   "behavior_class": "VALIDATION",
+   "note": "C2 referent: zone.position is None",
+   "extra": "C2 referent: zone.position is None [recv=self] self.zone"
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 1262,
+   "kind": "VALIDATE",
+   "behavior_class": "VALIDATION",
+   "note": "C2 error message prints self.zone",
+   "extra": "C2 error message prints self.zone [recv=self] self.zone"
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 1264,
+   "kind": "VALIDATE",
+   "behavior_class": "VALIDATION",
+   "note": "C2 referent: `if self.zones: raise`",
+   "extra": "C2 referent: `if self.zones: raise` [recv=self] self.zones"
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 1266,
+   "kind": "VALIDATE",
+   "behavior_class": "VALIDATION",
+   "note": "C2 message prints self.zones",
+   "extra": "C2 message prints self.zones [recv=self] self.zones"
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 1476,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "DECOY FIELD FAtom.zone (a different Zone field; R0 must NOT touch) :: self.zone"
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 1478,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "DECOY FIELD FAtom.zone (a different Zone field; R0 must NOT touch) :: self.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1789,
+   "kind": "READ-PRIMARY-HELPER",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "compiler sibling builders read `.zone` off a helper-built Selector and re-slot it :: _looked_top_library().zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1806,
+   "kind": "READ-PRIMARY-HELPER",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "compiler sibling builders read `.zone` off a helper-built Selector and re-slot it :: _looked_top_library().zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1831,
+   "kind": "READ-PRIMARY-HELPER",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "compiler sibling builders read `.zone` off a helper-built Selector and re-slot it :: _looked_top_library().zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1848,
+   "kind": "READ-PRIMARY-HELPER",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "compiler sibling builders read `.zone` off a helper-built Selector and re-slot it :: _looked_top_library().zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/templates_b5b.py",
+   "line": 1881,
+   "kind": "READ-PRIMARY-HELPER",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "compiler sibling builders read `.zone` off a helper-built Selector and re-slot it :: _looked_top_library().zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/__init__.py",
+   "line": 1137,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: self.world.players[player].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/__init__.py",
+   "line": 1169,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: world.players[player].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/__init__.py",
+   "line": 1193,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: world.players[player].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/events.py",
+   "line": 476,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=Subscript :: world.players[player].zones"
+  },
+  {
+   "file": "MTG_bot/core/executor/events.py",
+   "line": 501,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=after :: after.zones"
+  },
+  {
+   "file": "MTG_bot/core/executor/events.py",
+   "line": 502,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=before :: before.zones"
+  },
+  {
+   "file": "MTG_bot/core/executor/games.py",
+   "line": 426,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: world.players[seat].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/games.py",
+   "line": 730,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=player :: player.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/games.py",
+   "line": 731,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=player :: player.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/games.py",
+   "line": 741,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=player :: player.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/games.py",
+   "line": 745,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=player :: player.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/games.py",
+   "line": 751,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=player :: player.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/games.py",
+   "line": 754,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=player :: player.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/games.py",
+   "line": 864,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: world.players[seat].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/games.py",
+   "line": 1039,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: self.world.players[seat].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/games.py",
+   "line": 1290,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=player :: player.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/games.py",
+   "line": 1305,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=player :: player.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/games.py",
+   "line": 1306,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=player :: player.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/games.py",
+   "line": 1307,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=player :: player.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/legality.py",
+   "line": 421,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: world.players[owner].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/legality.py",
+   "line": 426,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: world.players[player].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/legality.py",
+   "line": 666,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: world.players[seat].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/legality.py",
+   "line": 1225,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: world.players[seat].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/quantity.py",
+   "line": 469,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: ctx.world.players[handle].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/quantity.py",
+   "line": 1178,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "DECOY FIELD FAtom.zone read (_eval_atom) :: atom.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/quantity.py",
+   "line": 1180,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "DECOY FIELD FAtom.zone read (_eval_atom) :: atom.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/quantity.py",
+   "line": 1206,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: ctx.world.players[player].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/quantity.py",
+   "line": 1326,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "DECOY FIELD FAtom.zone read (_eval_atom) :: atom.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/quantity.py",
+   "line": 1327,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "DECOY FIELD FAtom.zone read (_eval_atom) :: atom.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/quantity.py",
+   "line": 1332,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "DECOY FIELD FAtom.zone read (_eval_atom) :: atom.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/quantity.py",
+   "line": 1333,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "DECOY FIELD FAtom.zone read (_eval_atom) :: atom.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/quantity.py",
+   "line": 1354,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "DECOY FIELD FAtom.zone read (_eval_atom) :: atom.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/quantity.py",
+   "line": 1355,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "DECOY FIELD FAtom.zone read (_eval_atom) :: atom.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/quantity.py",
+   "line": 1364,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "DECOY FIELD FAtom.zone read (_eval_atom) :: atom.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/quantity.py",
+   "line": 1369,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "DECOY FIELD FAtom.zone read (_eval_atom) :: atom.zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/query.py",
+   "line": 936,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: world.players[seat].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 203,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: ctx.world.players[player].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 244,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: ctx.world.players[player].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 474,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: ctx.world.players[player].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/stack.py",
+   "line": 199,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=player :: player.zones"
+  },
+  {
+   "file": "MTG_bot/core/executor/stack.py",
+   "line": 206,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=player :: player.zones"
+  },
+  {
+   "file": "MTG_bot/core/executor/stack.py",
+   "line": 248,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: world.players[seat].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/stack.py",
+   "line": 556,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: world.players[seat].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/stack.py",
+   "line": 629,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: world.players[seat].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/verbs.py",
+   "line": 140,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: ctx.world.players[player].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/verbs.py",
+   "line": 141,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: ctx.world.players[player].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/verbs.py",
+   "line": 186,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: ctx.world.players[player].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/verbs.py",
+   "line": 196,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: ctx.world.players[player].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/verbs.py",
+   "line": 253,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: ctx.world.players[owner].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/verbs.py",
+   "line": 260,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: ctx.world.players[owner].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/verbs.py",
+   "line": 310,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: ctx.world.players[target_player].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/verbs.py",
+   "line": 1064,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: ctx.world.players[player].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/verbs.py",
+   "line": 1096,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: ctx.world.players[owner].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/verbs.py",
+   "line": 1112,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: ctx.world.players[player].zone"
+  },
+  {
+   "file": "MTG_bot/core/executor/verbs.py",
+   "line": 1253,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: ctx.world.players[target_player].zone"
+  },
+  {
+   "file": "MTG_bot/core/state.py",
+   "line": 100,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=self :: self.zones"
+  },
+  {
+   "file": "MTG_bot/core/state.py",
+   "line": 171,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=player :: player.zones"
+  },
+  {
+   "file": "MTG_bot/core/state.py",
+   "line": 185,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=Subscript :: self.players[controller].zones"
+  },
+  {
+   "file": "MTG_bot/core/state.py",
+   "line": 189,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=Subscript :: self.players[controller].zones"
+  },
+  {
+   "file": "MTG_bot/core/state.py",
+   "line": 199,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=Subscript :: self.players[player].zones"
+  },
+  {
+   "file": "MTG_bot/core/state.py",
+   "line": 219,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: self.players[controller].zone"
+  },
+  {
+   "file": "MTG_bot/core/state.py",
+   "line": 223,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: self.players[player].zone"
+  },
+  {
+   "file": "MTG_bot/core/state.py",
+   "line": 224,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: self.players[player].zone"
+  },
+  {
+   "file": "MTG_bot/core/state.py",
+   "line": 290,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=p :: p.zones"
+  },
+  {
+   "file": "tools/audit/ontology_shape_census.py",
+   "line": 184,
+   "kind": "READ-BOTH",
+   "behavior_class": "AUDIT-ORDER-SIGNATURE",
+   "note": "census menu signature `zone:{kind}+z{n}` -> signature strings change => the TRACKED V5-prime baseline JSON drifts; re-baseline required :: node.zone"
+  },
+  {
+   "file": "tools/audit/ontology_shape_census.py",
+   "line": 185,
+   "kind": "READ-BOTH",
+   "behavior_class": "AUDIT-ORDER-SIGNATURE",
+   "note": "census menu signature `zone:{kind}+z{n}` -> signature strings change => the TRACKED V5-prime baseline JSON drifts; re-baseline required :: node.zones"
+  },
+  {
+   "file": "tools/audit/ontology_shape_census.py",
+   "line": 186,
+   "kind": "READ-BOTH",
+   "behavior_class": "AUDIT-ORDER-SIGNATURE",
+   "note": "census menu signature `zone:{kind}+z{n}` -> signature strings change => the TRACKED V5-prime baseline JSON drifts; re-baseline required :: node.zones"
+  },
+  {
+   "file": "tools/run_scenarios.py",
+   "line": 264,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=pl :: pl.zone"
+  },
+  {
+   "file": "tools/run_scenarios.py",
+   "line": 697,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: self.world.players[self.seats[int(seat)]].zone"
+  },
+  {
+   "file": "tools/run_scenarios.py",
+   "line": 864,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zone) recv=Subscript :: self.world.players[self.seats[int(seat)]].zone"
+  },
+  {
+   "file": "tools/training/ab_duel.py",
+   "line": 535,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=player :: player.zones"
+  },
+  {
+   "file": "tools/training/ab_duel.py",
+   "line": 541,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=player :: player.zones"
+  },
+  {
+   "file": "tools/training/ab_duel.py",
+   "line": 547,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=player :: player.zones"
+  },
+  {
+   "file": "tools/training/ab_duel.py",
+   "line": 561,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=Subscript :: world.players[h].zones"
+  },
+  {
+   "file": "tools/training/packrec.py",
+   "line": 109,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=player :: player.zones"
+  },
+  {
+   "file": "tools/training/packrec.py",
+   "line": 115,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=player :: player.zones"
+  },
+  {
+   "file": "tools/training/packrec.py",
+   "line": 121,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=player :: player.zones"
+  },
+  {
+   "file": "tools/training/packrec_v2.py",
+   "line": 85,
+   "kind": "NOT-SELECTOR",
+   "behavior_class": "OUT-OF-SCOPE",
+   "note": "runtime world side (zones) recv=Subscript :: world.players[h].zones"
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 4075,
+   "kind": "SERIALIZE",
+   "behavior_class": "VALIDATION",
+   "note": "_SPECS['Selector'] field table drops ('zone','zone'), keeps ('zones','tup:zone') \u2014 from_dict raises on any stale 'zone' key (loud decode failure on pre-fold goldens)."
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 4458,
+   "kind": "SERIALIZE",
+   "behavior_class": "BYTE-DELTA",
+   "note": "_OMIT_IF_EMPTY['Selector'] = {zones, referent}: the zones-omission rule MUST be dropped (post-fold zones is load-bearing). Leaving it would serialize a no-zone selector as absent => silent data loss."
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 4661,
+   "kind": "SERIALIZE",
+   "behavior_class": "PASS-THROUGH",
+   "note": "to_dict generic dataclass field loop: emits one key per field \u2014 byte delta is a consequence of the field set change, no code edit."
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 4714,
+   "kind": "SERIALIZE",
+   "behavior_class": "PASS-THROUGH",
+   "note": "from_dict spec-driven decode (`missing fields` raise catches the old key; `tup:` default () would silently create a ZERO-zone selector unless __post_init__ requires >=1)."
+  },
+  {
+   "file": "MTG_bot/core/ability_tree.py",
+   "line": 1275,
+   "kind": "SERIALIZE-ORDER",
+   "behavior_class": "PASS-THROUGH",
+   "note": "_set_sorted (SET-R1a canonical_json sort) \u2014 the precedent/helper the new zones normalization reuses."
+  },
+  {
+   "file": "MTG_bot/core/executor/stack.py",
+   "line": 480,
+   "kind": "READ-IDENTITY-REPR",
+   "behavior_class": "PASS-THROUGH-REPR",
+   "note": "slot_designations = {repr(slot.selector): (one,)} \u2014 repr(Selector) is the designation KEY; the fold changes the repr string but producer+consumer are the same live objects (no persisted repr key found)."
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 784,
+   "kind": "READ-IDENTITY-REPR",
+   "behavior_class": "PASS-THROUGH-REPR",
+   "note": "atom_target_slot_key: `repr(value) in slot_designations` (consumer side of the same key)."
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 786,
+   "kind": "READ-IDENTITY-REPR",
+   "behavior_class": "PASS-THROUGH-REPR",
+   "note": "atom_target_slot_key returns repr(value) as the shadow key."
+  },
+  {
+   "file": "MTG_bot/core/executor/query.py",
+   "line": 1096,
+   "kind": "READ-IDENTITY-REPR",
+   "behavior_class": "PASS-THROUGH-REPR",
+   "note": "spell_target_slots dedups TARGET selectors by repr key (slot identity/dedup)."
+  },
+  {
+   "file": "MTG_bot/core/executor/query.py",
+   "line": 1197,
+   "kind": "READ-IDENTITY-REPR",
+   "behavior_class": "PASS-THROUGH-REPR",
+   "note": "activation_target_slots dedups by the same repr key."
+  },
+  {
+   "file": "MTG_bot/core/executor/binding.py",
+   "line": 1358,
+   "kind": "READ-IDENTITY-REPR",
+   "behavior_class": "PASS-THROUGH-REPR",
+   "note": "_designate collects designation slots keyed by repr(selector) (multi-slot raise + binding key)."
+  },
+  {
+   "file": "MTG_bot/core/executor/query.py",
+   "line": 1036,
+   "kind": "CONSTRUCT-REPLACE",
+   "behavior_class": "PASS-THROUGH",
+   "note": "replace(selector, filter=stripped) \u2014 dataclasses.replace copies zones; fold-safe."
+  },
+  {
+   "file": "MTG_bot/core/executor/binding.py",
+   "line": 759,
+   "kind": "CONSTRUCT-KWARG",
+   "behavior_class": "PASS-THROUGH-MUST-EDIT",
+   "note": "engine-synthesized triggerBinder._keyword_node Selector(zone=BATTLEFIELD/ANY) (spec's binding.py:759)."
+  },
+  {
+   "file": "tools/audit/atom_field_table.py",
+   "line": 72,
+   "kind": "SCHEMA-REGISTRY",
+   "behavior_class": "VALIDATION",
+   "note": "CLASSIFY row ('Selector','zones') -> 'SET-R0'; the V1-prime 25-field table + checker dict are single-source: deleting Selector.zone makes it 24 and the module's drift check must be re-baselined."
+  },
+  {
+   "file": "tools/audit/atom_field_table.py",
+   "line": 75,
+   "kind": "SCHEMA-REGISTRY",
+   "behavior_class": "VALIDATION",
+   "note": "comment + NOTE 'R0 will delete it' \u2014 the detection-rule registry must drop the scalar row."
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 559,
+   "kind": "ORDER-CONSUMER",
+   "behavior_class": "ORDER-RISK",
+   "note": "mode ALL returns `candidates` RAW in zone-enumeration order (primary zone entries, then each extra). The canonical_json sort puts GRAVEYARD before LIBRARY, so a multi-zone ALL selector's output order FLIPS. Corpus population TODAY: 0 (no ALL-mode selector carries zones) => register as latent."
+  },
+  {
+   "file": "MTG_bot/core/executor/verbs.py",
+   "line": 265,
+   "kind": "ORDER-CONSUMER",
+   "behavior_class": "ORDER-RISK",
+   "note": "_v_move_zone `pool[:n]` slices resolve order for non-partition finite moves (deterministic first-n)."
+  },
+  {
+   "file": "MTG_bot/core/executor/selectors.py",
+   "line": 556,
+   "kind": "ORDER-CONSUMER",
+   "behavior_class": "PASS-THROUGH",
+   "note": "CHOOSE mode sorts candidates -> zone-iteration order irrelevant."
+  },
+  {
+   "file": "MTG_bot/core/executor/legality.py",
+   "line": 511,
+   "kind": "ORDER-CONSUMER",
+   "behavior_class": "PASS-THROUGH",
+   "note": "enumerate_candidates sorts -> TARGET ask vocab (and its site_digest) unaffected by zone order."
+  },
+  {
+   "file": "MTG_bot/core/executor/binding.py",
+   "line": 1430,
+   "kind": "ORDER-CONSUMER",
+   "behavior_class": "PASS-THROUGH",
+   "note": "designation asks `sorted(slot.candidates)` -> decision-handle site_digest stays stable."
+  }
+ ],
+ "counts_by_kind": {
+  "CONSTRUCT-KWARG | PASS-THROUGH-MUST-EDIT": 23,
+  "CONSTRUCT-KWARG | PASS-THROUGH-TWIN-EDIT": 1,
+  "CONSTRUCT-POSITIONAL | PASS-THROUGH-MUST-EDIT": 235,
+  "CONSTRUCT-POSITIONAL | PASS-THROUGH-TWIN-EDIT": 5,
+  "CONSTRUCT-POSITIONAL+READ-PRIMARY | KEYED-LOSS": 1,
+  "CONSTRUCT-REPLACE | PASS-THROUGH": 1,
+  "NOT-SELECTOR | OUT-OF-SCOPE": 78,
+  "ORDER-CONSUMER | ORDER-RISK": 2,
+  "ORDER-CONSUMER | PASS-THROUGH": 3,
+  "READ-BOTH | AUDIT-ORDER-SIGNATURE": 3,
+  "READ-BOTH | PASS-THROUGH": 2,
+  "READ-IDENTITY-REPR | PASS-THROUGH-REPR": 6,
+  "READ-PRIMARY | KEYED": 9,
+  "READ-PRIMARY | KEYED-BODY-EXTRACTION": 1,
+  "READ-PRIMARY-HELPER | PASS-THROUGH-MUST-EDIT": 5,
+  "READ-ZONES | KEYED": 1,
+  "READ-ZONES | PASS-THROUGH": 3,
+  "SCHEMA | VALIDATION": 1,
+  "SCHEMA-REGISTRY | VALIDATION": 2,
+  "SERIALIZE | BYTE-DELTA": 1,
+  "SERIALIZE | PASS-THROUGH": 2,
+  "SERIALIZE | VALIDATION": 1,
+  "SERIALIZE-ORDER | PASS-THROUGH": 1,
+  "VALIDATE | VALIDATION": 10
+ },
+ "counts_totals": {
+  "prod_selector_construct_sites": 263,
+  "prod_construct_positional": 239,
+  "prod_construct_kwarg": 24,
+  "prod_construct_twin_zones_kwarg": 6,
+  "test_selector_construct_sites": 309,
+  "test_construct_positional": 293,
+  "selector_typed_test_assert_sites": 163,
+  "selector_typed_test_assert_lines": 162,
+  "fatom_decoy_test_sites": 9,
+  "world_side_test_zone_call_sites": 106,
+  "comment_or_docstring_Selector_mentions": 23
+ },
+ "keyed_lane_candidates": [
+  {
+   "id": "L1",
+   "file": "MTG_bot/core/executor/selectors.py",
+   "lines": "451-457 + body 473-474",
+   "spec_lines": "428-430 + body 445",
+   "keys_on": "ONE_OF/REST mode AND primary zone.kind LIBRARY AND primary zone.position TOP; body then reads sel.zone.controller",
+   "rewrite": "mw = [z for z in sel.zones if z.kind is LIBRARY and z.position is TOP]; if mode in (ONE_OF,REST) and mw: players_for_ref(mw[0].controller, ctx)",
+   "corpus_population": 15,
+   "falsifier": "r19b window (See the Truth / Garruk's Harbinger / Waker of Waves / Transmogrify / ZNR REST-lane cards)"
+  },
+  {
+   "id": "L2",
+   "file": "MTG_bot/core/executor/selectors.py",
+   "lines": "614-618",
+   "spec_lines": "484",
+   "keys_on": "sel.zone.kind is PLAYER (designation re-point face)",
+   "rewrite": "any(z.kind is PLAYER for z in sel.zones) \u2014 BUT see L3: pairing with the singleton test decides whether PLAYER\u222aBATTLEFIELD re-points",
+   "corpus_population": 10,
+   "falsifier": "Brash Taunter echo re-point"
+  },
+  {
+   "id": "L3",
+   "file": "MTG_bot/core/executor/selectors.py",
+   "lines": "833-837 (reads 835-836)",
+   "spec_lines": "705",
+   "keys_on": "value.zone.kind is PLAYER and not value.zones (pure player selector)",
+   "rewrite": "len(value.zones) == 1 and value.zones[0].kind is PLAYER  (SINGLETON, not \u2203: \u2203-PLAYER re-opens the r21a Magmutt/Leafkin damage re-point bug)",
+   "corpus_population": 8,
+   "twin_risk_cards": [
+    "Chandra's Magmutt",
+    "Leafkin Avenger"
+   ],
+   "falsifier": "Magmutt/Leafkin printed-damage-target pack"
+  },
+  {
+   "id": "L4",
+   "file": "MTG_bot/core/executor/selectors.py",
+   "lines": "877-886 (reads 884-885)",
+   "spec_lines": "754-755",
+   "keys_on": "zone.kind GRAVEYARD AND zone.controller TARGET_PLAYER (Tormod's Crypt sweep pin)",
+   "rewrite": "gs = [z for z in value.zones if z.kind is GRAVEYARD and z.controller is TARGET_PLAYER]; if gs: ...  (one zone satisfying BOTH clauses)",
+   "corpus_population": 1,
+   "falsifier": "Tormod's Crypt full-graveyard sweep (r21b)"
+  },
+  {
+   "id": "L5",
+   "file": "MTG_bot/core/executor/verbs.py",
+   "lines": "246-250 (read 248)",
+   "spec_lines": "247-249",
+   "keys_on": "dest HAND AND sel.zone.kind LIBRARY AND non-partition AND referent None AND universal filter -> blind top-n DRAW",
+   "rewrite": "len(sel.zones) == 1 and sel.zones[0].kind is LIBRARY (or all(z.kind is LIBRARY ...)); \u2203-LIBRARY would let HAND\u222aLIBRARY take the draw lane",
+   "corpus_population": 0,
+   "falsifier": "firemaw over-draw probe (wave-1b) \u2014 lane is a GUARD, no corpus card hits it today"
+  },
+  {
+   "id": "L6-NEW",
+   "file": "MTG_bot/core/executor/legality.py",
+   "lines": "947-951 (read 950)",
+   "spec_lines": "NOT IN THE SPEC (gate A1 enumerated only the four)",
+   "keys_on": "CostDiscard.target.zone.kind is HAND AND IS_SOURCE filter -> the 'Discard this card:' activation window gate (ability_playable)",
+   "rewrite": "any(z.kind is HAND for z in part.target.zones)",
+   "corpus_population": 1,
+   "falsifier": "Waker of Waves s4 activation-from-hand legality"
+  }
+ ],
+ "corpus_twin_selectors": [
+  {
+   "set": "M21",
+   "card": "Basri's Aegis",
+   "mode": "ONE_OF",
+   "primary": "LIBRARY/YOU",
+   "extras": [
+    "GRAVEYARD/YOU"
+   ],
+   "referent": null
+  },
+  {
+   "set": "M21",
+   "card": "Chandra's Firemaw",
+   "mode": "ONE_OF",
+   "primary": "LIBRARY/YOU",
+   "extras": [
+    "GRAVEYARD/YOU"
+   ],
+   "referent": null
+  },
+  {
+   "set": "M21",
+   "card": "Chandra's Magmutt",
+   "mode": "TARGET",
+   "primary": "PLAYER/ANY",
+   "extras": [
+    "BATTLEFIELD/ANY"
+   ],
+   "referent": null
+  },
+  {
+   "set": "M21",
+   "card": "Garruk's Warsteed",
+   "mode": "ONE_OF",
+   "primary": "LIBRARY/YOU",
+   "extras": [
+    "GRAVEYARD/YOU"
+   ],
+   "referent": null
+  },
+  {
+   "set": "M21",
+   "card": "Leafkin Avenger",
+   "mode": "TARGET",
+   "primary": "PLAYER/ANY",
+   "extras": [
+    "BATTLEFIELD/ANY"
+   ],
+   "referent": null
+  },
+  {
+   "set": "M21",
+   "card": "Liliana's Scorn",
+   "mode": "ONE_OF",
+   "primary": "LIBRARY/YOU",
+   "extras": [
+    "GRAVEYARD/YOU"
+   ],
+   "referent": null
+  },
+  {
+   "set": "M21",
+   "card": "Necromentia",
+   "mode": "CHOOSE",
+   "primary": "GRAVEYARD/TARGET_PLAYER",
+   "extras": [
+    "HAND/TARGET_PLAYER",
+    "LIBRARY/TARGET_PLAYER"
+   ],
+   "referent": null
+  },
+  {
+   "set": "M21",
+   "card": "Sanctum of All",
+   "mode": "ONE_OF",
+   "primary": "LIBRARY/YOU",
+   "extras": [
+    "GRAVEYARD/YOU"
+   ],
+   "referent": null
+  },
+  {
+   "set": "M21",
+   "card": "Teferi's Wavecaster",
+   "mode": "ONE_OF",
+   "primary": "LIBRARY/YOU",
+   "extras": [
+    "GRAVEYARD/YOU"
+   ],
+   "referent": null
+  },
+  {
+   "set": "M21",
+   "card": "Unsubstantiate",
+   "mode": "TARGET",
+   "primary": "STACK/ANY",
+   "extras": [
+    "BATTLEFIELD/ANY"
+   ],
+   "referent": null
+  }
+ ],
+ "neutral_count": 48,
+ "corpus": {
+  "selectors_total": 549,
+  "selectors_zones_nonempty": 10,
+  "twin_cards": [
+   "Basri's Aegis [M21]",
+   "Chandra's Firemaw [M21]",
+   "Chandra's Magmutt [M21]",
+   "Garruk's Warsteed [M21]",
+   "Leafkin Avenger [M21]",
+   "Liliana's Scorn [M21]",
+   "Necromentia [M21]",
+   "Sanctum of All [M21]",
+   "Teferi's Wavecaster [M21]",
+   "Unsubstantiate [M21]"
+  ],
+  "neutral_any_zone_empty_zones": 48,
+  "any_kind_with_zones": 0,
+  "cards_with_selectors": {
+   "M21": 219,
+   "ZNR": 108,
+   "total": 327
+  },
+  "golden_files_M21": 305,
+  "goldens_byte_delta_expected": 219,
+  "byte_delta_note": "zone is a NON-omitted serialized key and zones is omitted when empty; deleting the scalar and always emitting zones changes EVERY Selector dict, so all 219 M21 goldens of cards carrying a Selector re-bake (the 86 selector-free goldens stay byte-identical), and every stale golden FAILS from_dict loudly on the unknown 'zone' key."
+ },
+ "test_assert_sites": [
+  {
+   "file": "MTG_bot/core/compiler/test_compiler.py",
+   "line": 1540,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "selector",
+   "snippet": "selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_compiler.py",
+   "line": 1541,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "selector",
+   "snippet": "selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_compiler_c3.py",
+   "line": 116,
+   "attr": "zone",
+   "kind": "TEST-ASSERT-FATOM-DECOY",
+   "behavior_class": "OUT-OF-SCOPE",
+   "recv": "pred",
+   "snippet": "pred.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_compiler_c3.py",
+   "line": 200,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_promotion_predicate.py",
+   "line": 127,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "selector",
+   "snippet": "selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_promotion_predicate.py",
+   "line": 127,
+   "attr": "zones",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "selector",
+   "snippet": "selector.zones"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_promotion_predicate.py",
+   "line": 283,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b10.py",
+   "line": 331,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 953,
+   "attr": "zone",
+   "kind": "TEST-ASSERT-FATOM-DECOY",
+   "behavior_class": "OUT-OF-SCOPE",
+   "recv": "entered",
+   "snippet": "entered.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 957,
+   "attr": "zone",
+   "kind": "TEST-ASSERT-FATOM-DECOY",
+   "behavior_class": "OUT-OF-SCOPE",
+   "recv": "cast",
+   "snippet": "cast.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1030,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1051,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1078,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1112,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "selector",
+   "snippet": "selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1191,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1218,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "selector",
+   "snippet": "selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1316,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "right.selector",
+   "snippet": "right.selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1414,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1484,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1519,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1573,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "right.selector",
+   "snippet": "right.selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1592,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "_selector()",
+   "snippet": "_selector(sacrifice, \"target\").zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1607,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "_selector()",
+   "snippet": "_selector(discard, \"cards\").zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1641,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "_selector()",
+   "snippet": "_selector(discard, \"cards\").zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1669,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1683,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "qcount.selector",
+   "snippet": "qcount.selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1722,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1764,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1779,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1816,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1857,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1875,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1876,
+   "attr": "zones",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zones"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1905,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1922,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 1973,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 2014,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 2088,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2a.py",
+   "line": 2089,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2b.py",
+   "line": 1709,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2b.py",
+   "line": 1788,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2b.py",
+   "line": 1789,
+   "attr": "zones",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zones"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2b.py",
+   "line": 1807,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "move_sel",
+   "snippet": "move_sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2b.py",
+   "line": 1872,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2b.py",
+   "line": 2147,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2b.py",
+   "line": 2245,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "selector",
+   "snippet": "selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2b.py",
+   "line": 2296,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2b.py",
+   "line": 2482,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b2b.py",
+   "line": 2507,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b3.py",
+   "line": 261,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b3.py",
+   "line": 262,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b3.py",
+   "line": 445,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b3.py",
+   "line": 446,
+   "attr": "zones",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zones"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b3.py",
+   "line": 447,
+   "attr": "zones",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zones"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b3.py",
+   "line": 465,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b3.py",
+   "line": 466,
+   "attr": "zones",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zones"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b3.py",
+   "line": 467,
+   "attr": "zones",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zones"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b3.py",
+   "line": 485,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "amount.selector",
+   "snippet": "amount.selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b3.py",
+   "line": 486,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "amount.selector",
+   "snippet": "amount.selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b3.py",
+   "line": 566,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b3.py",
+   "line": 568,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "any_target",
+   "snippet": "any_target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b3.py",
+   "line": 597,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b3.py",
+   "line": 598,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 647,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 648,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 667,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 668,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 731,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 732,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 750,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 751,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 780,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 792,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 793,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 852,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "referent",
+   "snippet": "referent.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 853,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "referent",
+   "snippet": "referent.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 889,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 890,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 924,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 925,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 948,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "selector",
+   "snippet": "selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 949,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "selector",
+   "snippet": "selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 997,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "referent",
+   "snippet": "referent.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 998,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "referent",
+   "snippet": "referent.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1120,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "source",
+   "snippet": "source.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1121,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "source",
+   "snippet": "source.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1122,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "source",
+   "snippet": "source.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1145,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "discard_target",
+   "snippet": "discard_target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1146,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "discard_target",
+   "snippet": "discard_target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1153,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "source",
+   "snippet": "source.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1154,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "source",
+   "snippet": "source.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1196,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1197,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1198,
+   "attr": "zones",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zones"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1199,
+   "attr": "zones",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zones"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1200,
+   "attr": "zones",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zones"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1254,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1255,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1310,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1333,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "pool",
+   "snippet": "pool.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1334,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "pool",
+   "snippet": "pool.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1355,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1392,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b4.py",
+   "line": 1393,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 910,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 911,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 946,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 947,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 1001,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 1065,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 1350,
+   "attr": "zone",
+   "kind": "TEST-ASSERT-FATOM-DECOY",
+   "behavior_class": "OUT-OF-SCOPE",
+   "recv": "cond",
+   "snippet": "cond.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 1351,
+   "attr": "zone",
+   "kind": "TEST-ASSERT-FATOM-DECOY",
+   "behavior_class": "OUT-OF-SCOPE",
+   "recv": "cond",
+   "snippet": "cond.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 1352,
+   "attr": "zone",
+   "kind": "TEST-ASSERT-FATOM-DECOY",
+   "behavior_class": "OUT-OF-SCOPE",
+   "recv": "cond",
+   "snippet": "cond.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 1527,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 1528,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 1556,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 1587,
+   "attr": "zone",
+   "kind": "TEST-ASSERT-FATOM-DECOY",
+   "behavior_class": "OUT-OF-SCOPE",
+   "recv": "cond",
+   "snippet": "cond.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 1588,
+   "attr": "zone",
+   "kind": "TEST-ASSERT-FATOM-DECOY",
+   "behavior_class": "OUT-OF-SCOPE",
+   "recv": "cond",
+   "snippet": "cond.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 1589,
+   "attr": "zone",
+   "kind": "TEST-ASSERT-FATOM-DECOY",
+   "behavior_class": "OUT-OF-SCOPE",
+   "recv": "cond",
+   "snippet": "cond.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 1735,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cd.target",
+   "snippet": "cd.target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5a.py",
+   "line": 1736,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cd.target",
+   "snippet": "cd.target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5b.py",
+   "line": 895,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5b.py",
+   "line": 1168,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5b.py",
+   "line": 1182,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5b.py",
+   "line": 1214,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5b.py",
+   "line": 1216,
+   "attr": "zones",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zones"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5b.py",
+   "line": 1302,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5b.py",
+   "line": 1525,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "controller_ref",
+   "snippet": "controller_ref.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5b.py",
+   "line": 1526,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "controller_ref",
+   "snippet": "controller_ref.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5b.py",
+   "line": 1619,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5b.py",
+   "line": 1620,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5b.py",
+   "line": 2017,
+   "attr": "zones",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zones"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5b.py",
+   "line": 2044,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5b.py",
+   "line": 2411,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "controller_sel",
+   "snippet": "controller_sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5b.py",
+   "line": 2412,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "controller_sel",
+   "snippet": "controller_sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1057,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1058,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1171,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1172,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1191,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1192,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1263,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "amount.right.selector",
+   "snippet": "amount.right.selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1291,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1292,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1301,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1302,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1303,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1314,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1315,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1331,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "source",
+   "snippet": "source.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1332,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "source",
+   "snippet": "source.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1354,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1355,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1459,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "Subscript",
+   "snippet": "_pairs(atom)[\"target\"].zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1501,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1513,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "Subscript",
+   "snippet": "_pairs(atom)[\"target\"].zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1528,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1529,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1545,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1546,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "cards",
+   "snippet": "cards.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1562,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1576,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1708,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1782,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "hand",
+   "snippet": "hand.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b5c.py",
+   "line": 1845,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "target",
+   "snippet": "target.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b8.py",
+   "line": 423,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "q.selector",
+   "snippet": "q.selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b8.py",
+   "line": 447,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "_party_count().selector",
+   "snippet": "_party_count().selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/compiler/test_templates_b9.py",
+   "line": 493,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "selector",
+   "snippet": "selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/test_ability_tree.py",
+   "line": 1625,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "power.selector",
+   "snippet": "power.selector.zone"
+  },
+  {
+   "file": "MTG_bot/core/test_ability_tree_t3.py",
+   "line": 912,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "src",
+   "snippet": "src.zone"
+  },
+  {
+   "file": "MTG_bot/core/test_geyser_any_target_pins.py",
+   "line": 179,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  },
+  {
+   "file": "MTG_bot/core/test_geyser_any_target_pins.py",
+   "line": 349,
+   "attr": "zone",
+   "kind": "TEST-ASSERT",
+   "behavior_class": "PASS-THROUGH-RE-PIN",
+   "recv": "sel",
+   "snippet": "sel.zone"
+  }
+ ],
+ "test_world_side_calls_by_file": {
+  "MTG_bot/core/compiler/test_templates_b10.py": 1,
+  "MTG_bot/core/compiler/test_templates_b9.py": 10,
+  "MTG_bot/core/test_executor_binding.py": 7,
+  "MTG_bot/core/test_executor_combat.py": 1,
+  "MTG_bot/core/test_executor_dangling_referent.py": 5,
+  "MTG_bot/core/test_executor_designation.py": 1,
+  "MTG_bot/core/test_executor_games.py": 12,
+  "MTG_bot/core/test_executor_kofn.py": 8,
+  "MTG_bot/core/test_executor_library.py": 17,
+  "MTG_bot/core/test_executor_p1a_move.py": 3,
+  "MTG_bot/core/test_executor_r18a.py": 4,
+  "MTG_bot/core/test_executor_r19b.py": 12,
+  "MTG_bot/core/test_executor_r19c.py": 1,
+  "MTG_bot/core/test_executor_r20a.py": 4,
+  "MTG_bot/core/test_executor_r20c.py": 2,
+  "MTG_bot/core/test_executor_r25.py": 1,
+  "MTG_bot/core/test_executor_verbs.py": 11,
+  "MTG_bot/core/test_state.py": 6
+ },
+ "unclassified_sites": [],
+ "out_of_scope_justification": {
+  "runtime_world_side": "PlayerState.zone(kind)/.zones dict (state.py, games.py, events.py, stack.py, verbs.py, legality.py, selectors.enumerate_zone, run_scenarios.py, ab_duel.py, packrec*.py) \u2014 the RUNTIME world container, a different type from the IR Zone/Selector.",
+  "FAtom_zone_decoy": "FAtom carries its OWN `zone: Zone | None` field (ability_tree.py:1476-1478, quantity.py:1178/1180/1326-1369 ZONE_COUNT_GE / ENTERED_THIS_TURN_FROM / CAST_THIS_TURN_FROM, + 9 test asserts). R0 must NOT touch it; a global .zone->.zones rename sweep would break it. LOUD warning for the implementer.",
+  "comment_mentions": "23 textual `Selector(` hits sit in module docstrings/comments (listed by file:line in the completeness ledger) \u2014 no code.",
+  "attic": "attic/mtg_rule_engine.py card.zone: a legacy engine with a different Zone enum; dead code."
+ }
+}
