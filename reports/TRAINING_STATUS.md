@@ -9,3 +9,8 @@
   numbers: ZNR PC-1 0.2411 · PC-2 0.4669 (339/726) · packs 409/409 · core 2672+36 · deckable 267
   open owner questions: (1) MDFC face playability in this world (set-rule absent from card texts — /106); (2) R1 capacity window still unused (engine never went down)
   pending lanes: sibling ZND-3 party LIVE (ability_tree dirty); compiler fold-gate proposals /112 await grammar-surface owner; ZND-2f2 pay-3-life pair queued
+- updated: 2026-10-19 07:0x (end of overnight autonomous run — full narrative KNOWLEDGE/2026-10-19/118):
+  HEADLINE-1: fuzz FINAL: ZNR 2000 + M21 2000 games, ZERO crashes both eras (baseline 7.5%/1.4%); all classes pinned (412/412 packs, core+tools 2953+36st; 1 fail + 1 collect-error = sibling B9 WIP)
+  HEADLINE-2: FIRST GENERALIZATION BASELINE: bsh_S3a_s3_best (frozen M21-era) vs teacher on ZNR 40g: 18-22, 0 crashes, 100% decisive -> reports/shadow_ZNR_bshS3a3_vs_teacher_2026-10-19.json
+  OWNER QUESTIONS (blockers): (1) MDFC back-face playability = set-rule in this world? (/106; encoded, never playable until answered) (2) R1 capacity window still unused
+  sibling waves live: B9/party (tree shows PC-1 0.3688/PC-2 0.5413 pre-commit); /112+/116 compiler-lane proposals handed off (Beyeen one already landed via their B9)
