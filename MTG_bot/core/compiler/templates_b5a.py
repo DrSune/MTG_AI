@@ -993,10 +993,24 @@ def _build_equip(m: re.Match[str]) -> SentenceOutcome:
     )
     return AbilityOutcome(
         ability=ActivatedAbility(
-            cost=Cost(parts=(CostManaGeneric(amount=QConst(int(m.group(1)))),)),
+            cost=_parse_equip_cost(m.group("cost")),
             effect=attach,
         )
     )
+
+
+def _parse_equip_cost(raw: str) -> Cost:
+    """ZND-4 T1: parse the Equip activation mana ({1}, {2}{R}, {2}{G}, …)
+    with the compiler's shared mana parser. Lazy import for the same
+    reason as templates_b6._parse_kicker_cost (build() runs at compile
+    time only); the returned node for "{1}" is byte-identical to the old
+    hand-built CostManaGeneric(QConst(1)) — M21 tree diff 0."""
+    from MTG_bot.core.compiler.compiler import parse_mana_cost
+
+    cost = parse_mana_cost(raw)
+    if cost is None:
+        raise ValueError(f"_parse_equip_cost: unparseable equip cost {raw!r}")
+    return cost
 
 
 def _build_equipped_pt(m: re.Match[str]) -> SentenceOutcome:
@@ -1855,10 +1869,16 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B5a-equip",
-        name="equip {N} activated ability",
+        name="equip <mana> activated ability",
         bucket=_BUCKET,
+        # ZND-4 T1 (spec /115): single-colorless backref widened to a mana-
+        # symbol sequence ("Equip {2}{R} ({2}{R}: …)"). M21's bare
+        # "Equip {1} ({1}: …)" still matches with an identical Cost tree
+        # (parse_mana_cost("{1}") == the old hand-built generic node) —
+        # PC-4 must stay 0-diff (audit-named carrier widen).
         pattern=re.compile(
-            r"^Equip \{(\d+)\} \(\{\1\}: Attach to target creature you "
+            r"^Equip (?P<cost>(?:\{[0-9WUBRGT]+\})+) "
+            r"\((?P=cost): Attach to target creature you "
             r"control\. Equip only as a sorcery\.\)$"
         ),
         priority=_PRIORITY,

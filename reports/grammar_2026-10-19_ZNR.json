@@ -1,7 +1,7 @@
 {
   "set": "ZNR",
-  "generated": "2026-10-19T04:57:02+02:00",
-  "git_head": "65af59ca1d4ecfb023633e1654d0a7e687f51c0e",
+  "generated": "2026-10-19T07:06:20+02:00",
+  "git_head": "42af6a3cc8a65558cffa10483302232fb8e1c810",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -54,18 +54,18 @@
   "pcs": {
     "PC-1": {
       "name": "card_coverage",
-      "cards_zero_unparsed": 84,
+      "cards_zero_unparsed": 104,
       "denominator": 282,
-      "value": 0.297872,
+      "value": 0.368794,
       "target": ">=0.90",
       "stretch": ">=0.95",
       "pass": false
     },
     "PC-2": {
       "name": "sentence_coverage",
-      "sentences_matched": 373,
+      "sentences_matched": 393,
       "denominator": 726,
-      "value": 0.513774,
+      "value": 0.541322,
       "target": ">=0.95",
       "stretch": ">=0.98",
       "pass": false
@@ -87,15 +87,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.278,
+      "value": 0.286,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.277,
-        0.278,
-        0.277
+        0.286,
+        0.284,
+        0.284
       ]
     },
     "PC-6": {
@@ -134,36 +134,36 @@
         ]
       },
       "max_verb_share": {
-        "value": 0.162338,
+        "value": 0.154286,
         "target": "<0.20",
         "pass": true
       },
       "pass": false,
-      "atom_total": 154,
+      "atom_total": 175,
       "max_share_verb": "MODIFY_PT",
       "verb_histogram": {
         "ADD_MANA": 22,
-        "ATTACH": 11,
+        "ATTACH": 13,
         "CAST": 1,
         "CHOOSE": 1,
-        "COUNTER_SPELL": 1,
+        "COUNTER_SPELL": 2,
         "CREATE_TOKEN": 4,
-        "DEAL_DAMAGE": 7,
-        "DESTROY": 6,
+        "DEAL_DAMAGE": 8,
+        "DESTROY": 7,
         "DISCARD": 1,
-        "DRAW": 13,
+        "DRAW": 15,
         "GAIN_CONTROL": 1,
-        "GAIN_LIFE": 6,
-        "GRANT_ABILITY": 9,
+        "GAIN_LIFE": 8,
+        "GRANT_ABILITY": 13,
         "GRANT_TYPE": 3,
         "LOOK_AT": 1,
-        "LOSE_LIFE": 3,
-        "MODIFY_PT": 25,
-        "MOVE_ZONE": 17,
-        "PREVENT_EFFECT": 3,
-        "PUT_COUNTER": 10,
+        "LOSE_LIFE": 4,
+        "MODIFY_PT": 27,
+        "MOVE_ZONE": 18,
+        "PREVENT_EFFECT": 4,
+        "PUT_COUNTER": 12,
         "REVEAL": 2,
-        "SCRY": 3,
+        "SCRY": 4,
         "TAP": 3,
         "UNTAP": 1
       }
@@ -177,9 +177,9 @@
     },
     "PC-8": {
       "name": "targetable_card_fraction",
-      "targetable_entries": 36,
+      "targetable_entries": 42,
       "denominator": 282,
-      "value": 0.12766,
+      "value": 0.148936,
       "target": ">=0.40",
       "stretch": ">=0.50",
       "pass": false
@@ -348,12 +348,6 @@
       "bucket_hint": "activated"
     },
     {
-      "oracle_id": "0bb73c07-0220-4ba9-8d85-3c357c223833",
-      "name": "Kabira Takedown // Kabira Plateau",
-      "sentence": "Kabira Takedown deals damage equal to the number of creatures you control to target creature or planeswalker.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "0bf299da-1854-4153-baea-3cee2eb01ee8",
       "name": "Lithoform Engine",
       "sentence": "{2}, {T}: Copy target activated or triggered ability you control.",
@@ -504,12 +498,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "1b6e0d65-202e-4fd3-861e-8d2eaffe3269",
-      "name": "Expedition Skulker",
-      "sentence": "This creature has deathtouch as long as you control another Rogue.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "1b8c4cbe-b2fc-4d52-9382-1e03c40003be",
       "name": "Nissa's Zendikon",
       "sentence": "Enchant land",
@@ -570,12 +558,6 @@
       "bucket_hint": "triggered"
     },
     {
-      "oracle_id": "2e7b4df3-7c36-469f-8db8-b3081a2c5691",
-      "name": "Scavenged Blade",
-      "sentence": "Equip {2}{R} ({2}{R}: Attach to target creature you control. Equip only as a sorcery.)",
-      "bucket_hint": "keyword"
-    },
-    {
       "oracle_id": "301d36e7-06ff-48ed-a7e8-c7d3c72e1e2f",
       "name": "Skyclave Squid",
       "sentence": "Landfall — Whenever a land you control enters, this creature can attack this turn as though it didn't have defender.",
@@ -612,12 +594,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "3407fe41-fdd3-4119-8f70-4bc4590a379f",
-      "name": "Negate",
-      "sentence": "Counter target noncreature spell.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "34320ebf-da97-44a4-bbeb-a9da06548289",
       "name": "Blackbloom Rogue // Blackbloom Bog",
       "sentence": "This creature gets +3/+0 as long as an opponent has eight or more cards in their graveyard.",
@@ -640,12 +616,6 @@
       "name": "Roiling Vortex",
       "sentence": "{R}: Your opponents can't gain life this turn.",
       "bucket_hint": "activated"
-    },
-    {
-      "oracle_id": "362fc643-ab76-4160-a73e-73397464db40",
-      "name": "Deliberate",
-      "sentence": "Scry 2, then draw a card.",
-      "bucket_hint": "keyword"
     },
     {
       "oracle_id": "37783ce6-af58-4ef6-8ab4-587079970307",
@@ -756,12 +726,6 @@
       "bucket_hint": "triggered"
     },
     {
-      "oracle_id": "3eabd27c-bd65-479a-9743-e90e4273c016",
-      "name": "Sneaking Guide",
-      "sentence": "{2}, {T}: Target creature with power 2 or less can't be blocked this turn.",
-      "bucket_hint": "activated"
-    },
-    {
       "oracle_id": "3f599e15-cbc5-4170-b6b4-efd16aa222ac",
       "name": "Cragplate Baloth",
       "sentence": "Hexproof, haste",
@@ -814,12 +778,6 @@
       "name": "Base Camp",
       "sentence": "Spend this mana only to cast a Cleric, Rogue, Warrior, or Wizard spell or to activate an ability of a Cleric, Rogue, Warrior, or Wizard.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "42aa599f-de2f-411a-8cf3-f5cfb40568b3",
-      "name": "Angelheart Protector",
-      "sentence": "When this creature enters, target creature you control gains indestructible until end of turn.",
-      "bucket_hint": "triggered"
     },
     {
       "oracle_id": "4728e320-d29b-4019-8ab5-e45319c77c40",
@@ -951,12 +909,6 @@
       "oracle_id": "5825997b-10d7-4a36-972c-a80ddd90b8ed",
       "name": "Feed the Swarm",
       "sentence": "You lose life equal to that permanent's mana value.",
-      "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "5e316864-d55c-496f-8f46-773567896864",
-      "name": "Broken Wings",
-      "sentence": "Destroy target artifact, enchantment, or creature with flying.",
       "bucket_hint": "spell-effect"
     },
     {
@@ -1098,22 +1050,10 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "68fb8f21-4403-4829-8826-f2418664197e",
-      "name": "Cliffhaven Kitesail",
-      "sentence": "Equipped creature has flying.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "6bc668f4-8fc7-4aaf-891b-277d8328b376",
       "name": "Umara Wizard // Umara Skyfalls",
       "sentence": "Whenever you cast an instant, sorcery, or Wizard spell, this creature gains flying until end of turn.",
       "bucket_hint": "triggered"
-    },
-    {
-      "oracle_id": "6d2cf8b4-1468-4e00-94ca-65ef0c564b09",
-      "name": "Skyclave Pick-Axe",
-      "sentence": "Equip {2}{G} ({2}{G}: Attach to target creature you control. Equip only as a sorcery.)",
-      "bucket_hint": "keyword"
     },
     {
       "oracle_id": "6d5dc34b-3eea-4b77-8db7-94bc30b14c4c",
@@ -1290,12 +1230,6 @@
       "bucket_hint": "triggered"
     },
     {
-      "oracle_id": "7ac49129-7da2-4729-b48c-b6da279c212e",
-      "name": "Chilling Trap",
-      "sentence": "If you control a Wizard, draw a card.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "7accdc91-3140-4096-a71f-0cee38d29e96",
       "name": "Master of Winds",
       "sentence": "When this creature enters, draw two cards, then discard a card.",
@@ -1374,18 +1308,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "814b87fe-2a75-4ff2-8637-7e69e3fb285b",
-      "name": "Marauding Blight-Priest",
-      "sentence": "Whenever you gain life, each opponent loses 1 life.",
-      "bucket_hint": "triggered"
-    },
-    {
-      "oracle_id": "8371dee1-5f4a-410a-8b7c-e4110cdbe9bd",
-      "name": "Dauntless Survivor",
-      "sentence": "When this creature enters, put a +1/+1 counter on target creature.",
-      "bucket_hint": "triggered"
-    },
-    {
       "oracle_id": "83865eee-709a-4a34-94f1-9b818f31323f",
       "name": "Springmantle Cleric",
       "sentence": "This creature enters with a +1/+1 counter on it for each color of mana spent to cast it.",
@@ -1450,12 +1372,6 @@
       "name": "Nahiri's Binding",
       "sentence": "Enchanted permanent can't attack or block, and its activated abilities can't be activated.",
       "bucket_hint": "spell-effect"
-    },
-    {
-      "oracle_id": "90b16d52-4cf4-4788-a0d7-264d1bcd17f0",
-      "name": "Turntimber Ascetic",
-      "sentence": "When this creature enters, you gain 3 life.",
-      "bucket_hint": "triggered"
     },
     {
       "oracle_id": "93c6554f-096d-4556-81ca-e87e29265887",
@@ -1698,12 +1614,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "b03de49d-246f-44e2-9487-9e4e43ec7be4",
-      "name": "Beyeen Veil // Beyeen Coast",
-      "sentence": "Creatures your opponents control get -2/-0 until end of turn.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "b0fd6889-20b4-439b-aa97-2e90aca1675a",
       "name": "Pelakka Predation // Pelakka Caverns",
       "sentence": "You choose a card from it with mana value 3 or greater.",
@@ -1890,12 +1800,6 @@
       "bucket_hint": "triggered"
     },
     {
-      "oracle_id": "ccaeabe1-42fa-4f29-bf80-d9b73498eec6",
-      "name": "Scion of the Swarm",
-      "sentence": "Whenever you gain life, put a +1/+1 counter on this creature.",
-      "bucket_hint": "triggered"
-    },
-    {
       "oracle_id": "cd133d30-51ff-4114-a7d7-029345f0f0d7",
       "name": "Omnath, Locus of Creation",
       "sentence": "If it's the second time, add {R}{G}{W}{U}.",
@@ -1962,12 +1866,6 @@
       "bucket_hint": "spell-effect"
     },
     {
-      "oracle_id": "d2075f58-b0e9-4e85-b7e6-0523a27a1d5b",
-      "name": "Bala Ged Recovery // Bala Ged Sanctuary",
-      "sentence": "Return target card from your graveyard to your hand.",
-      "bucket_hint": "spell-effect"
-    },
-    {
       "oracle_id": "d2d5f9b8-7caf-42c8-934b-3f4b81468914",
       "name": "Skyclave Plunder",
       "sentence": "Put three of those cards into your hand and the rest on the bottom of your library in a random order.",
@@ -1984,12 +1882,6 @@
       "name": "Seafloor Stalker",
       "sentence": "{4}{U}: This creature gets +1/+0 until end of turn and can't be blocked this turn.",
       "bucket_hint": "activated"
-    },
-    {
-      "oracle_id": "d432857f-cff6-421e-949b-ce2f65854e1d",
-      "name": "Expedition Champion",
-      "sentence": "This creature gets +2/+0 as long as you control another Warrior.",
-      "bucket_hint": "spell-effect"
     },
     {
       "oracle_id": "d4bbdd0c-e578-49ed-b2f7-b1decb04ee87",
@@ -2094,12 +1986,6 @@
       "bucket_hint": "static"
     },
     {
-      "oracle_id": "da9e3910-9a1c-43a9-9138-ca971b2bccae",
-      "name": "Skyclave Cleric // Skyclave Basilica",
-      "sentence": "When this creature enters, you gain 2 life.",
-      "bucket_hint": "triggered"
-    },
-    {
       "oracle_id": "dc665ddc-4326-4860-94ba-c40ced8b0af6",
       "name": "Dauntless Unity",
       "sentence": "If this spell was kicked, those creatures get +2/+1 until end of turn instead.",
@@ -2182,12 +2068,6 @@
       "name": "Zulaport Duelist",
       "sentence": "When this creature enters, up to one target creature gets -2/-0 until end of turn.",
       "bucket_hint": "triggered"
-    },
-    {
-      "oracle_id": "e8fbdf4b-ef64-4b82-b67f-ae5568772256",
-      "name": "Expedition Healer",
-      "sentence": "This creature has lifelink as long as you control another Cleric.",
-      "bucket_hint": "spell-effect"
     },
     {
       "oracle_id": "e95a9488-3f86-4598-9c6e-6b1b959f8570",
@@ -2334,7 +2214,7 @@
       "bucket_hint": "spell-effect"
     }
   ],
-  "unparsed_count": 353,
+  "unparsed_count": 333,
   "shape_gaps": [
     {
       "card": "379ed4ec-8f2e-448b-9ed2-a3181e2f877e",

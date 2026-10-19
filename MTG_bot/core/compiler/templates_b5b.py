@@ -638,6 +638,16 @@ def _build_return_cards_hand(m: re.Match[str]) -> SentenceOutcome:
         cards = _target_permanent_card_your_graveyard()
     elif card_desc == "up to two target creature cards":
         cards = _up_to_two_target_creature_cards_your_graveyard()
+    elif card_desc == "target card":
+        # ZND-4 T5 (Bala Ged Recovery, spec /115): ANY card from YOUR
+        # graveyard — the unfiltered-TARGET idiom of
+        # templates_b5a._build_counter_spell (empty FAnd matches all).
+        cards = Selector(
+            QConst(1),
+            SelectorMode.TARGET,
+            FAnd(children=()),
+            Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
+        )
     else:
         raise ValueError(f"unexpected return-cards-hand description: {card_desc!r}")
     atom = Atom(
@@ -2934,7 +2944,7 @@ TEMPLATES: tuple[Template, ...] = (
         name="return <cards> from graveyard to hand",
         bucket=_BUCKET,
         pattern=re.compile(
-            r"^Return (target permanent card|up to two target creature cards) "
+            r"^Return (target permanent card|target card|up to two target creature cards) "
             r"from your graveyard to your hand\.$"
         ),
         priority=_PRIORITY,
