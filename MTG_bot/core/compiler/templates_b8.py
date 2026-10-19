@@ -33,10 +33,10 @@ Twenty-three templates carry the 35 register rows:
   is IS_SOURCE, the printed name is only the gate twin). §11 golden: a
   granted class MOVES other cards' party counts — the restricted card's
   encoding stays untouched (board-separation law).
-* **T6 (1 row)** — Acquisitions Expert: REVEAL whose count is
-  QPartyCount. Lane check (spec /107 T6): the REVEAL executor resolves a
-  Quantity count through the generic ``amount()`` path — LANDED, not
-  deferred.
+* **T6 (0 rows)** — WITHDRAWN post-gate (see ZND-3f): the reveal-count
+  template compiled but executes as a library look (FM2) — a build-only
+  test hid it; the row stays UNPARSED until the REVEAL zone-role lane
+  lands. Compilation is not representation (Gate law).
 
 FM6 SHARED-TAIL LAW: none of these tails is a ``templates_b6._TAIL_
 BUILDERS`` key (every one is quantity-bearing), so each effect is built
@@ -55,15 +55,25 @@ Gap ledger (ZND-3 law: these stay UNPARSED, no silent partials):
   creature in your party and has menace." (Ravager's Mace) — static-layer
   values over a mutable census need the layer re-resolution lane
   (layers.py:740–741); encoding early would mint live wrong-power boards.
+* **ZND-3f** "When this creature enters, target opponent reveals a number
+  of cards from their hand equal to the number of creatures in your
+  party." (Acquisitions Expert) — the REVEAL executor has NO zone role:
+  ``Verb.REVEAL`` falls into ``_look`` (verbs.py:1102–1114) reading
+  ZONE_LIBRARY, so a from-hand reveal EXECUTES as a library peek — a
+  materially different game effect. The count lane works (generic
+  ``amount()``); the missing piece is a HAND-zone role on REVEAL
+  (engine lane). T6's template was WITHDRAWN (gate FM2): compiled-but-
+  misexecuting rows do not count.
+* **ZND-3g** "spell with mana value 4 or less" free-cast (Coveted Prize,
+  T3): the CHOOSE-from-hand ask gates CMC_LE≤4 over HAND — lands sit in
+  hand at CMC 0 and ride the candidate menu (gate FM6). No SPELL-kind
+  FAtomPred exists at all: a §8/§10 tokenizer gap (phantom candidates),
+  NOT a one-line filter — new predicate before the next set round.
 
 Lossy notes (C11 class, verbatim per house convention):
 
 * Nimble Trapfinder "to a player" — CombatDamageEvent exposes no
   recipient role; same documented drop as the B2b Jeskai Elder lane.
-* Acquisitions Expert reveals cards FROM THE HAND; the REVEAL role table
-  has no zone role (the parsed "Target opponent reveals their hand."
-  lane carries the same invisibility), so the hand scope rides the
-  TARGET_PLAYER controller and the zone is not encoded.
 * Coveted Prize: "a spell with mana value 4 or less" is encoded
   CMC_LE≤4 on the CHOOSE-from-hand selector; whether the CAST resolves
   stays the open OptionalEffect decision (C16).
@@ -202,7 +212,10 @@ def _creatures_you_control() -> Selector:
     )
 
 
-def _target_creature_you_control() -> Selector:
+def _target_creature_on_battlefield() -> Selector:
+    """Plain "target creature" — controller ANY is CR-correct (a party
+    spell may target any creature on the battlefield); named for what it
+    pins, not for the chooser (gate FM7 rename)."""
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
@@ -377,7 +390,7 @@ def _build_pt_target_per_party(m: re.Match[str]) -> SentenceOutcome:
                 verb=Verb.MODIFY_PT,
                 args=AtomArgs(
                     pairs=(
-                        ("target", _target_creature_you_control()),
+                        ("target", _target_creature_on_battlefield()),
                         ("power", PtDelta(PtDirection.INCREASE, _scaled(1))),
                         ("toughness", PtDelta(PtDirection.INCREASE, _scaled(1))),
                         ("duration", DurationEot()),
@@ -505,7 +518,7 @@ def _build_full_pt_flying(m: re.Match[str]) -> SentenceOutcome:
     """``...if you have a full party, target creature gets +1/+1 and gains
     flying until end of turn.`` — same combat+condition head; effect Seq
     reuses the ONE target selector across both steps (b5b:960 shape)."""
-    target = _target_creature_you_control()
+    target = _target_creature_on_battlefield()
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=_combat_event(),
@@ -839,7 +852,7 @@ def _build_four_and_x_controller(m: re.Match[str]) -> SentenceOutcome:
                     verb=Verb.DEAL_DAMAGE,
                     args=AtomArgs(
                         pairs=(
-                            ("target", _target_creature_you_control()),
+                            ("target", _target_creature_on_battlefield()),
                             ("amount", QConst(4)),
                         )
                     ),
@@ -890,7 +903,7 @@ def _build_look_top_x_plus_three(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
-# T5 — class signature (3 rows) + T6 — party reveal (1 row)
+# T5 — class signature (3 rows)
 # ---------------------------------------------------------------------------
 
 
@@ -931,31 +944,6 @@ def _build_class_signature(m: re.Match[str]) -> SentenceOutcome:
                     )
                 ),
             )
-        )
-    )
-
-
-def _build_reveal_party(m: re.Match[str]) -> SentenceOutcome:
-    """``When this creature enters, target opponent reveals a number of
-    cards from their hand equal to the number of creatures in your
-    party.`` — the parsed reveal-hand lane (b5b:993) with the count role
-    carrying QPartyCount instead of QUnbounded: the REVEAL executor
-    resolves a Quantity count through the generic amount() path (spec
-    /107 T6 lane check — LANDED). Lossy: "from their hand" — REVEAL has
-    no zone role (frozen recorded-no-op convention)."""
-    return AbilityOutcome(
-        ability=TriggeredAbility(
-            event=_etb_event(),
-            condition=None,
-            effect=Atom(
-                verb=Verb.REVEAL,
-                args=AtomArgs(
-                    pairs=(
-                        ("controller", ControllerRef.TARGET_PLAYER),
-                        ("count", _party_count()),
-                    )
-                ),
-            ),
         )
     )
 
@@ -1124,13 +1112,5 @@ TEMPLATES: Final[tuple[Template, ...]] = (
         r"^(?P<name>[A-Z][^.\n]*?) is also a Cleric, Rogue, Warrior, and "
         r"Wizard\.$",
         _build_class_signature,
-    ),
-    _template(
-        "B8-party-reveal-hand",
-        "target opponent reveals party-many cards (ETB)",
-        r"^When this creature enters, target opponent reveals a number of "
-        r"cards from their hand equal to the number of creatures in your "
-        r"party\.$",
-        _build_reveal_party,
     ),
 )

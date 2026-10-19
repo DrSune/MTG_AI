@@ -32,6 +32,8 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
+    QBin,
+    QBinOp,
     QConst,
     Quantity,
     SelectorMode,
@@ -44,7 +46,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.compiler.coverage import build_full_registry
 from MTG_bot.core.compiler.ingest import CardIdentity
-from MTG_bot.core.compiler.templates import AbilityOutcome
+from MTG_bot.core.compiler.templates import AbilityOutcome, EffectOutcome
 from MTG_bot.core.compiler.templates_b8 import (
     TEMPLATES,
     _full_party,
@@ -109,21 +111,22 @@ _CLEAR_ROWS: tuple[str, ...] = (
     "Stonework Packbeast is also a Cleric, Rogue, Warrior, and Wizard.",
     "Tajuru Paragon is also a Cleric, Rogue, Warrior, and Wizard.",
     "Veteran Adventurer is also a Cleric, Rogue, Warrior, and Wizard.",
-    # T6 (1)
-    "When this creature enters, target opponent reveals a number of cards from their hand equal to the number of creatures in your party.",
 )
 
 _DEFER_ROWS = (
     "Counter target noncreature spell unless its controller pays {1} plus an additional {1} for each creature in your party.",
     "Archpriest of Iona's power is equal to the number of creatures in your party.",
     "Equipped creature gets +1/+0 for each creature in your party and has menace.",
+    # T6 WITHDRAWN (gate FM2 / ZND-3f): compiles but executes as a library
+    # look — Verb.REVEAL falls into _look (verbs.py:1102-1114, ZONE_LIBRARY).
+    "When this creature enters, target opponent reveals a number of cards from their hand equal to the number of creatures in your party.",
 )
 
 
 class TestB8Registry(unittest.TestCase):
     def test_registry_shape(self) -> None:
-        self.assertEqual(len(TEMPLATES), 23)
-        self.assertEqual(len({t.tid for t in TEMPLATES}), 23)
+        self.assertEqual(len(TEMPLATES), 22)
+        self.assertEqual(len({t.tid for t in TEMPLATES}), 22)
         for t in TEMPLATES:
             self.assertEqual(t.bucket, "B8")
             self.assertEqual(t.priority, 114)
@@ -136,7 +139,7 @@ class TestB8Registry(unittest.TestCase):
 
 class TestB8VerbatimRows(unittest.TestCase):
     def test_every_clearing_row_matches_one_template(self) -> None:
-        self.assertEqual(len(_CLEAR_ROWS), 35)
+        self.assertEqual(len(_CLEAR_ROWS), 34)
         for text in _CLEAR_ROWS:
             tid, outcome = _build(text)
             self.assertIsNotNone(outcome, tid)
@@ -427,6 +430,52 @@ class TestQPartyCountNode(unittest.TestCase):
         preds = [c.pred for c in filt.children if isinstance(c, FAtom)]
 
         self.assertEqual(preds, [FAtomPred.TYPE_EQ, FAtomPred.CONTROLLER_IS])
+        # Values, not just types (gate FM4): a swapped string_value or who
+        # would rebuild the same predicate SHAPE while counting a
+        # different population.
+        atoms = [c for c in filt.children if isinstance(c, FAtom)]
+        self.assertEqual(atoms[0].string_value, "Creature")
+        self.assertEqual(atoms[1].who, ControllerRef.YOU)
+        self.assertEqual(_party_count().selector.zone.kind, ZoneKind.BATTLEFIELD)
+
+
+class TestPartyCensusEdgeLaws(PartyCase):
+    """Gate FM3/FM5: the census laws at the vocabulary edge, pinned on
+    boards — not just shapes."""
+
+    def test_multiclass_creature_contributes_every_class_it_bears(self) -> None:
+        """At-most-one-EACH (world-canonical reminder): a
+        "Cleric Wizard" bifclass creature occupies BOTH slots — party 2
+        from one body; a second Cleric adds nothing."""
+        self.place("Dual Adept", self.p0, "Creature — Cleric Wizard")
+        self.settle()
+        self.assertEqual(self.party(self.p0), 2)
+        self.place("Second Cleric", self.p0, "Creature — Cleric")
+        self.settle()
+        self.assertEqual(self.party(self.p0), 2)  # one slot per class
+
+    def test_x_arithmetic_resolves_over_the_live_census(self) -> None:
+        """T4's point is arithmetic over a MUTABLE census (gate FM5):
+        resolve at evaluation time, not compile time."""
+        self.place("Board Cleric", self.p0, "Creature — Human Cleric")
+        self.place("Board Wizard", self.p0, "Creature — Wizard")
+        self.settle()
+        ctx = ctx_for(self.ex, source=self.p0, controller=self.p0)
+        three_plus = QBin(op=QBinOp.ADD, left=QConst(3), right=_party_count())
+        self.assertEqual(resolve(three_plus, ctx), 5)
+        _, outcome = _build(
+            "Synchronized Spellcraft deals 4 damage to target creature and "
+            "X damage to that creature's controller, where X is the number "
+            "of creatures in your party."
+        )
+        assert isinstance(outcome, EffectOutcome)
+        amounts = [
+            v
+            for step in outcome.effect.steps
+            for k, v in step.args.pairs
+            if k == "amount"
+        ]
+        self.assertEqual([resolve(a, ctx) for a in amounts], [4, 2])
 
 
 if __name__ == "__main__":

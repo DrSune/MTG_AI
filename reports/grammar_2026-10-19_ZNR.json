@@ -1,7 +1,7 @@
 {
   "set": "ZNR",
-  "generated": "2026-10-19T03:32:10+02:00",
-  "git_head": "ff041a16c7583fada6fd256529a9bba071acf3bf",
+  "generated": "2026-10-19T04:57:02+02:00",
+  "git_head": "65af59ca1d4ecfb023633e1654d0a7e687f51c0e",
   "python_version": "3.12.3",
   "pinned_denominators": {
     "entries": 305,
@@ -63,9 +63,9 @@
     },
     "PC-2": {
       "name": "sentence_coverage",
-      "sentences_matched": 374,
+      "sentences_matched": 373,
       "denominator": 726,
-      "value": 0.515152,
+      "value": 0.513774,
       "target": ">=0.95",
       "stretch": ">=0.98",
       "pass": false
@@ -87,15 +87,15 @@
     },
     "PC-5": {
       "name": "compile_latency_p99_ms_per_card",
-      "value": 0.275,
+      "value": 0.278,
       "target": "<50",
       "stretch": "<20",
       "pass": true,
       "runs": 3,
       "per_card_ms": [
-        0.275,
-        0.275,
-        0.275
+        0.277,
+        0.278,
+        0.277
       ]
     },
     "PC-6": {
@@ -134,12 +134,12 @@
         ]
       },
       "max_verb_share": {
-        "value": 0.16129,
+        "value": 0.162338,
         "target": "<0.20",
         "pass": true
       },
       "pass": false,
-      "atom_total": 155,
+      "atom_total": 154,
       "max_share_verb": "MODIFY_PT",
       "verb_histogram": {
         "ADD_MANA": 22,
@@ -162,7 +162,7 @@
         "MOVE_ZONE": 17,
         "PREVENT_EFFECT": 3,
         "PUT_COUNTER": 10,
-        "REVEAL": 3,
+        "REVEAL": 2,
         "SCRY": 3,
         "TAP": 3,
         "UNTAP": 1
@@ -274,6 +274,12 @@
       "name": "Kargan Intimidator",
       "sentence": "• This creature gets +1/+1 until end of turn.",
       "bucket_hint": "spell-effect"
+    },
+    {
+      "oracle_id": "07e5f59e-3a98-4e01-a368-0be60e0463ba",
+      "name": "Acquisitions Expert",
+      "sentence": "When this creature enters, target opponent reveals a number of cards from their hand equal to the number of creatures in your party.",
+      "bucket_hint": "triggered"
     },
     {
       "oracle_id": "07e5f59e-3a98-4e01-a368-0be60e0463ba",
@@ -2328,7 +2334,7 @@
       "bucket_hint": "spell-effect"
     }
   ],
-  "unparsed_count": 352,
+  "unparsed_count": 353,
   "shape_gaps": [
     {
       "card": "379ed4ec-8f2e-448b-9ed2-a3181e2f877e",
