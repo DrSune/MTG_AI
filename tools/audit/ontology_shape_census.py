@@ -1,0 +1,495 @@
+#!/usr/bin/env python3
+"""SHAPE-SIGNATURE CENSUS of every compiled IR tree (EVIDENCE for the atom
+ontology: canonical ordering + fusion of functionally-identical encodings).
+
+Reuses the exact compile pass of tools/measure_grammar.py:
+  ingest_pool(MTG_bot/data/{M21,ZNR}.json) + build_full_registry()
+  + coverage._compile_pool_tolerant (M21 pinned 305, ZNR pool).
+
+PITFALL honored: ability_tree.walk() SKIPS list-valued fields — this script
+uses its OWN recursive serializer over dataclass fields, tuples, lists,
+dicts and Optionals.
+
+Writes reports/ontology_census_2026-10-19.json (repo-relative to this file) with sections A-D.
+Run from the repo root with the repo venv. NEVER edits repo files.
+"""
+
+from __future__ import annotations
+
+import dataclasses
+import json
+import sys
+from collections import Counter, defaultdict
+from enum import Enum
+from pathlib import Path
+
+REPO = Path("/home/sune/Desktop/MTG_AI")
+sys.path.insert(0, str(REPO))
+
+from MTG_bot.core import ability_tree as at  # noqa: E402
+from MTG_bot.core.compiler.coverage import (  # noqa: E402
+    _compile_pool_tolerant,
+    build_full_registry,
+    check_pinned_denominators,
+)
+from MTG_bot.core.compiler.ingest import ingest_pool  # noqa: E402
+
+OUT = (
+    Path(__file__).resolve().parents[2] / "reports" / "ontology_census_2026-10-19.json"
+)
+
+# Closed vocabularies: strings that are GRAMMAR, not card data -> kept even
+# though "card-specific strings" become placeholders.
+CLOSED_STR: set[str] = set()
+for _name in (
+    "_COLORS",
+    "_COLORLESS",
+    "_ANY_COLOR",
+    "_QPROP_STR_REFERENTS",
+    "_MANA_POLICY_SCOPES",
+    "_DAMAGE_ASSIGN_SCOPES",
+    "_MOVE_JOURNAL_KINDS",
+    "_MOVE_POP_ORDERS",
+):
+    CLOSED_STR.update(getattr(at, _name, ()) or ())
+
+STR_PH = "<S>"
+NUM_PH = "<N>"
+ENUM_PH = "~"  # STRUCT-mode enum value
+NONE_PH = "0"  # Optional=None marker
+
+
+def _sig(obj, keep_enums: bool, flatten: bool) -> str:
+    """Recursive signature. keep_enums=False -> STRUCT mode (enum values
+    elided); flatten=True -> single-child Seq/FAnd/FOr wrappers are rotated
+    away (near-duplicate canonical form)."""
+    if obj is None:
+        return NONE_PH
+    if isinstance(obj, Enum):
+        return f"{ENUM_PH}{obj.name}" if keep_enums else ENUM_PH
+    if isinstance(obj, bool) or isinstance(obj, (int, float)):
+        return NUM_PH
+    if isinstance(obj, str):
+        return obj if obj in CLOSED_STR else STR_PH
+    if isinstance(obj, (tuple, list)):
+        inner = ";".join(_sig(x, keep_enums, flatten) for x in obj)
+        return f"[{len(obj)}]{{{inner}}}"
+    if isinstance(obj, (frozenset, set)):
+        inner = ";".join(sorted(_sig(x, keep_enums, flatten) for x in obj))
+        return f"{{{inner}}}"
+    if dataclasses.is_dataclass(obj) and not isinstance(obj, type):
+        cls = type(obj).__name__
+        parts = []
+        for f in dataclasses.fields(obj):
+            val = getattr(obj, f.name)
+            if (
+                flatten
+                and cls in ("Seq", "FAnd", "FOr")
+                and f.name in ("steps", "children")
+                and len(val) == 1
+            ):
+                return _sig(val[0], keep_enums, flatten)  # unwrap wrapper
+            parts.append(f"{f.name}={_sig(val, keep_enums, flatten)}")
+        return f"{cls}({','.join(parts)})"
+    return f"?{type(obj).__name__}"
+
+
+def sig_struct(n):
+    return _sig(n, False, False)
+
+
+def sig_strict(n):
+    return _sig(n, True, False)
+
+
+def sig_flat(n):
+    return _sig(n, False, True)
+
+
+def fshape(f, depth=2) -> str:
+    """Filter/selector shape skeleton: class names + container lengths."""
+    if f is None:
+        return NONE_PH
+    if dataclasses.is_dataclass(f) and not isinstance(f, type):
+        cls = type(f).__name__
+        kids = []
+        for fl in dataclasses.fields(f):
+            v = getattr(f, fl.name)
+            if isinstance(v, (tuple, list)):
+                if v and dataclasses.is_dataclass(v[0]):
+                    kids.append(
+                        f"{fl.name}[{len(v)}]{('|'.join(fshape(x, depth - 1) for x in v[:4]))}"
+                    )
+            elif dataclasses.is_dataclass(v) and not isinstance(v, type):
+                kids.append(f"{fl.name}({fshape(v, depth - 1)})")
+        return f"{cls}({','.join(kids)})" if kids else cls
+    return type(f).__name__
+
+
+BRANCH_CLASSES = {
+    "Choose",
+    "Selector",
+    "OptionalEffect",
+    "Conditional",
+    "Repeat",
+    "EachPlayer",
+    "DelayedTrigger",
+}
+ORDERED_FIELDS = {"steps"}  # truly ordered; FAnd/FOr children tracked too (tagged)
+
+
+def classify_branch(node):
+    """(menu-source kind, count-bound kind, child-classes tuple)."""
+    cls = type(node).__name__
+    if cls == "Choose":
+        menu = f"fixed_options[{len(node.options)}]"
+        cnt = type(node.count).__name__
+        kids = tuple(sorted({type(o).__name__ for o in node.options}))
+    elif cls == "Repeat":
+        menu, cnt = "repeat_inner", type(node.count).__name__
+        kids = (type(node.inner).__name__,)
+    elif cls == "OptionalEffect":
+        menu, cnt = "may_skip", "-"
+        kids = (type(node.inner).__name__,)
+    elif cls == "Conditional":
+        menu = "then_else" if node.else_effect is not None else "then_only"
+        cnt = "-"
+        kids = (
+            f"pred:{type(node.pred).__name__}",
+            f"then:{type(node.then_effect).__name__}",
+        )
+        if node.else_effect is not None:
+            kids += (f"else:{type(node.else_effect).__name__}",)
+    elif cls == "EachPlayer":
+        menu, cnt = f"ref:{node.ref.name}", "-"
+        kids = (type(node.effect).__name__,)
+    elif cls == "DelayedTrigger":
+        menu, cnt = f"event:{type(node.event).__name__}", "-"
+        kids = (
+            f"effect:{type(node.effect).__name__}",
+            f"pred:{type(node.condition).__name__ if node.condition else 'None'}",
+        )
+    elif cls == "Selector":
+        zn = node.zone.kind.name
+        if node.zones:
+            zn += "+z" + str(len(node.zones))
+        menu = f"mode:{node.mode.name} zone:{zn}" + (
+            f" ref:{node.referent}" if node.referent else ""
+        )
+        cnt = type(node.count).__name__
+        kids = (f"filter:{fshape(node.filter, 2)}",)
+    else:
+        return None
+    return (menu, cnt, kids)
+
+
+def traverse(
+    node, path, card, struct_sig, seq_stats, branches, verb_roles, order_rec, depth=0
+):
+    """Own recursion: covers dataclass fields, tuples, lists, Optionals."""
+    if node is None or depth > 40:
+        return
+    if isinstance(node, Enum) or isinstance(node, (str, int, float, bool)):
+        return
+    if isinstance(node, (tuple, list)):
+        for i, x in enumerate(node):
+            traverse(
+                x,
+                path,
+                card,
+                struct_sig,
+                seq_stats,
+                branches,
+                verb_roles,
+                order_rec,
+                depth,
+            )
+        return
+    if not dataclasses.is_dataclass(node) or isinstance(node, type):
+        return
+    cls = type(node).__name__
+    node_path = f"{path}.{cls}" if path else cls
+    kids_by_field = {}
+    for f in dataclasses.fields(node):
+        v = getattr(node, f.name)
+        if (
+            isinstance(v, (tuple, list))
+            and v
+            and any(dataclasses.is_dataclass(x) and not isinstance(x, type) for x in v)
+        ):
+            kids_by_field[f.name] = tuple(v)
+            if cls == "Seq":
+                seq_stats["multi" if len(v) >= 2 else "single"] += 1
+                seq_stats["by_parent"].append((path or "?", len(v)))
+            ordered = tuple(sig_struct(x) for x in v if dataclasses.is_dataclass(x))
+            fp = tuple(sorted(ordered))
+            if len(ordered) >= 2:
+                # keyed WITHOUT struct_sig: catches order divergence both
+                # within one STRUCT cluster and across clusters (wording
+                # order of commutative FAnd/FOr children / Seq steps).
+                key = (cls, f.name, node_path, fp)
+                order_rec.setdefault(key, defaultdict(set))[ordered].add(
+                    (card, struct_sig)
+                )
+        elif isinstance(v, (tuple, list)):
+            for x in v:
+                traverse(
+                    x,
+                    node_path,
+                    card,
+                    struct_sig,
+                    seq_stats,
+                    branches,
+                    verb_roles,
+                    order_rec,
+                    depth + 1,
+                )
+        elif dataclasses.is_dataclass(v) and not isinstance(v, type):
+            kids_by_field[f.name] = (v,)  # traversed exactly once by tail loop
+        else:
+            for x in v if isinstance(v, (tuple, list)) else ():
+                traverse(
+                    x,
+                    node_path,
+                    card,
+                    struct_sig,
+                    seq_stats,
+                    branches,
+                    verb_roles,
+                    order_rec,
+                    depth + 1,
+                )
+    if cls in BRANCH_CLASSES:
+        cont = classify_branch(node)
+        if cont:
+            branches[cls][cont] += 1
+    if cls == "Atom":
+        for role, val in node.args.pairs:
+            if isinstance(val, (at.Selector,)) or (
+                dataclasses.is_dataclass(val) and type(val).__name__ == "Selector"
+            ):
+                shape = "Selector{" + fshape(val, 2) + "}"
+                verb_roles[node.verb.name][role][shape] += 1
+            elif hasattr(val, "children") or type(val).__name__.startswith("F"):
+                verb_roles[node.verb.name][role][fshape(val, 2)] += 1
+            elif (
+                isinstance(val, (tuple, list))
+                and val
+                and (
+                    hasattr(val[0], "children") or type(val[0]).__name__.startswith("F")
+                )
+            ):
+                verb_roles[node.verb.name][role][
+                    "list[%d]" % len(val) + fshape(val[0], 2)
+                ] += 1
+    for fname, kids in kids_by_field.items():
+        for k in kids:
+            traverse(
+                k,
+                node_path,
+                card,
+                struct_sig,
+                seq_stats,
+                branches,
+                verb_roles,
+                order_rec,
+                depth + 1,
+            )
+
+
+def main() -> int:
+    registry = build_full_registry()
+    cards_data = {}  # name -> sorted list of sig ids
+    sig_registry = {}  # struct sig -> id
+    per_set = {}
+    all_abilities = []  # (card, set, struct, strict, flat)
+    for set_name in ("M21", "ZNR"):
+        pool = ingest_pool(REPO / "MTG_bot" / "data" / f"{set_name}.json")
+        if set_name == "M21":
+            check_pinned_denominators(pool)
+        results, gaps = _compile_pool_tolerant(pool, registry)
+        compiled = 0
+        for oid, res in results.items():
+            raw = pool.get(oid)
+            if raw is not None and raw.is_emblem:
+                continue  # emblem is attached into its owner's record
+            rec = res.card
+            abilities = list(rec.abilities) + list(rec.keywords)
+            if rec.emblem is not None:
+                abilities += list(rec.emblem.abilities) + list(rec.emblem.keywords)
+            if not abilities:
+                continue
+            compiled += 1
+            ids = []
+            for ab in abilities:
+                s, st, fl = sig_struct(ab), sig_strict(ab), sig_flat(ab)
+                if s not in sig_registry:
+                    sig_registry[s] = f"S{len(sig_registry):05d}"
+                sig_id = sig_registry[s]
+                ids.append((sig_id, s, st, fl))
+                all_abilities.append((rec.name, set_name, s, st, fl, ab))
+            cards_data[f"{rec.name} [{set_name}]"] = sorted(
+                set(ids), key=lambda t: t[0]
+            )
+        per_set[set_name] = {
+            "pool_size": len(pool),
+            "compiled_cards_with_abilities": compiled,
+            "shape_gaps": len(gaps),
+        }
+        print(
+            f"{set_name}: {per_set[set_name]} -> {len(cards_data)} cards so far",
+            file=sys.stderr,
+        )
+
+    # ---- A: cluster table ----
+    struct_to_cards = defaultdict(set)
+    struct_to_strict = defaultdict(set)
+    for card, sn, s, st, fl, _ab in all_abilities:
+        struct_to_cards[s].add(card)
+        struct_to_strict[s].add(st)
+    clusters = []
+    for s, cards in sorted(
+        struct_to_cards.items(), key=lambda kv: (-len(kv[1]), kv[0])
+    ):
+        variants = struct_to_strict[s]
+        clusters.append(
+            {
+                "sig_id": sig_registry[s],
+                "card_count": len(cards),
+                "distinct_strict_variants": len(variants),
+                "fusion_candidate": len(variants) > 1,
+                "example_cards": sorted(cards)[:3],
+                "struct": s,
+                "strict_examples": sorted(variants)[:2],
+            }
+        )
+
+    # ---- B: near-duplicate pairs (flat form observed elsewhere) ----
+    pair_rec = {}
+    for card, sn, s, st, fl, _ab in all_abilities:
+        if fl != s and s in struct_to_cards:
+            k = (fl, s)
+            r = pair_rec.setdefault(
+                k, {"flat_count": 0, "nested_count": 0, "examples": []}
+            )
+            r["flat_count"] += 1
+            r["nested_count"] += 1
+            if len(r["examples"]) < 3:
+                r["examples"].append(card)
+    near_dups = []
+    for (fl, nest), r in sorted(
+        pair_rec.items(), key=lambda kv: -kv[1]["nested_count"]
+    ):
+        near_dups.append(
+            {
+                "flat_sig": fl,
+                "nested_sig": nest,
+                "nested_occurrences": r["nested_count"],
+                "flat_also_observed_cards": len(struct_to_cards[fl]),
+                "examples": r["examples"],
+            }
+        )
+
+    # ---- C + D: traversal ----
+    seq_stats = {"multi": 0, "single": 0, "by_parent": []}
+    branches = defaultdict(Counter)
+    verb_roles = defaultdict(lambda: defaultdict(Counter))
+    order_rec = {}
+    for card, sn, s, st, fl, ab in all_abilities:
+        traverse(ab, "", card, s, seq_stats, branches, verb_roles, order_rec)
+
+    branch_out = {}
+    for cls, counter in sorted(branches.items()):
+        branch_out[cls] = [
+            {"menu": m, "count_kind": c, "children": list(k), "count": n}
+            for (m, c, k), n in counter.most_common(40)
+        ]
+    verb_out = {}
+    for verb, roles in sorted(verb_roles.items()):
+        verb_out[verb] = {
+            role: dict(cnt.most_common(12)) for role, cnt in sorted(roles.items())
+        }
+
+    # order sensitivity pairs
+    order_pairs = []
+    for (pcls, field, path, fp), orders in order_rec.items():
+        if len(orders) < 2:
+            continue
+        ordlist = sorted(orders.items(), key=lambda kv: (-len(kv[1]), str(kv[0])))
+        a, b = ordlist[0], ordlist[1]
+        ss0 = {ss for _c, ss in a[1]}
+        ss1 = {ss for _c, ss in b[1]}
+        order_pairs.append(
+            {
+                "same_struct_cluster": bool(ss0 & ss1),
+                "parent_class": pcls,
+                "field": field,
+                "path": path,
+                "element_multiset": [s[:70] for s in fp][:6],
+                "n_order_variants": len(orders),
+                "cards_variant_1": sorted({c for c, _ in a[1]})[:3],
+                "cards_variant_2": sorted({c for c, _ in b[1]})[:3],
+                "commutative_field": field == "children",
+            }
+        )
+    order_pairs.sort(
+        key=lambda d: (
+            not d["same_struct_cluster"],
+            d["commutative_field"],
+            -d["n_order_variants"],
+        )
+    )
+
+    by_parent = Counter()
+    for parent, n in seq_stats["by_parent"]:
+        top = parent.rsplit(".", 1)[-1] or parent
+        by_parent[(top, "multi" if n >= 2 else "single")] += 1
+
+    out = {
+        "meta": {
+            "date": "2026-10-19",
+            "sets": per_set,
+            "total_cards": len(cards_data),
+            "total_abilities": len(all_abilities),
+            "distinct_struct_sigs": len(sig_registry),
+            "note": "STRICT = STRUCT + enum values on top; STRUCT = class+"
+            "field skeleton, strings/numbers/enums elided, container"
+            " lengths kept. walk() NOT used (it skips list fields).",
+        },
+        "A_clusters": clusters,
+        "B_near_duplicates": near_dups,
+        "C_branching": {
+            "branchings": branch_out,
+            "verb_roles": verb_out,
+        },
+        "D_order": {
+            "seq_multi_children": seq_stats["multi"],
+            "seq_single_child_phantom_wrappers": seq_stats["single"],
+            "seq_by_enclosing_class": {
+                f"{p}|{kind}": n for (p, kind), n in sorted(by_parent.items())
+            },
+            "order_variant_groups": order_pairs,
+        },
+        "cards": {c: sorted({t[0] for t in v}) for c, v in sorted(cards_data.items())},
+        "signatures": {
+            v: {
+                "struct": s,
+                "strict_variants": len(struct_to_strict[s]),
+                "cards": len(struct_to_cards[s]),
+            }
+            for s, v in sig_registry.items()
+        },
+    }
+    OUT.write_text(json.dumps(out, indent=1))
+    print(f"wrote {OUT} ({OUT.stat().st_size} bytes)", file=sys.stderr)
+    print(
+        f"A: {len(clusters)} clusters | B: {len(near_dups)} pairs | "
+        f"D: seq multi={seq_stats['multi']} single={seq_stats['single']} "
+        f"order_groups={len(order_pairs)}",
+        file=sys.stderr,
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
