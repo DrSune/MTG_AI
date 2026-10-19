@@ -310,6 +310,57 @@ def _emit_partition_journal(
     )
 
 
+# r24a (adversarial gate on /112): the two dangling-anaphora refusals
+# inside resolve_selector carry a DEDICATED TYPE, and the guard predicate
+# also requires the BYTE-EXACT site message. The /111 substring-mark
+# predicate was unsafe twice over: an unrelated error whose text merely
+# CONTAINS a mark would be silenced into the ledger, and the binding mark
+# already matched a third raise (quantity._referent_handle's QProp
+# refusal) whose skip semantics are different. QProp and every other
+# refusal therefore stay NON-skippable by construction.
+_TARGET_BINDING_MSG = "executor: 'target' referent has no target binding"
+
+
+def _no_register_msg(referent: str) -> str:
+    return (
+        f"executor: selector referent {referent!r} has no register — no "
+        "trigger firing bound one and no producer atom wrote one in "
+        "this execution"
+    )
+
+
+class ReferentAbsentError(Exception):
+    """Base: resolve_selector's dangling-anaphora refusal (an unset
+    designation / an unwritten register). Only these types, with the
+    exact site message, may be skipped by the live-game guard."""
+
+
+class ReferentAbsentBindingError(ReferentAbsentError, ValueError):
+    """Unset ``target`` designation. ValueError twin keeps every existing
+    contract (assertRaises lanes, the C15 raise law) byte-identical."""
+
+
+class ReferentAbsentRegisterError(ReferentAbsentError, NotImplementedError):
+    """Unread ``event``/``result`` register. NotImplementedError twin,
+    same law."""
+
+    def __init__(self, referent: str) -> None:
+        super().__init__(_no_register_msg(referent))
+        self.referent = referent
+
+
+def referent_absent(exc: BaseException) -> bool:
+    """True iff ``exc`` IS one of resolve_selector's two site errors —
+    dedicated subclass AND byte-exact site message. Message-substring
+    look-alikes, the QProp referent refusal and every other error return
+    False (never skipped, never ledgered)."""
+    if isinstance(exc, ReferentAbsentBindingError):
+        return str(exc) == _TARGET_BINDING_MSG
+    if isinstance(exc, ReferentAbsentRegisterError):
+        return str(exc) == _no_register_msg(exc.referent)
+    return False
+
+
 def resolve_selector(
     sel: Selector, ctx: ExecCtx, *, journal_partition: bool = False
 ) -> list[Handle]:
@@ -344,7 +395,7 @@ def resolve_selector(
         elif sel.referent == "target":
             bound = ctx.binding_handles("target")
             if bound is None:
-                raise ValueError("executor: 'target' referent has no target binding")
+                raise ReferentAbsentBindingError(_TARGET_BINDING_MSG)
             candidates = bound
         elif sel.referent in ("event", "result"):
             # 12b: the trigger firing binds event/result to the event
@@ -361,11 +412,7 @@ def resolve_selector(
             # empty population.
             bound = ctx.binding_handles(sel.referent)
             if bound is None:
-                raise NotImplementedError(
-                    f"executor: selector referent {sel.referent!r} has no "
-                    "register — no trigger firing bound one and no producer "
-                    "atom wrote one in this execution"
-                )
+                raise ReferentAbsentRegisterError(sel.referent)
             candidates = bound
         else:
             raise NotImplementedError(

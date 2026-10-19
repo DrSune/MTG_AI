@@ -1,0 +1,46 @@
+{
+  "set": "ZNR",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "mana": {
+    "0": {
+      "G": 2,
+      "B": 1
+    }
+  },
+  "cards": [
+    {
+      "key": "victim",
+      "zone": "battlefield",
+      "controller": 1,
+      "name": "Pen Sheep",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature"
+    },
+    {
+      "key": "alliance",
+      "real": "Deadly Alliance",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "cast",
+      "key": "alliance",
+      "controller": 0,
+      "targets": ["victim"],
+      "expect_raise": "illegal cast"
+    }
+  ],
+  "expect": {
+    "zone": {
+      "alliance": "hand",
+      "victim": "battlefield"
+    }
+  },
+  "notes": "ZND-3 T1 negative leg (C5 refusal pack): the IDENTICAL rig without the party creatures. Party census = 0, so the price stays FULL {4}{B} and the same 2G+1B pool is a cost:mana shortage - the cast raises a clean 'executor: illegal cast' ValueError (a refusal, not a crash) and the spell stays in hand, the Sheep lives. Together with znr_deadly_alliance_party_discount this pins that the priced cast ask MOVES with party composition: same mana, different legality solely by the two distinct-class party members."
+}

@@ -21,7 +21,7 @@ from __future__ import annotations
 import random
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Final, Union
 
 if TYPE_CHECKING:  # pragma: no cover - typing-only, dodges runtime cycles
     from MTG_bot.core.executor import Executor
@@ -50,6 +50,7 @@ from MTG_bot.core.ability_tree import (
     QConst,
     QCount,
     QDistinctColorCount,
+    QPartyCount,
     QProp,
     QPropField,
     QThisTurn,
@@ -328,6 +329,31 @@ def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
             if handle.namespace == "card":
                 colors.update(ctx.world.cards[handle].identity.colors)
         return len(colors)
+    if isinstance(quantity, QPartyCount):
+        from MTG_bot.core.executor.selectors import (
+            resolve_selector,
+        )  # cycle-free at call time
+
+        # ZND-3 G1 (spec KNOWLEDGE/2026-10-18/107): party size = the
+        # number of DISTINCT party classes PRESENT among the selector's
+        # objects, at most one per class — world-canonical semantics are
+        # ZNR.json's printed reminder text "Your party consists of up to
+        # one each of Cleric, Rogue, Warrior, and Wizard" (/92 law: read
+        # from the data file, not world-memory). Two Clerics + one Wizard
+        # = 2, never 3. The class test reads the LIVE type oracle —
+        # printed type line ∪ GRANT_TYPE overlay, the same single oracle
+        # the SUBTYPE_EQ lane uses below — so class grants MOVE the
+        # census (§11: board interaction is engine-side). len() of a
+        # subset of the fixed 4-set caps 0..4 by construction.
+        classes: set[str] = set()
+        for handle in resolve_selector(quantity.selector, ctx):
+            if handle.namespace != "card" or handle not in ctx.world.cards:
+                continue
+            words = set(_type_line_tokens(ctx.world.cards[handle].identity.type_line))
+            if ctx.layers is not None:
+                words.update(ctx.layers.type_overlay(handle))
+            classes.update(words & PARTY_CLASSES)
+        return len(classes)
     if isinstance(quantity, QProp):
         return _resolve_prop(quantity, ctx)
     if isinstance(quantity, QX):
@@ -508,6 +534,15 @@ def _resolve_prop(prop: QProp, ctx: ExecCtx) -> int:
 # --------------------------------------------------------------------- filters
 
 _TYPE_LINE_SEPARATORS = ("//", "/", ",")
+
+# ZND-3 (spec KNOWLEDGE/2026-10-18/107): the four party classes. WORLD-
+# CANONICAL (/92 law) — MTG_bot/data/ZNR.json prints on every party card:
+# "Your party consists of up to one each of Cleric, Rogue, Warrior, and
+# Wizard." The set is the party cap itself: party size = |present ∩ this
+# set| ∈ 0..4, one per class.
+PARTY_CLASSES: Final[frozenset[str]] = frozenset(
+    {"Cleric", "Rogue", "Warrior", "Wizard"}
+)
 
 
 # r19a (IS_PERMANENT): the CR 110.1 permanent card types — a card whose
@@ -1263,17 +1298,38 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 return True
         return False
     if pred is FAtomPred.WAS_KICKED:
-        # ZND-1e (CR 702.27a): "if it was kicked" reads the LAST CAST row
-        # of the judged object in the current turn window — the row's
-        # trailing kicked column (journal.emit_cast) is the single carrier
-        # of the paid/not-paid choice, so the same answer is available to
-        # every consumer lane: the spell-on-stack Conditional (Into the
-        # Roil's arm), a TriggeredAbility.condition judged against the
-        # event subject (Roost of Drakes / Kitesail Cleric ETB), and the
-        # gated EtBState the engine applies on entry (Cragplate Baloth).
-        # No CAST row (a put-onto-battlefield creature, a token) or an
-        # un-kicked cast reads False — CR 702.27a: a spell with no kicker
-        # cost was never kicked.
+        # ZND-1e (CR 702.27a), three reader lanes over ONE carrier: the
+        # CAST row's trailing kicked column (journal.emit_cast) is the
+        # paid/not-paid choice of the cast. ZND-1e follow-up (blink law,
+        # the /100 deferred caveat closed) splits the read by the JUDGED
+        # object's provenance:
+        #
+        # * SPELL lane — the judged handle sits on the STACK (a Conditional
+        #   resolved by a spell frame, Into the Roil's arm): the object IS
+        #   the spell; its own CAST row in the turn window is the answer.
+        # * TRIGGER lane — a condition/event filter judged against the
+        #   casting spell ("whenever you cast a kicked spell", Roost's cast
+        #   arm): same stack-scoped window read, CR 603.2's event scope.
+        # * PERMANENT lane — the judged handle sits on the BATTLEFIELD
+        #   (the gated EtBState stamped on entry, Cragplate; an ETB-trigger
+        #   condition reading "if it was kicked", Kitesail/Roost's ETB
+        #   arm): "was kicked" is a property of how THIS OBJECT entered.
+        #   A permanent that left and re-entered is a NEW object that was
+        #   never cast (CR 400.7), so the stale CAST row must not re-apply
+        #   the gated entering state (CR 614.1c) — the read is ENTRY-BOUND
+        #   (_permanent_was_kicked). The journal already carries the
+        #   provenance field: the entry ZONE_CHANGE row's from_state. No
+        #   payload extension, no new rows, fingerprint bytes unchanged.
+        #
+        # No CAST row / no journalled entry (a setup card, a token) and any
+        # entry from anywhere but the stack read False — CR 702.27a: an
+        # object that was not cast was never kicked.
+        if (
+            handle.namespace == "card"
+            and handle in world.cards
+            and world.zone_of(handle).kind == ZONE_BATTLEFIELD
+        ):
+            return _permanent_was_kicked(ctx, handle)
         from MTG_bot.core.executor.events import KIND_CAST
 
         kicked = False
@@ -1529,6 +1585,60 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
     raise NotImplementedError(
         f"executor: filter pred {pred.name} not implemented (12c query surface)"
     )
+
+
+def _permanent_was_kicked(ctx: ExecCtx, handle: Handle) -> bool:
+    """WAS_KICKED's PERMANENT lane (ZND-1e blink law: CR 400.7 object
+    identity + 614.1c entered state + 702.27a the kick choice). Judged for
+    a handle ON the battlefield; answers from the CURRENT entry, not the
+    turn window: a kicked permanent blinked and returned through exile is a
+    NEW object that was never cast, so its gated EtBState must not re-apply
+    and a later "if it was kicked" must follow the entry's provenance.
+
+    The provenance field is already journalled: the LAST battlefield-entry
+    ZONE_CHANGE row's ``from_state``. An entry whose from_state is not the
+    stack (put-enter from hand/graveyard, blink return, token create) was
+    not a cast — False, and the CAST rows are never consulted. An entry
+    FROM the stack carries the kick of the CAST row of that same stack
+    residency: emit_cast fires after park (stack.cast), so the cast row's
+    clock is strictly later than the residency-opening ZONE_CHANGE row and
+    strictly earlier than the entry — a hypothetical future put-onto-the-
+    stack (no cast row inside its residency) therefore reads False, never
+    the object's older cast. The scan is the WHOLE journal, not the turn
+    window: the kick of an uncalled-for permanent is object permanence, so
+    a permanent cast kicked LAST turn still truthfully answers True today.
+    """
+    from MTG_bot.core.executor.events import KIND_CAST, KIND_ZONE_CHANGE
+    from MTG_bot.core.state import ZONE_STACK
+
+    jrn = ctx.journal
+    if jrn is None:
+        raise NotImplementedError(
+            "executor: filter pred WAS_KICKED reads the journalled entry "
+            "provenance (this ExecCtx has no journal)"
+        )
+    entry_from: str | None = None  # last battlefield entry's from_state
+    stack_in_clock = -1  # last move of the handle ONTO the stack zone
+    cast_kicked = False  # last CAST row's paid/not-paid flag
+    cast_clock = -1
+    for e in jrn.events:  # ascending: last matching row wins
+        if e.subject != handle:
+            continue
+        if e.kind == KIND_ZONE_CHANGE:
+            frm, to, _before, _after = e.zone_move
+            if to == ZONE_BATTLEFIELD:
+                entry_from = frm
+            elif to == ZONE_STACK:
+                stack_in_clock = e.clock
+        elif e.kind == KIND_CAST:
+            cast_kicked = e.kicked
+            cast_clock = e.clock
+    if entry_from != ZONE_STACK:
+        return False  # not entered by a spell resolution: never cast
+    # the kick of THIS stack residency — the cast row must belong to it
+    # (a residency with no cast row inside: a put-on-stack / copy entry —
+    # was never cast, never kicked).
+    return cast_kicked and cast_clock > stack_in_clock
 
 
 def _turn_rows(ctx: ExecCtx, pred_name: str) -> list[GameEvent]:

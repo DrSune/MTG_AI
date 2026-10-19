@@ -101,8 +101,8 @@ from MTG_bot.core.ability_tree import (
     CounterKind,
     DelayedTrigger,
     EachPlayer,
-    EtBState,
     Effect,
+    EtBState,
     FAnd,
     Keyword,
     OptionalEffect,
@@ -119,7 +119,6 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.compiler.compiler import PoolCompile
 from MTG_bot.core.executor.binding import MAX_TRIGGER_FIRES, TriggerBinder
 from MTG_bot.core.executor.decisions import DecisionStream, site_digest
-from MTG_bot.core.executor.offers import offer_or_autopick
 from MTG_bot.core.executor.durations import DurationLedger, PtChange
 from MTG_bot.core.executor.events import (
     KIND_COMBAT_DAMAGE,
@@ -146,6 +145,7 @@ from MTG_bot.core.executor.legality import (
     spell_castable,
     spell_record,
 )
+from MTG_bot.core.executor.offers import offer_or_autopick
 from MTG_bot.core.executor.quantity import Binding, ExecCtx, eval_filter
 from MTG_bot.core.executor.query import (
     ActivationOption,
@@ -170,6 +170,8 @@ from MTG_bot.core.executor.replacements import (
 )
 from MTG_bot.core.executor.selectors import (
     atom_target_slot_key as _atom_target_slot_key,
+)
+from MTG_bot.core.executor.selectors import (
     players_for_ref,
     resolve_selector,
 )
@@ -384,6 +386,24 @@ class Executor:
         # NOT folded into state_fingerprint (the quarantine set itself,
         # which is state, rides the fold through the binder).
         self.trigger_loops: list[str] = []
+        # r24/r24a (ZNR fuzz, /111+/112): LOUD refusals of the live-game
+        # guard. An effect whose anaphora (``result``/``target``) reads a
+        # register no producer in this execution wrote is a compiler
+        # mis-fold (unparsed antecedent sentence), not a game bug: the
+        # guarded lanes skip the failing step, the spell still resolves,
+        # and the refusal is recorded here (lane + card + the engine's
+        # own message, deduped by key with an OCCURRENCES count per key
+        # — distinct same-message atoms sharing one key stay visible
+        # through ``unresolved_effect_counts``). Queryable, surfacing
+        # pending: the ledger has NO consumer yet (cards stay
+        # engine_supported=True; the compiler-wave fold gates are the
+        # fix). Same contract as unparseable_statics / trigger_loops:
+        # NOT folded into state_fingerprint, and only
+        # selectors.referent_absent refusals (dedicated error TYPE +
+        # exact site message) are caught — every other error still
+        # propagates.
+        self.unresolved_effects: list[str] = []
+        self.unresolved_effect_counts: dict[str, int] = {}
         self.journal = EventJournal(world, self.ledger)
         # 12d registries (built BEFORE the binder: the binder's lifecycle
         # hooks reach them during attach).
@@ -689,6 +709,78 @@ class Executor:
         self._consume_end_turn()
         return tuple(self.events[start:])
 
+    @staticmethod
+    def _partition_step(step: object) -> bool:
+        """r19a (Cultivate) partition scan, one encoding (shared by the
+        ``_run_effect`` Seq branch and the guarded lane): a partition
+        MOVE_ZONE is one whose ``cards`` Selector is ONE_OF/REST."""
+        if not isinstance(step, Atom) or step.verb is not Verb.MOVE_ZONE:
+            return False
+        sel = step.args.get("cards")
+        return isinstance(sel, Selector) and sel.mode in (
+            SelectorMode.ONE_OF,
+            SelectorMode.REST,
+        )
+
+    def _run_guarded_effect(self, effect: Effect, ctx: ExecCtx, lane: str) -> None:
+        """r24/r24a (ZNR fuzz, /111+/112): the LIVE-GAME effect runner
+        with the dangling-anaphora guard (spell resolution lanes
+        cast/cast_card/aura + the trigger-firing lane). Runs
+        ``_run_effect``; if the effect refuses because its
+        ``result``/``target`` anaphora has NO producer in this execution
+        (a compiler mis-fold: the antecedent clause was never compiled —
+        Acquisitions Expert's dangling discard, Shell Shield's dangling
+        kicker hexproof), the step is skipped and the refusal recorded
+        on ``unresolved_effects`` — the spell still resolves / the game
+        still plays (the r23a unparseable-statics law: lose the
+        mis-shaped half, not the match). r24a (adversarial gate): (i) the
+        skip matches ONLY the dedicated ReferentAbsentError types with
+        the exact site message (selectors.referent_absent) — a look-alike
+        message, the QProp referent refusal or anything else PROPAGATES;
+        (ii) CR 609.7 do-as-much-as-possible: a TOP-LEVEL ``Seq`` runs
+        step-by-step, so a dangling MID-step skips that step and the
+        TAIL still executes. Boundary, stated honestly: the granularity
+        is the top level only — a nested inner Seq (or Optional/
+        Conditional wrapper) that fails mid-way is skipped AT WHOLE-STEP
+        granularity, its remaining inner steps lost with it; only the
+        compiler-wave fold gates make either shape moot. Every other
+        error propagates unchanged, and the unit contract (unset referent
+        reads RAISE) stays byte-identical on the raw ``_run_effect``
+        lane the tests pin.
+        """
+        from MTG_bot.core.executor.selectors import referent_absent
+
+        steps = effect.steps if isinstance(effect, Seq) else (effect,)
+        saved_partition = ctx.search_partition
+        if isinstance(effect, Seq):
+            # the Seq branch's SEARCH-designation context, reproduced so
+            # the guarded per-step lane behaves identically to a raw
+            # Seq run (r19a partition law).
+            ctx.search_partition = saved_partition or any(
+                self._partition_step(step) for step in steps
+            )
+        try:
+            for step in steps:
+                try:
+                    self._run_effect(step, ctx)
+                except (NotImplementedError, ValueError) as exc:
+                    if not referent_absent(exc):
+                        raise
+                    src = ctx.source
+                    name = (
+                        self.world.cards[src].identity.name
+                        if src in self.world.cards
+                        else "?"
+                    )
+                    flag = f"{lane} {name}: {exc}"
+                    if flag not in self.unresolved_effect_counts:
+                        self.unresolved_effects.append(flag)
+                        self.unresolved_effect_counts[flag] = 1
+                    else:
+                        self.unresolved_effect_counts[flag] += 1
+        finally:
+            ctx.search_partition = saved_partition
+
     def _run_effect(self, effect: Effect, ctx: ExecCtx) -> None:
         if isinstance(effect, Atom):
             # 12b: the journalled Atom boundary — snapshot, run, diff. This
@@ -784,16 +876,7 @@ class Executor:
             # the SEARCH had already moved. Shallow scan: the corpus'
             # partition idiom is a flat sibling chain (the compiler emits
             # SEARCH/REVEAL/MOVE/MOVE/SHUFFLE as direct steps).
-            def _is_partition(step: object) -> bool:
-                if not isinstance(step, Atom) or step.verb is not Verb.MOVE_ZONE:
-                    return False
-                sel = step.args.get("cards")
-                return isinstance(sel, Selector) and sel.mode in (
-                    SelectorMode.ONE_OF,
-                    SelectorMode.REST,
-                )
-
-            partition = any(_is_partition(step) for step in effect.steps)
+            partition = any(self._partition_step(step) for step in effect.steps)
             saved = ctx.search_partition
             ctx.search_partition = saved or partition
             try:
@@ -975,9 +1058,14 @@ class Executor:
                 # ZND-1e (CR 614.1c): gated entering state — "if this
                 # creature entered the battlefield kicked ..." (Cragplate
                 # Baloth's 4 +1/+1 counters). The judged handle is the
-                # entering permanent itself: WAS_KICKED reads the card's
-                # own CAST row from the journal, so the gate is honest
-                # for cast-enters and False for put-enters/tokens.
+                # entering permanent itself and it is ALREADY on the
+                # battlefield (this hook runs off the entry's journalled
+                # row), so WAS_KICKED takes its PERMANENT lane: the answer
+                # is bound to THIS entry's provenance — an entry from the
+                # stack carries that cast's kick, a re-entry (blink
+                # return, put-enter) or a token was never cast and reads
+                # False. The counters below therefore never RE-apply on a
+                # return (CR 400.7: the returning object was not kicked).
                 from MTG_bot.core.executor.legality import ctx_for
 
                 ctx = ctx_for(

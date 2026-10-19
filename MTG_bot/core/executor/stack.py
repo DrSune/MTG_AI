@@ -926,7 +926,7 @@ def cast(
                 handle, seat, registered, designated=tuple(chosen)
             )
     if not aura and node.effect is not None:  # effect-less castable creatures (T3 r3)
-        executor._run_effect(node.effect, ctx)
+        executor._run_guarded_effect(node.effect, ctx, "cast")
     before_put = executor.journal.snapshot()
     start_put = len(executor.events)
     dest = ZONE_GRAVEYARD if node.kind not in _PERMANENT_KINDS else ZONE_BATTLEFIELD
@@ -988,7 +988,7 @@ def cast(
     # none of its declared entered state.
     executor._on_zone_changes(entered)
     if aura and node.effect is not None:
-        executor._run_effect(node.effect, ctx)
+        executor._run_guarded_effect(node.effect, ctx, "cast")
     executor._settle()
     executor._consume_end_turn()
     return frame
@@ -1092,7 +1092,7 @@ def cast_card(
         # normal resolve lane (see resolve_spell's hook).
         executor.replacements.register_ephemeral_replacements(handle, caster, record)
     if not aura and node.effect is not None:
-        executor._run_effect(node.effect, ctx)
+        executor._run_guarded_effect(node.effect, ctx, "cast_card")
     before_put = executor.journal.snapshot()
     start_put = len(executor.events)
     dest = ZONE_GRAVEYARD if node.kind not in _PERMANENT_KINDS else ZONE_BATTLEFIELD
@@ -1118,7 +1118,7 @@ def cast_card(
     # effect-cast permanents declare their EtBState too.
     executor._on_zone_changes(entered)
     if aura and node.effect is not None:
-        executor._run_effect(node.effect, ctx)
+        executor._run_guarded_effect(node.effect, ctx, "cast_card")
     executor._settle()
     return True
 

@@ -1,0 +1,63 @@
+{
+  "set": "ZNR",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "mana": {
+    "0": {
+      "G": 2,
+      "B": 1
+    }
+  },
+  "cards": [
+    {
+      "key": "healer",
+      "real": "Expedition Healer",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "visionary",
+      "real": "Joraga Visionary",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "victim",
+      "zone": "battlefield",
+      "controller": 1,
+      "name": "Pen Sheep",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature"
+    },
+    {
+      "key": "alliance",
+      "real": "Deadly Alliance",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "cast",
+      "key": "alliance",
+      "controller": 0,
+      "targets": ["victim"]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "alliance": "graveyard",
+      "victim": "graveyard"
+    },
+    "mana_pool": {
+      "0": {
+        "G": 0,
+        "B": 0
+      }
+    }
+  },
+  "notes": "ZND-3 T1 party price fold end-to-end: Deadly Alliance {4}{B} 'costs {1} less to cast for each creature in your party'. Seat 0 controls a Kor Cleric and an Elf Wizard - the DISTINCT-CLASS census makes party 2 - so the printed {4}{B} PRICES as {2}{B} in the legality fold. The pool above is exactly 2G+1B: with no discount the cast would be illegal (cost:mana shortage, see znr_deadly_alliance_party_absent), so the successful cast IS the assertion that the party census folded into the cast price. After resolution the instant is in the graveyard, the Sheep is destroyed, and the pool is drained to zero."
+}

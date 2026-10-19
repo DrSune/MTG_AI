@@ -437,6 +437,124 @@ class XKickerLaneTest(unittest.TestCase):
         )
 
 
+class PermanentKickerBlinkTest(unittest.TestCase):
+    """ZND-1e blink law (/100 deferred caveat, closed): WAS_KICKED for a
+    handle ON the battlefield is ENTRY-BOUND, not window-bound. A kicked
+    permanent that leaves and re-enters is a NEW object that was never
+    cast (CR 400.7), so its gated EtBState must not re-apply (CR 614.1c)
+    and "if it was kicked" follows the ENTRY's provenance (the entry
+    ZONE_CHANGE row's from_state), not the stale CAST row. Exercised with
+    the engine's REAL out-and-back primitives (MOVE_ZONE exile lane +
+    MOVE_ZONE battlefield-put lane, the runner's `enter` op twin) on the
+    real compiled Cragplate Baloth."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.supply = get_supply("all", "ZNR")
+
+    def setUp(self) -> None:
+        reset_oracle_ids()
+        self.world = GameWorld(num_players=2, start_life=20, master_seed=3)
+        self.executor = Executor(self.world)
+        self.executor.attach_pool(self.supply.pool)
+        self.p0, _p1 = self.world.player_order
+        self.world.active_player = self.p0
+        self.executor.turn_open = True
+        self.executor.phase = "FIRST_MAIN"
+        record = _record_named(self.supply, "Cragplate Baloth")
+        self.handle = self.world.add_card(identity_of(record), self.p0, ZONE_HAND)
+        self.world.players[self.p0].mana_pool.clear()
+        self.world.players[self.p0].mana_pool["G"] = 30
+
+    def _move(self, dest: ZoneKind) -> None:
+        # The runner's `enter` op shape, generalized: bindings carry the
+        # handle straight to the MOVE_ZONE move (the Selector is the atom's
+        # required cards role; the binding short-circuits resolution).
+        handle = self.handle
+        self.executor.execute(
+            _atom(
+                Verb.MOVE_ZONE,
+                cards=Selector(
+                    QConst(1),
+                    SelectorMode.TARGET,
+                    UNIV,
+                    Zone(ZoneKind.HAND, ControllerRef.YOU),
+                ),
+                destination=Zone(dest, ControllerRef.YOU),
+            ),
+            source=handle,
+            controller=self.p0,
+            bindings={"cards": handle},
+        )
+
+    def _was_kicked(self) -> bool:
+        ctx = ctx_for(self.executor, source=self.handle, controller=self.p0)
+        return eval_filter(FAtom(FAtomPred.WAS_KICKED), self.handle, ctx)
+
+    def test_cast_kicked_permanent_lane_true_and_counters_applied(self) -> None:
+        # CONTROL: no blink — the entry IS the cast's resolution, so the
+        # entry-bound read sees the cast's kick and the gate applies once.
+        cast(self.executor, self.p0, self.handle, kicked=True)
+        self.assertEqual(self.world.zone_of(self.handle).kind, ZONE_BATTLEFIELD)
+        self.assertTrue(self._was_kicked(), "kicked cast, entry from stack")
+        self.assertEqual(self.world.cards[self.handle].counters.get("PLUS_1_PLUS_1"), 4)
+
+    def test_un_kicked_second_cast_in_same_world_reads_false(self) -> None:
+        # Falsifier for the pairing term: a KICKED cast earlier in the same
+        # window/journal must not leak into the second, un-kicked cast's
+        # entry — the entry-bound read must carry THIS cast's False.
+        other_rec = _record_named(self.supply, "Cragplate Baloth")
+        other = self.world.add_card(identity_of(other_rec), self.p0, ZONE_HAND)
+        cast(self.executor, self.p0, self.handle, kicked=True)
+        cast(self.executor, self.p0, other, kicked=False)
+        ctx = ctx_for(self.executor, source=other, controller=self.p0)
+        self.assertFalse(
+            eval_filter(FAtom(FAtomPred.WAS_KICKED), other, ctx),
+            "the un-kicked entry carries its own provenance, not the sibling's",
+        )
+        self.assertEqual(self.world.cards[other].counters, {})
+        self.assertEqual(self.world.cards[self.handle].counters.get("PLUS_1_PLUS_1"), 4)
+
+    def test_blink_return_is_not_kicked_and_does_not_reapply_counters(self) -> None:
+        cast(self.executor, self.p0, self.handle, kicked=True)
+        self.assertEqual(self.world.cards[self.handle].counters.get("PLUS_1_PLUS_1"), 4)
+        self._move(ZoneKind.EXILE)
+        self.assertEqual(self.world.zone_of(self.handle).kind, ZONE_EXILE)
+        counters_before = dict(self.world.cards[self.handle].counters)
+        self._move(ZoneKind.BATTLEFIELD)  # the return: EtBState hook re-runs
+        self.assertEqual(self.world.zone_of(self.handle).kind, ZONE_BATTLEFIELD)
+        self.assertFalse(
+            self._was_kicked(),
+            "CR 400.7: the returning object was never cast — stale CAST row forbidden",
+        )
+        self.assertEqual(
+            dict(self.world.cards[self.handle].counters),
+            counters_before,
+            "CR 614.1c: the gated entering state must NOT re-apply on a return "
+            "(an 8-counter permanent here would be the window-heuristic bug)",
+        )
+
+    def test_put_enter_from_hand_never_kicked_never_phantom_counters(self) -> None:
+        # Falsifier for a phantom gate: a card that was never cast at all
+        # enters via the MOVE_ZONE battlefield-put lane (runner `enter` op)
+        # — gate False, zero counters.
+        self._move(ZoneKind.BATTLEFIELD)
+        self.assertEqual(self.world.zone_of(self.handle).kind, ZONE_BATTLEFIELD)
+        self.assertFalse(self._was_kicked())
+        self.assertEqual(self.world.cards[self.handle].counters, {})
+
+    def test_kicked_permanent_lane_survives_the_turn_boundary(self) -> None:
+        # Entry-bound (whole journal) beats the old window read: a kicked
+        # permanent that is STILL the same object next turn was still
+        # kicked (CR 702.27a — the property does not expire with the
+        # window; the pre-fix window read answered False here).
+        cast(self.executor, self.p0, self.handle, kicked=True)
+        self.executor.end_turn()
+        self.executor.advance_turn()
+        self.assertEqual(self.world.zone_of(self.handle).kind, ZONE_BATTLEFIELD)
+        self.assertTrue(self._was_kicked(), "entry provenance is object permanence")
+
+
 class ReplayDeterminismTest(unittest.TestCase):
     """The mission's replay gate, as a test."""
 

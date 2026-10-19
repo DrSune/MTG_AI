@@ -68,6 +68,7 @@ from MTG_bot.core.compiler import (
     templates_b5c,
     templates_b6,
     templates_b7,
+    templates_b8,
 )
 from MTG_bot.core.compiler.compiler import CompileResult, compile_card
 from MTG_bot.core.compiler.ingest import RawCard, pool_stats
@@ -84,7 +85,7 @@ PINNED_ENTRIES = 305
 PINNED_SENTENCES = 639
 PINNED_SENTENCES_UNIQUE = 510
 
-#: The ten bucket modules, in registration order.  Explicit by design —
+#: The eleven bucket modules, in registration order.  Explicit by design —
 #: a new bucket module must be added here (and to NUMBERS.md) before its
 #: templates participate in measurement.
 _BUCKET_MODULES: tuple[types.ModuleType, ...] = (
@@ -98,6 +99,7 @@ _BUCKET_MODULES: tuple[types.ModuleType, ...] = (
     templates_b5c,
     templates_b6,
     templates_b7,
+    templates_b8,
 )
 
 

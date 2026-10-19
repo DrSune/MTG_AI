@@ -1262,8 +1262,11 @@ class TriggerBinder:
             else:
                 self._designate(node, ctx)
         # The 12a shared effect runner — the SAME dispatch execute() uses,
-        # journalled at its Atom boundaries by the Executor.
-        self.executor._run_effect(node.effect, ctx)
+        # journalled at its Atom boundaries by the Executor. r24 (/111):
+        # guarded like the spell lanes — a template mis-fold whose
+        # anaphora has no producer skips LOUD (unresolved_effects) instead
+        # of killing the match; every other error still propagates.
+        self.executor._run_guarded_effect(node.effect, ctx, "trigger")
 
     @staticmethod
     def _trigger_designates_target(node: _AnyTrigger) -> bool:

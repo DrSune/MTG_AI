@@ -1,0 +1,82 @@
+{
+  "set": "ZNR",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "mana": {
+    "0": {
+      "G": 10,
+      "B": 11
+    }
+  },
+  "cards": [
+    {
+      "key": "crag",
+      "real": "Cragplate Baloth",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "priest",
+      "real": "Nullpriest of Oblivion",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "bird",
+      "zone": "battlefield",
+      "controller": 0,
+      "name": "Skyroost Hawk",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Cragplate Baloth",
+      "key": "crag",
+      "kicked": true
+    },
+    {
+      "op": "deal_damage",
+      "source": "bird",
+      "target": "crag",
+      "amount": 10
+    },
+    {
+      "op": "cast",
+      "real": "Nullpriest of Oblivion",
+      "key": "priest",
+      "kicked": true,
+      "decisions": [
+        "crag"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "crag": "battlefield",
+      "priest": "battlefield"
+    },
+    "counters": {
+      "crag": {
+        "PLUS_1_PLUS_1": 4
+      }
+    },
+    "mana_pool": {
+      "0": {
+        "G": 5
+      }
+    },
+    "hand": {
+      "0": 0
+    },
+    "tapped": {
+      "bird": false
+    }
+  },
+  "notes": "ZND-1e blink law (/100 deferred caveat, closed): a REAL reanimate out-and-back on the PERMANENT lane of WAS_KICKED. Kicked Cragplate enters with four +1/+1 counters (entry from the stack carries the cast's kick). The bird's 10 damage kills it (settle's lethal SBA graves it). Nullpriest's ETB returns it from the graveyard: the returning object is a NEW object that was never cast (CR 400.7), so the gated EtBState (CR 614.1c) must NOT re-apply — counters stay 4. The pre-fix window heuristic read the stale CAST row and re-applied: 8 counters here would BE the bug (and power 12). Mana math (generic draws B before G, canonical MANA_KEYS order): pool {G:10,B:8}; kicked Crag = 3G colored + 7 generic (B:8→1); Nullpriest {3}{B} = 1B + 3 generic (B:1→0, G:7→4). Final pool {G:4}. Hand empties on the two casts; the bird stays untapped (nobody asked it)."
+}

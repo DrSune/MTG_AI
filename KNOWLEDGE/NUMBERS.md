@@ -13,7 +13,7 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | PC-2 sentence_coverage | **1.0000** (639/639) | `python tools/measure_grammar.py --set M21` | target >= 0.95 / stretch >= 0.98 — PASS |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
 | PC-4 golden_stability | **0 diffs** (305 files, verified) | `python tools/measure_grammar.py --set M21` | target 0 — PASS |
-| PC-5 compile_latency p99 | **0.295 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
+| PC-5 compile_latency p99 | **0.324 ms/card** (3 runs) | `python tools/measure_grammar.py --set M21` | target < 50 / stretch < 20 — PASS |
 | PC-6 vocabulary_health | orphans **4** / max share **0.1265** (MOVE_ZONE) | `python tools/measure_grammar.py --set M21` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set M21` | deferred to T6 (core/executor.py) — not evaluated |
 | PC-8 targetable_fraction | **0.3213** (98/305) | `python tools/measure_grammar.py --set M21` | target >= 0.40 / stretch >= 0.50 — FAIL |
@@ -25,14 +25,14 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 | Number | Value | Command | Notes |
 |---|---|---|---|
-| PC-1 card_coverage | **0.2411** (68/282) | `python tools/measure_grammar.py --set ZNR` | target >= 0.90 / stretch >= 0.95 — FAIL |
-| PC-2 sentence_coverage | **0.4669** (339/726) | `python tools/measure_grammar.py --set ZNR` | target >= 0.95 / stretch >= 0.98 — FAIL |
+| PC-1 card_coverage | **0.2979** (84/282) | `python tools/measure_grammar.py --set ZNR` | target >= 0.90 / stretch >= 0.95 — FAIL |
+| PC-2 sentence_coverage | **0.5152** (374/726) | `python tools/measure_grammar.py --set ZNR` | target >= 0.95 / stretch >= 0.98 — FAIL |
 | PC-3 ambiguity | **0** entries | `python tools/measure_grammar.py --set ZNR` | target 0 — PASS |
 | PC-4 golden_stability | **N/A** (no golden trees for set ZNR) | `python tools/measure_grammar.py --set ZNR` | target 0 — N/A (not evaluated) |
-| PC-5 compile_latency p99 | **0.259 ms/card** (3 runs) | `python tools/measure_grammar.py --set ZNR` | target < 50 / stretch < 20 — PASS |
-| PC-6 vocabulary_health | orphans **30** / max share **0.1667** (ADD_MANA) | `python tools/measure_grammar.py --set ZNR` | target orphans 0 + max share < 0.20 — FAIL |
+| PC-5 compile_latency p99 | **0.275 ms/card** (3 runs) | `python tools/measure_grammar.py --set ZNR` | target < 50 / stretch < 20 — PASS |
+| PC-6 vocabulary_health | orphans **26** / max share **0.1613** (MODIFY_PT) | `python tools/measure_grammar.py --set ZNR` | target orphans 0 + max share < 0.20 — FAIL |
 | PC-7 executor_coverage | **pending_executor** | `python tools/measure_grammar.py --set ZNR` | deferred to T6 (core/executor.py) — not evaluated |
-| PC-8 targetable_fraction | **0.1028** (29/282) | `python tools/measure_grammar.py --set ZNR` | target >= 0.40 / stretch >= 0.50 — FAIL |
+| PC-8 targetable_fraction | **0.1277** (36/282) | `python tools/measure_grammar.py --set ZNR` | target >= 0.40 / stretch >= 0.50 — FAIL |
 | PC-9 determinism | **stable** | `python tools/measure_grammar.py --set ZNR` | 2 independent compilations, identical fingerprint multiset |
 | PC-10 null_test | **100% / 0%**, unparsed exact | `python tools/measure_grammar.py --set ZNR` | synthetic in-memory cards — PASS |
 

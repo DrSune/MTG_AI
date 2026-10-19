@@ -876,6 +876,30 @@ class QCount:
 
 
 @dataclass(frozen=True)
+class QPartyCount:
+    """The number of creatures in YOUR party — the number of DISTINCT
+    party classes (Cleric/Rogue/Warrior/Wizard) present among the objects
+    a selector matches, 0..4 (ZND-3, spec KNOWLEDGE/2026-10-18/107 G1;
+    world-canonical semantics: ZNR.json reminder text "Your party
+    consists of up to one each of Cleric, Rogue, Warrior, and Wizard").
+    QDistinctColorCount's registration-shaped sibling, but the evaluator
+    reads the LIVE type oracle (printed type line ∪ GRANT_TYPE overlay —
+    class grants move the census, §11 board interaction is engine-side),
+    not frozen identity colors; the two primitives have different data
+    sources and stay separate (§9 honest siblings). Templates pin the
+    population axis via the selector (creature-you-control battlefield
+    census idiom)."""
+
+    selector: Selector
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.selector, Selector):
+            raise ValueError(
+                f"QPartyCount: selector must be a Selector, got {type(self.selector).__name__}"
+            )
+
+
+@dataclass(frozen=True)
 class QDistinctColorCount:
     """The number of DISTINCT colors among the objects a selector matches
     (grammar round 9, R9-6) — Orrery's "{5},{T}: Draw a card for each
@@ -1073,6 +1097,7 @@ Quantity = (
     | QUnbounded
     | QCount
     | QDistinctColorCount
+    | QPartyCount
     | QProp
     | QBin
     | QThisTurn
@@ -3254,6 +3279,7 @@ _Q_CLASSES = (
     QAtLeast,
     QAtMost,
     QDistinctColorCount,
+    QPartyCount,
 )
 _F_CLASSES = (FAnd, FOr, FNot, FAtom)
 _E_CLASSES = (
@@ -3858,6 +3884,7 @@ _DATACLASSES: tuple[type, ...] = (
     QAtLeast,
     QAtMost,
     QDistinctColorCount,
+    QPartyCount,
     Zone,
     Selector,
     FAnd,
@@ -3943,6 +3970,9 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     # grammar round 9, R9-6: distinct-color count of the selector's cards
     # (Orrery draw-per-color); same single-selector encoding as QCount.
     "QDistinctColorCount": (("selector", "selector"),),
+    # ZND-3 G1 (spec /107): party census — distinct party classes among
+    # the selector's objects; same single-selector encoding as QCount.
+    "QPartyCount": (("selector", "selector"),),
     "QProp": (
         ("referent", "qprop_referent"),
         ("field", "enum:QPropField"),
@@ -4203,6 +4233,7 @@ _QUANTITY_TAGS = frozenset(
         "QAtLeast",
         "QAtMost",
         "QDistinctColorCount",
+        "QPartyCount",
     }
 )
 _FILTER_TAGS = frozenset({"FAnd", "FOr", "FNot", "FAtom"})

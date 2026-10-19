@@ -1,0 +1,51 @@
+{
+  "set": "ZNR",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "mana": {
+    "0": {
+      "G": 4,
+      "B": 1
+    }
+  },
+  "cards": [
+    {
+      "key": "victim",
+      "zone": "battlefield",
+      "controller": 1,
+      "name": "Pen Sheep",
+      "power": 1,
+      "toughness": 1,
+      "type": "Creature"
+    },
+    {
+      "key": "alliance",
+      "real": "Deadly Alliance",
+      "zone": "hand",
+      "controller": 0
+    }
+  ],
+  "steps": [
+    {
+      "op": "cast",
+      "key": "alliance",
+      "controller": 0,
+      "targets": ["victim"]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "alliance": "graveyard",
+      "victim": "graveyard"
+    },
+    "mana_pool": {
+      "0": {
+        "G": 0,
+        "B": 0
+      }
+    }
+  },
+  "notes": "ZND-3 T1 control leg: no party creatures, so the {1}-per-creature discount folds to zero and the cast pays the FULL {4}{B}. The 4G+1B pool is exactly that price - the successful cast proves the refusal in znr_deadly_alliance_party_absent was the PRICE, not some unrelated legality (target, timing, zone). The three packs form the falsification triangle: always-discounted would break the absent leg, always-full would break the discount leg."
+}
