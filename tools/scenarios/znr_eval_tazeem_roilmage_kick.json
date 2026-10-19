@@ -1,0 +1,25 @@
+{
+ "set": "ZNR",
+ "note": "ZNR EVAL PACK. REAL Tazeem Roilmage {1}{U}, Kicker {4}: 'When this creature enters, if it was kicked, return target instant or sorcery card from your graveyard to your hand.' GOLD from ORACLE (CR 603.2 trigger gated by the kicker check): kicked entry asks the GRAVEYARD-target menu (type-filtered: the Instant rows Ember Bolt / Tide Snare are candidates; the Creature row Stone Wall must NOT appear — filter falsifier), gold returns Tide Snare (the null lane's illegal-word fallback re-designates the MENU HEAD, Ember Bolt, so gold sits off-head: a gold equal to the engine's silent fallback would be expect-insensitive). Un-kicked second entry: NO ask (quiet provider raises on any unprimed ask = phantom-choice falsifier). Mana (colored pool pays generic): 8U - 6U ({1}{U}+kicker {4}) - 2U = 0U. Falsified by: unfiltered menu (wall offered), ungated trigger (second ask), wrong return zone.",
+ "world": { "life": 20, "seed": 25 },
+ "cards": [
+  { "key": "roilmage_k", "real": "Tazeem Roilmage", "zone": "hand", "controller": 0 },
+  { "key": "roilmage_p", "real": "Tazeem Roilmage", "zone": "hand", "controller": 0 },
+  { "key": "bolt", "zone": "graveyard", "controller": 0, "name": "Ember Bolt", "type": "Instant" },
+  { "key": "snare", "zone": "graveyard", "controller": 0, "name": "Tide Snare", "type": "Instant" },
+  { "key": "wall", "zone": "graveyard", "controller": 0, "name": "Stone Wall", "power": 0, "toughness": 4, "type": "Creature" }
+ ],
+ "mana": { "0": { "U": 8 } },
+ "steps": [
+  { "op": "cast", "real": "Tazeem Roilmage", "key": "roilmage_k", "kicked": true, "decisions": ["snare"] },
+  { "op": "cast", "real": "Tazeem Roilmage", "key": "roilmage_p" }
+ ],
+ "expect": {
+  "zone": { "roilmage_k": "battlefield", "roilmage_p": "battlefield", "snare": "hand", "bolt": "graveyard", "wall": "graveyard" },
+  "kick_rows": {
+   "roilmage_k": { "kicked": true, "x": null },
+   "roilmage_p": { "kicked": false, "x": null }
+  },
+  "mana_pool": { "0": {} }
+ }
+}

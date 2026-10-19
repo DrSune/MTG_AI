@@ -1,0 +1,18 @@
+{
+ "set": "ZNR",
+ "note": "ZNR EVAL PACK — LANDFALL TOKEN CREATION. REAL Scute Swarm {2}{G} 1/1 ('Landfall — Whenever a land you control enters, create a 1/1 green Insect creature token. If you control six or more lands, create a token that is a copy of this creature instead.'). GOLD from ORACLE at THIS land count (2 lands total -> the six-lands 'instead' clause is out of window): one land drop -> exactly one Insect token on the battlefield (tokens lane), Swarm unchanged 1/1. The six-lands copy clause is deliberately NOT exercised (partial-compile boundary; registered in the /127 gap ledger if unparseable). Quiet lane. Falsified by: no token (trigger dead), token with EOT grant shape.",
+ "world": { "life": 20, "seed": 30 },
+ "cards": [
+  { "key": "swarm", "real": "Scute Swarm", "zone": "battlefield", "controller": 0 },
+  { "key": "land1", "real": "Forest", "zone": "hand", "controller": 0 }
+ ],
+ "steps": [
+  { "op": "play", "key": "land1", "seat": 0 }
+ ],
+ "expect": {
+  "zone": { "swarm": "battlefield", "land1": "battlefield" },
+  "tokens": { "Insect": 1 },
+  "power": { "swarm": 1 },
+  "toughness": { "swarm": 1 }
+ }
+}

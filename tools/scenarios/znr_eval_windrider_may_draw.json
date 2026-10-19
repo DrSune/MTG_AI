@@ -1,0 +1,24 @@
+{
+ "set": "ZNR",
+ "note": "ZNR EVAL PACK — CAST-TRIGGERED MAY-DRAW-THEN-DISCARD. REAL Windrider Wizard {2}{U} 2/2 (Human Wizard, Flying): 'Whenever you cast an instant, sorcery, or Wizard spell, you may draw a card. If you do, discard a card.' Lane structure (all gold from ORACLE + CR 603.2): (1) casting Windrider must NOT offer its own may — the trigger arrives on the battlefield only AFTER the cast event (a phantom self-trigger fails this quiet step). (2) Joraga Visionary {3}{G} (Elf Wizard) cast -> the may ask fires ('fire','skip' vocab): FIRE -> draw resolves, the IF-DO clause (MAY_DONE conditional, compiled exactly) opens the forced one-of discard ask over the hand: gold discards the SECOND synthetic hand card, Tide Snare (the forced discard's illegal-word fallback takes the MENU HEAD, Ember Bolt — gold off-head keeps the null lane discriminating) -> gy lane proves it. Joraga's own EtB draw also fires silently (no ask — no phantom lane). (3) Gnarlid Colony (Dog, no kind match) -> quiet falsifier. Hand-count and library lanes are DELIBERATELY unasserted: the harness auto-dealt deck ('Library N' cards) rides the top, so only the KEYED synthetic card's zone is oracle-exact. Mana {2}{U}=3U + {3}{G}=4G + {1}{G}=2G from {U:3,G:6} -> {}. Falsified by: self-trigger at step 1 (raises), skip-still-discards (gy wrong), kind-blind step 3 (raises).",
+ "world": { "life": 20, "seed": 46 },
+ "cards": [
+  { "key": "wind", "real": "Windrider Wizard", "zone": "hand", "controller": 0 },
+  { "key": "jor", "real": "Joraga Visionary", "zone": "hand", "controller": 0 },
+  { "key": "bolt", "zone": "hand", "controller": 0, "name": "Ember Bolt", "type": "Instant" },
+  { "key": "snare", "zone": "hand", "controller": 0, "name": "Tide Snare", "type": "Instant" },
+  { "key": "gnarlid", "real": "Gnarlid Colony", "zone": "hand", "controller": 0 }
+ ],
+ "mana": { "0": { "U": 3, "G": 6 } },
+ "steps": [
+  { "op": "cast", "real": "Windrider Wizard", "key": "wind" },
+  { "op": "cast", "real": "Joraga Visionary", "key": "jor", "decisions": ["fire", "snare"] },
+  { "op": "cast", "real": "Gnarlid Colony", "key": "gnarlid" }
+ ],
+ "expect": {
+  "zone": { "wind": "battlefield", "jor": "battlefield", "gnarlid": "battlefield", "snare": "graveyard" },
+  "graveyard": { "0": ["Tide Snare"] },
+  "life": { "0": 20, "1": 20 },
+  "mana_pool": { "0": {} }
+ }
+}

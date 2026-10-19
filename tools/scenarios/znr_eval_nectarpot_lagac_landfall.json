@@ -1,0 +1,21 @@
+{
+ "set": "ZNR",
+ "note": "ZNR EVAL PACK — LANDFALL LIFE + DAMAGE LANES. REAL Kazandu Nectarpot {1}{G} ('Landfall — Whenever a land you control enters, you gain 1 life') + REAL Spitfire Lagac {3}{R} ('Landfall — ... this creature deals 1 damage to each opponent'). GOLD from ORACLE: two own land entries (op play + journalled enter) -> life 20+2=22 for seat 0, seat 1 20-2=18. Quiet lanes: neither trigger asks, any unprimed ask raises (phantom falsifier). DIRECTION: opponent land entry changes nothing. Falsified by: one-fire lock broken (24/16), direction leak (seat-1 gain / seat-0 damage).",
+ "world": { "life": 20, "seed": 28 },
+ "cards": [
+  { "key": "nectar", "real": "Kazandu Nectarpot", "zone": "battlefield", "controller": 0 },
+  { "key": "lagac", "real": "Spitfire Lagac", "zone": "battlefield", "controller": 0 },
+  { "key": "land1", "real": "Forest", "zone": "hand", "controller": 0 },
+  { "key": "land2", "real": "Mountain", "zone": "hand", "controller": 0 },
+  { "key": "oland", "real": "Mountain", "zone": "hand", "controller": 1 }
+ ],
+ "steps": [
+  { "op": "play", "key": "land1", "seat": 0 },
+  { "op": "enter", "key": "land2" },
+  { "op": "enter", "key": "oland" }
+ ],
+ "expect": {
+  "zone": { "nectar": "battlefield", "lagac": "battlefield", "land1": "battlefield", "land2": "battlefield", "oland": "battlefield" },
+  "life": { "0": 22, "1": 18 }
+ }
+}

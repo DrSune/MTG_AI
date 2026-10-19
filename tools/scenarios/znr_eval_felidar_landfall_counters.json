@@ -1,0 +1,20 @@
+{
+ "set": "ZNR",
+ "note": "ZNR EVAL PACK — LANDFALL SELF-COUNTER. REAL Prowling Felidar {3}{W} 2/3 ('Vigilance. Landfall — Whenever a land you control enters, put a +1/+1 counter on this creature'). GOLD from ORACLE: two own land entries -> counters {PLUS_1_PLUS_1: 2}, ledger PT 4/5 (counters are durable, not EOT). Quiet lane: no asks. Falsified by: EOT-grant miscompile (PT bumps without counter rows), one-fire lock (counters 1).",
+ "world": { "life": 20, "seed": 29 },
+ "cards": [
+  { "key": "felidar", "real": "Prowling Felidar", "zone": "battlefield", "controller": 0 },
+  { "key": "land1", "real": "Forest", "zone": "hand", "controller": 0 },
+  { "key": "land2", "real": "Forest", "zone": "hand", "controller": 0 }
+ ],
+ "steps": [
+  { "op": "play", "key": "land1", "seat": 0 },
+  { "op": "enter", "key": "land2" }
+ ],
+ "expect": {
+  "zone": { "felidar": "battlefield", "land1": "battlefield", "land2": "battlefield" },
+  "counters": { "felidar": { "PLUS_1_PLUS_1": 2 } },
+  "power": { "felidar": 4 },
+  "toughness": { "felidar": 5 }
+ }
+}

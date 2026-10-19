@@ -1,0 +1,23 @@
+{
+ "set": "ZNR",
+ "note": "ZNR EVAL PACK. REAL Scorch Rider {3}{R}, Kicker {1}{R}: 'When this creature enters, if it was kicked, it gains haste until end of turn.' GOLD from ORACLE + CR 302.6 (summoning sickness) + CR 702.10 (haste lets it attack): the kicked rider has haste -> IS offered the attack ask and attacks for 4 (P1 20->16); the un-kicked rider is sick -> the engine must NEVER offer it an attack (not_asked lane; an offer there means the kicked-gate leaked). Combat mapDECLINEs nothing: attack lane only claims the rider_k site; rider_p absent from the map AND from asks. Mana (colored pool pays generic): 10R - 6R ({3}{R}+{1}{R}) - 4R = 0R. NOTE: BOTH riders entered this turn, so summoning sickness already bars rider_p; the discriminating lane is the kicked EtB granting attackability ONLY to rider_k (the gate leak would offer rider_p, the dead gate would not ask rider_k). Falsified by: ever-live gate (rider_p offered/attacks), never-live gate (rider_k not asked).",
+ "world": { "life": 20, "seed": 24 },
+ "cards": [
+  { "key": "rider_k", "real": "Scorch Rider", "zone": "hand", "controller": 0 },
+  { "key": "rider_p", "real": "Scorch Rider", "zone": "hand", "controller": 0 }
+ ],
+ "mana": { "0": { "R": 10 } },
+ "steps": [
+  { "op": "cast", "real": "Scorch Rider", "key": "rider_k", "kicked": true },
+  { "op": "cast", "real": "Scorch Rider", "key": "rider_p" },
+  { "op": "combat", "seat": 0, "attack": { "rider_k": true } }
+ ],
+ "expect": {
+  "zone": { "rider_k": "battlefield", "rider_p": "battlefield" },
+  "attackers": { "rider_k": true },
+  "not_asked": ["rider_p"],
+  "life": { "1": 16 },
+  "tapped": { "rider_k": true, "rider_p": false },
+  "mana_pool": { "0": {} }
+ }
+}

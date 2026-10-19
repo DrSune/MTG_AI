@@ -1,0 +1,25 @@
+{
+ "set": "ZNR",
+ "note": "ZNR EVAL PACK (first set-generalization corpus). REAL Might of Murasa {1}{G}, Kicker {2}{G} (CR 702.27a): 'Target creature gets +3/+3 until end of turn. If this spell was kicked, that creature gets +5/+5 until end of turn instead.' GOLD from ORACLE: the 'instead' clause picks the magnitude of ONE spell (702.27a), but TWO separate spells stack (CR 613 layer 7c): Dire Wolf 2/2 + 3/3 (un-kicked cast) + 5/5 (kicked cast) = 10/10. Mana pool model: colored pool pays generic (kitesail precedent): 10G - 2G - 5G (kicked {1}{G}+{2}{G}) = 3G left. One legal target -> the cast lane AUTO-DESIGNATES (no ask: menu-free resolution per section-10 no-phantom law; the ambiguous two-creature board is registered separately as an engine gap). Falsified by: kicked-as-additive-on-one-spell (wolf 13/13), never-kicked (8/8), overwrite-not-stack (7/7), kick-gate leak onto the plain cast (10/10 would still fail: the plain spell has no +5 to give only under 'instead').",
+ "world": { "life": 20, "seed": 21 },
+ "cards": [
+  { "key": "mk", "real": "Might of Murasa", "zone": "hand", "controller": 0 },
+  { "key": "mp", "real": "Might of Murasa", "zone": "hand", "controller": 0 },
+  { "key": "wolf", "zone": "battlefield", "controller": 0, "name": "Dire Wolf", "power": 2, "toughness": 2, "type": "Creature" }
+ ],
+ "mana": { "0": { "G": 10 } },
+ "steps": [
+  { "op": "cast", "real": "Might of Murasa", "key": "mp" },
+  { "op": "cast", "real": "Might of Murasa", "key": "mk", "kicked": true }
+ ],
+ "expect": {
+  "zone": { "mk": "graveyard", "mp": "graveyard", "wolf": "battlefield" },
+  "power": { "wolf": 10 },
+  "toughness": { "wolf": 10 },
+  "kick_rows": {
+   "mk": { "kicked": true, "x": null },
+   "mp": { "kicked": false, "x": null }
+  },
+  "mana_pool": { "0": { "G": 3 } }
+ }
+}

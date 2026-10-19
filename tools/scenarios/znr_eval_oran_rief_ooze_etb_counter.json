@@ -1,0 +1,23 @@
+{
+ "set": "ZNR",
+ "note": "ZNR EVAL PACK — ETB COUNTER, CONTROLLER-FILTERED MENU. REAL Oran-Rief Ooze {2}{G} 2/2: 'When this creature enters, put a +1/+1 counter on target creature you control.' (The printed attack trigger 'put a counter on each attacking creature with a counter' is DROPPED by the compiler — gap-registered, so the combat half of this card is untestable and NOT asserted here.) SETUP pre-seeds oozeA (placement fires nothing). GOLD from ORACLE (CR 603.2): casting ooze_b asks the MY-CREATURES menu (oozeA | ooze_b — self is legal at resolution, a self-excluded menu is the falsifier; opponent Dire Wolf must NOT appear: controller-filter leak falsifier), gold counters ITSELF (ooze_b: the auto-designation fallback lands on the MENU HEAD oozeea, so self-as-gold also certifies the null lane — a gold equal to the engine's silent fallback would be expect-insensitive). Counter on B -> B 3/3; oozeea 2/2 and sheep 1/2 stay counter-less. Mana {2}{G}: 3G from pool -> {}.",
+ "world": { "life": 20, "seed": 41 },
+ "cards": [
+  { "key": "oozea", "real": "Oran-Rief Ooze", "zone": "battlefield", "controller": 0 },
+  { "key": "ooze_b", "real": "Oran-Rief Ooze", "zone": "hand", "controller": 0 },
+  { "key": "sheep", "zone": "battlefield", "controller": 0, "name": "Pen Sheep", "power": 1, "toughness": 2, "type": "Creature" },
+  { "key": "wolf", "zone": "battlefield", "controller": 1, "name": "Dire Wolf", "power": 2, "toughness": 2, "type": "Creature" }
+ ],
+ "mana": { "0": { "G": 3 } },
+ "steps": [
+  { "op": "cast", "real": "Oran-Rief Ooze", "key": "ooze_b", "decisions": ["ooze_b"] }
+ ],
+ "expect": {
+  "zone": { "oozea": "battlefield", "ooze_b": "battlefield", "sheep": "battlefield" },
+  "counters": { "ooze_b": { "PLUS_1_PLUS_1": 1 }, "oozea": {}, "sheep": {}, "wolf": {} },
+  "power": { "ooze_b": 3, "oozea": 2, "sheep": 1, "wolf": 2 },
+  "toughness": { "ooze_b": 3, "oozea": 2, "sheep": 2, "wolf": 2 },
+  "life": { "0": 20, "1": 20 },
+  "mana_pool": { "0": {} }
+ }
+}

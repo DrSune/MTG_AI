@@ -1,0 +1,25 @@
+{
+ "set": "ZNR",
+ "note": "ZNR EVAL PACK. REAL Ghastly Gloomhunter {1}{B}, Kicker {3}{B}: 'Flying, lifelink. If this creature was kicked, it enters with two +1/+1 counters on it.' Printed 1/1. GOLD from ORACLE: kicked entry -> counters {+1/+1:2}, ledger PT 3/3; un-kicked entry -> no counters, 1/1 (CR 603.2 trigger-free entry: the 'if kicked' check is a continuous entry-modifier, both entries journalled via the cast lane). Mana (colored pool pays generic, kitesail precedent): 8B - 6B (kicked {1}{B}+{3}{B}) - 2B = 0B. kick_rows lane pins the CAST 6-tuple (paid flag) for both keys. Falsified by: one counter (2/2), kicked-never (1/1 pair), additive counter to un-kicked (3/3 pair).",
+ "world": { "life": 20, "seed": 23 },
+ "cards": [
+  { "key": "ghast_k", "real": "Ghastly Gloomhunter", "zone": "hand", "controller": 0 },
+  { "key": "ghast_p", "real": "Ghastly Gloomhunter", "zone": "hand", "controller": 0 }
+ ],
+ "mana": { "0": { "B": 8 } },
+ "steps": [
+  { "op": "cast", "real": "Ghastly Gloomhunter", "key": "ghast_k", "kicked": true },
+  { "op": "cast", "real": "Ghastly Gloomhunter", "key": "ghast_p" }
+ ],
+ "expect": {
+  "zone": { "ghast_k": "battlefield", "ghast_p": "battlefield" },
+  "counters": { "ghast_k": { "PLUS_1_PLUS_1": 2 }, "ghast_p": {} },
+  "power": { "ghast_k": 3, "ghast_p": 1 },
+  "toughness": { "ghast_k": 3, "ghast_p": 1 },
+  "kick_rows": {
+   "ghast_k": { "kicked": true, "x": null },
+   "ghast_p": { "kicked": false, "x": null }
+  },
+  "mana_pool": { "0": {} }
+ }
+}

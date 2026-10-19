@@ -1,0 +1,23 @@
+{
+ "set": "ZNR",
+ "note": "ZNR EVAL PACK — PLAIN ETB TARGET-COUNTER (no kicker on this card). REAL Dauntless Survivor {1}{G} 1/1: 'When this creature enters, put a +1/+1 counter on target creature.' GOLD from ORACLE (CR 603.2): each of two entries ASKS the creature menu (self | own Pen Sheep | opponent Dire Wolf — the ANY-creature scope spans both controllers; controller-filter falsifier). First entry counters ITSELF (self-legal falsifier: menu lacking surv1), second counters Pen Sheep. Expect counters {surv1: PLUS_1_PLUS_1 1, sheep: PLUS_1_PLUS_1 1}, wolf/surv2 none; PT folded: surv1 2/2, sheep 2/3. Mana: {1}{G} pays 1G symbol + 1 generic from the G pool (kitesail precedent): 4 - 2 - 2 = 0. Falsified by: self-only scope (no sheep ask), silent auto-pick (no menu), counter as EOT grant (no counter row).",
+ "world": { "life": 20, "seed": 32 },
+ "cards": [
+  { "key": "surv1", "real": "Dauntless Survivor", "zone": "hand", "controller": 0 },
+  { "key": "surv2", "real": "Dauntless Survivor", "zone": "hand", "controller": 0 },
+  { "key": "sheep", "zone": "battlefield", "controller": 0, "name": "Pen Sheep", "power": 1, "toughness": 2, "type": "Creature" },
+  { "key": "wolf", "zone": "battlefield", "controller": 1, "name": "Dire Wolf", "power": 2, "toughness": 2, "type": "Creature" }
+ ],
+ "mana": { "0": { "G": 4 } },
+ "steps": [
+  { "op": "cast", "real": "Dauntless Survivor", "key": "surv1", "decisions": ["surv1"] },
+  { "op": "cast", "real": "Dauntless Survivor", "key": "surv2", "decisions": ["sheep"] }
+ ],
+ "expect": {
+  "zone": { "surv1": "battlefield", "surv2": "battlefield" },
+  "counters": { "surv1": { "PLUS_1_PLUS_1": 1 }, "sheep": { "PLUS_1_PLUS_1": 1 }, "wolf": {}, "surv2": {} },
+  "power": { "surv1": 2, "sheep": 2 },
+  "toughness": { "surv1": 2, "sheep": 3 },
+  "mana_pool": { "0": {} }
+ }
+}

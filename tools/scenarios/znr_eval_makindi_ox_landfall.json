@@ -1,0 +1,20 @@
+{
+ "set": "ZNR",
+ "note": "ZNR EVAL PACK. REAL Makindi Ox {4}{W}: 'Landfall — Whenever a land you control enters, tap target creature an opponent controls.' GOLD from ORACLE: the seat-0 land DROP (op play, CR 305.1) fires landfall -> TARGET ask over seat-1 creatures (Ridge Ram | Dire Wolf), gold taps Ridge Ram; the second own land via the journalled hand->battlefield 'enter' lane must fire landfall AGAIN (both trigger lanes see the same battlefield-entry event, CR 603.2) -> second ask, gold taps Dire Wolf. Expect: both tapped true. Falsified by: enter-lane not firing landfall (wolf stays untapped => GAP-REPORT), opponent-creatures-excluded (no ask), ungated ever-tap (third tap without land).",
+ "world": { "life": 20, "seed": 26 },
+ "cards": [
+  { "key": "ox", "real": "Makindi Ox", "zone": "battlefield", "controller": 0 },
+  { "key": "land1", "real": "Forest", "zone": "hand", "controller": 0 },
+  { "key": "land2", "real": "Forest", "zone": "hand", "controller": 0 },
+  { "key": "ram", "zone": "battlefield", "controller": 1, "name": "Ridge Ram", "power": 2, "toughness": 2, "type": "Creature" },
+  { "key": "wolf", "zone": "battlefield", "controller": 1, "name": "Dire Wolf", "power": 2, "toughness": 2, "type": "Creature" }
+ ],
+ "steps": [
+  { "op": "play", "key": "land1", "seat": 0, "decisions": ["ram"] },
+  { "op": "enter", "key": "land2", "decisions": ["wolf"] }
+ ],
+ "expect": {
+  "zone": { "ox": "battlefield", "land1": "battlefield", "land2": "battlefield" },
+  "tapped": { "ram": true, "wolf": true, "ox": false }
+ }
+}
