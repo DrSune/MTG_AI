@@ -1,0 +1,64 @@
+{
+  "set": "ZNR",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "veil",
+      "real": "Beyeen Veil // Beyeen Coast",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "foe",
+      "name": "Rival",
+      "power": 3,
+      "toughness": 3,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 1
+    },
+    {
+      "key": "ally",
+      "name": "Ally",
+      "power": 3,
+      "toughness": 3,
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "U": 2
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Beyeen Veil // Beyeen Coast",
+      "key": "veil"
+    }
+  ],
+  "expect": {
+    "mana_pool": {
+      "0": {
+        "U": 0
+      }
+    },
+    "zone": {
+      "veil": "graveyard"
+    },
+    "power": {
+      "foe": 1,
+      "ally": 3
+    },
+    "toughness": {
+      "foe": 3,
+      "ally": 3
+    }
+  },
+  "notes": "ZND-4 b9 B9-opponents-get-pm-eot anthem lane, executor-observed and DIRECTION-PINNED (PtDirection.DECREASE, spec /115 G-FM law: -2/-0 must DECREASE power and leave toughness, never the reverse). PRINTED: 'Creatures your opponents control get -2/-0 until end of turn.' The three-way observation falsifies every wrong encoding: (i) a DECREASE->INCREASE sign slip puts foe at power 5, (ii) a swapped power/toughness lane puts foe at 3/1, (iii) an over-broad scope (creatures YOU control, or ALL creatures) touches Ally's lane. Ally 3/3 (controller 0, the caster) is UNTOUCHED: power 3, toughness 3, which is the controller-direction falsifier. No free lane: the compiled SpellAbility carries the printed front-face cost {1}{U}, so the pack seeds mana_pool U:2 and additionally PINS cost consumption — expect mana_pool U:0 after resolution (both the colored {U} and the generic {1}, drawn from the same pool per CR 118.1/legality MANA_KEYS order, must actually be spent). EOT expiry is deliberately NOT asserted here: the anthem uses DurationEot and is covered by the executor unit falsifier test_anthem_hits_only_the_opponents_and_expires in MTG_bot/core/compiler/test_templates_b9.py (which runs end_turn and re-reads effective_pt); this pack pins the DIRECTION + SCOPE of the live layer plus cost drain, which is what the scenario surface observes."
+}
