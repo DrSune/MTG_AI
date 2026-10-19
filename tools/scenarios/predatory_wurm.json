@@ -31,16 +31,16 @@
  ],
  "expect": {
   "power": {
-   "w": 6
+   "w": 4
   },
   "toughness": {
-   "w": 6
+   "w": 4
   },
   "tapped": {
    "w": false
   },
   "life": {
-   "1": 14
+   "1": 16
   },
   "battlefield_keywords": {
    "Predatory Wurm": [
@@ -48,5 +48,5 @@
    ]
   }
  },
- "notes": "The +2/+2 while-condition reads my Garruk planeswalker (synthetic Planeswalker \u2014 Garruk) -> 6/6 dealing 6. Vigilance: attack leaves it untapped."
+ "notes": "ZND-4d gold correction (2026-10-19): the +2/+2 while-condition demands CONTROLLER_IS YOU, but the ONLY Garruk planeswalker here is controller 1's synthetic 'Garruk Omenbound' \u2014 the gate never holds, so the Wurm STAYS 4/4 and deals 4 (life 20->16). The old gold (6/6, life 14) was reachable only through the ever-live bug: attached-static registration dropped the atom duration-role, so the gate was never evaluated (KNOWLEDGE/2026-10-19/119 FINDING 1). The pack now pins the CONTROLLER_IS YOU direction. Vigilance: attack leaves it untapped."
 }

@@ -1,0 +1,103 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Predatory Wurm",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g",
+   "real": "Garruk, Unleashed",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "comment": "SWING 1 (condition OFF): no Garruk planeswalker on the battlefield — the +2/+2 while-static must NOT apply. 4 damage.",
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "w": true
+   }
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "comment": "CONDITION ON: your Garruk planeswalker enters (journalled battlefield entry re-registers the Wurm's while-gate).",
+   "op": "enter",
+   "key": "g"
+  },
+  {
+   "op": "loyalty",
+   "key": "g",
+   "set": 4
+  },
+  {
+   "comment": "SWING 2 (condition ON): the 6/6 goes unblocked for 6.",
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "w": true
+   }
+  },
+  {
+   "comment": "FLIP BACK (condition OFF again): Garruk takes 13 — loyalty 0, the SBA buries him, the layer goes dormant and re-materializes nothing.",
+   "op": "deal_damage",
+   "source": "w",
+   "target": "g",
+   "amount": 13
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "comment": "SWING 3 (condition OFF): back to 4 — the withdraw is real, not a re-entry artifact.",
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "w": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 6
+  },
+  "power": {
+   "w": 4
+  },
+  "toughness": {
+   "w": 4
+  },
+  "tapped": {
+   "w": false
+  }
+ },
+ "notes": "ZND-4d executor falsifier (new pack, 2026-10-19): the compiled Predatory Wurm while-static (atom duration-role DurationWhileCondition over FAnd(Planeswalker + Garruk + CONTROLLER_IS YOU)) drives a full OFF/ON/OFF cycle through the REAL layers lane. Three swings read the gate through the life lane: 4 (no Garruk) + 6 (your Garruk out) + 4 (Garruk buried) = life 20 -> 6. Pre-ZND-4d the registration dropped the duration role and every swing dealt 6 (life 8). Drowsing-Tyrannodon-style re-evaluation is the recompute/settle_while pass; vigilance keeps the Wurm off the tapped lane."
+}

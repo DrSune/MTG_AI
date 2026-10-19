@@ -57,6 +57,7 @@ from MTG_bot.core.ability_tree import (
     ActivationWindow,
     Atom,
     Duration,
+    DurationPermanent,
     DurationUntilLeaves,
     DurationUntilNextStep,
     DurationUntilNextTurn,
@@ -64,6 +65,7 @@ from MTG_bot.core.ability_tree import (
     EventSpec,
     FAnd,
     FAtom,
+    FAtomPred,
     Filter,
     FNot,
     FOr,
@@ -150,6 +152,69 @@ def _validate_activation_grant(atom: Atom) -> None:
             f"executor: GRANT_ACTIVATION window {window!r} has no consumer "
             "(13c implements the INSTANT relaxation only)"
         )
+
+
+def _static_while_duration(atoms: list[Atom] | tuple[Atom, ...]) -> Duration | None:
+    """ZND-4d: fold the atoms' ``duration``-ROLE into the record's duration
+    lane. The b4-era while-templates place the "as long as" gate INSIDE the
+    atom (``duration`` -> DurationWhileCondition; the b2a precedent reserved
+    ``StaticAbility.condition`` for the plain lane), and registration used to
+    carry ONLY the node-level condition — the atom's gate was silently
+    dropped and the while-static stood EVER-LIVE. The record's Duration lane
+    is the mechanism ALREADY honoring a WHILE: :meth:`LayerRegistry.
+    _layer_live` re-judges ``layer.duration.filter`` at every recompute and
+    the ledger's :meth:`settle_while` drives the materialized entries — so
+    the role rides that lane, no parallel gate. PERMANENT is the ABSENCE of
+    a window (the Conspicuous Snoop shape), equivalent to no role.
+
+    The gate's SUBJECT follows the corpus convention (compiled-pool census:
+    every StaticAbility.condition is a handle-free count pred or its
+    negation — Gadrak's FNot is plain-lane; the one
+    duration-role FAtom, Sigiled Contender's HAS_COUNTER, is source-shaped
+    — "as long as IT has a counter"): a BARE FAtom is judged of the source
+    (existing _layer_live path); an FAnd COMPOUND is the b4 candidate shape
+    (TYPE/SUBTYPE/CONTROLLER_IS conjuncts — the b9 FINDING's "not a valid
+    static gate" family, whose EXECUTED reading is the identical conjunct
+    riding CONTROLLER_COUNT_GE.inner_filter), so it is re-encoded into the
+    corpus's OWN existence mechanism: exists a battlefield permanent under
+    ctx.controller matching the conjunct. FOr/FNot composites have no
+    precedent for the existence-vs-source reading — flagged, not guessed
+    (the r23a not-layer-parseable sink keeps the game alive and the refusal
+    coverage-visible). Two atoms of one record DISAGREEING about the gate
+    has no honest reading either."""
+    found: DurationWhileCondition | None = None
+    for atom in atoms:
+        dur = atom.args.get("duration")
+        if dur is None or isinstance(dur, DurationPermanent):
+            continue
+        if not isinstance(dur, DurationWhileCondition):
+            raise NotImplementedError(
+                "executor: StaticAbility duration "
+                f"{type(dur).__name__} is not layer-parseable (ZND-4d)"
+            )
+        cond = dur.filter
+        if isinstance(cond, (FNot, FOr)):
+            raise NotImplementedError(
+                "executor: StaticAbility FOr/FNot while-condition duration "
+                "has no precedent reading, is not layer-parseable (ZND-4d)"
+            )
+        if isinstance(cond, FAnd) and not _is_universal(cond):
+            # Existence reading of the candidate-shape conjunct through the
+            # ONE executed counting atom (handle-free, per-candidate
+            # inner_filter under the layer's controller — quantity.py).
+            cond = FAtom(
+                pred=FAtomPred.CONTROLLER_COUNT_GE,
+                count=QConst(1),
+                inner_filter=cond,
+            )
+            dur = DurationWhileCondition(filter=cond)
+        if found is not None and dur != found:
+            raise NotImplementedError(
+                "executor: StaticAbility with two distinct while-condition "
+                "durations is not layer-parseable (ZND-4d)"
+            )
+        found = dur
+    return found
 
 
 @dataclass
@@ -434,6 +499,7 @@ class LayerRegistry:
                 controller,
                 (look,),
                 condition=static.condition,
+                duration=_static_while_duration([look]),
             )
             for look in looks
         ]
@@ -445,6 +511,7 @@ class LayerRegistry:
                 (mandate,),
                 selector=cast(Selector, mandate.args.get("cards")),
                 condition=static.condition,
+                duration=_static_while_duration([mandate]),
             )
             for mandate in mandates
         ]
@@ -456,6 +523,7 @@ class LayerRegistry:
                 (mandate,),
                 selector=cast(Selector, mandate.args.get("cards")),
                 condition=static.condition,
+                duration=_static_while_duration([mandate]),
             )
             for mandate in mandates_block
         ]
@@ -468,7 +536,7 @@ class LayerRegistry:
                 static.condition,
                 cast(EventSpec, event),
                 cast("Step | None", step),
-                None,
+                _static_while_duration([atom]),
                 (),
             )
         if not rest:
@@ -487,6 +555,7 @@ class LayerRegistry:
                     controller,
                     tuple(atoms),
                     condition=static.condition,
+                    duration=_static_while_duration(atoms),
                 )
             )
             return records
@@ -505,6 +574,7 @@ class LayerRegistry:
                     controller,
                     tuple(atoms),
                     condition=static.condition,
+                    duration=_static_while_duration(atoms),
                 )
             )
             return records
@@ -524,6 +594,7 @@ class LayerRegistry:
                 tuple(atoms),
                 selector=selector,
                 condition=static.condition,
+                duration=_static_while_duration(atoms),
             )
         )
         return records
