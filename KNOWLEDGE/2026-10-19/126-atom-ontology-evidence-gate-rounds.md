@@ -110,3 +110,32 @@ change under N (fand_order 117+72, or_order 9+6, fand_flatten_single 0+2, kwds_s
 122 M21 goldens flagged (all have golden files); idempotence + leaf-multiset content
 preservation PASS; 0 exceptions. Round-3 expectation: round-4 residue bookkeeping
 only if fixes land on disk — they are, in this commit.
+
+## Binding V1′ table (module-generated, tools/audit/atom_field_table.py, 2026-10-19, exit 0):
+| class | field | annotation | CLASSIFY |
+|---|---|---|---|
+| AtomArgs | pairs | `tuple[tuple[str, object], ...]` | SET-ENFORCED |
+| BackFace | abilities | `tuple[Ability, ...]` | IDENTITY |
+| CardRecord | abilities | `tuple[Ability, ...]` | IDENTITY |
+| CardRecord | color_identity | `frozenset[str]` | IDENTITY |
+| CardRecord | colors | `tuple[str, ...]` | IDENTITY |
+| CardRecord | keywords | `tuple[KeywordAbility, ...]` | SET-R1a |
+| CardRecord | subtypes | `tuple[str, ...]` | IDENTITY |
+| CardRecord | supertypes | `tuple[str, ...]` | IDENTITY |
+| CardRecord | types | `tuple[str, ...]` | IDENTITY |
+| Choose | options | `tuple[Effect, ...]` | MENU |
+| Cost | parts | `tuple[CostPart, ...]` | SET-R1b |
+| CostManaHybrid | colors | `tuple[str, str]` | SET-R1b |
+| CostModifier | extra_deltas | `tuple[CostDelta, ...]` | OPERATOR-AUDIT |
+| EtBState | initial_counters | `tuple[tuple[CounterKind, Quantity], ...]` | SET-R1a |
+| FAnd | children | `tuple[Filter, ...]` | SET-R1a |
+| FAtom | colors | `tuple[str, ...]` | SET-R1a |
+| FOr | children | `tuple[Filter, ...]` | SET-R1a |
+| KeywordAbility | params | `tuple[Quantity | Filter | Cost, ...]` | OPERATOR |
+| Selector | zones | `tuple[Zone, ...]` | SET-R0 |
+| Seq | steps | `tuple[Effect, ...]` | TIME |
+| SpellAbility | additional_costs | `tuple[Cost, ...]` | SET-R1b |
+| TokenSpec | abilities | `tuple[Ability, ...]` | IDENTITY |
+| TokenSpec | keywords | `tuple[Keyword, ...]` | SET-R1a |
+| TokenSpec | subtypes | `tuple[str, ...]` | SET-R1a |
+| TokenSpec | types | `tuple[str, ...]` | SET-R1a |
