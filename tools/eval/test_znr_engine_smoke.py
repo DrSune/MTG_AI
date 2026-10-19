@@ -7,7 +7,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from znr_engine_smoke import crash_signature, group_crashes, repro_command
+from znr_engine_smoke import (
+    crash_signature,
+    group_crashes,
+    report_prefix,
+    repro_command,
+)
 
 
 def _row(seed: int, crash: dict | None, **kw: object) -> dict:
@@ -71,6 +76,22 @@ def test_repro_uses_lowest_seed_and_tool_surface() -> None:
     assert "turn-cap 140" in g["repro"]
     # ZNR note: the repro must be THIS tool, never games.py --repro (wrong set)
     assert "znr_engine_smoke.py" in g["repro"]
+
+
+def test_repro_carries_set_flag() -> None:
+    assert "--set M21" in repro_command(2, 777, 140, "M21")
+    rows = [_row(4, _crash())]
+    groups = group_crashes(rows, deck_pairs_seed=777, turn_cap=140, set_code="M21")
+    assert "--set M21" in next(iter(groups.values()))["repro"]
+    # default remains ZNR (back-compat ledgers)
+    groups_znr = group_crashes(rows, deck_pairs_seed=777, turn_cap=140)
+    assert "--set ZNR" in next(iter(groups_znr.values()))["repro"]
+
+
+def test_report_prefix_naming() -> None:
+    assert report_prefix("ZNR") == "znr_engine_smoke"
+    assert report_prefix("M21") == "m21_engine_smoke"
+    assert report_prefix("znr") == "znr_engine_smoke"
 
 
 def test_traceback_taken_from_first_crashing_row() -> None:

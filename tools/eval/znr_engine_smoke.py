@@ -1,6 +1,7 @@
-"""ZNR engine-robustness smoke fuzz (2026-10-19 wave).
+"""ZNR engine-robustness smoke fuzz (2026-10-19 wave; --set since the M21 era run).
 
-Random-policy fuzz over the ZNR ``engine`` pool: N seeded games through the
+Random-policy fuzz over a set's ``engine`` pool (``--set ZNR`` default,
+``--set M21`` for the frozen era): N seeded games through the
 EXISTING harness (:func:`play_game`, which already owns RandomPolicy, the
 deck-draw interface :func:`deal_decks`, and per-game crash capture), plus:
 
@@ -25,7 +26,8 @@ SUCCESS result.
 
 Usage:
     python tools/eval/znr_engine_smoke.py --games 40 --workers 4
-    python tools/eval/znr_engine_smoke.py --repro SEED   # full traceback for one seed
+    python tools/eval/znr_engine_smoke.py --set M21 --games 500
+    python tools/eval/znr_engine_smoke.py --repro SEED [--set S]  # full traceback
 """
 
 from __future__ import annotations
@@ -55,21 +57,37 @@ DEFAULT_GAME_TIMEOUT = 45.0  # wall-clock seconds per game (setitimer alarm)
 # ------------------------------------------------------------------ repro
 
 
-def repro_command(seed: int, deck_pairs_seed: int, turn_cap: int) -> str:
+def report_prefix(set_code: str) -> str:
+    """Ledger filename stem: ``znr_engine_smoke`` / ``m21_engine_smoke``.
+    Schema identical across sets; only the stem names the era."""
+    return f"{set_code.lower()}_engine_smoke"
+
+
+def repro_command(
+    seed: int,
+    deck_pairs_seed: int,
+    turn_cap: int,
+    set_code: str = SET_CODE,
+) -> str:
     """One command, one process, the crash with its FULL traceback.
 
     Deliberately NOT games.py's own ``--repro``: that path hardcodes SET_CODE
     (M21) and would rerun the wrong pool."""
     return (
-        f"python tools/eval/znr_engine_smoke.py --repro {seed} "
+        f"python tools/eval/znr_engine_smoke.py --repro {seed} --set {set_code} "
         f"--deck-pairs-seed {deck_pairs_seed} --turn-cap {turn_cap}"
     )
 
 
-def run_repro(seed: int, deck_pairs_seed: int, turn_cap: int) -> int:
+def run_repro(
+    seed: int,
+    deck_pairs_seed: int,
+    turn_cap: int,
+    set_code: str = SET_CODE,
+) -> int:
     from MTG_bot.core.executor.games import deal_decks, get_supply, play_game
 
-    supply = get_supply(POOL_MODE, SET_CODE)
+    supply = get_supply(POOL_MODE, set_code)
     decks = deal_decks(seed, deck_pairs_seed, supply)
     names_a = [supply.metas[oid].name for oid in decks[0]]
     names_b = [supply.metas[oid].name for oid in decks[1]]
@@ -106,6 +124,7 @@ def group_crashes(
     *,
     deck_pairs_seed: int,
     turn_cap: int,
+    set_code: str = SET_CODE,
 ) -> dict[str, dict[str, Any]]:
     """Collapse per-game crash rows into one row per root-cause signature.
 
@@ -137,7 +156,9 @@ def group_crashes(
                 "stack": crash.get("stack", []),
                 "recent_acts": crash.get("recent_acts", []),
                 "traceback": row.get("traceback", ""),
-                "repro": repro_command(int(row["seed"]), deck_pairs_seed, turn_cap),
+                "repro": repro_command(
+                    int(row["seed"]), deck_pairs_seed, turn_cap, set_code
+                ),
             }
         else:
             group["count"] += 1
@@ -149,14 +170,16 @@ def group_crashes(
 
 
 _SUPPLY: Any = None
+_SUPPLY_SET: str = ""
 
 
-def _warm_supply() -> None:
-    global _SUPPLY
-    if _SUPPLY is None:
+def _warm_supply(set_code: str = SET_CODE) -> None:
+    global _SUPPLY, _SUPPLY_SET
+    if _SUPPLY is None or _SUPPLY_SET != set_code:
         from MTG_bot.core.executor.games import get_supply
 
-        _SUPPLY = get_supply(POOL_MODE, SET_CODE)
+        _SUPPLY = get_supply(POOL_MODE, set_code)
+        _SUPPLY_SET = set_code
 
 
 class _GameAlarm(Exception):
@@ -168,7 +191,11 @@ def _alarm(signum: int, frame: Any) -> None:
 
 
 def play_one(
-    seed: int, deck_pairs_seed: int, turn_cap: int, game_timeout: float
+    seed: int,
+    deck_pairs_seed: int,
+    turn_cap: int,
+    game_timeout: float,
+    set_code: str = SET_CODE,
 ) -> dict[str, Any]:
     """One fuzz game -> one compact ledger row. NEVER raises.
 
@@ -177,7 +204,7 @@ def play_one(
     (setup, deck build, coverage walk) and the setitimer alarm. A timeout
     that play_game's own handler caught shows up as crash exc
     ``_GameAlarm`` — a per-game wall-clock cap, kept as its own signature."""
-    _warm_supply()
+    _warm_supply(set_code)
     from MTG_bot.core.executor.games import deal_decks, play_game
 
     row: dict[str, Any] = {
@@ -267,7 +294,11 @@ def _top_frame(error: BaseException) -> str:
 
 
 def backface_probe(
-    seeds: list[int], deck_pairs_seed: int, turn_cap: int, game_timeout: float
+    seeds: list[int],
+    deck_pairs_seed: int,
+    turn_cap: int,
+    game_timeout: float,
+    set_code: str = SET_CODE,
 ) -> dict[str, Any]:
     """/106 phantom defense at runtime: no back-face subtree reaches a verdict,
     a battlefield permanent's registry rows, or the executor registries.
@@ -282,8 +313,9 @@ def backface_probe(
     2. at game end, shallow-scan the executor's and binder's attribute
        containers for registered BackFace instances or face-inner ability
        instances (the registry half of "battlefield/register" reach).
-    """
-    _warm_supply()
+
+    A faceless era (M21) still runs the probe: zero carriers is a result."""
+    _warm_supply(set_code)
     from MTG_bot.core.ability_tree import BackFace
     from MTG_bot.core.executor.games import (
         RandomPolicy,
@@ -448,23 +480,26 @@ def run_batch(
     game_timeout: float,
     probe_games: int,
     deadline_seconds: float,
+    set_code: str = SET_CODE,
 ) -> dict[str, Any]:
     workers = max(1, min(4, workers))
     started = time.monotonic()
     rows: list[dict[str, Any]] = []
     timed_out_seeds: list[int] = []
     if workers == 1:
-        _warm_supply()
+        _warm_supply(set_code)
         for seed in range(games):
             if time.monotonic() - started > deadline_seconds:
                 timed_out_seeds.extend(range(seed, games))
                 break
-            rows.append(play_one(seed, deck_pairs_seed, turn_cap, game_timeout))
+            rows.append(
+                play_one(seed, deck_pairs_seed, turn_cap, game_timeout, set_code)
+            )
     else:
         with cf.ProcessPoolExecutor(max_workers=workers) as pool:
             futures = {
                 pool.submit(
-                    play_one, seed, deck_pairs_seed, turn_cap, game_timeout
+                    play_one, seed, deck_pairs_seed, turn_cap, game_timeout, set_code
                 ): seed
                 for seed in range(games)
             }
@@ -512,12 +547,14 @@ def run_batch(
                         }
                     )
     rows.sort(key=lambda r: int(r["seed"]))
-    groups = group_crashes(rows, deck_pairs_seed=deck_pairs_seed, turn_cap=turn_cap)
+    groups = group_crashes(
+        rows, deck_pairs_seed=deck_pairs_seed, turn_cap=turn_cap, set_code=set_code
+    )
     completed = [r for r in rows if r["reason"] != "not-run-at-deadline"]
     crashed = [r for r in completed if r["crash"]]
     acts = [int(r["acts"]) for r in completed]
     summary = {
-        "set_code": SET_CODE,
+        "set_code": set_code,
         "pool_mode": POOL_MODE,
         "games_requested": games,
         "games_completed": len(completed),
@@ -543,7 +580,11 @@ def run_batch(
     }
     if probe_games:
         result["backface_probe"] = backface_probe(
-            list(range(probe_games)), deck_pairs_seed, turn_cap, game_timeout
+            list(range(probe_games)),
+            deck_pairs_seed,
+            turn_cap,
+            game_timeout,
+            set_code,
         )
     return result
 
@@ -554,7 +595,7 @@ def run_batch(
 def write_markdown(result: dict[str, Any], path: Path) -> None:
     s = result["summary"]
     lines = [
-        f"# ZNR engine smoke fuzz — {time.strftime('%Y-%m-%d')}",
+        f"# {s['set_code']} engine smoke fuzz — {time.strftime('%Y-%m-%d')}",
         "",
         (
             f"- games completed: **{s['games_completed']}** / {s['games_requested']}"
@@ -625,6 +666,12 @@ def write_markdown(result: dict[str, Any], path: Path) -> None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--games", type=int, default=40)
+    parser.add_argument(
+        "--set",
+        dest="set_code",
+        default=SET_CODE,
+        help="card pool set code passed to get_supply('engine', SET) (default ZNR)",
+    )
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--turn-cap", type=int, default=DEFAULT_TURN_CAP)
     parser.add_argument("--deck-pairs-seed", type=int, default=DEFAULT_DECK_PAIRS_SEED)
@@ -656,9 +703,10 @@ def main(argv: list[str] | None = None) -> int:
         help="after the batch, rerun this many seeds and compare rows",
     )
     args = parser.parse_args(argv)
+    args.set_code = args.set_code.upper()
 
     if args.repro is not None:
-        return run_repro(args.repro, args.deck_pairs_seed, args.turn_cap)
+        return run_repro(args.repro, args.deck_pairs_seed, args.turn_cap, args.set_code)
 
     result = run_batch(
         args.games,
@@ -668,15 +716,20 @@ def main(argv: list[str] | None = None) -> int:
         args.game_timeout,
         args.probe_games,
         args.deadline,
+        args.set_code,
     )
 
     if args.recheck:
-        _warm_supply()
+        _warm_supply(args.set_code)
         mismatches = []
         original = {int(r["seed"]): r for r in result["rows"]}
         for seed in sorted(original)[: args.recheck]:
             again = play_one(
-                seed, args.deck_pairs_seed, args.turn_cap, args.game_timeout
+                seed,
+                args.deck_pairs_seed,
+                args.turn_cap,
+                args.game_timeout,
+                args.set_code,
             )
             keep = ("turns", "acts", "survived", "reason", "deck")
             if any(again[k] != original[seed][k] for k in keep) or bool(
@@ -690,12 +743,9 @@ def main(argv: list[str] | None = None) -> int:
         }
 
     stamp = time.strftime("%Y-%m-%d")
-    out = (
-        Path(args.out)
-        if args.out
-        else ROOT / "reports" / f"znr_engine_smoke_{stamp}.json"
-    )
-    md = Path(args.md) if args.md else ROOT / "reports" / f"znr_engine_smoke_{stamp}.md"
+    stem = f"{report_prefix(args.set_code)}_{stamp}"
+    out = Path(args.out) if args.out else ROOT / "reports" / f"{stem}.json"
+    md = Path(args.md) if args.md else ROOT / "reports" / f"{stem}.md"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, indent=1, default=str), encoding="utf-8")
     write_markdown(result, md)

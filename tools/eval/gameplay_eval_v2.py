@@ -831,7 +831,13 @@ def main(argv: list[str] | None = None) -> int:
     else:
         ctx = multiprocessing.get_context("spawn")
         with ctx.Pool(
-            args.workers, initializer=_init_worker, initargs=(args.pool, specs, dev)
+            # fix(/114 ticket, orchestrator while unattended): _init_worker takes
+            # set_code (pre-warm at :829 passes it) but the Pool initargs were
+            # never updated in 5216 → workers path crashed with TypeError on
+            # ANY games run; minimal one-arg repair, semantics untouched.
+            args.workers,
+            initializer=_init_worker,
+            initargs=(args.pool, args.set_code, specs, dev),
         ) as pool:
             records = pool.map(_worker, jobs, chunksize=1)
     elapsed = time.perf_counter() - started
