@@ -50,7 +50,6 @@ from MTG_bot.core.ability_tree import (
     CounterKind,
     DeclareBlockersEvent,
     DurationEot,
-    DurationWhileCondition,
     FAnd,
     FAtom,
     FAtomPred,
@@ -161,34 +160,35 @@ def _target_creature_or_planeswalker() -> Selector:
 
 
 def _you_control_a_class(cls: str, *, exclude_self: bool) -> Filter:
-    """``you control (another) <Class>`` — the executed Garruk while-condition
-    conjuncts (carrier: templates_b4._build_modify_pt_while_garruk) plus the
-    ``FNot(IS_SOURCE)`` "another" primitive (carrier: templates_b2a:591);
-    layers re-judges the filter with the layer anchor as ``source``
-    (layers.py:681–687), so IS_SOURCE negation is live inside while."""
-    children = (
+    """``you control (another) <Class>`` as a WORLD-COUNT condition —
+    the executed Basri ``CONTROLLER_COUNT_GE`` shape (carrier:
+    templates_b2a._build_basri_condition, b2a:1688), with the
+    ``FNot(IS_SOURCE)`` "another" primitive (templates_b2a:591) inside
+    the per-candidate inner filter.
+
+    FINDING (2026-10-19, ZND-4 executor falsifier): the per-card
+    conjunct filter (TYPE/SUBTYPE/CONTROLLER_IS/FNot-IS_SOURCE) is NOT
+    a valid static gate. The attached-static registration path
+    (layers.py ~514) carries ONLY ``StaticAbility.condition`` into the
+    LayerRecord and silently drops the atom's ``duration`` role, so a
+    DurationWhileCondition placed there leaves the layer EVER-LIVE
+    (B4-modify-pt-while-garruk / B4-grant-lifelink-while-counter are
+    affected — pre-existing engine gap, executor lane, NOT editable
+    here). The condition must be handle-free and world-evaluable:
+    CONTROLLER_COUNT_GE counts the battlefield population under
+    ctx.controller and evaluates ``inner_filter`` per candidate with
+    ctx.source = the layer anchor, so the "another" exclusion is exact
+    (G-FM2: the carrier never opens its own gate)."""
+    children: list[Filter] = [
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
         FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value=cls),
         FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-    )
+    ]
     if exclude_self:
-        return FAnd(children=children + (FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),))
-    return FAnd(children=children)
-
-
-def _class_count_ge(cls: str) -> FAtom:
-    """``you control a <Class>`` as a count test — the executed Basri
-    ``CONTROLLER_COUNT_GE`` condition shape (carrier:
-    templates_b2a._build_basri_condition, b2a:1688)."""
+        children.append(FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)))
     return FAtom(
         pred=FAtomPred.CONTROLLER_COUNT_GE,
-        inner_filter=FAnd(
-            children=(
-                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value=cls),
-                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-            )
-        ),
+        inner_filter=FAnd(children=tuple(children)),
         count=QConst(1),
     )
 
@@ -278,9 +278,10 @@ def _build_etb_gain_life(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_pt_while_another_class(m: re.Match[str]) -> SentenceOutcome:
-    # CARRIER: B4-modify-pt-while-garruk (executor-executed static-while,
-    # templates_b4:1488) + the FNot(IS_SOURCE) "another" primitive
-    # (templates_b2a:591). G-FM1 Batch-A T4.
+    # G-FM1 Batch-A T4. Static gate on ``StaticAbility.condition`` — the
+    # ONLY filter the attached-static registration path reads (see
+    # _you_control_a_class's FINDING: the atom duration-role while is
+    # silently dropped by the engine, ever-live).
     atom = Atom(
         verb=Verb.MODIFY_PT,
         args=AtomArgs(
@@ -288,32 +289,32 @@ def _build_pt_while_another_class(m: re.Match[str]) -> SentenceOutcome:
                 ("target", _self_selector()),
                 ("power", PtDelta(PtDirection.INCREASE, QConst(int(m.group("p"))))),
                 ("toughness", PtDelta(PtDirection.INCREASE, QConst(int(m.group("t"))))),
-                (
-                    "duration",
-                    DurationWhileCondition(
-                        _you_control_a_class(m.group("cls"), exclude_self=True)
-                    ),
-                ),
             )
         ),
     )
-    return AbilityOutcome(ability=StaticAbility(atom))
+    return AbilityOutcome(
+        ability=StaticAbility(
+            atom,
+            condition=_you_control_a_class(m.group("cls"), exclude_self=True),
+        )
+    )
 
 
 def _build_kw_while_another_class(m: re.Match[str]) -> SentenceOutcome:
-    # CARRIER: B4-grant-lifelink-while-counter (executor-executed
-    # grant-while, templates_b4:1505) — same StaticAbility(GRANT) +
-    # DurationWhileCondition shape; only the condition swaps to the
-    # Garruk-style class filter with FNot(IS_SOURCE).
+    # Same static lane as _build_pt_while_another_class (StaticAbility
+    # GRANT payload, condition-gated); the payload verb is GRANT_ABILITY
+    # exactly like the executor-executed B4-grant-kw-static-you carrier.
     atom = _keyword_atom(
         Verb.GRANT_ABILITY,
         _KW_MAP[m.group("kw")],
         _self_selector(),
-        duration=DurationWhileCondition(
-            _you_control_a_class(m.group("cls"), exclude_self=True)
-        ),
     )
-    return AbilityOutcome(ability=StaticAbility(atom))
+    return AbilityOutcome(
+        ability=StaticAbility(
+            atom,
+            condition=_you_control_a_class(m.group("cls"), exclude_self=True),
+        )
+    )
 
 
 def _build_destroy_artifact_enchantment_flying(m: re.Match[str]) -> SentenceOutcome:
@@ -507,7 +508,7 @@ def _build_if_wizard_draw(m: re.Match[str]) -> SentenceOutcome:
     # CONTROLLER_COUNT_GE shape (templates_b2a:1688).
     return EffectOutcome(
         effect=Conditional(
-            pred=_class_count_ge("Wizard"),
+            pred=_you_control_a_class("Wizard", exclude_self=False),
             then_effect=_draw_a_card(),
         )
     )

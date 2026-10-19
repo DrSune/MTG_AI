@@ -109,7 +109,20 @@ class TestRegistry(unittest.TestCase):
         buckets = {t.bucket for t in registry.all()}
         self.assertEqual(
             buckets,
-            {"B1", "B2a", "B2b", "B3", "B4", "B5a", "B5b", "B5c", "B6", "B7", "B8"},
+            {
+                "B1",
+                "B2a",
+                "B2b",
+                "B3",
+                "B4",
+                "B5a",
+                "B5b",
+                "B5c",
+                "B6",
+                "B7",
+                "B8",
+                "B9",
+            },
         )
 
     def test_registry_is_nonempty(self) -> None:
