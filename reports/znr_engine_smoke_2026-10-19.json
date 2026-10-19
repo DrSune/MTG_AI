@@ -1,0 +1,714 @@
+{
+ "summary": {
+  "set_code": "ZNR",
+  "pool_mode": "engine",
+  "games_requested": 60,
+  "games_completed": 60,
+  "games_crashed": 1,
+  "crash_rate": 0.017,
+  "distinct_signatures": 1,
+  "turn_cap": 150,
+  "deck_pairs_seed": 201019,
+  "game_timeout_s": 45.0,
+  "workers": 4,
+  "wall_clock_s": 9.3,
+  "acts_median": 56.0,
+  "turns_median": 31.0,
+  "timed_out_seeds": []
+ },
+ "signatures": {
+  "NotImplementedError@quantity.py:1585 in _eval_atom": {
+   "exc": "NotImplementedError",
+   "message": "executor: filter pred HAS_KICKER not implemented (12c query surface)",
+   "frame": "quantity.py:1585 in _eval_atom",
+   "count": 1,
+   "seeds": [
+    10
+   ],
+   "turn": 31,
+   "step": 61,
+   "attempted": "cast:Murasa Sproutling",
+   "stack": [],
+   "recent_acts": [
+    "cast:Glacial Grasp(0t)",
+    "cast:Gnarlid Colony(0t)",
+    "act:Branchloft Pathway // Boulderloft Pathway(#0)"
+   ],
+   "traceback": "Traceback (most recent call last):\n  File \"/home/sune/Desktop/MTG_AI/tools/eval/znr_engine_smoke.py\", line 240, in play_one\n    play_game(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1236, in play_game\n    _play(game, policy, order, turn_cap)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1380, in _play\n    policy.take_acts(game, seat)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 679, in take_acts\n    self.play_cast(game, seat, self.pick_spell(game, spells))\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 581, in play_cast\n    cast(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/stack.py\", line 992, in cast\n    executor._settle()\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/__init__.py\", line 1261, in _settle\n    fired = self.binder.fire_all()\n            ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/binding.py\", line 1184, in fire_all\n    self._fire(payload)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/binding.py\", line 1263, in _fire\n    self._designate(node, ctx)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/binding.py\", line 1410, in _designate\n    slot = legal_targets(\n           ^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/query.py\", line 307, in legal_targets\n    candidates = tuple(enumerate_candidates(selector, ctx))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 512, in enumerate_candidates\n    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 512, in <genexpr>\n    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))\n                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 601, in eval_filter\n    return _eval_atom(filter_, handle, ctx)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 1585, in _eval_atom\n    raise NotImplementedError(\nNotImplementedError: executor: filter pred HAS_KICKER not implemented (12c query surface)\n",
+   "repro": "python tools/eval/znr_engine_smoke.py --repro 10 --deck-pairs-seed 201019 --turn-cap 150"
+  }
+ },
+ "rows": [
+  {
+   "seed": 0,
+   "turns": 19,
+   "acts": 21,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "8L/10L",
+   "crash": null,
+   "seconds": 0.24
+  },
+  {
+   "seed": 1,
+   "turns": 28,
+   "acts": 55,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "11L/10L",
+   "crash": null,
+   "seconds": 0.51
+  },
+  {
+   "seed": 2,
+   "turns": 42,
+   "acts": 79,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "10L/8L",
+   "crash": null,
+   "seconds": 0.76
+  },
+  {
+   "seed": 3,
+   "turns": 37,
+   "acts": 35,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "9L/10L",
+   "crash": null,
+   "seconds": 0.47
+  },
+  {
+   "seed": 4,
+   "turns": 26,
+   "acts": 40,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "8L/15L",
+   "crash": null,
+   "seconds": 0.43
+  },
+  {
+   "seed": 5,
+   "turns": 19,
+   "acts": 40,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "15L/8L",
+   "crash": null,
+   "seconds": 0.29
+  },
+  {
+   "seed": 6,
+   "turns": 25,
+   "acts": 37,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "10L/10L",
+   "crash": null,
+   "seconds": 0.37
+  },
+  {
+   "seed": 7,
+   "turns": 30,
+   "acts": 38,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "14L/12L",
+   "crash": null,
+   "seconds": 0.41
+  },
+  {
+   "seed": 8,
+   "turns": 46,
+   "acts": 89,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "11L/11L",
+   "crash": null,
+   "seconds": 0.76
+  },
+  {
+   "seed": 9,
+   "turns": 23,
+   "acts": 16,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "10L/12L",
+   "crash": null,
+   "seconds": 0.27
+  },
+  {
+   "seed": 10,
+   "turns": 31,
+   "acts": 61,
+   "survived": false,
+   "reason": "crash:NotImplementedError",
+   "deck": "12L/9L",
+   "crash": {
+    "exc": "NotImplementedError",
+    "message": "executor: filter pred HAS_KICKER not implemented (12c query surface)",
+    "frame": "quantity.py:1585 in _eval_atom",
+    "turn": 31,
+    "recent_acts": [
+     "cast:Glacial Grasp(0t)",
+     "cast:Gnarlid Colony(0t)",
+     "act:Branchloft Pathway // Boulderloft Pathway(#0)"
+    ],
+    "attempted": "cast:Murasa Sproutling",
+    "stack": [],
+    "repro": "python -m MTG_bot.core.executor.games --pool engine --deck-pairs-seed 201019 --turns 150 --repro 10"
+   },
+   "seconds": 1.0
+  },
+  {
+   "seed": 11,
+   "turns": 25,
+   "acts": 36,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "11L/9L",
+   "crash": null,
+   "seconds": 0.36
+  },
+  {
+   "seed": 12,
+   "turns": 22,
+   "acts": 41,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "14L/12L",
+   "crash": null,
+   "seconds": 0.33
+  },
+  {
+   "seed": 13,
+   "turns": 26,
+   "acts": 42,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "8L/14L",
+   "crash": null,
+   "seconds": 0.39
+  },
+  {
+   "seed": 14,
+   "turns": 42,
+   "acts": 74,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "7L/10L",
+   "crash": null,
+   "seconds": 0.69
+  },
+  {
+   "seed": 15,
+   "turns": 28,
+   "acts": 68,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "14L/12L",
+   "crash": null,
+   "seconds": 0.5
+  },
+  {
+   "seed": 16,
+   "turns": 23,
+   "acts": 50,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "11L/11L",
+   "crash": null,
+   "seconds": 0.44
+  },
+  {
+   "seed": 17,
+   "turns": 63,
+   "acts": 140,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "11L/13L",
+   "crash": null,
+   "seconds": 1.2
+  },
+  {
+   "seed": 18,
+   "turns": 30,
+   "acts": 47,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "12L/13L",
+   "crash": null,
+   "seconds": 0.47
+  },
+  {
+   "seed": 19,
+   "turns": 21,
+   "acts": 52,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "13L/9L",
+   "crash": null,
+   "seconds": 0.36
+  },
+  {
+   "seed": 20,
+   "turns": 38,
+   "acts": 76,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "10L/14L",
+   "crash": null,
+   "seconds": 0.65
+  },
+  {
+   "seed": 21,
+   "turns": 22,
+   "acts": 41,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "12L/9L",
+   "crash": null,
+   "seconds": 0.37
+  },
+  {
+   "seed": 22,
+   "turns": 55,
+   "acts": 128,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "10L/14L",
+   "crash": null,
+   "seconds": 1.09
+  },
+  {
+   "seed": 23,
+   "turns": 19,
+   "acts": 32,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "11L/9L",
+   "crash": null,
+   "seconds": 0.29
+  },
+  {
+   "seed": 24,
+   "turns": 39,
+   "acts": 62,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "9L/9L",
+   "crash": null,
+   "seconds": 0.6
+  },
+  {
+   "seed": 25,
+   "turns": 29,
+   "acts": 35,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "11L/10L",
+   "crash": null,
+   "seconds": 0.43
+  },
+  {
+   "seed": 26,
+   "turns": 48,
+   "acts": 91,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "10L/9L",
+   "crash": null,
+   "seconds": 0.81
+  },
+  {
+   "seed": 27,
+   "turns": 42,
+   "acts": 120,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "10L/11L",
+   "crash": null,
+   "seconds": 0.95
+  },
+  {
+   "seed": 28,
+   "turns": 32,
+   "acts": 40,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "11L/8L",
+   "crash": null,
+   "seconds": 0.43
+  },
+  {
+   "seed": 29,
+   "turns": 19,
+   "acts": 20,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "13L/10L",
+   "crash": null,
+   "seconds": 0.25
+  },
+  {
+   "seed": 30,
+   "turns": 42,
+   "acts": 52,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "10L/13L",
+   "crash": null,
+   "seconds": 0.57
+  },
+  {
+   "seed": 31,
+   "turns": 38,
+   "acts": 78,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "13L/8L",
+   "crash": null,
+   "seconds": 0.69
+  },
+  {
+   "seed": 32,
+   "turns": 26,
+   "acts": 50,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "9L/12L",
+   "crash": null,
+   "seconds": 0.43
+  },
+  {
+   "seed": 33,
+   "turns": 32,
+   "acts": 56,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "10L/11L",
+   "crash": null,
+   "seconds": 0.51
+  },
+  {
+   "seed": 34,
+   "turns": 31,
+   "acts": 67,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "10L/15L",
+   "crash": null,
+   "seconds": 0.58
+  },
+  {
+   "seed": 35,
+   "turns": 49,
+   "acts": 84,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "8L/9L",
+   "crash": null,
+   "seconds": 0.77
+  },
+  {
+   "seed": 36,
+   "turns": 47,
+   "acts": 78,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "12L/13L",
+   "crash": null,
+   "seconds": 0.7
+  },
+  {
+   "seed": 37,
+   "turns": 30,
+   "acts": 57,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "12L/12L",
+   "crash": null,
+   "seconds": 0.51
+  },
+  {
+   "seed": 38,
+   "turns": 39,
+   "acts": 56,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "9L/9L",
+   "crash": null,
+   "seconds": 0.61
+  },
+  {
+   "seed": 39,
+   "turns": 30,
+   "acts": 15,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "8L/9L",
+   "crash": null,
+   "seconds": 0.3
+  },
+  {
+   "seed": 40,
+   "turns": 36,
+   "acts": 52,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "11L/10L",
+   "crash": null,
+   "seconds": 0.48
+  },
+  {
+   "seed": 41,
+   "turns": 40,
+   "acts": 81,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "11L/9L",
+   "crash": null,
+   "seconds": 0.72
+  },
+  {
+   "seed": 42,
+   "turns": 28,
+   "acts": 82,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "10L/14L",
+   "crash": null,
+   "seconds": 0.57
+  },
+  {
+   "seed": 43,
+   "turns": 69,
+   "acts": 113,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "13L/12L",
+   "crash": null,
+   "seconds": 1.07
+  },
+  {
+   "seed": 44,
+   "turns": 27,
+   "acts": 45,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "11L/11L",
+   "crash": null,
+   "seconds": 0.41
+  },
+  {
+   "seed": 45,
+   "turns": 32,
+   "acts": 70,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "11L/12L",
+   "crash": null,
+   "seconds": 0.55
+  },
+  {
+   "seed": 46,
+   "turns": 28,
+   "acts": 60,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "12L/9L",
+   "crash": null,
+   "seconds": 0.46
+  },
+  {
+   "seed": 47,
+   "turns": 49,
+   "acts": 76,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "10L/10L",
+   "crash": null,
+   "seconds": 0.71
+  },
+  {
+   "seed": 48,
+   "turns": 32,
+   "acts": 55,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "10L/10L",
+   "crash": null,
+   "seconds": 0.48
+  },
+  {
+   "seed": 49,
+   "turns": 34,
+   "acts": 76,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "10L/14L",
+   "crash": null,
+   "seconds": 0.59
+  },
+  {
+   "seed": 50,
+   "turns": 45,
+   "acts": 49,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "10L/7L",
+   "crash": null,
+   "seconds": 0.63
+  },
+  {
+   "seed": 51,
+   "turns": 36,
+   "acts": 67,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "10L/12L",
+   "crash": null,
+   "seconds": 0.6
+  },
+  {
+   "seed": 52,
+   "turns": 26,
+   "acts": 51,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "8L/11L",
+   "crash": null,
+   "seconds": 0.38
+  },
+  {
+   "seed": 53,
+   "turns": 56,
+   "acts": 66,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "11L/9L",
+   "crash": null,
+   "seconds": 0.77
+  },
+  {
+   "seed": 54,
+   "turns": 16,
+   "acts": 23,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "11L/6L",
+   "crash": null,
+   "seconds": 0.21
+  },
+  {
+   "seed": 55,
+   "turns": 26,
+   "acts": 23,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "11L/12L",
+   "crash": null,
+   "seconds": 0.33
+  },
+  {
+   "seed": 56,
+   "turns": 36,
+   "acts": 74,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "10L/12L",
+   "crash": null,
+   "seconds": 0.67
+  },
+  {
+   "seed": 57,
+   "turns": 31,
+   "acts": 63,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "9L/9L",
+   "crash": null,
+   "seconds": 0.53
+  },
+  {
+   "seed": 58,
+   "turns": 29,
+   "acts": 61,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "10L/13L",
+   "crash": null,
+   "seconds": 0.5
+  },
+  {
+   "seed": 59,
+   "turns": 54,
+   "acts": 89,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "13L/13L",
+   "crash": null,
+   "seconds": 0.88
+  }
+ ],
+ "full_tracebacks": {
+  "10": "Traceback (most recent call last):\n  File \"/home/sune/Desktop/MTG_AI/tools/eval/znr_engine_smoke.py\", line 240, in play_one\n    play_game(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1236, in play_game\n    _play(game, policy, order, turn_cap)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 1380, in _play\n    policy.take_acts(game, seat)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 679, in take_acts\n    self.play_cast(game, seat, self.pick_spell(game, spells))\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/games.py\", line 581, in play_cast\n    cast(\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/stack.py\", line 992, in cast\n    executor._settle()\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/__init__.py\", line 1261, in _settle\n    fired = self.binder.fire_all()\n            ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/binding.py\", line 1184, in fire_all\n    self._fire(payload)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/binding.py\", line 1263, in _fire\n    self._designate(node, ctx)\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/binding.py\", line 1410, in _designate\n    slot = legal_targets(\n           ^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/query.py\", line 307, in legal_targets\n    candidates = tuple(enumerate_candidates(selector, ctx))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 512, in enumerate_candidates\n    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/legality.py\", line 512, in <genexpr>\n    handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))\n                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 601, in eval_filter\n    return _eval_atom(filter_, handle, ctx)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/sune/Desktop/MTG_AI/MTG_bot/core/executor/quantity.py\", line 1585, in _eval_atom\n    raise NotImplementedError(\nNotImplementedError: executor: filter pred HAS_KICKER not implemented (12c query surface)\n"
+ },
+ "backface_probe": {
+  "walk_calls": 3228,
+  "face_yields_skipped_ok": 0,
+  "violations": [],
+  "games_probed": 6,
+  "patched_modules": [
+   "MTG_bot.core.ability_tree",
+   "MTG_bot.core.compiler.compiler",
+   "MTG_bot.core.executor.binding",
+   "MTG_bot.core.executor.query",
+   "MTG_bot.core.compiler.coverage",
+   "MTG_bot.core.executor.games"
+  ],
+  "games": [
+   {
+    "seed": 0,
+    "outcome": "ok: game over: player:1(life<=0)",
+    "registry_hits": [],
+    "battlefield_cards_carrying_BackFace": 0
+   },
+   {
+    "seed": 1,
+    "outcome": "ok: game over: player:0(life<=0)",
+    "registry_hits": [],
+    "battlefield_cards_carrying_BackFace": 1
+   },
+   {
+    "seed": 2,
+    "outcome": "ok: game over: player:0(life<=0)",
+    "registry_hits": [],
+    "battlefield_cards_carrying_BackFace": 3
+   },
+   {
+    "seed": 3,
+    "outcome": "ok: game over: player:1(life<=0)",
+    "registry_hits": [],
+    "battlefield_cards_carrying_BackFace": 2
+   },
+   {
+    "seed": 4,
+    "outcome": "ok: game over: player:0(life<=0)",
+    "registry_hits": [],
+    "battlefield_cards_carrying_BackFace": 4
+   },
+   {
+    "seed": 5,
+    "outcome": "ok: game over: player:1(life<=0)",
+    "registry_hits": [],
+    "battlefield_cards_carrying_BackFace": 2
+   }
+  ],
+  "registry_hits": 0,
+  "unique_violations": {},
+  "verdict": "PASS"
+ }
+}
