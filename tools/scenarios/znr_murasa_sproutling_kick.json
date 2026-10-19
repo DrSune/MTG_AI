@@ -1,0 +1,29 @@
+{
+ "set": "ZNR",
+ "world": {"life": 20, "seed": 7},
+ "mana": {"0": {"G": 10}},
+ "cards": [
+  {"key": "sprout_kicked", "real": "Murasa Sproutling", "zone": "hand", "controller": 0},
+  {"key": "sprout_plain", "real": "Murasa Sproutling", "zone": "hand", "controller": 0},
+  {"key": "kc", "real": "Kitesail Cleric", "zone": "graveyard", "controller": 0},
+  {"key": "crab", "real": "Ruin Crab", "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {
+   "op": "cast", "real": "Murasa Sproutling", "key": "sprout_kicked",
+   "kicked": true, "decisions": ["kc"]
+  },
+  {"op": "cast", "real": "Murasa Sproutling", "key": "sprout_plain"}
+ ],
+ "expect": {
+  "zone": {
+   "sprout_kicked": "battlefield",
+   "sprout_plain": "battlefield",
+   "kc": "hand",
+   "crab": "graveyard"
+  },
+  "hand": {"0": 1},
+  "mana_pool": {"0": {"G": 2}}
+ },
+ "notes": "ZND-2 T4 /113 HAS_KICKER landing, the graveyard TARGET-filter lane (fuzz seed 10 crash: 'HAS_KICKER not implemented (12c query surface)' at quantity._eval_atom via enumerate_candidates). Murasa Sproutling {2}{G}, kicker {1}{G}: 'When this creature enters, if it was kicked, return target card with a kicker ability from your graveyard to your hand.' Kicked cast: gated ETB fires, the HAS_KICKER filter is judged over BOTH graveyard cards (Kitesail Cleric's compiled record carries a KickerAbility -> candidate; Ruin Crab's does not -> vetoed pre-ask, so the menu is the single honest candidate, no phantom) and the designation 'kc' returns it. Un-kicked second cast: WAS_KICKED False -> NO ask at all (the quiet provider raises on any unprimed ask, falsifying a phantom choice); the filter NEVER runs, pinned by crab staying in the graveyard and the hand showing exactly the one returned card. Mana: 10G - 5G (kicked {3}{G}{G}) - 3G ({2}{G}) = 2G. §10 blindness check: the static HAS_KICKER atom and the dynamic single-candidate menu are the same question."
+}

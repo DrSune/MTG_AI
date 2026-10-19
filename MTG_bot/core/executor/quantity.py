@@ -1582,6 +1582,37 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         if world.active_player is None:
             return False
         return controller_matches(atom.who, world.active_player, ctx)
+    if pred is FAtomPred.HAS_KICKER:
+        # ZND-2 T4 first consumer (/98 registered this 'declarative, zero-
+        # consumer'; Murasa Sproutling's "target card with a kicker ability"
+        # graveyard filter is the first real ask). PRINTED-property reading:
+        # the ground truth is the card's COMPILED record — a card HAS a
+        # kicker iff its FRONT-FACE ability tuple carries a KickerAbility
+        # node, the same accessor (top-level scan) legal_casts and the cast
+        # fold use via legality.kicker_of (§9 one encoding). The record
+        # resolves through legality.spell_record — the per-handle bridge
+        # else the oracle-id registry, the pattern TYPE_EQ's identity reads
+        # and the r20c hand-window lane share for cards OFF the battlefield.
+        # FACE law (/106): a BackFace node carries its abilities in its OWN
+        # tuple, which this scan never descends — a back-face-only kicker
+        # does NOT satisfy HAS_KICKER for a front-face decision (the engine
+        # never plays faces today; when face playability lands, the judged
+        # face must become the coordinate, and this is the site to amend).
+        # Tokens: a created token has no compiled record (or carries the
+        # token record with is_token) — a token never has a printed kicker,
+        # so both lanes read False, never raise.
+        from MTG_bot.core.ability_tree import KickerAbility
+        from MTG_bot.core.executor.legality import spell_record
+
+        if ctx.executor is None:
+            raise NotImplementedError(
+                "executor: filter pred HAS_KICKER needs an executor-backed "
+                "ExecCtx (the compiled-record registry lives on the binder)"
+            )
+        record = spell_record(ctx.executor, handle)
+        if record is None or record.is_token:
+            return False
+        return any(isinstance(a, KickerAbility) for a in record.abilities)
     raise NotImplementedError(
         f"executor: filter pred {pred.name} not implemented (12c query surface)"
     )

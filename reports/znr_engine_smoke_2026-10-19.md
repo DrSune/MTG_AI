@@ -1,10 +1,10 @@
 # ZNR engine smoke fuzz — 2026-10-19
 
-- games completed: **60** / 60 (workers=4, wall 9.3s, cap 45.0s/game)
+- games completed: **60** / 60 (workers=4, wall 9.6s, cap 45.0s/game)
 - turn cap 150, deck-pairs seed 201019
-- crashed: **1** (crash rate **1.7%)
-- distinct signatures: **1**
-- exploration depth: median 56.0 acts, 31.0 turns per game
+- crashed: **0** (crash rate **0.0%)
+- distinct signatures: **0**
+- exploration depth: median 56.0 acts, 31.5 turns per game
 
 ## BackFace reach probe
 
@@ -15,9 +15,4 @@
 
 ## Signatures
 
-### `NotImplementedError@quantity.py:1585 in _eval_atom` — 1 hit(s), seeds [10]
-- message: `executor: filter pred HAS_KICKER not implemented (12c query surface)`
-- step: turn 31, 61 acts completed, attempted: `cast:Murasa Sproutling`
-- stack: []
-- recent acts: ['cast:Glacial Grasp(0t)', 'cast:Gnarlid Colony(0t)', 'act:Branchloft Pathway // Boulderloft Pathway(#0)']
-- **repro**: `python tools/eval/znr_engine_smoke.py --repro 10 --deck-pairs-seed 201019 --turn-cap 150`
+ZERO crashes. Honest coverage note: random walks only reach legality-adjacent states — this is a robustness smoke, not a state-space proof.
