@@ -1,5 +1,36 @@
 # 121 — ZND-5 BINDING SPEC: spell-kind round — CastSpellEvent + TYPE_EQ/SUBTYPE_EQ ALREADY express the conjunctive families (verified); ~13 rows template-lane, 2 named lane-defers (mana-restriction, targeted-by event); no new atom expected
 
+**SPEC-GATE REVISIONS (2026-10-19, gate ses_eacd7917…, SPEC-GO after 4 blocking fixes — all landed
+here):**
+- **[G-A4] COPY HAS NO EXECUTOR DISPATCH AT ALL** — `Verb.COPY` never dispatched
+  (executor/__init__.py:228–237) and the stack vocab-gate EXCLUDES COPY-bearing cards from
+  executable resolution (stack.py:510–538, seed-96 crash). The spec's earlier "copy lane b5c:3380"
+  was compile-emitted-only. **Lithoform Engine → immediate ZND-5a defer**; future copy-spell work
+  is an ENGINE lane (stack-write + copy-object + retarget decision), never a template job. PITFALLS
+  carries the trap.
+- **[G-A5] Anticognition evidence was TRUNCATED in the dump** — real oracle adds "If an opponent has
+  eight or more cards in their graveyard, INSTEAD counter that spell, then scry 2." ⇒ two register
+  sentences: **s1 (counter-or-pay + FOr TYPE_EQ) compiles via existing lanes** (payer-seat safe,
+  flat {2}, verbs.py:1926), **s2 (instead/threshold/scry replacement-window) → ZND-5e named defer**.
+  Card is 2-row residue ⇒ s1 feeds PC-2, not a flip.
+- **[G-A3] Master of Winds RECODED**: oracle = "base power and toughness become 4/1 or 1/4" =
+  may + TWO-WAY PT-PAIR CHOICE FORK — not a tail reuse → **ZND-5f named defer**.
+- **[G-A1] OR-precedent recited**: the real disjunction precedent is `FOr(TYPE_EQ Instant,
+  TYPE_EQ Sorcery)` at templates_b5a.py:396–410 (tids :2071/:2082; FOr evaluated at
+  executor/binding.py:221) — NOT the Quirion-Dryad COLOR_IN atom earlier cited. 3-branch
+  type∪subtype FOr is novel but structurally trivial; **filter referent gate-verified**:
+  `_match_cast` (binding.py:957–990) reads the SPELL card for TYPE_EQ/SUBTYPE_EQ/COLOR_IN —
+  "Wizard spell" = SUBTYPE_EQ (TYPE_EQ("Wizard") would silently NEVER-fire — that trap is now
+  a required falsifier axis: matching-kind positive AND negative).
+- **[G-A7] priority direction verified**: templates.py:227 sorts (−priority, tid) ⇒ b10=118 runs
+  BEFORE b9/b1; regex-disjointness from Cat/Dog/noncreature heads is a MUST (probe pinned).
+- **REVISED PREDICTIONS**: Batch A **5 flips** (Umara Wizard, Windrider Wizard, Relic Amulet,
+  Rockslide Sorcerer, Umara Mystic), Batch B **0–1 flips** (Anticognition s1 = rows-only), ⇒
+  **PC-1 109–110/282 (0.3865–0.3901)**, register −7..−10 (publish per-tid attribution).
+
+---
+
+
 Baseline: 432d0e9, register 333, PC-1 0.3688 (104/282). Dumps: /tmp/opencode/znd5_spellkind.json
 (13 rows), /tmp/opencode/znd5_one_away_v3.json (82 cards). Method /95 + /115 (flip-yield). Laws:
 compiled≠executing, phantom, shared-index v2 (work /tmp/staging → move at green; commit atomic
