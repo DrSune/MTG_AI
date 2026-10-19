@@ -1,0 +1,71 @@
+{
+  "set": "ZNR",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "rogue",
+      "real": "Blackbloom Rogue // Blackbloom Bog",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "first",
+      "zone": "battlefield",
+      "controller": 1,
+      "name": "First",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature"
+    },
+    {
+      "key": "second",
+      "zone": "battlefield",
+      "controller": 1,
+      "name": "Second",
+      "power": 2,
+      "toughness": 2,
+      "type": "Creature"
+    }
+  ],
+  "steps": [
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "rogue": true
+      },
+      "block": {
+        "first": "rogue"
+      }
+    }
+  ],
+  "expect": {
+    "block_asks": {
+      "first": "<rogue>,NONE"
+    },
+    "not_asked_to_block": [
+      "second"
+    ],
+    "blocked": {
+      "rogue": [
+        "first",
+        "second"
+      ]
+    },
+    "zone": {
+      "rogue": "graveyard",
+      "first": "graveyard",
+      "second": "battlefield"
+    },
+    "damage_received": {
+      "rogue": 4
+    },
+    "life": {
+      "1": 20
+    }
+  },
+  "notes": "Menace PAIRING half of the /117 law, same real attacker as znr_menace_lone_blocker_seed1269 (Blackbloom Rogue // Blackbloom Bog, compiled 2/3 MENACE) — with TWO unrestricted blockers the pair is completable, so the shape must flip end to end. First (synth, the exemplar rig convention for unrestricted bodies) is genuinely asked with the FULL vocabulary <rogue>,NONE (committing the Rogue leaves a legal completion behind Second — Kuhn pair_ok passes, unlike the lone-blocker seed 1269 shape); it takes the Rogue. Second, the last unasked blocker in front of a menace attacker stuck at one, gets the C15-narrowed single-word surface and is AUTO-PICKED onto the Rogue — never asked (T5-F1 forced outcome, journalled). CR 702.113 satisfied: blocked map rogue->[first,second], seat1 stays at 20. Combat math (default assign order = First, Second): the Rogue's 2 land on First (both die), First+Second's 2+2 on the Rogue (damage_received 4, graveyard), Second survives tapped-but-unharmed on the battlefield. Falsifier: any NONE on Second's surface (a stranded menace), a block ask reaching Second, or the Rogue walking in."
+}

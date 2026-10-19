@@ -1,0 +1,60 @@
+{
+  "set": "ZNR",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "rogue",
+      "real": "Blackbloom Rogue // Blackbloom Bog",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "expert",
+      "real": "Acquisitions Expert",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "healer",
+      "real": "Expedition Healer",
+      "zone": "battlefield",
+      "controller": 1
+    }
+  ],
+  "steps": [
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {
+        "rogue": true,
+        "expert": true
+      },
+      "block": {
+        "healer": null
+      }
+    }
+  ],
+  "expect": {
+    "attackers": {
+      "rogue": true,
+      "expert": true
+    },
+    "block_asks": {
+      "healer": "<expert>,NONE"
+    },
+    "blocked": {
+      "rogue": [],
+      "expert": []
+    },
+    "life": {
+      "1": 17
+    },
+    "tapped": {
+      "healer": false
+    }
+  },
+  "notes": "ZNR fuzz seed 1269 (RuntimeError@executor/__init__.py:1721, CR 702.113; /117): the menace attacker is the REAL seed card Blackbloom Rogue // Blackbloom Bog (compiled 2/3, MENACE), walked with the REAL seed second attacker Acquisitions Expert (1/2) against the defender's ONLY creature, Expedition Healer (2/2 vigilance; the seed's fourth battlefield permanent Nahiri, Heir of the Ancients is a planeswalker and never a blocker). The OLD per-blocker ask gated the first menace word on remaining CANDIDATE COUNT, served the lone-Healer-vs-Rogue pair, and the committed stranding tripped the final invariant. GREEN now: the Kuhn pair_ok matcher drops the Rogue word from Healer's asked vocabulary (no pair-legal completion exists — the ask is exactly <expert>,NONE), the Healer takes the Expert or NONE (scripted NONE), nothing strands, NOTHING raises, and the unblocked 2+1 walk in: life 20-2-1=17. Falsifier: the Rogue word reappearing in the Healer's vocabulary, any DECLARE_BLOCKERS row, or life != 17."
+}
