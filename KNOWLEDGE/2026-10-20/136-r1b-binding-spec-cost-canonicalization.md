@@ -16,20 +16,27 @@ sorting parts at CONSTRUCTION (`Cost.__post_init__`, the :2541 precedent; folded
 pass through the same constructor via spell_cost :1113/1123, so kicker folds inherit)
 makes the plan a function of the parts MULTISET. The audit's per-channel verdicts:
 - (a) FAILURE-STRINGS: precedence = first-failing part in order; production consumers
-  are `is None` tests ONLY (query.py:942-966/:255/:281; stack.py:753 embeds into error
-  text). Strings drift on multi-failing costs; test exact-match pins re-pin (audited
+  are `is None` tests ONLY (query.py:942-966/:255/:281) plus error-text embeds
+  (stack.py:753, verbs.py:1397, stack.py:1091 — diagnostic ValueError text; amendment
+  A4). Strings drift on multi-failing costs; test exact-match pins re-pin (audited
   sample: single-part or order-free paths — surface small; full truth = suite rerun).
 - (b) DISCOUNT MIN-CLAMP (:721-727): per-color draw is a Σ-min-clamp — payability
   ORDER-INVARIANT (proven); only intermediate trace + which string surfaces drift.
   Orrery global-pool shortfall (:738-747) order-free. Generic clamp post-loop aggregate.
-- (d) WITNESS DIGEST (:1433 sha1 repr): vocab handle-sorted stable; parts order enters
-  via sacrifice_options ask sequence (:799→pay_costs :1423) — multi-sacrifice-part
-  population **0**, pinned red-first anyway.
+- (d) WITNESS DIGEST (:1433 sha1 repr): `PaymentPlan` sorts mana/tap/discard/counters
+  at construction (:919-924) — order-normalized; only `sacrifice_options` (:926) keeps
+  parts order. Fingerprint pins (amendment A3) are REPLAY-vs-REPLAY equality
+  (test_executor_binding:812; zero hardcoded digests in suite, gate-grepped): repr(cost)
+  in PAY event lines (verbs.py:1408) is hashed by state_fingerprint ⇒ cross-version
+  fingerprint BYTES WILL DRIFT for reordered costs, while all pins stay green (they
+  compare two runs of the same code). Spec never claims "byte-stable across versions."
 - (e) KICKER FOLD (:1272) LIVE today (34/40 ZNR kicker + M21 Goremand/Thrill): runtime
-  fold order today = printed++additional; after the wave the folded Cost self-sorts —
-  replay/determinism surfaces (fingerprint pins test_executor_binding:812, rung1:355,
-  stack:1291) must stay byte-stable: the digest vocab is multiset-keyed; ask-sequence
-  drift only possible on multi-sac (0 population) — battery proves.
+  fold order today = printed++additional; after the wave the folded Cost self-sorts.
+  STANDING ASSUMPTION (amendment A2): ask-sequence stability holds because at most ONE
+  ASKED-KIND part per Cost post-fold (multi-sac population 0 — worst folds Goremand and
+  Kazuul's Fury carry exactly 1 sac part each; discards are never asked — plan.discard
+  = sorted(set())). Battery (iv)'s constructed two-sac cost is the tripwire if that ever
+  changes. Folds DO put sac/discard in reorder range (not mana-only).
 - (f) extra_deltas (:698-715): pure += accumulators ⇒ commutative — CLASSIFY
   OPERATOR-AUDIT → **SET** (sorted at construction same wave; atom_field_table updated).
 
@@ -48,8 +55,9 @@ semantics — see D10 below); (iii) {U}{X} cost + {U} discount carrier (Stormwin
 lane, CostDeltaReduceMana) trace invariant, string stable; (iv) constructed two-
 sacrifice-part cost ask-sequence determinism (replay byte-stability of
 `sacrifice:...:digest` keys).
-(3) Goldens re-bake EXACTLY the 226 names (r1b_sortdelta.json); 79 no-cost-M21 byte-
-match (305−226); leaf-multiset audit per card.
+(3) Goldens re-bake EXACTLY the 226 names (r1b_sortdelta.json); unchanged M21 = 79 =
+**71 no-multi-part-cost + 8 multi-part-already-canonical** (attribution A1; ZNR
+unchanged 65 = 62 + 3); leaf-multiset audit per card; changed ⊆ multipart verified.
 (4) Test re-pins for drifted diagnostic strings (identity-keyed where possible; per-
 assertion audit comment; NO relaxation) — full suite is the truth surface.
 (5) NUMBERS row + this round's landing note.
@@ -73,3 +81,16 @@ battery (i) — drift accepted, diagnostic-only consumers proven).
 ## 5. NOT in scope
 R2 (F4 damage fold, F1 residual re-audit), R3 (CHOOSE blindness audit; V4′ freeze armed),
 greedy-hybrid fix (engine lane, D10), gameplay_eval/model files (sibling lane).
+
+## 6. Spec gate (adversarial, 2026-10-20)
+FIX-THEN-GO — mechanism GO, 4 spec-text amendments applied (A1 unchanged-set
+attribution 71+8 / 62+3; A2 one-asked-kind-per-Cost standing assumption + Goremand/
+Kazuul in reorder range; A3 fingerprints drift across versions, pins are replay-vs-
+replay, never "byte-stable" claimed; A4 consumer list +verbs.py:1397/stack.py:1091).
+Gate-executed proofs: payability invariance holds for ENTIRE current corpus (color_cut
+pooled :703-706; only multi-part kind = CostManaColor; hybrid 0/0 source-census);
+PaymentPlan self-sorts (:919-924); /tmp rerun of the delta script = 0 diff keys vs
+committed JSON; changed ⊆ multipart exact (226/234, 216/219, extras already-canonical).
+No re-gate needed (no amendment touches implementation). D10 re-registered: future
+hybrid-bearing sets MUST resurface D10 at the §8 tokenizer audit before trusting
+compile-rate.
