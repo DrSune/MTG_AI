@@ -274,7 +274,10 @@ def train(
                     lp = torch.log_softmax(
                         cur._forward_menu(torch, ctx).float()[0], dim=-1
                     )
-                    t_anc = torch.tensor(anc_lps, dtype=torch.float32)
+                    # anchor log-probs were cached as plain lists (.cpu().
+                    # tolist()): rebuild on the LIVE tensor's device or the
+                    # subtraction below fails on cuda (night-1 crash).
+                    t_anc = torch.tensor(anc_lps, dtype=torch.float32, device=lp.device)
                     per_ask.append(float((lp.exp() * (lp - t_anc)).sum()))
                 games_post.append(sum(per_ask) / len(per_ask))
         kl_post = sum(games_post) / len(games_post)

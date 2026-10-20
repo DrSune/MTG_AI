@@ -8,7 +8,10 @@ and the diagnostics sidecar carries all six F4 no-op-discriminator keys;
 policy-gradient grad-norm of ~0 (the batch-mean baseline absorbs it; the
 no-op discriminator must not be able to hide inside a flat-looking run);
 (d) DETERMINISM — same rows + same weights => bit-identical first-batch
-grad-norm/loss; (e) fail-loud on missing outcome and ask-row shape drift.
+grad-norm/loss; (e) fail-loud on missing outcome and ask-row shape drift;
+(f) CUDA device parity — the full path incl. the post-step KL check, run on
+GPU when one is visible (skipped otherwise): night-1 crashed there because the
+cached anchor log-probs were rebuilt on the CPU.
 
 Real collection through the rig (module fixture reused across tests), no
 synthetic rows: the outcome path is exercised end to end.
@@ -195,3 +198,42 @@ def test_fail_loud_ask_shape_drift(episodes: Path, tmp_path: Path) -> None:
     rows[0]["asks"][0]["idx"] = len(rows[0]["asks"][0]["vocab"]) + 5
     with pytest.raises(RuntimeError, match="outside"):
         load_episodes(_write(tmp_path, rows, "b.jsonl"), NET)
+
+
+# ------------------------------------------------------- cuda device parity
+# Night-1 CUDA smoke crashed: the post-step KL check rebuilt the cached anchor
+# log-probs as a CPU tensor while the live log-softmax sat on cuda:0
+# (RuntimeError in `lp.exp() * (lp - t_anc)`). Dry-run forces device=cpu, so no
+# CPU-only test could ever see it: this test runs the SAME train() path —
+# kl_post_check ON, the crashing line — on a real CUDA device. Skipped when no
+# GPU is visible. Tiny S3a net + max_asks=4 keeps it engine-resident-friendly.
+CUDA_TIMEOUT = pytest.mark.timeout(1800)
+
+
+@CUDA_TIMEOUT
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="no CUDA device visible")
+def test_cuda_device_update_reaches_diag(episodes: Path, tmp_path: Path) -> None:
+    eps = _write(tmp_path, _set_outcomes(_rows(episodes)), "cuda.jsonl")
+    cpu = train(eps, NET, device="cpu", save=False, max_asks=4)
+    diag = train(eps, NET, device="cuda", tag="rld_cuda", out_dir=tmp_path, max_asks=4)
+    assert diag["device"] == "cuda"
+    for k in F4_KEYS:
+        assert k in diag
+    for key in (
+        "total_loss",
+        "grad_norm_preclip",
+        "kl_mean_per_game",
+        "kl_mean_per_game_post",  # the site that crashed: must be a real number
+    ):
+        v = diag[key]
+        assert v is not None and math.isfinite(v), key
+    # post-KL ~ 0 at iteration 1 (lr 1e-5 off the anchor). float32 KL at that
+    # magnitude can land a hair BELOW zero, so bound the absolute value.
+    assert abs(diag["kl_mean_per_game_post"]) < diag["kl_ceiling"]
+    # device parity: same rows/weights => same update, modulo GPU matmul reassociation
+    assert diag["grad_norm_preclip"] == pytest.approx(
+        cpu["grad_norm_preclip"], rel=0.25, abs=1e-6
+    )
+    assert json.loads((tmp_path / "rld_cuda_diag.json").read_text()) == diag
+    blob = torch.load(tmp_path / "rld_cuda.pt", map_location="cpu", weights_only=False)
+    assert all(str(v.device) == "cpu" for v in blob["state"].values())  # saved portable
