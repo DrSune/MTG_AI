@@ -435,9 +435,15 @@ class BcAsk:
                 return i, lps[i]
         return len(lps) - 1, lps[-1]
 
-    def _forward_menu(self, torch: Any, ctx: AskContext):
+    def _forward_menu(self, torch: Any, ctx: AskContext, grad: bool = False):
         """One scored forward over the candidate menu; appends the ask block
         to this seat's causal stream exactly as the legacy ``_decide`` did.
+
+        ``grad=True`` (REINFORCE trainer hook, /134) is the ONLY difference
+        from the inference path: the model call runs outside
+        ``torch.no_grad()`` so the returned logits carry an autograd graph.
+        Encoding, stream append and the digit-lane env swap are untouched —
+        the RL recompute IS the inference encoding (purity law).
 
         Per-policy language (KNOWLEDGE/78): a checkpoint whose vocab carries
         the digit lanes (``dnum``) must be shown digitized obs/candidate
@@ -450,14 +456,14 @@ class BcAsk:
         else:
             os.environ.pop(numlane.NUMTOK_ENV, None)
         try:
-            return self._forward_menu_enc(torch, ctx)
+            return self._forward_menu_enc(torch, ctx, grad)
         finally:
             if prev is None:
                 os.environ.pop(numlane.NUMTOK_ENV, None)
             else:
                 os.environ[numlane.NUMTOK_ENV] = prev
 
-    def _forward_menu_enc(self, torch: Any, ctx: AskContext):
+    def _forward_menu_enc(self, torch: Any, ctx: AskContext, grad: bool = False):
         vocab = self.vocab
         unk = vocab[bc_data.UNK]
         v2 = self.schema == "v2"
@@ -519,7 +525,13 @@ class BcAsk:
 
         device = next(self.model.parameters()).device
         tokens = torch.tensor([self.seq], dtype=torch.long, device=device)
-        with torch.no_grad():
+        if grad:  # REINFORCE trainer: graph-bearing logits (/134)
+            import contextlib
+
+            ctx_mgr: Any = contextlib.nullcontext()
+        else:
+            ctx_mgr = torch.no_grad()
+        with ctx_mgr:
             out = self.model.forward(
                 tokens,
                 torch.zeros_like(tokens, dtype=torch.bool),

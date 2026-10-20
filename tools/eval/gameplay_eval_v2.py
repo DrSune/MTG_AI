@@ -686,6 +686,17 @@ def rl_episode_rows(record: dict[str, Any]) -> list[dict[str, Any]]:
     if asks is None:
         return rows
     for seat in sorted(asks, key=int):
+        # /134 TASK B: outcome from the COLLECTING seat's view (REINFORCE
+        # reward); crash keeps its own label — the trainer maps it to a
+        # loss per the rig convention (r1_window 8/200 cited in /134 N1).
+        res = str(record["outcome"])
+        if res == "crash":
+            seat_outcome = "crash"
+        elif res.startswith("draw"):
+            seat_outcome = "draw"
+        else:
+            a_seat = 1 if record["swap"] else 0
+            seat_outcome = "win" if (res == "a") == (int(seat) == a_seat) else "loss"
         rows.append(
             {
                 "kind": "rl_episode",
@@ -694,6 +705,7 @@ def rl_episode_rows(record: dict[str, Any]) -> list[dict[str, Any]]:
                 "seat": int(seat),
                 "policy": meta["policies"][seat],
                 "rng_seed": meta["rng_seeds"][seat],
+                "outcome": seat_outcome,
                 "asks": asks[seat],
             }
         )
