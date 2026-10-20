@@ -1,0 +1,1474 @@
+{
+ "partA": {
+  "total_damage_event_nodes": 13,
+  "by_class_set": {
+   "CombatDamageEvent/M21": 2,
+   "DamageDealtEvent/M21": 10,
+   "CombatDamageEvent/ZNR": 1
+  },
+  "clusters": [
+   {
+    "class": "CombatDamageEvent",
+    "skel": "{\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":null},\"tag\":\"<S>\"}",
+    "n": 2,
+    "M21": 1,
+    "ZNR": 1,
+    "samples": [
+     {
+      "name": "Jeskai Elder",
+      "set": "M21",
+      "wording": [
+       "Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)\nWhenever this creature deals combat damage to a player, you may draw a card."
+      ],
+      "bytes": "{\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"tag\":\"CombatDamageEvent\"}"
+     },
+     {
+      "name": "Nimble Trapfinder",
+      "set": "ZNR",
+      "wording": [
+       "At the beginning of combat on your turn, if you have a full party, creatures you control gain \"Whenever this creature deals combat damage to a player, draw a card\" until end of turn."
+      ],
+      "bytes": "{\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"tag\":\"CombatDamageEvent\"}"
+     }
+    ]
+   },
+   {
+    "class": "DamageDealtEvent",
+    "skel": "{\"amount\":{\"agg\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"field\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"referent\":\"event\",\"tag\":\"<S>\"},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":null},\"tag\":\"<S>\"}",
+    "n": 2,
+    "M21": 2,
+    "ZNR": 0,
+    "samples": [
+     {
+      "name": "Sporeweb Weaver",
+      "set": "M21",
+      "wording": [
+       "Reach, hexproof from blue\nWhenever this creature is dealt damage, you gain 1 life and create a 1/1 green Saproling creature token."
+      ],
+      "bytes": "{\"amount\":{\"agg\":{\"name\":\"FIRST\",\"tag\":\"QAgg\"},\"field\":{\"name\":\"AMOUNT\",\"tag\":\"QPropField\"},\"referent\":\"event\",\"tag\":\"QProp\"},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"tag\":\"DamageDealtEvent\"}"
+     },
+     {
+      "name": "Brash Taunter",
+      "set": "M21",
+      "wording": [
+       "Indestructible\nWhenever this creature is dealt damage, it deals that much damage to target opponent."
+      ],
+      "bytes": "{\"amount\":{\"agg\":{\"name\":\"FIRST\",\"tag\":\"QAgg\"},\"field\":{\"name\":\"AMOUNT\",\"tag\":\"QPropField\"},\"referent\":\"event\",\"tag\":\"QProp\"},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"tag\":\"DamageDealtEvent\"}"
+     }
+    ]
+   },
+   {
+    "class": "DamageDealtEvent",
+    "skel": "{\"amount\":{\"tag\":\"<S>\"},\"combat\":false,\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},\"tag\":\"<S>\"}",
+    "n": 2,
+    "M21": 2,
+    "ZNR": 0,
+    "samples": [
+     {
+      "name": "Chandra's Incinerator",
+      "set": "M21",
+      "wording": [
+       "This spell costs {X} less to cast, where X is the total amount of noncombat damage dealt to your opponents this turn.",
+       "Trample\nWhenever a source you control deals noncombat damage to an opponent, this creature deals that much damage to target creature or planeswalker that player controls."
+      ],
+      "bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"combat\":false,\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"OPPONENT_OF\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},\"tag\":\"DamageDealtEvent\"}"
+     },
+     {
+      "name": "Chandra's Pyreling",
+      "set": "M21",
+      "wording": [
+       "Whenever a source you control deals noncombat damage to an opponent, this creature gets +1/+0 and gains double strike until end of turn.",
+       "(It deals both first-strike and regular combat damage.)"
+      ],
+      "bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"combat\":false,\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"OPPONENT_OF\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},\"tag\":\"DamageDealtEvent\"}"
+     }
+    ]
+   },
+   {
+    "class": "CombatDamageEvent",
+    "skel": "{\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":\"<S>\",\"tag\":\"<S>\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":\"<S>\",\"tag\":\"<S>\",\"who\":null}],\"tag\":\"<S>\"},\"tag\":\"<S>\"}",
+    "n": 1,
+    "M21": 1,
+    "ZNR": 0,
+    "samples": [
+     {
+      "name": "Feline Sovereign",
+      "set": "M21",
+      "wording": [
+       "Whenever one or more Cats you control deal combat damage to a player, destroy up to one target artifact or enchantment that player controls."
+      ],
+      "bytes": "{\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"SUBTYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Cat\",\"tag\":\"FAtom\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"TYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Creature\",\"tag\":\"FAtom\",\"who\":null}],\"tag\":\"FAnd\"},\"tag\":\"CombatDamageEvent\"}"
+     }
+    ]
+   },
+   {
+    "class": "DamageDealtEvent",
+    "skel": "{\"amount\":{\"tag\":\"<S>\"},\"combat\":true,\"filter\":{\"children\":[],\"tag\":\"<S>\"},\"source\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":\"<S>\",\"tag\":\"<S>\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":{\"tag\":\"<S>\",\"value\":2},\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":null}],\"tag\":\"<S>\"},\"tag\":\"<S>\"}",
+    "n": 1,
+    "M21": 1,
+    "ZNR": 0,
+    "samples": [
+     {
+      "name": "Subira, Tulzidi Caravanner",
+      "set": "M21",
+      "wording": [
+       "{1}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power 2 or less deals combat damage to a player, draw a card."
+      ],
+      "bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"combat\":true,\"filter\":{\"children\":[],\"tag\":\"FAnd\"},\"source\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"TYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Creature\",\"tag\":\"FAtom\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":{\"tag\":\"QConst\",\"value\":2},\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"POWER_LE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null}],\"tag\":\"FAnd\"},\"tag\":\"DamageDealtEvent\"}"
+     }
+    ]
+   },
+   {
+    "class": "DamageDealtEvent",
+    "skel": "{\"amount\":{\"tag\":\"<S>\"},\"combat\":true,\"filter\":{\"children\":[],\"tag\":\"<S>\"},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":null},\"tag\":\"<S>\"}",
+    "n": 1,
+    "M21": 1,
+    "ZNR": 0,
+    "samples": [
+     {
+      "name": "Garruk's Harbinger",
+      "set": "M21",
+      "wording": [
+       "Hexproof from black\nWhenever this creature deals combat damage to a player or planeswalker, look at that many cards from the top of your library."
+      ],
+      "bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"combat\":true,\"filter\":{\"children\":[],\"tag\":\"FAnd\"},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"tag\":\"DamageDealtEvent\"}"
+     }
+    ]
+   },
+   {
+    "class": "DamageDealtEvent",
+    "skel": "{\"amount\":{\"tag\":\"<S>\"},\"combat\":true,\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":\"<S>\",\"tag\":\"<S>\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":\"<S>\",\"tag\":\"<S>\",\"who\":null}],\"tag\":\"<S>\"},\"tag\":\"<S>\"}",
+    "n": 1,
+    "M21": 1,
+    "ZNR": 0,
+    "samples": [
+     {
+      "name": "Pack Leader",
+      "set": "M21",
+      "wording": [
+       "Whenever this creature attacks, prevent all combat damage that would be dealt this turn to Dogs you control."
+      ],
+      "bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"combat\":true,\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"SUBTYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Dog\",\"tag\":\"FAtom\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"TYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Creature\",\"tag\":\"FAtom\",\"who\":null}],\"tag\":\"FAnd\"},\"tag\":\"DamageDealtEvent\"}"
+     }
+    ]
+   },
+   {
+    "class": "DamageDealtEvent",
+    "skel": "{\"amount\":{\"tag\":\"<S>\"},\"filter\":{\"children\":[],\"tag\":\"<S>\"},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},\"tag\":\"<S>\"}",
+    "n": 1,
+    "M21": 1,
+    "ZNR": 0,
+    "samples": [
+     {
+      "name": "Fiery Emancipation",
+      "set": "M21",
+      "wording": [
+       "If a source you control would deal damage to a permanent or player, it deals triple that damage to that permanent or player instead."
+      ],
+      "bytes": "{\"amount\":{\"tag\":\"QX\"},\"filter\":{\"children\":[],\"tag\":\"FAnd\"},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},\"tag\":\"DamageDealtEvent\"}"
+     }
+    ]
+   },
+   {
+    "class": "DamageDealtEvent",
+    "skel": "{\"amount\":{\"tag\":\"<S>\"},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":\"<S>\",\"tag\":\"<S>\",\"who\":null},\"source\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":\"<S>\",\"tag\":\"<S>\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":null}],\"tag\":\"<S>\"},\"tag\":\"<S>\"}",
+    "n": 1,
+    "M21": 1,
+    "ZNR": 0,
+    "samples": [
+     {
+      "name": "Hooded Blightfang",
+      "set": "M21",
+      "wording": [
+       "Whenever a creature you control with deathtouch deals damage to a planeswalker, destroy that planeswalker."
+      ],
+      "bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"SUPERTYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Planeswalker\",\"tag\":\"FAtom\",\"who\":null},\"source\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"TYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Creature\",\"tag\":\"FAtom\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":{\"name\":\"DEATHTOUCH\",\"tag\":\"Keyword\"},\"pred\":{\"name\":\"KEYWORD_HAS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null}],\"tag\":\"FAnd\"},\"tag\":\"DamageDealtEvent\"}"
+     }
+    ]
+   },
+   {
+    "class": "DamageDealtEvent",
+    "skel": "{\"amount\":{\"tag\":\"<S>\"},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},\"tag\":\"<S>\"}",
+    "n": 1,
+    "M21": 1,
+    "ZNR": 0,
+    "samples": [
+     {
+      "name": "Nine Lives",
+      "set": "M21",
+      "wording": [
+       "Hexproof\nIf a source would deal damage to you, prevent that damage and put an incarnation counter on this enchantment."
+      ],
+      "bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},\"tag\":\"DamageDealtEvent\"}"
+     }
+    ]
+   }
+  ],
+  "fold_pairs_shared_source_filter": [
+   {
+    "cde": {
+     "name": "Jeskai Elder",
+     "set": "M21",
+     "bytes": "{\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"tag\":\"CombatDamageEvent\"}",
+     "wording": [
+      "Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)\nWhenever this creature deals combat damage to a player, you may draw a card."
+     ]
+    },
+    "dde": {
+     "name": "Garruk's Harbinger",
+     "set": "M21",
+     "bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"combat\":true,\"filter\":{\"children\":[],\"tag\":\"FAnd\"},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"tag\":\"DamageDealtEvent\"}",
+     "wording": [
+      "Hexproof from black\nWhenever this creature deals combat damage to a player or planeswalker, look at that many cards from the top of your library."
+     ]
+    },
+    "shared_source_filter": "{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null}"
+   },
+   {
+    "cde": {
+     "name": "Nimble Trapfinder",
+     "set": "ZNR",
+     "bytes": "{\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"tag\":\"CombatDamageEvent\"}",
+     "wording": [
+      "At the beginning of combat on your turn, if you have a full party, creatures you control gain \"Whenever this creature deals combat damage to a player, draw a card\" until end of turn."
+     ]
+    },
+    "dde": {
+     "name": "Garruk's Harbinger",
+     "set": "M21",
+     "bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"combat\":true,\"filter\":{\"children\":[],\"tag\":\"FAnd\"},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"tag\":\"DamageDealtEvent\"}",
+     "wording": [
+      "Hexproof from black\nWhenever this creature deals combat damage to a player or planeswalker, look at that many cards from the top of your library."
+     ]
+    },
+    "shared_source_filter": "{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null}"
+   }
+  ],
+  "wording_buckets": {
+   "combat|active-deal": {
+    "n": 1,
+    "distinct_bytes": 1,
+    "classes": [
+     "DamageDealtEvent"
+    ],
+    "cards": [
+     [
+      "M21",
+      "Chandra's Incinerator"
+     ]
+    ]
+   },
+   "combat|other": {
+    "n": 7,
+    "distinct_bytes": 6,
+    "classes": [
+     "CombatDamageEvent",
+     "DamageDealtEvent"
+    ],
+    "cards": [
+     [
+      "M21",
+      "Chandra's Pyreling"
+     ],
+     [
+      "M21",
+      "Feline Sovereign"
+     ],
+     [
+      "M21",
+      "Garruk's Harbinger"
+     ],
+     [
+      "M21",
+      "Jeskai Elder"
+     ],
+     [
+      "M21",
+      "Pack Leader"
+     ],
+     [
+      "M21",
+      "Subira, Tulzidi Caravanner"
+     ],
+     [
+      "ZNR",
+      "Nimble Trapfinder"
+     ]
+    ]
+   },
+   "noncombat-or-any|active-deal": {
+    "n": 3,
+    "distinct_bytes": 3,
+    "classes": [
+     "DamageDealtEvent"
+    ],
+    "cards": [
+     [
+      "M21",
+      "Fiery Emancipation"
+     ],
+     [
+      "M21",
+      "Hooded Blightfang"
+     ],
+     [
+      "M21",
+      "Nine Lives"
+     ]
+    ]
+   },
+   "noncombat-or-any|passive-receive": {
+    "n": 2,
+    "distinct_bytes": 1,
+    "classes": [
+     "DamageDealtEvent"
+    ],
+    "cards": [
+     [
+      "M21",
+      "Brash Taunter"
+     ],
+     [
+      "M21",
+      "Sporeweb Weaver"
+     ]
+    ]
+   }
+  },
+  "nodes": [
+   {
+    "set": "M21",
+    "oid": "05f0feb6-6783-49fd-acf6-68b44aaff846",
+    "name": "Feline Sovereign",
+    "class": "CombatDamageEvent",
+    "path": "$.abilities[1].event",
+    "host_chain": "CardRecord|TriggeredAbility|CombatDamageEvent",
+    "bytes": "{\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"SUBTYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Cat\",\"tag\":\"FAtom\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"TYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Creature\",\"tag\":\"FAtom\",\"who\":null}],\"tag\":\"FAnd\"},\"tag\":\"CombatDamageEvent\"}",
+    "skel": "{\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":\"<S>\",\"tag\":\"<S>\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":\"<S>\",\"tag\":\"<S>\",\"who\":null}],\"tag\":\"<S>\"},\"tag\":\"<S>\"}",
+    "amount": null,
+    "combat": "N/A",
+    "filter": "{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"SUBTYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Cat\",\"tag\":\"FAtom\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"TYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Creature\",\"tag\":\"FAtom\",\"who\":null}],\"tag\":\"FAnd\"}",
+    "source": null,
+    "cde_filter": "{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"SUBTYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Cat\",\"tag\":\"FAtom\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"TYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Creature\",\"tag\":\"FAtom\",\"who\":null}],\"tag\":\"FAnd\"}",
+    "wording": [
+     "Whenever one or more Cats you control deal combat damage to a player, destroy up to one target artifact or enchantment that player controls."
+    ]
+   },
+   {
+    "set": "M21",
+    "oid": "236e1f57-7ef5-455a-82a6-8ff6b85d8849",
+    "name": "Nine Lives",
+    "class": "DamageDealtEvent",
+    "path": "$.abilities[0].event",
+    "host_chain": "CardRecord|ReplacementAbility|DamageDealtEvent",
+    "bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},\"tag\":\"DamageDealtEvent\"}",
+    "skel": "{\"amount\":{\"tag\":\"<S>\"},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},\"tag\":\"<S>\"}",
+    "amount": "{\"tag\":\"QUnbounded\"}",
+    "combat": null,
+    "filter": "{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}}",
+    "source": "null",
+    "cde_filter": null,
+    "wording": [
+     "Hexproof\nIf a source would deal damage to you, prevent that damage and put an incarnation counter on this enchantment."
+    ]
+   },
+   {
+    "set": "M21",
+    "oid": "2dbe384b-71c4-43f9-be35-ba2894021b85",
+    "name": "Garruk's Harbinger",
+    "class": "DamageDealtEvent",
+    "path": "$.abilities[0].event",
+    "host_chain": "CardRecord|TriggeredAbility|DamageDealtEvent",
+    "bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"combat\":true,\"filter\":{\"children\":[],\"tag\":\"FAnd\"},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"tag\":\"DamageDealtEvent\"}",
+    "skel": "{\"amount\":{\"tag\":\"<S>\"},\"combat\":true,\"filter\":{\"children\":[],\"tag\":\"<S>\"},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":null},\"tag\":\"<S>\"}",
+    "amount": "{\"tag\":\"QUnbounded\"}",
+    "combat": true,
+    "filter": "{\"children\":[],\"tag\":\"FAnd\"}",
+    "source": "{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null}",
+    "cde_filter": null,
+    "wording": [
+     "Hexproof from black\nWhenever this creature deals combat damage to a player or planeswalker, look at that many cards from the top of your library."
+    ]
+   },
+   {
+    "set": "M21",
+    "oid": "2e7c3881-6fa6-4fd2-ae86-9e3a0fcecdbd",
+    "name": "Sporeweb Weaver",
+    "class": "DamageDealtEvent",
+    "path": "$.abilities[0].event",
+    "host_chain": "CardRecord|TriggeredAbility|DamageDealtEvent",
+    "bytes": "{\"amount\":{\"agg\":{\"name\":\"FIRST\",\"tag\":\"QAgg\"},\"field\":{\"name\":\"AMOUNT\",\"tag\":\"QPropField\"},\"referent\":\"event\",\"tag\":\"QProp\"},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"tag\":\"DamageDealtEvent\"}",
+    "skel": "{\"amount\":{\"agg\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"field\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"referent\":\"event\",\"tag\":\"<S>\"},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":null},\"tag\":\"<S>\"}",
+    "amount": "{\"agg\":{\"name\":\"FIRST\",\"tag\":\"QAgg\"},\"field\":{\"name\":\"AMOUNT\",\"tag\":\"QPropField\"},\"referent\":\"event\",\"tag\":\"QProp\"}",
+    "combat": null,
+    "filter": "{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null}",
+    "source": "null",
+    "cde_filter": null,
+    "wording": [
+     "Reach, hexproof from blue\nWhenever this creature is dealt damage, you gain 1 life and create a 1/1 green Saproling creature token."
+    ]
+   },
+   {
+    "set": "M21",
+    "oid": "342eb666-838c-43d0-bf52-2f704f2a80e3",
+    "name": "Hooded Blightfang",
+    "class": "DamageDealtEvent",
+    "path": "$.abilities[1].event",
+    "host_chain": "CardRecord|TriggeredAbility|DamageDealtEvent",
+    "bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"SUPERTYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Planeswalker\",\"tag\":\"FAtom\",\"who\":null},\"source\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"TYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Creature\",\"tag\":\"FAtom\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":{\"name\":\"DEATHTOUCH\",\"tag\":\"Keyword\"},\"pred\":{\"name\":\"KEYWORD_HAS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null}],\"tag\":\"FAnd\"},\"tag\":\"DamageDealtEvent\"}",
+    "skel": "{\"amount\":{\"tag\":\"<S>\"},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":\"<S>\",\"tag\":\"<S>\",\"who\":null},\"source\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":\"<S>\",\"tag\":\"<S>\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":null}],\"tag\":\"<S>\"},\"tag\":\"<S>\"}",
+    "amount": "{\"tag\":\"QUnbounded\"}",
+    "combat": null,
+    "filter": "{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"SUPERTYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Planeswalker\",\"tag\":\"FAtom\",\"who\":null}",
+    "source": "{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"TYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Creature\",\"tag\":\"FAtom\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":{\"name\":\"DEATHTOUCH\",\"tag\":\"Keyword\"},\"pred\":{\"name\":\"KEYWORD_HAS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null}],\"tag\":\"FAnd\"}",
+    "cde_filter": null,
+    "wording": [
+     "Whenever a creature you control with deathtouch deals damage to a planeswalker, destroy that planeswalker."
+    ]
+   },
+   {
+    "set": "M21",
+    "oid": "3701ed34-a97c-4d7b-a15a-4faec02ef24b",
+    "name": "Pack Leader",
+    "class": "DamageDealtEvent",
+    "path": "$.abilities[1].effect.args.pairs[2][1]",
+    "host_chain": "CardRecord|TriggeredAbility|Atom|AtomArgs|DamageDealtEvent",
+    "bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"combat\":true,\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"SUBTYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Dog\",\"tag\":\"FAtom\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"TYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Creature\",\"tag\":\"FAtom\",\"who\":null}],\"tag\":\"FAnd\"},\"tag\":\"DamageDealtEvent\"}",
+    "skel": "{\"amount\":{\"tag\":\"<S>\"},\"combat\":true,\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":\"<S>\",\"tag\":\"<S>\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":\"<S>\",\"tag\":\"<S>\",\"who\":null}],\"tag\":\"<S>\"},\"tag\":\"<S>\"}",
+    "amount": "{\"tag\":\"QUnbounded\"}",
+    "combat": true,
+    "filter": "{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"SUBTYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Dog\",\"tag\":\"FAtom\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"TYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Creature\",\"tag\":\"FAtom\",\"who\":null}],\"tag\":\"FAnd\"}",
+    "source": "null",
+    "cde_filter": null,
+    "wording": [
+     "Whenever this creature attacks, prevent all combat damage that would be dealt this turn to Dogs you control."
+    ]
+   },
+   {
+    "set": "M21",
+    "oid": "3e41648f-c5a9-4b26-b97e-8176fe5e9c85",
+    "name": "Brash Taunter",
+    "class": "DamageDealtEvent",
+    "path": "$.abilities[0].event",
+    "host_chain": "CardRecord|TriggeredAbility|DamageDealtEvent",
+    "bytes": "{\"amount\":{\"agg\":{\"name\":\"FIRST\",\"tag\":\"QAgg\"},\"field\":{\"name\":\"AMOUNT\",\"tag\":\"QPropField\"},\"referent\":\"event\",\"tag\":\"QProp\"},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"tag\":\"DamageDealtEvent\"}",
+    "skel": "{\"amount\":{\"agg\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"field\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"referent\":\"event\",\"tag\":\"<S>\"},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":null},\"tag\":\"<S>\"}",
+    "amount": "{\"agg\":{\"name\":\"FIRST\",\"tag\":\"QAgg\"},\"field\":{\"name\":\"AMOUNT\",\"tag\":\"QPropField\"},\"referent\":\"event\",\"tag\":\"QProp\"}",
+    "combat": null,
+    "filter": "{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null}",
+    "source": "null",
+    "cde_filter": null,
+    "wording": [
+     "Indestructible\nWhenever this creature is dealt damage, it deals that much damage to target opponent."
+    ]
+   },
+   {
+    "set": "M21",
+    "oid": "515cee6a-a2e1-4eeb-8e1d-293724313b14",
+    "name": "Chandra's Incinerator",
+    "class": "DamageDealtEvent",
+    "path": "$.abilities[1].event",
+    "host_chain": "CardRecord|TriggeredAbility|DamageDealtEvent",
+    "bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"combat\":false,\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"OPPONENT_OF\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},\"tag\":\"DamageDealtEvent\"}",
+    "skel": "{\"amount\":{\"tag\":\"<S>\"},\"combat\":false,\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},\"tag\":\"<S>\"}",
+    "amount": "{\"tag\":\"QUnbounded\"}",
+    "combat": false,
+    "filter": "{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"OPPONENT_OF\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}}",
+    "source": "{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}}",
+    "cde_filter": null,
+    "wording": [
+     "This spell costs {X} less to cast, where X is the total amount of noncombat damage dealt to your opponents this turn.",
+     "Trample\nWhenever a source you control deals noncombat damage to an opponent, this creature deals that much damage to target creature or planeswalker that player controls."
+    ]
+   },
+   {
+    "set": "M21",
+    "oid": "52159875-354c-47f9-bb1c-cd65395fcc68",
+    "name": "Fiery Emancipation",
+    "class": "DamageDealtEvent",
+    "path": "$.abilities[0].event",
+    "host_chain": "CardRecord|ReplacementAbility|DamageDealtEvent",
+    "bytes": "{\"amount\":{\"tag\":\"QX\"},\"filter\":{\"children\":[],\"tag\":\"FAnd\"},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},\"tag\":\"DamageDealtEvent\"}",
+    "skel": "{\"amount\":{\"tag\":\"<S>\"},\"filter\":{\"children\":[],\"tag\":\"<S>\"},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},\"tag\":\"<S>\"}",
+    "amount": "{\"tag\":\"QX\"}",
+    "combat": null,
+    "filter": "{\"children\":[],\"tag\":\"FAnd\"}",
+    "source": "{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}}",
+    "cde_filter": null,
+    "wording": [
+     "If a source you control would deal damage to a permanent or player, it deals triple that damage to that permanent or player instead."
+    ]
+   },
+   {
+    "set": "M21",
+    "oid": "5291deb9-0b89-42c2-bde6-26f88931c3f4",
+    "name": "Chandra's Pyreling",
+    "class": "DamageDealtEvent",
+    "path": "$.abilities[0].event",
+    "host_chain": "CardRecord|TriggeredAbility|DamageDealtEvent",
+    "bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"combat\":false,\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"OPPONENT_OF\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},\"tag\":\"DamageDealtEvent\"}",
+    "skel": "{\"amount\":{\"tag\":\"<S>\"},\"combat\":false,\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},\"tag\":\"<S>\"}",
+    "amount": "{\"tag\":\"QUnbounded\"}",
+    "combat": false,
+    "filter": "{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"OPPONENT_OF\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}}",
+    "source": "{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}}",
+    "cde_filter": null,
+    "wording": [
+     "Whenever a source you control deals noncombat damage to an opponent, this creature gets +1/+0 and gains double strike until end of turn.",
+     "(It deals both first-strike and regular combat damage.)"
+    ]
+   },
+   {
+    "set": "M21",
+    "oid": "9e2e3272-d4e1-4329-b1d2-f393b3511b82",
+    "name": "Subira, Tulzidi Caravanner",
+    "class": "DamageDealtEvent",
+    "path": "$.abilities[1].effect.event",
+    "host_chain": "CardRecord|ActivatedAbility|DelayedTrigger|DamageDealtEvent",
+    "bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"combat\":true,\"filter\":{\"children\":[],\"tag\":\"FAnd\"},\"source\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"TYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Creature\",\"tag\":\"FAtom\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":{\"tag\":\"QConst\",\"value\":2},\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"POWER_LE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null}],\"tag\":\"FAnd\"},\"tag\":\"DamageDealtEvent\"}",
+    "skel": "{\"amount\":{\"tag\":\"<S>\"},\"combat\":true,\"filter\":{\"children\":[],\"tag\":\"<S>\"},\"source\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":{\"name\":\"<S>\",\"tag\":\"<S>\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":\"<S>\",\"tag\":\"<S>\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":{\"tag\":\"<S>\",\"value\":2},\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":null}],\"tag\":\"<S>\"},\"tag\":\"<S>\"}",
+    "amount": "{\"tag\":\"QUnbounded\"}",
+    "combat": true,
+    "filter": "{\"children\":[],\"tag\":\"FAnd\"}",
+    "source": "{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"TYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Creature\",\"tag\":\"FAtom\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":{\"tag\":\"QConst\",\"value\":2},\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"POWER_LE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null}],\"tag\":\"FAnd\"}",
+    "cde_filter": null,
+    "wording": [
+     "{1}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power 2 or less deals combat damage to a player, draw a card."
+    ]
+   },
+   {
+    "set": "M21",
+    "oid": "dfbd5ad1-0f68-4219-95c4-98f674f321be",
+    "name": "Jeskai Elder",
+    "class": "CombatDamageEvent",
+    "path": "$.abilities[0].event",
+    "host_chain": "CardRecord|TriggeredAbility|CombatDamageEvent",
+    "bytes": "{\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"tag\":\"CombatDamageEvent\"}",
+    "skel": "{\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":null},\"tag\":\"<S>\"}",
+    "amount": null,
+    "combat": "N/A",
+    "filter": "{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null}",
+    "source": null,
+    "cde_filter": "{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null}",
+    "wording": [
+     "Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)\nWhenever this creature deals combat damage to a player, you may draw a card."
+    ]
+   },
+   {
+    "set": "ZNR",
+    "oid": "e95a9488-3f86-4598-9c6e-6b1b959f8570",
+    "name": "Nimble Trapfinder",
+    "class": "CombatDamageEvent",
+    "path": "$.abilities[0].effect.args.pairs[0][1].event",
+    "host_chain": "CardRecord|TriggeredAbility|Atom|AtomArgs|TriggeredAbility|CombatDamageEvent",
+    "bytes": "{\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"tag\":\"CombatDamageEvent\"}",
+    "skel": "{\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"<S>\",\"tag\":\"<S>\"},\"string_value\":null,\"tag\":\"<S>\",\"who\":null},\"tag\":\"<S>\"}",
+    "amount": null,
+    "combat": "N/A",
+    "filter": "{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null}",
+    "source": null,
+    "cde_filter": "{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null}",
+    "wording": [
+     "At the beginning of combat on your turn, if you have a full party, creatures you control gain \"Whenever this creature deals combat damage to a player, draw a card\" until end of turn."
+    ]
+   }
+  ]
+ },
+ "partB": {
+  "M21": {
+   "StepEvent_controller": {},
+   "actor_field": {
+    "LoyaltyActivatedEvent:CONTROLLER_IS:YOU": 1,
+    "TurnPhaseEvent:CONTROLLER_IS:YOU": 22,
+    "LifeGainedEvent:CONTROLLER_IS:YOU": 3,
+    "CardDrawnEvent:CONTROLLER_IS:YOU": 7,
+    "CastSpellEvent:CONTROLLER_IS:YOU": 6,
+    "SacrificeEvent:CONTROLLER_IS:YOU": 1,
+    "TurnPhaseEvent:null": 1,
+    "CastSpellEvent:CONTROLLER_IS:OPPONENT": 2
+   },
+   "CONTROLLER_IS_by_host": {
+    "FAnd.children": 117,
+    "LoyaltyActivatedEvent.actor": 1,
+    "TurnPhaseEvent.actor": 22,
+    "LifeGainedEvent.actor": 3,
+    "CardDrawnEvent.actor": 7,
+    "DamageDealtEvent.filter": 1,
+    "Selector.filter": 2,
+    "CastSpellEvent.actor": 8,
+    "DamageDealtEvent.source": 3,
+    "AtomArgs.pairs": 2,
+    "FNot.inner": 4,
+    "SacrificeEvent.actor": 1,
+    "FOr.children": 2
+   },
+   "Zone_controller_by_kind": {
+    "ANY/ANY": 108,
+    "BATTLEFIELD/YOU": 80,
+    "LIBRARY/YOU": 54,
+    "GRAVEYARD/YOU": 42,
+    "HAND/YOU": 62,
+    "BATTLEFIELD/ANY": 245,
+    "PLAYER/YOU": 2,
+    "HAND/ANY": 6,
+    "EXILE/OWNER": 19,
+    "GRAVEYARD/TARGET_PLAYER": 7,
+    "GRAVEYARD/ANY": 8,
+    "LIBRARY/TARGET_PLAYER": 6,
+    "HAND/TARGET_PLAYER": 9,
+    "PLAYER/TARGET_PLAYER": 1,
+    "GRAVEYARD/OPPONENT": 2,
+    "HAND/OPPONENT": 2,
+    "BATTLEFIELD/TARGET_PLAYER": 1,
+    "STACK/ANY": 8,
+    "HAND/OWNER": 3,
+    "EXILE/YOU": 3,
+    "EXILE/ANY": 2,
+    "PLAYER/OPPONENT": 2,
+    "LIBRARY/OWNER": 1,
+    "COMMAND/OPPONENT": 1,
+    "BATTLEFIELD/OPPONENT": 1,
+    "PLAYER/ALL_OPPONENTS": 1,
+    "EXILE/TARGET_PLAYER": 3,
+    "PLAYER/ANY": 2
+   },
+   "battlefield_dir_selectors": [
+    {
+     "name": "Solemn Simulacrum",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Solemn Simulacrum",
+     "path": "$.abilities[0].effect.inner.steps[0].args.pairs[1][1]",
+     "host": "CardRecord|TriggeredAbility|OptionalEffect|Seq|Atom|AtomArgs|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Meteorite",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Fabled Passage",
+     "path": "$.abilities[0].effect.steps[0].args.pairs[2][1]",
+     "host": "CardRecord|ActivatedAbility|Seq|Atom|AtomArgs|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Roaming Ghostlight",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Goremand",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Runed Halo",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Gale Swooper",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Nine Lives",
+     "path": "$.abilities[2].event.from_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Faith's Fetters",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Capture Sphere",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Swiftwater Cliffs",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Rousing Read",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Garruk's Uprising",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Garruk's Uprising",
+     "path": "$.abilities[2].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Garruk, Unleashed",
+     "path": "$.emblem.abilities[0].effect.inner.steps[0].args.pairs[2][1]",
+     "host": "CardRecord|CardRecord|TriggeredAbility|OptionalEffect|Seq|Atom|AtomArgs|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Wall of Runes",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Skeleton Archer",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Setessan Training",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Blossoming Sands",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Rambunctious Mutt",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Valorous Steed",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Fierce Empath",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Chandra's Firemaw",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Liliana, Waker of the Dead Emblem",
+     "path": "$.abilities[0].effect.steps[0].args.pairs[1][1]",
+     "host": "CardRecord|TriggeredAbility|Seq|Atom|AtomArgs|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Basri's Lieutenant",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Storm Caller",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Tranquil Cove",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Archfiend's Vessel",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Sanctum of All",
+     "path": "$.abilities[0].effect.inner.steps[0].args.pairs[2][1]",
+     "host": "CardRecord|TriggeredAbility|OptionalEffect|Seq|Atom|AtomArgs|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Bloodfell Caves",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Silversmote Ghoul",
+     "path": "$.abilities[0].effect.args.pairs[1][1]",
+     "host": "CardRecord|TriggeredAbility|Atom|AtomArgs|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Idol of Endurance",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Rugged Highlands",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Radiant Fountain",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Pursued Whale",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Bone Pit Brute",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Jungle Hollow",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Temple of Triumph",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Teferi, Timeless Voyager",
+     "path": "$.abilities[2].effect.steps[1].args.pairs[2][1].to_zone",
+     "host": "CardRecord|ActivatedAbility|Seq|Atom|AtomArgs|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"OPPONENT\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Temple of Epiphany",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Liliana's Standard Bearer",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Temple of Mystery",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Thieves' Guild Enforcer",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Dismal Backwater",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Alpine Houndmaster",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Trufflesnout",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Garruk, Unleashed Emblem",
+     "path": "$.abilities[0].effect.inner.steps[0].args.pairs[2][1]",
+     "host": "CardRecord|TriggeredAbility|OptionalEffect|Seq|Atom|AtomArgs|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Kitesail Freebooter",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Cultivate",
+     "path": "$.abilities[0].effect.steps[0].args.pairs[2][1]",
+     "host": "CardRecord|SpellAbility|Seq|Atom|AtomArgs|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Cultivate",
+     "path": "$.abilities[0].effect.steps[2].args.pairs[1][1]",
+     "host": "CardRecord|SpellAbility|Seq|Atom|AtomArgs|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Aven Gagglemaster",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Niambi, Esteemed Speaker",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Basri's Acolyte",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Massacre Wurm",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Skyscanner",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Kinetic Augur",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Wind-Scarred Crag",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Teferi's Wavecaster",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Carrion Grub",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Teferi's Tutelage",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Scoured Barrens",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Daybreak Charger",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Watcher of the Spheres",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Garruk's Warsteed",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Shipwreck Dowser",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Temple of Malady",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Liliana, Waker of the Dead",
+     "path": "$.emblem.abilities[0].effect.steps[0].args.pairs[1][1]",
+     "host": "CardRecord|CardRecord|TriggeredAbility|Seq|Atom|AtomArgs|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Temple of Silence",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Obsessive Stitcher",
+     "path": "$.abilities[1].effect.args.pairs[1][1]",
+     "host": "CardRecord|ActivatedAbility|Atom|AtomArgs|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Stormwing Entity",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Thornwood Falls",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Ugin, the Spirit Dragon",
+     "path": "$.abilities[2].effect.steps[2].args.pairs[1][1]",
+     "host": "CardRecord|ActivatedAbility|Seq|Atom|AtomArgs|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Crypt Lurker",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Chrome Replicator",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Llanowar Visionary",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Terror of the Peaks",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Pridemalkin",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Barrin, Tolarian Archmage",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Barrin, Tolarian Archmage",
+     "path": "$.abilities[1].condition.from_zone",
+     "host": "CardRecord|TriggeredAbility|FAtom|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Turret Ogre",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    }
+   ]
+  },
+  "ZNR": {
+   "StepEvent_controller": {},
+   "actor_field": {
+    "CastSpellEvent:CONTROLLER_IS:YOU": 10,
+    "TurnPhaseEvent:CONTROLLER_IS:YOU": 4,
+    "LifeGainedEvent:CONTROLLER_IS:YOU": 2
+   },
+   "CONTROLLER_IS_by_host": {
+    "FAnd.children": 86,
+    "CastSpellEvent.actor": 10,
+    "TurnPhaseEvent.actor": 4,
+    "LifeGainedEvent.actor": 2
+   },
+   "Zone_controller_by_kind": {
+    "ANY/ANY": 62,
+    "BATTLEFIELD/YOU": 53,
+    "BATTLEFIELD/ANY": 132,
+    "GRAVEYARD/TARGET_PLAYER": 2,
+    "HAND/TARGET_PLAYER": 2,
+    "HAND/OWNER": 2,
+    "STACK/ANY": 3,
+    "LIBRARY/YOU": 16,
+    "GRAVEYARD/YOU": 6,
+    "HAND/YOU": 8,
+    "PLAYER/OPPONENT": 1,
+    "PLAYER/ANY": 1,
+    "EXILE/OWNER": 1
+   },
+   "battlefield_dir_selectors": [
+    {
+     "name": "Akoum Hellhound",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Roost of Drakes",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Maul of the Skyclaves",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Cascade Seer",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Kitesail Cleric",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Squad Commander",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Emeria Captain",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Nissa of Shadowed Boughs",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Canyon Jerboa",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Kazandu Nectarpot",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Kazandu Mammoth // Kazandu Valley",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Scavenged Blade",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Malakir Blood-Priest",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Phylath, World Sculptor",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Angelheart Protector",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Ardent Electromancer",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Canopy Baloth",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Tazeem Roilmage",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Mind Carver",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Cliffhaven Kitesail",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Kabira Outrider",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Shepherd of Heroes",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Skyclave Pick-Axe",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Skyclave Pick-Axe",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Spitfire Lagac",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Cunning Geysermage",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Fearless Fledgling",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Territorial Scythecat",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Joraga Visionary",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Scorch Rider",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Dauntless Survivor",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Lotus Cobra",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Ruin Crab",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Drana's Silencer",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Turntimber Ascetic",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Oran-Rief Ooze",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Dreadwurm",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Thundering Sparkmage",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Scute Swarm",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Tajuru Paragon",
+     "path": "$.abilities[2].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Lithoform Blight",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Brushfire Elemental",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Utility Knife",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Bubble Snare",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Nullpriest of Oblivion",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Valakut Exploration",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Relic Axe",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Skyclave Cleric // Skyclave Basilica",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Murasa Sproutling",
+     "path": "$.abilities[1].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Skyclave Geopede",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Makindi Ox",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Prowling Felidar",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    },
+    {
+     "name": "Ravager's Mace",
+     "path": "$.abilities[0].event.to_zone",
+     "host": "CardRecord|TriggeredAbility|ZoneChangeEvent|Zone",
+     "zone": "{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"BATTLEFIELD\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,64 @@
+{
+ "rule": "CDE{F} -> DDE(amount=QUnbounded, filter=FAnd(()), source=F, combat=True)",
+ "sets": {
+  "M21": {
+   "changed_count": 2,
+   "changed_oids": [
+    "05f0feb6-6783-49fd-acf6-68b44aaff846",
+    "dfbd5ad1-0f68-4219-95c4-98f674f321be"
+   ],
+   "changed_names": [
+    "Feline Sovereign",
+    "Jeskai Elder"
+   ],
+   "total_compiled": 305,
+   "shape_gaps": 0,
+   "folds": {
+    "cde_fold": 2
+   },
+   "dde_by_combat": {
+    "combat=ABSENT": 5,
+    "combat=True": 3,
+    "combat=False": 2
+   },
+   "idempotence_failures": [],
+   "content_failures": [],
+   "golden_files_total": 305,
+   "goldens_flagged": [
+    "05f0feb6-6783-49fd-acf6-68b44aaff846",
+    "dfbd5ad1-0f68-4219-95c4-98f674f321be"
+   ],
+   "goldens_flagged_names": [
+    "Feline Sovereign",
+    "Jeskai Elder"
+   ]
+  },
+  "ZNR": {
+   "changed_count": 1,
+   "changed_oids": [
+    "e95a9488-3f86-4598-9c6e-6b1b959f8570"
+   ],
+   "changed_names": [
+    "Nimble Trapfinder"
+   ],
+   "total_compiled": 281,
+   "shape_gaps": 1,
+   "folds": {
+    "cde_fold": 1
+   },
+   "dde_by_combat": {},
+   "idempotence_failures": [],
+   "content_failures": []
+  }
+ },
+ "convergence": {
+  "harbinger_event_bytes": "{\"amount\":{\"tag\":\"QUnbounded\"},\"combat\":true,\"filter\":{\"children\":[],\"tag\":\"FAnd\"},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"tag\":\"DamageDealtEvent\"}",
+  "jeskai_post_fold_event_bytes": [
+   "{\"amount\":{\"tag\":\"QUnbounded\"},\"combat\":true,\"filter\":{\"children\":[],\"tag\":\"FAnd\"},\"source\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"tag\":\"DamageDealtEvent\"}"
+  ],
+  "byte_equal": true
+ },
+ "idempotence_all_pass": true,
+ "content_all_pass": true,
+ "exceptions": []
+}
