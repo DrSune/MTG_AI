@@ -9,6 +9,7 @@ violation is not a checker.
 from __future__ import annotations
 
 import ast
+import dataclasses
 import json
 import sys
 from pathlib import Path
@@ -285,6 +286,174 @@ def test_v4_missing_baseline_fails_closed_cli(tmp_path, monkeypatch):
 
 
 # --------------------------------------------------------------------------
+# V4′ SHAPE-HASH PROBES (R3 /141 §6): deletions and tag/filter swaps fail
+# even when the node COUNTS do not move (the count-only blind spot).
+# --------------------------------------------------------------------------
+def _v4_probe_baseline(tmp_path, obj):
+    p = tmp_path / "v4_shape_baseline.json"
+    p.write_text(json.dumps(obj))
+    return p
+
+
+def test_v4_shape_probe_clean_passes(tmp_path):
+    cur = {"M21": {"Foo": {"count": 2, "shapes": ["a1", "b2"]}}}
+    v4 = oc.check_v4(cur, _v4_probe_baseline(tmp_path, cur), False)
+    assert v4["new_emissions"] == []
+
+
+def test_v4_shape_probe_deletion_fails(tmp_path):
+    base = {"M21": {"Foo": {"count": 2, "shapes": ["a1", "b2"]}}}
+    cur = {"M21": {"Foo": {"count": 1, "shapes": ["a1"]}}}
+    v4 = oc.check_v4(cur, _v4_probe_baseline(tmp_path, base), False)
+    assert any("REMOVED" in e for e in v4["new_emissions"]), v4["new_emissions"]
+
+
+def test_v4_shape_probe_tag_or_filter_swap_fails_at_constant_count(tmp_path):
+    # THE count-only blind spot: identical counts, a node whose tag/filter
+    # was swapped — the old census saw 2 -> 2 and stayed green.
+    base = {"M21": {"Foo": {"count": 2, "shapes": ["a1", "b2"]}}}
+    cur = {"M21": {"Foo": {"count": 2, "shapes": ["a1", "c3"]}}}
+    v4 = oc.check_v4(cur, _v4_probe_baseline(tmp_path, base), False)
+    assert any("SWAPPED" in e for e in v4["new_emissions"]), v4["new_emissions"]
+    assert any("REMOVED" in e for e in v4["new_emissions"]), v4["new_emissions"]
+
+
+# --------------------------------------------------------------------------
+# V4′ EXTINCTION PROBES (R3 diff-gate follow-up, FIX-1 /144 verdict
+# FIX-THEN-GO): the first check_v4 iterated CURRENT names only, so whole-
+# card CHOOSE extinction (rename, drop, last node deleted -> card leaves
+# the census) passed silently. Union-iteration + count-comparison fix.
+# --------------------------------------------------------------------------
+@dataclasses.dataclass
+class _XArgs:
+    pairs: tuple
+
+
+@dataclasses.dataclass
+class _XStep:
+    verb: str
+    args: _XArgs
+
+
+@dataclasses.dataclass
+class _XCard:
+    name: str
+    abilities: tuple
+
+
+def _x_card(sel, name="Extinction Probe"):
+    # gate pattern borrowed from /tmp/opencode/r3gate/probe_freeze.py:
+    # CHOOSE selector nested at args.pairs[0][1] (container-nested leaf).
+    return _XCard(name, (_XStep("SEARCH", _XArgs(pairs=(("cards", sel),))),))
+
+
+def _x_sel(count=1):
+    return at.Selector(
+        at.QConst(count),
+        at.SelectorMode.CHOOSE,
+        at.FAnd(()),
+        zones=(at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU),),
+    )
+
+
+def test_v4_whole_card_extinction_fails(tmp_path):
+    base = {"M21": {"Goner": {"count": 2, "shapes": ["a1", "b2"]}}}
+    v4 = oc.check_v4({"M21": {}}, _v4_probe_baseline(tmp_path, base), False)
+    assert any("Goner" in e and "REMOVED" in e for e in v4["new_emissions"]), (
+        "card-level CHOOSE extinction must error (BREAK-R3-1)",
+        v4["new_emissions"],
+    )
+
+
+def test_v4_whole_set_extinction_fails(tmp_path):
+    base = {"M21": {"Foo": {"count": 1, "shapes": ["a1"]}}}
+    v4 = oc.check_v4({}, _v4_probe_baseline(tmp_path, base), False)
+    assert any("Foo" in e and "REMOVED" in e for e in v4["new_emissions"]), (
+        "dropping a whole SET's census must error",
+        v4["new_emissions"],
+    )
+
+
+def test_v4_count_decrease_at_identical_shapes_fails(tmp_path):
+    # Two byte-identical selectors at different index-paths have different
+    # signatures, BUT a hand-crafted (or shape-collapsing) census can lose
+    # a node with the shape SET unchanged: the count comparison is the
+    # belt that makes REMOVED count-level, not just name-level.
+    base = {"M21": {"Foo": {"count": 2, "shapes": ["a1"]}}}
+    cur = {"M21": {"Foo": {"count": 1, "shapes": ["a1"]}}}
+    v4 = oc.check_v4(cur, _v4_probe_baseline(tmp_path, base), False)
+    assert any("count" in e for e in v4["new_emissions"]), v4["new_emissions"]
+
+
+def test_v4_ir_card_deleted_fails(tmp_path):
+    # IR-level red-first (borrowed gate pattern): single CHOOSE node at
+    # pairs[0][1]; deleting it makes the card LEAVE the census entirely.
+    cards = {"M21": {"oid1": _x_card(_x_sel())}}
+    cen = oc.choose_census(cards)
+    assert cen["M21"]["Extinction Probe"]["count"] == 1
+    bl = _v4_probe_baseline(tmp_path, cen)
+    gone = {"M21": {}}  # card dropped from the pool (rename/drop)
+    v4 = oc.check_v4(oc.choose_census(gone), bl, False)
+    assert any("REMOVED" in e for e in v4["new_emissions"]), (
+        "card deleted from IR => V4′ must FAIL",
+        v4["new_emissions"],
+    )
+
+
+def test_v4_ir_last_node_deleted_fails(tmp_path):
+    # Same card, node extinct via mode swap CHOOSE->ALL: card leaves the
+    # census (choose_census omits zero-node cards) — the name-level hole.
+    cards = {"M21": {"oid1": _x_card(_x_sel())}}
+    cen = oc.choose_census(cards)
+    bl = _v4_probe_baseline(tmp_path, cen)
+    silent = {
+        "M21": {
+            "oid1": _x_card(dataclasses.replace(_x_sel(), mode=at.SelectorMode.ALL))
+        }
+    }
+    v4 = oc.check_v4(oc.choose_census(silent), bl, False)
+    assert any("REMOVED" in e for e in v4["new_emissions"]), (
+        "last CHOOSE node deleted => V4′ must FAIL",
+        v4["new_emissions"],
+    )
+
+
+def test_v4_ir_honest_recensus_passes(tmp_path):
+    cards = {"M21": {"oid1": _x_card(_x_sel())}}
+    cen = oc.choose_census(cards)
+    v4 = oc.check_v4(oc.choose_census(cards), _v4_probe_baseline(tmp_path, cen), False)
+    assert v4["new_emissions"] == [], v4["new_emissions"]
+
+
+def test_v4_shape_sig_moves_with_tag_field_and_selector():
+    sel = at.Selector(
+        at.QConst(1),
+        at.SelectorMode.CHOOSE,
+        at.FAnd(()),
+        zones=(at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU),),
+    )
+    sig = oc._choose_shape("Atom", "target", sel)
+    assert sig == oc._choose_shape("Atom", "target", sel)  # rebuild-stable
+    assert sig != oc._choose_shape("CostTap", "target", sel)  # TAG swap
+    assert sig != oc._choose_shape("Atom", "cards", sel)  # holder field swap
+    moved_zone = dataclasses.replace(
+        sel,
+        zones=(at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.YOU),),
+    )
+    assert sig != oc._choose_shape("Atom", "target", moved_zone)  # FILTER/zone
+    assert sig != oc._choose_shape(
+        "Atom", "target", dataclasses.replace(sel, count=at.QConst(2))
+    )  # count shape
+    # R3: index path keeps two byte-identical selectors in one field
+    # (pairs[2][1] vs pairs[5][1]) from collapsing into one signature.
+    assert sig != oc._choose_shape("Atom", "target", sel, (2,))
+    assert sig != oc._choose_shape("Atom", "target", sel, (5,))
+    assert oc._choose_shape("Atom", "target", sel, (2,)) != oc._choose_shape(
+        "Atom", "target", sel, (5,)
+    )
+
+
+# --------------------------------------------------------------------------
 # V5′ R1a content delta: authoritative over the truncated committed view
 # --------------------------------------------------------------------------
 def test_v5_r1a_content_delta_is_the_two_unwraps():
@@ -370,7 +539,10 @@ def test_corpus_has_no_phantoms_and_no_new_choose_emissions(compiled):
     assert v2["filter_single_child"] == []
     assert v2["choose_count_eq_len"] == []
     assert v2["choose_count_eq_len_whitelisted"] == []
-    v4 = oc.check_v4(oc.choose_census(cards), oc.V4_BASELINE, False)
+    v4 = oc.check_v4(
+        oc.choose_census(cards), oc.V4_BASELINE, False, sets=("M21",)
+    )  # fixture compiles M21 only (R1a scope); union-strictness is pinned by
+    # the extinction probes above and the full CLI run.
     assert v4["baseline_written"] is False
     assert v4["new_emissions"] == [], v4["new_emissions"]
 

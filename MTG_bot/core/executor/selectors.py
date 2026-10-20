@@ -364,12 +364,91 @@ def referent_absent(exc: BaseException) -> bool:
     return False
 
 
+# ── R3 (2026-10-20, owner BINDING spec 141 §6): the silent-CHOOSE lift ──────
+# The ledger (tools/audit/r3_lane_ledger.py + KNOWLEDGE/2026-10-20/143)
+# derived WHICH silent CHOOSE nodes the engine may ask TODAY: the count is a
+# plain QConst, the menu zone is public or controller-owned, and the chooser
+# is the card's controller.  Everything else — unbounded counts (owner
+# deferral), merged multi-seat menus (Bad Deal, Liliana, Waker of the Dead →
+# ZND-7(a)), opponent choosers and oracle-deferred direction-polysemies (Run
+# Afoul → ZND-9), positional and self-referential filters — keeps the frozen
+# silent slice until ZND-7(b)/ZND-9 land.  Deferrals are keyed by oracle_id,
+# mirroring GROUND_TRUTH_CHOOSER in the ledger: the ask lane names the
+# deferral explicitly instead of re-deriving a card identity the IR carries
+# only as an oracle id.
+R3_CHOOSE_DEFERRED_ORACLES: frozenset[str] = frozenset(
+    {
+        # M21 Run Afoul — scryfallOracleId (matches the ledger/pool key
+        # 5462cb38…, pinned by MTG_bot.core.test_ontology_r3). Its CHOOSE
+        # menu is public BATTLEFIELD:ANY, so every structural gate rule
+        # PASSES; only this table keeps it silent. The chooser is the
+        # TARGETED player and the direction axis is unencoded (ZND-9):
+        # without this entry the caster would be asked to pick the
+        # opponent's sacrifice. (R3 diff-gate follow-up: the original
+        # entry 4c784905-2ed4-4f22-8387-d1c462125276 matched no compiled
+        # card at all — an inert phantom the FIX-2 pins exposed.)
+        "5462cb38-7cd7-46e8-a273-35d0d1af45b4",  # M21 Run Afoul (ZND-9)
+    }
+)
+
+
+def _choose_lift_allowed(sel: Selector, ctx: ExecCtx) -> bool:
+    """The ledger's lift_verdict predicate, ported to live IR (R3 §6).
+
+    The three owner rules, one implementation with
+    ``tools.audit.r3_lane_ledger.lift_verdict`` (both pinned by
+    :mod:`MTG_bot.core.test_ontology_r3`): a referent or self-referential
+    selector never asks (frozen C30/r19b lanes); only a plain QConst count
+    lifts (QUnbounded stays folded, every other shape stays the silent
+    slice); every menu zone must be public or controller-owned — positional
+    filters keep their frozen lanes, a hidden-side (hand/library) zone
+    owned by anyone but YOU defers, a PLAYER zone defers (the chooser's
+    direction is not encoded — ZND-9), and a multi-zone menu with an ANY
+    controller is the merged ZND-7(a) shape which defers; and the chooser
+    must be the card's controller (``controller_of(source) == controller``,
+    the sacrifice lane's CR 701.14a reading of the same fact).
+    """
+    if sel.referent is not None:
+        return False
+    if not isinstance(sel.count, QConst):
+        return False
+    if _filter_is_self_referential(sel.filter):
+        return False
+    zones = list(sel.zones)
+    if not zones:
+        return False
+    for zone in zones:
+        if zone.position is not None:
+            return False  # top-N / ordered-peek: frozen lanes
+        if zone.kind is ZoneKind.PLAYER:
+            return False  # seat menu: direction unencoded (ZND-9)
+        if zone.kind in (ZoneKind.HAND, ZoneKind.LIBRARY) and (
+            zone.controller is not ControllerRef.YOU
+        ):
+            return False
+    if len(zones) > 1 and any(z.controller is ControllerRef.ANY for z in zones):
+        return False  # a merged multi-seat menu (ZND-7(a))
+    src = ctx.source
+    if src.namespace != "card" or src not in ctx.world.cards:
+        # A synthetic player-handle source (unit-world idiom): the ledger
+        # chooser rule has no card controller to anchor to — frozen slice.
+        return False
+    if ctx.world.controller_of(src) != ctx.controller:
+        return False  # the chooser must be the card's controller
+    card_state = ctx.world.cards.get(ctx.source)
+    identity = getattr(card_state, "identity", None)
+    if str(getattr(identity, "oracle_id", "") or "") in (R3_CHOOSE_DEFERRED_ORACLES):
+        return False
+    return True
+
+
 def resolve_selector(
     sel: Selector,
     ctx: ExecCtx,
     *,
     journal_partition: bool = False,
     ok: Callable[[Handle], bool] | None = None,
+    ask_choose: bool = False,
 ) -> list[Handle]:
     """A Selector IR -> concrete handles.
 
@@ -576,7 +655,33 @@ def resolve_selector(
         ordered = sorted(candidates)
         if isinstance(sel.count, QUnbounded):
             return ordered
-        return ordered[: resolve(sel.count, ctx)]  # C17: ceiling vs availability
+        k = resolve(sel.count, ctx)
+        if (
+            ask_choose
+            and ok is None
+            and 0 < k < len(ordered)
+            and _choose_lift_allowed(sel, ctx)
+        ):
+            # R3 (spec 141 §6): WHICH k of the menu is the controller's
+            # decision, not an accident of Handle order — the same
+            # sequential-shrinking lane the ONE_OF want>1 loop above is
+            # (frozen prefix, {i}of{k} middle segment only when k > 1,
+            # digest tail, vocabulary = the Handle-sorted remaining pool).
+            # The default-off kwarg keeps every quantity/legality/query
+            # caller byte-identical on the silent slice below.
+            picks: list[Handle] = []
+            pool = list(ordered)
+            for pick_no in range(k):
+                vocab = tuple(str(h) for h in sorted(pool))
+                mid = f"{pick_no + 1}of{k}:" if k > 1 else ""
+                answer = ctx.take_decision(
+                    vocab, f"choose:{ctx.source}:{mid}{site_digest(vocab)}"
+                )
+                pick = next(h for h in pool if str(h) == answer)
+                picks.append(pick)
+                pool.remove(pick)
+            return picks
+        return ordered[:k]  # C17: ceiling vs availability
     if sel.mode is SelectorMode.RANDOM:
         # F2(3) honest note (re-gate, /125): for the CAST lane the pool
         # here is the CLAMPED population, so the draw is uniform over the
@@ -967,7 +1072,11 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
                 return cast_designee_ok(executor, ctx, handle, cost_override)
 
             return sorted(resolve_selector(value, ctx, ok=ok))
-        return sorted(resolve_selector(value, ctx))
+        # R3 (spec 141 §6): this is the EFFECT-role choke point — a finite
+        # CHOOSE resolved here is a real controller decision and the fold
+        # asks through the 14b channel (gate + default-off kwarg keep every
+        # other caller on the frozen silent slice).
+        return sorted(resolve_selector(value, ctx, ask_choose=True))
     if bound is not None:
         return bound
     raise ValueError(f"executor: {atom.verb.name} role {role!r} has no binding")

@@ -1022,11 +1022,15 @@ class CrashLedgerTest(unittest.TestCase):
                 steps=(
                     _atom(
                         Verb.TAP,
-                        target=Selector(QConst(1), SelectorMode.ONE_OF, UNIV, zones=(bf,)),
+                        target=Selector(
+                            QConst(1), SelectorMode.ONE_OF, UNIV, zones=(bf,)
+                        ),
                     ),
                     _atom(
                         Verb.UNTAP,
-                        target=Selector(QConst(1), SelectorMode.REST, UNIV, zones=(bf,)),
+                        target=Selector(
+                            QConst(1), SelectorMode.REST, UNIV, zones=(bf,)
+                        ),
                     ),
                 )
             ),
@@ -1933,7 +1937,9 @@ class Round14fSurfaceTest(unittest.TestCase):
                     QConst(1),
                     SelectorMode.CHOOSE,
                     FAnd(()),
-                    zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),),
+                    zones=(
+                        Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),
+                    ),
                 ),
                 destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
             ),
@@ -1959,7 +1965,9 @@ class Round14fSurfaceTest(unittest.TestCase):
                     QConst(1),
                     SelectorMode.CHOOSE,
                     FAnd(()),
-                    zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),),
+                    zones=(
+                        Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),
+                    ),
                 ),
                 destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
             ),
@@ -2323,9 +2331,13 @@ class StallRuleTest(unittest.TestCase):
         # (phantom gate) instead of billing the policy RNG one draw each,
         # so the seeded trajectory shifts — still decisive, same loser,
         # 50 turns.
+        # RE-ANCHORED 2026-10-20 R3 (/141 §6): the lifted effect-lane CHOOSE
+        # asks consume policy RNG draws on the new sites, so the seeded
+        # trajectory shifts again — still decisive, SAME loser, 30 turns
+        # (double-run replay verified).
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 50)
+        self.assertEqual(game.turns, 30)
         self.assertEqual(game.reason, "game over: player:0(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:

@@ -286,6 +286,19 @@ class PaymentPlan:
     # does not. Hand-built plans (tests) carry the default () and pay
     # exactly as before.
     sacrifice_options: tuple[tuple[tuple[Handle, ...], int], ...] = ()
+    # R3 (2026-10-20, owner BINDING spec /141 §6): the same r22a re-open
+    # rides the two cost lanes the R3 lift gates cover — CostTap ("tap an
+    # untapped creature you control") and CostDiscard ("discard a card").
+    # Recorded ONLY when the ledger's lift verdict for EVERY target-branch
+    # segment of that cost is LIFT-NOW (:func:`selectors._choose_lift_
+    # allowed`, applied at PLAN time — all-or-nothing per cost, so a cost
+    # mixing a liftable and a deferred segment keeps the frozen witness
+    # path wholesale). Deferred shapes — merged HAND:ANY menus (ZND-7(a)),
+    # opponent-owned hidden zones, non-QConst counts, oracle-deferred
+    # cards — carry the default () and pay exactly as before. Hand-built
+    # plans carry the default () too (the frozen path).
+    tap_options: tuple[tuple[tuple[Handle, ...], int], ...] = ()
+    discard_options: tuple[tuple[tuple[Handle, ...], int], ...] = ()
 
     def is_empty(self) -> bool:
         """True for a free activation (empty Cost parts — legal MTG)."""
@@ -583,6 +596,12 @@ def build_payment_plan(
     tap: list[Handle] = []
     sacrifice: list[Handle] = []
     sacrifice_options: list[tuple[tuple[Handle, ...], int]] = []
+    tap_options: list[tuple[tuple[Handle, ...], int]] = []
+    discard_options: list[tuple[tuple[Handle, ...], int]] = []
+    # R3 all-or-nothing law (see PaymentPlan.tap_options): one deferred
+    # target-branch segment defers the WHOLE cost's re-open.
+    tap_options_allowed = True
+    discard_options_allowed = True
     discard: list[Handle] = []
     counters: list[tuple[Handle, str, int]] = []
     life = 0
@@ -760,16 +779,33 @@ def build_payment_plan(
                     return None, "cost:tap:source_tapped"
                 tap.append(ctx.source)
             else:
+                # R3 (mirroring the sacrifice lane's CR 701.14a clause and
+                # CR 701.20's tap rule): a tap cost acts on permanents YOU
+                # control. The raw ANY-zone enumeration carries the
+                # opponent's permanents — the frozen cands[:need] never
+                # exposed the hole (your lowest handle always won). The
+                # clause is a property of the tap verb, not of the card, so
+                # it is enforced HERE, lane-agnostic, before the pool is
+                # recorded.
                 cands = [
                     h
                     for h in enumerate_candidates(part.target, ctx)
                     if not world.cards[h].tapped
+                    and world.controller_of(h) == ctx.controller
                 ]
                 need = _required_count(part.target.count, ctx)
                 if len(cands) < need:
                     return None, (
                         f"cost:tap:insufficient_candidates:{len(cands)}<{need}"
                     )
+                from MTG_bot.core.executor.selectors import (
+                    _choose_lift_allowed,
+                )
+
+                if not _choose_lift_allowed(part.target, ctx):
+                    tap_options_allowed = False
+                else:
+                    tap_options.append((tuple(sorted(cands)), need))
                 tap.extend(cands[:need])
         elif isinstance(part, CostSacrifice):
             # r22a (CR 701.14a): a sacrifice acts on a permanent YOU
@@ -827,6 +863,12 @@ def build_payment_plan(
                 return None, (
                     f"cost:discard:insufficient_candidates:{len(cands)}<{need}"
                 )
+            from MTG_bot.core.executor.selectors import _choose_lift_allowed
+
+            if not _choose_lift_allowed(part.target, ctx):
+                discard_options_allowed = False
+            else:
+                discard_options.append((tuple(sorted(cands)), need))
             discard.extend(cands[:need])
         elif isinstance(part, CostPutCounter):
             cands = enumerate_candidates(part.target, ctx)
@@ -926,6 +968,12 @@ def build_payment_plan(
         loyalty=loyalty,
         life=life,
         sacrifice_options=tuple(sacrifice_options),
+        tap_options=(tuple(tap_options) if tap_options and tap_options_allowed else ()),
+        discard_options=(
+            tuple(discard_options)
+            if discard_options and discard_options_allowed
+            else ()
+        ),
     )
     return plan, None
 
@@ -1398,11 +1446,35 @@ def pay_costs(
                 controller, plan.mana, _mana_use_ok(executor, ctx, mana_use)
             )
     if plan.tap:
+        # R3 (spec /141 §6): the r22a re-open rides the lifted tap segment
+        # — WHICH permanent taps is the payer's decision when the recorded
+        # pool really offers one (len(pool) > need). A forced segment
+        # (§1.4 auto-fill) and every plan without recorded options pay the
+        # frozen witness pick byte-identically.
+        tapped = plan.tap
+        if plan.tap_options:
+            ctx = ctx_for(executor, source=source, controller=controller)
+            chosen_t: list[Handle] = []
+            for pool, need in plan.tap_options:
+                remaining_t = [h for h in pool if h not in chosen_t]
+                if len(remaining_t) <= need:
+                    chosen_t.extend(remaining_t[:need])
+                    continue
+                for _pick in range(need):
+                    vocab = tuple(str(h) for h in sorted(remaining_t))
+                    answer = ctx.take_decision(
+                        vocab,
+                        f"tap:{controller}:{source}:{site_digest(vocab)}",
+                    )
+                    pick = next(h for h in remaining_t if str(h) == answer)
+                    chosen_t.append(pick)
+                    remaining_t.remove(pick)
+            tapped = tuple(sorted(chosen_t))
         executor.apply_effect(
-            _binding_atom(Verb.TAP, "target", plan.tap),
+            _binding_atom(Verb.TAP, "target", tapped),
             source=source,
             controller=controller,
-            bindings={"target": list(plan.tap)},
+            bindings={"target": list(tapped)},
         )
     if plan.sacrifice:
         # r22a (the sacrifice-cost vocabulary law): WHO dies is the
@@ -1444,19 +1516,41 @@ def pay_costs(
             bindings={"target": list(victims)},
         )
     if plan.discard:
+        # R3 (spec /141 §6): the discard-cost pool re-opens through the
+        # same lane as the r22a sacrifice below — WHICH cards burn is the
+        # payer's decision, not an accident of Handle order.
+        burned = plan.discard
+        if plan.discard_options:
+            ctx = ctx_for(executor, source=source, controller=controller)
+            chosen_d: list[Handle] = []
+            for pool, need in plan.discard_options:
+                remaining_d = [h for h in pool if h not in chosen_d]
+                if len(remaining_d) <= need:
+                    chosen_d.extend(remaining_d[:need])
+                    continue
+                for _pick in range(need):
+                    vocab = tuple(str(h) for h in sorted(remaining_d))
+                    answer = ctx.take_decision(
+                        vocab,
+                        f"discard:{controller}:{source}:{site_digest(vocab)}",
+                    )
+                    pick = next(h for h in remaining_d if str(h) == answer)
+                    chosen_d.append(pick)
+                    remaining_d.remove(pick)
+            burned = tuple(sorted(chosen_d))
         executor.apply_effect(
             # T4 P1a: cost-DISCARD merged into MOVE_ZONE (HAND -> GY).
             _binding_atom(
                 Verb.MOVE_ZONE,
                 "cards",
-                plan.discard,
+                burned,
                 controller=ControllerRef.YOU,
                 destination=Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
                 **{"from": Zone(ZoneKind.HAND, ControllerRef.YOU)},
             ),
             source=source,
             controller=controller,
-            bindings={"cards": list(plan.discard)},
+            bindings={"cards": list(burned)},
         )
     for handle, kind_name, count in plan.counters:
         executor.apply_effect(

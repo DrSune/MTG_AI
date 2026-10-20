@@ -254,7 +254,9 @@ class LifeReplacementTest(BindingCase):
         rec = record_of(
             [
                 ReplacementAbility(
-                    event=LifeGainedEvent(actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),
+                    event=LifeGainedEvent(
+                        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+                    ),
                     condition=condition,
                     action=_gain(gain),
                 )
@@ -341,19 +343,25 @@ class SearchPartitionTest(unittest.TestCase):
             (
                 atom(
                     Verb.SEARCH,
-                    cards=Selector(QConst(2), SelectorMode.CHOOSE, LAND, zones=(LIB_YOU,)),
+                    cards=Selector(
+                        QConst(2), SelectorMode.CHOOSE, LAND, zones=(LIB_YOU,)
+                    ),
                     destination=BF_YOU,
                     tapped_on_enter=True,
                 ),
                 atom(
                     Verb.MOVE_ZONE,
-                    cards=Selector(QConst(1), SelectorMode.ONE_OF, LAND, zones=(LIB_YOU,)),
+                    cards=Selector(
+                        QConst(1), SelectorMode.ONE_OF, LAND, zones=(LIB_YOU,)
+                    ),
                     destination=BF_YOU,
                     tapped_on_enter=True,
                 ),
                 atom(
                     Verb.MOVE_ZONE,
-                    cards=Selector(QConst(1), SelectorMode.REST, LAND, zones=(LIB_YOU,)),
+                    cards=Selector(
+                        QConst(1), SelectorMode.REST, LAND, zones=(LIB_YOU,)
+                    ),
                     destination=Zone(ZoneKind.HAND, ControllerRef.YOU),
                 ),
                 atom(Verb.SHUFFLE, zone=LIB_YOU),
@@ -377,6 +385,9 @@ class SearchPartitionTest(unittest.TestCase):
     def test_lone_search_still_delivers(self):
         # Solemn Simulacrum shape (no partition siblings): unchanged — the
         # found land lands on the battlefield tapped.
+        # R3 (/141 §6, 2026-10-20): the 1-of-N land search is a decision
+        # now — script the pick the old silent first-n stand-in made.
+        self.ex.decisions.provider = lambda vocab, what: str(self.fo)
         self.ex.apply_effect(
             atom(
                 Verb.SEARCH,

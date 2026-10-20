@@ -270,7 +270,9 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
             return
         pool = [
             h
-            for h in resolve_selector(sel, ctx, journal_partition=partition)
+            for h in resolve_selector(
+                sel, ctx, journal_partition=partition, ask_choose=True
+            )
             if h.namespace == "card"
         ]
         cards = pool if partition else (pool[:n] if n else pool)
@@ -1216,6 +1218,7 @@ def _search_designation(atom: Atom, ctx: ExecCtx) -> list[Handle]:
             sel,
             ctx,
             journal_partition=sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST),
+            ask_choose=True,  # R3: a CHOOSE search designation is a decision
         )
         if h.namespace == "card"
     ]

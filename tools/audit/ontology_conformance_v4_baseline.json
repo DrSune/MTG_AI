@@ -1,152 +1,929 @@
 {
   "M21": {
-    "Adherent of Hope": 1,
-    "Alchemist's Gift": 2,
-    "Alpine Houndmaster": 2,
-    "Angelic Ascension": 1,
-    "Archfiend's Vessel": 1,
-    "Bad Deal": 1,
-    "Basri Ket": 2,
-    "Basri's Aegis": 1,
-    "Basri, Devoted Paladin": 3,
-    "Burlfist Oak": 1,
-    "Canopy Stalker": 1,
-    "Carrion Grub": 1,
-    "Chandra's Firemaw": 1,
-    "Chandra's Incinerator": 1,
-    "Chandra's Pyreling": 2,
-    "Chandra, Flame's Catalyst": 2,
-    "Chandra, Heart of Fire": 4,
-    "Conclave Mentor": 1,
-    "Conspicuous Snoop": 2,
-    "Containment Priest": 1,
-    "Cultivate": 1,
-    "Demonic Embrace": 2,
-    "Dire Fleet Warmonger": 3,
-    "Double Vision": 1,
-    "Drowsing Tyrannodon": 1,
-    "Duress": 1,
-    "Fabled Passage": 2,
-    "Feat of Resistance": 5,
-    "Feline Sovereign": 1,
-    "Fiery Emancipation": 1,
-    "Furious Rise": 1,
-    "Gadrak, the Crown-Scourge": 1,
-    "Garruk's Warsteed": 1,
-    "Garruk, Savage Herald": 2,
-    "Garruk, Unleashed": 1,
-    "Ghostly Pilferer": 1,
-    "Gloom Sower": 1,
-    "Gnarled Sage": 2,
-    "Goremand": 2,
-    "Heartfire Immolator": 1,
-    "Hobblefiend": 1,
-    "Hooded Blightfang": 1,
-    "Invigorating Surge": 1,
-    "Keral Keep Disciples": 1,
-    "Kinetic Augur": 2,
-    "Kitesail Freebooter": 1,
-    "Light of Promise": 1,
-    "Liliana's Scorn": 1,
-    "Liliana's Steward": 2,
-    "Liliana, Death Mage": 1,
-    "Liliana, Waker of the Dead": 2,
-    "Liliana, Waker of the Dead Emblem": 1,
-    "Lofty Denial": 1,
-    "Lorescale Coatl": 1,
-    "Makeshift Battalion": 1,
-    "Malefic Scythe": 2,
-    "Mazemind Tome": 3,
-    "Mind Rot": 1,
-    "Mystic Skyfish": 1,
-    "Necromentia": 2,
-    "Niambi, Esteemed Speaker": 1,
-    "Nine Lives": 2,
-    "Obsessive Stitcher": 1,
-    "Ornery Dilophosaur": 1,
-    "Portcullis Vine": 1,
-    "Predatory Wurm": 1,
-    "Quirion Dryad": 1,
-    "Radha, Heart of Keld": 2,
-    "Rewind": 1,
-    "Riddleform": 3,
-    "Run Afoul": 1,
-    "Runed Halo": 1,
-    "Sabertooth Mauler": 2,
-    "Sanctum of Shattered Heights": 1,
-    "Scavenging Ooze": 1,
-    "Scorching Dragonfire": 1,
-    "Seasoned Hallowblade": 3,
-    "Secure the Scene": 1,
-    "See the Truth": 1,
-    "Selfless Savior": 1,
-    "Shacklegeist": 1,
-    "Short Sword": 1,
-    "Siege Striker": 2,
-    "Sigiled Contender": 1,
-    "Silent Dart": 1,
-    "Silversmote Ghoul": 2,
-    "Snarespinner": 1,
-    "Soul Sear": 1,
-    "Sparkhunter Masticore": 1,
-    "Spellgorger Weird": 1,
-    "Teferi's Wavecaster": 1,
-    "Thieves' Guild Enforcer": 2,
-    "Thrashing Brontodon": 1,
-    "Thrill of Possibility": 1,
-    "Tormod's Crypt": 1,
-    "Traitorous Greed": 2,
-    "Treasure": 1,
-    "Trufflesnout": 1,
-    "Ugin, the Spirit Dragon": 1,
-    "Village Rites": 1,
-    "Waker of Waves": 1,
-    "Watcher of the Spheres": 1,
-    "Wildwood Scourge": 2,
-    "Witch's Cauldron": 1
+    "Adherent of Hope": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Alchemist's Gift": {
+      "count": 2,
+      "shapes": [
+        "ae90a8e1ae308fea",
+        "ae90a8e1ae308fea"
+      ]
+    },
+    "Alpine Houndmaster": {
+      "count": 2,
+      "shapes": [
+        "3739603da5da272e",
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Angelic Ascension": {
+      "count": 1,
+      "shapes": [
+        "779c65e6cf28ffeb"
+      ]
+    },
+    "Archfiend's Vessel": {
+      "count": 1,
+      "shapes": [
+        "6bbd7b676f7b6b6a"
+      ]
+    },
+    "Bad Deal": {
+      "count": 1,
+      "shapes": [
+        "27b36076caf9651c"
+      ]
+    },
+    "Basri Ket": {
+      "count": 2,
+      "shapes": [
+        "9583947c6a67fa87",
+        "dcc0215a6d64c41f"
+      ]
+    },
+    "Basri's Aegis": {
+      "count": 1,
+      "shapes": [
+        "cb0e646738d69348"
+      ]
+    },
+    "Basri, Devoted Paladin": {
+      "count": 3,
+      "shapes": [
+        "091505202ca5e2fb",
+        "9583947c6a67fa87",
+        "dcc0215a6d64c41f"
+      ]
+    },
+    "Burlfist Oak": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Canopy Stalker": {
+      "count": 1,
+      "shapes": [
+        "7c858c4d428b66aa"
+      ]
+    },
+    "Carrion Grub": {
+      "count": 1,
+      "shapes": [
+        "6bbd7b676f7b6b6a"
+      ]
+    },
+    "Chandra's Firemaw": {
+      "count": 1,
+      "shapes": [
+        "cb0e646738d69348"
+      ]
+    },
+    "Chandra's Incinerator": {
+      "count": 1,
+      "shapes": [
+        "96fb45fb7efa5276"
+      ]
+    },
+    "Chandra's Pyreling": {
+      "count": 2,
+      "shapes": [
+        "8ee9c29664ca15fe",
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Chandra, Flame's Catalyst": {
+      "count": 2,
+      "shapes": [
+        "657c7dd3c682af4c",
+        "96b08300627e201f"
+      ]
+    },
+    "Chandra, Heart of Fire": {
+      "count": 4,
+      "shapes": [
+        "234c6544387f2934",
+        "3d8c166eb60bd205",
+        "ce907aa28600f7bf",
+        "ce907aa28600f7bf"
+      ]
+    },
+    "Conclave Mentor": {
+      "count": 1,
+      "shapes": [
+        "091505202ca5e2fb"
+      ]
+    },
+    "Conspicuous Snoop": {
+      "count": 2,
+      "shapes": [
+        "6bbbf75453d0ce97",
+        "6bbd7b676f7b6b6a"
+      ]
+    },
+    "Containment Priest": {
+      "count": 1,
+      "shapes": [
+        "657c7dd3c682af4c"
+      ]
+    },
+    "Cultivate": {
+      "count": 1,
+      "shapes": [
+        "dd35b2b11b8b3fcf"
+      ]
+    },
+    "Demonic Embrace": {
+      "count": 2,
+      "shapes": [
+        "36ae55ee2245272c",
+        "f13afd89792df0fa"
+      ]
+    },
+    "Dire Fleet Warmonger": {
+      "count": 3,
+      "shapes": [
+        "8ee9c29664ca15fe",
+        "8ee9c29664ca15fe",
+        "e2f5be1b9ffeb57a"
+      ]
+    },
+    "Double Vision": {
+      "count": 1,
+      "shapes": [
+        "e06e26adbf9be6f1"
+      ]
+    },
+    "Drowsing Tyrannodon": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Duress": {
+      "count": 1,
+      "shapes": [
+        "8b10a755c5de2665"
+      ]
+    },
+    "Fabled Passage": {
+      "count": 2,
+      "shapes": [
+        "5c3bfb7400fbcd54",
+        "74932d3542582dd2"
+      ]
+    },
+    "Feat of Resistance": {
+      "count": 5,
+      "shapes": [
+        "9583947c6a67fa87",
+        "9583947c6a67fa87",
+        "9583947c6a67fa87",
+        "9583947c6a67fa87",
+        "9583947c6a67fa87"
+      ]
+    },
+    "Feline Sovereign": {
+      "count": 1,
+      "shapes": [
+        "96fb45fb7efa5276"
+      ]
+    },
+    "Fiery Emancipation": {
+      "count": 1,
+      "shapes": [
+        "091505202ca5e2fb"
+      ]
+    },
+    "Furious Rise": {
+      "count": 1,
+      "shapes": [
+        "b23ed7f3958d13e0"
+      ]
+    },
+    "Gadrak, the Crown-Scourge": {
+      "count": 1,
+      "shapes": [
+        "d46ac34acd74b4f3"
+      ]
+    },
+    "Garruk's Warsteed": {
+      "count": 1,
+      "shapes": [
+        "cb0e646738d69348"
+      ]
+    },
+    "Garruk, Savage Herald": {
+      "count": 2,
+      "shapes": [
+        "8b10a755c5de2665",
+        "8b10a755c5de2665"
+      ]
+    },
+    "Garruk, Unleashed": {
+      "count": 1,
+      "shapes": [
+        "dcc0215a6d64c41f"
+      ]
+    },
+    "Ghostly Pilferer": {
+      "count": 1,
+      "shapes": [
+        "36ae55ee2245272c"
+      ]
+    },
+    "Gloom Sower": {
+      "count": 1,
+      "shapes": [
+        "657c7dd3c682af4c"
+      ]
+    },
+    "Gnarled Sage": {
+      "count": 2,
+      "shapes": [
+        "6bbd7b676f7b6b6a",
+        "6bbd7b676f7b6b6a"
+      ]
+    },
+    "Goremand": {
+      "count": 2,
+      "shapes": [
+        "54285024f53f3532",
+        "931b9581b4ca8840"
+      ]
+    },
+    "Heartfire Immolator": {
+      "count": 1,
+      "shapes": [
+        "74932d3542582dd2"
+      ]
+    },
+    "Hobblefiend": {
+      "count": 1,
+      "shapes": [
+        "dcc0215a6d64c41f"
+      ]
+    },
+    "Hooded Blightfang": {
+      "count": 1,
+      "shapes": [
+        "e06e26adbf9be6f1"
+      ]
+    },
+    "Invigorating Surge": {
+      "count": 1,
+      "shapes": [
+        "0c124ef3899f0d5b"
+      ]
+    },
+    "Keral Keep Disciples": {
+      "count": 1,
+      "shapes": [
+        "026d0c821a5405ec"
+      ]
+    },
+    "Kinetic Augur": {
+      "count": 2,
+      "shapes": [
+        "6bbd7b676f7b6b6a",
+        "f9f395a30d4dfad8"
+      ]
+    },
+    "Kitesail Freebooter": {
+      "count": 1,
+      "shapes": [
+        "bd7bec080d327629"
+      ]
+    },
+    "Light of Promise": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Liliana's Scorn": {
+      "count": 1,
+      "shapes": [
+        "cb0e646738d69348"
+      ]
+    },
+    "Liliana's Steward": {
+      "count": 2,
+      "shapes": [
+        "74932d3542582dd2",
+        "a481a00ff9860ff9"
+      ]
+    },
+    "Liliana, Death Mage": {
+      "count": 1,
+      "shapes": [
+        "f5fa64319a013a0d"
+      ]
+    },
+    "Liliana, Waker of the Dead": {
+      "count": 2,
+      "shapes": [
+        "649e835ca40642b6",
+        "bd7bec080d327629"
+      ]
+    },
+    "Liliana, Waker of the Dead Emblem": {
+      "count": 1,
+      "shapes": [
+        "bd7bec080d327629"
+      ]
+    },
+    "Lofty Denial": {
+      "count": 1,
+      "shapes": [
+        "94a32b95e37cb876"
+      ]
+    },
+    "Lorescale Coatl": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Makeshift Battalion": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Malefic Scythe": {
+      "count": 2,
+      "shapes": [
+        "7c858c4d428b66aa",
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Mazemind Tome": {
+      "count": 3,
+      "shapes": [
+        "05bf75a7571439ac",
+        "05bf75a7571439ac",
+        "6bbd7b676f7b6b6a"
+      ]
+    },
+    "Mind Rot": {
+      "count": 1,
+      "shapes": [
+        "2361fa56cc48da4a"
+      ]
+    },
+    "Mystic Skyfish": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Necromentia": {
+      "count": 2,
+      "shapes": [
+        "4321830aa1495d0e",
+        "bd7bec080d327629"
+      ]
+    },
+    "Niambi, Esteemed Speaker": {
+      "count": 1,
+      "shapes": [
+        "5a6ba81d90cc7556"
+      ]
+    },
+    "Nine Lives": {
+      "count": 2,
+      "shapes": [
+        "6bbd7b676f7b6b6a",
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Obsessive Stitcher": {
+      "count": 1,
+      "shapes": [
+        "74932d3542582dd2"
+      ]
+    },
+    "Ornery Dilophosaur": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Portcullis Vine": {
+      "count": 1,
+      "shapes": [
+        "70b96fddc65fa695"
+      ]
+    },
+    "Predatory Wurm": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Quirion Dryad": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Radha, Heart of Keld": {
+      "count": 2,
+      "shapes": [
+        "6bbd7b676f7b6b6a",
+        "b2521879a523aaa4"
+      ]
+    },
+    "Rewind": {
+      "count": 1,
+      "shapes": [
+        "b3e94884c7bce78a"
+      ]
+    },
+    "Riddleform": {
+      "count": 3,
+      "shapes": [
+        "6bbd7b676f7b6b6a",
+        "8ee9c29664ca15fe",
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Run Afoul": {
+      "count": 1,
+      "shapes": [
+        "fbd6283ea1971769"
+      ]
+    },
+    "Runed Halo": {
+      "count": 1,
+      "shapes": [
+        "026d0c821a5405ec"
+      ]
+    },
+    "Sabertooth Mauler": {
+      "count": 2,
+      "shapes": [
+        "7c858c4d428b66aa",
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Sanctum of Shattered Heights": {
+      "count": 1,
+      "shapes": [
+        "621a46bd6e5d46b4"
+      ]
+    },
+    "Scavenging Ooze": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Scorching Dragonfire": {
+      "count": 1,
+      "shapes": [
+        "657c7dd3c682af4c"
+      ]
+    },
+    "Seasoned Hallowblade": {
+      "count": 3,
+      "shapes": [
+        "36ae55ee2245272c",
+        "7c858c4d428b66aa",
+        "9583947c6a67fa87"
+      ]
+    },
+    "Secure the Scene": {
+      "count": 1,
+      "shapes": [
+        "779c65e6cf28ffeb"
+      ]
+    },
+    "See the Truth": {
+      "count": 1,
+      "shapes": [
+        "8b10a755c5de2665"
+      ]
+    },
+    "Selfless Savior": {
+      "count": 1,
+      "shapes": [
+        "d46ac34acd74b4f3"
+      ]
+    },
+    "Shacklegeist": {
+      "count": 1,
+      "shapes": [
+        "b1bac6d3f27575e4"
+      ]
+    },
+    "Short Sword": {
+      "count": 1,
+      "shapes": [
+        "7c858c4d428b66aa"
+      ]
+    },
+    "Siege Striker": {
+      "count": 2,
+      "shapes": [
+        "2ca89c0540d67d8e",
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Sigiled Contender": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Silent Dart": {
+      "count": 1,
+      "shapes": [
+        "74932d3542582dd2"
+      ]
+    },
+    "Silversmote Ghoul": {
+      "count": 2,
+      "shapes": [
+        "74932d3542582dd2",
+        "f13afd89792df0fa"
+      ]
+    },
+    "Snarespinner": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Soul Sear": {
+      "count": 1,
+      "shapes": [
+        "ae90a8e1ae308fea"
+      ]
+    },
+    "Sparkhunter Masticore": {
+      "count": 1,
+      "shapes": [
+        "36ae55ee2245272c"
+      ]
+    },
+    "Spellgorger Weird": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Teferi's Wavecaster": {
+      "count": 1,
+      "shapes": [
+        "cb0e646738d69348"
+      ]
+    },
+    "Thieves' Guild Enforcer": {
+      "count": 2,
+      "shapes": [
+        "6bbd7b676f7b6b6a",
+        "6bbd7b676f7b6b6a"
+      ]
+    },
+    "Thrashing Brontodon": {
+      "count": 1,
+      "shapes": [
+        "74932d3542582dd2"
+      ]
+    },
+    "Thrill of Possibility": {
+      "count": 1,
+      "shapes": [
+        "36ae55ee2245272c"
+      ]
+    },
+    "Tormod's Crypt": {
+      "count": 1,
+      "shapes": [
+        "74932d3542582dd2"
+      ]
+    },
+    "Traitorous Greed": {
+      "count": 2,
+      "shapes": [
+        "9583947c6a67fa87",
+        "a98f20d7dd8d5f17"
+      ]
+    },
+    "Treasure": {
+      "count": 1,
+      "shapes": [
+        "74932d3542582dd2"
+      ]
+    },
+    "Trufflesnout": {
+      "count": 1,
+      "shapes": [
+        "dcc0215a6d64c41f"
+      ]
+    },
+    "Ugin, the Spirit Dragon": {
+      "count": 1,
+      "shapes": [
+        "c725f4fad1518549"
+      ]
+    },
+    "Village Rites": {
+      "count": 1,
+      "shapes": [
+        "931b9581b4ca8840"
+      ]
+    },
+    "Waker of Waves": {
+      "count": 1,
+      "shapes": [
+        "a8c1a1d056472349"
+      ]
+    },
+    "Watcher of the Spheres": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Wildwood Scourge": {
+      "count": 2,
+      "shapes": [
+        "091505202ca5e2fb",
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Witch's Cauldron": {
+      "count": 1,
+      "shapes": [
+        "931b9581b4ca8840"
+      ]
+    }
   },
   "ZNR": {
-    "Acquisitions Expert": 1,
-    "Akoum Hellhound": 1,
-    "Brushfire Elemental": 1,
-    "Bubble Snare": 1,
-    "Canopy Baloth": 1,
-    "Cliffhaven Kitesail": 2,
-    "Dreadwurm": 1,
-    "Emeria Captain": 1,
-    "Expedition Champion": 1,
-    "Expedition Healer": 1,
-    "Expedition Skulker": 1,
-    "Fearless Fledgling": 1,
-    "Grotag Bug-Catcher": 1,
-    "Kazandu Mammoth // Kazandu Valley": 1,
-    "Kazuul's Fury // Kazuul's Cliffs": 1,
-    "Maul of the Skyclaves": 1,
-    "Might of Murasa": 1,
-    "Mind Carver": 1,
-    "Nissa of Shadowed Boughs": 1,
-    "Pelakka Predation // Pelakka Caverns": 1,
-    "Practiced Tactics": 1,
-    "Prowling Felidar": 1,
-    "Ravager's Mace": 1,
-    "Relic Amulet": 1,
-    "Relic Axe": 2,
-    "Scavenged Blade": 2,
-    "Scion of the Swarm": 1,
-    "Scorch Rider": 1,
-    "Shell Shield": 1,
-    "Skyclave Geopede": 1,
-    "Skyclave Pick-Axe": 2,
-    "Song-Mad Treachery // Song-Mad Ruins": 2,
-    "Stonework Packbeast": 1,
-    "Strength of Solidarity": 1,
-    "Tajuru Paragon": 1,
-    "Territorial Scythecat": 1,
-    "Tormenting Voice": 1,
-    "Umara Mystic": 1,
-    "Umara Wizard // Umara Skyfalls": 1,
-    "Utility Knife": 2,
-    "Veteran Adventurer": 1,
-    "Vine Gecko": 1
+    "Acquisitions Expert": {
+      "count": 1,
+      "shapes": [
+        "8b10a755c5de2665"
+      ]
+    },
+    "Akoum Hellhound": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Brushfire Elemental": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Bubble Snare": {
+      "count": 1,
+      "shapes": [
+        "a98f20d7dd8d5f17"
+      ]
+    },
+    "Canopy Baloth": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Cliffhaven Kitesail": {
+      "count": 2,
+      "shapes": [
+        "7c858c4d428b66aa",
+        "7c858c4d428b66aa"
+      ]
+    },
+    "Dreadwurm": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Emeria Captain": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Expedition Champion": {
+      "count": 1,
+      "shapes": [
+        "6bbd7b676f7b6b6a"
+      ]
+    },
+    "Expedition Healer": {
+      "count": 1,
+      "shapes": [
+        "6bbd7b676f7b6b6a"
+      ]
+    },
+    "Expedition Skulker": {
+      "count": 1,
+      "shapes": [
+        "6bbd7b676f7b6b6a"
+      ]
+    },
+    "Fearless Fledgling": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Grotag Bug-Catcher": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Kazandu Mammoth // Kazandu Valley": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Kazuul's Fury // Kazuul's Cliffs": {
+      "count": 1,
+      "shapes": [
+        "931b9581b4ca8840"
+      ]
+    },
+    "Maul of the Skyclaves": {
+      "count": 1,
+      "shapes": [
+        "7c858c4d428b66aa"
+      ]
+    },
+    "Might of Murasa": {
+      "count": 1,
+      "shapes": [
+        "0c124ef3899f0d5b"
+      ]
+    },
+    "Mind Carver": {
+      "count": 1,
+      "shapes": [
+        "7c858c4d428b66aa"
+      ]
+    },
+    "Nissa of Shadowed Boughs": {
+      "count": 1,
+      "shapes": [
+        "80742d90fcd46f4b"
+      ]
+    },
+    "Pelakka Predation // Pelakka Caverns": {
+      "count": 1,
+      "shapes": [
+        "8b10a755c5de2665"
+      ]
+    },
+    "Practiced Tactics": {
+      "count": 1,
+      "shapes": [
+        "3d69b248c70b0ab5"
+      ]
+    },
+    "Prowling Felidar": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Ravager's Mace": {
+      "count": 1,
+      "shapes": [
+        "7c858c4d428b66aa"
+      ]
+    },
+    "Relic Amulet": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Relic Axe": {
+      "count": 2,
+      "shapes": [
+        "7c858c4d428b66aa",
+        "7c858c4d428b66aa"
+      ]
+    },
+    "Scavenged Blade": {
+      "count": 2,
+      "shapes": [
+        "7c858c4d428b66aa",
+        "7c858c4d428b66aa"
+      ]
+    },
+    "Scion of the Swarm": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Scorch Rider": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Shell Shield": {
+      "count": 1,
+      "shapes": [
+        "0c124ef3899f0d5b"
+      ]
+    },
+    "Skyclave Geopede": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Skyclave Pick-Axe": {
+      "count": 2,
+      "shapes": [
+        "7c858c4d428b66aa",
+        "7c858c4d428b66aa"
+      ]
+    },
+    "Song-Mad Treachery // Song-Mad Ruins": {
+      "count": 2,
+      "shapes": [
+        "9583947c6a67fa87",
+        "a98f20d7dd8d5f17"
+      ]
+    },
+    "Stonework Packbeast": {
+      "count": 1,
+      "shapes": [
+        "f47bd4bc4a80d3f0"
+      ]
+    },
+    "Strength of Solidarity": {
+      "count": 1,
+      "shapes": [
+        "0c124ef3899f0d5b"
+      ]
+    },
+    "Tajuru Paragon": {
+      "count": 1,
+      "shapes": [
+        "7c4941eca1107f8c"
+      ]
+    },
+    "Territorial Scythecat": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Tormenting Voice": {
+      "count": 1,
+      "shapes": [
+        "36ae55ee2245272c"
+      ]
+    },
+    "Umara Mystic": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Umara Wizard // Umara Skyfalls": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    },
+    "Utility Knife": {
+      "count": 2,
+      "shapes": [
+        "7c858c4d428b66aa",
+        "7c858c4d428b66aa"
+      ]
+    },
+    "Veteran Adventurer": {
+      "count": 1,
+      "shapes": [
+        "4ff2f93f10158c1c"
+      ]
+    },
+    "Vine Gecko": {
+      "count": 1,
+      "shapes": [
+        "8ee9c29664ca15fe"
+      ]
+    }
   }
 }

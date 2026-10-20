@@ -30,10 +30,13 @@ Checks (ontology §6):
                      all-of loops). Corpus has 0 true positives, so the check
                      ships with SYNTHETIC FIXTURES
                      (tools/audit/test_ontology_conformance.py, gate A3).
-  V4′ EMISSION FREEZE ERROR  no NEW SelectorMode.CHOOSE node in the COMPILED
+  V4′ EMISSION FREEZE ERROR  no CHOOSE-shape change in the COMPILED
                      IR (not template source text — compiler.py:1242/1280/1292
                      generic lanes emit CHOOSE without the token appearing in
-                     a template diff, gate A4). Baseline
+                     a template diff, gate A4). Per-node shape signature
+                     (node tag + field + canonical selector, R3 /141 §6):
+                     additions, DELETIONS and tag/filter SWAPS all error,
+                     even at constant counts. Baseline
                      ``ontology_conformance_v4_baseline.json``, per card.
   V5′ MAP DRIFT       WARN   a compiled shape (ability STRUCT signature or
                      branching triple) with no §5 map row. Map rows live in
@@ -56,6 +59,7 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import hashlib
 import json
 import sys
 from collections import Counter, defaultdict
@@ -225,19 +229,63 @@ def check_v3(cards_by_set):
 # ---------------------------------------------------------------------------
 # V4′ CHOOSE emission freeze (compiled IR diff)
 # ---------------------------------------------------------------------------
+def _choose_shape(holder_kind: str, field: str, sel, idxpath=()) -> str:
+    """V4′ shape signature (R3 /141 §6): a hash over the node TAG, the
+    holder FIELD (+container index path), and the selector's canonical_json.
+    The count-only census could not see a deleted CHOOSE node or a
+    tag/filter swap as long as the total held; this signature fails on
+    both. The index path keeps two byte-identical selectors in one field
+    (e.g. ``pairs[2][1]`` vs ``pairs[5][1]``) from collapsing into one
+    signature, so deletions at constant distinct-shape count still error."""
+    payload = json.dumps(
+        {
+            "node": holder_kind,
+            "field": field,
+            "idx": list(idxpath),
+            "sel": json.loads(at.canonical_json(sel)),
+        },
+        sort_keys=True,
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+
+
+def _container_leaves(v, idxpath=()):
+    """Expand tuple/list/frozenset/set fields recursively (exactly the
+    container law ``iter_nodes`` follows) yielding (leaf, index-path) —
+    so a Selector at ``pairs[2][1]`` is found, not just a direct field
+    element. Dataclass children are NOT descended: each is visited as
+    its own holder, which keeps every CHOOSE selector identified by its
+    NEAREST dataclass holder — the same 193-node population as the
+    committed ledger walk and the pre-upgrade count-only census."""
+    if isinstance(v, (tuple, list, frozenset, set)):
+        for i, x in enumerate(v):
+            yield from _container_leaves(x, idxpath + (i,))
+    else:
+        yield v, idxpath
+
+
 def choose_census(cards_by_set):
-    """set -> {card name: number of SelectorMode.CHOOSE selector nodes}."""
+    """set -> {card name: {"count": n, "shapes": [sig…]}} — the V4′ census.
+
+    Field-scan traversal (the ledger/V4′ identity law: every dataclass
+    field whose value — or recursive container leaf — is a CHOOSE Selector
+    is one node, identified by (holder type, field name + index path,
+    canonical selector))."""
     out = {}
     for s, cards in cards_by_set.items():
         per = {}
         for card in cards.values():
-            n = sum(
-                1
-                for x in iter_nodes(card)
-                if isinstance(x, at.Selector) and x.mode is at.SelectorMode.CHOOSE
-            )
-            if n:
-                per[card.name] = n
+            sigs = []
+            for x in iter_nodes(card):
+                for f in dataclasses.fields(x):
+                    for y, ix in _container_leaves(getattr(x, f.name)):
+                        if (
+                            isinstance(y, at.Selector)
+                            and y.mode is at.SelectorMode.CHOOSE
+                        ):
+                            sigs.append(_choose_shape(type(x).__name__, f.name, y, ix))
+            if sigs:
+                per[card.name] = {"count": len(sigs), "shapes": sorted(sigs)}
         out[s] = per
     return out
 
@@ -253,12 +301,20 @@ def _git_tracked(path: Path) -> bool:
     return r.returncode == 0
 
 
-def check_v4(current, baseline, write_baseline: bool):
+def check_v4(current, baseline, write_baseline: bool, sets=None):
     """CHOOSE-emission freeze vs the baseline file.
 
     FAIL-CLOSED: a missing baseline is an ERROR (exit nonzero in main), never
     a silent empty diff — a fresh clone must not green-light new CHOOSE
-    surfaces just because the artefact was not checked out."""
+    surfaces just because the artefact was not checked out.
+
+    ``sets``: when given (CLI ``--sets`` partial run), restrict BOTH sides
+    to those set codes — a partial diagnostic run must not report the
+    un-compiled sets as extinctions. Default None compares the full
+    baseline ∪ current union, so dropping a set or card IS an error."""
+    if sets is not None:
+        keep = set(sets)
+        current = {s: v for s, v in current.items() if s in keep}
     if write_baseline:
         return {
             "baseline_written": True,
@@ -273,17 +329,46 @@ def check_v4(current, baseline, write_baseline: bool):
             "total": _totals(current),
         }
     base = json.loads(baseline.read_text())
+    if sets is not None:
+        keep = set(sets)
+        base = {s: v for s, v in base.items() if s in keep}
     news = []
-    for s, per in current.items():
+    # R3 diff-gate follow-up (FIX-1 / BREAK-R3-1): iterate base ∪ current.
+    # Current-only iteration let whole-card CHOOSE extinction (card renamed,
+    # dropped, or its last node deleted -> the card leaves the census) pass
+    # silently. The per-name count comparison makes REMOVED count-level, so
+    # a node lost with the shape SET unchanged still errors.
+    for s in sorted(set(base) | set(current)):
+        cper = current.get(s, {})
         bper = base.get(s, {})
-        for name, cnt in sorted(per.items()):
-            if cnt > bper.get(name, 0):
-                news.append(f"{s}:{name}: CHOOSE {bper.get(name, 0)} -> {cnt}")
+        for name in sorted(set(bper) | set(cper)):
+            b = bper.get(name)
+            cur = cper.get(name)
+            if b is None:
+                news.append(f"{s}:{name}: NEW CHOOSE emission ({cur['count']} nodes)")
+                continue
+            if cur is None:
+                news.append(
+                    f"{s}:{name}: CHOOSE emission REMOVED "
+                    f"(baseline {b['count']} nodes now silent/absent)"
+                )
+                continue
+            if cur["count"] != b["count"]:
+                news.append(f"{s}:{name}: CHOOSE count {b['count']}->{cur['count']}")
+            bshapes = set(b["shapes"])
+            cshapes = set(cur["shapes"])
+            for sig in sorted(cshapes - bshapes):
+                news.append(f"{s}:{name}: CHOOSE shape ADDED/SWAPPED {sig}")
+            for sig in sorted(bshapes - cshapes):
+                news.append(f"{s}:{name}: CHOOSE shape REMOVED {sig}")
     return {"baseline_written": False, "new_emissions": news, "total": _totals(current)}
 
 
 def _totals(current):
-    return {s: sum(per.values()) for s, per in current.items()}
+    return {
+        s: sum(v["count"] if isinstance(v, dict) else v for v in per.values())
+        for s, per in current.items()
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -614,7 +699,10 @@ def main(argv=None) -> int:
     v1 = check_v1()
     v2 = check_v2(cards, _load_whitelist())
     v3 = check_v3(cards)
-    v4 = check_v4(choose_census(cards), V4_BASELINE, a.write_v4_baseline)
+    if a.write_v4_baseline and sets != SETS:
+        # a partial census must never overwrite the full freeze baseline
+        raise SystemExit("--write-v4-baseline requires the full pool set")
+    v4 = check_v4(choose_census(cards), V4_BASELINE, a.write_v4_baseline, sets=sets)
     if a.write_v4_baseline:
         V4_BASELINE.write_text(
             json.dumps(choose_census(cards), indent=2, sort_keys=True)
