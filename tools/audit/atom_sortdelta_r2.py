@@ -243,7 +243,10 @@ def main():
         and not CONTENT_FAILURES
     )
     out["exceptions"] = EXCEPTIONS
-    _dest = Path(__file__).resolve().parents[2] / "reports" / "r2_sortdelta.json"
+    import argparse
+    _ap = argparse.ArgumentParser()
+    _ap.add_argument("--out", default=None, help="dest JSON (default: reports/r2_sortdelta.json)")
+    _dest = Path(_ap.parse_args().out) if _ap.parse_args().out else Path(__file__).resolve().parents[2] / "reports" / "r2_sortdelta.json"
     _dest.write_text(json.dumps(out, indent=1))
     print(
         f"wrote {_dest}; "

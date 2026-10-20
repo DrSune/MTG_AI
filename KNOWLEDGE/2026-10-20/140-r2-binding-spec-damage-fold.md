@@ -60,3 +60,29 @@ byte-identical, replacement-effect shapes single-encoded.
 ## 5. NOT in scope
 ZND-7 (above), D9 three-way fold itself, R3 ask-lift (separate spec /141), recipient
 fidelity, any executor matching-semantics change (fold must be fire-parity-preserving).
+
+## 6. Spec gate (adversarial, 2026-10-20) — FIX-THEN-GO, amendments applied
+Gate re-executed: fold equivalence code-proven (recipient FAnd(()) True via BOTH
+_is_universal short-circuit :1108 and eval_filter all([]); node.amount never read — inert;
+source filter evaluates same dealer handle; timing parity: binder drains only in _settle,
+identical batch order); sortdelta reproduces byte-identical; deletion radius bounded
+(packs carry no IR bytes; replacement-lane CDE population 0; only 2 goldens hold CDE).
+BREAK-1 (accepted, ruled): DDE lane journals ONE DAMAGE ROW PER (amount,recipient) vs
+CDE's one-per-dealer — multi-blocker split (e.g. Cat blocked by two creatures 1+2) fires
+TWICE post-fold vs once today: CR 603.2 over-fire. ORCHESTRATOR RULING (a): ACCEPT —
+the deficiency is DDE-LANE-WIDE and ships TODAY on 10 cards (Harbinger over-fires on
+splits now); refusing the fold leaves two atoms alive (§9 merge law) and fixes nothing;
+a correct dedup needs recipient-SET journal rows (collapsing rows loses the recipient
+axis "to a player" matching needs) = design work. Registered as divergence **D13**
+(population 10→13 by fold) + engine-lane ticket **ZND-8** (row-recipient-set journal
+design, must also fix existing 10). RED-FIRST battery gains a SPLIT leg: constructed
+multi-blocker split, assert expected over-fire count 2 with CR-603.2 comment (pin, not
+fix). Feline Sovereign = max exposure (wide cats + double-block lines).
+BREAK-2 (pinned): events.py:92/:191 are COMMENTS — the real journal site __init__.py:2129
+KIND_COMBAT_DAMAGE rows MUST KEEP EMITTING; only class + matcher lane deleted.
+Also adopted: red-first test re-pin inventory (test_executor_binding.py:697 rewrite as
+folded DDE; test_templates_b2b.py:1167/:1275; test_ability_tree.py:618/:863/:1260;
+test_ability_tree_t3.py:152; clause_audit.py:177 pattern drift); atom_sortdelta_r2.py
+--out flag (clobber law — LANDED, repo-side); cosmetic stale-docstring notes
+(replacements.py:35-41, __init__.py:2089); evidence caveat: Nimble (ZNR, no goldens) is
+census-observed only. No re-gate (amendments = scope pins + one accepted divergence).

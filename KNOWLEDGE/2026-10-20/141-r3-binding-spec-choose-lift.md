@@ -63,3 +63,35 @@ ab0, Liliana's Steward, Mind Rot, Necromentia, Run Afoul), discard-COST 8
 ## 5. NOT in scope
 R3b phantom-fold (L-A 161 re-encode), ZND-7 bug, L-C changes, any new ask primitive,
 ontology R4+ twins, sibling model/eval lanes.
+
+## 6. Spec gate (adversarial, 2026-10-20) — FIX-THEN-GO, amendments OVERRIDE §3-§4
+Gate-executed findings: ONE_OF lane fires mid-resolution (selectors.py:657-736 from
+resolution-time verbs sites); routing by selector-mode shape needs NO IR token — **Δ0 is
+mechanically true for count-preserving lifts**. But: QConst NEVER offers STOP (:677);
+QUnbounded HARD-RAISES NotImplementedError (:681-685) — 7 nodes/4 cards (Chandra×2 ×5,
+Necromentia, Siege Striker) would CRASH via the "existing channel"; zero QAtMost nodes
+exist; provider(vocab,what) has NO seat param and one_of tags carry no seat (house
+pattern sacrifice:<seat>:<source>:<digest> exists in legality lane only) — opponent
+choosers unroutable; Bad Deal/Waker ask would enumerate MERGED hands of both seats
+(hidden-info leak, ZND-7(a) precondition). Cultivate/Rewind printed "up to N" compiled
+as QConst(N) — engine forces exactly-k TODAY = §11 zero-loss GAP (filed, not smuggled).
+**AMENDED SCOPE (overrides §3): LIFT-NOW = L-B minus QUnbounded minus seat-routed minus
+Bad-Deal/Waker = 15 cards / 17 nodes** (self-zone/public QConst first-n + 8 discard-cost
++ Shacklegeist tap-cost; exact set re-derived by implementer from committed ledger under
+the three exclusion rules, diff-gate re-verifies). DEFER: 4 QUnbounded cards (count-shape
+sub-project), 3 opponent-chooser cards (seat-in-tag `one_of:<seat>:…` + provider seat
+param = engine-lane **ZND-9**), EXCLUDE: Bad Deal, Waker +1 → ZND-7(a). DROP the
+1..k+STOP promise; gap-ledger entry: Cultivate/Rewind QConst-mis-encode (up-to-N).
+**V4′ UPGRADE (was policy, now build):** count-census is increase-only — blind to
+deletions and in-place tag/filter swaps. Checker upgrade: per-node SHAPE-SIGNATURE hash
+vs baseline (catches swaps + deletions); lane-split generator COMMITTED (ledger artifact
++ NUMBERS row — was inadmissible per NUMBERS law).
+**PACKS (truth): 46/428 touch the 24 cards; ~26 touch lift-now.** ScenarioRunner: quiet
+lane fail-closed hard-raise ✓; decisions lane is ORDERED FIFO (:269-298) — mid-resolution
+asks desync scripted answers → decision-supply must be KEYED (vocab-keyed lane or
+documented FIFO-offset audit). RandomPolicy games safe (central provider games.py:1349).
+**AMENDED PREDICTIONS (override §4):** ask battery 15/15 lift-now cards fire with full
+menu; deferred/excluded cards provably UNCHANGED (byte + behavior); QUnbounded probe
+proves crash-if-lifted (stays silent lane); IR bytes Δ0; V4′ shape-hash baseline pin +
+constructed probes (tag-swap → FAIL, delete → FAIL, clean → PASS); keyed pack-supply wave
+over the ~26 packs; PC anchors Δ0; suite 0 fail; fuzz 40/40; determinism byte-identical.
