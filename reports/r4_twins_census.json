@@ -1,0 +1,125 @@
+{
+  "method": "R4 F3 twins census on to_dict() of live compile",
+  "cost_node_modes": {
+    "sacrifice/CHOOSE": 15,
+    "discard/CHOOSE": 9,
+    "tap/CHOOSE": 1,
+    "putcounter/CHOOSE": 2,
+    "discard/ALL": 1,
+    "sacrifice/TARGET": 1
+  },
+  "family_shape_summary": {
+    "tap": {
+      "cost_shapes": 1,
+      "effect_shapes": 8,
+      "identical_menu_shape_pairs": 0,
+      "example_shared": []
+    },
+    "putcounter": {
+      "cost_shapes": 1,
+      "effect_shapes": 15,
+      "identical_menu_shape_pairs": 1,
+      "example_shared": [
+        "{\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\""
+      ]
+    },
+    "discard": {
+      "cost_shapes": 5,
+      "effect_shapes": 8,
+      "identical_menu_shape_pairs": 2,
+      "example_shared": [
+        "{\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"children\":[],\"tag\":\"FAnd\"},\"zones\":[{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"HAND\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}]}",
+        "{\"count\":{\"tag\":\"QUnbounded\"},\"filter\":{\"children\":[],\"tag\":\"FAnd\"},\"zones\":[{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"HAND\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}]}"
+      ]
+    },
+    "sacrifice": {
+      "cost_shapes": 5,
+      "effect_shapes": 3,
+      "identical_menu_shape_pairs": 1,
+      "example_shared": [
+        "{\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\""
+      ]
+    }
+  },
+  "same_card_EXACT_twins": [
+    {
+      "set": "M21",
+      "card": "Goremand",
+      "family": "sacrifice",
+      "verb": "SACRIFICE",
+      "cost_shape_examples": [
+        "{\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"color",
+        "{\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"color"
+      ],
+      "effect_shape_examples": [
+        "{\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"color",
+        "{\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"TYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Creature\",\"tag\":\"FAtom\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind"
+      ],
+      "ask_sites": {
+        "cost": "sacrifice:\u2026 -> landed tags: tap:{controller}:{source}:{digest} / discard:{controller}:{source}:{digest} / sacrifice:{controller}:{source}:{digest} (legality.py pay_costs)",
+        "effect": "choose:{source}[:{i}of{k}]:{digest12} (selectors.resolve_selector ask_choose)"
+      }
+    }
+  ],
+  "same_card_family_twins": [
+    {
+      "set": "M21",
+      "card": "Goremand",
+      "family": "sacrifice"
+    },
+    {
+      "set": "M21",
+      "card": "Shacklegeist",
+      "family": "tap"
+    }
+  ],
+  "cost_nodes_by_family": {
+    "sacrifice": 16,
+    "discard": 10,
+    "tap": 1,
+    "putcounter": 2
+  },
+  "effect_nodes_by_family": {
+    "putcounter": 47,
+    "sacrifice": 4,
+    "tap": 11,
+    "discard": 17
+  },
+  "byte_samples": [
+    {
+      "set": "M21",
+      "card": "Goremand",
+      "family": "sacrifice",
+      "verb": "SACRIFICE",
+      "cost_shape_examples": [
+        "{\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"color",
+        "{\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"color"
+      ],
+      "effect_shape_examples": [
+        "{\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"CONTROLLER_IS\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"}},{\"color\":null,\"color",
+        "{\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"children\":[{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"TYPE_EQ\",\"tag\":\"FAtomPred\"},\"string_value\":\"Creature\",\"tag\":\"FAtom\",\"who\":null},{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind"
+      ],
+      "ask_sites": {
+        "cost": "sacrifice:\u2026 -> landed tags: tap:{controller}:{source}:{digest} / discard:{controller}:{source}:{digest} / sacrifice:{controller}:{source}:{digest} (legality.py pay_costs)",
+        "effect": "choose:{source}[:{i}of{k}]:{digest12} (selectors.resolve_selector ask_choose)"
+      }
+    },
+    {
+      "set": "M21/M21",
+      "card": "Sparkhunter Masticore | Sanctum of Calm Waters",
+      "family": "discard",
+      "cost_shape_examples": [
+        "{\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"children\":[],\"tag\":\"FAnd\"},\"zones\":[{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"HAND\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}]}",
+        "{\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"color\":null,\"colors\":[],\"count\":null,\"counter_kind\":null,\"inner_filter\":null,\"keyword\":null,\"pred\":{\"name\":\"IS_SOURCE\",\"tag\":\"FAtomPred\"},\"string_value\":null,\"tag\":\"FAtom\",\"who\":null},\"zones\":[{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\""
+      ],
+      "effect_shape_examples": [
+        "{\"count\":{\"tag\":\"QConst\",\"value\":1},\"filter\":{\"children\":[],\"tag\":\"FAnd\"},\"zones\":[{\"controller\":{\"name\":\"YOU\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"HAND\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}]}",
+        "{\"count\":{\"tag\":\"QConst\",\"value\":2},\"filter\":{\"children\":[],\"tag\":\"FAnd\"},\"zones\":[{\"controller\":{\"name\":\"ANY\",\"tag\":\"ControllerRef\"},\"kind\":{\"name\":\"HAND\",\"tag\":\"ZoneKind\"},\"tag\":\"Zone\"}]}"
+      ],
+      "ask_sites": {
+        "cost": "discard:\u2026 -> landed tags: tap:{controller}:{source}:{digest} / discard:{controller}:{source}:{digest} / sacrifice:{controller}:{source}:{digest} (legality.py pay_costs)",
+        "effect": "choose:{source}[:{i}of{k}]:{digest12} (selectors.resolve_selector ask_choose)"
+      }
+    }
+  ]
+}
