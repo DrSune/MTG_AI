@@ -613,42 +613,45 @@ EXPECTED_LOYALTY_DELTA: dict[str, int] = {
 }
 
 # Expected ordered cost-part types per cost template.
+# R1b canonicalization: Cost.parts is construction-sorted by canonical tag
+# (mana colors alphabetically, then generic, then non-mana parts), so several
+# expected tuples below no longer mirror the source-symbol order.
 EXPECTED_COST_PARTS: dict[str, tuple[type, ...]] = {
-    "B5c-flip-cost": (CostTap, CostLife),
+    "B5c-flip-cost": (CostLife, CostTap),
     "B5c-cost-shrine-dmg": (CostManaGeneric, CostDiscard),
     "B5c-cost-sacrifice-counter": (CostManaGeneric, CostSacrifice),
     "B5c-cost-sacrifice-destroy": (CostManaGeneric, CostSacrifice),
-    "B5c-cost-page-draw": (CostManaGeneric, CostTap, CostPutCounter),
-    "B5c-cost-sacrifice-defender": (CostManaGeneric, CostTap, CostSacrifice),
-    "B5c-cost-sacrifice-dmg": (CostManaGeneric, CostTap, CostSacrifice),
-    "B5c-cost-b-sacrifice-draw": (CostManaGeneric, CostManaColor, CostSacrifice),
+    "B5c-cost-page-draw": (CostManaGeneric, CostPutCounter, CostTap),
+    "B5c-cost-sacrifice-defender": (CostManaGeneric, CostSacrifice, CostTap),
+    "B5c-cost-sacrifice-dmg": (CostManaGeneric, CostSacrifice, CostTap),
+    "B5c-cost-b-sacrifice-draw": (CostManaColor, CostManaGeneric, CostSacrifice),
     "B5c-cost-b-tap-gain-draw": (
-        CostManaGeneric,
         CostManaColor,
-        CostTap,
+        CostManaGeneric,
         CostSacrifice,
+        CostTap,
     ),
-    "B5c-cost-u-discard-look": (CostManaGeneric, CostManaColor, CostDiscard),
+    "B5c-cost-u-discard-look": (CostManaColor, CostManaGeneric, CostDiscard),
     "B5c-cost-ub-sacrifice-return": (
+        CostManaColor,
+        CostManaColor,
         CostManaGeneric,
-        CostManaColor,
-        CostManaColor,
-        CostTap,
         CostSacrifice,
+        CostTap,
     ),
     "B5c-cost-wu-discard-draw": (
+        CostManaColor,
+        CostManaColor,
         CostManaGeneric,
-        CostManaColor,
-        CostManaColor,
-        CostTap,
         CostDiscard,
+        CostTap,
     ),
     "B5c-cost-r-sacrifice-power-dmg": (CostManaColor, CostSacrifice),
-    "B5c-cost-page-scry": (CostTap, CostPutCounter),
-    "B5c-cost-sacrifice-exile": (CostTap, CostSacrifice),
-    "B5c-cost-sacrifice-discard": (CostTap, CostSacrifice),
-    "B5c-cost-sacrifice-search": (CostTap, CostSacrifice),
-    "B5c-cost-sacrifice-mana": (CostTap, CostSacrifice),
+    "B5c-cost-page-scry": (CostPutCounter, CostTap),
+    "B5c-cost-sacrifice-exile": (CostSacrifice, CostTap),
+    "B5c-cost-sacrifice-discard": (CostSacrifice, CostTap),
+    "B5c-cost-sacrifice-search": (CostSacrifice, CostTap),
+    "B5c-cost-sacrifice-mana": (CostSacrifice, CostTap),
 }
 
 # The single "primary" keyword each rule-reminder template encodes. Several
@@ -1673,7 +1676,8 @@ class TestB5cRound7BTopUps(unittest.TestCase):
         """B5c-flip-cost: ActivatedAbility Cost(Tap+Life 3) + role-less
         Verb.FLIP_COIN atom (r3b vocabulary)."""
         ability = _activated_ability(_match_outcome("B5c-flip-cost"))
-        tap, life = ability.cost.parts
+        # R1b canonicalization: parts construction-sorted (life tag < tap tag).
+        life, tap = ability.cost.parts
         assert isinstance(tap, CostTap)
         assert isinstance(life, CostLife)
         self.assertEqual(life.amount, QConst(3))
@@ -1768,7 +1772,9 @@ class TestB5cRound9B(unittest.TestCase):
     def test_subira_s2_delayed_trigger(self) -> None:
         outcome = _match_outcome("B5c-cost-discard-hand-delayed-draw")
         ability = _activated_ability(outcome)
-        n, r, tap, discard = ability.cost.parts
+        # R1b canonicalization: parts construction-sorted (color, generic,
+        # discard, tap).
+        r, n, discard, tap = ability.cost.parts
         assert isinstance(n, CostManaGeneric)
         self.assertEqual(n.amount, QConst(1))
         assert isinstance(r, CostManaColor)

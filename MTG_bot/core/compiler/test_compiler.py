@@ -206,7 +206,9 @@ def _search_atom() -> Atom:
                         QConst(1),
                         SelectorMode.ONE_OF,
                         FAnd(children=()),
-                        zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),
+                        zones=(
+                            Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),
+                        ),
                     ),
                 ),
                 ("destination", Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)),
@@ -349,13 +351,15 @@ class TestParseManaCost(unittest.TestCase):
 
     def test_multi_token_order(self) -> None:
         cost = _cost(parse_mana_cost("{2}{W}{U}{G}"))
+        # R1b canonicalization: Cost.parts construction-sorted by canonical
+        # tag (colors alphabetically, then generic) — source order is not kept.
         self.assertEqual(
             cost.parts,
             (
-                CostManaGeneric(QConst(2)),
-                CostManaColor("W", QConst(1)),
-                CostManaColor("U", QConst(1)),
                 CostManaColor("G", QConst(1)),
+                CostManaColor("U", QConst(1)),
+                CostManaColor("W", QConst(1)),
+                CostManaGeneric(QConst(2)),
             ),
         )
 
@@ -1336,9 +1340,12 @@ def _cast_permission_effect() -> Effect:
                             count=QUnbounded(),
                             mode=SelectorMode.CHOOSE,
                             filter=FAnd(()),
-                            zones=(Zone(
-                                kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU
-                            ),),
+                            zones=(
+                                Zone(
+                                    kind=ZoneKind.GRAVEYARD,
+                                    controller=ControllerRef.YOU,
+                                ),
+                            ),
                         ),
                     ),
                 )

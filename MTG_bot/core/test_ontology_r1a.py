@@ -288,20 +288,23 @@ def test_seq_steps_and_choose_options_keep_their_order():
     )
 
 
-def test_r1b_and_operator_fields_are_untouched():
-    """Sorting Cost.parts / additional_costs / hybrid colors is R1b (the same
-    order-keyed planner, legality.py:1272) — R1a must not preempt it."""
+def test_r1b_fields_are_canonicalised_and_operator_fields_untouched():
+    """R1b has SHIPPED: Cost.parts / additional_costs / hybrid colors are now
+    construction-sorted (spec 136). Operator fields (KeywordAbility.params)
+    stay untouched — params order is an operator axis, not a cost axis."""
     generic = at.CostManaGeneric(amount=at.QConst(2))
     tap = at.CostTap()
-    assert at.Cost((tap, generic)).parts == (tap, generic)
+    # R1b canonicalization: construction-sort by canonical tag (mana before tap).
+    assert at.Cost((tap, generic)).parts == (generic, tap)
     hybrid = at.CostManaHybrid(colors=("U", "R"), amount=at.QConst(1))
-    assert hybrid.colors == ("U", "R")
+    assert hybrid.colors == ("R", "U")  # R1b canonicalization: colors sorted
     spell = at.SpellAbility(
         kind=at.SpellKind.CREATURE,
         effect=None,
         additional_costs=(at.Cost((tap,)), at.Cost((generic,))),
     )
-    assert spell.additional_costs == (at.Cost((tap,)), at.Cost((generic,)))
+    # R1b canonicalization: additional_costs construction-sorted.
+    assert spell.additional_costs == (at.Cost((generic,)), at.Cost((tap,)))
     params = at.KeywordAbility(keyword=at.Keyword.SCRY, params=(at.QConst(1),))
     assert params.params == (at.QConst(1),)
 

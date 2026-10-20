@@ -284,9 +284,11 @@ class TestCarrierWidens(unittest.TestCase):
         self.assertEqual(_tids(_EQUIP_NEW), ["B5a-equip"])
         ab = _ability(_EQUIP_NEW)
         assert isinstance(ab, ActivatedAbility)
+        # R1b canonicalization: Cost.parts construction-sorted (color first,
+        # generic after).
         self.assertEqual(
             ab.cost.parts,
-            (CostManaGeneric(QConst(2)), CostManaColor("G", QConst(1))),
+            (CostManaColor("G", QConst(1)), CostManaGeneric(QConst(2))),
         )
 
     def test_equip_bare_colour_still_misses(self):

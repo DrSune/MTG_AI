@@ -2309,6 +2309,14 @@ class CostManaHybrid:
             raise ValueError(
                 f"CostManaHybrid: amount must be a Quantity, got {type(self.amount).__name__}"
             )
+        # SET-R1b (ontology §3, spec /136): the colour pair is membership
+        # — sorted at construction so {W/B} == {B/W} in the bytes. The
+        # hybrid_demands witness (legality) prefers the FIRST tuple slot;
+        # the sort pins that preference alphabetically (dormant vocabulary:
+        # 0 hybrids in both pools today — battery pin only).
+        ordered = _set_sorted(self.colors)
+        if ordered != self.colors:
+            object.__setattr__(self, "colors", ordered)
 
 
 @dataclass(frozen=True)
@@ -2420,7 +2428,21 @@ CostPart = (
 
 @dataclass(frozen=True)
 class Cost:
-    """An ability's cost. Empty parts = a free activation (legal MTG)."""
+    """An ability's cost. Empty parts = a free activation (legal MTG).
+
+    SET-R1b (ontology §3, spec KNOWLEDGE/2026-10-20/136): parts are
+    canonically sorted AT CONSTRUCTION by ``canonical_json`` (the O3 set
+    law, ``AtomArgs.pairs`` :2541 precedent via :func:`_set_sorted`).
+    Payment is order-free in the rules, but the plan fold walks the parts
+    LIST (failure-string precedence, the per-colour min-clamp trace,
+    ``sacrifice_options`` order ⇒ the sacrifice ask sequence), so the
+    construction-sort makes the canonical ``PaymentPlan`` a function of
+    the parts MULTISET. Idempotent: the sort key depends on the part
+    content only, never on position, so re-sorting an already-sorted tuple
+    never re-fires; folded costs (``spell_cost``: printed ++ additional)
+    pass through THIS constructor, so the kicker fold inherits the law.
+    Duplicate parts ({W}{W}) are legal and the stable sort keeps them
+    adjacent — Cost is a list-law SET (sort), not a dedup fold."""
 
     parts: tuple[CostPart, ...] = ()
 
@@ -2430,6 +2452,9 @@ class Cost:
                 raise ValueError(
                     f"Cost: part must be a CostPart, got {type(part).__name__}"
                 )
+        ordered = _set_sorted(self.parts)
+        if ordered != self.parts:
+            object.__setattr__(self, "parts", ordered)
 
 
 # Cost deltas — the signed cost changes a CostModifier applies (T3 round
@@ -2968,6 +2993,16 @@ class SpellAbility:
                     "SpellAbility: additional_costs must hold Cost nodes, got "
                     f"{type(cost).__name__}"
                 )
+        # SET-R1b (ontology §3, gate A3; spec /136 §2(1)): the entries fold
+        # into the SAME order-keyed planner (spell_cost printed++additional
+        # -> build_payment_plan), so they are a SET — sorted at
+        # construction. Corpus Δ0 today (0 multi-entry cases; the sort is
+        # the landmine-proofing the R1a gate deferred here), and the
+        # runtime fold re-enters Cost.__post_init__, so the total plan is
+        # order-free from both ends.
+        ordered = _set_sorted(self.additional_costs)
+        if ordered != self.additional_costs:
+            object.__setattr__(self, "additional_costs", ordered)
 
 
 @dataclass(frozen=True)
@@ -3085,6 +3120,12 @@ class CostModifier:
                 raise ValueError(
                     f"CostModifier: extra_deltas must be CostDelta, got {type(extra).__name__}"
                 )
+        # SET-R1b (spec /136 §1(f)): the planner folds deltas into pure
+        # += accumulators (commutative), so the OPERATOR-AUDIT reclassed
+        # to SET — sorted at construction like the SET law requires.
+        ordered = _set_sorted(self.extra_deltas)
+        if ordered != self.extra_deltas:
+            object.__setattr__(self, "extra_deltas", ordered)
 
 
 @dataclass(frozen=True)

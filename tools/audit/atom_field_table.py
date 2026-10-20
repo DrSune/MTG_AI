@@ -66,12 +66,12 @@ CLASSIFY: dict[tuple[str, str], str] = {
     ("TokenSpec", "keywords"): "SET-R1a",
     ("FAtom", "colors"): "SET-R1a",
     ("EtBState", "initial_counters"): "SET-R1a",
-    ("Cost", "parts"): "SET-R1b",
-    ("SpellAbility", "additional_costs"): "SET-R1b",
-    ("CostManaHybrid", "colors"): "SET-R1b",
+    ("Cost", "parts"): "SET-ENFORCED",
+    ("SpellAbility", "additional_costs"): "SET-ENFORCED",
+    ("CostManaHybrid", "colors"): "SET-ENFORCED",
     ("Selector", "zones"): "SET-R0",
     ("KeywordAbility", "params"): "OPERATOR",
-    ("CostModifier", "extra_deltas"): "OPERATOR-AUDIT",
+    ("CostModifier", "extra_deltas"): "SET-ENFORCED",
     # NOTE: ('Selector', 'zone') was the pre-R0 SCALAR Zone field — never a
     # container, never CLASSIFY-tracked; the R0 zone-fold deleted it, and
     # ('Selector', 'zones') above is now the sole zone carrier (SET-R0).

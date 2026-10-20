@@ -216,11 +216,12 @@ class TestB3CostParsing(unittest.TestCase):
         ability = _ability(
             _single_match(self.reg, "{1}{B}, {T}: Each opponent loses 2 life.")
         )
+        # R1b canonicalization: parts construction-sorted (color, generic, tap).
         self.assertEqual(
             _cost_parts(ability),
             (
-                CostManaGeneric(QConst(1)),
                 CostManaColor("B", QConst(1)),
+                CostManaGeneric(QConst(1)),
                 CostTap(),
             ),
         )
@@ -233,12 +234,13 @@ class TestB3CostParsing(unittest.TestCase):
                 "where X is the number of lands you control.",
             )
         )
+        # R1b canonicalization: colors alphabetically, generic last.
         self.assertEqual(
             _cost_parts(ability),
             (
-                CostManaGeneric(QConst(4)),
-                CostManaColor("R", QConst(1)),
                 CostManaColor("G", QConst(1)),
+                CostManaColor("R", QConst(1)),
+                CostManaGeneric(QConst(4)),
             ),
         )
 

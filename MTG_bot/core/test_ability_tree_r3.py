@@ -38,8 +38,12 @@ _CARD = at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Card")
 _CREATURE = at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature")
 _BF_YOU = at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU)
 _HAND_YOU = at.Zone(at.ZoneKind.HAND, at.ControllerRef.YOU)
-_CREATURE_BF = at.Selector(at.QConst(1), at.SelectorMode.TARGET, _CREATURE, zones=(_BF_YOU,))
-_CARD_HAND = at.Selector(at.QConst(1), at.SelectorMode.CHOOSE, _CARD, zones=(_HAND_YOU,))
+_CREATURE_BF = at.Selector(
+    at.QConst(1), at.SelectorMode.TARGET, _CREATURE, zones=(_BF_YOU,)
+)
+_CARD_HAND = at.Selector(
+    at.QConst(1), at.SelectorMode.CHOOSE, _CARD, zones=(_HAND_YOU,)
+)
 
 
 def _spell_effectless_sacrifice() -> at.SpellAbility:
@@ -88,9 +92,11 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
         "db2ea464ce21b9130c49b1a5d951b3a6603d26776e68d2ac1a7abfca241edd6f",
     ),
     (
+        # R1b canonicalization: additional_costs construction-sorted, so the
+        # discard/life Cost nodes swap — fingerprint re-pinned to post-sort fp.
         "spell_discard_life_costs",
         T2._spell_additional_discard_life,
-        "93dc3f1d9c8261245ee01a3ae2d050540faecd15ef31d87ae3036e0e1a373892",
+        "35a921e62203b631a18d489f25d6b08068797990df7068e2549ecbf5506f0696",
     ),
 ]
 

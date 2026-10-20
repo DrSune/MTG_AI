@@ -79,9 +79,10 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
         "9bd3f0e185eb0f51ca7a99e64f472a22bab2acd4b8cb24582904cc163ffb6a39",
     ),
     (
+        # R1b canonicalization: multi-part Cost construction-sorted — fp re-pinned.
         "tarmogoyf",
         T._tarmogoyf_like,
-        "33c7a673d56fb484966ad1ae25efb1f1ae199c495b02ed44b67c5a11fa3f2679",
+        "eaae09ba37aca5bf40655293c56598765f010e74ad02a0f39cc0368d97838c5f",
     ),
     (
         "planeswalker_emblem",
@@ -89,9 +90,10 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
         "dd59119e6b0280be53fcaaf8147f15f5d2ea3447ab3a04c44e065182d3ea913c",
     ),
     (
+        # R1b canonicalization: treasure-token tap+sacrifice Cost sorted — fp re-pinned.
         "token_creator",
         T._token_creator,
-        "e0f8c4901870a5f82238fb81b9ed0ac07324e5009b9fb258ce3b0f461b411f4d",
+        "37ae8c521b8b21127109b55db11bc7c5b9e7876baabf4ddce0c601b72bf82b69",
     ),
     (
         "walk_sample",
