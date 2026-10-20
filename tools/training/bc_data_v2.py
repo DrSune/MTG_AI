@@ -379,6 +379,22 @@ def stash_rows_for(what: str) -> tuple[list[list[str]], bool] | None:
     return _STASH.get(digest)
 
 
+def stash_put(
+    digest: str, payload: list[list[str]] | None, expand: bool = False
+) -> None:
+    """(/134 rl_logprob_audit) A no-live-engine replay process cannot refill
+    the capped digest stash, so recorded choose-pools re-enter it here in
+    EXACTLY the state the COLLECTOR saw: ``payload=None`` REMOVES the key
+    (blind-at-collection must stay blind-at-audit, never silently re-
+    ground). Same FIFO cap law as the producer lanes."""
+    if payload is None:
+        _STASH.pop(digest, None)
+        return
+    _STASH[digest] = (payload, expand)
+    while len(_STASH) > STASH_CAP:
+        _STASH.pop(next(iter(_STASH)))
+
+
 # ------------------------------------------------------------- encoding
 def cand_words_v2(cand: str, ground: list[list[str]]) -> list[str]:
     """Candidate span words: the v1 tokens, then ``ref`` + referent rows.

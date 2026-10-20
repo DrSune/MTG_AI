@@ -50,6 +50,19 @@ with the eventual winner).
 Run::
 
     .venv/bin/python tools/eval/gameplay_eval_v2.py --games 200 --workers 4
+
+RL collection (/134 PRECONDITION 2, owner GO 2026-10-20 — decision B):
+``--rl-collect FILE.jsonl --sample`` draws each net seat's ask actions from
+the seat's OWN full-menu distribution (``BcAsk.sample_ask``, one shared
+``_forward_menu``) and books ``(what, vocab, idx, logp, obs)`` per ask into
+episode rows written to FILE.jsonl; ``tools/training/rl_logprob_audit.py``
+re-derives every owned ask from that file + checkpoint. B (this rig) beat
+A (gen_games) on diff size: book() here ALREADY sees every net ask with the
+full menu + obs and run_v2_game is one self-contained process, whereas
+gen_games routes its net through the mcts rollout machinery whose episode
+extras (pi/value/net_idx/heur_idx) are entangled with search stats — those
+extras and every legacy lane stay byte-identical here because no flag means
+no wrapper: the argmax lane is untouched.
 """
 
 from __future__ import annotations
@@ -57,6 +70,7 @@ from __future__ import annotations
 import argparse
 import json
 import multiprocessing
+import random
 import sys
 import time
 from pathlib import Path
@@ -435,6 +449,32 @@ class PolicyActDriver(RandomPolicy):
 
 
 # ------------------------------------------------------------- game runner
+class _SamplingSeat:
+    """(/134 PRECOND 2) Seat proxy used ONLY while ``--rl-collect`` runs:
+    ``decide()`` draws from the wrapped BcAsk's own full-menu distribution
+    (``BcAsk.sample_ask`` -> the one ``_forward_menu``, so the causal stream
+    stays byte-identical to the argmax lane) and remembers ``(idx, logp)``
+    for the ADJACENT ``book()`` of the same seat — every live rig call site
+    (provider / take_acts / select_targets) pairs decide->book before doing
+    anything else; the pairing is asserted at booking. Any other attribute
+    (truncations, ctx_stats, model, vocab, ...) delegates to the wrapped
+    net, so the seat instrumentation is unchanged. Legacy lanes never
+    build this object."""
+
+    def __init__(self, net: Any, rng: random.Random) -> None:
+        self.net = net
+        self.rng = rng
+        self.pending: tuple[int, float] | None = None
+
+    def decide(self, ctx: AskContext) -> int:
+        idx, logp = self.net.sample_ask(ctx, self.rng)
+        self.pending = (idx, logp)
+        return idx
+
+    def __getattr__(self, name: str) -> Any:  # delegate (net is in __dict__)
+        return getattr(self.net, name)
+
+
 def run_v2_game(
     seed: int,
     swap: bool,
@@ -444,6 +484,8 @@ def run_v2_game(
     deck_pairs_seed: int = 1409,
     turn_cap: int = TURN_CAP,
     device: str = "cpu",
+    rl_sample: bool = False,
+    rl_rng_base: int = 0,
 ) -> dict[str, Any]:
     decks = deal_decks(seed, deck_pairs_seed, supply)
     game = _setup_game(seed, supply, decks)
@@ -459,6 +501,21 @@ def run_v2_game(
         )
         for seat in (0, 1)
     }
+    # /134 PRECOND 2: sampling seats wrap the net BEFORE the driver/provider
+    # close over it; non-net floors (teacher/random) have no sample_ask and
+    # stay unwrapped (no owned asks, nothing recorded). One action rng per
+    # sampled seat, seeded off (rl_rng_base, game seed, seat) and RECORDED
+    # with the rows: same base + seed + weights => same action sequence.
+    rl_asks: dict[str, list[dict[str, Any]]] | None = None
+    rl_seeds: dict[str, int] = {}
+    if rl_sample:
+        rl_asks = {}
+        for seat in (0, 1):
+            if hasattr(agents[seat], "sample_ask"):
+                rl_seed = rl_rng_base * 1_000_003 + seed * 2 + seat
+                rl_seeds[str(seat)] = rl_seed
+                rl_asks[str(seat)] = []
+                agents[seat] = _SamplingSeat(agents[seat], random.Random(rl_seed))
     probe = HeuristicTeacher()  # the agreement anchor, evaluated per ask
     stats: dict[str, dict[str, Any]] = {}
     for seat in (0, 1):
@@ -501,6 +558,37 @@ def run_v2_game(
         st["asks"] += 1
         st["v0"] += int(idx == 0)
         st["declines"] += int(declined)
+        if rl_asks is not None:
+            agent = agents[seat]
+            if isinstance(agent, _SamplingSeat):
+                if agent.pending is None or agent.pending[0] != idx:
+                    raise AssertionError(
+                        "rl-collect: decide/book pairing broken at seat "
+                        f"{seat} site {what!r}: the rig must book() the "
+                        "ask immediately after every sampled decide() "
+                        "(/134 audit contract — an unbooked sampled ask "
+                        "would silently diverge the replay stream)"
+                    )
+                rl_asks[str(seat)].append(
+                    {
+                        "what": what,
+                        "vocab": list(vocab),
+                        "idx": idx,
+                        "logp": agent.pending[1],
+                        "obs": obs,
+                        # /134: the choose DIGEST-STASH entry the COLLECTOR
+                        # actually saw (null = non-choose site or blind).
+                        # _STASH is process-global + FIFO-capped, so a no-
+                        # live-engine audit cannot re-derive it; omitting it
+                        # silently re-grounds choose candidates differently.
+                        "choose": (
+                            list(bc_data_v2.stash_rows_for(what))
+                            if what.startswith("choose:")
+                            else None
+                        ),
+                    }
+                )
+                agent.pending = None
 
     def provider(vocab: tuple[str, ...], what: str) -> str:
         active = seats.index(str(world.active_player))
@@ -550,7 +638,7 @@ def run_v2_game(
         next((s for s in seats if s not in losers), None) if len(losers) == 1 else None
     )
     journal_total, asked_total = len(stream.journal), len(stream.ask_log)
-    return {
+    result: dict[str, Any] = {
         "seed": seed,
         "swap": swap,
         "outcome": classify_outcome(reason, winner, seats, a_seat),
@@ -575,6 +663,41 @@ def run_v2_game(
             for seat in (0, 1)
         },
     }
+    if rl_asks is not None:
+        result["rl_asks"] = rl_asks
+        result["rl_meta"] = {
+            "rng_seeds": rl_seeds,
+            "policies": {s: str(Path(specs[int(s)]).resolve()) for s in rl_seeds},
+        }
+    return result
+
+
+def rl_episode_rows(record: dict[str, Any]) -> list[dict[str, Any]]:
+    """(/134) One jsonl episode row per SAMPLED seat of a run_v2_game
+    record; POPS the bulky per-ask data so the eval ``--out`` schema stays
+    byte-identical. The row is the AUDIT CONTRACT: asks replay the seat's
+    causal stream from the row ALONE + the checkpoint (obs is pure JSON
+    types by snapshot_obs construction, and the per-ask ``choose`` field
+    pins the process-global digest-stash state the collector saw — see
+    bc_data_v2.stash_put)."""
+    asks = record.pop("rl_asks", None)
+    meta = record.pop("rl_meta", None)
+    rows: list[dict[str, Any]] = []
+    if asks is None:
+        return rows
+    for seat in sorted(asks, key=int):
+        rows.append(
+            {
+                "kind": "rl_episode",
+                "game_seed": record["seed"],
+                "swap": record["swap"],
+                "seat": int(seat),
+                "policy": meta["policies"][seat],
+                "rng_seed": meta["rng_seeds"][seat],
+                "asks": asks[seat],
+            }
+        )
+    return rows
 
 
 # ---------------------------------------------------------------- batch
@@ -605,6 +728,8 @@ def _worker(job: dict[str, Any]) -> dict[str, Any]:
         deck_pairs_seed=job["deck_pairs_seed"],
         turn_cap=job["turn_cap"],
         device=job["device"],
+        rl_sample=job.get("rl_sample", False),
+        rl_rng_base=job.get("rl_rng_base", 0),
     )
 
 
@@ -789,7 +914,34 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--seed-base", type=int, default=0)
     ap.add_argument("--device", default="cpu", choices=("auto", "cpu", "cuda"))
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    ap.add_argument(
+        "--rl-collect",
+        type=Path,
+        default=None,
+        help="/134 PRECOND 2: write per-seat sampled episode rows "
+        "(what/vocab/idx/logp/obs/rng_seed) to this jsonl",
+    )
+    ap.add_argument(
+        "--sample",
+        action="store_true",
+        help="draw net-seat actions from the full-menu distribution "
+        "(BcAsk.sample_ask) instead of argmax; required with --rl-collect",
+    )
+    ap.add_argument(
+        "--rl-seed",
+        type=int,
+        default=0,
+        help="action-space rng base seed for --sample (recorded per seat)",
+    )
     args = ap.parse_args(argv)
+    if args.rl_collect is not None and not args.sample:
+        raise SystemExit(
+            "--rl-collect requires --sample (rows record sampled "
+            "actions + their logp; argmax lanes are auditable "
+            "without collection)"
+        )
+    if args.sample and args.rl_collect is None:
+        raise SystemExit("--sample without --rl-collect collects nothing")
 
     policy_a = str(Path(args.policy_a).resolve())
     policy_b = str(Path(args.policy_b).resolve())
@@ -819,6 +971,8 @@ def main(argv: list[str] | None = None) -> int:
             "deck_pairs_seed": args.deck_pairs_seed,
             "turn_cap": args.turn_cap,
             "device": dev,
+            "rl_sample": args.sample,
+            "rl_rng_base": args.rl_seed,
         }
         for _, base in baselines
         for s, sw in zip(seeds, swaps, strict=True)
@@ -841,6 +995,18 @@ def main(argv: list[str] | None = None) -> int:
         ) as pool:
             records = pool.map(_worker, jobs, chunksize=1)
     elapsed = time.perf_counter() - started
+
+    if args.rl_collect is not None:
+        # pop the per-ask rows OUT of the records first: the eval --out
+        # json schema stays byte-identical even while collecting.
+        args.rl_collect.parent.mkdir(parents=True, exist_ok=True)
+        n_rows = 0
+        with args.rl_collect.open("w") as fh:
+            for rec in records:
+                for row in rl_episode_rows(rec):
+                    fh.write(json.dumps(row) + "\n")
+                    n_rows += 1
+        print(f"rl-collect: {n_rows} episode rows -> {args.rl_collect}")
 
     matchups: dict[str, Any] = {}
     for i, (lane, base) in enumerate(baselines):

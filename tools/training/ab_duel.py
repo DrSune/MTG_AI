@@ -400,6 +400,41 @@ class BcAsk:
         out = self._forward_menu(torch, ctx)
         return [float(x) for x in torch.softmax(out.float(), dim=-1)[0]]
 
+    def menu_logprobs(self, ctx: AskContext) -> list[float]:
+        """Full-menu LOG-probabilities for THIS seat's next ask — the exact
+        twin of :meth:`menu_probs`: one shared ``_forward_menu`` call (the
+        causal stream advances exactly once, digit lanes swapped per-policy
+        as always), so ``argmax(menu_logprobs(ctx)) == decide(ctx)``.
+        ``log_softmax(logits.float())`` is the quantity
+        tools/training/rl_logprob_audit.py RE-COMPUTES: recorded logp must
+        equal recomputed logp at the same weights before any RL gradient
+        is trusted (/134 PRECOND 2)."""
+        import torch  # lazy: floors never pay the torch import
+
+        out = self._forward_menu(torch, ctx)
+        return [float(x) for x in torch.log_softmax(out.float(), dim=-1)[0]]
+
+    def sample_ask(self, ctx: AskContext, rng: Any) -> tuple[int, float]:
+        """RL-pilot collection (/134 PRECOND 2, owner GO 2026-10-20): draw
+        this seat's NEXT action from ITS OWN full-menu distribution instead
+        of the argmax. Shares the one model call and stream append of
+        :meth:`decide` via :meth:`menu_logprobs`; only the pick differs.
+        ``rng`` is the CALLER's action-space stream — its seed must be
+        recorded with the row: same seed + same weights => same sequence.
+        The draw is pure python (scaled CDF, fixed candidate order), so it
+        never borrows torch's RNG stream. Returns
+        ``(chosen_index, log pi(chosen))``."""
+        lps = self.menu_logprobs(ctx)
+        top = max(lps)
+        w = [math.exp(lp - top) for lp in lps]
+        cut = rng.random() * math.fsum(w)
+        acc = 0.0
+        for i, wi in enumerate(w):
+            acc += wi
+            if acc >= cut:
+                return i, lps[i]
+        return len(lps) - 1, lps[-1]
+
     def _forward_menu(self, torch: Any, ctx: AskContext):
         """One scored forward over the candidate menu; appends the ask block
         to this seat's causal stream exactly as the legacy ``_decide`` did.
