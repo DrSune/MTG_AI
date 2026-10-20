@@ -220,6 +220,7 @@ Gate law: template rounds carry checker Δ0 (V1′/V2′/V4′) + Δreview (V3�
   deltas at spec time.
 - **R2**: F4 damage fold + F1 residual re-audit.
 - **R3**: F2 silent-CHOOSE blindness audit (174 cards, §10) → freeze lift or redesign;
+  **STATUS 2026-10-20: R0/R1a/R1b/R2/R3 ALL LANDED (/132,/127,/139,/142,/144). Remaining: R3b phantom-fold (L-A 161 nodes -> no-decision encoding, D12), R4 twins GATED on similar-effects census, up-to-N gap (QConst mis-encode), engine defers ZND-7/8/9**
   F5 optional review.
 - **R4+**: F3 twins iff §9 similar-effects survives.
 Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
