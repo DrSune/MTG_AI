@@ -61,3 +61,29 @@ R4 → CLOSED with evidence; ZND-9 scope += site-tag grammar fusion (cost `{cont
 ## 5. NOT in scope
 R3c referent fold; Warmonger ask-shape changes (already L-C); model-lane seat-routing of
 provider vocab (T-G flag from /144); ZND-7/8; sibling lanes.
+
+## 7. Spec gate (adversarial, 2026-10-20) — FIX-THEN-GO, amendments LAW
+Gate re-derived ALL counts independently (self 107/top 3/seat 2/excluded-1 = 112; 81 =
+48 referent + 27 L-B + 6 L-C post-Warmonger — arithmetic reconciled); generator rerun
+byte-identical; Warmonger FNot(IS_SOURCE) confirmed on real IR (exactly 1 self-negated
+node corpus-wide); consumer audit: legal_targets CHOOSE-vs-ALL delta == the `forced`
+flag (the phantom switch itself); re-key flip vacuous today (zero role-collisions).
+FIX-1: selectors.py:1007 comment PREMISE FALSE — 5 TARGET∧IS_SOURCE nodes exist
+(Experimental Overload pos-pure; Niambi, Basri's Acolyte, Hobblefiend, Barrin neg-only);
+re-key neutrality today is corpus luck, not design. Rewrite comment; conformance
+TRIPWIRE: fail if any flip-node's card gains same-role TARGET designation; pin quintet.
+FIX-2: FOr-classifier hazard — both sortdelta classifier AND r3_lane_ledger flattener
+must RAISE on non-pure-conjunctive positive IS_SOURCE (FOr(IS_SOURCE,…) would silently
+mis-fold); red-first synthetic test; ledger flattener polarity-aware.
+FIX-3: name the proof producer — fingerprint hashes are tools/search/* world-state
+trajectories (IR-invisible; byte-identical NOT self-contradictory); exact-count gate
+query.py:~588 (TARGET/CHOOSE/RANDOM modes) drops folded ALL nodes ⇒ empty-library
+Conspicuous Snoop/Furious Rise payability semantics change (rules-defensible): battery
+gains EMPTY-LIBRARY edge scenario pinning the chosen semantics.
+FIX-4: single fold predicate — landing compiler pass MUST reuse atom_sortdelta_r3b
+classify verbatim (measured 112 == shipped 112; no ~13-module drift).
+FIX-5: re-pin inventory += compiler/test_pick_ask_promotion.py:155 (counts CHOOSE repr
+on folded Obsessive Stitcher); test_ontology_r3.py L-A-lane asserts → no-decision form;
+r20c/r22a hand-built CHOOSE pins stay green UNCHANGED (carve-back evidence); ZNR has NO
+golden store (generator gate M21-only — stated); stale docstring 'remainder 32' → 81.
+No re-gate (no amendment changes the mechanism).
