@@ -36,3 +36,5 @@ Status: v2 REVISED per adversarial round 1 (3 FATAL + 2 AMEND, all applied below
 
 ## Explicit non-goals
 No MCTS-in-the-loop (mcts net-rollout was /83-noisy — outcome RL is the orthogonal lever); no AZ re-arm (Door A stays parked); no self-play league; no value head; no new atoms.
+
+- **Precondition 1 SATISFIED (2026-10-20)**: fresh current-engine anchor done — bsh_S3a_s1 vs teacher **0.394 [0.347,0.442]** (400g, seed-base 991001, 0 ill, 1 draw). Precondition 2 (logprob recording + off-policy audit) awaits owner GO to build.
