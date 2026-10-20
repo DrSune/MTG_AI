@@ -89,7 +89,8 @@ KIND_STALL_BREAK = "STALL_BREAK"
 # "Whenever you attack with two or more..." triggers once on the whole
 # declare action, once per creature for IS_SOURCE filters).
 # COMBAT_DAMAGE carries one row per creature that dealt combat damage
-# (subject = the dealer — CombatDamageEvent's filter reads the dealer);
+# (subject = the dealer); R2 fold (/140): it is a journal/audit feed only —
+# trigger lanes subscribe the DAMAGE rows (DamageDealtEvent, combat=True);
 # 16c: the row carries the WHOLE legal assignment ((amount, recipient)
 # pairs) so one "deals combat damage" event stays ONE event however the
 # damage splits across blockers and player.
@@ -188,7 +189,7 @@ class GameEvent:
         dealer's canonical ``((amount, recipient), ...)`` tuple — 16b
         carried the single ``(amount, recipient)`` pair (no blockers);
         16c keeps ONE row per dealer however the assignment splits
-        (the CombatDamageEvent feed).
+        (journal feed since the R2 fold — triggers read the DAMAGE rows).
       * TARGETING     — ``(source_object, actor)``, subject the designated
         object (r20b, the TargetingEvent feed). ``cause_verb == "TARGET"``
         is the CR designation feed. ``cause_verb == "ONE_OF"`` /

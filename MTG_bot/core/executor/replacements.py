@@ -51,7 +51,6 @@ from MTG_bot.core.ability_tree import (
     Atom,
     BecomesBlockedEvent,
     CardDrawnEvent,
-    CombatDamageEvent,
     ControllerRef,
     CounterKind,
     CounterPlacedEvent,
@@ -98,11 +97,13 @@ if TYPE_CHECKING:  # pragma: no cover - typing-only
     from MTG_bot.core.executor import Executor
 
 # Combat-side event kinds: registered + exposed, no consumer pre-12e.
+# R2 fold (/140): CombatDamageEvent deleted — folded combat-damage
+# replacements are DamageDealtEvent(combat=True) (handled by the damage
+# path); this tuple keeps the declaration/block kinds only.
 _COMBAT_EVENTS = (
     DeclareAttackersEvent,
     DeclareBlockersEvent,
     BecomesBlockedEvent,
-    CombatDamageEvent,
 )
 
 

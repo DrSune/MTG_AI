@@ -19,7 +19,6 @@ from MTG_bot.core.ability_tree import (
     BecomesBlockedEvent,
     CardDrawnEvent,
     CardRecord,
-    CombatDamageEvent,
     ControllerRef,
     CounterKind,
     CounterPlacedEvent,
@@ -45,6 +44,7 @@ from MTG_bot.core.ability_tree import (
     QConst,
     QProp,
     QPropField,
+    QUnbounded,
     SacrificeEvent,
     Selector,
     SelectorMode,
@@ -125,7 +125,9 @@ ANOTHER_CREATURE = FAnd((FNot(IS_SOURCE), CREATURE))
 
 def referent_sel(referent: str, filter_: Filter = UNIV) -> Selector:
     """The C2 convention referent selector (bound object, never a search)."""
-    return Selector(QConst(1), SelectorMode.CHOOSE, filter_, zones=(ANY_ANY,), referent=referent)
+    return Selector(
+        QConst(1), SelectorMode.CHOOSE, filter_, zones=(ANY_ANY,), referent=referent
+    )
 
 
 def named_sel(name: str) -> Selector:
@@ -668,6 +670,9 @@ class TestRaises(BindingCase):
         # CombatDamageEvent LEFT this list too — the COMBAT skeleton ships
         # both feeds (DECLARE_ATTACKERS / COMBAT_DAMAGE journal rows,
         # binder matchers in binding.py) and bind CLEAN (checked below).
+        # R2 (2026-10-20, /140): CombatDamageEvent FOLDED into
+        # DamageDealtEvent — the combat feed is now the DAMAGE journal rows
+        # (is_combat=True) and the folded shape binds CLEAN (checked below).
         # AMENDED 2026-10-02 (round 16c): DeclareBlockersEvent +
         # BecomesBlockedEvent LEFT this list too — the blocker step ships
         # the feed (DECLARE_BLOCKERS pair rows, binder matchers) and both
@@ -694,7 +699,15 @@ class TestRaises(BindingCase):
             1,
         )
         self.assertEqual(
-            self.attach_trigger(self.watch, CombatDamageEvent(filter=UNIV), gain(1)),
+            self.attach_trigger(
+                self.watch,
+                # R2 fold (/140): the folded combat-damage shape — the
+                # former CombatDamageEvent(filter=UNIV) trigger.
+                DamageDealtEvent(
+                    amount=QUnbounded(), filter=UNIV, source=FAnd(()), combat=True
+                ),
+                gain(1),
+            ),
             1,
         )
         # 16c: the block feed binds clean (the matcher semantics — filter/

@@ -361,7 +361,11 @@ def _walk_sample() -> at.CardRecord:
                                         at.FNot(at.FAtom(at.FAtomPred.IS_TAPPED)),
                                     )
                                 ),
-                                zones=(at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.ANY),),
+                                zones=(
+                                    at.Zone(
+                                        at.ZoneKind.BATTLEFIELD, at.ControllerRef.ANY
+                                    ),
+                                ),
                             )
                         ),
                     ),
@@ -465,7 +469,9 @@ def _all_nodes() -> list[tuple[str, object]]:
         ),
         (
             "Selector-ALL",
-            at.Selector(at.QConst(1), at.SelectorMode.ALL, at.FAnd(()), zones=(_BF_ANY,)),
+            at.Selector(
+                at.QConst(1), at.SelectorMode.ALL, at.FAnd(()), zones=(_BF_ANY,)
+            ),
         ),
         (
             "Selector-RANDOM",
@@ -593,7 +599,7 @@ def _all_nodes() -> list[tuple[str, object]]:
             "DurationWhileCondition",
             at.DurationWhileCondition(at.FAtom(at.FAtomPred.IS_TAPPED)),
         ),
-        # events — all thirteen
+        # events — all twelve
         (
             "ZoneChangeEvent",
             at.ZoneChangeEvent(
@@ -615,7 +621,9 @@ def _all_nodes() -> list[tuple[str, object]]:
             "DeclareBlockersEvent",
             at.DeclareBlockersEvent(at.FAtom(at.FAtomPred.IS_SOURCE)),
         ),
-        ("CombatDamageEvent", at.CombatDamageEvent(at.FAtom(at.FAtomPred.IS_SOURCE))),
+        # R2 fold (/140): CombatDamageEvent deleted — DamageDealtEvent
+        # (below) is the single damage host; the folded shape is pinned
+        # in the two entries the fold produced.
         (
             "CounterPlacedEvent",
             at.CounterPlacedEvent(
@@ -860,7 +868,10 @@ def _all_nodes() -> list[tuple[str, object]]:
         (
             "TriggeredAbility",
             at.TriggeredAbility(
-                at.CombatDamageEvent(at.FAtom(at.FAtomPred.IS_SOURCE)),
+                # R2 fold (/140): folded combat-damage shape (ex-CDE).
+                at.DamageDealtEvent(
+                    at.QUnbounded(), at.FAnd(()), at.FAtom(at.FAtomPred.IS_SOURCE), True
+                ),
                 None,
                 at.OptionalEffect(mill),
             ),
@@ -1257,7 +1268,13 @@ def _validation_cases() -> list[tuple[str, Callable[[], object]]]:
         (
             "TriggeredAbility bad condition",
             lambda: at.TriggeredAbility(
-                at.CombatDamageEvent(at.FAtom(at.FAtomPred.IS_PERMANENT)),
+                # R2 fold (/140): folded combat-damage shape (ex-CDE).
+                at.DamageDealtEvent(
+                    at.QUnbounded(),
+                    at.FAnd(()),
+                    at.FAtom(at.FAtomPred.IS_PERMANENT),
+                    True,
+                ),
                 "x",
                 at.Atom(at.Verb.END_TURN, at.AtomArgs(pairs=())),
             ),
@@ -1622,7 +1639,9 @@ def test_synthetic_tarmogoyf_like() -> None:
     assert effect.verb is at.Verb.SET_PT
     power = effect.args.get("power")
     assert isinstance(power, at.QCount)
-    assert power.selector.zones[0] == at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.ANY)
+    assert power.selector.zones[0] == at.Zone(
+        at.ZoneKind.GRAVEYARD, at.ControllerRef.ANY
+    )
     assert isinstance(power.selector.filter, at.FAtom)
     assert power.selector.filter.pred is at.FAtomPred.SUBTYPE_EQ
     assert card.power is None and card.toughness is None  # dynamic P/T

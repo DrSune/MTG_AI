@@ -18,7 +18,8 @@ Coverage (62 shapes = 58 template-covered + 4 uncovered):
     Ornery Dilophosaur, Tide Skimmer, Vito).
   - *Round 5* (15 templates, 2026-09-25): 14 new shapes and 14 concrete rows
     — Warden of the Woods (TargetingEvent + OptionalEffect DRAW; lossy:
-    "an opponent controls"), Jeskai Elder (CombatDamageEvent + OptionalEffect
+    "an opponent controls"), Jeskai Elder (DamageDealtEvent combat=True +
+    OptionalEffect
     DRAW; lossy: "to a player"), Chandra's Incinerator / Pyreling
     (DamageDealtEvent ``combat=False`` + source filter; the Incinerator deals
     ``QProp("event", AMOUNT)`` to a target "that player controls" via
@@ -28,7 +29,8 @@ Coverage (62 shapes = 58 template-covered + 4 uncovered):
     referent + GAIN_LIFE), Hooded Blightfang (planeswalker-damage variant;
     DamageDealtEvent + SUPERTYPE_EQ Planeswalker recipient + DESTROY via the
     event referent — disjoint from the existing attacks sentence), Feline
-    Sovereign (CombatDamageEvent + DESTROY "that player controls" via the
+    Sovereign (R2-folded DamageDealtEvent combat=True, cats filter in the
+    source slot, + DESTROY "that player controls" via the
     event referent), Ghostly Pilferer s2 (CastSpellEvent.from_zone_not
     Zone(HAND, OPPONENT)), Double Vision s1 (CastSpellEvent ordinal=1 over
     instant/sorcery + COPY via the event referent), Double Vision s2
@@ -109,7 +111,6 @@ from MTG_bot.core.ability_tree import (
     CardDrawnEvent,
     CastSpellEvent,
     Choose,
-    CombatDamageEvent,
     ControllerRef,
     Cost,
     CostManaGeneric,
@@ -485,7 +486,9 @@ def _build_alpine_houndmaster_etb(m: re.Match[str]) -> SentenceOutcome:
                                                 ),
                                             )
                                         ),
-                                        zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),),
+                                        zones=(
+                                            Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+                                        ),
                                     ),
                                 ),
                                 (
@@ -550,7 +553,9 @@ def _build_fierce_empath_etb(m: re.Match[str]) -> SentenceOutcome:
                                                 ),
                                             )
                                         ),
-                                        zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),),
+                                        zones=(
+                                            Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+                                        ),
                                     ),
                                 ),
                                 (
@@ -1003,7 +1008,10 @@ def _build_named_card_search_etb(m: re.Match[str]) -> SentenceOutcome:
                         QConst(1),
                         SelectorMode.CHOOSE,
                         FAtom(pred=FAtomPred.NAME_EQ, string_value=name),
-                        zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU), *(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),)),
+                        zones=(
+                            Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+                            *(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),),
+                        ),
                     ),
                 ),
                 ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
@@ -1024,11 +1032,13 @@ def _build_named_card_search_etb(m: re.Match[str]) -> SentenceOutcome:
                         QConst(1),
                         SelectorMode.CHOOSE,
                         FAtom(pred=FAtomPred.IS_SOURCE),
-                        zones=(Zone(
-                            ZoneKind.LIBRARY,
-                            ControllerRef.YOU,
-                            position=ZonePosition.TOP,
-                        ),),
+                        zones=(
+                            Zone(
+                                ZoneKind.LIBRARY,
+                                ControllerRef.YOU,
+                                position=ZonePosition.TOP,
+                            ),
+                        ),
                     ),
                 ),
                 ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
@@ -1493,7 +1503,9 @@ def _build_solemn_simulacrum_etb(m: re.Match[str]) -> SentenceOutcome:
                                                 ),
                                             )
                                         ),
-                                        zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),),
+                                        zones=(
+                                            Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+                                        ),
                                     ),
                                 ),
                                 (
@@ -1703,10 +1715,18 @@ def _build_warden_of_the_woods(m: re.Match[str]) -> SentenceOutcome:
 def _build_jeskai_elder(m: re.Match[str]) -> SentenceOutcome:
     """Round 4 row #2: deals combat damage to a player, you may draw a card.
 
-    Lossy: "to a player" is dropped — CombatDamageEvent.filter is over the
-    damage-dealing creature and exposes no recipient field (doc-05 row #2)."""
+    R2 fold (F4, /140): CDE -> DamageDealtEvent{amount:QUnbounded,
+    filter:FAnd(()) universal recipient marker, source:IS_SOURCE,
+    combat:True} — byte-identical to Garruk's Harbinger's node (the §9
+    merge proof). Lossy (unchanged): "to a player" stays dropped — the
+    recipient fidelity is ZND-7(b), not this fold."""
     return _ability(
-        CombatDamageEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
+        DamageDealtEvent(
+            amount=QUnbounded(),
+            filter=FAnd(children=()),
+            source=FAtom(pred=FAtomPred.IS_SOURCE),
+            combat=True,
+        ),
         OptionalEffect(
             inner=Atom(
                 verb=Verb.DRAW,
@@ -1924,9 +1944,12 @@ def _build_feline_sovereign(m: re.Match[str]) -> SentenceOutcome:
     controls.
 
     "That player" = the damaged recipient, the event referent in the
-    CONTROLLER_IS who slot (round 4, object anaphora); CombatDamageEvent
-    fires per Cat, so the trigger is the Cats filter over the
-    damage-dealing creature."""
+    CONTROLLER_IS who slot (round 4, object anaphora). R2 fold (F4, /140):
+    CDE -> DamageDealtEvent{amount:QUnbounded, filter:FAnd(()) universal
+    recipient marker, source:the cats FAnd VERBATIM, combat:True} — the
+    dealer-side filter rides the source slot in the Subira host shape; the
+    folded lane's event subject is the damaged recipient, which finally
+    binds "that player" rules-faithful (test_ontology_r2 E2E leg)."""
     cats = FAnd(
         children=(
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
@@ -1953,7 +1976,12 @@ def _build_feline_sovereign(m: re.Match[str]) -> SentenceOutcome:
         zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
     )
     return _ability(
-        CombatDamageEvent(filter=cats),
+        DamageDealtEvent(
+            amount=QUnbounded(),
+            filter=FAnd(children=()),
+            source=cats,
+            combat=True,
+        ),
         Atom(
             verb=Verb.DESTROY,
             args=AtomArgs(pairs=(("target", target),)),
@@ -2024,8 +2052,8 @@ def _build_garruks_harbinger(m: re.Match[str]) -> SentenceOutcome:
     """Round 4 row #13: this creature deals combat damage to a player or
     planeswalker, look at that many cards from the top of your library.
 
-    DamageDealtEvent carries ``amount`` (CombatDamageEvent does not) and
-    ``combat=True``; "that many" = QProp("event", AMOUNT) (convention C4:
+    DamageDealtEvent carries ``amount`` (the R2 fold retired the
+    amount-less CDE wording-variant) and ``combat=True``; "that many" = QProp("event", AMOUNT) (convention C4:
     LOOK_AT implicitly looks at the top of the library).  Lossy: the
     "a player or planeswalker" recipient filter is dropped (no recipient
     predicate)."""

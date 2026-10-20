@@ -1817,20 +1817,6 @@ class DeclareBlockersEvent:
 
 
 @dataclass(frozen=True)
-class CombatDamageEvent:
-    """Combat damage was dealt (filter over the damage-dealing creature —
-    Garruk's Harbinger, Jeskai Elder)."""
-
-    filter: Filter
-
-    def __post_init__(self) -> None:
-        if not _is_filter(self.filter):
-            raise ValueError(
-                f"CombatDamageEvent: filter must be a Filter, got {type(self.filter).__name__}"
-            )
-
-
-@dataclass(frozen=True)
 class CounterPlacedEvent:
     """Counters of a kind were placed on the subject.
 
@@ -2114,7 +2100,6 @@ EventSpec = (
     | CastSpellEvent
     | DeclareAttackersEvent
     | DeclareBlockersEvent
-    | CombatDamageEvent
     | CounterPlacedEvent
     | CreatureDiesEvent
     | BecomesBlockedEvent
@@ -3440,7 +3425,6 @@ _EV_CLASSES = (
     CastSpellEvent,
     DeclareAttackersEvent,
     DeclareBlockersEvent,
-    CombatDamageEvent,
     CounterPlacedEvent,
     CreatureDiesEvent,
     BecomesBlockedEvent,
@@ -4031,7 +4015,6 @@ _DATACLASSES: tuple[type, ...] = (
     CastSpellEvent,
     DeclareAttackersEvent,
     DeclareBlockersEvent,
-    CombatDamageEvent,
     CounterPlacedEvent,
     CreatureDiesEvent,
     BecomesBlockedEvent,
@@ -4194,7 +4177,8 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         # creature; omitted when None.
         ("blocked", "opt:filter"),
     ),
-    "CombatDamageEvent": (("filter", "filter"),),
+    # R2 fold (/140): "CombatDamageEvent" removed — DamageDealtEvent is the
+    # single damage host (fields below).
     "CounterPlacedEvent": (
         ("counter_kind", "enum:CounterKind"),
         ("filter", "filter"),
@@ -4402,7 +4386,6 @@ _EVENT_TAGS = frozenset(
         "CastSpellEvent",
         "DeclareAttackersEvent",
         "DeclareBlockersEvent",
-        "CombatDamageEvent",
         "CounterPlacedEvent",
         "CreatureDiesEvent",
         "BecomesBlockedEvent",

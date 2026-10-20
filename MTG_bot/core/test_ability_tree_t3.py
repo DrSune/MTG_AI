@@ -148,8 +148,11 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
     ),
     (
         "triggered_combat_damage",
+        # R2 fold (/140): former CombatDamageEvent(_SRC) vector, re-pinned
+        # to the folded DDE shape (amount unbounded, empty filter, the
+        # filter moved verbatim to source, combat=True). Hash recomputed.
         lambda: at.TriggeredAbility(
-            at.CombatDamageEvent(_SRC),
+            at.DamageDealtEvent(at.QUnbounded(), at.FAnd(()), _SRC, True),
             None,
             at.OptionalEffect(
                 at.Atom(
@@ -163,7 +166,7 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
                 )
             ),
         ),
-        "e7275e247c3ed049f61f6de0e758cf435f272cdc44efda2229c772e14fc695ed",
+        "85758a084be0aa958fd5589fbfcda6b768324680ae564cef31958f5bb0b2004e",
     ),
     (
         "zone_library_you",
@@ -785,6 +788,12 @@ def test_pinned_pre_t3_fingerprint(
 ) -> None:
     node = build()
     assert at.fingerprint(node) == fp
+    if name == "triggered_combat_damage":
+        # R2 fold amendment (/140): this vector was RE-PINNED to the
+        # folded combat-damage shape — DamageDealtEvent.source/combat are
+        # its CONTENT, so the pre-T3 absence assertion does not apply to
+        # it (same pattern as the R0 Selector.zones amendment above).
+        return
     _assert_no_t3_keys(at.to_dict(node))
 
 

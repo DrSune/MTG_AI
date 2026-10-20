@@ -55,7 +55,6 @@ from MTG_bot.core.ability_tree import (
     CardDrawnEvent,
     CardRecord,
     CastSpellEvent,
-    CombatDamageEvent,
     ControllerRef,
     CounterKind,
     CounterPlacedEvent,
@@ -101,7 +100,7 @@ from MTG_bot.core.executor.events import (
     KIND_ABILITY_TRIGGERED,
     KIND_CARD_DRAWN,
     KIND_CAST,
-    KIND_COMBAT_DAMAGE,
+    KIND_COMBAT_DAMAGE,  # noqa: F401 — journal feed only since the R2 fold (/140): emitted, never subscribed
     KIND_COUNTER_PLACED,
     KIND_CREATURE_DIES,
     KIND_DAMAGE,
@@ -142,6 +141,10 @@ MAX_TRIGGER_FIRES = 200
 # COMBAT skeleton ships both feeds (journal DECLARE_ATTACKERS rows per
 # declared attacker, group-deduped per ability; COMBAT_DAMAGE rows per
 # dealing creature) and :meth:`TriggerBinder._match_node` subscribes them.
+# R2 (2026-10-20, /140): CombatDamageEvent FOLDED into DamageDealtEvent —
+# the COMBAT_DAMAGE journal rows still emit (audit feed, BREAK-2) but no
+# trigger lane subscribes them any more: folded combat triggers bind the
+# DAMAGE rows through _match_damage (is_combat distinguishes them).
 # 16c: DeclareBlockersEvent and BecomesBlockedEvent LEFT this table too —
 # the blocker step ships the feed (journal DECLARE_BLOCKERS rows, one per
 # declaration PAIR: subject = the blocker, data = (attacker, group)) and
@@ -872,13 +875,9 @@ class TriggerBinder:
                 if attacked is None or not eval_filter(node.attacked, attacked, ctx):
                     return False
             return eval_filter(node.filter, event.subject, ctx)
-        if kind == KIND_COMBAT_DAMAGE and isinstance(node, CombatDamageEvent):
-            # 16b: the combat-damage feed — filter over the DEALING
-            # creature (Jeskai Elder's / Feline Sovereign's "deals combat
-            # damage"; 0-power attackers never emit the row, CR 120.7).
-            assert event.subject is not None  # the row names the dealer
-            ctx = self._match_ctx(source, controller, event)
-            return eval_filter(node.filter, event.subject, ctx)
+        # R2 fold (/140): the KIND_COMBAT_DAMAGE / CombatDamageEvent branch
+        # is GONE — folded combat triggers read the DAMAGE rows here
+        # (kind == KIND_DAMAGE, _match_damage, node.combat gating).
         if kind == KIND_DECLARE_BLOCKERS and isinstance(
             node, (DeclareBlockersEvent, BecomesBlockedEvent)
         ):
@@ -1240,6 +1239,40 @@ class TriggerBinder:
         # (the dealer); the 18b DIES twin (Massacre Wurm's "that player")
         # binds here; anything else the effect reads as target/TARGET_PLAYER
         # gets a real designation ask through the 14b channel.
+        # R2 (2026-10-20, /140 fold): the 16a DAMAGE pre-bind is the
+        # TARGET_PLAYER-anaphora read (Brash Taunter's echo). A trigger
+        # whose printed TARGET slot designates from an EVENT-SUBJECT-
+        # parameterized population (Feline Sovereign's / Chandra's
+        # Incinerator's "that player controls", compiled as CONTROLLER_IS
+        # who=<Selector referent='event'>) can never be served by the
+        # dealer designation — the pre-bind must not swallow the 18b lane
+        # for it. The narrow gate keeps every TARGET_PLAYER reader (Brash
+        # Taunter's echo zone) exactly as 16a bound it.
+        if (
+            event.kind == KIND_DAMAGE
+            and event.cause is not None
+            and ctx.bindings.get("target") == event.cause
+            and (
+                self._damage_designation_is_event_borne(node)
+                or not self._prebind_legal_for_targets(node, ctx)
+            )
+        ):
+            # R2 diff-gate BREAK-3 fix: the shape gate alone was fail-OPEN
+            # on the other polarity — a TARGET slot with a NON-event filter
+            # (e.g. CONTROLLER_IS OPPONENT) kept the pre-bind, and
+            # resolve_selector takes a bound handle as FROZEN DESIGNATION
+            # WITHOUT CONSULTING the selector's zones+filter, so the dealer
+            # resolved the slot against ITSELF (probe4 Variant A: the dealer
+            # destroyed itself, no ask, no journal). The validation lift
+            # closes that: the 16a dealer designation may only stand when
+            # it is actually LEGAL for every printed TARGET slot. Known-
+            # narrow by design, two ways: (i) the shape scan above never
+            # reads trigger CONDITIONS; (ii) its TARGET_PLAYER scan misses
+            # bare-role reads (LOSE_LIFE controller=TARGET_PLAYER) — for
+            # both, _designation's broader scan + loud multi-slot raise is
+            # the backstop (probe4 Variant D proved it catches the bare-
+            # role case when a lift opens the ask lane).
+            del ctx.bindings["target"]
         if ctx.bindings.get("target") is None:
             if (
                 event.kind == KIND_CREATURE_DIES
@@ -1267,6 +1300,111 @@ class TriggerBinder:
         # anaphora has no producer skips LOUD (unresolved_effects) instead
         # of killing the match; every other error still propagates.
         self.executor._run_guarded_effect(node.effect, ctx, "trigger")
+
+    @staticmethod
+    def _filter_reads_event_ref(filter_: object) -> bool:
+        """R2 (/140): does this filter tree gate on CONTROLLER_IS whose
+        ``who`` slot is an EVENT-REFERENT Selector (the frozen-IR shape of
+        "that player controls" where THAT PLAYER is the event subject —
+        Feline Sovereign's DESTROY, Chandra's Incinerator's burn)?"""
+        if isinstance(filter_, FAtom):
+            who = filter_.who
+            if (
+                filter_.pred is FAtomPred.CONTROLLER_IS
+                and isinstance(who, Selector)
+                and who.referent in ("event", "result")
+            ):
+                return True
+            return any(
+                TriggerBinder._filter_reads_event_ref(inner)
+                for inner in (filter_.inner_filter, filter_.right_inner_filter)
+                if inner is not None
+            )
+        if isinstance(filter_, (FAnd, FOr)):
+            return any(
+                TriggerBinder._filter_reads_event_ref(c) for c in filter_.children
+            )
+        if isinstance(filter_, FNot):
+            return TriggerBinder._filter_reads_event_ref(filter_.inner)
+        return False
+
+    @classmethod
+    def _damage_designation_is_event_borne(cls, node: _AnyTrigger) -> bool:
+        """R2 narrow gate (/140): True iff the trigger's printed TARGET
+        slots designate from an event-subject-parameterized population
+        (every TARGET-mode, referent-free Selector's filter reads the
+        event-ref CONTROLLER_IS) AND the node reads the TARGET_PLAYER
+        designation nowhere (Brash Taunter's echo zone keeps its 16a
+        dealer pre-bind untouched). A node failing either side keeps the
+        pre-bind exactly as 16a bound it."""
+        targets: list[Selector] = []
+        for inner in walk(node.effect):
+            if not isinstance(inner, Atom):
+                continue
+            for _role, value in inner.args.pairs:
+                if isinstance(value, Selector):
+                    if value.mode is SelectorMode.TARGET and value.referent is None:
+                        targets.append(value)
+                    if filter_reads_bound_player(value):
+                        return False
+                elif filter_reads_bound_player(value):
+                    return False
+            if filter_reads_bound_player(inner):
+                return False
+        if not targets:
+            return False
+        return all(cls._filter_reads_event_ref(sel.filter) for sel in targets)
+
+    def _prebind_legal_for_targets(self, node: _AnyTrigger, ctx: ExecCtx) -> bool:
+        """R2 diff-gate BREAK-3 fix: may the 16a dealer pre-bind stand as
+        the FROZEN DESIGNATION of every printed TARGET slot of this
+        trigger? resolve_selector takes a bound handle without re-checking
+        the selector's filter, so the check must happen at the lift site.
+        ONE legality opinion (query/runtime identity, §8.3): the slot's
+        population is :func:`query.legal_targets` — the SAME enumeration
+        the :meth:`_designate` ask lane uses; the designation is legal iff
+        it is IN that population, with the 16a zone-side rule folded in: a
+        CARD designation legalises a PLAYER-side slot through its
+        controller (exactly what makes Brash Taunter's echo lane work).
+        A trigger with no TARGET slot needs nothing of the pre-bind and
+        answers True (the dealer stays). Validation never asks; a failing
+        designation LIFTS the pre-bind and the 18b ask lane re-runs from
+        the selector's own filter. KNOWN-NARROW (diff-gate FIX-3, by
+        design): neither this check nor the shape gate above ever reads
+        the trigger's CONDITION, and the TARGET_PLAYER scan misses
+        BARE-ROLE reads (LOSE_LIFE controller=TARGET_PLAYER). A node
+        whose lift opens both a TARGET slot and a bare-role read is
+        caught LOUD by _designation's broader scan + multi-slot raise
+        (probe4 Variant D proved the backstop) — never a silent bind."""
+        from MTG_bot.core.executor.query import legal_targets
+
+        designated = ctx.bindings.get("target")
+        for inner in walk(node.effect):
+            if not isinstance(inner, Atom):
+                continue
+            for _role, value in inner.args.pairs:
+                if not (
+                    isinstance(value, Selector)
+                    and value.mode is SelectorMode.TARGET
+                    and value.referent is None
+                ):
+                    continue
+                slot = legal_targets(
+                    self.world,
+                    self.executor,
+                    value,
+                    source=ctx.source,
+                    controller=ctx.controller,
+                    bindings=ctx.bindings,
+                )
+                candidates = set(slot.candidates)
+                if designated in candidates:
+                    continue
+                owner = self.executor.controller_of(designated)
+                if owner is not None and owner in candidates:
+                    continue  # 16a: a CARD designation legalises a player
+                return False
+        return True
 
     @staticmethod
     def _trigger_designates_target(node: _AnyTrigger) -> bool:

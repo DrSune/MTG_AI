@@ -2086,7 +2086,7 @@ class Executor:
         signment (CR 603.2: one "deals combat damage" event per dealer,
         however it splits), and the settle after the wave is the step's SBA
         + trigger drain. CR 120.7: a 0-power attacker deals no damage at
-        all — no life change, no DAMAGE row, no CombatDamageEvent."""
+        all — no life change, no DAMAGE row, no combat-damage event."""
         defender = self.defending_player
         assert defender is not None
         strikes: list[tuple[Handle, tuple[tuple[int, Handle], ...]]] = []

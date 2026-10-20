@@ -174,7 +174,7 @@ RULES: list[tuple[str, str, list[str]]] = [
     (
         r"\b(?:dealt (?:combat )?damage|becomes? (?:blocked|unblocked|tapped|blocked))\b",
         "shape",
-        ["T:TriggeredAbility", "T:CombatDamageEvent", "S:Event"],
+        ["T:TriggeredAbility", "T:DamageDealtEvent", "S:Event"],
     ),
     (r"\bactivate only as a sorcery\b", "shape", ["S:ActivationWindow"]),
     (

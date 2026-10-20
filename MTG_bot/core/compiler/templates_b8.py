@@ -72,8 +72,9 @@ Gap ledger (ZND-3 law: these stay UNPARSED, no silent partials):
 
 Lossy notes (C11 class, verbatim per house convention):
 
-* Nimble Trapfinder "to a player" — CombatDamageEvent exposes no
-  recipient role; same documented drop as the B2b Jeskai Elder lane.
+* Nimble Trapfinder "to a player" — the granted combat-damage trigger
+  carries the universal FAnd(()) recipient marker; same documented drop
+  as the B2b Jeskai Elder lane (ZND-7(b)).
 * Coveted Prize: "a spell with mana value 4 or less" is encoded
   CMC_LE≤4 on the CHOOSE-from-hand selector; whether the CAST resolves
   stays the open OptionalEffect decision (C16).
@@ -87,13 +88,13 @@ from typing import Final
 from MTG_bot.core.ability_tree import (
     Atom,
     AtomArgs,
-    CombatDamageEvent,
     Conditional,
     ControllerRef,
     Cost,
     CostDeltaReduceGeneric,
     CostModifier,
     CounterKind,
+    DamageDealtEvent,
     DeclareAttackersEvent,
     DurationEot,
     FAnd,
@@ -588,10 +589,12 @@ def _build_full_choose_nonland(m: re.Match[str]) -> SentenceOutcome:
                                         ),
                                     )
                                 ),
-                                zones=(Zone(
-                                    kind=ZoneKind.BATTLEFIELD,
-                                    controller=ControllerRef.ANY,
-                                ),),
+                                zones=(
+                                    Zone(
+                                        kind=ZoneKind.BATTLEFIELD,
+                                        controller=ControllerRef.ANY,
+                                    ),
+                                ),
                             ),
                         ),
                         ("count", QConst(1)),
@@ -607,9 +610,9 @@ def _build_full_grant_draw(m: re.Match[str]) -> SentenceOutcome:
     this creature deals combat damage to a player, draw a card" until end
     of turn.`` — GRANT_ABILITY of a TriggeredAbility (b5c:683 precedent);
     the quoted trigger is the Jeskai-Elder event shape, and "to a player"
-    is THAT lane's documented lossy drop (CombatDamageEvent carries no
-    recipient role). Inside the quotes there is no "may": the draw is
-    forced."""
+    is THAT lane's documented lossy drop (the folded DDE carries the
+    universal FAnd(()) recipient marker — R2 fold, /140). Inside the
+    quotes there is no "may": the draw is forced."""
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=_combat_event(),
@@ -622,8 +625,11 @@ def _build_full_grant_draw(m: re.Match[str]) -> SentenceOutcome:
                         (
                             "ability",
                             TriggeredAbility(
-                                event=CombatDamageEvent(
-                                    filter=FAtom(pred=FAtomPred.IS_SOURCE)
+                                event=DamageDealtEvent(
+                                    amount=QUnbounded(),
+                                    filter=FAnd(children=()),
+                                    source=FAtom(pred=FAtomPred.IS_SOURCE),
+                                    combat=True,
                                 ),
                                 condition=None,
                                 effect=Atom(
@@ -666,10 +672,12 @@ def _build_full_free_cast(m: re.Match[str]) -> SentenceOutcome:
                                     QConst(1),
                                     SelectorMode.CHOOSE,
                                     FAtom(pred=FAtomPred.CMC_LE, count=QConst(4)),
-                                    zones=(Zone(
-                                        kind=ZoneKind.HAND,
-                                        controller=ControllerRef.YOU,
-                                    ),),
+                                    zones=(
+                                        Zone(
+                                            kind=ZoneKind.HAND,
+                                            controller=ControllerRef.YOU,
+                                        ),
+                                    ),
                                 ),
                             ),
                             ("cost", Cost(parts=())),
@@ -721,10 +729,12 @@ def _build_up_to_two_x(m: re.Match[str]) -> SentenceOutcome:
                             QAtMost(2),
                             SelectorMode.TARGET,
                             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                            zones=(Zone(
-                                kind=ZoneKind.BATTLEFIELD,
-                                controller=ControllerRef.ANY,
-                            ),),
+                            zones=(
+                                Zone(
+                                    kind=ZoneKind.BATTLEFIELD,
+                                    controller=ControllerRef.ANY,
+                                ),
+                            ),
                         ),
                     ),
                     ("power", PtDelta(PtDirection.INCREASE, _party_count())),
@@ -822,10 +832,12 @@ def _build_x_to_creature_or_pw(m: re.Match[str]) -> SentenceOutcome:
                                         ),
                                     )
                                 ),
-                                zones=(Zone(
-                                    kind=ZoneKind.BATTLEFIELD,
-                                    controller=ControllerRef.ANY,
-                                ),),
+                                zones=(
+                                    Zone(
+                                        kind=ZoneKind.BATTLEFIELD,
+                                        controller=ControllerRef.ANY,
+                                    ),
+                                ),
                             ),
                         ),
                         ("amount", _party_count()),
@@ -867,10 +879,12 @@ def _build_four_and_x_controller(m: re.Match[str]) -> SentenceOutcome:
                                     QConst(1),
                                     SelectorMode.TARGET,
                                     FAnd(children=()),
-                                    zones=(Zone(
-                                        kind=ZoneKind.PLAYER,
-                                        controller=ControllerRef.ANY,
-                                    ),),
+                                    zones=(
+                                        Zone(
+                                            kind=ZoneKind.PLAYER,
+                                            controller=ControllerRef.ANY,
+                                        ),
+                                    ),
                                 ),
                             ),
                             ("amount", _party_count()),
@@ -934,10 +948,12 @@ def _build_class_signature(m: re.Match[str]) -> SentenceOutcome:
                                         ),
                                     )
                                 ),
-                                zones=(Zone(
-                                    kind=ZoneKind.BATTLEFIELD,
-                                    controller=ControllerRef.ANY,
-                                ),),
+                                zones=(
+                                    Zone(
+                                        kind=ZoneKind.BATTLEFIELD,
+                                        controller=ControllerRef.ANY,
+                                    ),
+                                ),
                             ),
                         ),
                         ("types", ("Cleric", "Rogue", "Warrior", "Wizard")),

@@ -31,7 +31,6 @@ from MTG_bot.core.ability_tree import (
     CardDrawnEvent,
     CastSpellEvent,
     Choose,
-    CombatDamageEvent,
     ControllerRef,
     Cost,
     CostManaGeneric,
@@ -1164,9 +1163,17 @@ class TestB2bTriggerEvents(unittest.TestCase):
             )
         )
         event = ability.event
-        assert isinstance(event, CombatDamageEvent)
-        assert isinstance(event.filter, FAtom)
-        self.assertIs(event.filter.pred, FAtomPred.IS_SOURCE)
+        # R2 fold (/140): CombatDamageEvent folded into DamageDealtEvent —
+        # amount unbounded, empty filter conj, the old filter moved
+        # verbatim to source, combat=True (the COMBAT_DAMAGE feed is now
+        # the is_combat=True DAMAGE journal rows).
+        assert isinstance(event, DamageDealtEvent)
+        self.assertEqual(event.amount, QUnbounded())
+        self.assertIs(event.combat, True)
+        assert isinstance(event.filter, FAnd)
+        self.assertEqual(event.filter.children, ())
+        assert isinstance(event.source, FAtom)
+        self.assertIs(event.source.pred, FAtomPred.IS_SOURCE)
         self.assertIsNone(ability.condition)
 
     def test_incinerator_is_noncombat_damage_event(self) -> None:
@@ -1272,11 +1279,18 @@ class TestB2bTriggerEvents(unittest.TestCase):
             )
         )
         event = ability.event
-        assert isinstance(event, CombatDamageEvent)
+        # R2 fold (/140): the cats filter moved VERBATIM from the old
+        # CombatDamageEvent filter slot to DamageDealtEvent.source; the
+        # fold's filter is the empty conj, amount unbounded, combat=True.
+        assert isinstance(event, DamageDealtEvent)
+        self.assertEqual(event.amount, QUnbounded())
+        self.assertIs(event.combat, True)
         assert isinstance(event.filter, FAnd)
-        self._assert_has_type_eq_creature(event.filter)
-        self._assert_has_controller_you(event.filter)
-        self._assert_has_subtype_cat(event.filter)
+        self.assertEqual(event.filter.children, ())
+        assert isinstance(event.source, FAnd)
+        self._assert_has_type_eq_creature(event.source)
+        self._assert_has_controller_you(event.source)
+        self._assert_has_subtype_cat(event.source)
 
     def test_ghostly_pilferer_cast_is_from_zone_not(self) -> None:
         ability = _ability(
