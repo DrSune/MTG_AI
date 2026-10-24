@@ -19,6 +19,8 @@ from tools.eval.gameplay_eval_v2 import (
     summarize_matchup,
 )
 from tools.training.collector import AskContext
+from tools._testutil import skip_unless_files
+from tools.eval.gameplay_eval_v2 import DEFAULT_POLICY_A
 
 HANDLE_WORDS = {"card:0", "card:3", "card:9", "player:0", "player:1"}
 
@@ -225,6 +227,7 @@ def test_summarize_per_kind_and_leverage() -> None:
     assert m2["leverage"]["rounds"]["4"]["policy_lead_rate"] == 0.0
 
 
+@skip_unless_files(DEFAULT_POLICY_A)
 def test_one_game_end_to_end(tmp_path) -> None:
     """Gate: a REAL BC-vs-HEURISTIC game runs through the policy act layer
     and the seat-attributed provider; the v2 contract keys are present and
@@ -439,6 +442,7 @@ def test_collapse_zones_keeps_menu_referenced_rows() -> None:
     assert next(g for g in out if g[0] == "hand") == block[2]  # non-zone untouched
 
 
+@skip_unless_files(DEFAULT_POLICY_A)
 def test_trunc_count_regression_three_smoke_games() -> None:
     """v4 budget on the REAL checkpoint through three smoke games: the
     pathological legacy tail window must NEVER fire (tail_fallbacks 0);

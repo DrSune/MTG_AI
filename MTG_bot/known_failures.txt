@@ -1,0 +1,35 @@
+# Known failures: tests that fail for a recorded reason and are run as STRICT expected failures.
+#
+# Format: one pytest node id per line, then two spaces, '#', and the reason. MTG_bot/conftest.py
+# marks each listed test xfail(strict=True): it still runs every time, and if it starts PASSING
+# the run fails (XPASS strict), which is the signal to delete its line here.
+#
+# Registered 2026-10-24 (docs/REVIEW_2026-10-24.md A-7; BACKLOG B-21/B-33). Every entry is in the
+# legacy stack (rule_engine/, strategic_brain/, test_full_system.py), dead since mid-September 2026.
+# NOT listed on purpose: the two by-design gate tests in strategic_brain/test_model.py
+# (test_no_parameter_is_orphaned_from_the_architecture, test_reasoning_loop_can_actually_iterate).
+# CLAUDE.md requires them to stay plainly failing with their measured numbers.
+#
+# Add a line only for a failure whose cause is written down. A new red test is a regression until
+# someone records why it is not.
+MTG_bot/rule_engine/test_complex_decks.py::TestComplexDecks::test_finishing_blow  # legacy rule_engine, superseded by MTG_bot/core (BACKLOG B-33)
+MTG_bot/rule_engine/test_complex_decks.py::TestComplexDecks::test_opt_draw  # legacy rule_engine, superseded by MTG_bot/core (BACKLOG B-33)
+MTG_bot/rule_engine/test_complex_decks.py::TestComplexDecks::test_shock_player  # legacy rule_engine, superseded by MTG_bot/core (BACKLOG B-33)
+MTG_bot/rule_engine/test_engine.py::TestEngine::test_cast_creature  # legacy rule_engine, superseded by MTG_bot/core (BACKLOG B-33)
+MTG_bot/rule_engine/test_engine.py::TestEngine::test_phase_and_step_progression  # legacy rule_engine, superseded by MTG_bot/core (BACKLOG B-33)
+MTG_bot/rule_engine/test_functional_parity.py::TestFunctionalParity::test_aven_gagglemaster_etb_trigger  # legacy rule_engine, superseded by MTG_bot/core (BACKLOG B-33)
+MTG_bot/rule_engine/test_functional_parity.py::TestFunctionalParity::test_village_rites_sacrifice_and_draw  # legacy rule_engine, superseded by MTG_bot/core (BACKLOG B-33)
+MTG_bot/rule_engine/test_game_state.py::TestGameState::test_play_land_action  # legacy rule_engine, superseded by MTG_bot/core (BACKLOG B-33)
+MTG_bot/rule_engine/test_game_state.py::TestGameState::test_turn_progression  # legacy rule_engine, superseded by MTG_bot/core (BACKLOG B-33)
+MTG_bot/rule_engine/test_interactions.py::TestInteractions::test_azusa_extra_lands  # legacy rule_engine, superseded by MTG_bot/core (BACKLOG B-33)
+MTG_bot/rule_engine/test_interactions.py::TestInteractions::test_kaervek_sba_death  # legacy rule_engine, superseded by MTG_bot/core (BACKLOG B-33)
+MTG_bot/rule_engine/test_keywords.py::TestKeywordHandlers::test_flying  # legacy rule_engine: no-flying blocker can block a flyer (BACKLOG B-19)
+MTG_bot/rule_engine/test_keywords.py::TestKeywordHandlers::test_lifelink  # legacy rule_engine, superseded by MTG_bot/core (BACKLOG B-33)
+MTG_bot/rule_engine/test_keywords.py::TestKeywordHandlers::test_vigilance  # legacy rule_engine, superseded by MTG_bot/core (BACKLOG B-33)
+MTG_bot/rule_engine/test_stack_stress.py::TestStackStress::test_lifo_resolution  # legacy rule_engine, superseded by MTG_bot/core (BACKLOG B-33)
+MTG_bot/strategic_brain/test_draft.py::TestDrafting::test_commander_matchup  # legacy strategic_brain, superseded by tools/training (BACKLOG B-21/B-33)
+MTG_bot/strategic_brain/test_draft.py::TestDrafting::test_full_draft_and_matchup  # legacy strategic_brain, superseded by tools/training (BACKLOG B-21/B-33)
+MTG_bot/strategic_brain/test_teacher_selection.py::test_teacher_initialization  # legacy strategic_brain, superseded by tools/training (BACKLOG B-21/B-33)
+MTG_bot/strategic_brain/test_training_flow.py::TestTrainingFlow::test_single_episode_flow  # legacy strategic_brain, superseded by tools/training (BACKLOG B-21/B-33)
+MTG_bot/strategic_brain/test_training_functional.py::TestTrainingFunctional::test_student_select_action_mock  # legacy strategic_brain, superseded by tools/training (BACKLOG B-21/B-33)
+MTG_bot/test_full_system.py::TestFullSystem::test_benchmark_integration  # legacy end-to-end over rule_engine + strategic_brain (BACKLOG B-21)

@@ -17,6 +17,8 @@ from tools.eval.gameplay_eval import (
 )
 from tools.training.ab_duel import wilson
 from tools.training.collector import AskContext, RandomAsk
+from tools._testutil import skip_unless_files
+from tools.eval.gameplay_eval import DEFAULT_POLICY
 
 
 def _ctx(cands: tuple[str, ...]) -> AskContext:
@@ -85,6 +87,7 @@ def test_summarize_matchup_shape_and_gates() -> None:
     assert m["wilson_decisive"] == [round(lo, 4), round(hi, 4)]
 
 
+@skip_unless_files(DEFAULT_POLICY)
 def test_two_games_end_to_end(tmp_path) -> None:
     """The gate: two REAL games (one per baseline) run to completion and
     the JSON carries every charged metric key."""

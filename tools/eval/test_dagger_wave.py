@@ -14,6 +14,7 @@ from pathlib import Path
 
 from tools.eval import dagger_wave as dw
 from tools.training import bc_data_v2
+from tools._testutil import skip_unless_files
 
 
 # ----------------------------------------------------------------- pure units
@@ -195,6 +196,7 @@ def test_certify_backings_demotes_with_heuristic_fallback(monkeypatch) -> None:
 
 
 # ------------------------------------------------------------- smoke (games)
+@skip_unless_files(dw.gv2.DEFAULT_POLICY_A, dw.gv2.DEFAULT_POLICY_B)
 def test_wave_smoke_three_games(tmp_path) -> None:
     stats_p = tmp_path / "wave.json"
     eps_p = tmp_path / "episodes_dagger.jsonl"

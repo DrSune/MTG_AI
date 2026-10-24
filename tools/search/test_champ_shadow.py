@@ -20,6 +20,9 @@ from tools.search.champ_shadow import (
     verify_episodes,
 )
 from tools.training import bc_data_v2
+from tools._testutil import skip_unless_files
+
+pytestmark = skip_unless_files(DEFAULT_CKPT)
 
 GAME_SEED = 7701  # 66 seat-0 asks -> multi-chunk smoke game (champ_stats run)
 

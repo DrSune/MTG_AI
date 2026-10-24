@@ -25,6 +25,14 @@ are neutral; each one is teaching the agent something.
 | **Four `1 - games/10000` difficulty ramps, a CMC step function, and a permanent SQL ban on every life-gain card** | `strategic_brain/teacher.py` | Replace with a self-play league. The "teacher" itself takes no optimizer step, so it is a frozen random MLP blended 50/50 with `random.random()`. |
 | **Seven cards special-cased by literal name string** | `rule_engine/card_data_loader.py:86-119`, `rule_engine/engine.py:216,326,89` | Directly violates this project's own `EFFECT_SYSTEM_MANDATES.md`. Remove when the ability tree in [`DESIGN_CARD_POOL.md`](DESIGN_CARD_POOL.md) can express them. |
 | **Hardcoded `torch.device("cuda")`** | `strategic_brain/student.py:34`, `teacher.py:37` | Route through `MTG_bot/utils/device.py`. On the dev box these silently fall back to CPU. |
+| **Trigger quarantine after `MAX_TRIGGER_FIRES = 200`** (registered 2026-10-24) | `core/executor/binding.py:29-30,132,1137` | A rules deviation: the runaway source's trigger is switched off for the rest of the game, so combos silently die. Replace with the loop shortcut and CR 104.4b handling in [`DESIGN_INFINITIES.md`](DESIGN_INFINITIES.md). |
+| **`TURN_CAP = 60` scored as a draw** (registered 2026-10-24) | `core/executor/games.py:131,1405-1407`; `tools/training/train_rl_v1.py:53` | A non-rules safety rail, and with draw = 0 > loss = -1 it pays a losing policy to stall (D10). Score it as a loss for both seats in training, report it separately in eval; remove once a real match clock exists. |
+| **Stall rule = draw after 3 identical rounds** (registered 2026-10-24) | `core/executor/games.py:150,1370-1379` | Same incentive problem as the cap. Keep it as a progress probe, score it like the cap until optional-loop actions exist. |
+| **10 acts per main phase, one main phase per turn** (registered 2026-10-24) | `core/executor/games.py:134,638-686` | Engine has no priority system; remove with the priority rung. |
+| **Auto-tap-all mana before every act** (registered 2026-10-24) | `tools/eval/gameplay_eval_v2.py:314,336-353` | The tap amount is not an engine ask. Remove when payment folds into the cast (DESIGN_ACTION_SPACE §1.3) and mana empties per step (CR 500.4). |
+| **Observation zone caps 6/8/12 and a 1024-token window** (registered 2026-10-24) | `tools/training/bc_data_v2.py:67-69`; `ab_duel.py:270-278` | 15,407 of 17,270 asks were truncated in the anchor run. Remove with the IR card tokenizer and a measured context budget. |
+| **Benchmark: 3 strikes per decision, then the do-nothing choice** (2026-10-24) | `MTG_bot/bench/llm.py` | Bounds a non-answering model. Remove when tool mode gives structured answers; until then forfeits are always reported. |
+| **Benchmark: `TAP_ALL_MANA`, X always 0, multi-slot rows hidden, one act window, stateless prompts, conservative hidden-card labels** (2026-10-24) | `MTG_bot/bench/router.py`, `protocol.py`, `llm.py` | Each mirrors an engine limit or is a harness simplification. Remove with the corresponding engine rung (payment, X asks, multi-slot designation, priority) and with tool mode (`notes` memory). |
 
 ---
 
@@ -221,6 +229,9 @@ live document at all.
 
 - Card recognition from photos and video, YouTube frame scraping, OCR, the image vector database,
   the local-LLM agent harness. All in `attic/`. Off the King Goal.
+  *Clarification 2026-10-24:* that harness was an LM-Studio coding assistant. It is unrelated to
+  the LLM benchmark the owner approved on 2026-10-24 as rank-1 instrumentation
+  ([`DESIGN_BENCHMARK.md`](DESIGN_BENCHMARK.md)); only its public-leaderboard half is parked, below.
 
 ---
 
@@ -365,3 +376,42 @@ These are forks, not tasks. See the report that accompanied this audit.
   atomized-subcomponent implementation + one-or-a-few keyword/mechanic adds + a little
   RL to master, the model is GENUINELY general — that is what the ontology R-rounds are
   building toward (§8 tokenizer law).
+
+## Tickets 2026-10-24 (external adversarial review, [`REVIEW_2026-10-24.md`](REVIEW_2026-10-24.md))
+
+- **B-23 Do not resume the RL pilot on the omniscient net.** Every admitted net encodes both hands
+  and both library tops (`ab_duel.py:548-614`). Rebuild the observation on `MTG_bot/bench/view.py`'s
+  per-seat projection first. REVIEW §3.1.1.
+- **B-24 Rig misroutes asks.** `gameplay_eval_v2.py:150-157` sends asks it cannot attribute to the
+  active player, and the handle list is built once (`:531`), so blocks by later tokens are answered
+  by the attacker. Route by `DecisionStream.asking_seat` (added 2026-10-24); re-collect affected data.
+- **B-25 Win rate drops draws and crashes from the denominator** (`gameplay_eval_v2.py:849-861`).
+  Report W/L/draws-by-cause/crashes, and score draws as 0.5 in the headline.
+- **B-26 MCTS values crashes and unfinished games at 0.5 / life-diff** (`tools/search/mcts.py:121-131`);
+  the search fork is clairvoyant (`tools/search/fork.py`). Value crashes as losses for the searcher;
+  determinize hidden state.
+- **B-27 The RL update cannot move the policy**: one SGD step per 1000-game iteration at lr 1e-5,
+  clip 1.0 (`train_rl_v1.py:131-132,253-255`; `rl_pilot_phases.sh:31`).
+- **B-28 Partly compiled cards are dealt**: `engine_supported` ignores sentences that produced no
+  atoms (`core/compiler/compiler.py:2259-2302`), against `DESIGN_CARD_POOL.md:219`.
+- **B-29 CHOOSE_NAME leaks hidden zones**: the vocabulary lists every non-token card in the world
+  (`core/executor/verbs.py:1543-1556`). Restrict to the legal pool, not the world.
+- **B-30 `identity_of` drops oracle text and stamps `set_code="M21"` on every card**
+  (`core/executor/games.py:326-348`).
+- **B-31 Eval default `--out` is the tracked record** (`gameplay_eval_v2.py:107`, the PITFALL that
+  struck again on 2026-10-19). Default to a timestamped path.
+- **B-32 Fuzz with the model, not only RandomPolicy**: model play crashes the engine in about 5% of
+  games (10/200, 12/200, 9/200 in the bc10 evals) while RandomPolicy fuzz reported 0/4000.
+- **B-33 Legacy quarantine decision (owner)**: `rule_engine/` and `strategic_brain/` are dead.
+  Their 21 failing tests now run as strict expected failures (`MTG_bot/known_failures.txt`); the two
+  D3/D11 gates still fail visibly. Decide whether to move both packages to `attic/`.
+- **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
+  plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
+
+### Parked 2026-10-24: the public LLM leaderboard
+
+Owner decision: build the benchmark core now as instrumentation; park the product. Release only
+when every gate holds: the priority and full-stack rung has landed; the engine-error rate is below
+an agreed bound on a model-driven soak; engine, pool and harness hashes are frozen per season; the
+W&B key in history is revoked; a private split exists outside the public repo.
+

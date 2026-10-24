@@ -26,7 +26,7 @@ def _walk(o):
             yield from _walk(v)
 
 
-def test_census_runs_and_json_is_sane(tmp_path, capsys):
+def test_census_runs_and_json_is_sane(tmp_path, capsys, monkeypatch):
     report = ac.build()
     out = tmp_path / "atomics_census.json"
     out.write_text(json.dumps(report, indent=1))
@@ -72,5 +72,9 @@ def test_census_runs_and_json_is_sane(tmp_path, capsys):
 
     # rewrite ledger present with effort grades
     assert any(e["effort"] in ("S", "M", "L") for e in parsed["rewrite_ledger"])
-    ac.main()  # CLI path: prints the table + writes tools/audit/atomics_census.json
+    # CLI path: prints the table and writes the census. Point it at tmp_path: writing the TRACKED
+    # tools/audit/atomics_census.json from a test dirtied the tree on every run (2026-10-24).
+    monkeypatch.setattr(ac, "OUT_PATH", tmp_path / "cli_atomics_census.json")
+    ac.main()
+    assert (tmp_path / "cli_atomics_census.json").exists()
     assert "REWRITE LEDGER" in capsys.readouterr().out

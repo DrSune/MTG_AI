@@ -23,6 +23,7 @@ import pytest
 from tools.search import batch_net, gen_games, mcts
 from tools.search.fork import fork
 from tools.search.rollout import play_position, rollout
+from tools._testutil import skip_unless_files
 
 E2E_TIMEOUT = pytest.mark.timeout(1800)
 
@@ -131,6 +132,7 @@ def test_batcher_flushes_parked_rows_when_siblings_leave(monkeypatch):
 
 
 @E2E_TIMEOUT
+@skip_unless_files(mcts.NET_SPEC)
 def test_batched_rollouts_bit_identical_to_sequential(monkeypatch):
     """3 concurrent net rollouts via rollout_many == 3 sequential rollouts:
     same forks, same seeds, fresh streams — identical fingerprints (and the

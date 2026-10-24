@@ -1,0 +1,44 @@
+# R3b red-first battery: pre-change record (re-recorded 2026-10-24; the original /tmp/r3b_red_prechange.log was lost)
+# tree: 6f09e37 + working-tree marker only; command:
+#   .venv/bin/python -m pytest MTG_bot/core/test_ontology_r3b.py -m red_first -rA
+# expected at R3b landing: every FAILED line below flips to PASSED; any other change is a FINDING.
+# counts: 24 failed, 15 passed
+FAILED MTG_bot/core/test_ontology_r3b.py::TestEmptyLibrarySemantics::test_empty_library_choose_shape_gated_to_skip
+FAILED MTG_bot/core/test_ontology_r3b.py::TestEmptyLibrarySemantics::test_empty_library_folded_all_offers_fire
+FAILED MTG_bot/core/test_ontology_r3b.py::TestEmptyLibrarySemantics::test_real_card_with_cards_still_offers_both
+FAILED MTG_bot/core/test_ontology_r3b.py::TestFix2Hazard::test_classify_raises_on_disjunctive_is_source
+FAILED MTG_bot/core/test_ontology_r3b.py::TestFix2Hazard::test_ledger_flattener_raises_on_disjunctive_is_source
+FAILED MTG_bot/core/test_ontology_r3b.py::TestFix2Hazard::test_negated_is_source_is_self_negated_not_self
+FAILED MTG_bot/core/test_ontology_r3b.py::TestFix2Hazard::test_target_mode_never_reaches_the_hazard
+FAILED MTG_bot/core/test_ontology_r3b.py::TestFoldShape::test_corpus_census_at_landing
+FAILED MTG_bot/core/test_ontology_r3b.py::TestFoldShape::test_every_landed_fold_is_reexplainable
+FAILED MTG_bot/core/test_ontology_r3b.py::TestFoldShape::test_fold_is_idempotent_at_compile
+FAILED MTG_bot/core/test_ontology_r3b.py::TestFoldShape::test_furious_rise_top_node_lands_all
+FAILED MTG_bot/core/test_ontology_r3b.py::TestFoldShape::test_no_pure_self_choose_survives
+FAILED MTG_bot/core/test_ontology_r3b.py::TestFoldShape::test_seat_nodes_land_all
+FAILED MTG_bot/core/test_ontology_r3b.py::TestFoldShape::test_self_designation_nodes_land_all
+FAILED MTG_bot/core/test_ontology_r3b.py::TestFoldShape::test_snoop_cast_source_lands_all
+FAILED MTG_bot/core/test_ontology_r3b.py::TestLedgerLanding::test_committed_ledger_matches_landing
+FAILED MTG_bot/core/test_ontology_r3b.py::TestLedgerLanding::test_population_and_lanes
+FAILED MTG_bot/core/test_ontology_r3b.py::TestLedgerLanding::test_self_negated_population_is_exactly_one
+FAILED MTG_bot/core/test_ontology_r3b.py::TestLedgerLanding::test_warmonger_cost_lane
+FAILED MTG_bot/core/test_ontology_r3b.py::TestReKeyRoleLane::test_all_mode_universal_stays_binding_first
+FAILED MTG_bot/core/test_ontology_r3b.py::TestReKeyRoleLane::test_folded_all_self_designation_resolves_to_source
+FAILED MTG_bot/core/test_ontology_r3b.py::TestReKeyRoleLane::test_target_self_designation_stays_designation_lane
+FAILED MTG_bot/core/test_ontology_r3b.py::TestWarmongerTripwire::test_sacrifice_cost_ask_is_multi_candidate
+FAILED MTG_bot/core/test_ontology_r3b.py::TestWarmongerTripwire::test_sacrifice_cost_stays_choose
+PASSED MTG_bot/core/test_ontology_r3b.py::SacrificeVocabulary::test_choice_segment_asks_and_the_answer_is_the_victim
+PASSED MTG_bot/core/test_ontology_r3b.py::SacrificeVocabulary::test_forced_segment_stays_silent_and_byte_identical
+PASSED MTG_bot/core/test_ontology_r3b.py::SacrificeVocabulary::test_hand_built_plan_pays_the_frozen_path
+PASSED MTG_bot/core/test_ontology_r3b.py::SacrificeVocabulary::test_pool_carries_only_permanents_you_control
+PASSED MTG_bot/core/test_ontology_r3b.py::SacrificeVocabulary::test_self_sacrifice_never_asks
+PASSED MTG_bot/core/test_ontology_r3b.py::SacrificeVocabulary::test_unanswered_choice_raises_never_a_silent_pick
+PASSED MTG_bot/core/test_ontology_r3b.py::TestQuintetFix1::test_corpus_target_self_count_is_five
+PASSED MTG_bot/core/test_ontology_r3b.py::TestQuintetFix1::test_no_role_mixes_target_designation_and_folded_self
+PASSED MTG_bot/core/test_ontology_r3b.py::TestQuintetFix1::test_quintet_keeps_target_self_selectors
+PASSED MTG_bot/core/test_ontology_r3b.py::TestWarmongerTripwire::test_choice_segment_asks_and_the_answer_is_the_victim
+PASSED MTG_bot/core/test_ontology_r3b.py::TestWarmongerTripwire::test_forced_segment_stays_silent_and_byte_identical
+PASSED MTG_bot/core/test_ontology_r3b.py::TestWarmongerTripwire::test_hand_built_plan_pays_the_frozen_path
+PASSED MTG_bot/core/test_ontology_r3b.py::TestWarmongerTripwire::test_pool_carries_only_permanents_you_control
+PASSED MTG_bot/core/test_ontology_r3b.py::TestWarmongerTripwire::test_self_sacrifice_never_asks
+PASSED MTG_bot/core/test_ontology_r3b.py::TestWarmongerTripwire::test_unanswered_choice_raises_never_a_silent_pick

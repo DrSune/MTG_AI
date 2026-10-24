@@ -23,9 +23,12 @@ import pytest
 from tools.eval.gameplay_eval_v2 import main as eval_main
 from tools.eval.gameplay_eval_v2 import run_v2_game
 from tools.training.rl_logprob_audit import audit
+from tools._testutil import skip_unless_files
 
 REPO = Path(__file__).resolve().parents[2]
 NET = str(REPO / "tools" / "training" / "bsh_S3a_s1_best.pt")
+
+pytestmark = skip_unless_files(NET)
 RL_SEED = 7
 
 
@@ -154,6 +157,7 @@ def test_audit_red_missing_choose_key(collection, tmp_path: Path) -> None:
         audit(_write(tmp_path, bad), NET)
 
 
+@skip_unless_files(REPO / "tools" / "training" / "azg1_best.pt")
 def test_audit_red_foreign_checkpoint_only(collection) -> None:
     eps, _, _ = collection
     other = str(REPO / "tools" / "training" / "azg1_best.pt")

@@ -38,9 +38,12 @@ python_files = ["test_*.py"]
 timeout = 120
 markers = [
     "slow: runs whole self-play games; excluded from the default run",
+    "red_first: a pre-registered RED battery for a change that has not landed yet; excluded from the default run, run it with `-m red_first`",
 ]
-# Slow tests are opt-in: `pytest -m slow` or `pytest --override-ini=addopts=`.
-addopts = "-m 'not slow'"
+# Slow and red-first tests are opt-in: `pytest -m slow`, `pytest -m red_first`, or
+# `pytest --override-ini=addopts=` for everything. --strict-markers turns a mistyped marker into an
+# error instead of a test that silently never runs.
+addopts = "-m 'not slow and not red_first' --strict-markers"
 
 [tool.mtg-ai.notes]
 # torch is deliberately NOT a declared dependency, because the correct wheel differs

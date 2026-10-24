@@ -17,6 +17,8 @@ seed, the honest outcome is that it fails here consistently and gets fixed, not 
 a seed chosen to make it pass.
 """
 
+from pathlib import Path
+
 import pytest
 
 from MTG_bot.utils.rng import seed_all
@@ -28,3 +30,32 @@ TEST_MASTER_SEED = 20260911
 def _deterministic_rng():
     seed_all(TEST_MASTER_SEED, seed_frameworks=True)
     yield
+
+
+KNOWN_FAILURES = Path(__file__).with_name("known_failures.txt")
+
+
+def _known_failures() -> dict[str, str]:
+    """``node id -> reason`` from known_failures.txt (format documented in the file)."""
+    known: dict[str, str] = {}
+    for line in KNOWN_FAILURES.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        node_id, _, reason = line.partition("  # ")
+        known[node_id.strip()] = reason.strip() or "recorded known failure"
+    return known
+
+
+def pytest_collection_modifyitems(config, items):
+    """Run every registered known failure as a STRICT expected failure.
+
+    The test still executes; an unexpected pass fails the run, which is the cue to delete its line.
+    Added 2026-10-24 so that red in the default run means a regression, not the 21 legacy failures
+    everyone had learned to ignore (docs/REVIEW_2026-10-24.md A-7).
+    """
+    known = _known_failures()
+    for item in items:
+        reason = known.get(item.nodeid)
+        if reason is not None:
+            item.add_marker(pytest.mark.xfail(strict=True, reason=f"known failure: {reason}"))

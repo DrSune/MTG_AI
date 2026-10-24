@@ -16,6 +16,7 @@ import pytest
 
 from tools.search import mcts
 from tools.search.rollout import RolloutResult
+from tools._testutil import skip_unless_files
 
 
 # ------------------------------------------------------------------ UCB1
@@ -217,6 +218,7 @@ def mini_game():
 
 
 @E2E_TIMEOUT
+@skip_unless_files(mcts.NET_SPEC)
 def test_mini_game_contract(mini_game):
     assert mini_game["crash"] is None, mini_game["reason"]
     assert mini_game["result"] in ("seat0", "seat1", "draw", "undecided")
@@ -227,6 +229,7 @@ def test_mini_game_contract(mini_game):
 
 
 @E2E_TIMEOUT
+@skip_unless_files(mcts.NET_SPEC)
 def test_mini_rows_pi_value_contract(mini_game):
     for seat in (0, 1):
         for ep in mini_game["episodes"][seat]:
@@ -263,6 +266,7 @@ def mini_game_greedy():
 
 
 @E2E_TIMEOUT
+@skip_unless_files(mcts.NET_SPEC)
 def test_mini_game_greedy_rollout_mix(mini_game_greedy):
     """/72 AZ-v3: rollout_mix="greedy" drives BOTH seats greedy — no random
     or net draws in the policy ledger — and every row carries a menu-aligned
@@ -281,6 +285,7 @@ def test_mini_game_greedy_rollout_mix(mini_game_greedy):
 
 
 @E2E_TIMEOUT
+@skip_unless_files(mcts.NET_SPEC)
 def test_mini_rows_emit_label_src(mini_game):
     """Writer law (/83 fix): every gold row AND its gold_meta entry carry
     label_src, and the two agree with the row they point at. With mini knobs
@@ -300,6 +305,7 @@ def test_mini_rows_emit_label_src(mini_game):
 
 
 @E2E_TIMEOUT
+@skip_unless_files(mcts.NET_SPEC)
 def test_mini_game_reproducible(mini_game):
     again = mcts.gen_game(9001, k=1, n_rollouts=1, turn_cap=3)
     assert again["result"] == mini_game["result"]
@@ -313,6 +319,7 @@ def test_mini_game_reproducible(mini_game):
 
 
 @E2E_TIMEOUT
+@skip_unless_files(mcts.NET_SPEC)
 def test_mini_cost_ledger_and_cheap_mix(mini_game):
     """Probe-cache accounting is honest and cheap rollouts never see the net."""
     s = mini_game["stats"]
@@ -406,6 +413,7 @@ class _CountingNet:
 
 
 @E2E_TIMEOUT
+@skip_unless_files(mcts.NET_SPEC)
 def test_net_spec_rollouts_deterministic_under_seed():
     """/74 §5 IMPROVEMENT: a rollout seat driven by a FRESH root-net instance
     (a) actually plays (decide() called; the seat is a BcAsk, NOT the

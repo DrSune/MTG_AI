@@ -30,9 +30,12 @@ import torch
 
 from tools.eval.gameplay_eval_v2 import main as eval_main
 from tools.training.train_rl_v1 import F4_KEYS, load_episodes, train
+from tools._testutil import skip_unless_files
 
 REPO = Path(__file__).resolve().parents[2]
 NET = str(REPO / "tools" / "training" / "bsh_S3a_s1_best.pt")
+
+pytestmark = skip_unless_files(NET)
 RL_SEED = 11
 # train() is CPU-forward-bound (grad fwd + anchor fwd + backward per ask);
 # the --max-asks guard bounds the working set, the marker bounds the wall.
