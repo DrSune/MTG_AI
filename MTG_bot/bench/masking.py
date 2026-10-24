@@ -56,7 +56,9 @@ class NameMasker:
         )
 
     def label(self, name: str) -> str:
-        return self._labels.get(name, name)
+        # A name outside the pool (a pack's synthetic "Garruk Omenbound") still has its known
+        # terms masked: found by the leak test on 2026-10-24.
+        return self._labels.get(name) or self.mask(name)
 
     def mask(self, text: str) -> str:
         if not text or self._pattern is None:
