@@ -155,3 +155,29 @@ class RandomGameRoutingTest(unittest.TestCase):
                     self.assertEqual(game.executor.controller_of(_tag_handle(what)), seat, what)
         self.assertGreater(sum(kinds.values()), 0)
         self.assertIn("attack", kinds)
+
+
+def test_no_engine_call_site_passes_seat_to_take_decision() -> None:
+    # Four tools/training modules replace ExecCtx.take_decision process-wide at import with the
+    # old (self, vocab, what) signature (BACKLOG B-35). A caller passing seat= then raises
+    # TypeError, but only in processes that imported one of them. That is how a scry site
+    # passing seat= went green in `pytest MTG_bot` and red in `pytest tools` (2026-10-24).
+    # Static and import-free on purpose: importing those modules here would patch the engine for
+    # every later test in this run.
+    import ast
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parent
+    offenders = []
+    for path in sorted(root.rglob("*.py")):
+        if path.name.startswith("test_"):
+            continue
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "take_decision"
+                and any(k.arg == "seat" for k in node.keywords)
+            ):
+                offenders.append(f"{path.relative_to(root)}:{node.lineno}")
+    assert offenders == [], offenders

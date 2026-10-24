@@ -235,8 +235,14 @@ class ExecCtx:
            vocabulary to the external answerer at the moment of demand.
 
         ``seat`` names the deciding player when it is not this context's
-        controller (scry names its player); the provider sees it as
-        ``DecisionStream.asking_seat``.
+        controller; the provider sees it as ``DecisionStream.asking_seat``.
+        No call site passes it today: four tools/training modules replace
+        this method process-wide at import with the old ``(self, vocab,
+        what)`` signature (packrec, packrec_v2, dagger_rollout_v3,
+        puzzle_cert; BACKLOG B-35), so a caller passing ``seat=`` would
+        crash whenever one of them is loaded. The scry site therefore relies
+        on its controller being the scrying player, and the bench router's
+        tag check raises loudly if a card ever breaks that.
         """
         decider = self.controller if seat is None else seat
         if self.decision_idx < len(self.decisions):

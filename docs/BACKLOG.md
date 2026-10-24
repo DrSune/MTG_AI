@@ -410,6 +410,14 @@ These are forks, not tasks. See the report that accompanied this audit.
   classified as tapping for mana. RandomPolicy survives because it still designates targets; the
   bench router's tap-all crashed on it until `SeatRouter._is_mana` required ADD_MANA and no target.
   It also skews RandomPolicy's own act weighting. Fix the predicate.
+- **B-35 Training modules monkeypatch the engine process-wide at import time**:
+  `tools/training/packrec.py:149-150`, `packrec_v2.py:120`, `dagger_rollout_v3.py:169` and
+  `puzzle_cert` replace `ExecCtx.take_decision` the moment they are imported. So any process, a
+  test run included, that imports one of them plays every later game through a wrapper with the
+  old `(self, vocab, what)` signature. Found 2026-10-24 when an engine call passing `seat=` was
+  green in `pytest MTG_bot` and crashed 3 collector games in `pytest tools` (order-dependent).
+  Patch inside a context manager scoped to the run, or give the engine a recorder hook instead.
+  Until then `test_no_engine_call_site_passes_seat_to_take_decision` guards the signature.
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
   plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
 

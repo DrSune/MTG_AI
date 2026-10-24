@@ -1078,7 +1078,7 @@ def _v_scry(ctx: ExecCtx, atom: Atom) -> None:
     # share the key; the stream's FIFO serves them in ask order.
     what = f"scry:{player}:{n}"
     for card in top_down:  # decisions are consumed one per card, top first
-        if ctx.take_decision(("top", "bottom"), what, seat=player) == "top":
+        if ctx.take_decision(("top", "bottom"), what) == "top":
             tops.append(card)
         else:
             bottoms.append(card)
