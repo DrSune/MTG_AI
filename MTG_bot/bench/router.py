@@ -30,7 +30,7 @@ from collections import Counter
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
-from MTG_bot.bench.agents import Observation, is_raw
+from MTG_bot.bench.agents import AgentError, Observation, is_raw
 from MTG_bot.bench.protocol import (
     Ask,
     Option,
@@ -90,7 +90,7 @@ class SeatRouter:
             st["leaky_asks"] += 1
         idx = driver.decide(ask, Observation(self.lenses[ask.seat], self.game.executor))
         if not isinstance(idx, int) or not 0 <= idx < len(ask.options):
-            raise ValueError(f"agent {getattr(driver, 'name', driver)!r} returned {idx!r} for {ask.site}")
+            raise AgentError(f"agent {getattr(driver, 'name', driver)!r} returned {idx!r} for {ask.site}")
         return idx
 
     def _record_of(self, handle: Handle) -> Any:
