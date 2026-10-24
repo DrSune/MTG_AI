@@ -405,6 +405,11 @@ These are forks, not tasks. See the report that accompanied this audit.
 - **B-33 Legacy quarantine decision (owner)**: `rule_engine/` and `strategic_brain/` are dead.
   Their 21 failing tests now run as strict expected failures (`MTG_bot/known_failures.txt`); the two
   D3/D11 gates still fail visibly. Decide whether to move both packages to `attic/`.
+- **B-34 `RandomPolicy.is_mana_activation` counts pure-TAP effects as mana abilities**
+  (`core/executor/games.py:509-516`): "Tap target creature you don't control" (Shacklegeist) is
+  classified as tapping for mana. RandomPolicy survives because it still designates targets; the
+  bench router's tap-all crashed on it until `SeatRouter._is_mana` required ADD_MANA and no target.
+  It also skews RandomPolicy's own act weighting. Fix the predicate.
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
   plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
 
