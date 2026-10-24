@@ -24,3 +24,9 @@ T-G1 protocol sign-off (/135 §C); ZNR source verification; T-G5 fix-ladder exec
 
 ## Artifacts quick-map
 Commits: /133 1c77c71 · /134+anchor d188ddf..ce3b50b · /135 bd041ba · precond2 140caee · trainer f2d693f + fix 7403155 · ops 11b1cef · /146 7c730c9. Ledgers: reports/rl_window_run.log, reports/r1_window_run.log. Probes: tools/eval/gameplay_{r1_s1..s3,anchor_bsh_cur_engine}.json. Diags: /tmp/opencode/rld_n1/ (NOTE: /tmp is not durable — re-collectable).
+
+## Addendum 2026-10-24 (external review session): what changed under the armed pilot
+
+- **History was rewritten and pushed.** SHAs from `f7dec8d` onward changed; old SHAs in this note resolve via `grep ^<sha> docs/COMMIT_MAP_2026-10-24.tsv`. `origin/main` now equals local `main`; it had last been pushed on 2026-09-14.
+- **Checkpoints are untracked.** The six formerly tracked `.pt` files (bc_s1, bc_s2, bc3_*) are on disk but no longer in `git archive HEAD`. The pilot is unaffected: `rl_window.sh` `clean_export` (lines 183-218) overlays the only checkpoint it uses, `bsh_S3a_s1_best.pt`, and that file was never tracked. Before resuming, run `sha256sum -c --quiet tools/training/CHECKPOINTS.sha256`.
+- **Do not resume on the omniscient net without reading `docs/REVIEW_2026-10-24.md` §A-1/§A-4.** The policy sees the opponent's hand and library top, the reward makes stalling pay (draw 0 > loss -1), and one update step per 1000 games at lr 1e-5 cannot move the policy.
