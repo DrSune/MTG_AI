@@ -1,6 +1,12 @@
 # METRICS.md - the measurement catalogue
 
 **Status:** normative reference. Written 2026-09-09 against HEAD `bc14850`.
+
+> **Note, 2026-10-24.** This catalogue was written against the legacy engine
+> (`MTG_bot/rule_engine/`, `strategic_brain/`). Its metric definitions still guide the live stack
+> (`MTG_bot/core/`, `tools/training/`), but its code citations point at dead code, and none of its
+> confirmatory metrics is computed today (docs/REVIEW_2026-10-24.md A-4, A-7). §17 stays binding.
+> The benchmark rows below were added against the live engine.
 **Scope:** every metric this project computes, defined precisely enough to implement, plus the
 conventions that make a computed number admissible as evidence, plus the engine instrumentation the
 rebuild must emit so that the metrics can exist at all.
@@ -859,6 +865,19 @@ Drafter rows, added 2026-09-10 with [`DESIGN_DRAFTER.md`](DESIGN_DRAFTER.md) §7
 | `DFT-11` output variety | 0 | **maximal** | condition on every sample clearing the same quality quantile. A random drafter then produces zero admissible samples, so the metric is 0 or undefined rather than maximal |
 | `conflation_alarm` | 0 | 0 | a null scores 0 too, so it is only meaningful beside a positive knob-response diagonal |
 | archive cell coverage | 0 | **maximal** | null-zero per cell against best-of-m random decks landing in that same cell. For a random drafter the elite is the null, so the score is ~0 while coverage is maximal |
+
+Benchmark rows, added 2026-10-24 with [`DESIGN_BENCHMARK.md`](DESIGN_BENCHMARK.md) §7 (computed by `MTG_bot/bench/`):
+
+| Metric | Null (always pass) | Uniform random | Mandatory pairing |
+|---|---|---|---|
+| `BEN-R1` rules-track accuracy, all keys | **high: 0.274 measured**, most keys do not change | low | never alone; always with `BEN-R2` |
+| `BEN-R2` rules-track accuracy, changed keys only | **0 by construction** | low | the track-R headline |
+| `BEN-D1` duplicate duel pair score | 0.5 against itself, near 0 against any acting agent | ~0.5 against itself | with W/L, draws by cause (cap, stall, mutual) and the margin over `PassAgent` on the same deals |
+| `BEN-F1` forfeit / illegal-answer rate | **perfect (0)** | 0 | never alone; beside `BEN-D1` |
+| `BEN-E1` Elo on the anchored ladder | the lowest anchor | 0 by definition | with the anchor set, games per pairing, bootstrap CI |
+| `BEN-P1` puzzle solve rate | **high on "survive this turn"** | low | "survive" puzzles always beside "win this turn" puzzles |
+| `BEN-G1` masking gap | 0 | 0 | only beside the unmasked score |
+| `BEN-T1` tokens and latency per decision | ~0 | ~0 | descriptive; plotted against `BEN-D1` as a Pareto frontier |
 
 **The rule that generalises, and the one to apply to any metric not on this list:** *any metric
 whose numerator can be satisfied by not acting must be published paired with a metric whose

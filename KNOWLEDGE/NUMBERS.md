@@ -5,6 +5,18 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-10-24 (external review — benchmark core MTG_bot/bench, exploratory, M21 castable pool)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| uniform vs pass, duplicate pair score | **0.995** [0.985, 1.0], 50 pairs (99 W, 1 cap draw) | `python -m MTG_bot.bench duel --a uniform --b pass --deals 50` | the floors are far apart: the instrument discriminates |
+| pass vs pass pair score | **0.5000** exactly, all cap draws | `python -m MTG_bot.bench duel --a pass --b pass --deals 5 --turn-cap 20` | instrument null test |
+| uniform vs RandomPolicy pair score | **0.4875** [0.40, 0.575], 40 pairs (39-41) | `python -m MTG_bot.bench duel --a uniform --b random-policy --deals 40` | hand-weighted RandomPolicy indistinguishable from uniform at this n |
+| track R items | **312** of 428 packs; 0 reader mismatches | `python -m MTG_bot.bench rules --answerer oracle` | excluded: 58 unmappable ability index, 44 opaque decision words, 6 no lane, 5 order/trample, 3 expect-raise |
+| track R null answerer | **0.274** [0.245, 0.305] all keys; **0.0** changed keys | `python -m MTG_bot.bench rules --answerer null` | §17: all-keys is null-favourable; changed-keys is the headline |
+| primer exercised share | **0.9992** (174/178 components; 5,967 uses) | `python -m MTG_bot.bench primer --json` | NOT verified coverage (needs mutation testing); gaps COPY x2, GRANT_ACTIVATION, EXTRA_TURN, DISCARD |
+| router stress | **0 crashes, 0 misroutes** in 50 uniform-vs-uniform games (M21+ZNR, strict routing) | ad hoc (see commit daf9bd0) | after the B-34 mana-classification fix; before it, 2/12 games crashed |
+
 ## 2026-10-20 (ZNR — T5 — Phase-1 grammar measurement harness)
 
 | Number | Value | Command | Notes |
