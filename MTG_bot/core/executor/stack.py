@@ -681,7 +681,7 @@ def open_combat_window(executor: Executor) -> None:
         if len(vocab) <= 1:
             continue
         executor.journal.emit(KIND_WINDOW_OPEN, None, seat, "COMBAT_WINDOW", (vocab,))
-        answer = executor.decisions.take(vocab, f"cw:{seat}:{digest}")
+        answer = executor.decisions.take(vocab, f"cw:{seat}:{digest}", seat=seat)
         if answer == "PASS":
             executor.journal.emit(KIND_WINDOW_PASS, None, seat, "COMBAT_WINDOW", ())
             continue
@@ -857,7 +857,7 @@ def cast(
         if len(vocab) <= 1:
             continue
         executor.journal.emit(KIND_WINDOW_OPEN, handle, responder, "WINDOW", (vocab,))
-        answer = executor.decisions.take(vocab, f"counter:{responder}:{digest}")
+        answer = executor.decisions.take(vocab, f"counter:{responder}:{digest}", seat=responder)
         if answer == "PASS":
             executor.journal.emit(KIND_WINDOW_PASS, handle, responder, "WINDOW", ())
             continue

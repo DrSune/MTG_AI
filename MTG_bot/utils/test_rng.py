@@ -141,3 +141,30 @@ def test_auto_seed_is_recorded_so_an_unseeded_run_is_still_recoverable():
     rng._streams.clear()
     rng.stream("shuffle").random()
     assert rng.get_master_seed() is not None
+
+
+def test_substream_is_deterministic_and_keyed():
+    _seeded()
+    a = [rng.substream("bench", 7, "game", 1).random() for _ in range(1)] + [
+        rng.substream("bench", 7, "game", 1).random()
+    ]
+    assert a[0] == a[1]  # same inputs, same generator
+    assert rng.substream("bench", 7, "game", 1).random() != rng.substream("bench", 7, "game", 2).random()
+    _seeded(999)
+    assert rng.substream("bench", 7, "game", 1).random() != a[0]  # follows the master seed
+
+
+def test_substream_never_consumes_its_named_stream():
+    _seeded()
+    expected = [rng.stream("bench").random() for _ in range(3)]
+    _seeded()
+    for k in range(5):
+        rng.substream("bench", k).random()
+    assert [rng.stream("bench").random() for _ in range(3)] == expected
+
+
+def test_substream_rejects_undeclared_names():
+    _seeded()
+    with pytest.raises(KeyError):
+        rng.substream("not-a-stream", 1)
+

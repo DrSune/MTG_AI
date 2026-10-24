@@ -1078,7 +1078,7 @@ def _v_scry(ctx: ExecCtx, atom: Atom) -> None:
     # share the key; the stream's FIFO serves them in ask order.
     what = f"scry:{player}:{n}"
     for card in top_down:  # decisions are consumed one per card, top first
-        if ctx.take_decision(("top", "bottom"), what) == "top":
+        if ctx.take_decision(("top", "bottom"), what, seat=player) == "top":
             tops.append(card)
         else:
             bottoms.append(card)
@@ -1938,7 +1938,7 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
         answer = "UNPAYABLE"
         if plan is not None:
             digest = site_digest((str(spell), frame.declared_clock))
-            answer = ex.decisions.take(("PASS", "PAY"), f"pay:{payer}:{digest}")
+            answer = ex.decisions.take(("PASS", "PAY"), f"pay:{payer}:{digest}", seat=payer)
             if answer == "PAY":
                 pay_costs(
                     ex,

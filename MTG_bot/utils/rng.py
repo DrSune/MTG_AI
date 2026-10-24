@@ -64,6 +64,7 @@ STREAM_NAMES = (
     "deckbuild",     # deck construction and draft packs
     "teacher",       # curriculum and matchup curation
     "scenario",      # procedural puzzle generation
+    "bench",         # benchmark agents and deals (MTG_bot/bench); per-game via substream()
 )
 
 _master_seed: Optional[int] = None
@@ -105,6 +106,19 @@ def seed_all(master_seed: int, *, seed_frameworks: bool = True) -> int:
 
     logger.info("RNG seeded, master_seed=%d, streams=%s", _master_seed, list(STREAM_NAMES))
     return _master_seed
+
+
+def substream(name: str, *key: object) -> random.Random:
+    """A fresh generator derived from the master seed, a declared stream name and a key.
+
+    For randomness that must not depend on how many draws OTHER games made from the shared
+    stream. The benchmark seeds each (deal, game, seat) agent this way, so the second game of a
+    duplicate pair is reproducible on its own. The same inputs give the same generator, and the
+    named stream itself is never consumed. Added 2026-10-24.
+    """
+    stream(name)  # validates the name and auto-seeds (with its warning) exactly as stream() does
+    assert _master_seed is not None
+    return random.Random(_derive(_master_seed, ":".join([name, *map(str, key)])))
 
 
 def get_master_seed() -> Optional[int]:

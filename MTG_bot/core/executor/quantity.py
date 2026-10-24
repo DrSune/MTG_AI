@@ -215,7 +215,9 @@ class ExecCtx:
     # the caster already made. Consumed in ask order; empty elsewhere.
     prechosen_modes: list[str] = field(default_factory=list)
 
-    def take_decision(self, vocab: tuple[str, ...], what: str) -> str:
+    def take_decision(
+        self, vocab: tuple[str, ...], what: str, *, seat: Handle | None = None
+    ) -> str:
         """Consume the next decision for THIS demand site; raise when no
         lane can answer (C15: never a default).
 
@@ -231,7 +233,12 @@ class ExecCtx:
            from a trigger the running op itself armed (B-4),
         3. the stream's ask-time PROVIDER — the engine hands the exact
            vocabulary to the external answerer at the moment of demand.
+
+        ``seat`` names the deciding player when it is not this context's
+        controller (scry names its player); the provider sees it as
+        ``DecisionStream.asking_seat``.
         """
+        decider = self.controller if seat is None else seat
         if self.decision_idx < len(self.decisions):
             choice = self.decisions[self.decision_idx]
             if choice in vocab:
@@ -251,12 +258,12 @@ class ExecCtx:
             # raise shape is preserved (test_executor_games pins it).
             if self.stream is not None:
                 try:
-                    return self.stream.take(vocab, what)
+                    return self.stream.take(vocab, what, seat=decider)
                 except ValueError:
                     pass
             raise ValueError(f"executor: {what} decision {choice!r} not in {vocab}")
         if self.stream is not None:
-            return self.stream.take(vocab, what)
+            return self.stream.take(vocab, what, seat=decider)
         raise ValueError(
             f"executor: {what} needs a decision from {vocab}, "
             f"got only {len(self.decisions)} supplied"

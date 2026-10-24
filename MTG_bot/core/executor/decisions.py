@@ -46,6 +46,10 @@ from __future__ import annotations
 import hashlib
 from collections import deque
 from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from MTG_bot.core.identity import Handle
 
 #: A decision is addressed by its vocabulary (the tokens the engine accepts)
 #: and a stable site tag the producer passes at the ask (``may:<source>``,
@@ -91,6 +95,13 @@ class DecisionStream:
         #: externally supplied answers for demands nothing pre-primed;
         #: None means exhaustion raises (C15: no hidden default).
         self.provider: DecisionProvider | None = None
+        #: The seat the engine is asking, set ONLY while :attr:`provider`
+        #: runs (None otherwise, and None when a site did not say). Added
+        #: 2026-10-24 for per-seat agents: a provider cannot recover the
+        #: decider from the site tag alone, because EachPlayer re-asks the
+        #: SAME ``may:<source>`` tag once per player (executor/__init__.py
+        #: 986-995). Never written to ask_log or journal, so no replay moves.
+        self.asking_seat: Handle | None = None
 
     # ------------------------------------------------------------- supply
 
@@ -109,8 +120,11 @@ class DecisionStream:
 
     # --------------------------------------------------------------- demand
 
-    def take(self, vocab: Sequence[str], what: str) -> str:
+    def take(self, vocab: Sequence[str], what: str, *, seat: Handle | None = None) -> str:
         """Pop the primed answer for the key, or consult the provider.
+
+        ``seat`` is the deciding player when the site knows it; it is exposed
+        as :attr:`asking_seat` for the duration of the provider call only.
 
         Raises ``ValueError`` (same shapes the positional channel raised)
         when neither lane can answer or the answer is out of vocabulary —
@@ -120,7 +134,11 @@ class DecisionStream:
         if queue:
             answer = queue.popleft()
         elif self.provider is not None:
-            answer = self.provider(tuple(vocab), what)
+            outer, self.asking_seat = self.asking_seat, seat
+            try:
+                answer = self.provider(tuple(vocab), what)
+            finally:
+                self.asking_seat = outer
         else:
             raise ValueError(
                 f"executor: {what} needs a decision from {vocab}, "
