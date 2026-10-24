@@ -166,7 +166,7 @@ def run_optimized_pass():
         count=QConst(1),
         mode=SelectorMode.TARGET,
         filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-        zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
     dest = Zone(

@@ -154,7 +154,7 @@ def _bf_target():
         QConst(1),
         SelectorMode.TARGET,
         UNIV,
-        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
     )
 
 
@@ -383,7 +383,7 @@ class ScenarioRunner:
                         QConst(1),
                         SelectorMode.TARGET,
                         UNIV,
-                        Zone(ZoneKind.HAND, ControllerRef.YOU),
+                        zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
                     ),
                     destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
                     tapped_on_enter=bool(step.get("tapped", False)),
