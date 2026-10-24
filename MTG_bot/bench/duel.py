@@ -35,7 +35,7 @@ from pathlib import Path
 from typing import Any
 
 from MTG_bot.bench import CANARY
-from MTG_bot.bench.agents import AgentError
+from MTG_bot.bench.agents import AgentError, InfraError
 from MTG_bot.bench.protocol import AskRoutingError, UnknownAskSite
 from MTG_bot.bench.router import SeatRouter
 from MTG_bot.bench.stats import elo_from_score, paired_bootstrap, wilson
@@ -52,10 +52,6 @@ from MTG_bot.utils.rng import get_master_seed
 
 REPO = Path(__file__).resolve().parents[2]
 SCORE = {"win": 1.0, "loss": 0.0, "draw-mutual": 0.5, "draw-stall": 0.5, "draw-cap": 0.5, "draw-other": 0.5}
-
-
-class InfraError(RuntimeError):
-    """Raised by a driver whose backing service failed (``llm.AgentInfraError`` subclasses it)."""
 
 
 @dataclass(frozen=True)

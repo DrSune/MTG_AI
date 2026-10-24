@@ -51,6 +51,11 @@ class Observation:
         return text
 
 
+class InfraError(RuntimeError):
+    """A driver's backing service failed (a model endpoint, a network). The game is voided, never
+    scored: an outage is not the agent's loss."""
+
+
 class AgentError(RuntimeError):
     """An agent broke the protocol (for example, returned an out-of-range index). The game is voided,
     never scored: an agent bug is not a loss, and it must not be mistaken for an engine crash."""
