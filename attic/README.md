@@ -6,7 +6,7 @@ what was tried.
 
 | File | What it was | Why it is here |
 |---|---|---|
-| `mtg_rule_engine.py` | An **earlier, separate** rules engine | Highest-priority archive. It is not the engine. The live engine is `MTG_bot/rule_engine/`. Someone will otherwise open this first and lose an afternoon. |
+| `mtg_rule_engine.py` | An **earlier, separate** rules engine | Highest-priority archive. It is not the engine. The live engine is `MTG_bot/core/` (and `MTG_bot/rule_engine/` is itself legacy since mid-September 2026). Someone will otherwise open this first and lose an afternoon. |
 | `legacy_game_state.py` | Original state scaffold, was `rule_engine/game_state.py` | Named like the state model, imported by nothing, superseded by `game_graph.py` on day one. A pure decoy. |
 | `legacy_rulebook.py` | Was `rule_engine/rulebook.py` | Never instantiated anywhere, and `Rulebook()` raises `NameError` on construction. |
 | `card_recognition_nn.py`, `card_extraction.py`, `basic_card_extraction.py` | Computer-vision card recognition from photos/video | The original project scoped card recognition alongside play. That is off the King Goal. **A live Weights & Biases API key was hardcoded in this file and committed to git history; it has been removed from the working tree but must still be revoked.** |

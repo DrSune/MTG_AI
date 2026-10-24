@@ -15,8 +15,9 @@ Priority ladder, highest first:
 1. **(King)** Play the trained sets really well.
 1. **(King, tied)** Auto-extend to unseen cards composed of already-practised primitives, with zero
    code changes. Only genuinely new keywords should need work.
-2. Fast, near-real-time inference.
-3. Extend to all sets via shared knowledge.
+1. **(King, tied)** Play well within a real match clock (promoted from rank 2 by the owner on
+   2026-09-10; NORTH_STAR §1a). A decision that arrives too late is worth zero.
+2. Extend to all sets via shared knowledge.
 
 **Format priority: Commander.** Multiplayer, command zone, 100-card singleton, huge boards, long
 games, effectively-everything-legal card pool.
@@ -44,8 +45,10 @@ The MTG rules themselves are not heuristics — implement those exactly.
 | `docs/METRICS.md` | The metric catalogue. Check §17 before adding any metric |
 | `docs/COST_MODEL.md` | Why a parameter's cost depends on where you put it |
 | `docs/BACKLOG.md` | Parked ideas, with the reason they are parked |
-| `MTG_bot/rule_engine/` | The Magic rules simulator |
-| `MTG_bot/strategic_brain/` | Network, RL training, environment wrapper |
+| `MTG_bot/core/` | **The rules engine**: compiler (oracle text to ability tree), executor, state |
+| `MTG_bot/bench/` | Benchmark core shared by the bot and LLM seats: per-seat view, agent protocol, duplicate duels, stats, rules track ([`docs/DESIGN_BENCHMARK.md`](docs/DESIGN_BENCHMARK.md)) |
+| `tools/training/`, `tools/eval/`, `tools/search/` | The live model (`PointerBC`), its training, the eval rig, search |
+| `MTG_bot/rule_engine/`, `MTG_bot/strategic_brain/` | **Legacy**, dead since mid-September 2026. Do not build on them. |
 | `MTG_bot/scenarios/` | Curriculum / puzzle scenarios |
 | `MTG_bot/visualizer/` | Spectator tooling |
 | `attic/` | Dead legacy code, kept for reference only. Do not extend. |
@@ -77,8 +80,10 @@ training all run here. Measured bring-up detail in [`reports/SPARK_BRINGUP.md`](
   `strategic_brain/student.py:34` and `strategic_brain/teacher.py:37` both write
   `torch.device("cuda" if torch.cuda.is_available() else "cpu")`, which happens to be right here and
   silently selects CPU instead of XPU on the Windows box.
-- Disk here is 3.7 TB with 46 GB used, so the old C:-drive pressure note does not apply. Still keep
-  large caches and checkpoints behind a configurable path, because the Windows box is tight.
+- Disk here is 3.7 TB (1.1 TB used on 2026-10-24, mostly outside this repo), so the old C:-drive
+  pressure note does not apply. Still keep large caches and checkpoints behind a configurable path,
+  because the Windows box is tight. **Never commit a checkpoint**: GitHub rejects files over 100 MB
+  and one such blob makes `main` unpushable. Pin it in `tools/training/CHECKPOINTS.sha256` instead.
 
 ## Git: commit and push often, to main
 
@@ -90,7 +95,10 @@ on a side branch. Work on `main` and push to `origin`.
 
 - Commit when a coherent piece of work is done, not at the end of a session. If you have been
   working for a while without committing, that is already too long.
-- **Push after every commit.** A commit that is not pushed is not safe. `git push origin main`.
+- **Push after every commit.** A commit that is not pushed is not safe. `git push origin main`, then
+  check that `git ls-remote origin refs/heads/main` equals `git rev-parse HEAD`. On 2026-10-24 local
+  `main` was found 326 commits ahead: nothing had been pushed for five weeks
+  (`KNOWLEDGE/PITFALLS.md`). `tools/save.sh` now verifies the push.
 - Never leave the working tree dirty at the end of a turn. If it is not worth committing, it is not
   worth leaving on disk.
 - Before starting work, `git pull` so you are not building on a stale tree.
@@ -99,8 +107,8 @@ on a side branch. Work on `main` and push to `origin`.
 
 Why this exists: an earlier working copy of this project at `Videos\MTG_AI` had its index
 destroyed, showing 320 staged deletions against files that were still on disk, and a stale partial
-tree that looked authoritative. The fresh clone in `Documents\MTG_AI` is the only real one. That
-near-miss is the reason for the rule.
+tree that looked authoritative. That near-miss is the reason for the rule. The working copy is now
+`/home/sune/Desktop/MTG_AI` on the DGX Spark, and `origin` on GitHub (public) is the backup.
 
 ## Before and after any training run
 

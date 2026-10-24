@@ -356,6 +356,19 @@ land when the drafter is first built. It is unrecoverable afterwards.
 
 ---
 
+## D19 — The LLM benchmark is instrumentation first; the leaderboard is parked
+**2026-10-24. Owner decision, after the overrule-clause objection was raised: "Instrument first".**
+
+The owner proposed turning the project into an LLM benchmark. A public leaderboard is not on the
+ladder, but most of what a rigorous benchmark needs is measurement rank 1 lacks: a per-seat view
+that hides hidden information, one agent protocol for every player, paired statistics, and
+engine-verified items that cannot be memorised. So the shared core is built now in `MTG_bot/bench/`
+and also measures this bot, and LLM seats become the first opponents that are neither the bot's
+clone nor the heuristic it imitates. Publication, seasons and a leaderboard are parked in
+[`BACKLOG.md`](BACKLOG.md) behind explicit gates. Scope this session: docs, test fixes and the MVP,
+no paid model calls; local open-weight models first, hosted frontier models later under a budget.
+Design: [`DESIGN_BENCHMARK.md`](DESIGN_BENCHMARK.md). Evidence: [`REVIEW_2026-10-24.md`](REVIEW_2026-10-24.md).
+
 ## Measurements that decisions rest on
 
 Everything here was measured, not estimated. Re-measure rather than trusting these once the engine
@@ -498,6 +511,16 @@ acquire a larger deck-level human corpus, or state the circularity out loud rath
 the self-referential version quietly.
 
 ---
+
+### R9 — How the training reward should score engine-made draws
+*Added 2026-10-24.* The turn cap and the stall rule end games as draws, and the RL reward pays
+draw 0 against loss −1, so a losing policy gains by stalling. D10 settles the clock (timeout = loss)
+but not these two. Scoring both as a loss for **both** seats removes the incentive, yet it also
+punishes a seat that was winning when the cap fell, and the stall rule approximates CR 104.4b
+loops, which genuinely are draws. The question: does a mutual-loss rule distort learned play in
+long games, and should a CR-legitimate loop draw (once optional-loop actions exist) be scored
+differently from a cap? It matters because it decides whether long, grindy and combo decks, which
+the niche-deck clause of rank 1 protects, are learnable at all.
 
 ## Deferred pending information
 

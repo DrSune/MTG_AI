@@ -1,5 +1,10 @@
 # MTG AI Project Index
 
+> **Stale (noted 2026-10-24):** this map describes the legacy stack (`rule_engine/`,
+> `strategic_brain/`), dead since mid-September 2026. The live engine is `MTG_bot/core/`, the live
+> model and training are in `tools/training/`, and the benchmark core is `MTG_bot/bench/`. The
+> current map is the layout table in [`CLAUDE.md`](../CLAUDE.md).
+
 This file serves as a map for the codebase and documentation to help agents navigate efficiently.
 
 ## 📁 Project Structure
