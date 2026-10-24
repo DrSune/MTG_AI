@@ -130,9 +130,10 @@ Two rules that catch most of the damage:
   remove", with the condition that would let it go.
 - Prefer editing an existing doc over adding a near-duplicate one.
 - Tests: `.venv/bin/python -m pytest MTG_bot -q`. Report real results, never assumed ones.
-  **Baseline B0** (2026-10-24, commit `2e7bff0`, `TORCH_DISABLE_NATIVE_JIT=1`): **2 failed /
-  3358 passed / 40 deselected / 23 xfailed / 53 subtests passed**, about 25 s. This is the only
-  recorded baseline; other docs point here. It is reproducible: `MTG_bot/conftest.py` seeds every
+  **Baseline B0** (2026-10-24, measured at commit `e208075`, `TORCH_DISABLE_NATIVE_JIT=1`):
+  **2 failed / 3427 passed / 40 deselected / 23 xfailed / 53 subtests passed**, about 30 s. This is
+  the only recorded baseline; other docs point here. It includes the benchmark core's 59 tests
+  (`MTG_bot/bench/`, about 15 s). It is reproducible: `MTG_bot/conftest.py` seeds every
   test, so the same numbers come back every run. The parts:
   - The **2 failures** are the two by-design gates in `strategic_brain/test_model.py`, for D3
     (every plan step trained) and D11 (learned halting). Their failure messages carry the measured
