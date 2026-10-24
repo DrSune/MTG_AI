@@ -14,6 +14,12 @@
 4. **Dating**: every file is dated in its path (folder) and its title. Never delete older entries —
    mark them `superseded by <file>` instead. Knowledge decays; the date tells you how much to trust it.
 
+> **2026-10-24 — commit SHAs from `f7dec8d` onward were rewritten.** Checkpoints had been
+> force-added to history, which made `main` unpushable (nothing had been pushed since 2026-09-14).
+> They were dropped from history at the owner's instruction. Every SHA cited below for 2026-10-06
+> or later is an OLD SHA: resolve it with `grep ^<sha> docs/COMMIT_MAP_2026-10-24.tsv`. Evidence
+> that lived in `/tmp/opencode` is mirrored at `~/mtg_ai_evidence/tmp_opencode_2026-10-24/`.
+
 ## Map
 
 | File | What it holds |
