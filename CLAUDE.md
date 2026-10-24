@@ -130,10 +130,21 @@ Two rules that catch most of the damage:
   remove", with the condition that would let it go.
 - Prefer editing an existing doc over adding a near-duplicate one.
 - Tests: `.venv/bin/python -m pytest MTG_bot -q`. Report real results, never assumed ones.
-  Baseline is **23 passed / 27 failed / 2 xfailed**, about 5.5 s, and it is now **reproducible**:
-  `MTG_bot/conftest.py` seeds every test, so the same numbers come back every run. Before that, three
-  tests were coin flips and the older "17 passed" figure was partly luck. Anything that computes a
-  gradient needs `TORCH_DISABLE_NATIVE_JIT=1` until `python3.12-dev` is installed.
-  Two tests in `strategic_brain/test_model.py` fail **by design**: they are the gates for D3
-  (every plan step trained) and D11 (learned halting), and their failure messages carry the
-  measured numbers. Do not "fix" them by weakening the assertion.
+  **Baseline B0** (2026-10-24, commit `2e7bff0`, `TORCH_DISABLE_NATIVE_JIT=1`): **2 failed /
+  3358 passed / 40 deselected / 23 xfailed / 53 subtests passed**, about 25 s. This is the only
+  recorded baseline; other docs point here. It is reproducible: `MTG_bot/conftest.py` seeds every
+  test, so the same numbers come back every run. The parts:
+  - The **2 failures** are the two by-design gates in `strategic_brain/test_model.py`, for D3
+    (every plan step trained) and D11 (learned halting). Their failure messages carry the measured
+    numbers. Do not "fix" them by weakening the assertion. Any *other* failure is a regression.
+  - The 23 xfails: 21 legacy failures are listed in `MTG_bot/known_failures.txt` and run as
+    **strict** xfails (an unexpected pass fails the run, which is the cue to delete the line), plus
+    2 older xfails.
+  - The 40 deselected: 39 are the R3b red-first battery (`-m red_first` gives 15 passed / 24
+    failed, recorded in `reports/r3b_red_prechange.txt`) and 1 is `slow`.
+  - The 428 scenario packs run inside this suite (`MTG_bot/core/test_scenario_packs.py`).
+  - Companion numbers: `pytest tools -q` = 296 passed with the local checkpoints (about 8 min), or
+    267 passed + 29 skipped without them; `tools/run_scenarios.py` = 428/428.
+  - `tools/check.sh` (or `--quick`) runs all of it and is the pre-push gate. There is no CI.
+  - Anything that computes a gradient needs `TORCH_DISABLE_NATIVE_JIT=1` until `python3.12-dev` is
+    installed.

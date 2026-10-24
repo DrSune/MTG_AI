@@ -9,8 +9,8 @@ requirements and per-metric reading notes live in [`METRICS.md`](METRICS.md). Th
 references metrics by name and does not redefine them.
 
 **Why it exists now, before training starts.** Nothing in the repository can currently tell you
-whether a change made the bot better. At HEAD (`bc14850`) the engine suite reports 10 passed / 29
-failed / 2 xfailed. The only scored benchmark pays a do-nothing policy **0.9000** on
+whether a change made the bot better. At HEAD (`bc14850`) the engine suite reported 10 passed / 29
+failed / 2 xfailed (historical; the current baseline is B0 in `CLAUDE.md`, 2026-10-24). The only scored benchmark pays a do-nothing policy **0.9000** on
 `scenarios/M21/level_2` and **0.2358** on `level_1`, because `benchmarker.py:143-163` scores life
 proximity and 25 of the level_2 files are byte-identical copies of a state already sitting at 18/20
 life. The only opponent is `deepcopy(student)` from at most 20 games ago (`train.py:89-91`), so win

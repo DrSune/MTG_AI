@@ -44,6 +44,7 @@ The test line needs its own note, because the number was misleading. Twenty of t
 stale method name: seven modules still called `GameGraph.initialize_game`, extracted into
 `game_initializer.initialize_game_state` back in `188451c`. After migrating them the full suite is
 **17 passed / 22 failed / 2 xfailed** in about 6 s, and `rule_engine` alone is 10 passed / 16 failed.
+(Historical. The current baseline is **B0** in [`CLAUDE.md`](../CLAUDE.md), recorded 2026-10-24.)
 Protocol check P7 still fails. Two of the 22 failures are **deliberate gates** for D3 and D11 in
 `strategic_brain/test_model.py`; do not "fix" them by weakening the assertion.
 
