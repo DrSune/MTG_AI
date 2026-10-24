@@ -27,7 +27,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from MTG_bot.bench.masking import NameMasker
 from MTG_bot.core.compiler.ingest import ingest_pool
@@ -59,7 +59,7 @@ ENGINE_NOTES = (
 class OracleIndex:
     """oracle_id -> printed oracle text, cost and type line, from ``MTG_bot/data/<SET>.json``."""
 
-    _cache: dict[tuple[str, ...], OracleIndex] = {}
+    _cache: ClassVar[dict[tuple[str, ...], OracleIndex]] = {}
 
     def __init__(self, set_codes: Iterable[str]) -> None:
         self.cards = {}
@@ -156,7 +156,8 @@ def _visible(zone: str, owner_seat: int, viewer_seat: int) -> bool:
 class SeatLens:
     """The view of one seat across a whole game: stable opaque ids, optional masking."""
 
-    def __init__(self, seat_index: int, oracle: OracleIndex, opts: ViewOptions = ViewOptions()):
+    def __init__(self, seat_index: int, oracle: OracleIndex, opts: ViewOptions | None = None):
+        opts = opts or ViewOptions()
         self.seat_index = seat_index
         self.oracle = oracle
         self.opts = opts
@@ -263,7 +264,7 @@ class SeatLens:
             player = world.players[player_handle]
             zones = player.zones
 
-            def cards(kind: str) -> tuple[CardView, ...]:
+            def cards(kind: str, zones: dict = zones) -> tuple[CardView, ...]:
                 zone = zones.get(kind)
                 if zone is None:
                     return ()

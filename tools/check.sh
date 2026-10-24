@@ -37,7 +37,8 @@ echo "$out" | grep '^FAIL' ; echo "$out" | tail -1
 
 if [ -d MTG_bot/bench ]; then
   echo "== ruff MTG_bot/bench"
-  ruff check MTG_bot/bench || status=1
+  # N999 flags the package name MTG_bot itself, a repo-wide given, not a finding.
+  ruff check MTG_bot/bench --ignore N999 || status=1
 fi
 
 if [ -n "$(git status --porcelain --untracked-files=no)" ]; then

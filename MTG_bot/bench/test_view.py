@@ -15,7 +15,14 @@ import re
 import pytest
 
 from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions, render_view
-from MTG_bot.core.executor.games import Game, RandomPolicy, _play, _setup_game, deal_decks, get_supply
+from MTG_bot.core.executor.games import (
+    Game,
+    RandomPolicy,
+    _play,
+    _setup_game,
+    deal_decks,
+    get_supply,
+)
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import ZONE_HAND, ZONE_LIBRARY
 
