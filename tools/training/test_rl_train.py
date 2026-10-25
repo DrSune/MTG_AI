@@ -104,6 +104,36 @@ def test_smoke_rows_carry_outcome(episodes: Path) -> None:
     assert load_episodes(episodes, NET) == rows  # contract passes LOUD-free
 
 
+# ---------------------------------------------------- identity (SHA > path)
+@TIMEOUT
+def test_policy_identity_by_sha_not_path(episodes: Path, tmp_path: Path) -> None:
+    """Same bytes under a foreign path (export-dir / moved copy) = SAME
+    policy: 2026-10-24 checkpoint governance (evidence-by-SHA)."""
+    moved = tmp_path / "moved_ckpt.pt"
+    moved.write_bytes(Path(NET).read_bytes())
+    rows = _set_outcomes(_rows(episodes))
+    for r in rows:
+        r["policy"] = str(moved)
+    eps = _write(tmp_path, rows)
+    assert load_episodes(eps, NET) == rows  # bytes match => owned
+
+
+@TIMEOUT
+def test_policy_identity_foreign_bytes_rejected(episodes: Path, tmp_path: Path) -> None:
+    """Same path NAME, different bytes = foreign policy => fail-loud."""
+    moved = tmp_path / "moved_ckpt.pt"
+    moved.write_bytes(Path(NET).read_bytes())
+    rows = _set_outcomes(_rows(episodes))
+    for r in rows:
+        r["policy"] = str(moved)
+    eps = _write(tmp_path, rows)
+    with moved.open("r+b") as fh:
+        fh.seek(100)
+        fh.write(b"\x01")  # one byte => different identity
+    with pytest.raises(RuntimeError, match="0/2 episodes were collected"):
+        load_episodes(eps, NET)
+
+
 # ------------------------------------------------------------ one update
 @TIMEOUT
 def test_one_update_changes_weights_fills_f4(episodes: Path, tmp_path: Path) -> None:

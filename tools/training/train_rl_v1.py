@@ -41,6 +41,7 @@ Run::
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -61,22 +62,42 @@ F4_KEYS = (
 )
 
 
+_CKPT_KEY_CACHE: dict[str, str] = {}
+
+
+def _ckpt_key(path_str: str) -> str:
+    """Checkpoint identity: SHA-256 when the file is present (governance
+    2026-10-24: checkpoints are evidence-by-SHA, never by path — an
+    export-dir or moved copy with identical bytes is the SAME policy),
+    resolved-path fallback when absent. Cached per distinct path."""
+    if path_str not in _CKPT_KEY_CACHE:
+        p = Path(path_str)
+        if p.is_file():
+            _CKPT_KEY_CACHE[path_str] = (
+                "sha256:" + hashlib.sha256(p.read_bytes()).hexdigest()
+            )
+        else:
+            _CKPT_KEY_CACHE[path_str] = "path:" + str(p.resolve())
+    return _CKPT_KEY_CACHE[path_str]
+
+
 def load_episodes(episodes_path: Path, policy: str) -> list[dict[str, Any]]:
     """Owned rl_episode rows with fail-loud contract checks: foreign-only
     file, non-episode rows, MISSING outcome, ask-row shape drift, empty
     menu, idx outside menu. (Recorded-logp correctness itself is
     rl_logprob_audit's gate, run by the harness before this trainer.)"""
-    want = str(Path(policy).resolve())
+    want = _ckpt_key(policy)
     rows = [
         json.loads(line)
         for line in episodes_path.read_text(encoding="utf-8").splitlines()
         if line.strip()
     ]
-    owned = [r for r in rows if str(Path(r["policy"]).resolve()) == want]
+    owned = [r for r in rows if _ckpt_key(r["policy"]) == want]
     if not owned:
         raise RuntimeError(
             f"train_rl_v1: 0/{len(rows)} episodes were collected with "
-            f"{policy!r} — an update over nothing proves nothing"
+            f"{policy!r} (identity by SHA-256 of the checkpoint bytes, "
+            "resolved-path fallback) — an update over nothing proves nothing"
         )
     for ei, ep in enumerate(owned):
         if ep.get("kind") != "rl_episode":
