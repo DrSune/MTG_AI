@@ -11,3 +11,8 @@ Date: 2026-10-25. Owner GO after CED GPU handback (engine now 27B, gateway 200).
 
 ## Armed again
 Night window re-armed 23:59 / restart 07:00 / --gpu-train on HEAD incl. this fix; cancel file deleted per owner GO; opt-out file remains the ONLY stop mechanism. Engine note: 27B now loaded — window stops/starts the container regardless; window payload is torch-only, no agent inference inside.
+
+## GO-vs-REVIEW tension (recorded 2026-10-25 17:5x, pre-night)
+External review 2026-10-24 §3.1.1 (verbatim): "Do not resume the RL pilot on the omniscient net. RL would sharpen exactly the dependence on hidden information that the owner ruled out." Owner GO (today, after the review was in the repo): "continue the RL pilot." Owner GO governs; recorded so the decision is revocable by the cancel file in 10 seconds if the owner meant otherwise.
+
+Interpretive caveat pre-registered: TONIGHT is instrumentation (per /134 v2, the F4 no-op question is observation-lane-AGNOSTIC: flat F4 = dead plumbing, moving F4 = live plumbing). ANY policy-STRENGTH claim from pilot outputs is DEFERRED to the per-seat-view re-anchor (bench view.py is the honest observation; §3.1.1). Review §3.1.2 (score cap + stall-draws-as-losses in training reward; mine is draw=0 with stall detector) = wave-2 amendment, owner-visible, NOT smuggled in tonight. §3.1.4 (rig active-player fallback fix + re-collect) = post-tonight, payload-re-smoke law.
