@@ -11,9 +11,15 @@ seat. It does not train an internal representation; it reads.
 **Accounting.**
 - An unparseable or out-of-range answer is retried with the error, up to ``strikes`` attempts. Then
   the do-nothing option is taken and a forfeit is recorded. Forfeits are reported, never hidden
-  (``BEN-F1``), and the 3 strikes are a registered scaffold.
+  (``BEN-F1``), and the 3 strikes are a registered scaffold. If the ask offers no do-nothing
+  option, ``AgentForfeitError`` is raised instead of playing a default move (void-forfeit):
+  a silent option-0 would manufacture a decision the agent never made.
 - A transport failure raises ``AgentInfraError``, which voids the game: an outage is not a loss.
-- Tokens and latency are counted per agent, for the cost and clock Pareto plots.
+- Tokens and latency are counted per agent, for the cost and clock Pareto plots. A response with
+  no usage block increments ``usage_missing``; a seat with any is flagged ``token_stats: invalid``
+  in the summary, so tokens are never presented as a number the endpoint did not report.
+- ``identity()`` returns the seat's configuration (model, endpoint, settings) for the duel
+  manifest; a duel refuses to start when an llm seat has no model identity.
 
 **Local first, no surprise bills.** ``OpenAICompatClient`` refuses a non-local endpoint unless
 ``MTG_BENCH_ALLOW_REMOTE=1`` is set. It uses only the standard library.
@@ -33,7 +39,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Protocol
 from urllib.parse import urlparse
 
-from MTG_bot.bench.agents import InfraError
+from MTG_bot.bench.agents import AgentForfeitError, InfraError
 
 if TYPE_CHECKING:
     from MTG_bot.bench.agents import Observation
@@ -61,7 +67,9 @@ class ChatResult:
 
 
 class ChatClient(Protocol):
-    def complete(self, messages: list[dict[str, str]], *, max_tokens: int, temperature: float) -> ChatResult: ...
+    def complete(
+        self, messages: list[dict[str, str]], *, max_tokens: int, temperature: float
+    ) -> ChatResult: ...
 
 
 class ScriptedClient:
@@ -71,7 +79,9 @@ class ScriptedClient:
         self.replies = list(replies)
         self.requests: list[list[dict[str, str]]] = []
 
-    def complete(self, messages: list[dict[str, str]], *, max_tokens: int, temperature: float) -> ChatResult:
+    def complete(
+        self, messages: list[dict[str, str]], *, max_tokens: int, temperature: float
+    ) -> ChatResult:
         self.requests.append([dict(m) for m in messages])
         if not self.replies:
             raise AgentInfraError("scripted client exhausted")
@@ -101,13 +111,19 @@ class OpenAICompatClient:
         self.model = model
         self.api_key = api_key
         self.timeout_s = timeout_s
+        self.max_transient_retries = int(
+            os.environ.get("MTG_BENCH_LLM_TRANSIENT_RETRIES", "3")
+        )
+        self.transient_retries = 0
         self._open = opener or urllib.request.urlopen
 
     @classmethod
     def from_env(cls) -> OpenAICompatClient:
         model = os.environ.get("MTG_BENCH_LLM_MODEL")
         if not model:
-            raise ValueError("set MTG_BENCH_LLM_MODEL (and MTG_BENCH_LLM_BASE_URL, default http://localhost:8000/v1)")
+            raise ValueError(
+                "set MTG_BENCH_LLM_MODEL (and MTG_BENCH_LLM_BASE_URL, default http://localhost:8000/v1)"
+            )
         return cls(
             os.environ.get("MTG_BENCH_LLM_BASE_URL", "http://localhost:8000/v1"),
             model,
@@ -116,23 +132,64 @@ class OpenAICompatClient:
             allow_remote=os.environ.get("MTG_BENCH_ALLOW_REMOTE") == "1",
         )
 
-    def complete(self, messages: list[dict[str, str]], *, max_tokens: int, temperature: float) -> ChatResult:
+    def complete(
+        self, messages: list[dict[str, str]], *, max_tokens: int, temperature: float
+    ) -> ChatResult:
         body = json.dumps(
-            {"model": self.model, "messages": messages, "max_tokens": max_tokens, "temperature": temperature}
+            {
+                "model": self.model,
+                "messages": messages,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+            }
         ).encode()
         headers = {"Content-Type": "application/json"}
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
-        request = urllib.request.Request(f"{self.base_url}/chat/completions", data=body, headers=headers)
-        started = time.monotonic()
-        try:
-            with self._open(request, timeout=self.timeout_s) as response:
-                payload = json.loads(response.read())
-            text = payload["choices"][0]["message"]["content"] or ""
-        except (urllib.error.URLError, TimeoutError, OSError, ValueError, KeyError, IndexError) as error:
-            raise AgentInfraError(f"{self.base_url}: {type(error).__name__}: {error}") from error
+        request = urllib.request.Request(
+            f"{self.base_url}/chat/completions", data=body, headers=headers
+        )
+        attempt = 0
+        while True:
+            attempt += 1
+            started = time.monotonic()
+            try:
+                with self._open(request, timeout=self.timeout_s) as response:
+                    payload = json.loads(response.read())
+                break
+            except urllib.error.HTTPError as error:
+                # Transient backend 5xx (engine busy / gateway hiccup under
+                # contention): retry with backoff. 4xx and timeouts stay
+                # fail-loud on the first hit (AGENTS 5xx-retry law).
+                if (
+                    error.code in (502, 503, 504)
+                    and attempt <= self.max_transient_retries
+                ):
+                    self.transient_retries += 1
+                    time.sleep(min(60.0, 10.0 * 2 ** (attempt - 1)))
+                    continue
+                raise AgentInfraError(
+                    f"{self.base_url}: {type(error).__name__}: {error}"
+                ) from error
+            except (
+                urllib.error.URLError,
+                TimeoutError,
+                OSError,
+                ValueError,
+                KeyError,
+                IndexError,
+            ) as error:
+                raise AgentInfraError(
+                    f"{self.base_url}: {type(error).__name__}: {error}"
+                ) from error
+        text = payload["choices"][0]["message"]["content"] or ""
         usage = payload.get("usage") or {}
-        return ChatResult(text, usage.get("prompt_tokens"), usage.get("completion_tokens"), time.monotonic() - started)
+        return ChatResult(
+            text,
+            usage.get("prompt_tokens"),
+            usage.get("completion_tokens"),
+            time.monotonic() - started,
+        )
 
 
 def parse_answer(text: str, n_options: int) -> int | None:
@@ -153,24 +210,50 @@ class LLMAgent:
         max_tokens: int = 512,
         temperature: float = 0.0,
         primer: str = "",
+        masked: bool = False,
     ) -> None:
         self.client = client
         self.name = name
         self.strikes = strikes
         self.max_tokens = max_tokens
         self.temperature = temperature
+        self.primer = primer
+        self.masked = masked
         self.system = SYSTEM_PROMPT + (f"\n\n{primer}" if primer else "")
         self.stats: Counter[str] = Counter()
+
+    def identity(self) -> dict[str, Any]:
+        """The seat's identity for the duel manifest: who answered, through what, with what settings."""
+        client = self.client
+        return {
+            "model": getattr(client, "model", None),
+            "base_url": getattr(client, "base_url", None),
+            "timeout_s": getattr(client, "timeout_s", None),
+            "temperature": self.temperature,
+            "max_tokens": self.max_tokens,
+            "strikes": self.strikes,
+            "primer": bool(self.primer),
+            "masked": self.masked,
+            "usage_missing": int(self.stats["usage_missing"]),
+            "transient_retries": int(getattr(client, "transient_retries", 0)),
+        }
 
     def decide(self, ask: Ask, obs: Observation) -> int:
         n = len(ask.options)
         messages = [
             {"role": "system", "content": self.system},
-            {"role": "user", "content": f"{obs.text}\n\nDecision:\n{ask.render()}\n\nEnd with: ANSWER: <number from 0 to {n - 1}>"},
+            {
+                "role": "user",
+                "content": f"{obs.text}\n\nDecision:\n{ask.render()}\n\nEnd with: ANSWER: <number from 0 to {n - 1}>",
+            },
         ]
         for _ in range(self.strikes):
-            result = self.client.complete(messages, max_tokens=self.max_tokens, temperature=self.temperature)
+            result = self.client.complete(
+                messages, max_tokens=self.max_tokens, temperature=self.temperature
+            )
             self.stats["calls"] += 1
+            if result.prompt_tokens is None or result.completion_tokens is None:
+                self.stats["usage_missing"] += 1
             self.stats["prompt_tokens"] += result.prompt_tokens or 0
             self.stats["completion_tokens"] += result.completion_tokens or 0
             self.stats["latency_ms"] += int(result.latency_s * 1000)
@@ -181,7 +264,15 @@ class LLMAgent:
             self.stats["invalid_answers"] += 1
             messages += [
                 {"role": "assistant", "content": result.text},
-                {"role": "user", "content": f"That is not a valid answer. End with: ANSWER: <number from 0 to {n - 1}>"},
+                {
+                    "role": "user",
+                    "content": f"That is not a valid answer. End with: ANSWER: <number from 0 to {n - 1}>",
+                },
             ]
         self.stats["forfeits"] += 1
-        return ask.refuse if ask.refuse is not None else 0
+        if ask.refuse is None:
+            raise AgentForfeitError(
+                "forfeit-no-refuse: strikes exhausted on an ask with no do-nothing option; "
+                "refusing to play a default move"
+            )
+        return ask.refuse

@@ -41,15 +41,35 @@ def _factory(kind: str, args: argparse.Namespace) -> Any:
     if kind == "pass":
         return lambda deal, game, seat: PassAgent()
     if kind == "uniform":
-        return lambda deal, game, seat: UniformRandomAgent(rng.substream("bench", deal.seed, game, seat))
+        return lambda deal, game, seat: UniformRandomAgent(
+            rng.substream("bench", deal.seed, game, seat)
+        )
     if kind == "random-policy":
-        return lambda deal, game, seat: RandomPolicy(rng.substream("bench", deal.seed, game, seat).randrange(2**31))
+        return lambda deal, game, seat: RandomPolicy(
+            rng.substream("bench", deal.seed, game, seat).randrange(2**31)
+        )
     if kind == "llm":
         from MTG_bot.bench.llm import LLMAgent, OpenAICompatClient
 
         primer = _primer_text(args.masked, args.salt) if args.primer else ""
-        return lambda deal, game, seat: LLMAgent(OpenAICompatClient.from_env(), primer=primer)
+        return lambda deal, game, seat: LLMAgent(
+            OpenAICompatClient.from_env(), primer=primer, masked=args.masked
+        )
     raise SystemExit(f"unknown agent {kind!r}")
+
+
+def _llm_identity(args: argparse.Namespace) -> dict[str, Any]:
+    """A probe agent's identity (model, endpoint, settings) for the duel manifest.
+
+    The probe shares the game agents' settings; its ``usage_missing`` is 0 here and is settled
+    into the manifest by ``run_match`` after play (duel.py).
+    """
+    from MTG_bot.bench.llm import LLMAgent, OpenAICompatClient
+
+    primer = _primer_text(args.masked, args.salt) if args.primer else ""
+    return LLMAgent(
+        OpenAICompatClient.from_env(), primer=primer, masked=args.masked
+    ).identity()
 
 
 def cmd_duel(args: argparse.Namespace) -> int:
@@ -57,10 +77,19 @@ def cmd_duel(args: argparse.Namespace) -> int:
         DealSpec(seed=s, set_code=args.set, pool_mode=args.pool, turn_cap=args.turn_cap)
         for s in range(args.first_deal, args.first_deal + args.deals)
     ]
+    identities: dict[str, dict[str, Any]] = {}
+    for key, kind in (("a", args.a), ("b", args.b)):
+        if kind == "llm":
+            identities[key] = _llm_identity(args)
     rows = run_match(
-        _factory(args.a, args), _factory(args.b, args), deals,
-        name_a=args.a, name_b=args.b, opts=ViewOptions(mask_names=args.masked, salt=args.salt),
+        _factory(args.a, args),
+        _factory(args.b, args),
+        deals,
+        name_a=args.a,
+        name_b=args.b,
+        opts=ViewOptions(mask_names=args.masked, salt=args.salt),
         out=Path(args.out) if args.out else None,
+        identities=identities or None,
     )
     print(json.dumps(summarize(rows), indent=1))
     return 0
@@ -89,7 +118,10 @@ def cmd_rules(args: argparse.Namespace) -> int:
     items = items[: args.limit] if args.limit else items
     if args.export:
         with Path(args.export).open("w", encoding="utf-8") as out:
-            out.write(json.dumps({"kind": "manifest", "canary": CANARY, "items": len(items)}) + "\n")
+            out.write(
+                json.dumps({"kind": "manifest", "canary": CANARY, "items": len(items)})
+                + "\n"
+            )
             out.writelines(json.dumps(item.to_json()) + "\n" for item in items)
     if args.answerer == "llm":
         from MTG_bot.bench.llm import OpenAICompatClient
@@ -100,8 +132,12 @@ def cmd_rules(args: argparse.Namespace) -> int:
 
         def answer(item: Any) -> dict[str, Any]:
             reply = client.complete(
-                [{"role": "system", "content": system}, {"role": "user", "content": item.prompt}],
-                max_tokens=1024, temperature=0.0,
+                [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": item.prompt},
+                ],
+                max_tokens=1024,
+                temperature=0.0,
             )
             return _extract_json(reply.text)
     else:
@@ -113,8 +149,12 @@ def cmd_rules(args: argparse.Namespace) -> int:
         "items": len(items),
         "excluded": dict(cov.excluded),
         "variant": "masked" if args.masked else "real",
-        "all_keys": [round(x, 4) for x in paired_bootstrap([s["all_keys"] for s in scores])],
-        "delta (headline)": [round(x, 4) for x in paired_bootstrap(delta)] if delta else None,
+        "all_keys": [
+            round(x, 4) for x in paired_bootstrap([s["all_keys"] for s in scores])
+        ],
+        "delta (headline)": [round(x, 4) for x in paired_bootstrap(delta)]
+        if delta
+        else None,
         "label": "exploratory (no pre-registration file); public development split",
     }
     print(json.dumps(report, indent=1))
@@ -134,10 +174,22 @@ def cmd_primer(args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(prog="python -m MTG_bot.bench", description=(__doc__ or "").splitlines()[0])
-    ap.add_argument("--seed", type=int, default=20261024, help="master seed (recorded in manifests)")
-    ap.add_argument("--masked", action="store_true", help="mask card names (the contamination probe)")
-    ap.add_argument("--salt", default="public-dev", help="masking salt; keep the private split's secret")
+    ap = argparse.ArgumentParser(
+        prog="python -m MTG_bot.bench", description=(__doc__ or "").splitlines()[0]
+    )
+    ap.add_argument(
+        "--seed", type=int, default=20261024, help="master seed (recorded in manifests)"
+    )
+    ap.add_argument(
+        "--masked",
+        action="store_true",
+        help="mask card names (the contamination probe)",
+    )
+    ap.add_argument(
+        "--salt",
+        default="public-dev",
+        help="masking salt; keep the private split's secret",
+    )
     sub = ap.add_subparsers(dest="cmd", required=True)
     d = sub.add_parser("duel")
     d.add_argument("--a", default="uniform")
@@ -147,7 +199,9 @@ def main(argv: list[str] | None = None) -> int:
     d.add_argument("--set", default="M21")
     d.add_argument("--pool", default="castable")
     d.add_argument("--turn-cap", type=int, default=TURN_CAP)
-    d.add_argument("--primer", action="store_true", help="give llm seats the engine primer")
+    d.add_argument(
+        "--primer", action="store_true", help="give llm seats the engine primer"
+    )
     d.add_argument("--out")
     r = sub.add_parser("rules")
     r.add_argument("--answerer", choices=("null", "oracle", "llm"), default="null")
@@ -155,7 +209,11 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--export")
     r.add_argument("--primer", action="store_true")
     p = sub.add_parser("primer")
-    p.add_argument("--json", action="store_true", help="print coverage numbers instead of the primer text")
+    p.add_argument(
+        "--json",
+        action="store_true",
+        help="print coverage numbers instead of the primer text",
+    )
     args = ap.parse_args(argv)
     rng.seed_all(args.seed, seed_frameworks=False)
     return {"duel": cmd_duel, "rules": cmd_rules, "primer": cmd_primer}[args.cmd](args)

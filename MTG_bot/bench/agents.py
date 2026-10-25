@@ -61,6 +61,12 @@ class AgentError(RuntimeError):
     never scored: an agent bug is not a loss, and it must not be mistaken for an engine crash."""
 
 
+class AgentForfeitError(AgentError):
+    """An agent exhausted its strikes on an ask that offers no do-nothing option. The game is voided
+    (``void-forfeit``): the bench never plays a default move on the agent's behalf (the option-0
+    fallback used to do exactly that, in silence)."""
+
+
 class Agent(Protocol):
     name: str
 
