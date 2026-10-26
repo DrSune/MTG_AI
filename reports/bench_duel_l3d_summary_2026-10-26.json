@@ -1,0 +1,27 @@
+{
+ "games": 2,
+ "outcomes": {
+  "win": 2
+ },
+ "refused_leaky": 0,
+ "usage_missing": 0,
+ "token_stats": "ok",
+ "decisive_rate": 1.0,
+ "winrate_decisive": [
+  1.0,
+  0.3424,
+  1.0
+ ],
+ "pairs": 1,
+ "pair_score": [
+  1.0,
+  1.0,
+  1.0
+ ],
+ "elo_vs_b": [
+  Infinity,
+  Infinity,
+  Infinity
+ ],
+ "label": "exploratory (no pre-registration file)"
+}

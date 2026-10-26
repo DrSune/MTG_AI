@@ -307,6 +307,7 @@ Measured with it (exploratory; M21 castable pool):
 | primer | 99.92% of uses exercised |
 | live local-LLM smoke | the endpoint answered `/v1/models` but completions returned 503 (backend not loaded; GPU lent to CED); classified as an infra void, as designed |
 | **live local-LLM, track R (2026-10-26, /153)** | masked, 12 scorable items, model `nvidia/Qwen3.8-27B-NVFP4-low` (same 27B weights, low reasoning preset, prompt mode, temp 0): **all-keys 0.518 [0.278, 0.758]; delta vs null 0.411 [0.189, 0.650] (CI excludes 0)** — the FIRST live-LLM number; exploratory n=12 (size per §6), identity block in the manifest |
+| **live local-LLM, duel vs floor (2026-10-26, /155)** | masked, 1 pair (2 games, same deal seat-swapped, shared setup_fp), same seat vs `uniform` floor: **2/0 wins, pair_score 1.0 (n=1 pair, degenerate CI), 0 voids/forfeits/leaky-exclusions**; cost/clock: 92+78 calls, 198k+99k prompt tokens, 4.0 h + 2.3 h wall under session contention (~2.6 min/call). Plumbing + cost measurement — floor is the bottom rung, not a strength bar |
 
 **Next, in order:**
 1. the first live local-LLM runs: **track R done** (2026-10-26, table above — quiet-engine ops law applied, /153); duels vs the floors in progress (same session), N sized per §6;
