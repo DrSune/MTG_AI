@@ -1,0 +1,22 @@
+{
+ "items": 12,
+ "excluded": {
+  "opaque decision word": 44,
+  "ability index not mappable to an oracle line": 58,
+  "combat damage-order/trample lanes": 5,
+  "expects an engine error": 3,
+  "no scorable lane": 6
+ },
+ "variant": "masked",
+ "all_keys": [
+  0.5181,
+  0.2777,
+  0.7584
+ ],
+ "delta (headline)": [
+  0.4111,
+  0.1889,
+  0.6501
+ ],
+ "label": "exploratory (no pre-registration file); public development split"
+}

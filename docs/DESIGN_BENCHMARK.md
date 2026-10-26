@@ -306,9 +306,10 @@ Measured with it (exploratory; M21 castable pool):
 | track R | 312 items from 428 packs (116 excluded by reason), 0 reader mismatches; oracle 1.0; null 0.274 all-keys and 0.0 on changed keys |
 | primer | 99.92% of uses exercised |
 | live local-LLM smoke | the endpoint answered `/v1/models` but completions returned 503 (backend not loaded; GPU lent to CED); classified as an infra void, as designed |
+| **live local-LLM, track R (2026-10-26, /153)** | masked, 12 scorable items, model `nvidia/Qwen3.8-27B-NVFP4-low` (same 27B weights, low reasoning preset, prompt mode, temp 0): **all-keys 0.518 [0.278, 0.758]; delta vs null 0.411 [0.189, 0.650] (CI excludes 0)** — the FIRST live-LLM number; exploratory n=12 (size per §6), identity block in the manifest |
 
 **Next, in order:**
-1. the first live local-LLM runs (track R, then duels vs the floors), when GPU time is scheduled;
+1. the first live local-LLM runs: **track R done** (2026-10-26, table above — quiet-engine ops law applied, /153); duels vs the floors in progress (same session), N sized per §6;
 2. worked examples in the primer, with a teaching/evaluation split of the packs;
 3. mutation testing, to turn "exercised" into "verified" coverage;
 4. the bot adapter, once the per-seat encoder exists (B-23);
