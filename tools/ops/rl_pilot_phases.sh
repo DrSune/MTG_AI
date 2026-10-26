@@ -101,12 +101,18 @@ collect() {
 
 audit() {   # RED (nonzero) = logprob plumbing broken => halt (v2 F4 discriminator)
   local tag=$1 to rc
+  # cuda: inside the window the engine container is stopped, so the GPU is
+  # free and the audit is minutes, not hours. The CPU audit measured ~4.8 s/game
+  # (night-1 /151): 50g calib GREEN in ~4 min, but 1000g iter-1 needed ~80 min >
+  # the 3600 s guard -> rc=124 AUDIT RED, chain stopped honestly. Cross-device
+  # delta vs the CPU-recorded logπ is measured in the real-mode smoke (/151)
+  # and stays far under --tol 1e-3; device cannot fake an off-policy match.
   to=$(guard_to 3600 60) || { log "audit/$tag: budget too small — cannot certify plumbing — chain STOPS honestly"; exit 8; }
-  log "RUN (timeout ${to}s): $VENV -m tools.training.rl_logprob_audit --episodes $ART/${TAGP}episodes_${tag}.jsonl --policy $ANCHOR_REL --device cpu (json -> ${TAGP}audit_${tag}.json)"
+  log "RUN (timeout ${to}s): $VENV -m tools.training.rl_logprob_audit --episodes $ART/${TAGP}episodes_${tag}.jsonl --policy $ANCHOR_REL --device cuda (json -> ${TAGP}audit_${tag}.json)"
   set +e
   timeout "$to" "$VENV" -m tools.training.rl_logprob_audit \
       --episodes "$ART/${TAGP}episodes_${tag}.jsonl" --policy "$ANCHOR_REL" \
-      --device cpu > "$ART/${TAGP}audit_${tag}.json" 2>>"$ART/${TAGP}audit_${tag}.err"
+      --device cuda > "$ART/${TAGP}audit_${tag}.json" 2>>"$ART/${TAGP}audit_${tag}.err"
   rc=$?
   set -e
   if [[ $rc -ne 0 ]]; then

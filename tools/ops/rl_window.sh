@@ -31,6 +31,7 @@ RESTART_AT=07:00
 DRY=0
 GPU_TRAIN=0
 CANCEL_FILE=/tmp/opencode/RL_WINDOW_CANCEL
+PIN_FILE=/tmp/opencode/RL_PILOT_PIN        # /151 PIN law: line 1 = payload fingerprint
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --start-at)    START_AT=$2; shift 2 ;;
@@ -180,7 +181,34 @@ owner_optout() {   # cancel-file exists -> honest exit, engine NEVER touched
   return 1
 }
 
+payload_fingerprint() {   # /151 PIN identity: hash of the tree that defines the
+  # exported engine+payload semantics: MTG_bot/ engine, tools/eval, tools/training
+  # (.py + .pt, tests excluded). tools/ops drivers (this pair), bench, docs,
+  # reports and KNOWLEDGE do not change engine semantics and stay OUT of the PIN,
+  # so documenting/fixing the drivers never trips cross-window drift. Working
+  # tree == export content (git-archive for clean files, overlay for dirty), so
+  # one hash covers both.
+  (cd "$REPO" && find MTG_bot tools/eval tools/training -type f \
+      \( -name '*.py' -o -name '*.pt' \) ! -name 'test_*.py' | sort \
+   | xargs sha256sum | sha256sum | cut -d' ' -f1)
+}
+
 clean_export() {
+  local fp
+  fp=$(payload_fingerprint)
+  if [[ -f "$SRC/.export_fp" && "$(< "$SRC/.export_fp")" == "$fp" ]]; then
+    log "export reuse: $SRC payload fingerprint $fp == working tree — frozen payload reused (PIN law /146/147); no re-archive"
+    return 0
+  fi
+  if [[ -f "$PIN_FILE" ]]; then
+    local pin_fp
+    pin_fp=$(head -1 "$PIN_FILE")
+    if [[ "$pin_fp" != "$fp" ]]; then
+      log "PIN DRIFT: payload tree fingerprint $fp != pinned $pin_fp (pin provenance: $(sed -n '2p' "$PIN_FILE" 2>/dev/null)) — engine/payload tree changed since the pin. Cross-window drift is BANNED: owner decision required (re-smoke the changed dimension in real mode per the PITFALL law /146, then update $PIN_FILE explicitly — never silently). ABORTING."
+      exit 3
+    fi
+    log "PIN match: payload tree fingerprint $fp == $PIN_FILE — rebuilding export from the pinned payload"
+  fi
   rm -rf "$SRC"
   mkdir -p "$SRC"
   git -C "$REPO" archive HEAD | tar -x -C "$SRC"
@@ -216,6 +244,8 @@ clean_export() {
     || { log "EXPORT SANITY FAIL: overlay ab_duel.py lacks BcAsk grad kwarg"; exit 3; }
   grep -q "outcome" "$SRC/tools/training/train_rl_v1.py" \
     || { log "EXPORT SANITY FAIL: overlay train_rl_v1.py lacks outcome reward"; exit 3; }
+  echo "$fp" > "$SRC/.export_fp"
+  log "export payload fingerprint: $fp (HEAD $(git -C "$REPO" rev-parse --short HEAD))"
 }
 
 ledger_header() {
@@ -289,6 +319,13 @@ main() {
     log "phase chain done (rc=$PHASES_RC) — restoring engine on the NORMAL path (overrun rule v2: restore NOW, resume next window)"
     restore_engine
     ENGINE_STOPPED=0
+    if [[ $PHASES_RC -eq 0 && ! -f "$PIN_FILE" ]]; then
+      {
+        payload_fingerprint
+        echo "$(date '+%F %T') first FULL-CHAIN success (phases rc=0) — HEAD $(git -C "$REPO" rev-parse --short HEAD)"
+      } > "$PIN_FILE"
+      log "PIN written ($PIN_FILE) — payload frozen for all future windows (PIN law /146/147)"
+    fi
     log "===== engine restored — attach tmux -r -t rlwindow to read ledger ($LEDGER), harvest $ART ====="
     sleep infinity      # keep the tmux trail readable until owner kills it
   fi

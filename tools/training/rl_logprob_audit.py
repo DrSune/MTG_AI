@@ -53,19 +53,26 @@ def audit(
     from tools.training import bc_data_v2
     from tools.training.ab_duel import BcAsk
     from tools.training.collector import AskContext
+    from tools.training.train_rl_v1 import _ckpt_key
 
-    want = str(Path(policy).resolve())
+    want = _ckpt_key(policy)
     rows = [
         json.loads(line)
         for line in episodes_path.read_text(encoding="utf-8").splitlines()
         if line.strip()
     ]
-    owned = [r for r in rows if str(Path(r["policy"]).resolve()) == want]
+    # /149 identity (mirror of the trainer): SHA-256 of the checkpoint bytes
+    # when the file is present, resolved-path fallback when absent. A
+    # byte-identical copy at another path (the export-dir case) IS the same
+    # policy — path-only matching rejected honest cross-path reuse.
+    owned = [r for r in rows if _ckpt_key(r["policy"]) == want]
     foreign = len(rows) - len(owned)
     if not owned:
         raise RuntimeError(
             f"rl_logprob_audit: 0/{len(rows)} episodes were collected with "
-            f"{policy!r} — auditing nothing while reporting success is the " + TRAP
+            f"{policy!r} (identity by SHA-256 of the checkpoint bytes, "
+            "resolved-path fallback) — auditing nothing while reporting "
+            "success is the " + TRAP
         )
 
     deltas: list[float] = []

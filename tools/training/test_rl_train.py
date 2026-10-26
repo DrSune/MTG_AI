@@ -134,6 +134,44 @@ def test_policy_identity_foreign_bytes_rejected(episodes: Path, tmp_path: Path) 
         load_episodes(eps, NET)
 
 
+# ------------------------------------------------- audit identity (SHA > path)
+@TIMEOUT
+def test_audit_identity_by_sha_not_path(episodes: Path, tmp_path: Path) -> None:
+    """/149 on the audit side: rows recorded with a foreign path (the
+    export-dir case) pointing at byte-identical checkpoint bytes ARE owned —
+    path-only matching would reject honest cross-path reuse (night-2 smoke
+    failure: 0/1000 'foreign' on a repo-path audit of export-collected rows)."""
+    from tools.training.rl_logprob_audit import audit
+
+    moved = tmp_path / "export_copy.pt"
+    moved.write_bytes(Path(NET).read_bytes())
+    rows = _rows(episodes)
+    for r in rows:
+        r["policy"] = str(moved)
+    eps = _write(tmp_path, rows)
+    rep = audit(eps, NET, device="cpu", tol=1e-3)  # bytes match => owned
+    assert rep["episodes_owned"] == len(rows)
+    assert rep["episodes_foreign"] == 0
+
+
+@TIMEOUT
+def test_audit_identity_foreign_bytes_rejected(episodes: Path, tmp_path: Path) -> None:
+    """Same path NAME, different bytes = foreign policy => fail-loud (audit)."""
+    from tools.training.rl_logprob_audit import audit
+
+    moved = tmp_path / "export_copy.pt"
+    moved.write_bytes(Path(NET).read_bytes())
+    rows = _rows(episodes)
+    for r in rows:
+        r["policy"] = str(moved)
+    with moved.open("r+b") as fh:
+        fh.seek(100)
+        fh.write(b"\x01")  # one byte => different identity
+    eps = _write(tmp_path, rows)
+    with pytest.raises(RuntimeError, match="0/2 episodes were collected"):
+        audit(eps, NET, device="cpu", tol=1e-3)
+
+
 # ------------------------------------------------------------ one update
 @TIMEOUT
 def test_one_update_changes_weights_fills_f4(episodes: Path, tmp_path: Path) -> None:
