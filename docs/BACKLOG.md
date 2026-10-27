@@ -418,6 +418,29 @@ These are forks, not tasks. See the report that accompanied this audit.
   green in `pytest MTG_bot` and crashed 3 collector games in `pytest tools` (order-dependent).
   Patch inside a context manager scoped to the run, or give the engine a recorder hook instead.
   Until then `test_no_engine_call_site_passes_seat_to_take_decision` guards the signature.
+- **B-36 A template pattern accepts words its builder cannot map**: the `B3-grant-kw-*` patterns
+  (`core/compiler/templates_b3.py:989-1017`) take any lowercase word, `_KW_MAP` (`:90`) holds
+  four keywords, so "…gains haste until end of turn" raises `KeyError`. It is not an honest
+  refusal, so it takes down the whole set's compile and deal pool. M19 and KHM (2026-10-27,
+  KNOWLEDGE /159). Build the alternation from the map. Then a pattern cannot outrun its builder.
+- **B-37 Vehicles crash the compiler**: printed P/T on a non-creature raises `ValueError`
+  "non-creatures cannot have P/T" from `CardRecord` (`core/compiler/compiler.py:2205`). Five KHM
+  vehicles and one THB. Refuse honestly (`StateCorruptionError`, a shape gap) until crew exists.
+- **B-38 Emblem attachment raises when the planeswalker is a back face**
+  (`core/compiler/coverage.py:363` → `ability_tree.py:3361` "only a Planeswalker may carry an
+  emblem"): KHM Valki, God of Lies // Tibalt, Cosmic Impostor.
+- **B-39 Ingest refuses ELD and IKO** (`core/compiler/ingest.py:652`): printings of one token (ELD
+  Food ×4, IKO Human Soldier) differ only in `relatedCards.reverseRelated`, which lists the
+  *other* cards that create the token. Merge those printings instead of calling it corruption.
+- **B-40 PC-2 counts a shape-gap card's front sentences as matched**: `measure_pool` puts them in
+  `sentence_total` but never in the unparsed queue (`core/compiler/coverage.py:368-531`), while PC-1
+  counts the same card against coverage. One card in ZNR, two in M20, three in KHM.
+- **B-41 The grammar does not generalize to unseen text**: at first touch PC-2 on sentence shapes
+  absent from M21/ZNR is 0.080 (M20) and 0.111 (KHM), against 0.89 on seen shapes. On cards with
+  new text, PC-1 is 0.11 (M20) and 0.03 (KHM) (KNOWLEDGE /159). Tied rank 1 needs compositional
+  mechanisms over sentence shapes. The cheapest first are keyword lines carrying reminder text, and
+  keyword lists (ZND-4a). Measure every grammar round on a sealed split
+  (`tools/audit/new_set.py`).
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
   plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
 

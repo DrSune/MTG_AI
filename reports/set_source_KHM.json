@@ -1,0 +1,51 @@
+{
+ "set": "KHM",
+ "checked_at": "2026-10-27T11:35:34+01:00",
+ "source": {
+  "file": "MTG_bot/data/KHM.json",
+  "sha256": "41bd797a132fe54451122691285da0f294390f51bdd0d87350f73f161317ceb0",
+  "mtgjson": {
+   "date": "2026-10-26",
+   "version": "5.3.0+20261026"
+  }
+ },
+ "scryfall_set": {
+  "code": "khm",
+  "name": "Kaldheim",
+  "released_at": "2021-02-05",
+  "set_type": "expansion",
+  "card_count": 407,
+  "printed_size": null
+ },
+ "cards": {
+  "records": 440,
+  "scryfall_printings": 407,
+  "names_file": 305,
+  "names_scryfall": 305,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 407,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 440,
+  "text_mismatch": []
+ },
+ "tokens": {
+  "set": "TKHM",
+  "records": 23,
+  "scryfall_printings": 23,
+  "names_file": 23,
+  "names_scryfall": 23,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 23,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 23,
+  "text_mismatch": []
+ },
+ "verdict": "match",
+ "owner_sign_off": "pending"
+}

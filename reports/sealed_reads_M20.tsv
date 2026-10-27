@@ -1,0 +1,2 @@
+2026-10-27_1133	0046627ef5a3	clean	first touch: zero code changes, HEAD 0046627, before any M20 grammar work
+2026-10-27_1139	0046627ef5a3	clean	re-measure with the committed tool version (crash-tolerant, whole = sum of groups); same HEAD 0046627, no grammar work since read 1

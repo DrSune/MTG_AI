@@ -1,0 +1,51 @@
+{
+ "set": "M20",
+ "checked_at": "2026-10-27T11:32:52",
+ "source": {
+  "file": "MTG_bot/data/M20.json",
+  "sha256": "c2eafc6e8b5b10e9488a61cd99d3e2e5e560685a21aa8d9d5784c715843717d6",
+  "mtgjson": {
+   "date": "2026-10-26",
+   "version": "5.3.0+20261026"
+  }
+ },
+ "scryfall_set": {
+  "code": "m20",
+  "name": "Core Set 2020",
+  "released_at": "2019-07-12",
+  "set_type": "core",
+  "card_count": 344,
+  "printed_size": null
+ },
+ "cards": {
+  "records": 345,
+  "scryfall_printings": 345,
+  "names_file": 329,
+  "names_scryfall": 329,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 345,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 345,
+  "text_mismatch": []
+ },
+ "tokens": {
+  "set": "TM20",
+  "records": 12,
+  "scryfall_printings": 12,
+  "names_file": 12,
+  "names_scryfall": 12,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 12,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 12,
+  "text_mismatch": []
+ },
+ "verdict": "match",
+ "owner_sign_off": "pending"
+}
