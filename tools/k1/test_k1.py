@@ -1,4 +1,5 @@
-"""K1 tooling: atom tokens leak no identity, the compound split keeps every atom in training."""
+"""K1 tooling: atom tokens leak no identity, the compound split keeps every atom in training, K1b
+statistics behave."""
 
 from __future__ import annotations
 
@@ -7,6 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import curve
 import gen
 import train
 
@@ -58,3 +60,23 @@ def test_a_recorded_row_has_the_24_board_numbers() -> None:
     rows = gen.play(("M21", "castable", 3, "stress"))
     assert rows and all(len(r["pre"]) == 24 and len(r["delta"]) == 24 for r in rows)
     assert all(r["unit"] == "card" or r["unit"].startswith("ability:") for r in rows)
+
+
+def test_k1b_cap_is_per_card_and_independent_of_row_order() -> None:
+    rows = [{"oid": oid, "seed": s, "turn": t, "pre": [s, t]}
+            for oid in ("a", "b") for s in range(5) for t in range(4)]
+    kept = curve.capped(rows, 7)
+    assert sorted(r["oid"] for r in kept) == ["a"] * 7 + ["b"] * 7
+    # the same rows are kept whatever order they arrive in (only the card order may differ)
+    assert sorted(map(str, curve.capped(list(reversed(rows)), 7))) == sorted(map(str, kept))
+
+
+def test_k1b_skill_skips_cards_the_floor_already_predicts_and_pairs_cards() -> None:
+    floor = {"a": 1.0, "b": 2.0, "exact": 0.0}
+    model = {"a": 0.5, "b": 2.0, "exact": 0.0}
+    skill = curve.skills(model, floor, {"a", "b", "exact"})
+    assert skill == {"a": 0.5, "b": 0.0}
+    same = curve.paired_gap(skill, skill, "test")
+    assert same["gap"] == 0 and same["ci95"] == [0, 0] and same["cards"] == 2
+    better = curve.paired_gap({c: v + 0.25 for c, v in skill.items()}, skill, "test")
+    assert better["gap"] == 0.25 and better["ci95"] == [0.25, 0.25]

@@ -1,0 +1,185 @@
+{
+ "run": "A",
+ "groups": {
+  "covered": {
+   "cards": 123,
+   "ir-bag": {
+    "1 set": 0.3239,
+    "16 sets": 0.6643,
+    "gap": {
+     "cards": 123,
+     "gap": 0.3404,
+     "ci95": [
+      0.229,
+      0.4503
+     ]
+    }
+   },
+   "ir-pairs": {
+    "1 set": 0.3547,
+    "16 sets": 0.6338,
+    "gap": {
+     "cards": 123,
+     "gap": 0.2791,
+     "ci95": [
+      0.1846,
+      0.4191
+     ]
+    }
+   },
+   "text-bag": {
+    "1 set": 0.1737,
+    "16 sets": 0.4422,
+    "gap": {
+     "cards": 123,
+     "gap": 0.2684,
+     "ci95": [
+      0.1868,
+      0.3686
+     ]
+    }
+   },
+   "hybrid": {
+    "1 set": 0.2511,
+    "16 sets": 0.6128,
+    "gap": {
+     "cards": 123,
+     "gap": 0.3617,
+     "ci95": [
+      0.2462,
+      0.4645
+     ]
+    }
+   }
+  },
+  "new atoms": {
+   "cards": 25,
+   "ir-bag": {
+    "1 set": 0.3426,
+    "16 sets": 0.3763,
+    "gap": {
+     "cards": 25,
+     "gap": 0.0337,
+     "ci95": [
+      -0.1335,
+      0.3469
+     ]
+    }
+   },
+   "ir-pairs": {
+    "1 set": 0.1663,
+    "16 sets": 0.2633,
+    "gap": {
+     "cards": 25,
+     "gap": 0.097,
+     "ci95": [
+      -0.0813,
+      0.3854
+     ]
+    }
+   },
+   "text-bag": {
+    "1 set": 0.2921,
+    "16 sets": 0.4466,
+    "gap": {
+     "cards": 25,
+     "gap": 0.1545,
+     "ci95": [
+      -0.0427,
+      0.3982
+     ]
+    }
+   },
+   "hybrid": {
+    "1 set": 0.0993,
+    "16 sets": 0.4136,
+    "gap": {
+     "cards": 25,
+     "gap": 0.3143,
+     "ci95": [
+      -0.1081,
+      0.5146
+     ]
+    }
+   }
+  },
+  "from M21": {
+   "cards": 38,
+   "ir-bag": {
+    "1 set": 0.2846,
+    "16 sets": 0.3159,
+    "gap": {
+     "cards": 38,
+     "gap": 0.0313,
+     "ci95": [
+      -0.1324,
+      0.2149
+     ]
+    }
+   },
+   "ir-pairs": {
+    "1 set": 0.3477,
+    "16 sets": 0.3897,
+    "gap": {
+     "cards": 38,
+     "gap": 0.042,
+     "ci95": [
+      -0.1108,
+      0.2452
+     ]
+    }
+   },
+   "text-bag": {
+    "1 set": 0.172,
+    "16 sets": 0.3315,
+    "gap": {
+     "cards": 38,
+     "gap": 0.1595,
+     "ci95": [
+      -0.0194,
+      0.2487
+     ]
+    }
+   },
+   "hybrid": {
+    "1 set": 0.2381,
+    "16 sets": 0.4209,
+    "gap": {
+     "cards": 38,
+     "gap": 0.1828,
+     "ci95": [
+      -0.0152,
+      0.3194
+     ]
+    }
+   }
+  }
+ },
+ "pooled_r2_dominated_by": [
+  {
+   "card": "Angel's Mercy",
+   "rows": 75,
+   "share_of_floor_sse": 0.092
+  },
+  {
+   "card": "Solemn Offering",
+   "rows": 46,
+   "share_of_floor_sse": 0.049
+  },
+  {
+   "card": "Liliana's Scorn",
+   "rows": 60,
+   "share_of_floor_sse": 0.039
+  },
+  {
+   "card": "Naturalize",
+   "rows": 148,
+   "share_of_floor_sse": 0.039
+  },
+  {
+   "card": "Samut, Tyrant Smasher",
+   "rows": 52,
+   "share_of_floor_sse": 0.032
+  }
+ ]
+}

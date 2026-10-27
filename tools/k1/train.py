@@ -66,7 +66,7 @@ from MTG_bot.core.errors import StateCorruptionError
 from MTG_bot.utils import rng
 
 MAX_SEQ = 256
-ENCODERS = ("state", "name", "ir-bag", "ir-seq", "text-bag", "hybrid")
+ENCODERS = ("state", "name", "ir-bag", "ir-pairs", "ir-seq", "text-bag", "hybrid")
 
 
 # --------------------------------------------------------------------------- card inputs
@@ -121,6 +121,52 @@ def ir_tokens(node: Any) -> list[str]:
     return out
 
 
+def ir_pairs(node: Any) -> list[str]:
+    """Parent>child token bigrams of the same tree (``role:target>Selector``,
+    ``FAtomPred.TYPE_EQ>str:Creature``): which atom applies to what, without a sequence model."""
+    out: list[str] = []
+
+    def label(value: Any) -> str | None:
+        if isinstance(value, dict):
+            tag = value.get("tag")
+            if "name" in value and len(value) == 2 and tag:
+                return f"{tag}.{value['name']}"
+            if tag == "QConst":
+                return _bucket(value.get("value"))
+            return tag
+        if isinstance(value, bool):
+            return f"bool:{value}"
+        if isinstance(value, int):
+            return _bucket(value)
+        if isinstance(value, str):
+            return f"str:{value}"
+        return None
+
+    def visit(value: Any, parent: str | None) -> None:
+        if isinstance(value, list):
+            for item in value:
+                visit(item, parent)
+            return
+        here = label(value)
+        if here is not None and parent is not None:
+            out.append(f"{parent}>{here}")
+        if not isinstance(value, dict) or ("name" in value and len(value) == 2) \
+                or value.get("tag") == "QConst":
+            return
+        for key, child in value.items():
+            if key == "tag" or child in (None, [], {}, "") or key in ("name", "oracle_id", "type_line"):
+                continue
+            if key == "pairs":
+                for role, item in child:
+                    out.append(f"{here}>role:{role}")
+                    visit(item, f"role:{role}")
+                continue
+            visit(child, here)
+
+    visit(node, None)
+    return out
+
+
 def text_tokens(raw: Any) -> list[str]:
     text = " ".join(raw.sentences).lower()
     for name in sorted({raw.identity.name, raw.identity.name.split(",")[0]}, key=len, reverse=True):
@@ -141,7 +187,8 @@ def card_inputs(set_code: str) -> dict[tuple[str, str], dict[str, Any]]:
     out: dict[tuple[str, str], dict[str, Any]] = {}
     for oid, raw in ingest_pool(REPO / "MTG_bot" / "data" / f"{set_code}.json").items():
         try:
-            card = compile_card(raw, registry).card
+            result = compile_card(raw, registry)
+            card = result.card
         except StateCorruptionError:
             continue
         except Exception:  # noqa: BLE001, S112 - a compile crash is a gap, not a row
@@ -153,10 +200,17 @@ def card_inputs(set_code: str) -> dict[tuple[str, str], dict[str, Any]]:
         text = face + text_tokens(raw)
         whole = face + ir_tokens({"abilities": [to_dict(a) for a in card.abilities],
                                   "keywords": [to_dict(k) for k in card.keywords]})
-        out[(oid, "card")] = {"ir": whole, "text": text}
+        tree = {"abilities": [to_dict(a) for a in card.abilities],
+                "keywords": [to_dict(k) for k in card.keywords]}
+        # "full": nothing unparsed or ambiguous, so the printed text says only what the engine does
+        # (the supply's "compiled" test, games.py). Castable pools also deal partly blank cards.
+        full = not (result.unparsed or result.ambiguities or result.back_face_unparsed)
+        out[(oid, "card")] = {"ir": whole, "text": text, "pairs": face + ir_pairs(tree),
+                              "full": full}
         for i, ability in enumerate(card.abilities):
             if isinstance(ability, ActivatedAbility):
-                out[(oid, f"ability:{i}")] = {"ir": ir_tokens(to_dict(ability)), "text": text}
+                out[(oid, f"ability:{i}")] = {"ir": ir_tokens(to_dict(ability)), "text": text,
+                                              "pairs": ir_pairs(to_dict(ability))}
     return out
 
 
@@ -241,6 +295,10 @@ class Model(nn.Module):
         if encoder in ("text-bag", "hybrid"):
             self.text = nn.Linear(sizes["text"], 128)
             width += 128
+        if encoder == "ir-pairs":
+            self.ir = nn.Linear(sizes["ir"], 128)
+            self.pairs = nn.Linear(sizes["pairs"], 128)
+            width += 256
         if encoder == "ir-seq":
             self.embed = nn.Embedding(sizes["ir"] + 1, 64, padding_idx=0)
             layer = nn.TransformerEncoderLayer(64, 4, 128, dropout=0.1, batch_first=True)
@@ -257,6 +315,9 @@ class Model(nn.Module):
             parts.append(torch.relu(self.ir(card["ir_bag"])))
         if self.encoder in ("text-bag", "hybrid"):
             parts.append(torch.relu(self.text(card["text_bag"])))
+        if self.encoder == "ir-pairs":
+            parts.append(torch.relu(self.ir(card["ir_bag"])))
+            parts.append(torch.relu(self.pairs(card["pairs_bag"])))
         if self.encoder == "ir-seq":
             ids = card["ir_seq_unique"]  # one row per distinct card in the batch
             mask = ids == 0
@@ -277,6 +338,7 @@ class CardTable:
         n = len(self.keys) + 1
         self.ir_bag = torch.zeros(n, len(vocab["ir"]))
         self.text_bag = torch.zeros(n, len(vocab["text"]))
+        self.pairs_bag = torch.zeros(n, len(vocab.get("pairs", {})))
         self.seq = torch.zeros(n, MAX_SEQ, dtype=torch.long)
         self.name = torch.zeros(n, dtype=torch.long)
         for k, i in self.index.items():
@@ -287,12 +349,16 @@ class CardTable:
             for t in card["text"]:
                 if t in vocab["text"]:
                     self.text_bag[i, vocab["text"][t]] += 1.0
+            for t in card.get("pairs", ()):
+                if t in vocab.get("pairs", {}):
+                    self.pairs_bag[i, vocab["pairs"][t]] += 1.0
             seq_ids = [j + 1 for j in ids[:MAX_SEQ]]
             if seq_ids:
                 self.seq[i, : len(seq_ids)] = torch.tensor(seq_ids, dtype=torch.long)
             self.name[i] = vocab["names"].get(k[0], 0)
         self.ir_bag = torch.log1p(self.ir_bag)
         self.text_bag = torch.log1p(self.text_bag)
+        self.pairs_bag = torch.log1p(self.pairs_bag)
 
     def row_index(self, row: dict) -> int:
         return self.index.get((row["oid"], row["unit"])) or self.index.get((row["oid"], "card"), 0)
@@ -303,7 +369,8 @@ def fit_predict(encoder: str, train: list, test: list, table: CardTable, vocab: 
     rng.seed_all(seed, seed_frameworks=True)
     n_state = len(stats["s_mean"])
     model = Model(encoder, n_state, n_state, {"names": len(vocab["names"]) + 1,
-                                              "ir": len(vocab["ir"]), "text": len(vocab["text"])})
+                                              "ir": len(vocab["ir"]), "text": len(vocab["text"]),
+                                              "pairs": len(vocab.get("pairs", {}))})
     opt = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-5)
     # early stopping on 10% of the TRAINING cards, held out whole (no row leakage)
     tr_cards = sorted({r["oid"] for r in train})
@@ -311,7 +378,8 @@ def fit_predict(encoder: str, train: list, test: list, table: CardTable, vocab: 
     fit = [r for r in train if r["oid"] not in val_cards]
     val = [r for r in train if r["oid"] in val_cards] or fit[: max(1, len(fit) // 10)]
     best, best_state, bad = math.inf, None, 0
-    batch = 1024 if encoder == "ir-seq" else 256  # ir-seq encodes each distinct card once per batch
+    # ir-seq encodes each distinct card once per batch; big pools (K1b) use big batches throughout
+    batch = 1024 if encoder == "ir-seq" or len(train) > 100_000 else 256
     order_rng = rng.substream("bench", "k1", encoder, seed)
     for _epoch in range(epochs):
         model.train()
@@ -356,6 +424,7 @@ def tensors(rows: list, table: CardTable, stats: dict):
         "name": table.name[idx],
         "ir_bag": table.ir_bag[idx],
         "text_bag": table.text_bag[idx],
+        "pairs_bag": table.pairs_bag[idx],
         "ir_seq_unique": table.seq[unique],
         "ir_seq_index": inverse,
     }
@@ -400,7 +469,7 @@ def evaluate(split: str, train: list, test: list, inputs: dict, epochs: int,
              encoders: tuple[str, ...] = ENCODERS) -> dict[str, Any]:
     vocab = {
         "names": {c: i + 1 for i, c in enumerate(sorted({r["oid"] for r in train}))},
-        "ir": {}, "text": {},
+        "ir": {}, "text": {}, "pairs": {},
     }
     for r in train:
         card = inputs.get((r["oid"], r["unit"])) or inputs.get((r["oid"], "card"))
@@ -410,6 +479,8 @@ def evaluate(split: str, train: list, test: list, inputs: dict, epochs: int,
             vocab["ir"].setdefault(t, len(vocab["ir"]))
         for t in card["text"]:
             vocab["text"].setdefault(t, len(vocab["text"]))
+        for t in card.get("pairs", ()):
+            vocab["pairs"].setdefault(t, len(vocab["pairs"]))
     pre = torch.tensor([r["pre"] for r in train], dtype=torch.float32)
     dlt = torch.tensor([r["delta"] for r in train], dtype=torch.float32)
     stats = {"s_mean": pre.mean(0), "s_std": pre.std(0).clamp(min=1e-3),

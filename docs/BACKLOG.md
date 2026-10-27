@@ -17,6 +17,7 @@ are neutral; each one is teaching the agent something.
 | Scaffold | Where | Removal condition |
 |---|---|---|
 | **Coherent-deck recipe (B-45)**: 2 seeded colours, 24 basics, 36 cards uniform within the colour pair | `core/executor/games.py` `build_coherent_deck` / `COHERENT_LANDS` (branch `sets/onboarding` 36adf48) | It chooses colours and land count, never which spells. Remove when decks come from a learned deckbuilder (draft/sealed or constructed), or replace the land count with a learned or sampled quantity. Opt-in only; the default stays the stress pile. |
+| **K1 kill-test tooling limits** (offline tools, not the engine or the policy): 20 s wall clock per game, at most 60 rows per card per set, target scale clamped at 1e-3 | `tools/k1/gen.py` `--game-timeout`, `tools/k1/curve.py` `--cap`, `tools/k1/train.py` `y_std` clamp | The timeout drops straggling games, biasing data toward short games: remove once straggling games are understood (an engine stall rule or a perf fix). The row cap stands in for per-card loss weighting: replace it with weighting. The clamp lets a lane with no training variance dominate pooled R² (/166): take scales from the union pool, or drop such lanes from pooled R². |
 | **Thirteen shaping reward terms** — damage, life, board presence, board delta, cards, action discovery, mana generation, proactivity, penalties | `strategic_brain/environment.py:164-211` | Replace with outcome plus at most a couple of defensible terms. A 200-step game currently accrues about +20 of shaping against ±10 for the actual result, so the agent is optimising the shaping. Remove once the engine is correct enough that winning is learnable directly. |
 | **Proactivity bias** — subtracts up to 10 nats from every pass action's logit | `strategic_brain/student.py:126-129` | Delete. It is applied at collection but not at training, which pins the PPO ratio to e^±10 on every pass action. It exists to fight "the agent passes", which is a symptom of the reward and the dead action space, not of the policy. |
 | **`MAX_MOVES_PER_STEP = 500`** | `rule_engine/engine.py` | Replace with the loop detection in [`DESIGN_INFINITIES.md`](DESIGN_INFINITIES.md) plus a wall-clock truncate-and-bootstrap. Currently it pays −10 to whoever found a combo. |
@@ -465,6 +466,19 @@ These are forks, not tasks. See the report that accompanied this audit.
   1–5 is a coin flip, and only gaps of 6 or more decide games (K3-lite). Add an opt-in coherent
   mode (2 colours, about 40% lands, a curve, still seeded). Keep the default so existing
   measurements stay comparable. Train and evaluate on both.
+- **B-46 [/166] Fourteen older sets are dealt mostly partly blank.** The castable pools of M19,
+  10E, M10–M13, M15, ORI, DOM, WAR, FDN, ELD, THB and IKO deal 2,482 cards. Only 683 of them
+  (27.5%) are fully compiled; the engine plays the rest with their unparsed sentences blank.
+  - Their IR matches what the engine does, so K1b could train IR encoders on them. But clean
+    volume (fully compiled only) is 556 training cards against 1,829 dealt.
+  - Every grammar round on these sets adds clean training cards, and the K1b curve was still
+    rising at 16 sets.
+  - M14 cannot be dealt at all: 9 mana-capable castable cards, and `build_deck` needs
+    `MIN_MANA_SOURCES` = 10.
+  - None of these sets has been through sealed first touch, and no unparsed sentence of theirs
+    has been read. Run `tools/audit/new_set.py` on each before any grammar round on it.
+  - Synthetic cards (atoms composed with sampled parameters) come after real-set volume, as the
+    clean test of genuinely new compositions (owner, 2026-10-27).
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
   plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
 

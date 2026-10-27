@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import signal
 import sys
 from multiprocessing import Pool
 from pathlib import Path
@@ -115,18 +116,37 @@ class RecordingPolicy(RandomPolicy):
                      kicked=False)
 
 
-def play(args: tuple[str, str, int, str]) -> list[dict[str, Any]]:
-    set_code, pool, seed, deck_mode = args
+class GameTimeout(Exception):
+    pass
+
+
+def _alarm(_signum: int, _frame: Any) -> None:
+    raise GameTimeout
+
+
+def play(args: tuple) -> list[dict[str, Any]]:
+    set_code, pool, seed, deck_mode = args[:4]
+    timeout = args[4] if len(args) > 4 else 0
     supply = get_supply(pool, set_code)
     sink: list[dict[str, Any]] = []
     # deck_mode exists only from the sets/onboarding merge on; the default call works on any tree
     decks = (deal_decks(seed, 1409, supply) if deck_mode == "stress"
              else deal_decks(seed, 1409, supply, deck_mode))
     game = _setup_game(seed, supply, decks)
+    # A few games run pathologically long (trigger loops up to the 200-fire cap): a wall-clock
+    # limit per game stops one straggler holding its chunk; it keeps the rows recorded so far.
+    if timeout:
+        signal.signal(signal.SIGALRM, _alarm)
+        signal.alarm(timeout)
     try:
         _play(game, RecordingPolicy(seed, sink), game.world.player_order, TURN_CAP)
+    except GameTimeout:
+        pass
     except Exception:  # noqa: BLE001, S110 - a crashed game keeps the rows it settled before it
         pass
+    finally:
+        if timeout:
+            signal.alarm(0)
     return [{"set": set_code, "seed": seed, **row} for row in sink]
 
 
@@ -138,9 +158,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--games", type=int, default=1000)
     ap.add_argument("--first-seed", type=int, default=1)
     ap.add_argument("--workers", type=int, default=12)
+    ap.add_argument("--game-timeout", type=int, default=20, help="seconds per game (0 = none)")
     ap.add_argument("--out", required=True)
     args = ap.parse_args(argv)
-    jobs = [(args.set, args.pool, s, args.deck_mode)
+    jobs = [(args.set, args.pool, s, args.deck_mode, args.game_timeout)
             for s in range(args.first_seed, args.first_seed + args.games)]
     rows = 0
     with Pool(args.workers) as pool, open(args.out, "w", encoding="utf-8") as out:

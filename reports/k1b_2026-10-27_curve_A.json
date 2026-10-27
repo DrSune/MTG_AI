@@ -1,0 +1,1782 @@
+{
+ "cap_rows_per_card_per_set": 60,
+ "epochs": 15,
+ "fully_compiled_only": false,
+ "test_rows": {
+  "heldout": 21811,
+  "M20": 1980,
+  "KHM": 5450
+ },
+ "test_cards": {
+  "heldout/effect": 148,
+  "heldout/all": 490,
+  "M20/effect": 16,
+  "M20/all": 33,
+  "KHM/effect": 39,
+  "KHM/all": 161
+ },
+ "steps": {
+  "1 set": {
+   "sets": [
+    "M21"
+   ],
+   "train_rows": 10140,
+   "train_cards": 169,
+   "train_effect_cards": 157,
+   "y_std": [
+    0.5312,
+    0.5118,
+    0.6144,
+    0.6335,
+    0.0948,
+    0.5884,
+    2.0481,
+    2.037,
+    0.206,
+    0.3387,
+    0.1857,
+    0.0767,
+    0.2546,
+    1.5222,
+    1.5027,
+    0.294,
+    0.1215,
+    0.2493,
+    0.8197,
+    0.7902,
+    0.1221,
+    0.1918,
+    0.155,
+    0.001
+   ],
+   "heldout": {
+    "state": {
+     "pooled_r2": -0.0002,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     }
+    },
+    "ir-bag": {
+     "pooled_r2": 0.001,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.3246,
+      "share_above_0.1": 0.662
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.6029,
+      "share_above_0.1": 0.863
+     }
+    },
+    "ir-pairs": {
+     "pooled_r2": 0.0011,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.3288,
+      "share_above_0.1": 0.73
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.6194,
+      "share_above_0.1": 0.892
+     }
+    },
+    "text-bag": {
+     "pooled_r2": 0.0002,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.1854,
+      "share_above_0.1": 0.615
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.2238,
+      "share_above_0.1": 0.596
+     }
+    },
+    "hybrid": {
+     "pooled_r2": 0.0007,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.2429,
+      "share_above_0.1": 0.642
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.3665,
+      "share_above_0.1": 0.724
+     }
+    }
+   },
+   "M20": {
+    "state": {
+     "pooled_r2": -0.0369,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     }
+    },
+    "ir-bag": {
+     "pooled_r2": 0.2223,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.3019,
+      "share_above_0.1": 0.875
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.4358,
+      "share_above_0.1": 0.939
+     }
+    },
+    "ir-pairs": {
+     "pooled_r2": 0.348,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.4135,
+      "share_above_0.1": 1.0
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.4898,
+      "share_above_0.1": 0.97
+     }
+    },
+    "text-bag": {
+     "pooled_r2": 0.1726,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.2417,
+      "share_above_0.1": 0.812
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.3921,
+      "share_above_0.1": 0.879
+     }
+    },
+    "hybrid": {
+     "pooled_r2": 0.2031,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.2029,
+      "share_above_0.1": 0.75
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.3972,
+      "share_above_0.1": 0.848
+     }
+    }
+   },
+   "KHM": {
+    "state": {
+     "pooled_r2": -0.0001,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     }
+    },
+    "ir-bag": {
+     "pooled_r2": 0.0007,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.2531,
+      "share_above_0.1": 0.872
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.5822,
+      "share_above_0.1": 0.95
+     }
+    },
+    "ir-pairs": {
+     "pooled_r2": 0.0007,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.3168,
+      "share_above_0.1": 0.872
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.6109,
+      "share_above_0.1": 0.95
+     }
+    },
+    "text-bag": {
+     "pooled_r2": 0.0,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.1757,
+      "share_above_0.1": 0.744
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.2673,
+      "share_above_0.1": 0.646
+     }
+    },
+    "hybrid": {
+     "pooled_r2": 0.0005,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.2236,
+      "share_above_0.1": 0.744
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.339,
+      "share_above_0.1": 0.752
+     }
+    }
+   },
+   "state_seconds": 3.8,
+   "ir-bag_seconds": 2.1,
+   "ir-pairs_seconds": 2.3,
+   "text-bag_seconds": 1.9,
+   "hybrid_seconds": 2.0
+  },
+  "4 sets": {
+   "sets": [
+    "M21",
+    "ZNR",
+    "M19",
+    "10E"
+   ],
+   "train_rows": 28273,
+   "train_cards": 540,
+   "train_effect_cards": 292,
+   "y_std": [
+    0.4928,
+    0.4202,
+    0.4827,
+    0.5313,
+    0.0694,
+    0.5147,
+    1.9463,
+    1.9051,
+    0.1617,
+    0.2431,
+    0.1423,
+    0.0635,
+    0.1797,
+    0.9245,
+    0.9017,
+    0.2424,
+    0.0731,
+    0.186,
+    0.6978,
+    0.6605,
+    0.0745,
+    0.121,
+    0.124,
+    0.0366
+   ],
+   "heldout": {
+    "state": {
+     "pooled_r2": -0.0146,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     }
+    },
+    "ir-bag": {
+     "pooled_r2": 0.3608,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.4365,
+      "share_above_0.1": 0.777
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.7922,
+      "share_above_0.1": 0.924
+     }
+    },
+    "ir-pairs": {
+     "pooled_r2": 0.3789,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.4573,
+      "share_above_0.1": 0.818
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.7856,
+      "share_above_0.1": 0.937
+     }
+    },
+    "text-bag": {
+     "pooled_r2": 0.2257,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.3183,
+      "share_above_0.1": 0.689
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.4569,
+      "share_above_0.1": 0.743
+     }
+    },
+    "hybrid": {
+     "pooled_r2": 0.302,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.4857,
+      "share_above_0.1": 0.818
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.7584,
+      "share_above_0.1": 0.931
+     }
+    }
+   },
+   "M20": {
+    "state": {
+     "pooled_r2": -0.0365,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     }
+    },
+    "ir-bag": {
+     "pooled_r2": 0.55,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.5018,
+      "share_above_0.1": 0.875
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.5545,
+      "share_above_0.1": 0.939
+     }
+    },
+    "ir-pairs": {
+     "pooled_r2": 0.6199,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.5392,
+      "share_above_0.1": 0.75
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.6041,
+      "share_above_0.1": 0.848
+     }
+    },
+    "text-bag": {
+     "pooled_r2": 0.5466,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.4846,
+      "share_above_0.1": 1.0
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.5291,
+      "share_above_0.1": 0.97
+     }
+    },
+    "hybrid": {
+     "pooled_r2": 0.5521,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.4727,
+      "share_above_0.1": 0.938
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.5607,
+      "share_above_0.1": 0.97
+     }
+    }
+   },
+   "KHM": {
+    "state": {
+     "pooled_r2": -0.0256,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     }
+    },
+    "ir-bag": {
+     "pooled_r2": 0.4789,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.4347,
+      "share_above_0.1": 0.897
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.6176,
+      "share_above_0.1": 0.957
+     }
+    },
+    "ir-pairs": {
+     "pooled_r2": 0.4543,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.4661,
+      "share_above_0.1": 0.923
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.7357,
+      "share_above_0.1": 0.969
+     }
+    },
+    "text-bag": {
+     "pooled_r2": 0.1894,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.2877,
+      "share_above_0.1": 0.744
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.404,
+      "share_above_0.1": 0.758
+     }
+    },
+    "hybrid": {
+     "pooled_r2": 0.4113,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.4312,
+      "share_above_0.1": 0.949
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.6311,
+      "share_above_0.1": 0.963
+     }
+    }
+   },
+   "state_seconds": 8.3,
+   "ir-bag_seconds": 10.0,
+   "ir-pairs_seconds": 8.3,
+   "text-bag_seconds": 7.5,
+   "hybrid_seconds": 13.3
+  },
+  "10 sets": {
+   "sets": [
+    "M21",
+    "ZNR",
+    "M19",
+    "10E",
+    "M10",
+    "M11",
+    "M12",
+    "M13",
+    "M15",
+    "ORI"
+   ],
+   "train_rows": 56332,
+   "train_cards": 1018,
+   "train_effect_cards": 402,
+   "y_std": [
+    0.4483,
+    0.3891,
+    0.4237,
+    0.4841,
+    0.0493,
+    0.4939,
+    1.9281,
+    1.9138,
+    0.208,
+    0.1785,
+    0.152,
+    0.0714,
+    0.1299,
+    0.6763,
+    0.6392,
+    0.2487,
+    0.0519,
+    0.164,
+    0.6156,
+    0.592,
+    0.0541,
+    0.0871,
+    0.1128,
+    0.0471
+   ],
+   "heldout": {
+    "state": {
+     "pooled_r2": -0.0091,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     }
+    },
+    "ir-bag": {
+     "pooled_r2": 0.401,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.4945,
+      "share_above_0.1": 0.845
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.8973,
+      "share_above_0.1": 0.951
+     }
+    },
+    "ir-pairs": {
+     "pooled_r2": 0.4064,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.4927,
+      "share_above_0.1": 0.851
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.8497,
+      "share_above_0.1": 0.951
+     }
+    },
+    "text-bag": {
+     "pooled_r2": 0.2689,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.3703,
+      "share_above_0.1": 0.77
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.5569,
+      "share_above_0.1": 0.816
+     }
+    },
+    "hybrid": {
+     "pooled_r2": 0.3324,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.471,
+      "share_above_0.1": 0.831
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.8557,
+      "share_above_0.1": 0.941
+     }
+    }
+   },
+   "M20": {
+    "state": {
+     "pooled_r2": -0.0172,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     }
+    },
+    "ir-bag": {
+     "pooled_r2": 0.5866,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.5067,
+      "share_above_0.1": 0.938
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.6058,
+      "share_above_0.1": 0.97
+     }
+    },
+    "ir-pairs": {
+     "pooled_r2": 0.6108,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.5326,
+      "share_above_0.1": 1.0
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.6252,
+      "share_above_0.1": 1.0
+     }
+    },
+    "text-bag": {
+     "pooled_r2": 0.5626,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.4498,
+      "share_above_0.1": 1.0
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.539,
+      "share_above_0.1": 1.0
+     }
+    },
+    "hybrid": {
+     "pooled_r2": 0.5763,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.4695,
+      "share_above_0.1": 0.938
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.5522,
+      "share_above_0.1": 0.97
+     }
+    }
+   },
+   "KHM": {
+    "state": {
+     "pooled_r2": -0.0065,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     }
+    },
+    "ir-bag": {
+     "pooled_r2": 0.4839,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.5041,
+      "share_above_0.1": 0.923
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.8321,
+      "share_above_0.1": 0.975
+     }
+    },
+    "ir-pairs": {
+     "pooled_r2": 0.4896,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.52,
+      "share_above_0.1": 0.872
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.8123,
+      "share_above_0.1": 0.957
+     }
+    },
+    "text-bag": {
+     "pooled_r2": 0.2707,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.2905,
+      "share_above_0.1": 0.667
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.4354,
+      "share_above_0.1": 0.758
+     }
+    },
+    "hybrid": {
+     "pooled_r2": 0.4539,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.5226,
+      "share_above_0.1": 0.923
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.7659,
+      "share_above_0.1": 0.963
+     }
+    }
+   },
+   "state_seconds": 17.9,
+   "ir-bag_seconds": 16.7,
+   "ir-pairs_seconds": 22.1,
+   "text-bag_seconds": 14.5,
+   "hybrid_seconds": 21.8
+  },
+  "16 sets": {
+   "sets": [
+    "M21",
+    "ZNR",
+    "M19",
+    "10E",
+    "M10",
+    "M11",
+    "M12",
+    "M13",
+    "M15",
+    "ORI",
+    "DOM",
+    "WAR",
+    "FDN",
+    "ELD",
+    "THB",
+    "IKO"
+   ],
+   "train_rows": 84070,
+   "train_cards": 1829,
+   "train_effect_cards": 614,
+   "y_std": [
+    0.4432,
+    0.3592,
+    0.385,
+    0.4688,
+    0.054,
+    0.4815,
+    1.9073,
+    1.92,
+    0.2026,
+    0.2414,
+    0.1424,
+    0.0621,
+    0.1114,
+    0.5576,
+    0.5233,
+    0.2178,
+    0.0553,
+    0.1582,
+    0.5876,
+    0.5796,
+    0.0459,
+    0.0752,
+    0.1063,
+    0.0434
+   ],
+   "heldout": {
+    "state": {
+     "pooled_r2": -0.0053,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     }
+    },
+    "ir-bag": {
+     "pooled_r2": 0.4444,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.578,
+      "share_above_0.1": 0.872
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.9366,
+      "share_above_0.1": 0.961
+     }
+    },
+    "ir-pairs": {
+     "pooled_r2": 0.4596,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.5762,
+      "share_above_0.1": 0.899
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.9145,
+      "share_above_0.1": 0.967
+     }
+    },
+    "text-bag": {
+     "pooled_r2": 0.3426,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.4444,
+      "share_above_0.1": 0.797
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.6893,
+      "share_above_0.1": 0.878
+     }
+    },
+    "hybrid": {
+     "pooled_r2": 0.404,
+     "effect": {
+      "cards": 148,
+      "median_skill": 0.5353,
+      "share_above_0.1": 0.892
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.9408,
+      "share_above_0.1": 0.967
+     }
+    },
+    "name": {
+     "pooled_r2": -0.0244,
+     "effect": {
+      "cards": 148,
+      "median_skill": -0.0064,
+      "share_above_0.1": 0.385
+     },
+     "all": {
+      "cards": 490,
+      "median_skill": 0.842,
+      "share_above_0.1": 0.792
+     }
+    }
+   },
+   "M20": {
+    "state": {
+     "pooled_r2": -0.0153,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     }
+    },
+    "ir-bag": {
+     "pooled_r2": 0.6255,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.5399,
+      "share_above_0.1": 1.0
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.5713,
+      "share_above_0.1": 1.0
+     }
+    },
+    "ir-pairs": {
+     "pooled_r2": 0.6657,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.5895,
+      "share_above_0.1": 1.0
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.5676,
+      "share_above_0.1": 1.0
+     }
+    },
+    "text-bag": {
+     "pooled_r2": 0.5572,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.4288,
+      "share_above_0.1": 0.938
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.4931,
+      "share_above_0.1": 0.939
+     }
+    },
+    "hybrid": {
+     "pooled_r2": 0.6161,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.5289,
+      "share_above_0.1": 1.0
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.5601,
+      "share_above_0.1": 1.0
+     }
+    },
+    "name": {
+     "pooled_r2": -0.0275,
+     "effect": {
+      "cards": 16,
+      "median_skill": 0.0835,
+      "share_above_0.1": 0.5
+     },
+     "all": {
+      "cards": 33,
+      "median_skill": 0.4689,
+      "share_above_0.1": 0.758
+     }
+    }
+   },
+   "KHM": {
+    "state": {
+     "pooled_r2": -0.0039,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.0,
+      "share_above_0.1": 0.0
+     }
+    },
+    "ir-bag": {
+     "pooled_r2": 0.597,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.6776,
+      "share_above_0.1": 0.949
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.9058,
+      "share_above_0.1": 0.975
+     }
+    },
+    "ir-pairs": {
+     "pooled_r2": 0.6172,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.6952,
+      "share_above_0.1": 0.949
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.8666,
+      "share_above_0.1": 0.932
+     }
+    },
+    "text-bag": {
+     "pooled_r2": 0.3724,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.4654,
+      "share_above_0.1": 0.846
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.64,
+      "share_above_0.1": 0.87
+     }
+    },
+    "hybrid": {
+     "pooled_r2": 0.5629,
+     "effect": {
+      "cards": 39,
+      "median_skill": 0.6477,
+      "share_above_0.1": 0.949
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.9093,
+      "share_above_0.1": 0.981
+     }
+    },
+    "name": {
+     "pooled_r2": -0.015,
+     "effect": {
+      "cards": 39,
+      "median_skill": -0.042,
+      "share_above_0.1": 0.179
+     },
+     "all": {
+      "cards": 161,
+      "median_skill": 0.9142,
+      "share_above_0.1": 0.795
+     }
+    }
+   },
+   "state_seconds": 26.3,
+   "ir-bag_seconds": 32.8,
+   "ir-pairs_seconds": 36.2,
+   "text-bag_seconds": 28.3,
+   "hybrid_seconds": 27.1,
+   "name_seconds": 17.4
+  }
+ },
+ "paired": {
+  "heldout/effect": {
+   "ir-bag: 16 sets - 1 set": {
+    "cards": 148,
+    "gap": 0.2534,
+    "ci95": [
+     0.167,
+     0.3784
+    ]
+   },
+   "ir-bag: 16 sets - 1 set, fixed floor": {
+    "cards": 148,
+    "gap": 0.3686,
+    "ci95": [
+     0.2969,
+     0.4708
+    ]
+   },
+   "ir-pairs: 16 sets - 1 set": {
+    "cards": 148,
+    "gap": 0.2474,
+    "ci95": [
+     0.1564,
+     0.3599
+    ]
+   },
+   "ir-pairs: 16 sets - 1 set, fixed floor": {
+    "cards": 148,
+    "gap": 0.3827,
+    "ci95": [
+     0.2961,
+     0.4445
+    ]
+   },
+   "text-bag: 16 sets - 1 set": {
+    "cards": 148,
+    "gap": 0.259,
+    "ci95": [
+     0.1739,
+     0.3297
+    ]
+   },
+   "text-bag: 16 sets - 1 set, fixed floor": {
+    "cards": 148,
+    "gap": 0.3629,
+    "ci95": [
+     0.2928,
+     0.4678
+    ]
+   },
+   "hybrid: 16 sets - 1 set": {
+    "cards": 148,
+    "gap": 0.2924,
+    "ci95": [
+     0.2199,
+     0.4142
+    ]
+   },
+   "hybrid: 16 sets - 1 set, fixed floor": {
+    "cards": 148,
+    "gap": 0.4241,
+    "ci95": [
+     0.3284,
+     0.5308
+    ]
+   },
+   "ir-bag: 4 sets - 1 set": {
+    "cards": 148,
+    "gap": 0.1119,
+    "ci95": [
+     0.069,
+     0.213
+    ]
+   },
+   "ir-bag: 10 sets - 4 sets": {
+    "cards": 148,
+    "gap": 0.058,
+    "ci95": [
+     -0.008,
+     0.1179
+    ]
+   },
+   "ir-bag: 16 sets - 10 sets": {
+    "cards": 148,
+    "gap": 0.0835,
+    "ci95": [
+     0.0103,
+     0.1648
+    ]
+   },
+   "16 sets: ir-bag - text-bag": {
+    "cards": 148,
+    "gap": 0.1336,
+    "ci95": [
+     0.0541,
+     0.2338
+    ]
+   },
+   "16 sets: ir-pairs - ir-bag": {
+    "cards": 148,
+    "gap": -0.0018,
+    "ci95": [
+     -0.0621,
+     0.0558
+    ]
+   },
+   "16 sets: hybrid - ir-bag": {
+    "cards": 148,
+    "gap": -0.0427,
+    "ci95": [
+     -0.1205,
+     0.0188
+    ]
+   },
+   "16 sets: name - state": {
+    "cards": 148,
+    "gap": -0.0064,
+    "ci95": [
+     -0.0257,
+     0.0221
+    ]
+   }
+  },
+  "heldout/all": {
+   "ir-bag: 16 sets - 1 set": {
+    "cards": 490,
+    "gap": 0.3337,
+    "ci95": [
+     0.2995,
+     0.3571
+    ]
+   },
+   "ir-bag: 16 sets - 1 set, fixed floor": {
+    "cards": 490,
+    "gap": 0.2265,
+    "ci95": [
+     0.2069,
+     0.2518
+    ]
+   },
+   "ir-pairs: 16 sets - 1 set": {
+    "cards": 490,
+    "gap": 0.2951,
+    "ci95": [
+     0.2638,
+     0.3188
+    ]
+   },
+   "ir-pairs: 16 sets - 1 set, fixed floor": {
+    "cards": 490,
+    "gap": 0.2894,
+    "ci95": [
+     0.2502,
+     0.313
+    ]
+   },
+   "text-bag: 16 sets - 1 set": {
+    "cards": 490,
+    "gap": 0.4655,
+    "ci95": [
+     0.3542,
+     0.5656
+    ]
+   },
+   "text-bag: 16 sets - 1 set, fixed floor": {
+    "cards": 490,
+    "gap": 0.5201,
+    "ci95": [
+     0.4715,
+     0.5766
+    ]
+   },
+   "hybrid: 16 sets - 1 set": {
+    "cards": 490,
+    "gap": 0.5742,
+    "ci95": [
+     0.5304,
+     0.6064
+    ]
+   },
+   "hybrid: 16 sets - 1 set, fixed floor": {
+    "cards": 490,
+    "gap": 0.4427,
+    "ci95": [
+     0.413,
+     0.4671
+    ]
+   },
+   "ir-bag: 4 sets - 1 set": {
+    "cards": 490,
+    "gap": 0.1893,
+    "ci95": [
+     0.1416,
+     0.2208
+    ]
+   },
+   "ir-bag: 10 sets - 4 sets": {
+    "cards": 490,
+    "gap": 0.1051,
+    "ci95": [
+     0.0802,
+     0.1332
+    ]
+   },
+   "ir-bag: 16 sets - 10 sets": {
+    "cards": 490,
+    "gap": 0.0393,
+    "ci95": [
+     0.0248,
+     0.0679
+    ]
+   },
+   "16 sets: ir-bag - text-bag": {
+    "cards": 490,
+    "gap": 0.2473,
+    "ci95": [
+     0.1684,
+     0.3097
+    ]
+   },
+   "16 sets: ir-pairs - ir-bag": {
+    "cards": 490,
+    "gap": -0.022,
+    "ci95": [
+     -0.0309,
+     -0.0112
+    ]
+   },
+   "16 sets: hybrid - ir-bag": {
+    "cards": 490,
+    "gap": 0.0042,
+    "ci95": [
+     -0.0114,
+     0.0153
+    ]
+   },
+   "16 sets: name - state": {
+    "cards": 490,
+    "gap": 0.842,
+    "ci95": [
+     0.6768,
+     0.9131
+    ]
+   }
+  },
+  "M20/effect": {
+   "ir-bag: 16 sets - 1 set": {
+    "cards": 16,
+    "gap": 0.238,
+    "ci95": [
+     0.0636,
+     0.5379
+    ]
+   },
+   "ir-bag: 16 sets - 1 set, fixed floor": {
+    "cards": 16,
+    "gap": 0.2997,
+    "ci95": [
+     0.1897,
+     0.509
+    ]
+   },
+   "ir-pairs: 16 sets - 1 set": {
+    "cards": 16,
+    "gap": 0.176,
+    "ci95": [
+     -0.0074,
+     0.4503
+    ]
+   },
+   "ir-pairs: 16 sets - 1 set, fixed floor": {
+    "cards": 16,
+    "gap": 0.3685,
+    "ci95": [
+     0.2169,
+     0.4933
+    ]
+   },
+   "text-bag: 16 sets - 1 set": {
+    "cards": 16,
+    "gap": 0.1871,
+    "ci95": [
+     -0.0143,
+     0.4272
+    ]
+   },
+   "text-bag: 16 sets - 1 set, fixed floor": {
+    "cards": 16,
+    "gap": 0.4254,
+    "ci95": [
+     0.1381,
+     0.6238
+    ]
+   },
+   "hybrid: 16 sets - 1 set": {
+    "cards": 16,
+    "gap": 0.326,
+    "ci95": [
+     0.1249,
+     0.5109
+    ]
+   },
+   "hybrid: 16 sets - 1 set, fixed floor": {
+    "cards": 16,
+    "gap": 0.3325,
+    "ci95": [
+     0.235,
+     0.5473
+    ]
+   },
+   "ir-bag: 4 sets - 1 set": {
+    "cards": 16,
+    "gap": 0.1998,
+    "ci95": [
+     0.0257,
+     0.3464
+    ]
+   },
+   "ir-bag: 10 sets - 4 sets": {
+    "cards": 16,
+    "gap": 0.0049,
+    "ci95": [
+     -0.1269,
+     0.1423
+    ]
+   },
+   "ir-bag: 16 sets - 10 sets": {
+    "cards": 16,
+    "gap": 0.0332,
+    "ci95": [
+     -0.0605,
+     0.2607
+    ]
+   },
+   "16 sets: ir-bag - text-bag": {
+    "cards": 16,
+    "gap": 0.1111,
+    "ci95": [
+     -0.0101,
+     0.3343
+    ]
+   },
+   "16 sets: ir-pairs - ir-bag": {
+    "cards": 16,
+    "gap": 0.0496,
+    "ci95": [
+     -0.0255,
+     0.0949
+    ]
+   },
+   "16 sets: hybrid - ir-bag": {
+    "cards": 16,
+    "gap": -0.011,
+    "ci95": [
+     -0.1127,
+     0.0544
+    ]
+   },
+   "16 sets: name - state": {
+    "cards": 16,
+    "gap": 0.0835,
+    "ci95": [
+     -0.0553,
+     0.3527
+    ]
+   }
+  },
+  "M20/all": {
+   "ir-bag: 16 sets - 1 set": {
+    "cards": 33,
+    "gap": 0.1356,
+    "ci95": [
+     -0.0818,
+     0.2989
+    ]
+   },
+   "ir-bag: 16 sets - 1 set, fixed floor": {
+    "cards": 33,
+    "gap": 0.227,
+    "ci95": [
+     0.1312,
+     0.3201
+    ]
+   },
+   "ir-pairs: 16 sets - 1 set": {
+    "cards": 33,
+    "gap": 0.0778,
+    "ci95": [
+     -0.0517,
+     0.3176
+    ]
+   },
+   "ir-pairs: 16 sets - 1 set, fixed floor": {
+    "cards": 33,
+    "gap": 0.2776,
+    "ci95": [
+     0.1885,
+     0.4274
+    ]
+   },
+   "text-bag: 16 sets - 1 set": {
+    "cards": 33,
+    "gap": 0.101,
+    "ci95": [
+     -0.0293,
+     0.2413
+    ]
+   },
+   "text-bag: 16 sets - 1 set, fixed floor": {
+    "cards": 33,
+    "gap": 0.1963,
+    "ci95": [
+     0.1191,
+     0.3168
+    ]
+   },
+   "hybrid: 16 sets - 1 set": {
+    "cards": 33,
+    "gap": 0.1629,
+    "ci95": [
+     0.0073,
+     0.339
+    ]
+   },
+   "hybrid: 16 sets - 1 set, fixed floor": {
+    "cards": 33,
+    "gap": 0.2751,
+    "ci95": [
+     0.1648,
+     0.368
+    ]
+   },
+   "ir-bag: 4 sets - 1 set": {
+    "cards": 33,
+    "gap": 0.1187,
+    "ci95": [
+     -0.0649,
+     0.2544
+    ]
+   },
+   "ir-bag: 10 sets - 4 sets": {
+    "cards": 33,
+    "gap": 0.0513,
+    "ci95": [
+     -0.0661,
+     0.1081
+    ]
+   },
+   "ir-bag: 16 sets - 10 sets": {
+    "cards": 33,
+    "gap": -0.0345,
+    "ci95": [
+     -0.1067,
+     0.075
+    ]
+   },
+   "16 sets: ir-bag - text-bag": {
+    "cards": 33,
+    "gap": 0.0783,
+    "ci95": [
+     -0.0001,
+     0.2338
+    ]
+   },
+   "16 sets: ir-pairs - ir-bag": {
+    "cards": 33,
+    "gap": -0.0038,
+    "ci95": [
+     -0.0255,
+     0.0868
+    ]
+   },
+   "16 sets: hybrid - ir-bag": {
+    "cards": 33,
+    "gap": -0.0112,
+    "ci95": [
+     -0.0606,
+     0.0544
+    ]
+   },
+   "16 sets: name - state": {
+    "cards": 33,
+    "gap": 0.4689,
+    "ci95": [
+     0.2652,
+     0.5708
+    ]
+   }
+  },
+  "KHM/effect": {
+   "ir-bag: 16 sets - 1 set": {
+    "cards": 39,
+    "gap": 0.4245,
+    "ci95": [
+     0.2898,
+     0.5248
+    ]
+   },
+   "ir-bag: 16 sets - 1 set, fixed floor": {
+    "cards": 39,
+    "gap": 0.3663,
+    "ci95": [
+     0.2485,
+     0.5126
+    ]
+   },
+   "ir-pairs: 16 sets - 1 set": {
+    "cards": 39,
+    "gap": 0.3784,
+    "ci95": [
+     0.2866,
+     0.516
+    ]
+   },
+   "ir-pairs: 16 sets - 1 set, fixed floor": {
+    "cards": 39,
+    "gap": 0.3942,
+    "ci95": [
+     0.313,
+     0.545
+    ]
+   },
+   "text-bag: 16 sets - 1 set": {
+    "cards": 39,
+    "gap": 0.2897,
+    "ci95": [
+     0.1301,
+     0.3592
+    ]
+   },
+   "text-bag: 16 sets - 1 set, fixed floor": {
+    "cards": 39,
+    "gap": 0.2657,
+    "ci95": [
+     0.1326,
+     0.3878
+    ]
+   },
+   "hybrid: 16 sets - 1 set": {
+    "cards": 39,
+    "gap": 0.4241,
+    "ci95": [
+     0.3531,
+     0.6388
+    ]
+   },
+   "hybrid: 16 sets - 1 set, fixed floor": {
+    "cards": 39,
+    "gap": 0.4522,
+    "ci95": [
+     0.3164,
+     0.6231
+    ]
+   },
+   "ir-bag: 4 sets - 1 set": {
+    "cards": 39,
+    "gap": 0.1816,
+    "ci95": [
+     0.1254,
+     0.3277
+    ]
+   },
+   "ir-bag: 10 sets - 4 sets": {
+    "cards": 39,
+    "gap": 0.0694,
+    "ci95": [
+     -0.0088,
+     0.1472
+    ]
+   },
+   "ir-bag: 16 sets - 10 sets": {
+    "cards": 39,
+    "gap": 0.1735,
+    "ci95": [
+     0.0456,
+     0.2458
+    ]
+   },
+   "16 sets: ir-bag - text-bag": {
+    "cards": 39,
+    "gap": 0.2122,
+    "ci95": [
+     0.1165,
+     0.3677
+    ]
+   },
+   "16 sets: ir-pairs - ir-bag": {
+    "cards": 39,
+    "gap": 0.0176,
+    "ci95": [
+     -0.0439,
+     0.1061
+    ]
+   },
+   "16 sets: hybrid - ir-bag": {
+    "cards": 39,
+    "gap": -0.0299,
+    "ci95": [
+     -0.0815,
+     0.0988
+    ]
+   },
+   "16 sets: name - state": {
+    "cards": 39,
+    "gap": -0.042,
+    "ci95": [
+     -0.0685,
+     -0.0187
+    ]
+   }
+  },
+  "KHM/all": {
+   "ir-bag: 16 sets - 1 set": {
+    "cards": 161,
+    "gap": 0.3236,
+    "ci95": [
+     0.2676,
+     0.3453
+    ]
+   },
+   "ir-bag: 16 sets - 1 set, fixed floor": {
+    "cards": 161,
+    "gap": 0.2706,
+    "ci95": [
+     0.2495,
+     0.3013
+    ]
+   },
+   "ir-pairs: 16 sets - 1 set": {
+    "cards": 161,
+    "gap": 0.2557,
+    "ci95": [
+     0.1696,
+     0.2859
+    ]
+   },
+   "ir-pairs: 16 sets - 1 set, fixed floor": {
+    "cards": 161,
+    "gap": 0.3285,
+    "ci95": [
+     0.2894,
+     0.3656
+    ]
+   },
+   "text-bag: 16 sets - 1 set": {
+    "cards": 161,
+    "gap": 0.3727,
+    "ci95": [
+     0.2323,
+     0.4876
+    ]
+   },
+   "text-bag: 16 sets - 1 set, fixed floor": {
+    "cards": 161,
+    "gap": 0.5031,
+    "ci95": [
+     0.3631,
+     0.5955
+    ]
+   },
+   "hybrid: 16 sets - 1 set": {
+    "cards": 161,
+    "gap": 0.5702,
+    "ci95": [
+     0.4894,
+     0.6332
+    ]
+   },
+   "hybrid: 16 sets - 1 set, fixed floor": {
+    "cards": 161,
+    "gap": 0.4586,
+    "ci95": [
+     0.3752,
+     0.5552
+    ]
+   },
+   "ir-bag: 4 sets - 1 set": {
+    "cards": 161,
+    "gap": 0.0354,
+    "ci95": [
+     -0.0379,
+     0.1101
+    ]
+   },
+   "ir-bag: 10 sets - 4 sets": {
+    "cards": 161,
+    "gap": 0.2145,
+    "ci95": [
+     0.1578,
+     0.2705
+    ]
+   },
+   "ir-bag: 16 sets - 10 sets": {
+    "cards": 161,
+    "gap": 0.0737,
+    "ci95": [
+     0.0377,
+     0.1178
+    ]
+   },
+   "16 sets: ir-bag - text-bag": {
+    "cards": 161,
+    "gap": 0.2658,
+    "ci95": [
+     0.191,
+     0.3822
+    ]
+   },
+   "16 sets: ir-pairs - ir-bag": {
+    "cards": 161,
+    "gap": -0.0392,
+    "ci95": [
+     -0.1199,
+     -0.0059
+    ]
+   },
+   "16 sets: hybrid - ir-bag": {
+    "cards": 161,
+    "gap": 0.0035,
+    "ci95": [
+     -0.0161,
+     0.0345
+    ]
+   },
+   "16 sets: name - state": {
+    "cards": 161,
+    "gap": 0.9142,
+    "ci95": [
+     0.8025,
+     0.927
+    ]
+   }
+  }
+ },
+ "seconds": 335.5
+}

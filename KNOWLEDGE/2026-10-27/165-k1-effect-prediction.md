@@ -95,3 +95,5 @@ at 0.22.
     They are a 24-number summary that does not see grants such as hexproof.
   - The M20 test cards are the compiled subset, which is selection bias toward known patterns.
   - These are effect predictions, not play. K2 (value transfer) is the next rung.
+
+**Addendum (/166).** K1b re-reads this with a per-card metric. Pooled R² is dominated by a few big-effect cards. On the median card, M21's held-out effect cards already reach 0.285 per-card skill at 1 set (ir-bag). With more real sets, transfer to unseen cards rises: +0.205 [+0.120, +0.300] from 1 to 16 sets. So "does not transfer to unique effects" above describes pooled R², not the typical card.
