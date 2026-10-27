@@ -1,6 +1,6 @@
 {
  "set": "ZNR",
- "note": "ZNR EVAL PACK — B10 SPELL-KIND TRIANGLE. REAL Rockslide Sorcerer {3}{R} 3/3 (Human Wizard Sorcerer, pre-seeded — placement fires nothing): 'Whenever you cast an instant, sorcery, or Wizard spell, this creature deals 1 damage to any target.' THREE casts probe the kind-gate: (1) Pressure Point {1}{W} INSTANT -> the trigger ASKS the any-target menu (vocab: own bf card | goat | player:0 | player:1), gold names PLAYER 1 -> life 20->19. (Engine note: Pressure Point's own 'tap target creature' clause is DROPPED by the compiler — registered as a gap; here PP is only instant-kind fuel, its compiled DRAW resolves silently.) (2) Gnarlid Colony {1}{G} (Dog creature: not instant/sorcery/Wizard) -> the quiet lane RAISES on any ask, so a kind-blind trigger fails this step outright (negative control). (3) Joraga Visionary {3}{G} (Elf WIZARD) -> second tick -> 19->18 (proves the Wizard branch without counting the EtB draw; CR 414.24? house: subtype filter, plus CR 603.2 the trigger is offered PER CAST). Both gold lines hit the SAME player: legal under 'any target' (CR 115.1) but note this menu is NOT l1-ready by design — random spreads over five candidates. Mana: {1}{W}=2W + {1}{G}=2G + {3}{G}=4G from {W:2,G:6} -> {}. Falsified by: kind-blind (step 2 raises), gated-off (ticks missing, life 20), self-target lock (life[0] moves / life[1] stays).",
+ "note": "ZNR EVAL PACK — B10 SPELL-KIND TRIANGLE. REAL Rockslide Sorcerer {3}{R} 3/3 (Human Wizard Sorcerer, pre-seeded — placement fires nothing): 'Whenever you cast an instant, sorcery, or Wizard spell, this creature deals 1 damage to any target.' THREE casts probe the kind-gate: (1) Pressure Point {1}{W} INSTANT -> the trigger ASKS the any-target menu (vocab: own bf card | goat | player:0 | player:1), gold names PLAYER 1 -> life 20->19. (Engine note, updated 2026-10-27 (sets round S-2, B11 general clauses, KNOWLEDGE /162): Pressure Point's 'tap target creature' clause used to be DROPPED by the compiler; it now compiles, so the cast designates the goat (its targets) and the tapped lane pins that it executes. The draw still resolves silently. Because a cast step lifts every player:N decision into the SPELL's target list (r22b), the first tick now names the goat (damage lane goat=1) instead of player 1; the kind-gate reading is unchanged: life[1] 20 -> 19 from Joraga's tick alone.) (2) Gnarlid Colony {1}{G} (Dog creature: not instant/sorcery/Wizard) -> the quiet lane RAISES on any ask, so a kind-blind trigger fails this step outright (negative control). (3) Joraga Visionary {3}{G} (Elf WIZARD) -> second tick -> 19->18 (proves the Wizard branch without counting the EtB draw; CR 414.24? house: subtype filter, plus CR 603.2 the trigger is offered PER CAST). Both gold lines hit the SAME player: legal under 'any target' (CR 115.1) but note this menu is NOT l1-ready by design — random spreads over five candidates. Mana: {1}{W}=2W + {1}{G}=2G + {3}{G}=4G from {W:2,G:6} -> {}. Falsified by: kind-blind (step 2 raises), gated-off (ticks missing, life 20), self-target lock (life[0] moves / life[1] stays).",
  "world": { "life": 20, "seed": 45 },
  "cards": [
   { "key": "slide", "real": "Rockslide Sorcerer", "zone": "battlefield", "controller": 0 },
@@ -11,13 +11,15 @@
  ],
  "mana": { "0": { "W": 2, "G": 6 } },
  "steps": [
-  { "op": "cast", "real": "Pressure Point", "key": "pp", "decisions": ["player:1"] },
+  { "op": "cast", "real": "Pressure Point", "key": "pp", "targets": ["goat"], "decisions": ["goat"] },
   { "op": "cast", "real": "Gnarlid Colony", "key": "gnarlid" },
   { "op": "cast", "real": "Joraga Visionary", "key": "joraga", "decisions": ["player:1"] }
  ],
  "expect": {
   "zone": { "slide": "battlefield", "pp": "graveyard", "gnarlid": "battlefield", "joraga": "battlefield", "goat": "battlefield" },
-  "life": { "0": 20, "1": 18 },
-  "mana_pool": { "0": {} }
+  "life": { "0": 20, "1": 19 },
+  "mana_pool": { "0": {} },
+  "tapped": { "goat": true },
+  "damage": { "goat": 1 }
  }
 }

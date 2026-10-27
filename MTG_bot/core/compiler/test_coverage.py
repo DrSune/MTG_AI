@@ -123,6 +123,7 @@ class TestRegistry(unittest.TestCase):
                 "B8",
                 "B9",
                 "B10",
+                "B11",
             },
         )
 
