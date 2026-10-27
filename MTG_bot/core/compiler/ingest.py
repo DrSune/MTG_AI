@@ -501,12 +501,10 @@ def _dedup_key(card: RawCard) -> tuple[Any, ...]:
     )
 
 
-def _same_token_but_creators(a: RawCard, b: RawCard) -> bool:
-    """Two printings of one token whose captured fields differ only in ``related_names``."""
+def _same_card_but_related(a: RawCard, b: RawCard) -> bool:
+    """Two printings of one card whose captured fields differ only in ``related_names``."""
     return (
-        a.is_token
-        and b.is_token
-        and a.related_names != b.related_names
+        a.related_names != b.related_names
         and _dedup_key(replace(a, related_names=())) == _dedup_key(replace(b, related_names=()))
     )
 
@@ -658,10 +656,11 @@ def ingest_pool(path: str | Path) -> dict[str, RawCard]:
             existing = pool.get(oracle_id)
             if existing is None:
                 pool[oracle_id] = card
-            elif _same_token_but_creators(existing, card):
-                # B-39: printings of one token (ELD Food x4, IKO Human Soldier) differ only in
-                # relatedCards.reverseRelated, the OTHER cards that create it. That is a fact about
-                # those cards, not this token's characteristics, so keep one record with the union.
+            elif _same_card_but_related(existing, card):
+                # B-39: printings of one card that differ only in relatedCards: ELD Food x4 and
+                # IKO Human Soldier (tokens: which OTHER cards create them), WAR Ugin, the
+                # Ineffable (its Japanese alternate-art printing omits the token link). Linkage
+                # metadata, not characteristics, so keep one record with the union.
                 pool[oracle_id] = replace(
                     existing,
                     related_names=tuple(sorted({*existing.related_names, *card.related_names})),

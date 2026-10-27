@@ -82,6 +82,11 @@ def test_token_printings_that_differ_only_in_their_creators_merge(tmp_path) -> N
     pool = ingest_pool(path)
     assert len(pool) == 1
     assert next(iter(pool.values())).related_names == ("Bake into a Pie", "Gilded Goose")
+    # A normal card too: WAR's alternate-art Ugin, the Ineffable omits relatedCards.
+    plain = _card(ORACLE_A, "Ugin", text="Draw a card.", related_cards={"tokens": ["t-uuid"]})
+    alt = _card(ORACLE_A, "Ugin", text="Draw a card.", uuid="00000000-0000-4000-8000-00000000000c")
+    path.write_text(json.dumps({"data": {"cards": [plain, alt], "tokens": []}}))
+    assert next(iter(ingest_pool(path).values())).related_names == ("t-uuid",)
     # A real difference in a captured field is still corruption.
     third = _card(ORACLE_A, "Food", related_cards={"reverseRelated": ["Gilded Goose"]},
                   **{**token, "text": "{T}: You gain 1 life."})
