@@ -466,7 +466,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   1–5 is a coin flip, and only gaps of 6 or more decide games (K3-lite). Add an opt-in coherent
   mode (2 colours, about 40% lands, a curve, still seeded). Keep the default so existing
   measurements stay comparable. Train and evaluate on both.
-- **B-46 [/166] Fourteen older sets are dealt mostly partly blank.** The castable pools of M19,
+- **B-46 [/166; first touch done + round S-3a, /167] Fourteen older sets are dealt mostly partly blank.** The castable pools of M19,
   10E, M10–M13, M15, ORI, DOM, WAR, FDN, ELD, THB and IKO deal 2,482 cards. Only 683 of them
   (27.5%) are fully compiled; the engine plays the rest with their unparsed sentences blank.
   - Their IR matches what the engine does, so K1b could train IR encoders on them. But clean
@@ -475,8 +475,9 @@ These are forks, not tasks. See the report that accompanied this audit.
     rising at 16 sets.
   - M14 cannot be dealt at all: 9 mana-capable castable cards, and `build_deck` needs
     `MIN_MANA_SOURCES` = 10.
-  - None of these sets has been through sealed first touch, and no unparsed sentence of theirs
-    has been read. Run `tools/audit/new_set.py` on each before any grammar round on it.
+  - Sealed first touch is done for all 15 (with M14), with baselines and an S-3a round-end read
+    (/167). Their dev registers may now be read by grammar rounds; the test groups stay
+    sealed, read once per round.
   - Synthetic cards (atoms composed with sampled parameters) come after real-set volume, as the
     clean test of genuinely new compositions (owner, 2026-10-27).
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
