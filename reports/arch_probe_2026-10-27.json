@@ -1,0 +1,158 @@
+{
+ "repo": "/home/sune/Desktop/MTG_AI-sets",
+ "sets": {
+  "M21": {
+   "cards_compiled": 285,
+   "cards_fully_compiled_with_text": 280,
+   "alias_groups": 0,
+   "cards_in_alias_groups": 0,
+   "alias_examples": [],
+   "atom_types_used": 151,
+   "ir_chars": {
+    "median": 2134,
+    "p90": 3645,
+    "max": 7182
+   },
+   "ir_nodes": {
+    "median": 26,
+    "p90": 47,
+    "max": 93
+   }
+  },
+  "ZNR": {
+   "cards_compiled": 269,
+   "cards_fully_compiled_with_text": 101,
+   "alias_groups": 0,
+   "cards_in_alias_groups": 0,
+   "alias_examples": [],
+   "atom_types_used": 85,
+   "ir_chars": {
+    "median": 2087,
+    "p90": 2805,
+    "max": 6309
+   },
+   "ir_nodes": {
+    "median": 24,
+    "p90": 35,
+    "max": 68
+   },
+   "atoms_absent_from_M21": [
+    "ability:BackFace",
+    "ability:KickerAbility",
+    "predicate:HAS_KICKER",
+    "predicate:WAS_KICKED",
+    "quantity:QPartyCount",
+    "verb:DISCARD"
+   ],
+   "fully_compiled_cards_made_only_of_M21_atoms": "55/104"
+  },
+  "M20": {
+   "cards_compiled": 327,
+   "cards_fully_compiled_with_text": 90,
+   "alias_groups": 2,
+   "cards_in_alias_groups": 6,
+   "alias_examples": [
+    {
+     "cards": [
+      "Air Elemental",
+      "Bartizan Bats",
+      "Concordia Pegasus",
+      "Snapping Drake"
+     ],
+     "texts": [
+      "Flying",
+      "Flying (This creature can't be blocked except by creatures with flying or reach.)"
+     ]
+    },
+    {
+     "cards": [
+      "Lightning Stormkin",
+      "Volcanic Dragon"
+     ],
+     "texts": [
+      "Flying Haste (This creature can attack and {T} as soon as it comes under your control.)",
+      "Flying, haste"
+     ]
+    }
+   ],
+   "atom_types_used": 71,
+   "ir_chars": {
+    "median": 1378,
+    "p90": 2311,
+    "max": 3306
+   },
+   "ir_nodes": {
+    "median": 17,
+    "p90": 28,
+    "max": 41
+   },
+   "atoms_absent_from_M21": [],
+   "fully_compiled_cards_made_only_of_M21_atoms": "107/107"
+  },
+  "KHM": {
+   "cards_compiled": 297,
+   "cards_fully_compiled_with_text": 25,
+   "alias_groups": 0,
+   "cards_in_alias_groups": 0,
+   "alias_examples": [],
+   "atom_types_used": 54,
+   "ir_chars": {
+    "median": 762,
+    "p90": 1541,
+    "max": 1773
+   },
+   "ir_nodes": {
+    "median": 10,
+    "p90": 18,
+    "max": 19
+   },
+   "atoms_absent_from_M21": [
+    "ability:BackFace"
+   ],
+   "fully_compiled_cards_made_only_of_M21_atoms": "22/26"
+  }
+ },
+ "m21_long_tail": {
+  "atom_types": 151,
+  "used_by_at_most_2_cards": 57,
+  "share": 0.377,
+  "by_kind": {
+   "predicate": 23,
+   "verb": 20,
+   "keyword": 5,
+   "quantity": 3,
+   "event": 5,
+   "combinator": 1
+  }
+ },
+ "throughput_one_process": {
+  "games": 40,
+  "seconds": 31.5,
+  "games_per_s": 1.27,
+  "acts_per_game": 83.5,
+  "turns_per_game": 34.7,
+  "acts_per_s": 106.1,
+  "crashes": 0
+ },
+ "k3_lite": {
+  "games": 400,
+  "decided": 392,
+  "unequal_land_games": 343,
+  "more_lands_win_rate": 0.534,
+  "by_gap": {
+   "1-2": {
+    "n": 174,
+    "more_lands_win_rate": 0.477
+   },
+   "3-5": {
+    "n": 138,
+    "more_lands_win_rate": 0.536
+   },
+   "6-60": {
+    "n": 31,
+    "more_lands_win_rate": 0.839
+   }
+  },
+  "seat0_win_rate": 0.551
+ }
+}

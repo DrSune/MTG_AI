@@ -27,7 +27,13 @@ from tools.training.ab_duel import (
     summarize,
     wilson,
 )
-from tools.training.elo import bootstrap_ci, fit_elo
+from tools.training.elo import (
+    SENTINEL,
+    bootstrap_ci,
+    fit_elo,
+    ladder_ratings,
+    sentinel_status,
+)
 
 
 # ------------------------------------------------------------------ unit
@@ -127,7 +133,89 @@ def test_bootstrap_ci_sane_on_synthetic() -> None:
     assert (ci_b[1][1] - ci_b[1][0]) < (ci_s[1][1] - ci_s[1][0])  # more games, tighter
 
 
-# ------------------------------------------------------------ duel batch
+# ------------------------------------- /135 T-G5 item 2: fit exclusion
+def test_fit_excludes_inadmissible_pairs() -> None:
+    """The pair whose wr CI straddles 0.5 leaves the fit; the returned
+    ratings must equal the ADMISSIBLE-subset fit, not the old full-pair fit
+    (which mints numbers from under-powered games, /26)."""
+    pairs: dict[tuple[int, int], list[str]] = {
+        (0, 1): ["a"] * 40,  # anchor crushes A 40-0 -> admissible
+        (0, 2): ["a"] * 32 + ["b"] * 8,  # anchor beats B 32-8 -> admissible
+        # (1, 2) coin-flip: wr exactly 0.5, resample CI symmetric around it
+        # -> straddles 0.5, INADMISSIBLE. (Draw-heavy pairs are a trap: an
+        # all-draw resample still scores 0.5, so a 10w/30d pair's CI lies
+        # entirely ABOVE 0.5 and is legitimately admissible.)
+        (1, 2): ["a"] * 20 + ["b"] * 20,
+    }
+    info = ladder_ratings(pairs, ["random", "A", "B"], anchor=0, reps=120)
+    assert (1, 2) in info["excluded_pairs"] and (1, 2) not in info["fitted_pairs"]
+    assert info["unrated"] == []
+    assert info["elo"][0] == 0.0
+
+    # Decisive: the admissible-only fit keeps the B-over-A gap wide (A 0-40
+    # vs anchor, B 8-32); the old full-pair fit balances the 50/50 pair at
+    # A==B (score 0.5 demands equal ratings, gap collapses to ~0).
+    def full_fit() -> list[float]:
+        return fit_elo(
+            {
+                k: (
+                    v.count("a"),
+                    v.count("b"),
+                    len(v) - v.count("a") - v.count("b"),
+                )
+                for k, v in pairs.items()
+            },
+            3,
+            anchor=0,
+        )
+
+    gap_sub = info["elo"][2] - info["elo"][1]
+    gap_full = full_fit()[2] - full_fit()[1]
+    assert gap_sub > 100 and gap_sub > gap_full + 50
+
+
+def test_unrated_component_isolation() -> None:
+    """C connects to the anchor only through all-draw (inadmissible) pairs
+    -> C is UNRATED, never a quiet near-zero number."""
+    pairs = {
+        (0, 1): ["a"] * 30,
+        (1, 2): ["a"] * 30,
+        (0, 2): ["a"] * 30,
+        (0, 3): ["d"] * 30,
+        (1, 3): ["d"] * 30,
+        (2, 3): ["d"] * 30,
+    }
+    info = ladder_ratings(pairs, ["random", "A", "B", "C"], anchor=0, reps=120)
+    assert info["unrated"] == [3]
+    assert len(info["fitted_pairs"]) == 3
+    assert info["elo"][0] == 0.0
+
+
+def test_all_inadmissible_all_unrated() -> None:
+    """Every pair under-powered: only the anchor is rated (by construction,
+    it is the reference, not a claim); all others UNRATED, fit empty."""
+    pairs = {(0, 1): ["d"] * 20, (1, 2): ["d"] * 20, (0, 2): ["d"] * 20}
+    info = ladder_ratings(pairs, ["random", "A", "B"], anchor=0, reps=120)
+    assert info["unrated"] == [1, 2]
+    assert info["fitted_pairs"] == {}
+    assert info["elo"] == [0.0, 0.0, 0.0]
+
+
+# ------------------------------------- /135 T-G5 item 4: sentinel band
+def test_sentinel_band_status() -> None:
+    assert sentinel_status(SENTINEL["ref_score"]) is True
+    assert sentinel_status(SENTINEL["band"][0]) is True
+    assert sentinel_status(SENTINEL["band"][1]) is True
+    assert sentinel_status(0.42) is False
+    assert sentinel_status(0.73) is False
+    # The pinned reference is the /123 measurement; a silent re-pin of the
+    # control cell is exactly the drift this sentinel exists to catch.
+    assert SENTINEL["ref_score"] == 0.575
+    assert SENTINEL["games"] == 40
+    assert SENTINEL["policy"] == "tools/training/bsh_S3a_s3_best.pt"
+    assert SENTINEL["set"] == "M21" and SENTINEL["pool"] == "engine"
+
+
 def _duel_kwargs(tmp_path: Path) -> dict:
     return {
         "workers": 1,
@@ -215,20 +303,34 @@ def test_elo_json_schema(tmp_path: Path) -> None:
         device="cpu",
         reps=60,
         bank_path=bank_path,
+        sentinel=False,  # schema test; the 40-game sentinel is smoke-tested live
     )
     assert set(doc) >= {
         "updated",
         "anchor",
+        "engine",
         "games_per_pair",
         "ratings",
+        "unrated",
+        "fit_excluded_pairs",
         "games_total",
         "headline_claims",
     }
-    assert doc["anchor"] == "random=0"
+    # /135 item 3: the anchor names the supply it was played on; the table
+    # stamps the engine build.
+    assert doc["anchor"] == "random=0 (set=M21, pool=engine)"
+    assert doc["engine"]["set"] == "M21" and doc["engine"]["pool"] == "engine"
+    assert doc["engine"]["git_head"]
     assert doc["games_per_pair"] == 4 and doc["games_total"] == 12
     by_name = {r["policy"]: r for r in doc["ratings"]}
+    # 4 games/pair cannot move any wr CI off 0.5 -> every non-anchor policy
+    # is UNRATED now. (The old code fabricated ratings for scripted/first
+    # here — the /26 hole this schema test now guards.)
+    assert set(by_name) == {"random"}
     assert by_name["random"]["elo"] == 0.0  # pinned, exact, in the JSON
     assert by_name["random"]["admissible"] is True  # anchor: 0 by construction
+    assert {u["policy"] for u in doc["unrated"]} == {"pass-floor", "first"}
+    assert len(doc["fit_excluded_pairs"]) == 3  # every pair under-powered
     for r in doc["ratings"]:
         assert set(r) == {
             "policy",
@@ -240,7 +342,7 @@ def test_elo_json_schema(tmp_path: Path) -> None:
         }
         assert r["ci_lo"] <= r["elo"] <= r["ci_hi"]
         assert 0.0 <= r["vs_field_wr"] <= 1.0
-    # 4 games/pair cannot move any wr CI off 0.5 -> no headline claims (/26)
+    # no claims from an under-powered matrix (/26 + /135 item 2)
     assert doc["headline_claims"] == []
     json.dumps(doc)  # board-safe
 

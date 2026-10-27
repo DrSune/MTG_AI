@@ -16,6 +16,8 @@ are neutral; each one is teaching the agent something.
 
 | Scaffold | Where | Removal condition |
 |---|---|---|
+| **Coherent-deck recipe (B-45)**: 2 seeded colours, 24 basics, 36 cards uniform within the colour pair | `core/executor/games.py` `build_coherent_deck` / `COHERENT_LANDS` (branch `sets/onboarding` 36adf48) | It chooses colours and land count, never which spells. Remove when decks come from a learned deckbuilder (draft/sealed or constructed), or replace the land count with a learned or sampled quantity. Opt-in only; the default stays the stress pile. |
+| **K1 kill-test tooling limits** (offline tools, not the engine or the policy): 20 s wall clock per game, at most 60 rows per card per set, target scale clamped at 1e-3 | `tools/k1/gen.py` `--game-timeout`, `tools/k1/curve.py` `--cap`, `tools/k1/train.py` `y_std` clamp | The timeout drops straggling games, biasing data toward short games: remove once straggling games are understood (an engine stall rule or a perf fix). The row cap stands in for per-card loss weighting: replace it with weighting. The clamp lets a lane with no training variance dominate pooled R² (/166): take scales from the union pool, or drop such lanes from pooled R². |
 | **Thirteen shaping reward terms** — damage, life, board presence, board delta, cards, action discovery, mana generation, proactivity, penalties | `strategic_brain/environment.py:164-211` | Replace with outcome plus at most a couple of defensible terms. A 200-step game currently accrues about +20 of shaping against ±10 for the actual result, so the agent is optimising the shaping. Remove once the engine is correct enough that winning is learnable directly. |
 | **Proactivity bias** — subtracts up to 10 nats from every pass action's logit | `strategic_brain/student.py:126-129` | Delete. It is applied at collection but not at training, which pins the PPO ratio to e^±10 on every pass action. It exists to fight "the agent passes", which is a symptom of the reward and the dead action space, not of the policy. |
 | **`MAX_MOVES_PER_STEP = 500`** | `rule_engine/engine.py` | Replace with the loop detection in [`DESIGN_INFINITIES.md`](DESIGN_INFINITIES.md) plus a wall-clock truncate-and-bootstrap. Currently it pays −10 to whoever found a combo. |
@@ -392,7 +394,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   determinize hidden state.
 - **B-27 The RL update cannot move the policy**: one SGD step per 1000-game iteration at lr 1e-5,
   clip 1.0 (`train_rl_v1.py:131-132,253-255`; `rl_pilot_phases.sh:31`).
-- **B-28 Partly compiled cards are dealt**: `engine_supported` ignores sentences that produced no
+- **B-28 [opt-in fix on branch, /160: pool mode `compiled`; defaults unchanged] Partly compiled cards are dealt**: `engine_supported` ignores sentences that produced no
   atoms (`core/compiler/compiler.py:2259-2302`), against `DESIGN_CARD_POOL.md:219`.
 - **B-29 CHOOSE_NAME leaks hidden zones**: the vocabulary lists every non-token card in the world
   (`core/executor/verbs.py:1543-1556`). Restrict to the legal pool, not the world.
@@ -418,18 +420,18 @@ These are forks, not tasks. See the report that accompanied this audit.
   green in `pytest MTG_bot` and crashed 3 collector games in `pytest tools` (order-dependent).
   Patch inside a context manager scoped to the run, or give the engine a recorder hook instead.
   Until then `test_no_engine_call_site_passes_seat_to_take_decision` guards the signature.
-- **B-36 A template pattern accepts words its builder cannot map**: the `B3-grant-kw-*` patterns
+- **B-36 [fixed on branch `sets/onboarding`, /160] A template pattern accepts words its builder cannot map**: the `B3-grant-kw-*` patterns
   (`core/compiler/templates_b3.py:989-1017`) take any lowercase word, `_KW_MAP` (`:90`) holds
   four keywords, so "…gains haste until end of turn" raises `KeyError`. It is not an honest
   refusal, so it takes down the whole set's compile and deal pool. M19 and KHM (2026-10-27,
   KNOWLEDGE /159). Build the alternation from the map. Then a pattern cannot outrun its builder.
-- **B-37 Vehicles crash the compiler**: printed P/T on a non-creature raises `ValueError`
+- **B-37 [fixed on branch, /160] Vehicles crash the compiler**: printed P/T on a non-creature raises `ValueError`
   "non-creatures cannot have P/T" from `CardRecord` (`core/compiler/compiler.py:2205`). Five KHM
   vehicles and one THB. Refuse honestly (`StateCorruptionError`, a shape gap) until crew exists.
-- **B-38 Emblem attachment raises when the planeswalker is a back face**
+- **B-38 [fixed on branch, /160] Emblem attachment raises when the planeswalker is a back face**
   (`core/compiler/coverage.py:363` → `ability_tree.py:3361` "only a Planeswalker may carry an
   emblem"): KHM Valki, God of Lies // Tibalt, Cosmic Impostor.
-- **B-39 Ingest refuses ELD and IKO** (`core/compiler/ingest.py:652`): printings of one token (ELD
+- **B-39 [fixed on branch, /160] Ingest refuses ELD and IKO** (`core/compiler/ingest.py:652`): printings of one token (ELD
   Food ×4, IKO Human Soldier) differ only in `relatedCards.reverseRelated`, which lists the
   *other* cards that create the token. Merge those printings instead of calling it corruption.
 - **B-40 PC-2 counts a shape-gap card's front sentences as matched**: `measure_pool` puts them in
@@ -441,6 +443,42 @@ These are forks, not tasks. See the report that accompanied this audit.
   mechanisms over sentence shapes. The cheapest first are keyword lines carrying reminder text, and
   keyword lists (ZND-4a). Measure every grammar round on a sealed split
   (`tools/audit/new_set.py`).
+- **B-42 MOVE_ZONE has two spellings for one meaning**: the moved object is `cards` in 67 uses and
+  `target` in 20 (the exile family), and "its owner's hand" is `Zone(HAND, OWNER)` on three M21
+  cards and `Zone(HAND, ANY)` on three others (KNOWLEDGE /163). That violates the identity law
+  (DESIGN_ATOM_ONTOLOGY §6). Settle it in a gated ontology round, re-baking goldens.
+- **B-43 A bounced card goes to seat 0's hand, whoever owns it** (live in M21):
+  `executor/selectors.py:162-175` `zone_owner` resolves `Zone(HAND, ANY)` to the first seat. Barrin,
+  Tolarian Archmage; Niambi, Esteemed Speaker; and Roaming Ghostlight compile to that. The OWNER
+  branch also uses `controller_of` (the World has no owner), which is wrong after GAIN_CONTROL.
+  Fix: the three builders → `Zone(HAND, OWNER)`, three goldens re-baked, a pack that bounces an
+  opponent's creature, and an owner field if GAIN_CONTROL cards are dealt. Schedule it at an RL
+  pilot era boundary: it changes M21 episodes.
+- **B-44 One-card predicates**: `LIFE_LEAD_OVER_START_GE`, `NAME_PARTITION_COUNT_GE`,
+  `ATTACK_AGAINST_COUNT_GE`, `NOT_FIRST_DRAW_THIS_STEP`, `INSTANT_OR_SORCERY_CAST_THIS_TURN` read as
+  single cards. Decompose them into general atoms (e.g. a QThisTurn count of CastSpell events with
+  an FOr filter) in a gated ontology round ("as few subcomponents as possible", owner 2026-10-19).
+- **B-45 [opt-in mode on branch `sets/onboarding` 36adf48, /164] Every dealt deck is a five-colour stress pile**: `build_deck` (`core/executor/games.py:360-401`)
+  takes one basic of each colour plus other mana sources up to 10, then 50 cards uniformly from the
+  whole pool. Measured on 400 M21 decks: 13.4 lands of 60 on average (range 7–23), 16.6 mana sources,
+  five colours. Real decks run about 40% lands in two colours. Every BC, RL and benchmark number was
+  measured on this distribution (REVIEW_ARCHITECTURE_2026-10-27 F3). Under random play a land gap of
+  1–5 is a coin flip, and only gaps of 6 or more decide games (K3-lite). Add an opt-in coherent
+  mode (2 colours, about 40% lands, a curve, still seeded). Keep the default so existing
+  measurements stay comparable. Train and evaluate on both.
+- **B-46 [/166] Fourteen older sets are dealt mostly partly blank.** The castable pools of M19,
+  10E, M10–M13, M15, ORI, DOM, WAR, FDN, ELD, THB and IKO deal 2,482 cards. Only 683 of them
+  (27.5%) are fully compiled; the engine plays the rest with their unparsed sentences blank.
+  - Their IR matches what the engine does, so K1b could train IR encoders on them. But clean
+    volume (fully compiled only) is 556 training cards against 1,829 dealt.
+  - Every grammar round on these sets adds clean training cards, and the K1b curve was still
+    rising at 16 sets.
+  - M14 cannot be dealt at all: 9 mana-capable castable cards, and `build_deck` needs
+    `MIN_MANA_SOURCES` = 10.
+  - None of these sets has been through sealed first touch, and no unparsed sentence of theirs
+    has been read. Run `tools/audit/new_set.py` on each before any grammar round on it.
+  - Synthetic cards (atoms composed with sampled parameters) come after real-set volume, as the
+    clean test of genuinely new compositions (owner, 2026-10-27).
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
   plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
 

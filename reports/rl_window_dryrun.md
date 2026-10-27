@@ -29,3 +29,106 @@ Commands (exact): phase driver /tmp/opencode/rl_n1_train_src/tools/ops/rl_pilot_
 | probe p2 p2 2 - - rc=0 mirror,teacher -> dry_probe_p2.json |
 | window | summary | rc_phases=0 | - | - | - | phases_rc=0 | artifacts=/tmp/opencode/rld_n1 |
 
+
+## RL-pilot window run — 2026-10-26 05:54:40 (dry-run=1, gpu-train-device=cpu, HEAD b308cf5, artifacts /tmp/opencode/rld_n1)
+
+Commands (exact): phase driver /tmp/opencode/rl_n1_train_src/tools/ops/rl_pilot_phases.sh; per phase: -m tools.eval.gameplay_eval_v2 --policy-a <net> --matchups teacher --sample --rl-collect ...; -m tools.training.rl_logprob_audit --policy <collecting net>; -m tools.training.train_rl_v1 --policy tools/training/bsh_S3a_s1_best.pt --anchor tools/training/bsh_S3a_s1_best.pt; probes --matchups mirror,teacher --policy-b tools/training/bsh_S3a_s1_best.pt (frozen pre-RL anchor)
+
+| kind | phase | tag | games | wall_s | rate_g_per_s | rc/result | extra |
+|---|---|---|---|---|---|---|---|
+
+## RL-pilot window run — 2026-10-26 05:56:36 (dry-run=1, gpu-train-device=cpu, HEAD b308cf5, artifacts /tmp/opencode/rld_n1)
+
+Commands (exact): phase driver /tmp/opencode/rl_n1_train_src/tools/ops/rl_pilot_phases.sh; per phase: -m tools.eval.gameplay_eval_v2 --policy-a <net> --matchups teacher --sample --rl-collect ...; -m tools.training.rl_logprob_audit --policy <collecting net>; -m tools.training.train_rl_v1 --policy tools/training/bsh_S3a_s1_best.pt --anchor tools/training/bsh_S3a_s1_best.pt; probes --matchups mirror,teacher --policy-b tools/training/bsh_S3a_s1_best.pt (frozen pre-RL anchor)
+
+| kind | phase | tag | games | wall_s | rate_g_per_s | rc/result | extra |
+|---|---|---|---|---|---|---|---|
+| collect|smoke|smoke|2|6|0.3333|rc=0|cpu x2 sample+rl-collect |
+| audit|smoke|smoke|-|-|-|GREEN|off-policy discriminator |
+| train|rld_smoke|rld_smoke|-|-|-|rc=0|device=cpu 1 update |
+| collect|calib|calib|2|21|0.0952|rc=0|cpu x2 sample+rl-collect |
+| audit|calib|calib|-|-|-|GREEN|off-policy discriminator |
+| train|rld_cal|rld_cal|-|-|-|rc=0|device=cpu 1 update |
+| probe|p1|p1|2|-|-|rc=0|mirror,teacher -> dry_probe_p1.json |
+| calib|phase1-wall|total|2|118|-|done|budget input for phase 2 |
+| budget|phase2-skip|iter1|2|-|-|SKIPPED|have=3644s need=4824s |
+| window | summary | rc_phases=0 | - | - | - | phases_rc=0 | artifacts=/tmp/opencode/rld_n1 |
+
+
+## RL-pilot window run — 2026-10-26 06:00:05 (dry-run=1, gpu-train-device=cpu, HEAD b308cf5, artifacts /tmp/opencode/rld_n1)
+
+Commands (exact): phase driver /tmp/opencode/rl_n1_train_src/tools/ops/rl_pilot_phases.sh; per phase: -m tools.eval.gameplay_eval_v2 --policy-a <net> --matchups teacher --sample --rl-collect ...; -m tools.training.rl_logprob_audit --policy <collecting net>; -m tools.training.train_rl_v1 --policy tools/training/bsh_S3a_s1_best.pt --anchor tools/training/bsh_S3a_s1_best.pt; probes --matchups mirror,teacher --policy-b tools/training/bsh_S3a_s1_best.pt (frozen pre-RL anchor)
+
+| kind | phase | tag | games | wall_s | rate_g_per_s | rc/result | extra |
+|---|---|---|---|---|---|---|---|
+| collect|smoke|smoke|2|7|0.2857|rc=0|cpu x2 sample+rl-collect |
+| audit|smoke|smoke|-|-|-|GREEN|off-policy discriminator |
+| train|rld_smoke|rld_smoke|-|-|-|rc=0|device=cpu 1 update |
+| collect|calib|calib|2|21|0.0952|rc=0|cpu x2 sample+rl-collect |
+| audit|calib|calib|-|-|-|GREEN|off-policy discriminator |
+| train|rld_cal|rld_cal|-|-|-|rc=0|device=cpu 1 update |
+| probe|p1|p1|2|-|-|rc=0|mirror,teacher -> dry_probe_p1.json |
+| calib|phase1-wall|total|2|114|-|done|budget input for phase 2 |
+| budget|phase2-skip|iter1|2|-|-|SKIPPED|have=3444s need=4752s |
+| window | summary | rc_phases=0 | - | - | - | phases_rc=0 | artifacts=/tmp/opencode/rld_n1 |
+
+
+## RL-pilot window run — 2026-10-27 05:54:44 (dry-run=1, gpu-train-device=cpu, HEAD e6e6797, artifacts /tmp/opencode/rld_n1)
+
+Commands (exact): phase driver /tmp/opencode/rl_n1_train_src/tools/ops/rl_pilot_phases.sh; per phase: -m tools.eval.gameplay_eval_v2 --policy-a <net> --matchups teacher --sample --rl-collect ...; -m tools.training.rl_logprob_audit --policy <collecting net>; -m tools.training.train_rl_v1 --policy tools/training/bsh_S3a_s1_best.pt --anchor tools/training/bsh_S3a_s1_best.pt; probes --matchups mirror,teacher --policy-b tools/training/bsh_S3a_s1_best.pt (frozen pre-RL anchor)
+
+| kind | phase | tag | games | wall_s | rate_g_per_s | rc/result | extra |
+|---|---|---|---|---|---|---|---|
+| collect|smoke|smoke|2|8|0.2500|rc=0|cpu x2 sample+rl-collect |
+| audit|smoke|smoke|-|-|-|GREEN|off-policy discriminator |
+| train|rld_smoke|rld_smoke|-|-|-|rc=0|device=cpu 1 update |
+| collect|calib|calib|2|25|0.0800|rc=0|cpu x2 sample+rl-collect |
+| audit|calib|calib|-|-|-|GREEN|off-policy discriminator |
+| train|rld_cal|rld_cal|-|-|-|rc=0|device=cpu 1 update |
+| probe|p1|p1|2|-|-|rc=0|mirror,teacher -> dry_probe_p1.json |
+| calib|phase1-wall|total|2|153|-|done|budget input for phase 2 |
+| budget|phase2-skip|iter1|2|-|-|SKIPPED|have=3710s need=5454s |
+| window | summary | rc_phases=0 | - | - | - | phases_rc=0 | artifacts=/tmp/opencode/rld_n1 |
+
+
+## RL-pilot window run — 2026-10-27 09:20:37 (dry-run=1, gpu-train-device=cpu, HEAD db4bdef, artifacts /tmp/opencode/rld_n1)
+
+Commands (exact): phase driver /tmp/opencode/rl_n1_train_src/tools/ops/rl_pilot_phases.sh; per phase: -m tools.eval.gameplay_eval_v2 --policy-a <net> --matchups teacher --sample --rl-collect ...; -m tools.training.rl_logprob_audit --policy <collecting net>; -m tools.training.train_rl_v1 --policy tools/training/bsh_S3a_s1_best.pt --anchor tools/training/bsh_S3a_s1_best.pt; probes --matchups mirror,teacher --policy-b tools/training/bsh_S3a_s1_best.pt (frozen pre-RL anchor)
+
+| kind | phase | tag | games | wall_s | rate_g_per_s | rc/result | extra |
+|---|---|---|---|---|---|---|---|
+| collect|smoke|smoke|2|7|0.2857|rc=0|cpu x2 sample+rl-collect |
+| audit|smoke|smoke|-|-|-|GREEN|off-policy discriminator |
+| train|rld_smoke|rld_smoke|-|-|-|rc=0|device=cpu 1 update |
+| collect|calib|calib|2|21|0.0952|rc=0|cpu x2 sample+rl-collect |
+| audit|calib|calib|-|-|-|GREEN|off-policy discriminator |
+| train|rld_cal|rld_cal|-|-|-|rc=0|device=cpu 1 update |
+| probe|p1|p1|2|-|-|rc=0|mirror,teacher -> dry_probe_p1.json |
+| calib|phase1-wall|total|2|115|-|done|budget input for phase 2 |
+| collect|iter1|iter1|2|26|0.0769|rc=0|cpu x2 sample+rl-collect |
+| audit|iter1|iter1|-|-|-|GREEN|off-policy discriminator |
+| train|rld_i1|rld_i1|-|-|-|rc=0|device=cpu 1 update |
+| probe|p2|p2|2|-|-|rc=0|mirror,teacher -> dry_probe_p2.json |
+| window | summary | rc_phases=0 | - | - | - | phases_rc=0 | artifacts=/tmp/opencode/rld_n1 |
+
+
+## RL-pilot window run — 2026-10-27 13:30:37 (dry-run=1, gpu-train-device=cpu, HEAD 3a1e05b, artifacts /tmp/opencode/rld_n1)
+
+Commands (exact): phase driver /tmp/opencode/rl_n1_train_src/tools/ops/rl_pilot_phases.sh; per phase: -m tools.eval.gameplay_eval_v2 --policy-a <net> --matchups teacher --sample --rl-collect ...; -m tools.training.rl_logprob_audit --policy <collecting net>; -m tools.training.train_rl_v1 --policy tools/training/bsh_S3a_s1_best.pt --anchor tools/training/bsh_S3a_s1_best.pt; probes --matchups mirror,teacher --policy-b tools/training/bsh_S3a_s1_best.pt (frozen pre-RL anchor)
+
+| kind | phase | tag | games | wall_s | rate_g_per_s | rc/result | extra |
+|---|---|---|---|---|---|---|---|
+| collect|smoke|smoke|2|7|0.2857|rc=0|cpu x2 sample+rl-collect |
+| audit|smoke|smoke|-|-|-|GREEN|off-policy discriminator |
+| train|rld_smoke|rld_smoke|-|-|-|rc=0|device=cpu 1 update |
+| collect|calib|calib|2|22|0.0909|rc=0|cpu x2 sample+rl-collect |
+| audit|calib|calib|-|-|-|GREEN|off-policy discriminator |
+| train|rld_cal|rld_cal|-|-|-|rc=0|device=cpu 1 update |
+| probe|p1|p1|2|-|-|rc=0|mirror,teacher -> dry_probe_p1.json |
+| calib|phase1-wall|total|2|116|-|done|budget input for phase 2 |
+| collect|iter1|iter1|2|27|0.0741|rc=0|cpu x2 sample+rl-collect |
+| audit|iter1|iter1|-|-|-|GREEN|off-policy discriminator |
+| train|rld_i1|rld_i1|-|-|-|rc=0|device=cpu 1 update |
+| probe|p2|p2|2|-|-|rc=0|mirror,teacher -> dry_probe_p2.json |
+| window | summary | rc_phases=0 | - | - | - | phases_rc=0 | artifacts=/tmp/opencode/rld_n1 |
+

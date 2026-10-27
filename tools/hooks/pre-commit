@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Refuse a commit that stages a file over 95 MB. GitHub rejects files over 100 MB, and one such
+# blob makes main unpushable for every session sharing this repo: a 134 MB checkpoint did it on
+# 2026-10-06 (found 2026-10-24) and a 393 MB episodes JSONL on 2026-10-27. tools/save.sh has the
+# same check, but agents commit without it; a hook runs for everyone.
+#
+# Install (once per clone): ln -sf ../../tools/hooks/pre-commit .git/hooks/pre-commit
+# Large evidence stays on disk, pinned by sha256: reports/LARGE_FILES.sha256 and
+# tools/training/CHECKPOINTS.sha256.
+set -euo pipefail
+limit=$((95 * 1024 * 1024))
+too_big=()
+while IFS= read -r -d '' path; do
+    size=$(git cat-file -s ":$path" 2>/dev/null || echo 0)
+    if (( size > limit )); then
+        too_big+=("$path ($((size / 1024 / 1024)) MB)")
+    fi
+done < <(git diff --cached --name-only --diff-filter=AM -z)
+if (( ${#too_big[@]} )); then
+    echo "pre-commit: REFUSED, staged files over 95 MB (GitHub rejects 100 MB):" >&2
+    printf '  %s\n' "${too_big[@]}" >&2
+    echo "Unstage them (git rm --cached <path>), keep them on disk, and record a sha256 in" >&2
+    echo "reports/LARGE_FILES.sha256 (or tools/training/CHECKPOINTS.sha256 for checkpoints)." >&2
+    exit 1
+fi

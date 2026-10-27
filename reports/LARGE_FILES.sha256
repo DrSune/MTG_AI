@@ -1,0 +1,6 @@
+# Large evidence kept on disk but not in git (GitHub rejects files over 100 MB).
+# Verify with: sha256sum -c reports/LARGE_FILES.sha256  (from the repo root)
+# Copies: ~/mtg_ai_evidence/reports/. Checkpoints are pinned separately in tools/training/CHECKPOINTS.sha256.
+# reports/episodes_iter1.jsonl: RL pilot iteration-1 episodes (1000 games, 393 MB), committed in
+#   /161 (9c67adf) and dropped from the unpushed history 2026-10-27 (docs/COMMIT_MAP_2026-10-27.tsv).
+2e09d72b5f0caaf1540688f1180a2024c05f1741409e424a6da552d79206ab30  reports/episodes_iter1.jsonl
