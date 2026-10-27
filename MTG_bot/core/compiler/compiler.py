@@ -1579,6 +1579,14 @@ def compile_card(
                 matches = tuple(m for m in registry.match(self_named)
                                 if m.template.bucket == "B12")
                 best_match = matches[0] if matches else None
+        # Step 2d: a trigger or cost frame around a clause that parses on its own (fallback only,
+        # B13). Imported here: the frame helpers live in template modules, one of which imports
+        # this module.
+        if best_match is None:
+            from MTG_bot.core.compiler.frames import compose as _compose_frame
+
+            matches = _compose_frame(sentence, registry)
+            best_match = matches[0] if matches else None
         if best_match is None:
             hint = _bucket_hint(sentence)
             unparsed.append((sentence, hint))

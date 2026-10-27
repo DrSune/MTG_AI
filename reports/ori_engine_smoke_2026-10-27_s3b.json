@@ -1,0 +1,478 @@
+{
+ "summary": {
+  "set_code": "ORI",
+  "pool_mode": "engine",
+  "games_requested": 40,
+  "games_completed": 40,
+  "games_crashed": 0,
+  "crash_rate": 0.0,
+  "distinct_signatures": 0,
+  "turn_cap": 150,
+  "deck_pairs_seed": 201019,
+  "game_timeout_s": 45.0,
+  "workers": 4,
+  "wall_clock_s": 6.4,
+  "acts_median": 60.5,
+  "turns_median": 33.0,
+  "timed_out_seeds": []
+ },
+ "signatures": {},
+ "rows": [
+  {
+   "seed": 0,
+   "turns": 26,
+   "acts": 52,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "14L/13L",
+   "crash": null,
+   "seconds": 0.42
+  },
+  {
+   "seed": 1,
+   "turns": 38,
+   "acts": 88,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "11L/10L",
+   "crash": null,
+   "seconds": 0.75
+  },
+  {
+   "seed": 2,
+   "turns": 28,
+   "acts": 36,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "12L/10L",
+   "crash": null,
+   "seconds": 0.4
+  },
+  {
+   "seed": 3,
+   "turns": 29,
+   "acts": 37,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "14L/12L",
+   "crash": null,
+   "seconds": 0.41
+  },
+  {
+   "seed": 4,
+   "turns": 40,
+   "acts": 64,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "14L/14L",
+   "crash": null,
+   "seconds": 0.6
+  },
+  {
+   "seed": 5,
+   "turns": 29,
+   "acts": 78,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "14L/11L",
+   "crash": null,
+   "seconds": 0.6
+  },
+  {
+   "seed": 6,
+   "turns": 47,
+   "acts": 77,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "12L/9L",
+   "crash": null,
+   "seconds": 0.81
+  },
+  {
+   "seed": 7,
+   "turns": 55,
+   "acts": 123,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "9L/14L",
+   "crash": null,
+   "seconds": 1.1
+  },
+  {
+   "seed": 8,
+   "turns": 40,
+   "acts": 120,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "12L/13L",
+   "crash": null,
+   "seconds": 0.84
+  },
+  {
+   "seed": 9,
+   "turns": 33,
+   "acts": 28,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "9L/11L",
+   "crash": null,
+   "seconds": 0.39
+  },
+  {
+   "seed": 10,
+   "turns": 22,
+   "acts": 47,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "9L/14L",
+   "crash": null,
+   "seconds": 0.36
+  },
+  {
+   "seed": 11,
+   "turns": 38,
+   "acts": 69,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "14L/12L",
+   "crash": null,
+   "seconds": 0.65
+  },
+  {
+   "seed": 12,
+   "turns": 30,
+   "acts": 64,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "12L/12L",
+   "crash": null,
+   "seconds": 0.52
+  },
+  {
+   "seed": 13,
+   "turns": 50,
+   "acts": 81,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "12L/12L",
+   "crash": null,
+   "seconds": 0.84
+  },
+  {
+   "seed": 14,
+   "turns": 23,
+   "acts": 35,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "11L/18L",
+   "crash": null,
+   "seconds": 0.35
+  },
+  {
+   "seed": 15,
+   "turns": 32,
+   "acts": 60,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "12L/11L",
+   "crash": null,
+   "seconds": 0.51
+  },
+  {
+   "seed": 16,
+   "turns": 29,
+   "acts": 68,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "11L/11L",
+   "crash": null,
+   "seconds": 0.54
+  },
+  {
+   "seed": 17,
+   "turns": 20,
+   "acts": 37,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "10L/11L",
+   "crash": null,
+   "seconds": 0.34
+  },
+  {
+   "seed": 18,
+   "turns": 27,
+   "acts": 38,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "12L/13L",
+   "crash": null,
+   "seconds": 0.37
+  },
+  {
+   "seed": 19,
+   "turns": 33,
+   "acts": 58,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "12L/13L",
+   "crash": null,
+   "seconds": 0.51
+  },
+  {
+   "seed": 20,
+   "turns": 21,
+   "acts": 30,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "12L/12L",
+   "crash": null,
+   "seconds": 0.29
+  },
+  {
+   "seed": 21,
+   "turns": 45,
+   "acts": 80,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "9L/9L",
+   "crash": null,
+   "seconds": 0.75
+  },
+  {
+   "seed": 22,
+   "turns": 28,
+   "acts": 86,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "12L/14L",
+   "crash": null,
+   "seconds": 0.53
+  },
+  {
+   "seed": 23,
+   "turns": 46,
+   "acts": 68,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "9L/11L",
+   "crash": null,
+   "seconds": 0.77
+  },
+  {
+   "seed": 24,
+   "turns": 41,
+   "acts": 85,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "13L/12L",
+   "crash": null,
+   "seconds": 0.75
+  },
+  {
+   "seed": 25,
+   "turns": 26,
+   "acts": 29,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "9L/11L",
+   "crash": null,
+   "seconds": 0.37
+  },
+  {
+   "seed": 26,
+   "turns": 51,
+   "acts": 121,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "10L/12L",
+   "crash": null,
+   "seconds": 0.98
+  },
+  {
+   "seed": 27,
+   "turns": 34,
+   "acts": 52,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "8L/9L",
+   "crash": null,
+   "seconds": 0.55
+  },
+  {
+   "seed": 28,
+   "turns": 47,
+   "acts": 107,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "13L/11L",
+   "crash": null,
+   "seconds": 0.92
+  },
+  {
+   "seed": 29,
+   "turns": 25,
+   "acts": 56,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "11L/12L",
+   "crash": null,
+   "seconds": 0.5
+  },
+  {
+   "seed": 30,
+   "turns": 22,
+   "acts": 37,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "11L/9L",
+   "crash": null,
+   "seconds": 0.34
+  },
+  {
+   "seed": 31,
+   "turns": 36,
+   "acts": 38,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "10L/8L",
+   "crash": null,
+   "seconds": 0.47
+  },
+  {
+   "seed": 32,
+   "turns": 36,
+   "acts": 61,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "9L/13L",
+   "crash": null,
+   "seconds": 0.56
+  },
+  {
+   "seed": 33,
+   "turns": 33,
+   "acts": 50,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "11L/10L",
+   "crash": null,
+   "seconds": 0.5
+  },
+  {
+   "seed": 34,
+   "turns": 50,
+   "acts": 104,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "14L/13L",
+   "crash": null,
+   "seconds": 0.9
+  },
+  {
+   "seed": 35,
+   "turns": 35,
+   "acts": 75,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "10L/11L",
+   "crash": null,
+   "seconds": 0.68
+  },
+  {
+   "seed": 36,
+   "turns": 17,
+   "acts": 31,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "12L/12L",
+   "crash": null,
+   "seconds": 0.28
+  },
+  {
+   "seed": 37,
+   "turns": 31,
+   "acts": 37,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "10L/10L",
+   "crash": null,
+   "seconds": 0.42
+  },
+  {
+   "seed": 38,
+   "turns": 36,
+   "acts": 52,
+   "survived": false,
+   "reason": "game over: player:0(life<=0)",
+   "deck": "11L/10L",
+   "crash": null,
+   "seconds": 0.5
+  },
+  {
+   "seed": 39,
+   "turns": 39,
+   "acts": 71,
+   "survived": false,
+   "reason": "game over: player:1(life<=0)",
+   "deck": "8L/11L",
+   "crash": null,
+   "seconds": 0.64
+  }
+ ],
+ "full_tracebacks": {},
+ "backface_probe": {
+  "walk_calls": 8598,
+  "face_yields_skipped_ok": 0,
+  "violations": [],
+  "games_probed": 6,
+  "patched_modules": [
+   "MTG_bot.core.ability_tree",
+   "MTG_bot.core.compiler.compiler",
+   "MTG_bot.core.executor.binding",
+   "MTG_bot.core.executor.query",
+   "MTG_bot.core.compiler.coverage",
+   "MTG_bot.core.executor.games"
+  ],
+  "games": [
+   {
+    "seed": 0,
+    "outcome": "ok: game over: player:0(life<=0)",
+    "registry_hits": [],
+    "battlefield_cards_carrying_BackFace": 0
+   },
+   {
+    "seed": 1,
+    "outcome": "ok: game over: player:0(life<=0)",
+    "registry_hits": [],
+    "battlefield_cards_carrying_BackFace": 0
+   },
+   {
+    "seed": 2,
+    "outcome": "ok: game over: player:0(life<=0)",
+    "registry_hits": [],
+    "battlefield_cards_carrying_BackFace": 0
+   },
+   {
+    "seed": 3,
+    "outcome": "ok: game over: player:1(life<=0)",
+    "registry_hits": [],
+    "battlefield_cards_carrying_BackFace": 0
+   },
+   {
+    "seed": 4,
+    "outcome": "ok: game over: player:0(life<=0)",
+    "registry_hits": [],
+    "battlefield_cards_carrying_BackFace": 0
+   },
+   {
+    "seed": 5,
+    "outcome": "ok: game over: player:1(life<=0)",
+    "registry_hits": [],
+    "battlefield_cards_carrying_BackFace": 0
+   }
+  ],
+  "registry_hits": 0,
+  "unique_violations": {},
+  "verdict": "PASS"
+ }
+}
