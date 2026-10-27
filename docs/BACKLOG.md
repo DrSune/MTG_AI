@@ -392,7 +392,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   determinize hidden state.
 - **B-27 The RL update cannot move the policy**: one SGD step per 1000-game iteration at lr 1e-5,
   clip 1.0 (`train_rl_v1.py:131-132,253-255`; `rl_pilot_phases.sh:31`).
-- **B-28 Partly compiled cards are dealt**: `engine_supported` ignores sentences that produced no
+- **B-28 [opt-in fix on branch, /160: pool mode `compiled`; defaults unchanged] Partly compiled cards are dealt**: `engine_supported` ignores sentences that produced no
   atoms (`core/compiler/compiler.py:2259-2302`), against `DESIGN_CARD_POOL.md:219`.
 - **B-29 CHOOSE_NAME leaks hidden zones**: the vocabulary lists every non-token card in the world
   (`core/executor/verbs.py:1543-1556`). Restrict to the legal pool, not the world.
@@ -418,18 +418,18 @@ These are forks, not tasks. See the report that accompanied this audit.
   green in `pytest MTG_bot` and crashed 3 collector games in `pytest tools` (order-dependent).
   Patch inside a context manager scoped to the run, or give the engine a recorder hook instead.
   Until then `test_no_engine_call_site_passes_seat_to_take_decision` guards the signature.
-- **B-36 A template pattern accepts words its builder cannot map**: the `B3-grant-kw-*` patterns
+- **B-36 [fixed on branch `sets/onboarding`, /160] A template pattern accepts words its builder cannot map**: the `B3-grant-kw-*` patterns
   (`core/compiler/templates_b3.py:989-1017`) take any lowercase word, `_KW_MAP` (`:90`) holds
   four keywords, so "…gains haste until end of turn" raises `KeyError`. It is not an honest
   refusal, so it takes down the whole set's compile and deal pool. M19 and KHM (2026-10-27,
   KNOWLEDGE /159). Build the alternation from the map. Then a pattern cannot outrun its builder.
-- **B-37 Vehicles crash the compiler**: printed P/T on a non-creature raises `ValueError`
+- **B-37 [fixed on branch, /160] Vehicles crash the compiler**: printed P/T on a non-creature raises `ValueError`
   "non-creatures cannot have P/T" from `CardRecord` (`core/compiler/compiler.py:2205`). Five KHM
   vehicles and one THB. Refuse honestly (`StateCorruptionError`, a shape gap) until crew exists.
-- **B-38 Emblem attachment raises when the planeswalker is a back face**
+- **B-38 [fixed on branch, /160] Emblem attachment raises when the planeswalker is a back face**
   (`core/compiler/coverage.py:363` → `ability_tree.py:3361` "only a Planeswalker may carry an
   emblem"): KHM Valki, God of Lies // Tibalt, Cosmic Impostor.
-- **B-39 Ingest refuses ELD and IKO** (`core/compiler/ingest.py:652`): printings of one token (ELD
+- **B-39 [fixed on branch, /160] Ingest refuses ELD and IKO** (`core/compiler/ingest.py:652`): printings of one token (ELD
   Food ×4, IKO Human Soldier) differ only in `relatedCards.reverseRelated`, which lists the
   *other* cards that create the token. Merge those printings instead of calling it corruption.
 - **B-40 PC-2 counts a shape-gap card's front sentences as matched**: `measure_pool` puts them in
