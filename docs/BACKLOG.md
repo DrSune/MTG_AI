@@ -458,6 +458,27 @@ These are forks, not tasks. See the report that accompanied this audit.
   `ATTACK_AGAINST_COUNT_GE`, `NOT_FIRST_DRAW_THIS_STEP`, `INSTANT_OR_SORCERY_CAST_THIS_TURN` read as
   single cards. Decompose them into general atoms (e.g. a QThisTurn count of CastSpell events with
   an FOr filter) in a gated ontology round ("as few subcomponents as possible", owner 2026-10-19).
+  - **Measured 2026-10-28 over 19 sets (4,486 compiled cards).** There are 193 component types. 48
+    of them cover 90% of uses, and 50 (26%) are used by two cards or fewer.
+  - The tail folds into a few general shapes:
+    - eight "this turn" predicates are one counted-event atom with a filter and N: `CARDS_DRAWN_`,
+      `CAST_THIS_TURN_FROM`, `ENTERED_THIS_TURN_FROM`, `MOVED_TO_ZONE_THIS_TURN`,
+      `WAS_CAST_THIS_TURN`, `INSTANT_OR_SORCERY_CAST_`, `NOT_FIRST_DRAW_THIS_STEP` and
+      `ATTACK_AGAINST_COUNT_GE`;
+    - five comparators are one property comparison: `CMC_GE`, `COLOR_COUNT_GE`,
+      `CONTROLLER_COUNT_GT`, `LIFE_LEAD_OVER_START_GE` and `NAME_PARTITION_COUNT_GE`;
+    - `FIGHT` is two damage atoms.
+  - Owner, 2026-10-27: components that "capture a lot of [the cards'] functionality, such that our
+    model needs to learn less atomised components", so the network shares structure. Track it with
+    the reuse numbers above.
+- **B-48 [2026-10-28] Discard has two encodings.**
+  - 27 compiled discard effects are `MOVE_ZONE` from hand to graveyard: Jeskai Elder, Liliana's
+    Steward, Duress, Bad Deal and others. One card (Coralhelm Chronicler) uses `Verb.DISCARD`.
+  - Same meaning, different bytes: this breaks the identity law and splits the network's training
+    signal for one concept.
+  - Discard is a keyword action (CR 701.8), and "whenever a player discards" triggers and madness
+    key off it. So pick one encoding in the ontology round, probably `DISCARD`, and re-bake
+    the affected goldens at an era boundary.
 - **B-45 [opt-in mode on branch `sets/onboarding` 36adf48, /164] Every dealt deck is a five-colour stress pile**: `build_deck` (`core/executor/games.py:360-401`)
   takes one basic of each colour plus other mana sources up to 10, then 50 cards uniformly from the
   whole pool. Measured on 400 M21 decks: 13.4 lands of 60 on average (range 7–23), 16.6 mana sources,
