@@ -54,6 +54,7 @@ if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
 from MTG_bot.core.executor.games import (
+    SET_CODE,
     TURN_CAP,
     RandomPolicy,
     Supply,
@@ -659,6 +660,7 @@ def run_duel_game(
     spec_a: str,
     spec_b: str,
     pool_mode: str = "all",
+    set_code: str = SET_CODE,
     deck_pairs_seed: int = 1409,
     turn_cap: int = TURN_CAP,
     device: str = "auto",
@@ -668,7 +670,9 @@ def run_duel_game(
     collector.run_episode's provider installation exactly (the games.py
     ``driver.answer`` masking), but routes each ask to the policy OWNING
     the active seat."""
-    supply = supply if supply is not None else get_supply(pool_mode)
+    # /135 T-G5 item 1: the supply is set-scoped (get_supply takes set_code;
+    # the ladder was M21-locked because this layer never passed it through).
+    supply = supply if supply is not None else get_supply(pool_mode, set_code)
     decks = deal_decks(seed, deck_pairs_seed, supply)
     game = _setup_game(seed, supply, decks)
     world = game.world
@@ -724,9 +728,11 @@ def run_duel_game(
 _G: dict[str, Any] = {}
 
 
-def _duel_init(pool_mode: str, spec_a: str, spec_b: str, device: str) -> None:
+def _duel_init(
+    pool_mode: str, set_code: str, spec_a: str, spec_b: str, device: str
+) -> None:
     """One supply compile + one checkpoint load per worker, before timing."""
-    _G["supply"] = get_supply(pool_mode)
+    _G["supply"] = get_supply(pool_mode, set_code)
     _G["spec_a"], _G["spec_b"], _G["device"] = spec_a, spec_b, device
     for spec in (spec_a, spec_b):
         if is_checkpoint_spec(spec):
@@ -802,6 +808,7 @@ def run_duel(
     games: int,
     workers: int = 10,
     pool_mode: str = "all",
+    set_code: str = SET_CODE,
     deck_pairs_seed: int = 1409,
     turn_cap: int = TURN_CAP,
     seeds: list[int] | None = None,
@@ -821,7 +828,7 @@ def run_duel(
     jobs = [{"seed": s, "swap": sw} for s, sw in zip(chosen, swaps, strict=True)]
     started = time.perf_counter()
     if workers <= 1:
-        supply = get_supply(pool_mode)
+        supply = get_supply(pool_mode, set_code)
         records = [
             run_duel_game(
                 job["seed"],
@@ -841,7 +848,7 @@ def run_duel(
         with ctx.Pool(
             workers,
             initializer=_duel_init,
-            initargs=(pool_mode, spec_a, spec_b, device),
+            initargs=(pool_mode, set_code, spec_a, spec_b, device),
         ) as pool:
             records = pool.map(_duel_worker, jobs, chunksize=1)
     elapsed = time.perf_counter() - started
@@ -850,6 +857,10 @@ def run_duel(
     summary["games_per_sec"] = round(games / elapsed, 3) if elapsed else None
     summary["seeds"] = [chosen[0], chosen[-1]]
     summary["pair_key"] = key
+    # /135 item 3: the duel table stamps WHICH pool it was played on — a
+    # winrate from one supply is not comparable to another.
+    summary["set"] = set_code
+    summary["pool"] = pool_mode
     if own_bank and persist_bank:
         save_bank(bank, bank_path)
     return {"summary": summary, "records": records}
@@ -929,6 +940,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--games", type=int, default=100)
     parser.add_argument("--workers", type=int, default=10)
     parser.add_argument("--pool", default="all", choices=("all", "engine", "castable"))
+    parser.add_argument(
+        "--set",
+        default=SET_CODE,
+        help="set code for the dealt supply (default M21; /135 T-G5 item 1)",
+    )
     parser.add_argument("--deck-pairs-seed", type=int, default=1409)
     parser.add_argument("--turn-cap", type=int, default=TURN_CAP)
     parser.add_argument(
@@ -968,6 +984,7 @@ def main(argv: list[str] | None = None) -> int:
             device=args.device,
             bank_path=args.seed_file,
             pool_mode=args.pool,
+            set_code=args.set,
             deck_pairs_seed=args.deck_pairs_seed,
             turn_cap=args.turn_cap,
         )
@@ -981,6 +998,7 @@ def main(argv: list[str] | None = None) -> int:
             args.games,
             workers=args.workers,
             pool_mode=args.pool,
+            set_code=args.set,
             deck_pairs_seed=args.deck_pairs_seed,
             turn_cap=args.turn_cap,
             seeds=args.seeds or None,

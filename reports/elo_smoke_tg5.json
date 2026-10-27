@@ -1,0 +1,190 @@
+{
+ "anchor": "random=0 (set=M21, pool=engine)",
+ "details": {
+  "fit": "K=32.0 iterative to fixed point, anchored (random=0 by construction); ADMISSIBLE PAIRS ONLY (a pair's bootstrap winrate CI must exclude 0.5; /26 + /135 item 2); vs_field_wr is descriptive over all games; bootstrap over games within the fitted pairs, seed-fixed; a policy is rated only if it lies in the anchor's admissible-pair component, else it is UNRATED",
+  "pairs": {
+   "pass-floor vs /home/sune/Desktop/MTG_AI/tools/training/bsh_S3a_s3_best.pt": {
+    "a": {
+     "ci": [
+      0.3006,
+      0.9544
+     ],
+     "score": 0.75,
+     "winrate": 0.75,
+     "wins": 3
+    },
+    "b": {
+     "ci": [
+      0.0456,
+      0.6994
+     ],
+     "score": 0.25,
+     "winrate": 0.25,
+     "wins": 1
+    },
+    "boot": {
+     "admissible": false,
+     "winrate_a": 0.75,
+     "wr_ci": [
+      0.25,
+      1.0
+     ]
+    },
+    "crashes": 0,
+    "draws": {
+     "cap": 0,
+     "other": 0,
+     "stall": 0
+    },
+    "in_fit": false
+   },
+   "random vs /home/sune/Desktop/MTG_AI/tools/training/bsh_S3a_s3_best.pt": {
+    "a": {
+     "ci": [
+      0.15,
+      0.85
+     ],
+     "score": 0.5,
+     "winrate": 0.5,
+     "wins": 2
+    },
+    "b": {
+     "ci": [
+      0.15,
+      0.85
+     ],
+     "score": 0.5,
+     "winrate": 0.5,
+     "wins": 2
+    },
+    "boot": {
+     "admissible": false,
+     "winrate_a": 0.5,
+     "wr_ci": [
+      0.0,
+      1.0
+     ]
+    },
+    "crashes": 0,
+    "draws": {
+     "cap": 0,
+     "other": 0,
+     "stall": 0
+    },
+    "in_fit": false
+   },
+   "random vs pass-floor": {
+    "a": {
+     "ci": [
+      0.0456,
+      0.6994
+     ],
+     "score": 0.25,
+     "winrate": 0.25,
+     "wins": 1
+    },
+    "b": {
+     "ci": [
+      0.3006,
+      0.9544
+     ],
+     "score": 0.75,
+     "winrate": 0.75,
+     "wins": 3
+    },
+    "boot": {
+     "admissible": false,
+     "winrate_a": 0.25,
+     "wr_ci": [
+      0.0,
+      0.75
+     ]
+    },
+    "crashes": 0,
+    "draws": {
+     "cap": 0,
+     "other": 0,
+     "stall": 0
+    },
+    "in_fit": false
+   }
+  }
+ },
+ "engine": {
+  "git_head": "3a1e05b",
+  "mtgbot_dirty_files": 1,
+  "pool": "engine",
+  "set": "M21"
+ },
+ "era_invalid": false,
+ "fit_excluded_pairs": [
+  {
+   "admissible": false,
+   "pair": "random vs pass-floor",
+   "winrate_a": 0.25,
+   "wr_ci": [
+    0.0,
+    0.75
+   ]
+  },
+  {
+   "admissible": false,
+   "pair": "random vs /home/sune/Desktop/MTG_AI/tools/training/bsh_S3a_s3_best.pt",
+   "winrate_a": 0.5,
+   "wr_ci": [
+    0.0,
+    1.0
+   ]
+  },
+  {
+   "admissible": false,
+   "pair": "pass-floor vs /home/sune/Desktop/MTG_AI/tools/training/bsh_S3a_s3_best.pt",
+   "winrate_a": 0.75,
+   "wr_ci": [
+    0.25,
+    1.0
+   ]
+  }
+ ],
+ "games_per_pair": 4,
+ "games_total": 12,
+ "headline_claims": [],
+ "ratings": [
+  {
+   "admissible": true,
+   "ci_hi": 0.0,
+   "ci_lo": 0.0,
+   "elo": 0.0,
+   "policy": "random",
+   "vs_field_wr": 0.375
+  }
+ ],
+ "sentinel": {
+  "band": [
+   0.422,
+   0.728
+  ],
+  "cell": "tools/training/bsh_S3a_s3_best.pt vs random (set=M21, pool=engine, n=40)",
+  "crashes": 0,
+  "measured_score": 0.4375,
+  "ok": true,
+  "provenance": "KNOWLEDGE/2026-10-19/123 (shadow 2x2 grid, M21 control cell)",
+  "ref_score": 0.575,
+  "seeds": [
+   5,
+   44
+  ]
+ },
+ "unrated": [
+  {
+   "policy": "pass-floor",
+   "reason": "no admissible path to the anchor (every pair's bootstrap winrate CI straddles 0.5)"
+  },
+  {
+   "policy": "/home/sune/Desktop/MTG_AI/tools/training/bsh_S3a_s3_best.pt",
+   "reason": "no admissible path to the anchor (every pair's bootstrap winrate CI straddles 0.5)"
+  }
+ ],
+ "updated": "2026-10-27T12:10:14+00:00",
+ "wall_seconds": 45.9
+}
