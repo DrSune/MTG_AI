@@ -48,6 +48,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import torch
 import train as T
 
+from MTG_bot.utils.device import get_device
+
 STEPS = (
     ("1 set", ("M21",)),
     ("4 sets", ("M21", "ZNR", "M19", "10E")),
@@ -119,11 +121,16 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--epochs", type=int, default=15)
     ap.add_argument("--encoders", default="state,ir-bag,ir-pairs,text-bag,hybrid")
     ap.add_argument("--threads", type=int, default=12)
+    ap.add_argument("--device", choices=("cpu", "auto"), default="cpu",
+                    help="auto = MTG_bot.utils.device.get_device() (K1c); cpu reproduces K1b")
+    ap.add_argument("--seq-batch", type=int, default=1024,
+                    help="ir-seq batch; 1024 reproduces K1/K1b, 256 matches the bags (K1c)")
     ap.add_argument("--fully-compiled", action="store_true",
                     help="keep only rows of cards with nothing unparsed (amendment 1, rule 4)")
     ap.add_argument("--out", required=True)
     args = ap.parse_args(argv)
     torch.set_num_threads(args.threads)
+    device = get_device() if args.device == "auto" else torch.device("cpu")
     data = Path(args.data)
     started = time.perf_counter()
     inputs: dict = {}
@@ -156,6 +163,8 @@ def main(argv: list[str] | None = None) -> int:
         "cap_rows_per_card_per_set": args.cap,
         "epochs": args.epochs,
         "fully_compiled_only": args.fully_compiled,
+        "device": str(device),
+        "seq_batch": args.seq_batch,
         "test_rows": {k: len(v) for k, v in tests.items()},
         "test_cards": {f"{n}/{p}": len(c) for (n, p), c in population.items()},
         "steps": {},
@@ -195,7 +204,7 @@ def main(argv: list[str] | None = None) -> int:
         for encoder in encoders:
             t0 = time.perf_counter()
             pred = T.fit_predict(encoder, train, test_rows, table, vocab, stats, args.epochs,
-                                 seed=20261027)
+                                 seed=20261027, device=device, seq_batch=args.seq_batch)
             mse[label][encoder] = {}
             raw[label][encoder] = {}
             for name in TESTS:

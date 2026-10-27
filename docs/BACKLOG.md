@@ -480,6 +480,11 @@ These are forks, not tasks. See the report that accompanied this audit.
     sealed, read once per round.
   - Synthetic cards (atoms composed with sampled parameters) come after real-set volume, as the
     clean test of genuinely new compositions (owner, 2026-10-27).
+- **B-47 [/167, S-3b differential] One token carrier writes a different type line.** Speaker of
+  the Heavens' Angel token is `type_line="Angel"` (`core/compiler/templates_b3.py:842`); every
+  other token carrier, and B11, writes "Creature — <subtypes>". Same meaning, different bytes,
+  so it breaks the identity law. `types` and `subtypes` agree. Fixing it re-bakes one M21 golden,
+  so schedule it at a pilot era boundary with B-43.
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
   plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
 

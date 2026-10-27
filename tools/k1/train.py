@@ -364,13 +364,23 @@ class CardTable:
         return self.index.get((row["oid"], row["unit"])) or self.index.get((row["oid"], "card"), 0)
 
 
+def _on(device: torch.device, s: torch.Tensor, y: torch.Tensor, c: dict):
+    return s.to(device), y.to(device), {k: v.to(device) for k, v in c.items()}
+
+
 def fit_predict(encoder: str, train: list, test: list, table: CardTable, vocab: dict,
-                stats: dict, epochs: int, seed: int) -> torch.Tensor:
+                stats: dict, epochs: int, seed: int, device: torch.device | None = None,
+                seq_batch: int = 1024) -> torch.Tensor:
+    """Fit one encoder and predict the test rows. ``device`` and ``seq_batch`` default to what
+    K1 and K1b ran (CPU; ir-seq at batch 1024 for speed); K1c moves ir-seq to the GPU at the
+    bags' batch so every encoder gets the same budget."""
+    device = device or torch.device("cpu")
     rng.seed_all(seed, seed_frameworks=True)
     n_state = len(stats["s_mean"])
     model = Model(encoder, n_state, n_state, {"names": len(vocab["names"]) + 1,
                                               "ir": len(vocab["ir"]), "text": len(vocab["text"]),
                                               "pairs": len(vocab.get("pairs", {}))})
+    model.to(device)
     opt = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-5)
     # early stopping on 10% of the TRAINING cards, held out whole (no row leakage)
     tr_cards = sorted({r["oid"] for r in train})
@@ -379,7 +389,9 @@ def fit_predict(encoder: str, train: list, test: list, table: CardTable, vocab: 
     val = [r for r in train if r["oid"] in val_cards] or fit[: max(1, len(fit) // 10)]
     best, best_state, bad = math.inf, None, 0
     # ir-seq encodes each distinct card once per batch; big pools (K1b) use big batches throughout
-    batch = 1024 if encoder == "ir-seq" or len(train) > 100_000 else 256
+    batch = 1024 if len(train) > 100_000 else 256
+    if encoder == "ir-seq":
+        batch = max(batch, seq_batch)
     order_rng = rng.substream("bench", "k1", encoder, seed)
     for _epoch in range(epochs):
         model.train()
@@ -387,14 +399,14 @@ def fit_predict(encoder: str, train: list, test: list, table: CardTable, vocab: 
         order_rng.shuffle(idx)
         for start in range(0, len(idx), batch):
             rows = [fit[i] for i in idx[start:start + batch]]
-            s, y, c = tensors(rows, table, stats)
+            s, y, c = _on(device, *tensors(rows, table, stats))
             loss = ((model(s, c) - y) ** 2).mean()
             opt.zero_grad()
             loss.backward()
             opt.step()
         model.eval()
         with torch.no_grad():
-            s, y, c = tensors(val, table, stats)
+            s, y, c = _on(device, *tensors(val, table, stats))
             vloss = ((model(s, c) - y) ** 2).mean().item()
         if vloss < best - 1e-4:
             best, best_state, bad = vloss, {k: v.clone() for k, v in model.state_dict().items()}, 0
@@ -408,8 +420,8 @@ def fit_predict(encoder: str, train: list, test: list, table: CardTable, vocab: 
     preds = []
     with torch.no_grad():
         for start in range(0, len(test), 1024):
-            s, _y, c = tensors(test[start:start + 1024], table, stats)
-            preds.append(model(s, c))
+            s, _y, c = _on(device, *tensors(test[start:start + 1024], table, stats))
+            preds.append(model(s, c).cpu())
     return torch.cat(preds) if preds else torch.zeros(0, n_state)
 
 

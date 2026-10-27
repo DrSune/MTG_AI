@@ -122,3 +122,32 @@ The share of effect cards above 0.1 skill rises too: held-out run B goes from 0.
 Data: `~/mtg_ai_evidence/k1_2026-10-27/` (`k1_*.jsonl`, `run_k1b.sh`, logs). Results:
 `reports/k1b_2026-10-27_{curve,explore}_{A,B}.json`; the per-card errors are in
 `reports/k1b_2026-10-27_curve_{A,B}.cards.json`.
+
+## K1c: does structure catch up at volume? Not yet (GPU slot, 23:34; pre-registered)
+Reading rules: `reports/k1c_2026-10-27_preregistration.md`. The setting is K1b's run B exactly,
+with K1b's compiler (9ee6966). The difference is that ir-seq (a small transformer over the IR token
+sequence) now runs on the GPU at the bags' batch of 256, so K1's batch-1024 handicap is gone. Three
+minutes in total. Results: `reports/k1c_2026-10-27_curve_B.json`.
+
+| Held-out effect cards (89) | 1 set | 4 sets | 10 sets | 16 sets |
+|---|---|---|---|---|
+| ir-bag, K1c GPU | 0.317 | 0.506 | 0.450 | 0.531 |
+| ir-bag, K1b CPU | 0.316 | 0.412 | 0.433 | 0.521 |
+| ir-seq, K1c GPU | 0.260 | 0.282 | 0.475 | 0.448 |
+
+- **Rule 2, structure at volume: the bag is still better.** ir-seq − ir-bag at 16 sets: **−0.083
+  [−0.132, −0.007]** held-out, −0.020 [−0.161, +0.162] on M20 (no evidence).
+- **Rule 3, trend: no sign the gap closes.** Median d(16) − median d(1) is −0.013 [−0.070, +0.012].
+- **Rule 1, device: single fits vary.** The same fit on GPU and CPU gives 0.317 and 0.316 at 1 set,
+  but 0.506 and 0.412 at 4 sets.
+  - A single fit moves by up to about 0.1 with device or initialization. The card-resampling
+    intervals above do not capture this.
+  - The 1 → 16 volume gain is about twice that and replicates on the GPU: +0.214, against K1b's
+    +0.205.
+  - Step-to-step wiggles, like the 4 → 10 dip, are within it.
+- **For the bet.** Up to 556 fully compiled training cards, a flat sequence model over atoms does not
+  beat the bag of atoms, and its gap does not shrink. Two things are untested here:
+  - a tree- or graph-structured encoder (message passing over the ability tree, the "relational
+    network" proper);
+  - larger clean volume, which the compiler gates (/167).
+  So K1c does not justify a transformer on the card side yet. The bag carries the transfer.
