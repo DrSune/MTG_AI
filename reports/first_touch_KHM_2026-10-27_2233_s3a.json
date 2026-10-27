@@ -1,0 +1,3305 @@
+{
+ "set": "KHM",
+ "stamp": "2026-10-27_2233",
+ "provenance": {
+  "data_file": "MTG_bot/data/KHM.json",
+  "data_sha256": "41bd797a132fe54451122691285da0f294390f51bdd0d87350f73f161317ceb0",
+  "mtgjson": {
+   "date": "2026-10-26",
+   "version": "5.3.0+20261026"
+  },
+  "head": "836f3eca8c4408c2175f73bc22f1675030cd9109",
+  "engine_tree_dirty": []
+ },
+ "split": {
+  "salt": "KHM-sealed-v1",
+  "test_share": 0.4,
+  "rule": "test iff int(sha256(salt:oracle_id)[:8], 16) / 2**32 < test_share",
+  "developed_on": [
+   "M21",
+   "ZNR"
+  ],
+  "counts": {
+   "carry-over": 32,
+   "dev": 180,
+   "test": 116
+  },
+  "carry_over_reasons": {
+   "same text shape": 14,
+   "no rules text": 8,
+   "reprint (same oracle id)": 10
+  }
+ },
+ "engine_dealable": {
+  "engine": true,
+  "castable": true
+ },
+ "carry-over": {
+  "entries": 32,
+  "sentences": 28,
+  "pc1_count": 31,
+  "unparsed": 1,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 28,
+  "sentences_unseen_shape": 0,
+  "unparsed_seen_shape": 1,
+  "unparsed_unseen_shape": 0,
+  "dealable_engine": 19,
+  "dealable_engine_fully_compiled": 18,
+  "dealable_castable": 19,
+  "dealable_castable_fully_compiled": 18,
+  "pc1": 0.9688,
+  "pc2": 0.9643,
+  "pc2_seen_shape": 0.9643,
+  "pc2_unseen_shape": null
+ },
+ "dev": {
+  "entries": 180,
+  "sentences": 518,
+  "pc1_count": 7,
+  "unparsed": 332,
+  "shape_gaps": 6,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 125,
+  "sentences_unseen_shape": 393,
+  "unparsed_seen_shape": 7,
+  "unparsed_unseen_shape": 325,
+  "dealable_engine": 171,
+  "dealable_engine_fully_compiled": 5,
+  "dealable_castable": 119,
+  "dealable_castable_fully_compiled": 5,
+  "pc1": 0.0389,
+  "pc2": 0.3591,
+  "pc2_seen_shape": 0.944,
+  "pc2_unseen_shape": 0.173
+ },
+ "test": {
+  "entries": 116,
+  "sentences": 319,
+  "pc1_count": 6,
+  "unparsed": 217,
+  "shape_gaps": 2,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 64,
+  "sentences_unseen_shape": 255,
+  "unparsed_seen_shape": 5,
+  "unparsed_unseen_shape": 212,
+  "dealable_engine": 107,
+  "dealable_engine_fully_compiled": 3,
+  "dealable_castable": 73,
+  "dealable_castable_fully_compiled": 3,
+  "pc1": 0.0517,
+  "pc2": 0.3197,
+  "pc2_seen_shape": 0.9219,
+  "pc2_unseen_shape": 0.1686
+ },
+ "whole": {
+  "entries": 328,
+  "sentences": 865,
+  "pc1_count": 44,
+  "unparsed": 550,
+  "shape_gaps": 8,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 217,
+  "sentences_unseen_shape": 648,
+  "unparsed_seen_shape": 13,
+  "unparsed_unseen_shape": 537,
+  "dealable_engine": 297,
+  "dealable_engine_fully_compiled": 26,
+  "dealable_castable": 211,
+  "dealable_castable_fully_compiled": 26,
+  "pc1": 0.1341,
+  "pc2": 0.3642,
+  "pc2_seen_shape": 0.9401,
+  "pc2_unseen_shape": 0.1713
+ },
+ "dev_register": [
+  {
+   "shape": "Changeling (This card is every creature type.)",
+   "count": 5,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Guardian Gladewalker",
+    "Bloodline Pretender",
+    "Moritte of the Frost",
+    "Realmwalker",
+    "Mistwalker"
+   ]
+  },
+  {
+   "shape": "Choose one \u2014",
+   "count": 3,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blood on the Snow",
+    "Raise the Draugr",
+    "Open the Omenpaths"
+   ]
+  },
+  {
+   "shape": "Foretell {N}{B} (During your turn, you may pay {N} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)",
+   "count": 3,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Poison the Cup",
+    "Vengeful Reaper",
+    "Skull Raid"
+   ]
+  },
+  {
+   "shape": "Foretell {N}{U} (During your turn, you may pay {N} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)",
+   "count": 3,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cosmos Charger",
+    "Behold the Multiverse",
+    "Augury Raven"
+   ]
+  },
+  {
+   "shape": "Foretell {N}{W} (During your turn, you may pay {N} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)",
+   "count": 3,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shepherd of the Cosmos",
+    "Gods' Hall Guardian",
+    "Warhorn Blast"
+   ]
+  },
+  {
+   "shape": "As this creature enters, choose a creature type.",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bloodline Pretender",
+    "Realmwalker"
+   ]
+  },
+  {
+   "shape": "Foretell {G} (During your turn, you may pay {N} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Struggle for Skemfar",
+    "Mammoth Growth"
+   ]
+  },
+  {
+   "shape": "Foretell {R} (During your turn, you may pay {N} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Crush the Weak",
+    "Demon Bolt"
+   ]
+  },
+  {
+   "shape": "Foretell {U} (During your turn, you may pay {N} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Depart the Realm",
+    "Ravenform"
+   ]
+  },
+  {
+   "shape": "Foretell {W} (During your turn, you may pay {N} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kaya's Onslaught",
+    "Iron Verdict"
+   ]
+  },
+  {
+   "shape": "Put a +N/+N counter on it.",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tyrite Sanctum",
+    "Kardur's Vicious Return"
+   ]
+  },
+  {
+   "shape": "This spell can't be countered.",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Koma, Cosmos Serpent",
+    "Toski, Bearer of Secrets"
+   ]
+  },
+  {
+   "shape": "Until end of turn, you don't lose this mana as steps and phases end.",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tundra Fumarole",
+    "Birgi, God of Storytelling // Harnfel, Horn of Bounty"
+   ]
+  },
+  {
+   "shape": "When this Equipment enters, you may pay {N}.",
+   "count": 2,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Elven Bow",
+    "Dwarven Hammer"
+   ]
+  },
+  {
+   "shape": "({T}: Add {B} or {R}.)",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Sulfurous Mire"
+   ]
+  },
+  {
+   "shape": "({T}: Add {G} or {U}.)",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Rimewood Falls"
+   ]
+  },
+  {
+   "shape": "({T}: Add {R} or {G}.)",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Highland Forest"
+   ]
+  },
+  {
+   "shape": "({T}: Add {R} or {W}.)",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Alpine Meadow"
+   ]
+  },
+  {
+   "shape": "({T}: Add {U} or {B}.)",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Ice Tunnel"
+   ]
+  },
+  {
+   "shape": "({T}: Add {W} or {B}.)",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Snowfield Sinkhole"
+   ]
+  },
+  {
+   "shape": "Activate only if you had an Angel or Berserker enter the battlefield under your control this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cleaving Reaper"
+   ]
+  },
+  {
+   "shape": "Add {C} for each {S} spent to cast this spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tundra Fumarole"
+   ]
+  },
+  {
+   "shape": "Add {R}{R}{R}.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Valki, God of Lies // Tibalt, Cosmic Impostor [face B]"
+   ]
+  },
+  {
+   "shape": "An opponent chooses one of them.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Burning-Rune Demon"
+   ]
+  },
+  {
+   "shape": "Angel spells you cast cost {N} less to cast.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Starnheim Aspirant"
+   ]
+  },
+  {
+   "shape": "As Tibalt enters, you get an emblem with \"You may play cards exiled with ~, and you may spend mana as though it were mana of any color to cast those spells.\"",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Valki, God of Lies // Tibalt, Cosmic Impostor [face B]"
+   ]
+  },
+  {
+   "shape": "As an additional cost to cast this spell, exile a creature card from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Weigh Down"
+   ]
+  },
+  {
+   "shape": "As an additional cost to cast this spell, reveal a Giant card from your hand or pay {N}.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Surtland Elementalist"
+   ]
+  },
+  {
+   "shape": "As long as enchanted permanent is a creature, it gets +N/+N and has haste.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rune of Speed"
+   ]
+  },
+  {
+   "shape": "As long as enchanted permanent is a creature, it gets +N/+N and has trample.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rune of Might"
+   ]
+  },
+  {
+   "shape": "As long as enchanted permanent is a creature, it has flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rune of Flight"
+   ]
+  },
+  {
+   "shape": "As long as enchanted permanent is a creature, it has lifelink.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rune of Sustenance"
+   ]
+  },
+  {
+   "shape": "As long as enchanted permanent is an Equipment, it has \"Equipped creature gets +N/+N and has haste.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rune of Speed"
+   ]
+  },
+  {
+   "shape": "As long as enchanted permanent is an Equipment, it has \"Equipped creature gets +N/+N and has trample.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rune of Might"
+   ]
+  },
+  {
+   "shape": "As long as enchanted permanent is an Equipment, it has \"Equipped creature has flying.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rune of Flight"
+   ]
+  },
+  {
+   "shape": "As long as enchanted permanent is an Equipment, it has \"Equipped creature has lifelink.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rune of Sustenance"
+   ]
+  },
+  {
+   "shape": "As long as you control a Giant, you may cast this card from your graveyard by paying {U} rather than paying its mana cost.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Glimpse the Cosmos"
+   ]
+  },
+  {
+   "shape": "As long as you have at least N life more than your starting life total, creatures you control get +N/+N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Righteous Valkyrie"
+   ]
+  },
+  {
+   "shape": "As this land enters, choose a color.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shimmerdrift Vale"
+   ]
+  },
+  {
+   "shape": "At the beginning of each combat, you may attach target Aura or Equipment attached to a creature you control to target creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Halvar, God of Battle // Sword of the Realms"
+   ]
+  },
+  {
+   "shape": "At the beginning of each end step, if you gained N or more life this turn, create a N/N white Angel creature token with flying and vigilance.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Valkyrie Harbinger"
+   ]
+  },
+  {
+   "shape": "At the beginning of each upkeep, create a N/N blue Serpent creature token named ~'s Coil.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Koma, Cosmos Serpent"
+   ]
+  },
+  {
+   "shape": "At the beginning of your end step, draw a card if your life total is greater than your starting life total.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Cosmos Elixir"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, if ~ has one or more +N/+N counters on it, you may remove all of them.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sarulf, Realm Eater"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, put a night counter on this artifact.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Replicating Ring"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, you may cast a permanent spell from your hand with mana value equal to N plus the greatest mana value among other permanents you control without paying its mana cost.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "In Search of Greatness"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, you may exile ~.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Cosima, God of the Voyage // The Omenkeel"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, ~ deals N damage to each opponent.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Quakebringer"
+   ]
+  },
+  {
+   "shape": "Boast abilities you activate cost {N} less to activate for each Dragon you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dragonkin Berserker"
+   ]
+  },
+  {
+   "shape": "Boast \u2014 {N}: Exile the top card of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tuskeri Firewalker"
+   ]
+  },
+  {
+   "shape": "Boast \u2014 {N}: Target opponent loses N life and you gain N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Duskwielder"
+   ]
+  },
+  {
+   "shape": "Boast \u2014 {N}{B}: Return target creature card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Draugr Recruiter"
+   ]
+  },
+  {
+   "shape": "Boast \u2014 {N}{G}: Search your library for a basic land card, reveal it, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Horizon Seeker"
+   ]
+  },
+  {
+   "shape": "Boast \u2014 {N}{R}: Create a N/N red Dragon creature token with flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dragonkin Berserker"
+   ]
+  },
+  {
+   "shape": "Boast \u2014 {N}{R}: Create a N/N red Dwarf Berserker creature token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fearless Liberator"
+   ]
+  },
+  {
+   "shape": "Boast \u2014 {N}{R}: This creature deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Hagi Mob"
+   ]
+  },
+  {
+   "shape": "Boast \u2014 {N}{R}: This creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fearless Pup"
+   ]
+  },
+  {
+   "shape": "Boast \u2014 {N}{W}: Creatures you control get +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Battershield Warrior"
+   ]
+  },
+  {
+   "shape": "Boast \u2014 {N}{W}: Tap target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Goldmaw Champion"
+   ]
+  },
+  {
+   "shape": "Changeling (This token is every creature type.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shapeshifter"
+   ]
+  },
+  {
+   "shape": "Choose a creature type.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Crippling Fear"
+   ]
+  },
+  {
+   "shape": "Choose target creature you control and target creature you don't control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blizzard Brawl"
+   ]
+  },
+  {
+   "shape": "Counter target artifact or enchantment spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Annul"
+   ]
+  },
+  {
+   "shape": "Create X N/N black Zombie Berserker creature tokens, where X is the number of nontoken creatures that died this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rise of the Dread Marn"
+   ]
+  },
+  {
+   "shape": "Create a N/N green Elf Warrior creature token for each Elf you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Elven Ambush"
+   ]
+  },
+  {
+   "shape": "Creature tokens you control that are enchanted or equipped get +N/+N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Koll, the Forgemaster"
+   ]
+  },
+  {
+   "shape": "Creatures that aren't of the chosen type get -N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Crippling Fear"
+   ]
+  },
+  {
+   "shape": "Creatures you control can boast twice during each of your turns rather than once.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Birgi, God of Storytelling // Harnfel, Horn of Bounty"
+   ]
+  },
+  {
+   "shape": "Creatures you control that are enchanted or equipped have double strike.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Halvar, God of Battle // Sword of the Realms"
+   ]
+  },
+  {
+   "shape": "Crew N",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Cosima, God of the Voyage // The Omenkeel [face B]"
+   ]
+  },
+  {
+   "shape": "Destroy all creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Doomskar"
+   ]
+  },
+  {
+   "shape": "Discard a card: Exile the top two cards of your library.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Birgi, God of Storytelling // Harnfel, Horn of Bounty [face B]"
+   ]
+  },
+  {
+   "shape": "Distribute X +N/+N counters among any number of creatures you control, where X is the amount of {S} spent to cast this spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blessing of Frost"
+   ]
+  },
+  {
+   "shape": "Draw two cards and create a Treasure token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Seize the Spoils"
+   ]
+  },
+  {
+   "shape": "Each player sacrifices two creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tergrid's Shadow"
+   ]
+  },
+  {
+   "shape": "Elves you control have \"{T}: Add {B}.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tyvar Kell"
+   ]
+  },
+  {
+   "shape": "Enchant Giant you control",
+   "count": 1,
+   "hints": [
+    "keyword"
+   ],
+   "cards": [
+    "Giant's Grasp"
+   ]
+  },
+  {
+   "shape": "Enchant creature or Vehicle",
+   "count": 1,
+   "hints": [
+    "keyword"
+   ],
+   "cards": [
+    "Mists of Littjara"
+   ]
+  },
+  {
+   "shape": "Enchanted creature gets -N/-N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mists of Littjara"
+   ]
+  },
+  {
+   "shape": "Enchanted creature has base power N and has \"At the beginning of your upkeep, you lose N life unless you sacrifice this creature.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Withercrown"
+   ]
+  },
+  {
+   "shape": "Enchanted permanent can't attack, block, or crew Vehicles, and its activated abilities can't be activated unless they're mana abilities.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bound in Gold"
+   ]
+  },
+  {
+   "shape": "Equipped creature gets +N/+N, has flying, and is a Bird in addition to its other types.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Raven Wings"
+   ]
+  },
+  {
+   "shape": "Exile target artifact, creature, or enchantment an opponent controls.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Divine Gambit"
+   ]
+  },
+  {
+   "shape": "First strike, protection from God creatures",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sigrid, God-Favored"
+   ]
+  },
+  {
+   "shape": "For each of them, create a token that's a copy of it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Battle for Bretagard"
+   ]
+  },
+  {
+   "shape": "For each opponent, exile a creature card they revealed this way until ~ leaves the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Valki, God of Lies // Tibalt, Cosmic Impostor"
+   ]
+  },
+  {
+   "shape": "Foretell {B} (During your turn, you may pay {N} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rise of the Dread Marn"
+   ]
+  },
+  {
+   "shape": "Foretell {N}{B}{B} (During your turn, you may pay {N} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tergrid's Shadow"
+   ]
+  },
+  {
+   "shape": "Foretell {N}{G} (During your turn, you may pay {N} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sarulf's Packmate"
+   ]
+  },
+  {
+   "shape": "Foretell {N}{G}{G} (During your turn, you may pay {N} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Battle Mammoth"
+   ]
+  },
+  {
+   "shape": "Foretell {N}{R} (During your turn, you may pay {N} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Doomskar Titan"
+   ]
+  },
+  {
+   "shape": "Foretell {N}{R}{R}",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Quakebringer"
+   ]
+  },
+  {
+   "shape": "Foretell {N}{W}",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Glorious Protector"
+   ]
+  },
+  {
+   "shape": "Foretell {N}{W}{W} (During your turn, you may pay {N} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Doomskar"
+   ]
+  },
+  {
+   "shape": "Foretell {X}{X}{W} (During your turn, you may pay {N} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Starnheim Unleashed"
+   ]
+  },
+  {
+   "shape": "Foretelling cards from your hand costs {N} less and can be done on any player's turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cosmos Charger"
+   ]
+  },
+  {
+   "shape": "I \u2014 Create a N/N blue Bird creature token with flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Raven's Warning"
+   ]
+  },
+  {
+   "shape": "I \u2014 Create a N/N white Human Warrior creature token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Battle for Bretagard"
+   ]
+  },
+  {
+   "shape": "I \u2014 Each player mills four cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "King Narfi's Betrayal"
+   ]
+  },
+  {
+   "shape": "I \u2014 Exile the top four cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Showdown of the Skalds"
+   ]
+  },
+  {
+   "shape": "I \u2014 Mill three cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Three Seasons"
+   ]
+  },
+  {
+   "shape": "I \u2014 You gain N life for each foretold card you own in exile.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Niko Defies Destiny"
+   ]
+  },
+  {
+   "shape": "I \u2014 You may exchange control of two target creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Trickster-God's Heist"
+   ]
+  },
+  {
+   "shape": "I \u2014 You may sacrifice a creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kardur's Vicious Return"
+   ]
+  },
+  {
+   "shape": "I, II \u2014 Choose a creature you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ascent of the Worthy"
+   ]
+  },
+  {
+   "shape": "I, II \u2014 Create a Treasure token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Forging the Tyrite Sword"
+   ]
+  },
+  {
+   "shape": "II \u2014 Add {W}{U}.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Niko Defies Destiny"
+   ]
+  },
+  {
+   "shape": "II \u2014 Create a N/N green Elf Warrior creature token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Battle for Bretagard"
+   ]
+  },
+  {
+   "shape": "II \u2014 Each player discards a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kardur's Vicious Return"
+   ]
+  },
+  {
+   "shape": "II \u2014 Return up to two target snow permanent cards from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Three Seasons"
+   ]
+  },
+  {
+   "shape": "II \u2014 Whenever one or more creatures you control with flying deal combat damage to a player this turn, look at that player's hand and draw a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Raven's Warning"
+   ]
+  },
+  {
+   "shape": "II \u2014 You may exchange control of two target nonbasic, noncreature permanents that share a card type.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Trickster-God's Heist"
+   ]
+  },
+  {
+   "shape": "II, III \u2014 Until end of turn, you may cast spells from among cards exiled with this Saga, and you may spend mana as though it were mana of any color to cast those spells.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "King Narfi's Betrayal"
+   ]
+  },
+  {
+   "shape": "II, III \u2014 Whenever you cast a spell this turn, put a +N/+N counter on target creature you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Showdown of the Skalds"
+   ]
+  },
+  {
+   "shape": "III \u2014 Choose any number of artifact tokens and/or creature tokens you control with different names.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Battle for Bretagard"
+   ]
+  },
+  {
+   "shape": "III \u2014 Choose three cards in each graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Three Seasons"
+   ]
+  },
+  {
+   "shape": "III \u2014 Return target card with foretell from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Niko Defies Destiny"
+   ]
+  },
+  {
+   "shape": "III \u2014 Return target creature card from your graveyard to the battlefield with a flying counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ascent of the Worthy"
+   ]
+  },
+  {
+   "shape": "III \u2014 Return target creature card from your graveyard to the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kardur's Vicious Return"
+   ]
+  },
+  {
+   "shape": "III \u2014 Search your library for a card named Halvar, God of Battle or an Equipment card, reveal it, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Forging the Tyrite Sword"
+   ]
+  },
+  {
+   "shape": "III \u2014 Target player loses N life and you gain N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Trickster-God's Heist"
+   ]
+  },
+  {
+   "shape": "III \u2014 You may put a card you own from outside the game on top of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Raven's Warning"
+   ]
+  },
+  {
+   "shape": "If a creature dealt damage this way would die this turn, exile it instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Crush the Weak"
+   ]
+  },
+  {
+   "shape": "If a creature is dealt damage this way, it gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Provoke the Trolls"
+   ]
+  },
+  {
+   "shape": "If an artifact is destroyed this way, create a Treasure token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Smashing Success"
+   ]
+  },
+  {
+   "shape": "If an opponent would put one or more counters on a permanent or player, they put half that many of each of those kinds of counters on that permanent or player instead, rounded down.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vorinclex, Monstrous Raider"
+   ]
+  },
+  {
+   "shape": "If fewer than two cards were discarded this way, you draw cards equal to the difference.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Skull Raid"
+   ]
+  },
+  {
+   "shape": "If it's a snow card, you may reveal it and put it into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Frost Augur"
+   ]
+  },
+  {
+   "shape": "If the sacrificed creature was a Giant, this creature deals twice that much damage instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Surtland Flinger"
+   ]
+  },
+  {
+   "shape": "If this spell was foretold, create X of those tokens instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Starnheim Unleashed"
+   ]
+  },
+  {
+   "shape": "If this spell was foretold, scry N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Poison the Cup"
+   ]
+  },
+  {
+   "shape": "If you can't, draw a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Roots of Wisdom"
+   ]
+  },
+  {
+   "shape": "If you cast this card this way and it would be put into your graveyard, exile it instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Glimpse the Cosmos"
+   ]
+  },
+  {
+   "shape": "If you control three or more snow permanents, the creature you control gets +N/+N and gains indestructible until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blizzard Brawl"
+   ]
+  },
+  {
+   "shape": "If you do, create a N/N green Elf Warrior creature token, then attach this Equipment to it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Elven Bow"
+   ]
+  },
+  {
+   "shape": "If you do, create a N/N red Dwarf Berserker creature token, then attach this Equipment to it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dwarven Hammer"
+   ]
+  },
+  {
+   "shape": "If you do, create a N/N white Angel Warrior creature token with flying and vigilance, then attach this Equipment to it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Valkyrie's Sword"
+   ]
+  },
+  {
+   "shape": "If you do, exile each other nonland permanent with mana value less than or equal to the number of counters removed this way.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sarulf, Realm Eater"
+   ]
+  },
+  {
+   "shape": "If you do, it enters tapped.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Jorn, God of Winter // Kaldring, the Rimestaff [face B]"
+   ]
+  },
+  {
+   "shape": "If you do, it gains \"Whenever a land you control enters, if ~ is exiled, you may put a voyage counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cosima, God of the Voyage // The Omenkeel"
+   ]
+  },
+  {
+   "shape": "If you do, reveal those cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Burning-Rune Demon"
+   ]
+  },
+  {
+   "shape": "If you don't, return ~ to the battlefield with X +N/+N counters on it and draw X cards, where X is the number of voyage counters on it.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cosima, God of the Voyage // The Omenkeel"
+   ]
+  },
+  {
+   "shape": "If you don't, scry N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "In Search of Greatness"
+   ]
+  },
+  {
+   "shape": "If you would put one or more counters on a permanent or player, put twice that many of each of those kinds of counters on that permanent or player instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vorinclex, Monstrous Raider"
+   ]
+  },
+  {
+   "shape": "It gains deathtouch until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tyvar Kell"
+   ]
+  },
+  {
+   "shape": "It gains haste until your next turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kardur's Vicious Return"
+   ]
+  },
+  {
+   "shape": "It gains hexproof until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Snakeskin Veil"
+   ]
+  },
+  {
+   "shape": "It gains menace until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bloodsky Berserker"
+   ]
+  },
+  {
+   "shape": "It must be blocked this turn if able.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "King Harald's Revenge"
+   ]
+  },
+  {
+   "shape": "It's an Aura enchantment with enchant Forest you control and \"Enchanted Forest has '{T}: Add {G}{G}' and '{N}, {T}, Sacrifice this land: Create a tapped N/N green Troll Warrior creature token with trample.'\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Old-Growth Troll"
+   ]
+  },
+  {
+   "shape": "Its activated abilities can't be activated this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Koma, Cosmos Serpent"
+   ]
+  },
+  {
+   "shape": "Its controller creates a N/N blue Bird creature token with flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ravenform"
+   ]
+  },
+  {
+   "shape": "Landfall \u2014 Whenever a land you control enters, create a N/N white Human Warrior creature token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Maja, Bretagard Protector"
+   ]
+  },
+  {
+   "shape": "Mill three cards, then return a land card or Elf card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "keyword"
+   ],
+   "cards": [
+    "Roots of Wisdom"
+   ]
+  },
+  {
+   "shape": "Other Elves you control get +N/+N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Canopy Tactician"
+   ]
+  },
+  {
+   "shape": "Other creatures you control get +N/+N.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Maja, Bretagard Protector"
+   ]
+  },
+  {
+   "shape": "Other snow and Zombie creatures you control get +N/+N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Narfi, Betrayer King"
+   ]
+  },
+  {
+   "shape": "Otherwise, you gain N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cosmos Elixir"
+   ]
+  },
+  {
+   "shape": "Pay N life: Return this card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cleaving Reaper"
+   ]
+  },
+  {
+   "shape": "Put one of them into your hand and the rest into your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Firja, Judge of Valor"
+   ]
+  },
+  {
+   "shape": "Put one of them into your hand and the rest on the bottom of your library in any order.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Glimpse the Cosmos"
+   ]
+  },
+  {
+   "shape": "Put the chosen card into your hand and the other into your graveyard, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Burning-Rune Demon"
+   ]
+  },
+  {
+   "shape": "Sacrifice another Serpent: Choose one \u2014",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Koma, Cosmos Serpent"
+   ]
+  },
+  {
+   "shape": "Sacrifice another creature: This creature gains indestructible until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Immersturm Predator"
+   ]
+  },
+  {
+   "shape": "Scry N, then draw two cards.",
+   "count": 1,
+   "hints": [
+    "keyword"
+   ],
+   "cards": [
+    "Behold the Multiverse"
+   ]
+  },
+  {
+   "shape": "Scry X, where X is the amount of {S} spent to cast this spell, then draw three cards.",
+   "count": 1,
+   "hints": [
+    "keyword"
+   ],
+   "cards": [
+    "Graven Lore"
+   ]
+  },
+  {
+   "shape": "Search your library for a snow permanent card, a legendary card, or a Saga card, reveal it, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Search for Glory"
+   ]
+  },
+  {
+   "shape": "Spend this mana only to cast creature or enchantment spells.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Open the Omenpaths"
+   ]
+  },
+  {
+   "shape": "Spend this mana only to foretell cards or cast spells that have foretell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Niko Defies Destiny"
+   ]
+  },
+  {
+   "shape": "Tap it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Immersturm Predator"
+   ]
+  },
+  {
+   "shape": "Target attacking creature gets +N/+N and gains trample until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Run Amok"
+   ]
+  },
+  {
+   "shape": "Target creature gets +N/+N and gains double strike until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kaya's Onslaught"
+   ]
+  },
+  {
+   "shape": "Target opponent discards two cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Skull Raid"
+   ]
+  },
+  {
+   "shape": "Target opponent loses N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Path to the World Tree"
+   ]
+  },
+  {
+   "shape": "That creature is an Angel Warrior in addition to its other types.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ascent of the Worthy"
+   ]
+  },
+  {
+   "shape": "That player discards a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Immersturm Skullcairn"
+   ]
+  },
+  {
+   "shape": "That player may put a permanent card from their hand onto the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Divine Gambit"
+   ]
+  },
+  {
+   "shape": "Their owners shuffle those cards into their libraries.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Three Seasons"
+   ]
+  },
+  {
+   "shape": "Then draw a card for each creature you control with power N or greater.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blessing of Frost"
+   ]
+  },
+  {
+   "shape": "Then if it has eight or more night counters on it, remove all of them and create eight colorless snow artifact tokens named Replicated Ring with \"{T}: Add one mana of any color.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Replicating Ring"
+   ]
+  },
+  {
+   "shape": "Then return a creature or planeswalker card with mana value X or less from your graveyard to the battlefield, where X is the amount of {S} spent to cast this spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blood on the Snow"
+   ]
+  },
+  {
+   "shape": "Then that creature fights up to one target creature you don't control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Struggle for Skemfar"
+   ]
+  },
+  {
+   "shape": "Then those creatures fight each other.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blizzard Brawl"
+   ]
+  },
+  {
+   "shape": "Then you may exile a creature or planeswalker card from each graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "King Narfi's Betrayal"
+   ]
+  },
+  {
+   "shape": "They gain vigilance and lifelink until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bretagard Stronghold"
+   ]
+  },
+  {
+   "shape": "This ability triggers only if ~ is on the battlefield or if ~ is in your graveyard and you control a Giant.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Quakebringer"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N for each other snow permanent you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Spirit of the Aldergard"
+   ]
+  },
+  {
+   "shape": "This enchantment deals N damage to up to one target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Path to the World Tree"
+   ]
+  },
+  {
+   "shape": "This spell costs {N} less to cast if you control a Giant or a Wizard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Frostpyre Arcanist"
+   ]
+  },
+  {
+   "shape": "This spell costs {N} less to cast if you control a Giant.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Squash"
+   ]
+  },
+  {
+   "shape": "Untap it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tyvar Kell"
+   ]
+  },
+  {
+   "shape": "Until end of turn, target creature gets +N/+N for each creature you control and gains trample.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "King Harald's Revenge"
+   ]
+  },
+  {
+   "shape": "Until the end of your next turn, you may play those cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Showdown of the Skalds"
+   ]
+  },
+  {
+   "shape": "Until your next turn, all damage that would be dealt to creatures you control is dealt to that creature instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ascent of the Worthy"
+   ]
+  },
+  {
+   "shape": "When a spell or ability an opponent controls causes you to discard this card, create a token that's a copy of target permanent.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Orvar, the All-Form"
+   ]
+  },
+  {
+   "shape": "When this Aura enters, gain control of target nonland permanent for as long as this Aura remains on the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Giant's Grasp"
+   ]
+  },
+  {
+   "shape": "When this Equipment enters, you may pay {N}{W}.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Valkyrie's Sword"
+   ]
+  },
+  {
+   "shape": "When this Equipment enters, you may search your library, hand, and/or graveyard for a Rune card and put it onto the battlefield attached to this Equipment.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Runed Crown"
+   ]
+  },
+  {
+   "shape": "When this creature dies, create a N/N white Human Warrior creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Beskir Shieldmate"
+   ]
+  },
+  {
+   "shape": "When this creature dies, each player mills three cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Koma's Faithful"
+   ]
+  },
+  {
+   "shape": "When this creature dies, if its power was N or greater, create a N/N black Zombie Berserker creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Deathknell Berserker"
+   ]
+  },
+  {
+   "shape": "When this creature dies, it deals N damage to a creature an opponent controls chosen at random.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Cinderheart Giant"
+   ]
+  },
+  {
+   "shape": "When this creature enters, choose one \u2014",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Thornmantle Striker"
+   ]
+  },
+  {
+   "shape": "When this creature enters, create a N/N green Elf Warrior creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Elderleaf Mentor"
+   ]
+  },
+  {
+   "shape": "When this creature enters, creatures you control get +N/+N and gain haste until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Doomskar Titan"
+   ]
+  },
+  {
+   "shape": "When this creature enters, each opponent discards a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Elderfang Disciple"
+   ]
+  },
+  {
+   "shape": "When this creature enters, it deals X damage to any target, where X is the greatest number of creatures you control that have a creature type in common.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Basalt Ravager"
+   ]
+  },
+  {
+   "shape": "When this creature enters, return target permanent card with mana value N or less from your graveyard to the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Shepherd of the Cosmos"
+   ]
+  },
+  {
+   "shape": "When this creature enters, search your library for a snow land card, reveal it, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Spirit of the Aldergard"
+   ]
+  },
+  {
+   "shape": "When this creature enters, search your library for an instant or sorcery card with the same name as a card in your graveyard, reveal it, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Frostpyre Arcanist"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target creature an opponent controls gets -N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Brinebarrow Intruder"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may exile any number of non-Angel creatures you control until this creature leaves the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Glorious Protector"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may search your library and/or graveyard for a Rune card, reveal it, and put it into your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Runeforge Champion"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may search your library for exactly two cards not named ~ that have different names.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Burning-Rune Demon"
+   ]
+  },
+  {
+   "shape": "When this enchantment enters, create a N/N white Angel creature token with flying and vigilance.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Rampage of the Valkyries"
+   ]
+  },
+  {
+   "shape": "When this enchantment enters, search your library for a basic land card, reveal it, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Path to the World Tree"
+   ]
+  },
+  {
+   "shape": "When you do, this Saga deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Kardur's Vicious Return"
+   ]
+  },
+  {
+   "shape": "When you do, this creature deals damage equal to the sacrificed creature's power to any target.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Surtland Flinger"
+   ]
+  },
+  {
+   "shape": "When ~ dies, if it was a creature, return it to the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Old-Growth Troll"
+   ]
+  },
+  {
+   "shape": "When ~ enters, create X Shard tokens.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Niko Aris"
+   ]
+  },
+  {
+   "shape": "When ~ enters, each opponent reveals their hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Valki, God of Lies // Tibalt, Cosmic Impostor"
+   ]
+  },
+  {
+   "shape": "When ~ enters, exile up to one target attacking or blocking creature until ~ leaves the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sigrid, God-Favored"
+   ]
+  },
+  {
+   "shape": "When ~ enters, look at the top five cards of your library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Harald, King of Skemfar"
+   ]
+  },
+  {
+   "shape": "When ~ enters, until your next turn, creatures your opponents control attack each combat if able and attack a player other than you if able.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Kardur, Doomscourge"
+   ]
+  },
+  {
+   "shape": "Whenever a Vehicle you control deals combat damage to a player, that player exiles that many cards from the top of their library.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Cosima, God of the Voyage // The Omenkeel [face B]"
+   ]
+  },
+  {
+   "shape": "Whenever a creature you control deals combat damage to a player, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Toski, Bearer of Secrets"
+   ]
+  },
+  {
+   "shape": "Whenever a permanent an opponent controls is put into a graveyard from the battlefield, put a +N/+N counter on ~.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sarulf, Realm Eater"
+   ]
+  },
+  {
+   "shape": "Whenever a permanent you control becomes the target of a spell or ability an opponent controls, you may draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Battle Mammoth"
+   ]
+  },
+  {
+   "shape": "Whenever an Angel you control dies, each other player sacrifices a creature of their choice.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Rampage of the Valkyries"
+   ]
+  },
+  {
+   "shape": "Whenever an attacking creature dies, each opponent loses N life and you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Kardur, Doomscourge"
+   ]
+  },
+  {
+   "shape": "Whenever an opponent sacrifices a nontoken permanent or discards a permanent card, you may put that card from a graveyard onto the battlefield under your control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Tergrid, God of Fright // Tergrid's Lantern"
+   ]
+  },
+  {
+   "shape": "Whenever another Angel or Cleric you control enters, you gain life equal to that creature's toughness.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Righteous Valkyrie"
+   ]
+  },
+  {
+   "shape": "Whenever another Angel you control enters, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Youthful Valkyrie"
+   ]
+  },
+  {
+   "shape": "Whenever another creature you control of the chosen type enters, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Bloodline Pretender"
+   ]
+  },
+  {
+   "shape": "Whenever another nontoken Elf or Berserker you control dies, you draw a card and you lose N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Skemfar Avenger"
+   ]
+  },
+  {
+   "shape": "Whenever another nontoken creature you control dies, if it was enchanted or equipped, return it to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Koll, the Forgemaster"
+   ]
+  },
+  {
+   "shape": "Whenever equipped creature becomes blocked, it deals N damage to defending player.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Tormentor's Helm"
+   ]
+  },
+  {
+   "shape": "Whenever equipped creature deals combat damage to a player, create a Treasure token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Goldvein Pick"
+   ]
+  },
+  {
+   "shape": "Whenever equipped creature dies, return it to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Halvar, God of Battle // Sword of the Realms [face B]"
+   ]
+  },
+  {
+   "shape": "Whenever that creature deals damage this turn, return it to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Niko Aris"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, you may cast an instant or sorcery spell from your hand without paying its mana cost.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Surtland Elementalist"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, you may sacrifice another creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Surtland Flinger"
+   ]
+  },
+  {
+   "shape": "Whenever this creature becomes tapped, exile up to one target card from a graveyard and put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Immersturm Predator"
+   ]
+  },
+  {
+   "shape": "Whenever this creature becomes tapped, if it's enchanted or equipped, create a N/N red Dwarf Berserker creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Warchanter Skald"
+   ]
+  },
+  {
+   "shape": "Whenever you activate a boast ability, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Frenzied Raider"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a spell from anywhere other than your hand, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Vega, the Watcher"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a spell, add {R}.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Birgi, God of Storytelling // Harnfel, Horn of Bounty"
+   ]
+  },
+  {
+   "shape": "Whenever you cast an instant or sorcery spell, if it targets one or more other permanents you control, create a token that's a copy of one of those permanents.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Orvar, the All-Form"
+   ]
+  },
+  {
+   "shape": "Whenever you cast your second spell each turn, create a N/N white Spirit creature token with flying.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Clarion Spirit"
+   ]
+  },
+  {
+   "shape": "Whenever you cast your second spell each turn, look at the top three cards of your library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Firja, Judge of Valor"
+   ]
+  },
+  {
+   "shape": "Whenever you cast your second spell each turn, put two +N/+N counters on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Bloodsky Berserker"
+   ]
+  },
+  {
+   "shape": "Whenever ~ attacks, untap each snow permanent you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Jorn, God of Winter // Kaldring, the Rimestaff"
+   ]
+  },
+  {
+   "shape": "You create a N/N green Bear creature token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Path to the World Tree"
+   ]
+  },
+  {
+   "shape": "You gain N life for each {S} spent to cast this spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Search for Glory"
+   ]
+  },
+  {
+   "shape": "You may cast creature spells of the chosen type from the top of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Realmwalker"
+   ]
+  },
+  {
+   "shape": "You may have Moritte enter as a copy of a permanent you control, except it's legendary and snow in addition to its other types and, if it's a creature, it enters with two additional +N/+N counters on it and has changeling.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Moritte of the Frost"
+   ]
+  },
+  {
+   "shape": "You may look at the top card of your library any time.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Realmwalker"
+   ]
+  },
+  {
+   "shape": "You may pay {N} rather than pay the mana cost for Rune spells you cast.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Runeforge Champion"
+   ]
+  },
+  {
+   "shape": "You may pay {N}{W} and exile a creature card from your graveyard rather than pay this spell's mana cost.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Stalwart Valkyrie"
+   ]
+  },
+  {
+   "shape": "You may play lands from among those cards for as long as they remain exiled.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Cosima, God of the Voyage // The Omenkeel [face B]"
+   ]
+  },
+  {
+   "shape": "You may play that card this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tuskeri Firewalker"
+   ]
+  },
+  {
+   "shape": "You may play those cards this turn.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Birgi, God of Storytelling // Harnfel, Horn of Bounty [face B]"
+   ]
+  },
+  {
+   "shape": "You may reveal an Elf, Warrior, or Tyvar card from among them and put it into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Harald, King of Skemfar"
+   ]
+  },
+  {
+   "shape": "Your opponents can't gain life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Quakebringer"
+   ]
+  },
+  {
+   "shape": "[+N]: Exile the top card of each player's library.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Valki, God of Lies // Tibalt, Cosmic Impostor [face B]"
+   ]
+  },
+  {
+   "shape": "[+N]: Put a +N/+N counter on up to one target Elf.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tyvar Kell"
+   ]
+  },
+  {
+   "shape": "[+N]: Up to one target creature you control can't be blocked this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Niko Aris"
+   ]
+  },
+  {
+   "shape": "[N]: Create a N/N green Elf Warrior creature token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tyvar Kell"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Create a Shard token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Niko Aris"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Exile all graveyards.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Valki, God of Lies // Tibalt, Cosmic Impostor [face B]"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Exile target artifact or creature.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Valki, God of Lies // Tibalt, Cosmic Impostor [face B]"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: ~ deals N damage to target tapped creature for each card you've drawn this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Niko Aris"
+   ]
+  },
+  {
+   "shape": "{G}{W}{W}, {T}, Sacrifice this land: Put a +N/+N counter on each of up to two target creatures you control.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Bretagard Stronghold"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Exile a creature card from your graveyard: Create a Treasure token.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Vault Robber"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Sacrifice this land: Put an indestructible counter on target God.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Tyrite Sanctum"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Target legendary creature becomes a God in addition to its other types.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Tyrite Sanctum"
+   ]
+  },
+  {
+   "shape": "{N}{B}: Untap ~.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Tergrid, God of Fright // Tergrid's Lantern [face B]"
+   ]
+  },
+  {
+   "shape": "{N}{B}{B}{G}, {T}, Sacrifice this land: Up to one target creature you don't control gets -N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Skemfar Elderhall"
+   ]
+  },
+  {
+   "shape": "{N}{B}{R}{R}, {T}, Sacrifice this land: It deals N damage to target player.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Immersturm Skullcairn"
+   ]
+  },
+  {
+   "shape": "{N}{R}{G}{G}, {T}, Sacrifice this land: Destroy target land.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Gnottvold Slumbermound"
+   ]
+  },
+  {
+   "shape": "{N}{R}{R}{W}, {T}, Sacrifice this land: Search your library for an Aura card and/or an Equipment card, reveal them, put them into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Axgard Armory"
+   ]
+  },
+  {
+   "shape": "{N}{S}: This creature gets +N/+N and gains menace until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Grim Draugr"
+   ]
+  },
+  {
+   "shape": "{N}{U}: This creature gets +N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Mistwalker"
+   ]
+  },
+  {
+   "shape": "{N}{U}{B}{B}, {T}, Sacrifice this land: Mill four cards, then return a creature card from your graveyard to the battlefield tapped.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Port of Karfell"
+   ]
+  },
+  {
+   "shape": "{N}{W}, Exile this card from your graveyard: Return another target Aura or Equipment card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Spectral Steel"
+   ]
+  },
+  {
+   "shape": "{N}{W}{U}{B}{R}{G}, Sacrifice this enchantment: You gain N life and draw two cards.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Path to the World Tree"
+   ]
+  },
+  {
+   "shape": "{N}{W}{U}{U}, {T}, Sacrifice this land: You gain N life and draw two cards.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Gates of Istfell"
+   ]
+  },
+  {
+   "shape": "{S}, {T}: Draw a card, then discard a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Pilfering Hawk"
+   ]
+  },
+  {
+   "shape": "{S}, {T}: Look at the top card of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Frost Augur"
+   ]
+  },
+  {
+   "shape": "{S}{S}: This creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Hailstorm Valkyrie"
+   ]
+  },
+  {
+   "shape": "{S}{S}{S}: Return this card from your graveyard to the battlefield tapped.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Narfi, Betrayer King"
+   ]
+  },
+  {
+   "shape": "{T}, Tap an untapped creature you control: Add one mana of any color.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Jaspera Sentinel"
+   ]
+  },
+  {
+   "shape": "{T}: Add one mana of the chosen color.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Shimmerdrift Vale"
+   ]
+  },
+  {
+   "shape": "{T}: Add {G}{G}{G}.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Canopy Tactician"
+   ]
+  },
+  {
+   "shape": "{T}: Target player loses N life unless they sacrifice a nonland permanent of their choice or discard a card.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Tergrid, God of Fright // Tergrid's Lantern [face B]"
+   ]
+  },
+  {
+   "shape": "{T}: You may play target snow permanent card from your graveyard this turn.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Jorn, God of Winter // Kaldring, the Rimestaff [face B]"
+   ]
+  },
+  {
+   "shape": "{W}{W}{B}, {T}, Sacrifice this land and a creature you control: Create a N/N white Angel Warrior creature token with flying and vigilance.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Great Hall of Starnheim"
+   ]
+  },
+  {
+   "shape": "{X}: Choose a creature card exiled with ~ with mana value X.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Valki, God of Lies // Tibalt, Cosmic Impostor"
+   ]
+  },
+  {
+   "shape": "~ attacks each combat if able.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Toski, Bearer of Secrets"
+   ]
+  },
+  {
+   "shape": "~ becomes a copy of that card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Valki, God of Lies // Tibalt, Cosmic Impostor"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to target tapped creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Iron Verdict"
+   ]
+  },
+  {
+   "shape": "\u2022 Add two mana of any one color and two mana of any other color.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Open the Omenpaths"
+   ]
+  },
+  {
+   "shape": "\u2022 Creatures you control get +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Open the Omenpaths"
+   ]
+  },
+  {
+   "shape": "\u2022 Destroy all creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blood on the Snow"
+   ]
+  },
+  {
+   "shape": "\u2022 Destroy all planeswalkers.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blood on the Snow"
+   ]
+  },
+  {
+   "shape": "\u2022 Remove X counters from target permanent, where X is the number of Elves you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thornmantle Striker"
+   ]
+  },
+  {
+   "shape": "\u2022 Return target creature card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Raise the Draugr"
+   ]
+  },
+  {
+   "shape": "\u2022 Return two target creature cards that share a creature type from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Raise the Draugr"
+   ]
+  },
+  {
+   "shape": "\u2022 Tap target permanent.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Koma, Cosmos Serpent"
+   ]
+  },
+  {
+   "shape": "\u2022 Target creature an opponent controls gets -X/-X until end of turn, where X is the number of Elves you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thornmantle Striker"
+   ]
+  },
+  {
+   "shape": "\u2022 ~ gains indestructible until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Koma, Cosmos Serpent"
+   ]
+  },
+  {
+   "shape": "<shape gap>",
+   "count": 1,
+   "hints": [],
+   "cards": [
+    "Littjara Glade-Warden"
+   ],
+   "error": "StateCorruptionError: compile_card: activation-gate sentence matched but no preceding ActivatedAbility with the gate's target slot(s) free exists to attach it t"
+  },
+  {
+   "shape": "<shape gap>",
+   "count": 1,
+   "hints": [],
+   "cards": [
+    "Colossal Plow"
+   ],
+   "error": "StateCorruptionError: compile_card: printed P/T on a non-creature (a Vehicle needs crew, not implemented) [card='Colossal Plow', type_line='Artifact \u2014 Vehicle']"
+  },
+  {
+   "shape": "<shape gap>",
+   "count": 1,
+   "hints": [],
+   "cards": [
+    "Pyre of Heroes"
+   ],
+   "error": "StateCorruptionError: compile_card: activation-gate sentence matched but no preceding ActivatedAbility with the gate's target slot(s) free exists to attach it t"
+  },
+  {
+   "shape": "<shape gap>",
+   "count": 1,
+   "hints": [],
+   "cards": [
+    "Gilded Assault Cart"
+   ],
+   "error": "StateCorruptionError: compile_card: printed P/T on a non-creature (a Vehicle needs crew, not implemented) [card='Gilded Assault Cart', type_line='Artifact \u2014 Veh"
+  },
+  {
+   "shape": "<shape gap>",
+   "count": 1,
+   "hints": [],
+   "cards": [
+    "Esika's Chariot"
+   ],
+   "error": "StateCorruptionError: compile_card: printed P/T on a non-creature (a Vehicle needs crew, not implemented) [card=\"Esika's Chariot\", type_line='Legendary Artifact"
+  },
+  {
+   "shape": "<shape gap>",
+   "count": 1,
+   "hints": [],
+   "cards": [
+    "Funeral Longboat"
+   ],
+   "error": "StateCorruptionError: compile_card: printed P/T on a non-creature (a Vehicle needs crew, not implemented) [card='Funeral Longboat', type_line='Artifact \u2014 Vehicl"
+  }
+ ],
+ "seconds": 1.2
+}

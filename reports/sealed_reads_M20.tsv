@@ -2,3 +2,4 @@
 2026-10-27_1139	0046627ef5a3	clean	re-measure with the committed tool version (crash-tolerant, whole = sum of groups); same HEAD 0046627, no grammar work since read 1
 2026-10-27_1200	d21b573c0b4d	clean	S-1 round end (B-36..B-39 crash fixes, keyword-line fallback, compiled pool), branch sets/onboarding d21b573
 2026-10-27_1525	1c526bc3ed7d	clean	S-2 round end (B11 general clauses), branch sets/onboarding 1c526bc
+2026-10-27_2233	836f3eca8c44	clean	S-3a round end (B12 self-named clauses + Step 2c), branch sets/onboarding 836f3ec

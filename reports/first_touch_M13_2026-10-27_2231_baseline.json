@@ -1,0 +1,1310 @@
+{
+ "set": "M13",
+ "stamp": "2026-10-27_2231",
+ "provenance": {
+  "data_file": "MTG_bot/data/M13.json",
+  "data_sha256": "c6aef9437b111be49d60803f157eca2e9192fde2ea20451c00f2aa0524a2e777",
+  "mtgjson": {
+   "date": "2026-10-27",
+   "version": "5.3.0+20261027"
+  },
+  "head": "a5065a18e2668819d687f485e100014459d2bf3f",
+  "engine_tree_dirty": []
+ },
+ "split": {
+  "salt": "M13-sealed-v1",
+  "test_share": 0.4,
+  "rule": "test iff int(sha256(salt:oracle_id)[:8], 16) / 2**32 < test_share",
+  "developed_on": [
+   "M21",
+   "ZNR",
+   "M20",
+   "KHM"
+  ],
+  "counts": {
+   "carry-over": 67,
+   "dev": 104,
+   "test": 74
+  },
+  "carry_over_reasons": {
+   "same text shape": 22,
+   "reprint (same oracle id)": 32,
+   "no rules text": 13
+  }
+ },
+ "engine_dealable": {
+  "engine": true,
+  "castable": true
+ },
+ "carry-over": {
+  "entries": 67,
+  "sentences": 59,
+  "pc1_count": 59,
+  "unparsed": 8,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 59,
+  "sentences_unseen_shape": 0,
+  "unparsed_seen_shape": 8,
+  "unparsed_unseen_shape": 0,
+  "dealable_engine": 57,
+  "dealable_engine_fully_compiled": 49,
+  "dealable_castable": 50,
+  "dealable_castable_fully_compiled": 48,
+  "pc1": 0.8806,
+  "pc2": 0.8644,
+  "pc2_seen_shape": 0.8644,
+  "pc2_unseen_shape": null
+ },
+ "dev": {
+  "entries": 104,
+  "sentences": 199,
+  "pc1_count": 14,
+  "unparsed": 126,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 60,
+  "sentences_unseen_shape": 139,
+  "unparsed_seen_shape": 6,
+  "unparsed_unseen_shape": 120,
+  "dealable_engine": 103,
+  "dealable_engine_fully_compiled": 14,
+  "dealable_castable": 63,
+  "dealable_castable_fully_compiled": 11,
+  "pc1": 0.1346,
+  "pc2": 0.3668,
+  "pc2_seen_shape": 0.9,
+  "pc2_unseen_shape": 0.1367
+ },
+ "test": {
+  "entries": 74,
+  "sentences": 148,
+  "pc1_count": 7,
+  "unparsed": 98,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 48,
+  "sentences_unseen_shape": 100,
+  "unparsed_seen_shape": 6,
+  "unparsed_unseen_shape": 92,
+  "dealable_engine": 74,
+  "dealable_engine_fully_compiled": 7,
+  "dealable_castable": 44,
+  "dealable_castable_fully_compiled": 6,
+  "pc1": 0.0946,
+  "pc2": 0.3378,
+  "pc2_seen_shape": 0.875,
+  "pc2_unseen_shape": 0.08
+ },
+ "whole": {
+  "entries": 245,
+  "sentences": 406,
+  "pc1_count": 80,
+  "unparsed": 232,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 167,
+  "sentences_unseen_shape": 239,
+  "unparsed_seen_shape": 20,
+  "unparsed_unseen_shape": 212,
+  "dealable_engine": 234,
+  "dealable_engine_fully_compiled": 70,
+  "dealable_castable": 157,
+  "dealable_castable_fully_compiled": 65,
+  "pc1": 0.3265,
+  "pc2": 0.4286,
+  "pc2_seen_shape": 0.8802,
+  "pc2_unseen_shape": 0.113
+ },
+ "dev_register": [
+  {
+   "shape": "Exalted (Whenever a creature you control attacks alone, that creature gets +N/+N until end of turn.)",
+   "count": 8,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Aven Squire",
+    "Duty-Bound Dead",
+    "Cathedral of War",
+    "Angelic Benediction",
+    "Guardians of Akrasa",
+    "Servant of Nefarox",
+    "Sublime Archangel",
+    "Knight of Infamy"
+   ]
+  },
+  {
+   "shape": "{N}{B}: Regenerate this creature.",
+   "count": 2,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Crimson Muckwader",
+    "Duty-Bound Dead"
+   ]
+  },
+  {
+   "shape": "All creatures get -N/-N until end of turn for each Swamp you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mutilate"
+   ]
+  },
+  {
+   "shape": "An opponent separates those cards into two piles.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sphinx of Uthuun"
+   ]
+  },
+  {
+   "shape": "As this creature enters, choose a player.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Stuffy Doll"
+   ]
+  },
+  {
+   "shape": "As this creature enters, it becomes your choice of a N/N artifact creature, a N/N artifact creature with flying, or a N/N Wall artifact creature with defender in addition to its other types.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Primal Clay"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, count the number of permanents you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Touch of the Eternal"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Staff of Nin"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, put a +N/+N counter on equipped creature if it's black.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Ring of Xathrid"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, put a +N/+N counter on equipped creature if it's blue.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Ring of Evos Isle"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, put a +N/+N counter on equipped creature if it's green.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Ring of Kalonia"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, put a +N/+N counter on equipped creature if it's white.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Ring of Thune"
+   ]
+  },
+  {
+   "shape": "Attacking creatures get +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Trumpet Blast"
+   ]
+  },
+  {
+   "shape": "Copy target instant or sorcery spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Reverberate"
+   ]
+  },
+  {
+   "shape": "Each other creature that player controls gets -N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Public Execution"
+   ]
+  },
+  {
+   "shape": "Each player's life total becomes N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Worldfire"
+   ]
+  },
+  {
+   "shape": "Enchanted creature gets +N/+N and can't be blocked.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tricks of the Trade"
+   ]
+  },
+  {
+   "shape": "Enchanted creature gets +N/+N and has mountainwalk.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Volcanic Strength"
+   ]
+  },
+  {
+   "shape": "Enchanted permanent doesn't untap during its controller's untap step and its activated abilities can't be activated.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Encrust"
+   ]
+  },
+  {
+   "shape": "Equipped creature has trample.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ring of Kalonia"
+   ]
+  },
+  {
+   "shape": "Equipped creature has vigilance.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ring of Thune"
+   ]
+  },
+  {
+   "shape": "Exchange control of two target creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Switcheroo"
+   ]
+  },
+  {
+   "shape": "Exile all cards from all hands and graveyards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Worldfire"
+   ]
+  },
+  {
+   "shape": "Exile all permanents.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Worldfire"
+   ]
+  },
+  {
+   "shape": "Exile target creature card from a graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vile Rebirth"
+   ]
+  },
+  {
+   "shape": "Intimidate (This creature can't be blocked except by artifact creatures and/or creatures that share a color with it.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bladetusk Boar"
+   ]
+  },
+  {
+   "shape": "Islandwalk (This creature can't be blocked as long as defending player controls an Island.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Harbor Serpent"
+   ]
+  },
+  {
+   "shape": "It gains defender and becomes a colorless artifact in addition to its other types.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Xathrid Gorgon"
+   ]
+  },
+  {
+   "shape": "Its activated abilities can't be activated.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Xathrid Gorgon"
+   ]
+  },
+  {
+   "shape": "Other Soldier creatures you control get +N/+N and have vigilance.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Captain of the Watch"
+   ]
+  },
+  {
+   "shape": "Other creatures you control have exalted.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Sublime Archangel"
+   ]
+  },
+  {
+   "shape": "Prevent all combat damage that would be dealt this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fog"
+   ]
+  },
+  {
+   "shape": "Protection from white (This creature can't be blocked, targeted, dealt damage, or enchanted by anything white.)",
+   "count": 1,
+   "hints": [
+    "keyword"
+   ],
+   "cards": [
+    "Knight of Infamy"
+   ]
+  },
+  {
+   "shape": "Put one pile into your hand and the other into your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sphinx of Uthuun"
+   ]
+  },
+  {
+   "shape": "Put target creature card from a graveyard onto the battlefield under your control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rise from the Grave"
+   ]
+  },
+  {
+   "shape": "Return target green card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Revive"
+   ]
+  },
+  {
+   "shape": "Reveal those cards, put them into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gem of Becoming"
+   ]
+  },
+  {
+   "shape": "Sacrifice a creature: This creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Bloodthrone Vampire"
+   ]
+  },
+  {
+   "shape": "Search your library for a Plains, Island, Swamp, or Mountain card, put it onto the battlefield tapped, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Farseek"
+   ]
+  },
+  {
+   "shape": "Search your library for up to X cards, put those cards into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Diabolic Revelation"
+   ]
+  },
+  {
+   "shape": "Search your library for up to two Forest cards, put them onto the battlefield tapped, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ranger's Path"
+   ]
+  },
+  {
+   "shape": "Shuffle and put that card on top.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mwonvuli Beast Tracker"
+   ]
+  },
+  {
+   "shape": "Shuffle this artifact and your graveyard into their owner's library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Elixir of Immortality"
+   ]
+  },
+  {
+   "shape": "Swamps you control have '{T}: Add {B}{B}{B}{B}.'",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Liliana of the Dark Realms Emblem"
+   ]
+  },
+  {
+   "shape": "Tap all creatures target player controls.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sleep"
+   ]
+  },
+  {
+   "shape": "Tap two untapped artifacts you control: Untap target artifact.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Clock of Omens"
+   ]
+  },
+  {
+   "shape": "Tap up to three target creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Downpour"
+   ]
+  },
+  {
+   "shape": "Target player discards their hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Wit's End"
+   ]
+  },
+  {
+   "shape": "Target player draws two cards and loses N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sign in Blood"
+   ]
+  },
+  {
+   "shape": "That creature is a black Zombie in addition to its other colors and types.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rise from the Grave"
+   ]
+  },
+  {
+   "shape": "This creature attacks each combat if able.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Reckless Brute"
+   ]
+  },
+  {
+   "shape": "This creature can't attack unless there are five or more Islands on the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Harbor Serpent"
+   ]
+  },
+  {
+   "shape": "This creature can't attack unless you control a Knight or a Soldier.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "War Falcon"
+   ]
+  },
+  {
+   "shape": "This creature can't block and can't be blocked.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tormented Soul"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N as long as an opponent has ten or more cards in their graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Jace's Phantasm"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N as long as you control a Mountain.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Flinthoof Boar"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N as long as you control a Plains.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Arctic Aven"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N as long as you control a Swamp.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Crimson Muckwader"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N as long as you control an Island.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Harbor Bandit"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N for each other creature you control named ~.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Timberpack Wolf"
+   ]
+  },
+  {
+   "shape": "Those creatures don't untap during that player's next untap step.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sleep"
+   ]
+  },
+  {
+   "shape": "When this Aura enters, you lose N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Dark Favor"
+   ]
+  },
+  {
+   "shape": "When this creature enters, create a N/N white Soldier creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Attended Knight"
+   ]
+  },
+  {
+   "shape": "When this creature enters, create three N/N white Soldier creature tokens.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Captain of the Watch"
+   ]
+  },
+  {
+   "shape": "When this creature enters, reveal the top five cards of your library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sphinx of Uthuun"
+   ]
+  },
+  {
+   "shape": "When this creature enters, sacrifice another creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Disciple of Bolas"
+   ]
+  },
+  {
+   "shape": "When this creature enters, search your library for a creature card with deathtouch, hexproof, reach, or trample and reveal it.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Mwonvuli Beast Tracker"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target creature gets +N/+N and gains flying until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Battleflight Eagle"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target opponent discards a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Ravenous Rats"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target player loses N life and you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Bloodhunter Bat"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may destroy target enchantment.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "War Priest of Thune"
+   ]
+  },
+  {
+   "shape": "Whenever a Swamp you control enters, you may return this card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Veilborn Ghoul"
+   ]
+  },
+  {
+   "shape": "Whenever a creature you control attacks alone, you may tap target creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Angelic Benediction"
+   ]
+  },
+  {
+   "shape": "Whenever this creature deals combat damage to a player, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Scroll Thief"
+   ]
+  },
+  {
+   "shape": "Whenever this creature is dealt damage, it deals that much damage to the chosen player.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Stuffy Doll"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a red spell, target creature can't block this turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Goblin Battle Jester"
+   ]
+  },
+  {
+   "shape": "You can't cast ~ during your first, second, or third turns of the game.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Serra Avenger"
+   ]
+  },
+  {
+   "shape": "You gain N life for each land you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bountiful Harvest"
+   ]
+  },
+  {
+   "shape": "You gain X life and draw X cards, where X is that creature's power.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Disciple of Bolas"
+   ]
+  },
+  {
+   "shape": "You have no maximum hand size.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Reliquary Tower"
+   ]
+  },
+  {
+   "shape": "You may cast an instant or sorcery spell from among those cards without paying its mana cost.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mindclaw Shaman"
+   ]
+  },
+  {
+   "shape": "You may cast green creature spells as though they had flash.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Yeva, Nature's Herald"
+   ]
+  },
+  {
+   "shape": "You may cast spells from your hand without paying their mana costs.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Omniscience"
+   ]
+  },
+  {
+   "shape": "You may have this creature enter as a copy of any creature on the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Clone"
+   ]
+  },
+  {
+   "shape": "Your life total becomes that number.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Touch of the Eternal"
+   ]
+  },
+  {
+   "shape": "[+N]: Search your library for a Swamp card, reveal it, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Liliana of the Dark Realms"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Create a N/N green Wurm creature token for each land you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Garruk, Primal Hunter"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Draw cards equal to the greatest power among creatures you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Garruk, Primal Hunter"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Target creature gets +X/+X or -X/-X until end of turn, where X is the number of Swamps you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Liliana of the Dark Realms"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Discard a card: You gain N life.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Trading Post"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Pay N life: Create a N/N white Goat creature token.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Trading Post"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Sacrifice a creature: Return target artifact card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Trading Post"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Sacrifice an artifact: Draw a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Trading Post"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Sacrifice this artifact: Search your library for an Island card, a Swamp card, and a Mountain card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Gem of Becoming"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Draw a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Jayemdae Tome"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Chronomaton"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: You gain N life.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Elixir of Immortality"
+   ]
+  },
+  {
+   "shape": "{N}: Equipped creature gains hexproof until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Ring of Evos Isle"
+   ]
+  },
+  {
+   "shape": "{N}: Regenerate equipped creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Ring of Xathrid"
+   ]
+  },
+  {
+   "shape": "{N}{B}, {T}: Put a petrification counter on target creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Xathrid Gorgon"
+   ]
+  },
+  {
+   "shape": "{N}{R}, Sacrifice a Goblin: This creature deals N damage to target creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Arms Dealer"
+   ]
+  },
+  {
+   "shape": "{N}{R}, {T}, Remove two pressure counters from this land and sacrifice it: Create a N/N red Hellion creature token with haste.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Hellion Crucible"
+   ]
+  },
+  {
+   "shape": "{N}{R}, {T}: Put a pressure counter on this land.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Hellion Crucible"
+   ]
+  },
+  {
+   "shape": "{N}{R}{R}{R}: Return this card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Firewing Phoenix"
+   ]
+  },
+  {
+   "shape": "{N}{U}, {T}: Put this creature and target creature on top of their owners' libraries, then those players shuffle their libraries.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Void Stalker"
+   ]
+  },
+  {
+   "shape": "{N}{U}: This creature can't be blocked this turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Harbor Bandit"
+   ]
+  },
+  {
+   "shape": "{R}: This creature gains haste until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Flinthoof Boar"
+   ]
+  },
+  {
+   "shape": "{T}: Add three mana of any one color.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Gilded Lotus"
+   ]
+  },
+  {
+   "shape": "{T}: Target creature attacks this turn if able.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Courtly Provocateur"
+   ]
+  },
+  {
+   "shape": "{T}: Target creature blocks this turn if able.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Courtly Provocateur"
+   ]
+  },
+  {
+   "shape": "{T}: This artifact deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Staff of Nin"
+   ]
+  },
+  {
+   "shape": "{T}: This creature deals N damage to itself.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Stuffy Doll"
+   ]
+  },
+  {
+   "shape": "{T}: Untap target Forest.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Arbor Elf"
+   ]
+  },
+  {
+   "shape": "{U}, {T}: Target player mills two cards.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Vedalken Entrancer"
+   ]
+  },
+  {
+   "shape": "{U}: This creature gets +N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Watercourser"
+   ]
+  },
+  {
+   "shape": "{X}{G}{G}: This creature deals X damage to each creature with flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Silklash Spider"
+   ]
+  },
+  {
+   "shape": "~ deals N damage divided as you choose among one, two, or three targets.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Flames of the Firebrand"
+   ]
+  },
+  {
+   "shape": "~'s power and toughness are each equal to the number of creatures you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Crusader of Odric"
+   ]
+  }
+ ],
+ "seconds": 0.6
+}

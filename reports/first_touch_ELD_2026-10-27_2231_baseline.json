@@ -1,0 +1,2585 @@
+{
+ "set": "ELD",
+ "stamp": "2026-10-27_2231",
+ "provenance": {
+  "data_file": "MTG_bot/data/ELD.json",
+  "data_sha256": "528631fcffeb75797645bf9030093b67ff0fb26475041a96f0dc3c9a4c2eeba7",
+  "mtgjson": {
+   "date": "2026-10-26",
+   "version": "5.3.0+20261026"
+  },
+  "head": "a5065a18e2668819d687f485e100014459d2bf3f",
+  "engine_tree_dirty": []
+ },
+ "split": {
+  "salt": "ELD-sealed-v1",
+  "test_share": 0.4,
+  "rule": "test iff int(sha256(salt:oracle_id)[:8], 16) / 2**32 < test_share",
+  "developed_on": [
+   "M21",
+   "ZNR",
+   "M20",
+   "KHM"
+  ],
+  "counts": {
+   "carry-over": 49,
+   "dev": 151,
+   "test": 102
+  },
+  "carry_over_reasons": {
+   "same text shape": 21,
+   "reprint (same oracle id)": 14,
+   "no rules text": 14
+  }
+ },
+ "engine_dealable": {
+  "engine": true,
+  "castable": true
+ },
+ "carry-over": {
+  "entries": 49,
+  "sentences": 83,
+  "pc1_count": 49,
+  "unparsed": 13,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 56,
+  "sentences_unseen_shape": 27,
+  "unparsed_seen_shape": 2,
+  "unparsed_unseen_shape": 11,
+  "dealable_engine": 40,
+  "dealable_engine_fully_compiled": 28,
+  "dealable_castable": 38,
+  "dealable_castable_fully_compiled": 26,
+  "pc1": 1.0,
+  "pc2": 0.8434,
+  "pc2_seen_shape": 0.9643,
+  "pc2_unseen_shape": 0.5926
+ },
+ "dev": {
+  "entries": 151,
+  "sentences": 377,
+  "pc1_count": 6,
+  "unparsed": 248,
+  "shape_gaps": 2,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 111,
+  "sentences_unseen_shape": 266,
+  "unparsed_seen_shape": 15,
+  "unparsed_unseen_shape": 233,
+  "dealable_engine": 146,
+  "dealable_engine_fully_compiled": 6,
+  "dealable_castable": 102,
+  "dealable_castable_fully_compiled": 5,
+  "pc1": 0.0397,
+  "pc2": 0.3422,
+  "pc2_seen_shape": 0.8649,
+  "pc2_unseen_shape": 0.1241
+ },
+ "test": {
+  "entries": 102,
+  "sentences": 277,
+  "pc1_count": 9,
+  "unparsed": 173,
+  "shape_gaps": 2,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 81,
+  "sentences_unseen_shape": 196,
+  "unparsed_seen_shape": 15,
+  "unparsed_unseen_shape": 158,
+  "dealable_engine": 95,
+  "dealable_engine_fully_compiled": 6,
+  "dealable_castable": 64,
+  "dealable_castable_fully_compiled": 5,
+  "pc1": 0.0882,
+  "pc2": 0.3755,
+  "pc2_seen_shape": 0.8148,
+  "pc2_unseen_shape": 0.1939
+ },
+ "whole": {
+  "entries": 302,
+  "sentences": 737,
+  "pc1_count": 64,
+  "unparsed": 434,
+  "shape_gaps": 4,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 248,
+  "sentences_unseen_shape": 489,
+  "unparsed_seen_shape": 32,
+  "unparsed_unseen_shape": 402,
+  "dealable_engine": 281,
+  "dealable_engine_fully_compiled": 40,
+  "dealable_castable": 204,
+  "dealable_castable_fully_compiled": 36,
+  "pc1": 0.2119,
+  "pc2": 0.4111,
+  "pc2_seen_shape": 0.871,
+  "pc2_unseen_shape": 0.1779
+ },
+ "dev_register": [
+  {
+   "shape": "Choose one \u2014",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Drown in the Loch",
+    "Return of the Wildspeaker"
+   ]
+  },
+  {
+   "shape": "When this creature enters, create a Food token.",
+   "count": 2,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Fierce Witchstalker",
+    "Gilded Goose"
+   ]
+  },
+  {
+   "shape": "{T}: Add one mana of any color in your commander's color identity.",
+   "count": 2,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Command Tower",
+    "Arcane Signet"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to any target.",
+   "count": 2,
+   "hints": [
+    "BFACE",
+    "spell-effect"
+   ],
+   "cards": [
+    "Slaying Fire",
+    "Bonecrusher Giant // Stomp [face B]"
+   ]
+  },
+  {
+   "shape": "Activate only during your turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Wishclaw Talisman"
+   ]
+  },
+  {
+   "shape": "Activate only if you control an Oko planeswalker.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bramblefort Fink"
+   ]
+  },
+  {
+   "shape": "Activated abilities of sources with the chosen name can't be activated unless they're mana abilities.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sorcerous Spyglass"
+   ]
+  },
+  {
+   "shape": "Adamant \u2014 If at least three black mana was spent to cast this spell, mill four cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cauldron's Gift"
+   ]
+  },
+  {
+   "shape": "Adamant \u2014 If at least three black mana was spent to cast this spell, this creature enters with a +N/+N counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Locthwain Paladin"
+   ]
+  },
+  {
+   "shape": "Adamant \u2014 If at least three green mana was spent to cast this spell, instead return those cards to your hand and exile ~.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Once and Future"
+   ]
+  },
+  {
+   "shape": "Adamant \u2014 If at least three green mana was spent to cast this spell, the creature you control gains indestructible until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Outmuscle"
+   ]
+  },
+  {
+   "shape": "Adamant \u2014 If at least three green mana was spent to cast this spell, this creature enters with a +N/+N counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Garenbrig Paladin"
+   ]
+  },
+  {
+   "shape": "Adamant \u2014 If at least three mana of the same color was spent to cast this spell, this creature enters with a +N/+N counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Henge Walker"
+   ]
+  },
+  {
+   "shape": "Adamant \u2014 If at least three red mana was spent to cast this spell, it deals N damage instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Slaying Fire"
+   ]
+  },
+  {
+   "shape": "Adamant \u2014 If at least three white mana was spent to cast this spell, creatures you control gain vigilance until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Silverflame Ritual"
+   ]
+  },
+  {
+   "shape": "Adamant \u2014 If at least three white mana was spent to cast this spell, this creature enters with a +N/+N counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ardenvale Paladin"
+   ]
+  },
+  {
+   "shape": "Adamant \u2014 If at least three white mana was spent to cast this spell, you gain N life for each creature you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rally for the Throne"
+   ]
+  },
+  {
+   "shape": "Adamant \u2014 When this creature enters, if at least three mana of the same color was spent to cast it, draw a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Clockwork Servant"
+   ]
+  },
+  {
+   "shape": "Add seven {R}.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Irencrag Feat"
+   ]
+  },
+  {
+   "shape": "After an Adventure resolves, you can place the exiled card here.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "On an Adventure"
+   ]
+  },
+  {
+   "shape": "An opponent gains control of this artifact.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Wishclaw Talisman"
+   ]
+  },
+  {
+   "shape": "Artifact creatures you control have flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Workshop Elders"
+   ]
+  },
+  {
+   "shape": "As long as you control an artifact or enchantment, this creature has flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Flutterfox"
+   ]
+  },
+  {
+   "shape": "As long as you control four or more artifacts, this creature has hexproof.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shimmer Dragon"
+   ]
+  },
+  {
+   "shape": "As this artifact enters, look at an opponent's hand, then choose any card name.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sorcerous Spyglass"
+   ]
+  },
+  {
+   "shape": "At the beginning of combat on your turn, any opponent may sacrifice a creature of their choice.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Clackbridge Troll"
+   ]
+  },
+  {
+   "shape": "At the beginning of combat on your turn, you may have target noncreature artifact you control become a N/N artifact creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Workshop Elders"
+   ]
+  },
+  {
+   "shape": "At the beginning of each upkeep, put an hour counter on this artifact.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Midnight Clock"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, choose one at random.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Outlaws' Merriment"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, each player draws a card and loses N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Stormfist Crusader"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, if there are five colors among permanents you control, there are six or more card types among permanents you control and/or cards in your graveyard, and your life total is greater than or equal to your starting life total, you win the game.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Happily Ever After"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, put a knowledge counter on ~, then draw a card for each knowledge counter on ~.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "The Magic Mirror"
+   ]
+  },
+  {
+   "shape": "Attacking non-Human creatures you control get +N/+N and have trample.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ferocity of the Wilds"
+   ]
+  },
+  {
+   "shape": "Beanstalk Giant's power and toughness are each equal to the number of lands you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Beanstalk Giant // Fertile Footsteps"
+   ]
+  },
+  {
+   "shape": "Create a red and white creature token with those characteristics.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Outlaws' Merriment"
+   ]
+  },
+  {
+   "shape": "Creatures can't attack you or planeswalkers you control unless their controller pays {N} for each of those creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Archon of Absolution"
+   ]
+  },
+  {
+   "shape": "Creatures entering or dying don't cause abilities to trigger.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Hushbringer"
+   ]
+  },
+  {
+   "shape": "Damage can't be prevented this turn.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Bonecrusher Giant // Stomp [face B]"
+   ]
+  },
+  {
+   "shape": "Draw four cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Into the Story"
+   ]
+  },
+  {
+   "shape": "During any turn you attacked with a Rogue, you may cast that card and you may spend mana as though it were mana of any color to cast that spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Robber of the Rich"
+   ]
+  },
+  {
+   "shape": "Each creature you control that has an Adventure enters with an additional +N/+N counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mysterious Pathlighter"
+   ]
+  },
+  {
+   "shape": "Each player can't cast more than one noncreature spell each turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Deafening Silence"
+   ]
+  },
+  {
+   "shape": "Each player sacrifices three creatures of their choice.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Taste of Death"
+   ]
+  },
+  {
+   "shape": "Enchanted creature gets +N/+N, has reach, and is a Giant in addition to its other types.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tall as a Beanstalk"
+   ]
+  },
+  {
+   "shape": "Enchanted creature loses all abilities and is a blue Frog creature with base power and toughness N/N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Frogify"
+   ]
+  },
+  {
+   "shape": "Enchanted creature loses all abilities and is a green Elk creature with base power and toughness N/N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kenrith's Transformation"
+   ]
+  },
+  {
+   "shape": "Equip Knight {N}",
+   "count": 1,
+   "hints": [
+    "keyword"
+   ],
+   "cards": [
+    "Steelclaw Lance"
+   ]
+  },
+  {
+   "shape": "Equipment you control have equip Knight {N}.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Syr Gwyn, Hero of Ashvale"
+   ]
+  },
+  {
+   "shape": "Exile this artifact.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Midnight Clock"
+   ]
+  },
+  {
+   "shape": "Exile this creature: Create a N/N white Human creature token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Inquisitive Puppet"
+   ]
+  },
+  {
+   "shape": "Exile ~.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Once and Future"
+   ]
+  },
+  {
+   "shape": "For as long as this creature remains on the battlefield, gain control of that permanent, it loses all abilities, and it can't attack or block.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Opportunistic Dragon"
+   ]
+  },
+  {
+   "shape": "If X is N or more, those permanents are N/N creatures in addition to their other types.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dance of the Manse"
+   ]
+  },
+  {
+   "shape": "If a nonblack card is exiled this way, exile a card from your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Specter's Shriek"
+   ]
+  },
+  {
+   "shape": "If a nonred permanent is dealt damage this way, you sacrifice a land.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Redcap Melee"
+   ]
+  },
+  {
+   "shape": "If a player does, tap this creature, you gain N life, and you draw a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Clackbridge Troll"
+   ]
+  },
+  {
+   "shape": "If a red source you control would deal damage to an opponent or a permanent an opponent controls, it deals that much damage plus N instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Torbran, Thane of Red Fell"
+   ]
+  },
+  {
+   "shape": "If damage would be dealt to this creature while it has a +N/+N counter on it, prevent that damage and remove a +N/+N counter from it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Oathsworn Knight"
+   ]
+  },
+  {
+   "shape": "If the sacrificed creature's toughness was N or greater, create two Food tokens instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Witch's Oven"
+   ]
+  },
+  {
+   "shape": "If you do, create a token that's a copy of this creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sorcerer's Broom"
+   ]
+  },
+  {
+   "shape": "If you do, put four +N/+N counters on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Workshop Elders"
+   ]
+  },
+  {
+   "shape": "If you do, return it to the battlefield with an additional +N/+N counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cauldron's Gift"
+   ]
+  },
+  {
+   "shape": "If you do, that player exiles that card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Specter's Shriek"
+   ]
+  },
+  {
+   "shape": "It can attack this turn as though it didn't have defender.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Roving Keep"
+   ]
+  },
+  {
+   "shape": "Its controller mills three cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Didn't Say Please"
+   ]
+  },
+  {
+   "shape": "Other creatures you control with flying get +N/+N.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Alela, Artful Provocateur"
+   ]
+  },
+  {
+   "shape": "Players have no maximum hand size.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Folio of Fancies"
+   ]
+  },
+  {
+   "shape": "Prevent all damage that would be dealt to him this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Oko, the Trickster"
+   ]
+  },
+  {
+   "shape": "Protection from white (This creature can't be blocked, targeted, dealt damage, enchanted, or equipped by anything white.)",
+   "count": 1,
+   "hints": [
+    "keyword"
+   ],
+   "cards": [
+    "Archon of Absolution"
+   ]
+  },
+  {
+   "shape": "Put a +N/+N counter on target creature you control, then it fights target creature you don't control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Outmuscle"
+   ]
+  },
+  {
+   "shape": "Put any number of target creature cards from your graveyard on top of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Forever Young"
+   ]
+  },
+  {
+   "shape": "Put up to one other target card from your graveyard on top of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Once and Future"
+   ]
+  },
+  {
+   "shape": "Reach, trample, protection from multicolored",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Stonecoil Serpent"
+   ]
+  },
+  {
+   "shape": "Return up to X target artifact and/or non-Aura enchantment cards each with mana value X or less from your graveyard to the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dance of the Manse"
+   ]
+  },
+  {
+   "shape": "Sacrifice a Food: Put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Wicked Wolf"
+   ]
+  },
+  {
+   "shape": "Sacrifice two Foods: Draw a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Savvy Hunter"
+   ]
+  },
+  {
+   "shape": "Search your library for a basic land card, put it onto the battlefield, then shuffle.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Beanstalk Giant // Fertile Footsteps [face B]"
+   ]
+  },
+  {
+   "shape": "Spells your opponents cast that target ~ cost {N} more to cast.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Syr Elenora, the Discerning"
+   ]
+  },
+  {
+   "shape": "Spend this mana only to cast a Knight or Equipment spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tournament Grounds"
+   ]
+  },
+  {
+   "shape": "Spend this mana only to cast creature spells or activate abilities of creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Castle Garenbrig"
+   ]
+  },
+  {
+   "shape": "Tap it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Wicked Wolf"
+   ]
+  },
+  {
+   "shape": "Tap two untapped artifacts you control: Draw a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shimmer Dragon"
+   ]
+  },
+  {
+   "shape": "Target blocking creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Righteousness"
+   ]
+  },
+  {
+   "shape": "Target creature gets +N/+N and gains deathtouch until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lash of Thorns"
+   ]
+  },
+  {
+   "shape": "Target creature gets -X/-X until end of turn, where X is the number of cards in your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Festive Funeral"
+   ]
+  },
+  {
+   "shape": "Then if that creature's power is greater than ~'s power, put another +N/+N counter on ~.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Yorvo, Lord of Garenbrig"
+   ]
+  },
+  {
+   "shape": "Then you scry N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Overwhelmed Apprentice"
+   ]
+  },
+  {
+   "shape": "They gain haste until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rowan, Fearless Sparkmage"
+   ]
+  },
+  {
+   "shape": "This artifact enters with three wish counters on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Wishclaw Talisman"
+   ]
+  },
+  {
+   "shape": "This creature attacks each combat if able.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Oathsworn Knight"
+   ]
+  },
+  {
+   "shape": "This creature can't attack unless defending player has seven or more cards in their graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vantress Gargoyle"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked by creatures with power N or greater.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Beloved Princess"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked by creatures with power N or less.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Garenbrig Paladin"
+   ]
+  },
+  {
+   "shape": "This creature can't block unless you have four or more cards in hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vantress Gargoyle"
+   ]
+  },
+  {
+   "shape": "This creature enters with four +N/+N counters on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Oathsworn Knight"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N as long as you control an artifact.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shinechaser"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N as long as you control an enchantment.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shinechaser"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N for each color among permanents you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Faeburrow Elder"
+   ]
+  },
+  {
+   "shape": "This land enters tapped unless you control a Forest.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Castle Garenbrig"
+   ]
+  },
+  {
+   "shape": "This land enters tapped unless you control a Swamp.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Castle Locthwain"
+   ]
+  },
+  {
+   "shape": "This land enters tapped unless you control three or more other Forests.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gingerbread Cabin"
+   ]
+  },
+  {
+   "shape": "This land enters tapped unless you control three or more other Mountains.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dwarven Mine"
+   ]
+  },
+  {
+   "shape": "This spell costs {N} less to cast for each attacking creature you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Embercleave"
+   ]
+  },
+  {
+   "shape": "This spell costs {N} less to cast for each instant and sorcery card in your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Magic Mirror"
+   ]
+  },
+  {
+   "shape": "This spell costs {N} less to cast if an opponent controls a green permanent.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Oakhame Adversary"
+   ]
+  },
+  {
+   "shape": "This spell costs {N} less to cast if an opponent has seven or more cards in their graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Into the Story"
+   ]
+  },
+  {
+   "shape": "This spell costs {N} less to cast if it targets a blue spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mystical Dispute"
+   ]
+  },
+  {
+   "shape": "This spell costs {X} less to cast, where X is the greatest power among creatures you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Great Henge"
+   ]
+  },
+  {
+   "shape": "Those creatures can't block this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rowan, Fearless Sparkmage"
+   ]
+  },
+  {
+   "shape": "Untap them.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rowan, Fearless Sparkmage"
+   ]
+  },
+  {
+   "shape": "When the twelfth hour counter is put on this artifact, shuffle your hand and graveyard into your library, then draw seven cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Midnight Clock"
+   ]
+  },
+  {
+   "shape": "When this Equipment enters, attach it to target Knight you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Shining Armor"
+   ]
+  },
+  {
+   "shape": "When this Equipment enters, attach it to target non-Human creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Rosethorn Halberd"
+   ]
+  },
+  {
+   "shape": "When this artifact enters, exile target creature an opponent controls with mana value N or less until this artifact leaves the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Glass Casket"
+   ]
+  },
+  {
+   "shape": "When this artifact enters, scry N.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Witching Well"
+   ]
+  },
+  {
+   "shape": "When this creature dies, put a +N/+N counter on target Knight you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Venerable Knight"
+   ]
+  },
+  {
+   "shape": "When this creature dies, put a loyalty counter on each Garruk you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Wolf"
+   ]
+  },
+  {
+   "shape": "When this creature enters the battlefield, it deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Human Rogue"
+   ]
+  },
+  {
+   "shape": "When this creature enters, another target Knight you control gets +N/+N and gains trample and haste until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Burning-Yard Trainer"
+   ]
+  },
+  {
+   "shape": "When this creature enters, choose target Human or artifact an opponent controls.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Opportunistic Dragon"
+   ]
+  },
+  {
+   "shape": "When this creature enters, each opponent mills two cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Overwhelmed Apprentice"
+   ]
+  },
+  {
+   "shape": "When this creature enters, if you control an artifact or enchantment, return target creature an opponent controls to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Moonlit Scavengers"
+   ]
+  },
+  {
+   "shape": "When this creature enters, if you control another Knight, look at the top five cards of your library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Acclaimed Contender"
+   ]
+  },
+  {
+   "shape": "When this creature enters, it fights up to one target creature you don't control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Wicked Wolf"
+   ]
+  },
+  {
+   "shape": "When this creature enters, return target Knight card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Barrow Witches"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target Knight gains deathtouch and lifelink until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Blacklance Paragon"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target opponent creates three N/N white Goat creature tokens.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Clackbridge Troll"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may have it deal N damage to another creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Wicked Guardian"
+   ]
+  },
+  {
+   "shape": "When this enchantment enters, create a Food token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Fortifying Provisions"
+   ]
+  },
+  {
+   "shape": "When this enchantment enters, each player gains N life and draws a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Happily Ever After"
+   ]
+  },
+  {
+   "shape": "When this land enters untapped, create a Food token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Gingerbread Cabin"
+   ]
+  },
+  {
+   "shape": "When this land enters untapped, create a N/N red Dwarf creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Dwarven Mine"
+   ]
+  },
+  {
+   "shape": "When you do, destroy target artifact or enchantment.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Flaxen Intruder // Welcome Home"
+   ]
+  },
+  {
+   "shape": "When you do, ~ deals damage to any target equal to the number of cards in your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "The Royal Scions"
+   ]
+  },
+  {
+   "shape": "When you gain life for the first time each turn, return this card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Deathless Knight"
+   ]
+  },
+  {
+   "shape": "When ~ enters, attach it to target creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Embercleave"
+   ]
+  },
+  {
+   "shape": "When ~ enters, draw X cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Gadwick, the Wizened"
+   ]
+  },
+  {
+   "shape": "When ~ enters, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Syr Elenora, the Discerning"
+   ]
+  },
+  {
+   "shape": "Whenever a Knight you control attacks, each opponent loses N life and you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Knights' Charge"
+   ]
+  },
+  {
+   "shape": "Whenever a Knight you control enters, untap this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Brimstone Trebuchet"
+   ]
+  },
+  {
+   "shape": "Whenever a creature attacks you or a planeswalker you control, that creature's controller loses N life and you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Revenge of Ravens"
+   ]
+  },
+  {
+   "shape": "Whenever a nontoken creature you control enters, put a +N/+N counter on it and draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "The Great Henge"
+   ]
+  },
+  {
+   "shape": "Whenever an equipped creature you control attacks, you draw a card and you lose N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Syr Gwyn, Hero of Ashvale"
+   ]
+  },
+  {
+   "shape": "Whenever another green creature you control enters, put a +N/+N counter on ~.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Yorvo, Lord of Garenbrig"
+   ]
+  },
+  {
+   "shape": "Whenever one or more non-Human creatures you control deal combat damage to a player, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Keeper of Fables"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks or blocks, create a Food token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Savvy Hunter"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks or blocks, if you control another non-Human creature, this creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Wildwood Tracker"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, another target attacking Knight gains menace until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Ogre Errant"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, create a number of N/N white Knight creature tokens with vigilance equal to the number of opponents you have.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Silverwing Squadron"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, if defending player has more cards in hand than you, exile the top card of their library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Robber of the Rich"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, you may tap an untapped non-Human creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Redcap Raiders"
+   ]
+  },
+  {
+   "shape": "Whenever this creature becomes the target of a spell, this creature deals N damage to that spell's controller.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Bonecrusher Giant // Stomp"
+   ]
+  },
+  {
+   "shape": "Whenever this creature deals combat damage to a player, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Oakhame Adversary"
+   ]
+  },
+  {
+   "shape": "Whenever this creature deals combat damage to a player, each player mills a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Eye Collector"
+   ]
+  },
+  {
+   "shape": "Whenever this creature deals combat damage to a player, you may sacrifice it.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Flaxen Intruder // Welcome Home"
+   ]
+  },
+  {
+   "shape": "Whenever this creature enters or attacks, you may discard a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Loch Dragon"
+   ]
+  },
+  {
+   "shape": "Whenever this creature or another non-Human creature you control enters, you may draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sage of the Falls"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a Knight spell, create a N/N white Human creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Worthy Knight"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a blue spell, tap target nonland permanent an opponent controls.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Gadwick, the Wizened"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a creature spell that has an Adventure, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Edgewall Innkeeper"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a creature spell that has an Adventure, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Wandermare"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a creature spell that has an Adventure, this creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Garenbrig Squire"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a creature spell, draw a card, then you may put a land card from your hand onto the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Chulane, Teller of Tales"
+   ]
+  },
+  {
+   "shape": "Whenever you cast an Adventure instant or sorcery spell, copy it.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Lucky Clover"
+   ]
+  },
+  {
+   "shape": "Whenever you cast an artifact or enchantment spell, create a N/N blue Faerie creature token with flying.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Alela, Artful Provocateur"
+   ]
+  },
+  {
+   "shape": "Whenever you draw your second card each turn, create a N/N blue Faerie creature token with flying.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Improbable Alliance"
+   ]
+  },
+  {
+   "shape": "Whenever you draw your second card each turn, create two N/N black Rat creature tokens.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Mad Ratter"
+   ]
+  },
+  {
+   "shape": "Whenever you draw your second card each turn, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Faerie Vandal"
+   ]
+  },
+  {
+   "shape": "Whenever you draw your second card each turn, this creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Steelgaze Griffin"
+   ]
+  },
+  {
+   "shape": "Whenever you sacrifice another permanent, you may pay {N}.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sorcerer's Broom"
+   ]
+  },
+  {
+   "shape": "Whenever ~ attacks, another target attacking creature gets +X/+X until end of turn, where X is ~'s power.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Syr Faren, the Hengehammer"
+   ]
+  },
+  {
+   "shape": "Whenever ~ attacks, other creatures you control get +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Syr Alin, the Lion's Claw"
+   ]
+  },
+  {
+   "shape": "You can cast only one more spell this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Irencrag Feat"
+   ]
+  },
+  {
+   "shape": "You choose a nonland card from it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Memory Theft"
+   ]
+  },
+  {
+   "shape": "You choose a nonland card from that player's graveyard or hand and exile it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Covetous Urge"
+   ]
+  },
+  {
+   "shape": "You create three Food tokens.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Taste of Death"
+   ]
+  },
+  {
+   "shape": "You have no maximum hand size.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Magic Mirror"
+   ]
+  },
+  {
+   "shape": "You may cast that card for as long as it remains exiled, and you may spend mana as though it were mana of any color to cast that spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Covetous Urge"
+   ]
+  },
+  {
+   "shape": "You may cast the creature from exile.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "On an Adventure"
+   ]
+  },
+  {
+   "shape": "You may choose a creature card in your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cauldron's Gift"
+   ]
+  },
+  {
+   "shape": "You may choose a nonland card from it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Specter's Shriek"
+   ]
+  },
+  {
+   "shape": "You may discard a card.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Merchant of the Vale // Haggle [face B]"
+   ]
+  },
+  {
+   "shape": "You may have this enchantment enter as a copy of any artifact or enchantment on the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mirrormade"
+   ]
+  },
+  {
+   "shape": "You may put a card that has an Adventure that player owns from exile into that player's graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Memory Theft"
+   ]
+  },
+  {
+   "shape": "You may reveal a Knight, Aura, Equipment, or legendary artifact card from among them and put it into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Acclaimed Contender"
+   ]
+  },
+  {
+   "shape": "[+N]: Create a Food token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Oko, Thief of Crowns"
+   ]
+  },
+  {
+   "shape": "[+N]: Put two +N/+N counters on up to one target creature you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Oko, the Trickster"
+   ]
+  },
+  {
+   "shape": "[+N]: Target artifact or creature loses all abilities and becomes a green Elk creature with base power and toughness N/N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Oko, Thief of Crowns"
+   ]
+  },
+  {
+   "shape": "[+N]: Target creature gets +N/+N and gains first strike and trample until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Royal Scions"
+   ]
+  },
+  {
+   "shape": "[+N]: Up to one target creature gets +N/+N and gains first strike until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rowan, Fearless Sparkmage"
+   ]
+  },
+  {
+   "shape": "[N]: Until end of turn, ~ becomes a copy of target creature you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Oko, the Trickster"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Draw four cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Royal Scions"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Exchange control of target artifact or creature you control and target creature an opponent controls with power N or less.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Oko, Thief of Crowns"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Gain control of all creatures until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rowan, Fearless Sparkmage"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Until end of turn, each creature you control has base power and toughness N/N and gains trample.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Oko, the Trickster"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: ~ deals N damage to each of up to two target creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rowan, Fearless Sparkmage"
+   ]
+  },
+  {
+   "shape": "{N}, Sacrifice an artifact or another creature: Put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Malevolent Noble"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Remove a wish counter from this artifact: Search your library for a card, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Wishclaw Talisman"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Sacrifice this creature: You gain N life.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Gingerbrute"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Return target creature you control to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Chulane, Teller of Tales"
+   ]
+  },
+  {
+   "shape": "{N}: This creature can't be blocked this turn except by creatures with haste.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Gingerbrute"
+   ]
+  },
+  {
+   "shape": "{N}: This creature gets +N/+N and gains flying until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Locthwain Gargoyle"
+   ]
+  },
+  {
+   "shape": "{N}: This creature gets +N/+N and gains trample until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Roving Keep"
+   ]
+  },
+  {
+   "shape": "{N}: This creature has base power and toughness N/N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bramblefort Fink"
+   ]
+  },
+  {
+   "shape": "{N}{B}, Sacrifice a Food: Target creature gets -N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Bog Naughty"
+   ]
+  },
+  {
+   "shape": "{N}{B}: Put target creature card from a graveyard onto the battlefield under its owner's control.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Kenrith, the Returned King"
+   ]
+  },
+  {
+   "shape": "{N}{B}{B}, {T}: Draw a card, then you lose life equal to the number of cards in your hand.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Castle Locthwain"
+   ]
+  },
+  {
+   "shape": "{N}{G}, {T}: Create a Food token.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Gilded Goose"
+   ]
+  },
+  {
+   "shape": "{N}{G}{G}, {T}: Add six {G}.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Castle Garenbrig"
+   ]
+  },
+  {
+   "shape": "{N}{R}, Discard a card: Draw a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Merchant of the Vale // Haggle"
+   ]
+  },
+  {
+   "shape": "{N}{U}, Sacrifice this artifact: Draw two cards.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Witching Well"
+   ]
+  },
+  {
+   "shape": "{N}{U}, {T}: Each opponent mills cards equal to the number of cards in their hand.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Folio of Fancies"
+   ]
+  },
+  {
+   "shape": "{N}{U}: Create a N/N blue Faerie creature token with flying.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Faerie Formation"
+   ]
+  },
+  {
+   "shape": "{N}{U}: Put an hour counter on this artifact.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Midnight Clock"
+   ]
+  },
+  {
+   "shape": "{N}{U}: Target player draws a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Kenrith, the Returned King"
+   ]
+  },
+  {
+   "shape": "{N}{U}: This creature loses defender and becomes a Human until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Wishful Merfolk"
+   ]
+  },
+  {
+   "shape": "{N}{W}: Target player gains N life.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Kenrith, the Returned King"
+   ]
+  },
+  {
+   "shape": "{N}{W}{B}, Sacrifice this enchantment: Return all Knight creature cards from your graveyard to the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Knights' Charge"
+   ]
+  },
+  {
+   "shape": "{R/W}{R/W}{R/W}{R/W}: This creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fireborn Knight"
+   ]
+  },
+  {
+   "shape": "{R}: All creatures gain trample and haste until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Kenrith, the Returned King"
+   ]
+  },
+  {
+   "shape": "{T}, Sacrifice a Food: Add one mana of any color.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Gilded Goose"
+   ]
+  },
+  {
+   "shape": "{T}, Sacrifice a creature: Create a Food token.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Witch's Oven"
+   ]
+  },
+  {
+   "shape": "{T}: Add {G}{G}.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "The Great Henge"
+   ]
+  },
+  {
+   "shape": "{T}: Add {R}, {W}, or {B}.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Tournament Grounds"
+   ]
+  },
+  {
+   "shape": "{T}: Creatures you control gain haste until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Crashing Drawbridge"
+   ]
+  },
+  {
+   "shape": "{T}: Each player mills a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Vantress Gargoyle"
+   ]
+  },
+  {
+   "shape": "{T}: For each color among permanents you control, add one mana of that color.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Faeburrow Elder"
+   ]
+  },
+  {
+   "shape": "{T}: This creature deals N damage to each opponent.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Brimstone Trebuchet"
+   ]
+  },
+  {
+   "shape": "{W/B}{W/B}: This creature gains lifelink until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Resolute Rider"
+   ]
+  },
+  {
+   "shape": "{W/B}{W/B}{W/B}: This creature gains indestructible until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Resolute Rider"
+   ]
+  },
+  {
+   "shape": "{X}{X}, {T}: Each player draws X cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Folio of Fancies"
+   ]
+  },
+  {
+   "shape": "~ deals damage equal to the sacrificed creature's power to any target.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fling"
+   ]
+  },
+  {
+   "shape": "~ deals damage to target attacking or blocking creature equal to the number of creatures you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Outflank"
+   ]
+  },
+  {
+   "shape": "~ enters with four +N/+N counters on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Yorvo, Lord of Garenbrig"
+   ]
+  },
+  {
+   "shape": "~'s power and toughness are each equal to the number of creatures you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Silverwing Squadron"
+   ]
+  },
+  {
+   "shape": "~'s power is equal to the number of artifacts and/or enchantments you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shambling Suit"
+   ]
+  },
+  {
+   "shape": "~'s power is equal to the number of cards in your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Syr Elenora, the Discerning"
+   ]
+  },
+  {
+   "shape": "\u2022 Counter target spell with mana value less than or equal to the number of cards in its controller's graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Drown in the Loch"
+   ]
+  },
+  {
+   "shape": "\u2022 Destroy target creature with mana value less than or equal to the number of cards in its controller's graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Drown in the Loch"
+   ]
+  },
+  {
+   "shape": "\u2022 Draw cards equal to the greatest power among non-Human creatures you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Return of the Wildspeaker"
+   ]
+  },
+  {
+   "shape": "\u2022 N/N Human Cleric with lifelink and haste.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Outlaws' Merriment"
+   ]
+  },
+  {
+   "shape": "\u2022 N/N Human Rogue with haste and \"When this token enters, it deals N damage to any target.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Outlaws' Merriment"
+   ]
+  },
+  {
+   "shape": "\u2022 N/N Human Warrior with trample and haste.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Outlaws' Merriment"
+   ]
+  },
+  {
+   "shape": "\u2022 Non-Human creatures you control get +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Return of the Wildspeaker"
+   ]
+  },
+  {
+   "shape": "<shape gap>",
+   "count": 1,
+   "hints": [],
+   "cards": [
+    "Enchanted Carriage"
+   ],
+   "error": "StateCorruptionError: compile_card: printed P/T on a non-creature (a Vehicle needs crew, not implemented) [card='Enchanted Carriage', type_line='Artifact \u2014 Vehi"
+  },
+  {
+   "shape": "<shape gap>",
+   "count": 1,
+   "hints": [],
+   "cards": [
+    "The Cauldron of Eternity"
+   ],
+   "error": "StateCorruptionError: compile_card: activation-gate sentence matched but no preceding ActivatedAbility with the gate's target slot(s) free exists to attach it t"
+  }
+ ],
+ "seconds": 1.1
+}
