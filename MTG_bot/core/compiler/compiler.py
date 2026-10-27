@@ -751,6 +751,21 @@ def _is_keyword_line(sentence: str, raw: RawCard) -> bool:
     return bool(parts) and all(carried.get(part.lower()) in _LINE_KEYWORDS for part in parts)
 
 
+def _self_named_sentence(sentence: str, raw: RawCard) -> str | None:
+    """``sentence`` with the card's own name written "~", or None if it does not name the card.
+
+    Oracle text names an instant or sorcery by its own name ("Lava Axe deals 5 damage to target
+    player or planeswalker."), and a legendary card also by the part before its comma. Templates
+    were written one card at a time, so only B12 reads the "~" form (Step 2c). The name must stand
+    alone: "Shockwave" does not name a card called "Shock".
+    """
+    name = raw.identity.name.split(" // ")[0]
+    out = sentence
+    for own in sorted({name, name.split(", ")[0]}, key=len, reverse=True):
+        out = re.sub(rf"(?<![\w-]){re.escape(own)}(?![\w-])", "~", out)
+    return out if out != sentence else None
+
+
 def _is_continuation(sentence: str) -> bool:
     """Check if a sentence starts with a continuation prefix."""
     s = sentence.strip()
@@ -1556,6 +1571,14 @@ def compile_card(
             rule_reminders.append(rr)
             outcomes.append(rr)
             continue
+        # Step 2c: the card's own name as a clause's subject (fallback only, B12). With the name
+        # written "~", only the self-named bucket may match, so no other template is re-read.
+        if best_match is None:
+            self_named = _self_named_sentence(sentence, raw)
+            if self_named is not None:
+                matches = tuple(m for m in registry.match(self_named)
+                                if m.template.bucket == "B12")
+                best_match = matches[0] if matches else None
         if best_match is None:
             hint = _bucket_hint(sentence)
             unparsed.append((sentence, hint))
