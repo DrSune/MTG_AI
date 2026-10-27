@@ -456,6 +456,14 @@ These are forks, not tasks. See the report that accompanied this audit.
   `ATTACK_AGAINST_COUNT_GE`, `NOT_FIRST_DRAW_THIS_STEP`, `INSTANT_OR_SORCERY_CAST_THIS_TURN` read as
   single cards. Decompose them into general atoms (e.g. a QThisTurn count of CastSpell events with
   an FOr filter) in a gated ontology round ("as few subcomponents as possible", owner 2026-10-19).
+- **B-45 Every dealt deck is a five-colour stress pile**: `build_deck` (`core/executor/games.py:360-401`)
+  takes one basic of each colour plus other mana sources up to 10, then 50 cards uniformly from the
+  whole pool. Measured on 400 M21 decks: 13.4 lands of 60 on average (range 7–23), 16.6 mana sources,
+  five colours. Real decks run about 40% lands in two colours. Every BC, RL and benchmark number was
+  measured on this distribution (REVIEW_ARCHITECTURE_2026-10-27 F3). Under random play a land gap of
+  1–5 is a coin flip, and only gaps of 6 or more decide games (K3-lite). Add an opt-in coherent
+  mode (2 colours, about 40% lands, a curve, still seeded). Keep the default so existing
+  measurements stay comparable. Train and evaluate on both.
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
   plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
 

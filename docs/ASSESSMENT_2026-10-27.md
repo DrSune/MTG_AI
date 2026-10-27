@@ -138,7 +138,7 @@ For cards the agent never saw, text- or attribute-based card encoders are the pr
 | Hidden information | Belief search (ReBeL/SoG), R-NaD, or determinized ISMCTS (XMage, Forge 2026) | Policy and search fork read hidden zones (A-1); no belief model | **Behind as an actor.** Reusable as a privileged teacher or critic (Suphx, AlphaStar) |
 | Learning signal | Self-play RL, league, search-improved targets | Imitation of a ~100-line heuristic, capped at teacher level (0.394 vs the heuristic, /133); RL pilot at instrument stage | **Behind** |
 | Decision-time search | Required in every superhuman imperfect-information result except DeepNash | Not in the live policy | **Missing** |
-| Self-play throughput | Millions to billions of decisions | ~0.25 games/s with 6 CPU workers (/147) | **The binding constraint on one Spark** |
+| Self-play throughput | Millions to billions of decisions | Engine only: 1.11 games/s, 93 acts/s per process (about 1.9M games/day on 20 processes). Model-driven: 0.25 games/s with 6 workers, because each decision runs an un-batched CPU forward pass (/147; REVIEW_ARCHITECTURE F6) | **Inference, not the engine, is the binding constraint**: batch it on the GPU |
 | Evaluation | Duplicate format, CIs, Elo against anchored bots, human calibration, exploitability | Duplicate deals, Wilson/bootstrap/SPRT/Bradley–Terry, anchored floors, sealed splits, Goodhart controls, LLM seats | **At or above field practice; missing external opponents (Forge/XMage AI) and humans** |
 
 ### 2.3 What is genuinely ahead of the field
@@ -163,8 +163,11 @@ For cards the agent never saw, text- or attribute-based card encoders are the pr
 2. **Card representation.** A name-token policy cannot meet tied rank 1. The IR-as-tokenizer
    encoder is the planned answer and matches the SOTA pattern (structured or text encoders, no
    IDs).
-3. **Throughput.** At ~0.25 games/s, a DouZero-style program on one machine is out of reach. Profile
-   first. Then batch or vectorize the engine, or port the hot paths; phase-rs is Rust.
+3. **Throughput.** Model-driven self-play runs at about 0.25 games/s because every decision is an
+   un-batched CPU forward pass. The engine alone runs at 1.11 games/s per process, about 1.9M
+   games/day on 20 processes. An actor–learner setup with a batched GPU inference server and cached
+   card embeddings is the fix. Correction, 2026-10-27: this section first blamed the engine; see
+   REVIEW_ARCHITECTURE F6.
 4. **Learning signal.** Imitating the heuristic is capped at the heuristic's level, and that cap
    was measured. Self-play RL with search-improved targets is the standard way past it.
 5. **Hidden information at play time.**
@@ -207,7 +210,8 @@ For cards the agent never saw, text- or attribute-based card encoders are the pr
 - **Superhuman play:** the current stack is **not** a state-of-the-art approach. It is name-based,
   omniscient, imitation-capped and search-free. Every component of a SOTA recipe has a known
   design that fits this repo, and most can run on one Spark at DouZero or Pluribus scale. The
-  bottlenecks are engine throughput and rules fidelity, not GPU.
+  bottlenecks are rules fidelity and un-batched model inference, not GPU (corrected: the engine
+  alone is not the bottleneck, REVIEW_ARCHITECTURE F6).
 - **Benchmark and measurement:** at or above field practice, and the part most ready to show
   publicly once the release gates in DESIGN_BENCHMARK hold.
 
