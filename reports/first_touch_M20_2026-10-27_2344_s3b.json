@@ -1,0 +1,1981 @@
+{
+ "set": "M20",
+ "stamp": "2026-10-27_2345",
+ "provenance": {
+  "data_file": "MTG_bot/data/M20.json",
+  "data_sha256": "c2eafc6e8b5b10e9488a61cd99d3e2e5e560685a21aa8d9d5784c715843717d6",
+  "mtgjson": {
+   "date": "2026-10-26",
+   "version": "5.3.0+20261026"
+  },
+  "head": "60691cf3f83972412f459f139e6678cb46fe3e4e",
+  "engine_tree_dirty": []
+ },
+ "split": {
+  "salt": "M20-sealed-v1",
+  "test_share": 0.4,
+  "rule": "test iff int(sha256(salt:oracle_id)[:8], 16) / 2**32 < test_share",
+  "developed_on": [
+   "M21",
+   "ZNR"
+  ],
+  "counts": {
+   "carry-over": 79,
+   "dev": 157,
+   "test": 105
+  },
+  "carry_over_reasons": {
+   "same text shape": 24,
+   "no rules text": 19,
+   "reprint (same oracle id)": 36
+  }
+ },
+ "engine_dealable": {
+  "engine": true,
+  "castable": true
+ },
+ "carry-over": {
+  "entries": 79,
+  "sentences": 99,
+  "pc1_count": 76,
+  "unparsed": 3,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 99,
+  "sentences_unseen_shape": 0,
+  "unparsed_seen_shape": 3,
+  "unparsed_unseen_shape": 0,
+  "dealable_engine": 70,
+  "dealable_engine_fully_compiled": 67,
+  "dealable_castable": 65,
+  "dealable_castable_fully_compiled": 64,
+  "pc1": 0.962,
+  "pc2": 0.9697,
+  "pc2_seen_shape": 0.9697,
+  "pc2_unseen_shape": null
+ },
+ "dev": {
+  "entries": 157,
+  "sentences": 337,
+  "pc1_count": 31,
+  "unparsed": 187,
+  "shape_gaps": 2,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 111,
+  "sentences_unseen_shape": 226,
+  "unparsed_seen_shape": 9,
+  "unparsed_unseen_shape": 178,
+  "dealable_engine": 153,
+  "dealable_engine_fully_compiled": 31,
+  "dealable_castable": 117,
+  "dealable_castable_fully_compiled": 27,
+  "pc1": 0.1975,
+  "pc2": 0.4451,
+  "pc2_seen_shape": 0.9189,
+  "pc2_unseen_shape": 0.2124
+ },
+ "test": {
+  "entries": 105,
+  "sentences": 233,
+  "pc1_count": 20,
+  "unparsed": 146,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 72,
+  "sentences_unseen_shape": 161,
+  "unparsed_seen_shape": 8,
+  "unparsed_unseen_shape": 138,
+  "dealable_engine": 104,
+  "dealable_engine_fully_compiled": 20,
+  "dealable_castable": 73,
+  "dealable_castable_fully_compiled": 19,
+  "pc1": 0.1905,
+  "pc2": 0.3734,
+  "pc2_seen_shape": 0.8889,
+  "pc2_unseen_shape": 0.1429
+ },
+ "whole": {
+  "entries": 341,
+  "sentences": 669,
+  "pc1_count": 127,
+  "unparsed": 336,
+  "shape_gaps": 2,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 282,
+  "sentences_unseen_shape": 387,
+  "unparsed_seen_shape": 20,
+  "unparsed_unseen_shape": 316,
+  "dealable_engine": 327,
+  "dealable_engine_fully_compiled": 118,
+  "dealable_castable": 255,
+  "dealable_castable_fully_compiled": 110,
+  "pc1": 0.3724,
+  "pc2": 0.4978,
+  "pc2_seen_shape": 0.9291,
+  "pc2_unseen_shape": 0.1835
+ },
+ "dev_register": [
+  {
+   "shape": "This spell can't be countered.",
+   "count": 3,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thought Distortion",
+    "Shifting Ceratops",
+    "Chandra, Awakened Inferno"
+   ]
+  },
+  {
+   "shape": "If this card is in your opening hand, you may begin the game with it on the battlefield.",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Leyline of Sanctity",
+    "Leyline of Combustion"
+   ]
+  },
+  {
+   "shape": "Activate only if this creature is attacking.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Glint-Horn Buccaneer"
+   ]
+  },
+  {
+   "shape": "Activate only if you control five or more lands.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cryptic Caves"
+   ]
+  },
+  {
+   "shape": "Activate only once each turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Frilled Sandwalla"
+   ]
+  },
+  {
+   "shape": "All creatures able to block this creature do so.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Prized Unicorn"
+   ]
+  },
+  {
+   "shape": "As long as you have N or more life, this creature has double strike.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Twinblade Paladin"
+   ]
+  },
+  {
+   "shape": "As this artifact enters, choose a creature type.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Icon of Ancestry"
+   ]
+  },
+  {
+   "shape": "As this creature enters, choose a color.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Diamond Knight"
+   ]
+  },
+  {
+   "shape": "At the beginning of your end step, if a player lost N or more life this turn, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Knight of the Ebon Legion"
+   ]
+  },
+  {
+   "shape": "At the beginning of your end step, if an opponent lost life this turn, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Savage Gorger"
+   ]
+  },
+  {
+   "shape": "At the beginning of your end step, if you control three or more permanents you don't own, draw three cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Agent of Treachery"
+   ]
+  },
+  {
+   "shape": "At the beginning of your end step, if you didn't cast a spell this turn, create a N/N green Wolf creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Nightpack Ambusher"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, discard a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Rotting Regisaur"
+   ]
+  },
+  {
+   "shape": "Choose one \u2014",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Masterful Replication"
+   ]
+  },
+  {
+   "shape": "Choose target spell or permanent that's red or green.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Aether Gust"
+   ]
+  },
+  {
+   "shape": "Creature cards in graveyards and libraries can't enter the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Grafdigger's Cage"
+   ]
+  },
+  {
+   "shape": "Creatures you control of the chosen type get +N/+N.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Icon of Ancestry"
+   ]
+  },
+  {
+   "shape": "Creatures your opponents control can't have +N/+N counters put on them.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blightbeetle"
+   ]
+  },
+  {
+   "shape": "Destroy target creature or planeswalker that's green or white.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Noxious Grasp"
+   ]
+  },
+  {
+   "shape": "Draw a card if an opponent has cast a blue or black spell this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Veil of Summer"
+   ]
+  },
+  {
+   "shape": "Each other artifact you control becomes a copy of that artifact until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Masterful Replication"
+   ]
+  },
+  {
+   "shape": "Each player can't cast more than one spell each turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rule of Law"
+   ]
+  },
+  {
+   "shape": "Elementals you control gain haste until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Scampering Scorcher"
+   ]
+  },
+  {
+   "shape": "Enchanted creature gets +N/+N and assigns combat damage equal to its toughness rather than its power.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gauntlets of Light"
+   ]
+  },
+  {
+   "shape": "Enchanted creature gets +N/+N and has \"{T}: Draw a card, then discard a card.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Hard Cover"
+   ]
+  },
+  {
+   "shape": "Enchanted creature has \"{N}{W}: Untap this creature.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gauntlets of Light"
+   ]
+  },
+  {
+   "shape": "Enchanted land has \"{T}: Add two mana of any one color.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gift of Paradise"
+   ]
+  },
+  {
+   "shape": "Enchantment spells you cast cost {N} less to cast.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Starfield Mystic"
+   ]
+  },
+  {
+   "shape": "Equipped creature gets +N/+N and can't be blocked by more than one creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Wolfrider's Saddle"
+   ]
+  },
+  {
+   "shape": "Equipped creature gets +N/+N and loses flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Colossus Hammer"
+   ]
+  },
+  {
+   "shape": "Exile all noncreature, nonland cards from that player's hand and graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thought Distortion"
+   ]
+  },
+  {
+   "shape": "Exile target creature or planeswalker that's black or red.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Devout Decree"
+   ]
+  },
+  {
+   "shape": "Golems you control get +N/+N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Master Splicer"
+   ]
+  },
+  {
+   "shape": "Hydra spells you cast cost {N} less to cast.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gargos, Vicious Watcher"
+   ]
+  },
+  {
+   "shape": "If a permanent dealt damage this way would die this turn, exile it instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra, Awakened Inferno"
+   ]
+  },
+  {
+   "shape": "If a permanent entering causes a triggered ability of a permanent you control to trigger, that ability triggers an additional time.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Yarok, the Desecrated"
+   ]
+  },
+  {
+   "shape": "If it's a Vampire, put a +N/+N counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sorin, Imperious Bloodlord"
+   ]
+  },
+  {
+   "shape": "If it's a land card, you may put it onto the battlefield tapped.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Risen Reef"
+   ]
+  },
+  {
+   "shape": "If that creature was an Elemental, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Overgrowth Elemental"
+   ]
+  },
+  {
+   "shape": "If you control four or more creatures, add {G}{G} instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Leafkin Druid"
+   ]
+  },
+  {
+   "shape": "If you do, copy that ability.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra's Regulator"
+   ]
+  },
+  {
+   "shape": "If you don't put the card onto the battlefield, put it into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Risen Reef"
+   ]
+  },
+  {
+   "shape": "Islands you control have \"{T}: Draw a card.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mu Yanling, Sky Dancer Emblem"
+   ]
+  },
+  {
+   "shape": "It gets an additional +N/+N until end of turn for each card named ~ in your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Growth Cycle"
+   ]
+  },
+  {
+   "shape": "Its controller gains N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ajani, Inspiring Leader"
+   ]
+  },
+  {
+   "shape": "Its owner puts it on their choice of the top or bottom of their library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Aether Gust"
+   ]
+  },
+  {
+   "shape": "Other Elementals you control have trample.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thicket Crasher"
+   ]
+  },
+  {
+   "shape": "Other Vampires you control get +N/+N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thirsting Bloodlord"
+   ]
+  },
+  {
+   "shape": "Other Wolves and Werewolves you control get +N/+N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nightpack Ambusher"
+   ]
+  },
+  {
+   "shape": "Other creatures you control have vigilance.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Serra's Guardian"
+   ]
+  },
+  {
+   "shape": "Other creatures you control with flying get +N/+N.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Empyrean Eagle"
+   ]
+  },
+  {
+   "shape": "Other creatures you control with flying have indestructible.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Sephara, Sky's Blade"
+   ]
+  },
+  {
+   "shape": "Players can't cast spells from graveyards or libraries.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Grafdigger's Cage"
+   ]
+  },
+  {
+   "shape": "Protection from blue (This creature can't be blocked, targeted, dealt damage, enchanted, or equipped by anything blue.)",
+   "count": 1,
+   "hints": [
+    "keyword"
+   ],
+   "cards": [
+    "Shifting Ceratops"
+   ]
+  },
+  {
+   "shape": "Protection from green (This creature can't be blocked, targeted, dealt damage, enchanted, or equipped by anything green.)",
+   "count": 1,
+   "hints": [
+    "keyword"
+   ],
+   "cards": [
+    "Blightbeetle"
+   ]
+  },
+  {
+   "shape": "Protection from white (This creature can't be blocked, targeted, dealt damage, enchanted, or equipped by anything white.)",
+   "count": 1,
+   "hints": [
+    "keyword"
+   ],
+   "cards": [
+    "Unchained Berserker"
+   ]
+  },
+  {
+   "shape": "Put one of them into your hand and the rest on the bottom of your library in any order.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Anticipate"
+   ]
+  },
+  {
+   "shape": "Put target creature with power N or greater on the bottom of its owner's library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Eternal Isolation"
+   ]
+  },
+  {
+   "shape": "Put two +N/+N counters on up to one target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ajani, Inspiring Leader"
+   ]
+  },
+  {
+   "shape": "Return a creature card from your graveyard to the battlefield, then return another creature card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blood for Bones"
+   ]
+  },
+  {
+   "shape": "Return target creature or land card from a graveyard to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Pulse of Murasa"
+   ]
+  },
+  {
+   "shape": "Return up to three target creatures to their owners' hands.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Captivating Gyre"
+   ]
+  },
+  {
+   "shape": "Sacrifice a Spirit: Add {R}.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Kykar, Wind's Fury"
+   ]
+  },
+  {
+   "shape": "Search your library and/or graveyard for a card named Chandra, Flame's Fury, reveal it, and put it into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra's Flame Wave"
+   ]
+  },
+  {
+   "shape": "Search your library for up to two creature cards with different names, reveal them, put them into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shared Summons"
+   ]
+  },
+  {
+   "shape": "Spells you control can't be countered this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Veil of Summer"
+   ]
+  },
+  {
+   "shape": "Spend this mana only to cast artifact spells or activate abilities of artifacts.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Renowned Weaponsmith"
+   ]
+  },
+  {
+   "shape": "Target creature gains deathtouch until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bladebrand"
+   ]
+  },
+  {
+   "shape": "Target creature gets +N/+N and gains double strike until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Uncaged Fury"
+   ]
+  },
+  {
+   "shape": "Target creature gets +N/+N and gains lifelink until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Moment of Heroism"
+   ]
+  },
+  {
+   "shape": "Target creature gets +N/+N until end of turn for each creature you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Might of the Masses"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked by more than one creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bristling Boar"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Phantom Warrior"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N as long as it's attacking.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Unchained Berserker"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N as long as you control a Vivien planeswalker.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien's Crocodile"
+   ]
+  },
+  {
+   "shape": "When this Equipment enters, create a N/N green Wolf creature token, then attach this Equipment to it.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Wolfrider's Saddle"
+   ]
+  },
+  {
+   "shape": "When this artifact is put into a graveyard from the battlefield, it deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Retributive Wand"
+   ]
+  },
+  {
+   "shape": "When this creature dies, it deals X damage to each opponent and each planeswalker they control, where X is the number of land cards in your graveyard.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Cavalier of Flame"
+   ]
+  },
+  {
+   "shape": "When this creature dies, shuffle it into its owner's library, then scry N.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Cavalier of Gales"
+   ]
+  },
+  {
+   "shape": "When this creature enters, choose one \u2014",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Voracious Hydra"
+   ]
+  },
+  {
+   "shape": "When this creature enters, create a N/N black Zombie creature token for each card named ~ in your graveyard.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Undead Servant"
+   ]
+  },
+  {
+   "shape": "When this creature enters, create two Treasure tokens.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Rapacious Dragon"
+   ]
+  },
+  {
+   "shape": "When this creature enters, destroy target creature an opponent controls that was dealt damage this turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Fathom Fleet Cutthroat"
+   ]
+  },
+  {
+   "shape": "When this creature enters, discard any number of cards, then draw that many cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Cavalier of Flame"
+   ]
+  },
+  {
+   "shape": "When this creature enters, draw three cards, then put two cards from your hand on top of your library in any order.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Cavalier of Gales"
+   ]
+  },
+  {
+   "shape": "When this creature enters, each opponent exiles a card from their hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Yarok's Fenlurker"
+   ]
+  },
+  {
+   "shape": "When this creature enters, gain control of target permanent.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Agent of Treachery"
+   ]
+  },
+  {
+   "shape": "When this creature enters, if you control another creature named ~, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Faerie Miscreant"
+   ]
+  },
+  {
+   "shape": "When this creature enters, it deals damage to target opponent or planeswalker equal to the number of creatures you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Gruesome Scourger"
+   ]
+  },
+  {
+   "shape": "When this creature enters, put a +N/+N counter on another target Elemental you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Overgrowth Elemental"
+   ]
+  },
+  {
+   "shape": "When this creature enters, return another creature you control to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Yarok's Wavecrasher"
+   ]
+  },
+  {
+   "shape": "When this creature enters, return up to two target instant and/or sorcery cards from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Scholar of the Ages"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target creature you control gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Haazda Officer"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may exile target creature card from a graveyard.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Boneclad Necromancer"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may return target creature an opponent controls to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Riddlemaster Sphinx"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may search your library for a card with the same name as another creature you control, reveal it, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Pattern Matcher"
+   ]
+  },
+  {
+   "shape": "When this land enters, sacrifice two lands.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Lotus Field"
+   ]
+  },
+  {
+   "shape": "When you do, ~ deals N damage to any target and you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sorin, Imperious Bloodlord"
+   ]
+  },
+  {
+   "shape": "When you next cast an instant spell, cast a sorcery spell, or activate a loyalty ability this turn, copy that spell or ability twice.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Repeated Reverberation"
+   ]
+  },
+  {
+   "shape": "Whenever a creature you control becomes the target of a spell, ~ fights up to one target creature you don't control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Gargos, Vicious Watcher"
+   ]
+  },
+  {
+   "shape": "Whenever a creature you control dies, you gain N life and draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Moldervine Reclamation"
+   ]
+  },
+  {
+   "shape": "Whenever a creature you control enters, scry N.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Season of Growth"
+   ]
+  },
+  {
+   "shape": "Whenever a creature you control with flying enters, this creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Waterkin Shaman"
+   ]
+  },
+  {
+   "shape": "Whenever an enchantment you control is put into a graveyard from the battlefield, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Starfield Mystic"
+   ]
+  },
+  {
+   "shape": "Whenever an opponent is dealt noncombat damage, creatures you control get +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Wildfire Elemental"
+   ]
+  },
+  {
+   "shape": "Whenever another blue creature you control enters, target player mills two cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sage's Row Denizen"
+   ]
+  },
+  {
+   "shape": "Whenever another creature you control dies, you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Overgrowth Elemental"
+   ]
+  },
+  {
+   "shape": "Whenever another creature you control enters, each opponent loses N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Corpse Knight"
+   ]
+  },
+  {
+   "shape": "Whenever another creature you control enters, this creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Griffin Protector"
+   ]
+  },
+  {
+   "shape": "Whenever another creature you control enters, you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Impassioned Orator"
+   ]
+  },
+  {
+   "shape": "Whenever one or more creatures you control attack, they gain indestructible until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Angelic Guardian"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, create a N/N white Soldier creature token that's tapped and attacking.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Skyknight Vanguard"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, it gets +N/+N until end of turn for each Elemental you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Lavakin Brawler"
+   ]
+  },
+  {
+   "shape": "Whenever this creature or another Elemental you control enters, look at the top card of your library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Risen Reef"
+   ]
+  },
+  {
+   "shape": "Whenever this land or another land you control enters, if you control seven or more lands with different names, create a N/N black Zombie creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Field of the Dead"
+   ]
+  },
+  {
+   "shape": "Whenever you activate a loyalty ability of a Chandra planeswalker, you may pay {N}.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Chandra's Regulator"
+   ]
+  },
+  {
+   "shape": "Whenever you and/or at least one permanent you control becomes the target of a spell or ability an opponent controls, this enchantment deals N damage to that player.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Leyline of Combustion"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a noncreature spell, create a N/N white Spirit creature token with flying.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Kykar, Wind's Fury"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a spell during an opponent's turn, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Brineborn Cutthroat"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a spell of the chosen color, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Diamond Knight"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a spell that targets a creature you control, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Season of Growth"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a spell that targets this creature, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Gnarlback Rhino"
+   ]
+  },
+  {
+   "shape": "Whenever you discard a card, this creature deals N damage to each opponent.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Glint-Horn Buccaneer"
+   ]
+  },
+  {
+   "shape": "Whenever you gain life, put a +N/+N counter on ~.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Ajani's Pridemate"
+   ]
+  },
+  {
+   "shape": "Whenever you lose life for the first time each turn, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Vengeful Warchief"
+   ]
+  },
+  {
+   "shape": "Whenever you lose life, draw that many cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Vilis, Broker of Blood"
+   ]
+  },
+  {
+   "shape": "Whenever ~ attacks, ~ deals N damage to any target and N damage to each of up to two other targets.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Drakuseth, Maw of Flames"
+   ]
+  },
+  {
+   "shape": "You and permanents you control gain hexproof from blue and from black until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Veil of Summer"
+   ]
+  },
+  {
+   "shape": "You gain N life for each creature card milled this way.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gorging Vulture"
+   ]
+  },
+  {
+   "shape": "You gain N life for each creature you control with flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Aerial Assault"
+   ]
+  },
+  {
+   "shape": "You have hexproof.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Leyline of Sanctity"
+   ]
+  },
+  {
+   "shape": "You may choose new targets for the copies.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Repeated Reverberation"
+   ]
+  },
+  {
+   "shape": "You may pay {W} and tap four untapped creatures you control with flying rather than pay this spell's mana cost.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sephara, Sky's Blade"
+   ]
+  },
+  {
+   "shape": "You may reveal a creature card from among them and put it into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Brightwood Tracker"
+   ]
+  },
+  {
+   "shape": "You may reveal a creature card of the chosen type from among them and put it into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Icon of Ancestry"
+   ]
+  },
+  {
+   "shape": "[+N]: Each opponent gets an emblem with \"At the beginning of your upkeep, this emblem deals N damage to you.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra, Awakened Inferno"
+   ]
+  },
+  {
+   "shape": "[+N]: Elementals you control get +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra, Novice Pyromancer"
+   ]
+  },
+  {
+   "shape": "[+N]: Target creature you control gains deathtouch and lifelink until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sorin, Imperious Bloodlord"
+   ]
+  },
+  {
+   "shape": "[+N]: Until your next turn, up to one target creature gets -N/-N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mu Yanling, Celestial Wind"
+   ]
+  },
+  {
+   "shape": "[+N]: Up to one target creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sorin, Vampire Lord"
+   ]
+  },
+  {
+   "shape": "[+N]: You may sacrifice a Vampire.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sorin, Imperious Bloodlord"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Add {R}{R}.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra, Novice Pyromancer"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Creatures you control gain flying and double strike until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ajani, Inspiring Leader"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Creatures you control with flying get +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mu Yanling, Celestial Wind"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Return up to two target creatures to their owners' hands.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mu Yanling, Celestial Wind"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Until end of turn, each Vampire you control gains \"{T}: Gain control of target creature.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sorin, Vampire Lord"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: You may put a Vampire creature card from your hand onto the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sorin, Imperious Bloodlord"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: ~ deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sorin, Vampire Lord"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: ~ deals N damage to each non-Elemental creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra, Awakened Inferno"
+   ]
+  },
+  {
+   "shape": "[\u2212X]: ~ deals X damage to target creature or planeswalker.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra, Awakened Inferno"
+   ]
+  },
+  {
+   "shape": "{B}, Pay N life: Target creature gets -N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Vilis, Broker of Blood"
+   ]
+  },
+  {
+   "shape": "{G}: This creature gains your choice of reach, trample, or haste until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Shifting Ceratops"
+   ]
+  },
+  {
+   "shape": "{N}, Sacrifice this creature: It deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Ember Hauler"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Discard a Mountain card or a red card: Draw a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Chandra's Regulator"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Sacrifice this land: Draw a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Cryptic Caves"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: This artifact deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Retributive Wand"
+   ]
+  },
+  {
+   "shape": "{N}{B}, {T}: This creature deals N damage to target opponent or planeswalker.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Sorcerer of the Fang"
+   ]
+  },
+  {
+   "shape": "{N}{B}: Each opponent loses N life and you gain N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vampire Opportunist"
+   ]
+  },
+  {
+   "shape": "{N}{B}: Return this card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Sanitarium Skeleton"
+   ]
+  },
+  {
+   "shape": "{N}{B}: This creature gets +N/+N and gains deathtouch until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Knight of the Ebon Legion"
+   ]
+  },
+  {
+   "shape": "{N}{B}{B}: Return target creature card from your graveyard to the battlefield tapped.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Gravewaker"
+   ]
+  },
+  {
+   "shape": "{N}{G}, {T}: Look at the top four cards of your library.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Brightwood Tracker"
+   ]
+  },
+  {
+   "shape": "{N}{R}, Discard a card: Draw a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Glint-Horn Buccaneer"
+   ]
+  },
+  {
+   "shape": "{N}{R}: Creatures you control get +N/+N and gain haste until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Cavalier of Flame"
+   ]
+  },
+  {
+   "shape": "{N}{R}: Each creature you control named ~ gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Pack Mastiff"
+   ]
+  },
+  {
+   "shape": "{N}{R}{R}: This creature deals N damage to target player.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Pyroclastic Elemental"
+   ]
+  },
+  {
+   "shape": "{N}{U}{U}: This creature can't be blocked this turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Frilled Sea Serpent"
+   ]
+  },
+  {
+   "shape": "{N}{W}, Exile this creature: Exile target creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Hanged Executioner"
+   ]
+  },
+  {
+   "shape": "{N}{W}: This creature gains first strike until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Moorland Inquisitor"
+   ]
+  },
+  {
+   "shape": "{T}: Add three mana of any one color.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Lotus Field"
+   ]
+  },
+  {
+   "shape": "{T}: Put a +N/+N counter on each artifact creature you control.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Steel Overseer"
+   ]
+  },
+  {
+   "shape": "{T}: Target creature becomes the color or colors of your choice until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Scuttlemutt"
+   ]
+  },
+  {
+   "shape": "{U}, {T}: Search your library for a card named Heart-Piercer Bow or Vial of Dragonfire, reveal it, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Renowned Weaponsmith"
+   ]
+  },
+  {
+   "shape": "{U}: This creature gets +N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Metropolis Sprite"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to each creature except for creatures you control with flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Flame Sweep"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to target creature and N damage to that creature's controller.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra's Outrage"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to target creature and you gain N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sorin's Thirst"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to target player and each creature that player controls.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra's Flame Wave"
+   ]
+  },
+  {
+   "shape": "~'s power is equal to the number of creatures you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ironroot Warlord"
+   ]
+  },
+  {
+   "shape": "\u2022 Choose target artifact you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Masterful Replication"
+   ]
+  },
+  {
+   "shape": "\u2022 Create two N/N colorless Golem artifact creature tokens.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Masterful Replication"
+   ]
+  },
+  {
+   "shape": "\u2022 Double the number of +N/+N counters on this creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Voracious Hydra"
+   ]
+  },
+  {
+   "shape": "\u2022 This creature fights target creature you don't control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Voracious Hydra"
+   ]
+  },
+  {
+   "shape": "<shape gap>",
+   "count": 1,
+   "hints": [],
+   "cards": [
+    "Bloodsoaked Altar"
+   ],
+   "error": "StateCorruptionError: compile_card: activation-gate sentence matched but no preceding ActivatedAbility with the gate's target slot(s) free exists to attach it t"
+  },
+  {
+   "shape": "<shape gap>",
+   "count": 1,
+   "hints": [],
+   "cards": [
+    "Diviner's Lockbox"
+   ],
+   "error": "StateCorruptionError: compile_card: activation-gate sentence matched but no preceding ActivatedAbility with the gate's target slot(s) free exists to attach it t"
+  }
+ ],
+ "seconds": 1.1
+}
