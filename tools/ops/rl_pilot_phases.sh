@@ -125,12 +125,18 @@ audit() {   # RED (nonzero) = logprob plumbing broken => halt (v2 F4 discriminat
 }
 
 # train TAG EPISODES -> saves $ART/${TAGP}${TAG}.pt + _diag.json; device=TRAIN_DEV
+# LR is the night-3 lever (/157): 1e-4 = 10x the 1e-5 of nights 1-2, whose single
+# SGD update moved the policy sub-threshold (MIRROR-FLAT, /156: weight step ~1e-5,
+# mean|dlogp| 1.7e-6, share|dlogp|>0.1 = 0). One lever value per night, documented
+# in the KNOWLEDGE entry that arms it; changing it is a payload change => re-smoke
+# (real mode) + explicit re-pin before the window.
 train() {
   local tag=$1 ep=$2 to
   to=$(guard_to 7200 120) || { log "train/$tag: budget too small — chain stops honestly (never start an update that can be cut off mid-save)"; exit 8; }
   run_hard "train/$tag" "$to" "$VENV" -m tools.training.train_rl_v1 \
     --episodes "$ep" --policy "$ANCHOR_REL" --anchor "$ANCHOR_REL" \
-    --device "$TRAIN_DEV" --tag "${TAGP}${tag}" --out-dir "$ART"
+    --device "$TRAIN_DEV" --tag "${TAGP}${tag}" --out-dir "$ART" \
+    --lr 1e-4
   ledger_row "train" "$tag" "$tag" "-" "-" "-" "rc=0" "device=$TRAIN_DEV 1 update"
   diag_ok "$tag"
 }
