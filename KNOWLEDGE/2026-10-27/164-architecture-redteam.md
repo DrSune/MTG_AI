@@ -70,3 +70,30 @@ Full document: `docs/REVIEW_ARCHITECTURE_2026-10-27.md`. Evidence comes from
 - The CED session (`ced-training`) runs queue A20: scoring, then round-1 training, then
   `docker start qwen-nvfp4`. It has a hard stop at 23:00.
 - The local MTG agent has no model until the engine is back.
+
+## Follow-up, same afternoon: B-45 coherent decks, and the crash they found (branch `sets/onboarding` `36adf48`)
+- **The new mode.** `deal_decks(..., deck_mode="coherent")`, also bench `--deck-mode coherent`:
+  two seeded colours, 24 basics, 36 cards uniform within the colour pair, at most 4 copies.
+  - The default `"stress"` is byte-identical: the M21 seeds 1-5 deal hash `e9fceb12fb91e3ab`, the
+    same on `main` and the branch.
+  - 24 lands is a registered scaffold.
+- **What it changes,** over 200 RandomPolicy M21 games each:
+
+  | Mode | Turns per game | Acts per game | Seat 0 win rate |
+  |---|---|---|---|
+  | Stress | 34.5 | 78.8 | 0.531 |
+  | Coherent | 28.7 | 87.0 | 0.543 |
+
+- **It found an engine crash in 1 of 200 games.** Rise Again returned Wildwood Scourge, whose ETB
+  reads X, and the engine raised `NotImplementedError` ("QX has no declared X").
+  - CR 107.3b says an object that was not cast has X = 0, so `binding._ctx` now uses X = 0 for a
+    permanent's own ETB when no cast X was recorded. Every other undeclared X stays loud.
+  - The pack `rise_again_x_wildwood_scourge` is red without the fix, with the exact error. With it,
+    the 0/0 dies to state-based actions, CR 704.5f.
+  - Afterwards, 200 coherent games had 0 crashes, and the 200 stress games were identical before
+    and after.
+- **ZNR deals have shifted.** S-1 and S-2 compile more ZNR cards, which changes ZNR's castable pool,
+  so the ZNR seed 1-5 deal hash differs from `main` (M21 is unchanged). Do not compare ZNR game
+  numbers across the merge.
+- **For the RL pilot:** after the merge, M21 behaviour changes only where a game used to crash. The
+  re-pin must re-smoke.

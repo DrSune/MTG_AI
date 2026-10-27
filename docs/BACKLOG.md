@@ -16,6 +16,7 @@ are neutral; each one is teaching the agent something.
 
 | Scaffold | Where | Removal condition |
 |---|---|---|
+| **Coherent-deck recipe (B-45)**: 2 seeded colours, 24 basics, 36 cards uniform within the colour pair | `core/executor/games.py` `build_coherent_deck` / `COHERENT_LANDS` (branch `sets/onboarding` 36adf48) | It chooses colours and land count, never which spells. Remove when decks come from a learned deckbuilder (draft/sealed or constructed), or replace the land count with a learned or sampled quantity. Opt-in only; the default stays the stress pile. |
 | **Thirteen shaping reward terms** — damage, life, board presence, board delta, cards, action discovery, mana generation, proactivity, penalties | `strategic_brain/environment.py:164-211` | Replace with outcome plus at most a couple of defensible terms. A 200-step game currently accrues about +20 of shaping against ±10 for the actual result, so the agent is optimising the shaping. Remove once the engine is correct enough that winning is learnable directly. |
 | **Proactivity bias** — subtracts up to 10 nats from every pass action's logit | `strategic_brain/student.py:126-129` | Delete. It is applied at collection but not at training, which pins the PPO ratio to e^±10 on every pass action. It exists to fight "the agent passes", which is a symptom of the reward and the dead action space, not of the policy. |
 | **`MAX_MOVES_PER_STEP = 500`** | `rule_engine/engine.py` | Replace with the loop detection in [`DESIGN_INFINITIES.md`](DESIGN_INFINITIES.md) plus a wall-clock truncate-and-bootstrap. Currently it pays −10 to whoever found a combo. |
@@ -456,7 +457,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   `ATTACK_AGAINST_COUNT_GE`, `NOT_FIRST_DRAW_THIS_STEP`, `INSTANT_OR_SORCERY_CAST_THIS_TURN` read as
   single cards. Decompose them into general atoms (e.g. a QThisTurn count of CastSpell events with
   an FOr filter) in a gated ontology round ("as few subcomponents as possible", owner 2026-10-19).
-- **B-45 Every dealt deck is a five-colour stress pile**: `build_deck` (`core/executor/games.py:360-401`)
+- **B-45 [opt-in mode on branch `sets/onboarding` 36adf48, /164] Every dealt deck is a five-colour stress pile**: `build_deck` (`core/executor/games.py:360-401`)
   takes one basic of each colour plus other mana sources up to 10, then 50 cards uniformly from the
   whole pool. Measured on 400 M21 decks: 13.4 lands of 60 on average (range 7–23), 16.6 mana sources,
   five colours. Real decks run about 40% lands in two colours. Every BC, RL and benchmark number was
