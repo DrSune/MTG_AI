@@ -236,9 +236,15 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
     * ``engine`` — the honest 286 from the 12e gated pass (``supported_verbs=
       SUPPORTED_VERBS_V2``), where a raise is always a bug.
     * ``castable`` — engine-supported AND put-into-playable by the executor.
+    * ``compiled`` — castable AND fully compiled: no unparsed sentence, no
+      ambiguity, no unparsed back face. The other modes deal partly compiled
+      cards with their unparsed text silently missing (B-28, against
+      DESIGN_CARD_POOL.md:219); this one plays only cards whose whole text is in
+      the tree. It equals ``castable`` on M21; it is how a new set (M20, KHM)
+      is played honestly while its grammar rounds run (KNOWLEDGE /159).
     """
-    if mode not in ("all", "engine", "castable"):
-        raise ValueError(f"unknown pool_mode {mode!r} (all|engine|castable)")
+    if mode not in ("all", "engine", "castable", "compiled"):
+        raise ValueError(f"unknown pool_mode {mode!r} (all|engine|castable|compiled)")
     started = time.perf_counter()
     raw = ingest_pool(REPO / "MTG_bot" / "data" / f"{set_code}.json")
     registry = build_full_registry()
@@ -307,6 +313,18 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
         deckable = tuple(sorted(metas))
     elif mode == "engine":
         deckable = tuple(sorted(oid for oid in engine_ids if oid in metas))
+    elif mode == "compiled":
+        deckable = tuple(
+            sorted(
+                oid
+                for oid in playable_engine
+                if not (
+                    pool.results[oid].unparsed
+                    or pool.results[oid].ambiguities
+                    or pool.results[oid].back_face_unparsed
+                )
+            )
+        )
     else:
         deckable = tuple(sorted(playable_engine))
     if not deckable:

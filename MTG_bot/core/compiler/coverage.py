@@ -357,7 +357,8 @@ def _compile_pool_tolerant(
         owner_oid = next(
             (name_to_oid[n] for n in raw.related_names if n in name_to_oid), None
         )
-        if owner_oid is not None:
+        # B-38, mirroring compiler.compile_pool: a back-face planeswalker's emblem stays an orphan.
+        if owner_oid is not None and "Planeswalker" in results[owner_oid].card.types:
             owner_result = results[owner_oid]
             results[owner_oid] = replace(
                 owner_result, card=replace(owner_result.card, emblem=results[oid].card)

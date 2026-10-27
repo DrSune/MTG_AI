@@ -54,8 +54,10 @@ class RuleReminderOutcome:
     """A sentence that is a rules reminder, not a game action.
 
     ``reason`` is ``'full_paren'`` for a fully-parenthesised note
-    (e.g. ``(Scry a card …)``) or ``'keyword_reminder'`` for a bare
-    keyword sentence that matches the card's printed keyword list.
+    (e.g. ``(Scry a card …)``), ``'keyword_reminder'`` for a bare
+    keyword sentence that matches the card's printed keyword list, or
+    ``'keyword_line'`` for a comma-separated line of such keywords with
+    optional trailing reminder text (``compiler._is_keyword_line``).
     """
 
     reason: str
