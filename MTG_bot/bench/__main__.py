@@ -74,7 +74,8 @@ def _llm_identity(args: argparse.Namespace) -> dict[str, Any]:
 
 def cmd_duel(args: argparse.Namespace) -> int:
     deals = [
-        DealSpec(seed=s, set_code=args.set, pool_mode=args.pool, turn_cap=args.turn_cap)
+        DealSpec(seed=s, set_code=args.set, pool_mode=args.pool, turn_cap=args.turn_cap,
+                 deck_mode=args.deck_mode)
         for s in range(args.first_deal, args.first_deal + args.deals)
     ]
     identities: dict[str, dict[str, Any]] = {}
@@ -199,6 +200,8 @@ def main(argv: list[str] | None = None) -> int:
     d.add_argument("--set", default="M21")
     d.add_argument("--pool", default="castable")
     d.add_argument("--turn-cap", type=int, default=TURN_CAP)
+    d.add_argument("--deck-mode", choices=("stress", "coherent"), default="stress",
+                   help="stress: five-colour piles (default); coherent: two colours, 24 basics")
     d.add_argument(
         "--primer", action="store_true", help="give llm seats the engine primer"
     )

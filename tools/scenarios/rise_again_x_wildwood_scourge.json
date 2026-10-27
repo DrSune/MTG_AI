@@ -1,0 +1,46 @@
+{
+  "name": "rise_again_x_wildwood_scourge",
+  "notes": "CR 107.3b: an object that was not cast has X = 0. Rise Again returns Wildwood Scourge ({X}{G} 0/0, 'enters with X +1/+1 counters', compiled as an ETB trigger reading QX) from the graveyard. No spell declared X, so the ETB resolves X = 0. The Scourge is a 0/0 and dies to state-based actions (CR 704.5f), back to the graveyard. Until 2026-10-27 the ETB raised NotImplementedError ('QX has no declared X') and voided the game; the coherent-deck mode found it (B-45, KNOWLEDGE /164; M21 coherent seed 187). The cast path is pinned separately by basri_ket_x_wildwood_scourge (X carried from the spell, CR 614.1c).",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "sp",
+      "real": "Rise Again",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "ws",
+      "real": "Wildwood Scourge",
+      "zone": "graveyard",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "B": 5
+    }
+  },
+  "steps": [
+    {
+      "op": "cast",
+      "real": "Rise Again",
+      "key": "sp",
+      "targets": [
+        "ws"
+      ]
+    }
+  ],
+  "expect": {
+    "zone": {
+      "sp": "graveyard",
+      "ws": "graveyard"
+    },
+    "mana_pool": {
+      "0": {}
+    }
+  }
+}

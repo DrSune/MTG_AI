@@ -368,7 +368,7 @@ class Executor:
         # binder's _ctx hands it to the firing's ExecCtx (x_value) for that
         # entry ONLY, consuming it. Cleared when the permanent leaves the
         # battlefield so a graveyard re-entry (reanimation) is NOT cast-
-        # context and QX correctly stays the loud 12c flag.
+        # context: its ETB firing reads X = 0 (CR 107.3b; binding._ctx).
         self.etb_x: dict[Handle, int] = {}
         # r23a (Rin and Seri): LOUD refusals of the guarded-static lane —
         # a StaticAbility whose payload is not layer-parseable (12e) is

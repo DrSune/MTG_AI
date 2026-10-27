@@ -1643,7 +1643,11 @@ class TriggerBinder:
         # (a pop there would rob the firing), and every ETB ability of the
         # entering permanent may legitimately mention X. The entry is
         # cleared when the permanent leaves the battlefield, so a later
-        # reanimation fires with no X and QX stays the loud 12c flag.
+        # re-entry carries no cast X. CR 107.3b: an object that was not cast
+        # (reanimated, put onto the battlefield) has X = 0, so its own ETB
+        # firing resolves X as 0. Every other undeclared X stays the loud 12c
+        # flag. Found 2026-10-27 by coherent decks (B-45, /164): Rise Again
+        # returning Wildwood Scourge raised NotImplementedError mid-game.
         x_value: int | None = None
         if (
             event.kind == KIND_ZONE_CHANGE
@@ -1652,7 +1656,7 @@ class TriggerBinder:
             and len(event.data) >= 2
             and event.data[1] == ZONE_BATTLEFIELD
         ):
-            x_value = ex.etb_x.get(source)
+            x_value = ex.etb_x.get(source, 0)
         return ExecCtx(
             world=ex.world,
             ledger=ex.ledger,
