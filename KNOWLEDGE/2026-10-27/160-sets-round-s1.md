@@ -76,3 +76,6 @@ Unless those edits are re-smoked and re-pinned, or set aside, before 23:59, `rl_
 aborts at the export with PIN DRIFT (exit 3). Check before the window:
 `/usr/bin/find MTG_bot tools/eval tools/training -type f \( -name '*.py' -o -name '*.pt' \) ! -name 'test_*.py' | /usr/bin/sort | /usr/bin/xargs /usr/bin/sha256sum | /usr/bin/sha256sum`
 must equal line 1 of `/tmp/opencode/RL_PILOT_PIN`.
+
+Update 15:05: resolved. The T-G5 work landed as /161 (`9c67adf`) with an explicit re-pin
+(`07fd1a6e…`, about 12:1x), and the main tree again hashes to the PIN.
