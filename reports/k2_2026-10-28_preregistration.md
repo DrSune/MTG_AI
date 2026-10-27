@@ -45,3 +45,10 @@ card names (tools/training/ab_duel.py:572-578), so for an unseen card it has not
    is the cost of today's name-reading policy on unseen cards.
 4. **Headline.** components − name on held-out sources, with its paired interval.
 5. **By kind (descriptive).** target and may separately.
+
+## Amendment 1, written 2026-10-28 00:32:41 CET, BEFORE any K2 model was trained
+- **Why.** The first 60-game pass yields far fewer decisions on most sets than on M21: about 70
+  against 358 per 60 games. That projects to roughly 600 informative decisions, too few for a
+  20%-of-cards held-out test.
+- **Change.** Add games 61–360 on every set, files `k2_<SET>_b.jsonl`. The trainer reads both
+  files. Nothing else changes.

@@ -86,11 +86,11 @@ N_OPT = len(option_features({}))
 def load(data: Path) -> tuple[list[dict[str, Any]], dict[str, int]]:
     rows, dropped = [], defaultdict(int)
     for code in SETS:
-        path = data / f"k2_{code}.jsonl"
-        if not path.exists():
+        paths = sorted(data.glob(f"k2_{code}.jsonl")) + sorted(data.glob(f"k2_{code}_*.jsonl"))
+        if not paths:
             dropped["missing set"] += 1
             continue
-        for line in path.open(encoding="utf-8"):
+        for line in (line for path in paths for line in path.open(encoding="utf-8")):
             r = json.loads(line)
             if r.get("kind") == "manifest":
                 continue
