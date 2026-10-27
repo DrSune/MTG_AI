@@ -441,6 +441,21 @@ These are forks, not tasks. See the report that accompanied this audit.
   mechanisms over sentence shapes. The cheapest first are keyword lines carrying reminder text, and
   keyword lists (ZND-4a). Measure every grammar round on a sealed split
   (`tools/audit/new_set.py`).
+- **B-42 MOVE_ZONE has two spellings for one meaning**: the moved object is `cards` in 67 uses and
+  `target` in 20 (the exile family), and "its owner's hand" is `Zone(HAND, OWNER)` on three M21
+  cards and `Zone(HAND, ANY)` on three others (KNOWLEDGE /163). That violates the identity law
+  (DESIGN_ATOM_ONTOLOGY §6). Settle it in a gated ontology round, re-baking goldens.
+- **B-43 A bounced card goes to seat 0's hand, whoever owns it** (live in M21):
+  `executor/selectors.py:162-175` `zone_owner` resolves `Zone(HAND, ANY)` to the first seat. Barrin,
+  Tolarian Archmage; Niambi, Esteemed Speaker; and Roaming Ghostlight compile to that. The OWNER
+  branch also uses `controller_of` (the World has no owner), which is wrong after GAIN_CONTROL.
+  Fix: the three builders → `Zone(HAND, OWNER)`, three goldens re-baked, a pack that bounces an
+  opponent's creature, and an owner field if GAIN_CONTROL cards are dealt. Schedule it at an RL
+  pilot era boundary: it changes M21 episodes.
+- **B-44 One-card predicates**: `LIFE_LEAD_OVER_START_GE`, `NAME_PARTITION_COUNT_GE`,
+  `ATTACK_AGAINST_COUNT_GE`, `NOT_FIRST_DRAW_THIS_STEP`, `INSTANT_OR_SORCERY_CAST_THIS_TURN` read as
+  single cards. Decompose them into general atoms (e.g. a QThisTurn count of CastSpell events with
+  an FOr filter) in a gated ontology round ("as few subcomponents as possible", owner 2026-10-19).
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
   plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
 
