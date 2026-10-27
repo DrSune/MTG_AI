@@ -172,6 +172,41 @@ def test_audit_identity_foreign_bytes_rejected(episodes: Path, tmp_path: Path) -
         audit(eps, NET, device="cpu", tol=1e-3)
 
 
+# ------------------------------------------------- movement discriminator
+@TIMEOUT
+def test_post_update_dlogp_responds_to_update(episodes: Path, tmp_path: Path) -> None:
+    """/158: the movement evidence must depend on the update. The PRE-update
+    consistency key (mean_abs_dlogp_chosen) is bit-identical across lr values
+    (verified on the real 1000g set: 1.6939604285741257e-06 at both 1e-5 and
+    1e-4) — it can never evidence movement. The post-update key must be
+    monotone in the step size on the same owned batch."""
+    d_small = train(
+        episodes, NET, device="cpu", tag="mv_lr_small", out_dir=tmp_path, lr=1e-5
+    )
+    d_big = train(
+        episodes, NET, device="cpu", tag="mv_lr_big", out_dir=tmp_path, lr=0.01
+    )
+    assert d_small["mean_abs_dlogp_chosen_post"] is not None
+    assert d_big["mean_abs_dlogp_chosen_post"] > d_small["mean_abs_dlogp_chosen_post"]
+    # and the consistency key stays blind to the update (its job is identity):
+    assert d_small["mean_abs_dlogp_chosen"] == d_big["mean_abs_dlogp_chosen"]
+
+
+@TIMEOUT
+def test_multi_step_moves_more_than_single(episodes: Path, tmp_path: Path) -> None:
+    """/158: {steps} is the true lever — a single update, at any safe lr, stays
+    sub-threshold (night-2: even 10x lr left KL_post 1.2e-7 << 1e-4). Successive
+    passes must accumulate measurable movement on the same owned batch."""
+    d1 = train(episodes, NET, device="cpu", tag="ms_steps1", out_dir=tmp_path, lr=3e-4)
+    d3 = train(
+        episodes, NET, device="cpu", tag="ms_steps3", out_dir=tmp_path, lr=3e-4, steps=3
+    )
+    assert d1["steps"] == 1 and len(d1["step_grad_norms"]) == 1
+    assert d3["steps"] == 3 and len(d3["step_grad_norms"]) == 3
+    assert d3["kl_mean_per_game_post"] > d1["kl_mean_per_game_post"]
+    assert d3["mean_abs_dlogp_chosen_post"] > d1["mean_abs_dlogp_chosen_post"]
+
+
 # ------------------------------------------------------------ one update
 @TIMEOUT
 def test_one_update_changes_weights_fills_f4(episodes: Path, tmp_path: Path) -> None:

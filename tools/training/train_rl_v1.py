@@ -150,6 +150,7 @@ def train(
     tag: str = "rld_i1",
     out_dir: Path | None = None,
     lr: float = 1e-5,
+    steps: int = 1,
     clip: float = 1.0,
     beta: float = 0.1,
     entropy_coef: float = 0.001,
@@ -211,70 +212,80 @@ def train(
     ask_eps = [ep for ep in eps if ep["asks"]]
     Gk = len(ask_eps)  # KL/entropy are per-game means over games WITH asks
 
-    model.zero_grad(set_to_none=True)
+    if steps < 1:
+        raise ValueError("train_rl_v1: steps must be >= 1")
     pg_sum = kl_sum = ent_sum = loss_sum = 0.0
     n_asks = n_big = 0
     dlogs: list[float] = []
+    dlogs_post: list[float] = []  # /158: chosen-action |Δlogp| AFTER the update
     kl_games: list[float] = []
     ents: list[float] = []
-    anchor_menu_lps: list[list[list[float]]] = []  # cached for post-KL
-
-    for gi, ep in enumerate(eps):
-        cur = BcAsk(model, vocab, max_len, schema)
-        anc = BcAsk(anchor_model, vocab, max_len, schema)
-        n_a = len(ep["asks"])
-        if n_a == 0:
-            continue  # seat never asked: contributes 0 to every term
-        w_pg = -adv[gi] / G  # per-ask weight: sum over asks == game's term
-        w_kl = beta / (Gk * n_a)
-        w_ent = -entropy_coef / (Gk * n_a)
-        live = w_pg != 0.0 or w_kl != 0.0 or w_ent != 0.0
-        g_kl: list[float] = []
-        ep_anchor_lps: list[list[float]] = []
-        for a in ep["asks"]:
-            ctx = AskContext(
-                vocab=a["what"], candidates=tuple(a["vocab"]), world=a["obs"]
-            )
-            _reenter_stash(bc_data_v2, a)
-            logits = cur._forward_menu(torch, ctx, grad=live)
-            lp = torch.log_softmax(logits.float()[0], dim=-1)
-            if lp.numel() != len(a["vocab"]):
-                raise RuntimeError(
-                    f"train_rl_v1: checkpoint scored {lp.numel()} logits for "
-                    f"a {len(a['vocab'])}-menu (ep#{gi} {a['what']!r}) — "
-                    "vocab/encoding mismatch"
-                )
-            _reenter_stash(bc_data_v2, a)  # same digest re-read by anc
-            with torch.no_grad():
-                lp_a = torch.log_softmax(
-                    anc._forward_menu(torch, ctx).float()[0], dim=-1
-                )
-            p = lp.exp()
-            kl = (p * (lp - lp_a)).sum()
-            ent = -(p * lp).sum()
-            if live:
-                loss = w_pg * lp[a["idx"]] + w_kl * kl + w_ent * ent
-                loss.backward()
-            lp_i = float(lp[a["idx"]].detach())
-            kl_i = float(kl.detach())
-            ent_i = float(ent.detach())
-            pg_sum += w_pg * lp_i
-            kl_sum += w_kl * kl_i
-            ent_sum += w_ent * ent_i
-            loss_sum += w_pg * lp_i + w_kl * kl_i + w_ent * ent_i
-            dlogs.append(abs(lp_i - float(lp_a[a["idx"]])))
-            n_big += dlogs[-1] > 0.1
-            g_kl.append(kl_i)
-            ents.append(ent_i)
-            ep_anchor_lps.append(lp_a.detach().cpu().tolist())
-            n_asks += 1
-        kl_games.append(sum(g_kl) / len(g_kl))
-        anchor_menu_lps.append(ep_anchor_lps)
-
-    grad_pre = float(torch.nn.utils.clip_grad_norm_(model.parameters(), clip))
+    anchor_menu_lps: list[list[list[float]]] = []  # cached for post-KL (first pass)
     opt = torch.optim.SGD(model.parameters(), lr=lr)
-    opt.step()
-    opt.zero_grad(set_to_none=True)
+    step_grad_norms: list[float] = []
+    # /158: successive REINFORCE passes. Each pass re-forwards with the CURRENT
+    # weights (the forward model is the loss reference — no importance ratio),
+    # so repeated passes are successive updates, not re-plays; the grad clip
+    # and the KL ceiling vs the frozen anchor are the stability brakes.
+    for _si in range(steps):
+        model.zero_grad(set_to_none=True)
+        for gi, ep in enumerate(eps):
+            cur = BcAsk(model, vocab, max_len, schema)
+            anc = BcAsk(anchor_model, vocab, max_len, schema)
+            n_a = len(ep["asks"])
+            if n_a == 0:
+                continue  # seat never asked: contributes 0 to every term
+            w_pg = -adv[gi] / G  # per-ask weight: sum over asks == game's term
+            w_kl = beta / (Gk * n_a)
+            w_ent = -entropy_coef / (Gk * n_a)
+            live = w_pg != 0.0 or w_kl != 0.0 or w_ent != 0.0
+            g_kl: list[float] = []
+            ep_anchor_lps: list[list[float]] = []
+            for a in ep["asks"]:
+                ctx = AskContext(
+                    vocab=a["what"], candidates=tuple(a["vocab"]), world=a["obs"]
+                )
+                _reenter_stash(bc_data_v2, a)
+                logits = cur._forward_menu(torch, ctx, grad=live)
+                lp = torch.log_softmax(logits.float()[0], dim=-1)
+                if lp.numel() != len(a["vocab"]):
+                    raise RuntimeError(
+                        f"train_rl_v1: checkpoint scored {lp.numel()} logits for "
+                        f"a {len(a['vocab'])}-menu (ep#{gi} {a['what']!r}) — "
+                        "vocab/encoding mismatch"
+                    )
+                _reenter_stash(bc_data_v2, a)  # same digest re-read by anc
+                with torch.no_grad():
+                    lp_a = torch.log_softmax(
+                        anc._forward_menu(torch, ctx).float()[0], dim=-1
+                    )
+                p = lp.exp()
+                kl = (p * (lp - lp_a)).sum()
+                ent = -(p * lp).sum()
+                if live:
+                    loss = w_pg * lp[a["idx"]] + w_kl * kl + w_ent * ent
+                    loss.backward()
+                lp_i = float(lp[a["idx"]].detach())
+                kl_i = float(kl.detach())
+                ent_i = float(ent.detach())
+                pg_sum += w_pg * lp_i
+                kl_sum += w_kl * kl_i
+                ent_sum += w_ent * ent_i
+                loss_sum += w_pg * lp_i + w_kl * kl_i + w_ent * ent_i
+                dlogs.append(abs(lp_i - float(lp_a[a["idx"]])))
+                n_big += dlogs[-1] > 0.1
+                g_kl.append(kl_i)
+                ents.append(ent_i)
+                ep_anchor_lps.append(lp_a.detach().cpu().tolist())
+                n_asks += 1
+            kl_games.append(sum(g_kl) / len(g_kl))
+            if _si == 0:
+                anchor_menu_lps.append(ep_anchor_lps)
+        step_grad_norms.append(
+            float(torch.nn.utils.clip_grad_norm_(model.parameters(), clip))
+        )
+        opt.step()
+    grad_pre = step_grad_norms[0]
 
     kl_post: float | None = None
     if kl_post_check:
@@ -300,6 +311,12 @@ def train(
                     # subtraction below fails on cuda (night-1 crash).
                     t_anc = torch.tensor(anc_lps, dtype=torch.float32, device=lp.device)
                     per_ask.append(float((lp.exp() * (lp - t_anc)).sum()))
+                    # /158: the real movement discriminator. dlogs (above) is
+                    # the PRE-update consistency check — bit-identical across
+                    # lr values, so it can never evidence that the update moved
+                    # the policy. This is the chosen-action logp shift the
+                    # update itself produced (post model vs the anchor).
+                    dlogs_post.append(abs(float(lp[a["idx"]] - t_anc[a["idx"]])))
                 games_post.append(sum(per_ask) / len(per_ask))
         kl_post = sum(games_post) / len(games_post)
 
@@ -310,6 +327,8 @@ def train(
         "anchor": str(Path(anchor).resolve()),
         "device": device,
         "lr": lr,
+        "steps": steps,
+        "step_grad_norms": step_grad_norms,
         "beta": beta,
         "entropy_coef": entropy_coef,
         "clip": clip,
@@ -334,6 +353,15 @@ def train(
         "total_loss": loss_sum,
         "grad_norm_postclip": min(grad_pre, clip),
         "kl_mean_per_game_post": kl_post,
+        # /158: post-update movement keys (None when the post-check is skipped)
+        "mean_abs_dlogp_chosen_post": (
+            sum(dlogs_post) / len(dlogs_post) if dlogs_post else None
+        ),
+        "share_dlogp_gt_0p1_post": (
+            sum(1 for d in dlogs_post if d > 0.1) / len(dlogs_post)
+            if dlogs_post
+            else None
+        ),
         "kl_ceiling": kl_ceiling,
         "kl_ceiling_breach": (kl_post is not None and kl_post > kl_ceiling),
     }
@@ -381,6 +409,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--tag", default="rld_i1")
     ap.add_argument("--out-dir", type=Path, default=None)
     ap.add_argument("--lr", type=float, default=1e-5)
+    ap.add_argument("--steps", type=int, default=1)
     ap.add_argument("--clip", type=float, default=1.0)
     ap.add_argument("--beta", type=float, default=0.1)
     ap.add_argument("--entropy-coef", type=float, default=0.001)
@@ -401,6 +430,7 @@ def main(argv: list[str] | None = None) -> int:
         tag=args.tag,
         out_dir=args.out_dir,
         lr=args.lr,
+        steps=args.steps,
         clip=args.clip,
         beta=args.beta,
         entropy_coef=args.entropy_coef,
