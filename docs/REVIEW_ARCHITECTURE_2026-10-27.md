@@ -281,6 +281,18 @@ None of these refutes the approach. They say where it must be built differently 
   - *Kill:* if the compound-divergence and M20 scores are far below the random split for every
     encoder, F1 is real. Then synthetic-card augmentation or structural encoders are mandatory
     before RL.
+- **K1 result, 2026-10-27** (KNOWLEDGE /165, `reports/k1_2026-10-27.jsonl`; pre-registered
+  `reports/k1_2026-10-27_preregistration.md`).
+  - **Transfer is real where new cards resemble trained ones.** On M20's new cards the IR bag
+    reaches effect-lane R² 0.506 [0.42, 0.57]. That keeps 74% of its seen-card gain and 73% of the
+    identity ceiling.
+  - **It is weak on effects unique in the set.** Three held-out M21 draws: 0.097, 0.003, 0.149,
+    keeping 0–21%. One draw is 96% Peer into the Abyss.
+  - **Atoms against text, with no pretraining:** a tie on M20 (0.506 against 0.503). IR + text is
+    best on ZNR (0.298).
+  - **A transformer over IR sequences does worse than the bag** at about 200 training cards.
+  - **Verdict.** F1 and F2 are real, and they are bounded by effect diversity in training, not by
+    the encoder. That points to synthetic atom compositions (K1b) before any big RL.
 - **K2, value transfer (days).** Train a value net on M21 games with the entity encoder. Measure
   win-prediction calibration on M20's compiled pool zero-shot, against a name-token baseline,
   which sees only `<unk>` there.

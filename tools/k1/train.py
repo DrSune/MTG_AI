@@ -210,14 +210,15 @@ def compound_split(cards: list[str], tokens: dict[str, list[str]], share: float 
     return test
 
 
-def split_rows(rows: list[dict[str, Any]], how: str, tokens: dict[str, list[str]]) -> tuple[list, list]:
+def split_rows(rows: list[dict[str, Any]], how: str, tokens: dict[str, list[str]],
+               salt: str = "card") -> tuple[list, list]:
     cards = sorted({r["oid"] for r in rows})
     if how == "random":
         test = [r for r in rows if _h(f"row:{r['seed']}:{r['oid']}:{r['turn']}:{r['pre']}") < 0.2]
         ids = {id(r) for r in test}
         return [r for r in rows if id(r) not in ids], test
     if how == "cards":
-        held = {c for c in cards if _h(f"card:{c}") < 0.2}
+        held = {c for c in cards if _h(f"{salt}:{c}") < 0.2}
     else:
         held = compound_split(cards, {c: tokens.get(c, []) for c in cards})
     return [r for r in rows if r["oid"] not in held], [r for r in rows if r["oid"] in held]
@@ -310,7 +311,7 @@ def fit_predict(encoder: str, train: list, test: list, table: CardTable, vocab: 
     fit = [r for r in train if r["oid"] not in val_cards]
     val = [r for r in train if r["oid"] in val_cards] or fit[: max(1, len(fit) // 10)]
     best, best_state, bad = math.inf, None, 0
-    batch = 256
+    batch = 1024 if encoder == "ir-seq" else 256  # ir-seq encodes each distinct card once per batch
     order_rng = rng.substream("bench", "k1", encoder, seed)
     for _epoch in range(epochs):
         model.train()
@@ -379,7 +380,24 @@ def r2(pred: torch.Tensor, y: torch.Tensor, mean: torch.Tensor,
     return round(1 - sse / sst, 4) if sst else float("nan")
 
 
-def evaluate(split: str, train: list, test: list, inputs: dict, epochs: int) -> dict[str, Any]:
+def card_bootstrap(pred: torch.Tensor, y: torch.Tensor, mean: torch.Tensor, test: list,
+                   draws: int = 200) -> list[float]:
+    """95% interval of effect-lane R² resampling TEST CARDS (the unit that varies), seeded."""
+    by_card: dict[str, list[int]] = defaultdict(list)
+    for i, r in enumerate(test):
+        by_card[r["oid"]].append(i)
+    cards = sorted(by_card)
+    stream = rng.substream("bench", "k1-bootstrap", len(test))
+    values = []
+    for _ in range(draws):
+        idx = [i for _ in cards for i in by_card[cards[stream.randrange(len(cards))]]]
+        values.append(r2(pred[idx], y[idx], mean, EFFECT_LANES))
+    values.sort()
+    return [values[int(0.025 * draws)], values[int(0.975 * draws) - 1]]
+
+
+def evaluate(split: str, train: list, test: list, inputs: dict, epochs: int,
+             encoders: tuple[str, ...] = ENCODERS) -> dict[str, Any]:
     vocab = {
         "names": {c: i + 1 for i, c in enumerate(sorted({r["oid"] for r in train}))},
         "ir": {}, "text": {},
@@ -423,10 +441,12 @@ def evaluate(split: str, train: list, test: list, inputs: dict, epochs: int) -> 
         "memorized_card_mean_from_train": [r2(memo, y_test, y_mean),
                                            r2(memo, y_test, y_mean, EFFECT_LANES)],
     }
-    for encoder in ENCODERS:
+    for encoder in encoders:
         started = time.perf_counter()
         pred = fit_predict(encoder, train, test, table, vocab, stats, epochs, seed=20261027)
         result[encoder] = [r2(pred, y_test, y_mean), r2(pred, y_test, y_mean, EFFECT_LANES)]
+        if split != "random":
+            result[f"{encoder}_ci95"] = card_bootstrap(pred, y_test, y_mean, test)
         result[f"{encoder}_seconds"] = round(time.perf_counter() - started, 1)
     unseen = [t for r in test for t in (inputs.get((r["oid"], "card")) or {}).get("ir", [])
               if t not in vocab["ir"]]
@@ -440,6 +460,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--epochs", type=int, default=12)
     ap.add_argument("--limit", type=int, default=0, help="cap rows per set (smoke runs)")
     ap.add_argument("--splits", default="random,cards,compound,M20,ZNR")
+    ap.add_argument("--encoders", default=",".join(ENCODERS))
+    ap.add_argument("--card-salt", default="card", help="hash salt of the held-out-cards split")
+    ap.add_argument("--partial", help="append each finished split here as one JSON line")
     ap.add_argument("--out")
     args = ap.parse_args(argv)
     torch.set_num_threads(min(16, os.cpu_count() or 4))
@@ -453,7 +476,7 @@ def main(argv: list[str] | None = None) -> int:
     report: dict[str, Any] = {"repo": str(REPO), "epochs": args.epochs, "splits": {}}
     for split in args.splits.split(","):
         if split in ("random", "cards", "compound"):
-            train, test = split_rows(m21, split, tokens)
+            train, test = split_rows(m21, split, tokens, args.card_salt)
         else:
             other = load(data, split)
             if args.limit:
@@ -471,7 +494,12 @@ def main(argv: list[str] | None = None) -> int:
             report["compound_test_pairs_unseen_in_train"] = round(
                 len(te_pairs - tr_pairs) / max(1, len(te_pairs)), 3)
         print(f"[{split}] train {len(train)} rows / test {len(test)} rows", flush=True)
-        report["splits"][split] = evaluate(split, train, test, inputs, args.epochs)
+        report["splits"][split] = evaluate(split, train, test, inputs, args.epochs,
+                                           tuple(args.encoders.split(",")))
+        if args.partial:
+            with open(args.partial, "a", encoding="utf-8") as fh:
+                fh.write(json.dumps({"split": split, "card_salt": args.card_salt,
+                                     "encoders": args.encoders, **report["splits"][split]}) + "\n")
         print(json.dumps({split: report["splits"][split]}), flush=True)
     text = json.dumps(report, indent=1)
     if args.out:
