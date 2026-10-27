@@ -1,0 +1,51 @@
+{
+ "set": "10E",
+ "checked_at": "2026-10-27T22:15:11+01:00",
+ "source": {
+  "file": "MTG_bot/data/10E.json",
+  "sha256": "64c8f4543109efb776898e04a71c801138b6033f559b044a9d7d065e288ec9c3",
+  "mtgjson": {
+   "date": "2026-10-27",
+   "version": "5.3.0+20261027"
+  }
+ },
+ "scryfall_set": {
+  "code": "10e",
+  "name": "Tenth Edition",
+  "released_at": "2007-07-13",
+  "set_type": "core",
+  "card_count": 510,
+  "printed_size": 383
+ },
+ "cards": {
+  "records": 510,
+  "scryfall_printings": 510,
+  "names_file": 368,
+  "names_scryfall": 368,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 510,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 510,
+  "text_mismatch": []
+ },
+ "tokens": {
+  "set": "T10E",
+  "records": 6,
+  "scryfall_printings": 6,
+  "names_file": 6,
+  "names_scryfall": 6,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 6,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 6,
+  "text_mismatch": []
+ },
+ "verdict": "match",
+ "owner_sign_off": "pending"
+}

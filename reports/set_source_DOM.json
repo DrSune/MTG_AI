@@ -1,0 +1,51 @@
+{
+ "set": "DOM",
+ "checked_at": "2026-10-27T22:15:56+01:00",
+ "source": {
+  "file": "MTG_bot/data/DOM.json",
+  "sha256": "c894fafe1379c6ad0403dcab62b5a31d6b4b17f3aa48c1475e001b248dc8183c",
+  "mtgjson": {
+   "date": "2026-10-27",
+   "version": "5.3.0+20261027"
+  }
+ },
+ "scryfall_set": {
+  "code": "dom",
+  "name": "Dominaria",
+  "released_at": "2018-04-27",
+  "set_type": "expansion",
+  "card_count": 280,
+  "printed_size": 269
+ },
+ "cards": {
+  "records": 280,
+  "scryfall_printings": 280,
+  "names_file": 265,
+  "names_scryfall": 265,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 280,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 280,
+  "text_mismatch": []
+ },
+ "tokens": {
+  "set": "TDOM",
+  "records": 16,
+  "scryfall_printings": 16,
+  "names_file": 13,
+  "names_scryfall": 13,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 16,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 16,
+  "text_mismatch": []
+ },
+ "verdict": "match",
+ "owner_sign_off": "pending"
+}

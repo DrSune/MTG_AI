@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -36,3 +37,14 @@ def test_loyalty_brackets_and_minus_signs_normalise_like_scryfall() -> None:
     assert ns._norm("[+1]: Draw.\n[−3]: Exile.") == ns._norm("+1: Draw.\n-3: Exile.")
     assert ns._norm("[-X]: Do it.") == "-X: Do it."
     assert ns._norm("Add {G}  (mana).") == "Add {G} (mana)."
+
+
+def test_a_sets_split_is_frozen_at_its_first_touch(tmp_path) -> None:
+    # A new set is split against every set grammar rounds have read; a set already touched keeps
+    # the list its first report recorded, so its later sealed reads compare like with like.
+    assert ns.frozen_developed("DOM", tmp_path) == ("M21", "ZNR", "M20", "KHM")
+    assert ns.frozen_developed("M20", tmp_path) == ("M21", "ZNR", "KHM")
+    for stamp, codes in (("2026-10-27_1139", ["M21", "ZNR"]), ("2026-10-28_0900", ["X"])):
+        (tmp_path / f"first_touch_M20_{stamp}.json").write_text(
+            json.dumps({"split": {"developed_on": codes}}), encoding="utf-8")
+    assert ns.frozen_developed("M20", tmp_path) == ("M21", "ZNR")

@@ -1,0 +1,51 @@
+{
+ "set": "M15",
+ "checked_at": "2026-10-27T22:15:48+01:00",
+ "source": {
+  "file": "MTG_bot/data/M15.json",
+  "sha256": "35d1d3ad8ec09173961b916c95c895b5dbf4efd1f73bd4c9390003781c5a18eb",
+  "mtgjson": {
+   "date": "2026-10-27",
+   "version": "5.3.0+20261027"
+  }
+ },
+ "scryfall_set": {
+  "code": "m15",
+  "name": "Magic 2015",
+  "released_at": "2014-07-18",
+  "set_type": "core",
+  "card_count": 284,
+  "printed_size": 269
+ },
+ "cards": {
+  "records": 284,
+  "scryfall_printings": 284,
+  "names_file": 269,
+  "names_scryfall": 269,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 284,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 284,
+  "text_mismatch": []
+ },
+ "tokens": {
+  "set": "TM15",
+  "records": 14,
+  "scryfall_printings": 14,
+  "names_file": 13,
+  "names_scryfall": 13,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 14,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 14,
+  "text_mismatch": []
+ },
+ "verdict": "match",
+ "owner_sign_off": "pending"
+}

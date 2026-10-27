@@ -1,0 +1,1614 @@
+{
+ "set": "DOM",
+ "stamp": "2026-10-27_2220",
+ "provenance": {
+  "data_file": "MTG_bot/data/DOM.json",
+  "data_sha256": "c894fafe1379c6ad0403dcab62b5a31d6b4b17f3aa48c1475e001b248dc8183c",
+  "mtgjson": {
+   "date": "2026-10-27",
+   "version": "5.3.0+20261027"
+  },
+  "head": "6adf6a0659b9bc823c83efb12389fa36d7691e6a",
+  "engine_tree_dirty": []
+ },
+ "split": {
+  "salt": "DOM-sealed-v1",
+  "test_share": 0.4,
+  "rule": "test iff int(sha256(salt:oracle_id)[:8], 16) / 2**32 < test_share",
+  "developed_on": [
+   "M21",
+   "ZNR",
+   "M20",
+   "KHM"
+  ],
+  "counts": {
+   "carry-over": 41,
+   "dev": 118,
+   "test": 119
+  },
+  "carry_over_reasons": {
+   "same text shape": 12,
+   "reprint (same oracle id)": 21,
+   "no rules text": 8
+  }
+ },
+ "engine_dealable": {
+  "engine": true,
+  "castable": true
+ },
+ "carry-over": {
+  "entries": 41,
+  "sentences": 42,
+  "pc1_count": 38,
+  "unparsed": 3,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 42,
+  "sentences_unseen_shape": 0,
+  "unparsed_seen_shape": 3,
+  "unparsed_unseen_shape": 0,
+  "dealable_engine": 33,
+  "dealable_engine_fully_compiled": 30,
+  "dealable_castable": 30,
+  "dealable_castable_fully_compiled": 28,
+  "pc1": 0.9268,
+  "pc2": 0.9286,
+  "pc2_seen_shape": 0.9286,
+  "pc2_unseen_shape": null
+ },
+ "dev": {
+  "entries": 118,
+  "sentences": 270,
+  "pc1_count": 15,
+  "unparsed": 153,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 99,
+  "sentences_unseen_shape": 171,
+  "unparsed_seen_shape": 8,
+  "unparsed_unseen_shape": 145,
+  "dealable_engine": 116,
+  "dealable_engine_fully_compiled": 15,
+  "dealable_castable": 84,
+  "dealable_castable_fully_compiled": 13,
+  "pc1": 0.1271,
+  "pc2": 0.4333,
+  "pc2_seen_shape": 0.9192,
+  "pc2_unseen_shape": 0.152
+ },
+ "test": "sealed",
+ "whole": "sealed",
+ "dev_register": [
+  {
+   "shape": "A deck can have any number of cards named ~.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rat Colony"
+   ]
+  },
+  {
+   "shape": "As long as there are two or more instant and/or sorcery cards in your graveyard, this creature gets +N/+N and has haste.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ghitu Lavarunner"
+   ]
+  },
+  {
+   "shape": "At the beginning of combat on your turn, create a token that's a copy of equipped creature, except the token isn't legendary.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Helm of the Host"
+   ]
+  },
+  {
+   "shape": "At the beginning of combat on your turn, for each Aura and Equipment attached to ~, create a N/N red Elemental creature token with trample and haste.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Valduk, Keeper of the Flame"
+   ]
+  },
+  {
+   "shape": "Aura and Equipment spells you cast cost {N} less to cast.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Danitha Capashen, Paragon"
+   ]
+  },
+  {
+   "shape": "Choose one \u2014",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fiery Intervention"
+   ]
+  },
+  {
+   "shape": "Creatures you control gain first strike until end of turn.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Warlord's Fury"
+   ]
+  },
+  {
+   "shape": "Creatures you control with first strike have double strike.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Kwende, Pride of Femeref"
+   ]
+  },
+  {
+   "shape": "Destroy target nonlegendary creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cast Down"
+   ]
+  },
+  {
+   "shape": "Draw three cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Weight of Memory"
+   ]
+  },
+  {
+   "shape": "During each of your turns, you may play a land and cast a permanent spell of each permanent type from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Muldrotha, the Gravetide"
+   ]
+  },
+  {
+   "shape": "During your turn, equipped creature has first strike.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Jousting Lance"
+   ]
+  },
+  {
+   "shape": "Each other creature you control that's a Fungus or Saproling gets +N/+N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sporecrown Thallid"
+   ]
+  },
+  {
+   "shape": "Enchanted creature has base power and toughness N/N, has defender, loses all other abilities, and is a blue Wall in addition to its other colors and types.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Deep Freeze"
+   ]
+  },
+  {
+   "shape": "Enchanted permanent is legendary.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "In Bolas's Clutches"
+   ]
+  },
+  {
+   "shape": "Exile those tokens at the beginning of the next end step.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Valduk, Keeper of the Flame"
+   ]
+  },
+  {
+   "shape": "Exile ~.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Karn's Temporal Sundering"
+   ]
+  },
+  {
+   "shape": "Goblin spells you cast cost {N} less to cast.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Goblin Warchief"
+   ]
+  },
+  {
+   "shape": "Goblins you control have haste.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Goblin Warchief"
+   ]
+  },
+  {
+   "shape": "I \u2014 Destroy all lands.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fall of the Thran"
+   ]
+  },
+  {
+   "shape": "I \u2014 Return target instant card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Mirari Conjecture"
+   ]
+  },
+  {
+   "shape": "I \u2014 This Saga deals N damage to each creature without flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The First Eruption"
+   ]
+  },
+  {
+   "shape": "I, II \u2014 Create a N/N white Knight creature token with vigilance.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "History of Benalia"
+   ]
+  },
+  {
+   "shape": "I, II \u2014 Create two N/N black Cleric creature tokens.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rite of Belzenlok"
+   ]
+  },
+  {
+   "shape": "I, II \u2014 Mill two cards, then you may return a creature card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Mending of Dominaria"
+   ]
+  },
+  {
+   "shape": "I, II \u2014 Put a +N/+N counter on target creature you control with the greatest power.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Triumph of Gerrard"
+   ]
+  },
+  {
+   "shape": "II \u2014 Add {R}{R}.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The First Eruption"
+   ]
+  },
+  {
+   "shape": "II \u2014 Return target sorcery card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Mirari Conjecture"
+   ]
+  },
+  {
+   "shape": "II, III \u2014 Each player returns two land cards from their graveyard to the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fall of the Thran"
+   ]
+  },
+  {
+   "shape": "III \u2014 Create a N/N black Demon creature token with flying, trample, and \"At the beginning of your upkeep, sacrifice another creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rite of Belzenlok"
+   ]
+  },
+  {
+   "shape": "III \u2014 Knights you control get +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "History of Benalia"
+   ]
+  },
+  {
+   "shape": "III \u2014 Return all land cards from your graveyard to the battlefield, then shuffle your graveyard into your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Mending of Dominaria"
+   ]
+  },
+  {
+   "shape": "III \u2014 Sacrifice a Mountain.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The First Eruption"
+   ]
+  },
+  {
+   "shape": "III \u2014 Target creature you control with the greatest power gains flying, first strike, and lifelink until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Triumph of Gerrard"
+   ]
+  },
+  {
+   "shape": "III \u2014 Until end of turn, whenever you cast an instant or sorcery spell, copy it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Mirari Conjecture"
+   ]
+  },
+  {
+   "shape": "If a source would deal damage to equipped creature, prevent N of that damage.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shield of the Realm"
+   ]
+  },
+  {
+   "shape": "If a spell cast this way would be put into your graveyard, exile it instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Jaya Ballard Emblem"
+   ]
+  },
+  {
+   "shape": "If both coins come up heads, this creature gains double strike until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Two-Headed Giant"
+   ]
+  },
+  {
+   "shape": "If both coins come up tails, this creature gains menace until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Two-Headed Giant"
+   ]
+  },
+  {
+   "shape": "If it's legendary, it also gains lifelink until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blessing of Belzenlok"
+   ]
+  },
+  {
+   "shape": "If the card's mana value is N or greater, repeat this process.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Demonlord Belzenlok"
+   ]
+  },
+  {
+   "shape": "If this spell was kicked, that creature gets +N/+N until end of turn instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gift of Growth"
+   ]
+  },
+  {
+   "shape": "If this spell was kicked, that creature gets -N/-N until end of turn instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vicious Offering"
+   ]
+  },
+  {
+   "shape": "If you can't, this token deals N damage to you.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rite of Belzenlok"
+   ]
+  },
+  {
+   "shape": "If you do, create a token that's a copy of this creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mishra's Self-Replicator"
+   ]
+  },
+  {
+   "shape": "If you do, this Saga deals N damage to each creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The First Eruption"
+   ]
+  },
+  {
+   "shape": "If ~ was kicked, it enters with five +N/+N counters on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Grunn, the Lonely King"
+   ]
+  },
+  {
+   "shape": "It gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gift of Growth"
+   ]
+  },
+  {
+   "shape": "It loses all abilities until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Merfolk Trickster"
+   ]
+  },
+  {
+   "shape": "Kicker\u2014Sacrifice a creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vicious Offering"
+   ]
+  },
+  {
+   "shape": "Landfall \u2014 Whenever a land you control enters, you gain N life and draw a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tatyova, Benthic Druid"
+   ]
+  },
+  {
+   "shape": "Look at the top X cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kamahl's Druidic Vow"
+   ]
+  },
+  {
+   "shape": "Look at the top five cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Board the Weatherlight"
+   ]
+  },
+  {
+   "shape": "Other creatures you control get +N/+N.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Benalish Marshal"
+   ]
+  },
+  {
+   "shape": "Prevent the next N damage that would be dealt to any target this turn by a source of your choice.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Healing Grace"
+   ]
+  },
+  {
+   "shape": "Put one into your hand and the other into your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Final Parting"
+   ]
+  },
+  {
+   "shape": "Put the rest into your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kamahl's Druidic Vow"
+   ]
+  },
+  {
+   "shape": "Put two loyalty counters on a planeswalker you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Settle the Score"
+   ]
+  },
+  {
+   "shape": "Red instant and sorcery spells you control have lifelink.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Firesong and Sunspeaker"
+   ]
+  },
+  {
+   "shape": "Return all legendary permanent cards from your graveyard to the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Primevals' Glorious Rebirth"
+   ]
+  },
+  {
+   "shape": "Return it to the battlefield under its owner's control at the beginning of the next end step.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Oath of Teferi"
+   ]
+  },
+  {
+   "shape": "Return target permanent you control to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rescue"
+   ]
+  },
+  {
+   "shape": "Return up to one target nonland permanent to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Karn's Temporal Sundering"
+   ]
+  },
+  {
+   "shape": "Sacrifice a Goblin: Add {R}.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Skirk Prospector"
+   ]
+  },
+  {
+   "shape": "Search your library and/or graveyard for a card named Chandra, Bold Pyromancer, reveal it, and put it into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra's Outburst"
+   ]
+  },
+  {
+   "shape": "Search your library for two cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Final Parting"
+   ]
+  },
+  {
+   "shape": "Target creature gets +N/+N and gains indestructible until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Adamant Will"
+   ]
+  },
+  {
+   "shape": "Target player mills three cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Weight of Memory"
+   ]
+  },
+  {
+   "shape": "Target player takes an extra turn after this one.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Karn's Temporal Sundering"
+   ]
+  },
+  {
+   "shape": "That token gains haste.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Helm of the Host"
+   ]
+  },
+  {
+   "shape": "Then discard a card unless you exile a historic card from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Urza's Tome"
+   ]
+  },
+  {
+   "shape": "Then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Final Parting"
+   ]
+  },
+  {
+   "shape": "This creature attacks each combat if able.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Juggernaut"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked by Walls.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Juggernaut"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked by creatures with power N or less.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Steel Leaf Champion"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked if you've cast a historic spell this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Relic Runner"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N for each Aura and Equipment attached to it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Champion of the Flame"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N for each other Rat you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rat Colony"
+   ]
+  },
+  {
+   "shape": "This land enters tapped unless you control a Swamp or a Forest.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Woodland Cemetery"
+   ]
+  },
+  {
+   "shape": "This land enters tapped unless you control an Island or a Mountain.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sulfur Falls"
+   ]
+  },
+  {
+   "shape": "Untap up to three lands.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Unwind"
+   ]
+  },
+  {
+   "shape": "Up to two target creatures can't block this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Seismic Shift"
+   ]
+  },
+  {
+   "shape": "When enchanted creature dies, return that card to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Demonic Vigor"
+   ]
+  },
+  {
+   "shape": "When this creature enters, create a N/N green Saproling creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Yavimaya Sapherd"
+   ]
+  },
+  {
+   "shape": "When this creature enters, if it was kicked, each opponent discards two cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Caligo Skin-Witch"
+   ]
+  },
+  {
+   "shape": "When this creature enters, if it was kicked, gain control of target creature until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Keldon Overseer"
+   ]
+  },
+  {
+   "shape": "When this creature enters, if it was kicked, it fights another target creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Territorial Allosaurus"
+   ]
+  },
+  {
+   "shape": "When this creature enters, if it was kicked, return target artifact card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Excavation Elephant"
+   ]
+  },
+  {
+   "shape": "When this creature enters, it deals N damage to each opponent and each creature and planeswalker they control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Goblin Chainwhirler"
+   ]
+  },
+  {
+   "shape": "When this creature enters, it deals X damage to target creature an opponent controls, where X is the number of Wizards you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Firefist Adept"
+   ]
+  },
+  {
+   "shape": "When this creature enters, tap target creature an opponent controls.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Merfolk Trickster"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may return target artifact card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Daring Archaeologist"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may search your library for a basic land card, reveal it, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Skittering Surveyor"
+   ]
+  },
+  {
+   "shape": "When ~ enters, exile another target permanent you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Oath of Teferi"
+   ]
+  },
+  {
+   "shape": "When ~ enters, exile cards from the top of your library until you exile a nonland card, then put that card into your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Demonlord Belzenlok"
+   ]
+  },
+  {
+   "shape": "When ~ enters, if he was kicked, create eight N/N black Zombie Knight creature tokens with menace.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Josu Vess, Lich Knight"
+   ]
+  },
+  {
+   "shape": "When ~ enters, if it was kicked, create Karox Bladewing, a legendary N/N red Dragon creature token with flying.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Verix Bladewing"
+   ]
+  },
+  {
+   "shape": "When ~ enters, you may search your library and/or graveyard for a card named Teferi, Timebender, reveal it, and put it into your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Niambi, Faithful Healer"
+   ]
+  },
+  {
+   "shape": "Whenever a Saproling you control dies, ~ deals N damage to each opponent and you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Slimefoot, the Stowaway"
+   ]
+  },
+  {
+   "shape": "Whenever a creature an opponent controls is dealt damage, put a +N/+N counter on ~.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Kazarov, Sengir Pureblood"
+   ]
+  },
+  {
+   "shape": "Whenever a white instant or sorcery spell causes you to gain life, ~ deals N damage to target creature or player.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Firesong and Sunspeaker"
+   ]
+  },
+  {
+   "shape": "Whenever an Aura or Equipment you control is put into a graveyard from the battlefield, you may return that card to its owner's hand at the beginning of the next end step.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Tiana, Ship's Caretaker"
+   ]
+  },
+  {
+   "shape": "Whenever another Elf you control enters, put a +N/+N counter on ~.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Marwyn, the Nurturer"
+   ]
+  },
+  {
+   "shape": "Whenever equipped creature dies, attach this Equipment to target creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Forebear's Blade"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, flip two coins.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Two-Headed Giant"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, put a lore counter on target Saga you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Keldon Warcaller"
+   ]
+  },
+  {
+   "shape": "Whenever this creature blocks or becomes blocked by an equipped creature, destroy all Equipment attached to that creature at end of combat.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Corrosive Ooze"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a historic spell, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Jhoira, Weatherlight Captain"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a historic spell, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Daring Archaeologist"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a historic spell, return target creature card with mana value N or less from your graveyard to the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Teshar, Ancestor's Apostle"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a historic spell, tap target creature an opponent controls.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "D'Avenant Trapper"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a historic spell, target player mills two cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Diligent Excavator"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a historic spell, this creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Serra Disciple"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a historic spell, untap ~.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Traxos, Scourge of Kroog"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a historic spell, you may pay {N}.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Mishra's Self-Replicator"
+   ]
+  },
+  {
+   "shape": "Whenever you draw a card, exile target permanent an opponent controls.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Teferi, Hero of Dominaria Emblem"
+   ]
+  },
+  {
+   "shape": "Whenever ~ attacks alone, double its power and toughness until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Grunn, the Lonely King"
+   ]
+  },
+  {
+   "shape": "You control enchanted permanent.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "In Bolas's Clutches"
+   ]
+  },
+  {
+   "shape": "You may activate the loyalty abilities of planeswalkers you control twice each turn rather than only once.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Oath of Teferi"
+   ]
+  },
+  {
+   "shape": "You may cast instant and sorcery spells from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Jaya Ballard Emblem"
+   ]
+  },
+  {
+   "shape": "You may pay {N}{U} and tap an untapped artifact you control rather than pay this spell's mana cost.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Zahid, Djinn of the Lamp"
+   ]
+  },
+  {
+   "shape": "You may pay {W}{U}{B}{R}{G} rather than pay the mana cost for spells you cast.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Jodah, Archmage Eternal"
+   ]
+  },
+  {
+   "shape": "You may put a land card from your hand onto the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Broken Bond"
+   ]
+  },
+  {
+   "shape": "You may put any number of land and/or legendary permanent cards with mana value X or less from among them onto the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kamahl's Druidic Vow"
+   ]
+  },
+  {
+   "shape": "You may reveal a historic card from among them and put it into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Board the Weatherlight"
+   ]
+  },
+  {
+   "shape": "[+N]: Add {R}{R}.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra, Bold Pyromancer"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: ~ deals N damage to target player and each creature and planeswalker they control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra, Bold Pyromancer"
+   ]
+  },
+  {
+   "shape": "{B}, {T}, Tap X untapped Knights you control: Destroy target creature with power X or less.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Aryel, Knight of Windgrace"
+   ]
+  },
+  {
+   "shape": "{N}, Sacrifice a creature: Draw a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Thallid Soothsayer"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Draw a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Urza's Tome"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Tap target artifact, creature, or land.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Icy Manipulator"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: You may put a historic permanent card from your hand onto the battlefield.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Thran Temporal Gateway"
+   ]
+  },
+  {
+   "shape": "{N}: Create a N/N green Saproling creature token.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Slimefoot, the Stowaway"
+   ]
+  },
+  {
+   "shape": "{N}{R}, {T}, Sacrifice this land: Destroy target land.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Memorial to War"
+   ]
+  },
+  {
+   "shape": "{N}{R}: ~ deals N damage to target creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Kazarov, Sengir Pureblood"
+   ]
+  },
+  {
+   "shape": "{N}{U}, {T}, Sacrifice this land: Draw two cards.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Memorial to Genius"
+   ]
+  },
+  {
+   "shape": "{N}{W}, {T}, Sacrifice this land: Create two N/N white Soldier creature tokens.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Memorial to Glory"
+   ]
+  },
+  {
+   "shape": "{N}{W}, {T}: Create a N/N white Knight creature token with vigilance.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Aryel, Knight of Windgrace"
+   ]
+  },
+  {
+   "shape": "{T}, Sacrifice an artifact: Draw a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Sage of Lat-Nam"
+   ]
+  },
+  {
+   "shape": "{T}, Sacrifice this creature: Return target enchantment card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Tragic Poet"
+   ]
+  },
+  {
+   "shape": "{T}, Sacrifice two creatures: Return target creature card from your graveyard to the battlefield.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Whisper, Blood Liturgist"
+   ]
+  },
+  {
+   "shape": "{T}: Add an amount of {G} equal to ~'s power.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Marwyn, the Nurturer"
+   ]
+  },
+  {
+   "shape": "{T}: Add {C} for each artifact you control named ~.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Powerstone Shard"
+   ]
+  },
+  {
+   "shape": "~ can't be the target of abilities your opponents control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shanna, Sisay's Legacy"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to target attacking or blocking creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gideon's Reproach"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to target creature with flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Pierce the Sky"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to target player and N damage to each creature that player controls.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Radiating Lightning"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to target player or planeswalker.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra's Outburst"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to target player.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra, Bold Pyromancer"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to you for each card put into your hand this way.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Demonlord Belzenlok"
+   ]
+  },
+  {
+   "shape": "~ enters tapped and doesn't untap during your untap step.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Traxos, Scourge of Kroog"
+   ]
+  },
+  {
+   "shape": "~ gets +N/+N for each creature you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shanna, Sisay's Legacy"
+   ]
+  },
+  {
+   "shape": "\u2022 ~ deals N damage to target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fiery Intervention"
+   ]
+  }
+ ],
+ "seconds": 0.9
+}

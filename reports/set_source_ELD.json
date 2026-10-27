@@ -1,0 +1,51 @@
+{
+ "set": "ELD",
+ "checked_at": "2026-10-27T22:16:19+01:00",
+ "source": {
+  "file": "MTG_bot/data/ELD.json",
+  "sha256": "528631fcffeb75797645bf9030093b67ff0fb26475041a96f0dc3c9a4c2eeba7",
+  "mtgjson": {
+   "date": "2026-10-26",
+   "version": "5.3.0+20261026"
+  }
+ },
+ "scryfall_set": {
+  "code": "eld",
+  "name": "Throne of Eldraine",
+  "released_at": "2019-10-04",
+  "set_type": "expansion",
+  "card_count": 397,
+  "printed_size": null
+ },
+ "cards": {
+  "records": 457,
+  "scryfall_printings": 397,
+  "names_file": 285,
+  "names_scryfall": 285,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 397,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 457,
+  "text_mismatch": []
+ },
+ "tokens": {
+  "set": "TELD",
+  "records": 20,
+  "scryfall_printings": 20,
+  "names_file": 17,
+  "names_scryfall": 17,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 20,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 20,
+  "text_mismatch": []
+ },
+ "verdict": "match",
+ "owner_sign_off": "pending"
+}

@@ -1,0 +1,1865 @@
+{
+ "set": "M19",
+ "stamp": "2026-10-27_2220",
+ "provenance": {
+  "data_file": "MTG_bot/data/M19.json",
+  "data_sha256": "30766ea23a65cb95963deaae68d2e256e66d160a36dd2349d273552f149124bd",
+  "mtgjson": {
+   "date": "2026-10-26",
+   "version": "5.3.0+20261026"
+  },
+  "head": "6adf6a0659b9bc823c83efb12389fa36d7691e6a",
+  "engine_tree_dirty": []
+ },
+ "split": {
+  "salt": "M19-sealed-v1",
+  "test_share": 0.4,
+  "rule": "test iff int(sha256(salt:oracle_id)[:8], 16) / 2**32 < test_share",
+  "developed_on": [
+   "M21",
+   "ZNR",
+   "M20",
+   "KHM"
+  ],
+  "counts": {
+   "carry-over": 104,
+   "dev": 130,
+   "test": 83
+  },
+  "carry_over_reasons": {
+   "reprint (same oracle id)": 59,
+   "same text shape": 37,
+   "no rules text": 8
+  }
+ },
+ "engine_dealable": {
+  "engine": true,
+  "castable": true
+ },
+ "carry-over": {
+  "entries": 104,
+  "sentences": 122,
+  "pc1_count": 85,
+  "unparsed": 19,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 122,
+  "sentences_unseen_shape": 0,
+  "unparsed_seen_shape": 19,
+  "unparsed_unseen_shape": 0,
+  "dealable_engine": 90,
+  "dealable_engine_fully_compiled": 71,
+  "dealable_castable": 78,
+  "dealable_castable_fully_compiled": 65,
+  "pc1": 0.8173,
+  "pc2": 0.8443,
+  "pc2_seen_shape": 0.8443,
+  "pc2_unseen_shape": null
+ },
+ "dev": {
+  "entries": 130,
+  "sentences": 275,
+  "pc1_count": 15,
+  "unparsed": 179,
+  "shape_gaps": 1,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 108,
+  "sentences_unseen_shape": 167,
+  "unparsed_seen_shape": 24,
+  "unparsed_unseen_shape": 155,
+  "dealable_engine": 127,
+  "dealable_engine_fully_compiled": 15,
+  "dealable_castable": 83,
+  "dealable_castable_fully_compiled": 15,
+  "pc1": 0.1154,
+  "pc2": 0.3491,
+  "pc2_seen_shape": 0.7778,
+  "pc2_unseen_shape": 0.0719
+ },
+ "test": "sealed",
+ "whole": "sealed",
+ "dev_register": [
+  {
+   "shape": "Look at the top five cards of your library.",
+   "count": 3,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sarkhan's Dragonfire",
+    "Ajani's Influence",
+    "Liliana's Spoils"
+   ]
+  },
+  {
+   "shape": "Activate only once each turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ursine Champion"
+   ]
+  },
+  {
+   "shape": "All creatures able to block it this turn do so.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Declare Dominance"
+   ]
+  },
+  {
+   "shape": "As long as you control an artifact, this creature gets +N/+N and has flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Aerial Engineer"
+   ]
+  },
+  {
+   "shape": "As this Aura enters, choose a creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Metamorphic Alteration"
+   ]
+  },
+  {
+   "shape": "As this creature enters, choose a color.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Diamond Mare"
+   ]
+  },
+  {
+   "shape": "As this creature enters, put a phylactery counter on an artifact you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Phylactery Lich"
+   ]
+  },
+  {
+   "shape": "As this enchantment enters, choose a nonbasic land card name.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Alpine Moon"
+   ]
+  },
+  {
+   "shape": "At the beginning of combat on your turn, if you control three or more creatures, this creature gets +N/+N until end of turn and you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Leonin Vanguard"
+   ]
+  },
+  {
+   "shape": "At the beginning of combat on your turn, target artifact creature you control gets +N/+N and gains indestructible until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Aethershield Artificer"
+   ]
+  },
+  {
+   "shape": "At the beginning of your end step, create three N/N white Cat creature tokens with lifelink.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Ajani, Adversary of Tyrants Emblem"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, if you control a creature with power N or greater, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Colossal Majesty"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, if you control four or more Demons with different names, you win the game.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Liliana's Contract"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, target opponent mills three cards, then you draw a card for each land card put into their graveyard this way.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Patient Rebuilding"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Fountain of Renewal"
+   ]
+  },
+  {
+   "shape": "Choose one \u2014",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cleansing Nova"
+   ]
+  },
+  {
+   "shape": "Counter target creature spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Essence Scatter"
+   ]
+  },
+  {
+   "shape": "Creature tokens get -N/-N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Amulet of Safekeeping"
+   ]
+  },
+  {
+   "shape": "Discard a card: Until end of turn, ~ becomes a Human with base power and toughness N/N, loses all abilities, and gains hexproof.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chromium, the Mutable"
+   ]
+  },
+  {
+   "shape": "Draw cards equal to the greatest mana value among artifacts you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "One with the Machine"
+   ]
+  },
+  {
+   "shape": "Draw three cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blood Divination"
+   ]
+  },
+  {
+   "shape": "Each creature you control with defender assigns combat damage equal to its toughness rather than its power and can attack as though it didn't have defender.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Arcades, the Strategist"
+   ]
+  },
+  {
+   "shape": "Each player loses half their life, then discards half the cards in their hand, then sacrifices half the creatures they control of their choice.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fraying Omnipotence"
+   ]
+  },
+  {
+   "shape": "Each player who sacrificed a permanent this way reveals the top card of their library, then puts it onto the battlefield if it's a permanent card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vaevictis Asmadi, the Dire"
+   ]
+  },
+  {
+   "shape": "Enchanted creature gets +N/+N and can't be blocked.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Aether Tunnel"
+   ]
+  },
+  {
+   "shape": "Enchanted creature gets -N/-N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dwindle"
+   ]
+  },
+  {
+   "shape": "Enchanted creature is a copy of the chosen creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Metamorphic Alteration"
+   ]
+  },
+  {
+   "shape": "Equipped creature gets +N/+N, has vigilance, and is a Knight in addition to its other types.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sigiled Sword of Valeron"
+   ]
+  },
+  {
+   "shape": "Exile target colorless creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Infernal Reckoning"
+   ]
+  },
+  {
+   "shape": "Exile the top seven cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Apex of Power"
+   ]
+  },
+  {
+   "shape": "If X is N or more, this spell can't be countered and the damage can't be prevented.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Banefire"
+   ]
+  },
+  {
+   "shape": "If at least one Zombie card is milled this way, each opponent loses N life and you gain N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Liliana, Untouched by Death"
+   ]
+  },
+  {
+   "shape": "If this spell was cast from your hand, add ten mana of any one color.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Apex of Power"
+   ]
+  },
+  {
+   "shape": "If you control three or more artifacts, draw two cards instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tezzeret, Artifice Master"
+   ]
+  },
+  {
+   "shape": "If you do, create a N/N white Avatar creature token with flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ajani's Last Stand"
+   ]
+  },
+  {
+   "shape": "If you do, this creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Brawl-Bash Ogre"
+   ]
+  },
+  {
+   "shape": "If ~ would be put into a graveyard from anywhere, reveal ~ and shuffle it into its owner's library instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nexus of Fate"
+   ]
+  },
+  {
+   "shape": "It can't be blocked this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chromium, the Mutable"
+   ]
+  },
+  {
+   "shape": "It can't have counters put on it for as long as this creature remains on the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Suncleanser"
+   ]
+  },
+  {
+   "shape": "Lands your opponents control with the chosen name lose all land types and abilities, and they gain \"{T}: Add one mana of any color.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Alpine Moon"
+   ]
+  },
+  {
+   "shape": "Look at the top seven cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien's Invocation"
+   ]
+  },
+  {
+   "shape": "Other Elves you control get +N/+N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Elvish Clancaller"
+   ]
+  },
+  {
+   "shape": "Other Knights you control get +N/+N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Valiant Knight"
+   ]
+  },
+  {
+   "shape": "Other Spirits you control get +N/+N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Supreme Phantom"
+   ]
+  },
+  {
+   "shape": "Prevent all combat damage that would be dealt this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Root Snare"
+   ]
+  },
+  {
+   "shape": "Put target nonland permanent on top of its owner's library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Totally Lost"
+   ]
+  },
+  {
+   "shape": "Put two +N/+N counters on target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ajani's Influence"
+   ]
+  },
+  {
+   "shape": "Sacrifice this creature: Add {R}{R}.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Catalyst Elemental"
+   ]
+  },
+  {
+   "shape": "Take an extra turn after this one.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nexus of Fate"
+   ]
+  },
+  {
+   "shape": "Tap all creatures target player controls.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sleep"
+   ]
+  },
+  {
+   "shape": "Target creature gets -X/-X until end of turn, where X is the amount of life you gained this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nightmare's Thirst"
+   ]
+  },
+  {
+   "shape": "Target opponent discards a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Liliana's Spoils"
+   ]
+  },
+  {
+   "shape": "Target player loses N life and you gain N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sovereign's Bite"
+   ]
+  },
+  {
+   "shape": "That player can't get counters for as long as this creature remains on the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Suncleanser"
+   ]
+  },
+  {
+   "shape": "This creature can block an additional creature each combat.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ghastbark Twins"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked by black creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vine Mare"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked by green creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Surge Mare"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked by more than one creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Hungering Hydra"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked by red creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shield Mare"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked except by Spirits.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Departed Deckhand"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N as long as you control a blue creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gearsmith Guardian"
+   ]
+  },
+  {
+   "shape": "This creature has deathtouch as long as you control a Liliana planeswalker.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Arisen Gorgon"
+   ]
+  },
+  {
+   "shape": "This spell can't be countered.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chromium, the Mutable"
+   ]
+  },
+  {
+   "shape": "Those creatures don't untap during that player's next untap step.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sleep"
+   ]
+  },
+  {
+   "shape": "Those players sacrifice those permanents.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vaevictis Asmadi, the Dire"
+   ]
+  },
+  {
+   "shape": "Until end of turn, creatures you control get +N/+N and gain haste.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Heroic Reinforcements"
+   ]
+  },
+  {
+   "shape": "Until end of turn, you may cast spells from among them.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Apex of Power"
+   ]
+  },
+  {
+   "shape": "When a creature is put onto the battlefield this way, it deals damage equal to its power to target creature an opponent controls.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Vivien's Invocation"
+   ]
+  },
+  {
+   "shape": "When a spell or ability an opponent controls causes you to discard this card, if you control a Plains, create a N/N white Avatar creature token with flying.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Ajani's Last Stand"
+   ]
+  },
+  {
+   "shape": "When enchanted creature blocks, destroy it.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Dwindle"
+   ]
+  },
+  {
+   "shape": "When this Aura enters, create a N/N white Knight creature token with vigilance.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Knightly Valor"
+   ]
+  },
+  {
+   "shape": "When this creature becomes the target of a spell, sacrifice it.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Departed Deckhand"
+   ]
+  },
+  {
+   "shape": "When this creature dies, each opponent loses N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Tattered Mummy"
+   ]
+  },
+  {
+   "shape": "When this creature enters or becomes the target of a spell or ability an opponent controls, you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Shield Mare"
+   ]
+  },
+  {
+   "shape": "When this creature enters or dies, mill three cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Stitcher's Supplier"
+   ]
+  },
+  {
+   "shape": "When this creature enters, choose one \u2014",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Suncleanser"
+   ]
+  },
+  {
+   "shape": "When this creature enters, create a N/N colorless Thopter artifact creature token with flying.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Aviation Pioneer"
+   ]
+  },
+  {
+   "shape": "When this creature enters, create a N/N red Goblin creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Goblin Instigator"
+   ]
+  },
+  {
+   "shape": "When this creature enters, creatures you control get +N/+N and gain vigilance until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Angel of the Dawn"
+   ]
+  },
+  {
+   "shape": "When this creature enters, it deals N damage to target opponent unless that player sacrifices a creature of their choice.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Demanding Dragon"
+   ]
+  },
+  {
+   "shape": "When this creature enters, it deals N damage to target player or planeswalker.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Viashino Pyromancer"
+   ]
+  },
+  {
+   "shape": "When this creature enters, it deals damage to target creature an opponent controls equal to the number of Goblins you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Volley Veteran"
+   ]
+  },
+  {
+   "shape": "When this creature enters, look at the top five cards of your library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Elvish Rejuvenator"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target artifact you control becomes an artifact creature with base power and toughness N/N for as long as this creature remains on the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Skilled Animator"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target creature gets +N/+N and gains first strike until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Cavalry Drillmaster"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target opponent loses N life and you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Skymarch Bloodletter"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you gain N life for each creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Dwarven Priest"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may destroy target artifact or enchantment.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Reclamation Sage"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may pay {N}{R}.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sparktongue Dragon"
+   ]
+  },
+  {
+   "shape": "When this enchantment enters, you draw four cards and you lose N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Liliana's Contract"
+   ]
+  },
+  {
+   "shape": "When this land enters, sacrifice it unless you pay {N}.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Rupture Spire"
+   ]
+  },
+  {
+   "shape": "When you control no permanents with phylactery counters on them, sacrifice this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Phylactery Lich"
+   ]
+  },
+  {
+   "shape": "When you do, it deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sparktongue Dragon"
+   ]
+  },
+  {
+   "shape": "When you next cast an instant or sorcery spell this turn, copy that spell.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Doublecast"
+   ]
+  },
+  {
+   "shape": "Whenever a Dragon you control enters, put a gold counter on this artifact.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Dragon's Hoard"
+   ]
+  },
+  {
+   "shape": "Whenever a creature or planeswalker you control dies, you may sacrifice this enchantment.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Ajani's Last Stand"
+   ]
+  },
+  {
+   "shape": "Whenever a creature with flying attacks, you may draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Windreader Sphinx"
+   ]
+  },
+  {
+   "shape": "Whenever a creature you control enters, you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Ajani's Welcome"
+   ]
+  },
+  {
+   "shape": "Whenever a creature you control with defender enters, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Arcades, the Strategist"
+   ]
+  },
+  {
+   "shape": "Whenever a nontoken creature you control dies, create a N/N black Zombie creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Open the Graves"
+   ]
+  },
+  {
+   "shape": "Whenever another creature dies, each opponent loses N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Poison-Tip Archer"
+   ]
+  },
+  {
+   "shape": "Whenever another creature you control with power N or less enters, you may pay {N}.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Mentor of the Meek"
+   ]
+  },
+  {
+   "shape": "Whenever another nontoken Dragon you control enters, create a N/N red Dragon creature token with flying.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Lathliss, Dragon Queen"
+   ]
+  },
+  {
+   "shape": "Whenever equipped creature attacks, create a N/N white Knight creature token with vigilance that's attacking.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sigiled Sword of Valeron"
+   ]
+  },
+  {
+   "shape": "Whenever one or more creature cards leave your graveyard, create a N/N black Bat creature token with flying.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Desecrated Tomb"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, another target attacking creature gains flying until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Pegasus Courser"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, create two N/N white Cat creature tokens with lifelink that are tapped and attacking.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Leonin Warleader"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, each opponent loses N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Infectious Horror"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Herald of Faith"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, you may sacrifice another creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Brawl-Bash Ogre"
+   ]
+  },
+  {
+   "shape": "Whenever this creature deals damage to an opponent, you may draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Surge Mare"
+   ]
+  },
+  {
+   "shape": "Whenever this creature is dealt damage, put that many +N/+N counters on it.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Hungering Hydra"
+   ]
+  },
+  {
+   "shape": "Whenever you activate an ability of a Sarkhan planeswalker, this creature deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sarkhan's Whelp"
+   ]
+  },
+  {
+   "shape": "Whenever you become the target of a spell or ability an opponent controls, counter that spell or ability unless its controller pays {N}.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Amulet of Safekeeping"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a creature spell with power N or greater, this enchantment deals N damage to each opponent and each creature and planeswalker they control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sarkhan's Unsealing"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a creature spell with power N, N, or N, this enchantment deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sarkhan's Unsealing"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a spell of the chosen color, you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Diamond Mare"
+   ]
+  },
+  {
+   "shape": "Whenever you cast an artifact spell, create a N/N colorless Thopter artifact creature token with flying.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sai, Master Thopterist"
+   ]
+  },
+  {
+   "shape": "Whenever you cast an enchantment spell, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Satyr Enchanter"
+   ]
+  },
+  {
+   "shape": "Whenever you draw a card, each opponent mills two cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Psychic Corrosion"
+   ]
+  },
+  {
+   "shape": "Whenever ~ attacks, for each player, choose target permanent that player controls.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Vaevictis Asmadi, the Dire"
+   ]
+  },
+  {
+   "shape": "You gain life equal to its power.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Infernal Reckoning"
+   ]
+  },
+  {
+   "shape": "You have no maximum hand size.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Reliquary Tower"
+   ]
+  },
+  {
+   "shape": "You may cast spells from your hand without paying their mana costs.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Omniscience"
+   ]
+  },
+  {
+   "shape": "You may play lands from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Crucible of Worlds"
+   ]
+  },
+  {
+   "shape": "You may put a creature card from among them onto the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien's Invocation"
+   ]
+  },
+  {
+   "shape": "You may put a land card from among them onto the battlefield tapped.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Elvish Rejuvenator"
+   ]
+  },
+  {
+   "shape": "You may reveal a black card from among them and put it into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Liliana's Spoils"
+   ]
+  },
+  {
+   "shape": "You may reveal a creature or land card from among them and put it into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien Reid"
+   ]
+  },
+  {
+   "shape": "You may reveal a red card from among them and put it into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sarkhan's Dragonfire"
+   ]
+  },
+  {
+   "shape": "You may reveal a white card from among them and put it into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ajani's Influence"
+   ]
+  },
+  {
+   "shape": "[+N]: Create a N/N colorless Thopter artifact creature token with flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tezzeret, Artifice Master"
+   ]
+  },
+  {
+   "shape": "[+N]: Look at the top four cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien Reid"
+   ]
+  },
+  {
+   "shape": "[+N]: Mill three cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Liliana, Untouched by Death"
+   ]
+  },
+  {
+   "shape": "[+N]: Put a +N/+N counter on each of up to two target creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ajani, Adversary of Tyrants"
+   ]
+  },
+  {
+   "shape": "[+N]: Put two +N/+N counters on up to one target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien of the Arkbow"
+   ]
+  },
+  {
+   "shape": "[+N]: ~ deals N damage to each opponent and each creature your opponents control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sarkhan, Dragonsoul"
+   ]
+  },
+  {
+   "shape": "[N]: Draw a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tezzeret, Artifice Master"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Creatures you control get +N/+N and gain trample until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien of the Arkbow"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Destroy target artifact, enchantment, or creature with flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien Reid"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Return target creature card with mana value N or less from your graveyard to the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ajani, Adversary of Tyrants"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Search your library for any number of Dragon creature cards, put them onto the battlefield, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sarkhan, Dragonsoul"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Target creature gets -X/-X until end of turn, where X is the number of Zombies you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Liliana, Untouched by Death"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Target creature you control deals damage equal to its power to target creature you don't control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien of the Arkbow"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: You may cast Zombie spells from your graveyard this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Liliana, Untouched by Death"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: ~ deals N damage to target player or planeswalker.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sarkhan, Dragonsoul"
+   ]
+  },
+  {
+   "shape": "{N}, Sacrifice this artifact: Draw a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Fountain of Renewal"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Draw a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Arcane Encyclopedia"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Each opponent loses N life and you gain N life.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Vampire Neonate"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Put a charge counter on this artifact.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Magistrate's Scepter"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Target player mills two cards.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Millstone"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Until end of turn, your opponents and creatures your opponents control with hexproof can be the targets of spells and abilities you control as though they didn't have hexproof.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Detection Tower"
+   ]
+  },
+  {
+   "shape": "{N}{B}, Exile a creature card from your graveyard: Create a tapped N/N black Zombie creature token.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Graveyard Marshal"
+   ]
+  },
+  {
+   "shape": "{N}{G}: Return this card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Talons of Wildwood"
+   ]
+  },
+  {
+   "shape": "{N}{G}: Target creature you control can't be blocked by creatures with power N or less this turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Ghirapur Guide"
+   ]
+  },
+  {
+   "shape": "{N}{G}: This creature gets +N/+N and becomes a Bear Berserker until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Ursine Champion"
+   ]
+  },
+  {
+   "shape": "{N}{G}{G}, {T}: Search your library for a card named ~, put it onto the battlefield, then shuffle.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Elvish Clancaller"
+   ]
+  },
+  {
+   "shape": "{N}{R}: Dragons you control get +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Lathliss, Dragon Queen"
+   ]
+  },
+  {
+   "shape": "{N}{R}: Target creature can't block this turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Siegebreaker Giant"
+   ]
+  },
+  {
+   "shape": "{N}{U}, Sacrifice two artifacts: Draw a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Sai, Master Thopterist"
+   ]
+  },
+  {
+   "shape": "{N}{U}: Another target creature you control can't be blocked this turn except by Spirits.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Departed Deckhand"
+   ]
+  },
+  {
+   "shape": "{N}{U}: This creature gets +N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Surge Mare"
+   ]
+  },
+  {
+   "shape": "{N}{U}{U}: Draw two cards.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Mystic Archaeologist"
+   ]
+  },
+  {
+   "shape": "{N}{W}{W}: Knights you control gain double strike until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Valiant Knight"
+   ]
+  },
+  {
+   "shape": "{T}, Remove a gold counter from this artifact: Draw a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Dragon's Hoard"
+   ]
+  },
+  {
+   "shape": "{T}, Remove three charge counters from this artifact: Take an extra turn after this one.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Magistrate's Scepter"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sarkhan's Dragonfire"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to target player and N damage to each creature that player controls.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Radiating Lightning"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to target player or planeswalker.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lava Axe"
+   ]
+  },
+  {
+   "shape": "~ deals X damage to any target.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Banefire"
+   ]
+  },
+  {
+   "shape": "~ deals damage equal to the sacrificed creature's power to any target.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thud"
+   ]
+  },
+  {
+   "shape": "~'s power is equal to the number of instant and sorcery cards in your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Enigma Drake"
+   ]
+  },
+  {
+   "shape": "\u2022 Destroy all artifacts and enchantments.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cleansing Nova"
+   ]
+  },
+  {
+   "shape": "\u2022 Destroy all creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cleansing Nova"
+   ]
+  },
+  {
+   "shape": "\u2022 Remove all counters from target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Suncleanser"
+   ]
+  },
+  {
+   "shape": "\u2022 Target opponent loses all counters.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Suncleanser"
+   ]
+  },
+  {
+   "shape": "\u2610 Nicol Bolas, the Ravager {N}{U}{B}{R}",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Core Set 2019 Checklist"
+   ]
+  },
+  {
+   "shape": "<shape gap>",
+   "count": 1,
+   "hints": [],
+   "cards": [
+    "Transmogrifying Wand"
+   ],
+   "error": "StateCorruptionError: compile_card: activation-gate sentence matched but no preceding ActivatedAbility with the gate's target slot(s) free exists to attach it t"
+  }
+ ],
+ "seconds": 0.9
+}

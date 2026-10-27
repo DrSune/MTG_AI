@@ -1,0 +1,51 @@
+{
+ "set": "M13",
+ "checked_at": "2026-10-27T22:15:40+01:00",
+ "source": {
+  "file": "MTG_bot/data/M13.json",
+  "sha256": "c6aef9437b111be49d60803f157eca2e9192fde2ea20451c00f2aa0524a2e777",
+  "mtgjson": {
+   "date": "2026-10-27",
+   "version": "5.3.0+20261027"
+  }
+ },
+ "scryfall_set": {
+  "code": "m13",
+  "name": "Magic 2013",
+  "released_at": "2012-07-13",
+  "set_type": "core",
+  "card_count": 249,
+  "printed_size": 249
+ },
+ "cards": {
+  "records": 249,
+  "scryfall_printings": 249,
+  "names_file": 234,
+  "names_scryfall": 234,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 249,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 249,
+  "text_mismatch": []
+ },
+ "tokens": {
+  "set": "TM13",
+  "records": 11,
+  "scryfall_printings": 11,
+  "names_file": 11,
+  "names_scryfall": 11,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 11,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 11,
+  "text_mismatch": []
+ },
+ "verdict": "match",
+ "owner_sign_off": "pending"
+}

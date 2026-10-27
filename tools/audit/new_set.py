@@ -60,6 +60,9 @@ DATA = REPO / "MTG_bot" / "data"
 REPORTS = REPO / "reports"
 #: Sets whose text the compiler was shaped on. ZNR counts: its register was iterated on (REVIEW A-5).
 DEVELOPED_ON = ("M21", "ZNR")
+#: Sets that grammar rounds have read since (S-1 and S-2 read their dev registers, and their sealed
+#: test once per round). A later set's first touch must count their text as seen too.
+ROUND_SETS = ("M20", "KHM")
 TEST_SHARE = 0.4
 SCRYFALL = "https://api.scryfall.com"
 USER_AGENT = "MTG_AI-new-set/1.0 (research; github.com/DrSune/MTG_AI)"
@@ -116,6 +119,19 @@ def developed_index(codes: tuple[str, ...] = DEVELOPED_ON) -> dict[str, Any]:
             tuples.add(front_shapes(raw))
             shapes.update(all_shapes(raw))
     return {"ids": ids, "tuples": tuples, "shapes": shapes}
+
+
+def frozen_developed(set_code: str, reports: Path = REPORTS) -> tuple[str, ...]:
+    """The sets a set's groups are computed against, frozen at that set's first touch.
+
+    A later sealed read must split the set exactly as its first touch did, or its numbers stop
+    being comparable across rounds. So it reuses the ``developed_on`` list of the set's earliest
+    report. A set with no report yet is split against every set the grammar has been shaped on.
+    """
+    earliest = sorted(reports.glob(f"first_touch_{set_code}_*.json"))
+    if earliest:
+        return tuple(json.loads(earliest[0].read_text(encoding="utf-8"))["split"]["developed_on"])
+    return tuple(code for code in (*DEVELOPED_ON, *ROUND_SETS) if code != set_code)
 
 
 def assign_groups(
@@ -319,7 +335,8 @@ def cmd_first_touch(args: argparse.Namespace) -> int:
         raise SystemExit("--sealed-read needs --reason (it is logged)")
     started = time.perf_counter()
     pool = ingest_pool(DATA / f"{set_code}.json")
-    developed = developed_index()
+    developed_on = frozen_developed(set_code)
+    developed = developed_index(developed_on)
     salt = salt_for(set_code)
     groups, reasons = assign_groups(pool, developed, salt)
     members: dict[str, set[str]] = defaultdict(set)
@@ -337,7 +354,7 @@ def cmd_first_touch(args: argparse.Namespace) -> int:
             "salt": salt,
             "test_share": TEST_SHARE,
             "rule": "test iff int(sha256(salt:oracle_id)[:8], 16) / 2**32 < test_share",
-            "developed_on": list(DEVELOPED_ON),
+            "developed_on": list(developed_on),
             "counts": {g: len(members[g]) for g in ("carry-over", "dev", "test")},
             "carry_over_reasons": dict(reasons),
         },
