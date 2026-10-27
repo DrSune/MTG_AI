@@ -38,3 +38,4 @@ scraped_frames/
 !MTG_bot/data/mtg_bot.db
 reports/monitoring/selfwake.json
 tools/training/bc_s2_best.pt
+reports/episodes_iter1.jsonl
