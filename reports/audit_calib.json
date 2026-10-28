@@ -1,0 +1,18 @@
+{
+ "episodes_owned": 50,
+ "episodes_foreign": 0,
+ "asks": 2411,
+ "max_abs_delta": 0.0002522468566894531,
+ "mean_abs_delta": 1.937579479227279e-06,
+ "share_gt_tol": 0.0,
+ "tol": 0.001,
+ "worst": {
+  "abs_delta": 0.0002522468566894531,
+  "episode": 7,
+  "ask": 105,
+  "site": "act:main",
+  "recorded_logp": -3.572739601135254,
+  "recomputed_logp": -3.5724873542785645
+ }
+}
+rl_logprob_audit GREEN: 2411 asks / 50 episodes | max|Δ|=0.000252 mean|Δ|=1.94e-06 share|Δ|>0.001=0.0000 (foreign-policy rows skipped: 0)

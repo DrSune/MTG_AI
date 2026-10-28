@@ -3,7 +3,11 @@
  "policy": "/tmp/opencode/rl_n1_train_src/tools/training/bsh_S3a_s1_best.pt",
  "anchor": "/tmp/opencode/rl_n1_train_src/tools/training/bsh_S3a_s1_best.pt",
  "device": "cuda",
- "lr": 1e-05,
+ "lr": 0.01,
+ "steps": 1,
+ "step_grad_norms": [
+  2.526103973388672
+ ],
  "beta": 0.1,
  "entropy_coef": 0.001,
  "clip": 1.0,
@@ -25,7 +29,9 @@
  "entropy_loss": -5.987443433568791e-05,
  "total_loss": 0.6429300242162295,
  "grad_norm_postclip": 1.0,
- "kl_mean_per_game_post": 2.425519330848391e-09,
+ "kl_mean_per_game_post": 0.0008424085258158404,
+ "mean_abs_dlogp_chosen_post": 0.0051934254927728934,
+ "share_dlogp_gt_0p1_post": 0.012206812807566947,
  "kl_ceiling": 0.05,
  "kl_ceiling_breach": false
 }

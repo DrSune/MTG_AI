@@ -1,6 +1,6 @@
 {
  "meta": {
-  "date": "2026-10-27 01:54",
+  "date": "2026-10-28 02:02",
   "version": "v2-full-agent",
   "policy_a": "/tmp/opencode/rld_n1/rld_i1.pt",
   "pool_mode": "engine",
@@ -14,7 +14,7 @@
   "deck_pairs_seed": 1413,
   "device": "cpu",
   "workers": 6,
-  "seconds": 1624.6,
+  "seconds": 1773.7,
   "full_agent_layers": "provider asks (may/scry/choose/PASS/attack/block/cw/order/trample/policy, seat-attributed by the site-tag handle -> controller_of) + rig act layer (PolicyActDriver: PASS/land/cast/activation menu per act, single-slot targets asked). Residual driver heuristics: auto-tap-all mana (no tap-amount ask exists), multi-slot target rows keep rng. ENGINE GAP: no main-phase priority/cast ask-site exists in MTG_bot/core/executor (query.legal_casts has no producer ask) \u2014 the act menu is rig-side over the declarative query surface."
  },
  "matchups": {
@@ -22,89 +22,89 @@
    "games": 200,
    "policy": "rld_i1.pt",
    "baseline": "/tmp/opencode/rl_n1_train_src/tools/training/bsh_S3a_s1_best.pt",
-   "policy_wins": 102,
+   "policy_wins": 104,
    "policy_losses": 93,
    "draws": {
     "stall": 0,
-    "cap": 3,
-    "other": 2
+    "cap": 2,
+    "other": 1
    },
    "crashes": 0,
-   "decisive_rate": 0.975,
-   "winrate_decisive": 0.5231,
+   "decisive_rate": 0.985,
+   "winrate_decisive": 0.5279,
    "wilson_decisive": [
-    0.4532,
-    0.5921
+    0.4583,
+    0.5964
    ],
-   "avg_turns_played": 23.14,
+   "avg_turns_played": 22.95,
    "illegal_action_attempts": 0,
    "engine_exceptions": 0,
    "exception_types": [],
    "model_errors": 0,
-   "asks_presented": 9358,
-   "asks_answered": 9258,
+   "asks_presented": 9355,
+   "asks_answered": 9255,
    "asks_auto_resolved": 100,
    "seat_swap_games": 100,
    "policy_asks": {
-    "asks": 10467,
-    "v0": 2270,
-    "declines": 348,
+    "asks": 10475,
+    "v0": 2253,
+    "declines": 319,
     "illegal": 0,
     "model_errors": 0,
-    "trunc": 9530,
-    "v0_rate": 0.2169,
-    "decline_rate": 0.0332,
+    "trunc": 9538,
+    "v0_rate": 0.2151,
+    "decline_rate": 0.0305,
     "per_kind": {
      "act": {
-      "asks": 5784,
-      "v0_rate": 0.0595,
-      "decline_rate": 0.0595,
-      "agree_heur_rate": 0.3373
+      "asks": 5767,
+      "v0_rate": 0.0544,
+      "decline_rate": 0.0544,
+      "agree_heur_rate": 0.3463
      },
      "other": {
-      "asks": 330,
-      "v0_rate": 0.1212,
-      "decline_rate": 0.0121,
-      "agree_heur_rate": 0.1303
+      "asks": 332,
+      "v0_rate": 0.1235,
+      "decline_rate": 0.0151,
+      "agree_heur_rate": 0.1295
      },
      "attack": {
-      "asks": 1350,
+      "asks": 1363,
       "v0_rate": 1.0,
       "decline_rate": 0.0,
-      "agree_heur_rate": 0.8919
+      "agree_heur_rate": 0.8914
      },
      "target": {
-      "asks": 285,
-      "v0_rate": 0.5579,
+      "asks": 280,
+      "v0_rate": 0.5536,
       "decline_rate": 0.0,
-      "agree_heur_rate": 0.5579
+      "agree_heur_rate": 0.5536
      },
      "scry": {
-      "asks": 143,
+      "asks": 145,
       "v0_rate": 0.0,
       "decline_rate": 0.0,
       "agree_heur_rate": 0.0
      },
      "choose": {
-      "asks": 2125,
-      "v0_rate": 0.0024,
+      "asks": 2138,
+      "v0_rate": 0.0028,
       "decline_rate": 0.0,
-      "agree_heur_rate": 0.0024
+      "agree_heur_rate": 0.0028
      },
      "order": {
-      "asks": 32,
+      "asks": 29,
       "v0_rate": 0.0,
       "decline_rate": 0.0,
       "agree_heur_rate": 0.0
      },
      "block": {
-      "asks": 223,
-      "v0_rate": 0.8655,
+      "asks": 224,
+      "v0_rate": 0.8661,
       "decline_rate": 0.0,
-      "agree_heur_rate": 0.4484
+      "agree_heur_rate": 0.4464
      },
      "may": {
-      "asks": 179,
+      "asks": 180,
       "v0_rate": 1.0,
       "decline_rate": 0.0,
       "agree_heur_rate": 1.0
@@ -116,58 +116,58 @@
       "agree_heur_rate": 0.0
      },
      "cw": {
-      "asks": 4,
+      "asks": 5,
       "v0_rate": 0.0,
       "decline_rate": 0.0,
-      "agree_heur_rate": 0.25
+      "agree_heur_rate": 0.4
      }
     }
    },
    "baseline_asks": {
-    "asks": 11946,
-    "v0": 2372,
-    "declines": 359,
+    "asks": 11697,
+    "v0": 2365,
+    "declines": 363,
     "illegal": 0,
     "model_errors": 0,
-    "trunc": 10994,
-    "v0_rate": 0.1986,
-    "decline_rate": 0.0301,
+    "trunc": 10745,
+    "v0_rate": 0.2022,
+    "decline_rate": 0.031,
     "per_kind": {
      "act": {
-      "asks": 6909,
-      "v0_rate": 0.0511,
-      "decline_rate": 0.0511,
-      "agree_heur_rate": 0.3741
+      "asks": 6693,
+      "v0_rate": 0.0533,
+      "decline_rate": 0.0533,
+      "agree_heur_rate": 0.384
      },
      "attack": {
-      "asks": 1251,
+      "asks": 1242,
       "v0_rate": 1.0,
       "decline_rate": 0.0,
-      "agree_heur_rate": 0.9017
+      "agree_heur_rate": 0.901
      },
      "choose": {
-      "asks": 2388,
+      "asks": 2366,
       "v0_rate": 0.0017,
       "decline_rate": 0.0,
       "agree_heur_rate": 0.0017
      },
      "other": {
-      "asks": 348,
-      "v0_rate": 0.0977,
+      "asks": 349,
+      "v0_rate": 0.0974,
       "decline_rate": 0.0086,
-      "agree_heur_rate": 0.1207
+      "agree_heur_rate": 0.1232
      },
      "scry": {
-      "asks": 147,
+      "asks": 146,
       "v0_rate": 0.0,
       "decline_rate": 0.0,
       "agree_heur_rate": 0.0
      },
      "target": {
       "asks": 246,
-      "v0_rate": 0.6138,
+      "v0_rate": 0.6179,
       "decline_rate": 0.0,
-      "agree_heur_rate": 0.6138
+      "agree_heur_rate": 0.6179
      },
      "may": {
       "asks": 355,
@@ -176,13 +176,13 @@
       "agree_heur_rate": 1.0
      },
      "block": {
-      "asks": 258,
-      "v0_rate": 0.8566,
+      "asks": 255,
+      "v0_rate": 0.8549,
       "decline_rate": 0.0,
-      "agree_heur_rate": 0.4612
+      "agree_heur_rate": 0.4588
      },
      "order": {
-      "asks": 29,
+      "asks": 30,
       "v0_rate": 0.0,
       "decline_rate": 0.0,
       "agree_heur_rate": 0.0
@@ -205,21 +205,21 @@
     "rounds": {
      "4": {
       "policy_lead_rate": 0.11,
-      "lead_predicts_win_rate": 0.559,
-      "n_decisive": 195
+      "lead_predicts_win_rate": 0.5533,
+      "n_decisive": 197
      },
      "7": {
-      "policy_lead_rate": 0.39,
-      "lead_predicts_win_rate": 0.7231,
-      "n_decisive": 195
+      "policy_lead_rate": 0.395,
+      "lead_predicts_win_rate": 0.7208,
+      "n_decisive": 197
      },
      "10": {
-      "policy_lead_rate": 0.47,
-      "lead_predicts_win_rate": 0.8564,
-      "n_decisive": 195
+      "policy_lead_rate": 0.475,
+      "lead_predicts_win_rate": 0.8528,
+      "n_decisive": 197
      }
     },
-    "final_dmg_diff_mean": 0.94,
+    "final_dmg_diff_mean": 1.21,
     "n": 200
    }
   },
@@ -246,70 +246,70 @@
    "engine_exceptions": 0,
    "exception_types": [],
    "model_errors": 0,
-   "asks_presented": 9265,
-   "asks_answered": 9203,
+   "asks_presented": 9245,
+   "asks_answered": 9183,
    "asks_auto_resolved": 62,
    "seat_swap_games": 100,
    "policy_asks": {
-    "asks": 8125,
-    "v0": 1882,
-    "declines": 294,
+    "asks": 8148,
+    "v0": 1864,
+    "declines": 278,
     "illegal": 0,
     "model_errors": 0,
-    "trunc": 7199,
-    "v0_rate": 0.2316,
-    "decline_rate": 0.0362,
+    "trunc": 7219,
+    "v0_rate": 0.2288,
+    "decline_rate": 0.0341,
     "per_kind": {
      "act": {
-      "asks": 4209,
-      "v0_rate": 0.0684,
-      "decline_rate": 0.0684,
-      "agree_heur_rate": 0.436
+      "asks": 4218,
+      "v0_rate": 0.0645,
+      "decline_rate": 0.0645,
+      "agree_heur_rate": 0.444
      },
      "other": {
-      "asks": 257,
-      "v0_rate": 0.1128,
-      "decline_rate": 0.0195,
-      "agree_heur_rate": 0.1167
+      "asks": 258,
+      "v0_rate": 0.1124,
+      "decline_rate": 0.0194,
+      "agree_heur_rate": 0.1163
      },
      "attack": {
-      "asks": 1068,
+      "asks": 1067,
       "v0_rate": 1.0,
       "decline_rate": 0.0,
-      "agree_heur_rate": 0.867
+      "agree_heur_rate": 0.8679
      },
      "target": {
-      "asks": 250,
-      "v0_rate": 0.568,
+      "asks": 248,
+      "v0_rate": 0.5645,
       "decline_rate": 0.0,
-      "agree_heur_rate": 0.568
+      "agree_heur_rate": 0.5645
      },
      "scry": {
-      "asks": 128,
+      "asks": 130,
       "v0_rate": 0.0,
       "decline_rate": 0.0,
       "agree_heur_rate": 0.0
      },
      "choose": {
-      "asks": 1769,
-      "v0_rate": 0.0023,
+      "asks": 1784,
+      "v0_rate": 0.0022,
       "decline_rate": 0.0,
-      "agree_heur_rate": 0.0023
+      "agree_heur_rate": 0.0022
      },
      "block": {
-      "asks": 208,
-      "v0_rate": 0.8029,
+      "asks": 207,
+      "v0_rate": 0.8068,
       "decline_rate": 0.0,
-      "agree_heur_rate": 0.25
+      "agree_heur_rate": 0.2512
      },
      "may": {
-      "asks": 183,
+      "asks": 184,
       "v0_rate": 1.0,
       "decline_rate": 0.0,
       "agree_heur_rate": 1.0
      },
      "order": {
-      "asks": 46,
+      "asks": 45,
       "v0_rate": 0.0,
       "decline_rate": 0.0,
       "agree_heur_rate": 0.0
@@ -329,29 +329,29 @@
     }
    },
    "baseline_asks": {
-    "asks": 10528,
-    "v0": 5258,
-    "declines": 426,
+    "asks": 10467,
+    "v0": 5223,
+    "declines": 424,
     "illegal": 0,
     "model_errors": 0,
     "trunc": 0,
-    "v0_rate": 0.4994,
+    "v0_rate": 0.499,
     "decline_rate": 0.0405,
     "per_kind": {
      "act": {
-      "asks": 4786,
+      "asks": 4761,
       "v0_rate": 0.0,
       "decline_rate": 0.0,
       "agree_heur_rate": 1.0
      },
      "attack": {
-      "asks": 1756,
-      "v0_rate": 0.8776,
-      "decline_rate": 0.1224,
+      "asks": 1751,
+      "v0_rate": 0.8778,
+      "decline_rate": 0.1222,
       "agree_heur_rate": 1.0
      },
      "choose": {
-      "asks": 2191,
+      "asks": 2188,
       "v0_rate": 1.0,
       "decline_rate": 0.0,
       "agree_heur_rate": 1.0
@@ -363,13 +363,13 @@
       "agree_heur_rate": 1.0
      },
      "target": {
-      "asks": 305,
+      "asks": 301,
       "v0_rate": 1.0,
       "decline_rate": 0.0,
       "agree_heur_rate": 1.0
      },
      "may": {
-      "asks": 492,
+      "asks": 467,
       "v0_rate": 1.0,
       "decline_rate": 0.0,
       "agree_heur_rate": 1.0
@@ -377,7 +377,7 @@
      "block": {
       "asks": 402,
       "v0_rate": 0.3756,
-      "decline_rate": 0.5249,
+      "decline_rate": 0.5224,
       "agree_heur_rate": 1.0
      },
      "scry": {
@@ -387,7 +387,7 @@
       "agree_heur_rate": 1.0
      },
      "order": {
-      "asks": 13,
+      "asks": 14,
       "v0_rate": 1.0,
       "decline_rate": 0.0,
       "agree_heur_rate": 1.0
@@ -414,8 +414,8 @@
       "n_decisive": 198
      },
      "7": {
-      "policy_lead_rate": 0.35,
-      "lead_predicts_win_rate": 0.7525,
+      "policy_lead_rate": 0.355,
+      "lead_predicts_win_rate": 0.7576,
       "n_decisive": 198
      },
      "10": {
@@ -424,7 +424,7 @@
       "n_decisive": 198
      }
     },
-    "final_dmg_diff_mean": -5.34,
+    "final_dmg_diff_mean": -5.37,
     "n": 200
    }
   }
@@ -6308,18 +6308,18 @@
    {
     "seed": 512024,
     "swap": true,
-    "outcome": "draw-cap",
-    "reason": "turn cap 60 reached (no loser)",
-    "turns": 60,
+    "outcome": "a",
+    "reason": "game over: player:0(life<=0)",
+    "turns": 30,
     "crash": null,
     "crash_tb": "",
     "illegal": 0,
-    "journal_total": 33,
-    "ask_log_total": 32,
-    "auto_resolved": 1,
+    "journal_total": 13,
+    "ask_log_total": 13,
+    "auto_resolved": 0,
     "lives_end": [
-     26,
-     2
+     0,
+     20
     ],
     "life_trace": [
      [
@@ -6486,7 +6486,7 @@
       21,
       0,
       [
-       20,
+       17,
        20
       ]
      ],
@@ -6494,7 +6494,7 @@
       22,
       1,
       [
-       20,
+       17,
        20
       ]
      ],
@@ -6502,7 +6502,7 @@
       23,
       0,
       [
-       20,
+       13,
        20
       ]
      ],
@@ -6510,7 +6510,7 @@
       24,
       1,
       [
-       20,
+       13,
        20
       ]
      ],
@@ -6518,7 +6518,7 @@
       25,
       0,
       [
-       20,
+       9,
        20
       ]
      ],
@@ -6526,7 +6526,7 @@
       26,
       1,
       [
-       20,
+       9,
        20
       ]
      ],
@@ -6534,7 +6534,7 @@
       27,
       0,
       [
-       20,
+       5,
        20
       ]
      ],
@@ -6542,7 +6542,7 @@
       28,
       1,
       [
-       20,
+       5,
        20
       ]
      ],
@@ -6550,7 +6550,7 @@
       29,
       0,
       [
-       20,
+       1,
        20
       ]
      ],
@@ -6558,341 +6558,89 @@
       30,
       1,
       [
-       20,
+       2,
        20
-      ]
-     ],
-     [
-      31,
-      0,
-      [
-       20,
-       20
-      ]
-     ],
-     [
-      32,
-      1,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      33,
-      0,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      34,
-      1,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      35,
-      0,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      36,
-      1,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      37,
-      0,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      38,
-      1,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      39,
-      0,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      40,
-      1,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      41,
-      0,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      42,
-      1,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      43,
-      0,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      44,
-      1,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      45,
-      0,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      46,
-      1,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      47,
-      0,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      48,
-      1,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      49,
-      0,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      50,
-      1,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      51,
-      0,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      52,
-      1,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      53,
-      0,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      54,
-      1,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      55,
-      0,
-      [
-       21,
-       20
-      ]
-     ],
-     [
-      56,
-      1,
-      [
-       26,
-       20
-      ]
-     ],
-     [
-      57,
-      0,
-      [
-       26,
-       20
-      ]
-     ],
-     [
-      58,
-      1,
-      [
-       26,
-       11
-      ]
-     ],
-     [
-      59,
-      0,
-      [
-       26,
-       11
-      ]
-     ],
-     [
-      60,
-      1,
-      [
-       26,
-       2
       ]
      ]
     ],
     "seat_stats": {
      "0": {
-      "asks": 267,
-      "v0": 18,
-      "declines": 7,
+      "asks": 39,
+      "v0": 14,
+      "declines": 11,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
-        "asks": 238,
-        "v0": 7,
-        "declines": 7,
-        "agree": 3
-       },
-       "choose": {
-        "asks": 16,
-        "v0": 0,
-        "declines": 0,
+        "asks": 36,
+        "v0": 11,
+        "declines": 11,
         "agree": 0
        },
        "target": {
         "asks": 2,
-        "v0": 1,
+        "v0": 2,
         "declines": 0,
-        "agree": 1
+        "agree": 2
        },
        "block": {
-        "asks": 4,
-        "v0": 4,
-        "declines": 0,
-        "agree": 1
-       },
-       "attack": {
-        "asks": 6,
-        "v0": 6,
-        "declines": 0,
-        "agree": 6
-       },
-       "scry": {
         "asks": 1,
-        "v0": 0,
+        "v0": 1,
         "declines": 0,
         "agree": 0
        }
       },
-      "trunc": 262,
+      "trunc": 34,
       "ctx": {
-       "dups": 202,
-       "blocks_dropped": 63,
+       "dups": 17,
+       "blocks_dropped": 19,
        "zones_collapsed": 0,
        "hands_dropped": 0,
        "tail_fallbacks": 0
       }
      },
      "1": {
-      "asks": 40,
-      "v0": 24,
-      "declines": 23,
+      "asks": 62,
+      "v0": 12,
+      "declines": 4,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
-        "asks": 35,
-        "v0": 23,
-        "declines": 23,
-        "agree": 1
+        "asks": 50,
+        "v0": 4,
+        "declines": 4,
+        "agree": 33
        },
        "other": {
-        "asks": 1,
+        "asks": 2,
         "v0": 0,
         "declines": 0,
         "agree": 0
        },
        "attack": {
+        "asks": 7,
+        "v0": 7,
+        "declines": 0,
+        "agree": 7
+       },
+       "cw": {
         "asks": 1,
-        "v0": 1,
+        "v0": 0,
         "declines": 0,
         "agree": 1
        },
-       "order": {
-        "asks": 3,
-        "v0": 0,
+       "choose": {
+        "asks": 2,
+        "v0": 1,
         "declines": 0,
-        "agree": 0
+        "agree": 1
        }
       },
-      "trunc": 36,
+      "trunc": 58,
       "ctx": {
-       "dups": 11,
-       "blocks_dropped": 27,
+       "dups": 36,
+       "blocks_dropped": 24,
        "zones_collapsed": 0,
        "hands_dropped": 0,
        "tail_fallbacks": 0
@@ -12045,8 +11793,8 @@
     "crash": null,
     "crash_tb": "",
     "illegal": 0,
-    "journal_total": 52,
-    "ask_log_total": 52,
+    "journal_total": 55,
+    "ask_log_total": 55,
     "auto_resolved": 0,
     "lives_end": [
      30,
@@ -12194,7 +11942,7 @@
       1,
       [
        30,
-       13
+       12
       ]
      ],
      [
@@ -12202,7 +11950,7 @@
       0,
       [
        30,
-       13
+       12
       ]
      ],
      [
@@ -12210,7 +11958,7 @@
       1,
       [
        30,
-       7
+       5
       ]
      ],
      [
@@ -12218,23 +11966,23 @@
       0,
       [
        30,
-       7
+       5
       ]
      ]
     ],
     "seat_stats": {
      "0": {
-      "asks": 93,
-      "v0": 18,
-      "declines": 1,
+      "asks": 78,
+      "v0": 20,
+      "declines": 0,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
-        "asks": 53,
-        "v0": 1,
-        "declines": 1,
-        "agree": 21
+        "asks": 35,
+        "v0": 0,
+        "declines": 0,
+        "agree": 3
        },
        "choose": {
         "asks": 20,
@@ -12261,16 +12009,16 @@
         "agree": 0
        },
        "attack": {
-        "asks": 15,
-        "v0": 15,
+        "asks": 18,
+        "v0": 18,
         "declines": 0,
-        "agree": 13
+        "agree": 16
        }
       },
-      "trunc": 88,
+      "trunc": 73,
       "ctx": {
-       "dups": 39,
-       "blocks_dropped": 51,
+       "dups": 28,
+       "blocks_dropped": 47,
        "zones_collapsed": 0,
        "hands_dropped": 0,
        "tail_fallbacks": 0
@@ -15918,8 +15666,8 @@
     "crash": null,
     "crash_tb": "",
     "illegal": 0,
-    "journal_total": 25,
-    "ask_log_total": 25,
+    "journal_total": 46,
+    "ask_log_total": 46,
     "auto_resolved": 0,
     "lives_end": [
      0,
@@ -16026,7 +15774,7 @@
       13,
       0,
       [
-       16,
+       17,
        21
       ]
      ],
@@ -16034,7 +15782,7 @@
       14,
       1,
       [
-       16,
+       17,
        21
       ]
      ],
@@ -16042,7 +15790,7 @@
       15,
       0,
       [
-       12,
+       14,
        21
       ]
      ],
@@ -16050,7 +15798,7 @@
       16,
       1,
       [
-       12,
+       14,
        21
       ]
      ],
@@ -16058,7 +15806,7 @@
       17,
       0,
       [
-       8,
+       11,
        21
       ]
      ],
@@ -16066,7 +15814,7 @@
       18,
       1,
       [
-       9,
+       12,
        21
       ]
      ],
@@ -16074,7 +15822,7 @@
       19,
       0,
       [
-       5,
+       9,
        21
       ]
      ],
@@ -16082,7 +15830,7 @@
       20,
       1,
       [
-       5,
+       9,
        21
       ]
      ],
@@ -16090,7 +15838,7 @@
       21,
       0,
       [
-       1,
+       6,
        21
       ]
      ],
@@ -16098,7 +15846,7 @@
       22,
       1,
       [
-       1,
+       6,
        21
       ]
      ]
@@ -16140,23 +15888,35 @@
       }
      },
      "1": {
-      "asks": 59,
-      "v0": 12,
-      "declines": 5,
+      "asks": 74,
+      "v0": 8,
+      "declines": 0,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
-        "asks": 40,
-        "v0": 5,
-        "declines": 5,
-        "agree": 2
+        "asks": 35,
+        "v0": 0,
+        "declines": 0,
+        "agree": 34
        },
        "choose": {
-        "asks": 10,
+        "asks": 27,
         "v0": 0,
         "declines": 0,
         "agree": 0
+       },
+       "scry": {
+        "asks": 2,
+        "v0": 0,
+        "declines": 0,
+        "agree": 0
+       },
+       "may": {
+        "asks": 1,
+        "v0": 1,
+        "declines": 0,
+        "agree": 1
        },
        "other": {
         "asks": 2,
@@ -16164,23 +15924,17 @@
         "declines": 0,
         "agree": 1
        },
-       "target": {
-        "asks": 1,
-        "v0": 1,
-        "declines": 0,
-        "agree": 1
-       },
        "attack": {
-        "asks": 6,
-        "v0": 6,
+        "asks": 7,
+        "v0": 7,
         "declines": 0,
-        "agree": 6
+        "agree": 7
        }
       },
-      "trunc": 54,
+      "trunc": 69,
       "ctx": {
-       "dups": 27,
-       "blocks_dropped": 29,
+       "dups": 26,
+       "blocks_dropped": 45,
        "zones_collapsed": 0,
        "hands_dropped": 0,
        "tail_fallbacks": 0
@@ -49576,17 +49330,17 @@
    {
     "seed": 512167,
     "swap": false,
-    "outcome": "draw-other",
-    "reason": "draw: player:0(life<=0), player:1(life<=0)",
-    "turns": 23,
+    "outcome": "a",
+    "reason": "game over: player:1(life<=0)",
+    "turns": 17,
     "crash": null,
     "crash_tb": "",
     "illegal": 0,
-    "journal_total": 66,
-    "ask_log_total": 66,
-    "auto_resolved": 0,
+    "journal_total": 57,
+    "ask_log_total": 56,
+    "auto_resolved": 1,
     "lives_end": [
-     0,
+     14,
      0
     ],
     "life_trace": [
@@ -49651,7 +49405,7 @@
       1,
       [
        20,
-       20
+       19
       ]
      ],
      [
@@ -49659,7 +49413,7 @@
       0,
       [
        20,
-       21
+       20
       ]
      ],
      [
@@ -49667,7 +49421,7 @@
       1,
       [
        20,
-       21
+       19
       ]
      ],
      [
@@ -49675,7 +49429,7 @@
       0,
       [
        20,
-       21
+       19
       ]
      ],
      [
@@ -49683,7 +49437,7 @@
       1,
       [
        20,
-       19
+       14
       ]
      ],
      [
@@ -49691,7 +49445,7 @@
       0,
       [
        20,
-       19
+       14
       ]
      ],
      [
@@ -49699,7 +49453,7 @@
       1,
       [
        18,
-       16
+       8
       ]
      ],
      [
@@ -49707,7 +49461,7 @@
       0,
       [
        18,
-       16
+       8
       ]
      ],
      [
@@ -49715,7 +49469,7 @@
       1,
       [
        16,
-       13
+       2
       ]
      ],
      [
@@ -49723,70 +49477,22 @@
       0,
       [
        16,
-       13
-      ]
-     ],
-     [
-      18,
-      1,
-      [
-       14,
-       9
-      ]
-     ],
-     [
-      19,
-      0,
-      [
-       11,
-       9
-      ]
-     ],
-     [
-      20,
-      1,
-      [
-       9,
-       5
-      ]
-     ],
-     [
-      21,
-      0,
-      [
-       6,
-       5
-      ]
-     ],
-     [
-      22,
-      1,
-      [
-       4,
-       1
-      ]
-     ],
-     [
-      23,
-      0,
-      [
-       1,
-       1
+       2
       ]
      ]
     ],
     "seat_stats": {
      "0": {
-      "asks": 67,
-      "v0": 23,
-      "declines": 5,
+      "asks": 51,
+      "v0": 19,
+      "declines": 0,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
-        "asks": 21,
-        "v0": 5,
-        "declines": 5,
+        "asks": 11,
+        "v0": 0,
+        "declines": 0,
         "agree": 4
        },
        "scry": {
@@ -49796,42 +49502,42 @@
         "agree": 0
        },
        "choose": {
-        "asks": 21,
+        "asks": 15,
         "v0": 0,
         "declines": 0,
         "agree": 0
        },
        "block": {
-        "asks": 1,
-        "v0": 1,
+        "asks": 2,
+        "v0": 2,
         "declines": 0,
         "agree": 0
        },
-       "target": {
-        "asks": 8,
-        "v0": 3,
-        "declines": 0,
-        "agree": 3
-       },
        "attack": {
-        "asks": 14,
-        "v0": 14,
+        "asks": 17,
+        "v0": 17,
         "declines": 0,
-        "agree": 12
+        "agree": 13
+       },
+       "target": {
+        "asks": 4,
+        "v0": 0,
+        "declines": 0,
+        "agree": 0
        }
       },
-      "trunc": 62,
+      "trunc": 46,
       "ctx": {
-       "dups": 6,
-       "blocks_dropped": 58,
+       "dups": 11,
+       "blocks_dropped": 37,
        "zones_collapsed": 0,
        "hands_dropped": 0,
        "tail_fallbacks": 0
       }
      },
      "1": {
-      "asks": 40,
-      "v0": 7,
+      "asks": 32,
+      "v0": 4,
       "declines": 0,
       "illegal": 0,
       "model_errors": 0,
@@ -49855,16 +49561,22 @@
         "agree": 1
        },
        "choose": {
-        "asks": 16,
+        "asks": 10,
         "v0": 0,
         "declines": 0,
         "agree": 0
        },
        "attack": {
-        "asks": 4,
-        "v0": 4,
+        "asks": 1,
+        "v0": 1,
         "declines": 0,
-        "agree": 4
+        "agree": 1
+       },
+       "order": {
+        "asks": 1,
+        "v0": 0,
+        "declines": 0,
+        "agree": 0
        },
        "may": {
         "asks": 1,
@@ -49876,13 +49588,13 @@
         "asks": 1,
         "v0": 1,
         "declines": 0,
-        "agree": 1
+        "agree": 0
        }
       },
-      "trunc": 35,
+      "trunc": 27,
       "ctx": {
        "dups": 5,
-       "blocks_dropped": 32,
+       "blocks_dropped": 24,
        "zones_collapsed": 0,
        "hands_dropped": 0,
        "tail_fallbacks": 0
@@ -50744,8 +50456,8 @@
     "crash": null,
     "crash_tb": "",
     "illegal": 0,
-    "journal_total": 27,
-    "ask_log_total": 27,
+    "journal_total": 29,
+    "ask_log_total": 29,
     "auto_resolved": 0,
     "lives_end": [
      0,
@@ -50883,14 +50595,14 @@
     ],
     "seat_stats": {
      "0": {
-      "asks": 18,
-      "v0": 6,
-      "declines": 4,
+      "asks": 20,
+      "v0": 7,
+      "declines": 5,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
-        "asks": 9,
+        "asks": 10,
         "v0": 4,
         "declines": 4,
         "agree": 3
@@ -50918,29 +50630,35 @@
         "v0": 0,
         "declines": 0,
         "agree": 0
+       },
+       "other": {
+        "asks": 1,
+        "v0": 1,
+        "declines": 1,
+        "agree": 0
        }
       },
-      "trunc": 13,
+      "trunc": 15,
       "ctx": {
        "dups": 0,
-       "blocks_dropped": 15,
+       "blocks_dropped": 17,
        "zones_collapsed": 0,
        "hands_dropped": 0,
        "tail_fallbacks": 0
       }
      },
      "1": {
-      "asks": 73,
+      "asks": 60,
       "v0": 11,
       "declines": 0,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
-        "asks": 54,
+        "asks": 40,
         "v0": 0,
         "declines": 0,
-        "agree": 49
+        "agree": 37
        },
        "choose": {
         "asks": 7,
@@ -50961,16 +50679,16 @@
         "agree": 10
        },
        "other": {
-        "asks": 1,
+        "asks": 2,
         "v0": 0,
         "declines": 0,
-        "agree": 0
+        "agree": 1
        }
       },
-      "trunc": 68,
+      "trunc": 55,
       "ctx": {
-       "dups": 40,
-       "blocks_dropped": 30,
+       "dups": 28,
+       "blocks_dropped": 29,
        "zones_collapsed": 0,
        "hands_dropped": 0,
        "tail_fallbacks": 0
@@ -66170,22 +65888,22 @@
       "ctx": {}
      },
      "1": {
-      "asks": 1,
-      "v0": 1,
-      "declines": 1,
+      "asks": 10,
+      "v0": 0,
+      "declines": 0,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
-        "asks": 1,
-        "v0": 1,
-        "declines": 1,
-        "agree": 0
+        "asks": 10,
+        "v0": 0,
+        "declines": 0,
+        "agree": 10
        }
       },
-      "trunc": 0,
+      "trunc": 6,
       "ctx": {
-       "dups": 0,
+       "dups": 6,
        "blocks_dropped": 0,
        "zones_collapsed": 0,
        "hands_dropped": 0,
@@ -71177,15 +70895,15 @@
     "swap": false,
     "outcome": "a",
     "reason": "game over: player:1(life<=0)",
-    "turns": 19,
+    "turns": 17,
     "crash": null,
     "crash_tb": "",
     "illegal": 0,
-    "journal_total": 50,
-    "ask_log_total": 50,
+    "journal_total": 41,
+    "ask_log_total": 41,
     "auto_resolved": 0,
     "lives_end": [
-     20,
+     22,
      0
     ],
     "life_trace": [
@@ -71324,40 +71042,24 @@
        20,
        6
       ]
-     ],
-     [
-      18,
-      1,
-      [
-       22,
-       1
-      ]
-     ],
-     [
-      19,
-      0,
-      [
-       18,
-       1
-      ]
      ]
     ],
     "seat_stats": {
      "0": {
-      "asks": 79,
-      "v0": 17,
-      "declines": 1,
+      "asks": 54,
+      "v0": 13,
+      "declines": 0,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
-        "asks": 43,
-        "v0": 1,
-        "declines": 1,
-        "agree": 11
+        "asks": 24,
+        "v0": 0,
+        "declines": 0,
+        "agree": 3
        },
        "choose": {
-        "asks": 17,
+        "asks": 14,
         "v0": 0,
         "declines": 0,
         "agree": 0
@@ -71375,24 +71077,24 @@
         "agree": 0
        },
        "attack": {
-        "asks": 15,
-        "v0": 15,
+        "asks": 12,
+        "v0": 12,
         "declines": 0,
-        "agree": 15
+        "agree": 12
        }
       },
-      "trunc": 74,
+      "trunc": 49,
       "ctx": {
-       "dups": 32,
-       "blocks_dropped": 44,
+       "dups": 15,
+       "blocks_dropped": 36,
        "zones_collapsed": 0,
        "hands_dropped": 0,
        "tail_fallbacks": 0
       }
      },
      "1": {
-      "asks": 22,
-      "v0": 13,
+      "asks": 19,
+      "v0": 10,
       "declines": 4,
       "illegal": 0,
       "model_errors": 0,
@@ -71404,16 +71106,16 @@
         "agree": 5
        },
        "choose": {
-        "asks": 8,
-        "v0": 8,
+        "asks": 6,
+        "v0": 6,
         "declines": 0,
-        "agree": 8
+        "agree": 6
        },
        "attack": {
-        "asks": 6,
-        "v0": 4,
+        "asks": 5,
+        "v0": 3,
         "declines": 2,
-        "agree": 6
+        "agree": 5
        },
        "block": {
         "asks": 2,
@@ -72903,11 +72605,11 @@
     "crash": null,
     "crash_tb": "",
     "illegal": 0,
-    "journal_total": 58,
-    "ask_log_total": 57,
-    "auto_resolved": 1,
+    "journal_total": 63,
+    "ask_log_total": 61,
+    "auto_resolved": 2,
     "lives_end": [
-     5,
+     8,
      0
     ],
     "life_trace": [
@@ -73107,30 +72809,30 @@
       25,
       0,
       [
-       5,
+       8,
        4
       ]
      ]
     ],
     "seat_stats": {
      "0": {
-      "asks": 45,
-      "v0": 15,
-      "declines": 1,
+      "asks": 48,
+      "v0": 18,
+      "declines": 2,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
-        "asks": 19,
-        "v0": 1,
-        "declines": 1,
+        "asks": 21,
+        "v0": 2,
+        "declines": 2,
         "agree": 10
        },
        "attack": {
-        "asks": 10,
-        "v0": 10,
+        "asks": 11,
+        "v0": 11,
         "declines": 0,
-        "agree": 8
+        "agree": 9
        },
        "choose": {
         "asks": 9,
@@ -73139,16 +72841,16 @@
         "agree": 0
        },
        "block": {
-        "asks": 3,
-        "v0": 1,
+        "asks": 4,
+        "v0": 3,
         "declines": 0,
         "agree": 1
        },
        "target": {
-        "asks": 2,
-        "v0": 2,
+        "asks": 1,
+        "v0": 1,
         "declines": 0,
-        "agree": 2
+        "agree": 1
        },
        "order": {
         "asks": 1,
@@ -73163,19 +72865,19 @@
         "agree": 1
        }
       },
-      "trunc": 40,
+      "trunc": 43,
       "ctx": {
-       "dups": 1,
-       "blocks_dropped": 41,
+       "dups": 2,
+       "blocks_dropped": 43,
        "zones_collapsed": 0,
        "hands_dropped": 0,
        "tail_fallbacks": 0
       }
      },
      "1": {
-      "asks": 50,
+      "asks": 52,
       "v0": 35,
-      "declines": 2,
+      "declines": 3,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
@@ -73211,17 +72913,23 @@
        },
        "attack": {
         "asks": 9,
-        "v0": 8,
-        "declines": 1,
+        "v0": 7,
+        "declines": 2,
         "agree": 9
        },
        "block": {
-        "asks": 5,
+        "asks": 6,
         "v0": 4,
         "declines": 1,
-        "agree": 5
+        "agree": 6
        },
        "trample": {
+        "asks": 1,
+        "v0": 1,
+        "declines": 0,
+        "agree": 1
+       },
+       "order": {
         "asks": 1,
         "v0": 1,
         "declines": 0,
@@ -74826,12 +74534,12 @@
     "swap": true,
     "outcome": "a",
     "reason": "game over: player:0(life<=0)",
-    "turns": 22,
+    "turns": 24,
     "crash": null,
     "crash_tb": "",
     "illegal": 0,
-    "journal_total": 24,
-    "ask_log_total": 24,
+    "journal_total": 54,
+    "ask_log_total": 54,
     "auto_resolved": 0,
     "lives_end": [
      0,
@@ -74938,7 +74646,7 @@
       13,
       0,
       [
-       16,
+       17,
        21
       ]
      ],
@@ -74946,7 +74654,7 @@
       14,
       1,
       [
-       16,
+       17,
        21
       ]
      ],
@@ -74954,7 +74662,7 @@
       15,
       0,
       [
-       12,
+       14,
        21
       ]
      ],
@@ -74962,7 +74670,7 @@
       16,
       1,
       [
-       12,
+       14,
        21
       ]
      ],
@@ -74970,7 +74678,7 @@
       17,
       0,
       [
-       8,
+       11,
        21
       ]
      ],
@@ -74978,7 +74686,7 @@
       18,
       1,
       [
-       8,
+       11,
        21
       ]
      ],
@@ -74986,7 +74694,7 @@
       19,
       0,
       [
-       4,
+       8,
        21
       ]
      ],
@@ -74994,7 +74702,7 @@
       20,
       1,
       [
-       5,
+       9,
        21
       ]
      ],
@@ -75002,12 +74710,28 @@
       21,
       0,
       [
-       1,
+       6,
        21
       ]
      ],
      [
       22,
+      1,
+      [
+       6,
+       21
+      ]
+     ],
+     [
+      23,
+      0,
+      [
+       1,
+       21
+      ]
+     ],
+     [
+      24,
       1,
       [
        1,
@@ -75017,17 +74741,17 @@
     ],
     "seat_stats": {
      "0": {
-      "asks": 12,
-      "v0": 6,
+      "asks": 17,
+      "v0": 8,
       "declines": 0,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
-        "asks": 6,
+        "asks": 7,
         "v0": 0,
         "declines": 0,
-        "agree": 6
+        "agree": 7
        },
        "scry": {
         "asks": 1,
@@ -75036,33 +74760,51 @@
         "agree": 1
        },
        "choose": {
-        "asks": 5,
-        "v0": 5,
+        "asks": 7,
+        "v0": 7,
         "declines": 0,
-        "agree": 5
+        "agree": 7
+       },
+       "block": {
+        "asks": 2,
+        "v0": 0,
+        "declines": 0,
+        "agree": 2
        }
       },
       "trunc": 0,
       "ctx": {}
      },
      "1": {
-      "asks": 59,
-      "v0": 12,
-      "declines": 5,
+      "asks": 79,
+      "v0": 10,
+      "declines": 0,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
-        "asks": 40,
-        "v0": 5,
-        "declines": 5,
-        "agree": 2
+        "asks": 35,
+        "v0": 0,
+        "declines": 0,
+        "agree": 34
        },
        "choose": {
-        "asks": 10,
+        "asks": 30,
         "v0": 0,
         "declines": 0,
         "agree": 0
+       },
+       "scry": {
+        "asks": 2,
+        "v0": 0,
+        "declines": 0,
+        "agree": 0
+       },
+       "may": {
+        "asks": 1,
+        "v0": 1,
+        "declines": 0,
+        "agree": 1
        },
        "other": {
         "asks": 2,
@@ -75070,23 +74812,17 @@
         "declines": 0,
         "agree": 1
        },
-       "target": {
-        "asks": 1,
-        "v0": 1,
-        "declines": 0,
-        "agree": 1
-       },
        "attack": {
-        "asks": 6,
-        "v0": 6,
+        "asks": 9,
+        "v0": 9,
         "declines": 0,
-        "agree": 5
+        "agree": 9
        }
       },
-      "trunc": 54,
+      "trunc": 74,
       "ctx": {
        "dups": 27,
-       "blocks_dropped": 29,
+       "blocks_dropped": 49,
        "zones_collapsed": 0,
        "hands_dropped": 0,
        "tail_fallbacks": 0
@@ -87558,8 +87294,8 @@
     "crash": null,
     "crash_tb": "",
     "illegal": 0,
-    "journal_total": 57,
-    "ask_log_total": 57,
+    "journal_total": 56,
+    "ask_log_total": 56,
     "auto_resolved": 0,
     "lives_end": [
      26,
@@ -87759,16 +87495,16 @@
      },
      "1": {
       "asks": 27,
-      "v0": 8,
-      "declines": 2,
+      "v0": 5,
+      "declines": 0,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
         "asks": 12,
-        "v0": 2,
-        "declines": 2,
-        "agree": 5
+        "v0": 0,
+        "declines": 0,
+        "agree": 8
        },
        "choose": {
         "asks": 5,
@@ -87783,26 +87519,26 @@
         "agree": 2
        },
        "other": {
-        "asks": 1,
+        "asks": 2,
         "v0": 0,
         "declines": 0,
         "agree": 0
        },
        "block": {
-        "asks": 4,
-        "v0": 2,
+        "asks": 3,
+        "v0": 1,
         "declines": 0,
         "agree": 3
        },
-       "attack": {
+       "target": {
         "asks": 2,
-        "v0": 2,
+        "v0": 1,
         "declines": 0,
         "agree": 1
        },
-       "target": {
+       "attack": {
         "asks": 1,
-        "v0": 0,
+        "v0": 1,
         "declines": 0,
         "agree": 0
        }
@@ -88832,11 +88568,11 @@
     "crash": null,
     "crash_tb": "",
     "illegal": 0,
-    "journal_total": 128,
-    "ask_log_total": 128,
+    "journal_total": 118,
+    "ask_log_total": 118,
     "auto_resolved": 0,
     "lives_end": [
-     9,
+     19,
      0
     ],
     "life_trace": [
@@ -89084,7 +88820,7 @@
       31,
       0,
       [
-       17,
+       19,
        12
       ]
      ],
@@ -89092,23 +88828,23 @@
       32,
       1,
       [
-       17,
-       8
+       19,
+       13
       ]
      ],
      [
       33,
       0,
       [
-       15,
-       8
+       19,
+       13
       ]
      ],
      [
       34,
       1,
       [
-       15,
+       19,
        9
       ]
      ],
@@ -89116,7 +88852,7 @@
       35,
       0,
       [
-       13,
+       19,
        9
       ]
      ],
@@ -89124,7 +88860,7 @@
       36,
       1,
       [
-       13,
+       19,
        5
       ]
      ],
@@ -89132,7 +88868,7 @@
       37,
       0,
       [
-       11,
+       19,
        5
       ]
      ],
@@ -89140,7 +88876,7 @@
       38,
       1,
       [
-       11,
+       19,
        1
       ]
      ],
@@ -89148,16 +88884,16 @@
       39,
       0,
       [
-       9,
+       19,
        1
       ]
      ]
     ],
     "seat_stats": {
      "0": {
-      "asks": 120,
-      "v0": 94,
-      "declines": 1,
+      "asks": 115,
+      "v0": 90,
+      "declines": 0,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
@@ -89186,10 +88922,10 @@
         "agree": 15
        },
        "target": {
-        "asks": 8,
-        "v0": 8,
+        "asks": 4,
+        "v0": 4,
         "declines": 0,
-        "agree": 8
+        "agree": 4
        },
        "other": {
         "asks": 1,
@@ -89202,26 +88938,20 @@
         "v0": 6,
         "declines": 0,
         "agree": 6
-       },
-       "block": {
-        "asks": 1,
-        "v0": 0,
-        "declines": 1,
-        "agree": 1
        }
       },
       "trunc": 0,
       "ctx": {}
      },
      "1": {
-      "asks": 61,
-      "v0": 26,
+      "asks": 57,
+      "v0": 21,
       "declines": 15,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
-        "asks": 26,
+        "asks": 27,
         "v0": 15,
         "declines": 15,
         "agree": 2
@@ -89233,10 +88963,10 @@
         "agree": 0
        },
        "attack": {
-        "asks": 6,
-        "v0": 6,
+        "asks": 1,
+        "v0": 1,
         "declines": 0,
-        "agree": 6
+        "agree": 1
        },
        "target": {
         "asks": 1,
@@ -89251,10 +88981,10 @@
         "agree": 0
        }
       },
-      "trunc": 56,
+      "trunc": 52,
       "ctx": {
        "dups": 0,
-       "blocks_dropped": 59,
+       "blocks_dropped": 55,
        "zones_collapsed": 0,
        "hands_dropped": 0,
        "tail_fallbacks": 0
@@ -105740,15 +105470,15 @@
     "swap": false,
     "outcome": "a",
     "reason": "game over: player:1(life<=0)",
-    "turns": 17,
+    "turns": 15,
     "crash": null,
     "crash_tb": "",
     "illegal": 0,
-    "journal_total": 106,
-    "ask_log_total": 105,
-    "auto_resolved": 1,
+    "journal_total": 71,
+    "ask_log_total": 71,
+    "auto_resolved": 0,
     "lives_end": [
-     5,
+     8,
      0
     ],
     "life_trace": [
@@ -105813,7 +105543,7 @@
       1,
       [
        20,
-       19
+       18
       ]
      ],
      [
@@ -105821,7 +105551,7 @@
       0,
       [
        18,
-       19
+       18
       ]
      ],
      [
@@ -105829,7 +105559,7 @@
       1,
       [
        18,
-       17
+       15
       ]
      ],
      [
@@ -105837,7 +105567,7 @@
       0,
       [
        16,
-       18
+       16
       ]
      ],
      [
@@ -105845,7 +105575,7 @@
       1,
       [
        16,
-       14
+       11
       ]
      ],
      [
@@ -105853,7 +105583,7 @@
       0,
       [
        14,
-       13
+       11
       ]
      ],
      [
@@ -105861,47 +105591,31 @@
       1,
       [
        12,
-       8
+       3
       ]
      ],
      [
       15,
       0,
       [
-       9,
-       8
-      ]
-     ],
-     [
-      16,
-      1,
-      [
-       7,
-       3
-      ]
-     ],
-     [
-      17,
-      0,
-      [
-       7,
+       10,
        3
       ]
      ]
     ],
     "seat_stats": {
      "0": {
-      "asks": 53,
-      "v0": 21,
-      "declines": 5,
+      "asks": 46,
+      "v0": 18,
+      "declines": 0,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
-        "asks": 16,
-        "v0": 5,
-        "declines": 5,
-        "agree": 3
+        "asks": 10,
+        "v0": 0,
+        "declines": 0,
+        "agree": 4
        },
        "scry": {
         "asks": 2,
@@ -105910,57 +105624,45 @@
         "agree": 0
        },
        "choose": {
-        "asks": 15,
+        "asks": 13,
         "v0": 0,
         "declines": 0,
         "agree": 0
        },
-       "target": {
-        "asks": 4,
-        "v0": 1,
-        "declines": 0,
-        "agree": 1
-       },
        "attack": {
-        "asks": 14,
-        "v0": 14,
+        "asks": 18,
+        "v0": 18,
         "declines": 0,
-        "agree": 13
+        "agree": 17
        },
-       "block": {
-        "asks": 1,
-        "v0": 1,
-        "declines": 0,
-        "agree": 0
-       },
-       "order": {
-        "asks": 1,
+       "target": {
+        "asks": 3,
         "v0": 0,
         "declines": 0,
         "agree": 0
        }
       },
-      "trunc": 48,
+      "trunc": 41,
       "ctx": {
-       "dups": 8,
-       "blocks_dropped": 42,
+       "dups": 12,
+       "blocks_dropped": 31,
        "zones_collapsed": 0,
        "hands_dropped": 0,
        "tail_fallbacks": 0
       }
      },
      "1": {
-      "asks": 124,
-      "v0": 66,
-      "declines": 4,
+      "asks": 64,
+      "v0": 36,
+      "declines": 2,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
-        "asks": 51,
+        "asks": 25,
         "v0": 0,
         "declines": 0,
-        "agree": 51
+        "agree": 25
        },
        "scry": {
         "asks": 1,
@@ -105969,10 +105671,10 @@
         "agree": 1
        },
        "choose": {
-        "asks": 16,
-        "v0": 16,
+        "asks": 13,
+        "v0": 13,
         "declines": 0,
-        "agree": 16
+        "agree": 13
        },
        "target": {
         "asks": 1,
@@ -105987,22 +105689,22 @@
         "agree": 6
        },
        "block": {
-        "asks": 5,
+        "asks": 3,
         "v0": 0,
         "declines": 2,
-        "agree": 5
+        "agree": 3
        },
        "attack": {
-        "asks": 8,
-        "v0": 6,
-        "declines": 2,
-        "agree": 8
+        "asks": 4,
+        "v0": 4,
+        "declines": 0,
+        "agree": 4
        },
        "may": {
-        "asks": 36,
-        "v0": 36,
+        "asks": 11,
+        "v0": 11,
         "declines": 0,
-        "agree": 36
+        "agree": 11
        }
       },
       "trunc": 0,
@@ -107009,16 +106711,16 @@
     ],
     "seat_stats": {
      "0": {
-      "asks": 25,
-      "v0": 12,
-      "declines": 5,
+      "asks": 52,
+      "v0": 9,
+      "declines": 2,
       "illegal": 0,
       "model_errors": 0,
       "kinds": {
        "act": {
-        "asks": 10,
-        "v0": 5,
-        "declines": 5,
+        "asks": 37,
+        "v0": 2,
+        "declines": 2,
         "agree": 3
        },
        "scry": {
@@ -107046,10 +106748,10 @@
         "agree": 0
        }
       },
-      "trunc": 20,
+      "trunc": 47,
       "ctx": {
-       "dups": 0,
-       "blocks_dropped": 22,
+       "dups": 26,
+       "blocks_dropped": 23,
        "zones_collapsed": 0,
        "hands_dropped": 0,
        "tail_fallbacks": 0

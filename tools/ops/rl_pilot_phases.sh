@@ -135,13 +135,18 @@ audit() {   # RED (nonzero) = logprob plumbing broken => halt (v2 F4 discriminat
 # that arms it; changing it is a payload change => re-smoke (real mode) +
 # explicit re-pin before the window.
 train() {
-  local tag=$1 ep=$2 to
+  local tag=$1 ep=$2 steps to
+  steps=${3:-1}   # /171: iter-N = N successive passes over the same batch. The trainer
+                  # guard requires --policy == the COLLECTING checkpoint (SHA-256), so a
+                  # later iteration is ONE run from the base with --steps N — pass k
+                  # re-forwards the moved weights, bit-equivalent to chaining separate
+                  # runs (smoke-verified; chaining separate runs is guard-rejected).
   to=$(guard_to 7200 120) || { log "train/$tag: budget too small — chain stops honestly (never start an update that can be cut off mid-save)"; exit 8; }
   run_hard "train/$tag" "$to" "$VENV" -m tools.training.train_rl_v1 \
     --episodes "$ep" --policy "$ANCHOR_REL" --anchor "$ANCHOR_REL" \
     --device "$TRAIN_DEV" --tag "${TAGP}${tag}" --out-dir "$ART" \
-    --lr 1e-2 --steps 1
-  ledger_row "train" "$tag" "$tag" "-" "-" "-" "rc=0" "device=$TRAIN_DEV 1 update"
+    --lr 1e-2 --steps "$steps"
+  ledger_row "train" "$tag" "$tag" "-" "-" "-" "rc=0" "device=$TRAIN_DEV ${steps} update(s)"
   diag_ok "$tag"
 }
 
@@ -217,11 +222,24 @@ check_cancel
 NEED=$(( PHASE1_WALL * 18 + MARGIN ))
 HAVE=$(( RESTART_E - $(now) ))
 if (( HAVE > NEED )); then
-  log "--- PHASE 2 (iteration-1): ${G_ITER1}g + probe ${P2_GAMES}g | have ${HAVE}s > need ${NEED}s (=${PHASE1_WALL}*18+${MARGIN}) ---"
+  log "--- PHASE 2 (iteration-1 + /171-branch-2 iter-2): ${G_ITER1}g + 2 trains + probe ${P2_GAMES}g | have ${HAVE}s > need ${NEED}s (=${PHASE1_WALL}*18+${MARGIN}) ---"
   collect iter1 "$G_ITER1" 510201 1412 4244 || { log "phase2 collect skipped on budget — honest stop"; exit 0; }
   audit iter1
-  train rld_i1 "$ART/${TAGP}episodes_iter1.jsonl"
-  probe p2 "$ART/${TAGP}rld_i1.pt" "$P2_GAMES" 512002 1413
+  train rld_i1 "$ART/${TAGP}episodes_iter1.jsonl" 1
+  # /171 branch 2 (M1 = 0.5279 flat + MOVED, night-3): iter-2 same lever,
+  # same episodes — ONE run --steps 2 from the base. Pass 2 re-forwards the
+  # moved weights on the same recorded actions/advantages: bit-equivalent to
+  # "rld_i1 + one more lr 1e-2 step" (the trainer's episode guard requires
+  # --policy == the COLLECTING checkpoint, so chaining separate runs from
+  # rld_i1 is rejected — smoke-verified both directions tonight). The rld_i1
+  # run above is kept for a self-contained, independently guard-checked
+  # iter-1 checkpoint (bit-identical to tonight's and to pass 1 of the 2-step
+  # run — GPU training is bit-deterministic, n3 datum). KL stays cumulative
+  # vs the frozen PRE-RL anchor (F4). Probe seed held at 512002/1413 for
+  # cross-iteration comparability (rotated-seed law applies at the 3-seed
+  # confirmation gate, /134 v2).
+  train rld_i2 "$ART/${TAGP}episodes_iter1.jsonl" 2
+  probe p2 "$ART/${TAGP}rld_i2.pt" "$P2_GAMES" 512002 1413
 else
   log "PHASE 2 SKIPPED honestly: only ${HAVE}s to RESTART (need ${NEED}s = phase1_wall ${PHASE1_WALL}s x18 + ${MARGIN}s margin) — restore on schedule, resume next window (v2 overrun law)"
   ledger_row "budget" "phase2-skip" "iter1" "$G_ITER1" "-" "-" "SKIPPED" "have=${HAVE}s need=${NEED}s"

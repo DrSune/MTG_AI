@@ -10,9 +10,13 @@ Pre-registered objective (/134 design v2 + /137, do not deviate):
   win +1 / loss -1 / draw 0; ``crash`` counts as a loss (rig convention,
   cited r1_window 8/200 in /134 N1).
 * pi_anchor = a FROZEN second copy of the anchor checkpoint
-  (``--anchor``, default ``--policy``). Iteration 1 passes both = base;
-  later iterations pass ``--policy rld_iN.pt --anchor <base>`` so the KL
-  anchor stays the PRE-RL clone (cumulative-KL gate F4).
+  (``--anchor``, default ``--policy``). The episode guard requires
+  ``--policy`` == the COLLECTING checkpoint (SHA-256 identity), so
+  iteration N is ONE run from the base: ``--policy <base> --anchor <base>
+  --steps N`` — pass k re-forwards the moved weights on the same recorded
+  actions (bit-equivalent to chaining separate runs; chaining from a
+  non-collector net is guard-rejected, /171). The KL anchor stays the
+  PRE-RL clone for all passes (cumulative-KL gate F4).
 * Batch law: ONE iterations-file = one batch = ONE update (batch-1 law:
   no best-loss selection). Save = ``<tag>.pt`` + ``<tag>_diag.json``.
 
