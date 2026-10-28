@@ -99,3 +99,5 @@ teacher → per-seat self-play RL, then determinized ISMCTS.
 The omniscient net is reusable as a privileged teacher or critic. That is the Suphx and AlphaStar
 pattern, which corrects REVIEW A-1's "contradiction" framing for training: it is only wrong for
 the acting policy. Evaluation is at or above field practice.
+
+Merged to main 2026-10-28 03:45 CET as 6674753; the next window needs re-smoke + explicit re-pin. M21 compile output and supply unchanged, M21 goldens 305/305. Engine behaviour changes only where a game used to crash (CR 107.3b X=0) and for cards that newly compile (B11, B12, B13 frames). Post-merge gates: pytest MTG_bot 2 failed (the D3/D11 gates, same as the pre-merge baseline) / 3505 passed; run_scenarios 429/429; verify_goldens M21 = [].
