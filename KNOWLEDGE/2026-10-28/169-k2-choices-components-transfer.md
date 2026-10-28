@@ -91,7 +91,7 @@ among the engine-best options. Intervals are paired, resampling source cards.
   - gates: name-permutation invariance, K2 on unseen cards, and a duplicate-duel swap test.
   - The RL payload is pinned, so this is built next to it and adopted at an era boundary.
   - The full design, written for the local agents who run it long term:
-    `docs/DESIGN_COMPONENT_POLICY.md`.
+    `docs/PLAN_COMPONENT_TRAINING.md`.
 
 ## Caveats
 - The label is a hand-made, one-turn probe value: board-good, not strategy-good.
