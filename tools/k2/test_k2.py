@@ -66,3 +66,12 @@ def test_uninformative_and_sourceless_asks_drop_out(tmp_path) -> None:
     assert rows[0]["best"] == [1]
     assert dropped["uninformative"] == 1 and dropped["no source card"] == 1
     assert len(train.option_features({})) == train.N_OPT
+
+
+def test_the_source_is_the_first_card_in_the_tag_not_the_deciding_player() -> None:
+    # Engine tags put the deciding player first (legality.py:1505); act-window picks start with it.
+    assert gen.source_handle("sacrifice:player:0:card:12:ab12cd") == gen.Handle("card", 12)
+    assert gen.source_handle("target:player:1:card:5:ff00") == gen.Handle("card", 5)
+    assert gen.source_handle("pick:card:34:0") == gen.Handle("card", 34)
+    assert gen.source_handle("may:card:23:cf063002da00") == gen.Handle("card", 23)
+    assert gen.source_handle("choose:player:0:9a8b") is None

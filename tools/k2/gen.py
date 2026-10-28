@@ -40,7 +40,6 @@ from typing import Any
 REPO = Path(os.environ.get("MTG_REPO", Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(REPO))
 
-from MTG_bot.bench.protocol import tag_handle
 from MTG_bot.bench.router import SeatRouter
 from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions
 from MTG_bot.core.executor.games import _play, _setup_game, deal_decks, get_supply
@@ -113,6 +112,20 @@ class Scripted:
         return idx
 
 
+def source_handle(site: str) -> Handle | None:
+    """The card whose ability asks: the first ``card:N`` in the site tag.
+
+    Engine tags put the deciding player first ("sacrifice:player:0:card:12:<digest>",
+    legality.py:1505), so the first handle (``tag_handle``) can be the player. The act window's
+    target picks are "pick:card:34:<k>".
+    """
+    parts = site.split(":")
+    for i in range(len(parts) - 1):
+        if parts[i] == "card" and parts[i + 1].isdigit():
+            return Handle("card", int(parts[i + 1]))
+    return None
+
+
 def _zone_of(executor: Any, handle: Handle) -> str:
     for seat in executor.world.player_order:
         for zone in ZONES:
@@ -167,7 +180,7 @@ def play(args: tuple) -> list[dict[str, Any]]:
             return
         executor = obs.executor
         me = executor.world.player_order[ask.seat]
-        source = tag_handle(ask.site)
+        source = source_handle(ask.site)
         card = (executor.world.cards[source]
                 if source is not None and source.namespace == "card" else None)
         if ask.kind == "choose" and card is not None and "Land" in card.identity.type_line:

@@ -1,0 +1,133 @@
+{
+ "seed": 20261028,
+ "val_split": "cards",
+ "decisions": {
+  "train": 3224,
+  "val": 345,
+  "seen_test": 400,
+  "heldout_test": 815
+ },
+ "source_cards": {
+  "train": 243,
+  "heldout": 63
+ },
+ "dropped": {
+  "uninformative": 4689,
+  "more than 16 options": 104
+ },
+ "chance": {
+  "seen": 0.4261,
+  "heldout": 0.4177
+ },
+ "results": {
+  "seen": {
+   "none": 0.725,
+   "name": 0.85,
+   "components": 0.9175
+  },
+  "seen/target": {
+   "none": 0.6978,
+   "name": 0.8442,
+   "components": 0.9221
+  },
+  "seen/sacrifice": {
+   "none": 0.6,
+   "name": 0.6,
+   "components": 0.8
+  },
+  "seen/may": {
+   "none": 0.8571,
+   "name": 0.898,
+   "components": 0.898
+  },
+  "seen/choose": {
+   "none": 0.875,
+   "name": 0.875,
+   "components": 0.9167
+  },
+  "seen/one_of": {
+   "none": 0.0,
+   "name": 1.0,
+   "components": 1.0
+  },
+  "heldout": {
+   "none": 0.7325,
+   "name": 0.7092,
+   "components": 0.8613
+  },
+  "heldout/target": {
+   "none": 0.7135,
+   "name": 0.701,
+   "components": 0.8498
+  },
+  "heldout/sacrifice": {
+   "none": 0.9231,
+   "name": 0.9038,
+   "components": 0.9423
+  },
+  "heldout/may": {
+   "none": 1.0,
+   "name": 0.6765,
+   "components": 1.0
+  },
+  "heldout/choose": {
+   "none": 0.2,
+   "name": 0.4,
+   "components": 0.8
+  }
+ },
+ "none_seconds": 5.7,
+ "name_seconds": 5.4,
+ "components_seconds": 5.0,
+ "paired": {
+  "seen: name - none": {
+   "cards": 165,
+   "gap": 0.125,
+   "ci95": [
+    0.0681,
+    0.2019
+   ]
+  },
+  "seen: components - none": {
+   "cards": 165,
+   "gap": 0.1925,
+   "ci95": [
+    0.1308,
+    0.2656
+   ]
+  },
+  "seen: components - name": {
+   "cards": 165,
+   "gap": 0.0675,
+   "ci95": [
+    0.0296,
+    0.1086
+   ]
+  },
+  "heldout: name - none": {
+   "cards": 63,
+   "gap": -0.0233,
+   "ci95": [
+    -0.0596,
+    0.0087
+   ]
+  },
+  "heldout: components - none": {
+   "cards": 63,
+   "gap": 0.1288,
+   "ci95": [
+    0.0635,
+    0.2202
+   ]
+  },
+  "heldout: components - name": {
+   "cards": 63,
+   "gap": 0.1521,
+   "ci95": [
+    0.0901,
+    0.2348
+   ]
+  }
+ },
+ "seconds": 19.4
+}

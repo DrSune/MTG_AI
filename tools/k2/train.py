@@ -230,6 +230,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--data", required=True)
     ap.add_argument("--epochs", type=int, default=40)
     ap.add_argument("--threads", type=int, default=4)
+    ap.add_argument("--seed", type=int, default=20261028)
+    ap.add_argument("--val", choices=("cards", "rows"), default="cards",
+                    help="early-stopping split: whole held-out cards (pre-registered) or rows "
+                         "(exploratory: lets the name student memorize the cards it trains on)")
     ap.add_argument("--out", required=True)
     args = ap.parse_args(argv)
     torch.set_num_threads(args.threads)
@@ -244,9 +248,14 @@ def main(argv: list[str] | None = None) -> int:
     seen_test = [r for r in rows if r["source"] not in held and _h(f"k2t:{r['set']}:{r['seed']}:{r['pos']}") < 0.1]
     seen_ids = {id(r) for r in seen_test}
     pool = [r for r in rows if r["source"] not in held and id(r) not in seen_ids]
-    val_cards = {r["source"] for r in pool if _h(f"k2v:{r['source']}") < 0.1}
-    val = [r for r in pool if r["source"] in val_cards]
-    train = [r for r in pool if r["source"] not in val_cards]
+    if args.val == "cards":
+        val_cards = {r["source"] for r in pool if _h(f"k2v:{r['source']}") < 0.1}
+        val = [r for r in pool if r["source"] in val_cards]
+        train = [r for r in pool if r["source"] not in val_cards]
+    else:
+        val = [r for r in pool if _h(f"k2r:{r['set']}:{r['seed']}:{r['pos']}") < 0.1]
+        val_ids = {id(r) for r in val}
+        train = [r for r in pool if id(r) not in val_ids]
     held_test = [r for r in rows if r["source"] in held]
     names = {s: i + 1 for i, s in enumerate(sorted({r["source"] for r in train}))}
     vocab: dict[str, int] = {}
@@ -263,6 +272,8 @@ def main(argv: list[str] | None = None) -> int:
     before = torch.tensor([r["before"] for r in train], dtype=torch.float32)
     stats = {"mean": before.mean(0), "std": before.std(0).clamp(min=1e-3)}
     report: dict[str, Any] = {
+        "seed": args.seed,
+        "val_split": args.val,
         "decisions": {"train": len(train), "val": len(val), "seen_test": len(seen_test),
                       "heldout_test": len(held_test)},
         "source_cards": {"train": len(names), "heldout": len({r["source"] for r in held_test})},
@@ -277,12 +288,12 @@ def main(argv: list[str] | None = None) -> int:
         per[encoder] = {}
         parts = (("seen", seen_test), ("heldout", held_test))
         all_picks = fit_predict(encoder, train, val, [part for _, part in parts], names, ir,
-                                len(vocab), stats, args.epochs, seed=20261028)
+                                len(vocab), stats, args.epochs, seed=args.seed)
         for (name, part), picks in zip(parts, all_picks, strict=True):
             per[encoder][name] = correct(picks, part)
             cards = sorted(per[encoder][name])
             report["results"].setdefault(name, {})[encoder] = round(mean_acc(per[encoder][name], cards), 4)
-            for kind in ("target", "may"):
+            for kind in KINDS:
                 sub = [r for r in part if r["kind"] == kind]
                 if sub:
                     acc = sum(p in r["best"] for p, r in zip(picks.tolist(), part, strict=True)

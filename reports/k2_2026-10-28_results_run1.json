@@ -1,0 +1,107 @@
+{
+ "decisions": {
+  "train": 2798,
+  "val": 331,
+  "seen_test": 350,
+  "heldout_test": 703
+ },
+ "source_cards": {
+  "train": 200,
+  "heldout": 52
+ },
+ "dropped": {
+  "uninformative": 3857,
+  "no source card": 1436,
+  "more than 16 options": 102
+ },
+ "chance": {
+  "seen": 0.4338,
+  "heldout": 0.4099
+ },
+ "results": {
+  "seen": {
+   "none": 0.7371,
+   "name": 0.6971,
+   "components": 0.8971
+  },
+  "seen/target": {
+   "none": 0.7065,
+   "name": 0.663,
+   "components": 0.8913
+  },
+  "seen/may": {
+   "none": 0.8571,
+   "name": 0.8571,
+   "components": 0.898
+  },
+  "heldout": {
+   "none": 0.7482,
+   "name": 0.7326,
+   "components": 0.8179
+  },
+  "heldout/target": {
+   "none": 0.7436,
+   "name": 0.7178,
+   "components": 0.8088
+  },
+  "heldout/may": {
+   "none": 1.0,
+   "name": 1.0,
+   "components": 1.0
+  }
+ },
+ "none_seconds": 6.6,
+ "name_seconds": 2.0,
+ "components_seconds": 5.2,
+ "paired": {
+  "seen: name - none": {
+   "cards": 140,
+   "gap": -0.04,
+   "ci95": [
+    -0.0781,
+    -0.003
+   ]
+  },
+  "seen: components - none": {
+   "cards": 140,
+   "gap": 0.16,
+   "ci95": [
+    0.0928,
+    0.2465
+   ]
+  },
+  "seen: components - name": {
+   "cards": 140,
+   "gap": 0.2,
+   "ci95": [
+    0.1303,
+    0.2871
+   ]
+  },
+  "heldout: name - none": {
+   "cards": 52,
+   "gap": -0.0156,
+   "ci95": [
+    -0.0713,
+    0.0275
+   ]
+  },
+  "heldout: components - none": {
+   "cards": 52,
+   "gap": 0.0697,
+   "ci95": [
+    0.0095,
+    0.1591
+   ]
+  },
+  "heldout: components - name": {
+   "cards": 52,
+   "gap": 0.0853,
+   "ci95": [
+    0.0093,
+    0.1969
+   ]
+  }
+ },
+ "seconds": 17.1
+}

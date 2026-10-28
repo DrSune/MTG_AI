@@ -293,9 +293,22 @@ None of these refutes the approach. They say where it must be built differently 
   - **A transformer over IR sequences does worse than the bag** at about 200 training cards.
   - **Verdict.** F1 and F2 are real, and they are bounded by effect diversity in training, not by
     the encoder. That points to synthetic atom compositions (K1b) before any big RL.
-- **K2, value transfer (days).** Train a value net on M21 games with the entity encoder. Measure
-  win-prediction calibration on M20's compiled pool zero-shot, against a name-token baseline,
-  which sees only `<unk>` there.
+- **K1b and K1c, 2026-10-27 (KNOWLEDGE /166).**
+  - Real-set volume helps. On unseen effect cards, the median per-card skill rises from 0.32 to
+    0.52 between 1 and 16 sets, +0.205 [+0.120, +0.300], and it is still rising.
+  - A transformer over the IR sequence stays below the bag at 16 sets (−0.083).
+  - Per-card medians show K1's "no transfer to unique effects" was a pooled-R² artifact.
+- **K2, re-aimed to choices on the owner's steer (2026-10-28: "the bottleneck is ... playing
+  level"; KNOWLEDGE /169).**
+  - *Task:* the engine labels every target, sacrifice, may and choose decision by replaying each
+    option. A chooser reads the source card's components, its name, or nothing. It is scored on
+    unseen source cards.
+  - *Result:* components 0.861, name 0.709, nothing 0.733. components − name is **+0.152
+    [+0.090, +0.235]**, and all 5 seeds are positive. Names memorize the cards they trained on and
+    give nothing on unseen ones.
+  - *Reading:* F1 is not fatal at the decision level. Components keep 67% of their seen-card gain.
+    The replay labels can also serve as the missing supervision for choices.
+  - The original K2 (value-transfer calibration on M20) remains open as K2-value.
 - **K3, deck validity (hours, CPU).**
   - **K3-lite, run 2026-10-27:** 400 RandomPolicy games, M21 castable, current builder. 392
     decided and 343 with unequal land counts.
