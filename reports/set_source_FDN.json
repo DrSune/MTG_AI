@@ -1,0 +1,51 @@
+{
+ "set": "FDN",
+ "checked_at": "2026-10-27T22:16:13+01:00",
+ "source": {
+  "file": "MTG_bot/data/FDN.json",
+  "sha256": "2f95e164cc7f2c569f9b9edc526b5a05c51325c61ef663f5276a5915121615ca",
+  "mtgjson": {
+   "date": "2026-10-27",
+   "version": "5.3.0+20261027"
+  }
+ },
+ "scryfall_set": {
+  "code": "fdn",
+  "name": "Foundations",
+  "released_at": "2024-11-15",
+  "set_type": "core",
+  "card_count": 771,
+  "printed_size": null
+ },
+ "cards": {
+  "records": 771,
+  "scryfall_printings": 771,
+  "names_file": 517,
+  "names_scryfall": 517,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 771,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 771,
+  "text_mismatch": []
+ },
+ "tokens": {
+  "set": "TFDN",
+  "records": 33,
+  "scryfall_printings": 33,
+  "names_file": 28,
+  "names_scryfall": 28,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 33,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 33,
+  "text_mismatch": []
+ },
+ "verdict": "match",
+ "owner_sign_off": "pending"
+}

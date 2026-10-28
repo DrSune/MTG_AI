@@ -1,0 +1,1272 @@
+{
+ "set": "M10",
+ "stamp": "2026-10-27_2344",
+ "provenance": {
+  "data_file": "MTG_bot/data/M10.json",
+  "data_sha256": "f6e73beaafa35411e25bff63386261689c4b18fafa437aa9c6f991b177558565",
+  "mtgjson": {
+   "date": "2026-10-27",
+   "version": "5.3.0+20261027"
+  },
+  "head": "60691cf3f83972412f459f139e6678cb46fe3e4e",
+  "engine_tree_dirty": []
+ },
+ "split": {
+  "salt": "M10-sealed-v1",
+  "test_share": 0.4,
+  "rule": "test iff int(sha256(salt:oracle_id)[:8], 16) / 2**32 < test_share",
+  "developed_on": [
+   "M21",
+   "ZNR",
+   "M20",
+   "KHM"
+  ],
+  "counts": {
+   "carry-over": 71,
+   "dev": 103,
+   "test": 68
+  },
+  "carry_over_reasons": {
+   "reprint (same oracle id)": 31,
+   "same text shape": 29,
+   "no rules text": 11
+  }
+ },
+ "engine_dealable": {
+  "engine": true,
+  "castable": true
+ },
+ "carry-over": {
+  "entries": 71,
+  "sentences": 67,
+  "pc1_count": 63,
+  "unparsed": 8,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 67,
+  "sentences_unseen_shape": 0,
+  "unparsed_seen_shape": 8,
+  "unparsed_unseen_shape": 0,
+  "dealable_engine": 64,
+  "dealable_engine_fully_compiled": 56,
+  "dealable_castable": 57,
+  "dealable_castable_fully_compiled": 53,
+  "pc1": 0.8873,
+  "pc2": 0.8806,
+  "pc2_seen_shape": 0.8806,
+  "pc2_unseen_shape": null
+ },
+ "dev": {
+  "entries": 103,
+  "sentences": 180,
+  "pc1_count": 17,
+  "unparsed": 115,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 53,
+  "sentences_unseen_shape": 127,
+  "unparsed_seen_shape": 4,
+  "unparsed_unseen_shape": 111,
+  "dealable_engine": 102,
+  "dealable_engine_fully_compiled": 17,
+  "dealable_castable": 58,
+  "dealable_castable_fully_compiled": 15,
+  "pc1": 0.165,
+  "pc2": 0.3611,
+  "pc2_seen_shape": 0.9245,
+  "pc2_unseen_shape": 0.126
+ },
+ "test": {
+  "entries": 68,
+  "sentences": 112,
+  "pc1_count": 7,
+  "unparsed": 78,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 29,
+  "sentences_unseen_shape": 83,
+  "unparsed_seen_shape": 5,
+  "unparsed_unseen_shape": 73,
+  "dealable_engine": 68,
+  "dealable_engine_fully_compiled": 7,
+  "dealable_castable": 32,
+  "dealable_castable_fully_compiled": 6,
+  "pc1": 0.1029,
+  "pc2": 0.3036,
+  "pc2_seen_shape": 0.8276,
+  "pc2_unseen_shape": 0.1205
+ },
+ "whole": {
+  "entries": 242,
+  "sentences": 359,
+  "pc1_count": 87,
+  "unparsed": 201,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 149,
+  "sentences_unseen_shape": 210,
+  "unparsed_seen_shape": 17,
+  "unparsed_unseen_shape": 184,
+  "dealable_engine": 234,
+  "dealable_engine_fully_compiled": 80,
+  "dealable_castable": 147,
+  "dealable_castable_fully_compiled": 74,
+  "pc1": 0.3595,
+  "pc2": 0.4401,
+  "pc2_seen_shape": 0.8859,
+  "pc2_unseen_shape": 0.1238
+ },
+ "dev_register": [
+  {
+   "shape": "A deck can have any number of cards named ~.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Relentless Rats"
+   ]
+  },
+  {
+   "shape": "Activated abilities of sources with the chosen name can't be activated unless they're mana abilities.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Pithing Needle"
+   ]
+  },
+  {
+   "shape": "As this artifact enters, choose a card name.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Pithing Needle"
+   ]
+  },
+  {
+   "shape": "At the beginning of each player's draw step, if this artifact is untapped, that player draws an additional card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Howling Mine"
+   ]
+  },
+  {
+   "shape": "At the beginning of the end step, sacrifice this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Ball Lightning"
+   ]
+  },
+  {
+   "shape": "At the beginning of the upkeep of enchanted creature's controller, that player loses N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Soul Bleed"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, choose target nonland permanent you control and up to two target nonland permanents you don't control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Capricious Efreet"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, sacrifice a creature other than this creature, then each opponent loses life equal to the sacrificed creature's power.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Xathrid Demon"
+   ]
+  },
+  {
+   "shape": "Counter target red or green spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Flashfreeze"
+   ]
+  },
+  {
+   "shape": "Creatures you control gain haste until end of turn.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Burst of Speed"
+   ]
+  },
+  {
+   "shape": "Destroy all enchantments.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tempest of Light"
+   ]
+  },
+  {
+   "shape": "Destroy one of them at random.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Capricious Efreet"
+   ]
+  },
+  {
+   "shape": "Destroy target attacking or blocking creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Divine Verdict"
+   ]
+  },
+  {
+   "shape": "Draw X cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mind Spring"
+   ]
+  },
+  {
+   "shape": "Each Wolf tapped this way deals damage equal to its power to target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Master of the Wild Hunt"
+   ]
+  },
+  {
+   "shape": "Each player draws three cards, then discards three cards at random.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Burning Inquiry"
+   ]
+  },
+  {
+   "shape": "Enchanted creature gets +N/+N for each Plains you control and has flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Armored Ascension"
+   ]
+  },
+  {
+   "shape": "Enchanted permanent has indestructible.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Indestructibility"
+   ]
+  },
+  {
+   "shape": "Equipped creature can't be blocked and has shroud.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Whispersilk Cloak"
+   ]
+  },
+  {
+   "shape": "Equipped creature gets +N/+N and loses flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Magebane Armor"
+   ]
+  },
+  {
+   "shape": "Exile all the cards from your library, then put the chosen cards on top of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mirror of Fate"
+   ]
+  },
+  {
+   "shape": "Exile target black or red permanent.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Celestial Purge"
+   ]
+  },
+  {
+   "shape": "Forestwalk (This creature can't be blocked as long as defending player controls a Forest.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Emerald Oryx"
+   ]
+  },
+  {
+   "shape": "If a source an opponent controls would deal damage to you, prevent N of that damage.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Guardian Seraph"
+   ]
+  },
+  {
+   "shape": "If you can't sacrifice a creature, tap this creature and you lose N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Xathrid Demon"
+   ]
+  },
+  {
+   "shape": "If you don't, exile it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Djinn of Wishes"
+   ]
+  },
+  {
+   "shape": "If you searched for a creature card that doesn't have that name, you may put it onto the battlefield under your control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sphinx Ambassador"
+   ]
+  },
+  {
+   "shape": "If ~ would be put into a graveyard from anywhere, reveal ~ and shuffle it into its owner's library instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Darksteel Colossus"
+   ]
+  },
+  {
+   "shape": "It can't be regenerated.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Polymorph"
+   ]
+  },
+  {
+   "shape": "It has \"This token's power and toughness are each equal to your life total.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ajani Goldmane"
+   ]
+  },
+  {
+   "shape": "Its controller reveals cards from the top of their library until they reveal a creature card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Polymorph"
+   ]
+  },
+  {
+   "shape": "Look at the top three cards of your library, then put them back in any order.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ponder"
+   ]
+  },
+  {
+   "shape": "Other Elf creatures you control get +N/+N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Elvish Archdruid"
+   ]
+  },
+  {
+   "shape": "Other Merfolk creatures you control get +N/+N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Merfolk Sovereign"
+   ]
+  },
+  {
+   "shape": "Other Soldier creatures you control get +N/+N and have vigilance.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Captain of the Watch"
+   ]
+  },
+  {
+   "shape": "Other Soldier creatures you control have first strike.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rhox Pikemaster"
+   ]
+  },
+  {
+   "shape": "Other Zombie creatures you control get +N/+N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cemetery Reaper"
+   ]
+  },
+  {
+   "shape": "Prevent all combat damage that would be dealt this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fog"
+   ]
+  },
+  {
+   "shape": "Prevent all damage that would be dealt to you and creatures you control this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Safe Passage"
+   ]
+  },
+  {
+   "shape": "Prevent all noncombat damage that would be dealt to equipped creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Magebane Armor"
+   ]
+  },
+  {
+   "shape": "Protection from white (This creature can't be blocked, targeted, dealt damage, or enchanted by anything white.)",
+   "count": 1,
+   "hints": [
+    "keyword"
+   ],
+   "cards": [
+    "Black Knight"
+   ]
+  },
+  {
+   "shape": "Put target creature card from a graveyard onto the battlefield under your control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rise from the Grave"
+   ]
+  },
+  {
+   "shape": "Put target creature on top of its owner's library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Excommunicate"
+   ]
+  },
+  {
+   "shape": "Return all artifact and enchantment cards from all graveyards to the battlefield under their owners' control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Open the Vaults"
+   ]
+  },
+  {
+   "shape": "Sacrifice a creature: This creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Vampire Aristocrat"
+   ]
+  },
+  {
+   "shape": "Search your library for a basic land card, put that card onto the battlefield tapped, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rampant Growth"
+   ]
+  },
+  {
+   "shape": "Search your library for an artifact card, reveal it, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fabricate"
+   ]
+  },
+  {
+   "shape": "Spend only black mana on X.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Consume Spirit"
+   ]
+  },
+  {
+   "shape": "Swampwalk (This creature can't be blocked as long as defending player controls a Swamp.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bog Wraith"
+   ]
+  },
+  {
+   "shape": "Tap all creatures target player controls.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sleep"
+   ]
+  },
+  {
+   "shape": "Target blocking creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Righteousness"
+   ]
+  },
+  {
+   "shape": "Target player mills half their library, rounded down.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Traumatize"
+   ]
+  },
+  {
+   "shape": "That creature deals damage equal to its power divided as its controller chooses among any number of those Wolves.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Master of the Wild Hunt"
+   ]
+  },
+  {
+   "shape": "That creature is a black Zombie in addition to its other colors and types.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rise from the Grave"
+   ]
+  },
+  {
+   "shape": "The next N damage that a source of your choice would deal to you and/or permanents you control this turn is dealt to any target instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Harm's Way"
+   ]
+  },
+  {
+   "shape": "The player puts that card onto the battlefield, then shuffles all other cards revealed this way into their library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Polymorph"
+   ]
+  },
+  {
+   "shape": "Then that player shuffles.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sphinx Ambassador"
+   ]
+  },
+  {
+   "shape": "This creature can't attack unless defending player controls an Island.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Serpent of the Endless Sea"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked except by black creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dread Warlock"
+   ]
+  },
+  {
+   "shape": "This creature enters with three wish counters on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Djinn of Wishes"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N for each other creature on the battlefield named ~.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Relentless Rats"
+   ]
+  },
+  {
+   "shape": "This creature's power and toughness are each equal to your life total.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Avatar"
+   ]
+  },
+  {
+   "shape": "This land enters tapped unless you control a Forest or a Plains.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sunpetal Grove"
+   ]
+  },
+  {
+   "shape": "This land enters tapped unless you control a Mountain or a Forest.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rootbound Crag"
+   ]
+  },
+  {
+   "shape": "This land enters tapped unless you control a Plains or an Island.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Glacial Fortress"
+   ]
+  },
+  {
+   "shape": "Those creatures don't untap during that player's next untap step.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sleep"
+   ]
+  },
+  {
+   "shape": "Those creatures gain vigilance until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ajani Goldmane"
+   ]
+  },
+  {
+   "shape": "When this creature dies, it deals N damage to each creature and each player.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Magma Phoenix"
+   ]
+  },
+  {
+   "shape": "When this creature enters, destroy target artifact, enchantment, or land.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Acidic Slime"
+   ]
+  },
+  {
+   "shape": "When this creature enters, it deals N damage divided as you choose among any number of targets.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Bogardan Hellkite"
+   ]
+  },
+  {
+   "shape": "Whenever a player casts a black spell, you may gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Demon's Horn"
+   ]
+  },
+  {
+   "shape": "Whenever a player casts a green spell, you may gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Wurm's Tooth"
+   ]
+  },
+  {
+   "shape": "Whenever a player taps a land for mana, this enchantment deals N damage to that player.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Manabarbs"
+   ]
+  },
+  {
+   "shape": "Whenever an opponent discards a card, this enchantment deals N damage to that player.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Megrim"
+   ]
+  },
+  {
+   "shape": "Whenever another creature enters, you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Soul Warden"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, it gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Bramble Creeper"
+   ]
+  },
+  {
+   "shape": "Whenever this creature blocks a creature, that creature doesn't untap during its controller's next untap step.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Wall of Frost"
+   ]
+  },
+  {
+   "shape": "Whenever this creature deals combat damage to a player, search that player's library for a card, then that player chooses a card name.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sphinx Ambassador"
+   ]
+  },
+  {
+   "shape": "Whenever this creature deals combat damage to a player, you may exile target black or red permanent that player controls.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Lightwielder Paladin"
+   ]
+  },
+  {
+   "shape": "Whenever this creature deals damage to an opponent, that player discards a card at random.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Hypnotic Specter"
+   ]
+  },
+  {
+   "shape": "You gain N life for each land you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bountiful Harvest"
+   ]
+  },
+  {
+   "shape": "You have no maximum hand size.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Spellbook"
+   ]
+  },
+  {
+   "shape": "You may play that card without paying its mana cost.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Djinn of Wishes"
+   ]
+  },
+  {
+   "shape": "You may shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ponder"
+   ]
+  },
+  {
+   "shape": "Your opponents can't cast spells this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Silence"
+   ]
+  },
+  {
+   "shape": "[+N]: Target player discards a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Liliana Vess"
+   ]
+  },
+  {
+   "shape": "[+N]: Untap two target lands.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Garruk Wildspeaker"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Create a white Avatar creature token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ajani Goldmane"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Creatures you control get +N/+N and gain trample until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Garruk Wildspeaker"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Put all creature cards from all graveyards onto the battlefield under your control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Liliana Vess"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Search your library for a card, then shuffle and put that card on top.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Liliana Vess"
+   ]
+  },
+  {
+   "shape": "{B}: Regenerate this creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Drudge Skeletons"
+   ]
+  },
+  {
+   "shape": "{G}, {T}: You may put a creature card from your hand onto the battlefield.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Elvish Piper"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Sacrifice this land: Create a N/N colorless Gargoyle artifact creature token with flying.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Gargoyle Castle"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: This artifact deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Rod of Ruin"
+   ]
+  },
+  {
+   "shape": "{N}{B}, {T}: Exile target creature card from a graveyard.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Cemetery Reaper"
+   ]
+  },
+  {
+   "shape": "{N}{B}, {T}: Target player loses N life.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Acolyte of Xathrid"
+   ]
+  },
+  {
+   "shape": "{N}{R}, Sacrifice a Goblin: This creature deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Siege-Gang Commander"
+   ]
+  },
+  {
+   "shape": "{N}{R}{R}: Return this card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Magma Phoenix"
+   ]
+  },
+  {
+   "shape": "{N}{U}{U}, Remove a wish counter from this creature: Reveal the top card of your library.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Djinn of Wishes"
+   ]
+  },
+  {
+   "shape": "{R}: Enchanted creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Firebreathing"
+   ]
+  },
+  {
+   "shape": "{T}, Sacrifice this artifact: Choose up to seven face-up exiled cards you own.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Mirror of Fate"
+   ]
+  },
+  {
+   "shape": "{T}: Add {G} for each Elf you control.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Elvish Archdruid"
+   ]
+  },
+  {
+   "shape": "{T}: Tap all untapped Wolf creatures you control.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Master of the Wild Hunt"
+   ]
+  },
+  {
+   "shape": "{T}: Target Merfolk creature can't be blocked this turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Merfolk Sovereign"
+   ]
+  },
+  {
+   "shape": "{T}: Target creature an opponent controls attacks you this turn if able.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Alluring Siren"
+   ]
+  },
+  {
+   "shape": "{T}: This creature deals N damage to any target and N damage to you.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Goblin Artillery"
+   ]
+  },
+  {
+   "shape": "{T}: This creature deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Prodigal Pyromancer"
+   ]
+  },
+  {
+   "shape": "{W}, {T}: Exile target Skeleton, Vampire, or Zombie.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Undead Slayer"
+   ]
+  },
+  {
+   "shape": "~ deals X damage to any target and you gain X life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Consume Spirit"
+   ]
+  },
+  {
+   "shape": "~ deals X damage to each creature with flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Windstorm"
+   ]
+  },
+  {
+   "shape": "~ deals X damage to each creature without flying and each player.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Earthquake"
+   ]
+  },
+  {
+   "shape": "~ target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Regenerate"
+   ]
+  },
+  {
+   "shape": "~'s power and toughness are each equal to the number of Islands you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Serpent of the Endless Sea"
+   ]
+  },
+  {
+   "shape": "~'s power and toughness are each equal to the number of Swamps you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nightmare"
+   ]
+  }
+ ],
+ "seconds": 0.6
+}

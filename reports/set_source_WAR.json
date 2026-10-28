@@ -1,0 +1,51 @@
+{
+ "set": "WAR",
+ "checked_at": "2026-10-27T22:16:01+01:00",
+ "source": {
+  "file": "MTG_bot/data/WAR.json",
+  "sha256": "b78d1f16ed7b815059f7438026acd0d7e990ddfdd2f8cc33cd23e2935150cf4d",
+  "mtgjson": {
+   "date": "2026-10-27",
+   "version": "5.3.0+20261027"
+  }
+ },
+ "scryfall_set": {
+  "code": "war",
+  "name": "War of the Spark",
+  "released_at": "2019-05-03",
+  "set_type": "expansion",
+  "card_count": 311,
+  "printed_size": null
+ },
+ "cards": {
+  "records": 311,
+  "scryfall_printings": 311,
+  "names_file": 265,
+  "names_scryfall": 265,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 311,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 311,
+  "text_mismatch": []
+ },
+ "tokens": {
+  "set": "TWAR",
+  "records": 19,
+  "scryfall_printings": 19,
+  "names_file": 17,
+  "names_scryfall": 17,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 19,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 19,
+  "text_mismatch": []
+ },
+ "verdict": "match",
+ "owner_sign_off": "pending"
+}

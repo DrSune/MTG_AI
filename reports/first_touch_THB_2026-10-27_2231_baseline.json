@@ -1,0 +1,2724 @@
+{
+ "set": "THB",
+ "stamp": "2026-10-27_2231",
+ "provenance": {
+  "data_file": "MTG_bot/data/THB.json",
+  "data_sha256": "60e76414e2fafcc7ce76cc516b44f1be2ae217fc358a396e7db213eba21f49c8",
+  "mtgjson": {
+   "date": "2026-10-26",
+   "version": "5.3.0+20261026"
+  },
+  "head": "a5065a18e2668819d687f485e100014459d2bf3f",
+  "engine_tree_dirty": []
+ },
+ "split": {
+  "salt": "THB-sealed-v1",
+  "test_share": 0.4,
+  "rule": "test iff int(sha256(salt:oracle_id)[:8], 16) / 2**32 < test_share",
+  "developed_on": [
+   "M21",
+   "ZNR",
+   "M20",
+   "KHM"
+  ],
+  "counts": {
+   "carry-over": 28,
+   "dev": 156,
+   "test": 103
+  },
+  "carry_over_reasons": {
+   "same text shape": 6,
+   "reprint (same oracle id)": 13,
+   "no rules text": 9
+  }
+ },
+ "engine_dealable": {
+  "engine": true,
+  "castable": true
+ },
+ "carry-over": {
+  "entries": 28,
+  "sentences": 29,
+  "pc1_count": 28,
+  "unparsed": 0,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 29,
+  "sentences_unseen_shape": 0,
+  "unparsed_seen_shape": 0,
+  "unparsed_unseen_shape": 0,
+  "dealable_engine": 20,
+  "dealable_engine_fully_compiled": 20,
+  "dealable_castable": 16,
+  "dealable_castable_fully_compiled": 16,
+  "pc1": 1.0,
+  "pc2": 1.0,
+  "pc2_seen_shape": 1.0,
+  "pc2_unseen_shape": null
+ },
+ "dev": {
+  "entries": 156,
+  "sentences": 412,
+  "pc1_count": 11,
+  "unparsed": 271,
+  "shape_gaps": 1,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 128,
+  "sentences_unseen_shape": 284,
+  "unparsed_seen_shape": 24,
+  "unparsed_unseen_shape": 247,
+  "dealable_engine": 150,
+  "dealable_engine_fully_compiled": 8,
+  "dealable_castable": 97,
+  "dealable_castable_fully_compiled": 8,
+  "pc1": 0.0705,
+  "pc2": 0.3422,
+  "pc2_seen_shape": 0.8125,
+  "pc2_unseen_shape": 0.1303
+ },
+ "test": {
+  "entries": 103,
+  "sentences": 269,
+  "pc1_count": 12,
+  "unparsed": 162,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 92,
+  "sentences_unseen_shape": 177,
+  "unparsed_seen_shape": 9,
+  "unparsed_unseen_shape": 153,
+  "dealable_engine": 102,
+  "dealable_engine_fully_compiled": 11,
+  "dealable_castable": 74,
+  "dealable_castable_fully_compiled": 11,
+  "pc1": 0.1165,
+  "pc2": 0.3978,
+  "pc2_seen_shape": 0.9022,
+  "pc2_unseen_shape": 0.1356
+ },
+ "whole": {
+  "entries": 287,
+  "sentences": 710,
+  "pc1_count": 51,
+  "unparsed": 433,
+  "shape_gaps": 1,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 249,
+  "sentences_unseen_shape": 461,
+  "unparsed_seen_shape": 33,
+  "unparsed_unseen_shape": 400,
+  "dealable_engine": 272,
+  "dealable_engine_fully_compiled": 39,
+  "dealable_castable": 187,
+  "dealable_castable_fully_compiled": 35,
+  "pc1": 0.1777,
+  "pc2": 0.3901,
+  "pc2_seen_shape": 0.8675,
+  "pc2_unseen_shape": 0.1323
+ },
+ "dev_register": [
+  {
+   "shape": "Choose one \u2014",
+   "count": 5,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Pharika's Libation",
+    "Nylea's Intervention",
+    "Erebos's Intervention",
+    "Purphoros's Intervention",
+    "Thassa's Intervention"
+   ]
+  },
+  {
+   "shape": "This creature escapes with a +N/+N counter on it.",
+   "count": 4,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Phoenix of Ash",
+    "Ox of Agonas",
+    "Underworld Rage-Hound",
+    "Loathsome Chimera"
+   ]
+  },
+  {
+   "shape": "Escape\u2014{N}{G}{G}, Exile four other cards from your graveyard.",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chainweb Aracnir",
+    "Voracious Typhon"
+   ]
+  },
+  {
+   "shape": "Escape\u2014{N}{R}, Exile two other cards from your graveyard.",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Escape Velocity",
+    "Satyr's Cunning"
+   ]
+  },
+  {
+   "shape": "Sacrifice it at the beginning of the next end step.",
+   "count": 2,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Wings of Hubris",
+    "Purphoros's Intervention"
+   ]
+  },
+  {
+   "shape": "This creature escapes with three +N/+N counters on it.",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chainweb Aracnir",
+    "Voracious Typhon"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a spell that targets this creature, creatures you control get +N/+N until end of turn.",
+   "count": 2,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Hero of the Winds",
+    "Hero of the Pride"
+   ]
+  },
+  {
+   "shape": "~ enters tapped.",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Alirios, Enraptured",
+    "Nyx Lotus"
+   ]
+  },
+  {
+   "shape": "Activate only during your turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Wolfwillow Haven"
+   ]
+  },
+  {
+   "shape": "Add an amount of mana of that color equal to your devotion to that color.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nyx Lotus"
+   ]
+  },
+  {
+   "shape": "All creatures able to block this creature do so.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nessian Boar"
+   ]
+  },
+  {
+   "shape": "As an additional cost to cast this spell, sacrifice a creature or enchantment.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Final Flare"
+   ]
+  },
+  {
+   "shape": "As long as your devotion to black is less than five, ~ isn't a creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Erebos, Bleak-Hearted"
+   ]
+  },
+  {
+   "shape": "As long as your devotion to blue is less than five, ~ isn't a creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thassa, Deep-Dwelling"
+   ]
+  },
+  {
+   "shape": "As long as your devotion to red and green is less than seven, ~ isn't a creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Klothys, God of Destiny"
+   ]
+  },
+  {
+   "shape": "As long as your devotion to white is less than five, ~ isn't a creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Heliod, Sun-Crowned"
+   ]
+  },
+  {
+   "shape": "At the beginning of combat on your turn, target creature you control gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Eidolon of Inspiration"
+   ]
+  },
+  {
+   "shape": "At the beginning of combat on your turn, target enchanted creature or enchantment creature you control gets +N/+N and gains trample until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Nyx Herald"
+   ]
+  },
+  {
+   "shape": "At the beginning of the end step, sacrifice this enchantment.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Underworld Breach"
+   ]
+  },
+  {
+   "shape": "At the beginning of your end step, exile up to one other target creature you control, then return that card to the battlefield under your control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Thassa, Deep-Dwelling"
+   ]
+  },
+  {
+   "shape": "At the beginning of your end step, you may exile an enchantment card from your graveyard.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Aphemia, the Cacophony"
+   ]
+  },
+  {
+   "shape": "At the beginning of your end step, you may pay {N}{R} and sacrifice a nonland permanent.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Dreamshaper Shaman"
+   ]
+  },
+  {
+   "shape": "At the beginning of your end step, you may sacrifice another enchantment.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Enigmatic Incarnation"
+   ]
+  },
+  {
+   "shape": "At the beginning of your first main phase, exile target card from a graveyard.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Klothys, God of Destiny"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, double the number of +N/+N counters on enchanted creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Hydra's Growth"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, put a +N/+N counter on each other creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Victory's Envoy"
+   ]
+  },
+  {
+   "shape": "Choose one of them.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tectonic Giant"
+   ]
+  },
+  {
+   "shape": "Choose one or both \u2014",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rise to Glory"
+   ]
+  },
+  {
+   "shape": "Constellation \u2014 Whenever an enchantment you control enters, put a +N/+N counter on target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Eutropia the Twice-Favored"
+   ]
+  },
+  {
+   "shape": "Constellation \u2014 Whenever an enchantment you control enters, put a +N/+N counter on this creature and draw a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Setessan Champion"
+   ]
+  },
+  {
+   "shape": "Constellation \u2014 Whenever an enchantment you control enters, target creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Pious Wayfarer"
+   ]
+  },
+  {
+   "shape": "Constellation \u2014 Whenever an enchantment you control enters, target player mills two cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sage of Mysteries"
+   ]
+  },
+  {
+   "shape": "Constellation \u2014 Whenever an enchantment you control enters, this creature gains double strike until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Favored of Iroas"
+   ]
+  },
+  {
+   "shape": "Constellation \u2014 Whenever an enchantment you control enters, this creature gains flying until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Triton Waverider"
+   ]
+  },
+  {
+   "shape": "Constellation \u2014 Whenever an enchantment you control enters, you may have this creature become a copy of another target creature, except it has this ability.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Protean Thaumaturge"
+   ]
+  },
+  {
+   "shape": "Counter target creature or enchantment spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Deny the Divine"
+   ]
+  },
+  {
+   "shape": "Create a N/N red Satyr creature token with \"This token can't block.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Satyr's Cunning"
+   ]
+  },
+  {
+   "shape": "Creature and enchantment spells you control can't be countered.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Destiny Spinner"
+   ]
+  },
+  {
+   "shape": "Draw three cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thirst for Meaning"
+   ]
+  },
+  {
+   "shape": "During turns other than yours, spells you cast cost {N} less to cast.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Naiad of Hidden Coves"
+   ]
+  },
+  {
+   "shape": "Each nonland card in your graveyard has escape.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Underworld Breach"
+   ]
+  },
+  {
+   "shape": "Each other creature you control enters with an additional +N/+N counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Renata, Called to the Hunt"
+   ]
+  },
+  {
+   "shape": "Each other creature you control gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Phalanx Tactics"
+   ]
+  },
+  {
+   "shape": "Each player mills two cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ashiok, Sculptor of Fears"
+   ]
+  },
+  {
+   "shape": "Each player searches their library for a basic land card, puts it onto the battlefield, then shuffles.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Field of Ruin"
+   ]
+  },
+  {
+   "shape": "Each player who controls a creature with power N or greater draws a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shatter the Sky"
+   ]
+  },
+  {
+   "shape": "Enchanted creature can't attack or block.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dreadful Apathy"
+   ]
+  },
+  {
+   "shape": "Enchanted creature gets +N/+N and has lifelink and \"Whenever this creature deals combat damage to a player, draw a card.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Staggering Insight"
+   ]
+  },
+  {
+   "shape": "Enchanted creature has \"At the beginning of your upkeep, sacrifice a creature.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Inevitable End"
+   ]
+  },
+  {
+   "shape": "Enchanted creature loses all abilities and is a blue Fish with base power and toughness N/N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ichthyomorphosis"
+   ]
+  },
+  {
+   "shape": "Enchanted permanent is an enchantment and loses all other card types.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "One with the Stars"
+   ]
+  },
+  {
+   "shape": "Equipped creature gets +N/+N and has hexproof and \"Whenever a creature with deathtouch blocks or becomes blocked by this creature, destroy that creature.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mirror Shield"
+   ]
+  },
+  {
+   "shape": "Equipped creatures you control have flying and haste.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dalakos, Crafter of Wonders"
+   ]
+  },
+  {
+   "shape": "Escape\u2014{B}{B}{R}{R}, Exile five other cards from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kroxa, Titan of Death's Hunger"
+   ]
+  },
+  {
+   "shape": "Escape\u2014{N}{B}, Exile three other cards from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fruit of Tizerus"
+   ]
+  },
+  {
+   "shape": "Escape\u2014{N}{B}{G}, Exile six other cards from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Polukranos, Unchained"
+   ]
+  },
+  {
+   "shape": "Escape\u2014{N}{G}, Exile three other cards from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Loathsome Chimera"
+   ]
+  },
+  {
+   "shape": "Escape\u2014{N}{R}, Exile three other cards from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Underworld Rage-Hound"
+   ]
+  },
+  {
+   "shape": "Escape\u2014{N}{R}{R}, Exile three other cards from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Phoenix of Ash"
+   ]
+  },
+  {
+   "shape": "Escape\u2014{N}{U}, Exile five other cards from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Glimpse of Freedom"
+   ]
+  },
+  {
+   "shape": "Escape\u2014{N}{U}, Exile four other cards from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sweet Oblivion"
+   ]
+  },
+  {
+   "shape": "Escape\u2014{N}{W}{W}, Exile four other cards from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Elspeth, Sun's Nemesis"
+   ]
+  },
+  {
+   "shape": "Escape\u2014{R}{R}, Exile eight other cards from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ox of Agonas"
+   ]
+  },
+  {
+   "shape": "Escape\u2014{W}, Exile two other cards from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sentinel's Eyes"
+   ]
+  },
+  {
+   "shape": "Exile that card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Agonizing Remorse"
+   ]
+  },
+  {
+   "shape": "Exile those Auras at the beginning of your next end step.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Storm Herald"
+   ]
+  },
+  {
+   "shape": "For each creature card exiled this way, you gain N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Binding of the Titans"
+   ]
+  },
+  {
+   "shape": "For each spell and ability your opponents control, counter it unless its controller pays {N}.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Whirlwind Denial"
+   ]
+  },
+  {
+   "shape": "I \u2014 Create a N/N white Human Soldier creature token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The First Iroan Games"
+   ]
+  },
+  {
+   "shape": "I \u2014 Create an N/N blue Kraken creature token with hexproof.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kiora Bests the Sea God"
+   ]
+  },
+  {
+   "shape": "I \u2014 Destroy target creature an opponent controls with power N or less.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Elspeth's Nightmare"
+   ]
+  },
+  {
+   "shape": "I \u2014 Each player mills three cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Binding of the Titans"
+   ]
+  },
+  {
+   "shape": "I \u2014 Gain control of target creature for as long as this Saga remains on the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Akroan War"
+   ]
+  },
+  {
+   "shape": "I, II \u2014 Mill three cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tymaret Calls the Dead"
+   ]
+  },
+  {
+   "shape": "I, II, III \u2014 Until end of turn, target creature gains trample and gets +X/+N, where X is the number of lore counters on this Saga.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Triumph of Anax"
+   ]
+  },
+  {
+   "shape": "II \u2014 Exile up to two target cards from graveyards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Binding of the Titans"
+   ]
+  },
+  {
+   "shape": "II \u2014 Put three +N/+N counters on target creature you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The First Iroan Games"
+   ]
+  },
+  {
+   "shape": "II \u2014 Tap all nonland permanents target opponent controls.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kiora Bests the Sea God"
+   ]
+  },
+  {
+   "shape": "II \u2014 Target opponent reveals their hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Elspeth's Nightmare"
+   ]
+  },
+  {
+   "shape": "II \u2014 Until your next turn, creatures your opponents control attack each combat if able.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Akroan War"
+   ]
+  },
+  {
+   "shape": "III \u2014 Each tapped creature deals damage to itself equal to its power.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Akroan War"
+   ]
+  },
+  {
+   "shape": "III \u2014 Exile target opponent's graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Elspeth's Nightmare"
+   ]
+  },
+  {
+   "shape": "III \u2014 Gain control of target permanent an opponent controls.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kiora Bests the Sea God"
+   ]
+  },
+  {
+   "shape": "III \u2014 If you control a creature with power N or greater, draw two cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The First Iroan Games"
+   ]
+  },
+  {
+   "shape": "III \u2014 Return target creature or land card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Binding of the Titans"
+   ]
+  },
+  {
+   "shape": "III \u2014 You gain X life and scry X, where X is the number of Zombies you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tymaret Calls the Dead"
+   ]
+  },
+  {
+   "shape": "IV \u2014 Create a Gold token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The First Iroan Games"
+   ]
+  },
+  {
+   "shape": "IV \u2014 Target creature you control fights up to one target creature you don't control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Triumph of Anax"
+   ]
+  },
+  {
+   "shape": "If X is greater than or equal to the number of cards in your library, you win the game.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thassa's Oracle"
+   ]
+  },
+  {
+   "shape": "If a permanent dealt damage this way would die this turn, exile it instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Underworld Fires"
+   ]
+  },
+  {
+   "shape": "If damage would be dealt to ~ while it has a +N/+N counter on it, prevent that damage and remove that many +N/+N counters from it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Polukranos, Unchained"
+   ]
+  },
+  {
+   "shape": "If it was a land card, add {R} or {G}.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Klothys, God of Destiny"
+   ]
+  },
+  {
+   "shape": "If it's an enchanted creature or enchantment creature, it also gains hexproof and indestructible until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Karametra's Blessing"
+   ]
+  },
+  {
+   "shape": "If that spell is countered this way, exile it instead of putting it into its owner's graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Deny the Divine"
+   ]
+  },
+  {
+   "shape": "If those Auras would leave the battlefield, exile them instead of putting them anywhere else.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Storm Herald"
+   ]
+  },
+  {
+   "shape": "If you control a God, a Demigod, or a legendary enchantment, you gain N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Altar of the Pantheon"
+   ]
+  },
+  {
+   "shape": "If you do, create a token that's a copy of that creature, except it's N/N and it's a Nightmare in addition to its other types.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nightmare Shepherd"
+   ]
+  },
+  {
+   "shape": "If you do, put a +N/+N counter on this creature and create a N/N blue Tentacle creature token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nadir Kraken"
+   ]
+  },
+  {
+   "shape": "If you do, reveal cards from the top of your library until you reveal a nonland permanent card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dreamshaper Shaman"
+   ]
+  },
+  {
+   "shape": "If you do, search your library for a creature card with mana value equal to N plus the sacrificed enchantment's mana value, put that card onto the battlefield, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Enigmatic Incarnation"
+   ]
+  },
+  {
+   "shape": "If you do, you gain life equal to its mana value.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lagonna-Band Storyteller"
+   ]
+  },
+  {
+   "shape": "It doesn't untap during its controller's untap step for as long as this artifact remains tapped.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Entrancing Lyre"
+   ]
+  },
+  {
+   "shape": "It escapes with twelve +N/+N counters on it instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Polukranos, Unchained"
+   ]
+  },
+  {
+   "shape": "It's still a land.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Destiny Spinner"
+   ]
+  },
+  {
+   "shape": "Lands you control are every basic land type in addition to their other types.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dryad of the Ilysian Grove"
+   ]
+  },
+  {
+   "shape": "Loyalty abilities of planeswalkers your opponents control cost {N} more to activate.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Eidolon of Obstruction"
+   ]
+  },
+  {
+   "shape": "Other creatures you control have trample.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Nylea's Forerunner"
+   ]
+  },
+  {
+   "shape": "Otherwise, you gain N life and ~ deals N damage to each opponent.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Klothys, God of Destiny"
+   ]
+  },
+  {
+   "shape": "Put one pile into your hand and the other into your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Atris, Oracle of Half-Truths"
+   ]
+  },
+  {
+   "shape": "Put that card onto the battlefield and the rest on the bottom of your library in a random order.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dreamshaper Shaman"
+   ]
+  },
+  {
+   "shape": "Put the rest into your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Relentless Pursuit"
+   ]
+  },
+  {
+   "shape": "Put up to one of them on top of your library and the rest on the bottom of your library in a random order.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thassa's Oracle"
+   ]
+  },
+  {
+   "shape": "Put up to two of them into your hand and the rest on the bottom of your library in a random order.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thassa's Intervention"
+   ]
+  },
+  {
+   "shape": "Reveal the top four cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Relentless Pursuit"
+   ]
+  },
+  {
+   "shape": "Sacrifice this Equipment: Equipped creature can't be blocked this turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Wings of Hubris"
+   ]
+  },
+  {
+   "shape": "Sacrifice this token: Add one mana of any color.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Gold"
+   ]
+  },
+  {
+   "shape": "Search your library for an enchantment card, reveal it, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Idyllic Tutor"
+   ]
+  },
+  {
+   "shape": "Search your library for up to four Minotaur creature cards with different names, put them onto the battlefield, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Deathbellow War Cry"
+   ]
+  },
+  {
+   "shape": "Spells you cast with mana value N or greater cost {N} less to cast and can't be countered.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thryx, the Sudden Storm"
+   ]
+  },
+  {
+   "shape": "Spend this mana only to cast artifact spells or activate abilities of artifacts.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dalakos, Crafter of Wonders"
+   ]
+  },
+  {
+   "shape": "Target creature you control gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Phalanx Tactics"
+   ]
+  },
+  {
+   "shape": "Target player loses N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fruit of Tizerus"
+   ]
+  },
+  {
+   "shape": "Target player mills four cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sweet Oblivion"
+   ]
+  },
+  {
+   "shape": "That creature can't block this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blood Aspirant"
+   ]
+  },
+  {
+   "shape": "That creature gains flying until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Eutropia the Twice-Favored"
+   ]
+  },
+  {
+   "shape": "The escape cost is equal to the card's mana cost plus exile three other cards from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Underworld Breach"
+   ]
+  },
+  {
+   "shape": "Then destroy all creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shatter the Sky"
+   ]
+  },
+  {
+   "shape": "Then discard two cards unless you discard an enchantment card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thirst for Meaning"
+   ]
+  },
+  {
+   "shape": "Then you may exile a creature or enchantment card from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tymaret Calls the Dead"
+   ]
+  },
+  {
+   "shape": "They don't untap during their controller's next untap step.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kiora Bests the Sea God"
+   ]
+  },
+  {
+   "shape": "This creature attacks each combat if able.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Underworld Rage-Hound"
+   ]
+  },
+  {
+   "shape": "This creature can't attack unless you control another creature with power N or greater.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Warden of the Chained"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked as long as you control an Ashiok planeswalker.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Swimmer in Nightmares"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N as long as there are ten or more cards in a single graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Swimmer in Nightmares"
+   ]
+  },
+  {
+   "shape": "This spell costs {X} less to cast, where X is your devotion to white.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Daybreak Chimera"
+   ]
+  },
+  {
+   "shape": "Untap it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kiora Bests the Sea God"
+   ]
+  },
+  {
+   "shape": "Until end of turn, that creature has base power and toughness N/N and gains indestructible.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Taranika, Akroan Veteran"
+   ]
+  },
+  {
+   "shape": "Until the end of your next turn, you may play that card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tectonic Giant"
+   ]
+  },
+  {
+   "shape": "When enchanted creature dies, return that card to the battlefield under your control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Minion's Return"
+   ]
+  },
+  {
+   "shape": "When enchanted creature dies, this Aura deals N damage to that creature's controller.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Impending Doom"
+   ]
+  },
+  {
+   "shape": "When this Aura enters, enchanted creature fights up to one target creature you don't control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Warbriar Blessing"
+   ]
+  },
+  {
+   "shape": "When this Aura enters, it deals N damage to target creature or planeswalker an opponent controls.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Iroas's Blessing"
+   ]
+  },
+  {
+   "shape": "When this Aura enters, put a +N/+N counter on enchanted creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Hydra's Growth"
+   ]
+  },
+  {
+   "shape": "When this creature dies, create a N/N white Goat creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Discordant Piper"
+   ]
+  },
+  {
+   "shape": "When this creature dies, exile target card from an opponent's graveyard.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Leonin of the Lost Pride"
+   ]
+  },
+  {
+   "shape": "When this creature dies, put all cards exiled with it onto the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Underworld Sentinel"
+   ]
+  },
+  {
+   "shape": "When this creature dies, target creature an opponent controls gets -N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Grim Physician"
+   ]
+  },
+  {
+   "shape": "When this creature dies, you may return target enchantment card from your graveyard to the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Archon of Falling Stars"
+   ]
+  },
+  {
+   "shape": "When this creature enters, choose one \u2014",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Irreverent Revelers"
+   ]
+  },
+  {
+   "shape": "When this creature enters, creatures you control gain double strike until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Terror of Mount Velus"
+   ]
+  },
+  {
+   "shape": "When this creature enters, discard your hand, then draw three cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Ox of Agonas"
+   ]
+  },
+  {
+   "shape": "When this creature enters, it deals damage equal to its power to target creature with flying an opponent controls.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Chainweb Aracnir"
+   ]
+  },
+  {
+   "shape": "When this creature enters, look at the top X cards of your library, where X is your devotion to blue.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Thassa's Oracle"
+   ]
+  },
+  {
+   "shape": "When this creature enters, mill three cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Venomous Hierophant"
+   ]
+  },
+  {
+   "shape": "When this creature enters, mill two cards, then you may return a permanent card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Acolyte of Affliction"
+   ]
+  },
+  {
+   "shape": "When this creature enters, return any number of Aura cards from your graveyard to the battlefield attached to creatures you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Storm Herald"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target creature an opponent controls gets -X/-N until end of turn, where X is your devotion to blue.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Threnody Singer"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target creature an opponent controls gets -X/-X until end of turn, where X is your devotion to black.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Blight-Breath Catoblepas"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target creature you control gets +N/+N and gains indestructible until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Rage-Scarred Berserker"
+   ]
+  },
+  {
+   "shape": "When this creature enters, untap target creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Hyrax Tower Scout"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you gain life equal to your devotion to green.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Setessan Petitioner"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may put target enchantment card from your graveyard on top of your library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Lagonna-Band Storyteller"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may search your library for an Aura card, reveal it, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Heliod's Pilgrim"
+   ]
+  },
+  {
+   "shape": "When this enchantment enters, create two N/N white Human Soldier creature tokens and you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Omen of the Sun"
+   ]
+  },
+  {
+   "shape": "When this enchantment enters, exile target nonland permanent an opponent controls until this enchantment leaves the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Banishing Light"
+   ]
+  },
+  {
+   "shape": "When this enchantment enters, return target creature card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Omen of the Dead"
+   ]
+  },
+  {
+   "shape": "When ~ enters, create a N/N blue Reflection creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Alirios, Enraptured"
+   ]
+  },
+  {
+   "shape": "When ~ enters, sacrifice it unless it escaped.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Kroxa, Titan of Death's Hunger"
+   ]
+  },
+  {
+   "shape": "When ~ enters, target opponent looks at the top three cards of your library and separates them into a face-down pile and a face-up pile.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Atris, Oracle of Half-Truths"
+   ]
+  },
+  {
+   "shape": "Whenever a creature dies, if an Aura you controlled was attached to it, return target creature card with mana value N or less from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Dawn Evangel"
+   ]
+  },
+  {
+   "shape": "Whenever an opponent casts an instant or sorcery spell, create a N/N green Spider creature token with reach.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Arasta of the Endless Web"
+   ]
+  },
+  {
+   "shape": "Whenever an opponent draws a card, this enchantment deals N damage to that player.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Underworld Dreams"
+   ]
+  },
+  {
+   "shape": "Whenever another creature becomes the target of an ability of a land you control named Labyrinth of Skophos, you may have this creature fight that creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Skophos Maze-Warden"
+   ]
+  },
+  {
+   "shape": "Whenever another creature you control attacks, it gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Glory Bearers"
+   ]
+  },
+  {
+   "shape": "Whenever another creature you control dies, you may pay N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Erebos, Bleak-Hearted"
+   ]
+  },
+  {
+   "shape": "Whenever another nontoken creature you control dies, you may exile it.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Nightmare Shepherd"
+   ]
+  },
+  {
+   "shape": "Whenever enchanted land is tapped for mana, its controller adds an additional {G}.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Wolfwillow Haven"
+   ]
+  },
+  {
+   "shape": "Whenever one or more cards are put into your graveyard from your library, this creature gets +N/+N until end of turn and can't be blocked this turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Devourer of Memory"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks or becomes the target of a spell an opponent controls, choose one \u2014",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Tectonic Giant"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks or blocks, each opponent exiles the top two cards of their library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Nightmare"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, exile target creature card from your graveyard.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Underworld Sentinel"
+   ]
+  },
+  {
+   "shape": "Whenever this creature becomes blocked by a creature, exile that creature until this creature leaves the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Grasping Giant"
+   ]
+  },
+  {
+   "shape": "Whenever this creature becomes blocked by a creature, that creature's controller draws a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Nessian Boar"
+   ]
+  },
+  {
+   "shape": "Whenever this creature deals combat damage to a player, that player sacrifices a creature of their choice.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Demon of Loathing"
+   ]
+  },
+  {
+   "shape": "Whenever two or more creatures your opponents control attack, this creature can't block this combat.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Flummoxed Cyclops"
+   ]
+  },
+  {
+   "shape": "Whenever you cast your first spell during each opponent's turn, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Arena Trickster"
+   ]
+  },
+  {
+   "shape": "Whenever you cast your first spell during each opponent's turn, you may tap or untap target nonland permanent.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Stinging Lionfish"
+   ]
+  },
+  {
+   "shape": "Whenever you gain life, put a +N/+N counter on target creature or enchantment you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Heliod, Sun-Crowned"
+   ]
+  },
+  {
+   "shape": "Whenever you sacrifice a permanent, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Blood Aspirant"
+   ]
+  },
+  {
+   "shape": "Whenever you sacrifice a permanent, this creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Slaughter-Priest of Mogis"
+   ]
+  },
+  {
+   "shape": "Whenever ~ attacks, untap another target creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Taranika, Akroan Veteran"
+   ]
+  },
+  {
+   "shape": "Whenever ~ enters or attacks, each opponent discards a card, then each opponent who didn't discard a nonland card this way loses N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Kroxa, Titan of Death's Hunger"
+   ]
+  },
+  {
+   "shape": "You choose a nonland card from it or a card from their graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Agonizing Remorse"
+   ]
+  },
+  {
+   "shape": "You draw two cards, lose N life, then mill two cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Funeral Rites"
+   ]
+  },
+  {
+   "shape": "You gain N life for each creature card exiled this way.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tymaret, Chosen from Death"
+   ]
+  },
+  {
+   "shape": "You gain X life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Erebos's Intervention"
+   ]
+  },
+  {
+   "shape": "You may choose not to untap this artifact during your untap step.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Entrancing Lyre"
+   ]
+  },
+  {
+   "shape": "You may play an additional land on each of your turns.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dryad of the Ilysian Grove"
+   ]
+  },
+  {
+   "shape": "You may put a creature card and/or a land card from among them into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Relentless Pursuit"
+   ]
+  },
+  {
+   "shape": "You may reveal an enchantment card from among them and put that card into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Calix, Destiny's Hand"
+   ]
+  },
+  {
+   "shape": "Your devotion to each color and each combination of colors is increased by one.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Altar of the Pantheon"
+   ]
+  },
+  {
+   "shape": "[+N]: Create a N/N blue and black Nightmare creature token with \"Whenever this token attacks or blocks, each opponent exiles the top two cards of their library.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ashiok, Nightmare Muse"
+   ]
+  },
+  {
+   "shape": "[+N]: Look at the top four cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Calix, Destiny's Hand"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Create two N/N white Human Soldier creature tokens.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Elspeth, Sun's Nemesis"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Exile target creature or enchantment you don't control until target enchantment you control leaves the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Calix, Destiny's Hand"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Gain control of all creatures target opponent controls.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ashiok, Sculptor of Fears"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Put target creature card from a graveyard onto the battlefield under your control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ashiok, Sculptor of Fears"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Return all enchantment cards from your graveyard to the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Calix, Destiny's Hand"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Return target nonland permanent to its owner's hand, then that player exiles a card from their hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ashiok, Nightmare Muse"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Up to two target creatures you control each get +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Elspeth, Sun's Nemesis"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: You gain N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Elspeth, Sun's Nemesis"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: You may cast up to three spells from among face-up cards your opponents own from exile without paying their mana costs.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ashiok, Nightmare Muse"
+   ]
+  },
+  {
+   "shape": "{N}, Sacrifice a creature: Each opponent loses N life and you gain N life.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Lampad of Death's Vigil"
+   ]
+  },
+  {
+   "shape": "{N}, Sacrifice another creature or an enchantment: This creature gains first strike until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Slaughter-Priest of Mogis"
+   ]
+  },
+  {
+   "shape": "{N}, Sacrifice this creature: Target creature or enchantment you control gains protection from the color of your choice until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Alseid of Life's Bounty"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Sacrifice this land: Destroy target nonbasic land an opponent controls.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Field of Ruin"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Remove target attacking or blocking creature from combat.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Labyrinth of Skophos"
+   ]
+  },
+  {
+   "shape": "{N}: Permanents your opponents control lose hexproof and indestructible until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Shadowspear"
+   ]
+  },
+  {
+   "shape": "{N}: This creature gets +N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Skophos Maze-Warden"
+   ]
+  },
+  {
+   "shape": "{N}{B}, Sacrifice another creature: Target creature gets -N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Erebos, Bleak-Hearted"
+   ]
+  },
+  {
+   "shape": "{N}{B}, Sacrifice this enchantment: Scry N.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Omen of the Dead"
+   ]
+  },
+  {
+   "shape": "{N}{B}: Exile up to two target cards from graveyards.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Tymaret, Chosen from Death"
+   ]
+  },
+  {
+   "shape": "{N}{B}{G}: ~ fights another target creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Polukranos, Unchained"
+   ]
+  },
+  {
+   "shape": "{N}{G}, Sacrifice this Aura: Create a N/N green Wolf creature token.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Wolfwillow Haven"
+   ]
+  },
+  {
+   "shape": "{N}{G}: Target land you control becomes an X/X Elemental creature with trample and haste until end of turn, where X is the number of enchantments you control.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Destiny Spinner"
+   ]
+  },
+  {
+   "shape": "{N}{R}, Discard a card: Draw a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Oread of Mountain's Blaze"
+   ]
+  },
+  {
+   "shape": "{N}{R}, {T}, Sacrifice a creature or enchantment: This creature deals N damage to target creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Blood Aspirant"
+   ]
+  },
+  {
+   "shape": "{N}{U}: Tap another target creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Thassa, Deep-Dwelling"
+   ]
+  },
+  {
+   "shape": "{N}{U}{B}: Mill a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Devourer of Memory"
+   ]
+  },
+  {
+   "shape": "{N}{W}, Sacrifice this enchantment: Scry N.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Omen of the Sun"
+   ]
+  },
+  {
+   "shape": "{N}{W}: Another target creature gains lifelink until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Heliod, Sun-Crowned"
+   ]
+  },
+  {
+   "shape": "{N}{W}: Exile enchanted creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Dreadful Apathy"
+   ]
+  },
+  {
+   "shape": "{N}{W}: This creature gains vigilance and lifelink until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Sunmane Pegasus"
+   ]
+  },
+  {
+   "shape": "{R}, Sacrifice another creature or an enchantment: This creature gets +N/+N and gains menace until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Skophos Warleader"
+   ]
+  },
+  {
+   "shape": "{T}: Choose a color.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Nyx Lotus"
+   ]
+  },
+  {
+   "shape": "{X}, {T}: Tap target creature with power X or less.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Entrancing Lyre"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fateful End"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to each creature and each planeswalker.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Underworld Fires"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Final Flare"
+   ]
+  },
+  {
+   "shape": "~ doesn't untap during your untap step if you control a Reflection.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Alirios, Enraptured"
+   ]
+  },
+  {
+   "shape": "~ enters with six +N/+N counters on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Polukranos, Unchained"
+   ]
+  },
+  {
+   "shape": "~'s power is equal to your devotion to green.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Renata, Called to the Hunt"
+   ]
+  },
+  {
+   "shape": "~'s toughness is equal to your devotion to black.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tymaret, Chosen from Death"
+   ]
+  },
+  {
+   "shape": "\u2022 Counter target spell unless its controller pays twice {X}.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thassa's Intervention"
+   ]
+  },
+  {
+   "shape": "\u2022 Create an X/N red Elemental creature token with trample and haste.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Purphoros's Intervention"
+   ]
+  },
+  {
+   "shape": "\u2022 Exile the top two cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tectonic Giant"
+   ]
+  },
+  {
+   "shape": "\u2022 Exile up to twice X target cards from graveyards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Erebos's Intervention"
+   ]
+  },
+  {
+   "shape": "\u2022 Look at the top X cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thassa's Intervention"
+   ]
+  },
+  {
+   "shape": "\u2022 Return target Aura card from your graveyard to the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rise to Glory"
+   ]
+  },
+  {
+   "shape": "\u2022 Return target creature card from your graveyard to the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rise to Glory"
+   ]
+  },
+  {
+   "shape": "\u2022 Search your library for up to X land cards, reveal them, put them into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nylea's Intervention"
+   ]
+  },
+  {
+   "shape": "\u2022 Target creature gets -X/-X until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Erebos's Intervention"
+   ]
+  },
+  {
+   "shape": "\u2022 Target opponent sacrifices a creature of their choice.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Pharika's Libation"
+   ]
+  },
+  {
+   "shape": "\u2022 Target opponent sacrifices an enchantment of their choice.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Pharika's Libation"
+   ]
+  },
+  {
+   "shape": "\u2022 This creature deals N damage to each opponent.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tectonic Giant"
+   ]
+  },
+  {
+   "shape": "\u2022 This creature gains haste until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Irreverent Revelers"
+   ]
+  },
+  {
+   "shape": "\u2022 ~ deals twice X damage to each creature with flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nylea's Intervention"
+   ]
+  },
+  {
+   "shape": "\u2022 ~ deals twice X damage to target creature or planeswalker.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Purphoros's Intervention"
+   ]
+  },
+  {
+   "shape": "<shape gap>",
+   "count": 1,
+   "hints": [],
+   "cards": [
+    "Thundering Chariot"
+   ],
+   "error": "StateCorruptionError: compile_card: printed P/T on a non-creature (a Vehicle needs crew, not implemented) [card='Thundering Chariot', type_line='Artifact \u2014 Vehi"
+  }
+ ],
+ "seconds": 1.1
+}

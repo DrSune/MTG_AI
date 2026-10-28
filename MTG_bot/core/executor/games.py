@@ -236,9 +236,15 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
     * ``engine`` — the honest 286 from the 12e gated pass (``supported_verbs=
       SUPPORTED_VERBS_V2``), where a raise is always a bug.
     * ``castable`` — engine-supported AND put-into-playable by the executor.
+    * ``compiled`` — castable AND fully compiled: no unparsed sentence, no
+      ambiguity, no unparsed back face. The other modes deal partly compiled
+      cards with their unparsed text silently missing (B-28, against
+      DESIGN_CARD_POOL.md:219); this one plays only cards whose whole text is in
+      the tree. It equals ``castable`` on M21; it is how a new set (M20, KHM)
+      is played honestly while its grammar rounds run (KNOWLEDGE /159).
     """
-    if mode not in ("all", "engine", "castable"):
-        raise ValueError(f"unknown pool_mode {mode!r} (all|engine|castable)")
+    if mode not in ("all", "engine", "castable", "compiled"):
+        raise ValueError(f"unknown pool_mode {mode!r} (all|engine|castable|compiled)")
     started = time.perf_counter()
     raw = ingest_pool(REPO / "MTG_bot" / "data" / f"{set_code}.json")
     registry = build_full_registry()
@@ -307,6 +313,18 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
         deckable = tuple(sorted(metas))
     elif mode == "engine":
         deckable = tuple(sorted(oid for oid in engine_ids if oid in metas))
+    elif mode == "compiled":
+        deckable = tuple(
+            sorted(
+                oid
+                for oid in playable_engine
+                if not (
+                    pool.results[oid].unparsed
+                    or pool.results[oid].ambiguities
+                    or pool.results[oid].back_face_unparsed
+                )
+            )
+        )
     else:
         deckable = tuple(sorted(playable_engine))
     if not deckable:
@@ -1199,6 +1217,7 @@ def play_game(
     supply: Supply | None = None,
     raise_on_crash: bool = False,
     trace_path: Path | str | None = None,
+    deck_mode: str = "stress",
 ) -> GameOutcome:
     """One seeded game.
 
@@ -1209,7 +1228,7 @@ def play_game(
     instead, which is what ``--repro`` and the repro tests use.
     """
     supply = supply or get_supply(pool_mode)
-    decks = deal_decks(seed, deck_pairs_seed, supply)
+    decks = deal_decks(seed, deck_pairs_seed, supply, deck_mode)
     # 14g trace: created BEFORE setup so it can note the pre-draw library
     # order; attach() right after so journal/ask baselines start at zero.
     recorder = TraceRecorder(supply, decks, turn_cap) if trace_path else None
@@ -1454,15 +1473,68 @@ def _describe_crash(
     }
 
 
+#: Coherent-deck mode (B-45, KNOWLEDGE /164): two colours and 24 basics in 60, the constructed norm
+#: (Limited plays 17 in 40). SCAFFOLD, registered in docs/BACKLOG.md: a stand-in until decks are
+#: built by a learned deckbuilder; it chooses colours and land count, never which spells.
+COHERENT_LANDS = 24
+_BASIC_COLOR = {"Plains": "W", "Island": "U", "Swamp": "B", "Mountain": "R", "Forest": "G"}
+DECK_MODES = ("stress", "coherent")
+
+
+def build_coherent_deck(deck_seed: int, supply: Supply) -> tuple[str, ...]:
+    """A seeded 60-card two-colour deck: :data:`COHERENT_LANDS` basics split evenly between its
+    two colours, and the rest a uniform seeded sample of the dealt pool's non-land cards whose
+    colour identity lies within the pair (colourless included), at most :data:`MAX_COPIES` each.
+
+    The opt-in alternative to :func:`build_deck`'s five-colour stress piles (13.4 lands of 60 on
+    average, REVIEW_ARCHITECTURE_2026-10-27 F3). Like them it is a uniform sample: no curve and no
+    card choice beyond colour, so it adds no hand-tuned strategy."""
+    rng = random.Random(deck_seed)
+    metas = supply.metas
+    basics = {
+        _BASIC_COLOR[metas[oid].name]: oid
+        for oid in supply.deckable
+        if metas[oid].is_basic and metas[oid].name in _BASIC_COLOR
+    }
+    if len(basics) < 2:
+        raise ValueError(f"coherent deck: the pool has {len(basics)} basic land types, need 2")
+    pair = sorted(rng.sample(sorted(basics), 2))
+    spells = [
+        oid
+        for oid in supply.deckable
+        if not metas[oid].is_land
+        and set(supply.pool.results[oid].card.color_identity) <= set(pair)
+    ]
+    if len(spells) * MAX_COPIES < DECK_SIZE - COHERENT_LANDS:
+        raise ValueError(
+            f"coherent deck {deck_seed}: only {len(spells)} {''.join(pair)} cards in the pool "
+            f"(pool_mode={supply.mode!r}), need {(DECK_SIZE - COHERENT_LANDS) // MAX_COPIES}"
+        )
+    deck = [basics[pair[i % 2]] for i in range(COHERENT_LANDS)]
+    copies: dict[str, int] = {}
+    while len(deck) < DECK_SIZE:
+        oid = spells[rng.randrange(len(spells))]
+        if copies.get(oid, 0) < MAX_COPIES:
+            copies[oid] = copies.get(oid, 0) + 1
+            deck.append(oid)
+    rng.shuffle(deck)
+    return tuple(deck)
+
+
 def deal_decks(
-    seed: int, deck_pairs_seed: int, supply: Supply
+    seed: int, deck_pairs_seed: int, supply: Supply, deck_mode: str = "stress"
 ) -> tuple[tuple[str, ...], tuple[str, ...]]:
     """Two decks per game, both derived from the ONE master seed, so the seed
-    alone identifies the whole game (reproducibility rule: no second stream)."""
+    alone identifies the whole game (reproducibility rule: no second stream).
+    ``deck_mode`` "stress" (the default, byte-identical to every earlier deal) or
+    "coherent" (:func:`build_coherent_deck`, B-45)."""
+    if deck_mode not in DECK_MODES:
+        raise ValueError(f"unknown deck_mode {deck_mode!r} ({'|'.join(DECK_MODES)})")
+    build = build_deck if deck_mode == "stress" else build_coherent_deck
     rng = random.Random(f"decks:{deck_pairs_seed}:{seed}")
     return (
-        build_deck(rng.randrange(1 << 40), supply),
-        build_deck(rng.randrange(1 << 40), supply),
+        build(rng.randrange(1 << 40), supply),
+        build(rng.randrange(1 << 40), supply),
     )
 
 

@@ -1,0 +1,51 @@
+{
+ "set": "M12",
+ "checked_at": "2026-10-27T22:15:36+01:00",
+ "source": {
+  "file": "MTG_bot/data/M12.json",
+  "sha256": "bbc2dc325332a6bc05024088823023f3e02a4106578d23577fd7b78788a3efd2",
+  "mtgjson": {
+   "date": "2026-10-27",
+   "version": "5.3.0+20261027"
+  }
+ },
+ "scryfall_set": {
+  "code": "m12",
+  "name": "Magic 2012",
+  "released_at": "2011-07-15",
+  "set_type": "core",
+  "card_count": 249,
+  "printed_size": 249
+ },
+ "cards": {
+  "records": 249,
+  "scryfall_printings": 249,
+  "names_file": 234,
+  "names_scryfall": 234,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 249,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 249,
+  "text_mismatch": []
+ },
+ "tokens": {
+  "set": "TM12",
+  "records": 7,
+  "scryfall_printings": 7,
+  "names_file": 7,
+  "names_scryfall": 7,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 7,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 7,
+  "text_mismatch": []
+ },
+ "verdict": "match",
+ "owner_sign_off": "pending"
+}

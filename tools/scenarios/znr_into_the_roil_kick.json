@@ -21,6 +21,24 @@
       "real": "Into the Roil",
       "zone": "hand",
       "controller": 0
+    },
+    {
+      "key": "sheep_a",
+      "zone": "battlefield",
+      "controller": 1,
+      "name": "Pen Sheep",
+      "power": 1,
+      "toughness": 2,
+      "type": "Creature"
+    },
+    {
+      "key": "sheep_b",
+      "zone": "battlefield",
+      "controller": 1,
+      "name": "Pen Sheep",
+      "power": 1,
+      "toughness": 2,
+      "type": "Creature"
     }
   ],
   "steps": [
@@ -28,21 +46,30 @@
       "op": "cast",
       "real": "Into the Roil",
       "key": "roil_kicked",
-      "kicked": true
+      "kicked": true,
+      "targets": [
+        "sheep_a"
+      ]
     },
     {
       "op": "cast",
       "real": "Into the Roil",
-      "key": "roil_plain"
+      "key": "roil_plain",
+      "targets": [
+        "sheep_b"
+      ]
     }
   ],
   "expect": {
     "zone": {
       "roil_kicked": "graveyard",
-      "roil_plain": "graveyard"
+      "roil_plain": "graveyard",
+      "sheep_a": "hand",
+      "sheep_b": "hand"
     },
     "hand": {
-      "0": 1
+      "0": 1,
+      "1": 2
     },
     "mana_pool": {
       "0": {
@@ -50,5 +77,5 @@
       }
     }
   },
-  "notes": "ZND-1e kicker slice, the SPELL-ON-STACK arm (CR 608.2 judges the effect,\nthe CAST row remembers the kick). Into the Roil {1}{U}, kicker {1}{U}: the\ncompiled SpellAbility effect is Conditional(WAS_KICKED, DRAW 1 YOU,\nelse=None). Kicked copy: WAS_KICKED reads the spell's own CAST row while the\nframe resolves -> hand +1. Un-kicked copy: the pred answers False and the\nabsent else arm is silent -> no draw (the pair of casts pins BOTH branches in\none world: hand 2 - 2 casts + 1 draw = 1). Mana: 10U - 4U (kicked total) -\n2U (base total) = 4U: the kick is priced, never free, never guessed."
+  "notes": "ZND-1e kicker slice, the SPELL-ON-STACK arm (CR 608.2 judges the effect,\nthe CAST row remembers the kick). Into the Roil {1}{U}, kicker {1}{U}: the\ncompiled SpellAbility effect is Seq(MOVE_ZONE target nonland permanent -> its owner's\nhand, Conditional(WAS_KICKED, DRAW 1 YOU, else=None)). Until 2026-10-27 the bounce\nsentence was unparsed and silently missing; sets round S-2 (B11, KNOWLEDGE /162)\ncompiles it, so each copy now bounces one opponent creature (sheep_a, sheep_b ->\ntheir owner's hand: opponent hand 0 + 2 = 2). Kicked copy: WAS_KICKED reads the spell's own CAST row while the\nframe resolves -> hand +1. Un-kicked copy: the pred answers False and the\nabsent else arm is silent -> no draw (the pair of casts pins BOTH branches in\none world: hand 2 - 2 casts + 1 draw = 1). Mana: 10U - 4U (kicked total) -\n2U (base total) = 4U: the kick is priced, never free, never guessed."
 }

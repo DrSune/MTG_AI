@@ -1,0 +1,51 @@
+{
+ "set": "IKO",
+ "checked_at": "2026-10-27T22:16:28+01:00",
+ "source": {
+  "file": "MTG_bot/data/IKO.json",
+  "sha256": "a2c4b73f8356776621d3d9866f2a2fb4ce91a7bdeb4906826ad07ca522d0488d",
+  "mtgjson": {
+   "date": "2026-10-26",
+   "version": "5.3.0+20261026"
+  }
+ },
+ "scryfall_set": {
+  "code": "iko",
+  "name": "Ikoria: Lair of Behemoths",
+  "released_at": "2020-04-24",
+  "set_type": "expansion",
+  "card_count": 387,
+  "printed_size": 274
+ },
+ "cards": {
+  "records": 389,
+  "scryfall_printings": 389,
+  "names_file": 265,
+  "names_scryfall": 265,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 389,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 389,
+  "text_mismatch": []
+ },
+ "tokens": {
+  "set": "TIKO",
+  "records": 15,
+  "scryfall_printings": 14,
+  "names_file": 12,
+  "names_scryfall": 12,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 14,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 15,
+  "text_mismatch": []
+ },
+ "verdict": "match",
+ "owner_sign_off": "pending"
+}

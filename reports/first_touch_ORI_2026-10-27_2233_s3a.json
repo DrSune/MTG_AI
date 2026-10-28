@@ -1,0 +1,2128 @@
+{
+ "set": "ORI",
+ "stamp": "2026-10-27_2233",
+ "provenance": {
+  "data_file": "MTG_bot/data/ORI.json",
+  "data_sha256": "b92d39717b50bddfc521c505d24daf92b88bd2854848c997492d0eeececb3afd",
+  "mtgjson": {
+   "date": "2026-10-27",
+   "version": "5.3.0+20261027"
+  },
+  "head": "836f3eca8c4408c2175f73bc22f1675030cd9109",
+  "engine_tree_dirty": []
+ },
+ "split": {
+  "salt": "ORI-sealed-v1",
+  "test_share": 0.4,
+  "rule": "test iff int(sha256(salt:oracle_id)[:8], 16) / 2**32 < test_share",
+  "developed_on": [
+   "M21",
+   "ZNR",
+   "M20",
+   "KHM"
+  ],
+  "counts": {
+   "carry-over": 55,
+   "dev": 154,
+   "test": 78
+  },
+  "carry_over_reasons": {
+   "reprint (same oracle id)": 28,
+   "same text shape": 20,
+   "no rules text": 7
+  }
+ },
+ "engine_dealable": {
+  "engine": true,
+  "castable": true
+ },
+ "carry-over": {
+  "entries": 55,
+  "sentences": 59,
+  "pc1_count": 48,
+  "unparsed": 7,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 59,
+  "sentences_unseen_shape": 0,
+  "unparsed_seen_shape": 7,
+  "unparsed_unseen_shape": 0,
+  "dealable_engine": 44,
+  "dealable_engine_fully_compiled": 38,
+  "dealable_castable": 39,
+  "dealable_castable_fully_compiled": 34,
+  "pc1": 0.8727,
+  "pc2": 0.8814,
+  "pc2_seen_shape": 0.8814,
+  "pc2_unseen_shape": null
+ },
+ "dev": {
+  "entries": 154,
+  "sentences": 339,
+  "pc1_count": 12,
+  "unparsed": 215,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 118,
+  "sentences_unseen_shape": 221,
+  "unparsed_seen_shape": 17,
+  "unparsed_unseen_shape": 198,
+  "dealable_engine": 152,
+  "dealable_engine_fully_compiled": 12,
+  "dealable_castable": 109,
+  "dealable_castable_fully_compiled": 10,
+  "pc1": 0.0779,
+  "pc2": 0.3658,
+  "pc2_seen_shape": 0.8559,
+  "pc2_unseen_shape": 0.1041
+ },
+ "test": {
+  "entries": 78,
+  "sentences": 168,
+  "pc1_count": 7,
+  "unparsed": 106,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 65,
+  "sentences_unseen_shape": 103,
+  "unparsed_seen_shape": 10,
+  "unparsed_unseen_shape": 96,
+  "dealable_engine": 77,
+  "dealable_engine_fully_compiled": 7,
+  "dealable_castable": 53,
+  "dealable_castable_fully_compiled": 5,
+  "pc1": 0.0897,
+  "pc2": 0.369,
+  "pc2_seen_shape": 0.8462,
+  "pc2_unseen_shape": 0.068
+ },
+ "whole": {
+  "entries": 287,
+  "sentences": 566,
+  "pc1_count": 67,
+  "unparsed": 328,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 242,
+  "sentences_unseen_shape": 324,
+  "unparsed_seen_shape": 34,
+  "unparsed_unseen_shape": 294,
+  "dealable_engine": 273,
+  "dealable_engine_fully_compiled": 57,
+  "dealable_castable": 201,
+  "dealable_castable_fully_compiled": 49,
+  "pc1": 0.2334,
+  "pc2": 0.4205,
+  "pc2_seen_shape": 0.8595,
+  "pc2_unseen_shape": 0.0926
+ },
+ "dev_register": [
+  {
+   "shape": "Renown N (When this creature deals combat damage to a player, if it isn't renowned, put a +N/+N counter on it and it becomes renowned.)",
+   "count": 11,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Stalwart Aven",
+    "Acolyte of the Inferno",
+    "Knight of the Pilgrim's Road",
+    "Akroan Sergeant",
+    "Topan Freeblade",
+    "War Oracle",
+    "Honored Hierarch",
+    "Undercity Troll",
+    "Goblin Glory Chaser",
+    "Scab-Clan Berserker",
+    "Pharika's Disciple"
+   ]
+  },
+  {
+   "shape": "This land deals N damage to you.",
+   "count": 3,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shivan Reef",
+    "Llanowar Wastes",
+    "Battlefield Forge"
+   ]
+  },
+  {
+   "shape": "When this creature enters, create a N/N colorless Thopter artifact creature token with flying.",
+   "count": 3,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Thopter Engineer",
+    "Ghirapur Gearcrafter",
+    "Aspiring Aeronaut"
+   ]
+  },
+  {
+   "shape": "Renown N (When this creature deals combat damage to a player, if it isn't renowned, put two +N/+N counters on it and it becomes renowned.)",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Citadel Castellan",
+    "Valeron Wardens"
+   ]
+  },
+  {
+   "shape": "This spell can't be countered.",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gaea's Revenge",
+    "Terra Stomper"
+   ]
+  },
+  {
+   "shape": "All creatures get -N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Languish"
+   ]
+  },
+  {
+   "shape": "Artifact creatures you control have haste.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Thopter Engineer"
+   ]
+  },
+  {
+   "shape": "As an additional cost to cast this spell, exile two creature cards from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Skaab Goliath"
+   ]
+  },
+  {
+   "shape": "As long as this creature is attacking, creatures can't block unless their controller pays {N} for each of those creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Archangel of Tithes"
+   ]
+  },
+  {
+   "shape": "As long as this creature is renowned, it has menace.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Goblin Glory Chaser"
+   ]
+  },
+  {
+   "shape": "As long as this creature is renowned, it has vigilance and \"{T}: Add one mana of any color.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Honored Hierarch"
+   ]
+  },
+  {
+   "shape": "As long as this creature is untapped, creatures can't attack you or planeswalkers you control unless their controller pays {N} for each of those creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Archangel of Tithes"
+   ]
+  },
+  {
+   "shape": "As long as you control an enchantment, this creature gets +N/+N and has lifelink.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blood-Cursed Knight"
+   ]
+  },
+  {
+   "shape": "As long as you control five or more enchantments, each other non-Aura enchantment you control is a creature in addition to its other types and has base power and base toughness each equal to its mana value.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Starfield of Nyx"
+   ]
+  },
+  {
+   "shape": "At end of combat, if ~ and at least two other creatures attacked this combat, exile ~, then return him to the battlefield transformed under his owner's control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kytheon, Hero of Akros // Gideon, Battle-Forged"
+   ]
+  },
+  {
+   "shape": "At the beginning of each upkeep, if a player cast two or more spells last turn, sacrifice this Aura.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Call of the Full Moon"
+   ]
+  },
+  {
+   "shape": "At the beginning of your draw step, draw an additional card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Avaricious Dragon"
+   ]
+  },
+  {
+   "shape": "At the beginning of your end step, discard your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Avaricious Dragon"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, choose one that hasn't been chosen \u2014",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Demonic Pact"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, you lose N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Priest of the Blood Rite"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, you may return target enchantment card from your graveyard to the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Starfield of Nyx"
+   ]
+  },
+  {
+   "shape": "Attacking creatures get -N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Hydrolash"
+   ]
+  },
+  {
+   "shape": "Counter target instant or sorcery spell that targets you.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Psychic Rebuttal"
+   ]
+  },
+  {
+   "shape": "Counter target spell unless its controller pays {X}.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Clash of Wills"
+   ]
+  },
+  {
+   "shape": "Destroy target attacking or blocking creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Divine Verdict"
+   ]
+  },
+  {
+   "shape": "Each player dealt damage this way gets an emblem with \"At the beginning of your upkeep, this emblem deals N damage to you.\"",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Chandra, Fire of Kaladesh // Chandra, Roaring Flame [face B]"
+   ]
+  },
+  {
+   "shape": "Each player may put any number of land cards from their hand onto the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Great Aurora"
+   ]
+  },
+  {
+   "shape": "Each player shuffles all cards from their hand and all permanents they own into their library, then draws that many cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Great Aurora"
+   ]
+  },
+  {
+   "shape": "Enchant nonland permanent",
+   "count": 1,
+   "hints": [
+    "keyword"
+   ],
+   "cards": [
+    "Suppression Bonds"
+   ]
+  },
+  {
+   "shape": "Enchanted creature can block only creatures with flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Stratus Walk"
+   ]
+  },
+  {
+   "shape": "Enchanted creature gets +N/+N, has haste, and attacks each combat if able.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Infectious Bloodlust"
+   ]
+  },
+  {
+   "shape": "Enchanted creature gets -N/-N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Weight of the Underworld"
+   ]
+  },
+  {
+   "shape": "Enchanted creature has flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Stratus Walk"
+   ]
+  },
+  {
+   "shape": "Enchanted permanent can't attack or block, and its activated abilities can't be activated.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Suppression Bonds"
+   ]
+  },
+  {
+   "shape": "Equipped creature gets +N/+N for each enchantment you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Helm of the Gods"
+   ]
+  },
+  {
+   "shape": "Exile it at the beginning of the next end step.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Flameshadow Conjuring"
+   ]
+  },
+  {
+   "shape": "Exile ~.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Great Aurora"
+   ]
+  },
+  {
+   "shape": "If another red source you control would deal damage to a permanent or player, it deals that much damage plus N to that permanent or player instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Embermaw Hellion"
+   ]
+  },
+  {
+   "shape": "If it's a creature card, you draw cards equal to its power and you gain life equal to its toughness.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nissa's Revelation"
+   ]
+  },
+  {
+   "shape": "If it's a land card, put it onto the battlefield.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Nissa, Vastwood Seer // Nissa, Sage Animist [face B]"
+   ]
+  },
+  {
+   "shape": "If it's renowned, untap it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Enshrouding Mist"
+   ]
+  },
+  {
+   "shape": "If this creature would die, exile it instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Possessed Skaab"
+   ]
+  },
+  {
+   "shape": "If you control no artifacts, discard a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Artificer's Epiphany"
+   ]
+  },
+  {
+   "shape": "If you do, create a token that's a copy of that creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Flameshadow Conjuring"
+   ]
+  },
+  {
+   "shape": "If you do, that player discards that card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nightsnare"
+   ]
+  },
+  {
+   "shape": "If you do, this Equipment deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Throwing Knife"
+   ]
+  },
+  {
+   "shape": "If you don't, that player discards two cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nightsnare"
+   ]
+  },
+  {
+   "shape": "If you would gain life, you gain twice that much life instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Alhammarret's Archive"
+   ]
+  },
+  {
+   "shape": "If ~ has dealt N or more damage this turn, exile her, then return her to the battlefield transformed under her owner's control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra, Fire of Kaladesh // Chandra, Roaring Flame"
+   ]
+  },
+  {
+   "shape": "Instant and sorcery spells you cast cost {N} less to cast.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Jace's Sanctum"
+   ]
+  },
+  {
+   "shape": "Landfall \u2014 Whenever a land you control enters, create a N/N green Elemental creature token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Zendikar's Roil"
+   ]
+  },
+  {
+   "shape": "Non-Elf creatures get -N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Eyeblight Massacre"
+   ]
+  },
+  {
+   "shape": "Other creatures you control with flying get +N/+N.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Thunderclap Wyvern"
+   ]
+  },
+  {
+   "shape": "Otherwise, put it into your hand.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Nissa, Vastwood Seer // Nissa, Sage Animist [face B]"
+   ]
+  },
+  {
+   "shape": "Prevent all damage that would be dealt to him this turn.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Kytheon, Hero of Akros // Gideon, Battle-Forged [face B]"
+   ]
+  },
+  {
+   "shape": "Prevent all damage that would be dealt to it this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Enshrouding Mist"
+   ]
+  },
+  {
+   "shape": "Put all Elf cards revealed this way into your hand and the rest on the bottom of your library in any order.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sylvan Messenger"
+   ]
+  },
+  {
+   "shape": "Put all land cards from among them onto the battlefield tapped and the rest on the bottom of your library in a random order.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Animist's Awakening"
+   ]
+  },
+  {
+   "shape": "Put target card from your graveyard on top of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Reclaim"
+   ]
+  },
+  {
+   "shape": "Put target creature card from a graveyard onto the battlefield under your control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Necromantic Summons"
+   ]
+  },
+  {
+   "shape": "Put that card into your hand and the rest on the bottom of your library in a random order.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Evolutionary Leap"
+   ]
+  },
+  {
+   "shape": "Put the rest into your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gather the Pack"
+   ]
+  },
+  {
+   "shape": "Regenerate target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dark Dabbling"
+   ]
+  },
+  {
+   "shape": "Return all nonland permanents with mana value X or less to their owners' hands.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Displacement Wave"
+   ]
+  },
+  {
+   "shape": "Return up to two target creature cards from your graveyard to your hand, then discard a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Macabre Waltz"
+   ]
+  },
+  {
+   "shape": "Reveal the top X cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Animist's Awakening"
+   ]
+  },
+  {
+   "shape": "Reveal the top five cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gather the Pack"
+   ]
+  },
+  {
+   "shape": "Spell mastery \u2014 If there are two or more instant and/or sorcery cards in your graveyard, add {B}{B}{B}.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dark Petition"
+   ]
+  },
+  {
+   "shape": "Spell mastery \u2014 If there are two or more instant and/or sorcery cards in your graveyard, also regenerate each other creature you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dark Dabbling"
+   ]
+  },
+  {
+   "shape": "Spell mastery \u2014 If there are two or more instant and/or sorcery cards in your graveyard, creatures you control gain indestructible until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gideon's Phalanx"
+   ]
+  },
+  {
+   "shape": "Spell mastery \u2014 If there are two or more instant and/or sorcery cards in your graveyard, put up to two creature cards from among the revealed cards into your hand instead of one.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gather the Pack"
+   ]
+  },
+  {
+   "shape": "Spell mastery \u2014 If there are two or more instant and/or sorcery cards in your graveyard, scry N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Calculated Dismissal"
+   ]
+  },
+  {
+   "shape": "Spell mastery \u2014 If there are two or more instant and/or sorcery cards in your graveyard, that creature enters with two additional +N/+N counters on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Necromantic Summons"
+   ]
+  },
+  {
+   "shape": "Spell mastery \u2014 If there are two or more instant and/or sorcery cards in your graveyard, this spell can't be countered.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Exquisite Firecraft"
+   ]
+  },
+  {
+   "shape": "Spell mastery \u2014 If there are two or more instant and/or sorcery cards in your graveyard, those creatures also gain vigilance until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kytheon's Tactics"
+   ]
+  },
+  {
+   "shape": "Spell mastery \u2014 If there are two or more instant and/or sorcery cards in your graveyard, untap those lands.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Animist's Awakening"
+   ]
+  },
+  {
+   "shape": "Spell mastery \u2014 If there are two or more instant and/or sorcery cards in your graveyard, you gain N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Unholy Hunger"
+   ]
+  },
+  {
+   "shape": "Spell mastery \u2014 If there are two or more instant and/or sorcery cards in your graveyard, you may cast this spell as though it had flash.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Swift Reckoning"
+   ]
+  },
+  {
+   "shape": "Spell mastery \u2014 If there are two or more instant and/or sorcery cards in your graveyard, you may copy the spell countered this way.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Psychic Rebuttal"
+   ]
+  },
+  {
+   "shape": "Spell mastery \u2014 If there are two or more instant and/or sorcery cards in your graveyard, ~ also deals X damage to that creature's controller.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ravaging Blaze"
+   ]
+  },
+  {
+   "shape": "Spend this mana only to cast an Elf creature spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gnarlroot Trapper"
+   ]
+  },
+  {
+   "shape": "Tap two untapped artifacts you control: Target creature can't be blocked this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Whirler Rogue"
+   ]
+  },
+  {
+   "shape": "Target creature gets +N/+N and gains flying until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mighty Leap"
+   ]
+  },
+  {
+   "shape": "Target creature you control deals damage equal to its power to each other creature and each opponent.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra's Ignition"
+   ]
+  },
+  {
+   "shape": "Target player gains N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Healing Hands"
+   ]
+  },
+  {
+   "shape": "Target player mills X cards, where X is the number of lands you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dreadwaters"
+   ]
+  },
+  {
+   "shape": "That token gains haste.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Flameshadow Conjuring"
+   ]
+  },
+  {
+   "shape": "They become N/N Elemental creatures.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Nissa, Vastwood Seer // Nissa, Sage Animist [face B]"
+   ]
+  },
+  {
+   "shape": "They're still lands.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Nissa, Vastwood Seer // Nissa, Sage Animist [face B]"
+   ]
+  },
+  {
+   "shape": "This creature attacks each combat if able.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mage-Ring Bully"
+   ]
+  },
+  {
+   "shape": "This creature can't attack unless there are seven or more cards in your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Deep-Sea Terror"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked except by creatures with flying or reach.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Orchard Spirit"
+   ]
+  },
+  {
+   "shape": "This creature can't be the target of nongreen spells or abilities from nongreen sources.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gaea's Revenge"
+   ]
+  },
+  {
+   "shape": "This creature doesn't untap during your untap step.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mage-Ring Responder"
+   ]
+  },
+  {
+   "shape": "This creature gets +N/+N for each other creature you control named ~.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Timberpack Wolf"
+   ]
+  },
+  {
+   "shape": "Until end of turn, if a creature would enter and it wasn't cast, exile it instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Hallowed Moonlight"
+   ]
+  },
+  {
+   "shape": "Until end of turn, target creature loses all abilities and becomes a blue Frog with base power and toughness N/N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Turn to Frog"
+   ]
+  },
+  {
+   "shape": "Until end of turn, you may play that card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Abbot of Keral Keep"
+   ]
+  },
+  {
+   "shape": "When enchanted creature dies, create X N/N white Soldier creature tokens, where X is its power.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Murder Investigation"
+   ]
+  },
+  {
+   "shape": "When enchanted creature dies, you may search your library for a card named ~, reveal it, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Infectious Bloodlust"
+   ]
+  },
+  {
+   "shape": "When that mana is spent to cast a red instant or sorcery spell, copy that spell and you may choose new targets for the copy.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Pyromancer's Goggles"
+   ]
+  },
+  {
+   "shape": "When this Aura enters, create a N/N white Knight creature token with vigilance.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Knightly Valor"
+   ]
+  },
+  {
+   "shape": "When this artifact enters, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Alchemist's Vial"
+   ]
+  },
+  {
+   "shape": "When this creature dies, create a N/N colorless Thopter artifact creature token with flying for each +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Hangarback Walker"
+   ]
+  },
+  {
+   "shape": "When this creature dies, each player draws a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Runed Servitor"
+   ]
+  },
+  {
+   "shape": "When this creature enters, another target permanent gains indestructible for as long as you control this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Aegis Angel"
+   ]
+  },
+  {
+   "shape": "When this creature enters, create a N/N black Demon creature token with flying.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Priest of the Blood Rite"
+   ]
+  },
+  {
+   "shape": "When this creature enters, create two N/N colorless Thopter artifact creature tokens with flying.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Whirler Rogue"
+   ]
+  },
+  {
+   "shape": "When this creature enters, creatures without flying can't block this turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Seismic Elemental"
+   ]
+  },
+  {
+   "shape": "When this creature enters, each player loses N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Rabid Bloodsucker"
+   ]
+  },
+  {
+   "shape": "When this creature enters, exile the top card of your library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Abbot of Keral Keep"
+   ]
+  },
+  {
+   "shape": "When this creature enters, gain control of target creature an opponent controls with power N or less until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Enthralling Victor"
+   ]
+  },
+  {
+   "shape": "When this creature enters, if an opponent controls more lands than you, you may search your library for a Plains card, put it onto the battlefield, then shuffle.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Knight of the White Orchid"
+   ]
+  },
+  {
+   "shape": "When this creature enters, if you control another Elf, create a N/N green Elf Warrior creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Dwynen's Elite"
+   ]
+  },
+  {
+   "shape": "When this creature enters, look at the top two cards of your library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Tower Geist"
+   ]
+  },
+  {
+   "shape": "When this creature enters, return target instant, sorcery, or creature card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Possessed Skaab"
+   ]
+  },
+  {
+   "shape": "When this creature enters, reveal the top four cards of your library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sylvan Messenger"
+   ]
+  },
+  {
+   "shape": "When this creature enters, scry N, then reveal the top card of your library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Llanowar Empath"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target creature an opponent controls gets -N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Eyeblight Assassin"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target creature with power N or less can't be blocked this turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Subterranean Scout"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target player mills four cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Returned Centaur"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may destroy target artifact or enchantment.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Conclave Naturalists"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may destroy target enchantment.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Enlightened Ascetic"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may destroy target non-Elf creature whose power and toughness aren't equal.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Gilt-Leaf Winnower"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may return target creature to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Separatist Voidmage"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may return target enchantment card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Auramancer"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may return target tapped creature an opponent controls to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Harbinger of the Tides"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may search your library for an Aura card, reveal it, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Totem-Guide Hartebeest"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you may tap or untap target creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Bounding Krasis"
+   ]
+  },
+  {
+   "shape": "When ~ enters, create two N/N colorless Thopter artifact creature tokens with flying.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Pia and Kiran Nalaar"
+   ]
+  },
+  {
+   "shape": "When ~ enters, you may search your library for a basic Forest card, reveal it, put it into your hand, then shuffle.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Nissa, Vastwood Seer // Nissa, Sage Animist"
+   ]
+  },
+  {
+   "shape": "Whenever a creature an opponent controls becomes the target of a spell or ability you control, gain control of that creature for as long as you control this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Willbreaker"
+   ]
+  },
+  {
+   "shape": "Whenever a creature deals combat damage to you, if ~ entered this turn, exile that creature until ~ leaves the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Hixus, Prison Warden"
+   ]
+  },
+  {
+   "shape": "Whenever a creature dealt damage by this creature this turn dies, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sengir Vampire"
+   ]
+  },
+  {
+   "shape": "Whenever a creature you control becomes blocked, it gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Somberwald Alpha"
+   ]
+  },
+  {
+   "shape": "Whenever a creature you control becomes renowned, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Valeron Wardens"
+   ]
+  },
+  {
+   "shape": "Whenever a creature you control enters, you may have this artifact become a N/N white Angel artifact creature with flying until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Angel's Tomb"
+   ]
+  },
+  {
+   "shape": "Whenever a land you control enters, if you control seven or more lands, exile ~, then return her to the battlefield transformed under her owner's control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Nissa, Vastwood Seer // Nissa, Sage Animist"
+   ]
+  },
+  {
+   "shape": "Whenever a nontoken creature you control enters, you may pay {R}.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Flameshadow Conjuring"
+   ]
+  },
+  {
+   "shape": "Whenever a permanent owned by another player is put into a graveyard from the battlefield, you draw a card and you lose N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Kothophed, Soul Hoarder"
+   ]
+  },
+  {
+   "shape": "Whenever a player casts a spell, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Managorger Hydra"
+   ]
+  },
+  {
+   "shape": "Whenever an opponent casts a noncreature spell, if this creature is renowned, this creature deals N damage to that player.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Scab-Clan Berserker"
+   ]
+  },
+  {
+   "shape": "Whenever equipped creature attacks alone, it gets +N/+N until end of turn for each other creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sigil of Valor"
+   ]
+  },
+  {
+   "shape": "Whenever equipped creature attacks, you may sacrifice this Equipment.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Throwing Knife"
+   ]
+  },
+  {
+   "shape": "Whenever equipped creature attacks, you may search your library for a basic land card, put it onto the battlefield tapped, then shuffle.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sword of the Animist"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, each opponent who doesn't control an Elf loses N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Thornbow Archer"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, it deals N damage to target creature defending player controls.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Mage-Ring Responder"
+   ]
+  },
+  {
+   "shape": "Whenever this creature becomes blocked by a creature, it deals N damage to that creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Acolyte of the Inferno"
+   ]
+  },
+  {
+   "shape": "Whenever this creature deals combat damage to a player, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Jhessian Thief"
+   ]
+  },
+  {
+   "shape": "Whenever this creature deals combat damage to a player, that player loses life equal to the number of creature cards in your graveyard.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Graveblade Marauder"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a noncreature spell, creatures you control get +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Soulblade Djinn"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a red spell, untap ~.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Chandra, Fire of Kaladesh // Chandra, Roaring Flame"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a spell, target opponent puts the top five cards of their library into their graveyard.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Jace, Telepath Unbound Emblem"
+   ]
+  },
+  {
+   "shape": "Whenever you cast an enchantment spell, create a N/N white Angel creature token with flying.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sigil of the Empty Throne"
+   ]
+  },
+  {
+   "shape": "Whenever you cast an enchantment spell, you may have target creature get -N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Blightcaster"
+   ]
+  },
+  {
+   "shape": "Whenever you cast an instant or sorcery spell, scry N.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Jace's Sanctum"
+   ]
+  },
+  {
+   "shape": "You may cast this spell as though it had flash if you pay {N} more to cast it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Harbinger of the Tides"
+   ]
+  },
+  {
+   "shape": "You may choose a nonland card from it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nightsnare"
+   ]
+  },
+  {
+   "shape": "You may put a creature card from among them into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gather the Pack"
+   ]
+  },
+  {
+   "shape": "[+N]: Until your next turn, target creature gains indestructible.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Kytheon, Hero of Akros // Gideon, Battle-Forged [face B]"
+   ]
+  },
+  {
+   "shape": "[+N]: Up to one target creature an opponent controls attacks Gideon during its controller's next turn if able.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Kytheon, Hero of Akros // Gideon, Battle-Forged [face B]"
+   ]
+  },
+  {
+   "shape": "[+N]: ~ deals N damage to target player or planeswalker.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Chandra, Fire of Kaladesh // Chandra, Roaring Flame [face B]"
+   ]
+  },
+  {
+   "shape": "[N]: Until end of turn, Gideon becomes a N/N Human Soldier creature with indestructible that's still a planeswalker.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Kytheon, Hero of Akros // Gideon, Battle-Forged [face B]"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Create Ashaya, the Awoken World, a legendary N/N green Elemental creature token.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Nissa, Vastwood Seer // Nissa, Sage Animist [face B]"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Untap up to six target lands.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Nissa, Vastwood Seer // Nissa, Sage Animist [face B]"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: ~ deals N damage to target creature.",
+   "count": 1,
+   "hints": [
+    "BFACE"
+   ],
+   "cards": [
+    "Chandra, Fire of Kaladesh // Chandra, Roaring Flame [face B]"
+   ]
+  },
+  {
+   "shape": "{G}, Sacrifice a creature: Reveal cards from the top of your library until you reveal a creature card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Evolutionary Leap"
+   ]
+  },
+  {
+   "shape": "{N}, Sacrifice another creature: This creature deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Blazing Hellhound"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Sacrifice this artifact: Target creature can't attack or block this turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Alchemist's Vial"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Sacrifice this land: Create two N/N colorless Thopter artifact creature tokens with flying.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Foundry of the Consuls"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Hangarback Walker"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Put a storage counter on this land.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Mage-Ring Network"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Target creature can't be blocked this turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Rogue's Passage"
+   ]
+  },
+  {
+   "shape": "{N}: Untap this creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mage-Ring Responder"
+   ]
+  },
+  {
+   "shape": "{N}{G}, Sacrifice this creature: Destroy target artifact or enchantment.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Caustic Caterpillar"
+   ]
+  },
+  {
+   "shape": "{N}{G}: Regenerate this creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Undercity Troll"
+   ]
+  },
+  {
+   "shape": "{N}{G}: Target creature you control gains trample until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Somberwald Alpha"
+   ]
+  },
+  {
+   "shape": "{N}{R}, Sacrifice an artifact: ~ deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Pia and Kiran Nalaar"
+   ]
+  },
+  {
+   "shape": "{N}{W}: ~ gains indestructible until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Kytheon, Hero of Akros // Gideon, Battle-Forged"
+   ]
+  },
+  {
+   "shape": "{R}, Discard a land card: This enchantment deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Molten Vortex"
+   ]
+  },
+  {
+   "shape": "{T}, Pay N life: Add {G}.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Gnarlroot Trapper"
+   ]
+  },
+  {
+   "shape": "{T}, Remove any number of storage counters from this land: Add {C} for each storage counter removed this way.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Mage-Ring Network"
+   ]
+  },
+  {
+   "shape": "{T}: Target attacking Elf you control gains deathtouch until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Gnarlroot Trapper"
+   ]
+  },
+  {
+   "shape": "{T}: Target attacking creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Anointer of Champions"
+   ]
+  },
+  {
+   "shape": "{T}: ~ deals N damage to target player or planeswalker.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Chandra, Fire of Kaladesh // Chandra, Roaring Flame"
+   ]
+  },
+  {
+   "shape": "~ deals N damage divided as you choose among one, two, or three target creatures with flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Aerial Volley"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to target player or planeswalker and N damage to each creature that player or that planeswalker's controller controls.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra's Fury"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to that artifact's controller.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Smash to Smithereens"
+   ]
+  },
+  {
+   "shape": "~'s power and toughness are each equal to the number of Swamps you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nightmare"
+   ]
+  },
+  {
+   "shape": "~'s power is equal to the number of lands you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Zendikar Incarnate"
+   ]
+  },
+  {
+   "shape": "\u2022 Draw two cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Demonic Pact"
+   ]
+  },
+  {
+   "shape": "\u2022 Target opponent discards two cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Demonic Pact"
+   ]
+  },
+  {
+   "shape": "\u2022 This enchantment deals N damage to any target and you gain N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Demonic Pact"
+   ]
+  },
+  {
+   "shape": "\u2022 You lose the game.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Demonic Pact"
+   ]
+  },
+  {
+   "shape": "\u2610 Chandra, Fire of Kaladesh {N}{R}{R}",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Magic Origins Checklist"
+   ]
+  },
+  {
+   "shape": "\u2610 Jace, Vryn's Prodigy {N}{U}",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Magic Origins Checklist"
+   ]
+  },
+  {
+   "shape": "\u2610 Kytheon, Hero of Akros {W}",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Magic Origins Checklist"
+   ]
+  },
+  {
+   "shape": "\u2610 Liliana, Heretical Healer {N}{B}{B}",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Magic Origins Checklist"
+   ]
+  },
+  {
+   "shape": "\u2610 Nissa, Vastwood Seer {N}{G}",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Magic Origins Checklist"
+   ]
+  }
+ ],
+ "seconds": 0.8
+}

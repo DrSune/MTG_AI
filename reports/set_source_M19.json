@@ -1,0 +1,51 @@
+{
+ "set": "M19",
+ "checked_at": "2026-10-27T22:16:05+01:00",
+ "source": {
+  "file": "MTG_bot/data/M19.json",
+  "sha256": "30766ea23a65cb95963deaae68d2e256e66d160a36dd2349d273552f149124bd",
+  "mtgjson": {
+   "date": "2026-10-26",
+   "version": "5.3.0+20261026"
+  }
+ },
+ "scryfall_set": {
+  "code": "m19",
+  "name": "Core Set 2019",
+  "released_at": "2018-07-13",
+  "set_type": "core",
+  "card_count": 314,
+  "printed_size": 280
+ },
+ "cards": {
+  "records": 315,
+  "scryfall_printings": 314,
+  "names_file": 299,
+  "names_scryfall": 299,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 314,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 315,
+  "text_mismatch": []
+ },
+ "tokens": {
+  "set": "TM19",
+  "records": 18,
+  "scryfall_printings": 18,
+  "names_file": 17,
+  "names_scryfall": 17,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 18,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 18,
+  "text_mismatch": []
+ },
+ "verdict": "match",
+ "owner_sign_off": "pending"
+}

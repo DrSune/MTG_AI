@@ -1,0 +1,51 @@
+{
+ "set": "THB",
+ "checked_at": "2026-10-27T22:16:24+01:00",
+ "source": {
+  "file": "MTG_bot/data/THB.json",
+  "sha256": "60e76414e2fafcc7ce76cc516b44f1be2ae217fc358a396e7db213eba21f49c8",
+  "mtgjson": {
+   "date": "2026-10-26",
+   "version": "5.3.0+20261026"
+  }
+ },
+ "scryfall_set": {
+  "code": "thb",
+  "name": "Theros Beyond Death",
+  "released_at": "2020-01-24",
+  "set_type": "expansion",
+  "card_count": 358,
+  "printed_size": null
+ },
+ "cards": {
+  "records": 358,
+  "scryfall_printings": 358,
+  "names_file": 273,
+  "names_scryfall": 273,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 358,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 358,
+  "text_mismatch": []
+ },
+ "tokens": {
+  "set": "TTHB",
+  "records": 14,
+  "scryfall_printings": 14,
+  "names_file": 14,
+  "names_scryfall": 14,
+  "names_only_in_file": [],
+  "names_only_in_scryfall": [],
+  "ids_matched": 14,
+  "ids_only_in_file": 0,
+  "ids_only_in_scryfall": 0,
+  "records_without_scryfall_match": [],
+  "text_match": 14,
+  "text_mismatch": []
+ },
+ "verdict": "match",
+ "owner_sign_off": "pending"
+}

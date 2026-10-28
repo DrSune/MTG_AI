@@ -76,6 +76,7 @@ class DealSpec:
     )
     deck_pairs_seed: int = 1409
     turn_cap: int = TURN_CAP
+    deck_mode: str = "stress"  # or "coherent" (two colours, 24 basics; B-45)
 
 
 #: (deal, game index 0|1, seat 0|1) -> a fresh seat driver for that one game
@@ -145,7 +146,7 @@ def play_seated_game(
 ) -> dict[str, Any]:
     supply = get_supply(deal.pool_mode, deal.set_code)
     game = _setup_game(
-        deal.seed, supply, deal_decks(deal.seed, deal.deck_pairs_seed, supply)
+        deal.seed, supply, deal_decks(deal.seed, deal.deck_pairs_seed, supply, deal.deck_mode)
     )
     setup_fp = game.executor.state_fingerprint()
     router = SeatRouter(

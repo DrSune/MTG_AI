@@ -94,6 +94,12 @@ _KW_MAP: dict[str, Keyword] = {
     "lifelink": Keyword.LIFELINK,
 }
 
+#: The ``kw`` group of the grant templates, built from the map so a pattern can never match a word
+#: its builder cannot look up. Matching ``[a-z]+`` here made "…gains haste…" raise KeyError and take
+#: down whole-set compiles (B-36: M19 Goblin Motivator, KHM Axgard Cavalry); such a sentence is now
+#: honestly unparsed until its keyword joins the map with an executor test.
+_KW_ALT: str = "|".join(re.escape(k) for k in sorted(_KW_MAP, key=len, reverse=True))
+
 
 # ---------------------------------------------------------------------------
 # Selector helpers
@@ -992,7 +998,7 @@ TEMPLATES: tuple[Template, ...] = (
         name="grant keyword to self until eot",
         bucket="B3",
         pattern=re.compile(
-            rf"^{_COST}\s*:\s*This creature gains (?P<kw>[a-z]+) until end of turn\.$"
+            rf"^{_COST}\s*:\s*This creature gains (?P<kw>{_KW_ALT}) until end of turn\.$"
         ),
         priority=100,
         build=_build_grant_kw_self,
@@ -1002,7 +1008,7 @@ TEMPLATES: tuple[Template, ...] = (
         name="grant keyword to target creature until eot",
         bucket="B3",
         pattern=re.compile(
-            rf"^{_COST}\s*:\s*Target creature gains (?P<kw>[a-z]+) until end of turn\.$"
+            rf"^{_COST}\s*:\s*Target creature gains (?P<kw>{_KW_ALT}) until end of turn\.$"
         ),
         priority=100,
         build=_build_grant_kw_target_creature,
@@ -1012,7 +1018,7 @@ TEMPLATES: tuple[Template, ...] = (
         name="grant keyword to creatures you control until eot",
         bucket="B3",
         pattern=re.compile(
-            rf"^{_COST}\s*:\s*Creatures you control gain (?P<kw>[a-z]+) until end of turn\.$"
+            rf"^{_COST}\s*:\s*Creatures you control gain (?P<kw>{_KW_ALT}) until end of turn\.$"
         ),
         priority=100,
         build=_build_grant_kw_all_you,

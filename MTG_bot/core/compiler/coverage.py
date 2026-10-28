@@ -71,6 +71,8 @@ from MTG_bot.core.compiler import (
     templates_b8,
     templates_b9,
     templates_b10,
+    templates_b11,
+    templates_b12,
 )
 from MTG_bot.core.compiler.compiler import CompileResult, compile_card
 from MTG_bot.core.compiler.ingest import RawCard, pool_stats
@@ -104,6 +106,8 @@ _BUCKET_MODULES: tuple[types.ModuleType, ...] = (
     templates_b8,
     templates_b9,
     templates_b10,
+    templates_b11,
+    templates_b12,
 )
 
 
@@ -357,7 +361,8 @@ def _compile_pool_tolerant(
         owner_oid = next(
             (name_to_oid[n] for n in raw.related_names if n in name_to_oid), None
         )
-        if owner_oid is not None:
+        # B-38, mirroring compiler.compile_pool: a back-face planeswalker's emblem stays an orphan.
+        if owner_oid is not None and "Planeswalker" in results[owner_oid].card.types:
             owner_result = results[owner_oid]
             results[owner_oid] = replace(
                 owner_result, card=replace(owner_result.card, emblem=results[oid].card)

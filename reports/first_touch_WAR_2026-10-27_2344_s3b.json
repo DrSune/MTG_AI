@@ -1,0 +1,2393 @@
+{
+ "set": "WAR",
+ "stamp": "2026-10-27_2344",
+ "provenance": {
+  "data_file": "MTG_bot/data/WAR.json",
+  "data_sha256": "b78d1f16ed7b815059f7438026acd0d7e990ddfdd2f8cc33cd23e2935150cf4d",
+  "mtgjson": {
+   "date": "2026-10-27",
+   "version": "5.3.0+20261027"
+  },
+  "head": "60691cf3f83972412f459f139e6678cb46fe3e4e",
+  "engine_tree_dirty": []
+ },
+ "split": {
+  "salt": "WAR-sealed-v1",
+  "test_share": 0.4,
+  "rule": "test iff int(sha256(salt:oracle_id)[:8], 16) / 2**32 < test_share",
+  "developed_on": [
+   "M21",
+   "ZNR",
+   "M20",
+   "KHM"
+  ],
+  "counts": {
+   "carry-over": 40,
+   "dev": 147,
+   "test": 95
+  },
+  "carry_over_reasons": {
+   "same text shape": 11,
+   "reprint (same oracle id)": 20,
+   "no rules text": 9
+  }
+ },
+ "engine_dealable": {
+  "engine": true,
+  "castable": true
+ },
+ "carry-over": {
+  "entries": 40,
+  "sentences": 36,
+  "pc1_count": 37,
+  "unparsed": 3,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 36,
+  "sentences_unseen_shape": 0,
+  "unparsed_seen_shape": 3,
+  "unparsed_unseen_shape": 0,
+  "dealable_engine": 27,
+  "dealable_engine_fully_compiled": 24,
+  "dealable_castable": 26,
+  "dealable_castable_fully_compiled": 24,
+  "pc1": 0.925,
+  "pc2": 0.9167,
+  "pc2_seen_shape": 0.9167,
+  "pc2_unseen_shape": null
+ },
+ "dev": {
+  "entries": 147,
+  "sentences": 361,
+  "pc1_count": 11,
+  "unparsed": 237,
+  "shape_gaps": 1,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 108,
+  "sentences_unseen_shape": 253,
+  "unparsed_seen_shape": 23,
+  "unparsed_unseen_shape": 214,
+  "dealable_engine": 143,
+  "dealable_engine_fully_compiled": 10,
+  "dealable_castable": 84,
+  "dealable_castable_fully_compiled": 9,
+  "pc1": 0.0748,
+  "pc2": 0.3435,
+  "pc2_seen_shape": 0.787,
+  "pc2_unseen_shape": 0.1542
+ },
+ "test": {
+  "entries": 95,
+  "sentences": 236,
+  "pc1_count": 7,
+  "unparsed": 155,
+  "shape_gaps": 2,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 63,
+  "sentences_unseen_shape": 173,
+  "unparsed_seen_shape": 11,
+  "unparsed_unseen_shape": 144,
+  "dealable_engine": 92,
+  "dealable_engine_fully_compiled": 7,
+  "dealable_castable": 55,
+  "dealable_castable_fully_compiled": 7,
+  "pc1": 0.0737,
+  "pc2": 0.3432,
+  "pc2_seen_shape": 0.8254,
+  "pc2_unseen_shape": 0.1676
+ },
+ "whole": {
+  "entries": 282,
+  "sentences": 633,
+  "pc1_count": 55,
+  "unparsed": 395,
+  "shape_gaps": 3,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 207,
+  "sentences_unseen_shape": 426,
+  "unparsed_seen_shape": 37,
+  "unparsed_unseen_shape": 358,
+  "dealable_engine": 262,
+  "dealable_engine_fully_compiled": 41,
+  "dealable_castable": 165,
+  "dealable_castable_fully_compiled": 40,
+  "pc1": 0.195,
+  "pc2": 0.376,
+  "pc2_seen_shape": 0.8213,
+  "pc2_unseen_shape": 0.1596
+ },
+ "dev_register": [
+  {
+   "shape": "Amass Zombies N.",
+   "count": 6,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Toll of the Invasion",
+    "Crush Dissent",
+    "Honor the God-Pharaoh",
+    "Enter the God-Eternals",
+    "Callous Dismissal",
+    "Lazotep Plating"
+   ]
+  },
+  {
+   "shape": "Choose one \u2014",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Angrath's Rampage",
+    "Tyrant's Scorn"
+   ]
+  },
+  {
+   "shape": "During your turn, this creature has first strike.",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ahn-Crop Invader",
+    "Pouncing Lynx"
+   ]
+  },
+  {
+   "shape": "This spell can't be countered.",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dovin's Veto",
+    "Commence the Endgame"
+   ]
+  },
+  {
+   "shape": "When this creature dies, amass Zombies N.",
+   "count": 2,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Grim Initiate",
+    "Herald of the Dreadhorde"
+   ]
+  },
+  {
+   "shape": "When this creature enters, amass Zombies N.",
+   "count": 2,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Invading Manticore",
+    "Gleaming Overseer"
+   ]
+  },
+  {
+   "shape": "When this creature enters, proliferate.",
+   "count": 2,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Kiora's Dambreaker",
+    "Bloom Hulk"
+   ]
+  },
+  {
+   "shape": "Whenever this creature deals combat damage to a player or planeswalker, proliferate.",
+   "count": 2,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Guildpact Informant",
+    "Grateful Apparition"
+   ]
+  },
+  {
+   "shape": "Activated abilities of artifacts your opponents control can't be activated.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Karn, the Great Creator"
+   ]
+  },
+  {
+   "shape": "Artifact, instant, and sorcery spells your opponents cast cost {N} more to cast.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dovin, Hand of Control"
+   ]
+  },
+  {
+   "shape": "As an additional cost to cast this spell, sacrifice a creature or planeswalker.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Heartfire"
+   ]
+  },
+  {
+   "shape": "As this creature enters, you may return a nonland permanent you control to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rescuer Sphinx"
+   ]
+  },
+  {
+   "shape": "At the beginning of each opponent's upkeep, if that player has one or fewer cards in hand, ~ deals N damage to them.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Davriel, Rogue Shadowmage"
+   ]
+  },
+  {
+   "shape": "At the beginning of your upkeep, you lose N life and amass Zombies N.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Dreadhorde Invasion"
+   ]
+  },
+  {
+   "shape": "Choose a planeswalker you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Elderspell"
+   ]
+  },
+  {
+   "shape": "Choose any number of target creature and/or planeswalker cards in graveyards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Command the Dreadhorde"
+   ]
+  },
+  {
+   "shape": "Copy target instant or sorcery spell, then return it to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Narset's Reversal"
+   ]
+  },
+  {
+   "shape": "Counter target creature or planeswalker spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "No Escape"
+   ]
+  },
+  {
+   "shape": "Create X N/N white Soldier creature tokens with vigilance.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Finale of Glory"
+   ]
+  },
+  {
+   "shape": "Creature and planeswalker spells you cast have affinity for artifacts.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tezzeret, Master of the Bridge"
+   ]
+  },
+  {
+   "shape": "Creature spells you cast this turn can't be countered.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Domri, Anarch of Bolas"
+   ]
+  },
+  {
+   "shape": "Destroy any number of target planeswalkers.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Elderspell"
+   ]
+  },
+  {
+   "shape": "Destroy up to three target creatures with toughness X or less.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Finale of Eternity"
+   ]
+  },
+  {
+   "shape": "Discard all the cards in your hand, then draw that many cards plus one.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Heartwarming Redemption"
+   ]
+  },
+  {
+   "shape": "Draw X cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Finale of Revelation"
+   ]
+  },
+  {
+   "shape": "Draw two cards, then amass Zombies X, where X is the number of cards in your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Commence the Endgame"
+   ]
+  },
+  {
+   "shape": "Each creature deals damage to itself equal to its power.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Solar Blaze"
+   ]
+  },
+  {
+   "shape": "Each creature you control assigns combat damage equal to its toughness rather than its power.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Huatli, the Sun's Heart"
+   ]
+  },
+  {
+   "shape": "Each creature you control with a +N/+N counter on it has \"{T}: Add one mana of any color.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Jiang Yanggu, Wildcrafter"
+   ]
+  },
+  {
+   "shape": "Each opponent can cast spells only any time they could cast a sorcery.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Teferi, Time Raveler"
+   ]
+  },
+  {
+   "shape": "Each opponent exiles a card from their hand or a permanent they control.",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Nicol Bolas, Dragon-God"
+   ]
+  },
+  {
+   "shape": "Each player chooses a creature or planeswalker they control, then sacrifices the rest.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Single Combat"
+   ]
+  },
+  {
+   "shape": "Enchanted creature loses all abilities and has base power and toughness N/N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kasmina's Transmutation"
+   ]
+  },
+  {
+   "shape": "Exile all multicolored permanents.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ravnica at War"
+   ]
+  },
+  {
+   "shape": "Exile one face down and put the rest on the bottom of your library in any order.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien, Champion of the Wilds"
+   ]
+  },
+  {
+   "shape": "Exile target creature, then proliferate.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Wanderer's Strike"
+   ]
+  },
+  {
+   "shape": "Exile target permanent with mana value N or greater.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Despark"
+   ]
+  },
+  {
+   "shape": "Exile target permanent you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Teferi's Time Twist"
+   ]
+  },
+  {
+   "shape": "Exile ~.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Finale of Revelation"
+   ]
+  },
+  {
+   "shape": "For as long as it remains exiled, you may cast it if it's a creature spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien, Champion of the Wilds"
+   ]
+  },
+  {
+   "shape": "For each color pair, choose a card that's exactly those colors from among them.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Niv-Mizzet Reborn"
+   ]
+  },
+  {
+   "shape": "If X is N or more, also create X N/N white Angel creature tokens with flying and vigilance.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Finale of Glory"
+   ]
+  },
+  {
+   "shape": "If X is N or more, instead shuffle your graveyard into your library, draw X cards, untap up to five lands, and you have no maximum hand size for the rest of the game.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Finale of Revelation"
+   ]
+  },
+  {
+   "shape": "If X is N or more, return all creature cards from your graveyard to the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Finale of Eternity"
+   ]
+  },
+  {
+   "shape": "If damage would be dealt to this creature while it has a +N/+N counter on it, prevent that damage and remove that many +N/+N counters from this creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ugin's Conjurant"
+   ]
+  },
+  {
+   "shape": "If it entered from your library or was cast from your library, draw two cards instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fblthp, the Lost"
+   ]
+  },
+  {
+   "shape": "If it enters as a creature, it enters with an additional +N/+N counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Teferi's Time Twist"
+   ]
+  },
+  {
+   "shape": "If it's a creature or planeswalker card, you may reveal it and put it into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien's Grizzly"
+   ]
+  },
+  {
+   "shape": "If it's an artifact, destroy it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Topple the Statue"
+   ]
+  },
+  {
+   "shape": "If one or more +N/+N counters would be put on ~, that many plus one +N/+N counters are put on it instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mowu, Loyal Companion"
+   ]
+  },
+  {
+   "shape": "If that creature would die this turn, exile it instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ob Nixilis's Cruelty"
+   ]
+  },
+  {
+   "shape": "If that spell is countered this way, exile it instead of putting it into its owner's graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "No Escape"
+   ]
+  },
+  {
+   "shape": "If you cast a spell this way, pay life equal to its mana value rather than pay its mana cost.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bolas's Citadel"
+   ]
+  },
+  {
+   "shape": "If you control a Jace planeswalker, draw three cards instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Jace's Triumph"
+   ]
+  },
+  {
+   "shape": "If you do, draw that many cards and add that much {R}.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Neheb, Dreadhorde Champion"
+   ]
+  },
+  {
+   "shape": "If you do, return it to your hand at the beginning of the next end step.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Feather, the Redeemed"
+   ]
+  },
+  {
+   "shape": "If you do, this creature enters with a +N/+N counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rescuer Sphinx"
+   ]
+  },
+  {
+   "shape": "If you don't put the card into your hand, put it on the bottom of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien's Grizzly"
+   ]
+  },
+  {
+   "shape": "If you would draw a card while your library has no cards in it, you win the game instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Jace, Wielder of Mysteries"
+   ]
+  },
+  {
+   "shape": "It becomes a N/N Elemental creature with vigilance and haste that's still a land.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nissa, Who Shakes the World"
+   ]
+  },
+  {
+   "shape": "It becomes a legendary N/N Elemental creature with haste named Vitu-Ghazi.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Awakening of Vitu-Ghazi"
+   ]
+  },
+  {
+   "shape": "It gains haste until your next turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bond of Revival"
+   ]
+  },
+  {
+   "shape": "It's still a land.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Awakening of Vitu-Ghazi"
+   ]
+  },
+  {
+   "shape": "Landfall \u2014 Whenever a land you control enters, proliferate.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Evolution Sage"
+   ]
+  },
+  {
+   "shape": "Lands on the battlefield and land cards in graveyards can't be the targets of spells or abilities your opponents control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tomik, Distinguished Advokist"
+   ]
+  },
+  {
+   "shape": "Lands you control have indestructible.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nissa, Who Shakes the World Emblem"
+   ]
+  },
+  {
+   "shape": "Players can't cast creature or planeswalker spells until the end of your next turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Single Combat"
+   ]
+  },
+  {
+   "shape": "Prevent all damage that would be dealt to him this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gideon, the Oathsworn"
+   ]
+  },
+  {
+   "shape": "Prevent all noncombat damage that would be dealt to you and other permanents you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Wanderer"
+   ]
+  },
+  {
+   "shape": "Put all artifact cards from among them onto the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tezzeret, Master of the Bridge"
+   ]
+  },
+  {
+   "shape": "Put nine +N/+N counters on target land you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Awakening of Vitu-Ghazi"
+   ]
+  },
+  {
+   "shape": "Put target creature with flying on the bottom of its owner's library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Forced Landing"
+   ]
+  },
+  {
+   "shape": "Put target nonland permanent on top of its owner's library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Totally Lost"
+   ]
+  },
+  {
+   "shape": "Put that card into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Karn, the Great Creator"
+   ]
+  },
+  {
+   "shape": "Put the chosen cards into your hand and the rest on the bottom of your library in a random order.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Niv-Mizzet Reborn"
+   ]
+  },
+  {
+   "shape": "Put the rest on the bottom of your library in any order.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bond of Flourishing"
+   ]
+  },
+  {
+   "shape": "Put them onto the battlefield under your control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Command the Dreadhorde"
+   ]
+  },
+  {
+   "shape": "Put two loyalty counters on it for each planeswalker destroyed this way.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "The Elderspell"
+   ]
+  },
+  {
+   "shape": "Remove up to five counters from target artifact, creature, planeswalker, or opponent.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Price of Betrayal"
+   ]
+  },
+  {
+   "shape": "Return a creature you control to its owner's hand, then destroy all creatures.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Time Wipe"
+   ]
+  },
+  {
+   "shape": "Return that card to the battlefield under its owner's control at the beginning of the next end step.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Teferi's Time Twist"
+   ]
+  },
+  {
+   "shape": "Scry N, then draw two cards.",
+   "count": 1,
+   "hints": [
+    "keyword"
+   ],
+   "cards": [
+    "Tamiyo's Epiphany"
+   ]
+  },
+  {
+   "shape": "Spells and abilities your opponents control can't cause their controller to search their library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ashiok, Dream Render"
+   ]
+  },
+  {
+   "shape": "Spend this mana only to cast planeswalker spells.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Interplanar Beacon"
+   ]
+  },
+  {
+   "shape": "Tap target permanent.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Topple the Statue"
+   ]
+  },
+  {
+   "shape": "Target creature gets +N/+N and gains flying until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Desperate Lunge"
+   ]
+  },
+  {
+   "shape": "Target creature gets +N/+N and gains indestructible until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Unlikely Aid"
+   ]
+  },
+  {
+   "shape": "Target player discards two cards and loses N life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Davriel's Shadowfugue"
+   ]
+  },
+  {
+   "shape": "Target player mills four cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Enter the God-Eternals"
+   ]
+  },
+  {
+   "shape": "That creature can't block this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blindblast"
+   ]
+  },
+  {
+   "shape": "Then exile each opponent's graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ashiok, Dream Render"
+   ]
+  },
+  {
+   "shape": "Then if your library has no cards in it, you win the game.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Jace, Wielder of Mysteries"
+   ]
+  },
+  {
+   "shape": "This creature can't attack alone.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Raging Kronch"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked by creatures with power N or greater.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Duskmantle Operative"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked by creatures with power N or less.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Arlinn's Wolf"
+   ]
+  },
+  {
+   "shape": "This creature enters with a +N/+N counter on it for each loyalty counter on planeswalkers you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bioessence Hydra"
+   ]
+  },
+  {
+   "shape": "This creature has hexproof as long as it's untapped.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Paradise Druid"
+   ]
+  },
+  {
+   "shape": "This land enters with a charge counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blast Zone"
+   ]
+  },
+  {
+   "shape": "Those creatures gain vigilance until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "God-Eternal Rhonas"
+   ]
+  },
+  {
+   "shape": "Untap it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nissa, Who Shakes the World"
+   ]
+  },
+  {
+   "shape": "Until end of turn, creatures you control get +N/+N and gain \"Whenever this creature deals combat damage to a player or planeswalker, destroy target artifact or enchantment defending player controls.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Storm the Citadel"
+   ]
+  },
+  {
+   "shape": "Until end of turn, you don't lose this mana as steps and phases end.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Neheb, Dreadhorde Champion"
+   ]
+  },
+  {
+   "shape": "Up to two target creatures you control each deal damage equal to their power to another target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Band Together"
+   ]
+  },
+  {
+   "shape": "When Niv-Mizzet enters, reveal the top ten cards of your library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Niv-Mizzet Reborn"
+   ]
+  },
+  {
+   "shape": "When this creature dies, it deals damage equal to its power to any target.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Dreadhorde Butcher"
+   ]
+  },
+  {
+   "shape": "When this creature dies, proliferate.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Martyr for the Cause"
+   ]
+  },
+  {
+   "shape": "When this creature enters, choose one \u2014",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Pollenbright Druid"
+   ]
+  },
+  {
+   "shape": "When this creature enters, destroy target creature or planeswalker an opponent controls that was dealt damage this turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Vraska's Finisher"
+   ]
+  },
+  {
+   "shape": "When this creature enters, look at the top card of target opponent's library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Saheeli's Silverwing"
+   ]
+  },
+  {
+   "shape": "When this creature enters, other creatures you control gain vigilance until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Loxodon Sergeant"
+   ]
+  },
+  {
+   "shape": "When this creature enters, put a +N/+N counter on each other creature you control named ~.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Charmed Stray"
+   ]
+  },
+  {
+   "shape": "When this creature enters, you draw a card and you lose N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Tithebearer Giant"
+   ]
+  },
+  {
+   "shape": "When this enchantment enters, exile target creature or planeswalker an opponent controls until this enchantment leaves the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Prison Realm"
+   ]
+  },
+  {
+   "shape": "When ~ becomes the target of a spell, shuffle ~ into its owner's library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Fblthp, the Lost"
+   ]
+  },
+  {
+   "shape": "When ~ dies or is put into exile from the battlefield, you may put it into its owner's library third from the top.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "God-Eternal Rhonas"
+   ]
+  },
+  {
+   "shape": "When ~ dies, proliferate, then proliferate again.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Roalesk, Apex Hybrid"
+   ]
+  },
+  {
+   "shape": "When ~ enters, double the power of each other creature you control until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "God-Eternal Rhonas"
+   ]
+  },
+  {
+   "shape": "When ~ enters, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Fblthp, the Lost"
+   ]
+  },
+  {
+   "shape": "When ~ enters, each other creature gets -N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Massacre Girl"
+   ]
+  },
+  {
+   "shape": "When ~ enters, put two +N/+N counters on another target creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Roalesk, Apex Hybrid"
+   ]
+  },
+  {
+   "shape": "Whenever a Zombie token you control with power N or greater attacks, it gains lifelink until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Dreadhorde Invasion"
+   ]
+  },
+  {
+   "shape": "Whenever a creature dies this turn, each creature other than ~ gets -N/-N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Massacre Girl"
+   ]
+  },
+  {
+   "shape": "Whenever a creature you control dies, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Liliana, Dreadhorde General"
+   ]
+  },
+  {
+   "shape": "Whenever a creature you control with deathtouch deals damage to a player or planeswalker, put a +N/+N counter on that creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Vraska, Swarm's Eminence"
+   ]
+  },
+  {
+   "shape": "Whenever a player sacrifices a permanent, this creature deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Mayhem Devil"
+   ]
+  },
+  {
+   "shape": "Whenever one or more loyalty counters are put on planeswalkers you control, put that many +N/+N counters on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Bioessence Hydra"
+   ]
+  },
+  {
+   "shape": "Whenever one or more loyalty counters are removed from ~, she deals that much damage to target opponent or planeswalker.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Chandra, Fire Artisan"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, it gets +X/+N until end of turn, where X is the greatest power among creatures you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Rubblebelt Rioters"
+   ]
+  },
+  {
+   "shape": "Whenever this creature deals combat damage to a player or planeswalker, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Dreadhorde Butcher"
+   ]
+  },
+  {
+   "shape": "Whenever this creature deals damage to a planeswalker, destroy that planeswalker.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Assassin"
+   ]
+  },
+  {
+   "shape": "Whenever this creature or another creature or planeswalker you control dies, each opponent loses N life and you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Cruel Celebrant"
+   ]
+  },
+  {
+   "shape": "Whenever you attack with two or more non-~ creatures, put a +N/+N counter on each of those creatures.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Gideon, the Oathsworn"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a noncreature spell, create a N/N colorless Servo artifact creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Saheeli, Sublime Artificer"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a planeswalker spell, you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Interplanar Beacon"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a spell that targets this creature, put a +N/+N counter on this creature, then scry N.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Tenth District Legionnaire"
+   ]
+  },
+  {
+   "shape": "Whenever you cast an instant or sorcery spell that targets a creature you control, exile that card instead of putting it into your graveyard as it resolves.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Feather, the Redeemed"
+   ]
+  },
+  {
+   "shape": "Whenever you cast or copy an instant or sorcery spell, ~ deals N damage to target opponent or planeswalker.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Ral, Storm Conduit"
+   ]
+  },
+  {
+   "shape": "Whenever you cast your second spell each turn, put a +N/+N counter on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Thunder Drake"
+   ]
+  },
+  {
+   "shape": "Whenever you draw your second card each turn, put a +N/+N counter on target creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Jace, Arcane Strategist"
+   ]
+  },
+  {
+   "shape": "Whenever you gain life, put two +N/+N counters on this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Gideon's Company"
+   ]
+  },
+  {
+   "shape": "Whenever you tap a Forest for mana, add an additional {G}.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Nissa, Who Shakes the World"
+   ]
+  },
+  {
+   "shape": "Whenever ~ attacks, put a +N/+N counter on it, then create a number of N/N red Goblin creature tokens equal to ~'s power.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Krenko, Tin Street Kingpin"
+   ]
+  },
+  {
+   "shape": "Whenever ~ deals combat damage to a player or planeswalker, return to your hand target creature or planeswalker card in your graveyard that wasn't put there this combat.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Storrev, Devkarin Lich"
+   ]
+  },
+  {
+   "shape": "Whenever ~ deals combat damage to a player or planeswalker, you may discard any number of cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Neheb, Dreadhorde Champion"
+   ]
+  },
+  {
+   "shape": "You and permanents you control gain hexproof until end of turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lazotep Plating"
+   ]
+  },
+  {
+   "shape": "You choose a nonland card from it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Toll of the Invasion"
+   ]
+  },
+  {
+   "shape": "You gain N life for each creature you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Pledge of Unity"
+   ]
+  },
+  {
+   "shape": "You gain X life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tezzeret, Master of the Bridge"
+   ]
+  },
+  {
+   "shape": "You gain life equal to the number of cards in your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Heartwarming Redemption"
+   ]
+  },
+  {
+   "shape": "You have hexproof.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Teyo, the Shieldmage"
+   ]
+  },
+  {
+   "shape": "You may cast creature spells as though they had flash.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien, Champion of the Wilds"
+   ]
+  },
+  {
+   "shape": "You may have this creature enter as a copy of a creature or planeswalker you control, except it enters with an additional +N/+N counter on it if it's a creature, it enters with an additional loyalty counter on it if it's a planeswalker, and it isn't legendary.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Spark Double"
+   ]
+  },
+  {
+   "shape": "You may look at the top card of your library any time.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bolas's Citadel"
+   ]
+  },
+  {
+   "shape": "You may play it this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra, Fire Artisan"
+   ]
+  },
+  {
+   "shape": "You may play lands and cast spells from the top of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bolas's Citadel"
+   ]
+  },
+  {
+   "shape": "You may play them this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra, Fire Artisan"
+   ]
+  },
+  {
+   "shape": "You may put a creature card with mana value X or less from among them onto the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien's Arkbow"
+   ]
+  },
+  {
+   "shape": "You may reveal a permanent card from among them and put it into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bond of Flourishing"
+   ]
+  },
+  {
+   "shape": "Your opponents can't gain life.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tibalt, Rakish Instigator"
+   ]
+  },
+  {
+   "shape": "Your opponents can't play land cards from graveyards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tomik, Distinguished Advokist"
+   ]
+  },
+  {
+   "shape": "Zombie tokens you control have hexproof and menace.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gleaming Overseer"
+   ]
+  },
+  {
+   "shape": "[+N]: Add {R} or {G}.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Domri, Anarch of Bolas"
+   ]
+  },
+  {
+   "shape": "[+N]: Exile the top card of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra, Fire Artisan"
+   ]
+  },
+  {
+   "shape": "[+N]: Put three +N/+N counters on up to one target noncreature land you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nissa, Who Shakes the World"
+   ]
+  },
+  {
+   "shape": "[+N]: Target player mills two cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Jace, Wielder of Mysteries"
+   ]
+  },
+  {
+   "shape": "[+N]: Until end of turn, ~ becomes a N/N white Soldier creature that's still a planeswalker.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gideon, the Oathsworn"
+   ]
+  },
+  {
+   "shape": "[+N]: Until your next turn, up to one target creature gains reach and vigilance.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien, Champion of the Wilds"
+   ]
+  },
+  {
+   "shape": "[+N]: Until your next turn, up to one target noncreature artifact becomes an artifact creature with power and toughness each equal to its mana value.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Karn, the Great Creator"
+   ]
+  },
+  {
+   "shape": "[+N]: Until your next turn, you may cast sorcery spells as though they had flash.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Teferi, Time Raveler"
+   ]
+  },
+  {
+   "shape": "[+N]: You draw a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nicol Bolas, Dragon-God"
+   ]
+  },
+  {
+   "shape": "[+N]: ~ deals X damage to each opponent, where X is the number of artifacts you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tezzeret, Master of the Bridge"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Create a N/N black Assassin creature token with deathtouch and \"Whenever this token deals damage to a planeswalker, destroy that planeswalker.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vraska, Swarm's Eminence"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Create a N/N red Devil creature token with \"When this token dies, it deals N damage to any target.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tibalt, Rakish Instigator"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Creatures you control can't be blocked this turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Jace, Arcane Strategist"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Draw seven cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Jace, Wielder of Mysteries"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Each opponent chooses a permanent they control of each permanent type and sacrifices the rest.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Liliana, Dreadhorde General"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Each opponent who doesn't control a legendary creature or planeswalker loses the game.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nicol Bolas, Dragon-God"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Each player sacrifices two creatures of their choice.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Liliana, Dreadhorde General"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Exile the top seven cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra, Fire Artisan"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Exile the top ten cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tezzeret, Master of the Bridge"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Exile ~ and each creature your opponents control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gideon, the Oathsworn"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Put a +N/+N counter on each creature you control and a loyalty counter on each other planeswalker you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ajani, the Greathearted"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Put a +N/+N counter on target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Jiang Yanggu, Wildcrafter"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Return target artifact card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tezzeret, Master of the Bridge"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Return up to one target artifact, creature, or enchantment to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Teferi, Time Raveler"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Target artifact you control becomes a copy of another target artifact or creature you control until end of turn, except it's an artifact in addition to its other types.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Saheeli, Sublime Artificer"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Target creature you control fights target creature you don't control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Domri, Anarch of Bolas"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Target player discards a card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Davriel, Rogue Shadowmage"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Target player mills four cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ashiok, Dream Render"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Until your next turn, prevent all damage that would be dealt to and dealt by target permanent an opponent controls.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dovin, Hand of Control"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: When you next cast an instant or sorcery spell this turn, copy that spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ral, Storm Conduit"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: You gain life equal to the greatest toughness among creatures you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Huatli, the Sun's Heart"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: You may reveal an artifact card you own from outside the game or choose a face-up artifact card you own in exile.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Karn, the Great Creator"
+   ]
+  },
+  {
+   "shape": "{N}, Sacrifice a creature or planeswalker: You gain N life and draw a card.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Spark Reaper"
+   ]
+  },
+  {
+   "shape": "{N}, Sacrifice another creature: This creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Ahn-Crop Invader"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Sacrifice this artifact: Add two mana of different colors.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Guild Globe"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Sacrifice this creature: Return target instant or sorcery card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Spellkeeper Weird"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Sacrifice this land: Destroy each nonland permanent with mana value equal to the number of charge counters on this land.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Blast Zone"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Sacrifice this land: You may cast spells this turn as though they had flash.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Emergence Zone"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Add two mana of different colors.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Interplanar Beacon"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Proliferate.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Karn's Bastion"
+   ]
+  },
+  {
+   "shape": "{N}: This creature gains haste until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Shriekdiver"
+   ]
+  },
+  {
+   "shape": "{N}{B}, Sacrifice another creature or planeswalker: Put two +N/+N counters on this creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Dreadmalkin"
+   ]
+  },
+  {
+   "shape": "{N}{G}: Look at the top card of your library.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Vivien's Grizzly"
+   ]
+  },
+  {
+   "shape": "{N}{U}: Put a loyalty counter on target Jace planeswalker.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Jace's Projection"
+   ]
+  },
+  {
+   "shape": "{N}{U}: This creature can't be blocked this turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Ashiok's Skulker"
+   ]
+  },
+  {
+   "shape": "{N}{W}, {T}: Other creatures you control get +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "War Screecher"
+   ]
+  },
+  {
+   "shape": "{N}{W}: Put a loyalty counter on target Gideon planeswalker.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Gideon's Company"
+   ]
+  },
+  {
+   "shape": "{T}, Sacrifice ten nonland permanents: Each opponent loses N life.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Bolas's Citadel"
+   ]
+  },
+  {
+   "shape": "{T}: Add two mana of different colors.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Firemind Vessel"
+   ]
+  },
+  {
+   "shape": "{X}, {T}, Discard a card: Look at the top X cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien's Arkbow"
+   ]
+  },
+  {
+   "shape": "{X}{X}, {T}: Put X charge counters on this land.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blast Zone"
+   ]
+  },
+  {
+   "shape": "~ deals N damage divided as you choose among one or two targets.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Chandra's Pyrohelix"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to any other target.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Bond of Passion"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to target attacking or blocking creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Divine Arrow"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to target creature and you gain life equal to the damage dealt this way.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Enter the God-Eternals"
+   ]
+  },
+  {
+   "shape": "~ deals damage to you equal to the total mana value of those cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Command the Dreadhorde"
+   ]
+  },
+  {
+   "shape": "~ has all loyalty abilities of all other planeswalkers on the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nicol Bolas, Dragon-God"
+   ]
+  },
+  {
+   "shape": "\u2022 Destroy target creature with mana value N or less.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tyrant's Scorn"
+   ]
+  },
+  {
+   "shape": "\u2022 Proliferate.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Pollenbright Druid"
+   ]
+  },
+  {
+   "shape": "\u2022 Put a +N/+N counter on target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Pollenbright Druid"
+   ]
+  },
+  {
+   "shape": "\u2022 Return target creature to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tyrant's Scorn"
+   ]
+  },
+  {
+   "shape": "\u2022 Target player sacrifices a creature of their choice.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Angrath's Rampage"
+   ]
+  },
+  {
+   "shape": "\u2022 Target player sacrifices a planeswalker of their choice.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Angrath's Rampage"
+   ]
+  },
+  {
+   "shape": "\u2022 Target player sacrifices an artifact of their choice.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Angrath's Rampage"
+   ]
+  },
+  {
+   "shape": "<shape gap>",
+   "count": 1,
+   "hints": [],
+   "cards": [
+    "Mizzium Tank"
+   ],
+   "error": "StateCorruptionError: compile_card: printed P/T on a non-creature (a Vehicle needs crew, not implemented) [card='Mizzium Tank', type_line='Artifact \u2014 Vehicle']"
+  }
+ ],
+ "seconds": 1.2
+}

@@ -1,0 +1,2370 @@
+{
+ "set": "IKO",
+ "stamp": "2026-10-27_2233",
+ "provenance": {
+  "data_file": "MTG_bot/data/IKO.json",
+  "data_sha256": "a2c4b73f8356776621d3d9866f2a2fb4ce91a7bdeb4906826ad07ca522d0488d",
+  "mtgjson": {
+   "date": "2026-10-26",
+   "version": "5.3.0+20261026"
+  },
+  "head": "836f3eca8c4408c2175f73bc22f1675030cd9109",
+  "engine_tree_dirty": []
+ },
+ "split": {
+  "salt": "IKO-sealed-v1",
+  "test_share": 0.4,
+  "rule": "test iff int(sha256(salt:oracle_id)[:8], 16) / 2**32 < test_share",
+  "developed_on": [
+   "M21",
+   "ZNR",
+   "M20",
+   "KHM"
+  ],
+  "counts": {
+   "carry-over": 40,
+   "dev": 144,
+   "test": 93
+  },
+  "carry_over_reasons": {
+   "no rules text": 7,
+   "reprint (same oracle id)": 24,
+   "same text shape": 9
+  }
+ },
+ "engine_dealable": {
+  "engine": true,
+  "castable": true
+ },
+ "carry-over": {
+  "entries": 40,
+  "sentences": 58,
+  "pc1_count": 35,
+  "unparsed": 6,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 58,
+  "sentences_unseen_shape": 0,
+  "unparsed_seen_shape": 6,
+  "unparsed_unseen_shape": 0,
+  "dealable_engine": 32,
+  "dealable_engine_fully_compiled": 27,
+  "dealable_castable": 29,
+  "dealable_castable_fully_compiled": 25,
+  "pc1": 0.875,
+  "pc2": 0.8966,
+  "pc2_seen_shape": 0.8966,
+  "pc2_unseen_shape": null
+ },
+ "dev": {
+  "entries": 144,
+  "sentences": 344,
+  "pc1_count": 5,
+  "unparsed": 250,
+  "shape_gaps": 0,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 91,
+  "sentences_unseen_shape": 253,
+  "unparsed_seen_shape": 14,
+  "unparsed_unseen_shape": 236,
+  "dealable_engine": 142,
+  "dealable_engine_fully_compiled": 5,
+  "dealable_castable": 99,
+  "dealable_castable_fully_compiled": 5,
+  "pc1": 0.0347,
+  "pc2": 0.2733,
+  "pc2_seen_shape": 0.8462,
+  "pc2_unseen_shape": 0.0672
+ },
+ "test": {
+  "entries": 93,
+  "sentences": 222,
+  "pc1_count": 4,
+  "unparsed": 158,
+  "shape_gaps": 1,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 69,
+  "sentences_unseen_shape": 153,
+  "unparsed_seen_shape": 13,
+  "unparsed_unseen_shape": 145,
+  "dealable_engine": 91,
+  "dealable_engine_fully_compiled": 4,
+  "dealable_castable": 62,
+  "dealable_castable_fully_compiled": 3,
+  "pc1": 0.043,
+  "pc2": 0.2883,
+  "pc2_seen_shape": 0.8116,
+  "pc2_unseen_shape": 0.0523
+ },
+ "whole": {
+  "entries": 277,
+  "sentences": 624,
+  "pc1_count": 44,
+  "unparsed": 414,
+  "shape_gaps": 1,
+  "compile_crashes": 0,
+  "sentences_seen_shape": 218,
+  "sentences_unseen_shape": 406,
+  "unparsed_seen_shape": 33,
+  "unparsed_unseen_shape": 381,
+  "dealable_engine": 265,
+  "dealable_engine_fully_compiled": 36,
+  "dealable_castable": 190,
+  "dealable_castable_fully_compiled": 33,
+  "pc1": 0.1588,
+  "pc2": 0.3365,
+  "pc2_seen_shape": 0.8486,
+  "pc2_unseen_shape": 0.0616
+ },
+ "dev_register": [
+  {
+   "shape": "Cycling {N} ({N}, Discard this card: Draw a card.)",
+   "count": 21,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Go for Blood",
+    "Indatha Crystal",
+    "Ketria Crystal",
+    "Rooting Moloch",
+    "Hampering Snare",
+    "Barrier Breach",
+    "Ominous Seas",
+    "Suffocating Fumes",
+    "Startling Development",
+    "Imposing Vantasaur",
+    "Monstrous Step",
+    "Easy Prey",
+    "Neutralize",
+    "Raugrin Triome",
+    "Savai Crystal",
+    "Greater Sandwurm",
+    "Migration Path",
+    "Will of the All-Hunter",
+    "Shredded Sails",
+    "Indatha Triome",
+    "Drannith Stinger"
+   ]
+  },
+  {
+   "shape": "Mutate {N}{B} (If you cast this spell for its mutate cost, put it over or under target non-Human creature you own. They mutate into the creature on top plus all abilities from under it.)",
+   "count": 3,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Insatiable Hemophage",
+    "Chittering Harvester",
+    "Cavern Whisperer"
+   ]
+  },
+  {
+   "shape": "Mutate {N}{U} (If you cast this spell for its mutate cost, put it over or under target non-Human creature you own. They mutate into the creature on top plus all abilities from under it.)",
+   "count": 3,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sea-Dasher Octopus",
+    "Dreamtail Heron",
+    "Pouncing Shoreshark"
+   ]
+  },
+  {
+   "shape": "Mutate {N}{G} (If you cast this spell for its mutate cost, put it over or under target non-Human creature you own. They mutate into the creature on top plus all abilities from under it.)",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Migratory Greathorn",
+    "Auspicious Starrix"
+   ]
+  },
+  {
+   "shape": "Mutate {N}{W} (If you cast this spell for its mutate cost, put it over or under target non-Human creature you own. They mutate into the creature on top plus all abilities from under it.)",
+   "count": 2,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vulpikeet",
+    "Huntmaster Liger"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, put a +N/+N counter on it.",
+   "count": 2,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Vulpikeet",
+    "Mysterious Egg"
+   ]
+  },
+  {
+   "shape": "Whenever you cycle a card, you may pay {N}.",
+   "count": 2,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Savai Thundermane",
+    "Escape Protocol"
+   ]
+  },
+  {
+   "shape": "({T}: Add {U}, {R}, or {W}.)",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Raugrin Triome"
+   ]
+  },
+  {
+   "shape": "({T}: Add {W}, {B}, or {G}.)",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Indatha Triome"
+   ]
+  },
+  {
+   "shape": "Abilities you activate that aren't mana abilities cost {N} less to activate.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Zirda, the Dawnwaker"
+   ]
+  },
+  {
+   "shape": "As an additional cost to cast this spell, discard X cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Channeled Force"
+   ]
+  },
+  {
+   "shape": "As an additional cost to cast this spell, tap an untapped creature you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Swallow Whole"
+   ]
+  },
+  {
+   "shape": "As each game begins, you can place one card with companion here if your starting deck meets its condition.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Companion"
+   ]
+  },
+  {
+   "shape": "As long as enchanted creature has vigilance, it assigns combat damage equal to its toughness rather than its power.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Solid Footing"
+   ]
+  },
+  {
+   "shape": "As this creature enters, choose odd or even.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lavabrink Venturer"
+   ]
+  },
+  {
+   "shape": "As ~ enters, choose a card type.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Umori, the Collector"
+   ]
+  },
+  {
+   "shape": "At the beginning of combat on your turn, choose a kind of counter at random that this creature doesn't have on it from among flying, first strike, deathtouch, hexproof, lifelink, menace, reach, trample, vigilance, and +N/+N.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Crystalline Giant"
+   ]
+  },
+  {
+   "shape": "At the beginning of combat on your turn, exile target red, white, or black creature card from your graveyard.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Offspring's Revenge"
+   ]
+  },
+  {
+   "shape": "At the beginning of combat on your turn, if ~ has counters on it, you may move all counters from ~ onto target creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "The Ozolith"
+   ]
+  },
+  {
+   "shape": "Choose odd or even.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Extinction Event"
+   ]
+  },
+  {
+   "shape": "Choose one or both \u2014",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Survivors' Bond"
+   ]
+  },
+  {
+   "shape": "Choose one \u2014",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shredded Sails"
+   ]
+  },
+  {
+   "shape": "Companion \u2014 Each nonland card in your starting deck has a different name.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lutri, the Spellchaser"
+   ]
+  },
+  {
+   "shape": "Companion \u2014 Each nonland card in your starting deck shares a card type.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Umori, the Collector"
+   ]
+  },
+  {
+   "shape": "Companion \u2014 Each permanent card in your starting deck has an activated ability.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Zirda, the Dawnwaker"
+   ]
+  },
+  {
+   "shape": "Companion \u2014 Each permanent card in your starting deck has mana value N or less.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lurrus of the Dream-Den"
+   ]
+  },
+  {
+   "shape": "Companion \u2014 No card in your starting deck has more than one of the same mana symbol in its mana cost.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Jegantha, the Wellspring"
+   ]
+  },
+  {
+   "shape": "Companion \u2014 Your starting deck contains only cards with even mana values.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gyruda, Doom of Depths"
+   ]
+  },
+  {
+   "shape": "Companion \u2014 Your starting deck contains only cards with mana value N or greater and land cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Keruga, the Macrosage"
+   ]
+  },
+  {
+   "shape": "Companion \u2014 Your starting deck contains only cards with odd mana values and land cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Obosh, the Preypiercer"
+   ]
+  },
+  {
+   "shape": "Counter target spell that targets a permanent you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Keep Safe"
+   ]
+  },
+  {
+   "shape": "Create a N/N red Dinosaur creature token with haste and a N/N white Human Soldier creature token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Forbidden Friendship"
+   ]
+  },
+  {
+   "shape": "Create a token that's a copy of target permanent.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mythos of Illuna"
+   ]
+  },
+  {
+   "shape": "Create a token that's a copy of that card, except it's N/N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Offspring's Revenge"
+   ]
+  },
+  {
+   "shape": "Creature cards exiled this way gain \"You may cast this card from exile as long as you control a ~ planeswalker.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lukka, Coppercoat Outcast"
+   ]
+  },
+  {
+   "shape": "Creatures you control with trample have \"You may have this creature assign its combat damage as though it weren't blocked.\"",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Proud Wildbonder"
+   ]
+  },
+  {
+   "shape": "Creatures you control with vigilance have \"{N}, {T}: Tap target creature.\"",
+   "count": 1,
+   "hints": [
+    "static"
+   ],
+   "cards": [
+    "Frondland Felidar"
+   ]
+  },
+  {
+   "shape": "Cycling {N}{B} ({N}{B}, Discard this card: Draw a card.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Void Beckoner"
+   ]
+  },
+  {
+   "shape": "Cycling {N}{R}",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Yidaro, Wandering Monster"
+   ]
+  },
+  {
+   "shape": "Cycling {N}{R} ({N}{R}, Discard this card: Draw a card.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sanctuary Smasher"
+   ]
+  },
+  {
+   "shape": "Cycling {X}{N}{U} ({X}{N}{U}, Discard this card: Draw a card.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shark Typhoon"
+   ]
+  },
+  {
+   "shape": "Destroy all nonland permanents your opponents control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ruinous Ultimatum"
+   ]
+  },
+  {
+   "shape": "Destroy target creature with mana value N or less.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Easy Prey"
+   ]
+  },
+  {
+   "shape": "Destroy target nonland permanent if it's a creature or if {G}{W} was spent to cast this spell.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mythos of Nethroi"
+   ]
+  },
+  {
+   "shape": "Each creature spell you cast costs {N} less to cast if it has mutate.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Pollywog Symbiote"
+   ]
+  },
+  {
+   "shape": "Each player chooses an artifact, a creature, an enchantment, and a planeswalker from among the nonland permanents they control, then sacrifices the rest.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mythos of Snapdax"
+   ]
+  },
+  {
+   "shape": "Enchanted creature gets -N/-N and loses all abilities.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mystic Subdual"
+   ]
+  },
+  {
+   "shape": "Enchanted creature gets -N/-N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dead Weight"
+   ]
+  },
+  {
+   "shape": "Excess damage is dealt to that creature's controller instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Flame Spill"
+   ]
+  },
+  {
+   "shape": "Exile each creature with mana value of the chosen quality.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Extinction Event"
+   ]
+  },
+  {
+   "shape": "Exile target tapped creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Swallow Whole"
+   ]
+  },
+  {
+   "shape": "Exile up to three target enchantments.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Barrier Breach"
+   ]
+  },
+  {
+   "shape": "Humans you control get +N/+N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sanctuary Lockdown"
+   ]
+  },
+  {
+   "shape": "If a source you control with an odd mana value would deal damage to a permanent or player, it deals double that damage to that permanent or player instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Obosh, the Preypiercer"
+   ]
+  },
+  {
+   "shape": "If it was a creature card, create a N/N white Human Soldier creature token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "General's Enforcer"
+   ]
+  },
+  {
+   "shape": "If it's a land card, you may put it onto the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Parcelbeast"
+   ]
+  },
+  {
+   "shape": "If it's blocking, instead put two +N/+N counters on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Will of the All-Hunter"
+   ]
+  },
+  {
+   "shape": "If you don't control a Human, you lose life equal to that creature's toughness.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dire Tactics"
+   ]
+  },
+  {
+   "shape": "If you don't put the card onto the battlefield, put it into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Parcelbeast"
+   ]
+  },
+  {
+   "shape": "If you've cycled a card named ~ four or more times this game, put it onto the battlefield from your graveyard instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Yidaro, Wandering Monster"
+   ]
+  },
+  {
+   "shape": "If {B}{R} was spent to cast this spell, you choose the permanents for each player instead.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mythos of Snapdax"
+   ]
+  },
+  {
+   "shape": "If {R}{G} was spent to cast this spell, instead create a token that's a copy of that permanent, except the token has \"When this token enters, if it's a creature, it fights up to one target creature you don't control.\"",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mythos of Illuna"
+   ]
+  },
+  {
+   "shape": "If {U}{B} was spent to cast this spell, search your library for a card, put that card into your graveyard, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mythos of Brokkos"
+   ]
+  },
+  {
+   "shape": "If {W}{U} was spent to cast this spell, until your next turn, those permanents can't attack or block and their activated abilities can't be activated.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mythos of Vadrok"
+   ]
+  },
+  {
+   "shape": "It gains haste until your next turn.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Offspring's Revenge"
+   ]
+  },
+  {
+   "shape": "Legendary Humans you control have indestructible.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "General's Enforcer"
+   ]
+  },
+  {
+   "shape": "Lethal damage dealt to creatures you control is determined by their power rather than their toughness.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Zilortha, Strength Incarnate"
+   ]
+  },
+  {
+   "shape": "Look at the top five cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lead the Stampede"
+   ]
+  },
+  {
+   "shape": "Mutate {G}{U} (If you cast this spell for its mutate cost, put it over or under target non-Human creature you own. They mutate into the creature on top plus all abilities from under it.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Parcelbeast"
+   ]
+  },
+  {
+   "shape": "Mutate {N}{B/G}{B/G} (If you cast this spell for its mutate cost, put it over or under target non-Human creature you own. They mutate into the creature on top plus all abilities from under it.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Boneyard Lurker"
+   ]
+  },
+  {
+   "shape": "Mutate {N}{B/R}{W}{W} (If you cast this spell for its mutate cost, put it over or under target non-Human creature you own. They mutate into the creature on top plus all abilities from under it.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Snapdax, Apex of the Hunt"
+   ]
+  },
+  {
+   "shape": "Mutate {N}{B}{B} (If you cast this spell for its mutate cost, put it over or under target non-Human creature you own. They mutate into the creature on top plus all abilities from under it.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dirge Bat"
+   ]
+  },
+  {
+   "shape": "Mutate {N}{G/U}{G/U} (If you cast this spell for its mutate cost, put it over or under target non-Human creature you own. They mutate into the creature on top plus all abilities from under it.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Trumpeting Gnarr"
+   ]
+  },
+  {
+   "shape": "Mutate {N}{G/W}{B}{B} (If you cast this spell for its mutate cost, put it over or under target non-Human creature you own. They mutate into the creature on top plus all abilities from under it.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Nethroi, Apex of Death"
+   ]
+  },
+  {
+   "shape": "Mutate {N}{G}{G} (If you cast this spell for its mutate cost, put it over or under target non-Human creature you own. They mutate into the creature on top plus all abilities from under it.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gemrazer"
+   ]
+  },
+  {
+   "shape": "Mutate {N}{R/G}{U}{U} (If you cast this spell for its mutate cost, put it over or under target non-Human creature you own. They mutate into the creature on top plus all abilities from under it.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Illuna, Apex of Wishes"
+   ]
+  },
+  {
+   "shape": "Mutate {N}{R/W}{R/W} (If you cast this spell for its mutate cost, put it over or under target non-Human creature you own. They mutate into the creature on top plus all abilities from under it.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Regal Leosaur"
+   ]
+  },
+  {
+   "shape": "Mutate {N}{U/B}{G}{G} (If you cast this spell for its mutate cost, put it over or under target non-Human creature you own. They mutate into the creature on top plus all abilities from under it.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Brokkos, Apex of Forever"
+   ]
+  },
+  {
+   "shape": "Mutate {N}{W}{W} (If you cast this spell for its mutate cost, put it over or under target non-Human creature you own. They mutate into the creature on top plus all abilities from under it.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cubwarden"
+   ]
+  },
+  {
+   "shape": "Mutate {U/R}{U/R} (If you cast this spell for its mutate cost, put it over or under target non-Human creature you own. They mutate into the creature on top plus all abilities from under it.)",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lore Drakkis"
+   ]
+  },
+  {
+   "shape": "Once during each of your turns, you may cast a permanent spell with mana value N or less from your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lurrus of the Dream-Den"
+   ]
+  },
+  {
+   "shape": "Put a +N/+N counter and a lifelink counter on target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Unexpected Fangs"
+   ]
+  },
+  {
+   "shape": "Put a +N/+N counter on the creature tapped to pay this spell's additional cost.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Swallow Whole"
+   ]
+  },
+  {
+   "shape": "Put a counter of that kind on this creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Crystalline Giant"
+   ]
+  },
+  {
+   "shape": "Put a creature card with an even mana value from among the milled cards onto the battlefield under your control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Gyruda, Doom of Depths"
+   ]
+  },
+  {
+   "shape": "Put a first strike counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Heightened Reflexes"
+   ]
+  },
+  {
+   "shape": "Put a menace counter on a creature you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blood Curdle"
+   ]
+  },
+  {
+   "shape": "Put a reach counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sudden Spinnerets"
+   ]
+  },
+  {
+   "shape": "Put a trample counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fully Grown"
+   ]
+  },
+  {
+   "shape": "Put that card onto the battlefield and the rest on the bottom of your library in a random order.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lukka, Coppercoat Outcast"
+   ]
+  },
+  {
+   "shape": "Put that card onto the battlefield or into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Illuna, Apex of Wishes"
+   ]
+  },
+  {
+   "shape": "Put the rest of the cards on the bottom of your library in a random order.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Winota, Joiner of Forces"
+   ]
+  },
+  {
+   "shape": "Put the rest on the bottom of your library in any order.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lead the Stampede"
+   ]
+  },
+  {
+   "shape": "Put those permanent cards onto the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Auspicious Starrix"
+   ]
+  },
+  {
+   "shape": "Put two of them into your hand and the other into your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dark Bargain"
+   ]
+  },
+  {
+   "shape": "Put your choice of a reach counter, a vigilance counter, or a trample counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien, Monsters' Advocate"
+   ]
+  },
+  {
+   "shape": "Remove eight foreshadow counters from this enchantment: Create an N/N blue Kraken creature token.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ominous Seas"
+   ]
+  },
+  {
+   "shape": "Return target creature card from your graveyard to the battlefield with a lifelink counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Unbreakable Bond"
+   ]
+  },
+  {
+   "shape": "Return up to two permanent cards from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mythos of Brokkos"
+   ]
+  },
+  {
+   "shape": "Search your library for up to two basic land cards, put them onto the battlefield tapped, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Migration Path"
+   ]
+  },
+  {
+   "shape": "Spells with flash you cast cost {N} less to cast and can't be countered.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Cunning Nightbonder"
+   ]
+  },
+  {
+   "shape": "Spells you cast of the chosen type cost {N} less to cast.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Umori, the Collector"
+   ]
+  },
+  {
+   "shape": "Target creature fights another target creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Clash of Titans"
+   ]
+  },
+  {
+   "shape": "Target creature you control fights target creature you don't control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Go for Blood"
+   ]
+  },
+  {
+   "shape": "Target player draws X cards.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Channeled Force"
+   ]
+  },
+  {
+   "shape": "Then return a creature card with lesser mana value than the creature that died from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Death's Oasis"
+   ]
+  },
+  {
+   "shape": "This creature can't be blocked by creatures with power N or less.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Greater Sandwurm"
+   ]
+  },
+  {
+   "shape": "This creature enters with three +N/+N counters on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Adaptive Shimmerer"
+   ]
+  },
+  {
+   "shape": "This creature enters with your choice of a flying counter or a first strike counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Helica Glider"
+   ]
+  },
+  {
+   "shape": "This creature enters with your choice of a flying counter or a hexproof counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Wingfold Pteron"
+   ]
+  },
+  {
+   "shape": "This creature enters with your choice of a trample counter or a menace counter on it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Ferocious Tigorilla"
+   ]
+  },
+  {
+   "shape": "This creature has double strike as long as there are three or more instant and/or sorcery cards in your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Spelleater Wolverine"
+   ]
+  },
+  {
+   "shape": "This creature has protection from each mana value of the chosen quality.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lavabrink Venturer"
+   ]
+  },
+  {
+   "shape": "This effect can't reduce the mana in that cost to less than one mana.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Zirda, the Dawnwaker"
+   ]
+  },
+  {
+   "shape": "This mana can't be spent to pay generic mana costs.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Jegantha, the Wellspring"
+   ]
+  },
+  {
+   "shape": "This spell costs {N} less to cast if you control a creature with menace.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Tentative Connection"
+   ]
+  },
+  {
+   "shape": "This spell has flash as long as you control a permanent with flash.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mutual Destruction"
+   ]
+  },
+  {
+   "shape": "Untap it.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Sudden Spinnerets"
+   ]
+  },
+  {
+   "shape": "Until end of turn, target creature becomes a blue Serpent with base power and toughness N/N.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Startling Development"
+   ]
+  },
+  {
+   "shape": "Until the end of your next turn, you may play that card.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rooting Moloch"
+   ]
+  },
+  {
+   "shape": "Up to one other target creature blocks it this turn if able.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Monstrous Step"
+   ]
+  },
+  {
+   "shape": "When this creature dies, it deals N damage to each opponent and you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Serrated Scorpion"
+   ]
+  },
+  {
+   "shape": "When this creature enters, counter target artifact or creature spell.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Voracious Greatshark"
+   ]
+  },
+  {
+   "shape": "When this creature enters, create a N/N white Human Soldier creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Daysquad Marshal"
+   ]
+  },
+  {
+   "shape": "When this creature enters, exile target card with a cycling ability from your graveyard.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Rooting Moloch"
+   ]
+  },
+  {
+   "shape": "When this creature enters, if you attacked this turn, create a N/N white Human Soldier creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Nightsquad Commando"
+   ]
+  },
+  {
+   "shape": "When this creature enters, put a lifelink counter on target non-Human creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Duskfang Mentor"
+   ]
+  },
+  {
+   "shape": "When this creature enters, put a menace counter on target non-Human creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Frillscare Mentor"
+   ]
+  },
+  {
+   "shape": "When this creature enters, put a trample counter on target non-Human creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Hornbash Mentor"
+   ]
+  },
+  {
+   "shape": "When this creature enters, put a vigilance counter on target non-Human creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Keensight Mentor"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target Human you control gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Patagia Tiger"
+   ]
+  },
+  {
+   "shape": "When this creature enters, target opponent puts a deathtouch counter on a creature they control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Hunted Nightmare"
+   ]
+  },
+  {
+   "shape": "When you cycle this card, create an X/X blue Shark creature token with flying.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Shark Typhoon"
+   ]
+  },
+  {
+   "shape": "When you cycle this card, put a deathtouch counter on target creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Void Beckoner"
+   ]
+  },
+  {
+   "shape": "When you cycle this card, put a first strike counter on target creature you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sanctuary Smasher"
+   ]
+  },
+  {
+   "shape": "When you cycle this card, shuffle it into your library from your graveyard.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Yidaro, Wandering Monster"
+   ]
+  },
+  {
+   "shape": "When you do, exile target artifact or creature you control, then return it to the battlefield under its owner's control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Escape Protocol"
+   ]
+  },
+  {
+   "shape": "When you do, this creature deals N damage to target creature and you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Savai Thundermane"
+   ]
+  },
+  {
+   "shape": "When ~ enters, draw a card for each other permanent you control with mana value N or greater.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Keruga, the Macrosage"
+   ]
+  },
+  {
+   "shape": "When ~ enters, each player mills four cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Gyruda, Doom of Depths"
+   ]
+  },
+  {
+   "shape": "When ~ enters, if you cast it, copy target instant or sorcery spell you control.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Lutri, the Spellchaser"
+   ]
+  },
+  {
+   "shape": "Whenever a creature you control leaves the battlefield, if it had counters on it, put those counters on ~.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "The Ozolith"
+   ]
+  },
+  {
+   "shape": "Whenever a creature you control mutates, put a +N/+N counter on that creature and you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Essence Symbiote"
+   ]
+  },
+  {
+   "shape": "Whenever a non-Human creature you control attacks, look at the top six cards of your library.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Winota, Joiner of Forces"
+   ]
+  },
+  {
+   "shape": "Whenever a nontoken creature you control dies, mill two cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Death's Oasis"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, another target attacking creature can't be blocked this turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Phase Dolphin"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, if it doesn't have first strike, put a first strike counter on it.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Momentum Rumbler"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, if it has first strike, it gains double strike until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Momentum Rumbler"
+   ]
+  },
+  {
+   "shape": "Whenever this creature attacks, other Humans you control get +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Perimeter Sergeant"
+   ]
+  },
+  {
+   "shape": "Whenever this creature deals combat damage to a player, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Sea-Dasher Octopus"
+   ]
+  },
+  {
+   "shape": "Whenever this creature deals damage to an opponent, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Thieving Otter"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, create a N/N green Beast creature token.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Trumpeting Gnarr"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, create two N/N white Cat creature tokens with lifelink.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Cubwarden"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, destroy target artifact or enchantment an opponent controls.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Gemrazer"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, destroy target creature or planeswalker an opponent controls.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Dirge Bat"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Dreamtail Heron"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, each opponent discards a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Cavern Whisperer"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, each opponent loses X life and you gain X life, where X is the number of times this creature has mutated.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Insatiable Hemophage"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, each opponent sacrifices a creature of their choice.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Chittering Harvester"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, exile cards from the top of your library until you exile X permanent cards, where X is the number of times this creature has mutated.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Auspicious Starrix"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, exile cards from the top of your library until you exile a nonland permanent card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Illuna, Apex of Wishes"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, it deals N damage to target creature or planeswalker an opponent controls and you gain N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Snapdax, Apex of the Hunt"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, other creatures you control get +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Regal Leosaur"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, other creatures you control get +X/+X until end of turn, where X is the number of times this creature has mutated.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Huntmaster Liger"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, return any number of target creature cards with total power N or less from your graveyard to the battlefield.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Nethroi, Apex of Death"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, return target instant or sorcery card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Lore Drakkis"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, return target permanent card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Boneyard Lurker"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, search your library for a basic land card, put it onto the battlefield tapped, then shuffle.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Migratory Greathorn"
+   ]
+  },
+  {
+   "shape": "Whenever this creature mutates, you may return target creature an opponent controls to its owner's hand.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Pouncing Shoreshark"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a creature spell, if it has mutate, draw a card, then discard a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Pollywog Symbiote"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a noncreature spell, create an X/X blue Shark creature token with flying, where X is that spell's mana value.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Shark Typhoon"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a noncreature spell, draw a card.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Whirlwind of Thought"
+   ]
+  },
+  {
+   "shape": "Whenever you cast a noncreature spell, untap this creature.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Blisterspit Gremlin"
+   ]
+  },
+  {
+   "shape": "Whenever you cast another spell that has flash, you draw a card and each opponent loses N life.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Slitherwisp"
+   ]
+  },
+  {
+   "shape": "Whenever you cycle a card, this creature gets +N/+N until end of turn.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Prickly Marmoset"
+   ]
+  },
+  {
+   "shape": "Whenever you cycle another card, this creature deals N damage to each opponent.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Drannith Stinger"
+   ]
+  },
+  {
+   "shape": "Whenever you discard one or more cards for the first time each turn, draw that many cards.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Rielle, the Everwise"
+   ]
+  },
+  {
+   "shape": "Whenever you draw a card, put a foreshadow counter on this enchantment.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Ominous Seas"
+   ]
+  },
+  {
+   "shape": "Whenever you tap a nonland permanent for mana, add one mana of any type that permanent produced.",
+   "count": 1,
+   "hints": [
+    "triggered"
+   ],
+   "cards": [
+    "Kinnan, Bonder Prodigy"
+   ]
+  },
+  {
+   "shape": "You may cast creature spells from the top of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien, Monsters' Advocate"
+   ]
+  },
+  {
+   "shape": "You may cast it once from here.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Companion"
+   ]
+  },
+  {
+   "shape": "You may cast this card from your graveyard using its mutate ability.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Brokkos, Apex of Forever"
+   ]
+  },
+  {
+   "shape": "You may look at the top card of your library any time.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien, Monsters' Advocate"
+   ]
+  },
+  {
+   "shape": "You may put a Human creature card from among them onto the battlefield tapped and attacking.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Winota, Joiner of Forces"
+   ]
+  },
+  {
+   "shape": "You may put a card from your hand on the bottom of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Fire Prophecy"
+   ]
+  },
+  {
+   "shape": "You may put a non-Human creature card from among them onto the battlefield.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Kinnan, Bonder Prodigy"
+   ]
+  },
+  {
+   "shape": "You may reveal any number of creature cards from among them and put the revealed cards into your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lead the Stampede"
+   ]
+  },
+  {
+   "shape": "[+N]: Exile the top three cards of your library.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lukka, Coppercoat Outcast"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Each creature you control deals damage equal to its power to each opponent.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lukka, Coppercoat Outcast"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: Exile target creature you control, then reveal cards from the top of your library until you reveal a creature card with greater mana value.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Lukka, Coppercoat Outcast"
+   ]
+  },
+  {
+   "shape": "[\u2212N]: When you next cast a creature spell this turn, search your library for a creature card with lesser mana value, put it onto the battlefield, then shuffle.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Vivien, Monsters' Advocate"
+   ]
+  },
+  {
+   "shape": "{N}, Sacrifice a creature: This enchantment deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Weaponize the Monsters"
+   ]
+  },
+  {
+   "shape": "{N}, Sacrifice this enchantment: You gain life equal to the greatest mana value among creatures you control.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Death's Oasis"
+   ]
+  },
+  {
+   "shape": "{N}, Sacrifice ~: Return target Phoenix card from your graveyard to the battlefield tapped.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Feather"
+   ]
+  },
+  {
+   "shape": "{N}, Tap two untapped Humans you control: Tap target creature an opponent controls.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Sanctuary Lockdown"
+   ]
+  },
+  {
+   "shape": "{N}, {T}, Sacrifice this artifact: It deals N damage to any target.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Springjaw Trap"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Look at the top card of your library.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Parcelbeast"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: Target creature can't block this turn.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Zirda, the Dawnwaker"
+   ]
+  },
+  {
+   "shape": "{N}, {T}: This creature deals N damage to each opponent.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Blisterspit Gremlin"
+   ]
+  },
+  {
+   "shape": "{N}{B}, {T}: Put a +N/+N counter on each creature you control with lifelink.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Duskfang Mentor"
+   ]
+  },
+  {
+   "shape": "{N}{G}, {T}: Put a +N/+N counter on each creature you control with trample.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Hornbash Mentor"
+   ]
+  },
+  {
+   "shape": "{N}{G}{U}: Look at the top five cards of your library.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Kinnan, Bonder Prodigy"
+   ]
+  },
+  {
+   "shape": "{N}{R}, {T}: Put a +N/+N counter on each creature you control with menace.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Frillscare Mentor"
+   ]
+  },
+  {
+   "shape": "{N}{U}: Untap this creature.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Glimmerbell"
+   ]
+  },
+  {
+   "shape": "{N}{W}, {T}: Put a +N/+N counter on each creature you control with vigilance.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Keensight Mentor"
+   ]
+  },
+  {
+   "shape": "{T}: Add {G}, {U}, or {R}.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Ketria Crystal"
+   ]
+  },
+  {
+   "shape": "{T}: Add {R}, {W}, or {B}.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Savai Crystal"
+   ]
+  },
+  {
+   "shape": "{T}: Add {W}, {B}, or {G}.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Indatha Crystal"
+   ]
+  },
+  {
+   "shape": "{T}: Add {W}{U}{B}{R}{G}.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Jegantha, the Wellspring"
+   ]
+  },
+  {
+   "shape": "{T}: Mill two cards.",
+   "count": 1,
+   "hints": [
+    "activated"
+   ],
+   "cards": [
+    "Skull Prophet"
+   ]
+  },
+  {
+   "shape": "~ deals N damage divided as you choose among any number of target creatures and/or planeswalkers.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Mythos of Vadrok"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to each creature your opponents control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blazing Volley"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to target attacking or blocking creature.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Divine Arrow"
+   ]
+  },
+  {
+   "shape": "~ deals N damage to you.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Dark Bargain"
+   ]
+  },
+  {
+   "shape": "~ deals X damage to any target and you gain X life, where X is the number of cards with a cycling ability in your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Zenith Flare"
+   ]
+  },
+  {
+   "shape": "~ deals X damage to up to one target creature or planeswalker.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Channeled Force"
+   ]
+  },
+  {
+   "shape": "~ deals damage to target creature equal to the number of lands you control.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rumbling Rockslide"
+   ]
+  },
+  {
+   "shape": "~ deals damage to target creature or planeswalker equal to the number of instant and sorcery cards in your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Blitz of the Thunder-Raptor"
+   ]
+  },
+  {
+   "shape": "~ gets +N/+N for each instant and sorcery card in your graveyard.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Rielle, the Everwise"
+   ]
+  },
+  {
+   "shape": "\u2022 Return target Human creature card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Survivors' Bond"
+   ]
+  },
+  {
+   "shape": "\u2022 Return target non-Human creature card from your graveyard to your hand.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Survivors' Bond"
+   ]
+  },
+  {
+   "shape": "\u2022 ~ deals N damage to target creature with flying.",
+   "count": 1,
+   "hints": [
+    "spell-effect"
+   ],
+   "cards": [
+    "Shredded Sails"
+   ]
+  }
+ ],
+ "seconds": 1.0
+}

@@ -706,6 +706,66 @@ def _is_rule_reminder(sentence: str, raw: RawCard) -> RuleReminderOutcome | None
     return None
 
 
+#: Keywords a keyword line may list. Each is a whole ability on its own, and
+#: ``_build_bare_keywords`` builds it from identity alone, so a line made only of
+#: them adds nothing the tree lacks. Left out: keywords that need parameters
+#: (Scry, Mill, Protection, Battalion, "Hexproof from") and the keyword actions
+#: MTGJSON also lists (Enchant, Equip, Fight, Treasure).
+_LINE_KEYWORDS: frozenset[str] = frozenset(
+    {
+        "Deathtouch",
+        "Defender",
+        "Double strike",
+        "First strike",
+        "Flash",
+        "Flying",
+        "Haste",
+        "Hexproof",
+        "Indestructible",
+        "Lifelink",
+        "Menace",
+        "Prowess",
+        "Reach",
+        "Trample",
+        "Vigilance",
+    }
+)
+_TRAILING_REMINDER_RE = re.compile(r"^(?P<head>[^()]*?)\s*\([^()]*\)$")
+
+
+def _is_keyword_line(sentence: str, raw: RawCard) -> bool:
+    """A line of bare keywords, comma-separated, with optional trailing reminder text.
+
+    "Flying, haste", "Deathtouch, lifelink", "Flying (This creature can't be blocked
+    except by creatures with flying or reach.)". Reminder text has no rules effect
+    (CR 207.2). Every listed keyword must be one the card's identity carries and
+    ``_build_bare_keywords`` builds, so the abilities are already in the tree and
+    nothing is dropped silently; an unbuildable or absent keyword keeps the line
+    unparsed. B-41 grammar round S-1 (KNOWLEDGE /159): the cheapest general gap at
+    first touch on M20 and KHM.
+    """
+    match = _TRAILING_REMINDER_RE.match(sentence.strip())
+    head = (match.group("head") if match else sentence.strip()).rstrip(".")
+    parts = [part.strip() for part in head.split(",")]
+    carried = {kw.lower(): kw for kw in raw.keywords}
+    return bool(parts) and all(carried.get(part.lower()) in _LINE_KEYWORDS for part in parts)
+
+
+def _self_named_sentence(sentence: str, raw: RawCard) -> str | None:
+    """``sentence`` with the card's own name written "~", or None if it does not name the card.
+
+    Oracle text names an instant or sorcery by its own name ("Lava Axe deals 5 damage to target
+    player or planeswalker."), and a legendary card also by the part before its comma. Templates
+    were written one card at a time, so only B12 reads the "~" form (Step 2c). The name must stand
+    alone: "Shockwave" does not name a card called "Shock".
+    """
+    name = raw.identity.name.split(" // ")[0]
+    out = sentence
+    for own in sorted({name, name.split(", ")[0]}, key=len, reverse=True):
+        out = re.sub(rf"(?<![\w-]){re.escape(own)}(?![\w-])", "~", out)
+    return out if out != sentence else None
+
+
 def _is_continuation(sentence: str) -> bool:
     """Check if a sentence starts with a continuation prefix."""
     s = sentence.strip()
@@ -1504,6 +1564,29 @@ def compile_card(
         # Step 2: template match
         matches = registry.match(sentence)
         best_match = matches[0] if matches else None
+        # Step 2a: a keyword line no template matched (fallback only, so a
+        # sentence that compiles today is never re-read here).
+        if best_match is None and _is_keyword_line(sentence, raw):
+            rr = RuleReminderOutcome(reason="keyword_line")
+            rule_reminders.append(rr)
+            outcomes.append(rr)
+            continue
+        # Step 2c: the card's own name as a clause's subject (fallback only, B12). With the name
+        # written "~", only the self-named bucket may match, so no other template is re-read.
+        if best_match is None:
+            self_named = _self_named_sentence(sentence, raw)
+            if self_named is not None:
+                matches = tuple(m for m in registry.match(self_named)
+                                if m.template.bucket == "B12")
+                best_match = matches[0] if matches else None
+        # Step 2d: a trigger or cost frame around a clause that parses on its own (fallback only,
+        # B13). Imported here: the frame helpers live in template modules, one of which imports
+        # this module.
+        if best_match is None:
+            from MTG_bot.core.compiler.frames import compose as _compose_frame
+
+            matches = _compose_frame(sentence, registry)
+            best_match = matches[0] if matches else None
         if best_match is None:
             hint = _bucket_hint(sentence)
             unparsed.append((sentence, hint))
@@ -2202,6 +2285,15 @@ def compile_card(
             back_face_unparsed = face_result.unparsed
 
     # -- Build CardRecord ----------------------------------------------------
+    # B-37: a Vehicle prints P/T on a non-creature artifact; it is a creature only while crewed
+    # (CR 301.7), and crew is not implemented. CardRecord rejects P/T on a non-creature with a
+    # ValueError that is not an honest refusal and took down whole-set compiles (KHM, THB), so
+    # refuse the shape here: the card becomes a shape gap, counted against coverage.
+    if "Creature" not in raw.types and (power is not None or toughness is not None):
+        raise StateCorruptionError(
+            "compile_card: printed P/T on a non-creature (a Vehicle needs crew, not implemented)",
+            context={"card": raw.identity.name, "type_line": raw.type_line},
+        )
     card = CardRecord(
         oracle_id=raw.identity.oracle_id,
         name=raw.identity.name,
@@ -2373,7 +2465,11 @@ def compile_pool(
                 if owner_name in name_to_oid:
                     owner_oid = name_to_oid[owner_name]
                     break
-            if owner_oid is None:
+            # B-38: an owner whose planeswalker is its BACK face (KHM Valki, God of Lies //
+            # Tibalt, Cosmic Impostor) cannot carry the emblem on its creature front
+            # (CardRecord: "only a Planeswalker may carry an emblem"), and faces are not
+            # castable yet, so the emblem is unreachable in play: keep it an orphan.
+            if owner_oid is None or "Planeswalker" not in results[owner_oid].card.types:
                 orphan_emblems.append(oid)
             else:
                 # Rebuild owner's CardRecord with emblem
