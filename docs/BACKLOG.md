@@ -717,6 +717,30 @@ These are forks, not tasks. See the report that accompanied this audit.
     class: detector gap or engine bug.
 - **B-74 Sorcery speed means the first main phase only.** No second-main window for casts, land
   drops or sorcery-speed activations.
+- **B-75 [fixer A, m21-fidelity item 3] A multicoloured token is colourless** (live in M21).
+  - Experimental Overload's "X/X blue and red Weird" compiles with `TokenSpec.color=None`
+    (`templates_b5a.py`, B5a-weird-token): `color` holds one colour letter.
+  - Census 2026-10-29: of the 152 TokenSpecs compiled in the 19 sets (and 5 in FDN records), 150
+    single-colour tokens carry their printed colour and Gadrak's Treasure is rightly colourless;
+    the Weird is the only miss. The executor gives a token its spec colour (pinned in
+    `test_executor_verbs.py`: COLOR_HAS, COLOR_COUNT_GE, protection).
+  - Effect: Basri's Lieutenant's protection from multicolored and Feat of Resistance's protection
+    from blue or red do not stop the Weird (stronger than printed for its controller).
+  - Design decision, an ontology change: (a) `TokenSpec.colors: tuple[str, ...]`, WUBRG-sorted
+    like `CardRecord.colors` (SET-R1a), replacing `color`, so every token golden is re-baked and
+    the model sees each colour as its own token. Recommended. (b) Let `color` hold a WUBRG string
+    ("UR") and split it in the executor (`verbs._v_create_token`): no schema change and one golden,
+    but "UR" fuses two colours into one token (AGENTS §9) and breaks the IR's `color` (one) /
+    `colors` (several) convention that `FAtom` follows.
+- **B-76 [fixer A, found 2026-10-29] A creature with defender can never block** (live in M21,
+  weaker than printed).
+  - `legality.block_pair_blocked_reason` (`executor/legality.py` ~1878) and `blocker_askable`
+    (~1925) refuse every blocker with DEFENDER, citing "CR 702.4a". Defender only forbids attacking
+    (CR 702.3b), and 702.4 is double strike.
+  - So every wall is a dead card: 59 set entries list Defender in the 19 sets; in M21 Drowsing
+    Tyrannodon, Portcullis Vine, Wall of Runes and Warded Battlements. The pack
+    `block_defender_and_tapped.json` pins the bug (its wall is `not_asked_to_block`).
+  - **Fix.** Drop the two DEFENDER checks, re-pin that pack, and re-run the corpus games.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).
