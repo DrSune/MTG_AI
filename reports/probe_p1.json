@@ -1,6 +1,6 @@
 {
  "meta": {
-  "date": "2026-10-28 00:13",
+  "date": "2026-10-29 00:13",
   "version": "v2-full-agent",
   "policy_a": "/tmp/opencode/rld_n1/rld_cal.pt",
   "pool_mode": "engine",
@@ -14,7 +14,7 @@
   "deck_pairs_seed": 1411,
   "device": "cpu",
   "workers": 6,
-  "seconds": 551.8,
+  "seconds": 551.4,
   "full_agent_layers": "provider asks (may/scry/choose/PASS/attack/block/cw/order/trample/policy, seat-attributed by the site-tag handle -> controller_of) + rig act layer (PolicyActDriver: PASS/land/cast/activation menu per act, single-slot targets asked). Residual driver heuristics: auto-tap-all mana (no tap-amount ask exists), multi-slot target rows keep rng. ENGINE GAP: no main-phase priority/cast ask-site exists in MTG_bot/core/executor (query.legal_casts has no producer ask) \u2014 the act menu is rig-side over the declarative query surface."
  },
  "matchups": {

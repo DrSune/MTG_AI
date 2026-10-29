@@ -506,7 +506,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   other token carrier, and B11, writes "Creature — <subtypes>". Same meaning, different bytes,
   so it breaks the identity law. `types` and `subtypes` agree. Fixing it re-bakes one M21 golden,
   so schedule it at a pilot era boundary with B-43.
-- **B-49 [2026-10-29, found by the G1 probe] Noncreature permanents with no spell effect cannot be
+- **B-49 [2026-10-29, found by the G1 probe] Noncreature permanents with no spell effect cannot be **[FIXED on branch `cards/integration` 2026-10-29, pending the era-boundary merge]**
   cast** (live in M21).
   - An enchantment, artifact or planeswalker whose text is all static, triggered or activated
     abilities compiles with no `SpellAbility`. `spell_castable` answers `cast:not_a_spell`, and
@@ -549,7 +549,7 @@ These are forks, not tasks. See the report that accompanied this audit.
     its own drawback.
   - **Fix.** Offer the empty row only when the pool is smaller than the count (the C17 clamp it
     mirrors), and re-pin the M21 Duress and Kitesail packs.
-- **B-52 [2026-10-29, mapper G1 + packs] A counted static P/T bonus freezes at its first value**
+- **B-52 [2026-10-29, mapper G1 + packs] A counted static P/T bonus freezes at its first value** **[FIXED on branch `cards/integration` 2026-10-29, pending the era-boundary merge]**
   (live in M21).
   - `layers._materialize_static` skips a target that already has a ledger entry, so a bonus that
     counts something is not continuous (CR 611.3a, 613.4).
@@ -581,18 +581,18 @@ These are forks, not tasks. See the report that accompanied this audit.
   default sweep.
 - Every fix below changes M21 episodes unless marked otherwise, so schedule them at an era boundary.
 
-- **B-55 A triggered ability whose only target is gone still resolves, and crashes.**
+- **B-55 A triggered ability whose only target is gone still resolves, and crashes.** **[FIXED on branch `cards/integration` 2026-10-29, pending the era-boundary merge]**
   - CR 603.3d: a trigger with no legal target is removed from the stack.
   - The engine runs the effect anyway. "Attach it to target creature you control" with no creature
     raises `ATTACH needs exactly one equipment and one host, got 1/0`.
   - In the FDN soak this crashed 37 of 300 games: Pirate's Cutlass, "target Pirate you control".
   - Repro: `kitesail_etb_no_creature.json` (ZNR Cliffhaven Kitesail).
-- **B-56 "If a creature died this turn" counts noncreatures (live in M21, stronger than printed).**
+- **B-56 "If a creature died this turn" counts noncreatures (live in M21, stronger than printed).** **[FIXED on branch `cards/integration` 2026-10-29, pending the era-boundary merge]**
   - `CREATURE_DIES` is emitted for every battlefield-to-graveyard move (`executor/events.py` ~522).
   - `DIED_THIS_TURN`'s any-object branch never checks the type.
   - M21 Twinblade Assassins draws after you sacrifice a Treasure.
   - Repro: `died_this_turn_treasure.json`.
-- **B-57 "Deals combat damage to a player" also fires on combat damage to a creature (live in M21,
+- **B-57 "Deals combat damage to a player" also fires on combat damage to a creature (live in M21, **[FIXED on branch `cards/integration` 2026-10-29, pending the era-boundary merge]**
   stronger than printed).**
   - The compiled trigger's recipient filter is universal.
   - M21 Jeskai Elder loots when a wall blocks it. Also affected: Feline Sovereign, Nimble
@@ -601,11 +601,11 @@ These are forks, not tasks. See the report that accompanied this audit.
 - **B-58 A static `Seq` applies every step to the first step's selector** (`layers.py` ~587).
   - A lord that grants and pumps different sets puts both effects on the first set: Death Baron.
   - G3 can never clear such a card.
-- **B-59 `MANDATE_BLOCK` / `MANDATE_ATTACK` ignore their duration (stronger than printed).**
+- **B-59 `MANDATE_BLOCK` / `MANDATE_ATTACK` ignore their duration (stronger than printed).** **[FIXED on branch `cards/integration` 2026-10-29, pending the era-boundary merge]**
   - The dispatch ledgers clear only when the creature leaves the battlefield.
   - So a one-turn lure keeps forcing blocks on later turns (FDN Joraga Invocation, checked by
     mapper B with a pack).
-- **B-60 Compiler drops that make M21 cards stronger than printed** (the templates mark them LOSSY,
+- **B-60 Compiler drops that make M21 cards stronger than printed** (the templates mark them LOSSY, **[equip and Speaker FIXED on `cards/integration` 2026-10-29; Kitesail Freebooter needs a design decision, see below]**
   `templates_b5a.py`).
   - Equip has no sorcery timing, so every Equipment can move at instant speed and mid-combat (M21
     Short Sword, Malefic Scythe).
@@ -613,7 +613,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   - Speaker of the Heavens loses "Activate only as a sorcery".
   - In the other direction, Faith's Fetters loses its activated-ability lock (weaker).
   - The `ActivatedAbility.timing` slot exists, so the equip and Speaker fixes are compile-only.
-- **B-61 [verifier, FDN round 1] A blocked attacker whose blockers all left combat deals its damage
+- **B-61 [verifier, FDN round 1] A blocked attacker whose blockers all left combat deals its damage **[FIXED on branch `cards/integration` 2026-10-29, pending the era-boundary merge]**
   to the player** (live in M21, stronger than printed).
   - `executor/__init__.py:1974` `_assign_damage` returns `((power, attacked),)` when the blocker
     list is empty.
@@ -623,7 +623,7 @@ These are forks, not tasks. See the report that accompanied this audit.
     the first-strike step, then hit the player. The same goes for any attacker whose blocker is
     removed after blocks.
   - Control test: Drogskol Reaver blocked by Thornweald Archer.
-- **B-62 [verifier] "If it would die, exile it instead" never applies to a planeswalker.**
+- **B-62 [verifier] "If it would die, exile it instead" never applies to a planeswalker.** **[FIXED on branch `cards/integration` 2026-10-29, pending the era-boundary merge]**
   - The zero-loyalty state-based action (`executor/__init__.py:1259`) moves the walker without
     consulting `replacement_for_death`, which matches `CreatureDiesEvent` only
     (`replacements.py:671`).
@@ -646,6 +646,70 @@ These are forks, not tasks. See the report that accompanied this audit.
     The others still pass.
   - **Fix.** Honour the key, find out why Rewind does not untap, and re-run the suite.
   - The card tooling uses its own `start_tapped` key meanwhile, so the 429 packs stay byte-identical.
+- **B-64 [verifier, FDN round 2] "You may discard a card. If you do, draw a card" draws with an
+  empty hand** (stronger than printed).
+  - The may-offer is not narrowed when there is nothing to discard. `MAY_DONE`
+    (`executor/quantity.py:1081`) only checks that the answer was "fire", so "yes" draws a card and
+    discards nothing.
+  - Affects FDN Incinerating Blast, and any card worded "you may <cost-like action>. If you do, …"
+    with the compiler's usual CHOOSE discard too.
+  - A policy would learn to answer yes on an empty hand.
+  - **Fix.** Offer the may only when the action can be done (CR 609.3). `MAY_DONE` should read
+    whether it was done, not what was answered.
+- **B-65 [verifiers, FDN rounds 1-2] An Aura whose text is all static can enchant any permanent, **[host filter FIXED on `cards/integration` (ENCHANT carries the filter); the CR 704.5m SBA is still open]**
+  and nothing removes an Aura on an illegal object.**
+  - `query.aura_enchant_slot` (`query.py:1383-1419`) reads the host filter from the spell's effect
+    only. `KeywordAbility(ENCHANT)` has no filter parameter, so the tree cannot say "creature".
+  - No state-based action moves an illegally attached Aura to the graveyard (CR 704.5m).
+  - The first half is being fixed on branch `cards/castable-permanents` (B-49 follow-up #2).
+- **B-66 [B-49 follow-up sweep] Enthralling Hold's "You can't choose an untapped creature as this
+  Aura's target" is not applied to its target slot** (live in M21, stronger than printed): the Aura
+  can steal an untapped creature.
+- **B-67 [same] The journal records any card put from library into hand as a draw (`CARD_DRAWN`).**
+  - So a tutor can satisfy "whenever you draw a card" triggers and draw counts.
+  - Probably stronger than printed. Write the pack first: a search-to-hand with a draw-trigger card
+    on the battlefield.
+- **B-68 [same] "Doesn't untap during its controller's untap step" is not applied** (Capture Sphere,
+  Bubble Snare; weaker than printed, true before B-49 too).
+- **B-69 [same] Two damage replacements on one event raise `NotImplementedError`.**
+  - `replacements.py:424-425` does not model the affected player's ordering choice (CR 616.1).
+  - About 0.25% of coherent M21 games crash on it (seeds 1176, 1356, 1439, 1603, 2230: Fiery
+    Emancipation with Nine Lives, or two Fiery Emancipations).
+  - Repro script on the B-49 branch: `cr6161_repro.py`.
+- **B-60c design decision: Kitesail Freebooter's "until this creature leaves the battlefield".**
+  - (1) Recommended: an optional `duration` role on MOVE_ZONE/EXILE taking `DurationUntilLeaves`.
+    The executor keeps (card, previous zone, anchor) and returns the card when the anchor leaves
+    (CR 610.3). If the anchor already left, the exile does not happen (CR 610.3a). The return table
+    joins `state_fingerprint`. It also covers Banisher Priest, Stasis Snare and the other
+    O-Ring-style cards.
+  - (2) An extra compiled "when this leaves, return the exiled cards" trigger: existing atoms only,
+    but it deviates from CR 610.3/610.3a.
+  - It is an ontology change, so it goes in a gated round.
+- **B-70 [fixer B] The P/T fold orders a power-setting effect after a +N applied at the same
+  moment.**
+  - Kinetic Augur entering under Glorious Anthem loses the anthem's +1.
+  - CR 613.4: characteristic-defining and setting effects (7a/7b) apply before modifications (7c),
+    so the fold needs sublayers. Weaker than printed.
+- **B-71 [fixer A] A "discard your hand" cost is refused with an empty hand**
+  (`cost:discard:insufficient_candidates:0<1`). Weaker than printed: a cost of discarding the whole
+  hand is payable with no cards.
+- **B-72 [fixer A] DESTROY and other direct graveyard moves never check the dies replacements**
+  (`verbs._to_graveyard` → `_move_to`). A creature hit by Scorching Dragonfire, then destroyed later
+  the same turn, goes to the graveyard instead of exile. Weaker than printed.
+- **B-73 [2026-10-29 soaks] The anomaly detectors flag about 2% of M21 games on `main`.**
+  - Measured: 18 flags in 800 castable games (400 stress + 400 coherent), all pre-existing. On
+    `cards/integration`: 10.
+  - The classes:
+    - d1: life moved without a journal row;
+    - d3: a +1/+1 counter placed on a card already off the battlefield (CR 400.7);
+    - d5: P/T recompute mismatch (Goblin Wizard, Thieves' Guild Enforcer, Quirion Dryad, Palladium
+      Myr);
+    - d6: an end-of-turn grant or lose layer still bound to a card that left (related to B-50 and
+      CR 400.7); two replacement records for one event (B-69); a delayed trigger never drained.
+  - BUGCATCH's "scan = 0" was 10 catalog seeds, so the larger sample now finds these. Triage each
+    class: detector gap or engine bug.
+- **B-74 Sorcery speed means the first main phase only.** No second-main window for casts, land
+  drops or sorcery-speed activations.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).

@@ -29,8 +29,8 @@
  "entropy_loss": -5.987443433568791e-05,
  "total_loss": 0.6429300242162295,
  "grad_norm_postclip": 1.0,
- "kl_mean_per_game_post": 0.0008424085258158404,
- "mean_abs_dlogp_chosen_post": 0.0051934254927728934,
+ "kl_mean_per_game_post": 0.0008424083900436205,
+ "mean_abs_dlogp_chosen_post": 0.005193425452647129,
  "share_dlogp_gt_0p1_post": 0.012206812807566947,
  "kl_ceiling": 0.05,
  "kl_ceiling_breach": false

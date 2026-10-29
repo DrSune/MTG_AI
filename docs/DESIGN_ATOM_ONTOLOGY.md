@@ -255,3 +255,176 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
   manual-review (D7, no phantom matcher cited).
 - BINDING STATE: rounds 1–4 complete; further ontology changes require a NEW gated
   round (any R-item that reclassifies a field or opens a normalization is Type-1).
+
+## 10. Round R5 — durations, permissions, copies (PROPOSAL 2026-10-29, gate pending)
+
+Owner, 2026-10-29: "Fix the remaining M21 pool to be castable and playable, and mapped properly",
+and on B-60c: "If you have good arguments for the design ruling, and an adversarial pass doesnt
+break it, go ahead". On branch `cards/integration` 278 of M21's 285 cards are castable and fully
+compiled. Seven are not (Chandra, Flame's Catalyst; Chandra, Heart of Fire; Double Vision; Sublime
+Epiphany; Teferi, Master of Time; Teferi, Timeless Voyager; Ugin), and about 15 castable cards
+compile through templates documented as lossy. R5 is the ontology part of closing that gap. The
+executor-only parts (phasing, spell copies, an X lane for loyalty costs) need no ontology change and
+are listed at the end. Census counts below are regex counts over the oracle text of the 19 set
+files, unique card names.
+
+### R5-1 `duration` on MOVE_ZONE (B-60c; CR 610.3)
+- **Cards.** Kitesail Freebooter, Idol of Endurance (M21); Banishing Light, Prayer of Binding, Stasis
+  Snare (FDN); Hieromancer's Cage (M19). 19 cards in 12 sets.
+- **Today.** The templates drop "until … leaves the battlefield" (LOSSY C11,
+  `templates_b5a.py:1333`, `templates_b2a.py:2107`). Freebooter's exile is permanent (stronger than
+  printed); Idol's exiled creature cards never come back (weaker).
+- **Proposal.** `_VERB_ROLES[MOVE_ZONE]` gains the optional role `duration` (any `Duration`).
+- **Semantics** (CR 610.3). The move happens. The executor records each moved object (its new
+  identity, its previous zone) under the duration in the `DurationLedger`. When the duration ends, a
+  one-shot effect returns each recorded object that is still in the zone it was moved to:
+  - it goes back to its previous zone; onto the battlefield under its owner's control (610.3c);
+  - returns caused by simultaneous events are simultaneous (610.3d);
+  - an object that left that zone meanwhile is a new object (400.7) and stays where it is; a token
+    has ceased to exist (704.5d).
+  If the duration already ended after the ability triggered or the spell was cast, and before the
+  move, nothing moves (610.3a, 610.3b).
+- **`DurationUntilLeaves` is fixed to mean exactly "until the anchor leaves the battlefield".** It
+  ends when that object (the same object, 400.7) leaves the battlefield. Phasing out does not end it
+  (702.26d: phasing is not a zone change). A "for as long as ~ remains on the battlefield" duration
+  (611.2b) also ends on phasing out (702.26f), so it must not reuse this node unless the node gains a
+  field for it. No compiled card uses `DurationUntilLeaves` today: no template constructs it, so
+  fixing its meaning changes no golden.
+- **Rejected.**
+  - (B) An extra "when ~ leaves the battlefield, return the card" trigger. That is the older Oblivion
+    Ring wording. It differs from "until" exactly in 610.3a/b: Oblivion Ring exiles forever if it
+    leaves before its enters trigger resolves; the "until" cards exile nothing. Two meanings would
+    get the same bytes, and one printed ability would compile to two.
+  - (C) A new verb such as EXILE_UNTIL. It fuses operation and duration (AGENTS §9), and 14 verbs
+    already carry `duration` as an independent axis.
+- **Cost to the ontology.** Zero new node classes and zero new tokens: the role name and
+  `DurationUntilLeaves` both exist. One new role binding. No new decision, so nothing blind and nothing
+  phantom (§10).
+
+### R5-2 The permission lane: what a CAST atom means
+- **Cards (M21).**
+  - Chandra, Heart of Fire's +1 and −9;
+  - Chandra, Flame's Catalyst's −8;
+  - Idol of Endurance's {1}{W},{T} ability;
+  - Furious Rise, Conspicuous Snoop, Radha, Heart of Keld, Demonic Embrace.
+
+  Across the 19 sets: 29 cards grant a cast/play permission with a duration, 30 let you play from
+  another zone, 30 waive the mana cost.
+- **Today: the "permission row" idiom**, a free `ActivatedAbility(cost=())` whose effect is
+  `OptionalEffect(CAST)`. Its CAST runs while the activation resolves, and it goes wrong four ways:
+  1. **It ignores timing (608.2g).** Snoop casts Goblin creatures from the top of the library at
+     instant speed.
+  2. **It is phantom (§10).** It sits in every action menu even when nothing can be cast; the Snoop
+     probe shows "activate [1] … event: (none)".
+  3. **It never ends.** Furious Rise's permission lasts forever.
+  4. **It made both Chandras unsupported.** On integration the duration permissions are suppressed
+     (B-49 follow-up #1, `compiler.py:876`), so neither Chandra can be dealt.
+- **Proposal.** CAST gains the optional role `duration`. A CAST atom's meaning then follows the rule
+  every duration-bearing verb already follows (MODIFY_PT, GRANT_ABILITY, …):
+  - **In a resolving effect, without `duration`:** a one-shot instruction. The player casts it now,
+    during resolution, ignoring timing (608.2g). This is today's `_v_cast` and is unchanged. Example:
+    Chandra, Flame's Catalyst's −2.
+  - **In a resolving effect, with `duration`:** a continuous effect (611.2a). It permits the player to
+    cast the designated objects during the duration, at normal timing (601.3; sorcery timing unless
+    the object has flash).
+    - If `source` names particular objects (a register such as "cards exiled this way"), that set
+      is fixed when the effect begins.
+    - If `source` is a zone selector ("spells from your hand"), the effect modifies the rules and
+      covers objects that arrive later (611.2c).
+  - **In a `StaticAbility`:** a permission for as long as the ability functions (611.3a). Examples:
+    Snoop, Radha, Demonic Embrace.
+  - **The `cost` role keeps its meaning.** Absent: pay the printed cost. An empty `Cost`: without
+    paying the mana cost, an alternative cost (118.9) with X = 0. A `Cost` with parts: additional
+    costs (Demonic Embrace).
+- **Executor.** A permission ledger holds entries {player, designated objects or zone selector, cost,
+  `play_lands`, duration}.
+  - `legal_casts` and the land lane offer the permitted objects from their zones, at legal times.
+  - A cast through a permission is an ordinary cast (601.2), so cast triggers see it.
+  - An entry stops covering an object once that object leaves its zone (400.7), and the whole entry
+    expires with its duration.
+  - "For as long as it remains exiled" (Valakut Exploration, ZNR) is therefore `DurationPermanent`
+    on designated objects; no new duration is needed.
+  - The permission-row idiom is retired.
+- **Rejected.**
+  - (B) A new verb PERMIT_CAST. It duplicates the operation axis "cast" for the difference that
+    `duration` already encodes on every other verb (one-shot versus continuous), and doubles the
+    vocabulary for casting.
+  - (C) Keeping the free activation. It breaks timing and §10.
+
+### R5-3 `play_lands` on CAST (CR 305.1, 305.2)
+- "Play" means cast it if it is a spell, play it if it is a land. A land played this way is a
+  special action and uses a land drop (305.2). Cards: Chandra, Heart of Fire's +1, Furious Rise,
+  Radha.
+- **Proposal.** CAST gains an optional bool role `play_lands`; absent means cast only. With it, a
+  designated land can be played and is never cast. Example: Radha = `StaticAbility(CAST(source=top
+  of library, filter Land, play_lands=True))`.
+- **Rejected.**
+  - A verb PLAY: it splits one operation over a one-bit difference (§9 (i)).
+  - Filter-only: "you may cast that card" on a land is not playable, so "cast" and "play" differ
+    even when the filters are equal.
+
+### R5-4 `new_targets` on COPY (CR 707.10c)
+- Double Vision's "You may choose new targets for the copy" is dropped today: the copy keeps the
+  original's targets. Census: 26 copy-a-spell cards in 18 sets, most with this sentence.
+- **Proposal.** COPY gains an optional bool role `new_targets`. When it is true, the copy's controller
+  is asked once per target: keep it, or choose a new legal target (707.10c). The ask is visible, so
+  nothing is blind (§10).
+
+### R5-5 Token copies are CREATE_TOKEN, not COPY
+- Sublime Epiphany's "Create a token that's a copy of target creature you control" compiles to
+  `COPY(source=a battlefield creature)`. COPY then means two different operations, picked by the
+  zone its source is in:
+  - a copy of a spell on the stack (707.10), which is not cast and never enters;
+  - a new token permanent (707.2, 111.1), which enters the battlefield, fires enters triggers, and
+    is a token for every "token" rule.
+
+  Census: 21 token-copy cards in 9 sets.
+- **Proposal.** COPY keeps only spells and abilities on the stack. CREATE_TOKEN gains an optional
+  role `copy_of` (Selector); exactly one of `tokens` or `copy_of` is required. Exceptions such as
+  "except it has haste" are a later field, recorded when the first card needs it.
+- **Why.** §9 (i): the two effects are not similar. Every CREATE_TOKEN consumer (token counts,
+  "whenever a token enters", token-doubling replacements) then sees copy tokens.
+
+### R5-6 `actor` on TargetingEvent
+- Warden of the Woods' "a spell or ability an opponent controls" is dropped today, so the Warden
+  draws two cards whenever its controller targets it: stronger than printed. Census: 11 cards in
+  8 sets.
+- **Proposal.** TargetingEvent gains an optional `actor` Filter over the controller of the targeting
+  spell or ability. This is the single direction encoding (E1/65) that CastSpellEvent,
+  CardDrawnEvent, LifeGainedEvent and LoyaltyActivatedEvent already use.
+
+### R5-7 An activation event, for prohibitions
+- Faith's Fetters' "its activated abilities can't be activated unless they're mana abilities" is
+  dropped today (weaker than printed). Census: 12 cards in 11 sets.
+- **Proposal.** A new event `AbilityActivatedEvent(filter, actor=None, mana=False)`. `filter` is
+  over the permanent whose ability is activated; `mana=False` excludes mana abilities.
+  `PREVENT_EFFECT` over it is the prohibition, and the legality layer stops offering those
+  activations.
+- Fusing LoyaltyActivatedEvent into it is fusion-ledger item F9, for a later round, so R5 rewrites
+  no loyalty-trigger goldens.
+
+### R5-8 Furious Rise's window: approximate, flagged
+- "You may play that card until you exile another card with this enchantment" is the only such
+  wording in the 19 sets (Furious Rise, M21, reprinted in THB). A duration class for one card fails
+  §9 (ii), volume.
+- **Proposal.** Map it as R5-2/R5-3 with `DurationUntilNextStep(END, owner_scoped=True)`, that is,
+  until the beginning of your next end step. This is weaker than printed when the trigger's
+  condition fails at that end step: the printed permission would continue. Recorded as divergence
+  D15.
+
+### Not ontology (executor and compiler work in the same round)
+- Executor:
+  - spell copies (707.10, 700.2g);
+  - phasing (702.26), including indirect phasing (702.26g) and Teferi, Timeless Voyager's "can't
+    phase in";
+  - extra turns;
+  - an X declaration on activation, for Ugin's −X (601.2b via 602.2b; 606.6);
+  - "choose one or more" (700.2d);
+  - countering an activated or triggered ability.
+- Compiler mapping fixes onto existing components:
+  - Peer into the Abyss's life loss (`QPropField.LIFE` exists);
+  - token colors (`TokenSpec.color` exists);
+  - the bare HEXPROOF that Sporeweb Weaver and Garruk's Harbinger carry beside "hexproof from
+    [color]" (both are stronger than printed today).
+- Every card whose tree changes is re-verified through the play-time gates
+  (docs/PLAN_CARD_ONBOARDING.md).
