@@ -2231,6 +2231,27 @@ def compile_card(
             abilities.append(SpellAbility(kind=kind, effect=combined))
             ability_srcs.append(max(effect_src))
 
+    # -- Permanent-spell carrier (B-49, 2026-10-29) ---------------------------
+    # A noncreature permanent whose text is all static, triggered or activated
+    # abilities (an anthem, an equipment, a planeswalker) assembled NO
+    # SpellAbility, so spell_castable answered cast:not_a_spell and the card was
+    # uncastable by construction: 44 of M21's cards, 63 of FDN's. It is plainly a
+    # permanent spell (CR 301.1, 303.1, 306.1), so it gets the effect-less
+    # carrier creatures got in C4 batch 4 and kicker heads in ZND-1e. Lands are
+    # played, not cast; tokens and emblems are never cast.
+    if (
+        not is_land
+        and not is_token
+        and not is_emblem
+        and not is_creature
+        and any(t in types for t in ("Enchantment", "Artifact", "Planeswalker"))
+        and not any(isinstance(ab, SpellAbility) for ab in abilities)
+        and not any(isinstance(ab, KickerAbility) for ab in abilities)
+    ):
+        abilities.append(SpellAbility(kind=_spell_kind_from_types(types, False)))
+        # Synthetic carrier, not tied to a sentence (last-index convention).
+        ability_srcs.append(len(raw.sentences) - 1)
+
     # -- Attach additional costs to the spell --------------------------------
     # Additional-cost sentences ride on a SpellAbility. A card that matched
     # one but compiled without one falls into two cases (T3 round 3):
