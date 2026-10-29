@@ -1,6 +1,6 @@
 {
  "name": "cw_pump_threshold",
- "note": "Rung-2 combat window, the DEFENDER's kill-shot answer: a lone Titanic Growth in P1's hand raises the blocking 3/3 Guard over the lethality threshold (6/6 vs 3 damage). P0 holds no instant and is NEVER asked (C15, no row); P1 is asked once and pumps. Falsified by cw_pump_threshold_negative.json: no growth, mutual kill.",
+ "note": "Rung-2 combat window, the DEFENDER's kill-shot answer: a lone Titanic Growth in P1's hand raises the blocking 3/3 Guard over the lethality threshold (6/6 vs 3 damage). P0 holds no instant and is NEVER asked (C15, no row); P1 is asked once and pumps. Falsified by cw_pump_threshold_negative.json: no growth, mutual kill. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the setup mana (formerly banked across two turns) is added as the combat window opens ('window_mana'), standing in for the lands tapped there (CR 605.3a).",
  "world": {
   "life": 20,
   "seed": 7
@@ -31,11 +31,6 @@
    "controller": 1
   }
  ],
- "mana": {
-  "1": {
-   "G": 2
-  }
- },
  "steps": [
   {
    "op": "enter",
@@ -68,7 +63,12 @@
    },
    "decisions": [
     "growth@guard"
-   ]
+   ],
+   "window_mana": {
+    "1": {
+     "G": 2
+    }
+   }
   }
  ],
  "expect": {

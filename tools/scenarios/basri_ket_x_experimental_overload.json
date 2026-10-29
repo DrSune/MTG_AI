@@ -41,10 +41,6 @@
   }
  ],
  "mana": {
-  "1": {
-   "U": 3,
-   "R": 3
-  },
   "0": {
    "W": 2
   }
@@ -64,6 +60,14 @@
   },
   {
    "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "U": 3,
+    "R": 3
+   }
   },
   {
    "op": "cast",
@@ -100,5 +104,5 @@
    "1": 20
   }
  },
- "notes": "HUNT H2 pair 8 (heat 2660, controller-perspective graveyard census across seats). Printed: {2}{U}{R}, 'Create an X/X blue and red Weird token where X is the number of instant and sorcery cards in YOUR graveyard. Then you may return an instant or sorcery card from a graveyard to your hand. Exile Experimental Overload.' Seat 1 casts on its own turn (turn dance); the return designation 'Shock' is ambiguous by NAME between seat 1's Shock and seat 0's identically-named Shock - the engine returned the CASTER'S Shock and left seat 0's untouched (CR 401.2 + the compiled return selector's controller filter). The X-census value (1/1 vs 2/2) is unobservable under the keyless-mint law (tokens have no pack key, hence no PT lane); exactly one Weird token record is asserted. Spell self-exiles per printed text. Basri (seat 0) +1 on own Wolf rides window one as the counter-vs-token-mint coexistence witness."
+ "notes": "HUNT H2 pair 8 (heat 2660, controller-perspective graveyard census across seats). Printed: {2}{U}{R}, 'Create an X/X blue and red Weird token where X is the number of instant and sorcery cards in YOUR graveyard. Then you may return an instant or sorcery card from a graveyard to your hand. Exile Experimental Overload.' Seat 1 casts on its own turn (turn dance); the return designation 'Shock' is ambiguous by NAME between seat 1's Shock and seat 0's identically-named Shock - the engine returned the CASTER'S Shock and left seat 0's untouched (CR 401.2 + the compiled return selector's controller filter). The X-census value (1/1 vs 2/2) is unobservable under the keyless-mint law (tokens have no pack key, hence no PT lane); exactly one Weird token record is asserted. Spell self-exiles per printed text. Basri (seat 0) +1 on own Wolf rides window one as the counter-vs-token-mint coexistence witness. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the seat's mana is added at the step that spends it, standing in for the lands it taps there."
 }

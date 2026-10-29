@@ -20,17 +20,42 @@ Coverage contract (mission arc, ruling of 2026-10-05):
 
 from __future__ import annotations
 
+from unittest import mock
+
+import MTG_bot.core.executor as executor_module
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_HAND
 from MTG_bot.core.test_executor_blockers import BlockerCase
 
 
 class Rung2Case(BlockerCase):
-    """BlockerCase + the cw: ask probes and a mana helper."""
+    """BlockerCase + the cw: ask probes and a window-mana helper.
+
+    Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends
+    (CR 500.5), so mana put in the pool before the turn is gone by the combat
+    window, and the engine cannot yet activate mana abilities while casting
+    there (CR 605.3a, 601.2g). :meth:`mana` therefore adds the seat's mana as
+    the window opens, standing in for the lands it would tap in the window."""
+
+    def setUp(self):
+        super().setUp()
+        self._window_mana: dict = {}
+        real_window = executor_module.open_combat_window
+
+        def window(executor):
+            for seat, keys in self._window_mana.items():
+                pool = self.world.players[seat].mana_pool
+                for key, amount in keys.items():
+                    pool[key] = pool.get(key, 0) + amount
+            return real_window(executor)
+
+        patcher = mock.patch.object(executor_module, "open_combat_window", window)
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def mana(self, seat, **keys):
-        pool = self.world.players[seat].mana_pool
+        bucket = self._window_mana.setdefault(seat, {})
         for key, amount in keys.items():
-            pool[key] = pool.get(key, 0) + amount
+            bucket[key] = bucket.get(key, 0) + amount
 
     def cw_asks(self):
         """The (vocab, tag) pairs of the cw: window, in ask order."""

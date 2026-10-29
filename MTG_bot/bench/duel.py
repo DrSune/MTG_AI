@@ -117,7 +117,7 @@ def manifest(
         if deals
         else {},
         "view": asdict(opts),
-        "engine_notes": "batch Magic: no priority, one act window per turn, mana pools never empty",
+        "engine_notes": "batch Magic: no priority, one act window per turn, mana pools empty as each step and phase ends",
     }
 
 

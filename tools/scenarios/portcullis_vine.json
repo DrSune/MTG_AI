@@ -24,6 +24,13 @@
    "attack": {}
   },
   {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 2
+   }
+  },
+  {
    "op": "activate",
    "key": "v",
    "idx": 0,
@@ -33,11 +40,6 @@
    ]
   }
  ],
- "mana": {
-  "0": {
-   "C": 2
-  }
- },
  "expect": {
   "zone": {
    "v": "graveyard"
@@ -49,5 +51,5 @@
    "v"
   ]
  },
- "notes": "DEFENDER: the combat phase never asked the Wall to attack. {2},{T},sac-a-defender: the vine sacrifices ITSELF (cost designation answered with the pack key) -> draw -> hand Shock+1 drawn card. Re-pinned 2026-10-29: V1 (CR 302.6) refuses a creature's {T} ability the turn it enters, so the Vine starts on the battlefield instead of entering this turn."
+ "notes": "DEFENDER: the combat phase never asked the Wall to attack. {2},{T},sac-a-defender: the vine sacrifices ITSELF (cost designation answered with the pack key) -> draw -> hand Shock+1 drawn card. Re-pinned 2026-10-29: V1 (CR 302.6) refuses a creature's {T} ability the turn it enters, so the Vine starts on the battlefield instead of entering this turn. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the seat's mana is added at the step that spends it, standing in for the lands it taps there."
 }

@@ -17,17 +17,19 @@
    "zone": "hand"
   }
  ],
- "mana": {
-  "0": {
-   "W": 2
-  }
- },
  "steps": [
   {
    "op": "advance_turn"
   },
   {
    "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "W": 2
+   }
   },
   {
    "op": "cast",
@@ -49,5 +51,5 @@
    "0": 23
   }
  },
- "notes": "Printed: 'If you would draw a card except the first one you draw in each of your draw steps, draw two cards instead.' Turn 2's draw is card one (unaffected); Revitalize's draw in the main phase is an additional draw, so the printed replacement makes it TWO cards: three library pops total."
+ "notes": "Printed: 'If you would draw a card except the first one you draw in each of your draw steps, draw two cards instead.' Turn 2's draw is card one (unaffected); Revitalize's draw in the main phase is an additional draw, so the printed replacement makes it TWO cards: three library pops total. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the seat's mana is added at the step that spends it, standing in for the lands it taps there."
 }

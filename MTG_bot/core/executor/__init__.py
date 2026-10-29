@@ -1524,12 +1524,15 @@ class Executor:
             raise ValueError(f"combat_step: {seat} has no defending player")
         self.defending_player = opponents[0]
         fired = 0
+        # V2 (CR 500.5): the main phase ends here; unspent mana empties.
+        self.empty_mana_pools()
         # Beginning of combat (TurnPhaseEvent COMBAT - the BINDING 16b
         # feed: Battle-Rattle Shaman, Dire Fleet Warmonger, Adherent of
         # Hope, the Basri Ket / Liliana Waker emblems).
         self.journal.record_turn_phase(Phase.COMBAT.name)
         self.phase = Phase.COMBAT.name
         fired += self._settle()
+        self.empty_mana_pools()  # end of the beginning of combat step
         # Declare attackers (CR 508.1). The declare window stays open
         # across the post-declare settle so enters-attacking tokens the
         # attack triggers create JOIN the attack (CR 508.1i).
@@ -1541,6 +1544,7 @@ class Executor:
             fired += self._settle()
         finally:
             self.declaring = False
+        self.empty_mana_pools()  # end of the declare attackers step
         # Declare blockers (CR 509, 16c) - after the attack-trigger drain
         # (CR 508.3: the triggers resolve BEFORE the blocking player gets
         # the declaration duty), before any damage step.
@@ -1562,11 +1566,14 @@ class Executor:
         # into the ledger BEFORE _combat_damage reads it.
         if self.attackers:
             open_combat_window(self)
+        self.empty_mana_pools()  # end of the declare blockers step
         fired += self._combat_damage(seat)
+        self.empty_mana_pools()  # end of the combat damage step
         # End of combat: the settle is the R16-1 SBA pass; the attack
         # record closes with the phase (CR 506.4 - nothing "is attacking"
         # once combat ended, and IS_ATTACKING reads exactly that).
         fired += self._settle()
+        self.empty_mana_pools()  # end of the end of combat step
         self.attackers = []
         self.attacked = {}
         self.blocked_by = {}
@@ -2198,11 +2205,16 @@ class Executor:
         state), trigger drain, THEN the end-of-turn expiry sweep: Eot
         ledger entries, Eot-tagged LAYER records (12d: until-end-of-turn
         grants die here) and Eot-tagged PREVENTION records, and the
-        turn-window delayed triggers (C22). Returns the firing count."""
+        turn-window delayed triggers (C22). Returns the firing count.
+
+        V2 (CR 500.5): the phase before the end step, the end step and the
+        cleanup step each end here, and unspent mana empties at each."""
+        self.empty_mana_pools()
         self.phase = Phase.END_TURN.name
         self.turn_open = False
         self.journal.record_turn_phase(Phase.END_TURN.name)
         fired = self._settle()
+        self.empty_mana_pools()  # end of the end step
         self.ledger.sweep_at_eot()
         self.layers.sweep_at_eot()
         self.replacements.sweep_at_eot()
@@ -2214,7 +2226,26 @@ class Executor:
         # expired at end of turn must not survive into next turn's
         # keyword_of/legal_activations.
         self.layers.recompute()
+        self.empty_mana_pools()  # end of the cleanup step
         return fired
+
+    def empty_mana_pools(self) -> None:
+        """CR 500.5 / 106.4: as a step or phase ends, any unspent mana left in
+        a player's mana pool empties (a turn-based action, CR 703.4q). The 13b
+        segment mirror (spend restrictions) empties with it, so a restriction
+        can never outlive its mana. A non-empty pool leaves an ``EMPTY_MANA``
+        audit row on the event log (the PAY_MANA precedent), so the replay
+        fingerprint records what was lost. No compiled card retains mana
+        ("you don't lose this mana as steps and phases end": Upwelling, Savage
+        Ventmaw, Leyline Tyrant, ... all compile partly today); the first one
+        that compiles needs a retention lane here."""
+        for player in self.world.player_order:
+            pool = self.world.players[player].mana_pool
+            lost = tuple(sorted((k, v) for k, v in pool.items() if v))
+            if lost:
+                self.events.append((len(self.events), "EMPTY_MANA", str(player), lost))
+            pool.clear()
+            self.mana_ledger.segments.pop(player, None)
 
     # ---------------------------------------------------- 13c emblem / attach
 

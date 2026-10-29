@@ -3,14 +3,6 @@
   "life": 20,
   "seed": 7
  },
- "mana": {
-  "1": {
-   "C": 8,
-   "R": 8,
-   "G": 8,
-   "W": 8
-  }
- },
  "cards": [
   {
    "key": "rin",
@@ -52,6 +44,16 @@
   },
   {
    "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "C": 8,
+    "R": 8,
+    "G": 8,
+    "W": 8
+   }
   },
   {
    "op": "cast",
@@ -127,5 +129,5 @@
    "1": 14
   }
  },
- "notes": "HUNT H2 pair 5 (heat 2800, token-controller / token-census law). Seat 1 casts Dog spell (Alpine Watchdog) -> Rin's printed trigger mints ONE 1/1 green Cat for seat 1; then Cat spell (Pridemalkin) -> ONE 1/1 white Dog for seat 1, and Pridemalkin's EtB counter lands on Rin (designation 'rin', sibling rin_and_seri_cast_triggers idiom). Enemy Basri (seat 0) -2 then rides Tiger's attack: one 1/1 white Soldier tapped+attacking for SEAT 0 (CR 111.2 — a token enters under its creator's control; the historical Soldier-controller bug shape). No blockers offered: Tiger 5 + Soldier 1 hit seat 1 for 6. Token lane must show 3 tokens, three distinct identities, right counts per creator; the census on each cast trigger is per-cast (2 casts -> exactly 2 tokens)."
+ "notes": "HUNT H2 pair 5 (heat 2800, token-controller / token-census law). Seat 1 casts Dog spell (Alpine Watchdog) -> Rin's printed trigger mints ONE 1/1 green Cat for seat 1; then Cat spell (Pridemalkin) -> ONE 1/1 white Dog for seat 1, and Pridemalkin's EtB counter lands on Rin (designation 'rin', sibling rin_and_seri_cast_triggers idiom). Enemy Basri (seat 0) -2 then rides Tiger's attack: one 1/1 white Soldier tapped+attacking for SEAT 0 (CR 111.2 — a token enters under its creator's control; the historical Soldier-controller bug shape). No blockers offered: Tiger 5 + Soldier 1 hit seat 1 for 6. Token lane must show 3 tokens, three distinct identities, right counts per creator; the census on each cast trigger is per-cast (2 casts -> exactly 2 tokens). Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the seat's mana is added at the step that spends it, standing in for the lands it taps there."
 }

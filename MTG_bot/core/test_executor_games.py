@@ -2455,9 +2455,12 @@ class StallRuleTest(unittest.TestCase):
         # until its player slot existed; it now exiles player 1's graveyard.
         # Still crash-free and decisive, SAME loser, 36 turns (double-run
         # replay verified). Neither Chandra in these decks is cast.
+        # re-pinned 2026-10-29: V2 (mana empties as each step and phase ends,
+        # CR 500.5; no more banked mana) changes the trajectory: still
+        # decisive, SAME loser, 48 turns.
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 36)
+        self.assertEqual(game.turns, 48)
         self.assertEqual(game.reason, "game over: player:0(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:

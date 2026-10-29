@@ -31,7 +31,8 @@ are neutral; each one is teaching the agent something.
 | **`TURN_CAP = 60` scored as a draw** (registered 2026-10-24) | `core/executor/games.py:131,1405-1407`; `tools/training/train_rl_v1.py:53` | A non-rules safety rail, and with draw = 0 > loss = -1 it pays a losing policy to stall (D10). Score it as a loss for both seats in training, report it separately in eval; remove once a real match clock exists. |
 | **Stall rule = draw after 3 identical rounds** (registered 2026-10-24) | `core/executor/games.py:150,1370-1379` | Same incentive problem as the cap. Keep it as a progress probe, score it like the cap until optional-loop actions exist. |
 | **10 acts per main phase, one main phase per turn** (registered 2026-10-24) | `core/executor/games.py:134,638-686` | Engine has no priority system; remove with the priority rung. |
-| **Auto-tap-all mana before every act** (registered 2026-10-24) | `tools/eval/gameplay_eval_v2.py:314,336-353` | The tap amount is not an engine ask. Remove when payment folds into the cast (DESIGN_ACTION_SPACE §1.3) and mana empties per step (CR 500.4). |
+| **Auto-tap-all mana before every act** (registered 2026-10-24) | `tools/eval/gameplay_eval_v2.py:314,336-353` | The tap amount is not an engine ask. Remove when payment folds into the cast (DESIGN_ACTION_SPACE §1.3) and mana empties per step (CR 500.5; done by V2 on branch `engine/verify-fixes`, 2026-10-29). |
+| **Pack mana stand-ins: the `mana` op, the combat op's `window_mana`, the end_turn op's `step_mana`** (2026-10-29, V2) | `tools/run_scenarios.py`, `MTG_bot/core/test_executor_rung2.py` (`Rung2Case.mana`) | Mana now empties as each step and phase ends (CR 500.5) and the engine pays only from the pool, so these put mana in a pool at the step that pays, standing in for the lands a player taps while paying (CR 605.3a). Remove when a payment can activate mana abilities (B-90). |
 | **Observation zone caps 6/8/12 and a 1024-token window** (registered 2026-10-24) | `tools/training/bc_data_v2.py:67-69`; `ab_duel.py:270-278` | 15,407 of 17,270 asks were truncated in the anchor run. Remove with the IR card tokenizer and a measured context budget. |
 | **Benchmark: 3 strikes per decision, then the do-nothing choice** (2026-10-24) | `MTG_bot/bench/llm.py` | Bounds a non-answering model. Remove when tool mode gives structured answers; until then forfeits are always reported. |
 | **Benchmark: `TAP_ALL_MANA`, X always 0, multi-slot rows hidden, one act window, stateless prompts, conservative hidden-card labels** (2026-10-24) | `MTG_bot/bench/router.py`, `protocol.py`, `llm.py` | Each mirrors an engine limit or is a harness simplification. Remove with the corresponding engine rung (payment, X asks, multi-slot designation, priority) and with tool mode (`notes` memory). |
@@ -710,6 +711,23 @@ These are forks, not tasks. See the report that accompanied this audit.
     class: detector gap or engine bug.
 - **B-74 Sorcery speed means the first main phase only.** No second-main window for casts, land
   drops or sorcery-speed activations.
+- **B-90 [vfix V2, 2026-10-29] A payment outside the active player's main phase has no mana**
+  (weaker than printed, live in M21). Since V2 the pool empties as each step and phase ends
+  (CR 500.5), and the engine pays only from the pool: it cannot activate mana abilities while a
+  payment is asked (CR 601.2g, 605.3a). Before V2 these payments drew on mana banked across turns
+  (mean 9.4 / 11.6 floating at game end, max 38 / 43, M21 soak stress / coherent, 200 games).
+  - Dead now: counterspells (the rung-1 counter window: 66 / 70 opens per 200 games before, 0
+    after), the combat instant window (176 / 209 before, 0 after), flash on the opponent's turn,
+    end-step and upkeep "you may pay" triggers (Liliana's Devotee), "unless its controller pays"
+    asked of a seat with no floating mana.
+  - Options: (a) an engine witness that taps the payer's untapped tap-only mana abilities when a
+    payment is asked outside the act window (fast; the engine picks the sources silently, AGENTS
+    §10); (b) the `PAYMENT:PTR` asks of `DESIGN_ACTION_SPACE.md` §1.3, payment folded into the move
+    with the payer picking the sources (the design target). Needs an owner decision.
+  - The packs and `test_executor_rung2.py` stand in for it with harness mana (scaffold row above).
+  - No compiled card retains mana ("you don't lose this mana as steps and phases end": Upwelling,
+    Savage Ventmaw, Leyline Tyrant, Grand Warlord Radha, Birgi, Neheb all compile partly); the first
+    one that compiles needs a retention lane in `Executor.empty_mana_pools`.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).

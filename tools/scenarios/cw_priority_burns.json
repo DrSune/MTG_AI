@@ -1,6 +1,6 @@
 {
  "name": "cw_priority_burns",
- "note": "Rung-2 combat window, the MUTUAL-BURN priority shape: both seats hold a Shock. P0 (player order = first priority, CR 506.4) fires first and the 2/2 blocker dies to the marked 2 BEFORE its own answer; P1's vocabulary is then RE-COMPUTED on the post-death state - the dead blocker is gone from the candidate population - and it answers by killing the attacker. No combat damage happens at all (dead attackers deal none), both creatures and both instants in graveyards. The combat_window_vocab lane pins BOTH ordered vocabularies exactly (handle-sorted composites).",
+ "note": "Rung-2 combat window, the MUTUAL-BURN priority shape: both seats hold a Shock. P0 (player order = first priority, CR 506.4) fires first and the 2/2 blocker dies to the marked 2 BEFORE its own answer; P1's vocabulary is then RE-COMPUTED on the post-death state - the dead blocker is gone from the candidate population - and it answers by killing the attacker. No combat damage happens at all (dead attackers deal none), both creatures and both instants in graveyards. The combat_window_vocab lane pins BOTH ordered vocabularies exactly (handle-sorted composites). Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the setup mana (formerly banked across two turns) is added as the combat window opens ('window_mana'), standing in for the lands tapped there (CR 605.3a).",
  "world": {
   "life": 20,
   "seed": 7
@@ -37,14 +37,6 @@
    "controller": 1
   }
  ],
- "mana": {
-  "0": {
-   "R": 1
-  },
-  "1": {
-   "R": 1
-  }
- },
  "steps": [
   {
    "op": "enter",
@@ -78,7 +70,15 @@
    "decisions": [
     "shockA@guard",
     "shockB@brute"
-   ]
+   ],
+   "window_mana": {
+    "0": {
+     "R": 1
+    },
+    "1": {
+     "R": 1
+    }
+   }
   }
  ],
  "expect": {

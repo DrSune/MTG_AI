@@ -3,11 +3,6 @@
   "life": 20,
   "seed": 7
  },
- "mana": {
-  "1": {
-   "C": 4
-  }
- },
  "cards": [
   {
    "key": "scythe",
@@ -38,6 +33,13 @@
   {
    "op": "enter",
    "key": "scythe"
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "C": 4
+   }
   },
   {
    "op": "activate",
@@ -89,5 +91,5 @@
    "1": 20
   }
  },
- "notes": "HUNT H2 pair 2 (heat 3430, pt_layers — counter census x counter fold on ONE creature). Seat 1's Malefic Scythe enters with a soul counter (EtBState) and equips its Brute: 'Equipped creature gets +1/+1 for each soul counter' — a for-each-counter census static (malefic_scythe precedent: scales live). Enemy Basri (seat 0) +1 designates that SAME opposing Brute (printed 'up to one target creature', unrestricted). Expected layers math (CR 613.3f layer, counters 122.1c, timestamps 613.7a): 5/5 + 1 soul static + 1 counter = 7/7, and Basri's second clause stamps INDESTRUCTIBLE (the 21a-fixed keyword lane). Basri's counter landing on an opponent's creature is legal designation (CR 601.2b — the spell/ability's filter decides, and it says creature). re-pinned 2026-10-29: the B-60 fix gives Equip its printed sorcery timing (CR 702.6a), so seat 1 can no longer equip on seat 0's turn; the setup now advances to seat 1's turn for the Scythe's entry and equip and back to seat 0's turn for the rest. The pairing under test and every expectation are unchanged."
+ "notes": "HUNT H2 pair 2 (heat 3430, pt_layers — counter census x counter fold on ONE creature). Seat 1's Malefic Scythe enters with a soul counter (EtBState) and equips its Brute: 'Equipped creature gets +1/+1 for each soul counter' — a for-each-counter census static (malefic_scythe precedent: scales live). Enemy Basri (seat 0) +1 designates that SAME opposing Brute (printed 'up to one target creature', unrestricted). Expected layers math (CR 613.3f layer, counters 122.1c, timestamps 613.7a): 5/5 + 1 soul static + 1 counter = 7/7, and Basri's second clause stamps INDESTRUCTIBLE (the 21a-fixed keyword lane). Basri's counter landing on an opponent's creature is legal designation (CR 601.2b — the spell/ability's filter decides, and it says creature). re-pinned 2026-10-29: the B-60 fix gives Equip its printed sorcery timing (CR 702.6a), so seat 1 can no longer equip on seat 0's turn; the setup now advances to seat 1's turn for the Scythe's entry and equip and back to seat 0's turn for the rest. The pairing under test and every expectation are unchanged. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the seat's mana is added at the step that spends it, standing in for the lands it taps there."
 }

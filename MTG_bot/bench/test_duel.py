@@ -45,7 +45,11 @@ def test_pass_against_itself_is_all_cap_draws_at_exactly_half() -> None:
 
 def test_uniform_beats_pass_on_the_same_deals() -> None:
     rng.seed_all(7, seed_frameworks=False)
-    deals = [DealSpec(seed=s, turn_cap=30) for s in range(1, 4)]
+    # re-pinned 2026-10-29: V2 (mana empties as each step and phase ends,
+    # CR 500.5). The uniform agent won 3 of 6 within 30 turns only with mana
+    # banked across turns; without it, it needs the engine's own 60-turn cap
+    # (6 of 6 won there, turns 38-49).
+    deals = [DealSpec(seed=s, turn_cap=60) for s in range(1, 4)]
     summary = summarize(run_match(uniform, passive, deals, name_a="uniform", name_b="pass"))
     assert summary["pair_score"][0] > 0.5
     assert summary["outcomes"].get("win", 0) > summary["outcomes"].get("loss", 0)

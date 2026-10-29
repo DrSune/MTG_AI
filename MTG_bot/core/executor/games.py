@@ -53,8 +53,10 @@ repro test in ``test_executor_games.py``; ``--repro SEED`` replays one game with
 the traceback printed.
 
 Known ceilings the harness deliberately does NOT hide (all in
-``KNOWLEDGE/2026-09-30/03``): mana is never emptied between steps (there is no
-CR 305.2 rule in the executor, so survival is optimistic), the CR 121.3
+``KNOWLEDGE/2026-09-30/03``): mana is paid only from the pool, and since V2
+(2026-10-29) the pool empties as each step and phase ends (CR 500.5), so a payment
+outside the FIRST_MAIN batch (a response window, an end-step "you may pay") has no
+mana to draw on (the engine cannot activate mana abilities while paying, CR 605.3a), the CR 121.3
 draw-from-empty loss is a harness-side state check (13a left it out of the
 verbs), and a spell with more than one TARGET selector has no designation
 channel, which the policy filters rather than hands the engine a broken cast.

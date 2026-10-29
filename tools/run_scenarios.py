@@ -29,6 +29,9 @@ Pack vocabulary (all keys required as noted):
              {"op": "cast", "real": name, "x": int?, "targets": [key...],
               "decisions": [str...]},
              {"op": "end_turn"} | {"op": "advance_turn"},
+             {"op": "end_turn", "step_mana": {"0": {"B": 1}}}  V2: pool mana
+                                            added for the end step, after the
+                                            main phase's mana empties,
              {"op": "enter", "key": k}      hand -> battlefield (journalled:
                                             the sickness clock sees it),
              {"op": "play", "key": k}       17a: the REAL land drop (CR
@@ -47,6 +50,10 @@ Pack vocabulary (all keys required as noted):
                                              API — journalled re-entry
                                              RE-REGISTERS its static),
              {"op": "loyalty", "key": k, "set": n}    seed the loyalty ledger,
+             {"op": "mana", "seat": 0|1, "add": {"R": 1}}  V2: add mana to a
+                                            pool at this step (pools empty as
+                                            each step and phase ends, CR 500.5;
+                                            stands in for the lands tapped),
              {"op": "activate", "key": k, "idx": i,   the folded ACTIVATE
               "seat": 0|1, "targets": [k...],         move (legality+pay+run),
               "decisions": [str...]},
@@ -56,7 +63,11 @@ Pack vocabulary (all keys required as noted):
               "order": {attackerKey: [slot...]},        16c order asks
               "trample": {attackerKey: [amount...]},    16c excess asks
               "policy": {attackerKey: "UNBLOCKED"|
-                                  "AS_BLOCKED"}}        16c Herald policy
+                                  "AS_BLOCKED"},        16c Herald policy
+              "window_mana": {"1": {"R": 1}}}  V2: pool mana added as the
+                                            combat instant window opens (the
+                                            engine cannot yet tap mana in the
+                                            window, CR 605.3a)
                                             the whole COMBAT phase; the
                                             ask provider answers ONLY from
                                             these maps (C15 narrowing is
@@ -377,7 +388,31 @@ class ScenarioRunner:
                 decisions=tuple(step.get("decisions", ())),
             )
         elif op == "end_turn":
-            self.ex.end_turn()
+            step_mana = step.get("step_mana")
+            if not step_mana:
+                self.ex.end_turn()
+                return
+            # V2 (2026-10-29): ``step_mana`` {seat: {colour: n}} goes into the
+            # pools once the main phase's mana has emptied, so an end-step
+            # payment ("you may pay {1}{B}") is paid with mana tapped in the
+            # end step (CR 605.3a), which the engine cannot activate itself.
+            real_empty = self.ex.empty_mana_pools
+            calls = [0]
+
+            def empty_then_tap() -> None:
+                real_empty()
+                calls[0] += 1
+                if calls[0] == 1:
+                    for seat_idx, colors in step_mana.items():
+                        pool = self.world.players[self.seats[int(seat_idx)]].mana_pool
+                        for color, n in colors.items():
+                            pool[color] = pool.get(color, 0) + int(n)
+
+            self.ex.empty_mana_pools = empty_then_tap  # type: ignore[method-assign]
+            try:
+                self.ex.end_turn()
+            finally:
+                del self.ex.empty_mana_pools
         elif op == "advance_turn":
             self.ex.advance_turn()
         elif op == "play":
@@ -449,6 +484,14 @@ class ScenarioRunner:
             # dragging a whole healing spell into the pack.
             seat = self.seats[int(step["seat"])]
             self.world.players[seat].life = int(step["set"])
+        elif op == "mana":
+            # V2 (2026-10-29) harness pool write, the loyalty/life convention:
+            # mana now empties as each step and phase ends (CR 500.5), so a
+            # pack that pays after a phase or turn change adds the seat's
+            # mana at that step, standing in for the lands it would tap there.
+            pool = self.world.players[self.seats[int(step["seat"])]].mana_pool
+            for color, n in step["add"].items():
+                pool[color] = pool.get(color, 0) + int(n)
         elif op == "activate":
             from MTG_bot.core.executor.legality import activate
 
@@ -567,10 +610,35 @@ class ScenarioRunner:
                     got = "DECLINE"
             return got if got in vocab else vocab[0]
 
+        # V2 (2026-10-29): ``window_mana`` {seat: {colour: n}} goes into the
+        # pools as the combat instant window opens. Mana empties as each step
+        # and phase ends (CR 500.5), and the engine cannot yet activate mana
+        # abilities while casting in the window (CR 605.3a, 601.2g), so this
+        # stands in for the lands the seat would tap there. Absent = no patch.
+        window_mana = step.get("window_mana")
+        patcher = None
+        if window_mana:
+            import MTG_bot.core.executor as executor_module
+
+            real_window = executor_module.open_combat_window
+
+            def window(executor):
+                for seat_idx, colors in window_mana.items():
+                    pool = self.world.players[self.seats[int(seat_idx)]].mana_pool
+                    for color, n in colors.items():
+                        pool[color] = pool.get(color, 0) + int(n)
+                return real_window(executor)
+
+            from unittest import mock
+
+            patcher = mock.patch.object(executor_module, "open_combat_window", window)
+            patcher.start()
         self.ex.decisions.provider = answer
         try:
             self.ex.combat_step(self.seats[int(step.get("seat", 0))])
         finally:
+            if patcher is not None:
+                patcher.stop()
             self.ex.decisions.provider = None
 
     def check(self) -> list[str]:

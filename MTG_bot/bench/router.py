@@ -11,8 +11,9 @@ The act window mirrors the engine's surface, and its limits are registered as be
 BACKLOG:
 - **The menu.** PASS, `TAP_ALL_MANA`, land drops, castable spells (base and kicked) and non-mana
   activations, all from the query surface (``legal_casts``, ``legal_activations``).
-- **`TAP_ALL_MANA` is necessary.** Casting pays only from the floating pool (measured 2026-10-24),
-  and pools never empty, so tapping everything costs nothing.
+- **`TAP_ALL_MANA` is necessary.** Casting pays only from the floating pool (measured 2026-10-24).
+  Since V2 (2026-10-29) pools empty as each step and phase ends (CR 500.5), so mana tapped here
+  lasts until the end of this main phase, the only act window of the turn.
 - **Rows the engine cannot designate are hidden and counted:** more than one target slot, or a
   slot with too few candidates (``games.py:562-573``). X is always declared 0.
 - **Targets are asked one at a time** from the slot's candidates, then validated by the engine's
@@ -180,7 +181,7 @@ class SeatRouter:
         menu: list[tuple[Option, Any]] = [(Option("PASS", "PASS: end your actions this turn"), None)]
         if mana:
             menu.append(
-                (Option("TAP_ALL_MANA", f"tap all {len(mana)} available mana abilities (mana stays in your pool)"), ("tap", mana))
+                (Option("TAP_ALL_MANA", f"tap all {len(mana)} available mana abilities (the mana stays in your pool until this phase ends)"), ("tap", mana))
             )
         for row in rows:
             name = lens.describe(executor, row.handle)

@@ -612,5 +612,56 @@ class TestSummoningSickness(LegalityCase):
         self.assertIsNone(self.playable(newcomer))
 
 
+class TestManaEmpties(LegalityCase):
+    """V2 (2026-10-29): CR 500.5 / 106.4. Unspent mana empties as each step
+    and phase ends; within the main phase it stays for the next act."""
+
+    def empty_rows(self):
+        return [e for e in self.ex.events if e[1] == "EMPTY_MANA"]
+
+    def tap_alpha_for_green(self):
+        self.attach(
+            [
+                ability(cost(CostTap()), effect=add_mana("G")),
+                ability(cost(CostManaColor("G", QConst(1)))),
+            ]
+        )
+        activate(self.ex, self.alpha, 0, seat=self.p0)
+        self.assertEqual(self.world.players[self.p0].mana_pool, {"G": 1})
+
+    def test_mana_stays_for_the_next_act_of_the_same_phase(self):
+        self.ex.begin_turn(self.p0)
+        self.tap_alpha_for_green()
+        self.assertIsNone(ability_playable(self.world, self.ex, self.alpha, 1, seat=self.p0))
+        activate(self.ex, self.alpha, 1, seat=self.p0)  # pays the {G} just made
+        self.assertEqual(self.world.players[self.p0].mana_pool, {})
+
+    def test_main_phase_mana_is_gone_at_combat(self):
+        self.ex.begin_turn(self.p0)
+        self.tap_alpha_for_green()
+        self.ex.decisions.provider = lambda vocab, what: (
+            "DECLINE" if "DECLINE" in vocab else vocab[0]
+        )
+        self.ex.combat_step(self.p0)
+        self.assertEqual(self.world.players[self.p0].mana_pool, {})
+        rows = self.empty_rows()
+        self.assertEqual(len(rows), 1)  # what was lost reaches the fingerprint
+        self.assertEqual(rows[0][2:], (str(self.p0), (("G", 1),)))
+
+    def test_mana_does_not_survive_the_turn_and_its_restriction_goes_with_it(self):
+        self.ex.begin_turn(self.p0)
+        self.pool(self.p1, U=2)
+        self.ex.mana_ledger.add(self.p1, "U", 2, (FAtom(FAtomPred.IS_SOURCE),))
+        self.ex.end_turn()
+        self.ex.advance_turn()
+        self.assertEqual(self.world.players[self.p1].mana_pool, {})
+        self.assertFalse(self.ex.mana_ledger.has(self.p1))
+
+    def test_an_empty_pool_leaves_no_row(self):
+        self.ex.begin_turn(self.p0)
+        self.ex.end_turn()
+        self.assertEqual(self.empty_rows(), [])
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

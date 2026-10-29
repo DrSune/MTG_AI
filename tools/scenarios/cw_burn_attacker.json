@@ -1,6 +1,6 @@
 {
  "name": "cw_burn_attacker",
- "note": "Rung-2 combat window, the H3 REVERSAL - the go-wide attack punished: an UNBLOCKED 2/2 Brute would deal 2, but P1 holds the Shock and answers in the post-declare window (P0 holds nothing and is never asked, C15). The attacker dies BEFORE the damage step and deals NOTHING (pinned engine law: a dead attacker's blockers - and it alone - deal no damage); P0's life stays 20.",
+ "note": "Rung-2 combat window, the H3 REVERSAL - the go-wide attack punished: an UNBLOCKED 2/2 Brute would deal 2, but P1 holds the Shock and answers in the post-declare window (P0 holds nothing and is never asked, C15). The attacker dies BEFORE the damage step and deals NOTHING (pinned engine law: a dead attacker's blockers - and it alone - deal no damage); P0's life stays 20. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the setup mana (formerly banked across two turns) is added as the combat window opens ('window_mana'), standing in for the lands tapped there (CR 605.3a).",
  "world": {
   "life": 20,
   "seed": 7
@@ -22,11 +22,6 @@
    "controller": 1
   }
  ],
- "mana": {
-  "1": {
-   "R": 1
-  }
- },
  "steps": [
   {
    "op": "enter",
@@ -52,7 +47,12 @@
    },
    "decisions": [
     "shock@brute"
-   ]
+   ],
+   "window_mana": {
+    "1": {
+     "R": 1
+    }
+   }
   }
  ],
  "expect": {

@@ -66,9 +66,16 @@ def test_coherent_deals_are_seeded_and_vary(m21) -> None:
 
 
 def test_coherent_games_play_to_a_result(m21) -> None:
+    # re-pinned 2026-10-29: V2 (mana empties as each step and phase ends,
+    # CR 500.5) ends the random policy's banked mana, so its games run longer:
+    # seed 1 now reaches the 60-turn cap. Every game still runs crash-free and
+    # never stalls, and the other four end decisively.
+    decisive = 0
     for seed in range(1, 6):
         outcome = play_game(seed, pool_mode="castable", supply=m21, deck_mode="coherent")
-        assert outcome.crash is None and "game over" in outcome.reason
+        assert outcome.crash is None and not outcome.reason.startswith("STALL")
+        decisive += "game over" in outcome.reason
+    assert decisive >= 4
 
 
 def test_an_unknown_mode_raises(m21) -> None:

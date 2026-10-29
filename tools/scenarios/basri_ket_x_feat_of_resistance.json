@@ -33,9 +33,6 @@
   }
  ],
  "mana": {
-  "1": {
-   "W": 2
-  },
   "0": {
    "W": 2
   }
@@ -46,6 +43,13 @@
   },
   {
    "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "W": 2
+   }
   },
   {
    "op": "cast",
@@ -116,5 +120,5 @@
    "1": 20
   }
  },
- "notes": "HUNT H2 pair 9 (heat 2660, both-sides buff stacking) + colour-decision observability. Turn dance: Feat (seat 1, colour designation \"1\" = BLUE, WUBRG) resolves on seat 1's turn \u2014 its +1/+1 counter is permanent, its EoT protection then expires cleanly at the dance (CR 514.2). The colour ask is observed IN-LANE before it expires: the 3/2 Sentinel attacks and the blue Vodalian Arcanist (seat 0) is never asked to block (CR 702.16c attacker-protection veto, legality.py block_pair_blocked_reason \u2192 layers.protections_of; blocker_askable: legal against nothing), so 3 damage land on seat 0 (life 17). The null policy answers the same ask with vocab[0] '0' (WHITE) \u2014 the blocker then blocks legally, life[0] stays 20 and the not_asked lane breaks. Basri's +1 lands on seat 0's own window (CR 307.5 planeswalker timing respected) on the ENEMY creature \u2014 legal, the compiled TARGET carries no CONTROLLER_IS YOU filter (CR 601.2b). Two +1/+1 counters stack -> 4/4 (CR 122.1c) with INDESTRUCTIBLE until end of turn alive at the check. Damage PREVENTION (the dealt-damage face of CR 702.16c) stays an executor semantics gap \u2014 see KNOWLEDGE/2026-10-07/27; the block-legality face is the observable lane."
+ "notes": "HUNT H2 pair 9 (heat 2660, both-sides buff stacking) + colour-decision observability. Turn dance: Feat (seat 1, colour designation \"1\" = BLUE, WUBRG) resolves on seat 1's turn — its +1/+1 counter is permanent, its EoT protection then expires cleanly at the dance (CR 514.2). The colour ask is observed IN-LANE before it expires: the 3/2 Sentinel attacks and the blue Vodalian Arcanist (seat 0) is never asked to block (CR 702.16c attacker-protection veto, legality.py block_pair_blocked_reason → layers.protections_of; blocker_askable: legal against nothing), so 3 damage land on seat 0 (life 17). The null policy answers the same ask with vocab[0] '0' (WHITE) — the blocker then blocks legally, life[0] stays 20 and the not_asked lane breaks. Basri's +1 lands on seat 0's own window (CR 307.5 planeswalker timing respected) on the ENEMY creature — legal, the compiled TARGET carries no CONTROLLER_IS YOU filter (CR 601.2b). Two +1/+1 counters stack -> 4/4 (CR 122.1c) with INDESTRUCTIBLE until end of turn alive at the check. Damage PREVENTION (the dealt-damage face of CR 702.16c) stays an executor semantics gap — see KNOWLEDGE/2026-10-07/27; the block-legality face is the observable lane. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the seat's mana is added at the step that spends it, standing in for the lands it taps there."
 }
