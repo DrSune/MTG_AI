@@ -2024,7 +2024,9 @@ class Round16eControlTest(unittest.TestCase):
         )
         spell = world.add_card(identity_of(record), p0, ZONE_HAND)
         self._arm(world, executor, p0)
-        cast(executor, p0, spell, targets=(victim,), decisions=("C",))
+        # re-pinned 2026-10-29: V4 changes "Add one mana of any color" to offer
+        # the five colors only (CR 105.1, 106.1a); "C" was never a color.
+        cast(executor, p0, spell, targets=(victim,), decisions=("R",))
         self.assertEqual(executor.controller_of(victim), p0)
         executor.end_turn()
         self.assertEqual(executor.controller_of(victim), p1)

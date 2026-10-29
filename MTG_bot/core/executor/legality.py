@@ -1755,7 +1755,7 @@ def _mana_tap_options(executor: Executor, payer: Handle) -> list[list[ManaTap]]:
     because it raises on cost kinds it cannot check."""
     from MTG_bot.core.ability_tree import Choose
     from MTG_bot.core.executor.query import choose_options
-    from MTG_bot.core.executor.verbs import _COLORS_VOCAB
+    from MTG_bot.core.executor.verbs import _ANY_COLOR_VOCAB
 
     world = executor.world
     out: list[list[ManaTap]] = []
@@ -1787,7 +1787,7 @@ def _mana_tap_options(executor: Executor, payer: Handle) -> list[list[ManaTap]]:
                 got = _mana_atom_output(effect, ctx)
                 if got is not None:
                     color, n = got
-                    colors = _COLORS_VOCAB if color is None else (color,)
+                    colors = _ANY_COLOR_VOCAB if color is None else (color,)
                     decide = color is None
                     taps = [
                         ManaTap(handle, idx, (c,) if decide else (), (c, n, tags))

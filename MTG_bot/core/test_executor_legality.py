@@ -462,6 +462,21 @@ class TestActivateFold(LegalityCase):
             activate(self.ex, self.alpha, 0, seat=self.p0)
         self.assertIn("source_tapped", str(caught.exception))
 
+    def test_any_colour_offers_the_five_colours_only(self):
+        # V4 (2026-10-29): "one mana of any color" is W, U, B, R or G (CR 105.1,
+        # 106.1a); colorless is not a color.
+        self.attach([ability(cost(CostTap()), effect=add_mana("ANY"))])
+        seen = []
+
+        def provider(vocab, what):
+            seen.append((tuple(vocab), what))
+            return vocab[-1]
+
+        self.ex.decisions.provider = provider
+        activate(self.ex, self.alpha, 0, seat=self.p0)
+        self.assertEqual([v for v, w in seen if w.startswith("mana:")], [("W", "U", "B", "R", "G")])
+        self.assertEqual(self.world.players[self.p0].mana_pool, {"G": 1})
+
     def test_sac_cost_self_sacrifice_moves_the_permanent(self):
         sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(BF_YOU,))
         self.attach([ability(cost(CostTap(), CostSacrifice(sel)))])

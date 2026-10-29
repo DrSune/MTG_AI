@@ -92,6 +92,10 @@ from MTG_bot.core.state import (
 )
 
 _COLORS_VOCAB = ("W", "U", "B", "R", "G", "C")
+# V4 (2026-10-29): "one mana of any color" is one of the five colors (CR 105.1,
+# 106.1a); colorless is a type of mana, not a color (CR 106.1b), so {C} is not an
+# answer to an any-color choice. A fixed "Add {C}" stays valid (_COLORS_VOCAB).
+_ANY_COLOR_VOCAB = ("W", "U", "B", "R", "G")
 
 
 # ------------------------------------------------------------------- handlers
@@ -1079,7 +1083,7 @@ def _v_add_mana(ctx: ExecCtx, atom: Atom) -> None:
     n = amount(ctx, atom, "amount")
     color = atom.args.get("color")
     if color is None or color == "ANY":
-        color = ctx.take_decision(_COLORS_VOCAB, f"mana:{ctx.source}")
+        color = ctx.take_decision(_ANY_COLOR_VOCAB, f"mana:{ctx.source}")
     elif isinstance(color, str) and color in _COLORS_VOCAB:
         pass
     else:
