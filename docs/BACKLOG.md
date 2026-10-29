@@ -549,6 +549,30 @@ These are forks, not tasks. See the report that accompanied this audit.
     its own drawback.
   - **Fix.** Offer the empty row only when the pool is smaller than the count (the C17 clamp it
     mirrors), and re-pin the M21 Duress and Kitesail packs.
+- **B-52 [2026-10-29, mapper G1 + packs] A counted static P/T bonus freezes at its first value**
+  (live in M21).
+  - `layers._materialize_static` skips a target that already has a ledger entry, so a bonus that
+    counts something is not continuous (CR 611.3a, 613.4).
+  - Seen on FDN Enigma Drake: it stays at 2 power after an instant reaches the graveyard. Blanchwood
+    Armor stays +4/+4 after you lose Forests. M21 Kinetic Augur fails the same way.
+  - Frozen high is **stronger than printed**: exile your own graveyard or sacrifice the lands and
+    keep the bonus. An RL policy would find that.
+  - Fix at an era boundary, with a pack that changes the count both ways.
+- **B-53 [2026-10-29] "Target player" only ever offers opponents, and a player binding takes over
+  any role named `target`.**
+  - The synthetic target-player slot lists opponents only, so "target player draws two cards" can
+    never target yourself.
+  - A target-player binding overrides an atom's own `target` role: "target player sacrifices a
+    creature" raised `KeyError 'unknown card player:1'`.
+  - Related: the deciding player of an edict is always the caster (no chooser role), the L-27
+    seat-routing gap.
+- **B-54 [2026-10-29] Minor engine findings from the first mapping batch:**
+  - `legal_casts` offers a spell whose required target has no legal candidate (CR 601.2c), and casting
+    it raises. The bench router hides such rows; the probe now skips them.
+  - Damage marked on a non-creature land through a forced binding: only reachable from harness ops,
+    but `DEAL_DAMAGE` does not check the recipient's type.
+  - M21 Quirion Dryad's trigger uses `COLOR_IN` (a subset test), so a green-white spell would not
+    trigger it. The text needs "any of white, blue, black or red" (an FOr of `COLOR_HAS`).
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
   plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
 
