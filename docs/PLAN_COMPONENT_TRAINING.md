@@ -87,6 +87,80 @@
 - Use self-play against a frozen panel (the heuristic plus earlier checkpoints); add exploiters
   later (REVIEW_ARCHITECTURE F4/F5).
 
+### First make RL work: small on-policy batches with a value head (owner, 2026-10-29)
+Owner: "we just need to do smaller batch sizes for now ... 20 or 50 game steps, so we get much more
+done. The big batches are for when we want it to learn niche decks and maintain skill at standard
+decks"; "No value function sound suspicous"; "right now we just need to make sure RL works, before
+making greedy long-term plays on it."
+
+**What pilot v1 actually did** (measured: KNOWLEDGE /171, /173; `reports/rld_i2_diag.json`):
+- **Data.** One batch of 1000 games against the heuristic teacher, re-collected identically each
+  night.
+- **Updates.** At most 3 SGD steps from the base in four nights. Every step hit the clip (raw norm 2.5,
+  clipped to 1.0), so each step moved the weights by exactly the learning rate.
+- **Credit.** One ±1 per game, shared equally by the game's ~47 learner decisions. No value function.
+- **Movement and exploration.** Policy entropy 0.064 nats per decision; KL from the anchor 0.0013
+  after 2 steps.
+- **Speed.**
+  - Training feeds the GPU one decision at a time, about 34 per second, so a pass takes about 23 min.
+  - Collection runs at 0.38 games/s on 6 CPU workers; about 95% of that time is the net, the engine
+    alone being about 0.8 s per game.
+
+**The loop to build next** (replaces the steps ladder):
+1. **Small on-policy iterations.**
+   - Collect G = 50 games with the *current* policy on fresh seeds; never re-use an old policy's games.
+   - Update, then repeat.
+   - G = 20 is the floor: gradient noise grows as 1/√G, and 50 games is about 2,350 learner decisions.
+   - Big batches come later, for niche decks and for keeping skill on standard decks.
+2. **A value head.**
+   - A scalar head on the policy's encoder predicts the game's outcome from the board at each
+     decision.
+   - It adds new parameters only, so iteration 0's policy is bit-identical to the anchor.
+   - Warm-start it on recorded games before the first policy update: the pilot's 1000 episodes plus
+     teacher games. Then train it each iteration on the fresh games.
+3. **Credit per decision from the board.**
+   - Advantage = GAE(γ = 1, λ = 0.95) over the value head's predictions. A decision is credited by how
+     much it changed the predicted outcome, not by the same ±1 as every other decision in the game.
+   - The reward stays the game's outcome. Never a hand-written board score: that is a heuristic the
+     policy would game, against CLAUDE.md's "learnable over hardcoded".
+   - A learned baseline reduces noise without changing what the policy optimizes.
+4. **Update rule.**
+   - PPO's clipped objective (ratio clip 0.2) with Adam, 2 to 4 epochs over each batch in minibatches.
+   - Stop an update early when its KL passes about 0.01.
+   - The gradient clip stays as a safety net that should rarely bind.
+   - The trainer must batch decisions (pad, 64 to 256 per forward); without that, small batches spend
+     their time in Python.
+5. **Opponent.** A frozen copy of the starting net, which is also the verdict's opponent: a fixed
+   environment in which improvement has to show. The heuristic teacher stays an evaluation probe.
+6. **Exploration.** Nothing beyond sampling at temperature 1 for now: about 2 to 3 off-greedy moves per
+   game at today's entropy. Log entropy every iteration. Add a fixed entropy bonus only if it collapses
+   below about 0.02 nats.
+7. **Engine.**
+   - The loop can be debugged on today's engine; anything trained there is thrown away.
+   - Real runs use the corrected engine after the era-boundary merge. A policy that actually moves will
+     find the exploits the M21 review is fixing: tap abilities ignore summoning sickness, mana banks
+     across turns, planeswalkers reset at 0 loyalty, Azusa gives unlimited land plays.
+
+**Pre-registration (draft; the executing agent finalizes it before the first run).**
+- **"RL works":** within 100 iterations (5,000 games), mirror win rate against the frozen start is at
+  least 0.55, with the 95% CI above 0.5 at n = 400 paired fresh seeds.
+- **Logged every iteration:**
+  - policy loss and value loss, and the value head's explained variance (it must be above 0);
+  - advantage mean and std;
+  - entropy;
+  - KL per update and cumulative;
+  - gradient norms;
+  - crash and draw rates (stalling is a known exploit).
+- **Triage order:**
+  1. Value head explains nothing → fix it before tuning anything else.
+  2. KL stays near 0 → the update is a no-op; check the pipeline.
+  3. Mirror below 0.47 → stop and inspect games.
+
+**Not yet** (owner: after RL is shown to work):
+- heavy exploration, leagues, big batches;
+- the recurrent core with full-game BPTT in DESIGN_TRAINING.md §2–3. The live PointerBC has no memory
+  between decisions, so there is nothing to backpropagate through time yet.
+
 ### Exploration in the long run (owner, 2026-10-29)
 Owner: huge exploration from the very beginning, over all or nearly all sets, "will likely cause
 slow improvement rate, but also ensure we are more likely to converge on the best solutions for each
