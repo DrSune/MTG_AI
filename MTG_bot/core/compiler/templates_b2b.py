@@ -482,46 +482,46 @@ def _cat_token(power: int, toughness: int) -> TokenSpec:
 # ---------------------------------------------------------------------------
 
 
+def _named_search_one(name: str) -> Atom:
+    """One "a card named <name>" pick from your library into your hand: an
+    up-to-one CHOOSE, which the compiler's search-pick pass turns into the
+    asked ONE_OF channel."""
+    return Atom(
+        verb=Verb.SEARCH,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAtom(pred=FAtomPred.NAME_EQ, string_value=name),
+                        zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),),
+                    ),
+                ),
+                ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
+            )
+        ),
+    )
+
+
 def _build_alpine_houndmaster_etb(m: re.Match[str]) -> SentenceOutcome:
-    """#5: search for named Alpine Watchdog and/or Igneous Cur, reveal, hand, shuffle."""
+    """#5: search for named Alpine Watchdog and/or Igneous Cur, reveal, hand, shuffle.
+
+    "a card named A and/or a card named B" is at most ONE card of each name
+    (m21-fidelity, review batch A, 2026-10-29): one pick per name, in printed
+    order. It was one up-to-two pick over FOr(NAME A, NAME B), which could
+    fetch two Alpine Watchdogs (stronger than printed). No IR node says
+    "distinct names", so the one search is written as two picks; nothing
+    observes the difference (no card in the pool triggers on searching).
+    """
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         OptionalEffect(
             inner=Seq(
                 steps=(
-                    Atom(
-                        verb=Verb.SEARCH,
-                        args=AtomArgs(
-                            pairs=(
-                                (
-                                    "cards",
-                                    Selector(
-                                        QConst(2),
-                                        SelectorMode.CHOOSE,
-                                        FOr(
-                                            children=(
-                                                FAtom(
-                                                    pred=FAtomPred.NAME_EQ,
-                                                    string_value="Alpine Watchdog",
-                                                ),
-                                                FAtom(
-                                                    pred=FAtomPred.NAME_EQ,
-                                                    string_value="Igneous Cur",
-                                                ),
-                                            )
-                                        ),
-                                        zones=(
-                                            Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
-                                        ),
-                                    ),
-                                ),
-                                (
-                                    "destination",
-                                    Zone(ZoneKind.HAND, ControllerRef.YOU),
-                                ),
-                            )
-                        ),
-                    ),
+                    _named_search_one("Alpine Watchdog"),
+                    _named_search_one("Igneous Cur"),
                     Atom(
                         verb=Verb.REVEAL,
                         args=AtomArgs(

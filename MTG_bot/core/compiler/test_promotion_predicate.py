@@ -53,12 +53,16 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 # Fire's [+1] and [−9] tails) are suppressed at assembly, and each carried one
 # CHOOSE(QUnbounded) source. No other surface moved (her two [−9] SEARCH
 # surfaces only re-indexed from ability 3 to 2).
-TOTAL_SURFACES = 153
+# re-pinned 2026-10-29 (m21-fidelity): Alpine Houndmaster's up-to-two named
+# search (count 2) became one up-to-one pick per name, which the search-pick
+# pass routes to ONE_OF (asked), so it leaves the census: COUNT_NOT_ONE 12 -> 11,
+# TOTAL 153 -> 152. No other surface moved.
+TOTAL_SURFACES = 152
 CORE_LIFTABLE = 22
 SELF_DESIGNATION = 57
 ANAPHORIC_REFERENT = 36
 COST_VICTIM = 26
-COUNT_NOT_ONE = 12
+COUNT_NOT_ONE = 11
 
 # (card, verb) rows the predicate matches but the encoder keeps silent —
 # must stay in lockstep with compiler.PICK_ASK_FORCE_SILENT (L-27..L-29).

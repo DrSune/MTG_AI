@@ -1451,23 +1451,27 @@ class TestB2bEffectStructure(unittest.TestCase):
         )
         option = _optional(ability)
         seq = _seq_inner(option)
-        self.assertEqual(len(seq.steps), 3)
-        # SEARCH
-        search = _atom_step(seq, 0)
-        self.assertIs(search.verb, Verb.SEARCH)
-        sel = _selector(search, "cards")
-        assert isinstance(sel.count, QConst)
-        self.assertEqual(sel.count.value, 2)
-        self.assertIs(sel.mode, SelectorMode.CHOOSE)
-        assert isinstance(sel.filter, FOr)
-        self.assertEqual(len(sel.filter.children), 2)
+        # re-pinned 2026-10-29: m21-fidelity, "a card named A and/or a card named B" is at most
+        # one card of EACH name: one up-to-one pick per name (it was one up-to-two pick over
+        # FOr(A, B), which could fetch two Alpine Watchdogs).
+        self.assertEqual(len(seq.steps), 4)
+        # SEARCH x2, in printed order
+        for idx, name in ((0, "Alpine Watchdog"), (1, "Igneous Cur")):
+            search = _atom_step(seq, idx)
+            self.assertIs(search.verb, Verb.SEARCH)
+            sel = _selector(search, "cards")
+            assert isinstance(sel.count, QConst)
+            self.assertEqual(sel.count.value, 1)
+            self.assertIs(sel.mode, SelectorMode.CHOOSE)
+            assert isinstance(sel.filter, FAtom)
+            self.assertEqual(sel.filter.string_value, name)
         # REVEAL
-        reveal = _atom_step(seq, 1)
+        reveal = _atom_step(seq, 2)
         self.assertIs(reveal.verb, Verb.REVEAL)
         self.assertIs(reveal.args.get("controller"), ControllerRef.YOU)
         assert isinstance(reveal.args.get("count"), QUnbounded)
         # SHUFFLE
-        shuffle = _atom_step(seq, 2)
+        shuffle = _atom_step(seq, 3)
         self.assertIs(shuffle.verb, Verb.SHUFFLE)
         zone = shuffle.args.get("zone")
         assert isinstance(zone, Zone)
