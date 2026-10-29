@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "010ec11a-0484-486d-b7c0-de65593bf457",
+ "name": "Sanguine Indulgence",
+ "text_sha": "96c93d51925ec10841df62cd2396c5b50e56e1883a0d8523ec0ceadc67316d67",
+ "verified": {
+  "tree_sha": "c99a161f9d1113309c640bf8405d7e2f4c58da7baa5ad038c48a9effc6ee471d",
+  "probe_sha": "f286f15d5fdd9aa87b1583a75419195a73c455889bd7f21e50b4883a35760de4",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "This spell costs {3} less to cast if you've gained 3 or more life this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[cast targets=['you_fallen']] pays the full {3}{B} (mana B-1 W-3) with no life gained. Tree abilities[0] equals the compiler's B4-cost-modifier-conditional-life parse. Covered by packs: sanguine_indulgence_reduced_two_targets.json (you gain 3 via lifelink, cast spends only {B} of four B) PASS; sanguine_indulgence_not_reduced.json (you gain 2, the opponent gains 3: full {3}{B} paid) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "Return up to two target creature cards from your graveyard to your hand.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_fallen] (your graveyard creature cards only: you_used and opp_fallen not offered); [cast targets=['you_fallen']]: 'you_fallen moves graveyard -> hand'. The two-target case is covered by pack sanguine_indulgence_reduced_two_targets.json (two of three graveyard creatures targeted: exactly those two return, the third, a noncreature and the opponent's creature card stay) PASS.",
+    "issue": "Engine convention, not a tree fault: an 'up to N' TARGET slot is declared 1..N (MTG_bot/core/executor/query.py C17 comment), so the spell cannot be cast choosing zero targets, which the printed 'up to two' allows (CR 601.2c). This only makes the card weaker, never stronger."
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/sanguine_indulgence_1.json",
+   "tools/scenarios/cards/FDN/sanguine_indulgence_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 4,
+   "score": 0.5,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/controller_ref",
+    "amount+1 at 1/0/condition/count",
+    "amount-1 at 1/0/condition/count",
+    "controller YOU->OPPONENT at 1/0/condition/who"
+   ]
+  }
+ }
+}

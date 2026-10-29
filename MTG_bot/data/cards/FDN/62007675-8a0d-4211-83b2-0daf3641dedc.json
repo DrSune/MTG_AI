@@ -1,0 +1,169 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "62007675-8a0d-4211-83b2-0daf3641dedc",
+ "name": "Enigma Drake",
+ "text_sha": "29fb70409470c801bc6e339d003977de807ecf323b2a5328dcf4122a9df1cf68",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "SET_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "power",
+        {
+         "tag": "QCount",
+         "selector": {
+          "tag": "Selector",
+          "count": {
+           "tag": "QUnbounded"
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "ALL"
+          },
+          "filter": {
+           "tag": "FOr",
+           "children": [
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Instant",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Sorcery",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           ]
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "GRAVEYARD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ]
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-A",
+  "date": "2026-10-29",
+  "draft_py": "cda = StaticAbility(\n    effect=A(Verb.SET_PT, {\n        'power': QCount(\n            selector=Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FOr(children=(\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Instant'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Sorcery'),\n                )),\n                zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n            ),\n        ),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [cda, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Enigma Drake's power is equal to the number of instant and sorcery cards in your graveyard.",
+    "ir": "abilities[0] (StaticAbility SET_PT power=QCount(ALL Instant|Sorcery in your graveyard) on self; Kinetic Augur shape)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "ENGINE ISSUE (not mapping): layers._materialize_static never re-evaluates a static SET_PT/MODIFY_PT quantity once a target has a ledger entry (layers.py ~810 'if target in layer.ledger_ids: continue'), so the power is frozen at its value when the Drake entered. Same for compiled Kinetic Augur (M21). Repro pack: mapper_A/enigma/pack_cast.json (expects 3, engine gives 2). Hold dealing until fixed: frozen-high power after graveyard exile is stronger than printed."
+ },
+ "probe": {
+  "sha": "8e4ede70c7a0ecb422cea6ec760ec761730c6b4cd66199d1a812272357c448d5"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "28c1a4a0-f58c-4d07-a918-51ff8a74f050",
+ "name": "High Fae Trickster",
+ "text_sha": "f67179435af5801ccb7b82bf9cd9398a1e8b1dead7811999a629a963bbd258bd",
+ "needs_atom": {
+  "missing": "You may cast spells as though they had flash.: no node grants a cast-timing permission. The cast lane (executor/legality.py ~1288-1300) reads FLASH only from the spell's own record; GRANT_ACTIVATION / layers.instant_window_granted relax the window for ACTIVATED abilities only, and GRANT_ABILITY(FLASH) to cards in hand is not read by the cast lane (and would be a different mechanic). Needs a static 'cast as though it had flash' policy (filter over the spells you cast, controller you) honoured by spell_window_reason. Flash and Flying keywords are compiled correctly.",
+  "author": "claude-mapper-B",
+  "date": "2026-10-29"
+ }
+}

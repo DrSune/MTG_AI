@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Reach (This creature can block creatures with flying.)' Serra Angel (4/4 flying) attacks; the defending Magnigoth Sentry (4/4) is offered the block and makes it; both 4/4s trade, the defending player takes nothing. A plain 2/2 without reach is never offered a block against the flyer.",
+ "cards": [
+  {"key": "angel", "real": "Serra Angel", "zone": "battlefield", "controller": 0},
+  {"key": "sentry", "real": "Magnigoth Sentry", "zone": "battlefield", "controller": 1},
+  {"key": "guard", "name": "Pit Guard", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"angel": true}, "block": {"sentry": "angel"}}
+ ],
+ "expect": {
+  "life": {"1": 20},
+  "zone": {"angel": "graveyard", "sentry": "graveyard", "guard": "battlefield"},
+  "blocked": {"angel": ["sentry"]},
+  "block_asks": {"sentry": "<angel>,NONE"},
+  "not_asked_to_block": ["guard"]
+ }
+}

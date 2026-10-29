@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "f76bcbfe-483f-4e63-8425-76feca1abf3e",
+ "name": "Pyromancer's Goggles",
+ "text_sha": "f079635fade92aecc5fdfefd279ba77ff06a4914274f0613107b7a217daccc49",
+ "needs_atom": {
+  "missing": "When that mana is spent to cast a red instant or sorcery spell, copy that spell and you may choose new targets for the copy.: two missing pieces. (1) No event for 'the mana THIS ability produced is spent to cast a spell matching a filter' (mana provenance tracking; CastSpellEvent cannot say which mana paid the cost). (2) Copying a spell on the stack with 'you may choose new targets': Verb.COPY exists in the IR but is not in SUPPORTED_VERBS_V2 (no executor handler), and the M21 Double Vision template is the only copy precedent. The '{T}: Add {R}.' mana ability compiles correctly.",
+  "author": "claude-mapper-A",
+  "date": "2026-10-29"
+ }
+}

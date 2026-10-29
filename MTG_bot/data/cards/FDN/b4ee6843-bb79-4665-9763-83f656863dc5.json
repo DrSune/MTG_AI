@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "b4ee6843-bb79-4665-9763-83f656863dc5",
+ "name": "Stab",
+ "text_sha": "1637bf5a07009479fabd939fd5449ff24c69049005ea471602a0d5ec8d85a285",
+ "verified": {
+  "tree_sha": "edac77b6c4d43ac165e28ba69c0f377279eb3b88a329f034616d3d8f65c1c2f0",
+  "probe_sha": "80c243347161ac1649329ef2a44adb63d92148b5a51e563448635f63a9174904",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "Target creature gets -2/-2 until end of turn.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_bear, you_giant, opp_bear, opp_giant]; [cast targets=['you_giant']] / ['opp_giant']: 4/4 -> 2/2, 'after the turn ends' back to 4/4; the 2/2 bears die at 0/0; only the chosen creature changes; cost B-1",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

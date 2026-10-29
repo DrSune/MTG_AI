@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "05878e49-93ad-4144-9c50-a0bb86126c2e",
+ "name": "Chart a Course",
+ "text_sha": "2ee992d77a8ab41d67290ac42016ebf4ef240aa4a751c0a06173ece818703651",
+ "needs_atom": {
+  "missing": "Then discard a card unless you attacked this turn.: no predicate reads 'you attacked this turn' (raid). The DECLARE_ATTACKERS journal rows exist, but no FAtomPred / ThisTurnKind answers 'did <who> declare an attacker this turn' (ATTACK_AGAINST_COUNT_GE reads only the triggering DeclareAttackersEvent; IS_ATTACKING + CONTROLLER_COUNT_GE is 'controls an attacking creature now', false after combat when a sorcery resolves). Needs e.g. FAtomPred.ATTACKED_THIS_TURN(who=YOU) for Conditional(pred=FNot(...), then_effect=discard 1). 'Draw two cards.' is compiled correctly.",
+  "author": "claude-mapper-B",
+  "date": "2026-10-29"
+ }
+}

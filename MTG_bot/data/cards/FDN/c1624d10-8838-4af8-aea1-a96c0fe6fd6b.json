@@ -1,0 +1,474 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "c1624d10-8838-4af8-aea1-a96c0fe6fd6b",
+ "name": "Goldvein Pick",
+ "text_sha": "11e752be12af55833675ff472f7fe6d7f775200e83434e09b624b6c1f47496dc",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "EQUIP"
+    },
+    "params": []
+   },
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "TREASURE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_ATTACHED_TO_SOURCE"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DamageDealtEvent",
+     "amount": {
+      "tag": "QUnbounded"
+     },
+     "filter": {
+      "tag": "FNot",
+      "inner": {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "IS_PERMANENT"
+       },
+       "string_value": null,
+       "color": null,
+       "colors": [],
+       "count": null,
+       "counter_kind": null,
+       "keyword": null,
+       "who": null,
+       "inner_filter": null
+      }
+     },
+     "source": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_ATTACHED_TO_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     },
+     "combat": true
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Treasure",
+         "type_line": "Artifact",
+         "types": [
+          "Artifact"
+         ],
+         "subtypes": [],
+         "power": null,
+         "toughness": null,
+         "keywords": [
+          {
+           "tag": "Keyword",
+           "name": "TREASURE"
+          }
+         ],
+         "abilities": [
+          {
+           "tag": "ActivatedAbility",
+           "cost": {
+            "tag": "Cost",
+            "parts": [
+             {
+              "tag": "CostSacrifice",
+              "target": {
+               "tag": "Selector",
+               "count": {
+                "tag": "QConst",
+                "value": 1
+               },
+               "mode": {
+                "tag": "SelectorMode",
+                "name": "CHOOSE"
+               },
+               "filter": {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "IS_SOURCE"
+                },
+                "string_value": null,
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               },
+               "zones": [
+                {
+                 "tag": "Zone",
+                 "kind": {
+                  "tag": "ZoneKind",
+                  "name": "BATTLEFIELD"
+                 },
+                 "controller": {
+                  "tag": "ControllerRef",
+                  "name": "ANY"
+                 }
+                }
+               ]
+              }
+             },
+             {
+              "tag": "CostTap",
+              "target": null
+             }
+            ]
+           },
+           "effect": {
+            "tag": "Atom",
+            "verb": {
+             "tag": "Verb",
+             "name": "ADD_MANA"
+            },
+            "args": {
+             "tag": "AtomArgs",
+             "pairs": [
+              [
+               "amount",
+               {
+                "tag": "QConst",
+                "value": 1
+               }
+              ],
+              [
+               "color",
+               {
+                "tag": "String",
+                "value": "ANY"
+               }
+              ],
+              [
+               "controller",
+               {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               }
+              ]
+             ]
+            }
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "ATTACH"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "equipment",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    },
+    "timing": {
+     "tag": "ActivationWindow",
+     "name": "SORCERY"
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ARTIFACT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-B",
+  "date": "2026-10-29",
+  "draft_py": "# Goldvein Pick:\n#  \"Equipped creature gets +1/+1.\"                                   (compiled, kept)\n#  \"Whenever equipped creature deals combat damage to a player, create a Treasure token.\"\n#  \"Equip {1}\" (= {1}: Attach to target creature you control. Equip only as a sorcery. CR 702.6a)\nstatic_pt, equip = compiled\ntreasure = TokenSpec(   # the corpus' Treasure spec (M21 Gadrak, the Crown-Scourge)\n    name='Treasure',\n    type_line='Artifact',\n    types=('Artifact',),\n    subtypes=(),\n    power=None,\n    toughness=None,\n    keywords=(Keyword.TREASURE,),\n    abilities=(\n        ActivatedAbility(\n            cost=Cost(parts=(\n                CostSacrifice(target=Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.CHOOSE,\n                    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                )),\n                CostTap(),\n            )),\n            effect=A(Verb.ADD_MANA, {'amount': QConst(value=1), 'color': 'ANY', 'controller': ControllerRef.YOU}),\n        ),\n    ),\n)\n# \"to a player\": the damaged object is not a permanent (damage recipients are players,\n# creatures, planeswalkers, battles; only players are non-permanents). FAnd(()) would also\n# fire on combat damage dealt to a blocking/blocked creature.\ntrig = TriggeredAbility(\n    event=DamageDealtEvent(\n        amount=QUnbounded(),\n        filter=FNot(inner=FAtom(pred=FAtomPred.IS_PERMANENT)),\n        source=FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),\n        combat=True,\n    ),\n    condition=None,\n    effect=A(Verb.CREATE_TOKEN, {'count': QConst(value=1), 'tokens': treasure}),\n)\nequip_sorcery = ActivatedAbility(cost=equip.cost, effect=equip.effect, timing=ActivationWindow.SORCERY)\nabilities = [static_pt, trig, equip_sorcery, SpellAbility(kind=SpellKind.ARTIFACT)]\n",
+  "clauses": [
+   {
+    "clause": "Equipped creature gets +1/+1.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Whenever equipped creature deals combat damage to a player, create a Treasure token.",
+    "ir": "abilities[1]"
+   },
+   {
+    "clause": "Equip {1} ({1}: Attach to target creature you control. Equip only as a sorcery.)",
+    "ir": "abilities[2] (timing=SORCERY) + keywords[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Trigger recipient filter FNot(IS_PERMANENT) = 'a player' (the only non-permanent damage recipient); the compiler's 'to a player' idiom FAnd(()) also fires on combat damage to a blocking creature (checked: pack_blocked gives a Treasure with FAnd(()), none with FNot(IS_PERMANENT)). Treasure TokenSpec copied from M21 Gadrak. Equip given timing=SORCERY (B5a-equip drops it). Carrier SpellAbility(ARTIFACT) added. Compiled card keyword TREASURE kept (G0 requires MTGJSON keywords; no executor reader)."
+ },
+ "probe": {
+  "sha": "d9e2b3bf92a250f55b892d4207385f848925a8173fee0f2629aa53b7fe7d6d05"
+ }
+}

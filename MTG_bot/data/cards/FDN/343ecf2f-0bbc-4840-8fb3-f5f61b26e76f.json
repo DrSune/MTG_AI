@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "343ecf2f-0bbc-4840-8fb3-f5f61b26e76f",
+ "name": "Swab Goblin",
+ "text_sha": "c1aa69a33be7ce10e8b83fc63c2e316a125dc36bd9ce3d060e1a9c7ac52ffd48",
+ "verified": {
+  "tree_sha": "beb3563d8653ddafc080291c5f4c417e1e4879b2c58c8d12dccfc7a66178d71d",
+  "probe_sha": "b35ec1eba7138c5a4ff3a12e30f87cad677b4751c8e8e080fafde9e1e5bbebd8",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "(no rules text: vanilla 2/2 Goblin Pirate creature, {1}{R})",
+    "status": "OK",
+    "evidence": "tree is only SpellAbility(kind=CREATURE), keywords empty; [cast]: enters 2/2 for R-1 W-1; taps to attack and deals 2 unblocked; no stimulus triggers anything; static: 2/2",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "3a646245-b8b7-4f91-a312-d5eea9a9e49a",
+ "name": "Extravagant Replication",
+ "text_sha": "e45c17ebc7d678fb092b448c0c2a57c7d5b948898ee3421bde2fd627075ec2a0",
+ "needs_atom": {
+  "missing": "At the beginning of your upkeep, create a token that's a copy of another target nonland permanent you control.: token copy of a permanent. The IR's form is Verb.COPY{source: TARGET selector} (M21 Sublime Epiphany's bullet), but COPY is not in SUPPORTED_VERBS_V2 (G0 fails it), and CREATE_TOKEN needs a fixed TokenSpec, so no executable node copies a permanent's copiable values into a token. The upkeep trigger (TurnPhaseEvent UPKEEP actor you) and the target (another nonland permanent you control: IS_PERMANENT, FNot Land, CONTROLLER_IS you, FNot IS_SOURCE) are expressible; carrier SpellAbility(ENCHANTMENT) would be needed.",
+  "author": "claude-mapper-B",
+  "date": "2026-10-29"
+ }
+}

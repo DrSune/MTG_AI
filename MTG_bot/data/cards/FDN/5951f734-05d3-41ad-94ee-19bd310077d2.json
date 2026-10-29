@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "5951f734-05d3-41ad-94ee-19bd310077d2",
+ "name": "Skyship Buccaneer",
+ "text_sha": "d1efdff3d47d16af98571e47c99d144f03dc733b7b37b4fb725286b1b6a23139",
+ "needs_atom": {
+  "missing": "Raid — When this creature enters, if you attacked this turn, draw a card.: the intervening-if 'you attacked this turn' (raid) has no predicate: no FAtomPred / ThisTurnKind answers 'did <who> declare an attacker this turn' (DECLARE_ATTACKERS rows are journalled; ATTACK_AGAINST_COUNT_GE reads only a triggering DeclareAttackersEvent). Needs e.g. FAtomPred.ATTACKED_THIS_TURN(who=YOU) as the TriggeredAbility condition. ETB event, DRAW 1 and Flying are expressible/compiled.",
+  "author": "claude-mapper-B",
+  "date": "2026-10-29"
+ }
+}

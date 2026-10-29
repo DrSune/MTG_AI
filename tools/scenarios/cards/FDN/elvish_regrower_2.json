@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'return target permanent card from your graveyard to your hand.' A land card is a permanent card: with a Forest, an instant and a sorcery in your graveyard, the only legal target is the Forest, and it returns to your hand.",
+ "cards": [
+  {"key": "regrower", "real": "Elvish Regrower", "zone": "hand", "controller": 0},
+  {"key": "land", "real": "Forest", "zone": "graveyard", "controller": 0},
+  {"key": "trick", "name": "Old Trick", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "sorc", "name": "Old Sorcery", "type": "Sorcery", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"G": 4}},
+ "steps": [
+  {"op": "cast", "real": "Elvish Regrower", "key": "regrower"}
+ ],
+ "expect": {
+  "zone": {"regrower": "battlefield", "land": "hand", "trick": "graveyard", "sorc": "graveyard"},
+  "hand": {"0": 1}
+ }
+}

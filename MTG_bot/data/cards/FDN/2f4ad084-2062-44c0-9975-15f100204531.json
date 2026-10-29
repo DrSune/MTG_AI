@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "2f4ad084-2062-44c0-9975-15f100204531",
+ "name": "Swiftwater Cliffs",
+ "text_sha": "5e200ff5c55f2f75b8430a0842fde08264099e07791e4add00dfb19c0de0a492",
+ "verified": {
+  "tree_sha": "4a56541a463e6ed0945dcb90d124d0164b31d46b410cf2add0d0a0d58d7799f8",
+  "probe_sha": "66bb32550a975eb3c491dc3b01423c8956582893fb86ae80a0a6d322449233cb",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: 'card: zone hand -> battlefield; tapped False -> True'; also tapped when put onto the battlefield on the opponent's turn",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land]: ability [1] triggers, 'you gains 1 life', you 20 -> 21; also on the opponent's-turn entry; no other stimulus triggers it",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {U} or {R}.",
+    "status": "OK",
+    "evidence": "[activate [2]] ask choose [0, 1]: 0 -> tapped, mana U+1; 1 -> tapped, mana R+1",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

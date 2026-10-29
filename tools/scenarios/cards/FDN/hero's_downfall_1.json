@@ -1,0 +1,17 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Destroy target creature or planeswalker.' Target an opponent's planeswalker (Ajani, Caller of the Pride): it is destroyed (graveyard); the bystander creature is untouched.",
+ "cards": [
+  {"key": "hd", "real": "Hero's Downfall", "zone": "hand", "controller": 0},
+  {"key": "pw", "real": "Ajani, Caller of the Pride", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 3}},
+ "steps": [
+  {"op": "cast", "real": "Hero's Downfall", "key": "hd", "targets": ["pw"]}
+ ],
+ "expect": {
+  "zone": {"hd": "graveyard", "pw": "graveyard", "bear": "battlefield"}
+ }
+}

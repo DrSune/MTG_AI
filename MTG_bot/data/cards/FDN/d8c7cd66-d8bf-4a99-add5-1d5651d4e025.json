@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "d8c7cd66-d8bf-4a99-add5-1d5651d4e025",
+ "name": "Tajuru Pathwarden",
+ "text_sha": "b5027eaedcb756bf17e64ea3e9cf3dfca7865f487619173e0b0ca6ab109fd8cb",
+ "verified": {
+  "tree_sha": "e2912273cdf889ee349adc31e4106637b80d118ef79d5abac4e18db01001329c",
+  "probe_sha": "fa21ed2a3cf3834b0f6be66970474cdedd33aa7a54ceb4ba341a0462ce50a3a1",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "Vigilance (Attacking doesn't cause this creature to tap.)",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks alone, unblocked] and the blocked variant: DECLARE_ATTACKERS with no 'card becomes tapped' event",
+    "issue": ""
+   },
+   {
+    "clause": "Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: 'COMBAT_DAMAGE card ((4, opp_giant), (1, opp))': lethal 4 to the 4/4 blocker, the excess 1 to the opponent (20 -> 19)",
+    "issue": ""
+   },
+   {
+    "clause": "(5/4 Elf Warrior Ally creature, {4}{G})",
+    "status": "OK",
+    "evidence": "[cast]: enters 5/4 +TRAMPLE +VIGILANCE for G-1 W-4; unblocked attack deals 5",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

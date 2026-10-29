@@ -1,0 +1,190 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "9a107e48-3d50-4941-95b1-10f2b29a4245",
+ "name": "Stroke of Midnight",
+ "text_sha": "6e2f3c328b175d47d2a98cbb5515f63e870a915a82b75faafae2f2580900d4ad",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DESTROY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_PERMANENT"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FNot",
+              "inner": {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Land",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "CREATE_TOKEN"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "controller",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "ANY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ],
+           "referent": "target"
+          }
+         ],
+         [
+          "tokens",
+          {
+           "tag": "TokenSpec",
+           "name": "Human",
+           "type_line": "Creature — Human",
+           "types": [
+            "Creature"
+           ],
+           "subtypes": [
+            "Human"
+           ],
+           "power": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "toughness": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "keywords": [],
+           "abilities": [],
+           "color": "W"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-B",
+  "date": "2026-10-29",
+  "draft_py": "# Stroke of Midnight: \"Destroy target nonland permanent. Its controller creates a 1/1 white Human creature token.\"\ndestroy = compiled[0].effect\ntoken = A(Verb.CREATE_TOKEN, {\n    'controller': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.CHOOSE,\n        filter=FAnd(children=()),\n        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n        referent='target',\n    ),\n    'tokens': TokenSpec(\n        name='Human',\n        type_line='Creature — Human',\n        types=('Creature',),\n        subtypes=('Human',),\n        power=QConst(value=1),\n        toughness=QConst(value=1),\n        keywords=(),\n        abilities=(),\n        color='W',\n    ),\n})\nabilities = [SpellAbility(kind=SpellKind.INSTANT, effect=Seq(steps=(destroy, token)))]\n",
+  "clauses": [
+   {
+    "clause": "Destroy target nonland permanent.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "Its controller creates a 1/1 white Human creature token.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "0703c24ff494fe07ed5c3bd079c050cd9f87dfae9fcb082d0533eed14edcc66a"
+ }
+}

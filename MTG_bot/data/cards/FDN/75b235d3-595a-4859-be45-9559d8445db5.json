@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "75b235d3-595a-4859-be45-9559d8445db5",
+ "name": "Selesnya Guildgate",
+ "text_sha": "4cf24c2677f8ca439fe68e2dd859614819268c76bd36356efb40a7e3eeada30c",
+ "verified": {
+  "tree_sha": "d5e1c3719a17cf934f860dc57980904bcbe6f6e5bd752667797e25a3d6ed4404",
+  "probe_sha": "3b7848197abcdad5a982fd07039639fca52d7e084ae839cfee06e2a6156efd74",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: 'card: zone hand -> battlefield; tapped False -> True'; also tapped when put onto the battlefield on the opponent's turn",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {G} or {W}.",
+    "status": "OK",
+    "evidence": "[activate [1]] ask choose [0, 1]: 0 -> tapped, mana G+1; 1 -> tapped, mana W+1; no triggers, no other effect",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

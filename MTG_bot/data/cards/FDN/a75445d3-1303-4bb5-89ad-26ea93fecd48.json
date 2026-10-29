@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "a75445d3-1303-4bb5-89ad-26ea93fecd48",
+ "name": "Evolving Wilds",
+ "text_sha": "2c3d5ffa741d41f27662250af75575c90adc9cf0a9a09a9b5c5913de4752a4a5",
+ "verified": {
+  "tree_sha": "82ced11e2b5a3d6706ca1b0f80ef8f02fa7e2beb8d82bcc158b4ef8de62c0dbf",
+  "probe_sha": "2780a981973f4f386c829716e1b041949d3205708e7660ffe855634306d688da",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "{T}, Sacrifice this land: (cost)",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: 'card becomes tapped (by card/TAP)', 'card moves battlefield -> graveyard (by card/SACRIFICE)'; only the Wilds itself is sacrificed; no mana cost; [play land] enters untapped with no trigger",
+    "issue": ""
+   },
+   {
+    "clause": "Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "the standard library has no basic land, so the activation finds nothing. Covered by pack evolving_wilds_search_basic.json: with Forest, Island and Jungle Hollow in your library and a Swamp in the opponent's, you choose the Island (not the lower-handle Forest, so the choice is asked), it enters the battlefield tapped; Forest, the nonbasic Jungle Hollow and the opponent's Swamp stay in their libraries; your library keeps 8 cards. PASS.",
+    "issue": "Observation, no behavioural effect found: the SEARCH selector uses SelectorMode.ONE_OF where the compiler's parse of this sentence (B5c-cost-sacrifice-search) uses CHOOSE. For count 1 both ask the controller to pick one of several basics and return exactly one when any exists (selectors.py resolve_selector); ONE_OF additionally journals a partition row. Engine-wide gap, not this tree: neither mode lets the searcher fail to find (CR 701.19b), which only makes the card weaker."
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/evolving_wilds_1.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 5,
+   "score": 0.35714285714285715,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/0/target/filter",
+    "drop step 0 at 1/0/effect",
+    "drop step 1 at 1/0/effect",
+    "amount+1 at 1/0/effect/steps/0/args/cards/count",
+    "widen filter (drop part 0) at 1/0/effect/steps/0/args/cards/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/cards/filter",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/0/effect/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/args/destination/controller"
+   ]
+  }
+ }
+}

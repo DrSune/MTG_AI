@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "b5ba87f5-3589-4a8b-ad65-2ae2523e98e8",
+ "name": "Thornweald Archer",
+ "text_sha": "f85ea9f39c019e699de63a57453c0f345a12e3833bddce18b5b28e5c88032c31",
+ "verified": {
+  "tree_sha": "dc786feb0f8ba3799732f58ccbb9fa7ad099ed5c3279fa6ce54b23ffbacc696c",
+  "probe_sha": "83c055bed94557667aa9eeca463221039928df7d6abc4de65d1f7173348db13f",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "Reach (This creature can block creatures with flying.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "keywords include REACH (static section: 'card keywords: REACH DEATHTOUCH'), but no flyer attacks on the standard board. Covered by pack thornweald_archer_reach_blocks_flyer.json (the Archer is offered and makes the block on an attacking Serra Angel; a non-reach 2/2 is never asked to block) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "Deathtouch (Any amount of damage this deals to a creature is enough to destroy it.)",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: 'opp_giant is dealt 2 damage (combat)' then 'opp_giant moves battlefield -> graveyard', 'opp_giant dies' (a 4/4 killed by 2 damage); also in the reach pack (2 damage destroys the 4/4 Angel)",
+    "issue": ""
+   },
+   {
+    "clause": "(2/1 Elf Archer creature, {1}{G})",
+    "status": "OK",
+    "evidence": "[cast]: enters as 2/1 with +DEATHTOUCH +REACH for G-1 W-1; no triggers on any stimulus",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/thornweald_archer_1.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

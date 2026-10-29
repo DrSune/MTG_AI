@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "b97d21b4-d730-479f-872f-3e1645b66751",
+ "name": "Release the Dogs",
+ "text_sha": "e77b84021bae279a7cc6d72904f6ec0bc3e6dcb96a1bdffe459dbe33a6eb892c",
+ "verified": {
+  "tree_sha": "34d6c40515be4354afa8afe1efc1fc799758369a4325f1477141f01586a9cf2f",
+  "probe_sha": "45a9cd5729c6898196a5268512dec3466a5571226f6b74fc518d00e4d4b0a0aa",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "Create four 1/1 white Dog creature tokens.",
+    "status": "OK",
+    "evidence": "[cast]: 'you:Dog#1..#4 moves new -> battlefield (by card/CREATE_TOKEN)', '+ you:Dog#N (battlefield, you, 1/1)' x4, cost W-4; tree TokenSpec Dog, 'Creature — Dog', 1/1, color 'W', no keywords/abilities; equals the compiler's B11-create-tokens parse",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

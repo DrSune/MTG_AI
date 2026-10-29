@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: prowess triggers on spells YOU cast. The opponent casting a noncreature spell (Fleeting Distraction on their own creature) does not pump your Dowser.",
+ "cards": [
+  {"key": "dowser", "real": "Shipwreck Dowser", "zone": "battlefield", "controller": 0},
+  {"key": "fd", "real": "Fleeting Distraction", "zone": "hand", "controller": 1},
+  {"key": "oppbear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"1": {"U": 1}},
+ "steps": [
+  {"op": "cast", "real": "Fleeting Distraction", "key": "fd", "controller": 1, "targets": ["oppbear"]}
+ ],
+ "expect": {
+  "zone": {"fd": "graveyard"},
+  "power": {"dowser": 3, "oppbear": 1},
+  "toughness": {"dowser": 3}
+ }
+}

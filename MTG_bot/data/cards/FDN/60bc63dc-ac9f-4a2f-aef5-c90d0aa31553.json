@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "60bc63dc-ac9f-4a2f-aef5-c90d0aa31553",
+ "name": "Thrashing Brontodon",
+ "text_sha": "ba4ed7ee888f4b420940886e697f9ce92b44d3f3b618f6be2822bb8ca279b356",
+ "verified": {
+  "tree_sha": "9900be46178712b405a8836c1b2b1fcf5f4b10bbc734bdccd39483288eaf0297",
+  "probe_sha": "f2bf03ad212de787b59fefb04679f633c93de2f002b80e21761bbc86913099b0",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "{1}, Sacrifice this creature: Destroy target artifact or enchantment.",
+    "status": "OK",
+    "evidence": "ability [0] target slot: 1..1 of [you_relic, you_charm, opp_relic, opp_charm] (artifacts/enchantments of both sides, no creatures); each [activate [0] targets=[X]]: mana W-1 (the {1}), 'card moves battlefield -> graveyard (by card/SACRIFICE)', 'X moves battlefield -> graveyard (by card/DESTROY)', only X",
+    "issue": ""
+   },
+   {
+    "clause": "(3/4 Dinosaur creature, {1}{G}{G})",
+    "status": "OK",
+    "evidence": "[cast]: enters 3/4 for G-2 W-1; no keywords, no triggers",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 8,
+   "killed": 7,
+   "score": 0.875,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/1/target/filter"
+   ]
+  }
+ }
+}

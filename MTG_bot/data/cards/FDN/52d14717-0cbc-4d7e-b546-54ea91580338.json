@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "52d14717-0cbc-4d7e-b546-54ea91580338",
+ "name": "Dimir Guildgate",
+ "text_sha": "2cc2d25dde2d476a392699d3a401d01cb79d979ace369d210a891572bdce707a",
+ "verified": {
+  "tree_sha": "4db8a353cd8caca9b083dfc337b551dba34c96d0923120f97e688efda2adc646",
+  "probe_sha": "a93dd80298fc52c8d3071d9dd0f80b8b902371147a4798fdc31311de906e828d",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: 'card: zone hand -> battlefield; tapped False -> True'; also tapped when put onto the battlefield on the opponent's turn",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {U} or {B}.",
+    "status": "OK",
+    "evidence": "[activate [1]] ask choose [0, 1]: 0 -> tapped, mana U+1; 1 -> tapped, mana B+1; no triggers, no other effect",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

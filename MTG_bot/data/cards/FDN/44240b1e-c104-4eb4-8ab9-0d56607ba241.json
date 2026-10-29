@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "44240b1e-c104-4eb4-8ab9-0d56607ba241",
+ "name": "Swiftblade Vindicator",
+ "text_sha": "2c49817f1baa1323cd6c334eccc43b949850a251d1f86f4240f7f90cb67c110e",
+ "verified": {
+  "tree_sha": "5a0ac6a4416018b8c2956cb198eef4ece7299212e41017bf32466ee95b262f08",
+  "probe_sha": "8ad4f0eb57d00c6b6ec3a29f1dc84de293bb316e2e655c6bc05a1a9aa9e05217",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "Double strike (This creature deals both first-strike and regular combat damage.)",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks alone, unblocked]: two COMBAT_DAMAGE rows of 1 each, opp 20 -> 18; [attacks and opp_giant blocks it]: 1 first-strike damage to opp_giant, then the regular step where the giant's 4 and the Vindicator's second 1 are simultaneous (giant damage 2)",
+    "issue": ""
+   },
+   {
+    "clause": "Vigilance (Attacking doesn't cause this creature to tap.)",
+    "status": "OK",
+    "evidence": "both attack variants: DECLARE_ATTACKERS with no 'card becomes tapped' event",
+    "issue": ""
+   },
+   {
+    "clause": "Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "a 1-power creature never has excess over a live blocker on the standard board. Covered by pack swiftblade_vindicator_trample_excess.json (Giant Growth -> 4/4, blocked by a 2/2: first-strike step asks the trample split 0..2 and deals 2 to the blocker + 2 to the opponent, regular step 4 more: opponent 20 -> 14) PASS. Pack swiftblade_vindicator_trample.json (1/1 chump-blocked: first strike kills the blocker, regular damage 1 to the opponent) PASS, but it cannot isolate trample because of the engine bug below.",
+    "issue": "ENGINE BUG seen while building the pack (not this card's tree): MTG_bot/core/executor/__init__.py:1974, _assign_damage 'if not blockers: return ((power, attacked),)' - a BLOCKED attacker whose blockers have all left combat assigns its full damage to the defending player even WITHOUT trample (control: Drogskol Reaver, no trample, blocked by Thornweald Archer: the Archer dies to first-strike damage and the Reaver then deals 3 to the player, 20 -> 17). CR 510.1c: such a creature assigns no combat damage unless it has trample (CR 702.19e) or an as-though-unblocked effect. Every first/double striker without trample (and any attacker whose blocker is removed after blocks) is stronger than printed."
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/swiftblade_vindicator_1.json",
+   "tools/scenarios/cards/FDN/swiftblade_vindicator_2.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

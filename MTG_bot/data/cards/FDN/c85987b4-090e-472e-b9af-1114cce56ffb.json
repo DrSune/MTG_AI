@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "c85987b4-090e-472e-b9af-1114cce56ffb",
+ "name": "Stromkirk Bloodthief",
+ "text_sha": "d9d8d2b2f13446567a3c7d73aa3f65bc9b46218ca472ee736f1df935d22678e6",
+ "needs_atom": {
+  "missing": "At the beginning of your end step, if an opponent lost life this turn, put a +1/+1 counter on target Vampire you control.: the intervening-if 'an opponent lost life this turn' has no predicate. No FAtomPred or ThisTurnKind reads life LOST this turn (only LIFE_GAINED_THIS_TURN_GE, LIFE_LEAD_OVER_START_GE, QThisTurn LIFE_GAINED/CARDS_DRAWN/NONCOMBAT_DAMAGE exist); the journal already has LIFE_LOST and DAMAGE-to-player rows. Needs e.g. FAtomPred.LIFE_LOST_THIS_TURN_GE(who=OPPONENT, count=1) or ThisTurnKind.LIFE_LOST. The rest (TurnPhaseEvent END_TURN actor you; PUT_COUNTER +1/+1 on TARGET Vampire you control) is expressible.",
+  "author": "claude-mapper-B",
+  "date": "2026-10-29"
+ }
+}

@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "4a7a55a3-568c-4c31-9460-5b94dc0121d8",
+ "name": "Hungry Ghoul",
+ "text_sha": "4bf476439c100d28afa2ef38f7178b6b9859d69dceb5ec5a24dc10514429514e",
+ "verified": {
+  "tree_sha": "503a6b852674ecef8951e78e387cecbae9f52c120356f53c18ec4d962d9a0315",
+  "probe_sha": "9e9799a9e2f6bed5d656cc876115c224196350e5ce05058a256638fa795b8463",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "{1}, Sacrifice another creature: Put a +1/+1 counter on this creature.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: 'ask sacrifice: [you_bear, you_giant]' (your other creatures only: not the Ghoul itself, not opponent's creatures); paying mana W-1 (the {1}); the chosen creature 'moves battlefield -> graveyard (by card/SACRIFICE)'; 'card gets 1 PLUS_1_PLUS_1 counter(s)', 2/2 -> 3/3, the counter stays after the turn ends. Same with you_giant. Tree equals the compiler's B5c-cost-sacrifice-counter parse.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 10,
+   "killed": 9,
+   "score": 0.9,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

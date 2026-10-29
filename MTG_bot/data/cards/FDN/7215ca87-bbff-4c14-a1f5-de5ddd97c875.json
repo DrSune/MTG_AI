@@ -1,0 +1,38 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "7215ca87-bbff-4c14-a1f5-de5ddd97c875",
+ "name": "Spitfire Lagac",
+ "text_sha": "b31c0727112347e185d028631d25463d2f8da21110bf3537233bb17012e5b084",
+ "verified": {
+  "tree_sha": "3b08acd3ca58d47ce08239836275d198bb5212d90621489e095b6b3597f3545a",
+  "probe_sha": "ebeb0e99f65bdb7b4b54b27e83da2398636d4f1a48b42c2ecae818bba522f149",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "Landfall — Whenever a land you control enters, this creature deals 1 damage to each opponent.",
+    "status": "OK",
+    "evidence": "[stimulus: you play a land]: ability [0] triggers, 'opp is dealt 1 damage (by card/DEAL_DAMAGE)', opp 20 -> 19, you unchanged; creatures entering, draws etc. -> none. Not-played entry and the opponent's land covered by pack spitfire_lagac_landfall_sides.json (your Forest put onto the battlefield -> opponent 19; the opponent's Mountain entering -> no damage) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "(3/4 Lizard creature, {3}{R})",
+    "status": "OK",
+    "evidence": "[cast]: enters 3/4 for R-1 W-3; no keywords",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/spitfire_lagac_1.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 5,
+   "score": 0.8333333333333334,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/event/subject"
+   ]
+  }
+ }
+}

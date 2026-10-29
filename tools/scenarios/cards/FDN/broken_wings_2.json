@@ -1,0 +1,16 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Destroy target artifact, enchantment, or creature WITH FLYING.' A creature without flying is not a legal target: the cast is refused and the creature survives.",
+ "cards": [
+  {"key": "bw", "real": "Broken Wings", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 3}},
+ "steps": [
+  {"op": "cast", "real": "Broken Wings", "key": "bw", "targets": ["bear"], "expect_raise": "illegal target selection"}
+ ],
+ "expect": {
+  "zone": {"bw": "hand", "bear": "battlefield"}
+ }
+}

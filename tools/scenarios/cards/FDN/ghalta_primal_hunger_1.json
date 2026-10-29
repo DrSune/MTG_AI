@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'This spell costs {X} less to cast, where X is the total power of creatures you control.' Your creatures have total power 11 (6 + 5); the opponent's 9/9 does not count. The reduction can only remove the {10} generic part (CR 601.2f), so Ghalta costs exactly {G}{G}: from a pool of G2 W5, the two G are spent and all five W remain.",
+ "cards": [
+  {"key": "ghalta", "real": "Ghalta, Primal Hunger", "zone": "hand", "controller": 0},
+  {"key": "big1", "name": "Big One", "type": "Creature", "power": "6", "toughness": "6", "zone": "battlefield", "controller": 0},
+  {"key": "big2", "name": "Big Two", "type": "Creature", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 0},
+  {"key": "oppbig", "name": "Opp Big", "type": "Creature", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2, "W": 5}},
+ "steps": [
+  {"op": "cast", "real": "Ghalta, Primal Hunger", "key": "ghalta"}
+ ],
+ "expect": {
+  "zone": {"ghalta": "battlefield"},
+  "mana_pool": {"0": {"W": 5}},
+  "power": {"ghalta": 12},
+  "toughness": {"ghalta": 12}
+ }
+}

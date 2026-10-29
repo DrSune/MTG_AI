@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "79f94050-d850-41ca-b1db-5ae0cf743f0a",
+ "name": "Temple of Epiphany",
+ "text_sha": "7740319dd190eb2e47aaa991941227d533f7d66f00773e3b89664f8e52151649",
+ "verified": {
+  "tree_sha": "2558f1c1aaa52fcf0aa0d4f3b30fe9147d0ae6c4b571ddae1a2d9c53a1ac9766",
+  "probe_sha": "b897c99c8fe11f9a23fa218536896b85b07268116569794b96809143d836da02",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land] (both scry answers): 'card: zone hand -> battlefield; tapped False -> True'; also tapped on the opponent's-turn entry",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, scry 1.",
+    "status": "OK",
+    "evidence": "[play land]: ability [1] triggers, exactly one 'ask scry: [top, bottom]' (both answers played); also on the opponent's-turn entry. The library effect is not printed in the diff; pack temple_of_epiphany_scry_bottom.json (answer 'bottom': only the top card moves to the bottom, land tapped) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {U} or {R}.",
+    "status": "OK",
+    "evidence": "[activate [2]] ask choose [0, 1]: 0 -> tapped, mana U+1; 1 -> tapped, mana R+1",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/temple_of_epiphany_1.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

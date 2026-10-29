@@ -1,0 +1,64 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "faf81ae0-0b35-45ef-a50d-6cecf0c0eeeb",
+ "name": "Dragonlord's Servant",
+ "text_sha": "cd13e29016e11fea0b9602d93fc92b33f09844852729c063dccbe8e29e8c2750",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "CostModifier",
+    "filter": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "SUBTYPE_EQ"
+     },
+     "string_value": "Dragon",
+     "color": null,
+     "colors": [],
+     "count": null,
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": null
+    },
+    "controller_ref": {
+     "tag": "ControllerRef",
+     "name": "YOU"
+    },
+    "delta": {
+     "tag": "CostDeltaReduceGeneric",
+     "amount": {
+      "tag": "QConst",
+      "value": 1
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-A",
+  "date": "2026-10-29",
+  "draft_py": "discount = CostModifier(\n    filter=FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Dragon'),\n    controller_ref=ControllerRef.YOU,\n    delta=CostDeltaReduceGeneric(amount=QConst(value=1)),\n)\nabilities = [discount, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Dragon spells you cast cost {1} less to cast.",
+    "ir": "abilities[0] (CostModifier filter SUBTYPE_EQ Dragon, controller_ref YOU, CostDeltaReduceGeneric 1; Watcher of the Spheres shape)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "55434b86c8001f3e602da42e7ac44c71f767fc98a430d3e3e12199ebeeeaa6b3"
+ }
+}

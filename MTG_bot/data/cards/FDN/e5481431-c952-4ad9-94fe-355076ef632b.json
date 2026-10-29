@@ -1,0 +1,47 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "e5481431-c952-4ad9-94fe-355076ef632b",
+ "name": "Gnarlid Colony",
+ "text_sha": "a12715fcf3793c37389a0d7eb48a6b8ae41f99f5db112f301ddae631e1b624ca",
+ "verified": {
+  "tree_sha": "3c7a55e72a571718b3cc00f3936eba673c6bca8c615b14d3f4c7687b54620bcc",
+  "probe_sha": "597fda3e89bcb95297b5a1c61dffba7996fd8830d1bd43db7980831cfd303a72",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "Kicker {2}{G} (You may pay an additional {2}{G} as you cast this spell.)",
+    "status": "OK",
+    "evidence": "[cast]: G-1 W-1 ({1}{G}); [cast kicked]: 'you casts card kicked', G-2 W-3 = {1}{G} + {2}{G}; both offered (optional)",
+    "issue": ""
+   },
+   {
+    "clause": "If this creature was kicked, it enters with two +1/+1 counters on it.",
+    "status": "OK",
+    "evidence": "[cast kicked]: 'counters {} -> {'PLUS_1_PLUS_1': 2}; P/T - -> 4/4'; [cast] (not kicked) and the opponent's-turn entry: 2/2, no counters",
+    "issue": ""
+   },
+   {
+    "clause": "Each creature you control with a +1/+1 counter on it has trample.",
+    "status": "OK",
+    "evidence": "[cast kicked]: the Colony with counters gets 'keywords +TRAMPLE'; unkicked [cast]: no trample. Other creatures covered by packs gnarlid_colony_trample_your_other_creature.json (your Hungry Ghoul with a +1/+1 counter gains TRAMPLE; the counter-less Colony and plain 2/2 do not) PASS and gnarlid_colony_trample_not_opponents.json (the opponent's Hungry Ghoul with a counter does not gain trample) PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/gnarlid_colony_1.json",
+   "tools/scenarios/cards/FDN/gnarlid_colony_2.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 9,
+   "score": 0.75,
+   "survived": [
+    "widen filter (drop part 0) at 1/2/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/2/effect/args/target/filter",
+    "amount+1 at 1/2/effect/args/target/filter/children/2/count"
+   ]
+  }
+ }
+}

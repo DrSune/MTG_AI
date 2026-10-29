@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: prowess +1/+1 lasts UNTIL END OF TURN. After you cast an instant and the turn ends, the Dowser is back to 3/3.",
+ "cards": [
+  {"key": "dowser", "real": "Shipwreck Dowser", "zone": "battlefield", "controller": 0},
+  {"key": "fd", "real": "Fleeting Distraction", "zone": "hand", "controller": 0},
+  {"key": "oppbear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 1}},
+ "steps": [
+  {"op": "cast", "real": "Fleeting Distraction", "key": "fd", "targets": ["oppbear"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "power": {"dowser": 3, "oppbear": 2},
+  "toughness": {"dowser": 3, "oppbear": 2}
+ }
+}

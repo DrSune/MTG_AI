@@ -49,6 +49,7 @@ from MTG_bot.core.ability_tree import (
     Seq,
     SpellAbility,
     TurnPhaseEvent,
+    Verb,
     Zone,
     ZoneKind,
     from_dict,
@@ -211,10 +212,31 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         for path, node in _paths(root)
         if isinstance(node, Selector) and _is_self(node.filter)
     }
+    # More equivalent mutants (they can change nothing the engine does, so a survivor would block a
+    # correct card): SEARCH's controller role is never read (the searched zone comes from the cards
+    # selector, divergence D12); a cost victim is designated by the payment ask whatever its
+    # selector's mode says (costs never target, D13); a cost reduction already as large as the
+    # card's generic mana cannot reduce more.
+    dead: set[tuple] = set()
+    in_cost: set[tuple] = set()
+    generic = sum(getattr(getattr(p, "amount", None), "value", 0) for p in (card.mana_cost.parts if card.mana_cost else ())
+                  if type(p).__name__ == "CostManaGeneric")
+    for path, node in _paths(root):
+        if isinstance(node, Atom) and node.verb is Verb.SEARCH:
+            dead.add((*path, "args", "controller"))
+        if isinstance(node, Cost):
+            in_cost.add(path)
+        if type(node).__name__ == "CostDeltaReduceGeneric" and isinstance(getattr(node, "amount", None), QConst) \
+                and node.amount.value >= generic:
+            dead.add((*path, "amount"))
     for path, node in _paths(root):
         cands: list[tuple[str, Any]] = []
         if isinstance(node, QConst) and path in self_counts:
             continue
+        if path in dead or any(path[: len(d)] == d for d in dead):
+            continue
+        if isinstance(node, Selector) and any(path[: len(c)] == c for c in in_cost):
+            continue  # cost victims: the payment ask designates them, mode is not a cost axis
         if isinstance(node, TurnPhaseEvent):
             if node.actor is None:
                 cands.append(("trigger scope: each turn -> your turn only",
