@@ -613,7 +613,25 @@ These are forks, not tasks. See the report that accompanied this audit.
   - Speaker of the Heavens loses "Activate only as a sorcery".
   - In the other direction, Faith's Fetters loses its activated-ability lock (weaker).
   - The `ActivatedAbility.timing` slot exists, so the equip and Speaker fixes are compile-only.
+- **B-61 [verifier, FDN round 1] A blocked attacker whose blockers all left combat deals its damage
+  to the player** (live in M21, stronger than printed).
+  - `executor/__init__.py:1974` `_assign_damage` returns `((power, attacked),)` when the blocker
+    list is empty.
+  - CR 510.1c: a blocked creature with no blockers left assigns no combat damage, unless it has
+    trample.
+  - So every first or double striker without trample is stronger than printed: kill the blocker in
+    the first-strike step, then hit the player. The same goes for any attacker whose blocker is
+    removed after blocks.
+  - Control test: Drogskol Reaver blocked by Thornweald Archer.
+- **B-62 [verifier] "If it would die, exile it instead" never applies to a planeswalker.**
+  - The zero-loyalty state-based action (`executor/__init__.py:1259`) moves the walker without
+    consulting `replacement_for_death`, which matches `CreatureDiesEvent` only
+    (`replacements.py:671`).
+  - FDN Obliterating Bolt's exile clause fails on walkers. The verifier's failing pack
+    `obliterating_bolt_planeswalker.json` is in its round-1 output.
 - **Weaker than printed (lower priority):**
+  - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
+    fail to find (CR 701.19b).
   - M21 Subira, ZNR Sneaking Guide and FDN Goblin Smuggler's "target creature can't be blocked"
     activations get no target slot (`query.activation_target_slots`), so they do nothing.
   - A cast trigger filtered by `TARGETS_SOURCE` never fires, because the CAST match context does not
