@@ -573,6 +573,51 @@ These are forks, not tasks. See the report that accompanied this audit.
     but `DEAL_DAMAGE` does not check the recipient's type.
   - M21 Quirion Dryad's trigger uses `COLOR_IN` (a subset test), so a green-white spell would not
     trigger it. The text needs "any of white, blue, black or red" (an FOr of `COLOR_HAS`).
+
+**Engine findings from mapper B's FDN batch and the FDN soak (2026-10-29).**
+- Each reproduction is a scenario pack in `tools/scenarios/known_bugs/`. It holds the outcome the
+  printed text demands, so it FAILS today and passes once the bug is fixed.
+- Run them with `tools/run_scenarios.py --dir tools/scenarios/known_bugs`. They are outside the
+  default sweep.
+- Every fix below changes M21 episodes unless marked otherwise, so schedule them at an era boundary.
+
+- **B-55 A triggered ability whose only target is gone still resolves, and crashes.**
+  - CR 603.3d: a trigger with no legal target is removed from the stack.
+  - The engine runs the effect anyway. "Attach it to target creature you control" with no creature
+    raises `ATTACH needs exactly one equipment and one host, got 1/0`.
+  - In the FDN soak this crashed 37 of 300 games: Pirate's Cutlass, "target Pirate you control".
+  - Repro: `kitesail_etb_no_creature.json` (ZNR Cliffhaven Kitesail).
+- **B-56 "If a creature died this turn" counts noncreatures (live in M21, stronger than printed).**
+  - `CREATURE_DIES` is emitted for every battlefield-to-graveyard move (`executor/events.py` ~522).
+  - `DIED_THIS_TURN`'s any-object branch never checks the type.
+  - M21 Twinblade Assassins draws after you sacrifice a Treasure.
+  - Repro: `died_this_turn_treasure.json`.
+- **B-57 "Deals combat damage to a player" also fires on combat damage to a creature (live in M21,
+  stronger than printed).**
+  - The compiled trigger's recipient filter is universal.
+  - M21 Jeskai Elder loots when a wall blocks it. Also affected: Feline Sovereign, Nimble
+    Trapfinder and Subira's delayed trigger.
+  - Repro: `jeskai_elder_blocked.json`.
+- **B-58 A static `Seq` applies every step to the first step's selector** (`layers.py` ~587).
+  - A lord that grants and pumps different sets puts both effects on the first set: Death Baron.
+  - G3 can never clear such a card.
+- **B-59 `MANDATE_BLOCK` / `MANDATE_ATTACK` ignore their duration (stronger than printed).**
+  - The dispatch ledgers clear only when the creature leaves the battlefield.
+  - So a one-turn lure keeps forcing blocks on later turns (FDN Joraga Invocation, checked by
+    mapper B with a pack).
+- **B-60 Compiler drops that make M21 cards stronger than printed** (the templates mark them LOSSY,
+  `templates_b5a.py`).
+  - Equip has no sorcery timing, so every Equipment can move at instant speed and mid-combat (M21
+    Short Sword, Malefic Scythe).
+  - Kitesail Freebooter's exile is permanent: "until it leaves the battlefield" is dropped.
+  - Speaker of the Heavens loses "Activate only as a sorcery".
+  - In the other direction, Faith's Fetters loses its activated-ability lock (weaker).
+  - The `ActivatedAbility.timing` slot exists, so the equip and Speaker fixes are compile-only.
+- **Weaker than printed (lower priority):**
+  - M21 Subira, ZNR Sneaking Guide and FDN Goblin Smuggler's "target creature can't be blocked"
+    activations get no target slot (`query.activation_target_slots`), so they do nothing.
+  - A cast trigger filtered by `TARGETS_SOURCE` never fires, because the CAST match context does not
+    bind the spell's targets (FDN Gnarlback Rhino).
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
   plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
 

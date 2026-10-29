@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Twinblade Assassins: 'At the beginning of your end step, if a creature died this turn, draw a card.' Only a Treasure (noncreature) goes to the graveyard this turn -> NO draw expected.",
+ "cards": [
+  {"key": "tw", "zone": "battlefield", "controller": 0, "real": "Twinblade Assassins"},
+  {"key": "t1", "zone": "battlefield", "controller": 0, "real": "Treasure"},
+  {"key": "l0", "zone": "library", "controller": 0, "name": "Lib A", "type": "Creature — Bear", "power": 2, "toughness": 2},
+  {"key": "l1", "zone": "library", "controller": 0, "name": "Lib B", "type": "Creature — Bear", "power": 2, "toughness": 2},
+  {"key": "l2", "zone": "library", "controller": 0, "name": "Lib C", "type": "Creature — Bear", "power": 2, "toughness": 2}
+ ],
+ "mana": {},
+ "steps": [
+  {"op": "activate", "key": "t1", "idx": 0, "seat": 0, "decisions": ["G"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {"hand": {"0": 1}}}
