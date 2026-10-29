@@ -1,0 +1,11 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "he", "real": "Hunter's Edge", "zone": "hand", "controller": 0},
+  {"key": "glutton", "real": "Blood Glutton", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Giant", "power": "7", "toughness": "7", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 3}},
+ "steps": [{"op": "cast", "real": "Hunter's Edge", "key": "he", "targets": ["glutton", "giant"]}],
+ "expect": {"counters": {"glutton": {"PLUS_1_PLUS_1": 1}}, "damage": {"giant": 5}, "life": {"0": 25, "1": 20}},
+ "notes": "V3 (2026-10-29). CR 120.2b: the spell names the object that deals the damage, here 'that creature'. Blood Glutton (4/3 lifelink) gets the counter and deals 5; its lifelink gains its controller 5 (CR 702.15b). Before the fix the spell dealt the damage and no life was gained."}

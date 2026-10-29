@@ -1178,18 +1178,23 @@ def _build_loyalty_pt_qprop(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_loyalty_dmg_power(m: re.Match[str]) -> SentenceOutcome:
-    amount = QProp(
-        referent=Selector(
-            QConst(1),
-            SelectorMode.TARGET,
-            FAnd(
-                children=(
-                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-                )
-            ),
-            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
+    """Garruk, Savage Herald's -2: "Target creature you control deals damage
+    equal to its power to another target creature." V3 (2026-10-29): the
+    creature is the damage's ``dealer`` (CR 120.2b), so its deathtouch and
+    lifelink apply; the amount reads the same designation."""
+    creature_you_control = Selector(
+        QConst(1),
+        SelectorMode.TARGET,
+        FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            )
         ),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
+    )
+    amount = QProp(
+        referent=creature_you_control,
         field=QPropField.POWER,
         agg=QAgg.FIRST,
     )
@@ -1199,6 +1204,7 @@ def _build_loyalty_dmg_power(m: re.Match[str]) -> SentenceOutcome:
             pairs=(
                 ("target", _another_target_creature()),
                 ("amount", amount),
+                ("dealer", creature_you_control),
             )
         ),
     )
@@ -2292,14 +2298,22 @@ def _build_then_if_lands_untap(m: re.Match[str]) -> SentenceOutcome:
 def _build_then_that_creature_damage_power(m: re.Match[str]) -> SentenceOutcome:
     """``Then that creature deals damage equal to its power to target
     creature you don't control.`` (Hunter's Edge s2) — "Then "
-    continuation; DEAL_DAMAGE with target = the new TARGET creature and
-    amount = ``QProp("target", POWER)`` (grammar-round-2 dynamic power —
-    the dealer is the previous sentence's countered creature, bound as the
-    target referent).  DEAL_DAMAGE has no source role; the dealer is the
-    QProp referent, executor-side (r8 canonical, same as the r7-A
-    Primal-Might FIGHT attacker — documented, not defaulted).
+    continuation; DEAL_DAMAGE with target = the new TARGET creature.
+    "That creature" is the previous sentence's countered creature: the
+    ``result`` register PUT_COUNTER writes (R7-1). V3 (2026-10-29): it is
+    both the ``dealer`` (CR 120.2b: the creature deals the damage, so its
+    deathtouch and lifelink apply) and the power read. Before, the amount
+    was ``QProp("target")``, which on this two-target spell reads the
+    damage step's own target (the opposing creature).
     C16: the damage target is an open controller choice; the amount is
     board-dynamic, not a choice."""
+    that_creature = Selector(
+        QConst(1),
+        SelectorMode.CHOOSE,
+        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),
+        referent="result",
+    )
     return EffectOutcome(
         effect=Atom(
             verb=Verb.DEAL_DAMAGE,
@@ -2308,8 +2322,9 @@ def _build_then_that_creature_damage_power(m: re.Match[str]) -> SentenceOutcome:
                     ("target", _target_creature_you_dont_control()),
                     (
                         "amount",
-                        QProp(referent="target", field=QPropField.POWER),
+                        QProp(referent="result", field=QPropField.POWER),
                     ),
+                    ("dealer", that_creature),
                 )
             ),
         )

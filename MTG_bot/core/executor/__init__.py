@@ -187,7 +187,12 @@ from MTG_bot.core.executor.stack import (
     play_land,
     stack_zone,
 )
-from MTG_bot.core.executor.verbs import HANDLERS, run_atom, token_oracle_id
+from MTG_bot.core.executor.verbs import (
+    HANDLERS,
+    damage_source,
+    run_atom,
+    token_oracle_id,
+)
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, GameWorld
 
@@ -810,6 +815,15 @@ class Executor:
             if slot_key is not None and designations is not None:
                 shadow_prev = ctx.bindings.get("target")
                 ctx.bindings["target"] = list(designations[slot_key])
+            # V3 (CR 120.1, 120.2b): a DEAL_DAMAGE atom that names its dealer
+            # journals that object as the damage's cause, so "whenever a
+            # creature deals damage" readers see the creature, not the spell.
+            # Read before the atom runs, in the same bindings the verb sees.
+            cause = ctx.source
+            if effect.verb is Verb.DEAL_DAMAGE and isinstance(
+                effect.args.get("dealer"), Selector
+            ):
+                cause = damage_source(ctx, effect) or ctx.source
             try:
                 run_atom(effect, ctx)
             finally:
@@ -820,7 +834,7 @@ class Executor:
                         ctx.bindings["target"] = shadow_prev
             new_events = self.journal.record_atom(
                 before,
-                ctx.source,
+                cause,
                 effect.verb.name,
                 self.events[start:],
                 combat=self._combat_wave_open,

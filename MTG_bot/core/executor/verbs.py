@@ -438,14 +438,50 @@ def _v_lose_life(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append((len(ctx.events), "LOSE_LIFE", str(player), p.life))
 
 
-def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
-    if atom.args.get("dealer") is not None or atom.args.get("recipient") is not None:
+def damage_source(ctx: ExecCtx, atom: Atom) -> Handle | None:
+    """The object that deals a DEAL_DAMAGE atom's damage. CR 120.1/120.2b:
+    "the spell or ability will specify which object deals that damage". A
+    ``dealer`` Selector names it ("Then that creature deals damage equal to
+    its power", Hunter's Edge; Garruk, Savage Herald's -2); without one it is
+    the ability's own source. None: the named dealer is gone (an illegal
+    target, CR 608.2b), so no damage is dealt. A non-Selector dealer (Fiery
+    Emancipation's Filter, a replacement action's) is consumed by the
+    replacement lane, never here."""
+    dealer = atom.args.get("dealer")
+    if dealer is None:
+        return ctx.source
+    if not isinstance(dealer, Selector):
         raise NotImplementedError(
-            "executor: DEAL_DAMAGE dealer/recipient (C-4 damage surface) is 12b/12d"
+            f"executor: DEAL_DAMAGE dealer {type(dealer).__name__} has no "
+            "consumer outside the replacement lane"
         )
-    n = amount(ctx, atom, "amount")
+    found = sorted(resolve_selector(dealer, ctx))
+    return found[0] if found else None
+
+
+def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
+    if atom.args.get("recipient") is not None:
+        raise NotImplementedError(
+            "executor: DEAL_DAMAGE recipient (C-4 damage surface) is 12b/12d"
+        )
+    source = damage_source(ctx, atom)
+    if source is None:
+        ctx.events.append((len(ctx.events), "DAMAGE_NO_DEALER", str(ctx.source)))
+        return
+    # CR 107.1b: a negative result (a negative power) means 0; CR 120.8: a
+    # source that would deal 0 damage deals no damage at all.
+    n = max(0, amount(ctx, atom, "amount"))
+    if n == 0:
+        return
+    targets = role_handles(ctx, atom, "target")
+    if source != ctx.source:
+        # V3 (2026-10-29): the dealer is the damage source for everything
+        # below (deathtouch, lifelink, source-keyed replacement and
+        # prevention); targets and amount were read in the ability's own
+        # coordinates above.
+        ctx = replace(ctx, source=source)
     combat = bool(getattr(ctx.executor, "_combat_wave_open", False))
-    for target in role_handles(ctx, atom, "target"):
+    for target in targets:
         n_i = n
         if target.namespace == "player":
             # 12d: C24 replacement-before-apply. r22b (Fiery Emancipation):

@@ -53,10 +53,14 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 # Fire's [+1] and [−9] tails) are suppressed at assembly, and each carried one
 # CHOOSE(QUnbounded) source. No other surface moved (her two [−9] SEARCH
 # surfaces only re-indexed from ability 3 to 2).
-TOTAL_SURFACES = 153
+# re-pinned 2026-10-29: V3 changes Hunter's Edge's "Then that creature deals damage equal to its
+# power": the creature is now the DEAL_DAMAGE dealer, the anaphoric CHOOSE(referent='result')
+# selector (no decision: the register names it). 153 -> 154 and referent 36 -> 37; nothing else
+# moved.
+TOTAL_SURFACES = 154
 CORE_LIFTABLE = 22
 SELF_DESIGNATION = 57
-ANAPHORIC_REFERENT = 36
+ANAPHORIC_REFERENT = 37
 COST_VICTIM = 26
 COUNT_NOT_ONE = 12
 

@@ -22,11 +22,16 @@ import unittest
 
 from MTG_bot.core.ability_tree import (
     ControllerRef,
+    DurationEot,
     Keyword,
     KeywordAbility,
     PtDelta,
     PtDirection,
     QConst,
+    QProp,
+    QPropField,
+    Selector,
+    SelectorMode,
     Verb,
     Zone,
     ZoneKind,
@@ -34,6 +39,7 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_HAND
 from MTG_bot.core.test_executor_verbs import (
     BF_ANY,
+    CREATURE,
     HAND_YOU,
     UNIV,
     ExecutorCase,
@@ -239,6 +245,102 @@ class TestFight(ExecutorCase):
                 controller=self.p0,
                 bindings={"target": self.beta},
             )
+
+
+
+def _that_creature() -> Selector:
+    """The compiled "that creature" anaphor: the ``result`` register."""
+    return Selector(
+        QConst(1),
+        SelectorMode.CHOOSE,
+        CREATURE,
+        zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
+        referent="result",
+    )
+
+
+def _bite(amount=None):
+    """Hunter's Edge's damage step: that creature deals damage equal to its
+    power (CR 120.2b names the dealer)."""
+    return atom(
+        Verb.DEAL_DAMAGE,
+        target=target_sel(),
+        amount=QProp(referent="result", field=QPropField.POWER) if amount is None else amount,
+        dealer=_that_creature(),
+    )
+
+
+class TestNamedDealer(ExecutorCase):
+    """V3 (2026-10-29): a DEAL_DAMAGE ``dealer`` is the source of the damage
+    (CR 120.1, 120.2b): its deathtouch and lifelink apply, the journal names
+    it as the cause, and a gone dealer deals nothing. Zero or negative
+    amounts deal no damage (CR 107.1b, 120.8)."""
+
+    def setUp(self):
+        super().setUp()
+        self.delta = self.world.add_card(card_id("Delta", "5", "5"), self.p1, ZONE_BATTLEFIELD)
+
+    def grant(self, card, keyword):
+        self.ex.apply_effect(
+            atom(Verb.GRANT_ABILITY, target=target_sel(), ability=KeywordAbility(keyword=keyword)),
+            source=card,
+            controller=self.p0,
+            bindings={"target": [card]},
+        )
+
+    def bite(self, dealer, amount=None):
+        # The spell (H1) resolves; the "result" register holds the creature
+        # the previous step acted on.
+        self.ex.execute(
+            _bite(amount),
+            source=self.h1,
+            controller=self.p0,
+            bindings={"result": [dealer] if dealer is not None else [], "target": self.delta},
+        )
+
+    def damage_rows(self):
+        return [e for e in self.ex.journal.events if e.kind == "DAMAGE"]
+
+    def test_the_creature_deals_damage_equal_to_its_power(self):
+        self.bite(self.gamma)
+        self.assertEqual(self.ex.damage, {self.delta: 3})
+        rows = self.damage_rows()
+        self.assertEqual([(r.subject, r.cause) for r in rows], [(self.delta, self.gamma)])
+
+    def test_the_dealers_lifelink_gains_its_controller_life(self):
+        self.grant(self.gamma, Keyword.LIFELINK)
+        self.bite(self.gamma)
+        self.assertEqual(self.world.players[self.p0].life, 23)
+
+    def test_the_dealers_deathtouch_destroys(self):
+        self.grant(self.gamma, Keyword.DEATHTOUCH)
+        self.bite(self.gamma)
+        self.assertEqual(self.world.zone_of(self.delta).kind, ZONE_GRAVEYARD)
+
+    def test_a_gone_dealer_deals_nothing(self):
+        self.bite(None)
+        self.assertEqual(self.ex.damage, {})
+        self.assertEqual(self.damage_rows(), [])
+        self.assertIn("DAMAGE_NO_DEALER", [e[1] for e in self.ex.events])
+
+    def test_zero_and_negative_power_deal_no_damage(self):
+        self.bite(self.gamma, amount=QConst(0))
+        self.assertEqual(self.damage_rows(), [])
+        self.ex.apply_effect(
+            atom(
+                Verb.MODIFY_PT,
+                target=target_sel(),
+                power=PtDelta(PtDirection.DECREASE, QConst(5)),
+                toughness=PtDelta(PtDirection.INCREASE, QConst(0)),
+                duration=DurationEot(),
+            ),
+            source=self.gamma,
+            controller=self.p0,
+            bindings={"target": [self.gamma]},
+        )
+        self.bite(self.gamma)  # power -2: CR 107.1b uses 0, CR 120.8 no damage
+        self.assertEqual(self.ex.damage, {})
+        self.assertEqual(self.damage_rows(), [])
 
 
 if __name__ == "__main__":

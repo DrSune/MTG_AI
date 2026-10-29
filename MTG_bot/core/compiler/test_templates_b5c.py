@@ -1255,6 +1255,9 @@ class TestB5cIrStructure(unittest.TestCase):
         amount = _pairs(atom)["amount"]
         self.assertIsInstance(amount, QProp)
         self.assertIs(amount.field, QPropField.POWER)
+        # V3 (2026-10-29): the target creature you control deals the damage
+        # (CR 120.2b); the dealer is the designation the power is read from.
+        self.assertEqual(_pairs(atom)["dealer"], amount.referent)
 
     def test_loyalty_lose_per_creature(self) -> None:
         atom = _as_atom(_activated_effect("B5c-loyalty-lose-per-creature"))
@@ -1713,8 +1716,10 @@ class TestB5cRound7BTopUps(unittest.TestCase):
 
     def test_damage_equal_power(self) -> None:
         """Hunter's Edge s2: DEAL_DAMAGE target = new TARGET creature-you-
-        dont-control; amount = QProp("target", POWER) (the dealer is the
-        referent, DEAL_DAMAGE has no source role — r8 canonical)."""
+        dont-control. V3 (2026-10-29): "that creature" is the countered
+        creature, the ``result`` register: it is the dealer (CR 120.2b) and
+        the power read. ``QProp("target")`` read the damage step's own
+        target on this two-target spell."""
         atom = _as_atom(_as_effect(_match_outcome("B5c-damage-equal-power")).effect)
         self.assertIs(atom.verb, Verb.DEAL_DAMAGE)
         d = _pairs(atom)
@@ -1724,8 +1729,15 @@ class TestB5cRound7BTopUps(unittest.TestCase):
         self.assertEqual(target.count, QConst(1))
         amount = d["amount"]
         assert isinstance(amount, QProp)
-        self.assertEqual(amount.referent, "target")
+        self.assertEqual(amount.referent, "result")
         self.assertIs(amount.field, QPropField.POWER)
+        dealer = d["dealer"]
+        assert isinstance(dealer, Selector)
+        # C2 referent-selector shape: CHOOSE + QConst(1) + neutral zone
+        self.assertIs(dealer.mode, SelectorMode.CHOOSE)
+        self.assertEqual(dealer.count, QConst(1))
+        self.assertEqual(dealer.referent, "result")
+        self.assertIs(dealer.zones[0].kind, ZoneKind.ANY)
 
 
 if __name__ == "__main__":

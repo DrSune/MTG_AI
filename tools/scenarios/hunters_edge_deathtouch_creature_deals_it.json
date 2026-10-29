@@ -1,0 +1,59 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "he",
+   "real": "Hunter's Edge",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "dino",
+   "real": "Ornery Dilophosaur",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "Wall",
+   "power": "2",
+   "toughness": "10",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 1,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Hunter's Edge",
+   "key": "he",
+   "targets": [
+    "dino",
+    "giant"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "dino": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "zone": {
+   "giant": "graveyard",
+   "dino": "battlefield"
+  }
+ },
+ "notes": "V3 (2026-10-29). CR 120.2b: 'that creature' deals the damage, so Ornery Dilophosaur's deathtouch applies (CR 702.2b): its 3 damage destroys the 2/10 Wall. Before the fix the spell was the source (and the amount the Wall's own 2), so the Wall survived."
+}
