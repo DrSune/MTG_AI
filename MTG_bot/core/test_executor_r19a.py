@@ -240,6 +240,38 @@ class DiedThisTurnTest(BindingCase):
             _eval_atom(_is(FAtomPred.DIED_THIS_TURN), instant, self.ctx(source=instant))
         )
 
+    def test_noncreature_permanent_death_is_not_a_creature_death(self):
+        # B-56 (2026-10-29, M21 Twinblade Assassins): a sacrificed Treasure
+        # is put into a graveyard from the battlefield (it "dies", CR 700.4),
+        # and the journal writes its dies row — but "if a creature died
+        # this turn" asks for a CREATURE. Neither the existential reading
+        # (player, battlefield source) nor the dead artifact's own strict
+        # reading may count it; a real creature death afterwards still does.
+        treasure = self.world.add_card(
+            card_id("Treasure", type_line="Token Artifact — Treasure"),
+            self.p0,
+            ZONE_BATTLEFIELD,
+        )
+        self.ex.execute(
+            enter(GY_ANY),
+            source=treasure,
+            controller=self.p0,
+            bindings={"cards": treasure},
+        )
+        died = _is(FAtomPred.DIED_THIS_TURN)
+        self.assertTrue(
+            any(
+                e.kind == KIND_CREATURE_DIES and e.subject == treasure
+                for e in self.ex.journal.events
+            ),
+            "precondition: the Treasure's battlefield-to-graveyard move is journalled",
+        )
+        self.assertFalse(_eval_atom(died, self.p0, self.ctx()))
+        self.assertFalse(_eval_atom(died, self.watch, self.ctx()))
+        self.assertFalse(_eval_atom(died, treasure, self.ctx(source=treasure)))
+        self.kill_watch()
+        self.assertTrue(_eval_atom(died, self.p0, self.ctx()))
+
 
 class LifeReplacementTest(BindingCase):
     """Fix 4: the life-gained replacement lane (Life Goes On)."""

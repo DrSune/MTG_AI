@@ -33,6 +33,8 @@ from MTG_bot.core.ability_tree import (
     PtDirection,
     QAtMost,
     QConst,
+    QCount,
+    QUnbounded,
     Selector,
     SelectorMode,
     StaticAbility,
@@ -45,7 +47,7 @@ from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.legality import ability_playable, activate
 from MTG_bot.core.executor.query import choose_options, legal_activations
 from MTG_bot.core.identity import CardIdentity
-from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_EXILE, GameWorld
+from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_EXILE, ZONE_GRAVEYARD, GameWorld
 
 _ORACLE = iter(range(1, 1 << 16))
 
@@ -277,6 +279,104 @@ class TestStaticAnthem(LayerCase):
         self.assertEqual(self.pt(self.alpha), (4, 4))
         self.ex.end_turn()
         self.assertEqual(self.pt(self.alpha), (5, 5))
+
+
+def _your_graveyard_count() -> QCount:
+    """``the number of cards in your graveyard`` (the counted-static shape:
+    Kinetic Augur, Blanchwood Armor, Malefic Scythe's soul counters)."""
+    return QCount(
+        Selector(
+            QUnbounded(),
+            SelectorMode.ALL,
+            UNIV,
+            zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),),
+        )
+    )
+
+
+class TestCountedStatic(LayerCase):
+    """B-52 (2026-10-29): a counted static P/T value is continuously
+    recomputed (CR 611.3a: a static ability's effect is not locked in;
+    CR 613.4a/c: a characteristic-defining or modifying P/T effect applies
+    the value of the moment). It used to freeze at its first value."""
+
+    def bury(self, name):
+        card = self.world.add_card(card_id(name, type_line="Instant"), self.p0)
+        self.world.move_to_zone(card, self.p0, ZONE_GRAVEYARD)
+        self.settle()
+        return card
+
+    def test_counted_delta_follows_its_count_both_ways(self):
+        # "Creatures you control get +X/+0, where X is the number of cards
+        # in your graveyard." Up with each card, down when one leaves.
+        self.attach(
+            self.banner,
+            [
+                StaticAbility(
+                    effect=atom(
+                        Verb.MODIFY_PT,
+                        target=scope_you(),
+                        power=PtDelta(PtDirection.INCREASE, _your_graveyard_count()),
+                    )
+                )
+            ],
+        )
+        self.assertEqual(self.pt(self.alpha), (2, 2))
+        first = self.bury("Zap One")
+        self.assertEqual(self.pt(self.alpha), (3, 2))
+        self.bury("Zap Two")
+        self.assertEqual(self.pt(self.alpha), (4, 2))
+        self.assertEqual(self.pt(self.banner), (4, 2))
+        self.world.move_to_zone(first, self.p0, ZONE_EXILE)
+        self.settle()
+        self.assertEqual(self.pt(self.alpha), (3, 2))
+        self.assertEqual(self.pt(self.beta), (2, 2))  # not "you": untouched
+
+    def test_counted_set_follows_its_count_and_keeps_its_timestamp(self):
+        # Kinetic Augur's shape: "~'s power is equal to the number of
+        # cards in your graveyard" (a SET over the source). The entry is
+        # revalued in place: CR 613.7a, a static's effect keeps its
+        # timestamp while its value moves, so the ledger does not grow a
+        # new entry (a new place in the timestamp fold) per change.
+        self.attach(
+            self.alpha,
+            [
+                StaticAbility(
+                    effect=atom(
+                        Verb.SET_PT,
+                        target=Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            FAtom(FAtomPred.IS_SOURCE),
+                            zones=(BF_ANY,),
+                        ),
+                        power=_your_graveyard_count(),
+                    )
+                )
+            ],
+        )
+        self.assertEqual(self.pt(self.alpha), (0, 2))
+        (entry,) = self.ex.ledger.changes_for(self.alpha)
+        first = self.bury("Zap One")
+        self.bury("Zap Two")
+        self.assertEqual(self.pt(self.alpha), (2, 2))
+        self.world.move_to_zone(first, self.p0, ZONE_EXILE)
+        self.settle()
+        self.assertEqual(self.pt(self.alpha), (1, 2))
+        (now,) = self.ex.ledger.changes_for(self.alpha)
+        self.assertEqual(
+            (now.record_id, now.created_clock), (entry.record_id, entry.created_clock)
+        )
+        self.assertEqual(now.power_set, 1)
+
+    def test_constant_anthem_is_never_rewritten(self):
+        # The recompute re-reads every value; a value that did not change
+        # must leave the ledger byte-identical (replay fingerprints).
+        self.attach(self.banner, [StaticAbility(effect=modify_all(1, 1))])
+        before = self.ex.ledger.dump()
+        self.bury("Zap One")
+        self.settle()
+        self.assertEqual(self.ex.ledger.dump(), before)
 
 
 class TestKeywordLayers(LayerCase):

@@ -1,0 +1,21 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "B-52 regression (2026-10-29). Printed: 'Kinetic Augur's power is equal to the number of instant and sorcery cards in your graveyard.' (CR 604.3 characteristic-defining ability; CR 611.3a a static effect is not locked in.) Setup: one instant in the graveyard, so the static first applies at power 1. Two Shocks go to the graveyard (count 3: up), then Scavenging Ooze exiles the setup instant (count 2: down). Final power 2 tells every wrong reading apart: frozen at the first value = 1, up-only = 3, down-only = 1. Toughness stays the printed 4.",
+ "cards": [
+  {"key": "k", "zone": "battlefield", "controller": 0, "real": "Kinetic Augur"},
+  {"key": "o", "zone": "battlefield", "controller": 0, "real": "Scavenging Ooze"},
+  {"key": "i1", "zone": "graveyard", "controller": 0, "name": "Zap One", "type": "Instant"},
+  {"key": "s1", "zone": "hand", "controller": 0, "real": "Shock"},
+  {"key": "s2", "zone": "hand", "controller": 0, "real": "Shock"}
+ ],
+ "mana": {"0": {"R": 2, "G": 1}},
+ "steps": [
+  {"op": "cast", "key": "s1", "decisions": ["player:1"]},
+  {"op": "cast", "key": "s2", "decisions": ["player:1"]},
+  {"op": "activate", "key": "o", "idx": 0, "seat": 0, "targets": ["i1"]}
+ ],
+ "expect": {
+  "life": {"1": 16},
+  "zone": {"i1": "exile", "s1": "graveyard", "s2": "graveyard"},
+  "power": {"k": 2},
+  "toughness": {"k": 4}
+ }}

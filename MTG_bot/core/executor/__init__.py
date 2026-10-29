@@ -1037,6 +1037,9 @@ class Executor:
                     blockers.remove(anchor)
             self.mandates.discard(anchor)
             self.mandate_block.discard(anchor)
+            # B-59: the timed (resolved-layer) twin of the two discards
+            # above; a returning creature is a new object (CR 400.7).
+            self.layers.forget_departed(anchor)
             self.damage_policies.pop(anchor, None)
             # 16e: a departing permanent drops every control entry keyed on
             # it — as CREATURE (the stolen card itself) or as ANCHOR (the

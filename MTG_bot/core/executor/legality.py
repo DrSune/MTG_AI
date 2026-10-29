@@ -127,6 +127,7 @@ from MTG_bot.core.state import (
 
 if TYPE_CHECKING:  # pragma: no cover - import cycle guard only
     from MTG_bot.core.executor import Executor
+    from MTG_bot.core.executor.layers import LayerRecord
 
 # The mana-pool key convention written by ``_v_add_mana`` (verbs.py): pool
 # keys are exactly _COLORS_VOCAB = W U B R G C. CostManaColor is payable
@@ -1780,14 +1781,33 @@ def legal_attackers(executor: Executor, seat: Handle) -> tuple[Handle, ...]:
     )
 
 
+def _mandate_subjects(executor: Executor, layer: LayerRecord) -> tuple[Handle, ...]:
+    """The creatures one LIVE mandate layer binds. A ``resolved`` record
+    (B-59: a dispatched mandate with a duration) designated its creatures
+    once, at resolution; a static one re-resolves its ``cards`` selector in
+    the layer anchor's coordinates every combat, like any continuous-effect
+    scope."""
+    if layer.resolved:
+        return layer.targets
+    selector = layer.atoms[0].args.get("cards")
+    assert isinstance(selector, Selector)  # role table: cards required
+    ctx = executor._ctx(
+        source=layer.source,
+        controller=layer.controller,
+        bindings=None,
+        decisions=(),
+    )
+    return tuple(enumerate_candidates(selector, ctx))
+
+
 def mandated_attackers(executor: Executor, seat: Handle) -> frozenset[Handle]:
     """Creatures ``seat`` controls that MUST attack this combat if able
     (CR 508.1 "attacks each combat if able"), from BOTH carrier shapes:
-    the dispatched mandates ledger (MANDATE_ATTACK verb — Pursued Whale's
-    hoisted token rule line) and the LIVE mandate layers (the static
-    shape — Furor of the Bitten, the Pirate token), whose ``cards``
-    selectors resolve in the layer anchor's coordinates exactly like a
-    continuous-effect scope. A mandated creature that is ILLEGAL
+    the dispatched mandates ledger (MANDATE_ATTACK verb without a duration;
+    with one it is a ``resolved`` layer, B-59) and the LIVE mandate layers
+    (the static shape — Furor of the Bitten, the Pirate token), whose
+    ``cards`` selectors resolve in the layer anchor's coordinates exactly
+    like a continuous-effect scope. A mandated creature that is ILLEGAL
     (defender, sickness) simply never reaches the set — "if able"."""
     world = executor.world
     mandated: set[Handle] = set()
@@ -1799,15 +1819,7 @@ def mandated_attackers(executor: Executor, seat: Handle) -> frozenset[Handle]:
         ):
             mandated.add(handle)
     for layer in executor.layers.live_mandate_layers():
-        selector = layer.atoms[0].args.get("cards")
-        assert isinstance(selector, Selector)  # role table: cards required
-        ctx = executor._ctx(
-            source=layer.source,
-            controller=layer.controller,
-            bindings=None,
-            decisions=(),
-        )
-        for handle in enumerate_candidates(selector, ctx):
+        for handle in _mandate_subjects(executor, layer):
             if (
                 handle in world.cards
                 and world.zone_of(handle).kind == ZONE_BATTLEFIELD
@@ -1921,26 +1933,18 @@ def blocker_askable(
 def mandated_to_be_blocked(executor: Executor) -> frozenset[Handle]:
     """Attackers that MUST be blocked if able (CR 509.1h — Canopy Stalker),
     from both carrier shapes like the attack side: the DISPATCHED
-    MANDATE_BLOCK ledger and the LIVE ``"mandate_block"`` layers (selector
-    resolved in the layer anchor's coordinates). The ask loop narrows a
-    blocker's vocabulary onto an unassigned mandated attacker it may
-    legally take; the whole-assignment check re-derives the greedy
-    guarantee (doc 14)."""
+    MANDATE_BLOCK ledger (a timed one is a ``resolved`` layer, B-59) and
+    the LIVE ``"mandate_block"`` layers (selector resolved in the layer
+    anchor's coordinates). The ask loop narrows a blocker's vocabulary onto
+    an unassigned mandated attacker it may legally take; the whole-
+    assignment check re-derives the greedy guarantee (doc 14)."""
     world = executor.world
     mandated: set[Handle] = set()
     for handle in executor.mandate_block:
         if handle in world.cards and world.zone_of(handle).kind == ZONE_BATTLEFIELD:
             mandated.add(handle)
     for layer in executor.layers.live_mandate_block_layers():
-        selector = layer.atoms[0].args.get("cards")
-        assert isinstance(selector, Selector)  # role table: cards required
-        ctx = executor._ctx(
-            source=layer.source,
-            controller=layer.controller,
-            bindings=None,
-            decisions=(),
-        )
-        for handle in enumerate_candidates(selector, ctx):
+        for handle in _mandate_subjects(executor, layer):
             if handle in world.cards and world.zone_of(handle).kind == ZONE_BATTLEFIELD:
                 mandated.add(handle)
     return frozenset(mandated)

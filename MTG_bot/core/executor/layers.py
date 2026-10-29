@@ -236,7 +236,11 @@ class LayerRecord:
     ``status`` — ``live`` | ``dormant`` (a condition currently false — the
     record survives, its effect does not apply) | ``expired`` (terminal; the
     record stays for the audit dump). ``ledger_ids`` maps each materialized
-    PT target to its DurationLedger record id.
+    PT target to its DurationLedger record id. ``resolved`` marks a record
+    a RESOLVED spell or ability created with a duration (B-59: a dispatched
+    "mandate"/"mandate_block" with fixed ``targets``): CR 611.2a, it lasts
+    as long as its duration says, so its source leaving the battlefield
+    does not end it (:meth:`LayerRegistry.detach_source` skips it).
     """
 
     seq: int
@@ -251,6 +255,7 @@ class LayerRecord:
     condition: Filter | None = None  # StaticAbility/While-condition
     status: str = "live"
     ledger_ids: dict[Handle, int] = field(default_factory=dict)
+    resolved: bool = False
 
     @property
     def atoms(self) -> tuple[Atom, ...]:
@@ -276,6 +281,9 @@ class LayerRegistry:
         # to its other types") — rebuilt alongside the keyword/granted maps,
         # read by the TYPE_EQ/SUBTYPE_EQ/SUPERTYPE_EQ filter evaluator.
         self._types: dict[Handle, tuple[str, ...]] = {}
+        # B-59: the ``resolved`` records (a subset of ``records``), so the
+        # per-departure :meth:`forget_departed` scan stays O(resolved).
+        self._resolved: list[LayerRecord] = []
 
     # ------------------------------------------------------------ lifecycle
 
@@ -332,13 +340,53 @@ class LayerRegistry:
 
     def detach_source(self, handle: Handle) -> int:
         """Battlefield departure: expire every layer whose SOURCE is this
-        permanent (and terminal-expire its materialized ledger entries)."""
+        permanent (and terminal-expire its materialized ledger entries).
+        A ``resolved`` record is not the permanent's own ability: its
+        duration alone ends it (CR 611.2a)."""
         dropped = 0
         for layer in self.records:
-            if layer.source == handle and layer.status != "expired":
+            if layer.source == handle and layer.status != "expired" and not layer.resolved:
                 self._expire_layer(layer)
                 dropped += 1
         return dropped
+
+    def register_mandate(
+        self,
+        kind: str,
+        source: Handle,
+        controller: Handle,
+        targets: tuple[Handle, ...],
+        atom: Atom,
+        duration: Duration,
+    ) -> LayerRecord:
+        """B-59: a DISPATCHED MANDATE_ATTACK / MANDATE_BLOCK atom that
+        carries a duration ("attacks this turn if able", "must be blocked
+        this turn if able", goad's "until your next turn"). The creatures
+        were designated at resolution (fixed ``targets``), and the record
+        rides the registry's duration expiry: Eot at cleanup (CR 514.2),
+        UntilNextTurn when the controller's next turn begins (CR 611.2b),
+        UntilNextStep at its step, While while its condition holds,
+        UntilLeaves when the source leaves. ``kind`` is ``"mandate"`` or
+        ``"mandate_block"``, so legality reads it beside the static ones."""
+        layer = self._new(
+            kind, source, controller, (atom,), targets, duration=duration, resolved=True
+        )
+        self._resolved.append(layer)
+        return layer
+
+    def forget_departed(self, handle: Handle) -> int:
+        """A designated object left the battlefield: if it returns it is a
+        new object (CR 400.7) that no resolved effect was applied to, so it
+        drops out of every live ``resolved`` record's targets (a record left
+        with none expires). Returns the number of records touched."""
+        touched = 0
+        for layer in self._resolved:
+            if layer.status != "expired" and handle in layer.targets:
+                layer.targets = tuple(t for t in layer.targets if t != handle)
+                if not layer.targets:
+                    self._expire_layer(layer)
+                touched += 1
+        return touched
 
     def register_grant(
         self,
@@ -379,6 +427,7 @@ class LayerRegistry:
         duration: Duration | None = None,
         selector: Selector | None = None,
         condition: Filter | None = None,
+        resolved: bool = False,
     ) -> LayerRecord:
         self._seq += 1
         layer = LayerRecord(
@@ -392,6 +441,7 @@ class LayerRegistry:
             selector=selector,
             duration=duration,
             condition=condition,
+            resolved=resolved,
         )
         self.records.append(layer)
         return layer
@@ -791,7 +841,8 @@ class LayerRegistry:
 
     def _materialize_static(self, layer: LayerRecord) -> int:
         """Ensure every live target of a PT-bearing static owns exactly one
-        live ledger entry; stale targets' entries terminal-expire."""
+        live ledger entry carrying the static's CURRENT value; stale
+        targets' entries terminal-expire."""
         from MTG_bot.core.executor.verbs import pt_atom_delta
 
         targets = set(self._static_targets(layer))
@@ -807,8 +858,6 @@ class LayerRegistry:
             return changed
         ctx = self._ctx(layer.source, layer.controller)
         for target in sorted(targets):
-            if target in layer.ledger_ids:
-                continue
             power_delta = toughness_delta = 0
             power_set = toughness_set = None
             for atom in atoms:
@@ -822,6 +871,20 @@ class LayerRegistry:
                 if (power_set is not None or toughness_set is not None)
                 else "delta"
             )
+            linked = layer.ledger_ids.get(target)
+            if linked is not None:
+                # B-52 (2026-10-29): the value is re-read on EVERY pass. A
+                # static's effect is not locked in (CR 611.3a), so a counted
+                # bonus (Kinetic Augur's CDA, Malefic Scythe's soul counters,
+                # Carrion Grub's graveyard power) follows its count up AND
+                # down (CR 613.4a/c). The entry is revalued in place: same
+                # effect, same timestamp (CR 613.7a). It used to `continue`
+                # here and freeze at the first value.
+                if self.executor.ledger.revalue(
+                    linked, kind, power_delta, toughness_delta, power_set, toughness_set
+                ):
+                    changed += 1
+                continue
             change = self.executor.ledger.record(
                 self.world.cards[target].identity,
                 kind,

@@ -21,6 +21,8 @@ import unittest
 
 from MTG_bot.core.ability_tree import (
     ControllerRef,
+    DurationEot,
+    DurationUntilNextTurn,
     Keyword,
     KeywordAbility,
     QConst,
@@ -30,6 +32,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.games import get_supply, identity_of
+from MTG_bot.core.executor.legality import mandated_attackers
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
     ZONE_HAND,
@@ -436,6 +439,117 @@ class TestMandates(CombatCase):
         self.assertTrue(self.world.cards[alpha].tapped)  # attacked anyway
         self.assertFalse(self.world.cards[beta].tapped)  # declined
         self.assertEqual(self.world.players[self.p1].life, 18)
+
+    def _dispatch_mandate(self, card, source, controller, duration=None):
+        roles: dict = {"cards": target_sel()}
+        if duration is not None:
+            roles["duration"] = duration
+        self.ex.execute(
+            atom(Verb.MANDATE_ATTACK, **roles),
+            source=source,
+            controller=controller,
+            bindings={"cards": card},
+        )
+
+    def _next_own_turn(self):
+        self.ex.end_turn()
+        self.ex.advance_turn()
+        self.ex.end_turn()
+        self.ex.advance_turn()
+        self.seen_asks.clear()
+
+    def test_dispatched_mandate_this_turn_ends_at_cleanup(self):
+        # B-59 (2026-10-29): "target creature attacks this turn if able" is
+        # a RESOLVED effect with a duration (CR 611.2a). It forces this
+        # turn's declaration and ends in the cleanup step (CR 514.2); the
+        # dispatch ledger used to keep it until the creature left play.
+        alpha = self.synth("Alpha", 2, 2, self.p0)
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self._dispatch_mandate(alpha, alpha, self.p0, DurationEot())
+        self.default_answer = "DECLINE"
+        self.ex.combat_step(self.p0)
+        self.forced_attack(alpha)
+        self.assertEqual(self.world.players[self.p1].life, 18)
+        self._next_own_turn()
+        self.ex.combat_step(self.p0)
+        self.assertEqual(self.asks_for(alpha)[0][0], ("ATTACK", "DECLINE"))
+        self.assertEqual(self.world.players[self.p1].life, 18)  # declined
+
+    def test_dispatched_mandate_until_your_next_turn(self):
+        # Goad's duration (CR 701.38a, 611.2b): p0 makes p1's creature
+        # attack "until your next turn" — forced on p1's turn, over when
+        # p0's next turn begins, so p1's following turn is free again.
+        beta = self.synth("Beta", 2, 2, self.p1)
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self._dispatch_mandate(beta, beta, self.p0, DurationUntilNextTurn())
+        self.default_answer = "DECLINE"
+        self.ex.end_turn()
+        self.ex.advance_turn()  # p1's turn: forced
+        self.ex.combat_step(self.p1)
+        self.forced_attack(beta)
+        self.assertEqual(self.world.players[self.p0].life, 18)
+        self._next_own_turn()  # through p0's turn into p1's next one
+        self.ex.combat_step(self.p1)
+        self.assertEqual(self.asks_for(beta)[0][0], ("ATTACK", "DECLINE"))
+        self.assertEqual(self.world.players[self.p0].life, 18)
+
+    def test_dispatched_mandate_without_duration_persists(self):
+        # The durationless dispatch keeps its old reading: it lasts until
+        # the creature leaves the battlefield.
+        alpha = self.synth("Alpha", 2, 2, self.p0)
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self._dispatch_mandate(alpha, alpha, self.p0)
+        self.default_answer = "DECLINE"
+        self.ex.combat_step(self.p0)
+        self._next_own_turn()
+        self.ex.combat_step(self.p0)
+        self.assertEqual(self.asks_for(alpha), [])  # still forced, never asked
+        self.assertEqual(self.world.players[self.p1].life, 16)
+
+    def test_timed_mandate_outlives_its_source_not_its_creature(self):
+        # A resolved effect lasts its duration even after its source leaves
+        # the battlefield (CR 611.2a). A creature that leaves and comes
+        # back is a new object (CR 400.7): the mandate no longer binds it.
+        alpha = self.synth("Alpha", 2, 2, self.p0)
+        beta = self.synth("Beta", 2, 2, self.p0)
+        source = self.synth("Source", 1, 1, self.p0)
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        for card in (alpha, beta):
+            self._dispatch_mandate(card, source, self.p0, DurationEot())
+        self.assertEqual(mandated_attackers(self.ex, self.p0), {alpha, beta})
+        self.ex.execute(
+            atom(Verb.DESTROY, target=target_sel()),
+            source=alpha,
+            controller=self.p0,
+            bindings={"target": source},
+        )
+        self.ex.execute(
+            atom(
+                Verb.MOVE_ZONE,
+                cards=target_sel(),
+                destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
+            ),
+            source=alpha,
+            controller=self.p0,
+            bindings={"cards": beta},
+        )
+        self.ex.execute(
+            atom(
+                Verb.MOVE_ZONE,
+                cards=target_sel(UNIV, Zone(ZoneKind.EXILE, ControllerRef.ANY)),
+                destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+            ),
+            source=alpha,
+            controller=self.p0,
+            bindings={"cards": beta},
+        )
+        self.assertEqual(self.world.zone_of(source).kind, "graveyard")
+        self.assertEqual(self.world.zone_of(beta).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(mandated_attackers(self.ex, self.p0), {alpha})
 
     def test_furor_static_splits_layer_and_mandates_the_host(self):
         furor = self.real("Furor of the Bitten", self.p0)

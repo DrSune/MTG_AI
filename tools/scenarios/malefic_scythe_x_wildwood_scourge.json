@@ -53,6 +53,9 @@
    "x": 1
   },
   {
+   "op": "advance_turn"
+  },
+  {
    "op": "enter",
    "key": "scythe"
   },
@@ -64,6 +67,9 @@
    "targets": [
     "hound"
    ]
+  },
+  {
+   "op": "advance_turn"
   },
   {
    "op": "combat",
@@ -103,5 +109,6 @@
   "toughness": {
    "scourge": 1
   }
- }
+ },
+ "notes": "Wildwood Scourge (seat 0, X=1) x Malefic Scythe (seat 1): the equipped Hound blocks seat 0's Prey and dies, the Scythe gets its second soul counter, and a soul counter on an opponent's artifact is not a +1/+1 counter on a creature seat 0 controls, so the Scourge stays 1/1. re-pinned 2026-10-29: the B-60 fix gives Equip its printed sorcery timing (CR 702.6a), so seat 1 can no longer equip on seat 0's turn; the setup now advances to seat 1's turn for the Scythe's entry and equip and back to seat 0's turn for the rest. The pairing under test and every expectation are unchanged."
 }

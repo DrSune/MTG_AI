@@ -38,6 +38,9 @@
    "set": 5
   },
   {
+   "op": "advance_turn"
+  },
+  {
    "op": "enter",
    "key": "scythe"
   },
@@ -49,6 +52,9 @@
    "targets": [
     "wolf"
    ]
+  },
+  {
+   "op": "advance_turn"
   },
   {
    "op": "activate",
@@ -88,5 +94,5 @@
    "1": 20
   }
  },
- "notes": "HUNT H3 pair 4 (heat 2205, counter-layer x soul-static x cross-seat target). Malefic Scythe (seat 1) enters with its printed soul counter and equips seat 1's 3/3 Wolf (static +1/+1 per soul counter -> 4/4). Basri, Devoted Paladin (seat 0) +1 targets the ENEMY Wolf: 'put a +1/+1 counter on up to one target creature. It gains vigilance until end of turn' - target has no controller restriction (CR 115.7a / 601.2b; H2 cross-seat precedent), and equip/loyalty compile with timing None so the activation is legal in seat 0's own window. All three layers must STACK on the printed 3/3: +1 counter (CR 122.1c), +1 soul static (CR 613.3d) -> 5/5. The EoT vigilance clause is asserted IN the stamping window (H2 rig law 2: EoT effects expire on the turn dance). Counters lanes pin each layer separately so a collapsed total cannot pass: wolf PLUS_1_PLUS_1 1, scythe SOUL 1. Falsifiers: 4/4 (either the counter or the soul static blind), 5/4 or 4/5 (layer asymmetry), vigilance missing (EoT clause not stamped), loyalty 5 (+1 cost unpaid)."
+ "notes": "HUNT H3 pair 4 (heat 2205, counter-layer x soul-static x cross-seat target). Malefic Scythe (seat 1) enters with its printed soul counter and equips seat 1's 3/3 Wolf (static +1/+1 per soul counter -> 4/4). Basri, Devoted Paladin (seat 0) +1 targets the ENEMY Wolf: 'put a +1/+1 counter on up to one target creature. It gains vigilance until end of turn' - target has no controller restriction (CR 115.7a / 601.2b; H2 cross-seat precedent), and Basri's loyalty ability is activated in seat 0's own window. All three layers must STACK on the printed 3/3: +1 counter (CR 122.1c), +1 soul static (CR 613.3d) -> 5/5. The EoT vigilance clause is asserted IN the stamping window (H2 rig law 2: EoT effects expire on the turn dance). Counters lanes pin each layer separately so a collapsed total cannot pass: wolf PLUS_1_PLUS_1 1, scythe SOUL 1. Falsifiers: 4/4 (either the counter or the soul static blind), 5/4 or 4/5 (layer asymmetry), vigilance missing (EoT clause not stamped), loyalty 5 (+1 cost unpaid). re-pinned 2026-10-29: the B-60 fix gives Equip its printed sorcery timing (CR 702.6a), so seat 1 can no longer equip on seat 0's turn; the setup now advances to seat 1's turn for the Scythe's entry and equip and back to seat 0's turn for the rest. The pairing under test and every expectation are unchanged."
 }

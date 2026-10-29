@@ -34,7 +34,7 @@ from MTG_bot.core.executor.games import identity_of
 from MTG_bot.core.executor.legality import activate
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_LIBRARY
 from MTG_bot.core.test_executor_combat import CombatCase, _supply
-from MTG_bot.core.test_executor_verbs import UNIV, atom, card_id
+from MTG_bot.core.test_executor_verbs import UNIV, atom, card_id, target_sel
 
 
 class BlockerCase(CombatCase):
@@ -490,6 +490,33 @@ class TestMenaceAndMandate(BlockerCase):
         self.assertEqual(self.world.players[self.p1].life, 18)
         self.assertEqual(self.world.zone_of(stalker).kind, ZONE_GRAVEYARD)
         self.assertEqual(self.world.zone_of(blocker).kind, ZONE_GRAVEYARD)
+
+    def test_dispatched_must_be_blocked_this_turn_ends_at_cleanup(self):
+        # B-59 (2026-10-29, FDN Joraga Invocation's shape): "must be blocked
+        # this turn if able" is a RESOLVED effect with a duration (CR
+        # 611.2a, 509.1h). This turn the only blocker is forced onto the
+        # lure; after the cleanup step (CR 514.2) it may stay home. The
+        # dispatch ledger used to keep the lure until it left play.
+        lure = self.synth("Lure", 1, 5, self.p0)
+        blocker = self.synth("Blocky", 1, 5, self.p1)
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self.ex.execute(
+            atom(Verb.MANDATE_BLOCK, cards=target_sel(), duration=DurationEot()),
+            source=lure,
+            controller=self.p0,
+            bindings={"cards": lure},
+        )
+        self.ex.combat_step(self.p0)
+        self.assertEqual(self.forced_block(blocker), str(lure))
+        self.ex.end_turn()
+        self.ex.advance_turn()
+        self.ex.end_turn()
+        self.ex.advance_turn()
+        self.seen_asks.clear()
+        self.ex.combat_step(self.p0)
+        self.assertEqual(set(self.vocab_for(blocker)), {str(lure), "NONE"})
+        self.assertEqual(self.world.players[self.p1].life, 19)  # NONE: unblocked
 
 
 class TestFeeds(BlockerCase):
