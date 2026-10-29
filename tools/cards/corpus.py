@@ -16,10 +16,11 @@ import hashlib
 import itertools
 import json
 import math
+import os
 import re
 import sys
 from collections import Counter
-from dataclasses import dataclass, is_dataclass
+from dataclasses import dataclass, is_dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -35,6 +36,7 @@ from MTG_bot.core.ability_tree import Atom, Selector, walk
 from MTG_bot.core.compiler import card_records
 from MTG_bot.core.compiler.compiler import (
     CompileResult,
+    _bucket_hint,
     _is_rule_reminder,
     compile_card,
     compile_pool,
@@ -68,14 +70,45 @@ class SetCompile:
         return hits[0]
 
 
+def honeypots() -> dict[str, int]:
+    """Gold calibration (docs/PLAN_CARD_ONBOARDING.md): ``"SET:oracle_id" -> sentence index`` from
+    the file named by MTG_CARDS_MASKS. Such a card is shown with that sentence UNPARSED and its
+    part of the tree removed, as if the compiler had failed on it; the mapper's tree is then
+    scored against the real compile, byte for byte."""
+    path = os.environ.get("MTG_CARDS_MASKS")
+    return json.loads(Path(path).read_text()) if path else {}
+
+
+def masked_shapes() -> set[str]:
+    """The normalised wordings of masked sentences: a calibration card's sentence must not be
+    findable by its own exact wording, as no truly unparsed sentence is."""
+    pots = honeypots()
+    if not pots:
+        return set()
+    out = set()
+    for key, idx in pots.items():
+        code, oid = key.split(":", 1)
+        raw = ingest_pool(DATA / f"{code}.json")[oid]
+        out.add(normalize(raw.sentences[idx], raw.identity.name))
+    return out
+
+
 def compile_set(code: str, extra_records: dict[str, dict[str, Any]] | None = None) -> SetCompile:
     raw = ingest_pool(DATA / f"{code}.json")
     records = {**card_records.load_records(code), **(extra_records or {})}
     registry = build_full_registry()
+    pots = honeypots()
     results: dict[str, CompileResult] = {}
     refused: dict[str, str] = {}
     for oid, rc in raw.items():
         try:
+            if f"{code}:{oid}" in pots and oid not in (extra_records or {}):
+                idx = pots[f"{code}:{oid}"]
+                masked = replace(rc, sentences=rc.sentences[:idx] + rc.sentences[idx + 1:])
+                base = compile_card(masked, registry)
+                hint = _bucket_hint(rc.sentences[idx])
+                results[oid] = replace(base, unparsed=(*base.unparsed, (rc.sentences[idx], hint)))
+                continue
             out = compile_pool({oid: rc}, registry, records=records, require_verified=False)
             results[oid] = out.results[oid]
         except (StateCorruptionError, ValueError) as exc:
@@ -157,7 +190,7 @@ class Exemplars:
     def search(self, sentence: str, k: int = 6, name: str = "") -> list[tuple[float, dict[str, Any]]]:
         q = self._vec(normalize(sentence, name))
         scored = []
-        seen: set[str] = set()
+        seen: set[str] = masked_shapes()
         for row, v in zip(self.rows, self.vecs, strict=True):
             score = sum(x * v.get(t, 0.0) for t, x in q.items())
             scored.append((score, row))

@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -43,7 +44,9 @@ from probe import Probe
 
 from MTG_bot.core.ability_tree import to_dict
 from MTG_bot.core.compiler import card_records
+from MTG_bot.core.compiler.compiler import compile_card
 from MTG_bot.core.compiler.coverage import build_full_registry
+from MTG_bot.core.errors import StateCorruptionError
 from MTG_bot.core.executor.games import compile_supply
 
 
@@ -128,6 +131,9 @@ def cmd_parse(args: argparse.Namespace) -> int:
     """Run the compiler's sentence layer on any wording: template matches, then the frame fallback."""
     registry = build_full_registry()
     sentence = args.sentence.replace("~", args.name) if args.name else args.sentence
+    if corpus.normalize(sentence, args.name) in corpus.masked_shapes():
+        print("no parse: no template or frame matches this wording")
+        return 1
     matches = list(registry.match(sentence))
     how = "template"
     if not matches:
@@ -148,18 +154,14 @@ def cmd_parse(args: argparse.Namespace) -> int:
 
 def _draft_record(sc: corpus.SetCompile, oid: str, draft_path: Path) -> tuple[dict, Any, Any]:
     raw = sc.raw[oid]
-    base = sc.results[oid] if oid in sc.results and sc.results[oid].record is None else corpus.printed_only(raw)
-    if oid in sc.results and sc.results[oid].record is not None:
-        # a card that already has a record: start from the compiler's own tree
-        from dataclasses import replace
-
-        from MTG_bot.core.compiler.compiler import compile_card
-
-        try:
+    result = sc.results.get(oid)
+    if result is not None and result.record is None:
+        base = result  # the compiler's tree
+    else:
+        try:  # re-mapping a card that has a record: start from the compiler's own tree
             base = compile_card(raw, build_full_registry())
-        except Exception:  # noqa: BLE001 — a refused card's base is its printed facts
-            base = corpus.printed_only(raw)
-        del replace
+        except (StateCorruptionError, ValueError):
+            base = corpus.printed_only(raw)  # a refused card: its printed facts only
     keywords, abilities = irpy.run_draft(draft_path.read_text(), base.card.abilities, base.card.keywords)
     record = {"schema": card_records.SCHEMA, "set": sc.code, "oracle_id": oid, "name": raw.identity.name,
               "text_sha": card_records.text_sha(raw),
@@ -211,10 +213,12 @@ def cmd_try(args: argparse.Namespace, write: bool = False) -> int:
                          "g0_warnings": warns, "notes": args.notes or ""}
     record["probe"] = {"sha": rep.sha()}
     folder = card_records.RECORDS_DIR / sc.code
+    if f"{sc.code}:{oid}" in corpus.honeypots():
+        folder = Path(os.environ["MTG_CARDS_MASKS_OUT"]) / sc.code
     folder.mkdir(parents=True, exist_ok=True)
     path = folder / f"{oid}.json"
     path.write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n")
-    print(f"written: {path.relative_to(REPO)} (unverified: gates G2-G4 decide)")
+    print(f"written: record for {sc.raw[oid].identity.name} (unverified: gates G2-G4 decide)")
     return 0
 
 
