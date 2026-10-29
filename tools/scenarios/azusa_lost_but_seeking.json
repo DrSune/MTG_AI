@@ -41,7 +41,8 @@
    "seat": 0,
    "decisions": [
     "fire"
-   ]
+   ],
+   "expect_raise": "not_activated"
   },
   {
    "op": "play",
@@ -59,5 +60,5 @@
    "f3": "battlefield"
   }
  },
- "notes": "Azusa's compiled activation offers a may-vocab ('fire','skip'); firing it unlocks land plays 2+3 (play op = real CR 305.1 land drop with once-per-turn ledger \u2014 without the ability the third play would refuse)."
+ "notes": "Azusa's compiled activation offers a may-vocab ('fire','skip'); firing it unlocks land plays 2+3 (play op = real CR 305.1 land drop with once-per-turn ledger \u2014 without the ability the third play would refuse). # re-pinned 2026-10-29: m21-fidelity (adversarial gate) compiles Azusa's sentence as the STATIC ability it is (CR 604.1, 305.2), so there is nothing to activate: the activate step now must be refused (not_activated), and land plays 2 and 3 land because the static is live, not because of an activation."
 }

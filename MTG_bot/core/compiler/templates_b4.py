@@ -72,7 +72,6 @@ from MTG_bot.core.ability_tree import (
     CounterKind,
     DeclareBlockersEvent,
     DurationEot,
-    DurationPermanent,
     DurationWhileCondition,
     EtBState,
     FAnd,
@@ -1264,24 +1263,22 @@ def _build_azusa_extra_land_plays(m: re.Match[str]) -> SentenceOutcome:
     """``You may play two additional lands on each of your turns.`` (Azusa,
     Lost but Seeking) — Verb.ADD_LAND_PLAY (R8-8): count = QConst(2) —
     C14 spelled-number word-pin ("two" is not digit-normalized into the
-    shape; Gnarled-Sage precedent), duration = DurationPermanent ("on
-    each of your turns" is the card's permanent land-drop allowance).
-    OptionalEffect wrap keeps the may-decision (C15).  Executor deferred
-    per the FIGHT orphan precedent (PC-6: the verb is consumed here —
-    the orphan count drops).
+    shape; Gnarled-Sage precedent).
+
+    A STATIC ability (CR 604.1; 305.2: continuous effects may raise the
+    land allowance): StaticAbility(OptionalEffect(ADD_LAND_PLAY)), the
+    Teferi, Master of Time permission shape (the "you may" is the use,
+    playing the land; layers._new_static unwraps it). No duration role: the
+    static's own lifetime is the window, as for every other static atom.
+    m21-fidelity (adversarial gate, 2026-10-29): this was a free activated
+    ability (cost {}), so nothing was granted until it was activated and
+    each activation added two more land plays (0 -> 2 -> 4 -> 6).
     C16: open — whether to use either additional land play."""
     atom = Atom(
         verb=Verb.ADD_LAND_PLAY,
-        args=AtomArgs(
-            pairs=(
-                ("count", QConst(2)),
-                ("duration", DurationPermanent()),
-            )
-        ),
+        args=AtomArgs(pairs=(("count", QConst(2)),)),
     )
-    return AbilityOutcome(
-        ability=ActivatedAbility(cost=Cost(), effect=OptionalEffect(inner=atom))
-    )
+    return AbilityOutcome(ability=StaticAbility(effect=OptionalEffect(inner=atom)))
 
 
 def _build_noncombat_damage_cost_modifier(m: re.Match[str]) -> SentenceOutcome:
