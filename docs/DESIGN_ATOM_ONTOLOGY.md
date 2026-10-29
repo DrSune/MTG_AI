@@ -265,177 +265,185 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     - activation locks need a required kind;
     - the engine has no legend rule.
   - v2 in §10 answers every finding. Round 2 is pending.
+- R5 round 2 (adversarial, 2026-10-29): **NO-GO as written.**
+  - R5-1: FIX-THEN-GO for the second time. R5-3, R5-4, R5-6: GO.
+  - Withdrawn: `DurationUntil(event)` (turn-structure twins, referent anchors); EXILED_BY_SOURCE,
+    which duplicated IS_EXILED_WITH_SOURCE; PHASE_OUT `duration` (§9 ii, 610.4); the GRANT_ABILITY
+    replacement route (grants are never read by replacements).
+  - Required: 608.2g deferred resolution; a 605.1a classifier; a layer-1 copy; a pre-registered blast
+    radius; a committed census generator.
+  - R5-1 and R5-6 are implemented with the round-2 fixes. v3 in §10; round 3 is pending.
 - BINDING STATE: rounds 1–4 complete; further ontology changes require a NEW gated
   round (any R-item that reclassifies a field or opens a normalization is Type-1).
 
-## 10. Round R5 — durations, permissions, copies (v2 after gate round 1, 2026-10-29; gate round 2 pending)
+## 10. Round R5 — durations, permissions, copies (v3 after gate round 2, 2026-10-29; gate round 3 pending)
 
 Owner, 2026-10-29: "Fix the remaining M21 pool to be castable and playable, and mapped properly",
 and on B-60c: go ahead "if you have good arguments for the design ruling, and an adversarial pass
-doesnt break it". Gate round 1 broke v1 in places (§9, R5 round 1). This is v2. Census counts are
-regex counts over the oracle text of the 19 set files, unique card names. Items that are engine or
-compiler work on existing components are listed at the end, with their lanes.
+doesnt break it". Gate rounds 1 and 2 are logged in §9. **Every census count here comes from
+`tools/audit/r5_census.py`** (regex screen over the 19 set files, unique names;
+`reports/r5_census_2026-10-29.json`).
 
-### R5-1 `duration` on MOVE_ZONE, and `DurationUntil(event)` (B-60c; CR 610.3)
-- **Cards.** Kitesail Freebooter and Idol of Endurance (M21); Banishing Light, Prayer of Binding,
-  Stasis Snare (FDN); 19 cards in 12 sets. Today the templates drop "until …", so Freebooter's exile is
-  permanent.
-- **New node `DurationUntil(event: EventSpec)`** replaces `DurationUntilLeaves`. That is a fusion, and it
-  changes no golden, because no template builds `DurationUntilLeaves`.
-  - "Until ~ leaves the battlefield" = `DurationUntil(ZoneChangeEvent(BATTLEFIELD → ANY, subject=IS_SOURCE))`.
-  - Expiry uses the same event matcher triggers use.
-  - Phasing is not a zone change (702.26d), so it never ends the duration.
-- **`MOVE_ZONE.duration` accepts only durations that end on an event:** `DurationUntil`, `DurationEot`,
-  `DurationUntilNextTurn`. Construction rejects `DurationPermanent`, which is a twin of leaving the role
-  out, and `DurationWhileCondition`, which can revive and would move the object again.
-- **Executor: a return registry,** a new piece of state that is part of the replay fingerprint. One row
-  per moved object: its zone-entry clock, previous zone, owner and duration.
-  - When the duration ends, each row whose object is still in the destination zone with the same entry
-    clock returns to its previous zone. The check uses journal provenance, because Handles are stable
-    across zones (`identity.py:46`) while CR 400.7 makes a moved card a new object.
-  - Returns caused by the same events are one simultaneous batch, inside the zone-change handling
-    (610.3d).
-  - An object returning to the battlefield comes back under its owner's control (610.3c).
-- **610.3a/b.** At resolution, if a matching event is in the journal after the ability triggered or the
-  spell was cast, nothing moves. This is a journal-clock comparison, as WAS_KICKED does.
-- **A returning Aura.** Its owner chooses what it enchants among the legal objects (303.4f). If there is
-  none, it stays in exile (303.4g). That is a new, visible decision asked of the owner. "As ~ enters"
-  choices on return are asked the same way.
-- **Gap ledger:** Calix, Destiny's Hand, whose anchor is a second target.
+### Status
+| Item | State |
+|---|---|
+| R5-1 `duration` on MOVE_ZONE (B-60c) | FIX-THEN-GO in rounds 1 and 2; **in implementation** with every round-2 fix (lane `engine/r5a-until-leaves`) |
+| R5-6 `actor` on TargetingEvent | GO in rounds 1 and 2; **in implementation** (same lane) |
+| R5-3 `lands`, R5-4 `new_targets` | GO in round 2; they land with R5-2 and the COPY handler |
+| R5-2, R5-5, R5-7, R5-8, R5-10, R5-11, R5-12 | v3 below, for gate round 3 |
+| v2's `DurationUntil(event)`, `EXILED_BY_SOURCE`, PHASE_OUT `duration`, `GRANT_ABILITY(ReplacementAbility)` route | withdrawn (round 2) |
 
-### R5-2 Permissions are a verb of their own: PERMIT_CAST
-- **Why a separate verb (gate finding).** A missing duration means Permanent for P/T and grant records
-  (`duration_tag(None)`). "CAST without duration = cast now" would make CAST the only verb where absent
-  is not Permanent, and a mapper who writes `DurationPermanent` out of habit would turn a cast-now into
-  a lasting permission. Separate verbs give the two meanings different bytes.
-- **CAST (one-shot, 608.2g, meaning unchanged).** Roles:
-  - `source`;
-  - `additional` (Cost, 601.2f);
-  - `alternative` (Cost, 118.9; an empty Cost means without paying its mana cost);
-  - `lands` (True only).
-- **PERMIT_CAST.** Roles:
-  - `source` (Selector: a register, a linked set, or zone + filter);
-  - `additional`, `alternative`, `lands` (as on CAST);
-  - `count` (Quantity: how many casts the permission allows; absent means each designated object once);
-  - `duration`: required in a resolving effect (611.2a); absent in a static ability, which lasts while
-    the ability functions (611.3a).
-- **Costs.**
-  - CAST's `cost` migrates to `additional` or `alternative`, which are separate axes (601.2f, 118.9).
-  - `CostDeltaWaiveMana` is deleted: no golden uses it, and it duplicated the empty Cost.
-  - Today `stack.py:1088` treats a non-empty cost as the whole cost. Demonic Embrace would then be cast
-    without paying {1}{B}{B}.
-- **Where a static permission functions.** A card's own "you may cast this card from [zone]" functions
-  everywhere (113.6f): Demonic Embrace. A permission over other objects functions where the static
-  ability does, on the battlefield: Snoop, Radha.
-- **A permission is never wrapped in OptionalEffect.** The cast option is the "may"; a wrap would be a
-  phantom ask.
-- **Executor.**
-  - A permission registry, part of state, the fingerprint and the observation, expiry included.
-  - CastOption gains a discriminator (which permission, which cost path), so two ways to cast one card
-    are two options. Example: Volcanic Geyser under Chandra's −8, pay and choose X, or free with X = 0
-    (107.3b).
-  - The count is consumed per cast.
-  - Land plays through a permission obey 305.1, 305.2b and 305.3; `land_playable` takes the zone from
-    the permission.
-- **Repair the one-shot lane** (gate scratch packs). A spell cast during resolution must:
-  - choose its targets (601.2c);
-  - pay its additional costs;
-  - use X = 0 when no mana cost is paid (107.3b);
-  - journal each draw once;
-  - see replacement effects.
-- **Retire every free activated row in M21:** Snoop, Radha, Demonic Embrace, Furious Rise, Idol and
-  Chandra, Heart of Fire. Azusa, Basri's Aegis and Liliana's Scorn are compiler fixes in lane F.
-- **"Look at the top card of your library any time"** (Radha and 6 more) = `StaticAbility(LOOK_AT(top,
-  YOU))`. It is continuous by 611.3a, and the per-seat view shows that card to its controller. No new
-  verb.
-- **Encodings.**
-  - Chandra, Heart of Fire's +1 exiles the top three with MOVE_ZONE `pop_order`, not a TARGET selector.
-  - Her −9 searches one Selector over graveyard and library (§7), not two SEARCH atoms that overwrite
-    `result`.
-- **Gap ledger:** "until the end of your next turn" (8 cards, none in M21) needs a next-turn anchor.
+### R5-1 as implemented (for the record)
+- **Role.** `MOVE_ZONE.duration` accepts only `DurationUntilLeaves`, `DurationEot` or
+  `DurationUntilNextTurn`.
+- **`DurationUntilLeaves` is kept**, meaning exactly "until the anchor leaves the battlefield". Phasing
+  out does not end it (702.26d). A future "for as long as ~ remains" (611.2b) needs its own field,
+  because phasing ends that one (702.26f).
+- **Return registry.** It is part of state and the fingerprint, and it is visible in the per-seat view
+  and the probe (§10).
+- **400.7** is decided from journal provenance.
+- **610.3a–d** are followed. Returns go through replacement effects (614). A returning Aura's owner
+  chooses its host (303.4f/g).
 
-### R5-3 `lands` (CR 305) — merged into R5-2
-- Only True is allowed; absent means cast only. A one-shot "play that card" on a land is ignored when
-  305.2b or 305.3 forbid it. A bool role set to False is rejected at construction, because it validates
-  yet gives different bytes from leaving it out.
+### R5-2 v3 PERMIT_CAST, and the one-shot CAST lane
+The v2 shape stands: CAST stays one-shot (608.2g), PERMIT_CAST is the permission. Its roles are
+`source`, `additional`, `alternative`, `count`, `lands`, `duration`. Round 2's fixes:
+1. **Canonical source.**
+   - A non-target designation is `Selector(mode=ALL, count=QUnbounded)` by construction.
+   - `count`, the number of casts allowed, is never QUnbounded. Absent means each designated object
+     once.
+   - Example: Idol is `count=QConst(1)`; Snoop has no count.
+2. **One static convention, checked at the ability level.** A checker in the compiler and in
+   `tools/audit` enforces it.
+   - PERMIT_CAST and REVEAL inside static abilities, emblems and granted statics carry no duration:
+     they last while the ability functions (611.3a). The 6 static REVEAL atoms drop
+     `DurationPermanent` (6 goldens).
+   - Inside spell, activated, triggered and delayed effects, PERMIT_CAST requires a duration.
+3. **"For as long as it remains exiled"** (4 cards in 4 sets) is `DurationPermanent` on designated
+   objects. An object's entry ends when the object leaves its zone (400.7). `DurationWhileCondition`
+   is rejected inside permissions.
+4. **Anaphora.**
+   - "Cards exiled this way", "them" and "that card" are the ability's `result` register.
+   - "Cards exiled with ~" is the linked set (`IS_EXILED_WITH_SOURCE`, R5-8).
+   - Chandra, Heart of Fire's templates read the union of both today (`templates_b4.py:1130-1160`).
+5. **Functioning zones.**
+   - A card's own "you may cast this card from [zone]" functions everywhere (113.6f).
+   - An emblem's permission functions in the command zone (113.6p).
+   - Every other permission functions on the battlefield.
+6. **Options.** A cast option is identified by (object, cost path). Several permissions offering the
+   same cost path for the same object give one option, which consumes one use. No duplicate options
+   (§10).
+7. **608.2g.**
+   - A spell cast while another resolves is put on the stack, and it resolves after the parent
+     finishes. Today it resolves inline (`stack.py:1034-1166`).
+   - It pays its additional costs (601.2f; lane vfix3), and X is 0 when no mana cost is paid (107.3b).
+   - A rider such as Chandra, Flame's Catalyst's attaches to the spell object (R5-12).
+8. **No permission-like atom is wrapped in OptionalEffect.** That covers PERMIT_CAST,
+   GRANT_ACTIVATION and ADD_LAND_PLAY, so Teferi, Master of Time's wrap goes: it was a phantom ask.
+9. **The free-row idiom is retired.** Lane F already has Azusa, Basri's Aegis and Liliana's Scorn.
 
-### R5-4 `new_targets` on COPY (True only; CR 707.10c)
-- **The ask.** For each target, the copy's controller keeps it or picks a new legal one.
-  - It is asked only when another legal target exists; otherwise it would be a phantom.
-  - The new set of targets is validated as a whole.
-  - Copy targets journal TARGETING events, so Warden and ward see them.
-- **Copies of permanent spells** become tokens as they resolve (707.10f, 608.3f). The executor supports
-  this when a pool card needs it; Double Vision copies instants and sorceries only.
+### R5-5 v3 `CopyOf`, and layer-1 copy
+- **Value.** `CopyOf(source: Selector, exceptions: tuple[CopyException, ...] = ())`, typed and
+  classified in the §6 field table.
+  - `CopyException` is an empty union for now: no M21 card needs one. 9 of the 21 token-copy cards do,
+    and they go in the gap ledger.
+  - The 9 "enters as a copy" cards will reuse the value.
+- **Engine.**
+  - Layer-1 copiable values (707.2, 613.1a).
+  - The designation planner descends into values to find TARGET selectors (601.2c).
+  - A copy is never cast: no CAST row, so Double Vision's ordinal and cast triggers do not count it
+    (707.10).
+  - An unchanged copy target still journals TARGETING.
 
-### R5-5 Copies are a value: `CopyOf(source: Selector, exceptions: tuple = ())`
-- CREATE_TOKEN's `tokens` accepts a TokenSpec or a CopyOf; there is no exactly-one-of rule.
-- The "enters as a copy" family (Clone and 13 more) will use the same value, so there is one copy
-  encoding (§9).
-- `source` may select any zone: three token-copy cards copy a card in a graveyard.
-- Exceptions ("except it has haste") are needed by 9 of 22 token-copy cards, none in M21. They go in the
-  gap ledger until a pool card needs them.
+### R5-7 v3 `AbilityActivatedEvent`, and one 605.1a classifier
+- **One core predicate, `is_mana_ability`** (605.1a: no target, could add mana, not loyalty). Every
+  driver uses it (`games.py`, `bench/router.py`).
+- **`kind`** ∈ {ANY, NON_MANA, LOYALTY}, required. LOYALTY means the cost has a CostLoyalty part,
+  including [0], which becomes expressible as `CostLoyalty(delta=0)`.
+- **The prohibition gate sits in `ability_playable`.** A lock of kind ANY also binds the B-90 payment
+  witness, which must skip locked mana abilities.
+- **Journal.** One row per activation, mana included, so every replay fingerprint shifts once. That is
+  declared in the blast radius.
+- **Gap ledger:** boast.
+- **Census:** 2 + 10 locks.
 
-### R5-6 `actor` on TargetingEvent — GO in round 1
-- **Mapper rule:** "can't be the target of spells or abilities your opponents control" stays HEXPROOF
-  (702.11), never `PREVENT_EFFECT(TargetingEvent(actor))`.
+### R5-8 v3 Furious Rise, and provenance on the existing linked-exile predicate
+- **Provenance.** The existing `FAtomPred.IS_EXILED_WITH_SOURCE` (`ability_tree.py:656`) gains it, and
+  there is no new predicate. It is true when the object's current stay in exile began with a move made
+  by an ability of this source, and the source is still the same object (its battlefield-entry clock,
+  400.7).
+  - Idol's permission uses it, and so do Rona and Valki.
+  - Census: 20 cards in 15 sets.
+  - Emblem sources (Tibalt, 607.1d) go in the gap ledger.
+- **New duration `DurationUntilEndOfNextTurn`.** It expires in the cleanup step of the effect
+  controller's next turn. Census: 8 cards in 7 sets, including Teferi, Timeless Voyager and Escape to
+  the Wilds. It closes the "until the end of your next turn" ledger.
+- **Furious Rise** = `PERMIT_CAST(source=result, lands=True, duration=DurationUntilEndOfNextTurn)`.
+  This is an approximation, divergence D15.
+  - The printed window ends when the next card is exiled, normally at your next end step, so it covers
+    the same main phases.
+  - It is weaker when the end-step condition fails, because the printed permission would continue.
+  - It is stronger only when the trigger is copied, by Strionic Resonator, which is not in the pool.
+  - A duration that ends on an event would be a single-card node (§9 ii).
 
-### R5-7 `AbilityActivatedEvent(source: Filter, kind: AbilityKind, actor: Filter | None = None)`, fusing LoyaltyActivatedEvent
-- **`kind` ∈ {ANY, NON_MANA, LOYALTY}, required.** 4 cards say "unless they're mana abilities" and 7 lock
-  every ability, so a forgotten flag must not silently weaken a lock.
-- **`source`** filters the object whose ability is activated, in any zone (Pithing Needle–style locks
-  reach cycling).
-- **Loyalty abilities are activated, non-mana abilities (605.1a),** so Faith's Fetters on a planeswalker
-  locks them.
-- **A lock of kind ANY also binds mana abilities,** so payment planning (TAP_ALL_MANA) must respect it.
-- **Cost:** one golden changes (Keral Keep Disciples).
+### R5-9 v3 Teferi, Timeless Voyager stays weaker than printed
+"They can't phase in" would need a phasing event used by one card in 19 sets (§9 ii). Its creatures
+phase in at their controller's next untap step. That is weaker than printed, recorded as D16 and in
+BACKLOG B-75.
 
-### R5-8 Furious Rise, exactly (v1's approximation is rejected)
-- **Mapping.** `PERMIT_CAST(source=result, lands=True, duration=DurationUntil(ZoneChangeEvent(ANY →
-  EXILE, subject=FAtom(EXILED_BY_SOURCE))))`.
-- **New predicate `EXILED_BY_SOURCE`.** True for an object whose current stay in exile began with a move
-  made by an ability of this ability's source (linked abilities, 607.2a). After 400.7 the card is a new
-  object and no longer counts.
-  - Census: 20 cards in 12 sets use linked-exile wording ("exiled with ~", "the exiled card").
-  - Idol of Endurance's permission uses it in its `source` selector.
+### R5-10 v3 Stack objects say what they are
+- **Encoding.** `FAtom(STACK_KIND_EQ, string_value ∈ {SPELL, ACTIVATED, TRIGGERED})`, a closed
+  vocabulary in an existing slot.
+- **Abilities never sit on the stack in this engine** (registered as an engine gap). A mode that
+  targets an ability is unsatisfiable, so it is never offered.
+- **"Counter target spell"** gets SPELL: 39 cards in 19 sets, which re-bake. Referent counters ("that
+  spell or ability") are exempt.
+- **Engine.** The counter window accepts Choose-based counterspells (`stack.py:572`), for Sublime
+  Epiphany's mode 1.
 
-### R5-9 `duration` on PHASE_OUT (Teferi, Timeless Voyager)
-- **Mapping.** "They phase out. Until the end of your next turn, they can't phase in" =
-  `PHASE_OUT(target, duration=DurationUntilNextTurn)`. The permanent stays phased out until the duration
-  has ended, then phases in at its controller's next untap step.
-- **Why `DurationUntilNextTurn` is exact here.** A permanent phases in only during its controller's untap
-  step, and none of the opponent's untap steps falls between the start and the end of your turn, extra
-  turns included.
-- **What it replaces.** The `_phase_in_prevention_effect` builtin, whose `ZoneChangeEvent(COMMAND →
-  BATTLEFIELD)` can never match once phasing is a status (702.26d). No new event class.
+### R5-11 v3 `TokenSpec.colors`
+A sorted tuple, validated against {W, U, B, R, G}. Census: 7 multicolored-token cards. 27 M21
+TokenSpecs re-bake.
 
-### R5-10 Stack objects say what they are: predicate `STACK_KIND_EQ` (SPELL | ACTIVATED | TRIGGERED)
-- **Problem.** Sublime Epiphany's "counter target spell" and "counter target activated or triggered
-  ability" compile byte-identical today, and "counter target spell" also accepts abilities. 39 cards
-  counter spells.
-- **Mapping.** Every stack selector (counter, copy) carries the kind. The "counter target spell" goldens
-  change by one FAtom each.
+### R5-12 Resolving replacement effects: `Verb.REPLACE` (replaces v2's GRANT route)
+- **Shape.** `REPLACE(event: EventSpec whose subject is the designated object, instead: Effect,
+  duration: Duration | absent)`.
+  - At resolution it creates a replacement effect (614.1a) for its duration, bound to the designated
+    object.
+  - When that object changes zones the record is pruned (400.7). With the duration absent, that pruning
+    is how it ends.
+- **Mappings.**
+  - Scorching Dragonfire = `Seq(DEAL_DAMAGE 3, REPLACE(ZoneChangeEvent(BATTLEFIELD → GRAVEYARD, subject
+    = that target), instead=MOVE_ZONE(exile), duration=DurationEot))`.
+  - Chandra, Flame's Catalyst's −2 rider = `REPLACE(ZoneChangeEvent(STACK → GRAVEYARD, subject = the
+    cast spell), instead=MOVE_ZONE(exile))`.
+- **One encoding.** The card-level ReplacementAbility of resolving text (`stack.py:927`) is retired.
+- **Engine.** The replacement registry consults REPLACE records. DESTROY and SACRIFICE consult
+  dies-replacements (B-72).
+- **Census:** 11 resolving "exile it instead" cards in 7 sets.
 
-### R5-11 Copiable color: `TokenSpec.color: str` becomes `colors: tuple[str, ...]` (B-75)
-- Multicolor tokens, such as the blue and red Weird, have no encoding today. The fidelity lane measured
-  150 of 152 compiled token colors right.
+### Engine work on existing components (same round)
+- "Choose one or more" = `Choose(count=QAtLeast(1))`.
+- Double Vision's ordinal counts only matching casts.
+- Furious Rise's intervening-if becomes an existence check (lane vfix, V11).
 
-### Rejected or ledgered
-- **v1 R5-8** (`DurationUntilNextStep(END)`) is rejected: there is no END step, END has no expiry tick,
-  and the approximation was stronger than printed with Strionic Resonator.
-- **Snoop's "has all activated abilities of that card"** is a single card in 19 sets. It is mapped as
-  dropped (weaker), divergence D16. Its current REVEAL-grant compile is removed.
+### Blast radius, pre-registered
+| Item | M21 goldens expected to change |
+|---|---|
+| R5-1 | 2 (Freebooter, Idol) |
+| R5-2 | about 16: Snoop, Radha, Demonic Embrace, Furious Rise, Idol, both Chandras, 6 static REVEAL atoms, CAST cost-role rows |
+| R5-5 | 1 (Sublime Epiphany) |
+| R5-7 | Faith's Fetters, and Keral Keep Disciples (ORI) |
+| R5-10 | the M21 counterspells |
+| R5-11 | about 20 token makers |
+| R5-12 | 2 |
 
-### Engine and compiler work on existing components (same round)
-- **Resolving replacement effects with a duration** = `GRANT_ABILITY(target, ReplacementAbility(…),
-  duration)`. GRANT_ABILITY accepts a ReplacementAbility (`ability_tree.py:3413`).
-  - Scorching Dragonfire: the creature or planeswalker gains "if this would die, exile it instead"
-    until end of turn.
-  - Chandra, Flame's Catalyst's −2: the cast spell gains "if this would be put into a graveyard, exile it
-    instead".
-  - 22 cards in the census.
-  - Divergence D17: an effect that removes all abilities would also remove the granted replacement.
-- **"Choose one or more"** = `Choose(count=QAtLeast(1))`, not QUnbounded.
-- **Double Vision's "first instant or sorcery spell each turn":** the ordinal counts only the casts that
-  match the filter (`events.py:390`, `binding.py:1022`).
-- **Legend rule** (704.5j, a visible choice), every free-row compile, the 25 verification findings, and
-  phasing as a status: lanes vfix, vfix2, vfix3, fidelity and phasing (see BACKLOG).
+- **Total:** about 50–70 of 305 M21 goldens. Every diff is proven field by field in its commit.
+- **Fingerprint consumers that shift:** `bench/duel.py`, `tools/search`, traces, and the puzzle
+  re-certification. That is an era-boundary change.
+- **Packs to re-baseline in the same commits:** conspicuous_snoop, furious_rise_activation, idol, both
+  kitesail packs, radha, demonic_embrace, faiths_fetters, warden.
+- **Divergences to add to `docs/ATOM_DIVERGENCES.md` when the items land:**
+  - D15: Furious Rise's window;
+  - D16: Teferi, Timeless Voyager;
+  - D17: Liliana, Waker of the Dead's check order (lane vfix2).
