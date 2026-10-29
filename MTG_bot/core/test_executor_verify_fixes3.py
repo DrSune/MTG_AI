@@ -15,6 +15,8 @@ V23  Only a draw is a draw (CR 121.1, 121.5): a library-to-hand move by any othe
      once: the enclosing boundary no longer re-emits it.
 V33  "Discard your hand" as a cost discards every card in hand, and an empty hand pays
      it (CR 118.3, 701.9a).
+V36  A spell cast by an effect pays its own additional costs on top of the mana cost or
+     the effect's alternative cost (CR 601.2f, 118.9d); an unpayable total refuses.
 """
 
 from __future__ import annotations
@@ -480,6 +482,60 @@ class TestV33DiscardYourHand(FixerCase):
         plan, why = self.plan(QConst(1), SelectorMode.CHOOSE)
         self.assertIsNone(plan)
         self.assertEqual(why, "cost:discard:insufficient_candidates:0<1")
+
+
+class TestV36EffectCastPaysAdditionalCosts(unittest.TestCase):
+    def setUp(self):
+        from MTG_bot.core.ability_tree import (
+            Cost,
+            CostDiscard,
+            Selector,
+            SelectorMode,
+            SpellKind,
+        )
+        from MTG_bot.core.state import ZONE_GRAVEYARD as GY
+        from MTG_bot.core.test_executor_stack import StackCase
+
+        self.case = StackCase()
+        self.case.setUp()
+        discard = Cost(
+            (
+                CostDiscard(
+                    target=Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        UNIV,
+                        zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
+                    )
+                ),
+            )
+        )
+        self.spell = self.case.give(
+            "Thrilly",
+            SpellKind.INSTANT,
+            effect=atom(Verb.DRAW, controller=ControllerRef.YOU, amount=QConst(1)),
+            zone=GY,
+            additional_costs=(discard,),
+        )
+        self.free = Cost(())
+
+    def test_the_additional_cost_is_paid_on_a_free_cast(self):
+        from MTG_bot.core.executor.stack import cast_card
+
+        junk = self.case.world.add_card(card_id("Junk"), self.case.p0, ZONE_HAND)
+        cast_card(self.case.ex, self.case.p0, self.spell, cost_override=self.free)
+        self.assertEqual(self.case.world.zone_of(junk).kind, ZONE_GRAVEYARD)
+        self.assertEqual(self.case.world.zone_of(self.spell).kind, ZONE_GRAVEYARD)
+
+    def test_an_unpayable_additional_cost_refuses_the_cast(self):
+        from MTG_bot.core.executor.stack import cast_card
+
+        for card in list(self.case.world.players[self.case.p0].zone(ZONE_HAND).entries):
+            self.case.world.move_to_zone(card, self.case.p0, ZONE_GRAVEYARD)
+        with self.assertRaises(ValueError) as caught:
+            cast_card(self.case.ex, self.case.p0, self.spell, cost_override=self.free)
+        self.assertIn("cost:discard:insufficient_candidates", str(caught.exception))
+        self.assertEqual(self.case.world.zone_of(self.spell).kind, ZONE_GRAVEYARD)
 
 
 if __name__ == "__main__":

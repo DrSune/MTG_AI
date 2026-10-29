@@ -1180,6 +1180,23 @@ def spell_cost(record, additional: tuple[Cost, ...] = ()) -> Cost:
     return Cost(parts=tuple(parts))
 
 
+def effect_cast_cost(record, node: SpellAbility, cost_override: Cost | None) -> Cost | None:
+    """V36 (CR 601.2f, 118.9d): the total cost of a spell an effect casts
+    (stack.cast_card, and the offer oracle query._cast_option_payable, so the two
+    can never disagree). It is the spell's mana cost, or the alternative cost the
+    effect names (an empty Cost: "without paying its mana cost", 118.9), plus every
+    additional cost the spell lists ("As an additional cost to cast this spell,
+    discard a card"): 118.9d applies additional costs to an alternative cost too.
+    None or an empty Cost means nothing to pay."""
+    base = cost_override if cost_override is not None else record.mana_cost
+    if not node.additional_costs:
+        return base
+    parts: list = list(base.parts) if base is not None else []
+    for extra in node.additional_costs:
+        parts.extend(extra.parts)
+    return Cost(parts=tuple(parts))
+
+
 def _cost_has_x(cost: Cost) -> bool:
     for part in cost.parts:
         if isinstance(part, (CostManaColor, CostManaGeneric, CostManaHybrid)):

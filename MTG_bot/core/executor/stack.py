@@ -1044,7 +1044,8 @@ def cast_card(
     DESIGNATED card from wherever it sits, with the spell's printed cost
     paid as normal when ``cost_override is None``, otherwise with that
     Cost object as the entire cost (an empty Cost = the corpus' cost-
-    waiver idiom, CR 498.2 "without paying its mana cost"). No window
+    waiver idiom, CR 498.2 "without paying its mana cost"), plus the spell's
+    own additional costs either way (V36, CR 601.2f, 118.9d). No window
     check (effects cast outside the normal timing — CR 601.2b exemptions;
     v1 documents no further exemption bookkeeping), no response.
     Returns ``True`` when the spell was cast and resolved.
@@ -1063,7 +1064,7 @@ def cast_card(
     The frame still gets parked, journalled and fingerprinted: an effect
     cast IS a cast — the ``CAST`` event fires, so "whenever you cast"
     triggers see it (CR 601.2m)."""
-    from MTG_bot.core.executor.legality import ctx_for
+    from MTG_bot.core.executor.legality import ctx_for, effect_cast_cost
 
     world = executor.world
     record = spell_record(executor, handle)
@@ -1095,7 +1096,9 @@ def cast_card(
     # r20b: TARGETING feed — same 601.2c contract as cast(): declare, then
     # journal the designation rows before payment.
     executor.journal.emit_targeting(handle, caster, targets)
-    cost = cost_override if cost_override is not None else record.mana_cost
+    # V36 (CR 601.2f): the total cost adds the spell's own additional costs to the
+    # mana cost or the effect's alternative cost; an unpayable total refuses below.
+    cost = effect_cast_cost(record, node, cost_override)
     plan = None
     if cost is not None and cost.parts:
         ctx = ctx_for(executor, source=handle, controller=caster, x_value=x)

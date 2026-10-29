@@ -641,19 +641,28 @@ def _cast_option_payable(
     the atom's ``cost`` role when present (an EMPTY Cost is the corpus
     cost-waiver idiom, CR 498.2 "without paying its mana cost" — nothing
     to fold, always payable; a real Cost REPLACES the printed cost), else
-    the card's printed cost. The fold runs with cast_card's own context
+    the card's printed cost, plus the spell's additional costs (V36:
+    legality.effect_cast_cost). The fold runs with cast_card's own context
     shape (source=the card, the effect cast's declared X default 0, CR
     107.4) and the same ``mana_use`` restriction read. One source of
     truth: this is literally the same :func:`build_payment_plan` call
     stack.py:1093 makes — legality and execution can never disagree."""
-    from MTG_bot.core.executor.legality import spell_record
+    from MTG_bot.core.executor.legality import effect_cast_cost, spell_record
 
     record = spell_record(executor, handle)
-    cost = (
-        cost_override
-        if cost_override is not None
-        else (record.mana_cost if record is not None else None)
+    node = (
+        next((a for a in record.abilities if isinstance(a, SpellAbility)), None)
+        if record is not None
+        else None
     )
+    if node is not None:
+        cost = effect_cast_cost(record, node, cost_override)  # V36: + additional costs
+    else:
+        cost = (
+            cost_override
+            if cost_override is not None
+            else (record.mana_cost if record is not None else None)
+        )
     if cost is None or not cost.parts:
         return True  # waiver (CR 498.2) / costless: nothing to fold
     plan, _why = build_payment_plan(

@@ -700,7 +700,10 @@ These are forks, not tasks. See the report that accompanied this audit.
     so the fold needs sublayers. Weaker than printed.
 - **B-71 [fixer A] A "discard your hand" cost is refused with an empty hand**
   (`cost:discard:insufficient_candidates:0<1`). Weaker than printed: a cost of discarding the whole
-  hand is payable with no cards.
+  hand is payable with no cards. **FIXED on branch `engine/verify-fixes-3` (V33, 2026-10-29)**: an
+  unbounded ALL cost selector demands every candidate and none when there are none, and Subira's
+  cost now discards the whole hand instead of one card (packs `subira_discard_whole_hand`,
+  `subira_discard_empty_hand_pays`).
 - **B-72 [fixer A] DESTROY and other direct graveyard moves never check the dies replacements**
   (`verbs._to_graveyard` → `_move_to`). A creature hit by Scorching Dragonfire, then destroyed later
   the same turn, goes to the graveyard instead of exile. Weaker than printed.
@@ -718,6 +721,14 @@ These are forks, not tasks. See the report that accompanied this audit.
     class: detector gap or engine bug.
 - **B-74 Sorcery speed means the first main phase only.** No second-main window for casts, land
   drops or sorcery-speed activations.
+- **B-75 [fixer 3, 2026-10-29] Chandra, Flame's Catalyst's "If that spell would be put into your
+  graveyard, exile it instead" is not applied.** Her -2 casts a red instant or sorcery from your
+  graveyard through `stack.cast_card`; the rider's replacement (`B5b-repl-graveyard-exile`) is never
+  registered for that cast, so the spell resolves into the graveyard and can be recast. Stronger than
+  printed, but Chandra, Flame's Catalyst is not castable yet, so nothing exploits it today. Repro:
+  `tools/scenarios/chandra_catalyst_recast_draw_journalled_once.json` (its note says where the card
+  should land: exile; it lands in the graveyard). Owner of the fix: the ontology round, which is
+  redesigning replacements created at resolution (DESIGN_ATOM_ONTOLOGY §10).
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).
