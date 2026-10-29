@@ -47,7 +47,6 @@ from MTG_bot.core.ability_tree import (
     FOr,
     Keyword,
     KeywordAbility,
-    LifeGainedEvent,
     OptionalEffect,
     PtDelta,
     PtDirection,
@@ -80,6 +79,7 @@ from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     EffectOutcome,
     KeywordOutcome,
+    KickerEffectOutcome,
     RuleReminderOutcome,
     SentenceOutcome,
     TemplateRegistry,
@@ -608,6 +608,11 @@ def _inner_node(outcome: SentenceOutcome) -> Any:
         # r8-C: directive/marker rows (Round-up, emblem-quote residue)
         # carry only their reason string — stable-identity by reason.
         return outcome.reason
+    if isinstance(outcome, KickerEffectOutcome):
+        # m21-fidelity item 4: a conditional "instead" arm (Life Goes On) is
+        # serialised as the gate it folds into.
+        assert outcome.pred is not None
+        return Conditional(pred=outcome.pred, then_effect=outcome.effect)
     raise TypeError(f"cannot extract inner node from {type(outcome)}")
 
 
@@ -1352,17 +1357,19 @@ class TestStructuralAssertions(unittest.TestCase):
     # -- Replacement effects (grammar round 5 — doc-07 batch, 8 tids) --
 
     def test_repl_died_gain_life(self) -> None:
-        """B5b-repl-died-gain-life: ReplacementAbility(LifeGainedEvent(YOU),
-        DIED_THIS_TURN, GAIN_LIFE 8)."""
+        """B5b-repl-died-gain-life: the "instead" arm on the spell's own gain,
+        KickerEffectOutcome(pred=DIED_THIS_TURN, replaces=True, GAIN_LIFE 8).
+
+        # re-pinned 2026-10-29: m21-fidelity item 4. It was a card-level
+        # ReplacementAbility(LifeGainedEvent(YOU), DIED_THIS_TURN, GAIN 8),
+        # registered for the rest of the turn, so every later life gain that
+        # turn became 8 (packs life_goes_on_gains_once / _died_then_other_gain).
+        """
         outcome = self._match_outcome("B5b-repl-died-gain-life")
-        ab = _as_replacement(_as_ability(outcome).ability)
-        event = ab.event
-        assert isinstance(event, LifeGainedEvent)
-        self.assertIs(event.actor.who, ControllerRef.YOU)
-        cond = ab.condition
-        assert isinstance(cond, FAtom)
-        self.assertEqual(cond.pred, FAtomPred.DIED_THIS_TURN)
-        atom = _as_atom(ab.action)
+        assert isinstance(outcome, KickerEffectOutcome)
+        self.assertTrue(outcome.replaces)
+        self.assertEqual(outcome.pred, FAtom(pred=FAtomPred.DIED_THIS_TURN))
+        atom = _as_atom(outcome.effect)
         self.assertEqual(atom.verb, Verb.GAIN_LIFE)
         p = _pairs_dict(atom)
         self.assertEqual(p["controller"], ControllerRef.YOU)
@@ -1806,7 +1813,6 @@ class TestReplacementBatchEndToEnd(unittest.TestCase):
 
     def test_replacement_batch_cards_compile(self) -> None:
         cases = (
-            ("Life Goes On", "If a creature died this turn, you gain 8 life instead."),
             (
                 "Containment Priest",
                 (
@@ -1862,6 +1868,28 @@ class TestReplacementBatchEndToEnd(unittest.TestCase):
             self.assertEqual(len(result.card.abilities), 1, f"{name}: ability count")
             self.assertEqual(len(result.unparsed), 0, f"{name}: unparsed")
             self.assertEqual(len(result.rule_reminders), 0, f"{name}: rule reminders")
+
+    def test_life_goes_on_is_one_conditional_gain(self) -> None:
+        # re-pinned 2026-10-29: m21-fidelity item 4 moved Life Goes On out of the batch above.
+        # Its "instead" arm needs the base sentence it rewrites, and the whole card is one
+        # SpellAbility: Conditional(DIED_THIS_TURN, gain 8, else=gain 4), never a turn-long
+        # replacement of every life gain.
+        from MTG_bot.core.compiler.coverage import build_full_registry
+
+        raw = _raw(
+            "Life Goes On",
+            ("You gain 4 life.", "If a creature died this turn, you gain 8 life instead."),
+        )
+        result = compile_card(raw, build_full_registry())
+        self.assertEqual(len(result.unparsed), 0)
+        (spell,) = result.card.abilities
+        assert isinstance(spell, SpellAbility)
+        effect = spell.effect
+        assert isinstance(effect, Conditional)
+        self.assertEqual(effect.pred, FAtom(pred=FAtomPred.DIED_THIS_TURN))
+        self.assertEqual(_pairs_dict(_as_atom(effect.then_effect))["amount"], QConst(8))
+        assert effect.else_effect is not None
+        self.assertEqual(_pairs_dict(_as_atom(effect.else_effect))["amount"], QConst(4))
 
 
 # ---------------------------------------------------------------------------

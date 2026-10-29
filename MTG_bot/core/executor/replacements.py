@@ -209,15 +209,19 @@ class ReplacementRegistry:
         record: CardRecord,
         designated: tuple[Handle, ...] = (),
     ) -> int:
-        """r19a (Life Goes On): a RESOLVING INSTANT/SORCERY's ReplacementAbility
+        """r19a: a RESOLVING INSTANT/SORCERY's ReplacementAbility
         nodes. A spell never attaches (it hits the graveyard), so the
         battlefield lifecycle that normally registers replacements never
         sees it — yet the grammar carries the corpus' turn-shaped replacement
-        idiom ("If a creature died this turn, you'd gain 8 life instead") as
-        a card-level ReplacementAbility on the spell itself. Registering at
-        resolution start (stack.py) with an Eot tag is the honest home: the
-        effect is live from resolution to end of turn, expires in the EOT
-        sweep, and never survives the window its own text names."""
+        idiom ("If that creature or planeswalker would die this turn, exile
+        it instead": Scorching Dragonfire, Obliterating Bolt, Blitz of the
+        Thunder-Raptor) as a card-level ReplacementAbility on the spell
+        itself. Registering at resolution start (stack.py) with an Eot tag is
+        the honest home: the effect is live from resolution to end of turn,
+        expires in the EOT sweep, and never survives the window its own text
+        names. (Life Goes On, the r19a case, no longer comes here: its
+        "instead" rewrites only its own life gain, so it compiles to a
+        Conditional amount — m21-fidelity item 4, 2026-10-29.)"""
         count = 0
         for node in record.abilities:
             if isinstance(node, ReplacementAbility):

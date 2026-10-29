@@ -1803,8 +1803,17 @@ def compile_card(
         # ZNR kicker tail ("If this spell/it was kicked, [instead] X"):
         # fold the WAS_KICKED-gated arm onto the previous effect-bearing
         # slot — additive append, or "instead" replacement (the arm wins,
-        # the base moves to the Conditional's else_effect).
+        # the base moves to the Conditional's else_effect). The same fold
+        # takes any other printed condition (outcome.pred, m21-fidelity
+        # item 4): "You gain 4 life. If a creature died this turn, you gain
+        # 8 life instead." is Conditional(DIED_THIS_TURN, 8, else=4)
+        # (CR 608.2c), not a turn-long replacement.
         if isinstance(outcome, KickerEffectOutcome):
+            arm_pred = (
+                outcome.pred
+                if outcome.pred is not None
+                else FAtom(pred=FAtomPred.WAS_KICKED)
+            )
             j: int | None = None
             base: Effect | None = None
             saw_unparsed_base = False
@@ -1831,8 +1840,8 @@ def compile_card(
                     # effect content — no base clause exists in the text
                     # at all; never silently drop the clause.
                     raise StateCorruptionError(
-                        "compile_card: kicker 'instead' arm has no "
-                        "preceding base effect to replace it",
+                        "compile_card: kicker or conditional 'instead' arm has "
+                        "no preceding base effect to replace it",
                         context={"sentence": raw.sentences[i]},
                     )
                 if outcome.replaces:
@@ -1851,7 +1860,7 @@ def compile_card(
                 processed.append(
                     EffectOutcome(
                         effect=Conditional(
-                            pred=FAtom(pred=FAtomPred.WAS_KICKED),
+                            pred=arm_pred,
                             then_effect=outcome.effect,
                         )
                     )
@@ -1860,7 +1869,7 @@ def compile_card(
                 continue
             merged = (
                 Conditional(
-                    pred=FAtom(pred=FAtomPred.WAS_KICKED),
+                    pred=arm_pred,
                     then_effect=outcome.effect,
                     else_effect=base,
                 )
@@ -1868,7 +1877,7 @@ def compile_card(
                 else _append_mandatory_to_seq(
                     base,
                     Conditional(
-                        pred=FAtom(pred=FAtomPred.WAS_KICKED),
+                        pred=arm_pred,
                         then_effect=outcome.effect,
                     ),
                 )

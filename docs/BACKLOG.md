@@ -741,6 +741,22 @@ These are forks, not tasks. See the report that accompanied this audit.
     Tyrannodon, Portcullis Vine, Wall of Runes and Warded Battlements. The pack
     `block_defender_and_tapped.json` pins the bug (its wall is `not_asked_to_block`).
   - **Fix.** Drop the two DEFENDER checks, re-pin that pack, and re-run the corpus games.
+- **B-77 [fixer A, m21-fidelity item 4] A spell's "would die this turn, exile it instead" has no
+  duration in the tree** (play is right; the encoding is implicit).
+  - Scorching Dragonfire (M21, ELD, FDN), Obliterating Bolt (FDN) and Blitz of the Thunder-Raptor
+    (IKO) compile a card-level `ReplacementAbility` with no duration (the IR node has no such
+    field). The executor registers a resolving instant's or sorcery's ReplacementAbility until end
+    of turn, scoped to the cast's designation (`stack.py`, `replacements.register_ephemeral_
+    replacements`), which is the printed "this turn" for all five. Packs
+    `scorching_dragonfire_late_damage_creature` and `scorching_dragonfire_expires_next_turn` pin it.
+  - So the model's static view of these cards does not show "this turn", and a future spell whose
+    replacement has another duration would be played wrong without a compile error.
+  - Options: (a) an optional `duration` on `ReplacementAbility` (ontology change, the R5-1 sibling
+    for replacements; the Dragonfire family re-bakes with `DurationEot`); (b) keep the executor rule
+    and write it into the ontology doc as the meaning of a ReplacementAbility on an instant or
+    sorcery (no IR change; the gap stays implicit).
+  - The spell-side death replacement is still skipped by DESTROY and other direct graveyard moves
+    (B-72).
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).

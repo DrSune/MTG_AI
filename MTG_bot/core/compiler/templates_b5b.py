@@ -140,7 +140,6 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     KeywordAbility,
     TriggeredAbility,
-    LifeGainedEvent,
     PtDelta,
     PtDirection,
     QAgg,
@@ -170,6 +169,7 @@ from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     EffectOutcome,
     KeywordOutcome,
+    KickerEffectOutcome,
     RuleReminderOutcome,
     SentenceOutcome,
     Template,
@@ -1097,25 +1097,30 @@ def _build_repl_died_gain_life(m: re.Match[str]) -> SentenceOutcome:
     """Life Goes On: "If a creature died this turn, you gain 8 life
     instead."
 
-    Lossy: event amount scoping dropped (LifeGainedEvent has no amount
-    field) — the replacement fires on any life gain this turn.
+    The "instead" is a replacement (CR 614.1a) of the spell's OWN previous
+    instruction only ("You gain 4 life."; CR 608.2c: later text modifies
+    earlier text), so it is the conditional arm
+    KickerEffectOutcome(pred=DIED_THIS_TURN, replaces=True), which the
+    compiler folds into Conditional(DIED_THIS_TURN, gain 8, else=gain 4):
+    one life gain, its amount chosen at resolution.
+    m21-fidelity item 4 (2026-10-29): until then this was a card-level
+    ReplacementAbility over every LifeGainedEvent, registered for the rest
+    of the turn, so every later life gain that turn became 8 (stronger than
+    printed). C6 (above) stays the rule for a replacement that watches
+    other events ("If that creature would die this turn, exile it instead").
     """
-    return AbilityOutcome(
-        ability=ReplacementAbility(
-            event=LifeGainedEvent(
-                actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+    return KickerEffectOutcome(
+        effect=Atom(
+            verb=Verb.GAIN_LIFE,
+            args=AtomArgs(
+                pairs=(
+                    ("controller", ControllerRef.YOU),
+                    ("amount", QConst(int(m.group(1)))),
+                )
             ),
-            condition=FAtom(pred=FAtomPred.DIED_THIS_TURN),
-            action=Atom(
-                verb=Verb.GAIN_LIFE,
-                args=AtomArgs(
-                    pairs=(
-                        ("controller", ControllerRef.YOU),
-                        ("amount", QConst(int(m.group(1)))),
-                    )
-                ),
-            ),
-        )
+        ),
+        replaces=True,
+        pred=FAtom(pred=FAtomPred.DIED_THIS_TURN),
     )
 
 
@@ -1246,6 +1251,12 @@ def _build_repl_die_exile(m: re.Match[str]) -> SentenceOutcome:
 
     Lossy (verbatim): "this turn" scoping dropped (death is a moment;
     CreatureDiesEvent has no turn-scope slot).
+    Play is right (m21-fidelity item 4, packs scorching_dragonfire*,
+    2026-10-29): the executor gives a resolving instant's ReplacementAbility
+    an end-of-turn lifetime (stack.py), scoped to the cast's designation, so
+    the target that dies later this turn is exiled and one that dies next
+    turn is not. Only the tree is silent on the duration (no `duration` on
+    ReplacementAbility; recorded in docs/BACKLOG.md B-77).
     """
     return AbilityOutcome(
         ability=ReplacementAbility(
