@@ -46,9 +46,6 @@
    "op": "cast",
    "real": "Destructive Tampering",
    "key": "tb",
-   "targets": [
-    "cog"
-   ],
    "decisions": [
     "1"
    ]
@@ -75,5 +72,6 @@
   "life": {
    "1": 18
   }
- }
+ },
+ "notes": "re-pinned 2026-10-29: V17 announces the mode as the spell is cast and requires only the chosen mode's targets (CR 601.2b-c), so mode 2 ('Creatures without flying can't block this turn') takes no target and the Cog is no longer designated; it still stays on the battlefield."
 }

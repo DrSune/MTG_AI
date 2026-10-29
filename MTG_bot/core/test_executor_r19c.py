@@ -429,10 +429,15 @@ class PrechosenModesTest(StackCase):
         self.assertEqual(self.world.zone_of(orb).kind, ZONE_BATTLEFIELD)
 
     def test_undeclared_mode_stays_loud(self):
+        # re-pinned 2026-10-29: V17 changes an undeclared mode from a cast
+        # refusal into an ask of the caster at cast time (CR 601.2b), over the
+        # legal mode sets; with nobody to answer it the cast still raises,
+        # never a default.
         orb, _ = self._board()
         with self.assertRaises(ValueError) as cm:
             cast(self.ex, self.p0, self.rtn("Returnish4"), targets=(orb,))
-        self.assertIn("must declare its mode", str(cm.exception))
+        self.assertIn("needs a decision from ('0', '1')", str(cm.exception))
+        self.assertIn("choose:", str(cm.exception))
 
 
 if __name__ == "__main__":

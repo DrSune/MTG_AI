@@ -88,6 +88,7 @@ from MTG_bot.core.ability_tree import (
     QUnbounded,
     Selector,
     SelectorMode,
+    Seq,
     SpellAbility,
     Verb,
     Zone,
@@ -119,11 +120,13 @@ __all__ = [
     "activation_target_slots",
     "cast_carrier",
     "cast_designee_ok",
+    "cast_mode_options",
     "choose_options",
     "legal_activations",
     "legal_casts",
     "legal_search",
     "legal_targets",
+    "modal_choose",
     "optional_offer",
     "rest_of",
     "spell_target_slots",
@@ -1061,12 +1064,63 @@ def _names_target_player(value: object) -> bool:
     )
 
 
+def modal_choose(node: SpellAbility) -> Choose | None:
+    """V17: a modal spell's mode menu (CR 700.2: options in a bulleted list
+    after "choose one" or similar), which the compiler makes the spell's
+    top-level Choose. A Choose inside a sentence ("your choice of deathtouch
+    or lifelink") is not a mode: it is chosen as the effect resolves (CR
+    608.2d) and stays a resolution ask."""
+    effect = node.effect
+    return effect if isinstance(effect, Choose) else None
+
+
+def with_modes(node: SpellAbility, modes: tuple[int, ...]) -> SpellAbility:
+    """V17: the spell as cast with the announced modes (CR 601.2b): only
+    those options, in printed order (CR 700.2d's "treated as if that mode
+    appeared that many times in sequence" reads the same way)."""
+    choose = modal_choose(node)
+    if choose is None:
+        return node
+    options = tuple(choose.options[i] for i in sorted(modes))
+    if not options:
+        return replace(node, effect=None)
+    return replace(node, effect=options[0] if len(options) == 1 else Seq(steps=options))
+
+
+def cast_mode_options(
+    executor: Executor,
+    node: SpellAbility,
+    *,
+    spell_handle: Handle,
+    seat: Handle,
+) -> list[tuple[int, tuple[int, ...]]]:
+    """V17 (CR 601.2b, 700.2a): the mode sets the caster may announce, as
+    ``(order index, option indices)`` in :func:`choose_options` order (the
+    order index is the runtime Choose's decision token). A set is legal only
+    if every target its modes need can be chosen (700.2a: a mode that would
+    be illegal for want of legal targets can't be chosen). Empty for a spell
+    that is not modal."""
+    choose = modal_choose(node)
+    if choose is None:
+        return []
+    legal: list[tuple[int, tuple[int, ...]]] = []
+    options = choose_options(executor, choose, source=spell_handle, controller=seat)
+    for i, option in enumerate(options):
+        slots = spell_target_slots(
+            executor, node, spell_handle=spell_handle, seat=seat, modes=option.option_idxs
+        )
+        if all(slot.min_count <= len(slot.candidates) for slot in slots):
+            legal.append((i, option.option_idxs))
+    return legal
+
+
 def spell_target_slots(
     executor: Executor,
     node: SpellAbility,
     *,
     spell_handle: Handle,
     seat: Handle,
+    modes: tuple[int, ...] | None = None,
 ) -> list[TargetSlot]:
     """The TARGET-selection slots of a SPELL's effect tree: every
     TARGET-mode Selector reachable under the SpellAbility's effect, as the
@@ -1090,7 +1144,13 @@ def spell_target_slots(
     ENGINE's own player rule (exactly the one
     ``stack._validate_spell_targets`` re-checks, which stays the oracle),
     so a caller designates from a QUERY instead of mirroring the CR rule
-    (/03 row B-5 mirror #4, deleted)."""
+    (/03 row B-5 mirror #4, deleted).
+
+    ``modes`` (V17, CR 601.2c): for a modal spell, the option indices the
+    caster announced; only those modes' targets exist. None walks every mode
+    (the mode-blind union, which is what a caller gets before announcing)."""
+    if modes is not None and modal_choose(node) is not None:
+        node = with_modes(node, modes)
     slots: list[TargetSlot] = []
     seen: set[str] = set()
     if node.effect is None:

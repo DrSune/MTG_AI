@@ -18,6 +18,9 @@ BACKLOG:
 - **Targets are asked one at a time** from the slot's candidates, then validated by the engine's
   oracle (``validate_target_selection``). A slot with exactly one legal filler is filled without
   asking, as the engine's own phantom gate does (``offers.py:47-70``).
+- **A modal spell announces its modes first** (CR 601.2b, V17): ``stack.cast_modes`` asks the
+  engine's ``choose:`` question over the legal mode sets, then only the chosen modes' targets are
+  asked.
 - **At most ``MAX_ACTS_PER_STEP`` acts per window**, the engine's own cap.
 
 The router consumes no randomness, so a raw ``RandomPolicy`` behind it reproduces
@@ -45,12 +48,14 @@ from MTG_bot.core.executor.games import MAX_ACTS_PER_STEP, Act
 from MTG_bot.core.executor.legality import activate
 from MTG_bot.core.executor.query import (
     activation_target_slots,
+    cast_mode_options,
     legal_activations,
     legal_casts,
+    modal_choose,
     spell_target_slots,
     validate_target_selection,
 )
-from MTG_bot.core.executor.stack import cast, play_land
+from MTG_bot.core.executor.stack import cast, cast_modes, play_land
 
 if TYPE_CHECKING:
     from MTG_bot.bench.view import SeatLens
@@ -190,13 +195,27 @@ class SeatRouter:
             if (row.handle,) in game.unsupported_rows:
                 continue
             assert row.node is not None  # a non-land legal_casts row carries its SpellAbility
+            kicked = " with kicker" if row.kicked else ""
+            token = f"cast:{row.handle}{':k' if row.kicked else ''}"
+            if modal_choose(row.node) is not None:
+                # V17 (CR 601.2b-c): the modes are announced first (an engine ask, in
+                # _execute), and only the chosen modes' targets exist. Offered when some
+                # legal mode set can be designated with one slot at most.
+                legal = cast_mode_options(executor, row.node, spell_handle=row.handle, seat=seat)
+                if not any(
+                    len(spell_target_slots(executor, row.node, spell_handle=row.handle, seat=seat, modes=m)) <= 1
+                    for _t, m in legal
+                ):
+                    st["hidden_rows"] += 1
+                    continue
+                menu.append((Option(token, f"cast {name}{kicked} (then choose its mode)"), ("cast", row, None)))
+                continue
             slots = spell_target_slots(executor, row.node, spell_handle=row.handle, seat=seat)
             if len(slots) > 1 or any(s.min_count > len(s.candidates) for s in slots):
                 st["hidden_rows"] += 1
                 continue
-            kicked = " with kicker" if row.kicked else ""
             more = " (then choose targets)" if slots and not slots[0].forced else ""
-            menu.append((Option(f"cast:{row.handle}{':k' if row.kicked else ''}", f"cast {name}{kicked}{more}"), ("cast", row, slots)))
+            menu.append((Option(token, f"cast {name}{kicked}{more}"), ("cast", row, slots)))
         for option in activations:
             if (option.source, option.ability_idx) in mana_keys:
                 continue
@@ -280,6 +299,15 @@ class SeatRouter:
             return
         _, row, slots = payload
         source = row.handle if kind in ("land", "cast") else row.source
+        modes: tuple[int, ...] = ()
+        if kind == "cast" and slots is None:
+            # V17: a modal spell. The mode ask goes through the engine channel (this
+            # router answers it, routed to this seat), then its own slots are designated.
+            _token, modes, _rest = cast_modes(executor, seat, source, row.node)
+            slots = spell_target_slots(executor, row.node, spell_handle=source, seat=seat, modes=modes)
+            if len(slots) > 1:
+                self.stats[i]["hidden_rows"] += 1
+                return
         targets = self._targets(game, slots, i, source) if slots else ()
         if targets is None:
             return
@@ -289,7 +317,7 @@ class SeatRouter:
             self._log(i, "land", source)
         elif kind == "cast":
             game.attempted = f"cast:{game.name_of(source)}"
-            cast(executor, seat, source, kicked=row.kicked, targets=targets)
+            cast(executor, seat, source, kicked=row.kicked, mode_choices=modes, targets=targets)
             self._log(i, "cast", source, f"{len(targets)}t")
         else:
             game.attempted = f"act:{game.name_of(source)}#{row.ability_idx}"

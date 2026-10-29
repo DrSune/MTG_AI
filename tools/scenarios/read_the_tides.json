@@ -1,6 +1,6 @@
 {
  "name": "read_the_tides",
- "note": "wave2b: printed 'Choose one' BOTH modes. Mode '0' Draw three: hand lane +3. Mode '1' Return up to two target creatures: the designated opposing creature lands in ITS OWNER's hand. UNION-TARGET QUIRK (logged in wave2b findings, effect-faithful so not a suspect): the compiled spell carries the union target slot (up to two creatures, min 1) BEFORE mode selection, so the draw mode is only castable with a designated extra target \u2014 the pack designates the Flyer for both casts; mode '0' leaves it home (zone assert pins it).",
+ "note": "wave2b: printed 'Choose one' BOTH modes. Mode '0' Draw three: hand lane +3. Mode '1' Return up to two target creatures: the designated opposing creature lands in ITS OWNER's hand. UNION-TARGET QUIRK (logged in wave2b findings, effect-faithful so not a suspect): the compiled spell carries the union target slot (up to two creatures, min 1) BEFORE mode selection, so the draw mode is only castable with a designated extra target \u2014 the pack designates the Flyer for both casts; mode '0' leaves it home (zone assert pins it). re-pinned 2026-10-29: V17 announces the mode as the spell is cast and requires only the chosen mode's targets (CR 601.2b-c), so the draw-three cast takes no target and no longer designates the Flyer.",
  "world": {
   "life": 20,
   "seed": 7
@@ -39,9 +39,6 @@
    "op": "cast",
    "real": "Read the Tides",
    "key": "s1",
-   "targets": [
-    "fly"
-   ],
    "decisions": [
     "0"
    ]
