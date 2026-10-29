@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Jeskai Elder: 'Whenever this creature deals combat damage to a PLAYER, you may draw a card. If you do, discard a card.' Blocked by a wall, it deals combat damage only to the wall -> no trigger, hand stays at the setup draw (1) and the graveyard stays empty.",
+ "cards": [
+  {"key": "je", "zone": "battlefield", "controller": 0, "real": "Jeskai Elder"},
+  {"key": "wall", "zone": "battlefield", "controller": 1, "name": "Opp Wall", "type": "Creature — Wall", "power": 0, "toughness": 9},
+  {"key": "l0", "zone": "library", "controller": 0, "name": "Lib A", "type": "Creature — Bear", "power": 2, "toughness": 2},
+  {"key": "l1", "zone": "library", "controller": 0, "name": "Lib B", "type": "Creature — Bear", "power": 2, "toughness": 2}
+ ],
+ "mana": {},
+ "steps": [{"op": "combat", "seat": 0, "attack": {"je": true}, "block": {"wall": "je"}, "may": {"je": true}}],
+ "expect": {"hand": {"0": 1}, "damage": {"wall": 1}, "graveyard": {"0": []}}}
