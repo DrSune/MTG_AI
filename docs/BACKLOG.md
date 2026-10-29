@@ -646,6 +646,22 @@ These are forks, not tasks. See the report that accompanied this audit.
     The others still pass.
   - **Fix.** Honour the key, find out why Rewind does not untap, and re-run the suite.
   - The card tooling uses its own `start_tapped` key meanwhile, so the 429 packs stay byte-identical.
+- **B-64 [verifier, FDN round 2] "You may discard a card. If you do, draw a card" draws with an
+  empty hand** (stronger than printed).
+  - The may-offer is not narrowed when there is nothing to discard. `MAY_DONE`
+    (`executor/quantity.py:1081`) only checks that the answer was "fire", so "yes" draws a card and
+    discards nothing.
+  - Affects FDN Incinerating Blast, and any card worded "you may <cost-like action>. If you do, …"
+    with the compiler's usual CHOOSE discard too.
+  - A policy would learn to answer yes on an empty hand.
+  - **Fix.** Offer the may only when the action can be done (CR 609.3). `MAY_DONE` should read
+    whether it was done, not what was answered.
+- **B-65 [verifiers, FDN rounds 1-2] An Aura whose text is all static can enchant any permanent,
+  and nothing removes an Aura on an illegal object.**
+  - `query.aura_enchant_slot` (`query.py:1383-1419`) reads the host filter from the spell's effect
+    only. `KeywordAbility(ENCHANT)` has no filter parameter, so the tree cannot say "creature".
+  - No state-based action moves an illegally attached Aura to the graveyard (CR 704.5m).
+  - The first half is being fixed on branch `cards/castable-permanents` (B-49 follow-up #2).
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).
