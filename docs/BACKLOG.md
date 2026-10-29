@@ -674,7 +674,9 @@ These are forks, not tasks. See the report that accompanied this audit.
   - The first half is being fixed on branch `cards/castable-permanents` (B-49 follow-up #2).
 - **B-66 [B-49 follow-up sweep] Enthralling Hold's "You can't choose an untapped creature as this
   Aura's target" is not applied to its target slot** (live in M21, stronger than printed): the Aura
-  can steal an untapped creature.
+  can steal an untapped creature. **[FIXED on branch `engine/verify-fixes-2` 2026-10-29 (V20):
+  `legality.enumerate_candidates` applies the source's own TargetingEvent prevention while it is
+  cast (CR 113.6e).]**
 - **B-67 [same] The journal records any card put from library into hand as a draw (`CARD_DRAWN`).**
   - So a tutor can satisfy "whenever you draw a card" triggers and draw counts.
   - Probably stronger than printed. Write the pack first: a search-to-hand with a draw-trigger card

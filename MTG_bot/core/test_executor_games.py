@@ -2053,6 +2053,10 @@ class Round16eControlTest(unittest.TestCase):
             p1,
             ZONE_BATTLEFIELD,
         )
+        # re-pinned 2026-10-29: V20 (B-66) applies the Aura's "You can't choose
+        # an untapped creature as this spell's target as you cast it", so the
+        # victim must be tapped to be a legal target.
+        world.cards[victim].tapped = True
         cast(executor, p0, aura, targets=(victim,))
         self.assertEqual(world.zone_of(aura).kind, ZONE_BATTLEFIELD)
         self.assertEqual(executor.attachments.get(aura), victim)

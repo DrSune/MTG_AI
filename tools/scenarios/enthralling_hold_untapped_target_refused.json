@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hold", "real": "Enthralling Hold", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 5}},
+ "steps": [
+  {"op": "cast", "key": "hold", "real": "Enthralling Hold", "controller": 0, "targets": ["bear"], "expect_raise": "illegal"}
+ ],
+ "expect": {
+  "zone": {"hold": "hand", "bear": "battlefield"},
+  "attached": {"hold": null}
+ },
+ "notes": "Printed: 'You can't choose an untapped creature as this spell's target as you cast it.' The only creature is untapped, so the cast must be refused (B-66). OBSERVED 2026-10-29: the engine lets the Aura target and steal the untapped creature."
+}
