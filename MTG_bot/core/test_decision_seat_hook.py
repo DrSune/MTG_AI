@@ -41,7 +41,7 @@ from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_HAND, Game
 from MTG_bot.core.test_executor_binding import card_id, reset_oracle_ids
 
 #: Tags whose second field IS the deciding player.
-SEAT_IN_TAG = {"cw", "counter", "pay", "scry", "sacrifice", "discard"}
+SEAT_IN_TAG = {"cw", "counter", "pay", "scry", "sacrifice", "discard", "legend"}
 #: Combat tags whose object is the deciding player's creature.
 CREATURE_IN_TAG = {"attack", "block", "order", "trample"}
 

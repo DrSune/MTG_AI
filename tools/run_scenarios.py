@@ -22,7 +22,9 @@ Pack vocabulary (all keys required as noted):
                                             — addressed by name through the
                                             pool fallback; is_token records
                                             only), OR
-              "name"/"power"/"toughness"/"type" (synthetic)}]
+              "name"/"power"/"toughness"/"type" (synthetic; optional
+                                            "colors", "keywords", and
+                                            "token": true for a token)}]
   mana    : {"0": {"G": 5}, ...}            optional, per seat index
   steps   : [{"op": "deal_damage"|"fight", "source": key, "target": key
               [, "amount": int]},
@@ -213,6 +215,9 @@ class ScenarioRunner:
                     # for synthetic cards; absent keys are the dataclass defaults (byte-identical).
                     colors=tuple(card.get("colors", ())),
                     keywords=tuple(card.get("keywords", ())),
+                    # V22 (2026-10-29): a synthetic TOKEN ("token": true), e.g. a token
+                    # copy of a legendary creature; absent = a card, byte-identical.
+                    is_token=bool(card.get("token", False)),
                 )
             zone = ZONE_OF_NAME[card.get("zone", "battlefield")]
             self.handles[card["key"]] = self.world.add_card(

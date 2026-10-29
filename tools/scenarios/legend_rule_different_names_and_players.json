@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "death_mage", "real": "Liliana, Death Mage", "zone": "battlefield", "controller": 0},
+  {"key": "their_azusa", "real": "Azusa, Lost but Seeking", "zone": "battlefield", "controller": 1},
+  {"key": "waker", "real": "Liliana, Waker of the Dead", "zone": "hand", "controller": 0},
+  {"key": "my_azusa", "real": "Azusa, Lost but Seeking", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "waker"},
+  {"op": "enter", "key": "my_azusa"}
+ ],
+ "expect": {
+  "zone": {"death_mage": "battlefield", "waker": "battlefield", "their_azusa": "battlefield", "my_azusa": "battlefield"}
+ },
+ "notes": "V22 (2026-10-29). CR 704.5j needs the SAME name and the SAME controller: two Lilianas with different names coexist, and each player may control one Azusa. No ask may happen (the steps carry no decisions, so any ask fails the pack)."
+}
