@@ -235,6 +235,10 @@
        ]
       ]
      }
+    },
+    "timing": {
+     "tag": "ActivationWindow",
+     "name": "SORCERY"
     }
    },
    {
@@ -247,9 +251,9 @@
   ]
  },
  "mapping": {
-  "author": "claude-mapper-A",
+  "author": "claude-orchestrator-remap",
   "date": "2026-10-29",
-  "draft_py": "grant = StaticAbility(\n    effect=A(Verb.GRANT_ABILITY, {\n        'ability': KeywordAbility(keyword=Keyword.DOUBLE_STRIKE),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            )),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [grant, *compiled, SpellAbility(kind=SpellKind.ARTIFACT)]\n",
+  "draft_py": "grant = StaticAbility(\n    effect=A(Verb.GRANT_ABILITY, {\n        'ability': KeywordAbility(keyword=Keyword.DOUBLE_STRIKE),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            )),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [grant, *compiled]  # the compiled tree already carries the equip (with sorcery timing) and the cast carrier\n",
   "clauses": [
    {
     "clause": "Equipped creature has double strike.",
@@ -261,9 +265,9 @@
    }
   ],
   "g0_warnings": [],
-  "notes": ""
+  "notes": "re-mapped on cards/integration: compiled equip now carries sorcery timing (B-60) and the B-49 carrier"
  },
  "probe": {
-  "sha": "c92af432a49ea4cdda1b798085974ae7131a91ff6e112e336fa3f5e305fe3ebb"
+  "sha": "6298fcab17ded7c6f91c176ce9fd5fdb610cda2b6392732fbd9e85e263a7516d"
  }
 }

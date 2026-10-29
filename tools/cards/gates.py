@@ -139,6 +139,10 @@ def g0(raw: RawCard, base: CardRecord, card: CardRecord, *, clauses: list[dict] 
     if not _engine_supported(card, set(SUPPORTED_VERBS_V2)):
         verbs = sorted({n.verb.name for n in walk(card) if isinstance(n, Atom)} - {v.name for v in SUPPORTED_VERBS_V2})
         fails.append(f"verbs the executor does not support: {verbs or 'a shape gate (X-kicker / non-constant EtB counters)'}")
+    spells = sum(isinstance(a, SpellAbility) for a in card.abilities)
+    if spells > 1:
+        fails.append(f"{spells} SpellAbility nodes: a card has one (the compiler may already carry the "
+                     "permanent's cast carrier; do not append another)")
     permanent = any(t in card.types for t in ("Creature", "Enchantment", "Artifact", "Planeswalker"))
     if permanent and "Land" not in card.types and not any(isinstance(a, SpellAbility) for a in card.abilities):
         fails.append("a permanent spell with no SpellAbility cannot be cast (add the carrier "

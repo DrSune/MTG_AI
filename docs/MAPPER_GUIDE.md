@@ -56,9 +56,11 @@ $PY tools/cards/cardtool.py --help
      - abilities in printed order;
      - then the spell's `SpellAbility`. For an instant or sorcery, that holds the effect, a `Seq` of
        steps in printed order. For a permanent, it is an effect-less carrier.
-   - **Permanent spells.** An enchantment, artifact or planeswalker with no spell effect must end
-     with `SpellAbility(kind=SpellKind.ENCHANTMENT)` (or `ARTIFACT` / `PLANESWALKER`), or it cannot
-     be cast. G0 fails it otherwise.
+   - **Permanent spells.** On branch `cards/integration` the compiler gives every enchantment,
+     artifact and planeswalker its cast carrier (B-49). Keep the one in `compiled` and never append
+     a second: G0 fails a card with two SpellAbility nodes. Only for a card the compiler refuses
+     outright (no `compiled` tree) do you add `SpellAbility(kind=SpellKind.ENCHANTMENT|ARTIFACT|
+     PLANESWALKER)` yourself, last.
 4. `cardtool.py try SET "Card" draft.py --out trace.txt` validates the draft, runs G0, plays the card
    (G1) and writes the trace. Read the trace yourself: does each clause happen, on the right
    objects, with the right numbers, at the right time? Fix and repeat.
@@ -114,6 +116,13 @@ $PY tools/cards/cardtool.py --help
   - An Aura's carrier is `SpellAbility(kind=SpellKind.ENCHANTMENT)`.
   - An Equipment's carrier is `SpellAbility(kind=SpellKind.ARTIFACT)`.
   - An emblem record takes bare abilities: no carrier and no `EmblemAbility` wrapper.
+- **Enchant** (on `cards/integration`). The Enchant restriction rides on the keyword:
+  `KeywordAbility(keyword=Keyword.ENCHANT, params=(<filter>,))`, for example the filter
+  `FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature')`. The engine reads it to decide what the
+  Aura may enchant (CR 303.4a). An Aura record without it can enchant any permanent (B-65), which is
+  stronger than printed.
+- **Equip** (on `cards/integration`): the compiled equip already carries
+  `timing=ActivationWindow.SORCERY` (B-60). Keep it.
 - **Ability words** (Threshold, Raid, Morbid, Landfall) are not keywords. Write the trigger and its
   condition. G0's warning "MTGJSON keywords with no Keyword atom" is expected for them.
 - **More shapes the compiler uses** (mapper B, FDN round 1):
