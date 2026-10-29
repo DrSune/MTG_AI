@@ -1076,11 +1076,18 @@ def _build_named_card_search_etb(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_nine_lives_leave(m: re.Match[str]) -> SentenceOutcome:
-    """#9: this enchantment leaves the battlefield, you lose the game."""
+    """#9: this enchantment leaves the battlefield, you lose the game.
+
+    The mover is THIS enchantment (CR 603.6c leaves-the-battlefield
+    trigger): subject IS_SOURCE, the self-ETB shape. m21-fidelity (review
+    batch C, 2026-10-29): the subject was missing, so any permanent you
+    controlled leaving the battlefield made you lose the game.
+    """
     return _ability(
         ZoneChangeEvent(
             from_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
             to_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
+            subject=FAtom(pred=FAtomPred.IS_SOURCE),
         ),
         Atom(verb=Verb.LOSE_GAME, args=AtomArgs()),
     )
