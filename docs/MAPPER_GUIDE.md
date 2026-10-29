@@ -114,6 +114,13 @@ For each printed clause:
 
 Do not pass a clause because the tree "looks right". The trace is what the engine does.
 
+**The packet is the evidence.**
+- Do not run `show`, `probe` or `try` on the card. They read the live tree, and a planted packet's
+  tree differs from it by design.
+- `parse` and `similar` (how the compiler expresses a wording) and `runpack` are fine.
+- A spec pack runs against the live tree, so a passing pack never overrides a contradiction you can
+  see in the packet.
+
 Write the verdict JSON:
 ```json
 {"id": "<packet id>", "verdict": "OK" | "WRONG", "probe_sha": "<the sha printed in the packet>",
