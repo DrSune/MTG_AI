@@ -960,6 +960,27 @@ def _append_mandatory_to_seq(effect: Effect, inner: Effect) -> Effect:
     return Seq(steps=(effect, inner))
 
 
+#: "Each opponent who can't loses 3 life." (Liliana, Waker of the Dead): a tail about whether the
+#: player COULD do the instruction just before it.
+_WHO_CANT_TAIL_RE = re.compile(r"^Each (?:opponent|player) who can't\b")
+
+
+def _insert_before_last_step(effect: Effect, inner: Effect) -> Effect:
+    """Put a "who can't" check right before the instruction it is about (V10, 2026-10-29).
+
+    "Each player discards a card. Each opponent who can't loses 3 life.": the opponents who
+    can't are those with no card to discard, so the check reads the hands BEFORE the discard.
+    Appended after it (the old order), it also hit an opponent who discarded their last card,
+    stronger than printed once every player really discards. Within one resolution nothing
+    observable happens between the check and the instruction (no choice, no priority; triggers
+    wait), so this order is the printed meaning. It departs from printed sentence order:
+    docs/ATOM_DIVERGENCES.md D16.
+    """
+    if isinstance(effect, Seq):
+        return Seq(steps=effect.steps[:-1] + (inner, effect.steps[-1]))
+    return Seq(steps=(inner, effect))
+
+
 def _merge_search_shuffle(prev_effect: Effect, shuffle: Effect) -> Effect:
     """Inject ``shuffle`` into the previous ``OptionalEffect``'s inner steps.
 
@@ -1866,7 +1887,9 @@ def compile_card(
                 ab = slot.ability if isinstance(slot, AbilityOutcome) else None
                 if isinstance(ab, ActivatedAbility):
                     merge = (
-                        _append_optional_to_seq
+                        _insert_before_last_step
+                        if _WHO_CANT_TAIL_RE.match(sentence.strip())
+                        else _append_optional_to_seq
                         if _MAY_RE.search(sentence)
                         else _append_mandatory_to_seq
                     )
@@ -1899,7 +1922,9 @@ def compile_card(
                     # must not gain a phantom second wrap — the step is
                     # optional exactly once.
                     merge = (
-                        _append_optional_to_seq
+                        _insert_before_last_step
+                        if _WHO_CANT_TAIL_RE.match(sentence.strip())
+                        else _append_optional_to_seq
                         if _MAY_RE.search(sentence)
                         and not isinstance(outcome.effect, OptionalEffect)
                         else _append_mandatory_to_seq
@@ -1931,7 +1956,9 @@ def compile_card(
                 aab = slot.ability if isinstance(slot, AbilityOutcome) else None
                 if isinstance(aab, ActivatedAbility):
                     merge = (
-                        _append_optional_to_seq
+                        _insert_before_last_step
+                        if _WHO_CANT_TAIL_RE.match(sentence.strip())
+                        else _append_optional_to_seq
                         if _MAY_RE.search(sentence)
                         and not isinstance(outcome.effect, OptionalEffect)
                         else _append_mandatory_to_seq

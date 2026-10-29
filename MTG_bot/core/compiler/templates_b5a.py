@@ -779,15 +779,15 @@ def _build_lose_life(m: re.Match[str]) -> SentenceOutcome:
 def _build_each_opp_cant_lose_life(m: re.Match[str]) -> SentenceOutcome:
     """``Each opponent who can't loses 3 life.`` (Liliana Waker +1 tail;
     grammar round 11 C3 — the round-9 "payment-failure condition" UNCOVERED
-    row retired: "who can't [discard a card]" resolves to a post-discard
-    hand-count gate, the roadmap-sanctioned r21b reading (an opponent
-    reduced to an empty hand by the preceding forced discard loses 3).
+    row retired: "who can't [discard a card]" is a hand-count gate: an
+    opponent with no card in hand cannot discard).
     EachPlayer(ref=ALL_OPPONENTS) rotates the CONTROLLER role (b2a/b2b
     precedent), so the YOU-relative predicate AND the YOU-relative
     LOSE_LIFE both rebind per opponent.  The sentence carries no ``may``
-    and no continuation prefix: the compiler appends this mandatory tail
-    to the preceding loyalty ability through the R11-1 loyalty-trailing
-    path (``_append_mandatory_to_seq``)."""
+    and no continuation prefix: the R11-1 loyalty-trailing path puts it
+    BEFORE the discard it is about (``compiler._insert_before_last_step``,
+    V10 2026-10-29; docs/ATOM_DIVERGENCES.md D16). The old post-discard
+    reading also made an opponent who discarded their last card lose 3."""
     cant_discard = FNot(
         inner=FAtom(
             pred=FAtomPred.ZONE_COUNT_GE,

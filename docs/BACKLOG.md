@@ -563,9 +563,19 @@ These are forks, not tasks. See the report that accompanied this audit.
   - The synthetic target-player slot lists opponents only, so "target player draws two cards" can
     never target yourself.
   - A target-player binding overrides an atom's own `target` role: "target player sacrifices a
-    creature" raised `KeyError 'unknown card player:1'`.
+    creature" raised `KeyError 'unknown card player:1'`. **[FIXED on branch
+    `engine/verify-fixes-2` 2026-10-29 (V10): a CHOOSE menu over cards ignores a player-only
+    binding (`selectors.role_handles`).]**
   - Related: the deciding player of an edict is always the caster (no chooser role), the L-27
-    seat-routing gap.
+    seat-routing gap. **[FIXED on branch `engine/verify-fixes-2` 2026-10-29 (V10).]** A sacrifice
+    menu is asked of the player who controls it (`sacrifice:<seat>:...`), a discard of the
+    discarding player (`discard:<seat>:...`, every player the controller role names, APNAP), via
+    `ExecCtx.take_decision_of`. Consumers that still attribute asks without
+    `DecisionStream.asking_seat`, so they hand a non-active player's choice to the active player's
+    policy: `tools/training/ab_duel.py` and `collector.py` (every ask goes to
+    `world.active_player`, blocks included) and `tools/eval/gameplay_eval_v2.py`
+    (`resolve_seat` parses the tag: right for seat-in-tag kinds, wrong for an EachPlayer-rotated
+    `may:`/`choose:`). Each needs to read `executor.decisions.asking_seat` in its provider.
 - **B-54 [2026-10-29] Minor engine findings from the first mapping batch:**
   - `legal_casts` offers a spell whose required target has no legal candidate (CR 601.2c), and casting
     it raises. The bench router hides such rows; the probe now skips them.

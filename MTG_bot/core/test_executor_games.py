@@ -2455,9 +2455,13 @@ class StallRuleTest(unittest.TestCase):
         # until its player slot existed; it now exiles player 1's graveyard.
         # Still crash-free and decisive, SAME loser, 36 turns (double-run
         # replay verified). Neither Chandra in these decks is cast.
+        # re-pinned 2026-10-29: V10 changes Kinetic Augur's discard (seat 0,
+        # card:7) from the engine's lowest-handle pick to two asks of the
+        # discarding player (CR 701.9b), which draw policy RNG. Still
+        # decisive, SAME loser, 32 turns (double-run replay verified).
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 36)
+        self.assertEqual(game.turns, 32)
         self.assertEqual(game.reason, "game over: player:0(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:

@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mr", "real": "Mind Rot", "zone": "hand", "controller": 0},
+  {"key": "c1", "name": "Keep This", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 1},
+  {"key": "c2", "name": "Toss This", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "c3", "name": "Toss That", "type": "Sorcery", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 3}},
+ "steps": [
+  {"op": "cast", "real": "Mind Rot", "key": "mr", "decisions": ["c2", "c3"]}
+ ],
+ "expect": {
+  "zone": {"mr": "graveyard", "c1": "hand", "c2": "graveyard", "c3": "graveyard"},
+  "hand": {"1": 1}
+ },
+ "notes": "V10 (2026-10-29). Printed Mind Rot: 'Target player discards two cards.' CR 701.9b: the discarding player chooses which. The opponent holds three cards and answers its own two asks with c2 and c3, so c1 (the lowest handle, which the engine used to discard) stays in hand."
+}

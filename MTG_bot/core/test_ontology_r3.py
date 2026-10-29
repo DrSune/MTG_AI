@@ -544,9 +544,10 @@ class DeferredDeferralTable(unittest.TestCase):
         cls.ledger = json.loads(LEDGER.read_text())
 
     def test_oracle_table_is_exactly_run_afoul(self):
-        self.assertEqual(
-            selectors.R3_CHOOSE_DEFERRED_ORACLES, frozenset({RUN_AFOUL_ORACLE})
-        )
+        # re-pinned 2026-10-29: V10 changes Run Afoul's tree (CONTROLLER_IS
+        # TARGET_PLAYER) and asks a sacrifice menu's controller, so the
+        # direction is encoded and the table that held Run Afoul is empty.
+        self.assertEqual(selectors.R3_CHOOSE_DEFERRED_ORACLES, frozenset())
 
     def test_uuid_is_the_compiled_m21_run_afoul(self):
         rec = _pool("M21").get(RUN_AFOUL_ORACLE)
@@ -595,30 +596,30 @@ class DeferredDeferralTable(unittest.TestCase):
                 ("M21", "Run Afoul"),
             },
         )
-        # Every deferred card is OUTSIDE the lift set, and only Run Afoul's
-        # oracle sits in the table — the other three defer on gate rules,
-        # so removing the table cannot silently lift them.
+        # Every deferred card is OUTSIDE the lift set.
+        # re-pinned 2026-10-29: V10 changes the opponent-chooser and merged-
+        # menu classes from silent slices to asks of the deciding player, so
+        # no card is oracle-tabled any more (the ledger rows above stay the
+        # R3 historical classification).
         deferred_cards = merged | unbounded | opponent
         self.assertFalse(deferred_cards & LIFT_CARDS)
         for set_name, card_name in deferred_cards:
-            in_table = oid_of[(set_name, card_name)] in (
-                selectors.R3_CHOOSE_DEFERRED_ORACLES
-            )
-            self.assertEqual(
-                in_table,
-                card_name == "Run Afoul",
-                (card_name, "only Run Afoul may be oracle-tabled"),
+            self.assertNotIn(
+                oid_of[(set_name, card_name)],
+                selectors.R3_CHOOSE_DEFERRED_ORACLES,
+                (card_name, "no card is oracle-tabled after V10"),
             )
 
 
 class RunAfoulDeferralBehavior(unittest.TestCase, _RecorderMixin):
-    """(b) the deferral is load-bearing: with the UUID in the table the
-    BF:ANY CHOOSE behind Run Afoul stays SILENT; delete the UUID and the
-    same IR ASKS — i.e. the ENGINE WOULD ASK THE CASTER to pick which
-    creature the TARGETED PLAYER sacrifices (opponent's creatures are in
-    the public BF:ANY menu and the chooser-direction axis is unencoded,
-    ZND-9). That hazard is why the table entry must not be deleted
-    casually; a real fix encodes direction, not a UUID removal."""
+    """(b) re-pinned 2026-10-29: V10 changes this class. It pinned that the
+    oracle table kept Run Afoul's BF:ANY CHOOSE silent, because asking would
+    have let the CASTER pick the opponent's sacrifice (the direction axis was
+    unencoded, ZND-9). The tree now says whose fliers (CONTROLLER_IS
+    TARGET_PLAYER) and the sacrifice lane asks the player who controls the
+    menu (CR 701.21a), so the hazard is closed by structure: a sacrifice menu
+    spanning two controllers raises, and a one-player menu is that player's
+    ask."""
 
     def setUp(self):
         reset_oracle_ids()
@@ -629,33 +630,41 @@ class RunAfoulDeferralBehavior(unittest.TestCase, _RecorderMixin):
         )
         self.a = self.world.add_card(card_id("A", "1", "1"), self.p0, ZONE_BATTLEFIELD)
         self.b = self.world.add_card(card_id("B", "1", "1"), self.p1, ZONE_BATTLEFIELD)
+        self.c = self.world.add_card(card_id("C", "1", "1"), self.p1, ZONE_BATTLEFIELD)
         self.ex = Executor(self.world)
 
-    def _resolve(self):
+    def _sacrifice(self, filter_):
         ctx = ctx_for(self.ex, source=self.source, controller=self.p0)
-        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(BF_ANY,))
-        return resolve_selector(sel, ctx, ask_choose=True)
+        sel = Selector(QConst(1), SelectorMode.CHOOSE, filter_, zones=(BF_ANY,))
+        return resolve_selector(sel, ctx, ask_choose=True, sacrifice=True)
 
     def test_deferred_oracle_never_asks(self):
+        # A menu over both players' creatures does not say who sacrifices.
         asks = self.recorder()
-        out = self._resolve()
-        self.assertEqual(asks, [], "deferred oracle must stay on the silent slice")
-        # frozen ordered[:k]: the BF:ANY menu also holds the source card
-        # itself, so the silent stand-in is the Handle-sort first element.
-        self.assertEqual(out, sorted((self.source, self.a, self.b))[:1])
+        with self.assertRaises(ValueError):
+            self._sacrifice(CREATURE)
+        self.assertEqual(asks, [])
 
     def test_removing_the_deferral_flips_to_an_ask(self):
-        # Both paths constructed: SAME world, SAME selector, only the
-        # table differs. Proves the UUID — not some incidental gate —
-        # carries this card's silence.
-        asks = self.recorder()
-        original = selectors.R3_CHOOSE_DEFERRED_ORACLES
-        selectors.R3_CHOOSE_DEFERRED_ORACLES = frozenset()
-        try:
-            self._resolve()
-        finally:
-            selectors.R3_CHOOSE_DEFERRED_ORACLES = original
+        # The opponent's own creatures: the opponent is asked, not the caster.
+        from MTG_bot.core.ability_tree import FAtom, FAtomPred
+
+        seats: list = []
+        asks = self.recorder(chooser=lambda v: str(self.c))
+        prov = self.ex.decisions.provider
+
+        def seat_provider(vocab, what):
+            seats.append(self.ex.decisions.asking_seat)
+            return prov(vocab, what)
+
+        self.ex.decisions.provider = seat_provider
+        theirs = FAnd((CREATURE, FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT)))
+        out = self._sacrifice(theirs)
+        self.assertEqual(out, [self.c])
         self.assertEqual(len(asks), 1, asks)
+        self.assertTrue(asks[0][0].startswith(f"sacrifice:{self.p1}:"), asks)
+        self.assertEqual(asks[0][1], tuple(str(h) for h in sorted((self.b, self.c))))
+        self.assertEqual(seats, [self.p1])
 
 
 if __name__ == "__main__":  # pragma: no cover

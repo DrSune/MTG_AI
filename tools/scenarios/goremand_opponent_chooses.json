@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gore", "real": "Goremand", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp_giant", "name": "Opp Giant", "type": "Creature", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "opp_bear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 2, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "gore", "real": "Goremand", "decisions": ["opp_bear"]}
+ ],
+ "expect": {
+  "zone": {"gore": "battlefield", "bear": "graveyard", "opp_bear": "graveyard", "opp_giant": "battlefield"}
+ },
+ "notes": "M21 G2 spec: Goremand. 'As an additional cost, sacrifice a creature' (the only own creature, bear, goes). 'When this creature enters, each opponent sacrifices a creature': the OPPONENT chooses which; here the opponent answers its choice with opp_bear (its smaller creature, the later-created one), so opp_bear dies and opp_giant stays. Fails if the engine picks for the opponent (the L-27 / B-53 chooser gap)."
+}

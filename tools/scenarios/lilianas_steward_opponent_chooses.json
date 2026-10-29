@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "stew", "zone": "battlefield", "controller": 0, "real": "Liliana's Steward"},
+  {"key": "h1", "zone": "hand", "controller": 1, "name": "Keep This", "type": "Creature", "power": "1", "toughness": "1"},
+  {"key": "h2", "zone": "hand", "controller": 1, "name": "Toss This", "type": "Instant"}
+ ],
+ "steps": [
+  {"op": "activate", "key": "stew", "idx": 0, "seat": 0, "targets": ["h1"], "decisions": ["h2"]}
+ ],
+ "expect": {
+  "zone": {"stew": "graveyard", "h1": "hand", "h2": "graveyard"},
+  "hand": {"1": 1}
+ },
+ "notes": "V10 (2026-10-29). Printed Liliana's Steward: '{T}, Sacrifice this creature: Target opponent discards a card.' CR 701.9b: the opponent chooses. It holds two cards and discards h2, keeping h1 (the lowest handle, which the engine used to discard). targets=['h1'] designates the opponent through a card in its zone (the runner cannot name a player in an activate step)."
+}

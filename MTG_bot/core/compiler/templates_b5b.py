@@ -1013,6 +1013,10 @@ def _build_reveal_hand(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_sacr_flying(m: re.Match[str]) -> SentenceOutcome:
+    # V10 (2026-10-29): "target opponent sacrifices ... of their choice" — the
+    # menu is the TARGET player's fliers (CONTROLLER_IS TARGET_PLAYER, which
+    # also makes the player the spell's designation). Without it the menu was
+    # every flier on the battlefield, the caster's included.
     atom = Atom(
         verb=Verb.SACRIFICE,
         args=AtomArgs(
@@ -1024,6 +1028,10 @@ def _build_sacr_flying(m: re.Match[str]) -> SentenceOutcome:
                         SelectorMode.CHOOSE,
                         FAnd(
                             children=(
+                                FAtom(
+                                    pred=FAtomPred.CONTROLLER_IS,
+                                    who=ControllerRef.TARGET_PLAYER,
+                                ),
                                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                                 FAtom(
                                     pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING
