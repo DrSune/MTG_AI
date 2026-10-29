@@ -92,6 +92,7 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
     walk,
 )
+from MTG_bot.core.compiler.card_records import is_verified, load_records
 from MTG_bot.core.compiler.compiler import PoolCompile, compile_pool
 from MTG_bot.core.compiler.coverage import (
     ShapeGap,
@@ -212,6 +213,10 @@ class Supply:
     #: whose power is defined by a card-type census the current quantity
     #: grammar cannot express — see KNOWLEDGE/2026-10-18/99).
     shape_gaps: tuple[ShapeGap, ...] = ()
+    #: docs/PLAN_CARD_ONBOARDING.md: cards whose current tree passed play-time verification (a
+    #: card record's ``verified.tree_sha`` equals the tree dealt). Empty for a set with no
+    #: records (M21 today).
+    verified_ids: frozenset[str] = frozenset()
 
 
 _SUPPLY_CACHE: dict[str, Supply] = {}
@@ -224,6 +229,17 @@ def get_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
         supply = compile_supply(mode, set_code)
         _SUPPLY_CACHE[f"{mode}:{set_code}"] = supply
     return supply
+
+
+def _rescued(raw: dict, oid: str, records: dict) -> bool:
+    """Does the card record rescue this refused card (verified, current text)?"""
+    if "ir" not in records.get(oid, {}):
+        return False
+    try:
+        result = compile_pool({oid: raw[oid]}, build_full_registry(), records=records).results[oid]
+    except StateCorruptionError:
+        return False
+    return result.record is not None
 
 
 def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
@@ -242,9 +258,15 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
       DESIGN_CARD_POOL.md:219); this one plays only cards whose whole text is in
       the tree. It equals ``castable`` on M21; it is how a new set (M20, KHM)
       is played honestly while its grammar rounds run (KNOWLEDGE /159).
+    * ``verified`` — compiled AND its current tree passed the play-time gates of
+      docs/PLAN_CARD_ONBOARDING.md (a card record under ``MTG_bot/data/cards/<SET>/``
+      whose ``verified.tree_sha`` matches). Cards mapped by agents enter every mode only
+      once verified; this mode also leaves out compiled cards nobody verified yet.
     """
-    if mode not in ("all", "engine", "castable", "compiled"):
-        raise ValueError(f"unknown pool_mode {mode!r} (all|engine|castable|compiled)")
+    if mode not in ("all", "engine", "castable", "compiled", "verified"):
+        raise ValueError(
+            f"unknown pool_mode {mode!r} (all|engine|castable|compiled|verified)"
+        )
     started = time.perf_counter()
     raw = ingest_pool(REPO / "MTG_bot" / "data" / f"{set_code}.json")
     registry = build_full_registry()
@@ -261,13 +283,17 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
     # drop). M21 has zero shape gaps: the fast path below runs unchanged
     # and its supply stays byte-identical.
     shape_gaps: tuple[ShapeGap, ...] = ()
+    records = load_records(set_code)
     try:
-        pool = compile_pool(raw, registry)
+        pool = compile_pool(raw, registry, records=records)
     except StateCorruptionError:
         _tolerated, gap_rows = _compile_pool_tolerant(raw, registry)
+        # A refused card that a verified card record rescues stays in; every other refusal is
+        # a shape gap as before.
+        gap_rows = [gap for gap in gap_rows if not _rescued(raw, gap.card, records)]
         dropped = {gap.card for gap in gap_rows}
         raw = {oid: rc for oid, rc in raw.items() if oid not in dropped}
-        pool = compile_pool(raw, registry)
+        pool = compile_pool(raw, registry, records=records)
         shape_gaps = tuple(gap_rows)
         for gap in gap_rows:
             print(
@@ -277,7 +303,9 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
     # The 12e second pass, exactly as tools/measure_grammar.py runs it: the
     # ungated pass stamps every card supported (the template's True default),
     # so the 286 number ONLY exists in the gated fold.
-    gated = compile_pool(raw, registry, supported_verbs=set(SUPPORTED_VERBS_V2))
+    gated = compile_pool(
+        raw, registry, supported_verbs=set(SUPPORTED_VERBS_V2), records=records
+    )
     engine_ids = frozenset(
         oid for oid, res in gated.results.items() if res.legality.engine_supported
     )
@@ -309,11 +337,14 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
     playable_engine = frozenset(
         oid for oid, meta in metas.items() if meta.engine_supported and meta.playable
     )
+    verified = frozenset(
+        oid for oid in metas if is_verified(pool.results[oid], records.get(oid))
+    )
     if mode == "all":
         deckable = tuple(sorted(metas))
     elif mode == "engine":
         deckable = tuple(sorted(oid for oid in engine_ids if oid in metas))
-    elif mode == "compiled":
+    elif mode in ("compiled", "verified"):
         deckable = tuple(
             sorted(
                 oid
@@ -323,6 +354,7 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
                     or pool.results[oid].ambiguities
                     or pool.results[oid].back_face_unparsed
                 )
+                and (mode == "compiled" or oid in verified)
             )
         )
     else:
@@ -338,6 +370,7 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
         playable_engine_ids=playable_engine,
         pool_seconds=time.perf_counter() - started,
         shape_gaps=shape_gaps,
+        verified_ids=verified,
     )
 
 

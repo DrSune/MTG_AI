@@ -650,6 +650,8 @@ class CompileResult:
     ``back_face_unparsed`` — ZND-2f (/106): (sentence, hint) pairs for
     UNMATCHED back-face sentences only; ``unparsed`` stays the front-face
     register (PC-1's formula stays front-face compile results, /96 law).
+    ``record``        — the tree sha of an applied card record (card_records.py;
+    docs/PLAN_CARD_ONBOARDING.md), None when the tree is the compiler's own.
     """
 
     card: CardRecord
@@ -659,6 +661,7 @@ class CompileResult:
     rule_reminders: tuple[RuleReminderOutcome, ...] = ()
     known_gaps: tuple[str, ...] = ()
     back_face_unparsed: tuple[tuple[str, str], ...] = ()
+    record: str | None = None
 
 
 @dataclass(frozen=True)
@@ -1506,6 +1509,89 @@ def _as_single_faced(raw: RawCard) -> RawCard:
     )
 
 
+def _star_pt_gaps(raw: RawCard, card: CardRecord) -> list[str]:
+    """Known-gap notes for a printed '*' P/T that no SET_PT/MODIFY_PT atom covers.
+
+    Shared by :func:`compile_card` and the card-record path (card_records.py), so a
+    mapped tree is held to the same check as a compiled one."""
+    gaps: list[str] = []
+    # If power or toughness was '*' (→ None from parse_pt), check that a
+    # SET_PT or MODIFY_PT verb exists somewhere in the compiled tree.
+    # # KNOWN-GAP: when no template produced such an atom the card's P/T is
+    #   dynamic but uncovered — a template-coverage gap, not data corruption
+    #   (the data itself is sound). Report it; power/toughness stay None
+    #   (= "resolve at runtime"). M21 has exactly two such cards: Weird and
+    #   Kinetic Augur.
+    needs_set_pt = (raw.power_raw is not None and raw.power_raw.strip() == "*") or (
+        raw.toughness_raw is not None and raw.toughness_raw.strip() == "*"
+    )
+    if needs_set_pt:
+        has_set_pt = False
+        for node in walk(card, skip=BackFace):
+            if isinstance(node, Atom) and node.verb in (
+                Verb.SET_PT,
+                Verb.MODIFY_PT,
+            ):
+                has_set_pt = True
+                break
+        if not has_set_pt:
+            star_fields = []
+            if raw.power_raw is not None and raw.power_raw.strip() == "*":
+                star_fields.append("power")
+            if raw.toughness_raw is not None and raw.toughness_raw.strip() == "*":
+                star_fields.append("toughness")
+            gaps.append(
+                f"star P/T: {'/'.join(star_fields)} is '*' but no SET_PT/MODIFY_PT "
+                f"ability found in compiled text (template coverage gap)"
+            )
+    return gaps
+
+
+def _engine_supported(card: CardRecord, supported_verbs: set[Verb] | None) -> bool:
+    """The engine-support verdict for a built card (``supported_verbs=None`` is the
+    ungated pass: always True). Shared with the card-record path."""
+    if supported_verbs is None:
+        engine_supported = True
+    else:
+        engine_supported = True
+        # ZND-2f §3 (phantom defense, /106 amendment 3): the BackFace
+        # subtree is EXCLUDED — the engine never plays a face (owner-gated,
+        # spec §6), so a face-only verb must never flip a front-face-
+        # supported card's verdict (and a face-unsupported verb must never
+        # silently drop a front-face-supported card from engine supply).
+        for node in walk(card, skip=BackFace):
+            if isinstance(node, Atom) and node.verb not in supported_verbs:
+                engine_supported = False
+                break
+        # ZND-1e SHAPE gates (the verb-only fold was dishonest for the
+        # kicker family: it marked 41 of ZNR's 42 kicker cards supported
+        # while the executor raised on every gated lane). The delivered
+        # lanes — KickerAbility priced into the cast, WAS_KICKED read
+        # from the CAST journal row, gated EtBState with constant
+        # counters — stay SUPPORTED; what remains unplayable is marked
+        # unsupported here, honestly:
+        #   * an X-kicker ({X} in the optional cost): no producer wires
+        #     the kick choice to an X declaration (deferred, /95);
+        #   * a gated EtBState whose counters are not constants: the
+        #     engine's entering-state stamp is QConst-only.
+        if engine_supported:
+            for node in walk(card, skip=BackFace):
+                if isinstance(node, KickerAbility) and _cost_has_x_quantity(node.cost):
+                    engine_supported = False
+                    break
+                if (
+                    isinstance(node, EtBState)
+                    and node.condition is not None
+                    and any(
+                        not isinstance(qty, QConst)
+                        for _kind, qty in node.initial_counters
+                    )
+                ):
+                    engine_supported = False
+                    break
+    return engine_supported
+
+
 def compile_card(
     raw: RawCard,
     registry: TemplateRegistry,
@@ -2317,77 +2403,8 @@ def compile_card(
         is_token=raw.is_token or is_emblem,
     )
 
-    # -- Star P/T coverage check ----------------------------------------------
-    # If power or toughness was '*' (→ None from parse_pt), check that a
-    # SET_PT or MODIFY_PT verb exists somewhere in the compiled tree.
-    # # KNOWN-GAP: when no template produced such an atom the card's P/T is
-    #   dynamic but uncovered — a template-coverage gap, not data corruption
-    #   (the data itself is sound). Report it; power/toughness stay None
-    #   (= "resolve at runtime"). M21 has exactly two such cards: Weird and
-    #   Kinetic Augur.
-    needs_set_pt = (raw.power_raw is not None and raw.power_raw.strip() == "*") or (
-        raw.toughness_raw is not None and raw.toughness_raw.strip() == "*"
-    )
-    if needs_set_pt:
-        has_set_pt = False
-        for node in walk(card, skip=BackFace):
-            if isinstance(node, Atom) and node.verb in (
-                Verb.SET_PT,
-                Verb.MODIFY_PT,
-            ):
-                has_set_pt = True
-                break
-        if not has_set_pt:
-            star_fields = []
-            if raw.power_raw is not None and raw.power_raw.strip() == "*":
-                star_fields.append("power")
-            if raw.toughness_raw is not None and raw.toughness_raw.strip() == "*":
-                star_fields.append("toughness")
-            known_gaps.append(
-                f"star P/T: {'/'.join(star_fields)} is '*' but no SET_PT/MODIFY_PT "
-                f"ability found in compiled text (template coverage gap)"
-            )
-
-    # -- Engine support check ------------------------------------------------
-    if supported_verbs is None:
-        engine_supported = True
-    else:
-        engine_supported = True
-        # ZND-2f §3 (phantom defense, /106 amendment 3): the BackFace
-        # subtree is EXCLUDED — the engine never plays a face (owner-gated,
-        # spec §6), so a face-only verb must never flip a front-face-
-        # supported card's verdict (and a face-unsupported verb must never
-        # silently drop a front-face-supported card from engine supply).
-        for node in walk(card, skip=BackFace):
-            if isinstance(node, Atom) and node.verb not in supported_verbs:
-                engine_supported = False
-                break
-        # ZND-1e SHAPE gates (the verb-only fold was dishonest for the
-        # kicker family: it marked 41 of ZNR's 42 kicker cards supported
-        # while the executor raised on every gated lane). The delivered
-        # lanes — KickerAbility priced into the cast, WAS_KICKED read
-        # from the CAST journal row, gated EtBState with constant
-        # counters — stay SUPPORTED; what remains unplayable is marked
-        # unsupported here, honestly:
-        #   * an X-kicker ({X} in the optional cost): no producer wires
-        #     the kick choice to an X declaration (deferred, /95);
-        #   * a gated EtBState whose counters are not constants: the
-        #     engine's entering-state stamp is QConst-only.
-        if engine_supported:
-            for node in walk(card, skip=BackFace):
-                if isinstance(node, KickerAbility) and _cost_has_x_quantity(node.cost):
-                    engine_supported = False
-                    break
-                if (
-                    isinstance(node, EtBState)
-                    and node.condition is not None
-                    and any(
-                        not isinstance(qty, QConst)
-                        for _kind, qty in node.initial_counters
-                    )
-                ):
-                    engine_supported = False
-                    break
+    known_gaps.extend(_star_pt_gaps(raw, card))
+    engine_supported = _engine_supported(card, supported_verbs)
 
     legality = LegalityFlags(
         format_legal=True,
@@ -2414,12 +2431,19 @@ def compile_pool(
     pool: dict[str, RawCard],
     registry: TemplateRegistry,
     supported_verbs: set[Verb] | None = None,
+    records: dict[str, dict[str, Any]] | None = None,
+    *,
+    require_verified: bool = True,
 ) -> PoolCompile:
     """Compile an entire pool (oracle_id → RawCard).
 
     Emblems are compiled and attached to their owner CardRecord via
     ``related_names``.  Emblems are excluded from the standalone ``cards``
     dict.  Missing owners become ``orphan_emblems``.
+
+    ``records`` (oracle_id → card record, card_records.py) puts a mapped tree
+    in place of the compiler's; with ``require_verified`` (the default) only a
+    record whose tree passed verification is applied.
 
     Summary is internally consistent:
     - total = number of non-emblem cards
@@ -2433,7 +2457,34 @@ def compile_pool(
     """
     results: dict[str, CompileResult] = {}
     for oid, raw in pool.items():
-        results[oid] = compile_card(raw, registry, supported_verbs)
+        try:
+            results[oid] = compile_card(raw, registry, supported_verbs)
+        except StateCorruptionError:
+            # A card whose text the compiler refuses can still be rescued by its card record:
+            # the printed facts compile alone, the record supplies every ability. If the record
+            # does not apply (absent, stale, unverified), the refusal stands, loud as before.
+            if not (records and "ir" in records.get(oid, {})):
+                raise
+            from MTG_bot.core.compiler.card_records import apply_record
+
+            base = compile_card(replace(raw, sentences=(), back_face=None), registry, supported_verbs)
+            rescued = apply_record(
+                raw, base, records[oid], supported_verbs, require_verified=require_verified
+            )
+            if rescued.record is None:
+                raise
+            results[oid] = rescued
+    if records:
+        # Card records (docs/PLAN_CARD_ONBOARDING.md): a mapped tree replaces the compiler's
+        # for its card; by default only a verified one. No records (M21): this loop is skipped.
+        from MTG_bot.core.compiler.card_records import apply_record
+
+        for oid, raw in pool.items():
+            if oid in records and results[oid].record is None:
+                results[oid] = apply_record(
+                    raw, results[oid], records[oid], supported_verbs,
+                    require_verified=require_verified,
+                )
 
     # Separate emblems from non-emblems
     emblem_oids: set[str] = set()
