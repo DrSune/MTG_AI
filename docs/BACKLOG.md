@@ -506,6 +506,73 @@ These are forks, not tasks. See the report that accompanied this audit.
   other token carrier, and B11, writes "Creature — <subtypes>". Same meaning, different bytes,
   so it breaks the identity law. `types` and `subtypes` agree. Fixing it re-bakes one M21 golden,
   so schedule it at a pilot era boundary with B-43.
+- **B-49 [2026-10-29, found by the G1 probe] Noncreature permanents with no spell effect cannot be
+  cast** (live in M21).
+  - An enchantment, artifact or planeswalker whose text is all static, triggered or activated
+    abilities compiles with no `SpellAbility`. `spell_castable` answers `cast:not_a_spell`, and
+    the `castable` supply mode drops the card.
+  - Uncastable today: 44 M21 cards (25 enchantments, 9 artifacts, 10 planeswalkers), 63 in FDN and
+    47 in M19. The RL pilot has never cast an anthem, an equipment or a planeswalker.
+  - Creatures got their carrier in C4 batch 4; kicker heads got theirs in ZND-1e. Noncreature
+    permanents never did (ZNR /128 noted Skyclave Pick-Axe).
+  - Artifacts also had no `SpellKind`: one with an effect sentence compiled as `SORCERY` and
+    resolved to the graveyard.
+  - **Fix.** `SpellKind.ARTIFACT` is on branch `cards/mapping`; it is M21-invariant. The carrier is
+    on branch `cards/castable-permanents`. It changes M21's goldens, its castable pool and every
+    replay pin, so adopt it at an RL-pilot era boundary with a re-smoke and a re-pin, with B-43
+    and B-47.
+- **B-50 [2026-10-29, found by a mapper's G1 trace] A resolved ability's "until end of turn" grant
+  ends when its source leaves the battlefield.**
+  - `verbs._v_grant_or_lose` registers every GRANT/LOSE layer with the ability's source
+    (`layers.register_grant`). `layers.detach_source` (`core/executor/layers.py:333`) expires every
+    layer of a departing permanent.
+  - That is right for a static ability (CR 611.3). It is wrong for an effect a resolved triggered
+    or activated ability created, which lasts its stated duration whatever happens to its source
+    (CR 611.2a).
+  - Seen on FDN Battlesong Berserker: when it dies in combat, you_bear keeps its +1/+0 (the P/T
+    ledger is separate) but loses the granted menace.
+  - The bug makes cards weaker, not stronger.
+  - **Fix.** Mark resolution-created layers and leave them out of `detach_source`. Add a pack in
+    which the granting creature dies in combat.
+  - It changes M21 episodes, so it is an era-boundary fix.
+  - Related: D6 (`tools/audit/detectors.py`) found a live end-of-turn grant layer bound to a card
+    already in the graveyard (FDN soak, 300 games). Check that a card returning to the battlefield
+    in the same turn is a new object (CR 400.7) and does not keep it.
+- **B-51 [2026-10-29] `Verb.CHOOSE` always offers choosing nothing.**
+  - `query.verb_choose_options` (`core/executor/query.py`) appends the empty pick `()` even when a
+    legal candidate exists.
+  - So "You choose a nonland card from it" (Duress, Kitesail Freebooter, Pilfer, Elspeth's
+    Nightmare; Linvala, Shield of Sea Gate) can resolve as no choice. The ask vocabulary
+    `[0, 1, <handle>]` carries an index that means nothing.
+  - Today the chooser is always the caster, so it only makes cards weaker. But an "optional"
+    escape from a mandatory choice is exactly what a policy learns to use the day a CHOOSE feeds
+    its own drawback.
+  - **Fix.** Offer the empty row only when the pool is smaller than the count (the C17 clamp it
+    mirrors), and re-pin the M21 Duress and Kitesail packs.
+- **B-52 [2026-10-29, mapper G1 + packs] A counted static P/T bonus freezes at its first value**
+  (live in M21).
+  - `layers._materialize_static` skips a target that already has a ledger entry, so a bonus that
+    counts something is not continuous (CR 611.3a, 613.4).
+  - Seen on FDN Enigma Drake: it stays at 2 power after an instant reaches the graveyard. Blanchwood
+    Armor stays +4/+4 after you lose Forests. M21 Kinetic Augur fails the same way.
+  - Frozen high is **stronger than printed**: exile your own graveyard or sacrifice the lands and
+    keep the bonus. An RL policy would find that.
+  - Fix at an era boundary, with a pack that changes the count both ways.
+- **B-53 [2026-10-29] "Target player" only ever offers opponents, and a player binding takes over
+  any role named `target`.**
+  - The synthetic target-player slot lists opponents only, so "target player draws two cards" can
+    never target yourself.
+  - A target-player binding overrides an atom's own `target` role: "target player sacrifices a
+    creature" raised `KeyError 'unknown card player:1'`.
+  - Related: the deciding player of an edict is always the caster (no chooser role), the L-27
+    seat-routing gap.
+- **B-54 [2026-10-29] Minor engine findings from the first mapping batch:**
+  - `legal_casts` offers a spell whose required target has no legal candidate (CR 601.2c), and casting
+    it raises. The bench router hides such rows; the probe now skips them.
+  - Damage marked on a non-creature land through a forced binding: only reachable from harness ops,
+    but `DEAL_DAMAGE` does not check the recipient's type.
+  - M21 Quirion Dryad's trigger uses `COLOR_IN` (a subset test), so a green-white spell would not
+    trigger it. The text needs "any of white, blue, black or red" (an FOr of `COLOR_HAS`).
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
   plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
 
