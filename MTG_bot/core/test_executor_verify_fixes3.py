@@ -421,6 +421,22 @@ class TestV23NestedBoundariesJournalOnce(FixerCase):
         self.assertEqual([(e.kind, e.subject) for e in new], [("TAP_STATE", self.beta)])
         self.assertEqual(journal.open_depth(), 0)
 
+    def test_an_outer_change_made_before_an_inner_atom_is_still_journalled(self):
+        # vfix's raw mana tap inside a running PAY atom (CR 605.3b, no nested atom)
+        # happens BEFORE pay_costs runs a nested sacrifice: the fold moves only the
+        # keys the inner boundary changed, so the outer diff still sees the tap.
+        journal = self.ex.journal
+        outer = journal.snapshot()
+        self.world.cards[self.beta].tapped = True  # the outer's own raw change
+        self.ex.execute(
+            atom(Verb.SACRIFICE, target=target_sel(UNIV)),
+            source=self.alpha,
+            controller=self.p0,
+            bindings={"target": [self.alpha]},
+        )
+        new = journal.record_atom(outer, None, "TEST", [])
+        self.assertEqual([(e.kind, e.subject) for e in new], [("TAP_STATE", self.beta)])
+
     def test_inner_card_damage_is_not_rejournalled(self):
         from MTG_bot.core.executor.events import KIND_DAMAGE
 
