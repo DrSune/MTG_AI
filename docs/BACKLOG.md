@@ -506,6 +506,21 @@ These are forks, not tasks. See the report that accompanied this audit.
   other token carrier, and B11, writes "Creature — <subtypes>". Same meaning, different bytes,
   so it breaks the identity law. `types` and `subtypes` agree. Fixing it re-bakes one M21 golden,
   so schedule it at a pilot era boundary with B-43.
+- **B-49 [2026-10-29, found by the G1 probe] Noncreature permanents with no spell effect cannot be
+  cast** (live in M21).
+  - An enchantment, artifact or planeswalker whose text is all static, triggered or activated
+    abilities compiles with no `SpellAbility`. `spell_castable` answers `cast:not_a_spell`, and
+    the `castable` supply mode drops the card.
+  - Uncastable today: 44 M21 cards (25 enchantments, 9 artifacts, 10 planeswalkers), 63 in FDN and
+    47 in M19. The RL pilot has never cast an anthem, an equipment or a planeswalker.
+  - Creatures got their carrier in C4 batch 4; kicker heads got theirs in ZND-1e. Noncreature
+    permanents never did (ZNR /128 noted Skyclave Pick-Axe).
+  - Artifacts also had no `SpellKind`: one with an effect sentence compiled as `SORCERY` and
+    resolved to the graveyard.
+  - **Fix.** `SpellKind.ARTIFACT` is on branch `cards/mapping`; it is M21-invariant. The carrier is
+    on branch `cards/castable-permanents`. It changes M21's goldens, its castable pool and every
+    replay pin, so adopt it at an RL-pilot era boundary with a re-smoke and a re-pin, with B-43
+    and B-47.
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
   plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
 
