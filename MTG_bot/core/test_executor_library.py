@@ -634,6 +634,108 @@ class TestLoyaltyLedger(LibraryCase):
         self.assertEqual(self.ex.loyalty_clock, {})  # no loyalty act, no clock entry
 
 
+# ------------------------------------------- LOYALTY [−X] (Ugin), the X lane
+
+
+class TestLoyaltyXLane(LibraryCase):
+    """CR 602.2b -> 601.2b: an activation's X is announced before the cost
+    is paid; CR 606.6 caps a loyalty [−X] at the loyalty counters; CR 107.3a:
+    the effect reads the announced X."""
+
+    MINUS_X = 1  # Ugin's abilities: [+2], [−X], [−10]
+
+    def setUp(self):
+        super().setUp()
+        self.ugin = self.world.add_card(
+            card_id(
+                "Ugin, the Spirit Dragon",
+                type_line="Legendary Planeswalker — Ugin",
+                cmc=8,
+                loyalty="7",
+            ),
+            self.p0,
+            ZONE_BATTLEFIELD,
+        )
+        self.ex.attach_card(
+            self.ugin,
+            record(
+                "Ugin, the Spirit Dragon",
+                oid=self.world.cards[self.ugin].identity.oracle_id,
+            ),
+        )
+        self.ex.begin_turn(self.p0)
+        self.asks = []
+
+        def provider(vocab, what):
+            self.asks.append((what, vocab))
+            return vocab[-1]
+
+        self.ex.decisions.provider = provider
+
+    def loyalty(self):
+        return self.world.cards[self.ugin].counters.get(CounterKind.LOYALTY.name)
+
+    def test_the_query_row_carries_the_live_bound_and_the_x0_witness(self):
+        from MTG_bot.core.executor.query import legal_activations
+
+        rows = [
+            r
+            for r in legal_activations(self.world, self.ex, self.p0)
+            if r.source == self.ugin
+        ]
+        by_idx = {r.ability_idx: r for r in rows}
+        self.assertEqual(by_idx[self.MINUS_X].x_max, 7)
+        self.assertEqual(by_idx[self.MINUS_X].payment.loyalty, 0)  # X = 0 witness
+        self.assertIsNone(by_idx[0].x_max)  # [+2] has no X
+        self.world.cards[self.ugin].counters[CounterKind.LOYALTY.name] = 3
+        rows = legal_activations(self.world, self.ex, self.p0)
+        row = next(r for r in rows if (r.source, r.ability_idx) == (self.ugin, 1))
+        self.assertEqual(row.x_max, 3)  # the bound follows the counters
+
+    def test_unannounced_x_is_asked_over_zero_to_loyalty(self):
+        activate(self.ex, self.ugin, self.MINUS_X, seat=self.p0)
+        x_asks = [(w, v) for w, v in self.asks if w.startswith("x:")]
+        self.assertEqual(len(x_asks), 1)
+        what, vocab = x_asks[0]
+        self.assertEqual(vocab, tuple(str(n) for n in range(8)))
+        self.assertTrue(what.startswith(f"x:{self.p0}:{self.ugin}:"))
+        # The provider answered "7": all seven counters paid, Ugin dies.
+        self.assertEqual(self.world.zone_of(self.ugin).kind, ZONE_GRAVEYARD)
+
+    def test_announced_x_is_paid_and_journalled(self):
+        activate(self.ex, self.ugin, self.MINUS_X, seat=self.p0, x=2)
+        self.assertEqual(self.loyalty(), 5)
+        rows = self.journal_rows("LOYALTY_ACTIVATED")
+        self.assertEqual([r.data for r in rows], [(-2,)])
+        self.assertEqual([w for w, _ in self.asks if w.startswith("x:")], [])
+
+    def test_x_above_the_loyalty_counters_is_refused_before_paying(self):
+        self.world.cards[self.ugin].counters[CounterKind.LOYALTY.name] = 3
+        with self.assertRaisesRegex(ValueError, r"x:4>max:3"):
+            activate(self.ex, self.ugin, self.MINUS_X, seat=self.p0, x=4)
+        self.assertEqual(self.loyalty(), 3)
+        self.assertEqual(self.ex.loyalty_clock, {})
+        with self.assertRaisesRegex(ValueError, r"x:-1<0"):
+            activate(self.ex, self.ugin, self.MINUS_X, seat=self.p0, x=-1)
+
+    def test_x_zero_is_still_the_turns_loyalty_ability(self):
+        # CR 606.3: [−0] removes no counter but uses the permanent's loyalty
+        # activation for the turn.
+        activate(self.ex, self.ugin, self.MINUS_X, seat=self.p0, x=0)
+        self.assertEqual(self.loyalty(), 7)
+        self.assertEqual(self.ex.loyalty_clock.get(self.ugin), self.world.turn)
+        self.assertEqual(
+            ability_playable(self.world, self.ex, self.ugin, 0, seat=self.p0),
+            "window:loyalty:once_per_turn",
+        )
+        rows = self.journal_rows("LOYALTY_ACTIVATED")
+        self.assertEqual([r.data for r in rows], [(0,)])
+
+    def test_x_on_a_cost_without_x_is_refused(self):
+        with self.assertRaisesRegex(ValueError, r"x:no_x_in_cost"):
+            activate(self.ex, self.ugin, 0, seat=self.p0, targets=(self.p1,), x=1)
+
+
 # ------------------------------------------------------ SORCERY WINDOW
 
 

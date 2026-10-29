@@ -98,6 +98,7 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.executor.legality import (
     PaymentPlan,
     ability_playable,
+    activation_x_max,
     build_payment_plan,
     ctx_for,
     spell_castable,
@@ -143,12 +144,19 @@ class ActivationOption:
     ability's index in the attached compiled record (the ``ABILITY:PTR``
     target), the typed IR object itself (§8.3), and the folded payment.
     Target/COST_TARGET slots are queried per slot (legal_targets) — an
-    option never stores a cross-slot product."""
+    option never stores a cross-slot product.
+
+    ``x_max`` (the activation X lane, CR 602.2b -> 601.2b): the live bound
+    of the X announcement when the cost carries X (a loyalty [−X]: the
+    loyalty counters, CR 606.6), else None. The row's ``payment`` is then
+    folded at the X = 0 witness; ``legality.activate`` asks X over
+    ``0..x_max``."""
 
     source: Handle
     ability_idx: int
     ability: ActivatedAbility
     payment: PaymentPlan
+    x_max: int | None = None
 
     def order_key(self) -> tuple[Handle, int]:
         return (self.source, self.ability_idx)
@@ -256,12 +264,24 @@ def legal_activations(
                 continue
             if ability_playable(world, executor, handle, idx, seat=seat) is not None:
                 continue
-            ctx = ctx_for(executor, source=handle, controller=seat)
+            # The X lane: the row carries the live X bound, its payment the
+            # X = 0 witness (ability_playable's legality fold).
+            x_max = activation_x_max(world, handle, ability.cost)
+            ctx = ctx_for(
+                executor,
+                source=handle,
+                controller=seat,
+                x_value=0 if x_max is not None else None,
+            )
             plan, _ = build_payment_plan(world, ctx, ability.cost, activation=handle)
             assert plan is not None  # ability_playable just greenlit
             options.append(
                 ActivationOption(
-                    source=handle, ability_idx=idx, ability=ability, payment=plan
+                    source=handle,
+                    ability_idx=idx,
+                    ability=ability,
+                    payment=plan,
+                    x_max=x_max,
                 )
             )
     # 12d granted rows (see docstring): every battlefield permanent of the
@@ -279,12 +299,22 @@ def legal_activations(
             assert isinstance(node, ActivatedAbility)
             if ability_playable(world, executor, handle, idx, seat=seat) is not None:
                 continue
-            ctx = ctx_for(executor, source=handle, controller=seat)
+            x_max = activation_x_max(world, handle, node.cost)
+            ctx = ctx_for(
+                executor,
+                source=handle,
+                controller=seat,
+                x_value=0 if x_max is not None else None,
+            )
             plan, _ = build_payment_plan(world, ctx, node.cost, activation=handle)
             assert plan is not None  # ability_playable just greenlit
             options.append(
                 ActivationOption(
-                    source=handle, ability_idx=idx, ability=node, payment=plan
+                    source=handle,
+                    ability_idx=idx,
+                    ability=node,
+                    payment=plan,
+                    x_max=x_max,
                 )
             )
     options.sort(key=lambda o: o.order_key())

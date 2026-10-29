@@ -677,6 +677,7 @@ class Executor:
         controller: Handle,
         bindings: dict[str, Binding] | None = None,
         decisions: Sequence[str] = (),
+        x_value: int | None = None,
     ) -> tuple[Event, ...]:
         """Run an Effect tree; the per-op pool ``decisions`` covers the
         KNOWN tree in ask order, and every demand it cannot serve reaches
@@ -689,7 +690,9 @@ class Executor:
         one sub-execution per denoted player, controller rotated — the
         inner effect is compiled YOU-relative, so the rotation IS the
         rebinding) and DelayedTrigger (scheduled, C22) are wired; Repeat
-        raises as an unimplemented node (12e)."""
+        raises as an unimplemented node (12e). ``x_value`` is an activated
+        ability's announced X (CR 107.3a; ``legality.activate``'s X lane),
+        None for every effect with no X."""
         if not isinstance(
             effect,
             (
@@ -707,7 +710,11 @@ class Executor:
             )
         self._op_seq += 1
         ctx = self._ctx(
-            source=source, controller=controller, bindings=bindings, decisions=decisions
+            source=source,
+            controller=controller,
+            bindings=bindings,
+            decisions=decisions,
+            x_value=x_value,
         )
         start = len(self.events)
         self._run_effect(effect, ctx)

@@ -216,7 +216,9 @@ class DeckSupplyTest(unittest.TestCase):
         # AMENDED 2026-10-29 (B-49 follow-up #4): 299 -> 298 — exactly Ugin, the
         # Spirit Dragon leaves: a [−X] loyalty cost needs an X declaration the
         # activation lane does not have, so the shape gate marks it unsupported.
-        self.assertEqual(len(self.supply.engine_ids), 298)
+        # re-pinned 2026-10-29: the activation X lane changes 298 -> 299 (Ugin is
+        # supported again: legality.activate announces X, CR 602.2b/606.6).
+        self.assertEqual(len(self.supply.engine_ids), 299)
 
 
 class ShapeGapSupplyExclusionTest(unittest.TestCase):
@@ -255,8 +257,9 @@ class ShapeGapSupplyExclusionTest(unittest.TestCase):
         # B-49 follow-up #1 (2026-10-29): 301 -> 299 engine, 281 -> 279 deckable (the two
         # Chandras whose duration permissions are suppressed).
         # B-49 follow-up #4 (2026-10-29): 299 -> 298, 279 -> 278 (Ugin's [−X]).
-        self.assertEqual(len(m21.engine_ids), 298)
-        self.assertEqual(len(m21.deckable), 278)
+        # re-pinned 2026-10-29: the activation X lane changes 298 -> 299, 278 -> 279 (Ugin back).
+        self.assertEqual(len(m21.engine_ids), 299)
+        self.assertEqual(len(m21.deckable), 279)
 
 
 class KickerLaneTest(unittest.TestCase):

@@ -49,7 +49,9 @@ Pack vocabulary (all keys required as noted):
              {"op": "loyalty", "key": k, "set": n}    seed the loyalty ledger,
              {"op": "activate", "key": k, "idx": i,   the folded ACTIVATE
               "seat": 0|1, "targets": [k...],         move (legality+pay+run),
-              "decisions": [str...]},
+              "decisions": [str...], "x": int?},      x: the announced X of an
+                                            X-cost activation (CR 602.2b);
+                                            absent, the X ask takes a word
              {"op": "combat", "seat": 0|1, "attack": {key: bool},
               "may": {key: bool},
               "block": {blockerKey: attackerKey|null}, 16c per-blocker pick
@@ -461,6 +463,9 @@ class ScenarioRunner:
                 seat=self.seats[int(step.get("seat", 0))],
                 targets=tuple(self.handles[k] for k in step.get("targets", ())),
                 decisions=tuple(step.get("decisions", ())),
+                # 2026-10-29 activation X lane (CR 602.2b -> 601.2b): an explicit
+                # announcement; absent, X is asked through the decision channel.
+                x=step.get("x"),
             )
             self.ex.fire_triggers()
         elif op == "combat":

@@ -31,8 +31,10 @@ def test_the_default_deal_is_the_stress_pile_byte_for_byte(m21) -> None:
     # permissions are engine-unsupported (was "d8e619dbf28b3c6d").
     # re-pinned 2026-10-29 (B-49 follow-up #4): 279 -> 278, Ugin's [−X] loyalty cost is gated
     # engine-unsupported (was "fdcbefbd2b37d046").
+    # re-pinned 2026-10-29: the activation X lane changes 278 -> 279 (Ugin is castable again), and
+    # the hash returns exactly to the pre-gate "fdcbefbd2b37d046" (was "e05cfd168521e687").
     deals = [deal_decks(seed, 1409, m21) for seed in range(1, 6)]
-    assert hashlib.sha256(repr(deals).encode()).hexdigest()[:16] == "e05cfd168521e687"
+    assert hashlib.sha256(repr(deals).encode()).hexdigest()[:16] == "fdcbefbd2b37d046"
     assert deals == [deal_decks(seed, 1409, m21, "stress") for seed in range(1, 6)]
 
 

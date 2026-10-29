@@ -521,6 +521,14 @@ These are forks, not tasks. See the report that accompanied this audit.
     on branch `cards/castable-permanents`. It changes M21's goldens, its castable pool and every
     replay pin, so adopt it at an RL-pilot era boundary with a re-smoke and a re-pin, with B-43
     and B-47.
+  - **Follow-up #4 (Ugin's [−X] gated) FIXED on branch `engine/phasing` 2026-10-29.** An
+    activation whose cost carries X announces it before paying (CR 602.2b -> 601.2b, 107.3a):
+    `legality.activate` takes `x=` or asks it through the decision channel over `0..x_max`
+    (tag `x:<seat>:<source>:<digest>`; the bench registers the kind), with `x_max` the loyalty
+    counters (CR 606.6). The query row (`ActivationOption.x_max`) carries the live bound and its
+    payment is the X = 0 witness. The effect reads the announced X, and a [−0] still uses the
+    turn's loyalty activation (CR 606.3). The compiler gate now keeps only a non-bare X delta
+    unsupported. M21 castable 278 -> 279. Packs: `ugin_minus_x_*`, `ugin_minus_ten`.
 - **B-50 [2026-10-29, found by a mapper's G1 trace] A resolved ability's "until end of turn" grant
   ends when its source leaves the battlefield.**
   - `verbs._v_grant_or_lose` registers every GRANT/LOSE layer with the ability's source
@@ -717,6 +725,15 @@ These are forks, not tasks. See the report that accompanied this audit.
     activations get no target slot (`query.activation_target_slots`), so they do nothing.
   - A cast trigger filtered by `TARGETS_SOURCE` never fires, because the CAST match context does not
     bind the spell's targets (FDN Gnarlback Rhino).
+  - [2026-10-29, Ugin] Ugin's [−10] "put up to seven permanent cards from your hand onto the
+    battlefield" puts min(7, n): the CHOOSE count clamp (C17) never offers fewer, and with more
+    than seven it asks which seven. Fewer options than printed, never more.
+  - [2026-10-29, Ugin] An Aura put onto the battlefield by an effect (Ugin's [−10]) enters
+    unattached and the CR 704.5m sweep buries it. CR 303.4f lets its controller choose what it
+    enchants as it enters, and 303.4g keeps it in hand when nothing is legal.
+  - [2026-10-29, the activation X lane] The folded `activate` takes its targets before it asks X,
+    so X is announced after the designation (CR 601.2b orders X before 601.2c targets). No carrier
+    has both: Ugin's [−X] has no target.
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
   plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
 

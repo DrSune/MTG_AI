@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ugin", "real": "Ugin, the Spirit Dragon", "zone": "battlefield", "controller": 0},
+  {"key": "goblin", "name": "Goblin Token", "type": "Creature — Goblin", "power": "1", "toughness": "1", "cmc": 0, "colors": ["R"], "zone": "battlefield", "controller": 1},
+  {"key": "elf", "name": "Elf", "type": "Creature — Elf", "power": "1", "toughness": "1", "cmc": 1, "colors": ["G"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "ugin", "idx": 1, "seat": 0, "decisions": ["0"]},
+  {"op": "activate", "key": "ugin", "idx": 0, "seat": 0, "targets": ["elf"], "expect_raise": "window:loyalty:once_per_turn"}
+ ],
+ "expect": {
+  "zone": {"goblin": "exile", "elf": "battlefield", "ugin": "battlefield"},
+  "counters": {"ugin": {"LOYALTY": 7}},
+  "damage": {}
+ },
+ "notes": "Ugin's [-X] with X = 0 announced through the decision lane (the ask's menu is 0..loyalty): it removes no loyalty and exiles each colored permanent with mana value 0 (the red token-like 1/1), not the green 1-drop. It is still a loyalty ability, so CR 606.3 (one loyalty ability per permanent per turn) refuses the [+2] afterwards."
+}
