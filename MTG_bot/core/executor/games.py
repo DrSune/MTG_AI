@@ -231,18 +231,27 @@ def get_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
     return supply
 
 
-def _rescued(raw: dict, oid: str, records: dict) -> bool:
-    """Does the card record rescue this refused card (verified, current text)?"""
+def _rescued(raw: dict, oid: str, records: dict, require_verified: bool) -> bool:
+    """Does the card record rescue this refused card (current text, verified if required)?"""
     if "ir" not in records.get(oid, {}):
         return False
     try:
-        result = compile_pool({oid: raw[oid]}, build_full_registry(), records=records).results[oid]
+        result = compile_pool(
+            {oid: raw[oid]}, build_full_registry(), records=records,
+            require_verified=require_verified,
+        ).results[oid]
     except StateCorruptionError:
         return False
     return result.record is not None
 
 
-def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
+def compile_supply(
+    mode: str = "all",
+    set_code: str = SET_CODE,
+    *,
+    records: dict | None = None,
+    require_verified: bool = True,
+) -> Supply:
     """Compile the set the way the measurement harness does and build the deck
     view. ``mode`` picks the dealt set:
 
@@ -262,6 +271,10 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
       docs/PLAN_CARD_ONBOARDING.md (a card record under ``MTG_bot/data/cards/<SET>/``
       whose ``verified.tree_sha`` matches). Cards mapped by agents enter every mode only
       once verified; this mode also leaves out compiled cards nobody verified yet.
+
+    ``records`` defaults to the set's card records on disk. The card tooling
+    (tools/cards) passes its own, with ``require_verified=False``, to play a draft
+    tree before it is verified; games never do.
     """
     if mode not in ("all", "engine", "castable", "compiled", "verified"):
         raise ValueError(
@@ -283,17 +296,20 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
     # drop). M21 has zero shape gaps: the fast path below runs unchanged
     # and its supply stays byte-identical.
     shape_gaps: tuple[ShapeGap, ...] = ()
-    records = load_records(set_code)
+    if records is None:
+        records = load_records(set_code)
     try:
-        pool = compile_pool(raw, registry, records=records)
+        pool = compile_pool(raw, registry, records=records, require_verified=require_verified)
     except StateCorruptionError:
         _tolerated, gap_rows = _compile_pool_tolerant(raw, registry)
         # A refused card that a verified card record rescues stays in; every other refusal is
         # a shape gap as before.
-        gap_rows = [gap for gap in gap_rows if not _rescued(raw, gap.card, records)]
+        gap_rows = [
+            gap for gap in gap_rows if not _rescued(raw, gap.card, records, require_verified)
+        ]
         dropped = {gap.card for gap in gap_rows}
         raw = {oid: rc for oid, rc in raw.items() if oid not in dropped}
-        pool = compile_pool(raw, registry, records=records)
+        pool = compile_pool(raw, registry, records=records, require_verified=require_verified)
         shape_gaps = tuple(gap_rows)
         for gap in gap_rows:
             print(
@@ -304,7 +320,8 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
     # ungated pass stamps every card supported (the template's True default),
     # so the 286 number ONLY exists in the gated fold.
     gated = compile_pool(
-        raw, registry, supported_verbs=set(SUPPORTED_VERBS_V2), records=records
+        raw, registry, supported_verbs=set(SUPPORTED_VERBS_V2), records=records,
+        require_verified=require_verified,
     )
     engine_ids = frozenset(
         oid for oid, res in gated.results.items() if res.legality.engine_supported

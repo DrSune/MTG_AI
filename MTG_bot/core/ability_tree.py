@@ -742,6 +742,9 @@ class SpellKind(Enum):
     ENCHANTMENT = "ENCHANTMENT"
     PLANESWALKER = "PLANESWALKER"
     LAND = "LAND"
+    # B-49 (2026-10-29): a noncreature artifact is a permanent spell too (CR 301.1). Without a
+    # kind of its own it fell back to SORCERY, and a SORCERY resolves to the graveyard.
+    ARTIFACT = "ARTIFACT"
 
 
 class Keyword(Enum):

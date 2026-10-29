@@ -1156,6 +1156,8 @@ def _spell_kind_from_types(types: tuple[str, ...], is_creature: bool) -> SpellKi
         return SpellKind.SORCERY
     if "Enchantment" in types:
         return SpellKind.ENCHANTMENT
+    if "Artifact" in types:
+        return SpellKind.ARTIFACT  # B-49: it fell back to SORCERY and resolved to the graveyard
     return SpellKind.SORCERY
 
 
@@ -2217,6 +2219,8 @@ def compile_card(
                 kind = SpellKind.SORCERY
             elif "Enchantment" in types:
                 kind = SpellKind.ENCHANTMENT
+            elif "Artifact" in types:
+                kind = SpellKind.ARTIFACT  # B-49: not the SORCERY fallback (it resolved to the graveyard)
             else:
                 kind = SpellKind.SORCERY  # fallback
             combined = (

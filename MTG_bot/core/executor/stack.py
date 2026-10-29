@@ -95,6 +95,7 @@ _PERMANENT_KINDS = frozenset(
         SpellKind.ENCHANTMENT,
         SpellKind.PLANESWALKER,
         SpellKind.LAND,
+        SpellKind.ARTIFACT,
     }
 )
 
