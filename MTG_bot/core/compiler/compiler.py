@@ -616,6 +616,9 @@ def _build_bare_keywords(raw: RawCard) -> tuple[KeywordAbility, ...]:
     # KNOWN-GAP: keywords in _KEYWORDS_BARE_UNBUILDABLE cannot be
     constructed without params; "Hexproof from" needs a Filter.
     These are silently omitted (reported via CompileResult.known_gaps).
+
+    A whole-ability keyword (``_LINE_KEYWORDS``) is built only if the face prints it
+    (``_face_prints_keyword``): MTGJSON's list is not the face's own keyword list.
     """
     results: list[KeywordAbility] = []
     for kw_str in raw.keywords:
@@ -628,8 +631,39 @@ def _build_bare_keywords(raw: RawCard) -> tuple[KeywordAbility, ...]:
         # Keywords that require params in ALL their signatures.
         if kw_enum in _KEYWORDS_BARE_UNBUILDABLE:
             continue
+        if kw_str in _LINE_KEYWORDS and not _face_prints_keyword(raw, kw_str):
+            continue
         results.append(KeywordAbility(keyword=kw_enum, params=()))
     return tuple(results)
+
+
+def _face_prints_keyword(raw: RawCard, kw_str: str) -> bool:
+    """Does this face print the whole-ability keyword ``kw_str`` as its own?
+
+    MTGJSON's ``keywords`` field is not the face's keyword list, in two ways
+    (m21-fidelity item 1, 2026-10-29; 19-set census: 9 cards):
+
+    - It lists the bare keyword beside a parameterized variant of it: "Hexproof" next to
+      "Hexproof from" for "Hexproof from black" (Garruk's Harbinger, Sporeweb Weaver, Knight of
+      Grace, Knight of Malice, Elenda, Eradicator Valkyrie). "Hexproof from [quality]" is a
+      variant of hexproof that stops only [quality] spells and abilities (CR 702.11d), so a bare
+      HEXPROOF beside it was full hexproof (CR 702.11b): stronger than printed.
+    - A modal double-faced card lists both faces' keywords on each face, and a face has only
+      its own characteristics (CR 712.8a, 712.8f): Alrund, God of the Cosmos got the Flying of
+      its back face, Hakka.
+
+    A whole-ability keyword is printed as one comma-separated part of a line, trailing reminder
+    text dropped (CR 207.2): "Flying", "Reach, hexproof from blue" (Reach only), "First strike
+    (This creature deals combat damage first.)". Keywords that only other objects get ("creatures
+    you control have flying") are not in MTGJSON's list at all (measured on the 19 sets).
+    """
+    want = kw_str.lower()
+    for sentence in raw.sentences:
+        match = _TRAILING_REMINDER_RE.match(sentence.strip())
+        head = (match.group("head") if match else sentence.strip()).rstrip(".")
+        if any(part.strip().lower() == want for part in head.split(",")):
+            return True
+    return False
 
 
 # ---------------------------------------------------------------------------
