@@ -1576,6 +1576,44 @@ class TestB50DurationPermissionRows(unittest.TestCase):
         self.assertTrue(res.legality.engine_supported)
 
 
+class TestDynamicLoyaltyCostGate(unittest.TestCase):
+    """B-49 follow-up #4 (2026-10-29): Ugin, the Spirit Dragon's [−X]. X is
+    announced as the ability is activated (CR 601.2b via 602.2b). The
+    activation lane has no X declaration, so once the B-49 carrier made Ugin
+    castable, legal_activations raised NotImplementedError ("QX has no declared
+    X") on its controller's next scan. That was 58 of the 153 crashes in the
+    800-game castable sweep. The honest shape gate marks a Quantity loyalty
+    delta engine-unsupported until an ACTIVATE X lane exists."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        from MTG_bot.core.executor import SUPPORTED_VERBS_V2
+
+        pool = ingest_pool(_M21_PATH)
+        cls.reg = build_full_registry()
+        cls.raw = {raw.identity.name: raw for raw in pool.values()}
+        cls.verbs = set(SUPPORTED_VERBS_V2)
+
+    def _gated(self, name: str) -> CompileResult:
+        return compile_card(self.raw[name], self.reg, supported_verbs=self.verbs)
+
+    def test_ugin_minus_x_makes_the_card_unsupported(self) -> None:
+        res = self._gated("Ugin, the Spirit Dragon")
+        deltas = [
+            part.delta
+            for ab in res.card.abilities
+            if isinstance(ab, ActivatedAbility)
+            for part in ab.cost.parts
+            if isinstance(part, CostLoyalty)
+        ]
+        self.assertEqual(deltas, [2, QX(), -10])
+        self.assertFalse(res.legality.engine_supported)
+
+    def test_fixed_loyalty_costs_stay_supported(self) -> None:
+        for name in ("Basri Ket", "Liliana, Death Mage", "Garruk, Savage Herald"):
+            self.assertTrue(self._gated(name).legality.engine_supported, name)
+
+
 # ---------------------------------------------------------------------------
 # Meta-filter conjunction (Enchant X)
 # ---------------------------------------------------------------------------

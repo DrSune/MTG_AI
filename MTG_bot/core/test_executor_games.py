@@ -213,7 +213,10 @@ class DeckSupplyTest(unittest.TestCase):
         # AMENDED 2026-10-29 (B-50): 301 -> 299 — exactly the two Chandras
         # (Flame's Catalyst, Heart of Fire) leave: their duration-limited cast
         # permissions are suppressed and the gate marks them unsupported.
-        self.assertEqual(len(self.supply.engine_ids), 299)
+        # AMENDED 2026-10-29 (B-49 follow-up #4): 299 -> 298 — exactly Ugin, the
+        # Spirit Dragon leaves: a [−X] loyalty cost needs an X declaration the
+        # activation lane does not have, so the shape gate marks it unsupported.
+        self.assertEqual(len(self.supply.engine_ids), 298)
 
 
 class ShapeGapSupplyExclusionTest(unittest.TestCase):
@@ -251,8 +254,9 @@ class ShapeGapSupplyExclusionTest(unittest.TestCase):
         self.assertEqual(m21.shape_gaps, ())
         # B-50 (2026-10-29): 301 -> 299 engine, 281 -> 279 deckable (the two
         # Chandras whose duration permissions are suppressed).
-        self.assertEqual(len(m21.engine_ids), 299)
-        self.assertEqual(len(m21.deckable), 279)
+        # B-49 follow-up #4 (2026-10-29): 299 -> 298, 279 -> 278 (Ugin's [−X]).
+        self.assertEqual(len(m21.engine_ids), 298)
+        self.assertEqual(len(m21.deckable), 278)
 
 
 class KickerLaneTest(unittest.TestCase):
