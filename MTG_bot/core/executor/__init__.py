@@ -189,7 +189,7 @@ from MTG_bot.core.executor.stack import (
 )
 from MTG_bot.core.executor.verbs import HANDLERS, run_atom, token_oracle_id
 from MTG_bot.core.identity import Handle
-from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, GameWorld
+from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_STACK, GameWorld
 
 # The v1 capability CONTRACT — the round-12 24-verb set every v1 golden and
 # the round-12 cross-check were measured against.  Deliberately a literal
@@ -1165,6 +1165,30 @@ class Executor:
                     dying.append(card)
         return sorted(dying)
 
+    def _cease_tokens(self) -> list[Handle]:
+        """V35 (CR 704.5d: "If a token is in a zone other than the battlefield, it
+        ceases to exist"; 111.7, 111.8). A dead, bounced or exiled token is not a
+        card in a graveyard, hand or exile: it leaves the world, so graveyard counts
+        and "target creature card from your graveyard" never see it. A token on the
+        stack is not a thing in this engine (spell copies are not tokens). No journal
+        row: ceasing to exist is not a zone change and triggers nothing. Returns the
+        tokens removed (Handle-sorted)."""
+        world = self.world
+        gone: list[Handle] = []
+        for player in world.player_order:
+            for kind, zone in world.players[player].zones.items():
+                if kind in (ZONE_BATTLEFIELD, ZONE_STACK):
+                    continue
+                for card in list(zone.entries):
+                    if world.cards[card].identity.is_token:
+                        zone.entries.remove(card)
+                        gone.append(card)
+        for card in gone:
+            del world.cards[card]
+            self.binder.handle_record.pop(card, None)
+            self.attachments.pop(card, None)
+        return sorted(gone)
+
     def _unattached_auras(self) -> list[Handle]:
         """CR 704.5q (16e): an Aura on the battlefield that isn't attached
         is put into its owner's graveyard. Attachment state is the
@@ -1227,6 +1251,10 @@ class Executor:
         frozen-world stand-in already uses for the other lanes."""
         fired = 0
         while True:
+            # V35 (CR 704.5d, 111.7): a token off the battlefield ceases to exist.
+            # Its leave triggers already fired (the drain before this sweep, or the
+            # previous iteration's), as 111.7 says they do.
+            self._cease_tokens()
             self.layers.recompute()  # live keywords/toughness must be current
             dying = self._lethal_creatures()
             unattached = self._unattached_auras()  # 16e CR 704.5q

@@ -17,6 +17,8 @@ V33  "Discard your hand" as a cost discards every card in hand, and an empty han
      it (CR 118.3, 701.9a).
 V36  A spell cast by an effect pays its own additional costs on top of the mana cost or
      the effect's alternative cost (CR 601.2f, 118.9d); an unpayable total refuses.
+V35  A token in a zone other than the battlefield ceases to exist (CR 704.5d, 111.7),
+     after its leave triggers have fired.
 """
 
 from __future__ import annotations
@@ -536,6 +538,66 @@ class TestV36EffectCastPaysAdditionalCosts(unittest.TestCase):
             cast_card(self.case.ex, self.case.p0, self.spell, cost_override=self.free)
         self.assertIn("cost:discard:insufficient_candidates", str(caught.exception))
         self.assertEqual(self.case.world.zone_of(self.spell).kind, ZONE_GRAVEYARD)
+
+
+class TestV35TokensCeaseOffTheBattlefield(FixerCase):
+    def token(self, seat, name="Tok"):
+        ident = CardIdentity(
+            oracle_id=card_id(name).oracle_id,
+            name=name,
+            type_line="Creature — Soldier",
+            power="1",
+            toughness="1",
+            is_token=True,
+        )
+        return self.world.add_card(ident, seat, ZONE_BATTLEFIELD)
+
+    def kill(self, card):
+        self.ex.execute(
+            atom(Verb.DEAL_DAMAGE, target=target_sel(UNIV), amount=QConst(5)),
+            source=self.beta,
+            controller=self.p1,
+            bindings={"target": [card]},
+        )
+
+    def test_a_dead_token_ceases_to_exist(self):
+        from MTG_bot.core.executor.events import KIND_CREATURE_DIES
+
+        tok = self.token(self.p0)
+        self.kill(tok)
+        self.assertNotIn(tok, self.world.cards)
+        self.assertEqual(self.world.players[self.p0].zone(ZONE_GRAVEYARD).entries, [])
+        # It did die first (CR 111.7: its leave triggers see the zone change).
+        dies = [e for e in self.ex.journal.events if e.kind == KIND_CREATURE_DIES]
+        self.assertEqual([e.subject for e in dies], [tok])
+
+    def test_a_bounced_token_ceases_to_exist(self):
+        tok = self.token(self.p1)
+        self.ex.execute(
+            atom(
+                Verb.MOVE_ZONE,
+                cards=target_sel(UNIV),
+                destination=Zone(ZoneKind.HAND, ControllerRef.OWNER),
+            ),
+            source=self.alpha,
+            controller=self.p0,
+            bindings={"cards": [tok]},
+        )
+        self.assertNotIn(tok, self.world.cards)
+        self.assertEqual(self.world.players[self.p1].zone(ZONE_HAND).entries, [])
+
+    def test_a_dead_nontoken_card_stays_in_the_graveyard(self):
+        self.kill(self.alpha)
+        self.assertEqual(self.world.zone_of(self.alpha).kind, ZONE_GRAVEYARD)
+
+    def test_a_token_on_the_battlefield_stays(self):
+        tok = self.token(self.p0)
+        self.ex.execute(
+            atom(Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(1)),
+            source=self.alpha,
+            controller=self.p0,
+        )
+        self.assertEqual(self.world.zone_of(tok).kind, ZONE_BATTLEFIELD)
 
 
 if __name__ == "__main__":
