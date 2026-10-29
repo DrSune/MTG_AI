@@ -37,17 +37,8 @@
   {
    "op": "activate",
    "key": "ch",
-   "idx": 3,
+   "idx": 2,
    "seat": 0
-  },
-  {
-   "op": "activate",
-   "key": "ch",
-   "idx": 1,
-   "seat": 0,
-   "decisions": [
-    "fire"
-   ]
   }
  ],
  "expect": {
@@ -55,11 +46,21 @@
    "1": 20
   },
   "zone": {
-   "ct": "graveyard"
+   "ct": "exile"
   },
   "hand": {
-   "0": 1
+   "0": 0
+  },
+  "mana_pool": {
+   "0": {
+    "R": 16,
+    "C": 10,
+    "B": 10,
+    "G": 10,
+    "U": 10,
+    "W": 10
+   }
   }
  },
- "notes": "Branch chandra_heart_of_fire:01 (OptionalEffect permission, heat 37). -9 SEARCHes the lone red sorcery Crash Through out of the graveyard into exile (source = Chandra, so the IS_EXILED_WITH_SOURCE permission sees it); the idx1 optional FIRES (decisions lane) and CASTs it for free from exile: the CAST row + one filler drawn (hand lane: Crash Through draws one) are the fire-side witnesses. Untargeted spell by design: verbs._v_cast passes no target channel (cast_card docstring pins the gap), so a targeted recast is rig-unreachable. Twin: ..._twin.json skips (hand 0, Crash Through stays exiled)."
+ "notes": "B-50 (was branch chandra_heart_of_fire:01, the [+1] permission's free cast from exile). The [-9] is now idx 2 and owns its last sentence 'Add six {R}.' (it used to sit on the cast lane, so casting Chandra added six {R}). It searches the lone red sorcery Crash Through out of the graveyard into exile. 'You may cast them this turn.' is suppressed (CR 611.2a; the card is engine-unsupported), so Crash Through stays exiled and no card is drawn."
 }

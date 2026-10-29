@@ -37,7 +37,7 @@
   {
    "op": "activate",
    "key": "ch",
-   "idx": 3,
+   "idx": 2,
    "seat": 0
   },
   {
@@ -47,7 +47,8 @@
    "seat": 0,
    "decisions": [
     "fire"
-   ]
+   ],
+   "expect_raise": "no ability idx 4"
   }
  ],
  "expect": {
@@ -55,11 +56,11 @@
    "1": 20
   },
   "zone": {
-   "ct": "graveyard"
+   "ct": "exile"
   },
   "hand": {
-   "0": 1
+   "0": 0
   }
  },
- "notes": "Branch chandra_heart_of_fire:02 (ultimate OptionalEffect permission, heat 37). Same -9 exiling as branch01, but the idx4 (ultimate) permission node FIRES and CASTs Crash Through from exile: CAST row + hand 2. Twin skips (exile stays, hand 0)."
+ "notes": "B-50 negative (was branch chandra_heart_of_fire:02, the ultimate's free-cast permission at idx 4). Chandra now has four abilities (two [+1], the [-9], the cast carrier): there is no idx 4, and the card exiled by the [-9] cannot be cast."
 }

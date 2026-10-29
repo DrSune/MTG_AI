@@ -792,11 +792,19 @@ def _loyalty_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
     and was previously orphaned as a card-level SpellAbility.  If the nearest
     meaningful processed entry is an ActivatedAbility whose cost carries a
     CostLoyalty part, that ability is the sentence's true owner.
+
+    B-50 (2026-10-29): the empty-cost OPT(CAST) permission row is transparent
+    here too, as the r14e adjudication intended (:func:`_is_cast_permission_row`).
+    Chandra, Heart of Fire's "Add six {R}." is printed under the [−9] bullet,
+    after "You may cast them this turn."; the scan stopped at that row, so the
+    mana landed on the card-level SpellAbility and casting her added six {R}.
     """
     for j in range(len(processed) - 1, -1, -1):
         prev = processed[j]
         if prev is None or isinstance(prev, RuleReminderOutcome):
             continue
+        if _is_cast_permission_row(prev):
+            continue  # the permission sentence is part of the same bullet
         if (
             isinstance(prev, AbilityOutcome)
             and isinstance(prev.ability, ActivatedAbility)
@@ -863,6 +871,28 @@ def _is_cast_permission_row(slot: _OutcomeSlot) -> bool:
         and ab.effect.inner.verb is Verb.CAST
         and ab.effect.inner.args.get("cost") == Cost(parts=())
     )
+
+
+# B-50 (2026-10-29): a permission that lasts "until end of turn" or "this turn" is
+# the continuous effect of the ability whose resolution creates it (CR 611.2a). A
+# static ability states no duration (CR 113.3d, 611.3a), so such a sentence is
+# never an ability of its own.
+_DURATION_PERMISSION_RE = re.compile(r"\b(?:until end of turn|this turn)\b", re.IGNORECASE)
+
+
+def _is_duration_cast_permission(slot: _OutcomeSlot, sentence: str) -> bool:
+    """B-50: a permission row (:func:`_is_cast_permission_row`) whose sentence
+    states a duration. It belongs to the ability printed above it, but CAST has
+    no duration role and the executor no permission lane, so it cannot be
+    expressed there yet. As a sibling node it was a free cast the controller
+    could repeat whenever the permanent was on the battlefield: Chandra, Flame's
+    Catalyst's [−8] "Until end of turn, you may cast spells from your hand
+    without paying their mana costs.", and Chandra, Heart of Fire's "Until end of
+    turn, you may play cards exiled this way." and "You may cast them this
+    turn." A static permission (Conspicuous Snoop's "You may cast Goblin spells
+    from the top of your library.") states no duration and waives no cost, so it
+    stays an ability."""
+    return _is_cast_permission_row(slot) and bool(_DURATION_PERMISSION_RE.search(sentence))
 
 
 def _activation_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
@@ -2110,6 +2140,9 @@ def compile_card(
     ability_src: list[int] = []
     effect_outcomes: list[Effect] = []
     effect_src: list[int] = []
+    # B-50: set when a printed permission had to be suppressed; the card then
+    # cannot be played as printed, so the gated pass marks it unsupported.
+    permission_unsupported = False
     for src, outcome in zip(processed_sentence_idx, processed):
         if isinstance(outcome, AbilityOutcome):
             if _is_result_anaphoric_cast_permission(outcome.ability):
@@ -2124,6 +2157,19 @@ def compile_card(
                     "(no executor play-permission lane; the card prints no "
                     "activated ability)"
                 )
+                continue
+            if _is_duration_cast_permission(outcome, raw.sentences[src]):
+                # B-50: the same suppression for a duration-limited permission. It
+                # is part of the ability printed above it (CR 611.2a) and must
+                # never be a free, repeatable ability of its own; that ability
+                # cannot be played as printed, so the card is engine-unsupported.
+                known_gaps.append(
+                    "KNOWN-GAP (cast permission): duration-limited permission "
+                    f"{raw.sentences[src]!r} suppressed at assembly (it belongs to "
+                    "the ability printed above it; CAST has no duration role); "
+                    "the card is engine-unsupported"
+                )
+                permission_unsupported = True
                 continue
             ability_outcomes.append(outcome.ability)
             ability_src.append(src)
@@ -2430,6 +2476,8 @@ def compile_card(
 
     known_gaps.extend(_star_pt_gaps(raw, card))
     engine_supported = _engine_supported(card, supported_verbs)
+    if permission_unsupported and supported_verbs is not None:
+        engine_supported = False  # B-50: a suppressed duration permission
 
     legality = LegalityFlags(
         format_legal=True,

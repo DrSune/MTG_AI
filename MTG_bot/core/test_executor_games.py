@@ -209,7 +209,10 @@ class DeckSupplyTest(unittest.TestCase):
         # Denial — measure_grammar --with-engine-flags: 301/305), zero
         # losses. Deckable unchanged: all four are instants, the castable
         # lane; the window now answers for them when they are cast.
-        self.assertEqual(len(self.supply.engine_ids), 301)
+        # AMENDED 2026-10-29 (B-50): 301 -> 299 — exactly the two Chandras
+        # (Flame's Catalyst, Heart of Fire) leave: their duration-limited cast
+        # permissions are suppressed and the gate marks them unsupported.
+        self.assertEqual(len(self.supply.engine_ids), 299)
 
 
 class ShapeGapSupplyExclusionTest(unittest.TestCase):
@@ -245,8 +248,10 @@ class ShapeGapSupplyExclusionTest(unittest.TestCase):
     def test_m21_supply_untouched_by_the_lane(self) -> None:
         m21 = get_supply("engine")
         self.assertEqual(m21.shape_gaps, ())
-        self.assertEqual(len(m21.engine_ids), 301)
-        self.assertEqual(len(m21.deckable), 281)
+        # B-50 (2026-10-29): 301 -> 299 engine, 281 -> 279 deckable (the two
+        # Chandras whose duration permissions are suppressed).
+        self.assertEqual(len(m21.engine_ids), 299)
+        self.assertEqual(len(m21.deckable), 279)
 
 
 class KickerLaneTest(unittest.TestCase):
