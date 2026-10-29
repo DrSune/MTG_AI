@@ -42,7 +42,6 @@ from MTG_bot.core.ability_tree import (
     DurationUntilNextTurn,
     EachPlayer,
     Effect,
-    EtBState,
     FAnd,
     FAtom,
     FAtomPred,
@@ -1637,22 +1636,14 @@ def _engine_supported(card: CardRecord, supported_verbs: set[Verb] | None) -> bo
         # counters — stay SUPPORTED; what remains unplayable is marked
         # unsupported here, honestly:
         #   * an X-kicker ({X} in the optional cost): no producer wires
-        #     the kick choice to an X declaration (deferred, /95);
-        #   * a gated EtBState whose counters are not constants: the
-        #     engine's entering-state stamp is QConst-only.
+        #     the kick choice to an X declaration (deferred, /95).
+        # (m21-fidelity, 2026-10-29: the gate on a gated EtBState with
+        # non-constant counters is gone. The entering-state stamp now
+        # resolves any counter Quantity with the cast X (executor
+        # _apply_etb_state), the lane "enters with X +1/+1 counters" uses.)
         if engine_supported:
             for node in walk(card, skip=BackFace):
                 if isinstance(node, KickerAbility) and _cost_has_x_quantity(node.cost):
-                    engine_supported = False
-                    break
-                if (
-                    isinstance(node, EtBState)
-                    and node.condition is not None
-                    and any(
-                        not isinstance(qty, QConst)
-                        for _kind, qty in node.initial_counters
-                    )
-                ):
                     engine_supported = False
                     break
                 # B-49 follow-up #4 (2026-10-29): a loyalty cost with a

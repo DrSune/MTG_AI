@@ -58,10 +58,8 @@ from MTG_bot.core.ability_tree import (
     Seq,
     StaticAbility,
     TargetingEvent,
-    TriggeredAbility,
     Verb,
     Zone,
-    ZoneChangeEvent,
     ZoneKind,
     ZonePosition,
     canonical_json,
@@ -1293,29 +1291,12 @@ class TestB4IrStructure(unittest.TestCase):
             ).outcome
         )
         ability = outcome.ability
-        assert isinstance(ability, TriggeredAbility), (
-            f"expected TriggeredAbility, got {type(ability).__name__}"
+        # re-pinned 2026-10-29: m21-fidelity (review batch B). "enters with X counters" is an
+        # entering-state replacement (CR 614.1c), EtBState with (+1/+1, X); it was an ETB
+        # trigger putting X counters on the event subject, so the creature entered as a 0/0.
+        self.assertEqual(
+            ability, EtBState(initial_counters=((CounterKind.PLUS_1_PLUS_1, QX()),))
         )
-        self.assertIsNone(ability.condition)
-        event = ability.event
-        assert isinstance(event, ZoneChangeEvent), (
-            f"expected ZoneChangeEvent, got {type(event).__name__}"
-        )
-        self.assertIs(event.from_zone.kind, ZoneKind.ANY)
-        self.assertIs(event.to_zone.kind, ZoneKind.BATTLEFIELD)
-        assert event.subject is not None
-        self.assertIs(_as_fatom(event.subject).pred, FAtomPred.IS_SOURCE)
-        atom = _as_atom(ability.effect)
-        self.assertIs(atom.verb, Verb.PUT_COUNTER)
-        target = _selector(atom, "target")
-        # Convention C2: referent selector — CHOOSE + QConst(1) + neutral zone.
-        self.assertEqual(target.referent, "event")
-        self.assertIs(target.mode, SelectorMode.CHOOSE)
-        self.assertEqual(_qconst(target.count).value, 1)
-        self.assertIs(target.zones[0].kind, ZoneKind.ANY)
-        self.assertEqual(target.filter, FAnd(children=()))
-        self.assertIs(_pairs(atom).get("counter_kind"), CounterKind.PLUS_1_PLUS_1)
-        self.assertIsInstance(_pairs(atom).get("count"), QX)
 
 
 class TestB4Round7AnaphoraIr(unittest.TestCase):

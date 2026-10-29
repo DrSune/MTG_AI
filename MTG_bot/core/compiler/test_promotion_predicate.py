@@ -57,10 +57,14 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 # search (count 2) became one up-to-one pick per name, which the search-pick
 # pass routes to ONE_OF (asked), so it leaves the census: COUNT_NOT_ONE 12 -> 11,
 # TOTAL 153 -> 152. No other surface moved.
-TOTAL_SURFACES = 152
+# re-pinned 2026-10-29 (m21-fidelity): Wildwood Scourge's "enters with X +1/+1
+# counters" is an EtBState now (CR 614.1c), so its ETB trigger's referent='event'
+# CHOOSE (the PUT_COUNTER target) left the census: ANAPHORIC_REFERENT 36 -> 35,
+# TOTAL 152 -> 151. No other surface moved.
+TOTAL_SURFACES = 151
 CORE_LIFTABLE = 22
 SELF_DESIGNATION = 57
-ANAPHORIC_REFERENT = 36
+ANAPHORIC_REFERENT = 35
 COST_VICTIM = 26
 COUNT_NOT_ONE = 11
 

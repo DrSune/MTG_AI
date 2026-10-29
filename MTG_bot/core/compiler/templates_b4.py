@@ -20,8 +20,8 @@ Coverage (47 = 46 template + 1 uncovered):
    Indulgence; Stormwing Entity's compound {N}{U} reduction; opponent
    spell-cost increases — Terror of the Peaks, Pursued Whale),
    ETB_STATE (tapped creature, tapped land),
-   ETB X +1/+1 counters (Wildwood Scourge: ZoneChangeEvent subject
-   IS_SOURCE + PUT_COUNTER count QX, target bound to the event referent),
+   ETB X +1/+1 counters (Wildwood Scourge: EtBState initial counters
+   (+1/+1, QX), an entering-state replacement, CR 614.1c),
    ACTIVATED_ABILITY (cast from top of library, graveyard recast with
    additional cost), TUTOR (name-specific library/graveyard search for
    Basri / Liliana).
@@ -101,10 +101,8 @@ from MTG_bot.core.ability_tree import (
     StaticAbility,
     TargetingEvent,
     ThisTurnKind,
-    TriggeredAbility,
     Verb,
     Zone,
-    ZoneChangeEvent,
     ZoneKind,
     ZonePosition,
 )
@@ -920,40 +918,23 @@ def _build_block_only_flying(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_enters_with_x_counters(m: re.Match[str]) -> SentenceOutcome:
     """This creature enters with X +1/+1 counters on it.  (Wildwood
-    Scourge; bucket-ownership deviation: the round-6 decision doc guessed
-    b2a, but the JSON partition owns this key in B4.  X semantics per the
-    b5c event-referent precedent (convention C2 + ``QX()`` — b5c line
-    ~551 ``_event_reference`` / b5b C8): ETB ZoneChangeEvent with
-    subject=IS_SOURCE, then PUT_COUNTER on the event's subject object.)"""
-    atom = Atom(
-        verb=Verb.PUT_COUNTER,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "target",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.CHOOSE,
-                        FAnd(children=()),
-                        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),
-                        referent="event",
-                    ),
-                ),
-                ("counter_kind", CounterKind.PLUS_1_PLUS_1),
-                ("count", QX()),
-            )
-        ),
+    Scourge, Ivy Elemental and the X hydras; bucket-ownership deviation:
+    the round-6 decision doc guessed b2a, but the JSON partition owns this
+    key in B4.)
+
+    An entering-state replacement (CR 614.1c), not a trigger: the
+    permanent ENTERS with the counters, so it is never an X-less 0/0 and
+    "whenever a creature with power 4 or greater enters" sees it at its
+    full size. EtBState(initial_counters=((+1/+1, X),)), the shape the
+    constant "enters with N counters" cards already use (Malefic Scythe,
+    the kicker Baloths); the executor stamps it with the X the spell was
+    cast with (0 when it entered without being cast, CR 107.3g).
+    m21-fidelity (review batch B, 2026-10-29): this was an ETB trigger
+    putting X counters on the event subject, so the creature entered as a
+    0/0 and Garruk's Uprising never saw an X/X."""
+    return AbilityOutcome(
+        ability=EtBState(initial_counters=((CounterKind.PLUS_1_PLUS_1, QX()),))
     )
-    ability = TriggeredAbility(
-        event=ZoneChangeEvent(
-            from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
-            to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
-            subject=FAtom(pred=FAtomPred.IS_SOURCE),
-        ),
-        condition=None,
-        effect=atom,
-    )
-    return AbilityOutcome(ability=ability)
 
 
 # ---------------------------------------------------------------------------
