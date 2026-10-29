@@ -218,7 +218,9 @@ class DeckSupplyTest(unittest.TestCase):
         # activation lane does not have, so the shape gate marks it unsupported.
         # re-pinned 2026-10-29: the activation X lane changes 298 -> 299 (Ugin is
         # supported again: legality.activate announces X, CR 602.2b/606.6).
-        self.assertEqual(len(self.supply.engine_ids), 299)
+        # re-pinned 2026-10-29: phasing (PHASE_OUT, CR 702.26) changes 299 -> 301,
+        # exactly Teferi, Master of Time and Teferi, Timeless Voyager.
+        self.assertEqual(len(self.supply.engine_ids), 301)
 
 
 class ShapeGapSupplyExclusionTest(unittest.TestCase):
@@ -258,8 +260,9 @@ class ShapeGapSupplyExclusionTest(unittest.TestCase):
         # Chandras whose duration permissions are suppressed).
         # B-49 follow-up #4 (2026-10-29): 299 -> 298, 279 -> 278 (Ugin's [−X]).
         # re-pinned 2026-10-29: the activation X lane changes 298 -> 299, 278 -> 279 (Ugin back).
-        self.assertEqual(len(m21.engine_ids), 299)
-        self.assertEqual(len(m21.deckable), 279)
+        # re-pinned 2026-10-29: phasing changes 299 -> 301, 279 -> 281 (the two Teferis).
+        self.assertEqual(len(m21.engine_ids), 301)
+        self.assertEqual(len(m21.deckable), 281)
 
 
 class KickerLaneTest(unittest.TestCase):

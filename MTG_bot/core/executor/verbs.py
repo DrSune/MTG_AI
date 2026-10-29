@@ -76,6 +76,7 @@ from MTG_bot.core.executor.quantity import (
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     amount,
+    existing,
     resolve_selector,
     role_handles,
     role_player,
@@ -210,6 +211,8 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         return
     tapped_on_enter = bool(atom.args.get("tapped_on_enter"))
     cards = ctx.binding_handles("cards")
+    if cards is not None:
+        cards = existing(ctx, cards)  # CR 702.26b: a phased-out designation is skipped
     if cards is None:
         sel = atom.args.get("cards")
         if sel is None:
@@ -1357,6 +1360,24 @@ def _v_extra_turn(ctx: ExecCtx, atom: Atom) -> None:
     ctx.events.append((len(ctx.events), "EXTRA_TURN", str(ctx.controller), n))
 
 
+def _v_phase_out(ctx: ExecCtx, atom: Atom) -> None:
+    """PHASE_OUT (CR 702.26; Teferi, Master of Time's [−3], Teferi, Timeless
+    Voyager's [−8]): the permanents the ``target`` role names phase out
+    (:meth:`Executor.phase_out`: the status, indirect phasing, removal from
+    combat). The role's Selector resolves itself: a TARGET selector reads
+    the designation (only targets still legal, CR 608.2b), an ALL selector
+    ("each creature target opponent controls") its population, whose
+    filter reads the designated player. ``role_handles``' binding-first
+    lane would hand that designated PLAYER to the verb instead. The
+    permanents that phased out directly are the ``result`` register (the
+    anaphora "they" of a following instruction)."""
+    executor = _executor_or_raise(ctx, atom.verb.name)
+    sel = atom.args.get("target")
+    assert isinstance(sel, Selector)  # role table: PHASE_OUT target is a Selector
+    cards = [h for h in resolve_selector(sel, ctx) if h.namespace == "card"]
+    ctx.bindings["result"] = executor.phase_out(cards)
+
+
 def _v_lose_game(ctx: ExecCtx, atom: Atom) -> None:
     """LOSE_GAME (13a; 13b audit-row fix): the frozen GameWorld carries no
     per-player lost flag (state.py is frozen) — so the loss lands on an
@@ -2038,6 +2059,7 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.FLIP_COIN: _v_flip_coin,
     Verb.END_TURN: _v_end_turn,
     Verb.EXTRA_TURN: _v_extra_turn,
+    Verb.PHASE_OUT: _v_phase_out,  # CR 702.26 (2026-10-29)
     Verb.LOSE_GAME: _v_lose_game,
     # 13b: the cast-side verbs — the gate-flip five (PAY, CAST, CHOOSE,
     # CHOOSE_NAME, MANA_POLICY). SUPPORTED_VERBS_V2 derives from THIS

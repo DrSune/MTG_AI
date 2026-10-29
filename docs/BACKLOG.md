@@ -726,6 +726,46 @@ These are forks, not tasks. See the report that accompanied this audit.
     enforced there (`window:loyalty:*`: own turn, empty stack, either main phase); the
     first-main-only limit above still holds for casts, land drops and `timing=SORCERY`
     activations.
+- **B-75 [2026-10-29, branch `engine/phasing`] Phasing (CR 702.26) is implemented as a status; one
+  printed clause still has no ontology.**
+  - Done: `Executor.phase_out` / the CR 502.1 step in `_untap_step`, `Executor.phased_out`
+    (folded into `state_fingerprint` when non-empty). The card keeps its zone, so there are no
+    zone-change events, tokens and counters stay, attachments and control stay (702.26d). The
+    readers leave it out: `selectors.enumerate_zone` / `existing` (targets, "each" populations,
+    counts, costs, static scopes), `legality._zone_handles`, `role_handles`' bound designations,
+    `Executor.battlefield` (the three SBA sweeps), the untap loop, `ability_playable`
+    (`window:phased_out`), cost modifiers, attack/block legality, `layers._layer_live` (its own
+    statics go dormant, `LayerRecord.from_static`), `binder._queue` (its triggers; delayed
+    triggers still fire), `replacements._source_alive`, the quantity census loops. It is removed
+    from combat (506.4); Auras/Equipment phase out and in with it (702.26g/h). Packs:
+    `teferi_master_of_time_phase*`, `teferi_master_of_time_phased_out_*`,
+    `teferi_timeless_voyager_phase_out_all`, `aven_gagglemaster_ignores_phased_out_flyer`,
+    `feline_sovereign_*phase*`.
+  - **Open, weaker than printed: Teferi, Timeless Voyager's "Until the end of your next turn, they
+    can't phase in."** The compiler's built-in `_phase_in_prevention_effect` (`compiler.py` ~206)
+    emits `PREVENT_EFFECT(event=ZoneChangeEvent(COMMAND/OPPONENT -> BATTLEFIELD/OPPONENT),
+    condition=CONTROLLER_IS OPPONENT, duration=DurationUntilNextTurn)`. Phasing is not a zone
+    change, so the record is inert and the creatures phase back in at their controller's next
+    untap step. Repro: `tools/scenarios/known_bugs/teferi_timeless_voyager_cant_phase_in.json`.
+    What the clause needs, for the next gated ontology round:
+    - an event: a phasing event shaped like `TapStateEvent`, e.g. `PhasingEvent(phased_in: bool,
+      filter: Filter)`, that the phasing step offers to the prevention registry before each
+      phase-in (the consumer: `Executor._phasing_step`);
+    - "they": the creatures the preceding PHASE_OUT phased out. PHASE_OUT writes the `result`
+      register, so either a filter referent for it or the `_v_prevent` convention of materialising
+      the affected set at registration (today it reads the `target` binding, here the targeted
+      player). `CONTROLLER_IS OPPONENT` is broader than "they" (it would also hold a creature
+      phased out earlier by another effect, stronger than printed);
+    - the duration: `DurationUntilNextTurn` ends as your next turn begins, the printed text at
+      its end. Phase-ins happen only in their controller's untap step, so no reachable game tells
+      them apart today; a PHASE_IN effect during that turn would.
+  - Also open: the policy observations (`tools/training/packrec.py`, `ab_duel.py` obs rows) list a
+    phased-out permanent as an ordinary battlefield card (AGENTS §10). The menus never offer it;
+    the bench seat view marks it. Add a `phased_out` row word (like `tapped`) at the next
+    observation-schema change.
+  - No carrier: the phasing keyword (702.26a's phase-out half), PHASE_IN (702.26c by an effect),
+    a directly phased-out Aura (702.26i), "for as long as" durations tracking a phased-out
+    permanent (702.26f; `DurationUntilLeaves` must not end on phasing, R5-1).
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).

@@ -94,8 +94,11 @@ Pack vocabulary (all keys required as noted):
              "toughness": {key: int},         17a: (base->timestamp fold),
              "library": {"0": [names...TOP-first]},   17a: exact order,
              "graveyard": {"0": [names...]},          17a: exact bag
-             "turn_seats": [0, 0, 1]}  2026-10-29: the seat of every turn
+             "turn_seats": [0, 0, 1],  2026-10-29: the seat of every turn
                                         begun, in order (CR 500.7 extra turns)
+             "phased_out": {key: bool}}  2026-10-29: the CR 702.26 status
+  setup cards may carry "counters": {"KIND": n}; an activate step's targets
+  may name a player as "p0"/"p1".
 """
 
 from __future__ import annotations
@@ -226,6 +229,10 @@ class ScenarioRunner:
             # carry a "tapped" key this runner never honoured (B-63), and honouring it changes them.
             if card.get("start_tapped"):
                 self.world.cards[self.handles[card["key"]]].tapped = True
+            # 2026-10-29 (phasing packs): counters a setup card starts with, e.g.
+            # {"PLUS_1_PLUS_1": 1}. Absent keys are byte-identical.
+            for kind, n in card.get("counters", {}).items():
+                self.world.cards[self.handles[card["key"]]].counters[kind] = int(n)
         # The real cards' triggers/abilities register from the compiled pool.
         self.registered = self.ex.attach_pool(supply.pool)
         for seat, colors in pack.get("mana", {}).items():
@@ -461,7 +468,12 @@ class ScenarioRunner:
                 self.handles[step["key"]],
                 int(step.get("idx", 0)),
                 seat=self.seats[int(step.get("seat", 0))],
-                targets=tuple(self.handles[k] for k in step.get("targets", ())),
+                # 2026-10-29: "p0"/"p1" designate a player (Teferi, Timeless
+                # Voyager's "target opponent"), any other word a pack key.
+                targets=tuple(
+                    self.seats[int(k[1])] if k in ("p0", "p1") else self.handles[k]
+                    for k in step.get("targets", ())
+                ),
                 decisions=tuple(step.get("decisions", ())),
                 # 2026-10-29 activation X lane (CR 602.2b -> 601.2b): an explicit
                 # announcement; absent, X is asked through the decision channel.
@@ -596,6 +608,11 @@ class ScenarioRunner:
             got_host = self.ex.attachments.get(self.handles[key])
             if got_host != (self.handles[host] if host is not None else None):
                 fails.append(f"attached[{key}]: expected {host}, got {got_host}")
+        # 2026-10-29 PHASED_OUT LANE (CR 702.26): the executor's phased-out status.
+        for key, want in self.pack.get("expect", {}).get("phased_out", {}).items():
+            got_phased = self.handles[key] in self.ex.phased_out
+            if got_phased != bool(want):
+                fails.append(f"phased_out[{key}]: expected {want}, got {got_phased}")
         # 2026-10-29 TURN_SEATS LANE (CR 500.7 extra turns): the seat index of every turn
         # begun so far, in order, read off the journal's UPKEEP markers (they carry the
         # active player). The setup's opening begin_turn is the first entry.

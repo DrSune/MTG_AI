@@ -645,7 +645,9 @@ class TriggerBinder:
                 if self._match_node(
                     entry.node.event, event, entry.source, entry.controller
                 ):
-                    self._queue(entry.source, entry.controller, entry.node, event)
+                    self._queue(
+                        entry.source, entry.controller, entry.node, event, delayed=True
+                    )
             self._lifecycle(event, attach=False)
         # r22a defensive flush: record_atom always journalled the pair, so
         # a pending handle should never outlive the pass. If a hand-built
@@ -710,11 +712,18 @@ class TriggerBinder:
         node: _AnyTrigger,
         event: GameEvent,
         additional: bool = False,
+        delayed: bool = False,
     ) -> None:
         if source in self.quarantined:
             # r23a tripwire guard: a flagged loop source never queues
             # again this game (its firing was already recorded loudly in
             # executor.trigger_loops).
+            return
+        if not delayed and source in self.executor.phased_out:
+            # CR 702.26b: a phased-out permanent's triggered abilities (its
+            # printed, granted and keyword ones, and the AbilityTriggerEvent
+            # subscribers) do not trigger. A delayed trigger is not an
+            # ability of its source (CR 603.7) and still triggers.
             return
         if (
             not additional

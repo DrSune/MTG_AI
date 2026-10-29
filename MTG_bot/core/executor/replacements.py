@@ -272,8 +272,15 @@ class ReplacementRegistry:
     # -------------------------------------------------------------- matching
 
     def _source_alive(self, source: Handle) -> bool:
+        """The battlefield-lifetime gate of a permanent's own replacement and
+        prevention records. A phased-out source does not exist (CR 702.26b),
+        so its static records do not apply until it phases in."""
         world = self.world
-        return source in world.cards and world.zone_of(source).kind == "battlefield"
+        return (
+            source in world.cards
+            and world.zone_of(source).kind == "battlefield"
+            and source not in self.executor.phased_out
+        )
 
     def _condition_holds(self, rec, subject: Handle, ctx: ExecCtx) -> bool:
         """A record's condition is judged over the EVENT SUBJECT (the

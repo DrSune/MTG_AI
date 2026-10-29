@@ -256,6 +256,12 @@ class LayerRecord:
     status: str = "live"
     ledger_ids: dict[Handle, int] = field(default_factory=dict)
     resolved: bool = False
+    # CR 702.26b (2026-10-29): the record IS one of its source's own static
+    # or keyword abilities (attach_source registered it), so it does not
+    # function while the source is phased out. Effects a resolved spell or
+    # ability created are not abilities of the source and keep applying.
+    # Not in dump(): the flag is a function of the attach history.
+    from_static: bool = False
 
     @property
     def atoms(self) -> tuple[Atom, ...]:
@@ -305,6 +311,7 @@ class LayerRegistry:
         resolve. ``None`` = the ordinary battlefield resolution."""
         self.detach_source(handle)
         count = 0
+        first_new = len(self.records)
         if controller is None:
             controller = self.executor.controller_of(handle)  # 16e overlay
         for kw in record.keywords:
@@ -336,6 +343,8 @@ class LayerRegistry:
                     sink = getattr(self.executor, "unparseable_statics", None)
                     if sink is not None and flag not in sink:
                         sink.append(flag)
+        for layer in self.records[first_new:]:
+            layer.from_static = True  # CR 702.26b: see LayerRecord.from_static
         return count
 
     def detach_source(self, handle: Handle) -> int:
@@ -794,6 +803,10 @@ class LayerRegistry:
         if layer.source not in world.cards and (
             layer.source not in self.executor.emblems.values()
         ):
+            return False
+        if layer.from_static and layer.source in self.executor.phased_out:
+            # CR 702.26b: a phased-out permanent's static abilities do not
+            # function (dormant, not expired: they resume when it phases in).
             return False
         if layer.condition is not None and not eval_filter(
             layer.condition, layer.source, self._ctx(layer.source, layer.controller)

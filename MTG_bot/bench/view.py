@@ -109,6 +109,9 @@ class CardView:
     attached_to: str | None = None
     summoning_sick: bool = False
     printed_pt: str | None = None
+    #: CR 702.26 (2026-10-29): a phased-out permanent is still on the table and public, but it is
+    #: treated as though it does not exist; the engine's menus never offer it.
+    phased_out: bool = False
 
 
 @dataclass(frozen=True)
@@ -255,6 +258,7 @@ class SeatLens:
                 if ident.power is not None or ident.toughness is not None
                 else None
             ),
+            phased_out=handle in executor.phased_out,
         )
 
     def view(self, executor: Executor) -> SeatView:
@@ -329,6 +333,8 @@ def _sick(executor: Executor, handle: Handle) -> bool:
 
 def _card_line(card: CardView) -> str:
     bits = [f"{card.oid} {card.name}"]
+    if card.phased_out:
+        bits.append("PHASED OUT (treated as though it does not exist)")
     if card.power is not None or card.toughness is not None:
         bits.append(f"{card.power}/{card.toughness}")
     if card.tapped:

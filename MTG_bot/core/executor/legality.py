@@ -428,17 +428,19 @@ def _zone_handles(ctx: ExecCtx, zone: Zone) -> list[Handle]:
             for seat in players_for_ref(zone.controller, ctx)
             for handle in stack_zone(world, seat).entries
         ]
+    from MTG_bot.core.executor.selectors import existing  # CR 702.26b
+
     owner = source_owner(world, ctx)
     if zone.controller is ControllerRef.OWNER:
         if zone.kind is ZoneKind.PLAYER:
             return [owner]
-        return list(world.players[owner].zone(_STATE_KIND[zone.kind]).entries)
+        return existing(ctx, list(world.players[owner].zone(_STATE_KIND[zone.kind]).entries))
     if zone.kind is ZoneKind.ANY:
         handles: list[Handle] = []
         for player in world.player_order:
             for kind in PLAYER_ZONES:
                 handles.extend(world.players[player].zone(kind).entries)
-        return handles
+        return existing(ctx, handles)
     # 12a path (PLAYER refs, positions, TOP/BOTTOM): identical semantics.
     from MTG_bot.core.executor.selectors import enumerate_zone
 
@@ -683,7 +685,8 @@ def build_payment_plan(
         activation_lane = mana_use is None
         mod_hosts: list[Handle] = [judge]
         for seat in world.player_order:
-            mod_hosts.extend(sorted(world.players[seat].zone(ZONE_BATTLEFIELD).entries))
+            # CR 702.26b: a phased-out permanent's modifier does not exist.
+            mod_hosts.extend(sorted(ex.battlefield(seat)))
         for host in mod_hosts:
             rec = ex.binder.handle_record.get(host)
             if rec is None:
@@ -1088,6 +1091,9 @@ def ability_playable(
         )
     ):
         return f"window:not_on_battlefield:{handle}"
+    if handle in executor.phased_out:
+        # CR 702.26b: treated as though it does not exist (mana abilities too).
+        return f"window:phased_out:{handle}"
     if handle in world.cards and executor.controller_of(handle) != seat:
         # CR 602.3: only the permanent's controller can activate it.
         return f"window:not_controller:{seat}"
@@ -1860,6 +1866,8 @@ def attack_blocked_reason(
     world = executor.world
     if world.zone_of(creature).kind != ZONE_BATTLEFIELD:
         return "not on the battlefield"
+    if creature in executor.phased_out:
+        return "phased out (CR 702.26b)"
     if executor.controller_of(creature) != seat:
         return "not controlled by the declaring player"
     ctx = executor._ctx(source=creature, controller=seat, bindings=None, decisions=())
@@ -1973,6 +1981,8 @@ def block_pair_blocked_reason(
         return "not on the battlefield"
     if world.zone_of(attacker).kind != ZONE_BATTLEFIELD:
         return "attacker not on the battlefield"
+    if blocker in executor.phased_out or attacker in executor.phased_out:
+        return "phased out (CR 702.26b)"
     ctx_blocker = executor._ctx(
         source=blocker,
         controller=executor.controller_of(blocker),
@@ -2019,6 +2029,8 @@ def blocker_askable(
     out here — the "tapped creatures cannot block" face of CR 509.1a."""
     world = executor.world
     if world.zone_of(blocker).kind != ZONE_BATTLEFIELD:
+        return False
+    if blocker in executor.phased_out:  # CR 702.26b
         return False
     ctx_blocker = executor._ctx(
         source=blocker,
