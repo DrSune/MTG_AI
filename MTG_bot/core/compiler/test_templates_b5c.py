@@ -1794,9 +1794,10 @@ class TestB5cRound9B(unittest.TestCase):
         assert isinstance(event, DamageDealtEvent)
         self.assertIsInstance(event.amount, QUnbounded)
         self.assertIs(event.combat, True)
-        # LOSSY: damaged-recipient filter universal ("to a player" dropped,
-        # b2b R8-candidate precedent)
-        self.assertEqual(event.filter, FAnd(children=()))
+        # re-pinned 2026-10-29: B-57 fix changes the damaged-recipient filter
+        # from the universal FAnd(()) ("to a player" dropped) to "a player"
+        # (not a permanent, CR 120.1).
+        self.assertEqual(event.filter, FNot(FAtom(pred=FAtomPred.IS_PERMANENT)))
         dealer = event.source
         assert isinstance(dealer, FAnd)
         # R1a canonicalization: FAnd children construction-sorted; the three

@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "B-57 control (2026-10-29), twin of jeskai_elder_blocked.json: 'Whenever this creature deals combat damage to a PLAYER, you may draw a card. If you do, discard a card.' Unblocked, the Elder deals 1 combat damage to the opponent, so the trigger fires: draw the top filler card (hand 1 -> 2), then discard one (hand back to 1, one card in the graveyard). The recipient filter is now 'not a permanent' (= a player, CR 120.1), and this pack pins that it still matches the player.",
+ "cards": [
+  {"key": "je", "zone": "battlefield", "controller": 0, "real": "Jeskai Elder"},
+  {"key": "l0", "zone": "library", "controller": 0, "name": "Lib A", "type": "Creature — Bear", "power": 2, "toughness": 2},
+  {"key": "l1", "zone": "library", "controller": 0, "name": "Lib B", "type": "Creature — Bear", "power": 2, "toughness": 2}
+ ],
+ "mana": {},
+ "steps": [{"op": "combat", "seat": 0, "attack": {"je": true}, "may": {"je": true}}],
+ "expect": {"life": {"1": 19}, "hand": {"0": 1}, "graveyard": {"0": ["Lib B"]}}}

@@ -29,6 +29,16 @@ Pins the CDE -> DDE fold of the three combat-damage-event cards
 Red-first law: the shape/convergence/census/split legs are RED pre-fold and
 GREEN post-fold; the fire-parity legs pin behavioral equivalence and hold
 across the fold by construction.
+
+B-57 (2026-10-29) ended the fold's one lossy drop: the recipient is no
+longer the universal ``FAnd(())`` marker but "a player" (``FNot(
+IS_PERMANENT)``; Harbinger: "a player or planeswalker"), because under the
+marker a blocked creature fired off its blocker (stronger than printed).
+So the shape pins name the new recipient, the convergence proof compares
+the shell without the recipient, the three cards' split legs (damage to
+two creature blockers) now fire ZERO times, and the D13 lane over-fire is
+pinned on a recipient-universal node instead. ``TestRecipientFidelity``
+judges the compiled recipients over every kind of damage recipient.
 """
 
 from __future__ import annotations
@@ -39,9 +49,12 @@ from pathlib import Path
 from MTG_bot.core.ability_tree import (
     ControllerRef,
     DamageDealtEvent,
+    DelayedTrigger,
     FAnd,
     FAtom,
     FAtomPred,
+    FNot,
+    FOr,
     QConst,
     QUnbounded,
     Seq,
@@ -51,7 +64,8 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.compiler.coverage import _compile_pool_tolerant, build_full_registry
 from MTG_bot.core.compiler.ingest import ingest_pool
-from MTG_bot.core.state import ZONE_BATTLEFIELD
+from MTG_bot.core.executor.events import KIND_DAMAGE, GameEvent
+from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD
 from MTG_bot.core.test_executor_binding import gain, record_of
 from MTG_bot.core.test_executor_blockers import BlockerCase
 from MTG_bot.core.test_executor_combat import _supply
@@ -120,6 +134,12 @@ def _damage_events(root) -> list:
 # --- the fold-law source filters (spec /140 §2(1)) -----------------------
 IS_SOURCE = FAtom(pred=FAtomPred.IS_SOURCE)
 UNIV_FAND = FAnd(())
+# B-57: the recipient filters. "A player" = not a permanent (CR 120.1: only
+# players, creatures, planeswalkers and battles can be dealt damage).
+TO_A_PLAYER = FNot(FAtom(pred=FAtomPred.IS_PERMANENT))
+TO_A_PLAYER_OR_PW = FOr(
+    (TO_A_PLAYER, FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"))
+)
 # Feline's dealer filter: the printed cats FAnd moves VERBATIM into
 # DDE.source (sortdelta content law); host shape = the Subira precedent
 # FAnd[TYPE_EQ Creature, ..., CONTROLLER_IS YOU] over the source slot.
@@ -158,7 +178,9 @@ class R2FoldCase(BlockerCase):
             f"(still {type(node).__name__})",
         )
         self.assertIsInstance(node.amount, QUnbounded)
-        self.assertEqual(node.filter, UNIV_FAND)  # universal recipient marker
+        # re-pinned 2026-10-29: B-57 fix changes the recipient from the
+        # universal FAnd(()) marker to "a player" (all three cards say so).
+        self.assertEqual(node.filter, TO_A_PLAYER)
         self.assertIs(node.combat, True)
         self.assertEqual(node.source, source_filter)
 
@@ -251,7 +273,16 @@ class TestConvergence(R2FoldCase):
         jes = self.folded_event(_m21_record("Jeskai Elder"), IS_SOURCE, "Jeskai Elder")
         harb_events = _damage_events(_m21_record("Garruk's Harbinger"))
         self.assertEqual(len(harb_events), 1)
-        self.assertEqual(canonical_json(jes), canonical_json(harb_events[0]))
+        # re-pinned 2026-10-29: B-57 fix changes the recipients, which the
+        # two cards print differently ("a player" vs "a player or
+        # planeswalker"), so the bytes now differ there and ONLY there: the
+        # shell (amount, source, combat) is still byte-identical.
+        self.assertEqual(jes.filter, TO_A_PLAYER)
+        self.assertEqual(harb_events[0].filter, TO_A_PLAYER_OR_PW)
+        self.assertEqual(
+            canonical_json(dataclasses.replace(jes, filter=UNIV_FAND)),
+            canonical_json(dataclasses.replace(harb_events[0], filter=UNIV_FAND)),
+        )
 
 
 class TestFireParity(R2FoldCase):
@@ -351,7 +382,14 @@ class TestSplitOverFire(R2FoldCase):
     WIDE and ships TODAY on the ten existing DDE{combat:true} cards
     (Harbinger over-fires on splits now); the fold extends it 10 -> 13.
     This test PINS the accepted count 2 — it is NOT a fix; the correct
-    recipient-SET journal-row design is engine-lane ticket ZND-8."""
+    recipient-SET journal-row design is engine-lane ticket ZND-8.
+
+    re-pinned 2026-10-29: B-57 fix changes the three cards' recipient to "a
+    player", and a split between two blockers deals no damage to a player,
+    so their legs now fire ZERO times (the old count 2 was the B-57 bug on
+    top of D13). The D13 lane over-fire itself is unchanged and is pinned on
+    a recipient-universal node ("whenever this creature deals combat
+    damage", no recipient), where it still fires twice."""
 
     def split_fires(self, node, cat_dealer: bool) -> tuple:
         dealer = self.world.add_card(
@@ -375,22 +413,111 @@ class TestSplitOverFire(R2FoldCase):
         )  # the announced 1+2 split
         return plan
 
-    def test_split_fires_twice_jeskai(self):
-        node = self.event_of(_m21_record("Jeskai Elder"), "Jeskai Elder")
-        self.split_fires(node, cat_dealer=False)
+    def test_split_fires_twice_on_a_recipient_universal_node(self):
         # D13 ACCEPTED: 2 fires for one CR-603.2 event (over-fire, pinned).
+        node = DamageDealtEvent(
+            amount=QUnbounded(), filter=UNIV_FAND, source=IS_SOURCE, combat=True
+        )
+        self.split_fires(node, cat_dealer=False)
         self.assertEqual(self.life_gain(), 2)
 
-    def test_split_fires_twice_nimble(self):
+    def test_split_into_two_blockers_fires_zero_jeskai(self):
+        # re-pinned 2026-10-29: B-57 fix changes 2 -> 0 (no player was dealt
+        # damage; the old 2 fired off the two blockers).
+        node = self.event_of(_m21_record("Jeskai Elder"), "Jeskai Elder")
+        self.split_fires(node, cat_dealer=False)
+        self.assertEqual(self.life_gain(), 0)
+
+    def test_split_into_two_blockers_fires_zero_nimble(self):
+        # re-pinned 2026-10-29: B-57 fix changes 2 -> 0 (see jeskai).
         node = self.event_of(_znr_record("Nimble Trapfinder"), "Nimble Trapfinder")
         self.split_fires(node, cat_dealer=False)
-        self.assertEqual(self.life_gain(), 2)  # D13 pin, not a fix
+        self.assertEqual(self.life_gain(), 0)
 
-    def test_split_fires_twice_feline(self):
+    def test_split_into_two_blockers_fires_zero_feline(self):
         # Feline = max exposure (wide cats + double-block lines, spec §6).
+        # re-pinned 2026-10-29: B-57 fix changes 2 -> 0 (see jeskai).
         node = self.event_of(_m21_record("Feline Sovereign"), "Feline Sovereign")
         self.split_fires(node, cat_dealer=True)
-        self.assertEqual(self.life_gain(), 2)  # D13 pin, not a fix
+        self.assertEqual(self.life_gain(), 0)
+
+
+class TestRecipientFidelity(R2FoldCase):
+    """B-57: the compiled recipients, judged by the binder's own damage
+    matcher over every kind of combat-damage recipient: a player, a live
+    creature, a creature the damage already killed (IS_PERMANENT is the
+    type-line test, so it still answers "not a player"), and a planeswalker
+    (only Harbinger's "player or planeswalker" admits it). The engine's
+    attack ask names no planeswalker, so this leg feeds the matcher a DAMAGE
+    row directly instead of running combat."""
+
+    def matches(self, node, subject) -> bool:
+        dealer = self.synth("Dealer", 3, 3, self.p0)
+        event = GameEvent(
+            clock=0,
+            kind=KIND_DAMAGE,
+            subject=subject,
+            cause=dealer,
+            cause_verb="COMBAT_DAMAGE",
+            data=(3, True),
+        )
+        return self.ex.binder._match_damage(node, event, dealer, self.p0)
+
+    def recipients(self) -> dict:
+        dead = self.synth("Dead Blocker", 0, 1, self.p1)
+        self.world.move_to_zone(dead, self.p1, ZONE_GRAVEYARD)
+        walker = self.world.add_card(
+            card_id("Walker", None, None, type_line="Legendary Planeswalker — Test"),
+            self.p1,
+            ZONE_BATTLEFIELD,
+        )
+        return {
+            "player": self.p1,
+            "creature": self.synth("Blocker", 0, 4, self.p1),
+            "dead creature": dead,
+            "planeswalker": walker,
+        }
+
+    def verdicts(self, node) -> dict:
+        return {k: self.matches(node, h) for k, h in self.recipients().items()}
+
+    def test_compiled_recipients(self):
+        for name in ("Jeskai Elder", "Feline Sovereign"):
+            self.assertEqual(self.event_of(_m21_record(name), name).filter, TO_A_PLAYER)
+        self.assertEqual(
+            self.event_of(_znr_record("Nimble Trapfinder"), "Nimble Trapfinder").filter,
+            TO_A_PLAYER,
+        )
+        self.assertEqual(
+            self.event_of(_m21_record("Garruk's Harbinger"), "Garruk's Harbinger").filter,
+            TO_A_PLAYER_OR_PW,
+        )
+        (subira,) = [
+            n
+            for n in _damage_events(_m21_record("Subira, Tulzidi Caravanner"))
+            if isinstance(n, DamageDealtEvent)
+        ]
+        self.assertEqual(subira.filter, TO_A_PLAYER)
+        self.assertTrue(
+            any(
+                isinstance(ab.effect, DelayedTrigger) and ab.effect.event == subira
+                for ab in _m21_record("Subira, Tulzidi Caravanner").abilities
+            )
+        )
+
+    def test_to_a_player_matches_only_the_player(self):
+        node = self.event_of(_m21_record("Jeskai Elder"), "Jeskai Elder")
+        self.assertEqual(
+            self.verdicts(node),
+            {"player": True, "creature": False, "dead creature": False, "planeswalker": False},
+        )
+
+    def test_to_a_player_or_planeswalker_admits_the_planeswalker(self):
+        node = self.event_of(_m21_record("Garruk's Harbinger"), "Garruk's Harbinger")
+        self.assertEqual(
+            self.verdicts(node),
+            {"player": True, "creature": False, "dead creature": False, "planeswalker": True},
+        )
 
 
 class TestDesignationValidation(R2FoldCase):

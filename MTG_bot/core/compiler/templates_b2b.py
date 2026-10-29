@@ -191,6 +191,30 @@ def _plus1_counter(m: re.Match[str]) -> int:
     return 1
 
 
+def _to_a_player() -> Filter:
+    """The damaged-recipient filter of "deals [combat] damage to a player"
+    (B-57). Only players, creatures, planeswalkers and battles can be dealt
+    damage (CR 120.1), and all of them but a player are permanents, so "not
+    a permanent" is exactly "a player". IS_PERMANENT is the CR 110.1
+    type-line test: a creature the damage killed still answers it, and the
+    binder judges it FALSE for a player subject, so the FNot is TRUE there.
+    The mapped card records write the same encoding (FDN Goldvein Pick).
+    Before B-57 these builders wrote the universal FAnd(()) here, so the
+    trigger also fired on combat damage to a blocking creature."""
+    return FNot(inner=FAtom(pred=FAtomPred.IS_PERMANENT))
+
+
+def _to_a_player_or_planeswalker() -> Filter:
+    """ "... damage to a player or planeswalker" (Garruk's Harbinger): the
+    :func:`_to_a_player` test, or a planeswalker (B-57)."""
+    return FOr(
+        children=(
+            _to_a_player(),
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
+        )
+    )
+
+
 def _ability(event, effect, condition=None) -> AbilityOutcome:
     """Wrap a triggered-ability effect as the B2b sentence outcome."""
     return AbilityOutcome(
@@ -1716,14 +1740,14 @@ def _build_jeskai_elder(m: re.Match[str]) -> SentenceOutcome:
     """Round 4 row #2: deals combat damage to a player, you may draw a card.
 
     R2 fold (F4, /140): CDE -> DamageDealtEvent{amount:QUnbounded,
-    filter:FAnd(()) universal recipient marker, source:IS_SOURCE,
-    combat:True} — byte-identical to Garruk's Harbinger's node (the §9
-    merge proof). Lossy (unchanged): "to a player" stays dropped — the
-    recipient fidelity is ZND-7(b), not this fold."""
+    source:IS_SOURCE, combat:True}, the same shell as Garruk's Harbinger's
+    node (the §9 merge proof). B-57 (ZND-7(b)): the recipient is no longer
+    dropped. It was the universal FAnd(()), which made a blocked Elder loot
+    off the blocker; it is now :func:`_to_a_player`."""
     return _ability(
         DamageDealtEvent(
             amount=QUnbounded(),
-            filter=FAnd(children=()),
+            filter=_to_a_player(),
             source=FAtom(pred=FAtomPred.IS_SOURCE),
             combat=True,
         ),
@@ -1945,11 +1969,14 @@ def _build_feline_sovereign(m: re.Match[str]) -> SentenceOutcome:
 
     "That player" = the damaged recipient, the event referent in the
     CONTROLLER_IS who slot (round 4, object anaphora). R2 fold (F4, /140):
-    CDE -> DamageDealtEvent{amount:QUnbounded, filter:FAnd(()) universal
-    recipient marker, source:the cats FAnd VERBATIM, combat:True} — the
-    dealer-side filter rides the source slot in the Subira host shape; the
-    folded lane's event subject is the damaged recipient, which finally
-    binds "that player" rules-faithful (test_ontology_r2 E2E leg)."""
+    CDE -> DamageDealtEvent{amount:QUnbounded, source:the cats FAnd
+    VERBATIM, combat:True} — the dealer-side filter rides the source slot
+    in the Subira host shape; the folded lane's event subject is the
+    damaged recipient, which finally binds "that player" rules-faithful
+    (test_ontology_r2 E2E leg). B-57: the recipient is
+    :func:`_to_a_player`, no longer the universal FAnd(()) under which a
+    blocked Cat fired too and "that player" became the blocker's
+    controller."""
     cats = FAnd(
         children=(
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
@@ -1978,7 +2005,7 @@ def _build_feline_sovereign(m: re.Match[str]) -> SentenceOutcome:
     return _ability(
         DamageDealtEvent(
             amount=QUnbounded(),
-            filter=FAnd(children=()),
+            filter=_to_a_player(),
             source=cats,
             combat=True,
         ),
@@ -2054,13 +2081,14 @@ def _build_garruks_harbinger(m: re.Match[str]) -> SentenceOutcome:
 
     DamageDealtEvent carries ``amount`` (the R2 fold retired the
     amount-less CDE wording-variant) and ``combat=True``; "that many" = QProp("event", AMOUNT) (convention C4:
-    LOOK_AT implicitly looks at the top of the library).  Lossy: the
-    "a player or planeswalker" recipient filter is dropped (no recipient
-    predicate)."""
+    LOOK_AT implicitly looks at the top of the library).  B-57: the "a
+    player or planeswalker" recipient is :func:`_to_a_player_or_planeswalker`
+    (it was the universal FAnd(()), so a blocked Harbinger looked off the
+    blocker)."""
     return _ability(
         DamageDealtEvent(
             amount=QUnbounded(),
-            filter=FAnd(children=()),
+            filter=_to_a_player_or_planeswalker(),
             source=FAtom(pred=FAtomPred.IS_SOURCE),
             combat=True,
         ),

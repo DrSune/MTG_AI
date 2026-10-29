@@ -1,5 +1,5 @@
 {"set": "M21", "world": {"life": 20, "seed": 7},
- "notes": "Jeskai Elder: 'Whenever this creature deals combat damage to a PLAYER, you may draw a card. If you do, discard a card.' Blocked by a wall, it deals combat damage only to the wall -> no trigger, hand stays at the setup draw (1) and the graveyard stays empty.",
+ "notes": "B-57 regression (fixed 2026-10-29, was tools/scenarios/known_bugs/): Jeskai Elder: 'Whenever this creature deals combat damage to a PLAYER, you may draw a card. If you do, discard a card.' Blocked by a wall, it deals combat damage only to the wall -> no trigger, hand stays at the setup draw (1) and the graveyard stays empty. Before the fix the compiled recipient filter was universal and the Elder looted off the wall. Unblocked twin: jeskai_elder_unblocked_loots.json.",
  "cards": [
   {"key": "je", "zone": "battlefield", "controller": 0, "real": "Jeskai Elder"},
   {"key": "wall", "zone": "battlefield", "controller": 1, "name": "Opp Wall", "type": "Creature — Wall", "power": 0, "toughness": 9},
