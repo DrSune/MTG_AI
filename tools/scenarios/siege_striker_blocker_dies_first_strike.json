@@ -1,0 +1,9 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "B-61 (2026-10-29): Siege Striker (1/1, double strike, no trample) attacks and a 1/1 blocks it. First-strike damage: 1 to the blocker, which dies. Regular damage: the Striker is still BLOCKED (CR 509.1h) but no creature is blocking it any more, so it assigns no combat damage (CR 510.1c) and the opponent stays at 20. Before the fix the engine sent the regular-step damage to the player (life 19), which made every double striker without trample stronger than printed. Its attack trigger's may-tap offer is declined. Trample twin: swiftblade_vindicator_trample_blocker_dies.json.",
+ "cards": [
+  {"key": "ss", "zone": "battlefield", "controller": 0, "real": "Siege Striker"},
+  {"key": "chump", "zone": "battlefield", "controller": 1, "name": "Chump", "type": "Creature", "power": 1, "toughness": 1}
+ ],
+ "mana": {},
+ "steps": [{"op": "combat", "seat": 0, "attack": {"ss": true}, "block": {"chump": "ss"}, "may": {"ss": false}}],
+ "expect": {"life": {"1": 20}, "zone": {"ss": "battlefield", "chump": "graveyard"}, "blocked": {"ss": ["chump"]}}}

@@ -1922,6 +1922,12 @@ class Executor:
         * UNBLOCKED: everything to the ATTACKED object (v1: the defending
           player — planeswalker attacking is the documented players-only
           boundary, doc 14).
+        * BLOCKED, but every blocker has left combat (B-61): the creature
+          is still blocked (CR 509.1h), so it assigns NO combat damage
+          (CR 510.1c), unless it has trample, which assigns all of it to
+          the attacked object (CR 702.19e); the Herald policy below may
+          still route it there. A double striker whose first-strike damage
+          killed its blocker is the common case.
         * Herald policy (Garruk, Savage Herald's −7 grant, AS_UNBLOCKED):
           "you may have this creature assign its combat damage as though it
           weren't blocked" — an ASK (the "may"), site
@@ -1966,13 +1972,18 @@ class Executor:
                 return ()
             return ((power, blocked),)
         attacked = self.attacked.get(dealer, defender)
+        if dealer not in self.blocked_by:
+            return ((power, attacked),)  # unblocked
+        # B-61, CR 509.1h: the blocked_by entry outlives its blockers (a
+        # departing blocker is removed from the list, the key stays), so an
+        # empty live list here still means BLOCKED.
         blockers = [
             b
-            for b in self.blocked_by.get(dealer, [])
+            for b in self.blocked_by[dealer]
             if b in world.cards and world.zone_of(b).kind == ZONE_BATTLEFIELD
         ]
-        if not blockers:
-            return ((power, attacked),)
+        if not blockers and self.layers.keyword_of(dealer, Keyword.TRAMPLE):
+            return ((power, attacked),)  # CR 702.19e: all of it tramples over
         as_unblocked = (
             self.layers.policy_as_unblocked(dealer)
             or self.damage_policies.get(dealer) == "AS_UNBLOCKED"
@@ -1991,6 +2002,11 @@ class Executor:
                 == "UNBLOCKED"
             ):
                 return ((power, attacked),)
+        if not blockers:
+            # B-61, CR 510.1c: blocked with no creature blocking it, no
+            # trample: it assigns no combat damage. Before the fix this
+            # case sent the whole damage to the player.
+            return ()
         ordered = list(blockers)
         if len(ordered) > 1:
             picked: list[Handle] = []
