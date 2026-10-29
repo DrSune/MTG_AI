@@ -239,7 +239,14 @@ if (( HAVE > NEED )); then
   # cross-iteration comparability (rotated-seed law applies at the 3-seed
   # confirmation gate, /134 v2).
   train rld_i2 "$ART/${TAGP}episodes_iter1.jsonl" 2
-  probe p2 "$ART/${TAGP}rld_i2.pt" "$P2_GAMES" 512002 1413
+  # /173 branch 2 (M2 = 0.523 flat + MOVED2, window #4): iter-3 = pre-registered
+  # lever step-up on the steps axis (--steps 3 from base, measured grid point,
+  # /157 lesson). rld_i1/rld_i2 stay in the chain for a self-contained window:
+  # they are bit-reproducible (pre-keys + grads bit-identical across nights;
+  # post-update diag keys agree to ~1e-9 relative — /173 datum), so re-running
+  # them costs GPU time but yields a free determinism check each night.
+  train rld_i3 "$ART/${TAGP}episodes_iter1.jsonl" 3
+  probe p2 "$ART/${TAGP}rld_i3.pt" "$P2_GAMES" 512002 1413
 else
   log "PHASE 2 SKIPPED honestly: only ${HAVE}s to RESTART (need ${NEED}s = phase1_wall ${PHASE1_WALL}s x18 + ${MARGIN}s margin) — restore on schedule, resume next window (v2 overrun law)"
   ledger_row "budget" "phase2-skip" "iter1" "$G_ITER1" "-" "-" "SKIPPED" "have=${HAVE}s need=${NEED}s"
