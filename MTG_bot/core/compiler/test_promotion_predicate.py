@@ -61,9 +61,13 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 # counters" is an EtBState now (CR 614.1c), so its ETB trigger's referent='event'
 # CHOOSE (the PUT_COUNTER target) left the census: ANAPHORIC_REFERENT 36 -> 35,
 # TOTAL 152 -> 151. No other surface moved.
-TOTAL_SURFACES = 151
+# re-pinned 2026-10-29 (m21-fidelity): Basri Ket's [-2] and Basri, Devoted
+# Paladin's [-1] are DelayedTriggers now (CR 603.7); each GRANT_ABILITY's
+# self-designation CHOOSE (target = this planeswalker) left the census:
+# SELF_DESIGNATION 57 -> 55, TOTAL 151 -> 149. No other surface moved.
+TOTAL_SURFACES = 149
 CORE_LIFTABLE = 22
-SELF_DESIGNATION = 57
+SELF_DESIGNATION = 55
 ANAPHORIC_REFERENT = 35
 COST_VICTIM = 26
 COUNT_NOT_ONE = 11

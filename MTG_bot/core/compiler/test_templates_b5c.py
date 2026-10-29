@@ -71,7 +71,6 @@ from MTG_bot.core.ability_tree import (
     Step,
     TapStateEvent,
     TokenSpec,
-    TriggeredAbility,
     Verb,
     Zone,
     ZoneKind,
@@ -1347,28 +1346,19 @@ class TestB5cIrStructure(unittest.TestCase):
     # -- Round 5 (grammar round 4 shapes) ------------------------------
 
     def test_loyalty_basri_attack_counter(self) -> None:
-        """Basri [−1]: GRANT_ABILITY(DurationEot) of a TriggeredAbility."""
+        """Basri [−1]: a DelayedTrigger(DurationEot) — CR 603.7.
+
+        # re-pinned 2026-10-29: m21-fidelity. It was GRANT_ABILITY(target=this planeswalker,
+        # TriggeredAbility, DurationEot), which died with the planeswalker (a -1 at 1 loyalty
+        # did nothing). A delayed trigger lives for the turn on its own (CR 603.7c).
+        """
         ability = _activated_ability(_match_outcome("B5c-loyalty-basri-attack-counter"))
         delta = _as_cost_loyalty(ability.cost.parts[0]).delta
         self.assertEqual(delta, -1)
-        grant = _as_atom(ability.effect)
-        self.assertIs(grant.verb, Verb.GRANT_ABILITY)
-        target = _pairs(grant)["target"]
-        self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(target.zones[0].controller, ControllerRef.ANY)
-        self.assertEqual(
-            target.filter,
-            FAnd(
-                children=(
-                    FAtom(pred=FAtomPred.IS_SOURCE),
-                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-                )
-            ),
-        )
-        self.assertIsInstance(grant.args.get("duration"), DurationEot)
-        triggered = grant.args.get("ability")
-        if not isinstance(triggered, TriggeredAbility):
-            raise TypeError(f"expected TriggeredAbility, got {type(triggered)}")
+        triggered = ability.effect
+        if not isinstance(triggered, DelayedTrigger):
+            raise TypeError(f"expected DelayedTrigger, got {type(triggered)}")
+        self.assertIsInstance(triggered.duration, DurationEot)
         event = triggered.event
         if not isinstance(event, DeclareAttackersEvent):
             raise TypeError(f"expected DeclareAttackersEvent, got {type(event)}")
