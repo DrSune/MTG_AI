@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Wall of Runes, printed 'Defender. When this creature enters, scry 1.' Cast it and answer the scry with 'bottom'. Expected: 0/4 on the battlefield; exactly the top card (Library 5) is now at the bottom.",
+ "cards": [
+  {"key": "wall", "real": "Wall of Runes", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1}},
+ "steps": [
+  {"op": "cast", "real": "Wall of Runes", "key": "wall", "decisions": ["bottom"]}
+ ],
+ "expect": {"zone": {"wall": "battlefield"}, "power": {"wall": 0}, "toughness": {"wall": 4},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Library 5"]}}}

@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "0f63de7b-03f2-49ad-b217-88fe9c50d68a",
+ "name": "Snarespinner",
+ "text_sha": "f6a97eed5ee103715744fb08d596a8bc038e9547a3c0968098143d1fac654f9f",
+ "verified": {
+  "tree_sha": "56359d4fc2dcee60b7a9bd65dba838a144319de273d29b746f99a74e91963017",
+  "probe_sha": "90339bf345da4c9467bcebc8bd8cf82cc80540e3750bec95e0bbd82ce764c902",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-H",
+  "clauses": [
+   {
+    "clause": "Reach",
+    "status": "OK",
+    "evidence": "Static: 'card keywords: REACH'; [cast]: keywords +REACH. Pack snarespinner_blocks_flier: the block ask offers the flying attacker ('<flier>,NONE') and the block is declared.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature blocks a creature with flying, this creature gets +2/+0 until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe never has this creature block. Tree abilities[0] (DeclareBlockersEvent filter IS_SOURCE, blocked KEYWORD_HAS FLYING; MODIFY_PT power +2, DurationEot, on IS_SOURCE) equals the compiler's parse of the sentence. Packs: snarespinner_blocks_flier (blocks a 2/3 flier: power 3, toughness 3, the flier dies) PASS; snarespinner_pump_wears_off (after end_turn power is 1 again) PASS; snarespinner_blocks_ground (blocks a 2/3 non-flier: no pump, power 1, the attacker survives with 1 damage) PASS. Checked the packs kill a permanent-duration mutant and a mutant without the flying filter.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/snarespinner_1.json",
+   "tools/scenarios/cards/M21/snarespinner_2.json",
+   "tools/scenarios/cards/M21/snarespinner_3.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 1,
+   "score": 0.25,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "amount+1 at 1/0/effect/args/power/magnitude",
+    "amount-1 at 1/0/effect/args/power/magnitude"
+   ]
+  }
+ }
+}

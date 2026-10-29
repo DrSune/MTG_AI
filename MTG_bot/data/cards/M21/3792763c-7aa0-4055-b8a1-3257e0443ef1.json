@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "3792763c-7aa0-4055-b8a1-3257e0443ef1",
+ "name": "Skeleton Archer",
+ "text_sha": "95aae24b96d59c2719b6fc4fa4cb4a881ce909f0644a08efe6e00e31ca8376c0",
+ "verified": {
+  "tree_sha": "cef4ade10e909572dcd15b9b63dffd7dbb17e6646fc623f9412ca7df74c8c9a3",
+  "probe_sha": "74402a6309e82b84dda4c1c922fc1e1c70d00b34ef5ed17e19fdab32d6dcd165",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-H",
+  "clauses": [
+   {
+    "clause": "When this creature enters, it deals 1 damage to any target.",
+    "status": "OK",
+    "evidence": "[cast] and every [cast | ask 1 -> X]: trigger [0]; 'ask target: [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant, card, you, opp]' (every creature including itself, both players; no artifact/enchantment); the chosen one 'is dealt 1 damage (by card/DEAL_DAMAGE)' (opp_flier dies, others marked 1 until the turn ends, you 20 -> 19). [enters during the opponent's turn]: triggers the same. Tree equals the compiler's parse (B2a-skeleton-archer). Planeswalker part (none on the probe board): pack skeleton_archer_etb_hits_planeswalker, Basri Ket at loyalty 5 is left at 4: PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/skeleton_archer_1.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

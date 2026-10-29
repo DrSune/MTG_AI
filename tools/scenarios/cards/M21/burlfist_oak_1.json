@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "oak", "real": "Burlfist Oak", "zone": "battlefield", "controller": 0},
+    {"key": "crash", "real": "Crash Through", "zone": "hand", "controller": 0}
+  ],
+  "mana": {"0": {"R": 1}},
+  "steps": [
+    {"op": "cast", "key": "crash", "real": "Crash Through"},
+    {"op": "end_turn"}
+  ],
+  "expect": {
+    "zone": {"crash": "graveyard", "oak": "battlefield"},
+    "power": {"oak": 2},
+    "toughness": {"oak": 3}
+  }
+}

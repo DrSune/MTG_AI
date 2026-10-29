@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "41c15160-ee8c-42e3-bc6c-593b8c8ae335",
+ "name": "Crash Through",
+ "text_sha": "3e98d82aadc291d502f09e7227066efe2a4cc3f8f92d1f4b19a961cf66570c22",
+ "verified": {
+  "tree_sha": "16d8395066c7a976c6aa6375f38b31a9d952012ec3def989bc34381652c7956f",
+  "probe_sha": "22130c0054c731c6c2d2b0504b014d864eeeba3e42b0ff3b4e667bcc78944c12",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Creatures you control gain trample until end of turn. (Sorcery {R})",
+    "status": "OK",
+    "evidence": "[cast]: you_bear and you_giant keywords +TRAMPLE (no opponent creature); 'after the turn ends: you_bear/you_giant keywords -TRAMPLE'; mana R-1. Pack crash_through_locked_in_set.json (a creature cast afterwards does not gain trample, CR 611.2c; the opponent's creature does not): PASS",
+    "issue": ""
+   },
+   {
+    "clause": "Draw a card.",
+    "status": "OK",
+    "evidence": "[cast]: one DRAW (you:Library 5#1), library 6 -> 5",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/crash_through_1.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

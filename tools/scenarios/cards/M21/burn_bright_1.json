@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Burn Bright, printed 'Creatures you control get +2/+0 until end of turn.' CR 611.2c: the affected set is locked when the spell resolves. My bear (2/2) becomes 4/2; the opponent's creature is unchanged; a creature of mine that enters AFTER resolution stays at its printed 3/3.",
+ "cards": [
+  {"key": "bb", "real": "Burn Bright", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "late", "name": "Latecomer", "power": "3", "toughness": "3", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "theirs", "name": "Their Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 3}},
+ "steps": [
+  {"op": "cast", "real": "Burn Bright", "key": "bb"},
+  {"op": "enter", "key": "late"}
+ ],
+ "expect": {"power": {"bear": 4, "late": 3, "theirs": 2}, "toughness": {"bear": 2, "late": 3, "theirs": 2}, "zone": {"bb": "graveyard", "late": "battlefield"}}}

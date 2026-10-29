@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Dub on a 2/2 Dog while Pack Leader ('Other Dogs you control get +1/+1') is out. Dub adds Knight IN ADDITION to the creature's other types, so it is still a Dog: 2/2 +1/+1 (Pack Leader) +2/+2 (Dub) = 5/5 with first strike. An opponent's creature is untouched.",
+ "cards": [
+  {"key": "d", "real": "Dub", "zone": "hand", "controller": 0},
+  {"key": "pl", "real": "Pack Leader", "zone": "battlefield", "controller": 0},
+  {"key": "dog", "name": "Good Dog", "type": "Creature — Dog", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "ox", "name": "Opp Ox", "type": "Creature — Ox", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enchant", "aura": "d", "host": "dog"}
+ ],
+ "expect": {
+  "zone": {"d": "battlefield"},
+  "attached": {"d": "dog"},
+  "power": {"dog": 5, "ox": 3},
+  "toughness": {"dog": 5, "ox": 3},
+  "battlefield_keywords": {"Good Dog": ["FIRST_STRIKE"], "Opp Ox": []}
+ }
+}

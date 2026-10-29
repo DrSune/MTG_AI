@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "fea95888-e16a-4209-9cd4-623f7f4d2f67",
+ "name": "Walking Corpse",
+ "text_sha": "76e47fce172a92382597054d156a3291bfd3bb1bf18dd655f1edea30554cbb59",
+ "verified": {
+  "tree_sha": "beb3563d8653ddafc080291c5f4c417e1e4879b2c58c8d12dccfc7a66178d71d",
+  "probe_sha": "389e12d6857b07b9be7a91ca6496b641b92728fc80357f5bb182a0986bdd3856",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Creature — Zombie {1}{B} 2/2 (no rules text)",
+    "status": "OK",
+    "evidence": "[cast]: P/T 2/2, mana B-1 W-1; no keywords, triggers or statics (every stimulus same as without the card); attacks unblocked for 2; dies to the blocking 4/4 after dealing it 2",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

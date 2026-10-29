@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "furor", "real": "Furor of the Bitten", "zone": "hand", "controller": 0},
+  {"key": "host", "name": "Host Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "other", "name": "Other Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "furor", "real": "Furor of the Bitten", "targets": ["host"]},
+  {"op": "combat", "seat": 0, "attack": {"host": false, "other": false}}
+ ],
+ "expect": {
+  "attached": {"furor": "host"},
+  "attackers": {"host": true, "other": false},
+  "not_asked": ["host"],
+  "life": {"1": 16},
+  "power": {"host": 4},
+  "toughness": {"host": 4}
+ },
+ "notes": "M21 G2 spec: Furor of the Bitten cast onto a creature: 'Enchanted creature gets +2/+2 and attacks each combat if able' -> the 2/2 is 4/4 and is not offered a decline (it attacks although the pack declines), the unenchanted creature is free to stay home; opponent 20-4 = 16."
+}

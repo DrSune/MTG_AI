@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "846a4f9c-d955-403f-8a08-5c7c3d32e180",
+ "name": "Volcanic Geyser",
+ "text_sha": "881a8d0fb75fec1636d264cca09a89af7bd2d9c1a052810b579c875f4be0a168",
+ "verified": {
+  "tree_sha": "702d5b9aa9ceb625244c9c7532a2d8ff44fe362d8f337543b478f436536ad62e",
+  "probe_sha": "dae0664d45c1410d950c20245f56f582e8558ccfdb690038d3e3f90faa7542a7",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Instant {X}{R}{R}",
+    "status": "OK",
+    "evidence": "SpellAbility(kind=INSTANT); X=0: 'mana R-2'; X=1: 'R-2 W-1'; X=3: 'R-2 W-3' (X paid as generic on top of RR)",
+    "issue": ""
+   },
+   {
+    "clause": "Volcanic Geyser deals X damage to any target.",
+    "status": "OK",
+    "evidence": "DEAL_DAMAGE QX to FOr(Creature, Planeswalker, Player) (canonical any-target filter, as on Shock); target slot: all six creatures + you + opp; X=1 kills the 1/1 flier and marks 1 elsewhere; X=3 kills the 2/2s and the 3/3, marks 3 on the 4/4s; players lose 1 / 3 life; X=0 deals nothing. Planeswalker branch: same filter as Shock, whose planeswalker pack passed (P5db3707c57)",
+    "issue": "engine quirk (no M21 consequence found): X=0 journals 'you_bear is dealt 0 damage' for creatures (none for players); CR 120.8 says 0 damage is not dealt and damage triggers must not fire"
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

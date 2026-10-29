@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "b1062763-1fcf-4605-9253-daa1687e8173",
+ "name": "Canopy Stalker",
+ "text_sha": "3d6c24fd80c0d3e22c49e184aaab820afd767768991812cafa3fbde25b6857f3",
+ "verified": {
+  "tree_sha": "1668cf6d17a4d0e06abc031ddc769cc28df4daf01625924484ec7f8e7498ccbd",
+  "probe_sha": "2800a1e23e1cfb51bb1137bb3cc5d68fbf5c7ffaacdd2ddb5c6bb9e7be7fef13",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-A",
+  "clauses": [
+   {
+    "clause": "This creature must be blocked if able.",
+    "status": "OK",
+    "evidence": "abilities[0] MANDATE_BLOCK on IS_SOURCE (matches parse B4-must-block); [this creature attacks alone, unblocked] the probe's no-block is overridden: DECLARE_BLOCKERS opp_flier card (one blocker forced, as the requirement demands)",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature dies, you gain 1 life for each creature that died this turn.",
+    "status": "OK",
+    "evidence": "abilities[1] matches parse (B2a-canopy-stalker); [this card is dealt lethal damage] triggers, you gains 1 life (only itself died); [this creature attacks and opp_giant blocks it] card and opp_flier die together, you gains 2 (20 -> 22), counting both players' creatures. Extra pack canopy_stalker_counts_token_deaths.json PASSES: a creature token that died the same turn is counted too (gain 2)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/canopy_stalker_1.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

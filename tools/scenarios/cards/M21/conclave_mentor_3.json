@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Conclave Mentor (M21): 'When this creature dies, you gain life equal to its power.' Tempered Veteran puts one counter on the Mentor, which its own replacement makes two: a 4/4. It is dealt 4 and dies: seat 0 gains 4 (its last power), 20 -> 24.",
+ "cards": [
+  {"key": "mentor", "zone": "battlefield", "controller": 0, "real": "Conclave Mentor"},
+  {"key": "vet", "zone": "battlefield", "controller": 0, "real": "Tempered Veteran"},
+  {"key": "src", "zone": "battlefield", "controller": 1, "name": "Opp Giant", "type": "Creature — Giant", "power": 4, "toughness": 4}
+ ],
+ "mana": {"0": {"W": 6}},
+ "steps": [
+  {"op": "activate", "key": "vet", "idx": 1, "seat": 0, "targets": ["mentor"]},
+  {"op": "deal_damage", "source": "src", "target": "mentor", "amount": 4}
+ ],
+ "expect": {"zone": {"mentor": "graveyard"}, "life": {"0": 24, "1": 20}}}

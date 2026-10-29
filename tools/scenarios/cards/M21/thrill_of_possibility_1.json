@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Thrill of Possibility, printed 'As an additional cost to cast this spell, discard a card. Draw two cards.' With no other card in hand the additional cost cannot be paid (CR 601.2h / 117.3), so the spell cannot be cast: the cast is refused, Thrill stays in hand, no card is drawn, no mana is spent.",
+ "cards": [
+  {"key": "thrill", "real": "Thrill of Possibility", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 2}},
+ "steps": [
+  {"op": "cast", "real": "Thrill of Possibility", "key": "thrill", "expect_raise": "illegal cast"}
+ ],
+ "expect": {"zone": {"thrill": "hand"}, "hand": {"0": 1}, "mana_pool": {"0": {"R": 2}},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}}}

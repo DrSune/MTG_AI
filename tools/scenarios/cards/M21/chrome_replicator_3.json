@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "notes": "Chrome Replicator, printed: 'if YOU control two or more nonland, nontoken permanents with the same name'. The OPPONENT controls two creatures named Twin; you control only distinct names: casting the Replicator creates no Construct token.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cr", "real": "Chrome Replicator", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "Solo", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "tw1", "name": "Twin", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "tw2", "name": "Twin", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 5}},
+ "steps": [
+  {"op": "cast", "real": "Chrome Replicator", "key": "cr"}
+ ],
+ "expect": {
+  "zone": {"cr": "battlefield"},
+  "tokens": {"Construct": 0}
+ }
+}

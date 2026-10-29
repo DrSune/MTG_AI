@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Vryn Wingmare control: the opponent has {R}{R} and casts Shock at my bear. Expected: it resolves (bear dies) and costs exactly 2 (the printed {R} + the {1} tax), so the opponent's pool ends empty.",
+ "cards": [
+  {"key": "wing", "real": "Vryn Wingmare", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "osh", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 2}},
+ "steps": [
+  {"op": "cast", "real": "Shock", "key": "osh", "controller": 1, "targets": ["bear"]}
+ ],
+ "expect": {"zone": {"osh": "graveyard", "bear": "graveyard", "wing": "battlefield"}, "mana_pool": {"1": {}}}}

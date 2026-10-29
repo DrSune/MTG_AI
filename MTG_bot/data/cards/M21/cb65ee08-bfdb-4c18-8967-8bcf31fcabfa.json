@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "cb65ee08-bfdb-4c18-8967-8bcf31fcabfa",
+ "name": "Witch's Cauldron",
+ "text_sha": "4d3b2f4545a21cc16ba98ee865900de5917c8054a50bd6e7e3e79c3f519839c2",
+ "verified": {
+  "tree_sha": "a1d4248b2b03303d0548e10962c6cf1f6aaeacd06c494ecaab76b44e0cd9e141",
+  "probe_sha": "f725623a02d49145089be5de7f120214b5925f62b1cd468fbdff29b415c89433",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-E",
+  "clauses": [
+   {
+    "clause": "{1}{B}, {T}, Sacrifice a creature:",
+    "status": "OK",
+    "evidence": "[activate [0]] 'mana B-1 W-1' ({B} plus 1 generic), 'card becomes tapped', 'ask sacrifice: [you_bear, you_giant]' (your creatures only, no opponent's creature, not the noncreature Cauldron), the chosen one 'moves battlefield -> graveyard (by card/SACRIFICE)' in both variants",
+    "issue": ""
+   },
+   {
+    "clause": "You gain 1 life and draw a card.",
+    "status": "OK",
+    "evidence": "[activate [0]] 'you gains 1 life', life 20 -> 21; one 'you draws', hand 5 -> 6, library 6 -> 5",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 16,
+   "killed": 15,
+   "score": 0.9375,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/2/target/filter"
+   ]
+  }
+ }
+}

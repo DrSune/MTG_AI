@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "fa10cacb-ab14-447a-b411-9d74bc3772fb",
+ "name": "Onakke Ogre",
+ "text_sha": "ca94495cc61e6ae85690a1f8a5362303278685716fdff6b0f1defebee4d3a97a",
+ "verified": {
+  "tree_sha": "15ef1d0d24896037be9d34a2cbed5973a3c1f28ebdda00de1b1d8f4c31813100",
+  "probe_sha": "531a91a3f17aefd329c4637980d32d49d241e5f234ff28bfbb6c5f178693ebfa",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Creature - Ogre Warrior {2}{R} 4/2, no rules text (vanilla)",
+    "status": "OK",
+    "evidence": "tree: no keywords, only SpellAbility(CREATURE); [cast]: P/T - -> 4/2, mana R-1 W-2 (3 total); [attacks alone, unblocked]: opp life 20 -> 16; [opp_giant blocks it]: deals 4 to opp_giant, takes 4, both die; no stimulus triggers anything",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

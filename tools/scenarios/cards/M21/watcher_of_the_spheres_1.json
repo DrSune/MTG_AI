@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "watcher", "real": "Watcher of the Spheres", "zone": "battlefield", "controller": 0},
+  {"key": "singer", "real": "Mistral Singer", "zone": "hand", "controller": 0},
+  {"key": "opp_singer", "real": "Mistral Singer", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"U": 2}},
+ "steps": [
+  {"op": "cast", "key": "singer", "real": "Mistral Singer"},
+  {"op": "enter", "key": "opp_singer"}
+ ],
+ "expect": {
+  "zone": {"singer": "battlefield", "opp_singer": "battlefield", "watcher": "battlefield"},
+  "mana_pool": {"0": {}},
+  "power": {"watcher": 3, "singer": 2},
+  "toughness": {"watcher": 3, "singer": 2}
+ },
+ "notes": "M21 G2 spec: Watcher of the Spheres. 'Creature spells with flying you cast cost {1} less': Mistral Singer ({2}{U}, flying) is cast with exactly two mana. 'Whenever another creature you control with flying enters, this creature gets +1/+1 until end of turn': Watcher becomes 3/3; an opponent's flier entering adds nothing."
+}

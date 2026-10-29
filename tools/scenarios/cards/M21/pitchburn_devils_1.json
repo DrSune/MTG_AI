@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "devils", "real": "Pitchburn Devils", "zone": "battlefield", "controller": 0},
+    {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 1},
+    {"key": "zapper", "name": "Test Zapper", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "loyalty", "key": "basri", "set": 5},
+    {"op": "deal_damage", "source": "zapper", "target": "devils", "amount": 3, "controller": 1, "decisions": ["basri"]}
+  ],
+  "expect": {
+    "zone": {"devils": "graveyard", "basri": "battlefield", "zapper": "battlefield"},
+    "counters": {"basri": {"LOYALTY": 2}},
+    "life": {"0": 20, "1": 20}
+  }
+}

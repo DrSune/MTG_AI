@@ -1,0 +1,19 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Gnarled Sage (M21), the 'this turn' scope. Printed: 'As long as you've drawn two or more cards this turn, this creature gets +0/+2 and has vigilance.' Seat 0 draws two (Thrill of Possibility), then the turn passes to seat 1. On seat 1's turn seat 0 has drawn no cards THIS turn, so the Sage is back to 4/4 with reach only. A dropped 'this turn' scope (counting draws of earlier turns) would keep it 4/6 with vigilance.",
+ "cards": [
+  {"key": "sage", "zone": "battlefield", "controller": 0, "real": "Gnarled Sage"},
+  {"key": "sp", "zone": "hand", "controller": 0, "real": "Thrill of Possibility"},
+  {"key": "fuel", "zone": "hand", "controller": 0, "name": "Fuel", "type": "Instant"}
+ ],
+ "mana": {"0": {"R": 2}},
+ "steps": [
+  {"op": "cast", "key": "sp"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "zone": {"sp": "graveyard", "fuel": "graveyard"},
+  "hand": {"0": 2},
+  "power": {"sage": 4},
+  "toughness": {"sage": 4},
+  "battlefield_keywords": {"Gnarled Sage": ["REACH"]}
+ }}

@@ -1,0 +1,16 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "sear", "real": "Soul Sear", "zone": "hand", "controller": 0},
+    {"key": "statue", "name": "Test Statue", "type": "Creature — Golem", "power": "4", "toughness": "4", "keywords": ["INDESTRUCTIBLE"], "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"R": 3, "C": 3}},
+  "steps": [
+    {"op": "cast", "key": "sear", "real": "Soul Sear", "targets": ["statue"]}
+  ],
+  "expect": {
+    "zone": {"sear": "graveyard", "statue": "graveyard"},
+    "life": {"0": 20, "1": 20}
+  }
+}

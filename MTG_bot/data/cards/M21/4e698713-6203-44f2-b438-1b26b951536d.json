@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "4e698713-6203-44f2-b438-1b26b951536d",
+ "name": "Alchemist's Gift",
+ "text_sha": "7586533b4b271b2a4997b37e884acd61baf16a91118dd656ca26dbd26d28ba50",
+ "verified": {
+  "tree_sha": "daab61b56ccfc74ae1e39a380f094754c4a1eead6224fd7d424da3b29a716b53",
+  "probe_sha": "4d30a31aa3e6176f7e2340c04abad1ec0c6ec5876d2b7f4312bf6deced6752b8",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-D",
+  "clauses": [
+   {
+    "clause": "Target creature gets +1/+1",
+    "status": "OK",
+    "evidence": "'target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]' (any creature, no noncreatures); every variant +1/+1 (e.g. you_bear 2/2 -> 3/3) and 'after the turn ends' back (3/3 -> 2/2); mana B-1 = {B}; SpellKind.INSTANT",
+    "issue": "engine-limit: no priority, so the instant is only cast in its controller's own action window"
+   },
+   {
+    "clause": "and gains your choice of deathtouch or lifelink until end of turn.",
+    "status": "OK",
+    "evidence": "ask choose [0, 1]: answer 0 gives '+DEATHTOUCH', answer 1 gives '+LIFELINK' (exactly one), each removed 'after the turn ends'. Tree matches the compiler's B5b-choice-of-grants",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 10,
+   "killed": 10,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

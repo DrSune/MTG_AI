@@ -1,0 +1,45 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "99ed6e18-7f14-4ea8-baee-ad6c081388ff",
+ "name": "Predatory Wurm",
+ "text_sha": "92523fe8fb0995032d4baa262194c7cd1a581cac169aab6a54ef2302914cd0e2",
+ "verified": {
+  "tree_sha": "6bb7c6714f92625ca7333ce95532c4ceebd648057a63fadcb79ec160a2a57359",
+  "probe_sha": "f9f97116b598e62a794d856edc22dd568a6c2b856f5e5e6662fd0bd89f71dae0",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-E",
+  "clauses": [
+   {
+    "clause": "Vigilance",
+    "status": "OK",
+    "evidence": "keywords[0] VIGILANCE; [cast] 'keywords +VIGILANCE'; [this creature attacks alone, unblocked] DECLARE_ATTACKERS with no 'card becomes tapped' and no tapped change, opp life 20 -> 16",
+    "issue": ""
+   },
+   {
+    "clause": "This creature gets +2/+2 as long as you control a Garruk planeswalker.",
+    "status": "NOT_EXERCISED",
+    "evidence": "the probe's you_garruk is a synthetic 'Creature - Garruk' (tools/cards/probe.py _extra_board), so the condition is never true and the Wurm is 4/4 throughout (right for that board). Tree: static MODIFY_PT +2/+2 on IS_SOURCE, DurationWhileCondition(CONTROLLER_IS YOU + SUBTYPE_EQ Garruk + TYPE_EQ Planeswalker). Packs predatory_wurm_your_garruk (6/6, hits for 6, untapped), predatory_wurm_not_your_garruk (opponent's Garruk and your Basri Ket: 4/4) and predatory_wurm_garruk_leaves (Garruk dies: back to 4/4) pass",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/predatory_wurm_1.json",
+   "tools/scenarios/cards/M21/predatory_wurm_2.json",
+   "tools/scenarios/cards/M21/predatory_wurm_3.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 3,
+   "score": 0.3333333333333333,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/duration/filter",
+    "controller YOU->OPPONENT at 1/0/effect/args/duration/filter/children/0/who",
+    "amount+1 at 1/0/effect/args/power/magnitude",
+    "amount-1 at 1/0/effect/args/power/magnitude",
+    "amount+1 at 1/0/effect/args/toughness/magnitude",
+    "amount-1 at 1/0/effect/args/toughness/magnitude"
+   ]
+  }
+ }
+}

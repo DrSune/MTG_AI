@@ -1,0 +1,18 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sp", "real": "Volcanic Salvo", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "Ember Imp", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "pw", "real": "Ugin, the Spirit Dragon", "zone": "battlefield", "controller": 1},
+  {"key": "c1", "name": "Cinder Beast", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 2, "C": 8}},
+ "steps": [
+  {"op": "loyalty", "key": "pw", "set": 10},
+  {"op": "cast", "real": "Volcanic Salvo", "key": "sp", "targets": ["pw", "c1"]}
+ ],
+ "expect": {"zone": {"sp": "graveyard", "pw": "battlefield", "c1": "graveyard", "mine": "battlefield"},
+            "counters": {"pw": {"LOYALTY": 4}},
+            "mana_pool": {"0": {}},
+            "life": {"0": 20, "1": 20}},
+ "notes": "Printed: 'This spell costs {X} less to cast, where X is the total power of creatures you control. Volcanic Salvo deals 6 damage to each of up to two target creatures and/or planeswalkers.' You control one 2-power creature, so Salvo costs {8}{R}{R}: exactly the 10 mana given, none left (the opponent's 3-power creature does not reduce it). Targets: an opponent's planeswalker (loyalty seeded to 10) and a 3/3. 6 damage to the planeswalker removes 6 loyalty (CR 120.3c) -> 4; the 3/3 dies."}
