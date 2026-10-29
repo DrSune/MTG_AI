@@ -421,8 +421,14 @@ class Executor:
         # legality gates read.
         self.phase: str | None = None
         self.turn_open = False
-        # CR 500.7 stand-in: EXTRA_TURN enqueues, advance_turn pops.
+        # CR 500.7: EXTRA_TURN pushes onto the FRONT (the most recently
+        # created turn is taken first), advance_turn pops index 0.
         self.extra_turn_queue: list[Handle] = []
+        # CR 500.7: extra turns are inserted after a turn, so the normal turn
+        # order resumes from the seat of the last NORMAL turn, never from an
+        # extra turn's player. None until advance_turn first rotates (the
+        # first turn is the normal turn of whoever began it).
+        self.normal_turn_seat: Handle | None = None
         # LOSE_GAME ledger (the emptied-library CR 121.3 loss is the later
         # state-check phase, not a verb).
         self.lost_players: list[Handle] = []
@@ -2171,26 +2177,40 @@ class Executor:
         return self._settle()
 
     def advance_turn(self) -> int:
-        """End the active turn (if one is open) and begin the next seat's
-        turn — the skeleton's round-robin, EXCEPT that a pending EXTRA_TURN
-        entry is popped first (13a): "the next turn belongs to that player"
-        (CR 500.7). Nested grants from DIFFERENT players resolve in queue
-        order rather than the full CR 500.7 dependency graph — documented
-        simplification, no golden exercises it. Returns the combined
-        firings."""
+        """End the active turn (if one is open) and begin the next one.
+
+        CR 500.7: extra turns are added directly after the turn they were
+        created in, the most recently created first (EXTRA_TURN pushes onto
+        the front of ``extra_turn_queue``), so a pending extra turn is
+        popped before the round-robin. The round-robin itself continues
+        from the last NORMAL turn's seat (``normal_turn_seat``): after
+        p1's extra turn inserted into p0's turn comes p1's own turn, not
+        p0's. The open turn is closed FIRST, so an extra turn created in
+        its end step is the next turn too. Returns the combined firings.
+
+        ``normal_turn_seat`` is not folded into :meth:`state_fingerprint`:
+        it is a function of the folded history (the EXTRA_TURN rows and
+        the journal's turn markers), like ``starting_life``."""
         order = self.world.player_order
         if self.world.active_player is None or not self._turn_started:
             nxt = order[0]
         else:
-            if self.extra_turn_queue:
-                nxt = self.extra_turn_queue.pop(0)
-            else:
-                idx = order.index(self.world.active_player)
-                nxt = order[(idx + 1) % len(order)]
             if self.turn_open:
                 # An END_TURN atom already closed the turn inside the op —
                 # never emit a second END_TURN marker for it.
                 self.end_turn()
+            if self.extra_turn_queue:
+                if self.normal_turn_seat is None:
+                    # The extras follow the first turn, a normal turn.
+                    self.normal_turn_seat = self.world.active_player
+                nxt = self.extra_turn_queue.pop(0)
+            else:
+                base = self.normal_turn_seat
+                if base is None:
+                    base = self.world.active_player
+                assert base is not None
+                nxt = order[(order.index(base) + 1) % len(order)]
+                self.normal_turn_seat = nxt
         return self.begin_turn(nxt)
 
     def end_turn(self) -> int:

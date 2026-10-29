@@ -454,6 +454,54 @@ class TestExtraTurn(LibraryCase):
         self.assertIs(self.world.active_player, self.p1)
         self.assertEqual(self.ex.extra_turn_queue, [])
 
+    def _turn_seats(self):
+        """The active player of every turn begun so far, in order (the
+        journal's UPKEEP markers carry the active player)."""
+        return [
+            e.data[1]
+            for e in self.journal_rows("TURN_PHASE")
+            if e.data[0] == "UPKEEP"
+        ]
+
+    def test_most_recently_created_extra_turn_is_taken_first(self):
+        # CR 500.7: extra turns are added directly after the specified turn,
+        # one at a time, and the most recently created turn is taken first.
+        # p0 gets an extra turn, then p1 gets one during the same turn: p1's
+        # turn comes first, then p0's, then the normal order resumes with
+        # p1's own turn (the turn that followed p0's in the first place).
+        self.ex.begin_turn(self.p0)
+        self._do(atom(Verb.EXTRA_TURN, count=QConst(1)), controller=self.p0)
+        self._do(atom(Verb.EXTRA_TURN, count=QConst(1)), controller=self.p1)
+        for _ in range(4):
+            self.ex.advance_turn()
+        self.assertEqual(
+            self._turn_seats(), [self.p0, self.p1, self.p0, self.p1, self.p0]
+        )
+
+    def test_normal_order_resumes_after_the_turn_the_extras_followed(self):
+        # CR 500.7: p1's extra turn is inserted after p0's turn; the turn
+        # after it is p1's normal turn, not p0's (the rotation continues from
+        # the last normal turn, never from the extra turn's player).
+        self.ex.begin_turn(self.p0)
+        self._do(atom(Verb.EXTRA_TURN, count=QConst(1)), controller=self.p1)
+        for _ in range(3):
+            self.ex.advance_turn()
+        self.assertEqual(self._turn_seats(), [self.p0, self.p1, self.p1, self.p0])
+
+    def test_extra_turn_created_during_an_extra_turn_goes_first(self):
+        # CR 500.7: p0 takes two extra turns (Teferi's [-10]); during the
+        # first one p1 is given an extra turn "after this one", which is
+        # added directly after the current turn, ahead of p0's second extra.
+        self.ex.begin_turn(self.p0)
+        self._do(atom(Verb.EXTRA_TURN, count=QConst(2)), controller=self.p0)
+        self.ex.advance_turn()  # p0's first extra turn
+        self._do(atom(Verb.EXTRA_TURN, count=QConst(1)), controller=self.p1)
+        for _ in range(3):
+            self.ex.advance_turn()
+        self.assertEqual(
+            self._turn_seats(), [self.p0, self.p0, self.p1, self.p0, self.p1]
+        )
+
 
 # -------------------------------------------------------------- LOSE_GAME
 

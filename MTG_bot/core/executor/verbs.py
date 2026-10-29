@@ -1342,18 +1342,18 @@ def _v_end_turn(ctx: ExecCtx, atom: Atom) -> None:
 
 
 def _v_extra_turn(ctx: ExecCtx, atom: Atom) -> None:
-    """EXTRA_TURN (13a, Teferi's -10 / Extra Turns): enqueue the controller
-    ``count`` times — :meth:`Executor.advance_turn` pops the queue before
-    rotating, which is exactly CR 500.7's "next turn belongs to that
-    player" for consecutive grants (documented simplification: nested
-    extra turns from DIFFERENT players resolve queue-order, not the full
-    CR 500.7 dependency ordering)."""
+    """EXTRA_TURN (13a, Teferi's -10 / Extra Turns): the controller takes
+    ``count`` extra turns after this one. CR 500.7: the turns are added
+    directly after the current turn, one at a time, and the most recently
+    created turn is taken first, so they go to the FRONT of the queue
+    (:meth:`Executor.advance_turn` pops index 0), ahead of any extra turn
+    created earlier. The normal turn order resumes after the queue drains
+    (``advance_turn`` keeps that rotation)."""
     executor = _executor_or_raise(ctx, atom.verb.name)
     count_q = atom.args.get("count")
     assert count_q is None or isinstance(count_q, Quantity)
     n = 1 if count_q is None else resolve(count_q, ctx)
-    for _ in range(n):
-        executor.extra_turn_queue.append(ctx.controller)
+    executor.extra_turn_queue[0:0] = [ctx.controller] * n
     ctx.events.append((len(ctx.events), "EXTRA_TURN", str(ctx.controller), n))
 
 

@@ -91,7 +91,9 @@ Pack vocabulary (all keys required as noted):
              "power": {key: int},             17a: ledger effective_pt,
              "toughness": {key: int},         17a: (base->timestamp fold),
              "library": {"0": [names...TOP-first]},   17a: exact order,
-             "graveyard": {"0": [names...]}}          17a: exact bag
+             "graveyard": {"0": [names...]},          17a: exact bag
+             "turn_seats": [0, 0, 1]}  2026-10-29: the seat of every turn
+                                        begun, in order (CR 500.7 extra turns)
 """
 
 from __future__ import annotations
@@ -589,6 +591,18 @@ class ScenarioRunner:
             got_host = self.ex.attachments.get(self.handles[key])
             if got_host != (self.handles[host] if host is not None else None):
                 fails.append(f"attached[{key}]: expected {host}, got {got_host}")
+        # 2026-10-29 TURN_SEATS LANE (CR 500.7 extra turns): the seat index of every turn
+        # begun so far, in order, read off the journal's UPKEEP markers (they carry the
+        # active player). The setup's opening begin_turn is the first entry.
+        if "turn_seats" in self.pack.get("expect", {}):
+            got_seats = [
+                self.seats.index(e.data[1])
+                for e in self.ex.journal.events
+                if e.kind == "TURN_PHASE" and e.data[0] == "UPKEEP"
+            ]
+            want_seats = list(self.pack["expect"]["turn_seats"])
+            if got_seats != want_seats:
+                fails.append(f"turn_seats: expected {want_seats}, got {got_seats}")
         want = {
             self.handles[k]: n
             for k, n in self.pack.get("expect", {}).get("damage", {}).items()
