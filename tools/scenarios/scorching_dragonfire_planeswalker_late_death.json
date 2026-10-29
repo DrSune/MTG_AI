@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "B-62 (2026-10-29): Scorching Dragonfire's 3 damage leaves Chandra, Heart of Fire (printed loyalty 5) at 2. Later the SAME turn a pinger deals her 2 more, so she reaches 0 loyalty and would die: 'If that creature or planeswalker would die this turn, exile it instead' exiles her. Control: Basri Ket, never targeted, is pinged to 0 the same way and goes to the graveyard. Before the fix both walkers went to the graveyard.",
+ "cards": [
+  {"key": "sp", "real": "Scorching Dragonfire", "zone": "hand", "controller": 0},
+  {"key": "chandra", "real": "Chandra, Heart of Fire", "zone": "battlefield", "controller": 1},
+  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 1},
+  {"key": "pinger", "zone": "battlefield", "controller": 0, "name": "Pinger", "type": "Creature", "power": 1, "toughness": 1}
+ ],
+ "mana": {"0": {"R": 2}},
+ "steps": [
+  {"op": "cast", "real": "Scorching Dragonfire", "key": "sp", "targets": ["chandra"]},
+  {"op": "deal_damage", "source": "pinger", "target": "chandra", "amount": 2},
+  {"op": "deal_damage", "source": "pinger", "target": "basri", "amount": 3}
+ ],
+ "expect": {"zone": {"sp": "graveyard", "chandra": "exile", "basri": "graveyard", "pinger": "battlefield"}}}

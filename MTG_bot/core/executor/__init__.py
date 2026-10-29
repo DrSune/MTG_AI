@@ -1262,11 +1262,28 @@ class Executor:
             for card in walkers:
                 if card not in self.world.cards:
                     continue  # a walker killed in this same batch
+                if any(card == c for c, _repl in replaced):
+                    continue  # a creature-walker whose death is already replaced
                 # r21a: the zeroed LOYALTY key is DELETED on the way out
                 # (generic-counter-verb convention): the battlefield re-
                 # entry seeds via setdefault (binding.py 13a), and a stale
                 # 0 would ride the re-entry into an instant second death.
+                # An exile replacement below is a way out too.
                 self.world.cards[card].counters.pop("LOYALTY", None)
+                # B-62, CR 704.5i + 700.4: the zero-loyalty SBA puts the
+                # walker into its owner's graveyard from the battlefield, so
+                # it DIES and the dies-window replacements apply exactly as
+                # in the lethal-creature lane above ("if that creature or
+                # planeswalker would die this turn, exile it instead":
+                # Obliterating Bolt, Scorching Dragonfire). The record's
+                # filter decides which objects it covers.
+                repl = self.replacements.replacement_for_death(card)
+                if repl is not None:
+                    replaced.append((card, repl))
+                    self.events.append(
+                        (len(self.events), "STATE_CHECK", str(card), "DIES_REPLACED")
+                    )
+                    continue
                 self.damage.pop(card, None)
                 self.damage_deathtouch.discard(card)
                 self.world.move_to_zone(
@@ -1925,6 +1942,12 @@ class Executor:
         * UNBLOCKED: everything to the ATTACKED object (v1: the defending
           player — planeswalker attacking is the documented players-only
           boundary, doc 14).
+        * BLOCKED, but every blocker has left combat (B-61): the creature
+          is still blocked (CR 509.1h), so it assigns NO combat damage
+          (CR 510.1c), unless it has trample, which assigns all of it to
+          the attacked object (CR 702.19e); the Herald policy below may
+          still route it there. A double striker whose first-strike damage
+          killed its blocker is the common case.
         * Herald policy (Garruk, Savage Herald's −7 grant, AS_UNBLOCKED):
           "you may have this creature assign its combat damage as though it
           weren't blocked" — an ASK (the "may"), site
@@ -1969,13 +1992,18 @@ class Executor:
                 return ()
             return ((power, blocked),)
         attacked = self.attacked.get(dealer, defender)
+        if dealer not in self.blocked_by:
+            return ((power, attacked),)  # unblocked
+        # B-61, CR 509.1h: the blocked_by entry outlives its blockers (a
+        # departing blocker is removed from the list, the key stays), so an
+        # empty live list here still means BLOCKED.
         blockers = [
             b
-            for b in self.blocked_by.get(dealer, [])
+            for b in self.blocked_by[dealer]
             if b in world.cards and world.zone_of(b).kind == ZONE_BATTLEFIELD
         ]
-        if not blockers:
-            return ((power, attacked),)
+        if not blockers and self.layers.keyword_of(dealer, Keyword.TRAMPLE):
+            return ((power, attacked),)  # CR 702.19e: all of it tramples over
         as_unblocked = (
             self.layers.policy_as_unblocked(dealer)
             or self.damage_policies.get(dealer) == "AS_UNBLOCKED"
@@ -1994,6 +2022,11 @@ class Executor:
                 == "UNBLOCKED"
             ):
                 return ((power, attacked),)
+        if not blockers:
+            # B-61, CR 510.1c: blocked with no creature blocking it, no
+            # trample: it assigns no combat damage. Before the fix this
+            # case sent the whole damage to the player.
+            return ()
         ordered = list(blockers)
         if len(ordered) > 1:
             picked: list[Handle] = []

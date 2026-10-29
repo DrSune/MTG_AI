@@ -658,6 +658,12 @@ class ReplacementRegistry:
         death (no graveyard move, no CREATURE_DIES journal row — see the
         documented v1 gap in __init__.py's state-check drain).
 
+        B-62: both dying lanes of the SBA sweep consult it, the lethal
+        creature AND the zero-loyalty planeswalker (CR 704.5i: both are put
+        into a graveyard from the battlefield, which is dying, CR 700.4).
+        The record's filter decides which dying object it covers, e.g.
+        Obliterating Bolt's "that creature or planeswalker" (IS_ANY_TARGET).
+
         CONTROLLER RULE as in the other lanes: every predicate is judged
         in the RECORD's coordinates (the ``_rec_ctx`` convention). The
         spell-sourced record's anaphora ("that creature" — IS_ANY_TARGET)

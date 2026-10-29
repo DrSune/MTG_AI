@@ -72,9 +72,9 @@ Gap ledger (ZND-3 law: these stay UNPARSED, no silent partials):
 
 Lossy notes (C11 class, verbatim per house convention):
 
-* Nimble Trapfinder "to a player" — the granted combat-damage trigger
-  carries the universal FAnd(()) recipient marker; same documented drop
-  as the B2b Jeskai Elder lane (ZND-7(b)).
+* Nimble Trapfinder "to a player" — no longer lossy (B-57): the granted
+  combat-damage trigger's recipient is b2b's ``_to_a_player``, the Jeskai
+  Elder lane's fix. It was the universal FAnd(()) marker.
 * Coveted Prize: "a spell with mana value 4 or less" is encoded
   CMC_LE≤4 on the CHOOSE-from-hand selector; whether the CAST resolves
   stays the open OptionalEffect decision (C16).
@@ -132,6 +132,7 @@ from MTG_bot.core.compiler.templates import (
     SentenceOutcome,
     Template,
 )
+from MTG_bot.core.compiler.templates_b2b import _to_a_player
 from MTG_bot.core.compiler.templates_b6 import (
     _etb_event,
     _referent_target_creature,
@@ -610,9 +611,9 @@ def _build_full_grant_draw(m: re.Match[str]) -> SentenceOutcome:
     this creature deals combat damage to a player, draw a card" until end
     of turn.`` — GRANT_ABILITY of a TriggeredAbility (b5c:683 precedent);
     the quoted trigger is the Jeskai-Elder event shape, and "to a player"
-    is THAT lane's documented lossy drop (the folded DDE carries the
-    universal FAnd(()) recipient marker — R2 fold, /140). Inside the
-    quotes there is no "may": the draw is forced."""
+    is that lane's recipient, b2b's ``_to_a_player`` (B-57; it was the
+    universal FAnd(()) marker, so a blocked creature drew off its
+    blocker). Inside the quotes there is no "may": the draw is forced."""
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=_combat_event(),
@@ -627,7 +628,7 @@ def _build_full_grant_draw(m: re.Match[str]) -> SentenceOutcome:
                             TriggeredAbility(
                                 event=DamageDealtEvent(
                                     amount=QUnbounded(),
-                                    filter=FAnd(children=()),
+                                    filter=_to_a_player(),  # B-57
                                     source=FAtom(pred=FAtomPred.IS_SOURCE),
                                     combat=True,
                                 ),

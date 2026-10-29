@@ -19,6 +19,7 @@ rows (Harbinger's ``combat`` flag consumed).
 
 from __future__ import annotations
 
+import dataclasses
 import unittest
 
 from MTG_bot.core.ability_tree import (
@@ -603,6 +604,91 @@ class TestTokenBinder(BlockerCase):
             # gate consumes it silently; the journal is the evidence.
             self.forced_attack(creature)
         self.assertEqual(self.world.players[self.p0].life, 20 - 3)
+
+
+class TestBlockedWithNoBlockerLeft(BlockerCase):
+    """B-61: an attacker stays BLOCKED when every creature blocking it has
+    left combat (CR 509.1h). CR 510.1c: such a creature assigns no combat
+    damage, unless it has trample, which then assigns all of it to the
+    player it attacks (CR 702.19e). Before the fix ``_assign_damage`` sent
+    the whole damage to the player for any attacker with no live blocker,
+    so a double striker that killed its blocker in the first-strike step
+    hit the player in the regular step."""
+
+    def striker(self, name, power, toughness, *keywords):
+        identity = dataclasses.replace(
+            card_id(name, str(power), str(toughness)), keywords=keywords
+        )
+        return self.world.add_card(identity, self.p0, ZONE_BATTLEFIELD)
+
+    def fight(self, attacker, blocker) -> None:
+        self.answers[f"block:{blocker}"] = str(attacker)
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self.ex.combat_step(self.p0)
+
+    def plans(self, dealer):
+        return [r.combat_damage[0] for r in self.rows("COMBAT_DAMAGE") if r.subject == dealer]
+
+    def test_double_striker_deals_no_regular_damage_once_its_blocker_died(self):
+        ds = self.striker("Twinblade", 2, 2, "DOUBLE_STRIKE")
+        chump = self.synth("Chump", 1, 1, self.p1)
+        self.fight(ds, chump)
+        self.assertEqual(self.world.zone_of(chump).kind, ZONE_GRAVEYARD)
+        self.assertEqual(self.world.players[self.p1].life, 20)
+        # one announcement, the first-strike step's; the regular step has
+        # nothing to assign to
+        self.assertEqual(self.plans(ds), [((2, chump),)])
+
+    def test_double_strike_trampler_tramples_everything_over_a_dead_blocker(self):
+        ds = self.striker("Stampede", 3, 3, "DOUBLE_STRIKE", "TRAMPLE")
+        chump = self.synth("Chump", 1, 1, self.p1)
+        self.fight(ds, chump)
+        # first strike: lethal 1 to the chump, the excess 2 to the player;
+        # regular: the chump is gone, all 3 to the player (CR 702.19e)
+        self.assertEqual(self.plans(ds), [((1, chump), (2, self.p1)), ((3, self.p1),)])
+        self.assertEqual(self.world.players[self.p1].life, 15)
+
+    def herald_fight(self, *policy_words):
+        """A Herald-granted double striker blocked by a 1/1; the policy
+        asks are answered in order and recorded."""
+        herald = self.real("Garruk, Savage Herald", self.p0)
+        ds = self.striker("Twinblade", 2, 2, "DOUBLE_STRIKE")
+        chump = self.synth("Chump", 1, 1, self.p1)
+        self.answers[f"block:{chump}"] = str(ds)
+        self.begin()
+        self.world.cards[herald].counters["LOYALTY"] = 7
+        activate(self.ex, herald, 2, seat=self.p0)  # the -7 grant
+        words = iter(policy_words)
+        asked: list[tuple[str, ...]] = []
+        base = self.provider
+
+        def provider(vocab, what):
+            if what.startswith(f"policy:{ds}:"):
+                asked.append(tuple(vocab))
+                return next(words)
+            return base(vocab, what)
+
+        self.ex.decisions.provider = provider
+        self.ex.begin_turn(self.p0)
+        self.ex.combat_step(self.p0)
+        return ds, chump, asked
+
+    def test_herald_policy_still_offers_the_player_with_no_blocker_left(self):
+        # "assign its combat damage as though it weren't blocked" still
+        # applies when no blocker is left, so the regular step ASKS the
+        # policy too (before the fix it skipped the ask and hit the player).
+        ds, chump, asked = self.herald_fight("AS_BLOCKED", "UNBLOCKED")
+        self.assertEqual(asked, [("AS_BLOCKED", "UNBLOCKED")] * 2)
+        # first strike AS_BLOCKED kills the chump; regular step UNBLOCKED
+        self.assertEqual(self.plans(ds), [((2, chump),), ((2, self.p1),)])
+        self.assertEqual(self.world.players[self.p1].life, 18)
+
+    def test_herald_policy_declined_with_no_blocker_left_deals_nothing(self):
+        ds, chump, asked = self.herald_fight("AS_BLOCKED", "AS_BLOCKED")
+        self.assertEqual(len(asked), 2)
+        self.assertEqual(self.plans(ds), [((2, chump),)])
+        self.assertEqual(self.world.players[self.p1].life, 20)
 
 
 if __name__ == "__main__":

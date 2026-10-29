@@ -55,6 +55,8 @@ from MTG_bot.core.ability_tree import (
     CardDrawnEvent,
     CardRecord,
     CastSpellEvent,
+    Choose,
+    Conditional,
     ControllerRef,
     CounterKind,
     CounterPlacedEvent,
@@ -64,6 +66,7 @@ from MTG_bot.core.ability_tree import (
     DeclareBlockersEvent,
     DelayedTrigger,
     DurationEot,
+    EachPlayer,
     EventSpec,
     FAnd,
     FAtom,
@@ -74,13 +77,16 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     LifeGainedEvent,
     LoyaltyActivatedEvent,
+    OptionalEffect,
     PtDelta,
     PtDirection,
     QAtMost,
     QConst,
+    Repeat,
     SacrificeEvent,
     Selector,
     SelectorMode,
+    Seq,
     StepEvent,
     TapStateEvent,
     TargetingEvent,
@@ -175,6 +181,45 @@ _SWEEP_TAGS = ("Eot", "UntilNextTurn")
 # Any trigger node: attached TriggeredAbility or scheduled DelayedTrigger —
 # both carry ``condition`` + ``effect`` (C22 convention).
 _AnyTrigger = TriggeredAbility | DelayedTrigger
+
+
+def _required_target_keys(effect: object) -> frozenset[str]:
+    """B-55, CR 603.3d: the TARGET slots an ability must fill to be put on
+    the stack at all, keyed like :meth:`TriggerBinder._designate`'s
+    collector (``repr`` of a referent-free TARGET-mode Selector).
+
+    Every printed "target" outside a mode choice is required, whatever
+    wraps it: "you may", "if you do", a repeat or a per-player loop are all
+    resolution-time, and targets are announced before any of them (CR
+    601.2c, which 603.3d applies to triggers). A slot inside a ``Choose``
+    is mode-dependent (CR 700.2a): required only when EVERY option carries
+    it (Tolarian Kraken's "tap or untap target permanent"), since otherwise
+    a mode without it stays choosable. A nested ``DelayedTrigger`` chooses
+    its own targets when it triggers (CR 603.7c), so it adds nothing."""
+    if isinstance(effect, Atom):
+        return frozenset(
+            repr(value)
+            for _role, value in effect.args.pairs
+            if isinstance(value, Selector)
+            and value.mode is SelectorMode.TARGET
+            and value.referent is None
+        )
+    if isinstance(effect, Choose):
+        return frozenset.intersection(
+            *(_required_target_keys(option) for option in effect.options)
+        )
+    if isinstance(effect, Seq):
+        return frozenset().union(*(_required_target_keys(s) for s in effect.steps))
+    if isinstance(effect, Conditional):
+        keys = _required_target_keys(effect.then_effect)
+        if effect.else_effect is not None:
+            keys |= _required_target_keys(effect.else_effect)
+        return keys
+    if isinstance(effect, (OptionalEffect, Repeat)):
+        return _required_target_keys(effect.inner)
+    if isinstance(effect, EachPlayer):
+        return _required_target_keys(effect.effect)
+    return frozenset()  # DelayedTrigger (CR 603.7c)
 
 
 def _is_universal(filter_: Filter) -> bool:
@@ -1292,8 +1337,11 @@ class TriggerBinder:
                 # TARGET Selector slot — CR 603.1 designates it through the
                 # 18b channel, and the pre-bind must never swallow the ask.
                 ctx.bindings["target"] = event.subject
-            else:
-                self._designate(node, ctx)
+            elif not self._designate(node, ctx):
+                # B-55, CR 603.3d: a required target with no legal choice
+                # removes the ability from the stack. None of its effect
+                # happens, its untargeted steps included.
+                return
         # The 12a shared effect runner — the SAME dispatch execute() uses,
         # journalled at its Atom boundaries by the Executor. r24 (/111):
         # guarded like the spell lanes — a template mis-fold whose
@@ -1428,8 +1476,10 @@ class TriggerBinder:
                     return True
         return False
 
-    def _designate(self, node: _AnyTrigger, ctx: ExecCtx) -> None:
+    def _designate(self, node: _AnyTrigger, ctx: ExecCtx) -> bool:
         """The 18b designation channel (CR 603.1, first PC-8 lift).
+        Returns False when the ability is removed from the stack (CR
+        603.3d, B-55), True when it goes on and resolves.
 
         The TARGET-bearing trigger no longer crashes at its first verb: the
         engine enumerates the candidates through its OWN 12c query surface
@@ -1460,11 +1510,18 @@ class TriggerBinder:
         the same card asks two DIFFERENT keys (attribution, not collision).
 
         Zero-candidate honesty: nothing enumerable means no decision exists
-        (C15) and the binding is the EMPTY set — the effect's TARGET atoms
-        resolve to nothing, which IS the CR 603.4 answer ("a triggered
-        ability with no legal targets resolves doing nothing"); never a
-        crash, never a guess. Cardinality follows the frozen slot contract:
-        ``QConst(1)`` designates exactly one (forced when one candidate);
+        (C15); never a crash, never a guess. A REQUIRED slot (an exact
+        count the ability needs whatever mode it takes, see
+        :func:`_required_target_keys`) that cannot be filled removes the
+        ability from the stack (CR 603.3d, B-55): False, and none of the
+        effect runs. Before B-55 the binding was the empty set and the
+        effect ran anyway, so its untargeted steps still happened and an
+        ATTACH with no host raised. An "up to N" or mode-dependent slot
+        binds the EMPTY set and the ability resolves without it, since zero
+        targets (or another mode) is a legal choice.
+
+        Cardinality follows the frozen slot contract: ``QConst(1)``
+        designates exactly one (forced when one candidate);
         ``QAtMost(n)`` asks pick-by-pick, the first pick mandatory (C17:
         TARGET designation range 1..n, the pinned contract the query lane
         already enforces), later picks carry the ``"NONE"`` stop token the
@@ -1498,7 +1555,7 @@ class TriggerBinder:
                         seen.add(key)
                         selectors.append(value)
         if not selectors and not reads_target_player:
-            return  # no designation to make
+            return True  # no designation to make
         if len(selectors) > 1 or (selectors and reads_target_player):
             raise NotImplementedError(
                 f"executor: trigger {node.effect!r:.80} carries "
@@ -1515,9 +1572,11 @@ class TriggerBinder:
             # the firing context was built from payload.controller).
             opponents = players_for_ref(ControllerRef.OPPONENT, ctx)
             if not opponents:
-                ctx.bindings["target"] = []  # CR 603.4 nothing (20-life
+                ctx.bindings["target"] = []  # resolves without a player (a
                 # duel always has an opponent; the empty read is the honest
-                # multiplayer-shape answer, not a crash)
+                # multiplayer-shape answer, not a crash). Not a CR 603.3d
+                # removal: this slot cannot tell "target player" (you are a
+                # legal target) from "target opponent" (B-53).
             elif len(opponents) == 1:
                 ctx.bindings["target"] = opponents[0]
             else:
@@ -1531,14 +1590,14 @@ class TriggerBinder:
                 )
             # r20b: TARGETING feed — a genuine designation made here is an
             # event (pre-bound firings never reach this method). The empty
-            # CR 603.4 set emits nothing.
+            # set emits nothing.
             designated = ctx.bindings["target"]
             self.executor.journal.emit_targeting(
                 ctx.source,
                 ctx.controller,
                 designated if isinstance(designated, list) else [designated],
             )
-            return
+            return True
         selector = selectors[0]
         from MTG_bot.core.executor.query import (  # cycle-free at call time
             _widen_any_target,  # the query lane's ONE widening opinion (13b)
@@ -1566,10 +1625,18 @@ class TriggerBinder:
         )
         slot = _widen_any_target(self.executor, selector, slot) or slot
         candidates = sorted(slot.candidates)
-        if not candidates:
-            ctx.bindings["target"] = []  # CR 603.4: resolves doing nothing
-            return
         count = selector.count
+        # B-55, CR 603.3d: an exact-count slot the ability needs in every
+        # mode, with too few legal choices, removes it from the stack.
+        required = isinstance(count, QConst) and repr(selector) in (
+            _required_target_keys(node.effect)
+        )
+        if not candidates:
+            if required:
+                return False
+            ctx.bindings["target"] = []  # "up to N" / mode-dependent slot:
+            # zero targets is a legal choice, the ability resolves without
+            return True
         if not isinstance(count, (QConst, QAtMost)):
             raise NotImplementedError(
                 f"executor: trigger TARGET count {count!r} designates "
@@ -1578,17 +1645,19 @@ class TriggerBinder:
             )
         # T3 legality unification (doc 36, CR 601.2c): ONE answer for the
         # count axis — QConst is EXACT, never clamped. A trigger that
-        # cannot complete its full-size designation has no announce gate
-        # to reject it, so it rides the empty-slot lane above: designate
-        # NOTHING, resolve doing nothing (603.4 sibling of the zero-
-        # candidate return). Asking over fewer than stated (the old
-        # unclamped loop running the menu dry) was the third divergent
-        # answer of the legality triad.
+        # cannot complete its full-size designation rides the empty-slot
+        # lane above: removed from the stack when the slot is required
+        # (CR 603.3d, B-55), otherwise designate NOTHING and resolve.
+        # Asking over fewer than stated (the old unclamped loop running
+        # the menu dry) was the third divergent answer of the legality
+        # triad.
         optional_stop = isinstance(count, QAtMost)  # C17 first mandatory
         announceable, wanted = count_semantics(count, len(candidates))
         if not announceable:
+            if required:
+                return False
             ctx.bindings["target"] = []
-            return
+            return True
         picks: list[Handle] = []
         pool = list(candidates)
         for pick_no in range(wanted):
@@ -1611,6 +1680,7 @@ class TriggerBinder:
         # r20b: TARGETING feed — see the player-slot note above; an empty
         # pick list (impossible past the zero-candidate return) emits none.
         self.executor.journal.emit_targeting(ctx.source, ctx.controller, picks)
+        return True
 
     def _ctx(
         self,

@@ -133,6 +133,7 @@ from MTG_bot.core.compiler.templates import (
     SentenceOutcome,
     Template,
 )
+from MTG_bot.core.compiler.templates_b2b import _to_a_player
 
 _BUCKET = "B5c"
 _PRIORITY = 100
@@ -2663,9 +2664,9 @@ def _build_subira_delayed_draw(m: re.Match[str]) -> SentenceOutcome:
     CostDiscard over ALL cards in your hand (universal filter, the
     b4 _all-cards shape).
 
-    LOSSY (verbatim, b2b-pinned): "to a player" stays dropped from the
-    damaged-recipient filter — no player-identity FAtomPred exists
-    (Incinerator/Pyreling R8 candidate, unchanged by R9).
+    B-57: "to a player" is the damaged-recipient filter b2b's
+    ``_to_a_player`` (not a permanent, CR 120.1). It used to be dropped
+    (the universal FAnd(())), so a blocked creature drew off its blocker.
     C16: open — which qualifying creature to attack with; draw is forced
     once the event fires."""
     dealer = FAnd(
@@ -2701,7 +2702,7 @@ def _build_subira_delayed_draw(m: re.Match[str]) -> SentenceOutcome:
                 duration=DurationEot(),
                 event=DamageDealtEvent(
                     amount=QUnbounded(),
-                    filter=FAnd(children=()),
+                    filter=_to_a_player(),  # B-57
                     source=dealer,
                     combat=True,
                 ),

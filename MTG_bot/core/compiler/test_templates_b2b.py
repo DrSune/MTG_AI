@@ -1164,14 +1164,15 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         # R2 fold (/140): CombatDamageEvent folded into DamageDealtEvent —
-        # amount unbounded, empty filter conj, the old filter moved
-        # verbatim to source, combat=True (the COMBAT_DAMAGE feed is now
-        # the is_combat=True DAMAGE journal rows).
+        # amount unbounded, the old filter moved verbatim to source,
+        # combat=True (the COMBAT_DAMAGE feed is now the is_combat=True
+        # DAMAGE journal rows).
         assert isinstance(event, DamageDealtEvent)
         self.assertEqual(event.amount, QUnbounded())
         self.assertIs(event.combat, True)
-        assert isinstance(event.filter, FAnd)
-        self.assertEqual(event.filter.children, ())
+        # re-pinned 2026-10-29: B-57 fix changes the recipient from the
+        # universal FAnd(()) to "a player" (not a permanent, CR 120.1).
+        self.assertEqual(event.filter, FNot(FAtom(pred=FAtomPred.IS_PERMANENT)))
         assert isinstance(event.source, FAtom)
         self.assertIs(event.source.pred, FAtomPred.IS_SOURCE)
         self.assertIsNone(ability.condition)
@@ -1280,13 +1281,14 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         # R2 fold (/140): the cats filter moved VERBATIM from the old
-        # CombatDamageEvent filter slot to DamageDealtEvent.source; the
-        # fold's filter is the empty conj, amount unbounded, combat=True.
+        # CombatDamageEvent filter slot to DamageDealtEvent.source; amount
+        # unbounded, combat=True.
         assert isinstance(event, DamageDealtEvent)
         self.assertEqual(event.amount, QUnbounded())
         self.assertIs(event.combat, True)
-        assert isinstance(event.filter, FAnd)
-        self.assertEqual(event.filter.children, ())
+        # re-pinned 2026-10-29: B-57 fix changes the recipient from the
+        # universal FAnd(()) to "a player" (not a permanent, CR 120.1).
+        self.assertEqual(event.filter, FNot(FAtom(pred=FAtomPred.IS_PERMANENT)))
         assert isinstance(event.source, FAnd)
         self._assert_has_type_eq_creature(event.source)
         self._assert_has_controller_you(event.source)
@@ -1336,6 +1338,17 @@ class TestB2bTriggerEvents(unittest.TestCase):
         assert isinstance(event, DamageDealtEvent)
         self.assertEqual(event.amount, QUnbounded())
         self.assertIs(event.combat, True)
+        # B-57: "to a player or planeswalker" is the recipient (it was the
+        # universal FAnd(()), which fired on damage to a blocker).
+        self.assertEqual(
+            event.filter,
+            FOr(
+                (
+                    FNot(FAtom(pred=FAtomPred.IS_PERMANENT)),
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
+                )
+            ),
+        )
         assert isinstance(event.source, FAtom)
         self.assertIs(event.source.pred, FAtomPred.IS_SOURCE)
 

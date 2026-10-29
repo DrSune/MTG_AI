@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "B-57 (2026-10-29): 'Whenever one or more Cats you control deal combat damage to a PLAYER, destroy up to one target artifact or enchantment that player controls.' Two Cats attack: the Sovereign (2/3) is unblocked and deals 2 to the opponent, the Alley Cat (1/1, 2/2 under the Sovereign) is blocked by a 0/9 wall and deals its damage only to the wall. Exactly ONE firing, from the player damage: one of the opponent's two artifacts is destroyed, the other stays. Before the fix the recipient filter was universal, so the Cat's damage to the WALL fired a second time and 'that player' (the wall's controller) lost both artifacts.",
+ "cards": [
+  {"key": "fs", "zone": "battlefield", "controller": 0, "real": "Feline Sovereign"},
+  {"key": "cat", "zone": "battlefield", "controller": 0, "name": "Alley Cat", "type": "Creature — Cat", "power": 1, "toughness": 1},
+  {"key": "wall", "zone": "battlefield", "controller": 1, "name": "Opp Wall", "type": "Creature — Wall", "power": 0, "toughness": 9},
+  {"key": "ra", "zone": "battlefield", "controller": 1, "name": "Relic A", "type": "Artifact"},
+  {"key": "rb", "zone": "battlefield", "controller": 1, "name": "Relic B", "type": "Artifact"}
+ ],
+ "mana": {},
+ "steps": [{"op": "combat", "seat": 0, "attack": {"fs": true, "cat": true}, "block": {"wall": "cat"}}],
+ "expect": {"life": {"1": 18}, "damage": {"wall": 2}, "graveyard": {"1": ["Relic A"]}, "zone": {"rb": "battlefield"}}}
