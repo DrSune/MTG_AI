@@ -120,6 +120,7 @@ class Probe:
         self.registry = build_full_registry()
         self.extra = self._extra_board()
         self.lands = [n for n in BASICS if any(m.name == n for m in supply.metas.values())]
+        self.spells = self._stimulus_spells()
 
     # ------------------------------------------------------------------ world
     def _extra_board(self) -> list[tuple[str, str, int, str, str, str | None, str | None, int]]:
@@ -140,6 +141,44 @@ class Probe:
             rows.append((f"opp_{low}", "battlefield", 1, f"Opp {sub}", f"Creature — {sub}", "2", "2", 2))
         return rows
 
+    def _stimulus_spells(self) -> dict[str, str]:
+        """Real cards of the set to cast as stimuli: the cheapest instant or sorcery whose spell
+        has no target and no choice, and the cheapest vanilla creature. Only fully compiled cards
+        with no record, so a trace never depends on another card under review."""
+        from MTG_bot.core.ability_tree import Selector, SelectorMode
+
+        found: dict[str, tuple[int, str]] = {}
+        for oid, meta in self.supply.metas.items():
+            if oid == self.oid or not meta.engine_supported or not meta.has_spell_node:
+                continue
+            res = self.supply.pool.results[oid]
+            if res.record is not None or res.unparsed or res.back_face_unparsed or res.ambiguities:
+                continue  # stimuli are the compiler's own, fully compiled trees: never a card under review
+            rec = res.card
+            if rec.mana_cost is None or any(getattr(p, "amount", None) == QX() for p in rec.mana_cost.parts):
+                continue
+            spell = next((a for a in rec.abilities if isinstance(a, SpellAbility)), None)
+            if spell is None:
+                continue
+            nodes = list(walk(spell))
+            if "Creature" in rec.types:
+                key = "you_cast_creature"
+                if len(rec.abilities) != 1 or rec.keywords or spell.effect is not None:
+                    continue
+            elif "Instant" in rec.types or "Sorcery" in rec.types:
+                key = "you_cast_spell"
+                if spell.effect is None or any(
+                    isinstance(n, Selector) and n.mode in (SelectorMode.TARGET, SelectorMode.CHOOSE, SelectorMode.ONE_OF)
+                    for n in nodes
+                ) or any(isinstance(n, Choose) for n in nodes):
+                    continue
+            else:
+                continue
+            cand = (rec.mana_value, rec.name)
+            if key not in found or cand < found[key]:
+                found[key] = cand
+        return {k: v[1] for k, v in found.items()}
+
     def runner(self, where: str | None) -> ScenarioRunner:
         """A fresh standard board; the probed card ``card`` in ``where`` (None: not in the game)."""
         cards: list[dict[str, Any]] = []
@@ -153,6 +192,8 @@ class Probe:
             cards.append({"key": "you_land", "real": self.lands[0], "zone": "battlefield", "controller": 0})
             cards.append({"key": "opp_land", "real": self.lands[-1], "zone": "battlefield", "controller": 1})
             cards.append({"key": "you_land_drop", "real": self.lands[0], "zone": "hand", "controller": 0})
+        for key, name in self.spells.items():
+            cards.append({"key": key, "real": name, "zone": "hand", "controller": 0})
         if where is not None:
             cards.append({"key": "card", "real": self.card.name, "zone": where, "controller": 0})
         pack = {"world": {"life": 20, "seed": 7}, "set": self.set_code, "cards": cards,
@@ -289,7 +330,7 @@ class Probe:
 
     # ------------------------------------------------------------------ runs
     def run(self, where: str | None, label: str, action: Callable[[ScenarioRunner], None],
-            choice: tuple[int, int] | None = None) -> Variant:
+            choice: tuple[int, int] | None = None, end_turn: bool = False) -> Variant:
         """One variant in a fresh world. Every ask takes its default (PASS in a response window,
         else the first word), except ask ``choice[0]``, which takes word ``choice[1]``."""
         r = self.runner(where)
@@ -334,7 +375,20 @@ class Probe:
         name = self.names(r)
         v.triggers = queued  # type: ignore[attr-defined]
         v.events = queued + [t for e in r.ex.journal.events[start:] if (t := self.render_event(r, e))]
-        v.changes = self.diff(before, self.snapshot(r))
+        after = self.snapshot(r)
+        v.changes = self.diff(before, after)
+        if end_turn and v.error is None:
+            # what lasts: end the turn and diff again ("until end of turn" must wear off, a
+            # permanent change must not; damage wears off in cleanup)
+            r.ex.decisions.provider = provider
+            try:
+                r._dispatch({"op": "end_turn"})
+                v.changes += [f"after the turn ends: {c}" for c in self.diff(after, self.snapshot(r))] or [
+                    "after the turn ends: (nothing changes)"]
+            except Exception as exc:  # noqa: BLE001
+                v.error = f"at end of turn: {type(exc).__name__}: {exc}"[:300]
+            finally:
+                r.ex.decisions.provider = None
         v.asks = [(w, tuple(name(x) for x in voc), name(word)) for w, voc, word in raw_asks]
         v.raw_vocab = [voc for _, voc, _ in raw_asks]  # type: ignore[attr-defined]
         v.raw_what = [w for w, _, _ in raw_asks]  # type: ignore[attr-defined]
@@ -342,8 +396,9 @@ class Probe:
 
     def explore(self, where: str | None, label: str,
                 action: Callable[[ScenarioRunner], None]) -> list[Variant]:
-        """The default run, then each other word of each of the first three asks, once."""
-        base = self.run(where, label, action)
+        """The default run, then each other word of each of the first three asks, once. Every run
+        also ends the turn, to show what lasts."""
+        base = self.run(where, label, action, end_turn=True)
         out = [base]
         for k, (what, vocab) in enumerate(zip(base.raw_what[:3], base.raw_vocab[:3])):  # type: ignore[attr-defined]
             if what.startswith(WINDOW):
@@ -352,7 +407,7 @@ class Probe:
                 if len(out) >= MAX_PER_ACTION:
                     return out
                 out.append(self.run(where, f"{label} | ask {k + 1} -> {base.asks[k][1][alt]}",
-                                    action, (k, alt)))
+                                    action, (k, alt), end_turn=True))
         return out
 
     # -------------------------------------------------------------- sections
@@ -480,10 +535,20 @@ class Probe:
             r._dispatch({"op": "enter", "key": "card"})
             r._dispatch({"op": "end_turn"})
 
+        def draw_two(r: ScenarioRunner) -> None:
+            for _ in range(2):
+                r.ex.execute(draw, source=r.handles["you_bear"], controller=r.p0, bindings={})
+
+        def opp_attacks(r: ScenarioRunner) -> None:
+            r._dispatch({"op": "end_turn"})
+            r._dispatch({"op": "advance_turn"})
+            r._dispatch({"op": "combat", "seat": 1, "attack": {"opp_bear": True}})
+
         out = [
             ("a creature enters under your control", enter("you_spare")),
             ("a creature enters under the opponent's control", enter("opp_spare")),
             ("you draw a card", ex(draw, 0)),
+            ("you draw two cards, one after the other", draw_two),
             ("the opponent draws a card", ex(draw, 1, "opp_bear")),
             ("you gain 3 life", ex(gain, 0)),
             ("you lose 2 life", ex(lose, 0)),
@@ -508,6 +573,11 @@ class Probe:
             ]
         out.append(("another creature you control (you_bear) attacks",
                     lambda r: r._dispatch({"op": "combat", "seat": 0, "attack": {"you_bear": True}})))
+        out.append(("on the opponent's turn, opp_bear attacks you (no block)", opp_attacks))
+        for key, what in (("you_cast_spell", "an instant or sorcery"), ("you_cast_creature", "a creature")):
+            if key in self.spells:
+                out.append((f"you cast {what} ({self.spells[key]})",
+                            lambda r, k=key: cast(r.ex, r.p0, r.handles[k])))
         return out
 
     def section_stimuli(self) -> list[Variant]:
