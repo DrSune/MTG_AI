@@ -48,6 +48,7 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     Seq,
     SpellAbility,
+    TokenSpec,
     TurnPhaseEvent,
     Verb,
     Zone,
@@ -186,6 +187,26 @@ def _paths(node: Any, path: tuple = ()) -> Iterator[tuple[tuple, Any]]:
             yield from _paths(getattr(node, f.name), (*path, f.name))
 
 
+_TOKENS: list[TokenSpec] = []
+
+
+def _verified_tokens() -> list[TokenSpec]:
+    """Token specs on the M21 golden trees (the BUGCATCH-verified pool): a card creating a
+    byte-identical token (a Treasure, a Soldier) need not re-prove the token's own abilities."""
+    if not _TOKENS:
+        from MTG_bot.core.compiler.compiler import compile_pool
+        from MTG_bot.core.compiler.coverage import build_full_registry
+        from MTG_bot.core.compiler.ingest import ingest_pool
+
+        pool = compile_pool(ingest_pool(HERE.parents[1] / "MTG_bot" / "data" / "M21.json"),
+                            build_full_registry())
+        seen: list[TokenSpec] = []
+        for card in pool.cards.values():
+            seen += [n for n in walk(card) if isinstance(n, TokenSpec) and n not in seen]
+        _TOKENS.extend(seen)
+    return _TOKENS
+
+
 def _is_self(filter_: Any) -> bool:
     if isinstance(filter_, FAtom):
         return filter_.pred is FAtomPred.IS_SOURCE
@@ -224,6 +245,8 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
     for path, node in _paths(root):
         if isinstance(node, Atom) and node.verb is Verb.SEARCH:
             dead.add((*path, "args", "controller"))
+        if isinstance(node, TokenSpec) and node in _verified_tokens():
+            dead.add(path)  # a token byte-identical to one the M21 goldens verify: proven there
         if isinstance(node, Cost):
             in_cost.add(path)
         if type(node).__name__ == "CostDeltaReduceGeneric" and isinstance(getattr(node, "amount", None), QConst) \

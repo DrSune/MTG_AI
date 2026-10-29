@@ -1,0 +1,19 @@
+{
+  "set": "FDN",
+  "world": {"life": 20, "seed": 7},
+  "mana": {"0": {"C": 3}},
+  "cards": [
+    {"key": "pick", "real": "Goldvein Pick", "zone": "battlefield", "controller": 0},
+    {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+    {"key": "lib0", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  ],
+  "steps": [
+    {"op": "advance_turn"},
+    {"op": "activate", "key": "pick", "idx": 2, "seat": 0, "targets": ["bear"], "expect_raise": "window:sorcery"}
+  ],
+  "expect": {
+    "power": {"bear": 2},
+    "toughness": {"bear": 2}
+  },
+  "notes": "Goldvein Pick: 'Equip {1} (... Equip only as a sorcery.)' On the opponent's turn the equip activation must be refused as out of the sorcery window, and the Bear stays 2/2."
+}

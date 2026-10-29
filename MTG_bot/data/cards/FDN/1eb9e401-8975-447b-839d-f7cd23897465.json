@@ -202,5 +202,32 @@
  },
  "probe": {
   "sha": "a5ceff7d5767626fec797b8c79aea344c577e06249cc47a6e10f9e2600593f9e"
+ },
+ "verified": {
+  "tree_sha": "c3975b22de95b0b32c5d2f4ffb1ea03bd26875f1c9548a86a49bed5fcc1f6750",
+  "probe_sha": "a9462b721a8b8b59c5ca8954e2775c143e18af3dea5e4f47c72c5dd19bc31bf1",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "Defender",
+    "status": "OK",
+    "evidence": "keywords +DEFENDER; [stimulus: this creature attacks alone, unblocked] and [... opp_giant blocks it] are 'same as on the board without the card' (it is never declared as an attacker).",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature dies, create a Treasure token. (It's an artifact with \"{T}, Sacrifice this token: Add one mana of any color.\")",
+    "status": "OK",
+    "evidence": "[stimulus: this card is dealt lethal damage -> card's triggered ability [0] triggers]: card dies, then you:Treasure moves new -> battlefield (on your side, TREASURE); [your creature (you_bear) dies] and 1 damage do not trigger it. The Treasure TokenSpec equals the compiler's Treasure (M21 Gadrak): {T}, sacrifice it: add one mana of any color.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }
