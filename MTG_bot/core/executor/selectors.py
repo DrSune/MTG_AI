@@ -750,7 +750,12 @@ def resolve_selector(
         # and drop out (CR 603.3's mode/targets rule, applied per handle).
         # UNDESIGNATED stays the loud raise — an unbound designation is
         # still never guessed.
-        bound = ctx.binding_handles("target")
+        # V25: with per-slot designations (a spell or ability with several
+        # targets), a TARGET selector means ITS OWN slot's designation, whatever
+        # role or quantity it sits in ("deals damage equal to its power" reads
+        # the first target, the damage goes to the second).
+        own = ctx.slot_designations.get(repr(sel)) if ctx.slot_designations else None
+        bound = list(own) if own is not None else ctx.binding_handles("target")
         if bound is None:
             raise ValueError(
                 "executor: TARGET selector has no designation "
@@ -944,15 +949,23 @@ def atom_target_slot_key(atom: Atom, slot_designations: dict[str, tuple]) -> str
     effect runtime uses to shadow ``bindings["target"]`` to the atom's own
     slot (ExecCtx.slot_designations). None when the atom designates nothing
     or its selector was not part of the spell's designation walk (the
-    shared union binding then stands, exactly as before)."""
-    for _role, value in atom.args.pairs:
-        if (
-            isinstance(value, Selector)
-            and value.mode is SelectorMode.TARGET
-            and repr(value) in slot_designations
-        ):
-            return repr(value)
-    return None
+    shared union binding then stands, exactly as before).
+
+    V25: the shadow is what the ``target`` ROLE reads (role_handles is
+    binding-first), so an atom whose ``target`` role is designated shadows that
+    slot even when another role sorts first (a ``dealer``); the other TARGET
+    selectors read their own slots (resolve_selector)."""
+    keys = [
+        (role, repr(value))
+        for role, value in atom.args.pairs
+        if isinstance(value, Selector)
+        and value.mode is SelectorMode.TARGET
+        and repr(value) in slot_designations
+    ]
+    for role, key in keys:
+        if role == "target":
+            return key
+    return keys[0][1] if keys else None
 
 
 def graveyard_sweep_shape(value: object, verb: object, dest: object) -> bool:

@@ -1725,12 +1725,28 @@ def activate(
         executor.journal.emit_targeting(handle, seat, chosen)
     effect = ability.effect
     assert effect is not None  # ActivatedAbility.effect is a required field
+    # V25 (CR 602.2b, 601.2c): an ability with several targets ("Target creature
+    # you control deals damage equal to its power to another target creature",
+    # Garruk, Savage Herald's -2) designates one object per target, in slot order,
+    # exactly as the cast lane threads them (stack._plan_cast_designation); each
+    # TARGET selector then reads its own designation, not the union.
+    slot_designations = None
+    if len(targets) > 1:
+        from MTG_bot.core.executor.query import activation_target_slots
+
+        slots = activation_target_slots(executor, effect, source=handle, seat=seat)
+        if len(slots) == len(targets) > 1:
+            slot_designations = {
+                repr(slot.selector): (one,)
+                for slot, one in zip(slots, targets, strict=True)
+            }
     return executor.apply_effect(
         effect,
         source=handle,
         controller=seat,
         bindings=bindings,
         decisions=decisions,
+        slot_designations=slot_designations,
     )
 
 

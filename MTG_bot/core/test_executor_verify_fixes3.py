@@ -22,6 +22,9 @@ V35  A token in a zone other than the battlefield ceases to exist (CR 704.5d, 11
 V29  A cost increase for spells that target a permanent is folded with the declared
      targets (CR 601.2f), and a target whose total the caster cannot pay is not offered.
      End to end in the terror_* and pursued_whale_* packs.
+V25  A target nested in a quantity ("deals damage equal to its power", where "its" is
+     a target) gets its own slot, and each TARGET selector reads its own designation:
+     Garruk, Savage Herald's -2 (packs garruk_herald_minus_two_*).
 """
 
 from __future__ import annotations
@@ -614,6 +617,67 @@ class TestV29TargetDependentTax(unittest.TestCase):
         self.assertTrue(_reads_targets_source(FNot(ts)))
         self.assertFalse(_reads_targets_source(FAtom(FAtomPred.IS_SOURCE)))
         self.assertFalse(_reads_targets_source(None))
+
+
+class TestV25EachTargetReadsItsOwnSlot(FixerCase):
+    def test_a_target_nested_in_a_quantity_is_found(self):
+        from MTG_bot.core.ability_tree import (
+            PtDelta,
+            PtDirection,
+            QBin,
+            QBinOp,
+            QProp,
+            QPropField,
+        )
+        from MTG_bot.core.executor.query import role_target_selectors
+
+        sel = target_sel(UNIV)
+        prop = QProp(referent=sel, field=QPropField.POWER)
+        self.assertEqual(role_target_selectors(sel), [sel])
+        self.assertEqual(role_target_selectors(prop), [sel])
+        self.assertEqual(role_target_selectors(QBin(QBinOp.ADD, prop, QConst(1))), [sel])
+        self.assertEqual(
+            role_target_selectors(PtDelta(direction=PtDirection.INCREASE, magnitude=prop)),
+            [sel],
+        )
+        self.assertEqual(role_target_selectors(QConst(2)), [])
+
+    def test_the_damage_goes_to_the_second_target_at_the_first_ones_power(self):
+        from MTG_bot.core.ability_tree import (
+            FAnd,
+            FAtom,
+            FAtomPred,
+            QProp,
+            QPropField,
+        )
+
+        # "Target creature you control deals damage equal to its power to another
+        # target creature": slot 1 = your Gamma (3/3), slot 2 = the opponent's Bigby.
+        gamma = self.world.add_card(card_id("Gamma", "3", "3"), self.p0, ZONE_BATTLEFIELD)
+        bigby = self.world.add_card(card_id("Bigby", "5", "5"), self.p1, ZONE_BATTLEFIELD)
+        yours = target_sel(
+            FAnd(
+                (
+                    FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                    FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
+                )
+            )
+        )
+        other = target_sel(FAtom(FAtomPred.TYPE_EQ, string_value="Creature"))
+        effect = atom(
+            Verb.DEAL_DAMAGE,
+            amount=QProp(referent=yours, field=QPropField.POWER),
+            target=other,
+        )
+        self.ex.apply_effect(
+            effect,
+            source=self.alpha,
+            controller=self.p0,
+            bindings={"target": [gamma, bigby]},
+            slot_designations={repr(yours): (gamma,), repr(other): (bigby,)},
+        )
+        self.assertEqual(self.ex.damage.get(bigby), 3)  # Gamma's power
+        self.assertNotIn(gamma, self.ex.damage)  # the first target is not hit
 
 
 if __name__ == "__main__":

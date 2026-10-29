@@ -671,6 +671,7 @@ class Executor:
         controller: Handle,
         bindings: dict[str, Binding] | None = None,
         decisions: Sequence[str] = (),
+        slot_designations: dict[str, tuple[Handle, ...]] | None = None,
     ) -> tuple[Event, ...]:
         """Run an Effect tree; the per-op pool ``decisions`` covers the
         KNOWN tree in ask order, and every demand it cannot serve reaches
@@ -703,6 +704,13 @@ class Executor:
         ctx = self._ctx(
             source=source, controller=controller, bindings=bindings, decisions=decisions
         )
+        if slot_designations:
+            # V25: an activation's per-target designations (legality.activate),
+            # the same per-slot map the cast lane sets on a multi-target spell.
+            ctx.slot_designations = slot_designations
+            ctx.designation_union = tuple(
+                sorted({h for one in slot_designations.values() for h in one})
+            )
         start = len(self.events)
         self._run_effect(effect, ctx)
         self._settle()

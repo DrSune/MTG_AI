@@ -1070,6 +1070,57 @@ def _names_target_player(value: object) -> bool:
     )
 
 
+def role_target_selectors(value: object) -> list[Selector]:
+    """V25 (CR 115.1, 601.2c): the TARGET-mode Selectors a role value designates:
+    the value itself, or one nested in a quantity, as in "Target creature you
+    control deals damage equal to ITS power to another target creature" (Garruk,
+    Savage Herald's -2: the amount is QProp(referent=Selector(TARGET, creature you
+    control), POWER)). Every "target" word is a target of its own, so a nested one
+    gets its own slot; the slot walkers dedupe by repr, so a dealer role carrying
+    the same Selector is still one slot."""
+    from MTG_bot.core.ability_tree import PtDelta, QBin, QProp
+
+    if isinstance(value, Selector):
+        return [value] if value.mode is SelectorMode.TARGET else []
+    if isinstance(value, QProp) and isinstance(value.referent, Selector):
+        return role_target_selectors(value.referent)
+    if isinstance(value, QBin):
+        return role_target_selectors(value.left) + role_target_selectors(value.right)
+    if isinstance(value, PtDelta):
+        return role_target_selectors(value.magnitude)
+    return []
+
+
+def _spell_slot(
+    executor: Executor,
+    inner: Atom,
+    role: str,
+    value: Selector,
+    source: Handle,
+    seat: Handle,
+) -> TargetSlot:
+    """One TARGET selector's slot: the per-selector body both slot walkers share."""
+    # r19c (Rookie Mistake): candidates enumerate through the
+    # DESIGNATION face (IS_ANY_TARGET = potential-target tautology);
+    # the slot keeps the ORIGINAL selector as its identity — the
+    # cast lane repr-matches designations to the atom's own Selector
+    # and the runtime re-evaluates the un-stripped filter.
+    enum_value = _designation_selector(value)
+    slot = legal_targets(
+        executor.world,
+        executor,
+        enum_value,
+        source=source,
+        controller=seat,
+    )
+    if enum_value is not value:
+        slot = replace(slot, selector=value)
+    widened = _widen_any_target(executor, value, slot)
+    if widened is not None:
+        slot = widened
+    return _clamp_cast_target_slot(executor, inner, role, slot, source, seat)
+
+
 def spell_target_slots(
     executor: Executor,
     node: SpellAbility,
@@ -1115,37 +1166,17 @@ def spell_target_slots(
     for inner in walk(node.effect):
         if not isinstance(inner, Atom):
             continue
-        for _role, value in inner.args.pairs:
-            if _names_target_player(value):
+        for _role, role_value in inner.args.pairs:
+            if _names_target_player(role_value):
                 reads_target_player = True
-            if not isinstance(value, Selector) or value.mode is not SelectorMode.TARGET:
-                continue
-            key = repr(value)
-            if key in seen:
-                continue
-            seen.add(key)
-            # r19c (Rookie Mistake): candidates enumerate through the
-            # DESIGNATION face (IS_ANY_TARGET = potential-target tautology);
-            # the slot keeps the ORIGINAL selector as its identity — the
-            # cast lane repr-matches designations to the atom's own Selector
-            # and the runtime re-evaluates the un-stripped filter.
-            enum_value = _designation_selector(value)
-            slot = legal_targets(
-                executor.world,
-                executor,
-                enum_value,
-                source=spell_handle,
-                controller=seat,
-            )
-            if enum_value is not value:
-                slot = replace(slot, selector=value)
-            widened = _widen_any_target(executor, value, slot)
-            if widened is not None:
-                slot = widened
-            slot = _clamp_cast_target_slot(
-                executor, inner, _role, slot, spell_handle, seat
-            )
-            slots.append(slot)
+            for value in role_target_selectors(role_value):  # V25: nested too
+                key = repr(value)
+                if key in seen:
+                    continue
+                seen.add(key)
+                slots.append(
+                    _spell_slot(executor, inner, _role, value, spell_handle, seat)
+                )
     if not slots and not reads_target_player:
         # 16e (CR 702.5a): an AURA spell carries no TARGET-mode selector
         # (its effect reads IS_ATTACHED_TO_SOURCE, not a designation) —
@@ -1266,30 +1297,15 @@ def activation_target_slots(
     for inner in walk(effect):
         if not isinstance(inner, Atom):
             continue
-        for _role, value in inner.args.pairs:
-            if _names_target_player(value):
+        for _role, role_value in inner.args.pairs:
+            if _names_target_player(role_value):
                 reads_target_player = True
-            if not isinstance(value, Selector) or value.mode is not SelectorMode.TARGET:
-                continue
-            key = repr(value)
-            if key in seen:
-                continue
-            seen.add(key)
-            enum_value = _designation_selector(value)
-            slot = legal_targets(
-                executor.world,
-                executor,
-                enum_value,
-                source=source,
-                controller=seat,
-            )
-            if enum_value is not value:
-                slot = replace(slot, selector=value)
-            widened = _widen_any_target(executor, value, slot)
-            if widened is not None:
-                slot = widened
-            slot = _clamp_cast_target_slot(executor, inner, _role, slot, source, seat)
-            slots.append(slot)
+            for value in role_target_selectors(role_value):  # V25: nested too
+                key = repr(value)
+                if key in seen:
+                    continue
+                seen.add(key)
+                slots.append(_spell_slot(executor, inner, _role, value, source, seat))
     if reads_target_player:
         # Same synthesized opponent-seat slot as the spell lane (CR
         # 601.2c's population rule is coordinate-agnostic: an activation
