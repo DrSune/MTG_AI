@@ -71,6 +71,7 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
+    FNot,
     FOr,
     Keyword,
     KeywordAbility,
@@ -165,16 +166,17 @@ def _up_to_two_target_creatures() -> Selector:
 
 
 def _up_to_one_other_target_creature() -> Selector:
-    """``up to one other target creature`` — "other" is the lossy
-    distinct-target convention (b5c: IS_ANY_TARGET never re-targets self
-    in practice; b5c ``another target`` precedent)."""
+    """``up to one other target creature`` — "other" excludes the source:
+    FNot(IS_SOURCE), the Barrin/Niambi "other target" shape. m21-fidelity
+    (2026-10-29): it was IS_ANY_TARGET, which is true of every designated
+    target, so Cunning Geysermage could return itself."""
     return Selector(
         QAtMost(1),
         SelectorMode.TARGET,
         FAnd(
             children=(
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                FAtom(pred=FAtomPred.IS_ANY_TARGET),
+                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
             )
         ),
         zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),

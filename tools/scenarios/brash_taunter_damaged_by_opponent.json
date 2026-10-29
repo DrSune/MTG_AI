@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "The opponent's Shock deals 2 damage to Brash Taunter (indestructible, survives): Taunter deals 2 damage to target opponent (seat 1: 20 -> 18).",
+ "cards": [
+  {"key": "bt", "real": "Brash Taunter", "zone": "battlefield", "controller": 0},
+  {"key": "s", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "s", "real": "Shock", "controller": 1, "targets": ["bt"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 18},
+  "zone": {"bt": "battlefield"},
+  "damage": {"bt": 2}
+ }
+}

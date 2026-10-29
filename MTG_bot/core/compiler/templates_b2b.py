@@ -318,12 +318,17 @@ def _any_card_in_your_hand() -> Selector:
 
 
 def _target_opponent() -> Selector:
-    """Selector for ``target opponent``."""
+    """Selector for ``target opponent``: a TARGET over the opponents' seats,
+    Zone(PLAYER, OPPONENT) (CR 115.1, 102.2: a target opponent is an opponent
+    of the ability's controller). m21-fidelity (review batch D, 2026-10-29):
+    it was Zone(PLAYER, TARGET_PLAYER), which inside a damage firing reads the
+    binder's dealer anaphora, so Brash Taunter's echo hit the controller of the
+    damage's source (its own controller after its own fight)."""
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
         FAnd(children=()),
-        zones=(Zone(ZoneKind.PLAYER, ControllerRef.TARGET_PLAYER),),
+        zones=(Zone(ZoneKind.PLAYER, ControllerRef.OPPONENT),),
     )
 
 
