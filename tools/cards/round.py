@@ -107,9 +107,10 @@ def cmd_score_mappers(args: argparse.Namespace) -> int:
                 print(irpy.render_card(truth.keywords, truth.abilities))
                 print("--- mapper")
                 print(irpy.render_card(mine.keywords, mine.abilities))
-    n = len(masks)
+    n = sum(1 for r in rows if r[2] != "not mapped")  # a needs-atom on a gold card counts as a miss
     lo, hi = wilson(agree, n)
-    print(f"gold agreement (exact bytes): {agree}/{n}  95% CI [{lo:.2f}, {hi:.2f}]")
+    print(f"gold agreement (exact bytes): {agree}/{n} attempted, {len(masks) - n} not yet mapped"
+          f"  95% CI [{lo:.2f}, {hi:.2f}]")
     for row in rows:
         print(f"  {row[0]} [s{row[1]}]: {row[2]}")
     return 0
