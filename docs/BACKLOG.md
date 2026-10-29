@@ -710,6 +710,14 @@ These are forks, not tasks. See the report that accompanied this audit.
     class: detector gap or engine bug.
 - **B-74 Sorcery speed means the first main phase only.** No second-main window for casts, land
   drops or sorcery-speed activations.
+- **B-96 [fixer 4, 2026-10-29] "You have no maximum hand size" compiles nowhere.** Since V36 the
+  cleanup step discards down to seven (CR 514.1, 402.2: `executor.MAX_HAND_SIZE`, read only by
+  `Executor._discard_to_hand_size`). The sentence is UNPARSED on Reliquary Tower (M13), Spellbook
+  (10E), Niv-Mizzet, Visionary and Finale of Revelation (FDN), Folio of Fancies and The Magic Mirror
+  (ELD) and Sea Gate Restoration (ZNR), so these partly compiled cards are now weaker than printed
+  in the pool modes that deal partly compiled cards. No M21 card and no FDN record is affected.
+  Needs a component for a player's maximum hand size (a static over the player, and "for the rest of
+  the game" on a resolving effect): an ontology decision for a gated round.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).

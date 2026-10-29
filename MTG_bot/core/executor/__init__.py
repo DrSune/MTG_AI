@@ -189,7 +189,7 @@ from MTG_bot.core.executor.stack import (
 )
 from MTG_bot.core.executor.verbs import HANDLERS, run_atom, token_oracle_id
 from MTG_bot.core.identity import Handle
-from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, GameWorld
+from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_HAND, GameWorld
 
 # The v1 capability CONTRACT — the round-12 24-verb set every v1 golden and
 # the round-12 cross-check were measured against.  Deliberately a literal
@@ -250,6 +250,35 @@ _TURN_DRAW = Atom(
     args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("amount", QConst(1)))),
 )
 
+# V36 (CR 402.2): a player's maximum hand size, "normally seven". The rule
+# itself, not a tuning knob: no compiled card changes it today ("You have no
+# maximum hand size" compiles nowhere; BACKLOG B-96).
+MAX_HAND_SIZE = 7
+
+# V36 (CR 514.1, 701.9a): the cleanup step's discard, the same hand-to-
+# graveyard MOVE_ZONE shape a discard cost pays (legality.pay_costs). The
+# cards the active player chose ride in through the ``cards`` binding, so the
+# placeholder selector is never resolved.
+_CLEANUP_DISCARD = Atom(
+    verb=Verb.MOVE_ZONE,
+    args=AtomArgs(
+        pairs=(
+            (
+                "cards",
+                Selector(
+                    QConst(1),
+                    SelectorMode.TARGET,
+                    FAnd(()),
+                    zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
+                ),
+            ),
+            ("controller", ControllerRef.YOU),
+            ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+            ("from", Zone(ZoneKind.HAND, ControllerRef.YOU)),
+        )
+    ),
+)
+
 # 16b: the player-side target of one combat-damage atom — the same
 # PLAYER-zone TARGET Selector shape the player-damage tests use
 # (test_executor_verbs L200); the dealer rides ctx.source (the journal's
@@ -291,6 +320,7 @@ def _combat_damage_atom(amount: int, recipient: object) -> Atom:
 
 
 __all__ = [
+    "MAX_HAND_SIZE",
     "MAX_TRIGGER_FIRES",
     "SUPPORTED_VERBS_V1",
     "SUPPORTED_VERBS_V2",
@@ -2194,27 +2224,76 @@ class Executor:
         return self.begin_turn(nxt)
 
     def end_turn(self) -> int:
-        """END_TURN marker FIRST (end-step triggers see the pre-expiry
-        state), trigger drain, THEN the end-of-turn expiry sweep: Eot
-        ledger entries, Eot-tagged LAYER records (12d: until-end-of-turn
-        grants die here) and Eot-tagged PREVENTION records, and the
-        turn-window delayed triggers (C22). Returns the firing count."""
+        """The end step, then the cleanup step. END_TURN marker FIRST
+        (end-step triggers see the pre-expiry state), trigger drain, THEN
+        :meth:`_cleanup_step`. Returns the firing count."""
         self.phase = Phase.END_TURN.name
         self.turn_open = False
         self.journal.record_turn_phase(Phase.END_TURN.name)
         fired = self._settle()
-        self.ledger.sweep_at_eot()
-        self.layers.sweep_at_eot()
-        self.replacements.sweep_at_eot()
-        self._expire_control(eot=True)  # 16e: Traitorous Greed's DurationEot
-        self.damage.clear()  # 16a: CR 514.2 — cleanup removes marked damage
-        self.damage_deathtouch.clear()  # 16c: the deathtouch flag rides along
-        self.binder.expire_delayed()
-        # Rebuild the oracles after the sweep — a granted keyword that
-        # expired at end of turn must not survive into next turn's
-        # keyword_of/legal_activations.
-        self.layers.recompute()
-        return fired
+        return fired + self._cleanup_step()
+
+    def _cleanup_step(self) -> int:
+        """The cleanup step (CR 514), repeated while 514.3a finds work.
+
+        514.1: the active player discards down to their maximum hand size
+        (:meth:`_discard_to_hand_size`). 514.2: the end-of-turn expiry sweep:
+        Eot ledger entries, Eot-tagged LAYER records (12d: until-end-of-turn
+        grants die here) and Eot-tagged PREVENTION records, the turn-window
+        delayed triggers (C22), and marked damage. 514.3a: then state-based
+        actions and the triggers waiting (a discard's, say) are handled; when
+        anything happened another cleanup step begins. The discard runs no
+        settle of its own, so its triggers resolve after the 514.2 sweep, as
+        514.3a orders. Returns the firing count."""
+        fired = 0
+        while True:
+            self._discard_to_hand_size()
+            self.ledger.sweep_at_eot()
+            self.layers.sweep_at_eot()
+            self.replacements.sweep_at_eot()
+            self._expire_control(eot=True)  # 16e: Traitorous Greed's DurationEot
+            self.damage.clear()  # 16a: CR 514.2 — cleanup removes marked damage
+            self.damage_deathtouch.clear()  # 16c: the deathtouch flag rides along
+            self.binder.expire_delayed()
+            # Rebuild the oracles after the sweep — a granted keyword that
+            # expired at end of turn must not survive into next turn's
+            # keyword_of/legal_activations.
+            self.layers.recompute()
+            journalled = len(self.journal.events)
+            settled = self._settle()  # CR 514.3a
+            fired += settled
+            if not settled and len(self.journal.events) == journalled:
+                return fired
+
+    def _discard_to_hand_size(self) -> None:
+        """CR 514.1 (a turn-based action, no stack): the active player
+        discards down to :data:`MAX_HAND_SIZE` (CR 402.2). The player
+        chooses the cards (CR 701.9b): one ask per excess card over the rest
+        of the hand, under the discard cost's key shape
+        ``discard:<seat>:cleanup:<digest>`` (legality.pay_costs). Every ask
+        offers at least eight cards, so none is a forced pick. The chosen
+        cards then go to the graveyard together (CR 701.9a) as one journalled
+        atom boundary; the triggers they cause wait for the 514.3a settle."""
+        player = self.world.active_player
+        if player is None:
+            return
+        hand = self.world.players[player].zone(ZONE_HAND).entries
+        excess = len(hand) - MAX_HAND_SIZE
+        if excess <= 0:
+            return
+        ctx = self._ctx(source=player, controller=player, bindings=None, decisions=())
+        remaining = sorted(hand)
+        chosen: list[Handle] = []
+        for _pick in range(excess):
+            vocab = tuple(str(card) for card in remaining)
+            answer = ctx.take_decision(
+                vocab, f"discard:{player}:cleanup:{site_digest(vocab)}"
+            )
+            pick = next(card for card in remaining if str(card) == answer)
+            chosen.append(pick)
+            remaining.remove(pick)
+        ctx.bindings["cards"] = sorted(chosen)
+        self._run_effect(_CLEANUP_DISCARD, ctx)
 
     # ---------------------------------------------------- 13c emblem / attach
 
