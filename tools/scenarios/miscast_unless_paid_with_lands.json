@@ -1,0 +1,97 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "p1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "p2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "p3",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "miscast",
+   "real": "Miscast",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "isl",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "ogre",
+   "name": "Ogre",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "shock",
+   "targets": [
+    "ogre"
+   ],
+   "decisions": [
+    "miscast",
+    "PAY"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "shock": "graveyard",
+   "miscast": "graveyard"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "tapped": {
+   "p1": true,
+   "p2": true,
+   "p3": true,
+   "isl": true
+  },
+  "mana_pool": {
+   "0": {},
+   "1": {}
+  },
+  "damage": {
+   "ogre": 2
+  }
+ },
+ "notes": "B-90 (a) (2026-10-29). Seat 1 answers the Shock with Miscast ('Counter target instant or sorcery spell unless its controller pays {3}'), tapping its Island for {U}. Seat 0 is asked PAY/PASS: it can pay {3} by tapping its three Plains while paying (CR 605.3a, 601.2g), pays, and the Shock resolves: 2 damage to the Ogre."
+}

@@ -20,42 +20,30 @@ Coverage contract (mission arc, ruling of 2026-10-05):
 
 from __future__ import annotations
 
-from unittest import mock
-
-import MTG_bot.core.executor as executor_module
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_HAND
 from MTG_bot.core.test_executor_blockers import BlockerCase
 
+_BASIC = {"W": "Plains", "U": "Island", "B": "Swamp", "R": "Mountain", "G": "Forest"}
+
 
 class Rung2Case(BlockerCase):
-    """BlockerCase + the cw: ask probes and a window-mana helper.
+    """BlockerCase + the cw: ask probes and a mana helper.
 
-    Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends
-    (CR 500.5), so mana put in the pool before the turn is gone by the combat
-    window, and the engine cannot yet activate mana abilities while casting
-    there (CR 605.3a, 601.2g). :meth:`mana` therefore adds the seat's mana as
-    the window opens, standing in for the lands it would tap in the window."""
-
-    def setUp(self):
-        super().setUp()
-        self._window_mana: dict = {}
-        real_window = executor_module.open_combat_window
-
-        def window(executor):
-            for seat, keys in self._window_mana.items():
-                pool = self.world.players[seat].mana_pool
-                for key, amount in keys.items():
-                    pool[key] = pool.get(key, 0) + amount
-            return real_window(executor)
-
-        patcher = mock.patch.object(executor_module, "open_combat_window", window)
-        patcher.start()
-        self.addCleanup(patcher.stop)
+    Re-pinned 2026-10-29 (V2 + B-90 (a)): mana empties as each step and phase
+    ends (CR 500.5), so mana put in the pool before the turn is gone by the
+    combat window. :meth:`mana` gives the seat untapped basic lands instead,
+    which the window taps while paying (CR 601.2g, 605.3a)."""
 
     def mana(self, seat, **keys):
-        bucket = self._window_mana.setdefault(seat, {})
         for key, amount in keys.items():
-            bucket[key] = bucket.get(key, 0) + amount
+            name = _BASIC[key]
+            record = next(
+                self.supply.pool.results[oid].card
+                for oid, meta in self.supply.metas.items()
+                if meta.name == name
+            )
+            for _ in range(amount):
+                self.ex.attach_card(self.real(name, seat), record)
 
     def cw_asks(self):
         """The (vocab, tag) pairs of the cw: window, in ask order."""
@@ -100,6 +88,27 @@ class TestCombatWindow(Rung2Case):
         self.assertIsNone(opens[0].subject)
         self.assertEqual(opens[0].data[0], vocab)
         self.assertEqual(len(self.window_rows("WINDOW_PASS")), 0)
+
+    def test_the_window_taps_only_the_lands_the_spell_needs(self):
+        # B-90 (a): the defender taps one of its three Mountains for the
+        # Shock (CR 605.3a), never all of them; the mana is spent, nothing floats.
+        brute = self.synth("Brute", 2, 2, self.p0)
+        guard = self.synth("Guard", 3, 3, self.p1)
+        shock = self.real("Shock", self.p1, zone=ZONE_HAND)
+        self.begin()
+        self.mana(self.p1, R=3)
+        self.answers[f"block:{guard}"] = str(brute)
+        self.answers[f"cw:{self.p1}"] = f"{shock}@{brute}"
+        self.ex.begin_turn(self.p0)
+        self.ex.combat_step(self.p0)
+        self.assertEqual(self.world.zone_of(brute).kind, ZONE_GRAVEYARD)
+        mountains = [
+            h
+            for h, c in self.world.cards.items()
+            if c.identity.name == "Mountain" and self.world.controller_of(h) == self.p1
+        ]
+        self.assertEqual(sum(self.world.cards[h].tapped for h in mountains), 1)
+        self.assertEqual(self.world.players[self.p1].mana_pool, {})
 
     def test_pass_writes_the_audit_row_and_combat_continues(self):
         brute = self.synth("Brute", 3, 3, self.p0)

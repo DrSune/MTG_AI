@@ -1,6 +1,6 @@
 {
  "name": "cw_burn_then_pump",
- "note": "Rung-2 combat window, BOTH seats act in player order: P0's Shock answers the block (non-lethal - the 3/3 Guard survives with 2 marked), then P1's Titanic Growth (in the SAME window, on the POST-BURN state - the Guard is still a legal target) raises it to 6/6. The damage step reads the ledger: the pumped Guard out-fights the 3/3 Brute (dies), taking only 3 of its 6 marked. Pins that the second seat's vocabulary is computed AFTER the first seat's cast has settled. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the setup mana (formerly banked across two turns) is added as the combat window opens ('window_mana'), standing in for the lands tapped there (CR 605.3a).",
+ "note": "Rung-2 combat window, BOTH seats act in player order: P0's Shock answers the block (non-lethal - the 3/3 Guard survives with 2 marked), then P1's Titanic Growth (in the SAME window, on the POST-BURN state - the Guard is still a legal target) raises it to 6/6. The damage step reads the ledger: the pumped Guard out-fights the 3/3 Brute (dies), taking only 3 of its 6 marked. Pins that the second seat's vocabulary is computed AFTER the first seat's cast has settled. Re-pinned 2026-10-29 (V2 + B-90 (a)): mana empties as each step and phase ends (CR 500.5), so the setup mana (formerly banked across two turns) is now untapped basic lands, which the combat window taps while paying (CR 601.2g, 605.3a).",
  "world": {
   "life": 20,
   "seed": 7
@@ -34,6 +34,24 @@
    "key": "growth",
    "real": "Titanic Growth",
    "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "land_0_R0",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "land_1_G0",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "land_1_G1",
+   "real": "Forest",
+   "zone": "battlefield",
    "controller": 1
   }
  ],
@@ -70,15 +88,7 @@
    "decisions": [
     "shock@guard",
     "growth@guard"
-   ],
-   "window_mana": {
-    "0": {
-     "R": 1
-    },
-    "1": {
-     "G": 2
-    }
-   }
+   ]
   }
  ],
  "expect": {

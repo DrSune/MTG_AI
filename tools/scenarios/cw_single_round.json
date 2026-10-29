@@ -1,6 +1,6 @@
 {
  "name": "cw_single_round",
- "note": "Rung-2 documented narrowing pin (one priority round, no re-asks): P0 HOLDS a payable Shock but the pack answers PASS on its single ask; P1 pumps its 2/2 blocker to 5/5 and the shock-holding P0 is NEVER ASKED AGAIN - a real CR 510 window would hand P0 priority again to answer the pump with the burn, this rung does not, and the audit lane pins exactly one answer per seat. The un-answered pump stands: the attacker dies, the blocker lives. The kill-shot ordering lesson of H3, pinned as engine debt. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the setup mana (formerly banked across two turns) is added as the combat window opens ('window_mana'), standing in for the lands tapped there (CR 605.3a).",
+ "note": "Rung-2 documented narrowing pin (one priority round, no re-asks): P0 HOLDS a payable Shock but the pack answers PASS on its single ask; P1 pumps its 2/2 blocker to 5/5 and the shock-holding P0 is NEVER ASKED AGAIN - a real CR 510 window would hand P0 priority again to answer the pump with the burn, this rung does not, and the audit lane pins exactly one answer per seat. The un-answered pump stands: the attacker dies, the blocker lives. The kill-shot ordering lesson of H3, pinned as engine debt. Re-pinned 2026-10-29 (V2 + B-90 (a)): mana empties as each step and phase ends (CR 500.5), so the setup mana (formerly banked across two turns) is now untapped basic lands, which the combat window taps while paying (CR 601.2g, 605.3a).",
  "world": {
   "life": 20,
   "seed": 7
@@ -28,6 +28,24 @@
    "key": "growth",
    "real": "Titanic Growth",
    "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "land_0_R0",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "land_1_G0",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "land_1_G1",
+   "real": "Forest",
+   "zone": "battlefield",
    "controller": 1
   }
  ],
@@ -64,15 +82,7 @@
    "decisions": [
     "PASS",
     "growth@blocker"
-   ],
-   "window_mana": {
-    "0": {
-     "R": 1
-    },
-    "1": {
-     "G": 2
-    }
-   }
+   ]
   }
  ],
  "expect": {

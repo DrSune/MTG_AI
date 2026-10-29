@@ -69,8 +69,10 @@ from MTG_bot.core.executor.legality import (
     PaymentPlan,
     build_payment_plan,
     pay_costs,
+    plan_mana_taps,
     spell_castable,
     spell_record,
+    tap_for_payment,
 )
 from MTG_bot.core.executor.quantity import Binding
 from MTG_bot.core.identity import Handle
@@ -565,14 +567,28 @@ def _counter_vocab(
             continue
         if not _tree_verb_closure(node, set()) <= set(HANDLERS):
             continue
-        reason, _n, _r, plan = spell_castable(executor, seat, handle)
-        if reason is not None or plan is None:
+        if _window_taps(executor, seat, handle) is None:
             continue
         slots = spell_target_slots(executor, node, spell_handle=handle, seat=seat)
         if len(slots) != 1 or validate_target_selection(slots[0], (frame_handle,)):
             continue
         options.append(str(handle))
     return ("PASS",) + tuple(sorted(options))
+
+
+def _window_taps(executor: Executor, seat: Handle, handle: Handle):
+    """B-90 (a): the mana abilities ``seat`` taps to cast ``handle`` in a
+    response window (CR 601.2g, 605.3a: mana abilities may be activated while
+    paying), () when the pool already pays, None when the spell cannot be cast
+    (C15: then it is never offered)."""
+    return plan_mana_taps(executor, seat, lambda: spell_castable(executor, seat, handle)[0])
+
+
+def _window_cast(executor: Executor, seat: Handle, handle: Handle, target: Handle) -> None:
+    """Cast a response-window answer: tap the planned mana abilities, then the
+    ordinary :func:`cast` (which re-checks legality and pays from the pool)."""
+    tap_for_payment(executor, seat, _window_taps(executor, seat, handle) or ())
+    cast(executor, seat, handle, targets=(target,))
 
 
 #: RUNG-2 (2026-10-05 combat-window arc): the effect atoms that make an
@@ -645,8 +661,7 @@ def _combat_instant_vocab(executor: Executor, seat: Handle) -> tuple[str, ...]:
             continue
         if not _tree_verb_closure(node, set()) <= set(HANDLERS):
             continue
-        reason, _n, _r, plan = spell_castable(executor, seat, handle)
-        if reason is not None or plan is None:
+        if _window_taps(executor, seat, handle) is None:
             continue
         slots = spell_target_slots(executor, node, spell_handle=handle, seat=seat)
         if len(slots) != 1 or not slots[0].min_count <= 1 <= slots[0].max_count:
@@ -687,12 +702,7 @@ def open_combat_window(executor: Executor) -> None:
             executor.journal.emit(KIND_WINDOW_PASS, None, seat, "COMBAT_WINDOW", ())
             continue
         card_tag, _, target_tag = answer.partition("@")
-        cast(
-            executor,
-            seat,
-            parse_handle_tag(card_tag),
-            targets=(parse_handle_tag(target_tag),),
-        )
+        _window_cast(executor, seat, parse_handle_tag(card_tag), parse_handle_tag(target_tag))
 
 
 def cast(
@@ -862,7 +872,7 @@ def cast(
         if answer == "PASS":
             executor.journal.emit(KIND_WINDOW_PASS, handle, responder, "WINDOW", ())
             continue
-        cast(executor, responder, parse_handle_tag(answer), targets=(handle,))
+        _window_cast(executor, responder, parse_handle_tag(answer), handle)
 
     # 7: resolution. The effect runs WITHOUT an intervening settle — the
     # spell leaves the stack and the PUT happens before anything its

@@ -25,6 +25,18 @@
    "cmc": 3,
    "zone": "battlefield",
    "controller": 0
+  },
+  {
+   "key": "land_0_B0",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "land_0_B1",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
   }
  ],
  "steps": [
@@ -40,13 +52,7 @@
    "seat": 0,
    "decisions": [
     "fire"
-   ],
-   "step_mana": {
-    "0": {
-     "B": 1,
-     "C": 1
-    }
-   }
+   ]
   }
  ],
  "expect": {
@@ -54,5 +60,5 @@
    "Zombie": 1
   }
  },
- "notes": "Branch liliana_s_devotee:01 (Conditional, heat 24). deal_damage kills the Walking Corpse (CREATURE_DIES row), the END_TURN trigger offers PAY {1}{B} (real fire/skip ask on the provider - ASKS-visible), the pack FIRES (mana lane pays), and the Conditional MAY_DONE true-branch mints the 2/2 Zombie keylessly (ZONE_CHANGE null->battlefield cause card:0) - the tokens lane pins it. Twin: ..._twin.json skips -> tokens 0. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the {1}{B} for the end-step payment is added in the end step ('step_mana'), standing in for the lands tapped there (CR 605.3a)."
+ "notes": "Branch liliana_s_devotee:01 (Conditional, heat 24). deal_damage kills the Walking Corpse (CREATURE_DIES row), the END_TURN trigger offers PAY {1}{B} (real fire/skip ask on the provider - ASKS-visible), the pack FIRES (mana lane pays), and the Conditional MAY_DONE true-branch mints the 2/2 Zombie keylessly (ZONE_CHANGE null->battlefield cause card:0) - the tokens lane pins it. Twin: ..._twin.json skips -> tokens 0. Re-pinned 2026-10-29 (V2 + B-90 (a)): mana empties as each step and phase ends (CR 500.5), so the {1}{B} for the end-step payment comes from two untapped Swamps, tapped while paying (CR 601.2g, 605.3a)."
 }

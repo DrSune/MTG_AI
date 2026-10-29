@@ -1705,6 +1705,244 @@ def activate(
     )
 
 
+# --------------------------------------- B-90 (a): mana abilities while paying
+# CR 601.2g / 605.3a: a player may activate mana abilities while paying a
+# cost, including in the middle of a resolution. The engine pays from the
+# pool, and since V2 the pool empties as each step and phase ends, so a
+# payment asked OUTSIDE the active player's act window (a response window, a
+# "you may pay", an "unless its controller pays") had no mana. These helpers
+# let such a payment tap the payer's untapped mana abilities whose cost is
+# only {T}: a minimal set the payment planner proves sufficient, never all.
+# SCAFFOLD (BACKLOG "scaffolds to remove"): the engine picks the sources, a
+# decision hidden from the player (AGENTS §10); removed by the PAYMENT asks
+# of DESIGN_ACTION_SPACE §1.3.
+
+
+@dataclass(frozen=True)
+class ManaTap:
+    """One mana ability to activate: ``decisions`` choose its colour (an
+    any-colour ADD_MANA, or a Choose between ADD_MANA options) and
+    ``production`` is what it adds, as (colour, amount, spend-restriction tags)."""
+
+    source: Handle
+    ability_idx: int
+    decisions: tuple[str, ...]
+    production: tuple[str, int, tuple[Filter, ...]]
+
+
+def _mana_atom_output(atom: object, ctx: ExecCtx) -> tuple[str | None, int] | None:
+    """(colour or None for "any colour", amount) of a "you add" ADD_MANA atom;
+    None for anything else."""
+    if not (isinstance(atom, Atom) and atom.verb is Verb.ADD_MANA):
+        return None
+    controller = atom.args.get("controller")
+    if controller is not None and controller is not ControllerRef.YOU:
+        return None
+    amount = atom.args.get("amount")
+    if not isinstance(amount, Quantity):
+        return None
+    color = atom.args.get("color")
+    return (None if color in (None, "ANY") else str(color)), resolve(amount, ctx)
+
+
+def _mana_tap_options(executor: Executor, payer: Handle) -> list[list[ManaTap]]:
+    """Per permanent of ``payer`` (Handle order), the ways its first eligible
+    ability can add mana. Eligible: cost exactly {T}; effect one ADD_MANA atom
+    (fixed colour or any colour) or a Choose between ADD_MANA atoms (dual
+    lands); and activatable by ``payer`` right now (ability_playable: so tapped
+    sources, V1-sick creatures and locked abilities are out). Printed and
+    granted abilities, the legal_activations scan, which this does not call
+    because it raises on cost kinds it cannot check."""
+    from MTG_bot.core.ability_tree import Choose
+    from MTG_bot.core.executor.query import choose_options
+    from MTG_bot.core.executor.verbs import _COLORS_VOCAB
+
+    world = executor.world
+    out: list[list[ManaTap]] = []
+    for handle in sorted(world.cards):
+        if world.zone_of(handle).kind != ZONE_BATTLEFIELD:
+            continue
+        if executor.controller_of(handle) != payer:
+            continue
+        rows: list[tuple[int, object]] = []
+        record = executor.binder.handle_record.get(handle)
+        if record is not None:
+            rows.extend(enumerate(record.abilities))
+        rows.extend(
+            (-k - 1, entry.node)
+            for k, entry in enumerate(executor.layers.granted_activated(handle))
+        )
+        for idx, ability in rows:
+            if not isinstance(ability, ActivatedAbility):
+                continue
+            parts = ability.cost.parts
+            if len(parts) != 1 or not isinstance(parts[0], CostTap) or parts[0].target is not None:
+                continue
+            ctx = ctx_for(executor, source=handle, controller=payer)
+            policy = executor.layers.this_mana_filter(handle)
+            tags: tuple[Filter, ...] = (policy,) if policy is not None else ()
+            effect = ability.effect
+            taps: list[ManaTap] = []
+            if isinstance(effect, Atom):
+                got = _mana_atom_output(effect, ctx)
+                if got is not None:
+                    color, n = got
+                    colors = _COLORS_VOCAB if color is None else (color,)
+                    decide = color is None
+                    taps = [
+                        ManaTap(handle, idx, (c,) if decide else (), (c, n, tags))
+                        for c in colors
+                    ]
+            elif isinstance(effect, Choose):
+                for token, opt in enumerate(
+                    choose_options(executor, effect, source=handle, controller=payer)
+                ):
+                    got = (
+                        _mana_atom_output(effect.options[opt.option_idxs[0]], ctx)
+                        if len(opt.option_idxs) == 1
+                        else None
+                    )
+                    if got is None or got[0] is None:
+                        taps = []
+                        break
+                    taps.append(ManaTap(handle, idx, (str(token),), (got[0], got[1], tags)))
+            taps = [t for t in taps if t.production[1] > 0]
+            if not taps:
+                continue
+            if ability_playable(world, executor, handle, idx, seat=payer) is not None:
+                continue
+            out.append(taps)
+            break  # one {T} ability per permanent: it can tap once
+    return out
+
+
+def _mana_shortfall(reason: str | None) -> tuple[str, tuple[str, ...]] | None:
+    """The mana a failed plan lacks, read from build_payment_plan's
+    machine-readable reason: ("color", (c,)), ("hybrid", (c1, c2)) or
+    ("generic", ()); None when the failure is not a mana shortage."""
+    if reason is None:
+        return None
+    if reason.startswith("cost:mana_generic:"):
+        return "generic", ()
+    if reason.startswith("cost:mana_hybrid:"):
+        colors = tuple(c for c in reason.split(":")[2] if c in MANA_KEYS)
+        return ("hybrid", colors) if colors else None
+    if reason.startswith("cost:mana:"):
+        color = reason.split(":")[2]
+        return ("color", (color,)) if color in MANA_KEYS else None
+    return None
+
+
+def _with_trial_mana(executor: Executor, payer: Handle, taps: Sequence[ManaTap], check):
+    """``check()`` with the payer's pool and segment mirror holding the taps'
+    production; both are restored exactly afterwards (nothing is journalled,
+    so the trial leaves no trace in the replay)."""
+    pool = executor.world.players[payer].mana_pool
+    saved_pool = dict(pool)
+    ledger = executor.mana_ledger
+    had_segments = payer in ledger.segments
+    saved_segments = list(ledger.segments.get(payer, []))
+    try:
+        for tap in taps:
+            color, n, tags = tap.production
+            pool[color] = pool.get(color, 0) + n
+            ledger.add(payer, color, n, tags)
+        return check()
+    finally:
+        pool.clear()
+        pool.update(saved_pool)
+        if had_segments:
+            ledger.segments[payer] = saved_segments
+        else:
+            ledger.segments.pop(payer, None)
+
+
+def plan_mana_taps(
+    executor: Executor, payer: Handle, check
+) -> tuple[ManaTap, ...] | None:
+    """The mana abilities ``payer`` taps so a payment can be made. ``check()``
+    returns None when the payment is plannable, else the planner's reason.
+    Returns () when the pool already pays, the taps when they make it pay, and
+    None when no set of {T}-only mana abilities does (the payment is then
+    declined exactly as before). Deterministic: sources in Handle order, the
+    shortfall the planner names picks the next source (fixed colour first,
+    then dual, then any colour), a spend-restricted tap that does not reduce
+    the shortfall is dropped, and a last pass removes every tap the payment
+    does not need, so the set is inclusion-minimal."""
+    reason = check()
+    if reason is None:
+        return ()
+    options = _mana_tap_options(executor, payer)
+    chosen: list[ManaTap] = []
+    used: set[Handle] = set()
+    while reason is not None:
+        need = _mana_shortfall(reason)
+        if need is None:
+            return None
+        kind, colors = need
+        pick: ManaTap | None = None
+        for rank in (0, 1, 2):  # fixed colour, dual, any colour
+            for taps in options:
+                if taps[0].source in used:
+                    continue
+                shape = 0 if len(taps) == 1 else (1 if len(taps) == 2 else 2)
+                if shape != rank:
+                    continue
+                if kind == "generic":
+                    pick = taps[0]
+                else:
+                    pick = next((t for c in colors for t in taps if t.production[0] == c), None)
+                if pick is not None:
+                    break
+            if pick is not None:
+                break
+        if pick is None:
+            return None
+        used.add(pick.source)
+        chosen.append(pick)
+        new_reason = _with_trial_mana(executor, payer, chosen, check)
+        if new_reason == reason and pick.production[2]:
+            # Spend-restricted mana (Vodalian Arcanist's) that this payment may
+            # not use leaves the shortfall as it was: drop it, try the next.
+            # Unrestricted mana always pays something (a repeated reason then
+            # only means a second symbol of the same colour, as in {U}{U}).
+            chosen.pop()
+            continue
+        reason = new_reason
+    for tap in list(reversed(chosen)):
+        rest = [t for t in chosen if t is not tap]
+        if _with_trial_mana(executor, payer, rest, check) is None:
+            chosen = rest
+    return tuple(chosen)
+
+
+def tap_for_payment(
+    executor: Executor,
+    payer: Handle,
+    taps: Sequence[ManaTap],
+    *,
+    inside_atom: bool = False,
+) -> None:
+    """Activate the planned mana abilities. At top level (a response window)
+    each is the ordinary journalled activation move. Inside a running atom ("you
+    may pay", "unless its controller pays") a mana ability resolves at once
+    without the stack (CR 605.3b): the permanent taps and its mana is added in
+    place, and the running atom's journal diff records the tap once. A nested
+    activation would journal the tap twice and settle unrelated triggers in the
+    middle of the resolution. The planned taps are exactly the eligible
+    single-ADD_MANA shapes, so the in-place result equals the activation's."""
+    for tap in taps:
+        if not inside_atom:
+            activate(executor, tap.source, tap.ability_idx, seat=payer, decisions=tap.decisions)
+            continue
+        executor.world.cards[tap.source].tapped = True
+        color, n, tags = tap.production
+        pool = executor.world.players[payer].mana_pool
+        pool[color] = pool.get(color, 0) + n
+        executor.mana_ledger.add(payer, color, n, tags)
+        executor.events.append((len(executor.events), "ADD_MANA", str(payer), color, n))
+
+
 # ------------------------------------------------------- 16b: attack legality
 # The CR 508.1 declare-attackers surface. The COMBAT skeleton asks one
 # binary question per CREATURE (v1 = no blocker-side decisions, doc /11

@@ -2457,10 +2457,12 @@ class StallRuleTest(unittest.TestCase):
         # replay verified). Neither Chandra in these decks is cast.
         # re-pinned 2026-10-29: V2 (mana empties as each step and phase ends,
         # CR 500.5; no more banked mana) changes the trajectory: still
-        # decisive, SAME loser, 48 turns.
+        # decisive, SAME loser, 48 turns. B-90 (a) (response windows tap mana
+        # abilities while paying, CR 605.3a) shifts it again: still decisive,
+        # SAME loser, 46 turns (double-run replay verified).
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 48)
+        self.assertEqual(game.turns, 46)
         self.assertEqual(game.reason, "game over: player:0(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:

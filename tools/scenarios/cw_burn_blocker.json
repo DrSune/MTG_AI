@@ -1,6 +1,6 @@
 {
  "name": "cw_burn_blocker",
- "note": "Rung-2 combat window (CR 506.4/510): P0's Onakke Ogre (4/2) is blocked by a 2/2 Corpse - a trade. In the POST-DECLARE-BLOCKERS window the engine asks P0 (player order, instant-holding seat only); the pack answers shock@corpse. The cast settles INSIDE the window: the Corpse dies before the damage step. The Ogre stays BLOCKED (CR 509.1h) and, with no creature blocking it and no trample, assigns no combat damage (CR 510.1c): the opponent stays at 20. re-pinned 2026-10-29: B-61 fix changes life[1] 16 -> 20 (the old pin had the Ogre 'come UNBLOCKED for 4', the bug itself). Falsified by cw_no_instant_negative.json: same fight, no instant, mutual kill. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the setup mana (formerly banked across two turns) is added as the combat window opens ('window_mana'), standing in for the lands tapped there (CR 605.3a).",
+ "note": "Rung-2 combat window (CR 506.4/510): P0's Onakke Ogre (4/2) is blocked by a 2/2 Corpse - a trade. In the POST-DECLARE-BLOCKERS window the engine asks P0 (player order, instant-holding seat only); the pack answers shock@corpse. The cast settles INSIDE the window: the Corpse dies before the damage step. The Ogre stays BLOCKED (CR 509.1h) and, with no creature blocking it and no trample, assigns no combat damage (CR 510.1c): the opponent stays at 20. re-pinned 2026-10-29: B-61 fix changes life[1] 16 -> 20 (the old pin had the Ogre 'come UNBLOCKED for 4', the bug itself). Falsified by cw_no_instant_negative.json: same fight, no instant, mutual kill. Re-pinned 2026-10-29 (V2 + B-90 (a)): mana empties as each step and phase ends (CR 500.5), so the setup mana (formerly banked across two turns) is now untapped basic lands, which the combat window taps while paying (CR 601.2g, 605.3a).",
  "world": {
   "life": 20,
   "seed": 7
@@ -22,6 +22,12 @@
    "key": "shock",
    "real": "Shock",
    "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "land_0_R0",
+   "real": "Mountain",
+   "zone": "battlefield",
    "controller": 0
   }
  ],
@@ -57,12 +63,7 @@
    },
    "decisions": [
     "shock@corpse"
-   ],
-   "window_mana": {
-    "0": {
-     "R": 1
-    }
-   }
+   ]
   }
  ],
  "expect": {

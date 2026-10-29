@@ -1440,15 +1440,22 @@ def _v_pay(ctx: ExecCtx, atom: Atom) -> None:
         build_payment_plan,
         ctx_for,
         pay_costs,
+        plan_mana_taps,
+        tap_for_payment,
     )
 
     executor = _executor_or_raise(ctx, atom.verb.name)
     cost = atom.args.get("cost")
     if not isinstance(cost, Cost):
         raise TypeError(f"executor: PAY needs a Cost role, got {cost!r}")
-    plan, why = build_payment_plan(
-        ctx.world, ctx_for(executor, source=ctx.source, controller=ctx.controller), cost
+    pctx = ctx_for(executor, source=ctx.source, controller=ctx.controller)
+    # B-90 (a) (CR 605.3a): the payer may tap mana abilities while paying; the
+    # same taps query.optional_offer proved sufficient when it offered "fire".
+    taps = plan_mana_taps(
+        executor, ctx.controller, lambda: build_payment_plan(ctx.world, pctx, cost)[1]
     )
+    tap_for_payment(executor, ctx.controller, taps or (), inside_atom=True)
+    plan, why = build_payment_plan(ctx.world, pctx, cost)
     if plan is None:
         raise ValueError(f"executor: PAY cannot pay: {why}")
     pay_costs(
@@ -1989,6 +1996,8 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
         build_payment_plan,
         ctx_for,
         pay_costs,
+        plan_mana_taps,
+        tap_for_payment,
     )
 
     ex = ctx.executor
@@ -2012,12 +2021,22 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
         assert isinstance(unless, Cost)  # _VERB_ROLES: the unless role is a Cost
         payer = frame.controller
         pctx = ctx_for(ex, source=ctx.source, controller=payer)
-        plan, _reason = build_payment_plan(ctx.world, pctx, unless, mana_use=ctx.source)
+        # B-90 (a) (CR 605.3a): "unless its controller pays" may be paid with
+        # mana abilities activated now; payable iff some set of them pays.
+        taps = plan_mana_taps(
+            ex,
+            payer,
+            lambda: build_payment_plan(ctx.world, pctx, unless, mana_use=ctx.source)[1],
+        )
         answer = "UNPAYABLE"
-        if plan is not None:
+        if taps is not None:
             digest = site_digest((str(spell), frame.declared_clock))
             answer = ex.decisions.take(("PASS", "PAY"), f"pay:{payer}:{digest}", seat=payer)
             if answer == "PAY":
+                tap_for_payment(ex, payer, taps, inside_atom=True)
+                plan, why = build_payment_plan(ctx.world, pctx, unless, mana_use=ctx.source)
+                if plan is None:  # pragma: no cover - the taps were proven sufficient
+                    raise ValueError(f"executor: KICKBACK cannot pay: {why}")
                 pay_costs(
                     ex,
                     plan,

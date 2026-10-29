@@ -47,6 +47,8 @@ from MTG_bot.core.executor.legality import (
     build_payment_plan,
     ctx_for,
     pay_costs,
+    plan_mana_taps,
+    tap_for_payment,
 )
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -661,6 +663,135 @@ class TestManaEmpties(LegalityCase):
         self.ex.begin_turn(self.p0)
         self.ex.end_turn()
         self.assertEqual(self.empty_rows(), [])
+
+
+
+class TestManaAbilitiesWhilePaying(LegalityCase):
+    """B-90 (a), 2026-10-29: CR 601.2g / 605.3a. A payment asked outside the
+    act window may tap the payer's untapped mana abilities whose cost is only
+    {T}: a minimal set the planner proves sufficient, never all."""
+
+    def land(self, name, effect, type_line="Land"):
+        handle = self.world.add_card(card_id(name, type_line=type_line), self.p0, ZONE_BATTLEFIELD)
+        self.attach([ability(cost(CostTap()), effect=effect)], handle)
+        return handle
+
+    def check(self, cost_ir):
+        ctx = ctx_for(self.ex, source=self.alpha, controller=self.p0)
+        return lambda: build_payment_plan(self.world, ctx, cost_ir)[1]
+
+    def plan(self, *parts):
+        return plan_mana_taps(self.ex, self.p0, self.check(cost(*parts)))
+
+    def test_the_pool_pays_without_taps(self):
+        self.land("Forest", add_mana("G"))
+        self.pool(self.p0, G=1)
+        self.assertEqual(self.plan(CostManaColor("G", QConst(1))), ())
+
+    def test_a_minimal_set_never_all(self):
+        f1 = self.land("Forest", add_mana("G"))
+        self.land("Island", add_mana("U"))
+        self.land("Forest", add_mana("G"))
+        taps = self.plan(CostManaColor("G", QConst(1)), CostManaGeneric(QConst(1)))
+        self.assertEqual(len(taps), 2)  # {1}{G}: two of the three lands
+        self.assertEqual(taps[0].source, f1)
+        self.assertEqual(taps[0].production[0], "G")
+
+    def test_two_symbols_of_one_colour_tap_two_lands(self):
+        # {U}{U} as two cost parts: after one Island the planner still names
+        # "U short", which is progress, not a useless tap.
+        i1 = self.land("Island", add_mana("U"))
+        i2 = self.land("Island", add_mana("U"))
+        self.land("Island", add_mana("U"))
+        taps = self.plan(CostManaColor("U", QConst(1)), CostManaColor("U", QConst(1)))
+        self.assertEqual([t.source for t in taps], [i1, i2])
+
+    def test_a_coloured_need_taps_the_matching_land_only(self):
+        self.land("Forest", add_mana("G"))
+        island = self.land("Island", add_mana("U"))
+        taps = self.plan(CostManaColor("U", QConst(1)))
+        self.assertEqual([t.source for t in taps], [island])
+
+    def test_a_dual_land_chooses_the_needed_colour(self):
+        from MTG_bot.core.ability_tree import Choose
+
+        dual = self.land("Swiftwater Cliffs", Choose(count=QConst(1), options=(add_mana("U"), add_mana("R"))))
+        (tap,) = self.plan(CostManaColor("R", QConst(1)))
+        self.assertEqual((tap.source, tap.production[0]), (dual, "R"))
+        tap_for_payment(self.ex, self.p0, (tap,))
+        self.assertEqual(self.world.players[self.p0].mana_pool, {"R": 1})
+        self.assertTrue(self.world.cards[dual].tapped)
+
+    def test_an_any_colour_source_chooses_the_needed_colour(self):
+        rock = self.land("Meteorite", add_mana("ANY"), type_line="Artifact")
+        (tap,) = self.plan(CostManaColor("B", QConst(1)))
+        self.assertEqual((tap.source, tap.decisions), (rock, ("B",)))
+        tap_for_payment(self.ex, self.p0, (tap,))
+        self.assertEqual(self.world.players[self.p0].mana_pool, {"B": 1})
+
+    def test_sick_mana_creatures_and_tapped_lands_are_not_used(self):
+        self.ex.begin_turn(self.p0)
+        elf = self.world.add_card(card_id("Elf", "1", "1"), self.p0, ZONE_HAND)
+        self.ex.execute(
+            Atom(
+                verb=Verb.MOVE_ZONE,
+                args=AtomArgs(
+                    pairs=(
+                        ("cards", Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(HAND_YOU,))),
+                        ("destination", BF_YOU),
+                    )
+                ),
+            ),
+            source=elf,
+            controller=self.p0,
+            bindings={"cards": elf},
+        )
+        self.attach([ability(cost(CostTap()), effect=add_mana("G"))], elf)  # V1: sick
+        forest = self.land("Forest", add_mana("G"))
+        self.world.cards[forest].tapped = True
+        self.assertIsNone(self.plan(CostManaColor("G", QConst(1))))
+
+    def test_a_pay_inside_a_resolution_taps_in_place_and_journals_once(self):
+        # "You may pay {1}": offered because a land can pay it (CR 605.3a);
+        # paying taps the land without a nested activation, so the running
+        # atom journals exactly one TapState row and settles nothing extra.
+        from MTG_bot.core.ability_tree import OptionalEffect
+        from MTG_bot.core.executor.query import optional_offer
+
+        forest = self.land("Forest", add_mana("G"))
+        effect = OptionalEffect(
+            inner=Atom(verb=Verb.PAY, args=AtomArgs(pairs=(("cost", cost(CostManaGeneric(QConst(1)))),)))
+        )
+        self.assertIn("fire", optional_offer(self.ex, effect, source=self.alpha, controller=self.p0))
+        self.ex.apply_effect(effect, source=self.alpha, controller=self.p0, decisions=("fire",))
+        self.assertTrue(self.world.cards[forest].tapped)
+        self.assertEqual(self.world.players[self.p0].mana_pool, {})
+        taps = [e for e in self.ex.journal.events if e.kind == "TAP_STATE" and e.subject == forest]
+        self.assertEqual(len(taps), 1)
+
+    def test_a_pay_nothing_can_fund_is_not_offered(self):
+        from MTG_bot.core.ability_tree import OptionalEffect
+        from MTG_bot.core.executor.query import optional_offer
+
+        self.land("Forest", add_mana("G"))
+        effect = OptionalEffect(
+            inner=Atom(verb=Verb.PAY, args=AtomArgs(pairs=(("cost", cost(CostManaGeneric(QConst(2)))),)))
+        )
+        self.assertNotIn("fire", optional_offer(self.ex, effect, source=self.alpha, controller=self.p0))
+
+    def test_no_set_pays_returns_none(self):
+        self.land("Forest", add_mana("G"))
+        self.assertIsNone(self.plan(CostManaColor("G", QConst(2))))
+
+    def test_planning_leaves_no_trace(self):
+        self.land("Forest", add_mana("G"))
+        self.land("Island", add_mana("U"))
+        self.pool(self.p0, W=1)
+        before = (dict(self.world.players[self.p0].mana_pool), len(self.ex.events), len(self.ex.journal.events))
+        self.assertIsNotNone(self.plan(CostManaColor("G", QConst(1)), CostManaGeneric(QConst(2))))
+        after = (dict(self.world.players[self.p0].mana_pool), len(self.ex.events), len(self.ex.journal.events))
+        self.assertEqual(before, after)
+        self.assertFalse(any(self.world.cards[h].tapped for h in self.world.cards))
 
 
 if __name__ == "__main__":  # pragma: no cover

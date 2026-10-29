@@ -1,0 +1,16 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "dog", "real": "Alpine Watchdog", "zone": "hand", "controller": 0},
+  {"key": "cancel", "real": "Cancel", "zone": "hand", "controller": 1},
+  {"key": "i1", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "i2", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "i3", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "i4", "real": "Island", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [{"op": "cast", "real": "Alpine Watchdog", "key": "dog", "decisions": ["cancel"]}],
+ "expect": {"zone": {"dog": "graveyard", "cancel": "graveyard"},
+            "tapped": {"i1": true, "i2": true, "i3": true, "i4": false},
+            "mana_pool": {"0": {}, "1": {}}},
+ "notes": "B-90 (a) (2026-10-29). CR 601.2g / 605.3a: a player may activate mana abilities while paying. Seat 1 has no floating mana on seat 0's turn (pools empty as each step and phase ends, CR 500.5), so it pays Cancel's {1}{U}{U} by tapping three of its four Islands (a minimal set, never all) and counters the Watchdog."}

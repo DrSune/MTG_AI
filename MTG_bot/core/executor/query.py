@@ -570,8 +570,18 @@ def optional_offer(
         if isinstance(node, Atom) and node.verb is Verb.PAY:
             pay_cost = node.args.get("cost")
             if isinstance(pay_cost, Cost):
-                plan, _why = build_payment_plan(executor.world, ctx, pay_cost)
-                if plan is None:
+                # B-90 (a) (CR 605.3a): payable from the pool or by tapping
+                # the payer's {T}-only mana abilities while paying.
+                from MTG_bot.core.executor.legality import plan_mana_taps
+
+                if (
+                    plan_mana_taps(
+                        executor,
+                        controller,
+                        lambda c=pay_cost: build_payment_plan(executor.world, ctx, c)[1],
+                    )
+                    is None
+                ):
                     return MAY_VOCAB[1:]
     search_seen = False
     for node in walk(effect.inner):
