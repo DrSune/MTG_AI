@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import hashlib
 import itertools
+import re
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -205,16 +206,26 @@ class Probe:
         rev[str(r.p0)] = "you"
         rev[str(r.p1)] = "opp"
 
+        handle_re = re.compile(r"(?<![\w:])((?:card|player):\d+)(?![\d])")
+
+        def one(tag: str) -> str:
+            if tag in rev:
+                return rev[tag]
+            ns, _, idx = tag.partition(":")
+            h = Handle(ns, int(idx))
+            if h in r.world.cards:
+                return f"{r.world.cards[h].identity.name}#{idx}"
+            return tag
+
         def name(x: Any) -> str:
             s = str(x)
             if s in rev:
                 return rev[s]
             if isinstance(x, Handle) and x in r.world.cards:
                 return f"{r.world.cards[x].identity.name}#{x.index}"
-            for k, v in rev.items():  # a word that embeds a handle ("card:12@player:1")
-                if k in s and ":" in k:
-                    s = s.replace(k, v)
-            return s
+            # a word that embeds handles ("card:12@player:1"): whole handle tokens only, so
+            # card:2 never matches inside card:25
+            return handle_re.sub(lambda m: one(m.group(1)), s)
 
         return name
 
@@ -326,7 +337,12 @@ class Probe:
             return f"{name(d[0])} casts {s}" + (f" (X={d[4]})" if len(d) > 4 and d[4] is not None else "") + (" kicked" if len(d) > 5 and d[5] else "")
         if kind == "TARGETING":
             return f"{s} is targeted{by}"
-        return f"{kind} {s}{by} {', '.join(name(x) for x in d)}".rstrip()
+        def fmt(x: Any) -> str:
+            if isinstance(x, tuple):
+                return "(" + ", ".join(fmt(y) for y in x) + ")"
+            return name(x)
+
+        return f"{kind} {s}{by} {', '.join(fmt(x) for x in d)}".rstrip()
 
     # ------------------------------------------------------------------ runs
     def run(self, where: str | None, label: str, action: Callable[[ScenarioRunner], None],
