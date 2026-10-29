@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "B-60(b) regression (2026-10-29). Printed: '{T}: Create a 4/4 white Angel creature token with flying. Activate only if you have at least 7 life more than your starting life total and only as a sorcery.' Seat 0 sits at 27 life (lead 7, the condition holds). On the opponent's turn the activation is refused for its timing alone; on seat 0's own turn it makes the Angel. Before the fix the compiler dropped 'and only as a sorcery' and the first activation succeeded.",
+ "cards": [
+  {"key": "s", "real": "Speaker of the Heavens", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "life", "seat": 0, "set": 27},
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "s", "idx": 0, "seat": 0,
+   "expect_raise": "illegal activation: window:sorcery:not_own_turn"},
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "s", "idx": 0, "seat": 0}
+ ],
+ "expect": {"tokens": {"Angel": 1}, "life": {"0": 27}}}

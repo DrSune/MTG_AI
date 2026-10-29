@@ -7,6 +7,8 @@ from pathlib import Path
 import pytest
 
 from MTG_bot.core.ability_tree import (
+    ActivatedAbility,
+    ActivationWindow,
     Atom,
     ControllerRef,
     FAnd,
@@ -131,3 +133,11 @@ def test_attached_statics_grant_keywords_in_printed_order(registry) -> None:
     ability = _one(registry, "Equipped creature gets +1/+1 and has vigilance and trample.").ability
     verbs = [n.verb for n in walk(ability) if isinstance(n, Atom)]
     assert verbs == [Verb.MODIFY_PT, Verb.GRANT_ABILITY, Verb.GRANT_ABILITY]
+
+
+def test_bare_equip_is_sorcery_speed(registry) -> None:
+    # B-60 (2026-10-29): CR 702.6a, equip is activated only as a sorcery
+    # even when the card omits the reminder text that spells it out.
+    ability = _one(registry, "Equip {2}").ability
+    assert isinstance(ability, ActivatedAbility)
+    assert ability.timing is ActivationWindow.SORCERY

@@ -1293,6 +1293,10 @@ class TestStructuralAssertions(unittest.TestCase):
         # Effect: ATTACH
         atom = _as_atom(ab.effect)
         self.assertEqual(atom.verb, Verb.ATTACH)
+        # B-60 (2026-10-29): "Equip only as a sorcery" (CR 702.6a) rides
+        # the R9-1 timing slot; it was dropped, so equipment moved at
+        # instant speed.
+        self.assertIs(ab.timing, ActivationWindow.SORCERY)
 
     def test_equipped_pt(self) -> None:
         """B5a-equipped-pt: StaticAbility, MODIFY_PT."""
@@ -2190,11 +2194,14 @@ class TestB5aRound9BStructures(unittest.TestCase):
         self.assertEqual(cond.count, QConst(7))
         self.assertIsNone(cond.who)
         self.assertIsNone(cond.inner_filter)
+        # B-60 (2026-10-29): "... and only as a sorcery" is the gate's
+        # window slot (R10-1 compound gate); it used to be dropped.
+        self.assertIs(outcome.window, ActivationWindow.SORCERY)
 
     def test_speaker_gate_attaches_through_compile(self) -> None:
         """E2E: the gate lands on the preceding {T}-Angel-token activation
-        (existing r3 attach plumbing); timing clause lossy — asserted absent
-        with the documented reason (no condition/timing fabrication)."""
+        (existing r3 attach plumbing), BOTH slots: the life-lead condition
+        and, since B-60 (2026-10-29), the sorcery timing."""
         raw = _raw(
             "Speaker of the Heavens",
             (
@@ -2218,6 +2225,7 @@ class TestB5aRound9BStructures(unittest.TestCase):
         assert isinstance(cond, FAtom)
         self.assertIs(cond.pred, FAtomPred.LIFE_LEAD_OVER_START_GE)
         self.assertEqual(cond.count, QConst(7))
+        self.assertIs(activated[0].timing, ActivationWindow.SORCERY)
 
     def test_drowsing_defender_strip(self) -> None:
         outcome = self._match_one(

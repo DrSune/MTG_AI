@@ -33,6 +33,9 @@
  },
  "steps": [
   {
+   "op": "advance_turn"
+  },
+  {
    "op": "enter",
    "key": "scythe"
   },
@@ -44,6 +47,9 @@
    "targets": [
     "brute"
    ]
+  },
+  {
+   "op": "advance_turn"
   },
   {
    "op": "activate",
@@ -84,5 +90,5 @@
    "1": 20
   }
  },
- "notes": "Cross-seat planeswalker buff onto an equipped enemy creature: Scythe (seat 1) enters with its 1 soul counter (EtB trigger) and equips its own Brute for the +1/+1-per-soul static; Garruk Unleashed (seat 0) +1 has no controller restriction on its TARGET, so +3/+3 and trample land on seat 1's Brute (CR 601.2b, 109.5 the controller of the ability is who pays loyalty, the object just needs to be a legal target). Layers: the Scythe's soul-counter DCP and Garruk's +3/+3 DCP both apply in layer 7c in timestamp order, commutative here -> 9/9 (CR 613.3d, 613.6a). Trample rides the same buff."
+ "notes": "Cross-seat planeswalker buff onto an equipped enemy creature: Scythe (seat 1) enters with its 1 soul counter (EtB trigger) and equips its own Brute for the +1/+1-per-soul static; Garruk Unleashed (seat 0) +1 has no controller restriction on its TARGET, so +3/+3 and trample land on seat 1's Brute (CR 601.2b, 109.5 the controller of the ability is who pays loyalty, the object just needs to be a legal target). Layers: the Scythe's soul-counter DCP and Garruk's +3/+3 DCP both apply in layer 7c in timestamp order, commutative here -> 9/9 (CR 613.3d, 613.6a). Trample rides the same buff. re-pinned 2026-10-29: the B-60 fix gives Equip its printed sorcery timing (CR 702.6a), so seat 1 can no longer equip on seat 0's turn; the setup now advances to seat 1's turn for the Scythe's entry and equip and back to seat 0's turn for the rest. The pairing under test and every expectation are unchanged."
 }

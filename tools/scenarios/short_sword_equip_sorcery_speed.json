@@ -1,0 +1,16 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "B-60(a) regression (2026-10-29). Printed: 'Equip {1} ({1}: Attach to target creature you control. Equip only as a sorcery.)' (CR 702.6a). On the opponent's turn the equip is refused before anything is paid; back on its controller's turn, main phase, empty stack, the same activation attaches (Bearer 2/2 -> 3/3) and spends one of the two colorless. Before the fix the compiler dropped the sorcery timing and the first activation succeeded.",
+ "cards": [
+  {"key": "s", "real": "Short Sword", "zone": "hand", "controller": 0},
+  {"key": "a", "name": "Bearer", "power": 2, "toughness": 2, "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "enter", "key": "s"},
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "s", "idx": 1, "seat": 0, "targets": ["a"],
+   "expect_raise": "illegal activation: window:sorcery:not_own_turn"},
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "s", "idx": 1, "seat": 0, "targets": ["a"]}
+ ],
+ "expect": {"power": {"a": 3}, "toughness": {"a": 3}, "mana_pool": {"0": {"C": 1}}}}

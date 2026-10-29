@@ -42,6 +42,9 @@
  },
  "steps": [
   {
+   "op": "advance_turn"
+  },
+  {
    "op": "enter",
    "key": "scythe"
   },
@@ -53,6 +56,9 @@
    "targets": [
     "wall"
    ]
+  },
+  {
+   "op": "advance_turn"
   },
   {
    "op": "combat",
@@ -86,5 +92,5 @@
    "1": 20
   }
  },
- "notes": "HUNT H3 pair 2 (heat 2254, dies x end-step census x soul-counter layer). Malefic Scythe (seat 1) enters with its printed soul counter (EtBState) and equips seat 1's 2/2 Wall -> effective 3/3 in the blocker lane (static '+1/+1 for each soul counter', CR 613.3d). Brute 5/3 attacks, Wall blocks: the soul fold decides who lives - folded, Wall deals 3 and Brute (toughness 3) DIES too (CR 704.5f); soul-blind, Wall deals 2 and Brute survives. The fold is observed through the SURVIVAL lane, not the mark ledger: the ledger is empty once end_turn cleanup runs (rig law, H3 findings), and Gadrak's end-step census counts the deaths either way. Gadrak (seat 0) end step, on end_turn: 'create a Treasure token for each nontoken creature that died this turn' - printed WITHOUT a controller restriction, so the opponent's Wall counts (CR 603.2 'this turn' covers the combat): BOTH died -> Treasure 2. This Treasure end-step lane was left UNASSERTED by the gadrak_crown_scourge solo pack - first lighting here. Falsifiers: Treasure 1 (soul-blind block -> Brute survives, OR cross-controller census dropped), Treasure 0 (end-step trigger lost), SOUL 1 (dies trigger lost)."
+ "notes": "HUNT H3 pair 2 (heat 2254, dies x end-step census x soul-counter layer). Malefic Scythe (seat 1) enters with its printed soul counter (EtBState) and equips seat 1's 2/2 Wall -> effective 3/3 in the blocker lane (static '+1/+1 for each soul counter', CR 613.3d). Brute 5/3 attacks, Wall blocks: the soul fold decides who lives - folded, Wall deals 3 and Brute (toughness 3) DIES too (CR 704.5f); soul-blind, Wall deals 2 and Brute survives. The fold is observed through the SURVIVAL lane, not the mark ledger: the ledger is empty once end_turn cleanup runs (rig law, H3 findings), and Gadrak's end-step census counts the deaths either way. Gadrak (seat 0) end step, on end_turn: 'create a Treasure token for each nontoken creature that died this turn' - printed WITHOUT a controller restriction, so the opponent's Wall counts (CR 603.2 'this turn' covers the combat): BOTH died -> Treasure 2. This Treasure end-step lane was left UNASSERTED by the gadrak_crown_scourge solo pack - first lighting here. Falsifiers: Treasure 1 (soul-blind block -> Brute survives, OR cross-controller census dropped), Treasure 0 (end-step trigger lost), SOUL 1 (dies trigger lost). re-pinned 2026-10-29: the B-60 fix gives Equip its printed sorcery timing (CR 702.6a), so seat 1 can no longer equip on seat 0's turn; the setup now advances to seat 1's turn for the Scythe's entry and equip and back to seat 0's turn for the rest. The pairing under test and every expectation are unchanged."
 }

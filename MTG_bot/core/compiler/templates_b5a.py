@@ -54,9 +54,8 @@ Conventions (documented build decisions):
 - ``Each player loses N life`` → ``LOSE_LIFE(controller=ANY)`` (shape #72).
 - ``Counter target spell`` → ``COUNTER_SPELL`` with ``Zone(STACK, ANY)``
   carrying the "spell" semantics (shape #49).
-- The Equip sentence (#83) is an ``ActivatedAbility``; the "Equip only as
-  a sorcery" speed restriction is unrepresentable (gap, documented in
-  test).
+- The Equip sentence (#83) is an ``ActivatedAbility`` with
+  ``timing=ActivationWindow.SORCERY`` ("Equip only as a sorcery", B-60).
 
 PC-3: every B5a concrete sentence fullmatches **at most one** template
 (patterns are pairwise disjoint by construction); verified in tests.
@@ -965,8 +964,10 @@ def _build_end_turn(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_equip(m: re.Match[str]) -> SentenceOutcome:
-    # GAP: "Equip only as a sorcery" speed restriction is unrepresentable
-    # (no speed-restriction construct on ActivatedAbility).
+    # B-60 (2026-10-29): "Equip only as a sorcery" (CR 702.6a, which holds
+    # even where the reminder text is omitted: B11-equip-bare builds here
+    # too) rides the R9-1 timing slot. The old GAP note predated that slot;
+    # without it every Equipment moved at instant speed and mid-combat.
     attach = Atom(
         verb=Verb.ATTACH,
         args=AtomArgs(
@@ -1004,6 +1005,7 @@ def _build_equip(m: re.Match[str]) -> SentenceOutcome:
         ability=ActivatedAbility(
             cost=_parse_equip_cost(m.group("cost")),
             effect=attach,
+            timing=ActivationWindow.SORCERY,
         )
     )
 
@@ -1467,19 +1469,18 @@ def _build_speaker_activation_gate(m: re.Match[str]) -> SentenceOutcome:
 
     C16: none — the gate is a legality condition, fully forced.
 
-    LOSSY (verbatim): "and only as a sorcery" — the ActivationWindow
-    vocabulary shipped in R9-1 but NO attach plumbing exists for a bare
-    gate sentence carrying timing (ActivationGateOutcome carries a condition
-    only; the compiler's gate-attach rewrites the condition slot). A
-    pattern-override of the s1 builder would create a second match on that
-    sentence (PC-3 hard gate), so the clause is DROPPED with this note —
-    R10: gate-outcome timing attachment (ActivationGateOutcome.timing).
+    "and only as a sorcery" is the gate's ``window`` slot (B-60,
+    2026-10-29). It was dropped while ActivationGateOutcome carried a
+    condition only; R10-1 gave the outcome both slots and the compiler's
+    gate-attach writes both (C25), so the clause no longer needs to be
+    LOSSY: without it the Angel could be made at instant speed.
     """
     return ActivationGateOutcome(
+        window=ActivationWindow.SORCERY,
         condition=FAtom(
             pred=FAtomPred.LIFE_LEAD_OVER_START_GE,
             count=QConst(int(m.group("n"))),
-        )
+        ),
     )
 
 
