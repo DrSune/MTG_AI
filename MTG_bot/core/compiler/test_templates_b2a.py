@@ -1440,8 +1440,9 @@ class TestB2aEffectStructure(unittest.TestCase):
             _find_atom(cards.filter, FAtomPred.TYPE_EQ).string_value, "Creature"
         )
         self.assertTrue(_contains_not(cards.filter, FAtomPred.SUBTYPE_EQ))
+        # re-pinned 2026-10-29: m21-fidelity, "its owner's hand" is Zone(HAND, OWNER) (CR 400.3)
         self.assertEqual(
-            atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.ANY)
+            atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.OWNER)
         )
 
     def test_gale_swooper_grants_flying_eot(self) -> None:
@@ -1726,8 +1727,9 @@ class TestB2aEffectStructure(unittest.TestCase):
         )
         self.assertTrue(_contains_not(cards.filter, FAtomPred.IS_SOURCE))
         self.assertEqual(cards.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        # re-pinned 2026-10-29: m21-fidelity, "its owner's hand" is Zone(HAND, OWNER) (CR 400.3)
         self.assertEqual(
-            atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.ANY)
+            atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.OWNER)
         )
 
     def test_barrin_returns_creature_or_planeswalker(self) -> None:
@@ -1750,8 +1752,9 @@ class TestB2aEffectStructure(unittest.TestCase):
             },
             {"Creature", "Planeswalker"},
         )
+        # re-pinned 2026-10-29: m21-fidelity, "its owner's hand" is Zone(HAND, OWNER) (CR 400.3)
         self.assertEqual(
-            atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.ANY)
+            atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.OWNER)
         )
 
     def test_meteorite_deals_two_to_any_target(self) -> None:
