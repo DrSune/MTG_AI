@@ -87,6 +87,49 @@
 - Use self-play against a frozen panel (the heuristic plus earlier checkpoints); add exploiters
   later (REVIEW_ARCHITECTURE F4/F5).
 
+### Exploration in the long run (owner, 2026-10-29)
+Owner: huge exploration from the very beginning, over all or nearly all sets, "will likely cause
+slow improvement rate, but also ensure we are more likely to converge on the best solutions for each
+deck" and generalise better to new cards and decks. Agreed, with these refinements:
+1. **Breadth comes mostly from the environment.**
+   - Train on every verified set and many decks from the first update. This is domain
+     randomisation.
+   - In Procgen (Cobbe et al. 2020), generalisation grows with the number of distinct training
+     levels.
+   - A policy that never sees one meta for long cannot overfit to it.
+2. **Explore over strategies, not clicks.**
+   - Uniformly random actions in MTG are mostly plainly bad (K2's random base games), so raw noise
+     wastes games.
+   - Use an entropy bonus with an adaptive target entropy, a learned temperature as in SAC, rather
+     than a hand-set annealing schedule ("learnable over hardcoded").
+   - Use a league (AlphaStar):
+     - several main agents with different seeds;
+     - exploiters that hunt the main agents' weaknesses;
+     - prioritised fictitious self-play against the pool.
+   - The league keeps non-transitive strategies alive and stops a collapse onto one exploitable
+     line.
+   - Report learning curves per deck archetype.
+3. **Start from Steps 1–3, not from scratch.**
+   - Exploration then happens around play that already understands its components.
+   - Keep their auxiliary losses.
+   - Do not anchor with a fixed KL to the BC policy; it fights exploration. If a KL is used, let an
+     adaptive coefficient set it.
+4. **Exploration finds engine bugs.**
+   - A high-entropy policy is a fuzzer. It will build its play around any card that is stronger
+     than printed.
+   - Gate: every dealt card passes the gates of `docs/PLAN_CARD_ONBOARDING.md` before the run.
+   - During the run, watch each card's usage and its win rate when cast. A jump means either a
+     discovery or a bug, so review it.
+5. **How many sets first: a measurable trigger, not a count.** Start when:
+   - the component inventory saturates, meaning a newly mapped set adds few component types never
+     seen before (for example, under 3% of its component uses), measured from the mapped records;
+   - every dealt card is verified;
+   - the policy reads components (Step 0, item 6). Without that, more sets only add names.
+   - Adding verified cards of known components during the run needs no restart; that is the
+     auto-extend goal. A new atom is an era boundary.
+6. **Measure that exploration pays.** Hold out whole sets (zero-shot, as M20/KHM) and plot their
+   curve next to the training sets' curve.
+
 ## Measurement: the component report card (build it before Step 1)
 - **Grouping.** For every labelled decision, take the component group that drives it: the source
   ability's verbs and predicates (DEAL_DAMAGE, MODIFY_PT, MOVE_ZONE→graveyard, SACRIFICE cost, X
