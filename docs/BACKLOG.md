@@ -662,6 +662,20 @@ These are forks, not tasks. See the report that accompanied this audit.
     only. `KeywordAbility(ENCHANT)` has no filter parameter, so the tree cannot say "creature".
   - No state-based action moves an illegally attached Aura to the graveyard (CR 704.5m).
   - The first half is being fixed on branch `cards/castable-permanents` (B-49 follow-up #2).
+- **B-66 [B-49 follow-up sweep] Enthralling Hold's "You can't choose an untapped creature as this
+  Aura's target" is not applied to its target slot** (live in M21, stronger than printed): the Aura
+  can steal an untapped creature.
+- **B-67 [same] The journal records any card put from library into hand as a draw (`CARD_DRAWN`).**
+  - So a tutor can satisfy "whenever you draw a card" triggers and draw counts.
+  - Probably stronger than printed. Write the pack first: a search-to-hand with a draw-trigger card
+    on the battlefield.
+- **B-68 [same] "Doesn't untap during its controller's untap step" is not applied** (Capture Sphere,
+  Bubble Snare; weaker than printed, true before B-49 too).
+- **B-69 [same] Two damage replacements on one event raise `NotImplementedError`.**
+  - `replacements.py:424-425` does not model the affected player's ordering choice (CR 616.1).
+  - About 0.25% of coherent M21 games crash on it (seeds 1176, 1356, 1439, 1603, 2230: Fiery
+    Emancipation with Nine Lives, or two Fiery Emancipations).
+  - Repro script on the B-49 branch: `cr6161_repro.py`.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).
