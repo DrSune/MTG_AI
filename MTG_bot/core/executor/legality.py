@@ -49,11 +49,12 @@ Rules encoded, with citations:
   query is asked before anything is cast); ``stack_empty`` is an explicit
   parameter, and "own main" is the turn skeleton's ``world.active_player``
   (§12b skeleton: main phases are its only phases).
-* **Summoning sickness (CR 302.6)** is NOT representable in the frozen
-  state — ``CardState`` carries no "entered since start of turn" timestamp
-  — so ``{T}`` costs are checked as CR 117.3 tap-legality only. A
-  permissive gap, flagged here rather than faked; 12d's ``DurationLedger``
-  is the honest place to add the timestamp if it matters.
+* **Summoning sickness (CR 302.6 / 602.5a)** — a creature's ability with
+  ``{T}`` in its cost is refused unless the creature has been under its
+  controller's control since their most recent turn began, or has haste
+  (CR 702.10). The clock is the journal read :func:`_controlled_since_turn_start`
+  that attack legality already used (V1, 2026-10-29; until then ``{T}``
+  costs were checked as CR 117.3 tap-legality only).
 
 :func:`pay_costs` executes a plan through the 12a journalled verbs, so
 costs fire the same ``TapState`` / ``ZONE_CHANGE`` / ``SACRIFICE`` events
@@ -1120,6 +1121,21 @@ def ability_playable(
     ):
         return "window:loyalty:once_per_turn"
     ctx = ctx_for(executor, source=handle, controller=seat)
+    # CR 302.6 / 602.5a: a creature's activated ability with {T} in its cost
+    # (CostTap with no target: "tap this permanent") can't be activated unless
+    # the creature has been under its controller's control continuously since
+    # their most recent turn began; haste exempts it (CR 702.10). Mana
+    # abilities are activated abilities too (CR 605.3). Tapping OTHER
+    # permanents as a cost ("Tap an untapped creature you control") is not the
+    # {T} symbol and is not restricted. The IR has no {Q} (untap symbol) cost.
+    if (
+        handle in world.cards
+        and any(isinstance(p, CostTap) and p.target is None for p in ability.cost.parts)
+        and eval_filter(_IS_CREATURE, handle, ctx)
+        and not executor.layers.keyword_of(handle, Keyword.HASTE)
+        and not _controlled_since_turn_start(executor, handle, seat)
+    ):
+        return "summoning sickness (CR 302.6) without haste"
     if ability.condition is not None:
         subject = condition_ctx_source if condition_ctx_source is not None else handle
         if not eval_filter(ability.condition, subject, ctx):
@@ -1703,9 +1719,11 @@ from MTG_bot.core.executor.events import (
 )
 
 
-def _controlled_since_turn_start(executor: Executor, creature: Handle) -> bool:
-    """CR 302.6 (summoning sickness): has ``creature`` been under control
-    continuously since the start of the current turn?
+def _controlled_since_turn_start(
+    executor: Executor, creature: Handle, seat: Handle | None = None
+) -> bool:
+    """CR 302.6 (summoning sickness): has ``creature`` been under ``seat``'s
+    control continuously since ``seat``'s most recent turn began?
 
     The answer is a JOURNAL read, never a mirror-table: the turn's UPKEEP
     marker (the same anchor :meth:`EventJournal.turn_window` uses) opens
@@ -1716,16 +1734,29 @@ def _controlled_since_turn_start(executor: Executor, creature: Handle) -> bool:
     and read ready, which is the correct pre-game-control reading). 16e:
     a CONTROL change is not a zone change — the overlay's gained-turn
     marker is the second half of this oracle (CR 302.6 is control-based,
-    not ownership-based), and a returned owner is a fresh period too."""
-    if creature in executor.control_gained_turn:
-        return executor.control_gained_turn[creature] < executor.world.turn
+    not ownership-based), and a returned owner is a fresh period too.
+
+    ``seat`` None or the active player anchors on the most recent UPKEEP
+    marker (the attack lane: only the active player attacks). Any other
+    seat anchors on ITS OWN most recent turn (V1, 2026-10-29): a creature
+    that entered during its controller's turn stays sick through the
+    opponent's turn ("their most recent turn", CR 302.6). That turn's
+    number is the current one minus the turns begun since."""
+    world = executor.world
     events = executor.journal.events
+    own_turn_only = seat is not None and seat != world.active_player
     start = -1
+    turns_since = 0
     for i in range(len(events) - 1, -1, -1):
         row = events[i]
         if row.kind == KIND_TURN_PHASE and row.data[0] == Phase.UPKEEP.name:
+            if own_turn_only and row.data[1] != seat:
+                turns_since += 1
+                continue
             start = i
             break
+    if creature in executor.control_gained_turn:
+        return executor.control_gained_turn[creature] < world.turn - turns_since
     for row in events[start + 1 :]:
         if (
             row.kind == KIND_ZONE_CHANGE

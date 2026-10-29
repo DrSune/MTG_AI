@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "os", "real": "Obsessive Stitcher", "zone": "hand", "controller": 0},
+  {"key": "fallen", "name": "Fallen Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"U": 2, "B": 2, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "os", "real": "Obsessive Stitcher"},
+  {"op": "activate", "key": "os", "idx": 0, "seat": 0, "expect_raise": "illegal activation"},
+  {"op": "activate", "key": "os", "idx": 1, "seat": 0, "targets": ["fallen"], "expect_raise": "illegal activation"}
+ ],
+ "expect": {
+  "zone": {"os": "battlefield", "fallen": "graveyard"},
+  "tapped": {"os": false}
+ },
+ "notes": "M21 G2 spec: Obsessive Stitcher. Both abilities cost {T}, so on the turn it enters (summoning sick, CR 302.6) neither can be activated."
+}

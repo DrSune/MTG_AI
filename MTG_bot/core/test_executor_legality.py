@@ -468,5 +468,149 @@ class TestActivateFold(LegalityCase):
         self.assertTrue(self.world.cards[self.alpha].tapped)
 
 
+SICK = "summoning sickness (CR 302.6) without haste"
+
+
+class TestSummoningSickness(LegalityCase):
+    """V1 (2026-10-29): CR 302.6 / 602.5a. A creature's ability with {T} in
+    its cost needs the creature under its controller's control since their
+    most recent turn began; haste exempts it (CR 702.10). Setup permanents
+    (Alpha, Beta) carry no entry rows and read ready."""
+
+    def enter(self, name, type_line="Creature", seat=None):
+        """A journalled hand -> battlefield move this turn (what a resolving
+        creature spell does), so the sickness clock sees the entry row."""
+        seat = self.p0 if seat is None else seat
+        handle = self.world.add_card(
+            card_id(name, "1", "1", type_line=type_line), seat, ZONE_HAND
+        )
+        self.ex.execute(
+            Atom(
+                verb=Verb.MOVE_ZONE,
+                args=AtomArgs(
+                    pairs=(
+                        (
+                            "cards",
+                            Selector(
+                                QConst(1), SelectorMode.TARGET, UNIV, zones=(HAND_YOU,)
+                            ),
+                        ),
+                        ("destination", BF_YOU),
+                    )
+                ),
+            ),
+            source=handle,
+            controller=seat,
+            bindings={"cards": handle},
+        )
+        self.assertEqual(self.world.zone_of(handle).kind, ZONE_BATTLEFIELD)
+        return handle
+
+    def playable(self, handle, seat=None):
+        seat = self.p0 if seat is None else seat
+        return ability_playable(self.world, self.ex, handle, 0, seat=seat)
+
+    def test_tap_ability_refused_the_turn_it_enters(self):
+        self.ex.begin_turn(self.p0)
+        newcomer = self.enter("Newcomer")
+        self.attach([ability(cost(CostTap()))], newcomer)
+        self.assertEqual(self.playable(newcomer), SICK)
+        with self.assertRaises(ValueError) as caught:
+            activate(self.ex, newcomer, 0, seat=self.p0)
+        self.assertIn("summoning sickness", str(caught.exception))
+        self.assertFalse(self.world.cards[newcomer].tapped)  # nothing paid
+
+    def test_mana_ability_refused_and_not_listed(self):
+        from MTG_bot.core.executor.query import legal_activations
+
+        self.ex.begin_turn(self.p0)
+        newcomer = self.enter("Mana Elf")
+        self.attach([ability(cost(CostTap()), effect=add_mana("G"))], newcomer)
+        self.attach([ability(cost(CostTap()), effect=add_mana("G"))])  # Alpha
+        self.assertEqual(self.playable(newcomer), SICK)
+        rows = {o.source for o in legal_activations(self.world, self.ex, self.p0)}
+        self.assertEqual(rows, {self.alpha})  # the ready setup creature only
+
+    def test_ability_without_the_tap_symbol_is_not_restricted(self):
+        self.ex.begin_turn(self.p0)
+        newcomer = self.enter("Newcomer")
+        self.attach([ability(cost(CostManaColor("G", QConst(1))))], newcomer)
+        self.pool(self.p0, G=1)
+        self.assertIsNone(self.playable(newcomer))
+
+    def test_tapping_other_creatures_as_a_cost_is_not_restricted(self):
+        # "Tap an untapped creature you control" is not the {T} symbol: a
+        # sick source may pay it, and a sick creature may be the one tapped.
+        self.ex.begin_turn(self.p0)
+        newcomer = self.enter("Newcomer")
+        other = Selector(
+            QConst(1),
+            SelectorMode.CHOOSE,
+            FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
+            zones=(BF_YOU,),
+        )
+        self.attach([ability(cost(CostTap(target=other)))], newcomer)
+        self.assertIsNone(self.playable(newcomer))
+
+    def test_haste_exempts(self):
+        from MTG_bot.core.ability_tree import Keyword, KeywordAbility
+
+        self.ex.begin_turn(self.p0)
+        newcomer = self.enter("Hasty")
+        self.attach([ability(cost(CostTap()))], newcomer)
+        self.assertEqual(self.playable(newcomer), SICK)
+        self.ex.execute(
+            Atom(
+                verb=Verb.GRANT_ABILITY,
+                args=AtomArgs(
+                    pairs=(
+                        ("ability", KeywordAbility(keyword=Keyword.HASTE)),
+                        (
+                            "target",
+                            Selector(
+                                QConst(1), SelectorMode.TARGET, UNIV, zones=(BF_YOU,)
+                            ),
+                        ),
+                    )
+                ),
+            ),
+            source=newcomer,
+            controller=self.p0,
+            bindings={"target": newcomer},
+        )
+        self.assertIsNone(self.playable(newcomer))
+
+    def test_noncreature_permanent_taps_the_turn_it_enters(self):
+        self.ex.begin_turn(self.p0)
+        relic = self.enter("Relic", type_line="Artifact")
+        self.attach([ability(cost(CostTap()))], relic)
+        self.assertIsNone(self.playable(relic))
+
+    def test_sick_through_the_opponents_turn_ready_on_its_controllers_next(self):
+        # "their most recent turn began": a creature that entered on p0's
+        # turn is still sick for p0 during p1's turn.
+        self.ex.begin_turn(self.p0)
+        newcomer = self.enter("Newcomer")
+        self.attach([ability(cost(CostTap()))], newcomer)
+        self.ex.end_turn()
+        self.ex.advance_turn()
+        self.assertEqual(self.world.active_player, self.p1)
+        self.assertEqual(self.playable(newcomer), SICK)
+        self.ex.end_turn()
+        self.ex.advance_turn()
+        self.assertEqual(self.world.active_player, self.p0)
+        self.assertIsNone(self.playable(newcomer))
+
+    def test_entered_on_the_opponents_turn_ready_on_its_controllers_turn(self):
+        self.ex.begin_turn(self.p1)
+        newcomer = self.enter("Flash Bear")  # p0's creature, on p1's turn
+        self.attach([ability(cost(CostTap()))], newcomer)
+        self.assertEqual(self.playable(newcomer), SICK)
+        self.ex.end_turn()
+        self.ex.advance_turn()
+        self.assertEqual(self.world.active_player, self.p0)
+        self.assertIsNone(self.playable(newcomer))
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

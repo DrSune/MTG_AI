@@ -1,0 +1,10 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [{"key": "t", "real": "Tavern Swindler", "zone": "hand", "controller": 0}],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "real": "Tavern Swindler", "key": "t"},
+  {"op": "activate", "key": "t", "idx": 0, "seat": 0, "expect_raise": "summoning sickness"}
+ ],
+ "expect": {"zone": {"t": "battlefield"}, "tapped": {"t": false}, "life": {"0": 20}},
+ "notes": "Printed: '{T}, Pay 3 life: Flip a coin. ...' CR 302.6 / 602.5a: the Swindler is cast this turn, so its {T} ability cannot be activated: refused, untapped, no life paid."}

@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "protege", "real": "Teferi's Protege", "zone": "hand", "controller": 0},
+    {"key": "keep", "name": "Test Keepsake", "type": "Creature — Elf", "power": "1", "toughness": "1", "zone": "hand", "controller": 0}
+  ],
+  "mana": {"0": {"U": 4, "C": 4}},
+  "steps": [
+    {"op": "enter", "key": "protege"},
+    {"op": "activate", "key": "protege", "idx": 0, "seat": 0, "decisions": ["keep"], "expect_raise": "illegal activation"}
+  ],
+  "expect": {
+    "zone": {"protege": "battlefield", "keep": "hand"},
+    "tapped": {"protege": false},
+    "mana_pool": {"0": {"U": 4, "C": 4}}
+  }
+}

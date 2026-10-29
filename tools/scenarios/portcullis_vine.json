@@ -7,7 +7,7 @@
   {
    "key": "v",
    "real": "Portcullis Vine",
-   "zone": "hand",
+   "zone": "battlefield",
    "controller": 0
   },
   {
@@ -18,10 +18,6 @@
   }
  ],
  "steps": [
-  {
-   "op": "enter",
-   "key": "v"
-  },
   {
    "op": "combat",
    "seat": 0,
@@ -53,5 +49,5 @@
    "v"
   ]
  },
- "notes": "DEFENDER: the combat phase never asked the Wall to attack. {2},{T},sac-a-defender: the vine sacrifices ITSELF (cost designation answered with the pack key) -> draw -> hand Shock+1 drawn card."
+ "notes": "DEFENDER: the combat phase never asked the Wall to attack. {2},{T},sac-a-defender: the vine sacrifices ITSELF (cost designation answered with the pack key) -> draw -> hand Shock+1 drawn card. Re-pinned 2026-10-29: V1 (CR 302.6) refuses a creature's {T} ability the turn it enters, so the Vine starts on the battlefield instead of entering this turn."
 }

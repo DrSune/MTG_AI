@@ -1,0 +1,13 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mutt", "real": "Chandra's Magmutt", "zone": "hand", "controller": 0},
+  {"key": "pw", "real": "Basri, Devoted Paladin", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "real": "Chandra's Magmutt", "key": "mutt"},
+  {"op": "activate", "key": "mutt", "idx": 0, "seat": 0, "targets": ["pw"], "expect_raise": "summoning sickness"}
+ ],
+ "expect": {"zone": {"mutt": "battlefield"}, "tapped": {"mutt": false}, "counters": {"pw": {"LOYALTY": 4}}, "life": {"0": 20, "1": 20}},
+ "notes": "Printed: '{T}: This creature deals 1 damage to target player or planeswalker.' CR 302.6: a creature's {T} ability cannot be activated unless it has been under your control continuously since your most recent turn began (no haste). The Magmutt is cast this turn, so the activation is refused: it stays untapped and Basri keeps 4 loyalty."}
