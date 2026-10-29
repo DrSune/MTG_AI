@@ -27,7 +27,7 @@ def test_the_default_deal_is_the_stress_pile_byte_for_byte(m21) -> None:
     # re-pinned 2026-10-29: B-49 carrier made 42 noncreature permanents castable (M21 castable pool grew)
     # from 239 to 281 deckable cards, so the deals moved (was "e9fceb12fb91e3ab"). The default ==
     # "stress" identity below is unchanged.
-    # re-pinned 2026-10-29 (B-50): 281 -> 279, the two Chandras with suppressed duration
+    # re-pinned 2026-10-29 (B-49 follow-up #1): 281 -> 279, the two Chandras with suppressed duration
     # permissions are engine-unsupported (was "d8e619dbf28b3c6d").
     # re-pinned 2026-10-29 (B-49 follow-up #4): 279 -> 278, Ugin's [−X] loyalty cost is gated
     # engine-unsupported (was "fdcbefbd2b37d046").

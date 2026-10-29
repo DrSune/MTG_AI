@@ -3951,7 +3951,7 @@ _KEYWORD_PARAMS: dict[Keyword, tuple[tuple[tuple[type, ...], ...], ...]] = {
     Keyword.BATTALION: ((_Q_CLASSES,),),
     Keyword.PROTECTION: ((_F_CLASSES,),),
     Keyword.HEXPROOF: ((), (_F_CLASSES,)),
-    # B-51 (2026-10-29): "Enchant [object or player]" (CR 702.5a) carries what
+    # B-49 follow-up #2 (2026-10-29): "Enchant [object or player]" (CR 702.5a) carries what
     # the Aura may target and enchant; bare when the Enchant line did not parse.
     Keyword.ENCHANT: ((), (_F_CLASSES,)),
 }

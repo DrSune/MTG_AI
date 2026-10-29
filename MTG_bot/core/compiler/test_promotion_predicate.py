@@ -48,7 +48,7 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 # the planeswalker record with its EMBEDDED emblem AND the emblem raw
 # standalone — Liliana's emblem CHOOSE(referent='result') was counted
 # twice. The pool's distinct surface multiset is 154.
-# B-50 (2026-10-29): 156 -> 153 and count!=1 15 -> 12. The three duration-limited
+# B-49 follow-up #1 (2026-10-29): 156 -> 153 and count!=1 15 -> 12. The three duration-limited
 # cast-permission rows (Chandra, Flame's Catalyst [−8] tail; Chandra, Heart of
 # Fire's [+1] and [−9] tails) are suppressed at assembly, and each carried one
 # CHOOSE(QUnbounded) source. No other surface moved (her two [−9] SEARCH

@@ -210,7 +210,7 @@ class DeckSupplyTest(unittest.TestCase):
         # Denial — measure_grammar --with-engine-flags: 301/305), zero
         # losses. Deckable unchanged: all four are instants, the castable
         # lane; the window now answers for them when they are cast.
-        # AMENDED 2026-10-29 (B-50): 301 -> 299 — exactly the two Chandras
+        # AMENDED 2026-10-29 (B-49 follow-up #1): 301 -> 299 — exactly the two Chandras
         # (Flame's Catalyst, Heart of Fire) leave: their duration-limited cast
         # permissions are suppressed and the gate marks them unsupported.
         # AMENDED 2026-10-29 (B-49 follow-up #4): 299 -> 298 — exactly Ugin, the
@@ -252,7 +252,7 @@ class ShapeGapSupplyExclusionTest(unittest.TestCase):
     def test_m21_supply_untouched_by_the_lane(self) -> None:
         m21 = get_supply("engine")
         self.assertEqual(m21.shape_gaps, ())
-        # B-50 (2026-10-29): 301 -> 299 engine, 281 -> 279 deckable (the two
+        # B-49 follow-up #1 (2026-10-29): 301 -> 299 engine, 281 -> 279 deckable (the two
         # Chandras whose duration permissions are suppressed).
         # B-49 follow-up #4 (2026-10-29): 299 -> 298, 279 -> 278 (Ugin's [−X]).
         self.assertEqual(len(m21.engine_ids), 298)
@@ -2211,7 +2211,7 @@ class AuraEffectlessLegalityTest(unittest.TestCase):
 
 
 class AuraEnchantRestrictionTest(unittest.TestCase):
-    """B-51 (2026-10-29): "Enchant creature" limits what an Aura spell can
+    """B-49 follow-up #2 (2026-10-29): "Enchant creature" limits what an Aura spell can
     target (CR 303.4a, 702.5a). An Aura cast through the effect-less carrier
     has no effect tree to read the restriction from, so its enchant slot fell
     back to any permanent: Dub, Capture Sphere and six more M21 Auras, and

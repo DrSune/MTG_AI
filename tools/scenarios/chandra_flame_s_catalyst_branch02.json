@@ -50,5 +50,5 @@
    "0": 1
   }
  },
- "notes": "B-50 negative (was branch chandra_flame_s_catalyst:02, the free-cast fire branch). The [-8]'s 'Until end of turn, you may cast spells from your hand without paying their mana costs.' compiled as a free empty-cost activation at idx 4 that cast Crash Through from hand for nothing, any turn, as often as wanted. It is part of the [-8] (CR 611.2a) and is now suppressed (the card is engine-unsupported until CAST has a duration role), so idx 4 is the cast carrier: refused, and Crash Through stays in hand."
+ "notes": "B-49 follow-up #1 negative (was branch chandra_flame_s_catalyst:02, the free-cast fire branch). The [-8]'s 'Until end of turn, you may cast spells from your hand without paying their mana costs.' compiled as a free empty-cost activation at idx 4 that cast Crash Through from hand for nothing, any turn, as often as wanted. It is part of the [-8] (CR 611.2a) and is now suppressed (the card is engine-unsupported until CAST has a duration role), so idx 4 is the cast carrier: refused, and Crash Through stays in hand."
 }

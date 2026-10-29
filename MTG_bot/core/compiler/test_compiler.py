@@ -1458,7 +1458,7 @@ class TestActivationTrailing(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        # B-50: "this turn" makes the row a permission created by the
+        # B-49 follow-up #1: "this turn" makes the row a permission created by the
         # activation's resolution (CR 611.2a), so it is suppressed at assembly
         # instead of standing as a free ability. The tail still skipped it.
         activation, carrier = res.card.abilities  # + C4 carrier
@@ -1478,7 +1478,7 @@ class TestActivationTrailing(unittest.TestCase):
         bare tail. The loyalty EXCLUSION keeps this mechanism out, and the
         tail never joins the permission row.
 
-        B-50 (2026-10-29): the R11-1 loyalty chain now sees through the
+        B-49 follow-up #1 (2026-10-29): the R11-1 loyalty chain now sees through the
         permission row (the r14e intent), so the bullet owns its tail. Before,
         the tail landed card-level: Chandra, Heart of Fire's "Add six {R}." ran
         when she was cast. The row itself states a duration and is suppressed."""
@@ -1511,8 +1511,8 @@ class TestActivationTrailing(unittest.TestCase):
         self.assertEqual(carrier, SpellAbility(kind=SpellKind.PLANESWALKER))
 
 
-class TestB50DurationPermissionRows(unittest.TestCase):
-    """B-50 (2026-10-29): a cast permission that lasts "until end of turn" or
+class TestDurationPermissionRows(unittest.TestCase):
+    """B-49 follow-up #1 (2026-10-29): a cast permission that lasts "until end of turn" or
     "this turn" is part of the ability whose resolution creates it (CR
     611.2a). It compiled as a free empty-cost activation of its own, which
     the controller could repeat any turn: Chandra, Flame's Catalyst cast any
@@ -1648,7 +1648,7 @@ class TestRound14fFidelity(unittest.TestCase):
         )
         res = compile_card(raw, self.reg)
         self.assertEqual(res.unparsed, ())
-        # B-50: the row states a duration, so compile_card suppresses it (a
+        # B-49 follow-up #1: the row states a duration, so compile_card suppresses it (a
         # permission created by a resolving ability, CR 611.2a). The fidelity
         # this test pins is the template's own row, read from the registry.
         self.assertEqual(res.card.abilities, ())

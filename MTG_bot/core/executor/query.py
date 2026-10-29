@@ -1406,7 +1406,7 @@ def aura_enchant_slot(
     any permanent on the battlefield. The aura itself is never a
     candidate (CR 702.5c "another object").
 
-    B-51 (2026-10-29): the compiled ENCHANT keyword's own restriction comes
+    B-49 follow-up #2 (2026-10-29): the compiled ENCHANT keyword's own restriction comes
     first. "Enchant creature" limits what the Aura spell can target (CR 303.4a,
     702.5a), and an Aura cast through the effect-less carrier has no effect
     tree to read it from: Dub, Capture Sphere and six more M21 Auras (and ZNR's
