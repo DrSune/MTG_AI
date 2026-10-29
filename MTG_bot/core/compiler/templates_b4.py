@@ -824,11 +824,15 @@ def _build_search_named_card(card_name: str) -> SentenceOutcome:
         ),
     )
     seq = Seq(steps=(search_atom, reveal_atom, move_atom))
-    ability = ActivatedAbility(
-        cost=Cost(),
-        effect=OptionalEffect(inner=seq),
-    )
-    return AbilityOutcome(ability=ability)
+    # The sentence is part of the SORCERY's effect (Basri's Aegis, Liliana's
+    # Scorn): it runs as the spell resolves, after the printed sentence before
+    # it (CR 608.2c), and the compiler's search-shuffle tail joins this same
+    # OptionalEffect ("If you search your library this way, shuffle", only if
+    # the search ran). Same inner bytes as the ETB twin B2b-named-card-search
+    # (Garruk's Warsteed, Chandra's Firemaw). m21-fidelity (review batches A
+    # and C, 2026-10-29): this was a free ActivatedAbility (cost {}) on the
+    # sorcery, so the spell never searched when it resolved.
+    return EffectOutcome(effect=OptionalEffect(inner=seq))
 
 
 # ---------------------------------------------------------------------------

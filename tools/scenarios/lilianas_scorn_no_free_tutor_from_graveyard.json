@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: Liliana's Scorn has no activated ability. From the graveyard, 'activating' its index-0 node must be refused, and Liliana, Death Mage stays in the library.",
+ "cards": [
+  {"key": "ls", "real": "Liliana's Scorn", "zone": "graveyard", "controller": 0},
+  {"key": "lil", "real": "Liliana, Death Mage", "zone": "library", "controller": 0},
+  {"key": "junk", "name": "Top Junk", "power": 1, "toughness": 1, "type": "Creature", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "ls", "idx": 0, "seat": 0, "decisions": ["fire", "lil"], "expect_raise": "illegal activation"}
+ ],
+ "expect": {"zone": {"ls": "graveyard", "lil": "library"}}}

@@ -428,15 +428,17 @@ EXPECTED_KIND: dict[str, tuple[str, str]] = {
         "B4-cast-graveyard-recost",
         "ability",
     ),
+    # re-pinned 2026-10-29: m21-fidelity, the sorcery tutors are part of the spell's effect
+    # (they were free activated rows that never ran on resolution).
     "You may search your library and/or graveyard for a card named "
     "Basri, Devoted Paladin, reveal it, and put it into your hand.": (
         "B4-tutor-basri",
-        "ability",
+        "effect",
     ),
     "You may search your library and/or graveyard for a card named "
     "Liliana, Death Mage, reveal it, and put it into your hand.": (
         "B4-tutor-liliana",
-        "ability",
+        "effect",
     ),
     "This spell costs {2}{U} less to cast if you've cast an instant or "
     "sorcery spell this turn.": ("B4-stormwing-cost", "ability"),
@@ -1175,10 +1177,10 @@ class TestB4IrStructure(unittest.TestCase):
         )
 
     def _assert_tutor_structure(self, sentence: str, card_name: str) -> None:
-        outcome = _as_ability(_single_match(self.reg, sentence).outcome)
-        ability = _as_activated(outcome.ability)
-        self.assertEqual(ability.cost.parts, ())
-        optional = _as_optional(ability.effect)
+        # re-pinned 2026-10-29: m21-fidelity, an EffectOutcome of the sorcery (the optional
+        # search runs as the spell resolves), no longer a free ActivatedAbility(cost={}).
+        outcome = _as_effect(_single_match(self.reg, sentence).outcome)
+        optional = _as_optional(outcome.effect)
         seq = _as_seq(optional.inner)
         self.assertEqual(len(seq.steps), 3)
         search_atom, reveal_atom, move_atom = seq.steps

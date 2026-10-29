@@ -757,6 +757,16 @@ These are forks, not tasks. See the report that accompanied this audit.
     sorcery (no IR change; the gap stays implicit).
   - The spell-side death replacement is still skipped by DESTROY and other direct graveyard moves
     (B-72).
+- **B-78 [fixer A, m21-fidelity] "Search your library and/or graveyard" always searches both.**
+  - The named tutors (Basri's Aegis, Liliana's Scorn, Garruk's Warsteed, Chandra's Firemaw and
+    their siblings) compile to one SEARCH over Zone(GRAVEYARD) and Zone(LIBRARY), and "If you
+    search your library this way, shuffle" joins the same OptionalEffect, so accepting the search
+    always shuffles.
+  - Printed, "and/or" lets the player search only the graveyard (CR 701.23a: a search looks at
+    the zone searched), and then there is no shuffle, keeping a known library order (after a
+    scry, say). Slightly weaker than printed, no exploit.
+  - Fix needs a way to say "choose which of these zones to search" (a design decision; today
+    the zone set is fixed by the selector). Not done.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).
