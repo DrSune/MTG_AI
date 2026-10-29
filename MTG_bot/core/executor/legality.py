@@ -536,12 +536,20 @@ def enumerate_candidates(sel: Selector, ctx: ExecCtx) -> list[Handle]:
     return handles
 
 
-def _required_count(count: Quantity, ctx: ExecCtx) -> int:
+def _required_count(sel: Selector, ctx: ExecCtx, available: int) -> int:
     """How many objects a cost's selector demands (costs pay in full —
-    CR 117.3). QUnbounded in a cost position is the degenerate "any
-    number"; the resource floor is one (paying zero is not paying)."""
+    CR 118.3). QUnbounded in a cost position is the degenerate "any
+    number"; the resource floor is one (paying zero is not paying).
+
+    V33 (2026-10-29): an ALL selector with no bound is "all of them" ("Discard
+    your hand", Subira, Tulzidi Caravanner): it demands every one of the
+    ``available`` candidates, and none when there are none. Discarding an empty
+    hand pays that cost in full (CR 118.3; 701.9a), as paying 0 mana or 0 life
+    does (118.3a/b). The old floor of one discarded a single card and refused
+    an empty hand."""
+    count = sel.count
     if isinstance(count, QUnbounded):
-        return 1
+        return available if sel.mode is SelectorMode.ALL else 1
     return max(1, resolve(count, ctx))
 
 
@@ -794,7 +802,7 @@ def build_payment_plan(
                     if not world.cards[h].tapped
                     and world.controller_of(h) == ctx.controller
                 ]
-                need = _required_count(part.target.count, ctx)
+                need = _required_count(part.target, ctx, len(cands))
                 if len(cands) < need:
                     return None, (
                         f"cost:tap:insufficient_candidates:{len(cands)}<{need}"
@@ -824,7 +832,7 @@ def build_payment_plan(
                 for h in enumerate_candidates(part.target, ctx)
                 if world.controller_of(h) == ctx.controller
             ]
-            need = _required_count(part.target.count, ctx)
+            need = _required_count(part.target, ctx, len(cands))
             if len(cands) < need:
                 return None, (
                     f"cost:sacrifice:insufficient_candidates:{len(cands)}<{need}"
@@ -859,7 +867,7 @@ def build_payment_plan(
 
             if not _filter_is_self_referential(part.target.filter):
                 cands = [h for h in cands if h != ctx.source]
-            need = _required_count(part.target.count, ctx)
+            need = _required_count(part.target, ctx, len(cands))
             if len(cands) < need:
                 return None, (
                     f"cost:discard:insufficient_candidates:{len(cands)}<{need}"
@@ -873,7 +881,7 @@ def build_payment_plan(
             discard.extend(cands[:need])
         elif isinstance(part, CostPutCounter):
             cands = enumerate_candidates(part.target, ctx)
-            need = _required_count(part.target.count, ctx)
+            need = _required_count(part.target, ctx, len(cands))
             if len(cands) < need:
                 return None, (
                     f"cost:put_counter:insufficient_candidates:{len(cands)}<{need}"

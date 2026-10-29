@@ -13,6 +13,8 @@ V23  Only a draw is a draw (CR 121.1, 121.5): a library-to-hand move by any othe
      is a zone change, not CARD_DRAWN. An atom boundary opened inside another (a CAST
      atom resolving a spell, a cost paid through journalled verbs) journals each change
      once: the enclosing boundary no longer re-emits it.
+V33  "Discard your hand" as a cost discards every card in hand, and an empty hand pays
+     it (CR 118.3, 701.9a).
 """
 
 from __future__ import annotations
@@ -429,6 +431,55 @@ class TestV23NestedBoundariesJournalOnce(FixerCase):
         journal.snapshot()  # an atom that raised before closing its boundary
         journal.drop_open(depth)
         self.assertEqual(journal.open_depth(), depth)
+
+
+class TestV33DiscardYourHand(FixerCase):
+    def plan(self, count, mode):
+        from MTG_bot.core.ability_tree import (
+            Cost,
+            CostDiscard,
+            Selector,
+        )
+        from MTG_bot.core.executor.legality import build_payment_plan, ctx_for
+
+        cost = Cost(
+            (
+                CostDiscard(
+                    target=Selector(
+                        count,
+                        mode,
+                        UNIV,
+                        zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
+                    )
+                ),
+            )
+        )
+        ctx = ctx_for(self.ex, source=self.alpha, controller=self.p0)
+        return build_payment_plan(self.world, ctx, cost)
+
+    def test_discard_your_hand_takes_every_card(self):
+        from MTG_bot.core.ability_tree import QUnbounded, SelectorMode
+
+        hand = [
+            self.world.add_card(card_id(f"H{i}"), self.p0, ZONE_HAND) for i in (1, 2, 3)
+        ]
+        plan, why = self.plan(QUnbounded(), SelectorMode.ALL)
+        self.assertIsNone(why)
+        self.assertEqual(sorted(plan.discard), sorted(hand))
+
+    def test_discard_your_hand_with_an_empty_hand_pays(self):
+        from MTG_bot.core.ability_tree import QUnbounded, SelectorMode
+
+        plan, why = self.plan(QUnbounded(), SelectorMode.ALL)
+        self.assertIsNone(why)
+        self.assertEqual(plan.discard, ())
+
+    def test_discard_a_card_still_needs_a_card(self):
+        from MTG_bot.core.ability_tree import SelectorMode
+
+        plan, why = self.plan(QConst(1), SelectorMode.CHOOSE)
+        self.assertIsNone(plan)
+        self.assertEqual(why, "cost:discard:insufficient_candidates:0<1")
 
 
 if __name__ == "__main__":
