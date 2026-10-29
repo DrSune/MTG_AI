@@ -113,6 +113,13 @@ def cmd_score_mappers(args: argparse.Namespace) -> int:
           f"  95% CI [{lo:.2f}, {hi:.2f}]")
     for row in rows:
         print(f"  {row[0]} [s{row[1]}]: {row[2]}")
+    if args.cleanup:
+        for key in masks:
+            code, oid = key.split(":", 1)
+            path = Path(args.mapped) / code / f"{oid}.json"
+            if path.exists():
+                path.unlink()
+                print(f"  removed calibration record {path.name}")
     return 0
 
 
@@ -174,8 +181,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--round", default="r1")
     p = sub.add_parser("score-mappers")
     p.add_argument("--masks", required=True)
-    p.add_argument("--mapped", required=True)
+    p.add_argument("--mapped", default=str(card_records.RECORDS_DIR),
+                   help="where the calibration records are (default: the records folder)")
     p.add_argument("--diff", action="store_true")
+    p.add_argument("--cleanup", action="store_true",
+                   help="delete the calibration records after scoring (they must never be verified)")
     p = sub.add_parser("score-verifiers")
     p.add_argument("--key", required=True)
     p.add_argument("--verdicts", required=True)

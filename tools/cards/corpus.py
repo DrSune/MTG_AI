@@ -102,7 +102,8 @@ def compile_set(code: str, extra_records: dict[str, dict[str, Any]] | None = Non
     refused: dict[str, str] = {}
     for oid, rc in raw.items():
         try:
-            if f"{code}:{oid}" in pots and oid not in (extra_records or {}):
+            if f"{code}:{oid}" in pots and "ir" not in records.get(oid, {}):
+                # masked until the mapper writes its record; then it reads like any mapped card
                 idx = pots[f"{code}:{oid}"]
                 masked = replace(rc, sentences=rc.sentences[:idx] + rc.sentences[idx + 1:])
                 base = compile_card(masked, registry)

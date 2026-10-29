@@ -69,6 +69,15 @@ $PY tools/cards/cardtool.py --help
    G0 failure or an engine error. The record is unverified until a verifier passes it.
 7. Cannot be expressed: `cardtool.py needs-atom SET "Card" --missing "<the missing piece, precisely>"
    --author <id>`.
+8. **The tree is right but the engine plays it wrong.** Packs and traces show this often (B-50..B-63
+   in `docs/BACKLOG.md`).
+   - **Weaker than printed** (an effect that never happens, a trigger that never fires): write the
+     record and report the engine issue with the variant or the pack. The verifier will mark that
+     clause WRONG, so the card is not verified until the engine is fixed.
+   - **Stronger than printed** (a duration that never ends, a cost that is not paid, extra
+     triggers): do NOT write it. Run
+     `needs-atom SET "Card" --missing "ENGINE: <the bug, and the pack that shows it>"`. An RL policy
+     must never get the card while the bug lives.
    - Examples: regenerate, landwalk, a cost reduction per X, "can't be countered", copy a spell.
    - Say which clause and why no node fits.
 
@@ -107,12 +116,32 @@ $PY tools/cards/cardtool.py --help
   - An emblem record takes bare abilities: no carrier and no `EmblemAbility` wrapper.
 - **Ability words** (Threshold, Raid, Morbid, Landfall) are not keywords. Write the trigger and its
   condition. G0's warning "MTGJSON keywords with no Keyword atom" is expected for them.
+- **More shapes the compiler uses** (mapper B, FDN round 1):
+  - "permanent" is `IS_PERMANENT`; "nonland permanent" is `FAnd(IS_PERMANENT, FNot(TYPE_EQ Land))`.
+  - "a spell" (any) is `CastSpellEvent(filter=FAnd(()))`.
+  - "during an opponent's turn" is the condition `FAtom(TURN_OF, who=OPPONENT)`.
+  - "your second card each turn" is `CardDrawnEvent(ordinal=2)`.
+  - "equipped creature" is `IS_ATTACHED_TO_SOURCE` in triggers, plus `TYPE_EQ 'Creature'` in statics.
+  - Tribal nouns ("target Pirate", "Goblins you control") are `SUBTYPE_EQ` plus `TYPE_EQ 'Creature'`.
+  - A filter with one part is written bare: no one-part `FAnd`.
+  - "You may X. If you do, Y" is `Seq(OptionalEffect(X), Conditional(MAY_DONE, Y))`.
+  - "its controller" is a `referent='target'` selector in the `controller` role.
+  - Equip carries `timing=ActivationWindow.SORCERY` ("Equip only as a sorcery"). The compiler's
+    equip template drops it (B-60), so add it.
 - **Tool tips.**
   - `parse` refuses a masked wording, so try a sibling wording (`{W} or {U}` instead of
     `{G} or {U}`).
   - Card names with a comma do not work with `--name`; write "this creature" instead.
   - Test spec packs against your unwritten draft with
     `cardtool.py runpack SET pack.json --card "Card" --draft draft.py`.
+  - Pack runner quirks:
+    - The runner's opening `begin_turn` draws seat 0's top library card, so the last library card
+      a pack lists ends up in hand.
+    - A `cast` step needs `key` (and takes `controller`); an `activate` step takes `seat`.
+    - Use `start_tapped` to make a setup card start tapped. The older `tapped` key is ignored
+      (B-63).
+  - During a calibration round, `parse` hides a few exact wordings. Try a sibling wording, or
+    `similar`.
 
 ## Verifier workflow (gate G2)
 Packets are made by the orchestrator: `cardtool.py packet SET "Card" --out DIR --id ID`. A packet

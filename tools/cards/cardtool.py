@@ -26,7 +26,6 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
-import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -212,9 +211,9 @@ def cmd_try(args: argparse.Namespace, write: bool = False) -> int:
                          "draft_py": Path(args.draft).read_text(), "clauses": clauses,
                          "g0_warnings": warns, "notes": args.notes or ""}
     record["probe"] = {"sha": rep.sha()}
+    # Calibration cards are written exactly like every other card (a diverted record told mappers
+    # which cards were calibration items); round.py score-mappers reads and then removes them.
     folder = card_records.RECORDS_DIR / sc.code
-    if f"{sc.code}:{oid}" in corpus.honeypots():
-        folder = Path(os.environ["MTG_CARDS_MASKS_OUT"]) / sc.code
     folder.mkdir(parents=True, exist_ok=True)
     path = folder / f"{oid}.json"
     path.write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n")
