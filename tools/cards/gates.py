@@ -125,6 +125,9 @@ def g0(raw: RawCard, base: CardRecord, card: CardRecord, *, clauses: list[dict] 
     printed_kw = {k.upper().replace(" ", "_") for k in raw.keywords}
     tree_kw = {k.keyword.name for k in card.keywords} | {
         n.keyword.name for n in walk(card) if isinstance(n, KeywordAbility)}
+    # Keyword actions the compiler writes as their verb (scry, mill, fight exist as both a Verb and
+    # a Keyword, T4 ledger L-20): the verb in the tree satisfies the printed keyword.
+    tree_kw |= {n.verb.name for n in walk(card) if isinstance(n, Atom)}
     unknown = sorted(k for k in printed_kw - tree_kw if k in Keyword.__members__)
     if unknown:
         fails.append(f"MTGJSON keywords missing from the tree: {unknown}")

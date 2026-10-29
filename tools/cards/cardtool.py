@@ -13,7 +13,7 @@ Run from the repo root (the worktree that carries the card-record loader):
     $PY tools/cards/cardtool.py probe FDN "Card Name"       # G1 on the current tree
     $PY tools/cards/cardtool.py mutate FDN "Card Name"      # G3 mutation analysis
     $PY tools/cards/cardtool.py packet FDN "Card Name" --out DIR [--plant SEED --key KEYDIR]
-    $PY tools/cards/cardtool.py runpack FDN pack.json ...   # spec packs against the draft tree
+    $PY tools/cards/cardtool.py runpack FDN pack.json ... [--card "Card Name" --draft draft.py]
     $PY tools/cards/cardtool.py verify FDN "Card Name" --verdict v.json --reviewer NAME
 
 A draft is Python. It sets ``abilities`` (and ``keywords`` if they change) using IR constructors;
@@ -336,7 +336,16 @@ def cmd_runpack(args: argparse.Namespace) -> int:
     verifier is reviewing). tools/run_scenarios.py itself only sees verified trees."""
     from run_scenarios import run_pack
 
-    supply = compile_supply("all", args.set, require_verified=False)
+    records = None
+    if args.draft:
+        if not args.card:
+            print("--draft needs --card")
+            return 2
+        sc = corpus.compile_set(args.set)
+        oid = sc.by_name(args.card)
+        record, _base, _card = _draft_record(sc, oid, Path(args.draft))
+        records = {**sc.records, oid: record}
+    supply = compile_supply("all", args.set, records=records, require_verified=False)
     bad_total = 0
     for path in map(Path, args.packs):
         bad = run_pack(path, supply)
@@ -464,6 +473,8 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("runpack")
     p.add_argument("set")
     p.add_argument("packs", nargs="+")
+    p.add_argument("--card", help="with --draft: the card the draft is for")
+    p.add_argument("--draft", help="run the packs against this unwritten draft of --card")
     p = sub.add_parser("verify")
     p.add_argument("set")
     p.add_argument("card")

@@ -25,6 +25,11 @@ $PY tools/cards/cardtool.py --help
 4. **A mapper never verifies their own cards.**
 5. Use `/usr/bin/grep`, `/usr/bin/find` and `/usr/bin/sort` (the plain names are broken wrappers on
    this box).
+6. **Inspect cards only through `cardtool.py`.** Do not read `.cache/` files or build supplies with
+   your own scripts.
+   - Calibration cards are masked in the tools, not on disk, so reading around the tools spoils
+     the calibration.
+   - If you ever see a calibration answer by accident, say so in your report, as mapper A did.
 
 ## Mapper workflow
 1. `cardtool.py show SET "Card"` prints:
@@ -88,6 +93,24 @@ $PY tools/cards/cardtool.py --help
   - Activated abilities: `parse "{2}, {T}: Draw a card."`.
 - **Numbers.** `QConst(value=N)`. X is `QX()`. "up to N" is `QAtMost`. Use the IR's own quantity
   nodes, never a Python number in place of a quantity.
+  - "N for each X" is `QBin(MUL, QConst(N), QCount(...))`.
+- **"Whenever you attack" and "one or more creatures you control attack".** A
+  `DeclareAttackersEvent` with filter `FAnd(CONTROLLER_IS YOU, TYPE_EQ 'Creature')` and no
+  condition. The binder fires it once per declaration (CR 603.2).
+- **Colours.** "Green or white" is an `FOr` of `COLOR_HAS`, never `COLOR_IN`. `COLOR_IN` is a
+  subset test, so a multicoloured spell would fail it (B-54).
+- **Carriers.**
+  - An Aura's carrier is `SpellAbility(kind=SpellKind.ENCHANTMENT)`.
+  - An Equipment's carrier is `SpellAbility(kind=SpellKind.ARTIFACT)`.
+  - An emblem record takes bare abilities: no carrier and no `EmblemAbility` wrapper.
+- **Ability words** (Threshold, Raid, Morbid, Landfall) are not keywords. Write the trigger and its
+  condition. G0's warning "MTGJSON keywords with no Keyword atom" is expected for them.
+- **Tool tips.**
+  - `parse` refuses a masked wording, so try a sibling wording (`{W} or {U}` instead of
+    `{G} or {U}`).
+  - Card names with a comma do not work with `--name`; write "this creature" instead.
+  - Test spec packs against your unwritten draft with
+    `cardtool.py runpack SET pack.json --card "Card" --draft draft.py`.
 
 ## Verifier workflow (gate G2)
 Packets are made by the orchestrator: `cardtool.py packet SET "Card" --out DIR --id ID`. A packet
