@@ -1011,6 +1011,13 @@ class Executor:
             if event.kind != KIND_ZONE_CHANGE or event.subject is None:
                 continue
             from_state = event.zone_move[0]
+            if event.zone_move[1] != ZONE_BATTLEFIELD and event.subject in self.world.cards:
+                # V31b, CR 122.2: "Counters on an object are not retained if that
+                # object moves from one zone to another ... they simply cease to
+                # exist." The journal row above was emitted first, so a dies row's
+                # was-P/T still folds them (the C18 snapshot). A battlefield entry
+                # keeps what its entry stamped (the loyalty seed, EtBState counters).
+                self.world.cards[event.subject].counters.clear()
             if from_state != ZONE_BATTLEFIELD:
                 if event.zone_move[1] == ZONE_BATTLEFIELD:
                     # 17a: the symmetric ENTER branch — the compiled
@@ -1023,11 +1030,6 @@ class Executor:
                     self._apply_etb_state(event.subject)
                 continue
             anchor = event.subject
-            # V31 (CR 122.2, 306.5b): the loyalty counters cease to exist when the
-            # walker leaves the battlefield, so a re-entry is seeded from the printed
-            # loyalty (binder setdefault) instead of riding a stale value, 0 included.
-            if anchor in self.world.cards:
-                self.world.cards[anchor].counters.pop("LOYALTY", None)
             self.ledger.expire_leaves(anchor)
             self.layers.expire_leaves(anchor)
             self.replacements.expire_leaves(anchor)

@@ -4,6 +4,7 @@ V31  A planeswalker brought to exactly 0 loyalty is put into its owner's graveya
      (CR 704.5i) on every path: counter removal, a loyalty cost, damage. Its loyalty
      counters cease to exist when it leaves the battlefield (CR 122.2), so a re-entry
      starts from the printed loyalty (CR 306.5b).
+V31b Counters on an object cease to exist when it moves to another zone (CR 122.2).
 """
 
 from __future__ import annotations
@@ -162,6 +163,59 @@ class TestV31LoyaltyZero(FixerCase):
         # CR 606.6: exactly its loyalty may be paid; CR 704.5i: then it dies.
         self.assertEqual(self.world.zone_of(pw).kind, ZONE_GRAVEYARD)
         self.assertEqual(dict(self.world.cards[pw].counters), {})
+
+
+class TestV31bCountersCeaseOnZoneChange(FixerCase):
+    def bounce(self, card):
+        self.ex.execute(
+            atom(
+                Verb.MOVE_ZONE,
+                cards=target_sel(UNIV),
+                destination=Zone(ZoneKind.HAND, ControllerRef.OWNER),
+            ),
+            source=self.alpha,
+            controller=self.p0,
+            bindings={"cards": [card]},
+        )
+
+    def test_a_bounced_creature_loses_its_counters(self):
+        self.world.cards[self.alpha].counters["PLUS_1_PLUS_1"] = 2
+        self.bounce(self.alpha)
+        self.assertEqual(self.world.zone_of(self.alpha).kind, ZONE_HAND)
+        self.assertEqual(dict(self.world.cards[self.alpha].counters), {})
+
+    def test_the_dies_row_still_folds_the_counters(self):
+        from MTG_bot.core.executor.events import KIND_CREATURE_DIES
+
+        self.world.cards[self.beta].counters["PLUS_1_PLUS_1"] = 1  # a 2/2 now
+        self.ex.execute(
+            atom(Verb.DEAL_DAMAGE, target=target_sel(UNIV), amount=QConst(2)),
+            source=self.alpha,
+            controller=self.p0,
+            bindings={"target": [self.beta]},
+        )
+        self.assertEqual(self.world.zone_of(self.beta).kind, ZONE_GRAVEYARD)
+        self.assertEqual(dict(self.world.cards[self.beta].counters), {})
+        dies = [e for e in self.ex.journal.events if e.kind == KIND_CREATURE_DIES]
+        self.assertEqual(len(dies), 1)
+        # (from, owner, type line, was power, was toughness): it died a 2/2.
+        self.assertEqual(dies[0].dies[3:], (2, 2))
+
+    def test_counters_on_a_card_entering_the_battlefield_are_kept(self):
+        card = self.world.add_card(card_id("Ent", "1", "1"), self.p0, ZONE_HAND)
+        self.ex.execute(
+            atom(
+                Verb.MOVE_ZONE,
+                cards=target_sel(UNIV),
+                destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+            ),
+            source=card,
+            controller=self.p0,
+            bindings={"cards": [card]},
+        )
+        self.world.cards[card].counters["PLUS_1_PLUS_1"] = 1
+        self.assertEqual(self.world.zone_of(card).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(dict(self.world.cards[card].counters), {"PLUS_1_PLUS_1": 1})
 
 
 if __name__ == "__main__":
