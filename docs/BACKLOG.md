@@ -521,6 +521,34 @@ These are forks, not tasks. See the report that accompanied this audit.
     on branch `cards/castable-permanents`. It changes M21's goldens, its castable pool and every
     replay pin, so adopt it at an RL-pilot era boundary with a re-smoke and a re-pin, with B-43
     and B-47.
+- **B-50 [2026-10-29, found by a mapper's G1 trace] A resolved ability's "until end of turn" grant
+  ends when its source leaves the battlefield.**
+  - `verbs._v_grant_or_lose` registers every GRANT/LOSE layer with the ability's source
+    (`layers.register_grant`). `layers.detach_source` (`core/executor/layers.py:333`) expires every
+    layer of a departing permanent.
+  - That is right for a static ability (CR 611.3). It is wrong for an effect a resolved triggered
+    or activated ability created, which lasts its stated duration whatever happens to its source
+    (CR 611.2a).
+  - Seen on FDN Battlesong Berserker: when it dies in combat, you_bear keeps its +1/+0 (the P/T
+    ledger is separate) but loses the granted menace.
+  - The bug makes cards weaker, not stronger.
+  - **Fix.** Mark resolution-created layers and leave them out of `detach_source`. Add a pack in
+    which the granting creature dies in combat.
+  - It changes M21 episodes, so it is an era-boundary fix.
+  - Related: D6 (`tools/audit/detectors.py`) found a live end-of-turn grant layer bound to a card
+    already in the graveyard (FDN soak, 300 games). Check that a card returning to the battlefield
+    in the same turn is a new object (CR 400.7) and does not keep it.
+- **B-51 [2026-10-29] `Verb.CHOOSE` always offers choosing nothing.**
+  - `query.verb_choose_options` (`core/executor/query.py`) appends the empty pick `()` even when a
+    legal candidate exists.
+  - So "You choose a nonland card from it" (Duress, Kitesail Freebooter, Pilfer, Elspeth's
+    Nightmare; Linvala, Shield of Sea Gate) can resolve as no choice. The ask vocabulary
+    `[0, 1, <handle>]` carries an index that means nothing.
+  - Today the chooser is always the caster, so it only makes cards weaker. But an "optional"
+    escape from a mandatory choice is exactly what a policy learns to use the day a CHOOSE feeds
+    its own drawback.
+  - **Fix.** Offer the empty row only when the pool is smaller than the count (the C17 clamp it
+    mirrors), and re-pin the M21 Duress and Kitesail packs.
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
   plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
 
