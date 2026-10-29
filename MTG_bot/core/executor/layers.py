@@ -791,7 +791,8 @@ class LayerRegistry:
 
     def _materialize_static(self, layer: LayerRecord) -> int:
         """Ensure every live target of a PT-bearing static owns exactly one
-        live ledger entry; stale targets' entries terminal-expire."""
+        live ledger entry carrying the static's CURRENT value; stale
+        targets' entries terminal-expire."""
         from MTG_bot.core.executor.verbs import pt_atom_delta
 
         targets = set(self._static_targets(layer))
@@ -807,8 +808,6 @@ class LayerRegistry:
             return changed
         ctx = self._ctx(layer.source, layer.controller)
         for target in sorted(targets):
-            if target in layer.ledger_ids:
-                continue
             power_delta = toughness_delta = 0
             power_set = toughness_set = None
             for atom in atoms:
@@ -822,6 +821,20 @@ class LayerRegistry:
                 if (power_set is not None or toughness_set is not None)
                 else "delta"
             )
+            linked = layer.ledger_ids.get(target)
+            if linked is not None:
+                # B-52 (2026-10-29): the value is re-read on EVERY pass. A
+                # static's effect is not locked in (CR 611.3a), so a counted
+                # bonus (Kinetic Augur's CDA, Malefic Scythe's soul counters,
+                # Carrion Grub's graveyard power) follows its count up AND
+                # down (CR 613.4a/c). The entry is revalued in place: same
+                # effect, same timestamp (CR 613.7a). It used to `continue`
+                # here and freeze at the first value.
+                if self.executor.ledger.revalue(
+                    linked, kind, power_delta, toughness_delta, power_set, toughness_set
+                ):
+                    changed += 1
+                continue
             change = self.executor.ledger.record(
                 self.world.cards[target].identity,
                 kind,

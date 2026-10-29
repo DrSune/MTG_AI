@@ -51,7 +51,7 @@ keeps reading :meth:`effective_pt` exactly as 12b pinned it.
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from MTG_bot.core.ability_tree import (
     Duration,
@@ -172,6 +172,10 @@ class DurationLedger:
 
     def __init__(self) -> None:
         self._changes: list[PtChange] = []
+        # B-52: record_id -> its CURRENT PtChange, kept in step with
+        # _changes, so :meth:`revalue` reads an entry in O(1) on every
+        # layer recompute.
+        self._by_id: dict[int, PtChange] = {}
         self._meta: dict[int, DurationMeta] = {}
         self._dormant: dict[int, str] = {}  # record_id -> while_off/expired
         self._next_id = 1
@@ -222,6 +226,7 @@ class DurationLedger:
             record_id=record_id,
         )
         self._changes.append(change)
+        self._by_id[record_id] = change
         meta = self._meta_for(duration, tag, source, controller, leaves_anchor)
         if meta is None:
             # Every RECORDED entry gets a meta row — plain Eot/Permanent
@@ -231,6 +236,45 @@ class DurationLedger:
             meta = DurationMeta(tag=tag, controller=controller)
         self._meta[record_id] = meta
         return change
+
+    def revalue(
+        self,
+        record_id: int,
+        change_kind: str,
+        power_delta: int,
+        toughness_delta: int,
+        power_set: int | None,
+        toughness_set: int | None,
+    ) -> bool:
+        """B-52: give one entry its CURRENT value, in place.
+
+        A static ability's effect is not locked in (CR 611.3a): a counted
+        P/T value ("power equal to the number of instant and sorcery cards
+        in your graveyard", "+1/+1 for each soul counter") follows its count
+        both ways. It stays the SAME effect with the same timestamp (CR
+        613.7a), so the entry keeps its record id, its created_clock (its
+        place in the timestamp fold) and its C18 was-snapshot; only the
+        numbers move. Returns True when they actually changed (the
+        recompute's change signal); an unknown id raises (flag, don't
+        degrade)."""
+        if change_kind not in ("delta", "set"):
+            raise ValueError(f"DurationLedger: unknown change kind {change_kind!r}")
+        old = self._by_id.get(record_id)
+        if old is None:
+            raise KeyError(f"DurationLedger: no entry {record_id} to revalue")
+        new = replace(
+            old,
+            kind=change_kind,
+            power_delta=power_delta,
+            toughness_delta=toughness_delta,
+            power_set=power_set,
+            toughness_set=toughness_set,
+        )
+        if new == old:
+            return False
+        self._changes[self._changes.index(old)] = new
+        self._by_id[record_id] = new
+        return True
 
     @staticmethod
     def _meta_for(
@@ -436,6 +480,7 @@ class DurationLedger:
         for record_id in gone:
             self._meta.pop(record_id, None)
             self._dormant.pop(record_id, None)
+            self._by_id.pop(record_id, None)
         return expired
 
     # ------------------------------------------------------------- access
