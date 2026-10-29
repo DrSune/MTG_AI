@@ -36,6 +36,7 @@ from MTG_bot.core.ability_tree import (
     Cost,
     CounterKind,
     Duration,
+    DurationPermanent,
     DurationUntilLeaves,
     EventSpec,
     FAnd,
@@ -1754,8 +1755,7 @@ def _v_mandate_attack(ctx: ExecCtx, atom: Atom) -> None:
     controller every combat)."""
     if ctx.executor is None:
         raise ValueError(f"executor: {atom.verb.name} needs an executor-backed ExecCtx")
-    cards = role_handles(ctx, atom, "cards")
-    ctx.executor.mandates.update(cards)
+    cards = _dispatch_mandate(ctx, atom, "mandate", ctx.executor.mandates)
     ctx.events.append(
         (
             len(ctx.events),
@@ -1764,6 +1764,37 @@ def _v_mandate_attack(ctx: ExecCtx, atom: Atom) -> None:
             tuple(sorted(str(c) for c in cards)),
         )
     )
+
+
+def _dispatch_mandate(
+    ctx: ExecCtx, atom: Atom, kind: str, ledger: set[Handle]
+) -> list[Handle]:
+    """Record one dispatched MANDATE_ATTACK / MANDATE_BLOCK; returns the
+    designated creatures. B-59 (2026-10-29): the atom's ``duration`` role is
+    honoured. Without one (or Permanent) the creatures join the dispatch
+    ``ledger``, which lasts until each leaves the battlefield. With one
+    ("this turn", "until your next turn") the rule ends with its duration
+    (CR 611.2a/b, 514.2), so it becomes a ``resolved`` layer record riding
+    the registry's expiry points; the ledger used to keep it for good."""
+    assert ctx.executor is not None
+    cards = role_handles(ctx, atom, "cards")
+    duration = atom.args.get("duration")
+    assert duration is None or isinstance(duration, Duration)
+    if duration is None or isinstance(duration, DurationPermanent):
+        ledger.update(cards)
+        return cards
+    if isinstance(duration, DurationUntilLeaves) and duration.source != "source":
+        # layers.expire_leaves anchors on the record's source only; another
+        # referent would never expire (flag, don't degrade).
+        raise NotImplementedError(
+            f"executor: {atom.verb.name} UntilLeaves({duration.source!r}) has no "
+            "expiry anchor (only the ability's source is tracked)"
+        )
+    if cards:
+        ctx.executor.layers.register_mandate(
+            kind, ctx.source, ctx.controller, tuple(cards), atom, duration
+        )
+    return cards
 
 
 def _v_mandate_block(ctx: ExecCtx, atom: Atom) -> None:
@@ -1777,8 +1808,7 @@ def _v_mandate_block(ctx: ExecCtx, atom: Atom) -> None:
     derives the greedy guarantee (doc 14)."""
     if ctx.executor is None:
         raise ValueError(f"executor: {atom.verb.name} needs an executor-backed ExecCtx")
-    cards = role_handles(ctx, atom, "cards")
-    ctx.executor.mandate_block.update(cards)
+    cards = _dispatch_mandate(ctx, atom, "mandate_block", ctx.executor.mandate_block)
     ctx.events.append(
         (
             len(ctx.events),
