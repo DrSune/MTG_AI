@@ -21,7 +21,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from MTG_bot.core.ability_tree import ActivatedAbility
+from MTG_bot.core.ability_tree import ActivatedAbility, SpellAbility
 from MTG_bot.core.identity import Handle
 
 if TYPE_CHECKING:
@@ -132,9 +132,16 @@ def ability_line(record: CardRecord | None, oracle_text: str, idx: int) -> str |
     if not isinstance(record.abilities[idx], ActivatedAbility):
         return None
     lines = [line.strip() for line in oracle_text.split("\n") if line.strip()]
-    if len(lines) != len(record.abilities):
+    # An effect-less SpellAbility is the synthetic cast carrier of a permanent (B-49): it has no
+    # oracle line of its own, so it does not count.
+    lined = [
+        i
+        for i, ab in enumerate(record.abilities)
+        if not (isinstance(ab, SpellAbility) and ab.effect is None and not ab.additional_costs)
+    ]
+    if len(lines) != len(lined):
         return None
-    line = lines[idx]
+    line = lines[lined.index(idx)]
     return line if ":" in line.split("(")[0] else None
 
 

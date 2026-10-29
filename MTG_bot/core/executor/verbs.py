@@ -1137,6 +1137,18 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
     else:
         n = amount(ctx, atom, "count")
         seen_cards = list(reversed(lib.entries[-n:])) if n else []
+        # B-49 follow-up #5 (2026-10-29): a fresh top-N look or reveal is a
+        # result PRODUCER (14e B-9 law). The compiled "it" / "those cards"
+        # of the next instruction is referent="result" (R7-1: "revealed /
+        # chosen / exiled / moved"), and the controller follows the
+        # instructions in order (CR 608.2c). Garruk, Savage Herald's +1
+        # ("Reveal the top card of your library. If it's a creature card,
+        # put it into your hand. Otherwise, put it on the bottom of your
+        # library.") paid its loyalty, then raised on the unset register.
+        # Revealing moves nothing, so the cards are still on top. The
+        # unbounded idiom above and the anaphoric reveal from among a look
+        # window stay non-producers: neither names its own cards.
+        ctx.bindings["result"] = list(seen_cards)
     # r19b: the look window — the handles shown, top-first, for the NEXT
     # sentence (Conditional subject / library-TOP partition candidates).
     # The event record stays the str view, byte-identical to pre-19b.

@@ -98,6 +98,7 @@ from MTG_bot.core.executor.games import (
 from MTG_bot.core.executor.legality import activate, ctx_for, spell_castable
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
 from MTG_bot.core.executor.query import (
+    activation_target_slots,
     is_aura_spell,
     legal_casts,
     legal_targets,
@@ -209,7 +210,13 @@ class DeckSupplyTest(unittest.TestCase):
         # Denial — measure_grammar --with-engine-flags: 301/305), zero
         # losses. Deckable unchanged: all four are instants, the castable
         # lane; the window now answers for them when they are cast.
-        self.assertEqual(len(self.supply.engine_ids), 301)
+        # AMENDED 2026-10-29 (B-49 follow-up #1): 301 -> 299 — exactly the two Chandras
+        # (Flame's Catalyst, Heart of Fire) leave: their duration-limited cast
+        # permissions are suppressed and the gate marks them unsupported.
+        # AMENDED 2026-10-29 (B-49 follow-up #4): 299 -> 298 — exactly Ugin, the
+        # Spirit Dragon leaves: a [−X] loyalty cost needs an X declaration the
+        # activation lane does not have, so the shape gate marks it unsupported.
+        self.assertEqual(len(self.supply.engine_ids), 298)
 
 
 class ShapeGapSupplyExclusionTest(unittest.TestCase):
@@ -245,8 +252,11 @@ class ShapeGapSupplyExclusionTest(unittest.TestCase):
     def test_m21_supply_untouched_by_the_lane(self) -> None:
         m21 = get_supply("engine")
         self.assertEqual(m21.shape_gaps, ())
-        self.assertEqual(len(m21.engine_ids), 301)
-        self.assertEqual(len(m21.deckable), 281)
+        # B-49 follow-up #1 (2026-10-29): 301 -> 299 engine, 281 -> 279 deckable (the two
+        # Chandras whose duration permissions are suppressed).
+        # B-49 follow-up #4 (2026-10-29): 299 -> 298, 279 -> 278 (Ugin's [−X]).
+        self.assertEqual(len(m21.engine_ids), 298)
+        self.assertEqual(len(m21.deckable), 278)
 
 
 class KickerLaneTest(unittest.TestCase):
@@ -2200,6 +2210,110 @@ class AuraEffectlessLegalityTest(unittest.TestCase):
         self.assertEqual(executor.attachments.get(aura), host)
 
 
+class AuraEnchantRestrictionTest(unittest.TestCase):
+    """B-49 follow-up #2 (2026-10-29): "Enchant creature" limits what an Aura spell can
+    target (CR 303.4a, 702.5a). An Aura cast through the effect-less carrier
+    has no effect tree to read the restriction from, so its enchant slot fell
+    back to any permanent: Dub, Capture Sphere and six more M21 Auras, and
+    ZNR's Bubble Snare, could be cast onto a land and stay there. The compiled
+    ENCHANT keyword now carries the Enchant line's filter and the slot reads it."""
+
+    def _slot_names(self, set_code: str, aura_name: str) -> set[str]:
+        supply = get_supply("all", set_code)
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=7)
+        executor = Executor(world)
+        executor.attach_pool(supply.pool)
+        p0, p1 = world.player_order
+        by_name = {meta.name: oid for oid, meta in supply.metas.items()}
+        board = {"Island": (p0, p1), "Short Sword": (p0, p1)} if set_code == "M21" else {"Island": (p0, p1)}
+        for name, seats in board.items():
+            for seat in seats:
+                world.add_card(identity_of(supply.pool.results[by_name[name]].card), seat, ZONE_BATTLEFIELD)
+        for seat, label in ((p0, "Own"), (p1, "Opp")):
+            world.add_card(card_id(f"{label} Bear", type_line="Creature — Bear", power="2", toughness="2"),
+                           seat, ZONE_BATTLEFIELD)
+        record = supply.pool.results[by_name[aura_name]].card
+        aura = world.add_card(identity_of(record), p0, ZONE_HAND)
+        node = next(a for a in record.abilities if isinstance(a, SpellAbility))
+        (slot,) = spell_target_slots(executor, node, spell_handle=aura, seat=p0)
+        return {
+            f"{'own' if world.controller_of(h) == p0 else 'opp'} {world.cards[h].identity.name}"
+            for h in slot.candidates
+        }
+
+    def test_every_m21_aura_keyword_carries_its_enchant_filter(self) -> None:
+        cards = get_supply("all", "M21").pool.results.values()
+        auras = {
+            res.card.name: next(ka for ka in res.card.keywords if ka.keyword is Keyword.ENCHANT)
+            for res in cards
+            if any(ka.keyword is Keyword.ENCHANT for ka in res.card.keywords)
+        }
+        self.assertEqual(len(auras), 10)
+        self.assertTrue(all(len(ka.params) == 1 for ka in auras.values()), auras)
+        self.assertEqual(auras["Dub"].params, (FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),))
+        self.assertEqual(auras["Faith's Fetters"].params, (FAtom(pred=FAtomPred.IS_PERMANENT),))
+
+    def test_carrier_auras_offer_only_legal_hosts(self) -> None:
+        creatures = {"own Own Bear", "opp Opp Bear"}
+        for aura in ("Capture Sphere", "Demonic Embrace", "Dub", "Furor of the Bitten",
+                     "Infernal Scarring", "Light of Promise", "Rousing Read"):
+            self.assertEqual(self._slot_names("M21", aura), creatures, aura)
+        # "Enchant creature you control"
+        self.assertEqual(self._slot_names("M21", "Setessan Training"), {"own Own Bear"})
+        # "Enchant permanent" keeps every permanent
+        self.assertEqual(len(self._slot_names("M21", "Faith's Fetters")), 6)
+
+    def test_bubble_snare_is_fixed_by_the_same_change(self) -> None:
+        self.assertEqual(self._slot_names("ZNR", "Bubble Snare"), {"own Own Bear", "opp Opp Bear"})
+
+
+class TormodsCryptTargetPlayerTest(unittest.TestCase):
+    """B-49 follow-up #3 (2026-10-29): "Exile target player's graveyard" names
+    the player only inside a selector's zone, Zone(GRAVEYARD, TARGET_PLAYER).
+    The activation lane's scan missed that read, so no player slot was built,
+    the policy designated nothing, and the activation raised "TARGET_PLAYER
+    needs a bound target" once the B-49 carrier made the Crypt castable (14% of
+    stress and 24% of coherent castable games). "target player" is a target
+    (CR 115.1). The slot is the existing synthesized one, so it offers opponents
+    only (BACKLOG B-53, not fixed here)."""
+
+    def _armed(self):
+        supply = get_supply("all", "M21")
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=7)
+        executor = Executor(world)
+        executor.attach_pool(supply.pool)
+        p0, p1 = world.player_order
+        record = next(r.card for r in supply.pool.results.values() if r.card.name == "Tormod's Crypt")
+        crypt = world.add_card(identity_of(record), p0, ZONE_BATTLEFIELD)
+        executor.attach_card(crypt, record)
+        mine = world.add_card(card_id("Own Dead", power="1", toughness="1"), p0, ZONE_GRAVEYARD)
+        theirs = [
+            world.add_card(card_id(f"Opp Dead {i}", power="1", toughness="1"), p1, ZONE_GRAVEYARD)
+            for i in range(2)
+        ]
+        world.active_player = p0
+        executor.turn_open = True
+        executor.phase = "FIRST_MAIN"
+        return world, executor, p0, p1, record, crypt, mine, theirs
+
+    def test_the_zone_read_opens_one_required_player_slot(self) -> None:
+        _world, executor, p0, p1, record, crypt, _mine, _theirs = self._armed()
+        (slot,) = activation_target_slots(executor, record.abilities[0].effect, source=crypt, seat=p0)
+        self.assertTrue(slot.synthetic)
+        self.assertEqual((slot.min_count, slot.max_count), (1, 1))
+        self.assertEqual(slot.candidates, (p1,))
+
+    def test_the_designated_activation_exiles_exactly_that_graveyard(self) -> None:
+        world, executor, p0, _p1, record, crypt, mine, theirs = self._armed()
+        (slot,) = activation_target_slots(executor, record.abilities[0].effect, source=crypt, seat=p0)
+        activate(executor, crypt, 0, seat=p0, targets=slot.candidates)
+        self.assertEqual([world.zone_of(h).kind for h in theirs], [ZONE_EXILE, ZONE_EXILE])
+        self.assertEqual(world.zone_of(mine).kind, ZONE_GRAVEYARD)
+        self.assertEqual(world.zone_of(crypt).kind, ZONE_GRAVEYARD)  # sacrificed as the cost
+
+
 # ---------------------------------------------------------------------------
 # Stall rule (CR 104.4b): a world fingerprint that repeats exactly across
 # REPEAT_ROUNDS consecutive per-seat round observations ends the game early
@@ -2335,9 +2449,15 @@ class StallRuleTest(unittest.TestCase):
         # asks consume policy RNG draws on the new sites, so the seeded
         # trajectory shifts again — still decisive, SAME loser, 30 turns
         # (double-run replay verified).
+        # RE-ANCHORED 2026-10-29 (B-49 + follow-up #3): the B-49 carrier made
+        # Tormod's Crypt castable, and player 0 casts and activates it. That
+        # activation crashed at turn 4 ("TARGET_PLAYER needs a bound target")
+        # until its player slot existed; it now exiles player 1's graveyard.
+        # Still crash-free and decisive, SAME loser, 36 turns (double-run
+        # replay verified). Neither Chandra in these decks is cast.
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 30)
+        self.assertEqual(game.turns, 36)
         self.assertEqual(game.reason, "game over: player:0(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:

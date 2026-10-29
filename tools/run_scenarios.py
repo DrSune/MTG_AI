@@ -76,6 +76,7 @@ Pack vocabulary (all keys required as noted):
              "not_asked_to_block": [key],  — never offered a block ask,
              "tokens": {Name: n},          — battlefield token records
              "tapped": {key: bool},
+             "attached": {key: hostKey|null},  B-49 follow-up #2: the attachment table
              "hand": {"0": int},
              "mana_pool": {"0": {"W": 1}},  r24a: the PlayerState.mana_pool
                                             totals (frozen _v_add_mana write;
@@ -582,6 +583,12 @@ class ScenarioRunner:
             got = self.world.zone_of(self.handles[key]).kind
             if got != ZONE_OF_NAME[zone]:
                 fails.append(f"zone[{key}]: expected {zone}, got {got}")
+        # B-49 follow-up #2 ATTACHED LANE: the executor's attachment table (aura or equipment
+        # -> host), the one IS_ATTACHED_TO_SOURCE reads; null = attached to nothing.
+        for key, host in self.pack.get("expect", {}).get("attached", {}).items():
+            got_host = self.ex.attachments.get(self.handles[key])
+            if got_host != (self.handles[host] if host is not None else None):
+                fails.append(f"attached[{key}]: expected {host}, got {got_host}")
         want = {
             self.handles[k]: n
             for k, n in self.pack.get("expect", {}).get("damage", {}).items()

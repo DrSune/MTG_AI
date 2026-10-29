@@ -58,6 +58,7 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     Seq,
     SpellAbility,
+    SpellKind,
     StaticAbility,
     TapStateEvent,
     TokenSpec,
@@ -2043,7 +2044,7 @@ class TestEndToEndCompile(unittest.TestCase):
 
     def test_short_sword_equip(self) -> None:
         """Short Sword: Equip {1} + Equipped creature gets +1/+1.
-        → ActivatedAbility + StaticAbility."""
+        → ActivatedAbility + StaticAbility (+ the B-49 cast carrier)."""
         raw = _raw(
             "Short Sword",
             (
@@ -2056,15 +2057,17 @@ class TestEndToEndCompile(unittest.TestCase):
             mana_value=2,
         )
         result = compile_card(raw, self.reg)
-        # Two abilities: ActivatedAbility (equip) + StaticAbility (PT)
-        self.assertEqual(len(result.card.abilities), 2)
+        # Two printed abilities: ActivatedAbility (equip) + StaticAbility (PT),
+        # then the B-49 effect-less SpellAbility(ARTIFACT) cast carrier.
+        self.assertEqual(len(result.card.abilities), 3)
         self.assertIsInstance(result.card.abilities[0], ActivatedAbility)
         self.assertIsInstance(result.card.abilities[1], StaticAbility)
+        self.assertEqual(result.card.abilities[2], SpellAbility(kind=SpellKind.ARTIFACT))
         self.assertEqual(len(result.unparsed), 0)
 
     def test_furor_enchant(self) -> None:
         """Furor of the Bitten: Enchanted creature gets +2/+2 and attacks.
-        → StaticAbility with Seq."""
+        → StaticAbility with Seq (+ the B-49 cast carrier)."""
         raw = _raw(
             "Furor of the Bitten",
             ("Enchanted creature gets +2/+2 and attacks each combat if able.",),
@@ -2075,8 +2078,10 @@ class TestEndToEndCompile(unittest.TestCase):
             mana_value=1,
         )
         result = compile_card(raw, self.reg)
-        self.assertEqual(len(result.card.abilities), 1)
+        # B-49: the Aura trails its effect-less SpellAbility(ENCHANTMENT) carrier.
+        self.assertEqual(len(result.card.abilities), 2)
         self.assertIsInstance(result.card.abilities[0], StaticAbility)
+        self.assertEqual(result.card.abilities[1], SpellAbility(kind=SpellKind.ENCHANTMENT))
         self.assertEqual(len(result.unparsed), 0)
 
     def test_discontinuity_end_turn(self) -> None:

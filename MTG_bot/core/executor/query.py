@@ -79,6 +79,8 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
+    Filter,
+    Keyword,
     OptionalEffect,
     QAtLeast,
     QAtMost,
@@ -1003,7 +1005,7 @@ def _designation_selector(selector: Selector) -> Selector:
     runtime keeps evaluating the ORIGINAL filter (the designation exists
     by then — ExecCtx.designation_union), and the slot keeps the original
     selector as its identity key (repr-match for per-slot designation)."""
-    from MTG_bot.core.ability_tree import Filter, FNot, FOr
+    from MTG_bot.core.ability_tree import FNot, FOr
 
     def strip(filter_: Filter) -> tuple[Filter, bool]:
         if isinstance(filter_, FAtom):
@@ -1034,6 +1036,29 @@ def _designation_selector(selector: Selector) -> Selector:
     if not changed:
         return selector
     return replace(selector, filter=stripped)
+
+
+def _names_target_player(value: object) -> bool:
+    """Does this atom role read the designated TARGET_PLAYER coordinate? A bare
+    ControllerRef (Duress's "target opponent"), a Zone it controls, a filter
+    that reads the bound player (E1 FIX-2), or (B-49 follow-up #3, 2026-10-29)
+    a Selector over zones it controls. Tormod's Crypt's "Exile target player's
+    graveyard" selects ALL cards in Zone(GRAVEYARD, TARGET_PLAYER). The word "target"
+    makes the player a target (CR 115.1), so it needs the player slot. Without
+    it the activation resolved with nothing bound and raised "TARGET_PLAYER
+    needs a bound target". The spell and activation lanes share this one
+    predicate; trigger designation (binding._designate) is unchanged."""
+    return (
+        value is ControllerRef.TARGET_PLAYER
+        or isinstance(value, Zone)
+        and value.controller is ControllerRef.TARGET_PLAYER
+        or isinstance(value, Selector)
+        and (
+            filter_reads_bound_player(value.filter)
+            or any(zone.controller is ControllerRef.TARGET_PLAYER for zone in value.zones)
+        )
+        or filter_reads_bound_player(value)
+    )
 
 
 def spell_target_slots(
@@ -1082,14 +1107,7 @@ def spell_target_slots(
         if not isinstance(inner, Atom):
             continue
         for _role, value in inner.args.pairs:
-            if (
-                value is ControllerRef.TARGET_PLAYER
-                or isinstance(value, Zone)
-                and value.controller is ControllerRef.TARGET_PLAYER
-                or isinstance(value, Selector)
-                and filter_reads_bound_player(value.filter)
-                or filter_reads_bound_player(value)
-            ):
+            if _names_target_player(value):
                 reads_target_player = True
             if not isinstance(value, Selector) or value.mode is not SelectorMode.TARGET:
                 continue
@@ -1183,14 +1201,7 @@ def activation_target_slots(
         if not isinstance(inner, Atom):
             continue
         for _role, value in inner.args.pairs:
-            if (
-                value is ControllerRef.TARGET_PLAYER
-                or isinstance(value, Zone)
-                and value.controller is ControllerRef.TARGET_PLAYER
-                or isinstance(value, Selector)
-                and filter_reads_bound_player(value.filter)
-                or filter_reads_bound_player(value)
-            ):
+            if _names_target_player(value):
                 reads_target_player = True
             if not isinstance(value, Selector) or value.mode is not SelectorMode.TARGET:
                 continue
@@ -1393,12 +1404,31 @@ def aura_enchant_slot(
     IS_ATTACHED_TO_SOURCE contributes its remaining filter (Enthralling
     Hold: TYPE_EQ Creature); with no such selector the corpus fallback is
     any permanent on the battlefield. The aura itself is never a
-    candidate (CR 702.5c "another object")."""
+    candidate (CR 702.5c "another object").
+
+    B-49 follow-up #2 (2026-10-29): the compiled ENCHANT keyword's own restriction comes
+    first. "Enchant creature" limits what the Aura spell can target (CR 303.4a,
+    702.5a), and an Aura cast through the effect-less carrier has no effect
+    tree to read it from: Dub, Capture Sphere and six more M21 Auras (and ZNR's
+    Bubble Snare) could be cast onto a land and stay there."""
+    from MTG_bot.core.executor.legality import spell_record
+
     world = executor.world
     if not is_aura_spell(world, spell_handle):
         return None
-    enchant_filter: FAnd | None = None
-    if node.effect is not None:
+    enchant_filter: Filter | None = None
+    record = spell_record(executor, spell_handle)
+    if record is not None:
+        enchant_filter = next(
+            (
+                ka.params[0]
+                for ka in record.keywords
+                if ka.keyword is Keyword.ENCHANT and ka.params
+            ),
+            None,
+        )
+    if enchant_filter is None and node.effect is not None:
+        effect_filter: FAnd | None = None
         for inner in walk(node.effect):
             if not isinstance(inner, Atom):
                 continue
@@ -1407,12 +1437,13 @@ def aura_enchant_slot(
                     continue
                 stripped = _strip_attached(value.filter)
                 if stripped is not None and (
-                    enchant_filter is None or len(stripped.children) > 0
+                    effect_filter is None or len(stripped.children) > 0
                 ):
-                    enchant_filter = stripped
+                    effect_filter = stripped
                     break
-            if enchant_filter is not None and len(enchant_filter.children) > 0:
+            if effect_filter is not None and len(effect_filter.children) > 0:
                 break
+        enchant_filter = effect_filter
     selector = Selector(
         count=QConst(1),
         mode=SelectorMode.TARGET,
