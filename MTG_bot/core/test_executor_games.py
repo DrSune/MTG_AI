@@ -2205,6 +2205,64 @@ class AuraEffectlessLegalityTest(unittest.TestCase):
         self.assertEqual(executor.attachments.get(aura), host)
 
 
+class AuraEnchantRestrictionTest(unittest.TestCase):
+    """B-51 (2026-10-29): "Enchant creature" limits what an Aura spell can
+    target (CR 303.4a, 702.5a). An Aura cast through the effect-less carrier
+    has no effect tree to read the restriction from, so its enchant slot fell
+    back to any permanent: Dub, Capture Sphere and six more M21 Auras, and
+    ZNR's Bubble Snare, could be cast onto a land and stay there. The compiled
+    ENCHANT keyword now carries the Enchant line's filter and the slot reads it."""
+
+    def _slot_names(self, set_code: str, aura_name: str) -> set[str]:
+        supply = get_supply("all", set_code)
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=7)
+        executor = Executor(world)
+        executor.attach_pool(supply.pool)
+        p0, p1 = world.player_order
+        by_name = {meta.name: oid for oid, meta in supply.metas.items()}
+        board = {"Island": (p0, p1), "Short Sword": (p0, p1)} if set_code == "M21" else {"Island": (p0, p1)}
+        for name, seats in board.items():
+            for seat in seats:
+                world.add_card(identity_of(supply.pool.results[by_name[name]].card), seat, ZONE_BATTLEFIELD)
+        for seat, label in ((p0, "Own"), (p1, "Opp")):
+            world.add_card(card_id(f"{label} Bear", type_line="Creature — Bear", power="2", toughness="2"),
+                           seat, ZONE_BATTLEFIELD)
+        record = supply.pool.results[by_name[aura_name]].card
+        aura = world.add_card(identity_of(record), p0, ZONE_HAND)
+        node = next(a for a in record.abilities if isinstance(a, SpellAbility))
+        (slot,) = spell_target_slots(executor, node, spell_handle=aura, seat=p0)
+        return {
+            f"{'own' if world.controller_of(h) == p0 else 'opp'} {world.cards[h].identity.name}"
+            for h in slot.candidates
+        }
+
+    def test_every_m21_aura_keyword_carries_its_enchant_filter(self) -> None:
+        cards = get_supply("all", "M21").pool.results.values()
+        auras = {
+            res.card.name: next(ka for ka in res.card.keywords if ka.keyword is Keyword.ENCHANT)
+            for res in cards
+            if any(ka.keyword is Keyword.ENCHANT for ka in res.card.keywords)
+        }
+        self.assertEqual(len(auras), 10)
+        self.assertTrue(all(len(ka.params) == 1 for ka in auras.values()), auras)
+        self.assertEqual(auras["Dub"].params, (FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),))
+        self.assertEqual(auras["Faith's Fetters"].params, (FAtom(pred=FAtomPred.IS_PERMANENT),))
+
+    def test_carrier_auras_offer_only_legal_hosts(self) -> None:
+        creatures = {"own Own Bear", "opp Opp Bear"}
+        for aura in ("Capture Sphere", "Demonic Embrace", "Dub", "Furor of the Bitten",
+                     "Infernal Scarring", "Light of Promise", "Rousing Read"):
+            self.assertEqual(self._slot_names("M21", aura), creatures, aura)
+        # "Enchant creature you control"
+        self.assertEqual(self._slot_names("M21", "Setessan Training"), {"own Own Bear"})
+        # "Enchant permanent" keeps every permanent
+        self.assertEqual(len(self._slot_names("M21", "Faith's Fetters")), 6)
+
+    def test_bubble_snare_is_fixed_by_the_same_change(self) -> None:
+        self.assertEqual(self._slot_names("ZNR", "Bubble Snare"), {"own Own Bear", "opp Opp Bear"})
+
+
 # ---------------------------------------------------------------------------
 # Stall rule (CR 104.4b): a world fingerprint that repeats exactly across
 # REPEAT_ROUNDS consecutive per-seat round observations ends the game early

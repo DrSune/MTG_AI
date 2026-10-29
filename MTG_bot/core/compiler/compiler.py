@@ -2112,6 +2112,20 @@ def compile_card(
         if isinstance(outcome, MetaOutcome) and outcome.filter is not None:
             meta_filters.append(outcome.filter)
 
+    # B-51 (2026-10-29): the Enchant restriction rides on the ENCHANT keyword,
+    # "Enchant [object or player]" (CR 702.5a), which limits what the Aura spell
+    # may target (CR 303.4a) and what the Aura may enchant. It used to reach the
+    # tree only by folding into the spell's own effect, so an Aura cast through
+    # the effect-less carrier lost it and could enchant any permanent.
+    if meta_filters:
+        enchant = meta_filters[0] if len(meta_filters) == 1 else FAnd(tuple(meta_filters))
+        keywords = tuple(
+            KeywordAbility(keyword=Keyword.ENCHANT, params=(enchant,))
+            if ka.keyword is Keyword.ENCHANT and not ka.params
+            else ka
+            for ka in keywords
+        )
+
     # -- Collect additional costs -------------------------------------------
     # "As an additional cost to cast this spell, ..." sentences: attached
     # to the card's SpellAbility right after assembly (order preserved).

@@ -1,0 +1,86 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sphere",
+   "real": "Capture Sphere",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "opp_bear",
+   "name": "Opp Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "opp_island",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "opp_relic",
+   "name": "Opp Relic",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 4,
+   "C": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "sphere",
+   "real": "Capture Sphere",
+   "targets": [
+    "opp_island"
+   ],
+   "expect_raise": "illegal target selection"
+  },
+  {
+   "op": "cast",
+   "key": "sphere",
+   "real": "Capture Sphere",
+   "targets": [
+    "opp_relic"
+   ],
+   "expect_raise": "illegal target selection"
+  },
+  {
+   "op": "cast",
+   "key": "sphere",
+   "real": "Capture Sphere",
+   "targets": [
+    "opp_bear"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sphere": "battlefield",
+   "opp_bear": "battlefield"
+  },
+  "attached": {
+   "sphere": "opp_bear"
+  }
+ },
+ "notes": "B-51: Enchant creature is enforced for an Aura cast through the effect-less carrier. Capture Sphere's spell has no effect tree, so its enchant slot fell back to any permanent and it could be cast onto a land or an artifact and stay there. The compiled ENCHANT keyword now carries the Enchant line's filter (CR 702.5a) and the slot reads it (CR 303.4a): a land and an artifact are refused (off_population), the creature is legal, and the Aura stays attached to it through the opponent's next turn. Not asserted: 'doesn't untap during its controller's untap step' is not honoured by the untap step (the host untaps; same at HEAD with the enchant op), a separate gap."
+}
