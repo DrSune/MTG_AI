@@ -1455,7 +1455,20 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         from MTG_bot.core.executor.events import KIND_CREATURE_DIES
 
         rows = _turn_rows(ctx, pred.name)
-        dies = [e for e in rows if e.kind == KIND_CREATURE_DIES]
+        # B-56 (2026-10-29): the journal writes a dies row for EVERY
+        # battlefield-to-graveyard move (CR 700.4: any permanent "dies"),
+        # and every compiled reading of this pred is about a CREATURE ("if
+        # a creature died this turn", "creature that died this turn"). So
+        # only rows whose C18 was-snapshot type line names Creature count
+        # (CR 603.10a: the object as it last existed on the battlefield). A
+        # sacrificed Treasure died, but no creature did (Twinblade
+        # Assassins drew off it).
+        dies = [
+            e
+            for e in rows
+            if e.kind == KIND_CREATURE_DIES
+            and "Creature" in _type_line_tokens(e.dies[2])
+        ]
         if any(e.subject == handle for e in dies):
             return True
         # r19a (Life Goes On / Fungal Rebirth): an EXISTENTIAL reading for
