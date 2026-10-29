@@ -1,0 +1,16 @@
+{
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "sp", "real": "Peer into the Abyss", "zone": "hand", "controller": 0}
+  ],
+  "mana": {"0": {"B": 7}},
+  "steps": [
+    {"op": "life", "seat": 0, "set": 15},
+    {"op": "cast", "real": "Peer into the Abyss", "key": "sp", "decisions": ["player:0"]}
+  ],
+  "expect": {
+    "life": {"0": 7, "1": 20},
+    "hand": {"0": 4}
+  },
+  "notes": "B-53 repro (m21-fidelity item 2, 2026-10-29). 'Target player' may be the caster (CR 115.1: any player). Seat 0 has 5 library cards after begin_turn's draw (6 filler) and 15 life: it draws 3 (round up of 2.5) to a hand of 4 (the begin_turn draw plus 3) and loses 8 (round up of 7.5), to 7. FAILS today: the synthesized TARGET_PLAYER slot offers opponents only and the cast lane refuses the caster ('TARGET_PLAYER designation is the caster themselves'). TARGET_PLAYER is also how 'target opponent' compiles (Duress, Kitesail Freebooter), so the fix needs the IR to tell the two apart."
+}

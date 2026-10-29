@@ -129,6 +129,7 @@ from MTG_bot.core.ability_tree import (
     DeclareAttackersEvent,
     DurationEot,
     DurationPermanent,
+    EachPlayer,
     Effect,
     FAnd,
     FAtom,
@@ -2482,10 +2483,17 @@ def _build_peer_half_library(m: re.Match[str]) -> SentenceOutcome:
     each time.`` is consumed as the rounding directive
     (B5b-peer-round-up-each-time) and the tree shows Rounding.CEIL.
 
-    Lossy (C11 class, verbatim): the life-loss half — the grammar has NO
-    life-total quantity (no QPropField.LIFE; QCount counts zone objects,
-    players are not zone objects), so ``loses half their life`` has no
-    expressible amount (R9 grammar item: life-total Quantity field).
+    Life loss (m21-fidelity item 2, 2026-10-29; the clause was dropped
+    until then, so the spell was a free half-library draw): the second
+    step, ``EachPlayer(TARGET_PLAYER, LOSE_LIFE(YOU, ceil(LIFE / 2)))``.
+    A life total is read only through QProp(controller, LIFE) (QCount
+    counts zone objects; QProp validates LIFE to the controller referent),
+    so the step rotates the controller to the target player (EachPlayer,
+    the "each opponent loses half their life" shape pinned in
+    test_executor_r24a) and reads THEIR life, never the caster's. The draw
+    step keeps its own TARGET_PLAYER reads, which give the spell its player
+    target slot. Printed order (O2): draw, then lose. Both halves round up
+    (CR 107.1a; "Round up each time").
     C16: open — which player is targeted (s1 TARGET selector lives with
     the covered target-prefix template); both halves are board-dynamic
     quantities, nothing controller-chosen is defaulted."""
@@ -2503,17 +2511,34 @@ def _build_peer_half_library(m: re.Match[str]) -> SentenceOutcome:
         right=QConst(2),
         rounding=Rounding.CEIL,
     )
-    return EffectOutcome(
+    draw = Atom(
+        verb=Verb.DRAW,
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.TARGET_PLAYER),
+                ("amount", half_rounded),
+            )
+        ),
+    )
+    half_life = QBin(
+        op=QBinOp.DIV,
+        left=QProp(referent="controller", field=QPropField.LIFE),
+        right=QConst(2),
+        rounding=Rounding.CEIL,
+    )
+    lose = EachPlayer(
+        ref=ControllerRef.TARGET_PLAYER,
         effect=Atom(
-            verb=Verb.DRAW,
+            verb=Verb.LOSE_LIFE,
             args=AtomArgs(
                 pairs=(
-                    ("controller", ControllerRef.TARGET_PLAYER),
-                    ("amount", half_rounded),
+                    ("controller", ControllerRef.YOU),
+                    ("amount", half_life),
                 )
             ),
-        )
+        ),
     )
+    return EffectOutcome(effect=Seq(steps=(draw, lose)))
 
 
 def _build_peer_round_up_each_time(m: re.Match[str]) -> SentenceOutcome:
@@ -2524,8 +2549,8 @@ def _build_peer_round_up_each_time(m: re.Match[str]) -> SentenceOutcome:
     The rounding itself is the s1 amount's policy: the DIV carries
     rounding=Rounding.CEIL (T5-D), so this row carries no residual
     payload and must NOT spawn a duplicate draw/lose step.  "each time" = both
-    half-computations of s1 (library draw; the life half is dropped
-    lossy — see _build_peer_half_library).
+    half-computations of s1 (library draw and life loss, each a CEIL DIV —
+    see _build_peer_half_library).
     C16: none — computation directive, fully forced."""
     return RuleReminderOutcome(reason="rounding_directive")
 
@@ -3468,7 +3493,7 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B5b-peer-half-library",
-        name="target player draws round-up half their library (Peer; life-half lossy)",
+        name="target player draws round-up half their library, loses round-up half their life (Peer)",
         bucket=_BUCKET,
         pattern=re.compile(
             r"^Target player draws cards equal to half the number of cards "

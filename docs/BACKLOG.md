@@ -566,6 +566,13 @@ These are forks, not tasks. See the report that accompanied this audit.
     creature" raised `KeyError 'unknown card player:1'`.
   - Related: the deciding player of an edict is always the caster (no chooser role), the L-27
     seat-routing gap.
+  - [m21-fidelity, 2026-10-29] The engine cannot fix the population alone: "target player" (Peer
+    into the Abyss, Mind Rot, Tormod's Crypt, Sublime Epiphany) and "target opponent" (Duress,
+    Kitesail Freebooter, Liliana's Steward, Necromentia, Vito) compile to the same bare
+    `ControllerRef.TARGET_PLAYER`, so the IR needs one more bit (a design decision: for example a
+    `TARGET_OPPONENT` reference, or an explicit player-zone TARGET selector). Repro:
+    `tools/scenarios/known_bugs/peer_into_the_abyss_self_target.json`. With Peer's life loss now
+    compiled, Peer on an opponent is printed play; the self-target is the weaker-than-printed part.
 - **B-54 [2026-10-29] Minor engine findings from the first mapping batch:**
   - `legal_casts` offers a spell whose required target has no legal candidate (CR 601.2c), and casting
     it raises. The bench router hides such rows; the probe now skips them.
