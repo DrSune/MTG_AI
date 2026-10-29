@@ -40,6 +40,7 @@ from MTG_bot.core.ability_tree import (
     DeclareAttackersEvent,
     DurationEot,
     DurationPermanent,
+    EachPlayer,
     FAnd,
     FAtom,
     FAtomPred,
@@ -1281,10 +1282,19 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertIsInstance(p["count"], QUnbounded)
 
     def test_sacr_flying(self) -> None:
-        """B5b-sacr-flying: SACRIFICE, CHOOSE, Creature+FLYING."""
+        """B5b-sacr-flying: the target opponent sacrifices one of THEIR fliers.
+
+        # re-pinned 2026-10-29: m21-fidelity (review batch J). The bare SACRIFICE had no
+        # player: one pick over every player's fliers. Now the Goremand edict shape with a
+        # target: EachPlayer(TARGET_PLAYER, SACRIFICE(CHOOSE, CONTROLLER_IS YOU + Creature +
+        # FLYING)).
+        """
         outcome = self._match_outcome("B5b-sacr-flying")
         eff = _as_effect(outcome)
-        atom = _as_atom(eff.effect)
+        each = eff.effect
+        assert isinstance(each, EachPlayer)
+        self.assertIs(each.ref, ControllerRef.TARGET_PLAYER)
+        atom = _as_atom(each.effect)
         self.assertEqual(atom.verb, Verb.SACRIFICE)
         p = _pairs_dict(atom)
         target = p["target"]
@@ -1292,6 +1302,7 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(target.mode, SelectorMode.CHOOSE)
         canon = canonical_json(target)
         self.assertIn("FLYING", canon)
+        self.assertIn(FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU), target.filter.children)
 
     def test_discard_target_2(self) -> None:
         """B5b-discard-target-2: merged MOVE_ZONE (T4 P1a), TARGET_PLAYER,

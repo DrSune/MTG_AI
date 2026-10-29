@@ -1014,6 +1014,19 @@ def _build_reveal_hand(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_sacr_flying(m: re.Match[str]) -> SentenceOutcome:
+    """Run Afoul: "Target opponent sacrifices a creature of their choice with
+    flying."
+
+    The edict shape of Goremand's "each opponent sacrifices a creature":
+    EachPlayer rotates the controller to the player who sacrifices, and the
+    SACRIFICE pick is YOU-relative (CONTROLLER_IS YOU), so only that player's
+    creatures are candidates and that player is the one choosing (CR 701.21a:
+    a player can sacrifice only a permanent they control). Here the player is
+    the spell's target opponent, EachPlayer(TARGET_PLAYER, ...); the query
+    gives the spell its player target slot from that ref.
+    m21-fidelity (review batch J, 2026-10-29): it had no player at all, a
+    pick over every player's fliers, so the caster's own flier could go.
+    """
     atom = Atom(
         verb=Verb.SACRIFICE,
         args=AtomArgs(
@@ -1025,6 +1038,7 @@ def _build_sacr_flying(m: re.Match[str]) -> SentenceOutcome:
                         SelectorMode.CHOOSE,
                         FAnd(
                             children=(
+                                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
                                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                                 FAtom(
                                     pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING
@@ -1037,7 +1051,7 @@ def _build_sacr_flying(m: re.Match[str]) -> SentenceOutcome:
             )
         ),
     )
-    return EffectOutcome(effect=atom)
+    return EffectOutcome(effect=EachPlayer(ref=ControllerRef.TARGET_PLAYER, effect=atom))
 
 
 def _build_discard_target_2(m: re.Match[str]) -> SentenceOutcome:
