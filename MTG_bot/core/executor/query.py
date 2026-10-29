@@ -1038,6 +1038,29 @@ def _designation_selector(selector: Selector) -> Selector:
     return replace(selector, filter=stripped)
 
 
+def _names_target_player(value: object) -> bool:
+    """Does this atom role read the designated TARGET_PLAYER coordinate? A bare
+    ControllerRef (Duress's "target opponent"), a Zone it controls, a filter
+    that reads the bound player (E1 FIX-2), or (B-49 follow-up #3, 2026-10-29)
+    a Selector over zones it controls. Tormod's Crypt's "Exile target player's
+    graveyard" selects ALL cards in Zone(GRAVEYARD, TARGET_PLAYER). The word "target"
+    makes the player a target (CR 115.1), so it needs the player slot. Without
+    it the activation resolved with nothing bound and raised "TARGET_PLAYER
+    needs a bound target". The spell and activation lanes share this one
+    predicate; trigger designation (binding._designate) is unchanged."""
+    return (
+        value is ControllerRef.TARGET_PLAYER
+        or isinstance(value, Zone)
+        and value.controller is ControllerRef.TARGET_PLAYER
+        or isinstance(value, Selector)
+        and (
+            filter_reads_bound_player(value.filter)
+            or any(zone.controller is ControllerRef.TARGET_PLAYER for zone in value.zones)
+        )
+        or filter_reads_bound_player(value)
+    )
+
+
 def spell_target_slots(
     executor: Executor,
     node: SpellAbility,
@@ -1084,14 +1107,7 @@ def spell_target_slots(
         if not isinstance(inner, Atom):
             continue
         for _role, value in inner.args.pairs:
-            if (
-                value is ControllerRef.TARGET_PLAYER
-                or isinstance(value, Zone)
-                and value.controller is ControllerRef.TARGET_PLAYER
-                or isinstance(value, Selector)
-                and filter_reads_bound_player(value.filter)
-                or filter_reads_bound_player(value)
-            ):
+            if _names_target_player(value):
                 reads_target_player = True
             if not isinstance(value, Selector) or value.mode is not SelectorMode.TARGET:
                 continue
@@ -1185,14 +1201,7 @@ def activation_target_slots(
         if not isinstance(inner, Atom):
             continue
         for _role, value in inner.args.pairs:
-            if (
-                value is ControllerRef.TARGET_PLAYER
-                or isinstance(value, Zone)
-                and value.controller is ControllerRef.TARGET_PLAYER
-                or isinstance(value, Selector)
-                and filter_reads_bound_player(value.filter)
-                or filter_reads_bound_player(value)
-            ):
+            if _names_target_player(value):
                 reads_target_player = True
             if not isinstance(value, Selector) or value.mode is not SelectorMode.TARGET:
                 continue

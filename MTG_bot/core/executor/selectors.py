@@ -137,10 +137,14 @@ def filter_reads_bound_player(filter_: object) -> bool:
     (binding._designate, the query cast/activation lanes) must consult
     FILTERS — not just raw ControllerRef/Zone pair values — or the flag
     silently flips off. The scope to filters is deliberate: a Selector or
-    Verb-role ZONE carrying TARGET_PLAYER is anaphoric (Brash Taunter's
-    "that creature or player") or a container read (Tormod's Crypt's
-    graveyard sweep) — those must NOT open a designation lane (the
-    multi-lane guard would raise)."""
+    Verb-role ZONE carrying TARGET_PLAYER can be anaphoric (Brash Taunter's
+    "that creature or player"), and in trigger designation those must NOT
+    open a designation lane (the multi-lane guard would raise).
+
+    B-49 follow-up #3 (2026-10-29): Tormod's Crypt's "Exile target player's
+    graveyard" is not a container read. "target player" is a target (CR 115.1),
+    so the query cast/activation lanes open its player slot from the selector's
+    zones (query._names_target_player); binding._designate is unchanged."""
     if isinstance(filter_, FAtom):
         if (
             filter_.pred is FAtomPred.CONTROLLER_IS

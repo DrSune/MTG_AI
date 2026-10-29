@@ -98,6 +98,7 @@ from MTG_bot.core.executor.games import (
 from MTG_bot.core.executor.legality import activate, ctx_for, spell_castable
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
 from MTG_bot.core.executor.query import (
+    activation_target_slots,
     is_aura_spell,
     legal_casts,
     legal_targets,
@@ -2263,6 +2264,52 @@ class AuraEnchantRestrictionTest(unittest.TestCase):
         self.assertEqual(self._slot_names("ZNR", "Bubble Snare"), {"own Own Bear", "opp Opp Bear"})
 
 
+class TormodsCryptTargetPlayerTest(unittest.TestCase):
+    """B-49 follow-up #3 (2026-10-29): "Exile target player's graveyard" names
+    the player only inside a selector's zone, Zone(GRAVEYARD, TARGET_PLAYER).
+    The activation lane's scan missed that read, so no player slot was built,
+    the policy designated nothing, and the activation raised "TARGET_PLAYER
+    needs a bound target" once the B-49 carrier made the Crypt castable (14% of
+    stress and 24% of coherent castable games). "target player" is a target
+    (CR 115.1). The slot is the existing synthesized one, so it offers opponents
+    only (BACKLOG B-53, not fixed here)."""
+
+    def _armed(self):
+        supply = get_supply("all", "M21")
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=7)
+        executor = Executor(world)
+        executor.attach_pool(supply.pool)
+        p0, p1 = world.player_order
+        record = next(r.card for r in supply.pool.results.values() if r.card.name == "Tormod's Crypt")
+        crypt = world.add_card(identity_of(record), p0, ZONE_BATTLEFIELD)
+        executor.attach_card(crypt, record)
+        mine = world.add_card(card_id("Own Dead", power="1", toughness="1"), p0, ZONE_GRAVEYARD)
+        theirs = [
+            world.add_card(card_id(f"Opp Dead {i}", power="1", toughness="1"), p1, ZONE_GRAVEYARD)
+            for i in range(2)
+        ]
+        world.active_player = p0
+        executor.turn_open = True
+        executor.phase = "FIRST_MAIN"
+        return world, executor, p0, p1, record, crypt, mine, theirs
+
+    def test_the_zone_read_opens_one_required_player_slot(self) -> None:
+        _world, executor, p0, p1, record, crypt, _mine, _theirs = self._armed()
+        (slot,) = activation_target_slots(executor, record.abilities[0].effect, source=crypt, seat=p0)
+        self.assertTrue(slot.synthetic)
+        self.assertEqual((slot.min_count, slot.max_count), (1, 1))
+        self.assertEqual(slot.candidates, (p1,))
+
+    def test_the_designated_activation_exiles_exactly_that_graveyard(self) -> None:
+        world, executor, p0, _p1, record, crypt, mine, theirs = self._armed()
+        (slot,) = activation_target_slots(executor, record.abilities[0].effect, source=crypt, seat=p0)
+        activate(executor, crypt, 0, seat=p0, targets=slot.candidates)
+        self.assertEqual([world.zone_of(h).kind for h in theirs], [ZONE_EXILE, ZONE_EXILE])
+        self.assertEqual(world.zone_of(mine).kind, ZONE_GRAVEYARD)
+        self.assertEqual(world.zone_of(crypt).kind, ZONE_GRAVEYARD)  # sacrificed as the cost
+
+
 # ---------------------------------------------------------------------------
 # Stall rule (CR 104.4b): a world fingerprint that repeats exactly across
 # REPEAT_ROUNDS consecutive per-seat round observations ends the game early
@@ -2398,9 +2445,15 @@ class StallRuleTest(unittest.TestCase):
         # asks consume policy RNG draws on the new sites, so the seeded
         # trajectory shifts again — still decisive, SAME loser, 30 turns
         # (double-run replay verified).
+        # RE-ANCHORED 2026-10-29 (B-49 + follow-up #3): the B-49 carrier made
+        # Tormod's Crypt castable, and player 0 casts and activates it. That
+        # activation crashed at turn 4 ("TARGET_PLAYER needs a bound target")
+        # until its player slot existed; it now exiles player 1's graveyard.
+        # Still crash-free and decisive, SAME loser, 36 turns (double-run
+        # replay verified). Neither Chandra in these decks is cast.
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 30)
+        self.assertEqual(game.turns, 36)
         self.assertEqual(game.reason, "game over: player:0(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:
