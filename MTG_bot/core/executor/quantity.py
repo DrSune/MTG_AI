@@ -292,6 +292,14 @@ class ExecCtx:
         return self.ledger.effective_pt(card_state.identity, card, card_state.counters)
 
 
+def phased_out(ctx: ExecCtx, handle: Handle) -> bool:
+    """CR 702.26b: is ``handle`` a phased-out permanent, treated as though
+    it does not exist? The status lives on the executor; a bare ExecCtx (no
+    executor) has no phasing."""
+    executor = ctx.executor
+    return executor is not None and handle in getattr(executor, "phased_out", ())
+
+
 def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
     """Quantity IR -> a non-negative int, for the v1 subset.
 
@@ -1135,6 +1143,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         for card in sorted(world.cards):
             if (
                 world.zone_of(card).kind == ZONE_BATTLEFIELD
+                and not phased_out(ctx, card)  # CR 702.26b: not counted
                 and controller_of(ctx, card) == ctx.controller
                 and (
                     atom.inner_filter is None
@@ -1167,6 +1176,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 1
                 for card in sorted(world.cards)
                 if world.zone_of(card).kind == ZONE_BATTLEFIELD
+                and not phased_out(ctx, card)  # CR 702.26b: not counted
                 and eval_filter(filt, card, ctx)
             )
 
@@ -1254,6 +1264,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         for card in sorted(world.cards):
             if (
                 world.zone_of(card).kind != ZONE_BATTLEFIELD
+                or phased_out(ctx, card)  # CR 702.26b: not counted
                 or controller_of(ctx, card) != ctx.controller
                 or not eval_filter(atom.inner_filter, card, ctx)
             ):

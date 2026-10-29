@@ -454,6 +454,54 @@ class TestExtraTurn(LibraryCase):
         self.assertIs(self.world.active_player, self.p1)
         self.assertEqual(self.ex.extra_turn_queue, [])
 
+    def _turn_seats(self):
+        """The active player of every turn begun so far, in order (the
+        journal's UPKEEP markers carry the active player)."""
+        return [
+            e.data[1]
+            for e in self.journal_rows("TURN_PHASE")
+            if e.data[0] == "UPKEEP"
+        ]
+
+    def test_most_recently_created_extra_turn_is_taken_first(self):
+        # CR 500.7: extra turns are added directly after the specified turn,
+        # one at a time, and the most recently created turn is taken first.
+        # p0 gets an extra turn, then p1 gets one during the same turn: p1's
+        # turn comes first, then p0's, then the normal order resumes with
+        # p1's own turn (the turn that followed p0's in the first place).
+        self.ex.begin_turn(self.p0)
+        self._do(atom(Verb.EXTRA_TURN, count=QConst(1)), controller=self.p0)
+        self._do(atom(Verb.EXTRA_TURN, count=QConst(1)), controller=self.p1)
+        for _ in range(4):
+            self.ex.advance_turn()
+        self.assertEqual(
+            self._turn_seats(), [self.p0, self.p1, self.p0, self.p1, self.p0]
+        )
+
+    def test_normal_order_resumes_after_the_turn_the_extras_followed(self):
+        # CR 500.7: p1's extra turn is inserted after p0's turn; the turn
+        # after it is p1's normal turn, not p0's (the rotation continues from
+        # the last normal turn, never from the extra turn's player).
+        self.ex.begin_turn(self.p0)
+        self._do(atom(Verb.EXTRA_TURN, count=QConst(1)), controller=self.p1)
+        for _ in range(3):
+            self.ex.advance_turn()
+        self.assertEqual(self._turn_seats(), [self.p0, self.p1, self.p1, self.p0])
+
+    def test_extra_turn_created_during_an_extra_turn_goes_first(self):
+        # CR 500.7: p0 takes two extra turns (Teferi's [-10]); during the
+        # first one p1 is given an extra turn "after this one", which is
+        # added directly after the current turn, ahead of p0's second extra.
+        self.ex.begin_turn(self.p0)
+        self._do(atom(Verb.EXTRA_TURN, count=QConst(2)), controller=self.p0)
+        self.ex.advance_turn()  # p0's first extra turn
+        self._do(atom(Verb.EXTRA_TURN, count=QConst(1)), controller=self.p1)
+        for _ in range(3):
+            self.ex.advance_turn()
+        self.assertEqual(
+            self._turn_seats(), [self.p0, self.p0, self.p1, self.p0, self.p1]
+        )
+
 
 # -------------------------------------------------------------- LOSE_GAME
 
@@ -584,6 +632,201 @@ class TestLoyaltyLedger(LibraryCase):
         )
         self.assertNotIn("LOYALTY", self.world.cards[art].counters)
         self.assertEqual(self.ex.loyalty_clock, {})  # no loyalty act, no clock entry
+
+
+# ------------------------------------------- LOYALTY [−X] (Ugin), the X lane
+
+
+class TestLoyaltyXLane(LibraryCase):
+    """CR 602.2b -> 601.2b: an activation's X is announced before the cost
+    is paid; CR 606.6 caps a loyalty [−X] at the loyalty counters; CR 107.3a:
+    the effect reads the announced X."""
+
+    MINUS_X = 1  # Ugin's abilities: [+2], [−X], [−10]
+
+    def setUp(self):
+        super().setUp()
+        self.ugin = self.world.add_card(
+            card_id(
+                "Ugin, the Spirit Dragon",
+                type_line="Legendary Planeswalker — Ugin",
+                cmc=8,
+                loyalty="7",
+            ),
+            self.p0,
+            ZONE_BATTLEFIELD,
+        )
+        self.ex.attach_card(
+            self.ugin,
+            record(
+                "Ugin, the Spirit Dragon",
+                oid=self.world.cards[self.ugin].identity.oracle_id,
+            ),
+        )
+        self.ex.begin_turn(self.p0)
+        self.asks = []
+
+        def provider(vocab, what):
+            self.asks.append((what, vocab))
+            return vocab[-1]
+
+        self.ex.decisions.provider = provider
+
+    def loyalty(self):
+        return self.world.cards[self.ugin].counters.get(CounterKind.LOYALTY.name)
+
+    def test_the_query_row_carries_the_live_bound_and_the_x0_witness(self):
+        from MTG_bot.core.executor.query import legal_activations
+
+        rows = [
+            r
+            for r in legal_activations(self.world, self.ex, self.p0)
+            if r.source == self.ugin
+        ]
+        by_idx = {r.ability_idx: r for r in rows}
+        self.assertEqual(by_idx[self.MINUS_X].x_max, 7)
+        self.assertEqual(by_idx[self.MINUS_X].payment.loyalty, 0)  # X = 0 witness
+        self.assertIsNone(by_idx[0].x_max)  # [+2] has no X
+        self.world.cards[self.ugin].counters[CounterKind.LOYALTY.name] = 3
+        rows = legal_activations(self.world, self.ex, self.p0)
+        row = next(r for r in rows if (r.source, r.ability_idx) == (self.ugin, 1))
+        self.assertEqual(row.x_max, 3)  # the bound follows the counters
+
+    def test_unannounced_x_is_asked_over_zero_to_loyalty(self):
+        activate(self.ex, self.ugin, self.MINUS_X, seat=self.p0)
+        x_asks = [(w, v) for w, v in self.asks if w.startswith("x:")]
+        self.assertEqual(len(x_asks), 1)
+        what, vocab = x_asks[0]
+        self.assertEqual(vocab, tuple(str(n) for n in range(8)))
+        self.assertTrue(what.startswith(f"x:{self.p0}:{self.ugin}:"))
+        # The provider answered "7": all seven counters paid, Ugin dies.
+        self.assertEqual(self.world.zone_of(self.ugin).kind, ZONE_GRAVEYARD)
+
+    def test_announced_x_is_paid_and_journalled(self):
+        activate(self.ex, self.ugin, self.MINUS_X, seat=self.p0, x=2)
+        self.assertEqual(self.loyalty(), 5)
+        rows = self.journal_rows("LOYALTY_ACTIVATED")
+        self.assertEqual([r.data for r in rows], [(-2,)])
+        self.assertEqual([w for w, _ in self.asks if w.startswith("x:")], [])
+
+    def test_x_above_the_loyalty_counters_is_refused_before_paying(self):
+        self.world.cards[self.ugin].counters[CounterKind.LOYALTY.name] = 3
+        with self.assertRaisesRegex(ValueError, r"x:4>max:3"):
+            activate(self.ex, self.ugin, self.MINUS_X, seat=self.p0, x=4)
+        self.assertEqual(self.loyalty(), 3)
+        self.assertEqual(self.ex.loyalty_clock, {})
+        with self.assertRaisesRegex(ValueError, r"x:-1<0"):
+            activate(self.ex, self.ugin, self.MINUS_X, seat=self.p0, x=-1)
+
+    def test_x_zero_is_still_the_turns_loyalty_ability(self):
+        # CR 606.3: [−0] removes no counter but uses the permanent's loyalty
+        # activation for the turn.
+        activate(self.ex, self.ugin, self.MINUS_X, seat=self.p0, x=0)
+        self.assertEqual(self.loyalty(), 7)
+        self.assertEqual(self.ex.loyalty_clock.get(self.ugin), self.world.turn)
+        self.assertEqual(
+            ability_playable(self.world, self.ex, self.ugin, 0, seat=self.p0),
+            "window:loyalty:once_per_turn",
+        )
+        rows = self.journal_rows("LOYALTY_ACTIVATED")
+        self.assertEqual([r.data for r in rows], [(0,)])
+
+    def test_x_on_a_cost_without_x_is_refused(self):
+        with self.assertRaisesRegex(ValueError, r"x:no_x_in_cost"):
+            activate(self.ex, self.ugin, 0, seat=self.p0, targets=(self.p1,), x=1)
+
+
+# --------------------------------- LOYALTY WINDOW (CR 606.3, Teferi's static)
+
+
+class TestLoyaltyWindow(LibraryCase):
+    """CR 606.3: a loyalty ability is activated during a main phase of its
+    controller's own turn with an empty stack, once per permanent per turn.
+    Teferi, Master of Time's static relaxes the window for ITSELF only
+    ("loyalty abilities of Teferi": CR 201.5/201.5c, the self referent)."""
+
+    MOT_PLUS = 1  # Teferi, Master of Time: [0] static, [1] +1, [2] -3, [3] -10
+    TV_PLUS = 0  # Teferi, Timeless Voyager: [0] +1, [1] -3, [2] -8
+
+    def walker(self, name, seat, loyalty, type_line):
+        handle = self.world.add_card(
+            card_id(name, type_line=type_line, cmc=4, loyalty=loyalty),
+            seat,
+            ZONE_BATTLEFIELD,
+        )
+        self.ex.attach_card(
+            handle, record(name, oid=self.world.cards[handle].identity.oracle_id)
+        )
+        return handle
+
+    def setUp(self):
+        super().setUp()
+        self.mot = self.walker(
+            "Teferi, Master of Time", self.p0, "3", "Legendary Planeswalker — Teferi"
+        )
+        self.tv = self.walker(
+            "Teferi, Timeless Voyager", self.p0, "4", "Legendary Planeswalker — Teferi"
+        )
+        self.basri = self.walker(
+            "Basri Ket", self.p1, "3", "Legendary Planeswalker — Basri"
+        )
+        self.ex.decisions.provider = lambda vocab, what: vocab[0]
+        self.ex.begin_turn(self.p0)
+
+    def playable(self, handle, idx, seat, **kw):
+        return ability_playable(self.world, self.ex, handle, idx, seat=seat, **kw)
+
+    def test_a_loyalty_ability_waits_for_its_controllers_main_phase(self):
+        # p0's turn: Basri (p1) is out of its window, TV (p0) is in it.
+        self.assertEqual(
+            self.playable(self.basri, 0, self.p1), "window:loyalty:not_own_turn"
+        )
+        self.assertIsNone(self.playable(self.tv, self.TV_PLUS, self.p0))
+        self.assertEqual(
+            self.playable(self.tv, self.TV_PLUS, self.p0, stack_empty=False),
+            "window:loyalty:stack_nonempty",
+        )
+        self.ex.phase = "COMBAT"
+        self.assertEqual(
+            self.playable(self.tv, self.TV_PLUS, self.p0),
+            "window:loyalty:not_main_phase",
+        )
+        self.ex.phase = "SECOND_MAIN"  # both main phases are main phases
+        self.assertIsNone(self.playable(self.tv, self.TV_PLUS, self.p0))
+
+    def test_master_of_time_may_activate_itself_on_any_turn(self):
+        self.ex.advance_turn()  # p1's turn
+        self.assertIsNone(self.playable(self.mot, self.MOT_PLUS, self.p0))
+        self.assertIsNone(
+            self.playable(self.mot, self.MOT_PLUS, self.p0, stack_empty=False)
+        )
+
+    def test_the_grant_covers_master_of_time_only(self):
+        # Another Teferi of the same controller is not "Teferi" (CR 201.5).
+        self.ex.advance_turn()  # p1's turn
+        self.assertEqual(
+            self.playable(self.tv, self.TV_PLUS, self.p0), "window:loyalty:not_own_turn"
+        )
+        # Nor is an opponent's Teferi on its controller's off turn.
+        foe = self.walker(
+            "Teferi, Timeless Voyager", self.p1, "4", "Legendary Planeswalker — Teferi"
+        )
+        self.ex.advance_turn()  # p0's turn again
+        self.assertEqual(
+            self.playable(foe, self.TV_PLUS, self.p1), "window:loyalty:not_own_turn"
+        )
+
+    def test_once_per_turn_still_holds_with_the_grant(self):
+        self.ex.advance_turn()  # p1's turn
+        activate(self.ex, self.mot, self.MOT_PLUS, seat=self.p0)  # draw, discard
+        self.assertEqual(
+            self.world.cards[self.mot].counters[CounterKind.LOYALTY.name], 4
+        )
+        self.assertEqual(
+            self.playable(self.mot, 2, self.p0), "window:loyalty:once_per_turn"
+        )
+        self.ex.advance_turn()  # p0's next turn: a new turn, a new activation
+        self.assertIsNone(self.playable(self.mot, self.MOT_PLUS, self.p0))
 
 
 # ------------------------------------------------------ SORCERY WINDOW
@@ -728,6 +971,10 @@ class TestCapabilitySurface(unittest.TestCase):
             # T5-D (Sanctum of All family): the extra-trigger verb joins
             # with the AbilityTriggerEvent fan-out.
             Verb.TRIGGER_ADDITIONAL,
+            # re-pinned 2026-10-29: PHASE_OUT joins with the CR 702.26
+            # phased-out status (both Teferis leave deferral; PHASE_IN has
+            # no carrier and stays out).
+            Verb.PHASE_OUT,
         }
         self.assertEqual(SUPPORTED_VERBS_V2 - SUPPORTED_VERBS_V1, new)
         self.assertNotIn(Verb.DRAW, SUPPORTED_VERBS_V1)  # the round-12 freeze
@@ -735,7 +982,8 @@ class TestCapabilitySurface(unittest.TestCase):
         # T4 P1a: 46 -> 43 — EXILE/DISCARD/MILL moved off the live HANDLERS
         # set onto the merged MOVE_ZONE dispatch (enum members kept for
         # legacy decode only).
-        self.assertEqual(len(SUPPORTED_VERBS_V2), 44)
+        # re-pinned 2026-10-29: 44 -> 45, PHASE_OUT (CR 702.26).
+        self.assertEqual(len(SUPPORTED_VERBS_V2), 45)
 
     def test_turn_ledger_fields_in_state_fingerprint(self):
         reset_oracle_ids()

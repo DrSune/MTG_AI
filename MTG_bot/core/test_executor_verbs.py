@@ -981,8 +981,12 @@ class TestDispatchRaises(ExecutorCase):
         # verb has a real handler (kickback ask included); off-stack
         # counters still raise loudly, pinned by
         # test_counter_spell_off_stack_raises in test_executor_stack.py.
+        # AMENDED 2026-10-29 (phasing, CR 702.26): PHASE_OUT left the raise
+        # list — it has a real handler (Executor.phase_out, covered in
+        # test_executor_phasing.py and the Teferi packs). PHASE_IN has no
+        # carrier in the pools and no handler, so it is the probe now.
         probes = {
-            Verb.PHASE_OUT: {"target": target_sel()},
+            Verb.PHASE_IN: {"cards": target_sel(), "controller": ControllerRef.YOU},
         }
         for verb, roles in probes.items():  # DRAW deliberately outside v1
             with self.subTest(verb=verb.name):

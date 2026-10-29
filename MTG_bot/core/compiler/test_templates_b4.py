@@ -1418,9 +1418,14 @@ class TestB4Round9B(unittest.TestCase):
         self.assertEqual(_pairs(atom), {"scope": "ALL_YOURS"})
 
     def test_tefei_grant_activation(self) -> None:
-        """GRANT_ACTIVATION (R9-7): holder gate FAnd(Planeswalker,
-        NAME_CONTAINS Teferi); window = INSTANT verbatim from "any time you
-        could cast an instant" (NOT the r10 fixture's SORCERY example)."""
+        """GRANT_ACTIVATION (R9-7): holder gate = the self referent IS_SOURCE;
+        window = INSTANT verbatim from "any time you could cast an instant"
+        (NOT the r10 fixture's SORCERY example).
+
+        re-pinned 2026-10-29: the holder was FAnd(Planeswalker, NAME_CONTAINS
+        "Teferi"), which also matched every other Teferi planeswalker. "Teferi"
+        is the card's shortened name, so it means this object only (CR 201.5,
+        201.5c)."""
         outcome = _single_match(
             self.reg,
             "You may activate loyalty abilities of Teferi on any player's "
@@ -1430,21 +1435,7 @@ class TestB4Round9B(unittest.TestCase):
         opt = _as_optional(static.effect)
         atom = _as_atom(opt.inner)
         self.assertIs(atom.verb, Verb.GRANT_ACTIVATION)
-        holder = atom.args.get("filter")
-        assert isinstance(holder, FAnd)
-        # R1a canonicalization (ontology §3 SET-R1a): FAnd children are
-        # construction-sorted by canonical_json — members pinned by pred, the
-        # printed-order index replaced, the ORDER pinned by the law itself.
-        self.assertEqual(
-            list(holder.children), sorted(holder.children, key=canonical_json)
-        )
-        by_pred = {c.pred: c for c in holder.children}
-        self.assertEqual(len(by_pred), 2)
-        type_a = by_pred[FAtomPred.TYPE_EQ]
-        name_a = by_pred[FAtomPred.NAME_CONTAINS]
-        assert isinstance(type_a, FAtom) and isinstance(name_a, FAtom)
-        self.assertEqual(type_a.string_value, "Planeswalker")
-        self.assertEqual(name_a.string_value, "Teferi")
+        self.assertEqual(atom.args.get("filter"), FAtom(pred=FAtomPred.IS_SOURCE))
         self.assertIs(atom.args.get("window"), ActivationWindow.INSTANT)
 
     def test_enthralling_target_choice(self) -> None:

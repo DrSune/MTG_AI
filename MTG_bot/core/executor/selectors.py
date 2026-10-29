@@ -44,7 +44,7 @@ from MTG_bot.core.ability_tree import (
     count_semantics,
 )
 from MTG_bot.core.executor.decisions import site_digest
-from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
+from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, phased_out, resolve
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
     PLAYER_ZONES,
@@ -205,7 +205,7 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
         for player in ctx.world.player_order:
             for any_kind in PLAYER_ZONES:
                 handles_all.extend(ctx.world.players[player].zone(any_kind).entries)
-        return handles_all
+        return existing(ctx, handles_all)
     ref = zone_ir.controller
     if kind is ZoneKind.STACK:
         # 14d (B-19): B-2's RUNTIME twin. ZONE_KIND_TO_STATE has no STACK
@@ -253,7 +253,19 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
             handles.extend(entries[:1])
         else:
             handles.extend(entries)
-    return handles
+    return existing(ctx, handles)
+
+
+def existing(ctx: ExecCtx, handles: list[Handle]) -> list[Handle]:
+    """CR 702.26b: a phased-out permanent is treated as though it does not
+    exist, so no zone enumeration yields it: not a target, not an "each"
+    population, not counted, not a cost candidate, not a static's scope.
+    The ONE chokepoint every selector and query enumeration passes
+    (``enumerate_zone`` here, ``legality._zone_handles`` for its own
+    OWNER/ANY lanes). Order-preserving; free when nothing is phased out."""
+    if ctx.executor is None or not getattr(ctx.executor, "phased_out", None):
+        return handles
+    return [h for h in handles if not phased_out(ctx, h)]
 
 
 def _is_any_target_idiom(filter_: object) -> bool:
@@ -1046,7 +1058,9 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
         and not self_ref
         and not graveyard_sweep
     ):
-        return bound
+        # CR 702.26b / 608.2b: a designated permanent that has phased out
+        # since it was designated does not exist, so the verb skips it.
+        return existing(ctx, bound)
     if isinstance(value, Selector):
         if (
             atom.verb is Verb.CAST

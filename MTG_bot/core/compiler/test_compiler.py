@@ -1579,11 +1579,16 @@ class TestDurationPermissionRows(unittest.TestCase):
 class TestDynamicLoyaltyCostGate(unittest.TestCase):
     """B-49 follow-up #4 (2026-10-29): Ugin, the Spirit Dragon's [−X]. X is
     announced as the ability is activated (CR 601.2b via 602.2b). The
-    activation lane has no X declaration, so once the B-49 carrier made Ugin
+    activation lane had no X declaration, so once the B-49 carrier made Ugin
     castable, legal_activations raised NotImplementedError ("QX has no declared
     X") on its controller's next scan. That was 58 of the 153 crashes in the
-    800-game castable sweep. The honest shape gate marks a Quantity loyalty
-    delta engine-unsupported until an ACTIVATE X lane exists."""
+    800-game castable sweep, and the shape gate marked a Quantity loyalty
+    delta engine-unsupported.
+
+    Re-pinned 2026-10-29: the activation X lane (legality.activation_x_max /
+    ask_activation_x, CR 606.6 caps X at the loyalty counters) supports a
+    bare X, so Ugin is engine-supported. Any other Quantity delta has no
+    announcement lane and stays gated."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -1597,7 +1602,9 @@ class TestDynamicLoyaltyCostGate(unittest.TestCase):
     def _gated(self, name: str) -> CompileResult:
         return compile_card(self.raw[name], self.reg, supported_verbs=self.verbs)
 
-    def test_ugin_minus_x_makes_the_card_unsupported(self) -> None:
+    def test_ugin_minus_x_is_supported_by_the_x_lane(self) -> None:
+        # re-pinned 2026-10-29: the activation X lane changes Ugin from
+        # gated to supported (it asserted assertFalse before the lane).
         res = self._gated("Ugin, the Spirit Dragon")
         deltas = [
             part.delta
@@ -1607,7 +1614,27 @@ class TestDynamicLoyaltyCostGate(unittest.TestCase):
             if isinstance(part, CostLoyalty)
         ]
         self.assertEqual(deltas, [2, QX(), -10])
-        self.assertFalse(res.legality.engine_supported)
+        self.assertTrue(res.legality.engine_supported)
+
+    def test_a_non_bare_x_loyalty_delta_stays_unsupported(self) -> None:
+        from dataclasses import replace
+
+        from MTG_bot.core.ability_tree import QBin, QBinOp, QConst
+        from MTG_bot.core.compiler.compiler import _engine_supported
+
+        res = self._gated("Ugin, the Spirit Dragon")
+        minus_x = res.card.abilities[1]
+        assert isinstance(minus_x, ActivatedAbility)
+        crafted = replace(
+            minus_x,
+            cost=Cost(
+                parts=(CostLoyalty(delta=QBin(QBinOp.ADD, QX(), QConst(1))),)
+            ),
+        )
+        card = replace(
+            res.card, abilities=(res.card.abilities[0], crafted, *res.card.abilities[2:])
+        )
+        self.assertFalse(_engine_supported(card, self.verbs))
 
     def test_fixed_loyalty_costs_stay_supported(self) -> None:
         for name in ("Basri Ket", "Liliana, Death Mage", "Garruk, Savage Herald"):

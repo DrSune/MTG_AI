@@ -284,6 +284,10 @@ class Probe:
                         pt = tuple(ex.ledger.effective_pt(c.identity, h, c.counters))
                     except Exception:  # noqa: BLE001 — a non-creature permanent
                         pt = None
+            # CR 702.26 (2026-10-29): phasing is a status, not a zone change, so the zone label
+            # carries it; a card that never phases keeps its trace bytes.
+            if h in getattr(ex, "phased_out", ()):
+                zone = "battlefield (phased out)"
             objs[name(h)] = (zone, _seat_name(world, world.controller_of(h)), bool(c.tapped),
                              tuple(sorted(dict(c.counters).items())), pt, kws, ex.damage.get(h, 0))
         players = {}

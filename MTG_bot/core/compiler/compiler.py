@@ -1621,14 +1621,16 @@ def _engine_supported(card: CardRecord, supported_verbs: set[Verb] | None) -> bo
                 ):
                     engine_supported = False
                     break
-                # B-49 follow-up #4 (2026-10-29): a loyalty cost with a
-                # Quantity delta (Ugin's [−X]). X is announced as the ability
-                # is activated (CR 601.2b via 602.2b), and the activation lane
-                # has no X declaration: legal_activations raised
-                # NotImplementedError on it once Ugin was castable, and a
-                # resolved delta would be priced as a loyalty gain. Gated
-                # until an ACTIVATE X lane exists. Ugin is the only such card.
-                if isinstance(node, CostLoyalty) and not isinstance(node.delta, int):
+                # B-49 follow-up #4 (2026-10-29): a loyalty [−X] (Ugin) is
+                # supported: legality.activate announces X before paying
+                # (CR 602.2b -> 601.2b, 107.3a), capped by the loyalty
+                # counters (CR 606.6). The lane handles a bare X only, so
+                # any other Quantity delta stays honestly unsupported.
+                if (
+                    isinstance(node, CostLoyalty)
+                    and not isinstance(node.delta, int)
+                    and not isinstance(node.delta, QX)
+                ):
                     engine_supported = False
                     break
     return engine_supported

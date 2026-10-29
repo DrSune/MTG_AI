@@ -362,6 +362,16 @@ class Executor:
         # (ruling 1: folded into state_fingerprint, removed at the cleanup
         # step and when the permanent leaves the battlefield).
         self.damage: dict[Handle, int] = {}
+        # CR 702.26 (2026-10-29): PHASED-OUT permanents. Phasing is a status
+        # of the permanent (CR 110.5), not a zone: the card stays in its
+        # battlefield zone, no zone-change event happens (702.26d), and the
+        # engine's battlefield readers leave it out (it is treated as though
+        # it does not exist, 702.26b). handle -> (the player who controlled
+        # it when it phased out: it phases in during that player's untap
+        # step, CR 502.1; the permanent it phased out indirectly with, or
+        # None when it phased out directly, 702.26g). Replayed state, folded
+        # into state_fingerprint when non-empty.
+        self.phased_out: dict[Handle, tuple[Handle, Handle | None]] = {}
         # r23a (Wildwood Scourge, CR 614.1c): the X declared by a spell's
         # cast (601.2f) travels to that permanent's ETB firings. stack.cast
         # records the declared X as the spell ENTERS the battlefield; the
@@ -421,8 +431,14 @@ class Executor:
         # legality gates read.
         self.phase: str | None = None
         self.turn_open = False
-        # CR 500.7 stand-in: EXTRA_TURN enqueues, advance_turn pops.
+        # CR 500.7: EXTRA_TURN pushes onto the FRONT (the most recently
+        # created turn is taken first), advance_turn pops index 0.
         self.extra_turn_queue: list[Handle] = []
+        # CR 500.7: extra turns are inserted after a turn, so the normal turn
+        # order resumes from the seat of the last NORMAL turn, never from an
+        # extra turn's player. None until advance_turn first rotates (the
+        # first turn is the normal turn of whoever began it).
+        self.normal_turn_seat: Handle | None = None
         # LOSE_GAME ledger (the emptied-library CR 121.3 loss is the later
         # state-check phase, not a verb).
         self.lost_players: list[Handle] = []
@@ -671,6 +687,7 @@ class Executor:
         controller: Handle,
         bindings: dict[str, Binding] | None = None,
         decisions: Sequence[str] = (),
+        x_value: int | None = None,
     ) -> tuple[Event, ...]:
         """Run an Effect tree; the per-op pool ``decisions`` covers the
         KNOWN tree in ask order, and every demand it cannot serve reaches
@@ -683,7 +700,9 @@ class Executor:
         one sub-execution per denoted player, controller rotated — the
         inner effect is compiled YOU-relative, so the rotation IS the
         rebinding) and DelayedTrigger (scheduled, C22) are wired; Repeat
-        raises as an unimplemented node (12e)."""
+        raises as an unimplemented node (12e). ``x_value`` is an activated
+        ability's announced X (CR 107.3a; ``legality.activate``'s X lane),
+        None for every effect with no X."""
         if not isinstance(
             effect,
             (
@@ -701,7 +720,11 @@ class Executor:
             )
         self._op_seq += 1
         ctx = self._ctx(
-            source=source, controller=controller, bindings=bindings, decisions=decisions
+            source=source,
+            controller=controller,
+            bindings=bindings,
+            decisions=decisions,
+            x_value=x_value,
         )
         start = len(self.events)
         self._run_effect(effect, ctx)
@@ -1137,7 +1160,7 @@ class Executor:
         non-creature artifacts) is not a creature-side death at all."""
         dying: list[Handle] = []
         for player in self.world.player_order:
-            for card in self.world.players[player].zone(ZONE_BATTLEFIELD).entries:
+            for card in self.battlefield(player):  # CR 702.26b
                 identity = self.world.cards[card].identity
                 _power, toughness = self.ledger.effective_pt(
                     identity, card, self.world.cards[card].counters
@@ -1169,7 +1192,7 @@ class Executor:
         world = self.world
         out: list[Handle] = []
         for player in world.player_order:
-            for card in world.players[player].zone(ZONE_BATTLEFIELD).entries:
+            for card in self.battlefield(player):  # CR 702.26b
                 if "ENCHANT" not in world.cards[card].identity.keywords:
                     continue
                 host = self.attachments.get(card)
@@ -1193,7 +1216,7 @@ class Executor:
         world = self.world
         out: list[Handle] = []
         for player in world.player_order:
-            for card in world.players[player].zone(ZONE_BATTLEFIELD).entries:
+            for card in self.battlefield(player):  # CR 702.26b
                 state = world.cards.get(card)
                 if state is None or state.identity.loyalty is None:
                     continue
@@ -1464,14 +1487,21 @@ class Executor:
         is involved, so no APNAP ordering applies).
         AFTER the tick: UNTIL_NEXT_STEP(UNTAP) records are consumed by the
         step they just survived and terminal-expire — the freeze therefore
-        survives EXACTLY one untap tick (pinned). Returns the untap count."""
+        survives EXACTLY one untap tick (pinned). Returns the untap count.
+
+        CR 502.1 (2026-10-29): the phasing turn-based action comes FIRST, so
+        a permanent that phases in here untaps in the same step (502.3); a
+        permanent still phased out does not exist and does not untap."""
         world = self.world
+        self._phasing_step(player)
         untapped = 0
         for card in sorted(world.cards):
             state = world.cards[card]
             if not state.tapped:
                 continue
             if world.zone_of(card).kind != ZONE_BATTLEFIELD:
+                continue
+            if card in self.phased_out:  # CR 702.26b
                 continue
             if self.controller_of(card) != player:  # 16e overlay-aware
                 continue
@@ -2171,26 +2201,40 @@ class Executor:
         return self._settle()
 
     def advance_turn(self) -> int:
-        """End the active turn (if one is open) and begin the next seat's
-        turn — the skeleton's round-robin, EXCEPT that a pending EXTRA_TURN
-        entry is popped first (13a): "the next turn belongs to that player"
-        (CR 500.7). Nested grants from DIFFERENT players resolve in queue
-        order rather than the full CR 500.7 dependency graph — documented
-        simplification, no golden exercises it. Returns the combined
-        firings."""
+        """End the active turn (if one is open) and begin the next one.
+
+        CR 500.7: extra turns are added directly after the turn they were
+        created in, the most recently created first (EXTRA_TURN pushes onto
+        the front of ``extra_turn_queue``), so a pending extra turn is
+        popped before the round-robin. The round-robin itself continues
+        from the last NORMAL turn's seat (``normal_turn_seat``): after
+        p1's extra turn inserted into p0's turn comes p1's own turn, not
+        p0's. The open turn is closed FIRST, so an extra turn created in
+        its end step is the next turn too. Returns the combined firings.
+
+        ``normal_turn_seat`` is not folded into :meth:`state_fingerprint`:
+        it is a function of the folded history (the EXTRA_TURN rows and
+        the journal's turn markers), like ``starting_life``."""
         order = self.world.player_order
         if self.world.active_player is None or not self._turn_started:
             nxt = order[0]
         else:
-            if self.extra_turn_queue:
-                nxt = self.extra_turn_queue.pop(0)
-            else:
-                idx = order.index(self.world.active_player)
-                nxt = order[(idx + 1) % len(order)]
             if self.turn_open:
                 # An END_TURN atom already closed the turn inside the op —
                 # never emit a second END_TURN marker for it.
                 self.end_turn()
+            if self.extra_turn_queue:
+                if self.normal_turn_seat is None:
+                    # The extras follow the first turn, a normal turn.
+                    self.normal_turn_seat = self.world.active_player
+                nxt = self.extra_turn_queue.pop(0)
+            else:
+                base = self.normal_turn_seat
+                if base is None:
+                    base = self.world.active_player
+                assert base is not None
+                nxt = order[(order.index(base) + 1) % len(order)]
+                self.normal_turn_seat = nxt
         return self.begin_turn(nxt)
 
     def end_turn(self) -> int:
@@ -2250,6 +2294,120 @@ class Executor:
             raise ValueError(f"attach_aura: {aura} cannot attach to itself")
         self.attachments[aura] = host
         self.layers.recompute()  # "equipped creature" scopes re-read the table
+
+    # ------------------------------------------------ CR 702.26 phasing
+
+    def battlefield(self, player: Handle) -> list[Handle]:
+        """The permanents that exist on ``player``'s battlefield, in zone
+        order: the zone's entries minus the phased-out ones (CR 702.26b, a
+        phased-out permanent is treated as though it does not exist). The
+        executor's own battlefield sweeps read this; every selector and
+        query enumeration filters through ``selectors.enumerate_zone``."""
+        entries = self.world.players[player].zone(ZONE_BATTLEFIELD).entries
+        if not self.phased_out:
+            return list(entries)
+        return [card for card in entries if card not in self.phased_out]
+
+    def phase_out(self, handles: Sequence[Handle]) -> list[Handle]:
+        """Phase out ``handles`` (CR 702.26b): each permanent among them that
+        exists on the battlefield gets the phased-out status, recorded with
+        the player who controls it now (CR 502.1: it phases in during that
+        player's next untap step). Not a zone change (702.26d): the card
+        keeps its zone, counters, tapped state, attachments and control, a
+        token stays, and no zone-change trigger sees it. Auras and Equipment
+        attached to it phase out with it, indirectly (702.26g; 702.26h: an
+        object phasing out both ways phases out indirectly), and every one
+        of them is removed from combat (506.4). Returns the permanents that
+        phased out directly, Handle-sorted."""
+        world = self.world
+        direct = sorted(
+            {
+                card
+                for card in handles
+                if card.namespace == "card"
+                and card in world.cards
+                and world.zone_of(card).kind == ZONE_BATTLEFIELD
+                and card not in self.phased_out
+            }
+        )
+        if not direct:
+            return []
+        indirect: dict[Handle, Handle] = {}
+        frontier = list(direct)
+        while frontier:
+            host = frontier.pop(0)
+            for attached, attached_to in sorted(self.attachments.items()):
+                if (
+                    attached_to == host
+                    and attached not in indirect
+                    and attached not in self.phased_out
+                    and attached in world.cards
+                    and world.zone_of(attached).kind == ZONE_BATTLEFIELD
+                ):
+                    indirect[attached] = host
+                    frontier.append(attached)
+        directly = [card for card in direct if card not in indirect]
+        for card in directly:
+            self.phased_out[card] = (self.controller_of(card), None)
+        for attached, host in indirect.items():
+            self.phased_out[attached] = (self.controller_of(attached), host)
+        gone = set(directly) | set(indirect)
+        self._remove_from_combat(gone)
+        self.events.append(
+            (len(self.events), "PHASE_OUT", tuple(str(card) for card in sorted(gone)))
+        )
+        self.layers.recompute()
+        return directly
+
+    def _remove_from_combat(self, cards: set[Handle]) -> None:
+        """CR 506.4: the permanents stop attacking and blocking. An attacker
+        whose blocker left stays blocked (CR 509.1h): its entry keeps its
+        key, the same rule ``_on_zone_changes`` applies to a departure."""
+        if not cards:
+            return
+        self.attackers = [card for card in self.attackers if card not in cards]
+        for card in cards:
+            self.attacked.pop(card, None)
+            self.blocked_by.pop(card, None)
+        for blockers in self.blocked_by.values():
+            blockers[:] = [card for card in blockers if card not in cards]
+
+    def _phasing_step(self, player: Handle) -> list[Handle]:
+        """CR 502.1 / 702.26a, the first turn-based action of ``player``'s
+        untap step: every permanent that phased out under ``player``'s
+        control phases in (702.26c); one that phased out indirectly comes
+        back with the permanent it is attached to, never by itself
+        (702.26g). The other half of 502.1, permanents WITH phasing phasing
+        out, has no carrier: no card in the pools has the phasing keyword.
+        Nothing can stop a phase-in here yet: Teferi, Timeless Voyager's
+        "they can't phase in" compiles to a ZoneChangeEvent that a status
+        change never produces (docs/BACKLOG.md). Returns what phased in."""
+        returning = sorted(
+            card
+            for card, (controller, host) in self.phased_out.items()
+            if host is None and controller == player
+        )
+        back: list[Handle] = []
+        for card in returning:
+            queue = [card]
+            while queue:
+                current = queue.pop(0)
+                if self.phased_out.pop(current, None) is None:
+                    continue
+                back.append(current)
+                queue.extend(
+                    sorted(
+                        attached
+                        for attached, (_controller, host) in self.phased_out.items()
+                        if host == current
+                    )
+                )
+        if back:
+            self.events.append(
+                (len(self.events), "PHASE_IN", tuple(str(card) for card in back))
+            )
+            self.layers.recompute()
+        return back
 
     # -------------------------------------------------- 16e control overlay
 
@@ -2372,6 +2530,18 @@ class Executor:
         h.update(repr(self.replacements.dump()).encode())
         # 16a: damage marks are replayed state too (ruling 1, CR 120.6).
         h.update(repr(sorted(self.damage.items())).encode())
+        # CR 702.26 (2026-10-29): the phased-out status is replayed state.
+        # Folded only when some permanent is phased out, so every replay
+        # without phasing keeps its fingerprint bytes.
+        if self.phased_out:
+            h.update(
+                repr(
+                    tuple(
+                        (str(card), str(controller), str(host))
+                        for card, (controller, host) in sorted(self.phased_out.items())
+                    )
+                ).encode()
+            )
         # r23a: the cast-declared X ledger rides the same fold.
         h.update(repr(sorted(map(str, self.etb_x.items()))).encode())
         # 16c: the deathtouch flag rides the same fold (CR 702.2b kills).
