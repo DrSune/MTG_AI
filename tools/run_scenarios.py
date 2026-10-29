@@ -159,7 +159,7 @@ def _bf_target():
 
 
 class ScenarioRunner:
-    def __init__(self, pack: dict, supply):
+    def __init__(self, pack: dict, supply, setup_provider=None):
         self.pack = pack
         world_cfg = pack.get("world", {})
         self.world = GameWorld(
@@ -222,7 +222,14 @@ class ScenarioRunner:
         # ledger) — a faked turn desynced world.turn and the sickness
         # clock against advance_turn. The old fakes turn_open/phase
         # manually, which every combat pack now outgrows.
-        self.ex.begin_turn(self.p0)
+        # tools/cards probe (2026-10-29): a card pre-placed on the battlefield can trigger at this
+        # first begin_turn (an upkeep or beginning-of-turn trigger) before any step installs an
+        # answerer; a caller may pass one for setup. None keeps every pack byte-identical.
+        self.ex.decisions.provider = setup_provider
+        try:
+            self.ex.begin_turn(self.p0)
+        finally:
+            self.ex.decisions.provider = None
         # 16b: the combat rig — asks the engine actually made, and
         # libraries deep enough for real begin_turn/advance_turn draws.
         self.asks_seen: list[tuple[str, tuple[str, ...]]] = []

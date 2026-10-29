@@ -201,7 +201,17 @@ class Probe:
             cards.append({"key": "card", "real": self.card.name, "zone": where, "controller": 0})
         pack = {"world": {"life": 20, "seed": 7}, "set": self.set_code, "cards": cards,
                 "mana": {"0": dict(MANA), "1": dict(MANA)}, "steps": []}
-        return ScenarioRunner(pack, self.supply)
+        setup_asks: list[str] = []
+
+        def setup_provider(vocab: tuple[str, ...], what: str) -> str:
+            # a pre-placed card that triggers at the first turn's start: default answers, recorded
+            word = "PASS" if what.startswith(WINDOW) and "PASS" in vocab else vocab[0]
+            setup_asks.append(f"{what.split(':', 1)[0]} -> {word}")
+            return word
+
+        runner = ScenarioRunner(pack, self.supply, setup_provider=setup_provider)
+        runner.setup_asks = setup_asks  # type: ignore[attr-defined]
+        return runner
 
     def names(self, r: ScenarioRunner) -> Callable[[Any], str]:
         rev = {str(h): k for k, h in r.handles.items()}
