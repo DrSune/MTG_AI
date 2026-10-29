@@ -98,6 +98,8 @@ class Variant:
     error: str | None = None
 
     def render(self, names: Callable[[str], str]) -> list[str]:
+        if getattr(self, "collapsed", False):
+            return [f"[{self.label}] same as on the board without the card"]
         out = [f"[{self.label}]"]
         if self.error:
             out.append(f"  ERROR: {self.error}")
@@ -207,22 +209,32 @@ class Probe:
         rev[str(r.p1)] = "opp"
 
         handle_re = re.compile(r"(?<![\w:])((?:card|player):\d+)(?![\d])")
+        keyed = set(r.handles.values())
+
+        def label(h: Handle) -> str:
+            # an object not on the pack board (a drawn filler card, a token): its owner and name,
+            # numbered among same-named objects in creation order, never by global handle index
+            # (that shifts by one when the probed card is in the game)
+            card = r.world.cards[h]
+            owner = _seat_name(r.world, r.world.controller_of(h))
+            same = sorted(o for o, c in r.world.cards.items()
+                          if o not in keyed and c.identity.name == card.identity.name)
+            n = f"#{same.index(h) + 1}" if len(same) > 1 else ""
+            return f"{owner}:{card.identity.name}{n}"
 
         def one(tag: str) -> str:
             if tag in rev:
                 return rev[tag]
             ns, _, idx = tag.partition(":")
             h = Handle(ns, int(idx))
-            if h in r.world.cards:
-                return f"{r.world.cards[h].identity.name}#{idx}"
-            return tag
+            return label(h) if h in r.world.cards else tag
 
         def name(x: Any) -> str:
             s = str(x)
             if s in rev:
                 return rev[s]
             if isinstance(x, Handle) and x in r.world.cards:
-                return f"{r.world.cards[x].identity.name}#{x.index}"
+                return label(x)
             # a word that embeds handles ("card:12@player:1"): whole handle tokens only, so
             # card:2 never matches inside card:25
             return handle_re.sub(lambda m: one(m.group(1)), s)
@@ -597,11 +609,22 @@ class Probe:
         return out
 
     def section_stimuli(self) -> list[Variant]:
+        """Each stimulus with the card on the battlefield. A stimulus that does not touch the card
+        and plays out exactly as it does on the board without the card is collapsed to one line:
+        the card made no difference there (that is still evidence: no trigger, no static effect)."""
         variants = []
         for label, action in self.stimuli():
             v = self.run("hand" if label.startswith("from your hand") else "battlefield", label, action)
             fired = ", ".join(sorted(set(v.triggers))) or "none"  # type: ignore[attr-defined]
             v.label = f"stimulus: {label} -> {fired}"
+            touches = any(re.search(r"\bcard\b", line) for line in (*v.events, *v.changes))
+            if not touches and not v.error and not v.triggers:  # type: ignore[attr-defined]
+                try:
+                    without = self.run(None, label, action)
+                except KeyError:  # the stimulus needs the card
+                    without = None
+                if without is not None and without.events == v.events and without.changes == v.changes:
+                    v.collapsed = True  # type: ignore[attr-defined]
             variants.append(v)
         return variants
 
