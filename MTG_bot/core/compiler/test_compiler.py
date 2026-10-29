@@ -764,7 +764,10 @@ class TestContinuation(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        self.assertEqual(len(res.card.abilities), 1)
+        # B-49: the planeswalker also trails its effect-less cast carrier. The
+        # trailing text did not orphan into it: the carrier has no effect.
+        self.assertEqual(len(res.card.abilities), 2)
+        self.assertEqual(res.card.abilities[1], SpellAbility(kind=SpellKind.PLANESWALKER))
         ab = res.card.abilities[0]
         if not isinstance(ab, ActivatedAbility):
             self.fail(f"expected ActivatedAbility, got {type(ab).__name__}")
@@ -962,7 +965,10 @@ class TestContinuation(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        self.assertEqual(len(res.card.abilities), 1)
+        # B-49: + the planeswalker's effect-less cast carrier (no effect, so
+        # the phase-in sentence did not land in it).
+        self.assertEqual(len(res.card.abilities), 2)
+        self.assertEqual(res.card.abilities[1], SpellAbility(kind=SpellKind.PLANESWALKER))
         ab = res.card.abilities[0]
         if not isinstance(ab, ActivatedAbility):
             self.fail(f"expected ActivatedAbility, got {type(ab).__name__}")

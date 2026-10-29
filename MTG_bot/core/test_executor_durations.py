@@ -44,6 +44,7 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     Seq,
     SpellAbility,
+    SpellKind,
     Step,
     TapStateEvent,
     TriggeredAbility,
@@ -421,10 +422,13 @@ class TestNineLivesReplacement(unittest.TestCase):
         }
         pc = compile_pool(pool, build_full_registry())
         result = pc.results[_oid(9)]
+        # B-49 (2026-10-29): + the trailing effect-less SpellAbility cast
+        # carrier, so the enchantment is castable; it binds nothing here.
         self.assertEqual(
             [type(ability).__name__ for ability in result.card.abilities],
-            ["ReplacementAbility", "TriggeredAbility"],
+            ["ReplacementAbility", "TriggeredAbility", "SpellAbility"],
         )
+        self.assertEqual(result.card.abilities[2], SpellAbility(kind=SpellKind.ENCHANTMENT))
         self.nine = self.world.add_card(
             card_id("Nine Lives", type_line="Enchantment", oid=result.card.oracle_id),
             self.p0,

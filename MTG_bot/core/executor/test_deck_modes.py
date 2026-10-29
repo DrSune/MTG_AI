@@ -24,8 +24,11 @@ def m21():
 
 def test_the_default_deal_is_the_stress_pile_byte_for_byte(m21) -> None:
     # Hash of the M21 deals for seeds 1-5 before deck modes existed (main 3a1e05b, 2026-10-27).
+    # re-pinned 2026-10-29: B-49 carrier made 42 noncreature permanents castable (M21 castable pool grew)
+    # from 239 to 281 deckable cards, so the deals moved (was "e9fceb12fb91e3ab"). The default ==
+    # "stress" identity below is unchanged.
     deals = [deal_decks(seed, 1409, m21) for seed in range(1, 6)]
-    assert hashlib.sha256(repr(deals).encode()).hexdigest()[:16] == "e9fceb12fb91e3ab"
+    assert hashlib.sha256(repr(deals).encode()).hexdigest()[:16] == "d8e619dbf28b3c6d"
     assert deals == [deal_decks(seed, 1409, m21, "stress") for seed in range(1, 6)]
 
 

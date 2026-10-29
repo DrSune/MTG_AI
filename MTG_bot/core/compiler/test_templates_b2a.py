@@ -65,6 +65,8 @@ from MTG_bot.core.ability_tree import (
     Selector,
     SelectorMode,
     Seq,
+    SpellAbility,
+    SpellKind,
     StaticAbility,
     TokenSpec,
     TriggeredAbility,
@@ -2243,12 +2245,16 @@ class TestC5FuriousRisePlayPermissionSuppression(unittest.TestCase):
         cls.registry = build_full_registry()
 
     def test_furious_rise_compiles_to_one_trigger_no_activation(self) -> None:
-        """Exactly one ability, a TriggeredAbility; NO ActivatedAbility
-        anywhere on the card (the pre-C5 phantom activation is gone)."""
+        """Exactly one printed ability, a TriggeredAbility; NO ActivatedAbility
+        anywhere on the card (the pre-C5 phantom activation is gone).
+
+        B-49 (2026-10-29): the enchantment also trails its effect-less cast
+        carrier, so it is castable; the carrier is not a printed ability."""
         res = compile_card(self.pool[_FURIOUS_RISE], self.registry)
         self.assertEqual(res.unparsed, ())
-        (ability,) = res.card.abilities
+        (ability, carrier) = res.card.abilities
         self.assertIsInstance(ability, TriggeredAbility)
+        self.assertEqual(carrier, SpellAbility(kind=SpellKind.ENCHANTMENT))
         self.assertFalse(
             any(isinstance(a, ActivatedAbility) for a in res.card.abilities)
         )
