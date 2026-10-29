@@ -952,7 +952,19 @@ def _v_prevent(ctx: ExecCtx, atom: Atom) -> None:
     if ctx.replacements is None:
         raise ValueError("executor: PREVENT_EFFECT needs an executor-backed ExecCtx")
     designated = ctx.binding_handles("target") or []
-    targets = tuple(h for h in designated if eval_filter(condition, h, ctx))
+    # V34 (CR 608.2b): the targeting restrictions written beside IS_ANY_TARGET in
+    # a combat slot ("another target creature with power 2 or less") are checked
+    # as the ability resolves; the creatures that pass are locked in, and the
+    # record reads only that set afterwards (replacements._slot_holds), so a
+    # pump after resolution does not undo "can't be blocked this turn".
+    from MTG_bot.core.executor.query import combat_target_filters
+
+    bound = combat_target_filters(event)
+    targets = tuple(
+        h
+        for h in designated
+        if eval_filter(condition, h, ctx) and all(eval_filter(f, h, ctx) for f in bound)
+    )
     ctx.replacements.register_prevention(
         ctx.source, ctx.controller, condition, event, step, duration, targets
     )

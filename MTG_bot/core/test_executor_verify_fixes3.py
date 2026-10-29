@@ -25,6 +25,9 @@ V29  A cost increase for spells that target a permanent is folded with the decla
 V25  A target nested in a quantity ("deals damage equal to its power", where "its" is
      a target) gets its own slot, and each TARGET selector reads its own designation:
      Garruk, Savage Herald's -2 (packs garruk_herald_minus_two_*).
+V34  An ability whose only trace of its target is IS_ANY_TARGET in a combat slot gets a
+     target slot (Subira's {1}), and the targeting restriction is checked at resolution
+     and not re-read afterwards (CR 608.2b; pack subira_unblockable_lasts_after_pump).
 """
 
 from __future__ import annotations
@@ -678,6 +681,41 @@ class TestV25EachTargetReadsItsOwnSlot(FixerCase):
         )
         self.assertEqual(self.ex.damage.get(bigby), 3)  # Gamma's power
         self.assertNotIn(gamma, self.ex.damage)  # the first target is not hit
+
+
+class TestV34DesignationOnlyTargetSlot(unittest.TestCase):
+    def test_subira_unblockable_ability_offers_creatures_with_power_two_or_less(self):
+        from MTG_bot.core.executor.games import get_supply
+        from MTG_bot.core.executor.query import activation_target_slots
+        from tools.run_scenarios import ScenarioRunner
+
+        pack = {
+            "set": "M21",
+            "world": {"life": 20, "seed": 7},
+            "cards": [
+                {"key": "sub", "zone": "battlefield", "controller": 0,
+                 "real": "Subira, Tulzidi Caravanner"},
+                {"key": "runner", "zone": "battlefield", "controller": 0,
+                 "name": "Runner", "power": 1, "toughness": 1},
+                {"key": "big", "zone": "battlefield", "controller": 0,
+                 "name": "Big", "power": 3, "toughness": 3},
+                {"key": "obear", "zone": "battlefield", "controller": 1,
+                 "name": "Opp Bear", "power": 2, "toughness": 2},
+            ],
+            "steps": [],
+            "expect": {},
+        }
+        runner = ScenarioRunner(pack, get_supply("all", "M21"))
+        ex, sub = runner.ex, runner.handles["sub"]
+        ability = ex.binder.handle_record[sub].abilities[0]
+        slots = activation_target_slots(ex, ability.effect, source=sub, seat=runner.p0)
+        self.assertEqual(len(slots), 1)
+        # "Another target creature with power 2 or less": not Subira (a 2/3, but
+        # 'another'), not the 3/3; either side's creature.
+        self.assertEqual(
+            set(slots[0].candidates), {runner.handles["runner"], runner.handles["obear"]}
+        )
+        self.assertEqual((slots[0].min_count, slots[0].max_count), (1, 1))
 
 
 if __name__ == "__main__":

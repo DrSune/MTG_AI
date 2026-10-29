@@ -1268,6 +1268,66 @@ def _affordable_target_slots(
     return out
 
 
+def designation_bound(filter_: object) -> bool:
+    """V34: does a filter name the ability's own target (an IS_ANY_TARGET
+    conjunct)? Its other conjuncts then describe that target ("another target
+    creature with power 2 or less"), so they are targeting restrictions."""
+    if isinstance(filter_, FAtom):
+        return filter_.pred is FAtomPred.IS_ANY_TARGET
+    if isinstance(filter_, FAnd):
+        return any(
+            isinstance(c, FAtom) and c.pred is FAtomPred.IS_ANY_TARGET
+            for c in filter_.children
+        )
+    return False
+
+
+def combat_target_filters(event: object) -> list[object]:
+    """V34: the designation-bound filters of a combat event's slots, the places
+    a "target creature can't be blocked / can't block" ability keeps its target
+    (Subira, Tulzidi Caravanner: DeclareBlockersEvent.blocked)."""
+    from MTG_bot.core.ability_tree import DeclareAttackersEvent, DeclareBlockersEvent
+
+    if isinstance(event, DeclareBlockersEvent):
+        slots = (event.filter, event.subject, event.blocked)
+    elif isinstance(event, DeclareAttackersEvent):
+        slots = (event.filter,)
+    else:
+        return []
+    return [f for f in slots if f is not None and designation_bound(f)]
+
+
+def _designation_only_slot(
+    executor: Executor, effect: object, source: Handle, seat: Handle
+) -> TargetSlot | None:
+    """V34 (CR 115.1, 602.2b): an ability whose ONLY trace of its target is an
+    IS_ANY_TARGET filter in a combat event slot ("{1}: Another target creature
+    with power 2 or less can't be blocked this turn", Subira, Tulzidi Caravanner;
+    ZNR Sneaking Guide, FDN Goblin Smuggler) still has a target, so it gets a
+    slot: one creature on the battlefield passing that filter (combat slots only
+    ever see creatures). Without it the act window activated the ability with no
+    designation and it did nothing. Single-target by construction: every such
+    encoding in M21/ZNR/FDN prints one target."""
+    for inner in walk(effect):
+        if not isinstance(inner, Atom) or inner.verb is not Verb.PREVENT_EFFECT:
+            continue
+        found = combat_target_filters(inner.args.get("event"))
+        if not found:
+            continue
+        restriction = max(
+            found, key=lambda f: len(f.children) if isinstance(f, FAnd) else 1
+        )
+        parts = restriction.children if isinstance(restriction, FAnd) else (restriction,)
+        selector = Selector(
+            QConst(1),
+            SelectorMode.TARGET,
+            FAnd((*parts, FAtom(FAtomPred.TYPE_EQ, string_value="Creature"))),
+            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
+        )
+        return _spell_slot(executor, inner, "event", selector, source, seat)
+    return None
+
+
 def activation_target_slots(
     executor: Executor,
     effect: object,
@@ -1306,6 +1366,10 @@ def activation_target_slots(
                     continue
                 seen.add(key)
                 slots.append(_spell_slot(executor, inner, _role, value, source, seat))
+    if not slots:
+        bound = _designation_only_slot(executor, effect, source, seat)
+        if bound is not None:
+            slots.append(bound)
     if reads_target_player:
         # Same synthesized opponent-seat slot as the spell lane (CR
         # 601.2c's population rule is coordinate-agnostic: an activation

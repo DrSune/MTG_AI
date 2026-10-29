@@ -854,16 +854,18 @@ class ReplacementRegistry:
                 or eval_filter(rec.condition, blocked, ctx)
             ):
                 return False
-            if not eval_filter(event.filter, blocker, ctx):
+            if not self._slot_holds(rec, event.filter, blocker, ctx):
                 return False
-            if event.subject is not None and not eval_filter(
-                event.subject, blocker, ctx
+            if event.subject is not None and not self._slot_holds(
+                rec, event.subject, blocker, ctx
             ):
                 return False
             # the blocked slot must MATCH the attacker side (IS_SOURCE for
             # "can't be blocked" carriers, FNot(FLYING) for the block-only
             # restriction family - a matching slot vetoes the pair)
-            return event.blocked is None or eval_filter(event.blocked, blocked, ctx)
+            return event.blocked is None or self._slot_holds(
+                rec, event.blocked, blocked, ctx
+            )
         if isinstance(event, DeclareAttackersEvent):
             if event.attacked is not None:
                 raise NotImplementedError(
@@ -874,8 +876,21 @@ class ReplacementRegistry:
                 rec.condition, subject, ctx
             ):
                 return False
-            return eval_filter(event.filter, subject, ctx)
+            return self._slot_holds(rec, event.filter, subject, ctx)
         return False
+
+    @staticmethod
+    def _slot_holds(rec, filter_, handle: Handle, ctx: ExecCtx) -> bool:
+        """V34 (CR 608.2b): a combat slot that names the ability's target
+        (an IS_ANY_TARGET conjunct) means the creatures designated and checked
+        when the ability resolved (_v_prevent locked them into rec.targets); its
+        targeting restrictions are not read again. Any other slot is evaluated
+        live, as before."""
+        from MTG_bot.core.executor.query import designation_bound
+
+        if designation_bound(filter_):
+            return handle in rec.targets
+        return eval_filter(filter_, handle, ctx)
 
     def prevents_block_declaration(self, blocker: Handle, attacker: Handle) -> bool:
         """16c (CR 509 legality): does a live PREVENT_EFFECT veto the pair

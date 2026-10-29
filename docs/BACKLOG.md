@@ -734,6 +734,9 @@ These are forks, not tasks. See the report that accompanied this audit.
     fail to find (CR 701.19b).
   - M21 Subira, ZNR Sneaking Guide and FDN Goblin Smuggler's "target creature can't be blocked"
     activations get no target slot (`query.activation_target_slots`), so they do nothing.
+    **FIXED on branch `engine/verify-fixes-3` (V34, 2026-10-29)**: a synthesized one-creature slot
+    from the IS_ANY_TARGET combat filter, and the targeting restriction is checked at resolution
+    and locked in (CR 608.2b).
   - A cast trigger filtered by `TARGETS_SOURCE` never fires, because the CAST match context does not
     bind the spell's targets (FDN Gnarlback Rhino).
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
