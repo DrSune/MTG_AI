@@ -629,6 +629,23 @@ These are forks, not tasks. See the report that accompanied this audit.
     (`replacements.py:671`).
   - FDN Obliterating Bolt's exile clause fails on walkers. The verifier's failing pack
     `obliterating_bolt_planeswalker.json` is in its round-1 output.
+- **B-63 [2026-10-29] Eight scenario packs declare `"tapped": true` setup cards that the runner
+  never taps.**
+  - `ScenarioRunner` ignores a `tapped` key on setup cards, so these packs pass with a false
+    precondition:
+    - block_defender_and_tapped
+    - enthralling_hold
+    - herald_assigns_unblocked
+    - rewind
+    - sabertooth_mauler_end_step_death
+    - sabertooth_mauler_no_death_control
+    - swift_response
+    - tolarian_kraken_untap
+  - With the key honoured, `rewind.json` FAILS: its three tapped Plains stay tapped. Its own note
+    says Rewind "untaps them all", so either Rewind's untap step or the pack's premise is wrong.
+    The others still pass.
+  - **Fix.** Honour the key, find out why Rewind does not untap, and re-run the suite.
+  - The card tooling uses its own `start_tapped` key meanwhile, so the 429 packs stay byte-identical.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).
