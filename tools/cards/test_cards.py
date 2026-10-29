@@ -40,7 +40,8 @@ def test_the_probe_offers_only_legal_targets_and_shows_the_damage() -> None:
     rep = probe.Probe(sup, "M21", oid).report()
     text = rep.text()
     assert not rep.errors
-    assert "target slot (cast): 1..1 of [you_bear, you_giant, opp_bear, opp_giant, you, opp]" in text
+    assert ("target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, "
+            "opp_giant, you, opp]") in text
     assert "opp: life 20 -> 18" in text
     assert "opp_bear dies" in text
     assert rep.sha() == probe.Probe(sup, "M21", oid).report().sha()  # deterministic

@@ -67,6 +67,8 @@ WINDOW = ("counter:", "pay:", "cw:")
 BOARD: tuple[tuple[str, str, int, str, str, str | None, str | None, int], ...] = (
     ("you_bear", "battlefield", 0, "Your Bear", "Creature — Bear", "2", "2", 2),
     ("you_giant", "battlefield", 0, "Your Giant", "Creature — Giant", "4", "4", 5),
+    ("opp_flier", "battlefield", 1, "Opp Flier", "Creature — Bird", "1", "1", 2),
+    ("opp_tapped", "battlefield", 1, "Opp Tapped Ape", "Creature — Ape", "3", "3", 3),
     ("you_relic", "battlefield", 0, "Your Relic", "Artifact", None, None, 2),
     ("you_charm", "battlefield", 0, "Your Charm", "Enchantment", None, None, 2),
     ("you_spare", "hand", 0, "Your Spare Elf", "Creature — Elf", "3", "3", 3),
@@ -83,6 +85,15 @@ BOARD: tuple[tuple[str, str, int, str, str, str | None, str | None, int], ...] =
     ("opp_used", "graveyard", 1, "Opp Used Sorcery", "Sorcery", None, None, 2),
 )
 MANA = {c: 9 for c in "WUBRGC"}
+# probe v2: colour, keywords and tap state on the board, so colour / keyword / tapped filters act
+EXTRA = {
+    "you_bear": {"colors": ("G",)}, "you_giant": {"colors": ("R",)},
+    "opp_bear": {"colors": ("B",)}, "opp_giant": {"colors": ("W",)},
+    "opp_flier": {"colors": ("U",), "keywords": ("FLYING",)},
+    "opp_tapped": {"colors": ("G",), "start_tapped": True},
+}
+LAND_SUBTYPES = {"Plains", "Island", "Swamp", "Mountain", "Forest", "Gate", "Desert", "Cave",
+                 "Lair", "Locus", "Sphere", "Mine", "Power-Plant", "Tower", "Urza's"}
 
 
 def _seat_name(world: Any, handle: Handle) -> str:
@@ -139,7 +150,11 @@ class Probe:
         )
         rows = []
         for sub in subs:
-            low = sub.lower().replace(" ", "_")
+            low = sub.lower().replace(" ", "_").replace("'", "")
+            if sub in LAND_SUBTYPES:  # a land subtype makes a land, never a "Creature — Forest"
+                rows.append((f"you_{low}", "battlefield", 0, f"Your {sub}", f"Land — {sub}", None, None, 0))
+                rows.append((f"opp_{low}", "battlefield", 1, f"Opp {sub}", f"Land — {sub}", None, None, 0))
+                continue
             rows.append((f"you_{low}", "battlefield", 0, f"Your {sub}", f"Creature — {sub}", "2", "2", 2))
             rows.append((f"opp_{low}", "battlefield", 1, f"Opp {sub}", f"Creature — {sub}", "2", "2", 2))
         return rows
@@ -190,6 +205,7 @@ class Probe:
                                    "type": type_line, "cmc": mv}
             if p is not None:
                 row.update(power=p, toughness=t)
+            row.update(EXTRA.get(key, {}))
             cards.append(row)
         if self.lands:
             cards.append({"key": "you_land", "real": self.lands[0], "zone": "battlefield", "controller": 0})
@@ -493,6 +509,13 @@ class Probe:
                                          lambda rr: play_land(rr.ex, rr.p0, rr.handles["card"]))
                 continue
             slots = list(spell_target_slots(r.ex, row.node, spell_handle=h, seat=r.p0))
+            short = [s for s in slots if s.min_count > len(s.candidates)]
+            if short:
+                # CR 601.2c: a spell that needs a target it cannot have is not cast; the query still
+                # lists it (B-54), the probe does not try.
+                notes.append(f"{'kicked ' if row.kicked else ''}cast skipped: a target slot needs "
+                             f"{short[0].min_count}, the board offers {len(short[0].candidates)}")
+                continue
             for slot in slots:
                 notes.append(
                     f"target slot ({'kicked ' if row.kicked else ''}cast): {slot.min_count}..{slot.max_count} of "
@@ -528,6 +551,11 @@ class Probe:
                 notes.append(f"ability [{idx}] not activatable from {where}: {reason}")
                 continue
             slots = list(activation_target_slots(r.ex, ab.effect, source=h, seat=r.p0))
+            short = [s for s in slots if s.min_count > len(s.candidates)]
+            if short:  # CR 602.2b / 601.2c: no legal target, no activation
+                notes.append(f"ability [{idx}] skipped: a target slot needs {short[0].min_count}, "
+                             f"the board offers {len(short[0].candidates)}")
+                continue
             for slot in slots:
                 notes.append(f"ability [{idx}] target slot: {slot.min_count}..{slot.max_count} of "
                              f"[{', '.join(name(c) for c in sorted(slot.candidates))}]")

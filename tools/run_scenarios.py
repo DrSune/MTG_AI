@@ -208,11 +208,19 @@ class ScenarioRunner:
                     power=card.get("power"),
                     toughness=card.get("toughness"),
                     cmc=card.get("cmc", 2),
+                    # tools/cards probe board (2026-10-29): optional colour and printed keywords
+                    # for synthetic cards; absent keys are the dataclass defaults (byte-identical).
+                    colors=tuple(card.get("colors", ())),
+                    keywords=tuple(card.get("keywords", ())),
                 )
             zone = ZONE_OF_NAME[card.get("zone", "battlefield")]
             self.handles[card["key"]] = self.world.add_card(
                 identity, self.seats[card["controller"]], zone
             )
+            # tools/cards probe board: a permanent that starts tapped. Not "tapped": eight packs
+            # carry a "tapped" key this runner never honoured (B-63), and honouring it changes them.
+            if card.get("start_tapped"):
+                self.world.cards[self.handles[card["key"]]].tapped = True
         # The real cards' triggers/abilities register from the compiled pool.
         self.registered = self.ex.attach_pool(supply.pool)
         for seat, colors in pack.get("mana", {}).items():
