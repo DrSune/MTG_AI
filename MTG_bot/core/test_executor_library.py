@@ -736,6 +736,99 @@ class TestLoyaltyXLane(LibraryCase):
             activate(self.ex, self.ugin, 0, seat=self.p0, targets=(self.p1,), x=1)
 
 
+# --------------------------------- LOYALTY WINDOW (CR 606.3, Teferi's static)
+
+
+class TestLoyaltyWindow(LibraryCase):
+    """CR 606.3: a loyalty ability is activated during a main phase of its
+    controller's own turn with an empty stack, once per permanent per turn.
+    Teferi, Master of Time's static relaxes the window for ITSELF only
+    ("loyalty abilities of Teferi": CR 201.5/201.5c, the self referent)."""
+
+    MOT_PLUS = 1  # Teferi, Master of Time: [0] static, [1] +1, [2] -3, [3] -10
+    TV_PLUS = 0  # Teferi, Timeless Voyager: [0] +1, [1] -3, [2] -8
+
+    def walker(self, name, seat, loyalty, type_line):
+        handle = self.world.add_card(
+            card_id(name, type_line=type_line, cmc=4, loyalty=loyalty),
+            seat,
+            ZONE_BATTLEFIELD,
+        )
+        self.ex.attach_card(
+            handle, record(name, oid=self.world.cards[handle].identity.oracle_id)
+        )
+        return handle
+
+    def setUp(self):
+        super().setUp()
+        self.mot = self.walker(
+            "Teferi, Master of Time", self.p0, "3", "Legendary Planeswalker — Teferi"
+        )
+        self.tv = self.walker(
+            "Teferi, Timeless Voyager", self.p0, "4", "Legendary Planeswalker — Teferi"
+        )
+        self.basri = self.walker(
+            "Basri Ket", self.p1, "3", "Legendary Planeswalker — Basri"
+        )
+        self.ex.decisions.provider = lambda vocab, what: vocab[0]
+        self.ex.begin_turn(self.p0)
+
+    def playable(self, handle, idx, seat, **kw):
+        return ability_playable(self.world, self.ex, handle, idx, seat=seat, **kw)
+
+    def test_a_loyalty_ability_waits_for_its_controllers_main_phase(self):
+        # p0's turn: Basri (p1) is out of its window, TV (p0) is in it.
+        self.assertEqual(
+            self.playable(self.basri, 0, self.p1), "window:loyalty:not_own_turn"
+        )
+        self.assertIsNone(self.playable(self.tv, self.TV_PLUS, self.p0))
+        self.assertEqual(
+            self.playable(self.tv, self.TV_PLUS, self.p0, stack_empty=False),
+            "window:loyalty:stack_nonempty",
+        )
+        self.ex.phase = "COMBAT"
+        self.assertEqual(
+            self.playable(self.tv, self.TV_PLUS, self.p0),
+            "window:loyalty:not_main_phase",
+        )
+        self.ex.phase = "SECOND_MAIN"  # both main phases are main phases
+        self.assertIsNone(self.playable(self.tv, self.TV_PLUS, self.p0))
+
+    def test_master_of_time_may_activate_itself_on_any_turn(self):
+        self.ex.advance_turn()  # p1's turn
+        self.assertIsNone(self.playable(self.mot, self.MOT_PLUS, self.p0))
+        self.assertIsNone(
+            self.playable(self.mot, self.MOT_PLUS, self.p0, stack_empty=False)
+        )
+
+    def test_the_grant_covers_master_of_time_only(self):
+        # Another Teferi of the same controller is not "Teferi" (CR 201.5).
+        self.ex.advance_turn()  # p1's turn
+        self.assertEqual(
+            self.playable(self.tv, self.TV_PLUS, self.p0), "window:loyalty:not_own_turn"
+        )
+        # Nor is an opponent's Teferi on its controller's off turn.
+        foe = self.walker(
+            "Teferi, Timeless Voyager", self.p1, "4", "Legendary Planeswalker — Teferi"
+        )
+        self.ex.advance_turn()  # p0's turn again
+        self.assertEqual(
+            self.playable(foe, self.TV_PLUS, self.p1), "window:loyalty:not_own_turn"
+        )
+
+    def test_once_per_turn_still_holds_with_the_grant(self):
+        self.ex.advance_turn()  # p1's turn
+        activate(self.ex, self.mot, self.MOT_PLUS, seat=self.p0)  # draw, discard
+        self.assertEqual(
+            self.world.cards[self.mot].counters[CounterKind.LOYALTY.name], 4
+        )
+        self.assertEqual(
+            self.playable(self.mot, 2, self.p0), "window:loyalty:once_per_turn"
+        )
+        self.ex.advance_turn()  # p0's next turn: a new turn, a new activation
+        self.assertIsNone(self.playable(self.mot, self.MOT_PLUS, self.p0))
+
+
 # ------------------------------------------------------ SORCERY WINDOW
 
 

@@ -1091,6 +1091,26 @@ def ability_playable(
     if handle in world.cards and executor.controller_of(handle) != seat:
         # CR 602.3: only the permanent's controller can activate it.
         return f"window:not_controller:{seat}"
+    loyalty_ability = any(isinstance(p, CostLoyalty) for p in ability.cost.parts)
+    if (
+        loyalty_ability
+        and not executor.layers.instant_window_granted(handle)
+    ):
+        # CR 606.3: a loyalty ability is activated only by its permanent's
+        # controller, with priority and an empty stack, during a main phase
+        # of their own turn. The compiler gives loyalty abilities no
+        # ``timing`` (CR 606.3 is a rule of the ability type, not printed
+        # text), so the window lives here. Both main phases are main phases;
+        # Teferi, Master of Time's GRANT_ACTIVATION relaxes it to "any time
+        # you could cast an instant" for itself, and the once-per-turn clock
+        # below still holds. A world with no turn begun has no active player
+        # (bare test rigs): like ``phase is None`` below, it reads as inside.
+        if world.active_player is not None and world.active_player != seat:
+            return "window:loyalty:not_own_turn"
+        if not stack_empty:
+            return "window:loyalty:stack_nonempty"
+        if executor.phase not in (None, Phase.FIRST_MAIN.name, "SECOND_MAIN"):
+            return "window:loyalty:not_main_phase"
     if ability.timing is ActivationWindow.SORCERY and not (
         executor.layers.instant_window_granted(handle)
     ):
@@ -1113,15 +1133,11 @@ def ability_playable(
         # out of window. ``phase is None`` / FIRST_MAIN = inside.
         if executor.phase not in (None, Phase.FIRST_MAIN.name):
             return "window:sorcery:phase"
-    # CR 606.3 (13a): one loyalty ability per permanent per turn. The
-    # executor's simplification: the clock is keyed on the permanent and
-    # the turn number, with NO turn-ownership gate layered on top (the
-    # corpus' loyalty cards are all "activate only as a sorcery", which the
-    # timing gate above already covers; a non-sorcery loyalty window would
-    # additionally need the active-seat check — untested debt, documented).
-    if any(isinstance(p, CostLoyalty) for p in ability.cost.parts) and (
-        executor.loyalty_clock.get(handle) == world.turn
-    ):
+    # CR 606.3 (13a): one loyalty ability per permanent per turn, keyed on
+    # the permanent and the turn number. It holds inside Teferi, Master of
+    # Time's widened window too (the static changes when, never how often);
+    # the loyalty window itself is the gate above.
+    if loyalty_ability and executor.loyalty_clock.get(handle) == world.turn:
         return "window:loyalty:once_per_turn"
     # The X lane (CR 602.2b -> 601.2b): an activation whose cost carries X is
     # legal iff some announcement is payable; X = 0 is the cheapest one (the

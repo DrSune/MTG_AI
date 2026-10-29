@@ -1341,21 +1341,23 @@ def _build_tefei_grant_activation(m: re.Match[str]) -> SentenceOutcome:
     """``You may activate loyalty abilities of Teferi on any player's turn
     any time you could cast an instant.`` (Teferi, Master of Time) —
     grammar round 9-B row 8, closing the 8-C withdrawal: Verb.
-    GRANT_ACTIVATION (R9-7) with filter = FAnd(TYPE_EQ Planeswalker,
-    NAME_CONTAINS "Teferi") (the ability-holder gate) and window =
-    ActivationWindow.INSTANT — "any time you could cast an instant" names
-    the instant window EXACTLY (R9-1 vocabulary; NOT SORCERY — the r10
-    grammar fixture's SORCERY example is unrelated to this row's text).
-    OptionalEffect wrap per C15 ("you may"); executor deferred per the
-    GRANT_ABILITY-adjacent orphan precedent (PC-6: verb consumed this round).
+    GRANT_ACTIVATION (R9-7) with filter = FAtom(IS_SOURCE) (the ability-
+    holder gate) and window = ActivationWindow.INSTANT — "any time you
+    could cast an instant" names the instant window EXACTLY (R9-1
+    vocabulary; NOT SORCERY — the r10 grammar fixture's SORCERY example is
+    unrelated to this row's text). OptionalEffect wrap per C15 ("you
+    may"); executor deferred per the GRANT_ABILITY-adjacent orphan
+    precedent (PC-6: verb consumed this round).
+
+    2026-10-29: "Teferi" here is the card's shortened name, which means
+    this object only (CR 201.5, 201.5c), so the holder is the self
+    referent IS_SOURCE. The earlier FAnd(TYPE_EQ Planeswalker,
+    NAME_CONTAINS "Teferi") also matched every other Teferi planeswalker
+    on the battlefield (Teferi, Timeless Voyager; an opponent's Teferi),
+    and the layer's instant window is global: stronger than printed.
 
     C16: open — WHICH loyalty ability and WHEN inside the widened window."""
-    holder = FAnd(
-        children=(
-            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
-            FAtom(pred=FAtomPred.NAME_CONTAINS, string_value="Teferi"),
-        )
-    )
+    holder = FAtom(pred=FAtomPred.IS_SOURCE)
     atom = Atom(
         verb=Verb.GRANT_ACTIVATION,
         args=AtomArgs(pairs=(("filter", holder), ("window", ActivationWindow.INSTANT))),

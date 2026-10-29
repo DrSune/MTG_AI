@@ -35,6 +35,7 @@ are neutral; each one is teaching the agent something.
 | **Observation zone caps 6/8/12 and a 1024-token window** (registered 2026-10-24) | `tools/training/bc_data_v2.py:67-69`; `ab_duel.py:270-278` | 15,407 of 17,270 asks were truncated in the anchor run. Remove with the IR card tokenizer and a measured context budget. |
 | **Benchmark: 3 strikes per decision, then the do-nothing choice** (2026-10-24) | `MTG_bot/bench/llm.py` | Bounds a non-answering model. Remove when tool mode gives structured answers; until then forfeits are always reported. |
 | **Benchmark: `TAP_ALL_MANA`, X always 0, multi-slot rows hidden, one act window, stateless prompts, conservative hidden-card labels** (2026-10-24) | `MTG_bot/bench/router.py`, `protocol.py`, `llm.py` | Each mirrors an engine limit or is a harness simplification. Remove with the corresponding engine rung (payment, X asks, multi-slot designation, priority) and with tool mode (`notes` memory). |
+| **Teferi, Master of Time's instant-speed window has no window to use** (registered 2026-10-29, branch `engine/phasing`) | `core/executor/legality.py` `ability_playable` (CR 606.3 loyalty window; the GRANT_ACTIVATION relaxation); `core/executor/games.py` and `MTG_bot/bench/router.py` (one act window per turn) | The legality oracle honours "You may activate loyalty abilities of Teferi on any player's turn any time you could cast an instant" (for Teferi itself only, CR 201.5c). The drivers ask for activations only in the active player's first main phase, so the opponent's-turn half and the own-turn combat half never get a window, and Teferi plays as a sorcery-speed planeswalker: weaker than printed (its [−3] can never remove an attacker or a blocker). Remove with the priority rung: an activation window for the non-active seat and inside each step. |
 
 ---
 
@@ -718,6 +719,13 @@ These are forks, not tasks. See the report that accompanied this audit.
     class: detector gap or engine bug.
 - **B-74 Sorcery speed means the first main phase only.** No second-main window for casts, land
   drops or sorcery-speed activations.
+  - [2026-10-29, branch `engine/phasing`] Loyalty abilities had no window at all in the legality
+    oracle: they compile with no `timing`, so `ability_playable` accepted them on any turn, in any
+    step, with a non-empty stack. Only the drivers' one main-phase act batch kept them at sorcery
+    speed (four packs activated an opponent's planeswalker on the wrong turn). CR 606.3 is now
+    enforced there (`window:loyalty:*`: own turn, empty stack, either main phase); the
+    first-main-only limit above still holds for casts, land drops and `timing=SORCERY`
+    activations.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).
