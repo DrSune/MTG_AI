@@ -1259,11 +1259,28 @@ class Executor:
             for card in walkers:
                 if card not in self.world.cards:
                     continue  # a walker killed in this same batch
+                if any(card == c for c, _repl in replaced):
+                    continue  # a creature-walker whose death is already replaced
                 # r21a: the zeroed LOYALTY key is DELETED on the way out
                 # (generic-counter-verb convention): the battlefield re-
                 # entry seeds via setdefault (binding.py 13a), and a stale
                 # 0 would ride the re-entry into an instant second death.
+                # An exile replacement below is a way out too.
                 self.world.cards[card].counters.pop("LOYALTY", None)
+                # B-62, CR 704.5i + 700.4: the zero-loyalty SBA puts the
+                # walker into its owner's graveyard from the battlefield, so
+                # it DIES and the dies-window replacements apply exactly as
+                # in the lethal-creature lane above ("if that creature or
+                # planeswalker would die this turn, exile it instead":
+                # Obliterating Bolt, Scorching Dragonfire). The record's
+                # filter decides which objects it covers.
+                repl = self.replacements.replacement_for_death(card)
+                if repl is not None:
+                    replaced.append((card, repl))
+                    self.events.append(
+                        (len(self.events), "STATE_CHECK", str(card), "DIES_REPLACED")
+                    )
+                    continue
                 self.damage.pop(card, None)
                 self.damage_deathtouch.discard(card)
                 self.world.move_to_zone(
