@@ -76,6 +76,7 @@ from MTG_bot.core.executor.quantity import (
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     amount,
+    move_destination,
     resolve_selector,
     role_handles,
     role_player,
@@ -110,6 +111,19 @@ def _move_to(
     src = ctx.world.zone_of(card)
     ctx.world.move_to_zone(card, player, kind)
     ctx.events.append((len(ctx.events), journal_kind, str(card), f"{src.kind}->{kind}"))
+
+
+def _enter_under_control(ctx: ExecCtx, card: Handle, controller: Handle) -> None:
+    """V24 (CR 110.2, 110.2a): a card put onto the battlefield under the control of a
+    player other than its owner sits in its owner's zone (the frozen world reads the
+    owner off the zone) and gets a control entry for that player, which ends when it
+    leaves the battlefield (Executor._on_zone_changes)."""
+    if ctx.executor is None:
+        raise ValueError(
+            "executor: a permanent entering under a non-owner's control needs an "
+            "executor-backed ExecCtx (the control overlay)"
+        )
+    ctx.executor.gain_control(card, controller, "Permanent", None)
 
 
 def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
@@ -293,8 +307,9 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         dest_ir.position is None and dest_kind == ZONE_LIBRARY
     )
     for card in sorted(cards, reverse=True) if bottom_dest else cards:
-        owner = ctx.world.controller_of(card)
-        target_player = zone_owner(ctx, dest_ir, owner=owner)
+        # V24: the owner's zone always (CR 400.3); a battlefield controller other
+        # than the owner becomes a control entry below, never a zone (CR 108.3).
+        target_player, new_controller = move_destination(ctx, dest_ir, dest_kind, card)
         src = ctx.world.zone_of(card)
         if dest_kind == ZONE_BATTLEFIELD:
             # r20b (Containment Priest): C24 replacement-before-apply for
@@ -318,6 +333,8 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                 continue
         zone = ctx.world.players[target_player].zone(dest_kind)
         ctx.world.move_card(card, zone)
+        if new_controller is not None:
+            _enter_under_control(ctx, card, new_controller)
         if bottom_dest:
             zone.entries.remove(card)
             zone.entries.insert(0, card)
@@ -1266,7 +1283,7 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
     The compiler's documented debt is CARD-level divergence (the ONE_OF/
     REST split re-searches the library in sibling atoms); per-ATOM
     faithfulness is what this handler owns. The destination is role-based
-    (``zone_owner`` resolves the Zone's ControllerRef), ``tapped_on_enter``
+    (``move_destination``: the owner's zone, V24), ``tapped_on_enter``
     is honored on battlefield entry, and every move gets its journal row."""
     dest_ir = atom.args.get("destination")
     assert isinstance(dest_ir, Zone)  # Atom validation guarantees it
@@ -1291,11 +1308,13 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
             ctx.events.append((len(ctx.events), "SEARCH", str(card), "designated"))
         return
     for card in cards:
-        owner = ctx.world.controller_of(card)
-        target_player = zone_owner(ctx, dest_ir, owner=owner)
+        # V24: the owner's zone, a non-owner controller as a control entry.
+        target_player, new_controller = move_destination(ctx, dest_ir, dest_kind, card)
         src = ctx.world.zone_of(card)
         zone = ctx.world.players[target_player].zone(dest_kind)
         ctx.world.move_card(card, zone)
+        if new_controller is not None:
+            _enter_under_control(ctx, card, new_controller)
         if tapped_on_enter and dest_kind == ZONE_BATTLEFIELD:
             ctx.world.cards[card].tapped = True
         ctx.events.append(

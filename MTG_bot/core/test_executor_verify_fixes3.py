@@ -5,6 +5,10 @@ V31  A planeswalker brought to exactly 0 loyalty is put into its owner's graveya
      counters cease to exist when it leaves the battlefield (CR 122.2), so a re-entry
      starts from the printed loyalty (CR 306.5b).
 V31b Counters on an object cease to exist when it moves to another zone (CR 122.2).
+V24  Ownership never changes (CR 108.3): a moving card lands in its owner's hand,
+     library, graveyard or exile whatever player the destination names (CR 400.3),
+     and a permanent put onto the battlefield under another player's control is a
+     control entry on the owner's zone (CR 110.2a).
 """
 
 from __future__ import annotations
@@ -216,6 +220,102 @@ class TestV31bCountersCeaseOnZoneChange(FixerCase):
         self.world.cards[card].counters["PLUS_1_PLUS_1"] = 1
         self.assertEqual(self.world.zone_of(card).kind, ZONE_BATTLEFIELD)
         self.assertEqual(dict(self.world.cards[card].counters), {"PLUS_1_PLUS_1": 1})
+
+
+class TestV24OwnershipNeverChanges(FixerCase):
+    def setUp(self):
+        super().setUp()
+        self.corpse = self.world.add_card(
+            card_id("Corpse", "2", "2"), self.p1, ZONE_GRAVEYARD
+        )
+
+    def move(self, card, dest, controller, zone=None):
+        self.ex.execute(
+            atom(
+                Verb.MOVE_ZONE,
+                cards=target_sel(UNIV, zone or Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)),
+                destination=dest,
+            ),
+            source=self.alpha,
+            controller=controller,
+            bindings={"cards": [card]},
+        )
+
+    def test_owners_hand_written_as_any_is_the_owners_hand(self):
+        # B-43 (Barrin, Niambi, Roaming Ghostlight): Zone(HAND, ANY) went to seat 0.
+        self.move(self.beta, Zone(ZoneKind.HAND, ControllerRef.ANY), self.p0)
+        self.assertEqual(self.world.zone_of(self.beta).kind, ZONE_HAND)
+        self.assertEqual(self.world.controller_of(self.beta), self.p1)
+
+    def test_seat_one_bouncing_its_own_creature_keeps_it(self):
+        self.move(self.beta, Zone(ZoneKind.HAND, ControllerRef.ANY), self.p1)
+        self.assertEqual(self.world.controller_of(self.beta), self.p1)
+
+    def test_a_hand_named_as_yours_is_still_the_owners_hand(self):
+        # CR 400.3: an object that would go to a hand other than its owner's goes to
+        # its owner's.
+        self.move(self.beta, Zone(ZoneKind.HAND, ControllerRef.YOU), self.p0)
+        self.assertEqual(self.world.controller_of(self.beta), self.p1)
+
+    def test_under_your_control_is_a_control_entry_and_death_returns_it_home(self):
+        self.move(
+            self.corpse,
+            Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+            self.p0,
+            zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY),
+        )
+        self.assertEqual(self.world.zone_of(self.corpse).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(self.world.controller_of(self.corpse), self.p1)  # owner
+        self.assertEqual(self.ex.controller_of(self.corpse), self.p0)  # controller
+        self.ex.execute(
+            atom(Verb.DEAL_DAMAGE, target=target_sel(UNIV), amount=QConst(2)),
+            source=self.beta,
+            controller=self.p1,
+            bindings={"target": [self.corpse]},
+        )
+        # It dies into its OWNER's graveyard and the control entry ends with it.
+        self.assertEqual(self.world.zone_of(self.corpse).kind, ZONE_GRAVEYARD)
+        self.assertEqual(self.world.controller_of(self.corpse), self.p1)
+        self.assertEqual(self.ex.control_entries, [])
+
+    def test_return_to_the_battlefield_without_a_controller_is_the_instructed_player(self):
+        # CR 110.2a: Zone(BATTLEFIELD, ANY) ("return ... to the battlefield") puts it
+        # under the effect's controller; it used to land on seat 0's battlefield.
+        self.move(
+            self.corpse,
+            Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+            self.p1,
+            zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY),
+        )
+        self.assertEqual(self.world.controller_of(self.corpse), self.p1)
+        self.assertEqual(self.ex.controller_of(self.corpse), self.p1)
+        self.assertEqual(self.ex.control_entries, [])
+
+    def test_owner_destination_on_the_battlefield_needs_no_entry(self):
+        self.move(
+            self.corpse,
+            Zone(ZoneKind.BATTLEFIELD, ControllerRef.OWNER),
+            self.p0,
+            zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY),
+        )
+        self.assertEqual(self.ex.controller_of(self.corpse), self.p1)
+        self.assertEqual(self.ex.control_entries, [])
+
+
+class TestV24CastRefusesAnotherPlayersCard(unittest.TestCase):
+    def test_cast_card_refuses_a_card_the_caster_does_not_own(self):
+        from MTG_bot.core.ability_tree import Cost, SpellKind
+        from MTG_bot.core.executor.stack import cast_card
+        from MTG_bot.core.state import ZONE_EXILE
+        from MTG_bot.core.test_executor_stack import StackCase
+
+        case = StackCase()
+        case.setUp()
+        theirs = case.give("Theirs", SpellKind.SORCERY, seat=case.p1, zone=ZONE_EXILE)
+        with self.assertRaises(NotImplementedError):
+            cast_card(case.ex, case.p0, theirs, cost_override=Cost(()))
+        self.assertEqual(case.world.zone_of(theirs).kind, ZONE_EXILE)
+        self.assertEqual(case.world.controller_of(theirs), case.p1)
 
 
 if __name__ == "__main__":

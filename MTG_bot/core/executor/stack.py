@@ -1081,6 +1081,16 @@ def cast_card(
             # guard lane skips + ledgers it); never fabricate a face cast.
             raise FaceCastAbsentError(record.name)
         raise ValueError(f"executor: CAST {record.name}: no SpellAbility on the card")
+    if world.controller_of(handle) != caster:
+        # V24 (CR 108.3, 400.3): a spell waits in its caster's stack slot (park), and
+        # the frozen world reads a card's owner off its zone, so a card cast by a
+        # player who does not own it would come off the stack as the caster's. No
+        # card in the dealt pools casts a card it does not own (every CAST source is
+        # a YOU zone); refuse loudly rather than change an owner.
+        raise NotImplementedError(
+            f"executor: CAST {record.name}: casting a card the caster does not own "
+            "needs the owner to survive the stack (V24)"
+        )
     _validate_spell_targets(executor, caster, handle, node, targets)
     # r20b: TARGETING feed — same 601.2c contract as cast(): declare, then
     # journal the designation rows before payment.

@@ -454,6 +454,14 @@ These are forks, not tasks. See the report that accompanied this audit.
   Fix: the three builders → `Zone(HAND, OWNER)`, three goldens re-baked, a pack that bounces an
   opponent's creature, and an owner field if GAIN_CONTROL cards are dealt. Schedule it at an RL
   pilot era boundary: it changes M21 episodes.
+  - **Engine half FIXED on branch `engine/verify-fixes-3` (V24, 2026-10-29).** A moving card lands
+    in its owner's hand, library, graveyard or exile whatever player the destination names (CR
+    400.3; `selectors.move_destination`), and `zone_owner` resolves ANY to the owner. A permanent
+    put onto the battlefield under another player's control stays in its owner's zone with a
+    control entry (CR 110.2a), so the World's zone owner is the card's owner even after
+    GAIN_CONTROL: no owner field is needed. `cast_card` refuses a card the caster does not own
+    (no dealt card does that). The three builders still emit `Zone(HAND, ANY)`: the template half
+    belongs to the compiler fidelity lane (and to B-42's identity fold).
 - **B-44 One-card predicates**: `LIFE_LEAD_OVER_START_GE`, `NAME_PARTITION_COUNT_GE`,
   `ATTACK_AGAINST_COUNT_GE`, `NOT_FIRST_DRAW_THIS_STEP`, `INSTANT_OR_SORCERY_CAST_THIS_TURN` read as
   single cards. Decompose them into general atoms (e.g. a QThisTurn count of CastSpell events with

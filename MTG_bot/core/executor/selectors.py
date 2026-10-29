@@ -164,9 +164,14 @@ def filter_reads_bound_player(filter_: object) -> bool:
 
 
 def zone_owner(ctx: ExecCtx, zone_ir: Zone, owner: Handle | None) -> Handle:
-    """The single player who owns a destination/movement zone IR."""
+    """The single player who owns a destination/movement zone IR.
+
+    V24 (2026-10-29): ANY names no player, so it resolves to ``owner`` when the
+    caller has one, never to the first seat (B-43: a bounce to "its owner's hand"
+    compiled as Zone(HAND, ANY) handed an opponent's creature to seat 0). A
+    MOVING CARD's destination goes through :func:`move_destination`."""
     ref = zone_ir.controller
-    if ref is ControllerRef.OWNER:
+    if ref is ControllerRef.OWNER or (ref is ControllerRef.ANY and owner is not None):
         if owner is None:
             raise ValueError("executor: OWNER zone needs a card to own it")
         return owner
@@ -177,6 +182,39 @@ def zone_owner(ctx: ExecCtx, zone_ir: Zone, owner: Handle | None) -> Handle:
     raise NotImplementedError(
         f"executor: zone controller ref {ref.name} needs multiple owners (12b)"
     )
+
+
+def move_destination(
+    ctx: ExecCtx, dest_ir: Zone, dest_kind: str, card: Handle
+) -> tuple[Handle, Handle | None]:
+    """V24 (CR 108.3, 400.3, 110.2a): where a moving card lands, as ``(the player
+    whose zone receives it, the player who controls it if that is not its owner)``.
+
+    The frozen world reads a card's owner off the zone that holds it, so filing a
+    card under another player's zone would change its owner, which never happens
+    (108.3). A card goes to its OWNER's hand, library or graveyard whatever player
+    the destination names (400.3), and to its owner's slice of exile. Only a
+    battlefield destination names a controller (110.2a): the player the effect puts
+    it under, which is the effect's controller (YOU, and ANY: "return it to the
+    battlefield" puts it under the instructed player's control), the designated
+    player (TARGET_PLAYER), or its owner (OWNER). A controller other than the owner
+    is the caller's control entry (Executor.gain_control), never a zone."""
+    owner = ctx.world.controller_of(card)  # the zone owner IS the card's owner
+    if dest_kind != ZONE_BATTLEFIELD:
+        return owner, None
+    ref = dest_ir.controller
+    if ref is ControllerRef.OWNER:
+        return owner, None
+    if ref in (ControllerRef.YOU, ControllerRef.ANY):
+        controller = ctx.controller
+    elif ref is ControllerRef.TARGET_PLAYER:
+        controller = players_for_ref(ref, ctx)[0]
+    else:
+        raise NotImplementedError(
+            f"executor: battlefield destination under {ref.name} names no single "
+            "controller (CR 110.2a)"
+        )
+    return owner, (None if controller == owner else controller)
 
 
 def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
