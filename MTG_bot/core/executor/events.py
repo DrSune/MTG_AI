@@ -32,7 +32,7 @@ ordinal is event data; ``begin_turn`` resets them.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import cast
 
 from MTG_bot.core.ability_tree import Phase
@@ -307,6 +307,9 @@ class _Snapshot:
     tapped: dict[Handle, bool]
     counters: dict[Handle, dict[str, int]]
     life: dict[Handle, int]
+    # V23: raw DAMAGE tuples (by executor-event index) that a boundary nested
+    # inside this one already journalled; this boundary must not emit them again.
+    consumed_raw: set[int] = field(default_factory=set)
 
 
 class EventJournal:
@@ -322,6 +325,13 @@ class EventJournal:
         # like the draw ordinal.
         self.cast_counts: dict[Handle, int] = {}
         self._clock = 0
+        # V23: the atom boundaries open right now, outermost first (snapshot opens
+        # one, record_atom closes it). A boundary can open inside another: a CAST
+        # atom casts and resolves a spell, a PAY atom or a spell's additional cost
+        # pays through journalled verbs. Closing an inner boundary folds its changes
+        # into every boundary around it, so each change is journalled exactly once.
+        # Transient: empty between ops.
+        self._open: list[_Snapshot] = []
 
     # ------------------------------------------------------------- emitting
 
@@ -471,6 +481,21 @@ class EventJournal:
     # ------------------------------------------------------------- diffing
 
     def snapshot(self) -> _Snapshot:
+        """Open an atom boundary: the world as it is now. ``record_atom`` closes it."""
+        snap = self._capture()
+        self._open.append(snap)
+        return snap
+
+    def open_depth(self) -> int:
+        """V23: how many boundaries are open (the guarded effect lane's mark)."""
+        return len(self._open)
+
+    def drop_open(self, depth: int) -> None:
+        """V23: forget the boundaries opened above ``depth`` whose atom raised and
+        will never close (the guarded lane skips a dangling step and goes on)."""
+        del self._open[depth:]
+
+    def _capture(self) -> _Snapshot:
         world = self.world
         zones: dict[Handle, tuple[Handle, str]] = {}
         for player in world.player_order:
@@ -496,7 +521,7 @@ class EventJournal:
         event the atom caused. Returns the newly appended events."""
         start = len(self.events)
         world = self.world
-        after = self.snapshot()
+        after = self._capture()
 
         # --- zone membership: moves, ETBs, deaths, draws, token creates.
         for card, (owner, kind) in after.zones.items():
@@ -511,7 +536,12 @@ class EventJournal:
                 cause_verb,
                 (from_state, kind, was[0] if was else None, owner),
             )
-            if from_state == ZONE_LIBRARY and kind == ZONE_HAND:
+            if from_state == ZONE_LIBRARY and kind == ZONE_HAND and cause_verb == "DRAW":
+                # V23 (CR 121.1, 121.5): only a draw is a draw. A card put into a
+                # hand from a library without the word "draw" (a search, Garruk's
+                # reveal-and-put, a tutor) is a zone change, not a CARD_DRAWN row.
+                # Every draw runs through a DRAW atom (_v_draw; the turn's draw is
+                # the _TURN_DRAW atom), whose boundary moves nothing else.
                 self.draw_counts[owner] = self.draw_counts.get(owner, 0) + 1
                 self._emit(
                     KIND_CARD_DRAWN,
@@ -600,10 +630,14 @@ class EventJournal:
 
         # --- non-lethal card damage leaves no state trace: the 12a handler
         # tuples carry its amount (the "handlers already return info" path).
+        consumed: set[int] = set()
         for entry in new_12a_tuples:
             if entry[1] in ("DAMAGE", "DAMAGE_LETHAL"):
                 subject = parse_handle_tag(str(entry[2]))
                 if subject.namespace == "card":
+                    if entry[0] in before.consumed_raw:
+                        continue  # V23: a nested boundary journalled it already
+                    consumed.add(entry[0])
                     self._emit(
                         KIND_DAMAGE,
                         subject,
@@ -612,7 +646,59 @@ class EventJournal:
                         (entry[3], True) if combat else (entry[3],),
                     )
 
+        self._close(before, after, consumed | before.consumed_raw)
         return self.events[start:]
+
+    def _close(self, before: _Snapshot, after: _Snapshot, consumed: set[int]) -> None:
+        """V23: close ``before``'s boundary and fold what it journalled into every
+        boundary still open around it, so the enclosing atom's own diff no longer
+        sees those changes. Before this, a creature sacrificed as a spell's
+        additional cost died twice (the SACRIFICE atom, then the cast's park
+        boundary), and a spell cast by a CAST atom journalled its draws, moves and
+        damage twice (Teferi's Tutelage milled 8 for 2 draws)."""
+        for i in range(len(self._open) - 1, -1, -1):
+            if self._open[i] is before:
+                del self._open[i:]  # anything above it never closed (it raised)
+                break
+        else:
+            return  # not an open boundary: nothing encloses it
+        if not self._open:
+            return
+        zones = [
+            c
+            for c in set(before.zones) | set(after.zones)
+            if before.zones.get(c) != after.zones.get(c)
+        ]
+        tapped = [
+            c
+            for c in set(before.tapped) | set(after.tapped)
+            if before.tapped.get(c) != after.tapped.get(c)
+        ]
+        counters = [
+            c
+            for c in set(before.counters) | set(after.counters)
+            if before.counters.get(c) != after.counters.get(c)
+        ]
+        life = [p for p in after.life if before.life.get(p) != after.life[p]]
+        for outer in self._open:
+            for c in zones:
+                if c in after.zones:
+                    outer.zones[c] = after.zones[c]
+                else:
+                    outer.zones.pop(c, None)
+            for c in tapped:
+                if c in after.tapped:
+                    outer.tapped[c] = after.tapped[c]
+                else:
+                    outer.tapped.pop(c, None)
+            for c in counters:
+                if c in after.counters:
+                    outer.counters[c] = dict(after.counters[c])
+                else:
+                    outer.counters.pop(c, None)
+            for p in life:
+                outer.life[p] = after.life[p]
+            outer.consumed_raw |= consumed
 
     # ---------------------------------------------------------- canonical
 

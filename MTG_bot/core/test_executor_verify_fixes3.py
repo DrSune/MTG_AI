@@ -9,6 +9,10 @@ V24  Ownership never changes (CR 108.3): a moving card lands in its owner's hand
      library, graveyard or exile whatever player the destination names (CR 400.3),
      and a permanent put onto the battlefield under another player's control is a
      control entry on the owner's zone (CR 110.2a).
+V23  Only a draw is a draw (CR 121.1, 121.5): a library-to-hand move by any other verb
+     is a zone change, not CARD_DRAWN. An atom boundary opened inside another (a CAST
+     atom resolving a spell, a cost paid through journalled verbs) journals each change
+     once: the enclosing boundary no longer re-emits it.
 """
 
 from __future__ import annotations
@@ -316,6 +320,115 @@ class TestV24CastRefusesAnotherPlayersCard(unittest.TestCase):
             cast_card(case.ex, case.p0, theirs, cost_override=Cost(()))
         self.assertEqual(case.world.zone_of(theirs).kind, ZONE_EXILE)
         self.assertEqual(case.world.controller_of(theirs), case.p1)
+
+
+class TestV23OnlyADrawIsADraw(FixerCase):
+    def setUp(self):
+        super().setUp()
+        self.lib = [self.world.add_card(card_id(f"L{i}"), self.p0) for i in (1, 2, 3)]
+
+    def rows(self, kind):
+        return [e for e in self.ex.journal.events if e.kind == kind]
+
+    def test_a_draw_is_journalled_as_a_draw(self):
+        from MTG_bot.core.executor.events import KIND_CARD_DRAWN
+
+        self.ex.execute(
+            atom(Verb.DRAW, controller=ControllerRef.YOU, amount=QConst(1)),
+            source=self.alpha,
+            controller=self.p0,
+        )
+        drawn = self.rows(KIND_CARD_DRAWN)
+        self.assertEqual([e.subject for e in drawn], [self.lib[-1]])
+        self.assertEqual(self.ex.journal.draw_counts, {self.p0: 1})
+
+    def test_putting_a_library_card_into_a_hand_is_not_a_draw(self):
+        from MTG_bot.core.executor.events import KIND_CARD_DRAWN, KIND_ZONE_CHANGE
+
+        self.ex.execute(
+            atom(
+                Verb.MOVE_ZONE,
+                cards=target_sel(UNIV, Zone(ZoneKind.LIBRARY, ControllerRef.YOU)),
+                destination=Zone(ZoneKind.HAND, ControllerRef.YOU),
+            ),
+            source=self.alpha,
+            controller=self.p0,
+            bindings={"cards": [self.lib[0]]},
+        )
+        self.assertEqual(self.world.zone_of(self.lib[0]).kind, ZONE_HAND)
+        moves = [e for e in self.rows(KIND_ZONE_CHANGE) if e.subject == self.lib[0]]
+        self.assertEqual(len(moves), 1)  # the zone change is still journalled
+        self.assertEqual(self.rows(KIND_CARD_DRAWN), [])  # CR 121.5: not a draw
+        self.assertEqual(self.ex.journal.draw_counts, {})
+
+    def test_a_searched_card_put_into_the_hand_is_not_a_draw(self):
+        from MTG_bot.core.ability_tree import Selector, SelectorMode
+        from MTG_bot.core.executor.events import KIND_CARD_DRAWN
+
+        self.ex.execute(
+            atom(
+                Verb.SEARCH,
+                cards=Selector(
+                    QConst(1),
+                    SelectorMode.CHOOSE,
+                    UNIV,
+                    zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),),
+                ),
+                destination=Zone(ZoneKind.HAND, ControllerRef.YOU),
+            ),
+            source=self.alpha,
+            controller=self.p0,
+            bindings={"cards": [self.lib[1]]},
+        )
+        self.assertEqual(self.world.zone_of(self.lib[1]).kind, ZONE_HAND)
+        self.assertEqual(self.rows(KIND_CARD_DRAWN), [])
+
+
+class TestV23NestedBoundariesJournalOnce(FixerCase):
+    def test_an_enclosing_boundary_does_not_rejournal_an_inner_atom(self):
+        from MTG_bot.core.executor.events import KIND_CREATURE_DIES, KIND_ZONE_CHANGE
+
+        journal = self.ex.journal
+        outer = journal.snapshot()  # e.g. a cast's park boundary around its cost
+        self.ex.execute(  # the inner, journalled atom: a sacrifice
+            atom(Verb.SACRIFICE, target=target_sel(UNIV)),
+            source=self.alpha,
+            controller=self.p0,
+            bindings={"target": [self.alpha]},
+        )
+        n_dies = len([e for e in journal.events if e.kind == KIND_CREATURE_DIES])
+        self.world.cards[self.beta].tapped = True  # the outer's own change
+        new = journal.record_atom(outer, None, "TEST", [])
+        self.assertEqual(n_dies, 1)
+        self.assertEqual(
+            [e for e in new if e.kind in (KIND_CREATURE_DIES, KIND_ZONE_CHANGE)], []
+        )
+        self.assertEqual([(e.kind, e.subject) for e in new], [("TAP_STATE", self.beta)])
+        self.assertEqual(journal.open_depth(), 0)
+
+    def test_inner_card_damage_is_not_rejournalled(self):
+        from MTG_bot.core.executor.events import KIND_DAMAGE
+
+        journal = self.ex.journal
+        outer = journal.snapshot()
+        start = len(self.ex.events)
+        self.ex.execute(
+            atom(Verb.DEAL_DAMAGE, target=target_sel(UNIV), amount=QConst(1)),
+            source=self.beta,
+            controller=self.p1,
+            bindings={"target": [self.alpha]},
+        )
+        new = journal.record_atom(outer, None, "TEST", list(self.ex.events[start:]))
+        damage = [e for e in journal.events if e.kind == KIND_DAMAGE]
+        self.assertEqual(len(damage), 1)
+        self.assertEqual([e for e in new if e.kind == KIND_DAMAGE], [])
+
+    def test_a_dangling_boundary_is_dropped(self):
+        journal = self.ex.journal
+        depth = journal.open_depth()
+        journal.snapshot()  # an atom that raised before closing its boundary
+        journal.drop_open(depth)
+        self.assertEqual(journal.open_depth(), depth)
 
 
 if __name__ == "__main__":

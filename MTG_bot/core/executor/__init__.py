@@ -762,11 +762,14 @@ class Executor:
             )
         try:
             for step in steps:
+                depth = self.journal.open_depth()
                 try:
                     self._run_effect(step, ctx)
                 except (NotImplementedError, ValueError) as exc:
                     if not (referent_absent(exc) or face_cast_absent(exc)):
                         raise
+                    # V23: the skipped step's atom boundary never closes.
+                    self.journal.drop_open(depth)
                     src = ctx.source
                     name = (
                         self.world.cards[src].identity.name
