@@ -97,6 +97,8 @@ $PY tools/cards/cardtool.py --help
 - **"Whenever you attack" and "one or more creatures you control attack".** A
   `DeclareAttackersEvent` with filter `FAnd(CONTROLLER_IS YOU, TYPE_EQ 'Creature')` and no
   condition. The binder fires it once per declaration (CR 603.2).
+- **SEARCH.** Leave out the `controller` role. The executor never reads it (the searched zone comes from
+  the `cards` selector), and the compiler is split 14/15 on writing it (divergence D12).
 - **Colours.** "Green or white" is an `FOr` of `COLOR_HAS`, never `COLOR_IN`. `COLOR_IN` is a
   subset test, so a multicoloured spell would fail it (B-54).
 - **Carriers.**
