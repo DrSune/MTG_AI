@@ -1611,6 +1611,13 @@ class Executor:
         self.attacked = {}
         self.blocked_by = {}
         self.defending_player = None
+        # V26 (CR 511.3: as the end of combat step ends, all creatures are removed
+        # from combat): re-read the statics that select attacking or blocking
+        # creatures ("Attacking creatures you control get +1/+0", Warded
+        # Battlements) now that nothing is attacking; the last recompute ran inside
+        # the settle above, while the attack record still stood.
+        self.ledger.settle_while(self._while_eval)
+        self.layers.recompute()
         # The frozen grammar's Phase vocab has no SECOND_MAIN member, so
         # the marker is executor-clock-only: the legality gates read the
         # phase string and correctly stop offering FIRST_MAIN activations.
