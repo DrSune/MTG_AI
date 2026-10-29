@@ -2049,7 +2049,9 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIsInstance(set_pt.args.get("duration"), DurationEot)
         grant_type = _atom_step(seq, 1)
         self.assertIs(grant_type.verb, Verb.GRANT_TYPE)
-        self.assertEqual(grant_type.args.get("types"), ("Sphinx",))
+        # re-pinned 2026-10-29: m21-fidelity (review batch C) grants the card type Creature too
+        # ("a 3/3 Sphinx creature"); ("Sphinx",) alone left it unable to attack or block.
+        self.assertEqual(grant_type.args.get("types"), ("Creature", "Sphinx"))
         self.assertIsInstance(grant_type.args.get("duration"), DurationEot)
         grant_ability = _atom_step(seq, 2)
         self.assertIs(grant_ability.verb, Verb.GRANT_ABILITY)

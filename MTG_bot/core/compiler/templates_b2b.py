@@ -1343,12 +1343,17 @@ def _build_riddleform(m: re.Match[str]) -> SentenceOutcome:
                     )
                 ),
             ),
+            # "a 3/3 Sphinx creature ... in addition to its other types": the
+            # card type Creature AND the subtype Sphinx (CR 205.1b; the type
+            # overlay is the single TYPE_EQ/SUBTYPE_EQ oracle). m21-fidelity
+            # (review batch C, 2026-10-29): only "Sphinx" was granted, so the
+            # 3/3 flier was never a creature and could not attack or block.
             Atom(
                 verb=Verb.GRANT_TYPE,
                 args=AtomArgs(
                     pairs=(
                         ("target", _self_selector()),
-                        ("types", ("Sphinx",)),
+                        ("types", ("Creature", "Sphinx")),
                         ("duration", DurationEot()),
                     )
                 ),
