@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pestilent Haze, second mode: remove two loyalty counters from EACH planeswalker, yours and the opponent's. Your Basri Ket (seeded at 4) goes to 2, the opponent's Chandra, Heart of Fire (seeded at 5) goes to 3. Creatures are untouched by this mode (the 1/1 lives, no -2/-2).",
+ "cards": [
+  {"key": "haze", "real": "Pestilent Haze", "zone": "hand", "controller": 0},
+  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0},
+  {"key": "ch", "real": "Chandra, Heart of Fire", "zone": "battlefield", "controller": 1},
+  {"key": "mite", "name": "Mite", "type": "Creature", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 3}},
+ "steps": [
+  {"op": "loyalty", "key": "basri", "set": 4},
+  {"op": "loyalty", "key": "ch", "set": 5},
+  {"op": "cast", "key": "haze", "real": "Pestilent Haze", "decisions": ["1"]}
+ ],
+ "expect": {
+  "zone": {"haze": "graveyard", "basri": "battlefield", "ch": "battlefield", "mite": "battlefield"},
+  "counters": {"basri": {"LOYALTY": 2}, "ch": {"LOYALTY": 3}},
+  "power": {"mite": 1},
+  "toughness": {"mite": 1}
+ }
+}

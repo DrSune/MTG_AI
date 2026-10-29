@@ -1023,6 +1023,11 @@ class Executor:
                     self._apply_etb_state(event.subject)
                 continue
             anchor = event.subject
+            # V31 (CR 122.2, 306.5b): the loyalty counters cease to exist when the
+            # walker leaves the battlefield, so a re-entry is seeded from the printed
+            # loyalty (binder setdefault) instead of riding a stale value, 0 included.
+            if anchor in self.world.cards:
+                self.world.cards[anchor].counters.pop("LOYALTY", None)
             self.ledger.expire_leaves(anchor)
             self.layers.expire_leaves(anchor)
             self.replacements.expire_leaves(anchor)
@@ -1187,7 +1192,9 @@ class Executor:
         ment path (which still runs its own immediate check in legality,
         because the generic counter verb deletes a zeroed key); a missing
         ledger key therefore reads the printed loyalty, never 0 — the
-        13a ``_loyalty_of`` twin."""
+        13a ``_loyalty_of`` twin. V31 (CR 704.5i): the counter verb now keeps
+        a zeroed LOYALTY key, so counter removal (Pestilent Haze) and a loyalty
+        cost paid down to 0 reach this check too."""
         from MTG_bot.core.executor.legality import _loyalty_of
 
         world = self.world

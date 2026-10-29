@@ -736,7 +736,29 @@ def _v_remove_counter(ctx: ExecCtx, atom: Atom) -> None:
     assert isinstance(kind, CounterKind)
     n = amount(ctx, atom, "count")
     for card in role_handles(ctx, atom, "target"):
-        counters = ctx.world.cards[card].counters
+        state = ctx.world.cards[card]
+        counters = state.counters
+        if kind is CounterKind.LOYALTY and (
+            kind.name in counters
+            or (
+                state.identity.loyalty is not None
+                and ctx.world.zone_of(card).kind == ZONE_BATTLEFIELD
+            )
+        ):
+            # V31 (CR 306.5c, 704.5i): the LOYALTY key IS the loyalty, and an absent
+            # key means an unseeded ledger that reads the printed loyalty
+            # (legality._loyalty_of). So 0 stays a value: popping it reset a walker
+            # brought to 0 to its printed loyalty instead of letting the state check
+            # put it into its owner's graveyard. Same read and write as the damage
+            # lane (CR 120.3c); the key leaves with the walker (_on_zone_changes).
+            have = counters.get(kind.name)
+            if have is None:
+                have = int(str(state.identity.loyalty))
+            counters[kind.name] = max(0, have - n)
+            ctx.events.append(
+                (len(ctx.events), "REMOVE_COUNTER", str(card), kind.name, n)
+            )
+            continue
         remaining = max(0, counters.get(kind.name, 0) - n)
         if remaining:
             counters[kind.name] = remaining

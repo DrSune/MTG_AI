@@ -372,10 +372,10 @@ def _loyalty_of(world: GameWorld, handle: Handle) -> int:
     planeswalker paying a loyalty cost is illegal, and
     :func:`build_payment_plan` flags it).
 
-    Note: the generic counter verb deletes a zeroed counter key.  A payment
-    that brings loyalty to exactly 0 therefore passes the resulting ledger
-    value to :func:`_loyalty_death_check` directly rather than rereading it
-    here.
+    Note (V31, 2026-10-29): the counter verb keeps a zeroed LOYALTY key (every
+    other counter kind is deleted at 0), so a walker brought to 0 reads 0 here,
+    never its printed loyalty. The key is dropped when the walker leaves the
+    battlefield (CR 122.2).
     """
     state = world.cards.get(handle)
     if state is None:
@@ -1381,7 +1381,12 @@ def _loyalty_death_check(
     It fires the journalled ``DESTROY`` verb (dies triggers, graveyard) as
     the documented stand-in for the SBZA's graveyard replacement; destroy
     *replacement* effects (Rest in Peace) would see it as a destroy, a
-    corner the frozen corpus has no golden for."""
+    corner the frozen corpus has no golden for.
+
+    V31 (2026-10-29): the counter verb now keeps a zeroed LOYALTY key, so the
+    settle that closes the payment's own atom (apply_effect) already buries a
+    walker paid down to 0 through the state check (CR 704.5i), and this call
+    finds it gone. It stays as the backstop for a caller without that settle."""
     world = executor.world
     state = world.cards.get(source)
     if state is None or state.identity.loyalty is None:
