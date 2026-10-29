@@ -1,0 +1,304 @@
+"""Automatic gates G0 (static) and G3 (adequacy by mutation analysis). docs/PLAN_CARD_ONBOARDING.md.
+
+G0 never needs a model: strict round trip, printed facts unchanged, every number of the text in the
+tree, MTGJSON keywords present, verbs the executor supports, castable if it is a permanent spell,
+clause traceability, and component shapes never compiled before (flagged for review, not failed).
+
+G3 mutates the tree with fault-model operators that mirror the bugs an RL policy would exploit (a
+wrong amount, a lost duration, a flipped controller, a widened scope, a dropped step, a dropped
+cost, an optional made mandatory, a wrong zone, a dropped keyword), probes every viable mutant, and
+reports the mutants whose probe trace is identical to the original's: parts of the card no evidence
+exercised. Those need a spec pack (gate G4) before the card can be verified.
+"""
+
+from __future__ import annotations
+
+import dataclasses
+import re
+import sys
+from collections.abc import Generator, Iterator
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Any
+
+HERE = Path(__file__).resolve().parent
+for _p in (HERE.parents[1], HERE):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
+
+from probe import Probe
+
+from MTG_bot.core.ability_tree import (
+    Atom,
+    AtomArgs,
+    CardRecord,
+    ControllerRef,
+    Cost,
+    DurationEot,
+    DurationPermanent,
+    FAnd,
+    FAtom,
+    FAtomPred,
+    Keyword,
+    KeywordAbility,
+    OptionalEffect,
+    QConst,
+    QUnbounded,
+    Selector,
+    SelectorMode,
+    Seq,
+    SpellAbility,
+    TurnPhaseEvent,
+    Zone,
+    ZoneKind,
+    from_dict,
+    to_dict,
+    walk,
+)
+from MTG_bot.core.compiler.compiler import CompileResult, _engine_supported
+from MTG_bot.core.compiler.ingest import RawCard
+from MTG_bot.core.executor import SUPPORTED_VERBS_V2
+from MTG_bot.core.identity import LegalityFlags
+
+_NUM_WORDS = {w: i for i, w in enumerate(
+    ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"))}
+
+
+# ----------------------------------------------------------------------------- G0
+def _ints(node: Any) -> set[int]:
+    out: set[int] = set()
+
+    def visit(x: Any) -> None:
+        if isinstance(x, bool):
+            return
+        if isinstance(x, int):
+            out.add(abs(x))
+        elif dataclasses.is_dataclass(x) and not isinstance(x, type):
+            if isinstance(x, AtomArgs):
+                for _, v in x.pairs:
+                    visit(v)
+                return
+            for f in dataclasses.fields(x):
+                visit(getattr(x, f.name))
+        elif isinstance(x, (tuple, list, frozenset)):
+            for item in x:
+                visit(item)
+
+    visit(node)
+    return out
+
+
+def text_numbers(raw: RawCard) -> set[int]:
+    """Numbers the rules text states (reminder text in parentheses left out)."""
+    nums: set[int] = set()
+    for sentence in raw.sentences:
+        s = re.sub(r"\([^)]*\)", "", sentence)
+        s = s.replace(raw.identity.name, "~")
+        nums |= {int(m) for m in re.findall(r"(?<![\w/])[+\-−]?(\d+)", s)}
+        nums |= {_NUM_WORDS[w.lower()] for w in re.findall(r"\b(" + "|".join(_NUM_WORDS) + r")\b", s, re.IGNORECASE)}
+    nums.discard(0)
+    return nums
+
+
+def g0(raw: RawCard, base: CardRecord, card: CardRecord, *, clauses: list[dict] | None,
+       known_signatures: dict[str, int] | None) -> tuple[list[str], list[str]]:
+    """(failures, warnings) for one card tree."""
+    fails: list[str] = []
+    warns: list[str] = []
+    for kw in card.keywords:
+        if from_dict("KeywordAbility", to_dict(kw)) != kw:
+            fails.append(f"keyword {kw} does not round-trip")
+    for ab in card.abilities:
+        if from_dict(to_dict(ab)["tag"], to_dict(ab)) != ab:
+            fails.append(f"ability {type(ab).__name__} does not round-trip")
+    for field in ("name", "type_line", "types", "subtypes", "supertypes", "colors", "mana_cost",
+                  "mana_value", "power", "toughness", "loyalty", "is_token"):
+        if getattr(card, field) != getattr(base, field) and not (
+            field in ("power", "toughness") and getattr(base, field) is None
+        ):
+            fails.append(f"printed fact changed: {field}")
+    tree_ints = _ints(card.abilities) | _ints(card.keywords) | _ints(card.mana_cost) | _ints(
+        (card.power, card.toughness, card.loyalty))
+    missing = sorted(text_numbers(raw) - tree_ints)
+    if missing:
+        warns.append(f"numbers in the text but not in the tree: {missing}")
+    printed_kw = {k.upper().replace(" ", "_") for k in raw.keywords}
+    tree_kw = {k.keyword.name for k in card.keywords} | {
+        n.keyword.name for n in walk(card) if isinstance(n, KeywordAbility)}
+    unknown = sorted(k for k in printed_kw - tree_kw if k in Keyword.__members__)
+    if unknown:
+        fails.append(f"MTGJSON keywords missing from the tree: {unknown}")
+    absent = sorted(k for k in printed_kw - tree_kw if k not in Keyword.__members__)
+    if absent:
+        warns.append(f"MTGJSON keywords with no Keyword atom (check how the tree expresses them): {absent}")
+    if not _engine_supported(card, set(SUPPORTED_VERBS_V2)):
+        verbs = sorted({n.verb.name for n in walk(card) if isinstance(n, Atom)} - {v.name for v in SUPPORTED_VERBS_V2})
+        fails.append(f"verbs the executor does not support: {verbs or 'a shape gate (X-kicker / non-constant EtB counters)'}")
+    permanent = any(t in card.types for t in ("Creature", "Enchantment", "Artifact", "Planeswalker"))
+    if permanent and "Land" not in card.types and not any(isinstance(a, SpellAbility) for a in card.abilities):
+        fails.append("a permanent spell with no SpellAbility cannot be cast (add the carrier "
+                     "SpellAbility(kind=SpellKind.<TYPE>) last, as the compiler does for creatures)")
+    if clauses is not None:
+        covered = " ".join(c.get("clause", "") for c in clauses)
+        for sentence in raw.sentences:
+            core = re.sub(r"\s*\([^)]*\)", "", sentence).strip()
+            if core and core not in covered:
+                fails.append(f"clause not traced to the tree: {core!r}")
+    if known_signatures is not None:
+        from corpus import signatures_of
+
+        new = sorted({s for s in signatures_of(card) if s not in known_signatures})
+        if new:
+            warns.append("component shapes no compiled card has (review them in the probe): " + "; ".join(new))
+    return fails, warns
+
+
+# ----------------------------------------------------------------------------- G3
+def _rebuild(node: Any, path: tuple, new: Any) -> Any:
+    """``node`` with the value at ``path`` replaced (a path of field names / tuple indexes)."""
+    if not path:
+        return new
+    head, rest = path[0], path[1:]
+    if isinstance(node, AtomArgs):
+        pairs = tuple((r, _rebuild(v, rest, new) if r == head else v) for r, v in node.pairs)
+        return AtomArgs(pairs=pairs)
+    if isinstance(node, tuple):
+        items = list(node)
+        items[head] = _rebuild(items[head], rest, new)
+        return tuple(items)
+    return dataclasses.replace(node, **{head: _rebuild(getattr(node, head), rest, new)})
+
+
+def _paths(node: Any, path: tuple = ()) -> Iterator[tuple[tuple, Any]]:
+    yield path, node
+    if isinstance(node, AtomArgs):
+        for role, v in node.pairs:
+            yield from _paths(v, (*path, role))
+    elif isinstance(node, tuple):
+        for i, v in enumerate(node):
+            yield from _paths(v, (*path, i))
+    elif dataclasses.is_dataclass(node) and not isinstance(node, type):
+        for f in dataclasses.fields(node):
+            yield from _paths(getattr(node, f.name), (*path, f.name))
+
+
+def _is_self(filter_: Any) -> bool:
+    if isinstance(filter_, FAtom):
+        return filter_.pred is FAtomPred.IS_SOURCE
+    if isinstance(filter_, FAnd):
+        return any(_is_self(c) for c in filter_.children)
+    return False
+
+
+_FLIP = {ControllerRef.YOU: ControllerRef.OPPONENT, ControllerRef.OPPONENT: ControllerRef.YOU,
+         ControllerRef.ALL_OPPONENTS: ControllerRef.YOU}
+_ZONE_SWAP = {ZoneKind.GRAVEYARD: ZoneKind.EXILE, ZoneKind.EXILE: ZoneKind.GRAVEYARD,
+              ZoneKind.HAND: ZoneKind.BATTLEFIELD, ZoneKind.BATTLEFIELD: ZoneKind.HAND,
+              ZoneKind.LIBRARY: ZoneKind.GRAVEYARD}
+
+
+def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
+    """(operator, where, mutant card) for every viable fault-model mutant of the card's tree."""
+    root = (card.keywords, card.abilities)
+    seen: set[str] = set()
+    # A self-designation ("this creature": a selector whose filter is IS_SOURCE) picks exactly one
+    # object whatever its count says, so mutating that count is an equivalent mutant: skip it.
+    self_counts = {
+        (*path, "count")
+        for path, node in _paths(root)
+        if isinstance(node, Selector) and _is_self(node.filter)
+    }
+    for path, node in _paths(root):
+        cands: list[tuple[str, Any]] = []
+        if isinstance(node, QConst) and path in self_counts:
+            continue
+        if isinstance(node, TurnPhaseEvent):
+            if node.actor is None:
+                cands.append(("trigger scope: each turn -> your turn only",
+                              dataclasses.replace(node, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU))))
+            else:
+                cands.append(("trigger scope: your turn -> each turn", dataclasses.replace(node, actor=None)))
+        elif isinstance(node, QConst):
+            cands.append(("amount+1", QConst(node.value + 1)))
+            if node.value > 1:
+                cands.append(("amount-1", QConst(node.value - 1)))
+        elif isinstance(node, DurationEot):
+            cands.append(("until-end-of-turn->permanent", DurationPermanent()))
+        elif isinstance(node, DurationPermanent):
+            cands.append(("permanent->until-end-of-turn", DurationEot()))
+        elif isinstance(node, ControllerRef) and node in _FLIP:
+            cands.append((f"controller {node.name}->{_FLIP[node].name}", _FLIP[node]))
+        elif isinstance(node, Zone) and node.kind in _ZONE_SWAP and path and path[-1] == "destination":
+            cands.append((f"zone {node.kind.name}->{_ZONE_SWAP[node.kind].name}",
+                          dataclasses.replace(node, kind=_ZONE_SWAP[node.kind])))
+        elif isinstance(node, Selector) and node.mode is SelectorMode.TARGET:
+            cands.append(("target->all", dataclasses.replace(node, mode=SelectorMode.ALL, count=QUnbounded())))
+        elif isinstance(node, Seq) and len(node.steps) >= 2:
+            for i in range(len(node.steps)):
+                rest = node.steps[:i] + node.steps[i + 1:]
+                cands.append((f"drop step {i}", rest[0] if len(rest) == 1 else Seq(steps=rest)))
+        elif isinstance(node, OptionalEffect):
+            cands.append(("optional->mandatory", node.inner))
+        elif isinstance(node, FAnd) and len(node.children) >= 2:
+            for i in range(len(node.children)):
+                cands.append((f"widen filter (drop part {i})", FAnd(children=node.children[:i] + node.children[i + 1:])))
+        elif isinstance(node, Cost) and node.parts and path and path[-1] != "mana_cost":
+            for i in range(len(node.parts)):
+                cands.append((f"drop cost part {i} ({type(node.parts[i]).__name__})",
+                              Cost(parts=node.parts[:i] + node.parts[i + 1:])))
+        elif isinstance(node, tuple) and path == (0,) and node:
+            for i in range(len(node)):
+                cands.append((f"drop keyword {node[i].keyword.name}", node[:i] + node[i + 1:]))
+        for op, new in cands:
+            try:
+                kws, abilities = _rebuild(root, path, new)
+                mutant = dataclasses.replace(card, keywords=kws, abilities=abilities)
+            except (ValueError, TypeError, AttributeError):
+                continue  # stillborn: the IR's own validation refuses it
+            key = repr(mutant)
+            if key in seen or mutant == card:
+                continue
+            seen.add(key)
+            yield op, "/".join(str(p) for p in path), mutant
+
+
+@contextmanager
+def swapped(supply: Any, oid: str, card: CardRecord) -> Generator[None]:
+    """The supply with ``card`` as the tree of ``oid``, restored afterwards."""
+    old = supply.pool.results[oid]
+    supply.pool.results[oid] = CompileResult(card=card, legality=LegalityFlags(True, True), record="mutant")
+    old_card = supply.pool.cards.get(oid)
+    supply.pool.cards[oid] = card
+    try:
+        yield
+    finally:
+        supply.pool.results[oid] = old
+        if old_card is not None:
+            supply.pool.cards[oid] = old_card
+
+
+def g3(supply: Any, set_code: str, oid: str, limit: int = 80) -> dict[str, Any]:
+    """Mutation analysis: which fault-model mutants the probe trace cannot tell from the card."""
+    base = Probe(supply, set_code, oid).report()
+    card = supply.pool.results[oid].card
+    killed, survived, errored = [], [], []
+    for n, (op, where, mutant) in enumerate(mutants(card)):
+        if n >= limit:
+            break
+        with swapped(supply, oid, mutant):
+            try:
+                rep = Probe(supply, set_code, oid).report()
+            except Exception as exc:  # noqa: BLE001 — a mutant the probe cannot even run is killed
+                errored.append((op, where, f"{type(exc).__name__}: {exc}"[:120]))
+                continue
+        (killed if rep.sha() != base.sha() else survived).append((op, where))
+    total = len(killed) + len(survived) + len(errored)
+    return {"base_sha": base.sha(), "mutants": total, "killed": len(killed) + len(errored),
+            "survived": survived, "score": (len(killed) + len(errored)) / total if total else None}
+
+
+def is_critical(op: str) -> bool:
+    """Survivors of these operators block verification (gate G3): they are the abusable faults."""
+    return op.startswith(("amount", "until-end", "permanent->", "controller", "zone", "drop cost",
+                          "target->all", "optional", "trigger scope"))
+

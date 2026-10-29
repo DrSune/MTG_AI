@@ -472,6 +472,14 @@ class Probe:
             for op in ("end_turn", "advance_turn", "end_turn", "advance_turn"):
                 r._dispatch({"op": op})
 
+        def enters_on_their_turn(r: ScenarioRunner) -> None:
+            # the card is on the battlefield during the opponent's turn only: tells "each end step"
+            # / "each upkeep" from "your end step" / "your upkeep"
+            r._dispatch({"op": "end_turn"})
+            r._dispatch({"op": "advance_turn"})
+            r._dispatch({"op": "enter", "key": "card"})
+            r._dispatch({"op": "end_turn"})
+
         out = [
             ("a creature enters under your control", enter("you_spare")),
             ("a creature enters under the opponent's control", enter("opp_spare")),
@@ -485,6 +493,8 @@ class Probe:
             ("this card is dealt lethal damage", dmg("card", 99)),
             ("this card becomes tapped", ex(tap, 1, "opp_bear", "card")),
             ("turns pass: your end step, the opponent's turn, your next upkeep", turns),
+            ("from your hand, the card enters during the opponent's turn, then that turn ends",
+             enters_on_their_turn),
         ]
         if self.lands:
             out.insert(2, ("you play a land", lambda r: play_land(r.ex, r.p0, r.handles["you_land_drop"])))
@@ -503,7 +513,7 @@ class Probe:
     def section_stimuli(self) -> list[Variant]:
         variants = []
         for label, action in self.stimuli():
-            v = self.run("battlefield", label, action)
+            v = self.run("hand" if label.startswith("from your hand") else "battlefield", label, action)
             fired = ", ".join(sorted(set(v.triggers))) or "none"  # type: ignore[attr-defined]
             v.label = f"stimulus: {label} -> {fired}"
             variants.append(v)
