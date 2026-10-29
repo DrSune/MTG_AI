@@ -1,0 +1,17 @@
+{
+  "set": "FDN",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "ds", "real": "Dragonlord's Servant", "zone": "battlefield", "controller": 0},
+    {"key": "shivan", "real": "Shivan Dragon", "zone": "hand", "controller": 0}
+  ],
+  "mana": {"0": {"R": 5}},
+  "steps": [
+    {"op": "cast", "key": "shivan", "real": "Shivan Dragon", "controller": 0}
+  ],
+  "expect": {
+    "zone": {"shivan": "battlefield"},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Dragonlord's Servant: 'Dragon spells you cast cost {1} less to cast.' Shivan Dragon ({4}{R}{R}) costs exactly {3}{R}{R}: five red mana cast it and leave nothing (a {2} discount would leave one, no discount would make the cast illegal)."
+}

@@ -123,5 +123,34 @@
  },
  "probe": {
   "sha": "8e49e6f2fdc609f0fc8757c0f74787ac74a4a971f8dd8feb9e79067f9c23dda7"
+ },
+ "verified": {
+  "tree_sha": "a6337c45f5fdcc47e23a89897f925a0cf9c1d82edd93b1fd77738975d3c5033e",
+  "probe_sha": "2049fa04a616c61bc1a09a46e3ebe8691359dfa13fe7ffe09b172c8b684e414e",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "Whenever you cast a noncreature spell, this creature deals 1 damage to each opponent.",
+    "status": "OK",
+    "evidence": "[stimulus: you cast an instant or sorcery (Crash Through) -> card's triggered ability [0] triggers]: opp is dealt 1 damage (by card/DEAL_DAMAGE) before the spell resolves (trigger above the spell), opp 20 -> 19; [stimulus: you cast a creature (Aegis Turtle)] none; no other stimulus triggers it.",
+    "issue": ""
+   },
+   {
+    "clause": "(same clause) only spells YOU cast",
+    "status": "NOT_EXERCISED",
+    "evidence": "The opponent never casts a spell on the standard board. Pack firebrand_archer_only_your_noncreature_spells.json PASSES: the opponent's Giant Growth deals no damage to anyone; your Giant Growth then deals 1 to the opponent (19).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/firebrand_archer_1.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

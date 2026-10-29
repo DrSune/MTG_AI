@@ -158,5 +158,37 @@
  },
  "probe": {
   "sha": "d8b9bfb0f8b3b798708a79d8e5d3b1068356caf8a6daf54d8babd405c70d143e"
+ },
+ "verified": {
+  "tree_sha": "28ebf210cec85af84a26db00cde14ca4e827e9f8815f9a8413b3f2252b5239e7",
+  "probe_sha": "1a561e6b8a4c358252e7a9fb301e7412cc81da600869eb2c661ca051a8ca8cb4",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "Flash",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: keywords +FLASH, but every cast is in your own main phase and the opponent's-turn stimulus puts the card in with MOVE_ZONE, not a cast. Pack brineborn_cutthroat_opp_turn_cast.json PASS: cast on the opponent's turn succeeds (control run: non-flash Pirate's Cutlass and Raise the Past are refused there, so the window is enforced).",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you cast a spell during an opponent's turn, put a +1/+1 counter on this creature.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: [you cast an instant or sorcery (Crash Through)] and [you cast a creature (Aegis Turtle)] on YOUR turn queue trigger [0] but no counter is placed (condition TURN_OF OPPONENT false) - the negative case is right. Positive case never happens on the board. Packs: brineborn_cutthroat_opp_turn_cast.json PASS (on the opponent's turn you cast Goblin Firebomb: exactly one counter, 2/1 -> 3/2); brineborn_cutthroat_opponent_casts.json PASS (two spells the opponent casts on its own turn give neither copy a counter).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/brineborn_cutthroat_1.json",
+   "tools/scenarios/cards/FDN/brineborn_cutthroat_2.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 3,
+   "score": 0.75,
+   "survived": [
+    "amount+1 at 1/0/effect/args/count"
+   ]
+  }
  }
 }

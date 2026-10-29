@@ -187,5 +187,44 @@
  },
  "probe": {
   "sha": "64702588a5dc2d3ce7d1ae4313bfe71df7c2a718d98aecfc4ba4e4d9ed151560"
+ },
+ "verified": {
+  "tree_sha": "0a78f17b8f2c741c914d83c54d91ffe234d5aeb905481e6cf40776446a2a503c",
+  "probe_sha": "b4ba8eeef874fa8a21630455d96b9a969f4fba48982dfebc156eeeab634c06b7",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast] keywords +FLYING; [stimulus: this creature attacks and opp_giant blocks it] no block, opp is dealt 2.",
+    "issue": ""
+   },
+   {
+    "clause": "Other creatures you control with flying get +1/+1.",
+    "status": "OK",
+    "evidence": "The Eagle itself stays 2/3; opp_flier (the opponent's flier) is not changed (static section lists no change for it); you_bear/you_giant (no flying) unchanged.",
+    "issue": ""
+   },
+   {
+    "clause": "(same clause) another flier you control gets +1/+1",
+    "status": "NOT_EXERCISED",
+    "evidence": "You control no other flier on the standard board. Pack empyrean_eagle_other_fliers.json PASSES: your 1/1 flier becomes 2/2; the Eagle 2/3, your non-flier 2/2 and the opponent's flier 1/1 are unchanged.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/empyrean_eagle_1.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 5,
+   "score": 0.625,
+   "survived": [
+    "amount+1 at 1/0/effect/args/power/magnitude",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter",
+    "amount+1 at 1/0/effect/args/toughness/magnitude"
+   ]
+  }
  }
 }

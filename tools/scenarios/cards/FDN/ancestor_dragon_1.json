@@ -1,0 +1,18 @@
+{
+  "set": "FDN",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "dragon", "real": "Ancestor Dragon", "zone": "battlefield", "controller": 0},
+    {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+    {"key": "elf", "name": "My Elf", "type": "Creature — Elf", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+    {"key": "lib0", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"dragon": true, "bear": true, "elf": false}}
+  ],
+  "expect": {
+    "attackers": {"dragon": true, "bear": true, "elf": false},
+    "life": {"0": 22, "1": 13}
+  },
+  "notes": "Ancestor Dragon: 'Whenever one or more creatures you control attack, you gain 1 life for each attacking creature.' Two creatures attack (the Elf stays home): the trigger fires once and gains 2 life (20 -> 22), not 1 and not 4. The opponent takes 5 + 2 = 7."
+}

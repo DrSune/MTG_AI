@@ -194,5 +194,37 @@
  },
  "probe": {
   "sha": "46d34f8c20466710c421fb74c9cd8ff4ab9455b2171312e42fa667d70dd34624"
+ },
+ "verified": {
+  "tree_sha": "5adb8d701fd7555ada690c7c554759ebf21042682c479a98127f339144333d69",
+  "probe_sha": "3e5a2fc73d864f8f0bb7063205fdedb9c6e5488312c92db7468402a7d73f93ca",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "First strike",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: opp_giant is dealt 4 and dies; Syr Alin takes no damage.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever Syr Alin attacks, other creatures you control get +1/+1 until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trigger fires on its own attack only (not on [you_bear attacks]); you_bear 2/2 -> 3/3, you_giant 4/4 -> 5/5, Syr Alin stays 4/4, opponent's creatures unchanged. The end-of-turn wear-off is not exercised (stimuli do not end the turn). Pack syr_alin_attack_pump_eot.json PASS: the pumped bear deals 3 (opponent 20 -> 13 with Syr Alin's 4), and after the turn ends everything is back to printed size.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/syr_alin_the_lion's_claw_1.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 6,
+   "score": 0.75,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

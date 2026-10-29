@@ -1,0 +1,20 @@
+{
+  "set": "FDN",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "fb", "real": "Goblin Firebomb", "zone": "hand", "controller": 0},
+    {"key": "foe", "name": "Foe Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"R": 8}},
+  "steps": [
+    {"op": "end_turn"},
+    {"op": "advance_turn"},
+    {"op": "cast", "key": "fb", "real": "Goblin Firebomb", "controller": 0},
+    {"op": "activate", "key": "fb", "idx": 0, "seat": 0, "targets": ["foe"]}
+  ],
+  "expect": {
+    "zone": {"fb": "graveyard", "foe": "graveyard"},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Goblin Firebomb: 'Flash' and '{7}, {T}, Sacrifice this artifact: Destroy target permanent.' Cast on the opponent's turn (flash; a non-flash artifact would be an illegal cast), then activated at once on that turn (no timing restriction; an artifact has no summoning sickness): it is sacrificed, the target is destroyed, and exactly {1}+{7} is spent."
+}

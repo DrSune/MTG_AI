@@ -183,5 +183,43 @@
  },
  "probe": {
   "sha": "12582cd99b2fa0cdf3449160326fe4417577660cc8b0312fb9cc53e25fd8909e"
+ },
+ "verified": {
+  "tree_sha": "53906d40940115acfa1c0e3f147bb7b608fb1a93ff9d7487e4ac99c08b309eed",
+  "probe_sha": "e409207f53f1c0c103d6a2d13f784dc1ea177ca0ea03986753e11c0e2a9dd3b6",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast] keywords +FLYING; [this creature attacks and opp_giant blocks it] no block, opp is dealt 5.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever one or more creatures you control attack, you gain 1 life for each attacking creature.",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked] trigger [0] fires, you gain 1 (20 -> 21); [another creature you control (you_bear) attacks] gain 1; [on the opponent's turn, opp_bear attacks you] no trigger.",
+    "issue": ""
+   },
+   {
+    "clause": "(same clause) several attackers: one trigger, 1 life per attacker",
+    "status": "NOT_EXERCISED",
+    "evidence": "Every attack stimulus has one attacker. Pack ancestor_dragon_two_attackers.json PASSES: the Dragon and a Bear attack (an Elf stays home): +2 life once (22), opponent 13.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/ancestor_dragon_1.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 6,
+   "score": 0.75,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/event/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/amount/right/selector/filter"
+   ]
+  }
  }
 }

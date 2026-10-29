@@ -121,5 +121,41 @@
  },
  "probe": {
   "sha": "e3cc7aebc20b3a085706d4427a05861b023b70bceb9cbea3edeebb50fd995d86"
+ },
+ "verified": {
+  "tree_sha": "f4c313501495a74ad019614a1f13ddb4c38591c4a5c75b903064349127179da0",
+  "probe_sha": "4a462a0e72a66fca955eeb95ea33afdb859a6b3b0c2ecceb64f5dd9f4b196c03",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "Trample",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: 4 damage to opp_giant, 2 to opp (opp 20 -> 18).",
+    "issue": ""
+   },
+   {
+    "clause": "Haste",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: keywords +HASTE, but the attacking card starts on the battlefield, so haste is never needed. Pack ball_lightning_haste_and_end_step.json PASS: cast this turn, declared as an attacker, 6 to the opponent (control run: a non-haste creature cast this turn is not declared).",
+    "issue": ""
+   },
+   {
+    "clause": "At the beginning of the end step, sacrifice this creature.",
+    "status": "OK",
+    "evidence": "[cast] 'after the turn ends: card: zone battlefield -> graveyard'; [turns pass] sacrificed at your end step; [from your hand, the card enters during the opponent's turn, then that turn ends] trigger [0] fires and the card is sacrificed at the OPPONENT's end step (each end step). Packs ball_lightning_any_end_step.json and ball_lightning_haste_and_end_step.json PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/ball_lightning_1.json",
+   "tools/scenarios/cards/FDN/ball_lightning_2.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

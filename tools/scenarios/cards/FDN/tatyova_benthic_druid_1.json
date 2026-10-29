@@ -1,0 +1,20 @@
+{
+  "set": "FDN",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "tatyova", "real": "Tatyova, Benthic Druid", "zone": "battlefield", "controller": 0},
+    {"key": "opp_forest", "real": "Forest", "zone": "hand", "controller": 1},
+    {"key": "my_forest", "real": "Forest", "zone": "hand", "controller": 0},
+    {"key": "lib0", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  ],
+  "steps": [
+    {"op": "enter", "key": "opp_forest"},
+    {"op": "enter", "key": "my_forest"}
+  ],
+  "expect": {
+    "zone": {"opp_forest": "battlefield", "my_forest": "battlefield", "lib0": "hand"},
+    "life": {"0": 21, "1": 20},
+    "hand": {"0": 2, "1": 0}
+  },
+  "notes": "Tatyova: 'Whenever a land you control enters, you gain 1 life and draw a card.' The opponent's Forest entering must not trigger (no life, no draw for either player). Your Forest put onto the battlefield (not played) triggers once: +1 life, +1 card. Seat 0 hand: opening draw (1) + Forest (1) - Forest entered (1) + Tatyova draw (1) = 2. Seat 1 hand: Forest entered -> 0."
+}

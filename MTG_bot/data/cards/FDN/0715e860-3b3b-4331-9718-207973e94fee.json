@@ -157,5 +157,36 @@
  },
  "probe": {
   "sha": "ab512dab48cdca48e5af91e0c30db2895fcb80131694dcb455b3c5042726ba56"
+ },
+ "verified": {
+  "tree_sha": "c16965fec87ad10e61d8602791895b4f5e1a8a07f01ee888fa5ea6d63e55e459",
+  "probe_sha": "c9ac6387b373a56ac45dc4b291339b6a8c854260a53d7c527f0601c796e96955",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "Landfall - Whenever a land you control enters, you gain 1 life and draw a card.",
+    "status": "OK",
+    "evidence": "[stimulus: you play a land -> card's triggered ability [0] triggers]: you gains 1 life (by card/GAIN_LIFE), you draws you:Library 5#1; life 20 -> 21, library 6 -> 5. No trigger on a creature entering (either side), draws, life changes, deaths or spells.",
+    "issue": ""
+   },
+   {
+    "clause": "(same clause) only a land YOU control: an opponent's land entering, and a land put onto the battlefield without being played",
+    "status": "NOT_EXERCISED",
+    "evidence": "Not on the standard board (no opposing land enters). Pack tatyova_only_your_lands.json PASSES: the opponent's Forest entering gives nobody life or cards; your Forest put onto the battlefield triggers once (+1 life, +1 card).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/tatyova_benthic_druid_1.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 9,
+   "score": 0.9,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/event/subject"
+   ]
+  }
  }
 }

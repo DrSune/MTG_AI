@@ -186,5 +186,34 @@
  },
  "probe": {
   "sha": "0703c24ff494fe07ed5c3bd079c050cd9f87dfae9fcb082d0533eed14edcc66a"
+ },
+ "verified": {
+  "tree_sha": "d61b5f145a64f004fabaaa10f69d29af32dec5b7ce4581c91422f9d7f530afed",
+  "probe_sha": "eb0940960307577307e4e4ff4368488927a2ecaa4d6f67a82e61e46cbf402c9b",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "Destroy target nonland permanent.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, you_relic, you_charm, opp_bear, opp_giant, opp_relic, opp_charm] - every nonland permanent of both sides, no land (you_land/opp_land absent); each variant moves the target battlefield -> graveyard (by card/DESTROY).",
+    "issue": ""
+   },
+   {
+    "clause": "Its controller creates a 1/1 white Human creature token.",
+    "status": "OK",
+    "evidence": "Your targets (you_bear, you_giant, you_relic, you_charm) -> + you:Human (battlefield, you, 1/1); the opponent's targets -> + opp:Human (battlefield, opp, 1/1); exactly one token each; the instant then goes to the graveyard.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 8,
+   "killed": 7,
+   "score": 0.875,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/steps/0/args/target/filter"
+   ]
+  }
  }
 }

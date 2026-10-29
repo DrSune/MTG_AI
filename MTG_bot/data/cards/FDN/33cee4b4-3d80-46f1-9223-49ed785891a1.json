@@ -132,5 +132,26 @@
  },
  "probe": {
   "sha": "b1d2be69377802c13a828ef810e734e3b8c201ef627b284868ec6de9d1db1722"
+ },
+ "verified": {
+  "tree_sha": "4ac08c598ca3b45c93d9d0c0f25677b9d2320decd07a1e107ce81706ca0cdf62",
+  "probe_sha": "1ed3293e58d024aa8a0a032b87b46afe457492e71012a75ba56c417d4f351762",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, each opponent loses 2 life and you gain 2 life.",
+    "status": "OK",
+    "evidence": "[cast]: trigger [0], 'opp loses 2 life', 'you gains 2 life' (opp 20 -> 18, you 20 -> 22), 2/3 body, mana B-1 W-2; [enters during the opponent's turn]: same. No other stimulus fires it (not on other creatures entering).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

@@ -167,5 +167,26 @@
  },
  "probe": {
   "sha": "4512ad4cdb91b49491ad8fa625c5045600b76d1f1099bd299304bd7f559317a4"
+ },
+ "verified": {
+  "tree_sha": "5a96a089618eeda6b07fe39ac31155895486cadf8db544b1c72b1d2b957f7426",
+  "probe_sha": "164628a648a1bc663f6b11117a545adf95b8e785b6831320dbe098e40c9f3242",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you may have it fight target creature you don't control.",
+    "status": "OK",
+    "evidence": "[cast]: ask target [opp_flier, opp_tapped, opp_bear, opp_giant] (only creatures you don't control), ask may [fire, skip] -> fire: opp_flier is dealt 4, the card is dealt 1, opp_flier dies; ask 1 variants fight opp_tapped (4 / 3), opp_bear (4 / 2), opp_giant (4 / 4, both die); [cast | ask 2 -> skip]: no damage; it also triggers when entering on the opponent's turn; damage on the Indrik wears off at end of turn.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

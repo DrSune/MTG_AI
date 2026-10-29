@@ -1,0 +1,17 @@
+{
+  "set": "FDN",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "bl", "real": "Ball Lightning", "zone": "hand", "controller": 0}
+  ],
+  "steps": [
+    {"op": "end_turn"},
+    {"op": "advance_turn"},
+    {"op": "enter", "key": "bl"},
+    {"op": "end_turn"}
+  ],
+  "expect": {
+    "zone": {"bl": "graveyard"}
+  },
+  "notes": "Ball Lightning: 'At the beginning of the end step, sacrifice this creature.' 'The end step' is every end step, not only yours: put onto the battlefield during the opponent's turn, it is sacrificed at the opponent's end step."
+}

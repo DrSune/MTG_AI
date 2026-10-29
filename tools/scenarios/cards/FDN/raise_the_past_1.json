@@ -1,0 +1,21 @@
+{
+  "set": "FDN",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "rtp", "real": "Raise the Past", "zone": "hand", "controller": 0},
+    {"key": "two", "name": "Two Drop Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "cmc": 2, "zone": "graveyard", "controller": 0},
+    {"key": "one", "name": "One Drop Elf", "type": "Creature — Elf", "power": "1", "toughness": "1", "cmc": 1, "zone": "graveyard", "controller": 0},
+    {"key": "three", "name": "Three Drop Ape", "type": "Creature — Ape", "power": "3", "toughness": "3", "cmc": 3, "zone": "graveyard", "controller": 0},
+    {"key": "sorc", "name": "Cheap Sorcery", "type": "Sorcery", "cmc": 1, "zone": "graveyard", "controller": 0},
+    {"key": "opp_one", "name": "Opp One Drop Elf", "type": "Creature — Elf", "power": "1", "toughness": "1", "cmc": 1, "zone": "graveyard", "controller": 1}
+  ],
+  "mana": {"0": {"W": 4}},
+  "steps": [
+    {"op": "cast", "key": "rtp", "real": "Raise the Past"}
+  ],
+  "expect": {
+    "zone": {"rtp": "graveyard", "two": "battlefield", "one": "battlefield", "three": "graveyard", "sorc": "graveyard", "opp_one": "graveyard"},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Raise the Past: 'Return all creature cards with mana value 2 or less from your graveyard to the battlefield.' MV 1 and MV 2 creatures in your graveyard return; a MV 3 creature, a noncreature card and the opponent's MV 1 creature stay. Kills CMC_LE 2->3 (the probe's graveyard has only MV 2 creatures)."
+}

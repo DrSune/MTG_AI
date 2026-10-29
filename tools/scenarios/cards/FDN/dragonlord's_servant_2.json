@@ -1,0 +1,18 @@
+{
+  "set": "FDN",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "ds", "real": "Dragonlord's Servant", "zone": "battlefield", "controller": 0},
+    {"key": "blast", "real": "Incinerating Blast", "zone": "hand", "controller": 0},
+    {"key": "foe", "name": "Foe Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"R": 4}},
+  "steps": [
+    {"op": "cast", "key": "blast", "real": "Incinerating Blast", "controller": 0, "targets": ["foe"], "decisions": ["skip"], "expect_raise": "illegal cast: cost:mana_generic"}
+  ],
+  "expect": {
+    "zone": {"blast": "hand", "foe": "battlefield"},
+    "mana_pool": {"0": {"R": 4}}
+  },
+  "notes": "Dragonlord's Servant control: a non-Dragon spell gets no discount. Incinerating Blast ({4}{R}, a sorcery) cannot be cast with four mana while you control the Servant."
+}

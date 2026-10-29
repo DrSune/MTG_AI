@@ -147,5 +147,28 @@
  },
  "probe": {
   "sha": "3e809608ca96266d2eb38e8208004e432bb4ee94aafdf958dd7b0ac12b628fa8"
+ },
+ "verified": {
+  "tree_sha": "bcbde256ea97e8485e35b91fcac1b26c08d10629f040030e91152ced78796ebd",
+  "probe_sha": "eb2ecdf9ce6e200f7f6b5ef293d8570eea6935651115ac57bf53b9b37142811d",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "Whenever a creature you control enters, this enchantment deals 1 damage to each opponent.",
+    "status": "OK",
+    "evidence": "[stimulus: a creature enters under your control] trigger fires, opp is dealt 1 damage (by card), 20 -> 19; [you cast a creature (Aegis Turtle)] the same; [a creature enters under the opponent's control] and [you play a land] no trigger; the enchantment entering itself does not trigger it.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 5,
+   "score": 0.8333333333333334,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/event/subject"
+   ]
+  }
  }
 }

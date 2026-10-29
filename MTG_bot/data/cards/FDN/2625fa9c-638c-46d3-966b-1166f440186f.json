@@ -182,5 +182,36 @@
  },
  "probe": {
   "sha": "5efcf2acb6108ec07ad9656281d8fb6126e2e96e2d5b1f6c598c9c6b96f861cf"
+ },
+ "verified": {
+  "tree_sha": "8007d3a0a53c852eaa7eaa0e3fd7f8c8a53505e1327c28428ad4625c8d512bb2",
+  "probe_sha": "88f212662833abddbec59ed07d544a643ec7a76a0beb747293bb80afd13e443e",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "Flash",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: keywords +FLASH; the only cast is in your main phase. Pack goblin_firebomb_flash.json PASS: cast on the opponent's turn (a non-flash permanent is refused there - control run).",
+    "issue": ""
+   },
+   {
+    "clause": "{7}, {T}, Sacrifice this artifact: Destroy target permanent.",
+    "status": "OK",
+    "evidence": "Every [activate [0] ...] variant: card becomes tapped, moves to the graveyard (SACRIFICE), the target is destroyed, mana W-7. Target slot lists every permanent on both sides (creatures, artifacts, enchantments, lands, and the card itself, which is legal since targets precede costs). Pack goblin_firebomb_flash.json also activates it on the opponent's turn: {1}+{7} spent exactly, target destroyed.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/goblin_firebomb_1.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 10,
+   "score": 0.9090909090909091,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/1/target/filter"
+   ]
+  }
  }
 }

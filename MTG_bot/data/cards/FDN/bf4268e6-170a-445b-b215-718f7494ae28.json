@@ -234,5 +234,30 @@
  },
  "probe": {
   "sha": "6aa942d8eb1fe310c91583594461980e40a348dda506a1a9d4c3761af25c1686"
+ },
+ "verified": {
+  "tree_sha": "39ae46ecac3d2ff051d81f1284fc73011034e1dd77ded0d5b99f3c707d5959ba",
+  "probe_sha": "4cdd78c41a1d839e43df3a9e1a2134cc24010db39be5772b6d6806e87e9fedd4",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, it deals damage to target creature an opponent controls equal to the number of Goblins you control.",
+    "status": "OK",
+    "evidence": "[cast] ask target [opp_flier, opp_tapped, opp_bear, opp_giant, opp_goblin] - only the opponent's creatures; each target is dealt 2 by card/DEAL_DAMAGE = the Veteran + you_goblin (opp_goblin not counted); 1/1 and 2/2 targets die, 3/3 and 4/4 keep 2 damage until end of turn; it also triggers when entering on the opponent's turn. Edge pack volley_veteran_no_opposing_creature.json PASSES: with no opposing creature nothing is damaged (your own Goblin is never a target) and nothing crashes.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/volley_veteran_1.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 9,
+   "score": 0.9,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/amount/selector/filter"
+   ]
+  }
  }
 }

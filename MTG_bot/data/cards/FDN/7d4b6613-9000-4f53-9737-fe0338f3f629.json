@@ -125,5 +125,28 @@
  },
  "probe": {
   "sha": "5a11834f7674bb83467386dd2c25e49b0944caa289e831b9b6e0e1493cb8b0da"
+ },
+ "verified": {
+  "tree_sha": "dd17db5c23c083321df368aedf961ee06a1c7401678dbf305fd4d51120df93c9",
+  "probe_sha": "e20591446f28f40f05e8282d032baccc62cd6a33d877b4731a07ba0c8f7ee534",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "Whenever you draw your second card each turn, put a +1/+1 counter on this creature.",
+    "status": "OK",
+    "evidence": "[you draw two cards, one after the other]: trigger after the second draw, 'card gets 1 PLUS_1_PLUS_1 counter(s)', 2/3 -> 3/4; [you draw a card] none; [the opponent draws a card] none; [turns pass] none (one draw per turn). Pack erudite_wizard_second_draw_each_turn.json PASS: a third draw adds nothing, and next turn the draw-step card is the first and the next draw is the second (2 counters total, 4/5).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/erudite_wizard_1.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

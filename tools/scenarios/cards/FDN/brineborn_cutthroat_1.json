@@ -1,0 +1,22 @@
+{
+  "set": "FDN",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "bc", "real": "Brineborn Cutthroat", "zone": "hand", "controller": 0},
+    {"key": "fb", "real": "Goblin Firebomb", "zone": "hand", "controller": 0}
+  ],
+  "mana": {"0": {"U": 6}},
+  "steps": [
+    {"op": "end_turn"},
+    {"op": "advance_turn"},
+    {"op": "cast", "key": "bc", "real": "Brineborn Cutthroat", "controller": 0},
+    {"op": "cast", "key": "fb", "real": "Goblin Firebomb", "controller": 0}
+  ],
+  "expect": {
+    "zone": {"bc": "battlefield", "fb": "battlefield"},
+    "counters": {"bc": {"PLUS_1_PLUS_1": 1}},
+    "power": {"bc": 3},
+    "toughness": {"bc": 2}
+  },
+  "notes": "Brineborn Cutthroat: 'Flash' and 'Whenever you cast a spell during an opponent's turn, put a +1/+1 counter on this creature.' On the opponent's turn you cast it (flash: a non-flash spell is refused there), then cast Goblin Firebomb, a spell you cast during an opponent's turn: exactly one +1/+1 counter, 2/1 -> 3/2."
+}

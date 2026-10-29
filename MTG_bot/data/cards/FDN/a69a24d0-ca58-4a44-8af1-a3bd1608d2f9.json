@@ -121,5 +121,31 @@
  },
  "probe": {
   "sha": "bcbf279d857fbd63cae6a73866b3c9b16aa7a728d3bb18d24045328424f4e2c7"
+ },
+ "verified": {
+  "tree_sha": "0432258e67c35bdd8c42f61ec86f327c60e9b7d6ade4ece81a48b788405b3ebd",
+  "probe_sha": "bcbf279d857fbd63cae6a73866b3c9b16aa7a728d3bb18d24045328424f4e2c7",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "Return all creature cards with mana value 2 or less from your graveyard to the battlefield.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[cast]: you_fallen (creature, MV 2) moves graveyard -> battlefield under you; you_used (sorcery) and opp_fallen (opponent's graveyard) stay; mana W-4. The upper bound is not on the board (no creature of MV 3+ in your graveyard). Pack raise_the_past_mv_boundary.json PASS: MV 1 and MV 2 creatures return, a MV 3 creature, a noncreature and the opponent's MV 1 creature stay.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/raise_the_past_1.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 4,
+   "score": 0.6666666666666666,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/cards/filter",
+    "amount+1 at 1/0/effect/args/cards/filter/children/1/count"
+   ]
+  }
  }
 }
