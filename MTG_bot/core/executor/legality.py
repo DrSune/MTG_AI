@@ -704,7 +704,9 @@ def build_payment_plan(
             else:
                 mod_ctx = ex._ctx(
                     source=host,
-                    controller=world.controller_of(host),
+                    # V29: "your opponents" is relative to the host's controller
+                    # (the control overlay), not its owner's zone.
+                    controller=ex.controller_of(host),
                     bindings=dict(ctx.bindings),
                     decisions=(),
                     x_value=ctx.x_value,
@@ -1284,6 +1286,7 @@ def spell_castable(
     *,
     x: int | None = None,
     kicked: bool = False,
+    targets: tuple[Handle, ...] = (),
 ) -> tuple[str | None, SpellAbility | None, object, PaymentPlan | None]:
     """The CAST legality fold — re-checkable from the API at any time
     (§8.3: same answer as the one ``legal_casts`` gave, until the world
@@ -1299,7 +1302,13 @@ def spell_castable(
     fold into an ordinary ``cost:mana`` SHORTAGE — an illegal-cast reason,
     never a raise: X is enumerated at 0-floor by ``legal_casts``) and the
     spell handle as the mana-USE subject (THIS_MANA restrictions read
-    their filter over the spell being cast)."""
+    their filter over the spell being cast).
+
+    V29 (2026-10-29): ``targets`` binds the declared targets into the fold, so a
+    target-dependent cost increase ("Spells your opponents cast that target this
+    creature cost {3} more", Pursued Whale; "... an additional 3 life", Terror of
+    the Peaks) is part of the total. CR 601.2f determines the total cost after
+    601.2c's targets; ``stack.cast`` re-folds with them before paying."""
     world = executor.world
     if handle not in world.cards:
         return f"cast:unknown_card:{handle}", None, None, None
@@ -1356,7 +1365,13 @@ def spell_castable(
         # The declaration is the caller's; X=0 is legal (CR 107.1) — the
         # SURFACE enumerates at 0, an explicit x reaches the fold.
         x = 0
-    ctx = ctx_for(executor, source=handle, controller=seat, x_value=x)
+    ctx = ctx_for(
+        executor,
+        source=handle,
+        controller=seat,
+        bindings={"target": list(targets)} if targets else None,
+        x_value=x,
+    )
     plan, reason = build_payment_plan(world, ctx, cost, mana_use=handle)
     if plan is None:
         return reason, None, None, None

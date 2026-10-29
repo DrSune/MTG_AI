@@ -1177,7 +1177,64 @@ def spell_target_slots(
                 synthetic=True,
             )
         )
-    return slots
+    return _affordable_target_slots(executor, slots, spell_handle, seat)
+
+
+def _reads_targets_source(filter_: object) -> bool:
+    """Does a filter ask whether the judged spell targets the filter's source?"""
+    from MTG_bot.core.ability_tree import FNot, FOr
+
+    if isinstance(filter_, FAtom):
+        return filter_.pred is FAtomPred.TARGETS_SOURCE
+    if isinstance(filter_, (FAnd, FOr)):
+        return any(_reads_targets_source(c) for c in filter_.children)
+    if isinstance(filter_, FNot):
+        return _reads_targets_source(filter_.inner)
+    return False
+
+
+def _affordable_target_slots(
+    executor: Executor, slots: list[TargetSlot], spell_handle: Handle, seat: Handle
+) -> list[TargetSlot]:
+    """V29 (CR 601.2f, 601.2h): with a target-dependent cost increase on the
+    battlefield ("Spells your opponents cast that target this creature cost {3}
+    more", Pursued Whale; Terror of the Peaks' 3 life), a candidate whose total
+    cost the caster cannot pay is not a live option: casting the spell at it is
+    illegal, and stack.cast refuses it. The slot drops such candidates, so the
+    menu holds only completions the cast accepts. Inert (no fold at all) unless a
+    battlefield CostModifier reads TARGETS_SOURCE, and only for a spell in the
+    caster's hand: the effect-cast lane designates no targets."""
+    from MTG_bot.core.ability_tree import CostModifier
+    from MTG_bot.core.state import ZONE_BATTLEFIELD
+
+    world = executor.world
+    if not slots or world.zone_of(spell_handle) is not world.players[seat].zone("hand"):
+        return slots
+    taxed = False
+    for player in world.player_order:
+        for host in world.players[player].zone(ZONE_BATTLEFIELD).entries:
+            record = executor.binder.handle_record.get(host)
+            if record is None:
+                continue
+            for node in record.abilities:
+                if isinstance(node, CostModifier) and (
+                    _reads_targets_source(node.filter)
+                    or _reads_targets_source(node.condition)
+                ):
+                    taxed = True
+    if not taxed:
+        return slots
+    out: list[TargetSlot] = []
+    for slot in slots:
+        keep = tuple(
+            c
+            for c in slot.candidates
+            if spell_castable(executor, seat, spell_handle, targets=(c,))[0] is None
+        )
+        if keep != slot.candidates:
+            slot = replace(slot, candidates=keep, forced=len(keep) == 1)
+        out.append(slot)
+    return out
 
 
 def activation_target_slots(

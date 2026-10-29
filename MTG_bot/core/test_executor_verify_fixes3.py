@@ -19,6 +19,9 @@ V36  A spell cast by an effect pays its own additional costs on top of the mana 
      the effect's alternative cost (CR 601.2f, 118.9d); an unpayable total refuses.
 V35  A token in a zone other than the battlefield ceases to exist (CR 704.5d, 111.7),
      after its leave triggers have fired.
+V29  A cost increase for spells that target a permanent is folded with the declared
+     targets (CR 601.2f), and a target whose total the caster cannot pay is not offered.
+     End to end in the terror_* and pursued_whale_* packs.
 """
 
 from __future__ import annotations
@@ -598,6 +601,19 @@ class TestV35TokensCeaseOffTheBattlefield(FixerCase):
             controller=self.p0,
         )
         self.assertEqual(self.world.zone_of(tok).kind, ZONE_BATTLEFIELD)
+
+
+class TestV29TargetDependentTax(unittest.TestCase):
+    def test_the_tax_detector_reads_targets_source_anywhere_in_a_filter(self):
+        from MTG_bot.core.ability_tree import FAnd, FAtom, FAtomPred, FNot
+        from MTG_bot.core.executor.query import _reads_targets_source
+
+        ts = FAtom(FAtomPred.TARGETS_SOURCE)
+        self.assertTrue(_reads_targets_source(ts))
+        self.assertTrue(_reads_targets_source(FAnd((FAtom(FAtomPred.IS_PERMANENT), ts))))
+        self.assertTrue(_reads_targets_source(FNot(ts)))
+        self.assertFalse(_reads_targets_source(FAtom(FAtomPred.IS_SOURCE)))
+        self.assertFalse(_reads_targets_source(None))
 
 
 if __name__ == "__main__":

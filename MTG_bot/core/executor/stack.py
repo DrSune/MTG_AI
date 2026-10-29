@@ -795,6 +795,17 @@ def cast(
         decisions=decisions,
         mode_choices=mode_choices,
     )
+    if targets:
+        # V29 (CR 601.2f): the total cost is determined AFTER the targets are
+        # chosen, so a cost increase for spells that target a permanent (Terror of
+        # the Peaks' 3 life, Pursued Whale's {3}) is folded now; the plan above was
+        # priced before any target existed. An unpayable total is an illegal cast
+        # (601.2h), refused before anything is paid.
+        reason, _node, _record, plan = spell_castable(
+            executor, seat, handle, x=x, kicked=kicked, targets=tuple(targets)
+        )
+        if reason is not None or plan is None:
+            raise ValueError(f"executor: illegal cast: {reason}")
 
     # r20b: the TARGETING feed (CR 601.2c). Designation IS an event — one
     # row per designated object, Handle-sorted — emitted the moment the
