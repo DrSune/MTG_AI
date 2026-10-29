@@ -1,0 +1,27 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "56719f6a-1a6c-4c0a-8d21-18f7d7350b68",
+ "name": "Swamp",
+ "text_sha": "874986ec910c7d721c6d33a26999666e55b1399aebcc6e037dc511cc00630fc3",
+ "verified": {
+  "tree_sha": "8ae2624cbeba9be995bbdb8ff70ad6ac6603be75a87081ab9c7506f238029220",
+  "probe_sha": "65d8f42d31357727153addd32a32b95849e9c593529188ec4f4d680fc21584b6",
+  "date": "2026-10-29",
+  "reviewer": "claude-orchestrator",
+  "clauses": [
+   {
+    "clause": "({T}: Add {B}.)",
+    "status": "OK",
+    "evidence": "activate [0] from battlefield: card becomes tapped; you: mana B+1; no other effect; plays as a land drop"
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}
