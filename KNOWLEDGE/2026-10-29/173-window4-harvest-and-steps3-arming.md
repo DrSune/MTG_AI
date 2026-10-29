@@ -127,3 +127,36 @@ is the n3 one; tonight's n4 rld_i1 diag differs only in the two post-keys at
 ~1e-9 relative, recorded above; `rld_i2_diag.json` new; plus the window #4 phase
 ledger `rl_window_2026-10-28.md`, `rl_window_dryrun.md`, and the small JSONs).
 Episodes: SHA only, never committed.
+
+## 9. Addendum (23:1x, pre-fire): sibling-lane docs read — era-boundary bundle scope
+
+Read today's sibling docs (`docs/PLAN_CARD_ONBOARDING.md`,
+`docs/PLAN_COMPONENT_TRAINING.md`, `docs/BACKLOG.md` — all docs-only commits):
+
+- **Engine-touching card work is staged on branch `cards/mapping`** (worktree
+  `/home/sune/Desktop/MTG_AI-sets`) "until an era boundary: the record loader
+  touches `MTG_bot/`, which the RL pin fingerprints." The era-boundary bundle
+  therefore absorbs, in addition to §3.1.4 + B-43 (+ B-49 when implemented):
+  the `cards/mapping` merge (card records as data, `verified` supply mode) —
+  all of it re-baselines the episode baseline after the multi-seed decision.
+- **Their Step 0.5 (owner direction, recorded by the sibling): "RL must actually
+  update. One gradient step per night is a no-op (/156, /158). Collect, then
+  train many epochs (PPO-style, with a learned value for per-decision
+  advantages) before the next collect. Keep the outcome reward. Add no
+  shaping."** — this is the regime my pre-committed steps ladder points at:
+  the {1,2,3,4} steps axis measures "how much update per collect"; if it
+  plateaus, the owner-level call is the many-epoch regime (+ possibly a value
+  head for per-decision advantages — a trainer change requiring its own
+  pre-registration + smoke + re-pin) vs the label-information side (their
+  Step 0.1–0.4: stop learning choices from HeuristicTeacher, make volumes
+  learnable, make discards labelable, fold the component tail).
+- **B-73 (soak, 2026-10-29): anomaly detectors flag ~2% of M21 games on
+  `main`** (18 flags / 800 castable games, classes d1/d3/d5/d6, all
+  pre-existing) + B-69/70/71/72/74 engine findings (several "weaker than
+  printed"). These are era-boundary fix-queue candidates; any M21-affecting
+  fix re-invalidates the byte-invariant chain ⇒ the bundle's re-baseline
+  remains the only place to land them (ordering per /171 §8 unchanged).
+- Their K2 table cites the pilot as "flat two nights" from the /156 era —
+  current state (crossing lever MOVED, mirror 0.523–0.528) is in /171–/173;
+  the sibling's read ("one update per night cannot teach anything") is
+  consistent with the branch-2 step-up now armed.

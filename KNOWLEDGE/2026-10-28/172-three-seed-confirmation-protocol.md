@@ -105,3 +105,27 @@ KL_post ≥ 1e-4), draw-detector < 5/400, no probe crashes, no DIVERGENT signal.
 Pre-registered 2026-10-28 before the iter-2 probe (window #4 fires 23:59 the same
 evening). Seed blocks allocated against the full consumed list in §3; the allocation
 table above is the binding D9 record for the confirmation.
+
+## 8. Addendum (2026-10-29): eval_acc meter IDENTIFIED + baseline MEASURED
+
+The §6 TODO is closed. The /134 F5 puzzle meter is `tools/training/eval_ckpt.py`
+("score an existing checkpoint against the universal gate WITHOUT retraining";
+vocabulary-relative: the eval_side dataset is built from the checkpoint's OWN
+vocab, held-out eval families per SPLIT — consistent with /135 FATAL-2).
+
+CLI: `.venv/bin/python -m tools.training.eval_ckpt <ckpt.pt> --device cpu`
+(~15 s per checkpoint). Output: `acc` over the eval rows, `n_cert`, `eval_joined`.
+
+Measured (2026-10-29, cmd above, 3 checkpoints in one run):
+- **anchor bsh_S3a_s1_best.pt: acc = 0.6432** (199 eval rows, n_cert 199) — the
+  standing-gate baseline for the confirmation phase.
+- **rld_i1 (1 step, KL 8.4e-4): acc = 0.6432** — delta 0.0000 vs anchor.
+- **rld_i2 (2 steps, KL 1.289e-3): acc = 0.6432** — delta 0.0000 vs anchor.
+
+F5 gate at confirmation, per chain: run `eval_ckpt` on the chain's net (and the
+anchor); **halt that chain on acc drop > 3pts vs anchor (i.e. acc < 0.6132)**.
+The 0.0000 deltas at KL ≤ 1.3e-3 are the first empirical measurement of the
+/171 §2 bound (TV ≤ √(KL·ln2) ≈ 1.1e-2 ⇒ worst-case ≲ 1.1pt < 3pt gate): the
+tripwire cannot fire at iteration-scale movements; it guards the confirmation
+phase where cumulative KL may be larger. `verdict`/`beat_se` are null in
+standalone use (single-ckpt run); the gate reads the raw `acc` delta.
