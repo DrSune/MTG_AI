@@ -253,12 +253,17 @@ def _reveal_dead_roles(ability: Any) -> set[str]:
     right after it, a ONE_OF/REST partition over the library top or a REVEAL right after it, and
     the ``result`` register, read by a ``referent="result"`` node, THAT_MANY_COUNT or FIGHT's
     attacker. With none of those in the ability, controller and count are dead. A Conditional
-    judges the window's first card, the top card for any count >= 1, so it leaves count dead."""
+    judges the window's first card, the top card for any count >= 1, so it leaves count dead.
+    Several REVEALs qualify when each sits in its own option of one "choose one" (a count-1
+    Choose: the executor runs exactly one option, so at most one REVEAL runs; query.choose_options
+    reads no option's contents), the "search your library and/or graveyard" zone choice (B-78)."""
     if not isinstance(ability, (TriggeredAbility, ActivatedAbility, SpellAbility)):
         return set()
     nodes = list(walk(ability))
     looks = [n for n in nodes if isinstance(n, Atom) and n.verb in (Verb.REVEAL, Verb.LOOK_AT)]
-    if len(looks) != 1 or looks[0].verb is not Verb.REVEAL or looks[0].args.get("duration") is not None:
+    if not looks or any(n.verb is not Verb.REVEAL or n.args.get("duration") is not None for n in looks):
+        return set()
+    if len(looks) > 1 and not _one_per_option(ability, looks):
         return set()
     for n in nodes:
         if getattr(n, "referent", None) == "result" or (
@@ -311,6 +316,24 @@ def _window_reveal(ability: Any) -> Atom | None:
     return reveal
 
 
+def _one_per_option(ability: Any, atoms: list[Atom]) -> bool:
+    """Each of ``atoms`` lies in a different option of the same count-1 Choose of ``ability``."""
+    found: list[tuple[tuple, Any]] = list(_paths(ability))
+    where = [next(p for p, n in found if n is atom) for atom in atoms]
+    owners = set()
+    for path in where:
+        cut = next((k for k in range(len(path) - 1, -1, -1)
+                    if isinstance(dict(found).get(path[:k]), Choose) and path[k:k + 1] == ("options",)), None)
+        if cut is None:
+            return False
+        owners.add((path[:cut], path[cut + 1]))
+    choose_paths = {c for c, _ in owners}
+    if len(choose_paths) != 1 or len(owners) != len(atoms):
+        return False
+    choose = dict(found)[next(iter(choose_paths))]
+    return isinstance(choose.count, QConst) and choose.count.value == 1
+
+
 def _twin_targets(ability: Any, base: tuple) -> set[tuple]:
     """Paths of the TARGET selectors in ``ability`` that "target->all" cannot change (see
     ``mutants``): a spell (the cast lane refuses a cast whose slot is not designated, so the
@@ -338,6 +361,12 @@ _OWNER_ZONES = (ZoneKind.HAND, ZoneKind.LIBRARY, ZoneKind.GRAVEYARD, ZoneKind.EX
 # Static permissions whose "you may" is the use, not a layer gate: layers._new_static strips the
 # OptionalEffect before it parses the payload (the MAY belongs to the USE side).
 _PERMISSION_VERBS = (Verb.ADD_LAND_PLAY, Verb.MANA_POLICY, Verb.GRANT_ACTIVATION)
+
+
+def _partition_step(step: Any) -> bool:
+    """Executor._partition_step: a MOVE_ZONE whose cards selector is a ONE_OF/REST partition."""
+    sel = step.args.get("cards") if isinstance(step, Atom) and step.verb is Verb.MOVE_ZONE else None
+    return isinstance(sel, Selector) and sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST)
 
 
 def _draw_idiom(atom: Atom) -> bool:
@@ -442,6 +471,13 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         if isinstance(node, ReplacementAbility) and isinstance(node.event, DamageDealtEvent) \
                 and isinstance(node.action, Atom) and node.action.verb is Verb.DEAL_DAMAGE:
             dead.add((*path, "action", "args", "dealer"))
+        # G3 finisher, third pass (wave 5): a Seq with a ONE_OF/REST partition MOVE_ZONE among its
+        # direct steps runs its SEARCH steps designate-only (ctx.search_partition, set by the same
+        # shallow scan in Executor._run_effect and the guarded lane; verbs._v_search returns before
+        # moving anything): such a SEARCH's destination is a compile-time placeholder, never used.
+        if isinstance(node, Seq) and any(_partition_step(step) for step in node.steps):
+            dead |= {(*path, "steps", i, "args", "destination") for i, step in enumerate(node.steps)
+                     if isinstance(step, Atom) and step.verb is Verb.SEARCH}
     # Two ability-level rules (their docstrings carry the argument): a REVEAL nothing reads, and a
     # TARGET selector whose twin keeps the one designation slot (role_handles gives a referent-free
     # ALL selector in the bound role the designation itself, the documented 12a convention).

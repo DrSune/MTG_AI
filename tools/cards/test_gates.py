@@ -543,3 +543,62 @@ def test_reveal_from_a_look_window_is_dead() -> None:
     real_empty = _game(pack, setup=empty_library)
     for mutant in mutants:
         assert _game(pack, mutant, setup=empty_library) == real_empty
+
+
+# ------------------------------------------------- third pass (wave 5, the B-78 zone choice)
+WARSTEED_OPTION = "1/0/effect/inner/options/{}/steps/{}/args"
+
+
+def test_reveal_per_option_of_a_zone_choice_is_dead() -> None:
+    """"Search your library and/or graveyard" is a choose-one of three searches (B-78), each with
+    its own REVEAL. Exactly one option runs, so at most one REVEAL does, and nothing reads it:
+    every option plays the same game with its REVEAL naming the opponent or revealing two."""
+    ws = _card("Garruk's Warsteed")
+    offered = _where(ws)
+    for option in (0, 1, 2):
+        assert not {w for _op, w in offered if w.startswith(WARSTEED_OPTION.format(option, 1))}
+    assert ("amount+1", WARSTEED_OPTION.format(1, 0) + "/cards/count") in offered  # each search stays live
+    for option in (0, 1, 2):
+        pack = _pack([{"key": "ws", "real": "Garruk's Warsteed", "zone": "hand", "controller": 0},
+                      {"key": "g_gy", "real": "Garruk, Savage Herald", "zone": "graveyard", "controller": 0},
+                      {"key": "g_lib", "real": "Garruk, Savage Herald", "zone": "library", "controller": 0},
+                      {"key": "opener", "name": "Opener", "type": "Instant", "zone": "library", "controller": 0},
+                      *_library(1, "Theirs", 2)],
+                     [{"op": "enter", "key": "ws", "decisions": ["fire", str(option), "g_gy" if option != 1 else "g_lib"]}])
+        real = _game(pack)
+        found = "Garruk, Savage Herald"
+        assert sum(o[0] == found and o[1] == "hand" for o in real[0].values()) == 1, option
+        reveal = WARSTEED_OPTION.format(option, 1)
+        assert _game(pack, _mutant(ws, f"{reveal}/controller", ControllerRef.OPPONENT)) == real, option
+        assert _game(pack, _mutant(ws, f"{reveal}/count", QConst(2))) == real, option
+    # not one per option: a "choose two" could run two REVEALs in a row, so the rule stays off
+    choose = ws.abilities[0].effect.inner
+    two = dataclasses.replace(ws.abilities[0], effect=dataclasses.replace(
+        ws.abilities[0].effect, inner=dataclasses.replace(choose, count=QConst(value=2))))
+    assert gates._reveal_dead_roles(two) == set()
+    assert gates._reveal_dead_roles(ws.abilities[0]) == {"controller", "count"}
+
+
+CULTIVATE_SEARCH = "1/0/effect/steps/0/args/destination"
+
+
+def test_partitioned_search_destination_is_a_placeholder() -> None:
+    """Cultivate's SEARCH sits in a Seq with a ONE_OF/REST partition, so it only designates the
+    found cards (ctx.search_partition; verbs._v_search moves nothing): its destination is never
+    used. A SEARCH that delivers (Solemn Simulacrum's) keeps its destination mutants."""
+    cult = _card("Cultivate")
+    offered = _where(cult)
+    assert not {w for _op, w in offered if w.startswith(CULTIVATE_SEARCH)}
+    assert ("amount+1", "1/0/effect/steps/0/args/cards/count") in offered  # the search count stays live
+    assert ("zone BATTLEFIELD->HAND", "1/0/effect/inner/steps/0/args/destination") in _where(_card("Solemn Simulacrum"))
+    basics = [{"key": k, "real": n, "zone": "library", "controller": 0}
+              for k, n in (("forest", "Forest"), ("swamp", "Swamp"), ("island", "Island"))]
+    pack = _pack([{"key": "cv", "real": "Cultivate", "zone": "hand", "controller": 0}, *basics,
+                  {"key": "opener", "name": "Opener", "type": "Instant", "zone": "library", "controller": 0}],
+                 [{"op": "cast", "key": "cv", "decisions": ["card:1", "card:2", "card:1"]}], {"0": {"G": 1, "C": 2}})
+    real = _game(pack)
+    zones = {o[0]: o[1] for o in real[0].values() if o[0] in ("Forest", "Swamp", "Island")}
+    assert zones == {"Forest": "battlefield", "Swamp": "hand", "Island": "library"}
+    dest = _at(cult, CULTIVATE_SEARCH)
+    for new in (dataclasses.replace(dest, kind=ZoneKind.HAND), dataclasses.replace(dest, controller=ControllerRef.OPPONENT)):
+        assert _game(pack, _mutant(cult, CULTIVATE_SEARCH, new)) == real
