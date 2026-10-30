@@ -197,7 +197,8 @@ class TestLifeAndDamage(ExecutorCase):
             source=self.alpha,
             controller=self.p0,
         )
-        self.assertEqual(self.world.players[self.p0].life, 0)  # clamps at 0
+        # re-pinned 2026-10-30: no clamp at 0 (CR 119.3, 119.6): 23 - 30.
+        self.assertEqual(self.world.players[self.p0].life, -7)
 
     def test_deal_damage_to_player_clamps(self):
         self.ex.execute(
@@ -210,7 +211,9 @@ class TestLifeAndDamage(ExecutorCase):
             controller=self.p0,
             bindings={"target": self.p1},
         )
-        self.assertEqual(self.world.players[self.p1].life, 0)
+        # re-pinned 2026-10-30: damage is that much life lost, below 0 too (CR 120.3a,
+        # 119.3); the old clamp at 0 recorded 25 damage as 20.
+        self.assertEqual(self.world.players[self.p1].life, -5)
 
     def test_lethal_damage_uses_ledger_pt(self):
         self.ex.execute(

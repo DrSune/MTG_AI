@@ -451,7 +451,10 @@ def _v_lose_life(ctx: ExecCtx, atom: Atom) -> None:
     n = amount(ctx, atom, "amount")
     for player in sorted(role_players(ctx, atom)):
         p = ctx.world.players[player]
-        p.life = max(0, p.life - n)  # life clamps at 0; deaths are 12b state-checks
+        # CR 119.3/119.6: the life total is adjusted, and may go below 0; a player at
+        # 0 or less loses as a state-based action (games' loss check reads <= 0).
+        # The old clamp at 0 also capped the journal's life-loss amount.
+        p.life = p.life - n
         ctx.events.append((len(ctx.events), "LOSE_LIFE", str(player), p.life))
 
 
@@ -508,7 +511,10 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
                 )
                 n_i = new_n
             p = ctx.world.players[target]
-            p.life = max(0, p.life - n_i)
+            # CR 120.3a, 119.3: damage to a player is that much life lost, below 0 too.
+            # The old clamp at 0 recorded 99 damage as 20 (the journal's DAMAGE row is
+            # the life difference), undercounting "that much damage" readers.
+            p.life = p.life - n_i
             ctx.events.append((len(ctx.events), "DAMAGE", str(target), p.life))
             _lifelink_gain(ctx, n_i)  # r20a: lifelink reads ANY damage dealt
             continue
