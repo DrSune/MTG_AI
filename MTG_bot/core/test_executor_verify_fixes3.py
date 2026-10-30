@@ -49,6 +49,7 @@ W4-1 "Create that many" after "whenever one or more nontoken creatures attack" c
      the attackers the trigger's own filter names (Basri Ket's -2; CR 603.2c).
 W4-4 State-based actions are performed, repeatedly, before triggered abilities
      resolve, and again after each one (CR 117.5, 704.3).
+W4-5 "If it entered from your graveyard" reads this object's own entry (CR 400.7).
 """
 
 from __future__ import annotations
@@ -1306,6 +1307,39 @@ class TestW44StateBasedActionsBeforeTriggers(unittest.TestCase):
         self.assertEqual(case.world.players[case.p0].life, life)
         case.ex.fire_triggers()
         self.assertEqual(case.world.players[case.p0].life, life + 3)
+
+
+class TestW45EnteredFromIsPerObject(FixerCase):
+    def move(self, card, frm, to):
+        self.ex.execute(
+            atom(
+                Verb.MOVE_ZONE,
+                cards=target_sel(UNIV, Zone(frm, ControllerRef.YOU)),
+                destination=Zone(to, ControllerRef.YOU),
+            ),
+            source=card,
+            controller=self.p0,
+            bindings={"cards": [card]},
+        )
+
+    def entered_from_graveyard(self, card):
+        from MTG_bot.core.ability_tree import FAtom, FAtomPred
+        from MTG_bot.core.executor.quantity import eval_filter
+
+        pred = FAtom(
+            FAtomPred.ENTERED_THIS_TURN_FROM, zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)
+        )
+        ctx = self.ex._ctx(source=card, controller=self.p0, bindings=None, decisions=())
+        return eval_filter(pred, card, ctx)
+
+    def test_only_this_objects_entry_answers(self):
+        card = self.world.add_card(card_id("Vessel", "1", "1"), self.p0, ZONE_GRAVEYARD)
+        self.move(card, ZoneKind.GRAVEYARD, ZoneKind.BATTLEFIELD)
+        self.assertTrue(self.entered_from_graveyard(card))
+        self.move(card, ZoneKind.BATTLEFIELD, ZoneKind.HAND)
+        self.move(card, ZoneKind.HAND, ZoneKind.BATTLEFIELD)
+        # A new object (CR 400.7) that entered from the hand.
+        self.assertFalse(self.entered_from_graveyard(card))
 
 
 if __name__ == "__main__":

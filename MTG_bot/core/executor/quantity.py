@@ -1438,13 +1438,24 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             )
         from_state = ZONE_KIND_TO_STATE[atom.zone.kind]
         owners = players_for_ref(atom.zone.controller, ctx)
+        # W4-5 (CR 400.7, the V6 twin): the entry must be THIS object's. A card
+        # that entered from the graveyard, left, and entered again from the
+        # stack is a new object that did not enter from the graveyard. Its
+        # object is the one its LAST battlefield entry made (the permanent now,
+        # or the last-known one after it left); a turn-wide search for any
+        # entry of the card answered for the older object.
+        entry = None
         for e in _turn_rows(ctx, pred.name):
-            if e.kind != KIND_ZONE_CHANGE or e.subject != handle:
-                continue
-            frm, to, owner_before, _after = e.zone_move
-            if to == ZONE_BATTLEFIELD and frm == from_state and owner_before in owners:
-                return True
-        return False
+            if (
+                e.kind == KIND_ZONE_CHANGE
+                and e.subject == handle
+                and e.zone_move[1] == ZONE_BATTLEFIELD
+            ):
+                entry = e
+        if entry is None or entry is not _last_battlefield_entry(ctx, handle):
+            return False
+        frm, _to, owner_before, _after = entry.zone_move
+        return frm == from_state and owner_before in owners
     if pred is FAtomPred.CAST_THIS_TURN_FROM:
         # 14d (B-7): "you cast it from your graveyard" (Archfiend's Vessel),
         # "if this spell was cast from anywhere other than your hand" (See
@@ -1843,6 +1854,28 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
     raise NotImplementedError(
         f"executor: filter pred {pred.name} not implemented (12c query surface)"
     )
+
+
+def _last_battlefield_entry(ctx: ExecCtx, handle: Handle) -> GameEvent | None:
+    """W4-5: the journal row of ``handle``'s most recent entry onto the
+    battlefield, over the whole journal (None if it never entered). Its object
+    is the permanent now, or the last-known one if it has left since."""
+    from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
+
+    jrn = ctx.journal
+    if jrn is None:
+        raise NotImplementedError(
+            "executor: an entered-from read needs the journalled zone history "
+            "(this ExecCtx has no journal)"
+        )
+    for e in reversed(jrn.events):
+        if (
+            e.kind == KIND_ZONE_CHANGE
+            and e.subject == handle
+            and e.zone_move[1] == ZONE_BATTLEFIELD
+        ):
+            return e
+    return None
 
 
 def _object_cast_row(ctx: ExecCtx, handle: Handle) -> GameEvent | None:
