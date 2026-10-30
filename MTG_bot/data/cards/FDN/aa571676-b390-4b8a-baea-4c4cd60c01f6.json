@@ -358,7 +358,9 @@
           }
          ],
          "abilities": [],
-         "color": "W"
+         "colors": [
+          "W"
+         ]
         }
        ]
       ]

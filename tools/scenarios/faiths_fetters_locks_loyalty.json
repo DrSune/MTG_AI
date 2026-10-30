@@ -1,0 +1,61 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "R5-7 (CR 605.1a: a loyalty ability is not a mana ability, so 'unless they're mana abilities' does not spare it). Faith's Fetters (an opponent's) enchants Basri Ket during Basri's controller's main phase: the +1 is refused by the lock, not by the loyalty window, and Basri keeps its 3 loyalty.",
+ "cards": [
+  {
+   "key": "ff",
+   "zone": "hand",
+   "controller": 1,
+   "real": "Faith's Fetters"
+  },
+  {
+   "key": "basri",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Basri Ket"
+  },
+  {
+   "key": "bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "enchant",
+   "aura": "ff",
+   "host": "basri"
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "bear"
+   ],
+   "expect_raise": "illegal activation: prohibited:activation_lock"
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 24
+  },
+  "attached": {
+   "ff": "basri"
+  },
+  "counters": {
+   "basri": {
+    "LOYALTY": 3
+   },
+   "bear": {}
+  }
+ }
+}

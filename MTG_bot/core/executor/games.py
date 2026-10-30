@@ -90,6 +90,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    is_mana_ability,
     walk,
 )
 from MTG_bot.core.compiler.card_records import is_verified, load_records
@@ -582,13 +583,14 @@ class RandomPolicy:
     # -- the act surface
     @staticmethod
     def is_mana_activation(option: ActivationOption) -> bool:
-        """'Tap it for mana' recognised from the IR of the option the query
+        """A mana ability, recognised from the IR of the option the query
         handed over (the very ``ActivatedAbility`` the executor will run), not
-        from a card-name table."""
-        atoms = [node for node in walk(option.ability.effect) if isinstance(node, Atom)]
-        return bool(atoms) and all(
-            node.verb in (Verb.ADD_MANA, Verb.TAP) for node in atoms
-        )
+        from a card-name table. R5-7: the one CR 605.1a classifier
+        (:func:`~MTG_bot.core.ability_tree.is_mana_ability`) decides; the old
+        "only ADD_MANA or TAP atoms" test counted "tap target creature"
+        (Shacklegeist) as a mana ability and missed a mana ability that does
+        something else too."""
+        return is_mana_ability(option.ability)
 
     def mana_activations(
         self, options: list[ActivationOption]

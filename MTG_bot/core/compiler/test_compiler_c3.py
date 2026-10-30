@@ -83,7 +83,7 @@ class TestC3CompilerPins(unittest.TestCase):
         """The can't-clause merges into the +1 ability (R11-1 loyalty-trailing
         path), not dropped and not a standalone sentence-outcome.
         re-pinned 2026-10-29: V10 changes its place: the gate is the FIRST
-        step, before the discard it is about (docs/ATOM_DIVERGENCES.md D16),
+        step, before the discard it is about (docs/ATOM_DIVERGENCES.md D17),
         so an opponent who discards their last card does not lose life."""
         res = self._compile(_WAKER)
         gated = [
@@ -136,7 +136,7 @@ class TestC3CompilerPins(unittest.TestCase):
         """The pre-existing "discard a card" step of the +1 ability is
         untouched — the tail is inserted, the discard is not rewritten.
         re-pinned 2026-10-29: V10 moves the who-can't gate before the discard
-        (D16), so the discard is now the LAST step."""
+        (D17), so the discard is now the LAST step."""
         res = self._compile(_WAKER)
         ability = next(
             ab

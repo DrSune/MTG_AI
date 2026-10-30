@@ -709,8 +709,9 @@ class TestLoyaltyXLane(LibraryCase):
     def test_announced_x_is_paid_and_journalled(self):
         activate(self.ex, self.ugin, self.MINUS_X, seat=self.p0, x=2)
         self.assertEqual(self.loyalty(), 5)
-        rows = self.journal_rows("LOYALTY_ACTIVATED")
-        self.assertEqual([r.data for r in rows], [(-2,)])
+        # re-pinned 2026-10-30: R5-7's ABILITY_ACTIVATED row (idx, mana, delta)
+        rows = self.journal_rows("ABILITY_ACTIVATED")
+        self.assertEqual([r.data for r in rows], [(self.MINUS_X, False, -2)])
         self.assertEqual([w for w, _ in self.asks if w.startswith("x:")], [])
 
     def test_x_above_the_loyalty_counters_is_refused_before_paying(self):
@@ -732,8 +733,9 @@ class TestLoyaltyXLane(LibraryCase):
             ability_playable(self.world, self.ex, self.ugin, 0, seat=self.p0),
             "window:loyalty:once_per_turn",
         )
-        rows = self.journal_rows("LOYALTY_ACTIVATED")
-        self.assertEqual([r.data for r in rows], [(0,)])
+        # re-pinned 2026-10-30: R5-7's ABILITY_ACTIVATED row (idx, mana, delta)
+        rows = self.journal_rows("ABILITY_ACTIVATED")
+        self.assertEqual([r.data for r in rows], [(self.MINUS_X, False, 0)])
 
     def test_x_on_a_cost_without_x_is_refused(self):
         with self.assertRaisesRegex(ValueError, r"x:no_x_in_cost"):

@@ -505,7 +505,7 @@ class TestTokens(ExecutorCase):
             toughness=QConst(1),
             keywords=(),
             abilities=(),
-            color="W",
+            colors=("W",),
             enters_tapped=True,
         )
         self.ex.execute(
@@ -545,7 +545,7 @@ class TestTokens(ExecutorCase):
             toughness=QConst(2),
             keywords=(),
             abilities=(),
-            color="G",
+            colors=("G",),
         )
         before = set(self.world.players[self.p1].zone(ZONE_BATTLEFIELD).entries)
         self.ex.execute(

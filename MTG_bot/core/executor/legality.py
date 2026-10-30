@@ -115,6 +115,8 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    is_loyalty_ability,
+    is_mana_ability,
 )
 from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.quantity import Binding, ExecCtx, eval_filter, resolve
@@ -1135,7 +1137,10 @@ def ability_playable(
        ``timing=SORCERY`` (C20) the seat must be ``world.active_player``
        (the skeleton's own main phase) with ``stack_empty=True``. The
        executor has no stack, so emptiness is an explicit parameter of the
-       pre-casting query, per the grammar's C20 note.
+       pre-casting query, per the grammar's C20 note. The window includes
+       the R5-7 activation lock (CR 602.5): a live PREVENT_EFFECT over an
+       AbilityActivatedEvent that covers this ability's kind and object
+       answers ``prohibited:activation_lock`` before anything is paid.
     2. **condition** — ``ActivatedAbility.condition`` (a state predicate
         over the source, the StaticAbility convention) judged against the
         source handle; an unsupported pred raises (flag, never guess).
@@ -1196,7 +1201,14 @@ def ability_playable(
     if handle in world.cards and executor.controller_of(handle) != seat:
         # CR 602.3: only the permanent's controller can activate it.
         return f"window:not_controller:{seat}"
-    loyalty_ability = any(isinstance(p, CostLoyalty) for p in ability.cost.parts)
+    if executor.replacements.prevents_activation(handle, seat, ability):
+        # R5-7, CR 602.5: a player can't begin to activate an ability that's
+        # prohibited from being activated (Faith's Fetters' NON_MANA lock).
+        # The gate sits here, before anything is announced or paid, so every
+        # caller that asks ability_playable inherits it: legal_activations,
+        # activate(), and the payment witness that taps mana sources.
+        return "prohibited:activation_lock"
+    loyalty_ability = is_loyalty_ability(ability)
     if (
         loyalty_ability
         and not executor.layers.instant_window_granted(handle)
@@ -1917,17 +1929,27 @@ def activate(
     if plan is None:  # pragma: no cover - ability_playable just checked
         raise ValueError(f"executor: illegal activation: {plan_reason}")
     pay_costs(executor, plan, source=handle, controller=seat)
-    if any(isinstance(p, CostLoyalty) for p in ability.cost.parts):
+    loyalty_ability = is_loyalty_ability(ability)
+    if loyalty_ability:
         # CR 606.3 once-per-turn clock (13a), keyed on the permanent. Keyed
         # on the COST SHAPE, not the paid amount: a loyalty [−X] with X = 0
-        # removes no counter and is still the turn's loyalty ability.
+        # (or a [0] ability) removes no counter and is still the turn's
+        # loyalty ability.
         executor.loyalty_clock[handle] = executor.world.turn
-        # r22c (Keral Keep Disciples): the LOYALTY_ACTIVATED feed — a
-        # loyalty symbol was PAID, so this activation IS a loyalty
-        # ability (CR 606.2b). The row lands after payment (the same
-        # documented one-call compromise as the r20b targeting rows
-        # below): the queued trigger sees the post-payment world.
-        executor.journal.emit_loyalty_activation(handle, seat, plan.loyalty)
+    # R5-7 (CR 602.2, 605.3b): ONE ABILITY_ACTIVATED row per activation, mana
+    # abilities included — the AbilityActivatedEvent feed. The row carries the
+    # 605.1a verdict and the paid loyalty delta (None = not a loyalty
+    # ability), so a trigger of kind NON_MANA or LOYALTY reads the
+    # classification made at activation time. It lands after payment (the
+    # documented one-call compromise of the r20b targeting rows below): the
+    # queued trigger sees the post-payment world.
+    executor.journal.emit_ability_activation(
+        handle,
+        seat,
+        ability_idx,
+        mana=is_mana_ability(ability),
+        loyalty=plan.loyalty if loyalty_ability else None,
+    )
     bindings: dict[str, Binding] = {}
     chosen = sorted(targets)
     if chosen:

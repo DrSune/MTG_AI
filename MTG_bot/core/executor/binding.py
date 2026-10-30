@@ -49,6 +49,8 @@ from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
     DESIGNATED_PLAYER_REFS,
+    AbilityActivatedEvent,
+    AbilityKind,
     AbilityTriggerEvent,
     Atom,
     AtomArgs,
@@ -77,7 +79,6 @@ from MTG_bot.core.ability_tree import (
     FOr,
     Keyword,
     LifeGainedEvent,
-    LoyaltyActivatedEvent,
     OptionalEffect,
     PtDelta,
     PtDirection,
@@ -104,6 +105,7 @@ from MTG_bot.core.compiler.compiler import PoolCompile
 from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.durations_min import duration_tag
 from MTG_bot.core.executor.events import (
+    KIND_ABILITY_ACTIVATED,
     KIND_ABILITY_TRIGGERED,
     KIND_CARD_DRAWN,
     KIND_CAST,
@@ -114,7 +116,6 @@ from MTG_bot.core.executor.events import (
     KIND_DECLARE_ATTACKERS,
     KIND_DECLARE_BLOCKERS,
     KIND_LIFE_GAINED,
-    KIND_LOYALTY_ACTIVATED,
     KIND_TAP_STATE,
     KIND_TARGETING,
     KIND_TURN_PHASE,
@@ -161,11 +162,12 @@ MAX_TRIGGER_FIRES = 200
 # designation lanes (spell 601.2c plan, activation 602.2b, the 18b trigger
 # channel) ship the journal TARGETING feed and ``_match_node`` subscribes
 # the node (filter over the designated object, the grammar's only slot).
-# r22c (Keral Keep Disciples): LoyaltyActivatedEvent LEFT too — the
-# activation lane ships the journal LOYALTY_ACTIVATED feed (emitted at
-# the loyalty-payment point of legality.activate, CR 606.2b's symbol) and
-# ``_match_node`` subscribes the node (controller scope over the
-# activating player, filter over the permanent — the grammar's two slots).
+# r22c (Keral Keep Disciples): the activation event LEFT too — the
+# activation lane ships the journal feed (since R5-7 one ABILITY_ACTIVATED
+# row per activation, mana included, emitted at the payment point of
+# legality.activate) and ``_match_node`` subscribes AbilityActivatedEvent
+# (actor over the activating player, source over the object, kind over
+# the row's 605.1a verdict and loyalty delta).
 _UNSUPPORTED_EVENTS: dict[type, str] = {
     StepEvent: (
         "12e (step-level subscription emitter; 12d's untap tick is an "
@@ -1067,19 +1069,26 @@ class TriggerBinder:
                     return False
                 return _player_subject_verdict(node.filter, event.subject, ctx)
             return eval_filter(node.filter, event.subject, ctx)
-        if kind == KIND_LOYALTY_ACTIVATED and isinstance(node, LoyaltyActivatedEvent):
-            # r22c (Keral Keep Disciples): the loyalty feed — the node's
-            # CONTROLLER scope reads the ACTIVATING player (the row's
-            # cause, the CR 606.3 seat), its FILTER reads the PERMANENT
-            # whose loyalty ability was paid for (the grammar's "a
-            # Chandra planeswalker" slot — a Basri row evaluates FALSE
-            # here, the negative half of the pack).
-            assert event.subject is not None  # the row names the permanent
+        if kind == KIND_ABILITY_ACTIVATED and isinstance(node, AbilityActivatedEvent):
+            # R5-7 (r22c's loyalty feed, generalised): one row per
+            # activation. ``kind`` reads the row's own classification, made
+            # at activation time by the one 605.1a classifier: NON_MANA
+            # skips mana abilities, LOYALTY keeps only abilities that paid a
+            # loyalty symbol (CR 606.2, a [0] included). ``actor`` reads the
+            # ACTIVATING player (the row's cause), ``source`` the object
+            # whose ability it is (Keral's "a Chandra planeswalker" — a
+            # Basri row evaluates FALSE here, the negative half of the pack).
+            assert event.subject is not None  # the row names the object
             assert event.cause is not None  # the row names its activator
+            _idx, mana, loyalty = event.activation
+            if node.kind is AbilityKind.NON_MANA and mana:
+                return False
+            if node.kind is AbilityKind.LOYALTY and loyalty is None:
+                return False
             ctx = self._match_ctx(source, controller, event)
             if node.actor is not None and not eval_filter(node.actor, event.cause, ctx):
                 return False
-            return eval_filter(node.filter, event.subject, ctx)
+            return eval_filter(node.source, event.subject, ctx)
         return False  # no subscriber shape for this journalled kind
 
     def _match_cast(
@@ -1089,9 +1098,10 @@ class TriggerBinder:
         journalled tuple (``GameEvent.cast``) carries (caster, per-turn
         ordinal, spell kind, from-zone, X): ``controller`` scopes whose
         cast (OPPONENT = "an opponent casts" — Mangara, Ghostly Pilferer),
-        ``ordinal`` is the Nth cast by THAT caster this turn (journal-
-        counted, reset at begin_turn — "whenever you cast your second
-        spell", Double Vision's first-cast ordinal 1), and the zone pair
+        ``ordinal`` is the Nth cast by THAT caster this turn among the
+        spells the node describes (:meth:`_fitting_cast_ordinal` — "whenever
+        you cast your second spell", Double Vision's first instant or sorcery
+        ordinal 1), and the zone pair
         is mutually exclusive in the grammar (R4-3): ``from_zone`` must
         equal the cast's source zone, ``from_zone_not`` EXCLUDES it
         (Ghostly Pilferer: "from anywhere other than their hand" — a zone
@@ -1100,12 +1110,23 @@ class TriggerBinder:
         card (subject of the CAST row) — TYPE_EQ/SUBTYPE_EQ/COLOR_HAS over
         it; Quirion Dryad's "a spell that's white, blue, black, or red" is
         the FOr of COLOR_HAS W/U/B/R (V39: any of them, CR 105.2)."""
-        caster, ordinal, _kind, from_zone, _x, _kicked = event.cast
+        caster = event.cast[0]
         ctx = self._match_ctx(source, controller, event)
         if node.actor is not None and not eval_filter(node.actor, caster, ctx):
             return False
-        if node.ordinal is not None and node.ordinal != ordinal:
+        if not self._cast_fits(node, event, source, controller):
             return False
+        return node.ordinal is None or node.ordinal == self._fitting_cast_ordinal(
+            node, event, source, controller
+        )
+
+    def _cast_fits(
+        self, node: CastSpellEvent, event: GameEvent, source: Handle, controller: Handle
+    ) -> bool:
+        """Does one CAST row's spell fit the node's spell description: its
+        from-zone pair and its filter (the SPELL card is the row's subject)?"""
+        caster, _ordinal, _kind, from_zone, _x, _kicked = event.cast
+        ctx = self._match_ctx(source, controller, event)
         if node.from_zone is not None and not self._cast_zone_matches(
             node.from_zone, caster, from_zone, ctx
         ):
@@ -1116,6 +1137,29 @@ class TriggerBinder:
             return False
         assert event.subject is not None  # the CAST row names the spell card
         return eval_filter(node.filter, event.subject, ctx)
+
+    def _fitting_cast_ordinal(
+        self, node: CastSpellEvent, event: GameEvent, source: Handle, controller: Handle
+    ) -> int:
+        """The ordinal a CastSpellEvent's ``ordinal`` compares with (ontology
+        R5 engine item, Double Vision): the number of spells THIS caster cast
+        this turn that fit the node's description, up to and including this
+        one. "Your first instant or sorcery spell each turn" is the first
+        instant or sorcery, so a creature cast before it does not use it up;
+        the journal row's own ordinal counts every spell, which is exactly
+        this count for an unfiltered node (Mangara's "second spell"). The
+        journal's turn window holds every CAST row since the turn began,
+        including casts made before this permanent arrived, which the count
+        must see. Earlier rows are judged now: the pool's ordinal filters read
+        the spell's types and colours, which do not change as it resolves."""
+        caster = event.cast[0]
+        count = 0
+        for row in self.executor.journal.turn_window():
+            if row.kind != KIND_CAST or row.clock > event.clock or row.cast[0] != caster:
+                continue
+            if self._cast_fits(node, row, source, controller):
+                count += 1
+        return count
 
     def _cast_zone_matches(
         self, zone_ir: Zone, caster: Handle, from_zone: str | None, ctx: ExecCtx

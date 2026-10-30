@@ -27,10 +27,10 @@ shapes and both fingerprint-dumped:
     application record: condition + event spec + optional step + duration.
     The UNTAP consumer is live (12d's untap step consults
     :meth:`ReplacementRegistry.prevents_untap` — the Frost Breath freeze);
-    combat-side prevents (attack/block) and mana-ability prevents are
-    REGISTERED + EXPOSED (:meth:`combat_preventions`) with no consumer yet
-    — the combat phase is post-12e territory and faking a consumer would
-    violate the honest-unsupported mandate.
+    the attack/block declaration consults are live since 16c, and the
+    activation lock (an AbilityActivatedEvent record, R5-7) is consulted
+    by legality's ``ability_playable`` through
+    :meth:`ReplacementRegistry.prevents_activation`.
 
 Matching rules (documented, pinned): the player-subject filter of a
 DamageDealtEvent replacement is read with the PLAYER as subject —
@@ -48,6 +48,7 @@ from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
     QX,
+    AbilityActivatedEvent,
     Atom,
     BecomesBlockedEvent,
     CardDrawnEvent,
@@ -83,6 +84,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    activation_matches_kind,
 )
 from MTG_bot.core.executor.durations import duration_tag
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
@@ -950,6 +952,42 @@ class ReplacementRegistry:
             if not isinstance(event, DeclareAttackersEvent):
                 continue
             if self._pair_vetoed(rec, attacker, attacker):
+                return True
+        return False
+
+    def prevents_activation(
+        self, permanent: Handle, activator: Handle, ability: object
+    ) -> bool:
+        """R5-7 (CR 602.5, 602.5a's "prohibited from being activated"): does a
+        live PREVENT_EFFECT over an :class:`AbilityActivatedEvent` forbid
+        ``activator`` activating ``ability`` of ``permanent``? Faith's
+        Fetters' "its activated abilities can't be activated unless they're
+        mana abilities" is such a record (kind NON_MANA, source the enchanted
+        permanent). Judged in the record's coordinates like the declaration
+        consults (:meth:`_pair_vetoed`): the same liveness rule, the record's
+        designated set bound as ``target``, its condition over the permanent,
+        the event's ``kind`` through the one 605.1a classifier, ``actor``
+        over the activating player and ``source`` over the permanent."""
+        for rec in sorted(self.preventions, key=lambda r: r.seq):
+            event = rec.event
+            if not isinstance(event, AbilityActivatedEvent) or rec.status == "expired":
+                continue
+            if not isinstance(rec.duration, DurationEot) and not self._source_alive(
+                rec.source
+            ):
+                continue
+            ctx = self._rec_ctx(rec, permanent)
+            if isinstance(rec.duration, DurationWhileCondition) and not eval_filter(
+                rec.duration.filter, rec.source, ctx
+            ):
+                continue
+            if rec.condition is not None and not eval_filter(rec.condition, permanent, ctx):
+                continue
+            if not activation_matches_kind(ability, event.kind):
+                continue
+            if event.actor is not None and not eval_filter(event.actor, activator, ctx):
+                continue
+            if eval_filter(event.source, permanent, ctx):
                 return True
         return False
 

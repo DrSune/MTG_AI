@@ -8,7 +8,8 @@ r6-in-r7 / r7-in-r8 precedent):
   Selector it is the legal designation of "up to n targets" (1..n
   chosen, 0..remaining resolved); resolution-time "up to" stays CHOOSE.
 - R8-2/R8-4: ``TokenSpec.color`` / ``enters_tapped`` / ``enters_attacking``
-  trailing optionals (Basri Ket [-2] tokens), omit-when-None with the
+  trailing optionals (Basri Ket [-2] tokens; ontology R5-11 replaced ``color``
+  with the WUBRG tuple ``colors``, omitted when empty), omit-when-None with the
   DUAL registration (_SPECS opt-tags + the NEW _OMIT_IF_EMPTY TokenSpec
   row) — the bare-token byte-shape pin below is the golden-storm guard.
 - R8-3: AtomArgs ``color`` vocabulary += ``"ANY"`` ("mana of any one
@@ -96,7 +97,7 @@ def _token_full() -> at.TokenSpec:
         at.QConst(1),
         (),
         (),
-        color="W",
+        colors=("W",),  # R5-11: the WUBRG tuple replaced the scalar color
         enters_tapped=True,
         enters_attacking=False,
     )
@@ -199,7 +200,9 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "token_full",
         _token_full,
-        "ef38c5cf1cad46454d14cfadec434d332b3b970b18cf0248dc2c5cfda63b7883",
+        # re-pinned 2026-10-30: R5-11 changes the bytes ("color": "W" ->
+        # "colors": ["W"]); the r10/r11 pin sets reuse this row.
+        "c30cbcae798d8b44a6e54a082513af0b95fab9e849bdaf47c8bb85f831be2c39",
     ),
     (
         "mana_any",
@@ -249,7 +252,8 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
     ("qatmost_negative", lambda: at.QAtMost(-2)),
     ("qatmost_bool", lambda: at.QAtMost(True)),
     ("qatmost_str", lambda: at.QAtMost("3")),  # type: ignore[arg-type]
-    # R8-2: TokenSpec color must be a str; the flags must be bools.
+    # R8-2 / R5-11: TokenSpec colors must be distinct WUBRG letters; the
+    # flags must be bools.
     (
         "token_color_nonstr",
         lambda: at.TokenSpec(
@@ -261,7 +265,21 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
             at.QConst(1),
             (),
             (),
-            color=7,  # type: ignore[arg-type]
+            colors=(7,),  # type: ignore[arg-type]
+        ),
+    ),
+    (
+        "token_colors_not_wubrg",
+        lambda: at.TokenSpec(
+            "S", "Creature — S", ("Creature",), ("S",), at.QConst(1), at.QConst(1),
+            (), (), colors=("C",),
+        ),
+    ),
+    (
+        "token_colors_repeated",
+        lambda: at.TokenSpec(
+            "S", "Creature — S", ("Creature",), ("S",), at.QConst(1), at.QConst(1),
+            (), (), colors=("W", "W"),
         ),
     ),
     (
@@ -458,7 +476,8 @@ def test_full_tokenspec_key_shape() -> None:
     """Stated values serialize; an EXPLICIT False is a stated value (not
     the empty default) and serializes as false."""
     d = at.to_dict(_token_full())
-    assert d["color"] == "W"
+    assert d["colors"] == ["W"]  # re-pinned 2026-10-30: R5-11 colors tuple
+    assert "color" not in d
     assert d["enters_tapped"] is True
     assert d["enters_attacking"] is False
     assert d["tag"] == "TokenSpec"

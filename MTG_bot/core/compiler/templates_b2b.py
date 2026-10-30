@@ -40,8 +40,8 @@ Coverage (62 shapes = 58 template-covered + 4 uncovered):
     lossy: "a player or planeswalker" recipient), Jolrael (CardDrawnEvent
     ordinal=2 + Cat token; lossy: token color), Mystic Skyfish (CardDrawnEvent
     ordinal=2 + GRANT_ABILITY FLYING DurationEot), and Keral Keep Disciples
-    (LoyaltyActivatedEvent + EachPlayer ALL_OPPONENTS DEAL_DAMAGE rebound to
-    the iterated opponent).
+    (AbilityActivatedEvent kind LOYALTY + EachPlayer ALL_OPPONENTS DEAL_DAMAGE
+    rebound to the iterated opponent).
 - **4 uncovered normalized keys** have no grammar construct and are recorded
   in ``UNCOVERED``.
 
@@ -57,7 +57,7 @@ Conventions (documented build decisions):
 - ``any target`` is ``Selector(QConst(1), TARGET, universal filter, ANY zone)``.
 - ``X is the number of other attacking creatures`` is a ``QCount`` over a
   selector for other attacking creatures on the battlefield.
-- Token color words populate ``TokenSpec.color`` (grammar round 8 / C-2).
+- Token color words populate ``TokenSpec.colors`` (grammar round 8 / C-2).
 - ``REVEAL`` after ``SEARCH`` cannot reference the searched cards; it reveals
   an unbounded count of cards from the controller's perspective.
 - ``+N/+N`` on a token and counter can differ (e.g. +1/+1 counter, 2/2 token);
@@ -90,9 +90,10 @@ Conventions (documented build decisions):
 - Quantity anaphora (convention C4): "that much" / "that many" ride the
   triggering event and read ``QProp(referent="event", field=AMOUNT)``; the
   event itself carries ``amount=QUnbounded()`` (any amount).
-- ``LoyaltyActivatedEvent`` (grammar round 4, convention C5) carries
+- ``AbilityActivatedEvent`` with ``kind=LOYALTY`` (grammar round 4,
+  convention C5; ontology R5-7 replaced ``LoyaltyActivatedEvent``) carries
   "whenever you activate a loyalty ability of a Chandra planeswalker"; its
-  filter is required (subtype Chandra + type Planeswalker).
+  ``source`` filter is required (subtype Chandra + type Planeswalker).
 
 PC-3: every B2b concrete sentence fullmatches **at most one** template
 (patterns are pairwise disjoint by construction; the three named-card-search
@@ -106,6 +107,8 @@ from dataclasses import replace
 from typing import Final
 
 from MTG_bot.core.ability_tree import (
+    AbilityActivatedEvent,
+    AbilityKind,
     Atom,
     AtomArgs,
     BecomesBlockedEvent,
@@ -132,7 +135,6 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     KeywordAbility,
     LifeGainedEvent,
-    LoyaltyActivatedEvent,
     OptionalEffect,
     PtDelta,
     PtDirection,
@@ -433,7 +435,7 @@ def _bird_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(Keyword.FLYING,),
         abilities=(),
-        color="W",
+        colors=("W",),
     )
 
 
@@ -448,7 +450,7 @@ def _knight_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(Keyword.VIGILANCE,),
         abilities=(),
-        color="W",
+        colors=("W",),
     )
 
 
@@ -463,7 +465,7 @@ def _saproling_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(),
         abilities=(),
-        color="G",
+        colors=("G",),
     )
 
 
@@ -478,7 +480,7 @@ def _cat_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(),
         abilities=(),
-        color="G",
+        colors=("G",),
     )
 
 
@@ -1256,7 +1258,7 @@ def _cast_subtype_token_builder(trigger_subtype: str):
         t = int(m.group("t"))
         tok = m.group("tok")
         # printed color word = un-named capture group 3 (white|green) of both
-        # registrations — C-2 repair: populate TokenSpec.color (round 8).
+        # registrations — C-2 repair: populate TokenSpec.colors (round 8).
         col = "W" if m.group(3) == "white" else "G"
         return _ability(
             CastSpellEvent(
@@ -1283,7 +1285,7 @@ def _cast_subtype_token_builder(trigger_subtype: str):
                                 toughness=QConst(t),
                                 keywords=(),
                                 abilities=(),
-                                color=col,
+                                colors=(col,),
                             ),
                         ),
                         ("count", QConst(1)),
@@ -2138,7 +2140,7 @@ def _build_jolrael_cat_token(m: re.Match[str]) -> SentenceOutcome:
     token.
 
     CardDrawnEvent.ordinal=2 (grammar round 4).  The token is green:
-    TokenSpec.color='G' (round 8, C-2 repair; the old note that the color
+    TokenSpec.colorss=("G",) (round 8, C-2 repair; the old note that the color
     was omitted is stale, m21-fidelity item 3 census 2026-10-29)."""
     p = _n(m, 1)
     t = _n(m, 2)
@@ -2177,8 +2179,9 @@ def _build_keral_keep_disciples(m: re.Match[str]) -> SentenceOutcome:
     """Round 4 row #16: you activate a loyalty ability of a Chandra
     planeswalker, this creature deals 1 damage to each opponent.
 
-    LoyaltyActivatedEvent (grammar round 4, convention C5: the trigger tags
-    the loyalty activation; filter = subtype Chandra + type Planeswalker).
+    AbilityActivatedEvent with kind LOYALTY (grammar round 4, convention C5:
+    the trigger tags the loyalty activation, CR 606.2; source = subtype
+    Chandra + type Planeswalker; ontology R5-7 replaced LoyaltyActivatedEvent).
     "Each opponent" follows the b2b precedent: EachPlayer(ref=ALL_OPPONENTS)
     with the inner DEAL_DAMAGE rebound to the iterated opponent
     (Zone(PLAYER, YOU); PITFALLS 2026-09-22 binding rebinding contract)."""
@@ -2189,9 +2192,10 @@ def _build_keral_keep_disciples(m: re.Match[str]) -> SentenceOutcome:
         )
     )
     return _ability(
-        LoyaltyActivatedEvent(
+        AbilityActivatedEvent(
+            source=chandra,
+            kind=AbilityKind.LOYALTY,
             actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-            filter=chandra,
         ),
         EachPlayer(
             ref=ControllerRef.ALL_OPPONENTS,

@@ -301,7 +301,7 @@ def _build_token_per_party(m: re.Match[str]) -> SentenceOutcome:
                                 toughness=QConst(1),
                                 keywords=(),
                                 abilities=(),
-                                color="W",
+                                colors=("W",),
                             ),
                         ),
                         ("count", _scaled(1)),

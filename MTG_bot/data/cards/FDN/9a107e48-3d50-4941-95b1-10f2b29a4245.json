@@ -156,7 +156,9 @@
            },
            "keywords": [],
            "abilities": [],
-           "color": "W"
+           "colors": [
+            "W"
+           ]
           }
          ]
         ]

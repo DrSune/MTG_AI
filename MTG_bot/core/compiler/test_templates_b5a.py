@@ -18,6 +18,8 @@ import uuid
 from typing import Any
 
 from MTG_bot.core.ability_tree import (
+    AbilityActivatedEvent,
+    AbilityKind,
     ActivatedAbility,
     ActivationWindow,
     Atom,
@@ -1528,7 +1530,10 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(target.mode, SelectorMode.TARGET)
         self.assertEqual(target.zones[0].kind, ZoneKind.STACK)
         self.assertEqual(target.zones[0].controller, ControllerRef.ANY)
-        filt = target.filter
+        # re-pinned 2026-10-30: R5-10 ANDs STACK_KIND_EQ SPELL into the filter
+        self.assertIsInstance(target.filter, FAnd)
+        kind, filt = sorted(target.filter.children, key=lambda c: isinstance(c, FOr))
+        self.assertEqual(kind, FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value="SPELL"))
         self.assertIsInstance(filt, FOr)
         self.assertEqual(len(filt.children), 2)
         first, second = filt.children
@@ -1546,7 +1551,7 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(cmg.amount, QConst(3))
 
     def test_counter_unless_spell(self) -> None:
-        """B5a-counter-unless-spell: COUNTER_SPELL, empty filter, unless {1}."""
+        """B5a-counter-unless-spell: COUNTER_SPELL, target spell, unless {1}."""
         outcome = self._match_outcome("B5a-counter-unless-spell")
         eff = _as_effect(outcome)
         atom = _as_atom(eff.effect)
@@ -1556,9 +1561,11 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertIsInstance(target, Selector)
         self.assertEqual(target.mode, SelectorMode.TARGET)
         self.assertEqual(target.zones[0].kind, ZoneKind.STACK)
-        filt = target.filter
-        self.assertIsInstance(filt, FAnd)
-        self.assertEqual(len(filt.children), 0)
+        # re-pinned 2026-10-30: R5-10 — "target spell" is the bare
+        # STACK_KIND_EQ SPELL atom (it was the universal FAnd(())).
+        self.assertEqual(
+            target.filter, FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value="SPELL")
+        )
         unless = p["unless"]
         self.assertIsInstance(unless, Cost)
         self.assertEqual(len(unless.parts), 1)
@@ -1693,8 +1700,10 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertNotIn("duration", p)
 
     def test_enchant_cant_attack_block_structure(self) -> None:
-        """C11: Seq of two PREVENT atoms (attack + block) on
-        IS_ATTACHED_TO_SOURCE; mana-abilities clause dropped (lossy)."""
+        """C11: Seq of PREVENT atoms (attack + block + the activation lock)
+        on IS_ATTACHED_TO_SOURCE. re-pinned 2026-10-30: R5-7 encodes the
+        mana-abilities clause (it was dropped, lossy) as the third atom,
+        PREVENT_EFFECT(AbilityActivatedEvent(source=enchanted, NON_MANA))."""
         outcome = self._match_outcome("B5a-enchant-cant-attack-block")
         if not isinstance(outcome, AbilityOutcome):
             self.fail(f"expected AbilityOutcome, got {type(outcome)}")
@@ -1704,9 +1713,19 @@ class TestStructuralAssertions(unittest.TestCase):
         eff = ab.effect
         if not isinstance(eff, Seq):
             self.fail(f"expected Seq effect, got {type(eff)}")
-        self.assertEqual(len(eff.steps), 2)
-        attack, block = eff.steps
+        self.assertEqual(len(eff.steps), 3)
+        attack, block, lock = eff.steps
         assert isinstance(attack, Atom) and isinstance(block, Atom)
+        assert isinstance(lock, Atom) and lock.verb is Verb.PREVENT_EFFECT
+        lp = _pairs_dict(lock)
+        self.assertEqual(lp["condition"], FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE))
+        self.assertEqual(
+            lp["event"],
+            AbilityActivatedEvent(
+                source=FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),
+                kind=AbilityKind.NON_MANA,
+            ),
+        )
         ap = _pairs_dict(attack)
         bp = _pairs_dict(block)
         self.assertEqual(ap["condition"], FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE))

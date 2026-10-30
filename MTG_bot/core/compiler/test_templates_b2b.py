@@ -26,6 +26,8 @@ import unittest
 from pathlib import Path
 
 from MTG_bot.core.ability_tree import (
+    AbilityActivatedEvent,
+    AbilityKind,
     Atom,
     BecomesBlockedEvent,
     CardDrawnEvent,
@@ -51,7 +53,6 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     KeywordAbility,
     LifeGainedEvent,
-    LoyaltyActivatedEvent,
     OptionalEffect,
     PtDelta,
     PtDirection,
@@ -1391,12 +1392,14 @@ class TestB2bTriggerEvents(unittest.TestCase):
             )
         )
         event = ability.event
-        assert isinstance(event, LoyaltyActivatedEvent)
+        # R5-7: the activation event of kind LOYALTY (CR 606.2)
+        assert isinstance(event, AbilityActivatedEvent)
+        self.assertIs(event.kind, AbilityKind.LOYALTY)
         self.assertIs(event.actor.who, ControllerRef.YOU)
-        assert isinstance(event.filter, FAnd)
-        subtype = _find_atom(event.filter, FAtomPred.SUBTYPE_EQ)
+        assert isinstance(event.source, FAnd)
+        subtype = _find_atom(event.source, FAtomPred.SUBTYPE_EQ)
         self.assertEqual(subtype.string_value, "Chandra")
-        type_atom = _find_atom(event.filter, FAtomPred.TYPE_EQ)
+        type_atom = _find_atom(event.source, FAtomPred.TYPE_EQ)
         self.assertEqual(type_atom.string_value, "Planeswalker")
 
     # --- small filter assertion helpers ---

@@ -53,8 +53,8 @@ from MTG_bot.core.ability_tree import (
     KickerAbility,
     OptionalEffect,
     QBin,
+    QAtLeast,
     QConst,
-    QUnbounded,
     Quantity,
     Repeat,
     Selector,
@@ -243,9 +243,10 @@ def _phase_in_prevention_effect() -> Atom:
 # folds the opener + its option bullets into one Choose node (or a triggered
 # ability carrying one) so the card no longer reports an unparsed sentence.
 #
-# KNOWN-GAP: "Choose one or more —" (Sublime Epiphany) is approximated with
-#   QUnbounded() — the grammar has no QAtLeast(1), so the minimum-1
-#   constraint is lost.
+# "Choose one or more —" (Sublime Epiphany, Casualties of War) is
+#   Choose(count=QAtLeast(1)) since ontology R5-10/11's engine item
+#   (2026-10-30): at least one mode, at most every mode once (CR 700.2d).
+#   It was QUnbounded(), which also admitted choosing no mode at all.
 # KNOWN-GAP: "attacks or blocks" (Elder Gargaroth) is decomposed into two
 #   TriggeredAbility nodes (DeclareAttackersEvent + DeclareBlockersEvent)
 #   sharing the same Choose effect — the grammar has no composite
@@ -404,7 +405,7 @@ def _expand_choose_opener(
     TriggeredAbility nodes into ``abilities``.
     """
     count = (
-        QUnbounded()
+        QAtLeast(1)  # "one or more": the empty mode set is not a choice (CR 700.2)
         if outcome.kind == _CHOOSE_SPELL_ONE_OR_MORE
         else _CHOOSE_SPELL_COUNTS.get(outcome.kind, QConst(1))
     )
@@ -1007,7 +1008,7 @@ def _insert_before_last_step(effect: Effect, inner: Effect) -> Effect:
     stronger than printed once every player really discards. Within one resolution nothing
     observable happens between the check and the instruction (no choice, no priority; triggers
     wait), so this order is the printed meaning. It departs from printed sentence order:
-    docs/ATOM_DIVERGENCES.md D16.
+    docs/ATOM_DIVERGENCES.md D17.
     """
     if isinstance(effect, Seq):
         return Seq(steps=effect.steps[:-1] + (inner, effect.steps[-1]))
