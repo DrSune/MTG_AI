@@ -45,6 +45,8 @@ V44  Protection (CR 702.16) on a permanent or a player, from any quality (a colo
      Sparkhunter Masticore).
 W4-6 A search's ONE_OF/REST partition divides the cards the search found (Cultivate:
      one onto the battlefield, the other into your hand; CR 701.23a).
+W4-1 "Create that many" after "whenever one or more nontoken creatures attack" counts
+     the attackers the trigger's own filter names (Basri Ket's -2; CR 603.2c).
 """
 
 from __future__ import annotations
@@ -1166,6 +1168,43 @@ class TestW46SearchPartitionDividesTheFoundCards(FixerCase):
             r.run_step(step)
         zone = {k: r.world.zone_of(r.handles[k]).kind for k in ("fo", "pl", "is", "sw")}
         self.assertEqual(zone, {"fo": "hand", "pl": "library", "is": "library", "sw": "battlefield"})
+
+
+class TestW41ThatManyCountsTheTriggersAttackers(unittest.TestCase):
+    def soldiers_after_attack(self, attackers):
+        from MTG_bot.core.executor.games import get_supply
+        from tools.run_scenarios import ScenarioRunner
+
+        def creature(key, name, token):
+            return {"key": key, "name": name, "type": "Creature — Bear", "power": 2,
+                    "toughness": 2, "token": token, "zone": "battlefield", "controller": 0}
+
+        pack = {
+            "set": "M21",
+            "world": {"life": 20, "seed": 7},
+            "cards": [{"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0},
+                      creature("bear", "Bear", False),
+                      creature("t1", "Spirit", True),
+                      creature("t2", "Spirit", True)],
+            "steps": [{"op": "loyalty", "key": "basri", "set": 3},
+                      {"op": "activate", "key": "basri", "idx": 1, "seat": 0},
+                      {"op": "combat", "seat": 0, "attack": {k: True for k in attackers}}],
+            "expect": {},
+        }
+        r = ScenarioRunner(pack, get_supply("all", "M21"))
+        for step in pack["steps"]:
+            r.run_step(step)
+        return sum(
+            1
+            for state in r.world.cards.values()
+            if state.identity.is_token and state.identity.name == "Soldier"
+        )
+
+    def test_one_nontoken_and_two_tokens_make_one_soldier(self):
+        self.assertEqual(self.soldiers_after_attack(("bear", "t1", "t2")), 1)
+
+    def test_tokens_alone_make_none(self):
+        self.assertEqual(self.soldiers_after_attack(("t1", "t2")), 0)
 
 
 if __name__ == "__main__":

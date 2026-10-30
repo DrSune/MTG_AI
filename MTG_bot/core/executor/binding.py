@@ -1409,12 +1409,22 @@ class TriggerBinder:
         # already relies on that ordering), so the group is complete here.
         if event.kind == KIND_DECLARE_ATTACKERS and event.subject is not None:
             group = event.declare_group
+            spec = payload.node.event
+            # W4-1 (CR 603.2c): "Whenever one or more NONTOKEN creatures attack
+            # this turn, create that many ..." (Basri Ket's -2): the antecedent
+            # is the attackers the trigger's own event spec names, matched like
+            # the row that fired it (filter and attacked object), not every
+            # creature in the declaration. Two Bears and a token make 2.
             ctx.bindings["declare_attackers"] = [
                 e.subject
                 for e in self.executor.journal.turn_window()
                 if e.kind == KIND_DECLARE_ATTACKERS
                 and e.declare_group == group
                 and e.subject is not None
+                and (
+                    not isinstance(spec, DeclareAttackersEvent)
+                    or self._match_node(spec, e, payload.source, payload.controller)
+                )
             ]
         node = payload.node
         if node.condition is not None:
