@@ -682,7 +682,9 @@ These are forks, not tasks. See the report that accompanied this audit.
   - Probably stronger than printed. Write the pack first: a search-to-hand with a draw-trigger card
     on the battlefield.
 - **B-68 [same] "Doesn't untap during its controller's untap step" is not applied** (Capture Sphere,
-  Bubble Snare; weaker than printed, true before B-49 too).
+  Bubble Snare; weaker than printed, true before B-49 too). **[FIXED on branch
+  `engine/verify-fixes-2` 2026-10-29 (V16): `replacements.prevents_untap` judges a static carrier's
+  event filter over the card (CR 502.3).]**
 - **B-69 [same] Two damage replacements on one event raise `NotImplementedError`.**
   - `replacements.py:424-425` does not model the affected player's ordering choice (CR 616.1).
   - About 0.25% of coherent M21 games crash on it (seeds 1176, 1356, 1439, 1603, 2230: Fiery
@@ -702,6 +704,21 @@ These are forks, not tasks. See the report that accompanied this audit.
   - Kinetic Augur entering under Glorious Anthem loses the anthem's +1.
   - CR 613.4: characteristic-defining and setting effects (7a/7b) apply before modifications (7c),
     so the fold needs sublayers. Weaker than printed.
+- **B-81 [vfix2, V14, 2026-10-29] Per-object attack triggers fire once per declaration (weaker than
+  printed; gated as R5-14).**
+  - `DeclareAttackersEvent` is (filter, attacked). The same bytes carry "Whenever you attack" / "one
+    or more creatures you control attack" (CR 508.3d: once per declaration; MAPPER_GUIDE prescribes
+    it, `binding._queue` dedups by (source, node, declare_group)) and "Whenever a creature you control
+    [with deathtouch] attacks" (CR 508.3a with 603.2c: once for EACH such attacker, the event subject
+    being that attacker). M21 Hooded Blightfang drains once; Basri, Devoted Paladin's −1 grant
+    ("Whenever a creature attacks this turn, put a +1/+1 counter on it") counters only the first
+    attacker.
+  - Options sent to the gate: (1) an optional field (absent = once per event, so existing trees stay
+    byte-identical) that the per-object templates set, the binder skipping the dedup for it and
+    binding the subject per row; (2) flip the default to per object and mark "one or more"; (3)
+    encode "one or more" as a QAtLeast condition. The coordinator recommends a GENERAL form of (1):
+    once-per-event vs once-per-object is one trigger axis (dies, enters, damage too), so an
+    attack-only field would become a second encoding of it (AGENTS §9).
 - **B-80 [vfix2, V15 residue, 2026-10-29] Untargeted "up to N" still compiles as an exact count.**
   - V15 made "up to N target ..." 0..N (CR 601.2c, 115.6) and Kinetic Augur's "discard up to two"
     QAtMost(2). Three more M21 untargeted choices are QConst: Rewind "Untap up to four lands",

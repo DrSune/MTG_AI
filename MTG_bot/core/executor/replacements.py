@@ -769,7 +769,16 @@ class ReplacementRegistry:
         """The UNTAP-step consumer: does a live prevention veto this
         permanent's untap? (Frost Breath's compiled s2 lands here:
         TapStateEvent(tapped=False), step UNTAP, targets = the cast's
-        designated creatures.)"""
+        designated creatures.)
+
+        V16 (2026-10-29, CR 502.3: "effects can keep one or more of a
+        player's permanents from untapping"): a STATIC carrier designates
+        nothing; its affected set is the event's filter, judged over the card
+        in the record's coordinates (Capture Sphere: "Enchanted creature
+        doesn't untap during its controller's untap step" is IS_ATTACHED_TO_
+        SOURCE ∧ creature, read off the Aura). A static carrier works while
+        its source is on the battlefield. Only designated records were
+        consulted before, so the Aura's creature untapped as usual."""
         for rec in sorted(self.preventions, key=lambda r: r.seq):
             if rec.status == "expired":
                 continue
@@ -778,7 +787,19 @@ class ReplacementRegistry:
                 continue
             if rec.step not in (None, Step.UNTAP):
                 continue
-            if card not in rec.targets:
+            if rec.targets:
+                if card in rec.targets:
+                    return True
+                continue
+            if rec.duration is None and not self._source_alive(rec.source):
+                # a static carrier works while its source is on the
+                # battlefield; a resolved effect with a duration outlives its
+                # source (CR 611.2a, the _pair_vetoed rule)
+                continue
+            ctx = self._rec_ctx(rec, card)
+            if not self._condition_holds(rec, card, ctx):
+                continue
+            if not eval_filter(event.filter, card, ctx):
                 continue
             return True
         return False
